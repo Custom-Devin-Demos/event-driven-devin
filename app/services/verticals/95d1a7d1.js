@@ -174,7 +174,7 @@ const REMEDIATION_DIRECTIVE = [
   '- Service: `app/services/verticals/95d1a7d1.js`',
   '- Code tables: `app/services/verticals/95d1a7d1-codes.js`',
   '- Route: `app/routes/verticals/95d1a7d1.js`',
-  '- Page: `app/public/verticals/95d1a7d1.html` (served at `/95d1a7d1`)',
+  '- Hosted UI: `app/public/verticals/95d1a7d1-app/` (served at `/95d1a7d1/app/`)',
   '- Regression coverage: `tests/95d1a7d1-claim-inquiry.test.js`',
   '',
   'Open a pull request against `main` with the fix.',

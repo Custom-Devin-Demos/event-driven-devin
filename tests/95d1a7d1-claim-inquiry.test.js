@@ -196,25 +196,29 @@ describe('HCPS claims inquiry (95d1a7d1)', () => {
 
 describe('HCPS claims inquiry v1 contract (95d1a7d1)', () => {
   let server;
-  const headers = { 'X-User-Id': 'TESTUSER' };
+  let headers;
 
-  function getJsonWithHeaders(path, extraHeaders) {
+  function request(method, path, extraHeaders, body) {
     const { port } = server.address();
     return new Promise((resolve, reject) => {
-      http.get({ port, path, headers: extraHeaders }, (res) => {
+      const req = http.request({ port, path, method, headers: { 'Content-Type': 'application/json', ...extraHeaders } }, (res) => {
         let raw = '';
         res.on('data', (chunk) => { raw += chunk; });
         res.on('end', () => resolve({ status: res.statusCode, body: JSON.parse(raw) }));
-      }).on('error', reject);
+      });
+      req.on('error', reject);
+      req.end(body ? JSON.stringify(body) : undefined);
     });
   }
 
-  beforeAll((done) => {
+  beforeAll(async () => {
     const app = express();
     app.use(express.json());
     app.use(router);
     server = http.createServer(app);
-    server.listen(0, done);
+    await new Promise((resolve) => server.listen(0, resolve));
+    const login = await request('POST', '/api/95d1a7d1/v1/auth/login', {}, { userId: 'INQUSER1', password: 'inquiry' });
+    headers = { Authorization: `Bearer ${login.body.accessToken}` };
   });
 
   afterAll((done) => {
@@ -225,58 +229,79 @@ describe('HCPS claims inquiry v1 contract (95d1a7d1)', () => {
     createSessionAndAlert.mockClear();
   });
 
-  test('claim detail follows the v1 shape with two-decimal money strings', async () => {
-    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000101', headers);
+  test('login issues a bearer token and /auth/me reports the CLMINQ auth level', async () => {
+    const me = await request('GET', '/api/95d1a7d1/v1/auth/me', headers);
+    expect(me.status).toBe(200);
+    expect(me.body).toEqual({ userId: 'INQUSER1', authLevel: '03' });
+
+    const bad = await request('POST', '/api/95d1a7d1/v1/auth/login', {}, { userId: 'INQUSER1', password: 'wrong' });
+    expect(bad.status).toBe(401);
+    expect(bad.body).toMatchObject({ code: 'UNAUTHENTICATED', returnCode: 8 });
+  });
+
+  test('claim detail follows the ClaimDetail schema with two-decimal money strings', async () => {
+    const res = await request('GET', '/api/95d1a7d1/v1/claims/CLM0000101', headers);
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
+      returnCode: 0,
+      message: 'Claim record retrieved successfully',
       claimId: 'CLM0000101',
-      memberType: 'INDIVIDUAL',
-      provider: { id: 'PRV0001177', name: 'RIVERSIDE FAMILY MEDICINE' },
-      status: 'CLOSED',
-      financial: { charged: '263.00', allowed: '169.00', paid: '139.00', memberResponsibility: '30.00' },
-      message: 'CLAIM FOUND - INQUIRY COMPLETE',
+      memberType: 'I',
+      providerId: 'PRV0001177',
+      providerName: 'RIVERSIDE FAMILY MEDICINE',
+      status: 'C',
+      statusText: 'Closed',
+      serviceType: 'MED',
+      financial: { charged: '263.00', allowed: '169.00', paid: '139.00', memberResponsibility: '30.00', currency: 'USD' },
     });
   });
 
-  test('missing X-User-Id is a 401 in the contract error envelope', async () => {
-    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000101', {});
-    expect(res.status).toBe(401);
-    expect(res.body.error).toMatchObject({ code: 401, returnCode: 8, type: 'ValidationError' });
+  test('missing token is 401 and a user without a SECURITY_AUTH row is 403', async () => {
+    const anon = await request('GET', '/api/95d1a7d1/v1/claims/CLM0000101', {});
+    expect(anon.status).toBe(401);
+    expect(anon.body).toEqual({ code: 'UNAUTHENTICATED', message: 'Sign-on required', returnCode: 8 });
+
+    const login = await request('POST', '/api/95d1a7d1/v1/auth/login', {}, { userId: 'NOAUTH01', password: 'inquiry' });
+    const denied = await request('GET', '/api/95d1a7d1/v1/claims/CLM0000101', { Authorization: `Bearer ${login.body.accessToken}` });
+    expect(denied.status).toBe(403);
+    expect(denied.body).toEqual({ code: 'FORBIDDEN', message: 'No authorization record found', returnCode: 8 });
   });
 
   test('unknown claim maps RC 4 to 404', async () => {
-    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000999', headers);
+    const res = await request('GET', '/api/95d1a7d1/v1/claims/CLM0000999', headers);
     expect(res.status).toBe(404);
-    expect(res.body.error).toMatchObject({ code: 404, returnCode: 4, type: 'NotFoundError' });
+    expect(res.body).toEqual({ code: 'NOT_FOUND', message: 'Claim record not found', returnCode: 4 });
   });
 
-  test('runtime failures map RC 8 to 500 with the exception type', async () => {
-    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000417', headers);
+  test('runtime failures map RC 8 to 500 BACKEND_ERROR and raise the alert', async () => {
+    const res = await request('GET', '/api/95d1a7d1/v1/claims/CLM0000417', headers);
     expect(res.status).toBe(500);
-    expect(res.body.error).toMatchObject({ code: 500, returnCode: 8, type: 'TypeError' });
+    expect(res.body).toMatchObject({ code: 'BACKEND_ERROR', returnCode: 8 });
+    expect(res.body.message).toMatch(/^TypeError: /);
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     expect(createSessionAndAlert.mock.calls[0][0].customer).toBe('95d1a7d1');
   });
 
-  test('positions page mirrors POSMAP columns and paging', async () => {
-    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000101/positions?page=1&pageSize=1', headers);
+  test('positions page mirrors POSMAP columns and offset paging', async () => {
+    const res = await request('GET', '/api/95d1a7d1/v1/claims/CLM0000101/positions?page=1&limit=1', headers);
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ page: 1, pageSize: 1, hasMore: true, totalReturned: 1 });
+    expect(res.body).toMatchObject({ returnCode: 0, claimId: 'CLM0000101', page: 1, limit: 1, recordCount: 1, hasMore: true });
     expect(res.body.items[0]).toEqual({
+      claimId: 'CLM0000101',
+      date: '2026-08-14',
       serviceCode: '99213',
-      serviceDate: '2026-08-14',
       charged: '215.00',
       allowed: '142.60',
       paid: '112.60',
-      status: 'CLOSED',
+      status: 'C',
     });
   });
 
-  test('history is ordered by service date then time descending', async () => {
-    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000101/history', headers);
+  test('history is fixed at 15 rows ordered by service date then time descending', async () => {
+    const res = await request('GET', '/api/95d1a7d1/v1/claims/CLM0000101/history', headers);
     expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ returnCode: 0, pageSize: 15, recordCount: 3, hasMore: false });
     expect(res.body.items.map((row) => row.serviceDate)).toEqual(['2026-08-29', '2026-08-21', '2026-08-15']);
-    expect(res.body.items[0]).toMatchObject({ claimType: 'PAY', charged: '263.00', paid: '139.00' });
-    expect(res.body.hasMore).toBe(false);
+    expect(res.body.items[0]).toMatchObject({ claimId: 'CLM0000101', claimType: 'PAY', charged: '263.00', paid: '139.00' });
   });
 });
