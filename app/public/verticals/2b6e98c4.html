@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Vanta — Workspace seats</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #240642;
+      --paper: #fbf6ff;
+      --chrome: #260048;
+      --accent: #5e05c4;
+      --accent-dark: #4a039c;
+      --lilac: #d6aaff;
+      --tint: #f1e6ff;
+      --muted: #6d5981;
+      --line: #e3d9ee;
+      --green: #09c639;
+      --sans: 'Inter', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.55 var(--sans); color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--lilac); outline-offset: 3px; }
+    .topbar { background: var(--chrome); color: #fff; }
+    .topbar-inner { min-height: 64px; padding: 10px 28px; display: flex; align-items: center; gap: 24px; }
+    .logo { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .mark { width: 26px; height: 26px; }
+    .search { flex: 1; max-width: 420px; min-height: 40px; padding: 9px 14px; border-radius: 8px; background: rgba(255,255,255,0.1); color: #d3cdd9; font-size: 13px; }
+    .top-actions { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 13px; }
+    .top-actions a { display: inline-flex; align-items: center; min-height: 44px; color: #e3c6ff; }
+    .avatar { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--lilac); color: var(--chrome); font-size: 13px; font-weight: 700; }
+    .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: calc(100vh - 64px); }
+    .sidebar { border-right: 1px solid var(--line); background: #fff; padding: 20px 12px; }
+    .side-label { margin: 18px 12px 6px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+    .side-label:first-child { margin-top: 0; }
+    .sidebar a { display: flex; align-items: center; min-height: 40px; padding: 8px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; color: #492f62; }
+    .sidebar a:hover { background: var(--paper); }
+    .sidebar a.active { background: var(--tint); color: var(--accent); font-weight: 600; }
+    .main { padding: 32px 40px 56px; min-width: 0; }
+    .crumbs { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    h1 { margin: 0 0 6px; font-size: 30px; line-height: 1.2; letter-spacing: -0.6px; }
+    .lede { margin: 0 0 28px; color: var(--muted); max-width: 640px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stat { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+    .stat-name { font-size: 13px; font-weight: 600; color: #492f62; }
+    .stat-value { margin-top: 6px; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+    .bar { height: 6px; margin-top: 10px; border-radius: 6px; background: var(--tint); overflow: hidden; }
+    .bar span { display: block; height: 100%; background: var(--accent); border-radius: 6px; }
+    .bar.green span { background: var(--green); }
+    .stat-sub { margin-top: 8px; font-size: 12px; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 28px; }
+    h2 { margin: 0 0 6px; font-size: 20px; line-height: 1.3; }
+    .card-sub { margin: 0 0 22px; font-size: 14px; color: var(--muted); }
+    .badge { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: 100px; background: var(--tint); color: var(--accent); font-size: 12px; font-weight: 600; vertical-align: middle; }
+    .form-group { margin-bottom: 18px; min-width: 0; }
+    .form-group label { display: block; margin-bottom: 7px; font-size: 13px; font-weight: 600; }
+    input, select { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid #b6acc0; border-radius: 8px; background: #fff; color: var(--ink); font-size: 15px; }
+    select:disabled { background: #f4f2f5; color: #6d5981; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field-hint { display: block; margin-top: 6px; font-size: 12px; color: var(--muted); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; padding: 11px 22px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .btn:hover { background: var(--accent-dark); }
+    .btn:disabled { opacity: 0.65; cursor: wait; }
+    .request-status { margin: 10px 0 0; min-height: 22px; font-size: 12px; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border: 1px solid; border-radius: 8px; overflow-wrap: anywhere; font-size: 14px; }
+    .result-box.success { display: block; background: #ecfbf0; border-color: #8fd6a2; color: #12622b; }
+    .result-box.error { display: block; background: #fff1f1; border-color: #f2b3b3; color: #9b2c2c; }
+    .side-card { background: var(--chrome); color: #fff; border-radius: 12px; padding: 28px; }
+    .side-card .eyebrow { margin: 0 0 10px; font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--lilac); }
+    .side-card h2 { color: #fff; }
+    .side-card > p { margin: 8px 0 18px; font-size: 14px; color: #d3cdd9; }
+    .fw-list { list-style: none; margin: 0; padding: 0; }
+    .fw-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-top: 1px solid rgba(255,255,255,0.14); font-size: 14px; }
+    .fw-list .pct { font-variant-numeric: tabular-nums; color: var(--lilac); font-weight: 600; }
+    .docs-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 10px; color: var(--lilac); font-size: 14px; font-weight: 600; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    @media (max-width: 1100px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar, .search, .top-actions a { display: none; }
+      .grid { grid-template-columns: 1fr; }
+      .main { padding: 28px 24px 48px; }
+    }
+    @media (max-width: 480px) {
+      .topbar-inner { padding: 10px 16px; }
+      .main { padding: 24px 16px 72px; }
+      h1 { font-size: 26px; }
+      .stats { grid-template-columns: 1fr; }
+      .card, .side-card { padding: 22px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="logo" href="#top" aria-label="Vanta home">
+        <svg class="mark" viewBox="0 0 26 26" aria-hidden="true"><path d="M2 3h6.2L13 15.6 17.8 3H24L15.6 23h-5.2z" fill="#d6aaff"/></svg>
+        Vanta
+      </a>
+      <div class="search" aria-hidden="true">Search tests, controls, policies…</div>
+      <div class="top-actions">
+        <a href="https://help.vanta.com" target="_blank" rel="noopener noreferrer">Help ↗</a>
+        <span class="avatar" aria-label="Signed in as workspace admin">AD</span>
+      </div>
+    </div>
+  </header>
+  <div class="shell">
+    <nav class="sidebar" aria-label="Workspace navigation">
+      <div class="side-label">Compliance</div>
+      <a href="#top">Home</a>
+      <a href="#top">Frameworks</a>
+      <a href="#top">Controls</a>
+      <a href="#top">Tests</a>
+      <a href="#top">Policies</a>
+      <a href="#top">Documents</a>
+      <div class="side-label">Risk &amp; trust</div>
+      <a href="#top">Vendors</a>
+      <a href="#top">Risk register</a>
+      <a href="#top">Trust Center</a>
+      <div class="side-label">Organization</div>
+      <a href="#top">People</a>
+      <a href="#top">Integrations</a>
+      <a class="active" href="#seats" aria-current="page">Plan &amp; seats</a>
+    </nav>
+    <main class="main" id="top">
+      <div class="crumbs">Settings / Plan &amp; seats</div>
+      <h1>Plan &amp; seats</h1>
+      <p class="lede">Add licensed seats so every owner, reviewer and auditor collaborator can work on your compliance program in Vanta.</p>
+      <section class="stats" aria-label="Program overview">
+        <div class="stat"><div class="stat-name">SOC 2 Type II</div><div class="stat-value">92%</div><div class="bar"><span style="width:92%"></span></div><div class="stat-sub">Audit window opens in 21 days</div></div>
+        <div class="stat"><div class="stat-name">ISO 27001</div><div class="stat-value">71%</div><div class="bar"><span style="width:71%"></span></div><div class="stat-sub">14 controls need an owner</div></div>
+        <div class="stat"><div class="stat-name">Tests passing</div><div class="stat-value">418 / 431</div><div class="bar green"><span style="width:97%"></span></div><div class="stat-sub">Continuously monitored</div></div>
+        <div class="stat"><div class="stat-name">Seats in use</div><div class="stat-value">23 / 25</div><div class="bar"><span style="width:92%"></span></div><div class="stat-sub">Professional plan · annual</div></div>
+      </section>
+      <div class="grid" id="seats">
+        <section class="card" aria-labelledby="seats-title">
+          <h2 id="seats-title">Add workspace seats <span class="badge">Admin</span></h2>
+          <p class="card-sub">New seats are available to invite immediately and are prorated to your renewal date.</p>
+          <form id="provisionForm">
+            <div class="form-group">
+              <label for="product">Team</label>
+              <select id="product">
+                <option value="security_grc">Security &amp; GRC</option>
+                <option value="engineering">Engineering</option>
+                <option value="it_operations">IT operations</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="seats">Additional seats</label>
+                <input id="seats" type="number" min="1" max="250" step="1" value="10" required aria-describedby="seats-hint">
+                <span class="field-hint" id="seats-hint">1–250 seats per request</span>
+              </div>
+              <div class="form-group">
+                <label for="planTier">Plan</label>
+                <select id="planTier"><option value="Professional">Professional</option></select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="region">Data region</label>
+              <select id="region" aria-describedby="region-hint" disabled><option value="us">United States</option></select>
+              <span class="field-hint" id="region-hint">Set when your workspace was created.</span>
+            </div>
+            <button type="submit" class="btn" id="submitBtn">Add seats</button>
+            <p class="request-status" id="requestStatus" role="status">Example workspace. No real account changes.</p>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </section>
+        <aside class="side-card" aria-labelledby="fw-title">
+          <div class="eyebrow">Trust Management Platform</div>
+          <h2 id="fw-title">Your frameworks</h2>
+          <p>Continuous monitoring across every framework your customers ask about.</p>
+          <ul class="fw-list">
+            <li><span>SOC 2</span><span class="pct">92%</span></li>
+            <li><span>ISO 27001</span><span class="pct">71%</span></li>
+            <li><span>HIPAA</span><span class="pct">58%</span></li>
+            <li><span>GDPR</span><span class="pct">64%</span></li>
+          </ul>
+          <a class="docs-link" href="https://www.vanta.com/products/automated-compliance" target="_blank" rel="noopener noreferrer">Explore automated compliance ↗</a>
+        </aside>
+      </div>
+      <footer class="footer">
+        <span>Vanta · Trust Management Platform</span>
+        <span>SOC 2 · ISO 27001 · HIPAA · GDPR · PCI DSS</span>
+      </footer>
+    </main>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('provisionForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const status = document.getElementById('requestStatus');
+      const started = performance.now();
+      button.disabled = true;
+      button.textContent = 'Adding seats…';
+      form.setAttribute('aria-busy', 'true');
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = 'Request in progress…';
+      const timer = setInterval(() => {
+        status.textContent = `Request in progress · ${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      try {
+        const response = await fetch('/api/licenses/provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: document.getElementById('product').value,
+            planName: document.getElementById('planTier').value,
+            seats: Number(document.getElementById('seats').value),
+            billingCycle: 'annual',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'The request could not be completed. Please try again.');
+        result.className = 'result-box success';
+        result.textContent = 'Seats added. You can invite teammates from People now.';
+      } catch (error) {
+        result.className = 'result-box error';
+        result.textContent = `Couldn’t add seats. ${error.message}`;
+      } finally {
+        clearInterval(timer);
+        status.textContent = `Request finished in ${((performance.now() - started) / 1000).toFixed(1)}s`;
+        form.removeAttribute('aria-busy');
+        button.disabled = false;
+        button.textContent = 'Add seats';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

@@ -2846,6 +2846,26 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Sending & Receiving Money',
     disclaimer: 'NOT ACTUALLY A PAYPAL SITE — internal demo only, not affiliated with, endorsed by, or a real PayPal product.',
   },
+  '2b6e98c4': {
+    slug: '2b6e98c4',
+    company: 'Vanta',
+    brandMark: 'V',
+    vertical: 'hightech',
+    page: {
+      file: '2b6e98c4.html',
+      title: 'Vanta — Workspace seats',
+    },
+    theme: {
+      '--accent': '#5E05C4',
+      '--ink': '#240642',
+      '--surface': '#FBF6FF',
+      '--chrome-bg': '#260048',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Vanta Support',
+    supportCenterSub: 'Workspace, plan & seats',
+    disclaimer: 'NOT ACTUALLY A VANTA SITE — internal demo only, not affiliated with, endorsed by, or a real Vanta product.',
+  },
 };
 
 function getOncallSkin(slug) {
