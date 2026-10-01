@@ -46,7 +46,7 @@
   .sec-title h2 { font-size:18px; }
   .note { margin-top:18px; padding:14px 18px; border-left:3px solid var(--gold); background:#fff; color:var(--mut); font-size:13px; }
   .scrim { position:fixed; inset:0; background:rgba(11,31,58,.45); display:none; z-index:20; }
-  .drawer { position:fixed; top:0; right:0; bottom:0; width:460px; background:#fff; z-index:30; transform:translateX(100%); transition:transform .25s ease; display:flex; flex-direction:column; box-shadow:-12px 0 32px rgba(0,0,0,.18); }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:460px; max-width:100%; background:#fff; z-index:30; transform:translateX(100%); transition:transform .25s ease; display:flex; flex-direction:column; box-shadow:-12px 0 32px rgba(0,0,0,.18); }
   .open .scrim { display:block; } .open .drawer { transform:none; }
   .dh { padding:22px 24px; border-bottom:1px solid var(--line); } .dh h3 { font-size:20px; } .dh .sub { margin-top:4px; }
   .db { padding:22px 24px; flex:1; overflow:auto; }
@@ -96,7 +96,7 @@
 <script>
 (function () {
   var el = function (id) { return document.getElementById(id); };
-  var state = { portal: null, invoice: null };
+  var state = { portal: null, invoice: null, gen: 0 };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function money(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
   function day(s) { return new Date(s + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
@@ -127,6 +127,7 @@
   }
 
   function openDrawer(inv) {
+    state.gen++;
     state.invoice = inv;
     el('d-title').textContent = 'Wire instructions';
     el('d-sub').textContent = inv.id + ' · ' + inv.dealName + ' · $' + money(inv.amount);
@@ -140,9 +141,11 @@
     el('verify').onclick = verify;
     el('code').onkeydown = function (e) { if (e.key === 'Enter') verify(); };
   }
-  function close() { el('wrap').classList.remove('open'); }
+  function close() { state.gen++; el('wrap').classList.remove('open'); }
 
   function verify() {
+    var gen = state.gen;
+    var current = function () { return gen === state.gen; };
     var btn = el('verify'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Verifying…'; el('code-err').textContent = '';
     fetch('/api/ed1d21a0/invoices/' + encodeURIComponent(state.invoice.id) + '/wire', {
       method: 'POST',
@@ -155,8 +158,8 @@
       }),
     })
       .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
-      .then(function (r) { if (!r.ok || !r.body.success) return fail(r.body); show(r.body.wire); })
-      .catch(function (err) { fail({ error: err.message, errorClass: 'NetworkError' }); });
+      .then(function (r) { if (!current()) return; if (!r.ok || !r.body.success) return fail(r.body); show(r.body.wire); })
+      .catch(function (err) { if (current()) fail({ error: err.message, errorClass: 'NetworkError' }); });
   }
 
   function show(w) {
@@ -166,7 +169,7 @@
       '<dt>Amount</dt><dd>USD ' + money(w.amount) + '</dd><dt>Reference</dt><dd>' + esc(w.reference) + '</dd></dl>';
     el('d-foot').innerHTML = '<button class="btn pri" id="done">Done</button>';
     el('done').onclick = close;
-    toast('Wire instructions verified', 'View recorded in your activity log', true);
+    toast('Wire instructions verified', 'Reveal audited as wire.revealed', true);
   }
 
   function fail(body) {

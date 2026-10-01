@@ -145,7 +145,7 @@ async function revealWireInstructions(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, invoice: invoice.id },
+      tags: { route: ROUTE, service: SERVICE, invoice: invoice.id, alert_path: 'instant' },
       extra: { requestId, clientId: CLIENT.id, remitTo: invoice.remitTo },
     });
 
