@@ -122,7 +122,7 @@ function sendContractError(res, error) {
   }
   return res.status(500).json({
     code: 'BACKEND_ERROR',
-    message: `${error.name || 'Error'}: ${error.message}`.slice(0, 79),
+    message: 'System error occurred. Contact support.',
     returnCode: 8,
   });
 }

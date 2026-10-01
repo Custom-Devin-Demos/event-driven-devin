@@ -277,7 +277,7 @@ describe('HCPS claims inquiry v1 contract (95d1a7d1)', () => {
     const res = await request('GET', '/95d1a7d1/api/v1/claims/CLM0000417', headers);
     expect(res.status).toBe(500);
     expect(res.body).toMatchObject({ code: 'BACKEND_ERROR', returnCode: 8 });
-    expect(res.body.message).toMatch(/^TypeError: /);
+    expect(res.body.message).toBe('System error occurred. Contact support.');
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     expect(createSessionAndAlert.mock.calls[0][0].customer).toBe('95d1a7d1');
   });
@@ -302,6 +302,6 @@ describe('HCPS claims inquiry v1 contract (95d1a7d1)', () => {
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ returnCode: 0, pageSize: 15, recordCount: 3, hasMore: false });
     expect(res.body.items.map((row) => row.serviceDate)).toEqual(['2026-08-29', '2026-08-21', '2026-08-15']);
-    expect(res.body.items[0]).toMatchObject({ claimId: 'CLM0000101', claimType: 'PAY', charged: '263.00', paid: '139.00' });
+    expect(res.body.items[0]).toMatchObject({ claimId: 'CLM0000101', claimType: 'AP', charged: '263.00', paid: '139.00' });
   });
 });

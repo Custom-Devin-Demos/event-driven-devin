@@ -131,27 +131,28 @@ const CLAIM_POSITIONS = {
 
 /**
  * Claim history rows (CLAIM_HISTORY), newest first by service date then time.
+ * CLAIM_TYPE is the CHAR(2) transaction type: SB submit, AP approve, DN deny, AJ adjust.
  */
 const CLAIM_HISTORY = {
   CLM0000101: [
-    { serviceDate: '2026-08-29', serviceTime: '21:14:07', claimType: 'PAY', charged: 263.0, allowed: 169.0, paid: 139.0 },
-    { serviceDate: '2026-08-21', serviceTime: '09:32:15', claimType: 'ADJ', charged: 263.0, allowed: 169.0, paid: 0 },
-    { serviceDate: '2026-08-15', serviceTime: '08:04:51', claimType: 'ORIG', charged: 263.0, allowed: 0, paid: 0 },
+    { serviceDate: '2026-08-29', serviceTime: '21:14:07', claimType: 'AP', charged: 263.0, allowed: 169.0, paid: 139.0 },
+    { serviceDate: '2026-08-21', serviceTime: '09:32:15', claimType: 'AJ', charged: 263.0, allowed: 169.0, paid: 0 },
+    { serviceDate: '2026-08-15', serviceTime: '08:04:51', claimType: 'SB', charged: 263.0, allowed: 0, paid: 0 },
   ],
   CLM0000238: [
-    { serviceDate: '2026-09-10', serviceTime: '03:02:41', claimType: 'PAY', charged: 374.0, allowed: 242.0, paid: 202.4 },
-    { serviceDate: '2026-09-03', serviceTime: '07:45:00', claimType: 'ORIG', charged: 374.0, allowed: 0, paid: 0 },
+    { serviceDate: '2026-09-10', serviceTime: '03:02:41', claimType: 'AP', charged: 374.0, allowed: 242.0, paid: 202.4 },
+    { serviceDate: '2026-09-03', serviceTime: '07:45:00', claimType: 'SB', charged: 374.0, allowed: 0, paid: 0 },
   ],
   CLM0000305: [
-    { serviceDate: '2026-09-12', serviceTime: '02:47:19', claimType: 'PAY', charged: 412.5, allowed: 287.25, paid: 242.25 },
-    { serviceDate: '2026-09-11', serviceTime: '16:20:33', claimType: 'ORIG', charged: 412.5, allowed: 0, paid: 0 },
+    { serviceDate: '2026-09-12', serviceTime: '02:47:19', claimType: 'AP', charged: 412.5, allowed: 287.25, paid: 242.25 },
+    { serviceDate: '2026-09-11', serviceTime: '16:20:33', claimType: 'SB', charged: 412.5, allowed: 0, paid: 0 },
   ],
   CLM0000417: [
-    { serviceDate: '2026-09-26', serviceTime: '01:39:52', claimType: 'ADJ', charged: 315.0, allowed: 199.5, paid: 153.2 },
-    { serviceDate: '2026-09-19', serviceTime: '10:11:08', claimType: 'ORIG', charged: 315.0, allowed: 0, paid: 0 },
+    { serviceDate: '2026-09-26', serviceTime: '01:39:52', claimType: 'AJ', charged: 315.0, allowed: 199.5, paid: 153.2 },
+    { serviceDate: '2026-09-19', serviceTime: '10:11:08', claimType: 'SB', charged: 315.0, allowed: 0, paid: 0 },
   ],
   CLM0000512: [
-    { serviceDate: '2026-09-23', serviceTime: '14:58:26', claimType: 'ORIG', charged: 185.0, allowed: 0, paid: 0 },
+    { serviceDate: '2026-09-23', serviceTime: '14:58:26', claimType: 'SB', charged: 185.0, allowed: 0, paid: 0 },
   ],
 };
 
