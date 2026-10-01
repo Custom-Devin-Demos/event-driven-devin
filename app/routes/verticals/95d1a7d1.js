@@ -20,7 +20,8 @@ const router = express.Router();
 // front end (COG-GTM/healthinsurance-cobol-demo, web/).
 const APP_WEB_PATH = '/95d1a7d1/app';
 const APP_WEB_DIR = path.join(__dirname, '..', '..', 'public', 'verticals', '95d1a7d1-app');
-const API_V1 = '/api/95d1a7d1/v1';
+// Mirrors `servers[0].url` (/api/v1) of api/openapi.yaml under the app prefix.
+const API_V1 = '/95d1a7d1/api/v1';
 
 router.use(APP_WEB_PATH, express.static(APP_WEB_DIR, { index: 'index.html' }));
 router.get(`${APP_WEB_PATH}/{*splat}`, (_req, res) => {
@@ -34,14 +35,19 @@ router.get('/95d1a7d1', (_req, res) => res.redirect(`${APP_WEB_PATH}/`));
 // ---------------------------------------------------------------------------
 const TOKEN_TTL_SECONDS = 3600;
 const JWT_SECRET = process.env.HCPS_JWT_SECRET || 'hcps-inquiry-dev-secret';
-const DEV_PASSWORD = process.env.HCPS_DEV_PASSWORD || 'inquiry';
+const DEV_PASSWORD = process.env.HCPS_DEV_PASSWORD || '';
 const SECURITY_AUTH = {
   INQUSER1: '03',
   INQUSER2: '01',
   INQUSR01: '03',
   AUDITOR1: '02',
-  NOAUTH01: null,
+  INQUSER9: null,
 };
+
+// Dev sign-on: password is HCPS_DEV_PASSWORD when set, otherwise the user ID.
+function passwordMatches(userId, password) {
+  return password === (DEV_PASSWORD || userId);
+}
 
 function base64url(input) {
   return Buffer.from(input).toString('base64url');
@@ -157,7 +163,7 @@ function toClaimDetail(result) {
 router.post(`${API_V1}/auth/login`, (req, res) => {
   const body = req.body || {};
   const userId = String(body.userId || '').trim().toUpperCase();
-  if (!(userId in SECURITY_AUTH) || body.password !== DEV_PASSWORD) {
+  if (!(userId in SECURITY_AUTH) || !passwordMatches(userId, body.password)) {
     return sendContractError(res, new ContractError(401, 'UNAUTHENTICATED', 'Invalid user ID or password', 8));
   }
   return res.json({ accessToken: signToken(userId), tokenType: 'Bearer', expiresIn: TOKEN_TTL_SECONDS, userId });
