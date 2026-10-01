@@ -160,6 +160,7 @@ describe('HCPS claims inquiry v1 contract (95d1a7d1)', () => {
 
   beforeEach(() => {
     createSessionAndAlert.mockClear();
+    Sentry.captureException.mockClear();
   });
 
   test('login issues a bearer token and /auth/me reports the CLMINQ auth level', async () => {
