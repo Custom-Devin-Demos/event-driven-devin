@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sensor Event Ingest · OT Platform Console</title>
+  <link rel="icon" type="image/x-icon" href="/verticals/assets/311c628f/favicon.ico">
+  <link rel="apple-touch-icon" href="/verticals/assets/311c628f/touch.png">
+  <style>
+    :root {
+      --v-red: #E80033;
+      --v-red-dark: #B8002A;
+      --v-ink: #2D2B2A;
+      --v-ink-soft: rgba(45, 43, 42, 0.7);
+      --v-ink-mute: rgba(45, 43, 42, 0.5);
+      --v-line: #E2E1DF;
+      --v-paper: #F5F5F5;
+      --v-white: #FFFFFF;
+      --v-navy: #1F2A3C;
+      --v-green: #1E8449;
+      --v-amber: #C77700;
+      --v-serif: Georgia, "Times New Roman", Times, serif;
+      --v-sans: Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--v-sans); font-size: 14px; line-height: 20px; color: var(--v-ink); background: var(--v-paper); }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+
+    .topbar { background: var(--v-white); border-bottom: 1px solid var(--v-line); }
+    .topbar-inner { max-width: 1360px; margin: 0 auto; padding: 0 28px; height: 64px; display: flex; align-items: center; gap: 22px; }
+    .brand { display: flex; align-items: center; gap: 16px; }
+    .brand img { height: 36px; width: 109px; object-fit: contain; display: block; }
+    .brand .divider { width: 1px; height: 30px; background: var(--v-line); }
+    .brand .system { font-family: var(--v-serif); font-size: 17px; font-weight: 700; color: var(--v-ink); letter-spacing: 0.1px; }
+    .brand .system small { display: block; font-family: var(--v-sans); font-size: 11px; font-weight: 400; color: var(--v-ink-mute); letter-spacing: 0.4px; text-transform: uppercase; margin-top: 1px; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 18px; font-size: 12px; color: var(--v-ink-soft); }
+    .env { background: var(--v-ink); color: #fff; font-size: 10px; letter-spacing: 1px; padding: 3px 8px; border-radius: 2px; font-weight: 700; }
+    .user { display: flex; align-items: center; gap: 8px; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--v-navy); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .back { font-size: 11px; color: var(--v-ink-mute); }
+    .back:hover { color: var(--v-red); }
+
+    .nav { background: var(--v-ink); }
+    .nav-inner { max-width: 1360px; margin: 0 auto; padding: 0 28px; display: flex; align-items: stretch; }
+    .nav a { color: #fff; font-size: 13px; padding: 13px 20px; display: block; opacity: 0.78; border-bottom: 3px solid transparent; }
+    .nav a:hover { opacity: 1; }
+    .nav a.active { opacity: 1; border-bottom-color: var(--v-red); font-weight: 700; }
+    .nav .spacer { flex: 1; }
+    .nav .site { color: rgba(255,255,255,0.7); font-size: 12px; padding: 13px 0; }
+
+    .strip { background: var(--v-white); border-bottom: 1px solid var(--v-line); }
+    .strip-inner { max-width: 1360px; margin: 0 auto; padding: 0 28px; height: 40px; display: flex; align-items: center; gap: 24px; font-size: 12px; color: var(--v-ink-soft); white-space: nowrap; overflow: hidden; }
+    .strip code { font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 11.5px; color: var(--v-ink); background: var(--v-paper); padding: 2px 6px; border-radius: 2px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 11px; letter-spacing: 0.6px; text-transform: uppercase; padding: 3px 10px; border-radius: 12px; }
+    .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .pill.healthy { background: rgba(30,132,73,0.1); color: var(--v-green); }
+    .pill.stalled { background: rgba(232,0,51,0.1); color: var(--v-red); }
+    .pill.stalled::before { animation: v-blink 1s infinite; }
+    @keyframes v-blink { 50% { opacity: 0.2; } }
+    .strip .right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .reset { display: none; font-size: 11px; color: var(--v-ink-mute); background: none; border: 1px solid var(--v-line); border-radius: 2px; padding: 2px 8px; line-height: 16px; }
+    .reset:hover { color: var(--v-ink); border-color: var(--v-ink-mute); }
+    body.stalled .reset { display: inline-block; }
+
+    .page { max-width: 1360px; margin: 0 auto; padding: 26px 28px 60px; }
+    .page-head { display: flex; align-items: flex-end; gap: 20px; margin-bottom: 22px; }
+    .page-head h1 { font-family: var(--v-serif); font-size: 28px; line-height: 32px; font-weight: 700; margin: 0; }
+    .page-head p { margin: 6px 0 0; color: var(--v-ink-soft); font-size: 13px; }
+    .actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .btn { border: 0; border-radius: 3px; font-size: 14px; font-weight: 700; padding: 11px 22px; line-height: 18px; }
+    .btn-primary { background: var(--v-red); color: #fff; }
+    .btn-primary:hover { background: var(--v-red-dark); }
+    .btn-primary[disabled] { opacity: 0.6; cursor: default; }
+    .btn-ghost { background: var(--v-white); color: var(--v-ink); border: 1px solid var(--v-line); display: none; }
+    .btn-ghost:hover { border-color: var(--v-ink-mute); }
+    body.stalled .btn-ghost { display: inline-block; }
+    .next-run { font-size: 12px; color: var(--v-ink-mute); }
+
+    .kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 18px; }
+    .kpi { background: var(--v-white); border: 1px solid var(--v-line); border-radius: 3px; padding: 16px 18px 14px; min-height: 96px; position: relative; }
+    .kpi .label { font-size: 11px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--v-ink-mute); margin-bottom: 8px; }
+    .kpi .value { font-family: var(--v-serif); font-size: 28px; line-height: 30px; font-weight: 700; color: var(--v-ink); }
+    .kpi .value small { font-family: var(--v-sans); font-size: 12px; font-weight: 400; color: var(--v-ink-mute); margin-left: 4px; }
+    .kpi .sub { font-size: 11.5px; color: var(--v-ink-soft); margin-top: 6px; }
+    .kpi.alert { border-color: var(--v-red); box-shadow: inset 3px 0 0 var(--v-red); }
+    .kpi.alert .value { color: var(--v-red); }
+    .kpi.ok .value { color: var(--v-green); }
+
+    .grid { display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .card { background: var(--v-white); border: 1px solid var(--v-line); border-radius: 3px; }
+    .card-head { padding: 14px 18px; border-bottom: 1px solid var(--v-line); display: flex; align-items: center; gap: 12px; }
+    .card-head h2 { font-family: var(--v-serif); font-size: 17px; font-weight: 700; margin: 0; }
+    .card-head .meta { margin-left: auto; font-size: 11.5px; color: var(--v-ink-mute); }
+    .card-body { padding: 18px; }
+
+    .flow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; align-items: stretch; }
+    .node { position: relative; padding: 12px 10px 12px 14px; border: 1px solid var(--v-line); border-radius: 3px; background: var(--v-paper); margin-right: 22px; min-height: 108px; }
+    .node::after { content: ""; position: absolute; right: -18px; top: 50%; width: 14px; height: 2px; background: var(--v-ink-mute); }
+    .node:last-child { margin-right: 0; }
+    .node:last-child::after { display: none; }
+    .node .n-label { font-size: 10.5px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--v-ink-mute); margin-bottom: 4px; }
+    .node .n-title { font-weight: 700; font-size: 13px; line-height: 17px; }
+    .node .n-sub { font-size: 11.5px; color: var(--v-ink-soft); margin-top: 5px; line-height: 15px; }
+    .node .n-status { margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--v-green); }
+    .node.hot { background: #fff; border-color: var(--v-red); box-shadow: 0 0 0 2px rgba(232,0,51,0.12); }
+    .node.hot .n-status { color: var(--v-red); }
+    .node.warn .n-status { color: var(--v-amber); }
+    .node.stale .n-status { color: var(--v-amber); }
+
+    .chart { position: relative; height: 150px; display: flex; align-items: flex-end; gap: 3px; padding-top: 10px; border-bottom: 1px solid var(--v-line); }
+    .bar { flex: 1; background: var(--v-navy); opacity: 0.55; border-radius: 1px 1px 0 0; min-height: 2px; transition: height 0.4s ease; }
+    .bar.hot { background: var(--v-red); opacity: 0.9; }
+    .chart .threshold { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--v-red); font-size: 10px; color: var(--v-red); text-align: right; padding-right: 4px; line-height: 12px; }
+    .chart-foot { display: flex; justify-content: space-between; font-size: 11px; color: var(--v-ink-mute); margin-top: 6px; }
+
+    .tabs { display: flex; border-bottom: 1px solid var(--v-line); padding: 0 18px; }
+    .tab { padding: 12px 16px; font-size: 13px; color: var(--v-ink-soft); border-bottom: 3px solid transparent; background: none; border-top: 0; border-left: 0; border-right: 0; margin-bottom: -1px; }
+    .tab.active { color: var(--v-ink); font-weight: 700; border-bottom-color: var(--v-red); }
+    .tab .count { display: inline-block; margin-left: 6px; font-size: 10.5px; background: var(--v-paper); color: var(--v-ink-soft); padding: 1px 7px; border-radius: 9px; font-weight: 700; }
+    .tab .count.hot { background: var(--v-red); color: #fff; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--v-ink-mute); font-weight: 700; padding: 10px 18px; border-bottom: 1px solid var(--v-line); background: #FAFAFA; }
+    td { padding: 11px 18px; border-bottom: 1px solid var(--v-line); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    td.mono, code.mono { font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12px; }
+    .tag { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 2px; letter-spacing: 0.3px; }
+    .tag.ok { background: rgba(30,132,73,0.1); color: var(--v-green); }
+    .tag.bad { background: rgba(232,0,51,0.1); color: var(--v-red); }
+    .tag.warn { background: rgba(199,119,0,0.12); color: var(--v-amber); }
+    .tag.neutral { background: var(--v-paper); color: var(--v-ink-soft); }
+    .muted { color: var(--v-ink-mute); }
+    .empty { padding: 36px 18px; text-align: center; color: var(--v-ink-mute); font-size: 13px; }
+    pre.frame { margin: 0; background: var(--v-ink); color: #F5F5F5; font-size: 11.5px; line-height: 16px; padding: 14px 16px; border-radius: 3px; overflow: auto; font-family: "SFMono-Regular", Menlo, Consolas, monospace; }
+    .pending-head { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 16px 18px; border-bottom: 1px solid var(--v-line); }
+    .pending-head .k { font-size: 10.5px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--v-ink-mute); }
+    .pending-head .v { font-weight: 700; margin-top: 3px; word-break: break-all; }
+    .pending-head .v.bad { color: var(--v-red); }
+    .sinks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .sink { border: 1px solid var(--v-line); border-radius: 3px; padding: 12px 14px; }
+    .sink .s-title { font-weight: 700; font-size: 13px; }
+    .sink .s-sys { font-size: 11.5px; color: var(--v-ink-soft); margin-top: 2px; }
+    .sink .s-foot { display: flex; justify-content: space-between; margin-top: 10px; font-size: 11.5px; color: var(--v-ink-mute); }
+
+    .footer { border-top: 1px solid var(--v-line); margin-top: 30px; padding: 18px 0 0; font-size: 11.5px; color: var(--v-ink-mute); display: flex; gap: 20px; }
+    .footer .r { margin-left: auto; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 420px; background: rgba(0,0,0,0.85); color: #fff; border-radius: 4px; padding: 14px 18px 14px 16px; font-size: 13px; line-height: 18px; transform: translateX(120%); transition: transform 0.35s ease; z-index: 50; border-left: 4px solid var(--v-red); }
+    .toast.show { transform: translateX(0); }
+    .toast.ok { border-left-color: var(--v-green); }
+    .toast .t-title { font-weight: 700; margin-bottom: 3px; }
+    .toast .t-body { opacity: 0.9; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img src="/verticals/assets/311c628f/logo.svg" alt="Dow"
+             onerror="this.onerror=null;this.src='https://cdn.cookielaw.org/logos/c213ad18-b5a9-42d5-b470-6070e6576624/b34d878f-85d7-4518-aae8-8ac3b1f8a092/7f42b1dc-c1f0-4730-9564-86d2d6845eeb/DOWdiamond-red_8-19.png';">
+        <span class="divider"></span>
+        <div class="system">OT Platform Console<small>Operations Technology · Manufacturing &amp; Engineering</small></div>
+      </div>
+      <div class="topbar-right">
+        <span class="env">PROD</span>
+        <span id="clock">—</span>
+        <span class="user"><span class="avatar">JA</span>J. Alvarez · OT Platform Reliability</span>
+        <a class="back" href="/">← All Demos</a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#">Plant Operations</a>
+      <a href="#" class="active">Sensor Event Ingest</a>
+      <a href="#">Historian</a>
+      <a href="#">Alarms &amp; Events</a>
+      <a href="#">Reliability</a>
+      <a href="#">AI SRE</a>
+      <span class="spacer"></span>
+      <span class="site" id="site-name">Texas Operations — Freeport</span>
+    </div>
+  </nav>
+
+  <div class="strip">
+    <div class="strip-inner">
+      <span>Consumer <span id="status-pill" class="pill healthy">healthy</span></span>
+      <span>Stream <code id="strip-stream">—</code></span>
+      <span>Group <code id="strip-group">—</code></span>
+      <span>Last ack <strong id="strip-ack">—</strong></span>
+      <span class="right">
+        <span id="strip-note" class="muted">Window cadence 30s · 240 entries</span>
+        <button class="reset" id="reset" title="Presenter control: clear the stalled window and pending entries and return the console to its standby state">Reset</button>
+      </span>
+    </div>
+  </div>
+
+  <main class="page">
+    <div class="page-head">
+      <div>
+        <h1>Sensor Event Ingest</h1>
+        <p id="page-sub">PLC racks → edge gateways → Event Hubs → Redis Streams → historian &amp; analytics</p>
+      </div>
+      <div class="actions">
+        <span class="next-run" id="next-run">Next scheduled window in 0:30</span>
+        <button class="btn btn-ghost" id="retry">Retry head of stream</button>
+        <button class="btn btn-primary" id="run-window">Process next window</button>
+      </div>
+    </div>
+
+    <section class="kpis">
+      <div class="kpi ok" id="kpi-status"><div class="label">Consumer status</div><div class="value" id="k-status">—</div><div class="sub" id="k-status-sub">—</div></div>
+      <div class="kpi" id="kpi-pending"><div class="label">Pending entries (backlog)</div><div class="value" id="k-pending">—</div><div class="sub" id="k-pending-sub">—</div></div>
+      <div class="kpi" id="kpi-oldest"><div class="label">Oldest pending</div><div class="value" id="k-oldest">—</div><div class="sub" id="k-oldest-sub">—</div></div>
+      <div class="kpi" id="kpi-lag"><div class="label">Consumer lag</div><div class="value" id="k-lag">—</div><div class="sub" id="k-lag-sub">—</div></div>
+      <div class="kpi"><div class="label">Throughput</div><div class="value" id="k-tp">—</div><div class="sub" id="k-tp-sub">—</div></div>
+      <div class="kpi"><div class="label">Entries processed</div><div class="value" id="k-proc">—</div><div class="sub" id="k-proc-sub">—</div></div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <div class="card-head"><h2>Ingest pipeline</h2><span class="meta" id="flow-meta">—</span></div>
+        <div class="card-body">
+          <div class="flow" id="flow"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Backlog · pending entries</h2><span class="meta">live · 5s samples</span></div>
+        <div class="card-body">
+          <div class="chart" id="chart"></div>
+          <div class="chart-foot"><span>2 min ago</span><span id="chart-now">now · —</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="windows">Recent windows</button>
+        <button class="tab" data-tab="pending">Pending entries<span class="count" id="count-pending">0</span></button>
+        <button class="tab" data-tab="racks">PLC racks &amp; gateways<span class="count" id="count-racks">0</span></button>
+        <button class="tab" data-tab="downstream">Downstream consumers</button>
+      </div>
+
+      <div class="panel active" id="panel-windows">
+        <table>
+          <thead><tr><th>Window</th><th>Received</th><th>Entries</th><th>Gateway firmware</th><th>Units</th><th>Duration</th><th>Result</th></tr></thead>
+          <tbody id="windows-body"></tbody>
+        </table>
+      </div>
+
+      <div class="panel" id="panel-pending">
+        <div id="pending-wrap"></div>
+      </div>
+
+      <div class="panel" id="panel-racks">
+        <table>
+          <thead><tr><th>Rack</th><th>Unit</th><th>Controller</th><th>Edge gateway</th><th>Firmware</th><th>Tags</th><th>Change</th></tr></thead>
+          <tbody id="racks-body"></tbody>
+        </table>
+      </div>
+
+      <div class="panel" id="panel-downstream">
+        <div class="card-body"><div class="sinks" id="sinks"></div></div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <span>Dow OT Platform Console · Internal use only</span>
+      <span id="foot-release">plant-sensor-ingest</span>
+      <span class="r">© Dow · Operations Technology</span>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"><div class="t-title" id="toast-title"></div><div class="t-body" id="toast-body"></div></div>
+
+  <script>
+    var API = '/api/311c628f';
+    var TZ = 'America/Chicago';
+    var state = { overview: null, busy: false, history: [] };
+    var MAX_POINTS = 24;
+
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+      })
+      .catch(function () {});
+
+    function postHeaders() {
+      var h = { 'Content-Type': 'application/json' };
+      var secret = localStorage.getItem('sessionSecret');
+      if (secret) h['x-session-secret'] = secret;
+      return h;
+    }
+
+    function identity() {
+      return {
+        devinOrgId: localStorage.getItem('devinOrgId') || undefined,
+        devinUserId: localStorage.getItem('devinUserId') || undefined,
+        devinEmail: localStorage.getItem('devinEmail') || undefined
+      };
+    }
+
+    function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function fmtNum(n) { return Number(n || 0).toLocaleString('en-US'); }
+    function fmtTime(iso) {
+      if (!iso) return '—';
+      return new Intl.DateTimeFormat('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(new Date(iso)) + ' CT';
+    }
+    function fmtDur(ms) {
+      ms = Number(ms || 0);
+      if (ms < 1000) return Math.round(ms) + ' ms';
+      if (ms < 60000) return (ms / 1000).toFixed(1) + ' s';
+      var m = Math.floor(ms / 60000), s = Math.round((ms % 60000) / 1000);
+      return m + 'm ' + (s < 10 ? '0' : '') + s + 's';
+    }
+    function fwTag(fw) { return fw.indexOf('7.') === 0 ? 'warn' : 'neutral'; }
+
+    var toastTimer = null;
+    function toast(kind, title, body) {
+      var el = document.getElementById('toast');
+      document.getElementById('toast-title').textContent = title;
+      document.getElementById('toast-body').textContent = body || '';
+      el.className = 'toast show' + (kind === 'ok' ? ' ok' : '');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { el.className = 'toast' + (kind === 'ok' ? ' ok' : ''); }, 6000);
+    }
+
+    function renderKpis(o) {
+      var s = o.summary, stalled = s.status === 'stalled';
+      document.body.className = stalled ? 'stalled' : '';
+      var pill = document.getElementById('status-pill');
+      pill.className = 'pill ' + (stalled ? 'stalled' : 'healthy');
+      pill.textContent = stalled ? 'stalled' : 'healthy';
+      document.getElementById('strip-stream').textContent = s.stream;
+      document.getElementById('strip-group').textContent = s.consumerGroup;
+      document.getElementById('strip-ack').textContent = fmtTime(s.lastAckAt);
+      document.getElementById('strip-note').textContent = stalled
+        ? 'Blocked at ' + s.blockingEntryId + ' · since ' + fmtTime(s.stalledAt)
+        : 'Window cadence ' + o.site.windowSeconds + 's · ' + o.site.windowSize + ' entries';
+      document.getElementById('site-name').textContent = o.site.name;
+      document.getElementById('foot-release').textContent = 'plant-sensor-ingest · Redis ' + o.site.redisCluster + ' · Event Hubs ' + o.site.eventHubNamespace;
+
+      var kStatus = document.getElementById('kpi-status');
+      kStatus.className = 'kpi ' + (stalled ? 'alert' : 'ok');
+      document.getElementById('k-status').textContent = stalled ? 'Stalled' : 'Healthy';
+      document.getElementById('k-status-sub').textContent = stalled ? (s.lastError || 'Window not acknowledged') : 'XREADGROUP / XACK cycle nominal';
+
+      document.getElementById('kpi-pending').className = 'kpi' + (s.pendingEntries > 400 ? ' alert' : '');
+      document.getElementById('k-pending').textContent = fmtNum(s.pendingEntries);
+      document.getElementById('k-pending-sub').textContent = stalled ? 'Growing ~' + Math.round(o.site.windowSize / o.site.windowSeconds) + ' entries/s · ' + s.pendingWindows + ' window(s) pending' : 'XPENDING · steady state';
+
+      document.getElementById('kpi-oldest').className = 'kpi' + (s.oldestPendingMs > 60000 ? ' alert' : '');
+      document.getElementById('k-oldest').textContent = fmtDur(s.oldestPendingMs);
+      document.getElementById('k-oldest-sub').textContent = stalled ? 'Head of stream blocked' : 'Within 2s SLO';
+
+      document.getElementById('kpi-lag').className = 'kpi' + (s.lagMs > 60000 ? ' alert' : '');
+      document.getElementById('k-lag').textContent = fmtDur(s.lagMs);
+      document.getElementById('k-lag-sub').textContent = stalled ? 'Monitor: lag > 60s for 5m → page' : 'Monitor threshold 60s';
+
+      document.getElementById('k-tp').innerHTML = esc(s.throughputPerSecond) + '<small>entries/s</small>';
+      document.getElementById('k-tp-sub').textContent = stalled ? 'No acks since stall' : fmtNum(o.site.windowSize) + ' entries / ' + o.site.windowSeconds + 's window';
+      document.getElementById('k-proc').textContent = fmtNum(s.entriesProcessed);
+      document.getElementById('k-proc-sub').textContent = fmtNum(s.windowsProcessed) + ' windows acked · ' + s.tagsConfigured + ' tags';
+    }
+
+    function renderFlow(o) {
+      var s = o.summary, stalled = s.status === 'stalled';
+      var updated = o.racks.filter(function (r) { return r.firmware === o.firmwareRollout.toFirmware; }).length;
+      var stale = o.downstream.filter(function (d) { return d.status !== 'current'; }).length;
+      var nodes = [
+        { label: 'Source', title: o.racks.length + ' PLC racks', sub: 'ControlLogix 5580 · S7-1500', status: s.racksReporting + '/' + o.racks.length + ' reporting', cls: '' },
+        { label: 'Edge', title: 'Edge gateways', sub: 'OPC UA → Event Hubs bridge', status: updated ? updated + ' on fw ' + o.firmwareRollout.toFirmware + ' (' + o.firmwareRollout.changeTicket + ')' : 'fw ' + o.firmwareRollout.fromFirmware, cls: updated ? 'warn' : '' },
+        { label: 'Transport', title: 'Event Hubs', sub: o.site.eventHub, status: 'Receiving', cls: '' },
+        { label: 'Buffer', title: 'Redis Stream', sub: s.stream, status: fmtNum(s.pendingEntries) + ' pending', cls: stalled ? 'hot' : '' },
+        { label: 'Consumer', title: s.consumerGroup, sub: s.consumerName, status: stalled ? 'STALLED · ' + s.blockingEntryId : 'Acking · ' + s.throughputPerSecond + '/s', cls: stalled ? 'hot' : '' },
+        { label: 'Sinks', title: o.downstream.length + ' downstream systems', sub: 'Historian · analytics · HMI', status: stale ? stale + ' stale' : 'Current', cls: stale ? 'stale' : '' }
+      ];
+      document.getElementById('flow').innerHTML = nodes.map(function (n) {
+        return '<div class="node ' + n.cls + '"><div class="n-label">' + esc(n.label) + '</div><div class="n-title">' + esc(n.title) + '</div><div class="n-sub">' + esc(n.sub) + '</div><div class="n-status">' + esc(n.status) + '</div></div>';
+      }).join('');
+      document.getElementById('flow-meta').textContent = stalled ? 'Head-of-line blocked at ' + s.blockingEntryId : 'Last delivered ' + (s.lastDeliveredId || '—');
+    }
+
+    function renderChart(o) {
+      var s = o.summary;
+      state.history.push({ v: s.pendingEntries, hot: s.status === 'stalled' });
+      while (state.history.length < MAX_POINTS) state.history.unshift({ v: 96, hot: false });
+      if (state.history.length > MAX_POINTS) state.history.shift();
+      var max = Math.max(400, Math.max.apply(null, state.history.map(function (h) { return h.v; })));
+      var chart = document.getElementById('chart');
+      var thresholdPct = Math.round((400 / max) * 100);
+      chart.innerHTML = '<div class="threshold" style="bottom:' + thresholdPct + '%">alert · 400</div>' + state.history.map(function (h) {
+        return '<div class="bar' + (h.hot ? ' hot' : '') + '" style="height:' + Math.max(2, Math.round((h.v / max) * 100)) + '%" title="' + fmtNum(h.v) + '"></div>';
+      }).join('');
+      document.getElementById('chart-now').textContent = 'now · ' + fmtNum(s.pendingEntries) + ' pending';
+    }
+
+    function renderWindows(o) {
+      var rows = o.recentWindows.map(function (w) {
+        var fw = Object.keys(w.firmware).map(function (k) { return '<span class="tag ' + fwTag(k) + '">' + esc(k) + ' × ' + w.firmware[k] + '</span>'; }).join(' ');
+        var units = w.units.length ? w.units.map(function (u) { return esc(u.unit) + ' ' + u.readings; }).join(' · ') : '<span class="muted">—</span>';
+        var result = w.status === 'acked'
+          ? '<span class="tag ok">ACKED</span>'
+          : '<span class="tag bad">FAILED · ' + esc(w.stage) + '</span><div class="muted" style="margin-top:4px;font-size:11.5px">' + esc(w.error) + '</div>';
+        return '<tr><td class="mono">' + esc(w.windowId) + '</td><td>' + fmtTime(w.receivedAt) + '</td><td>' + fmtNum(w.entries) + '</td><td>' + fw + '</td><td>' + units + '</td><td>' + fmtDur(w.durationMs) + '</td><td>' + result + '</td></tr>';
+      });
+      document.getElementById('windows-body').innerHTML = rows.join('') || '<tr><td colspan="7" class="empty">No windows yet</td></tr>';
+    }
+
+    function renderPending(o) {
+      var count = document.getElementById('count-pending');
+      count.textContent = o.pending.length;
+      count.className = 'count' + (o.pending.length ? ' hot' : '');
+      if (!o.pending.length) {
+        document.getElementById('pending-wrap').innerHTML = '<div class="empty">Pending-entries list is empty — every delivered window has been acknowledged.</div>';
+        return;
+      }
+      document.getElementById('pending-wrap').innerHTML = o.pending.map(function (p) {
+        var fw = Object.keys(p.firmware).map(function (k) { return '<span class="tag ' + fwTag(k) + '">' + esc(k) + ' × ' + p.firmware[k] + '</span>'; }).join(' ');
+        return '<div class="pending-head">' +
+          '<div><div class="k">Window</div><div class="v mono">' + esc(p.windowId) + '</div></div>' +
+          '<div><div class="k">Blocking entry</div><div class="v bad mono">' + esc(p.blockingEntryId) + '</div></div>' +
+          '<div><div class="k">Deliveries</div><div class="v">' + p.deliveries + ' · ' + fmtNum(p.entries) + ' entries</div></div>' +
+          '<div><div class="k">Firmware in window</div><div class="v">' + fw + '</div></div>' +
+          '</div>' +
+          '<div class="card-body">' +
+          '<div style="font-size:12px;color:var(--v-red);font-weight:700;margin-bottom:8px">' + esc(p.error) + ' <span class="muted" style="font-weight:400">· stage ' + esc(p.stage) + ' · ' + fmtTime(p.failedAt) + '</span></div>' +
+          '<div class="muted" style="font-size:11.5px;margin-bottom:8px">Blocking frame as read from the stream (gateway ' + esc(p.blockingFrame.src) + ', firmware ' + esc(p.blockingFrame.fw) + '):</div>' +
+          '<pre class="frame">' + esc(JSON.stringify(p.blockingFrame, null, 2)) + '</pre>' +
+          '</div>';
+      }).join('');
+    }
+
+    function renderRacks(o) {
+      document.getElementById('count-racks').textContent = o.racks.length;
+      document.getElementById('racks-body').innerHTML = o.racks.map(function (r) {
+        var updated = r.firmware === o.firmwareRollout.toFirmware;
+        return '<tr><td class="mono">' + esc(r.rackId) + '</td><td><strong>' + esc(r.unit) + '</strong><div class="muted" style="font-size:11.5px">' + esc(r.unitName) + '</div></td><td>' + esc(r.controller) + '</td><td class="mono">' + esc(r.gatewayId) + '</td>' +
+          '<td><span class="tag ' + (updated ? 'warn' : 'neutral') + '">' + esc(r.firmware) + '</span></td><td>' + r.tags + '</td>' +
+          '<td>' + (updated ? esc(o.firmwareRollout.changeTicket) + ' <span class="muted">· ' + esc(o.firmwareRollout.fromFirmware) + ' → ' + esc(o.firmwareRollout.toFirmware) + '</span>' : '<span class="muted">—</span>') + '</td></tr>';
+      }).join('');
+    }
+
+    function renderSinks(o) {
+      document.getElementById('sinks').innerHTML = o.downstream.map(function (d) {
+        var ok = d.status === 'current';
+        return '<div class="sink"><div class="s-title">' + esc(d.label) + ' <span class="tag ' + (ok ? 'ok' : 'warn') + '" style="margin-left:6px">' + (ok ? 'CURRENT' : 'STALE · ' + d.lagWindows + ' window(s)') + '</span></div>' +
+          '<div class="s-sys">' + esc(d.system) + ' — ' + esc(d.detail) + '</div>' +
+          '<div class="s-foot"><span>Last write ' + fmtTime(d.lastWriteAt) + '</span><span>' + fmtNum(d.rowsWritten) + ' rows this session</span></div></div>';
+      }).join('');
+    }
+
+    function render(o) {
+      state.overview = o;
+      renderKpis(o); renderFlow(o); renderChart(o); renderWindows(o); renderPending(o); renderRacks(o); renderSinks(o);
+    }
+
+    function refresh() {
+      return fetch(API + '/overview').then(function (r) { return r.json(); }).then(render).catch(function () {});
+    }
+
+    document.querySelectorAll('.tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+        document.querySelectorAll('.panel').forEach(function (p) { p.classList.remove('active'); });
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.getAttribute('data-tab')).classList.add('active');
+      });
+    });
+
+    function showFailure(err, stalledWindow) {
+      toast('err', 'Consumer stalled — window not acknowledged', (err.errorType || 'Error') + ': ' + err.error);
+      document.querySelector('.tab[data-tab="pending"]').click();
+      return refresh();
+    }
+
+    document.getElementById('run-window').addEventListener('click', function () {
+      if (state.busy) return;
+      state.busy = true;
+      var btn = this; btn.disabled = true; btn.textContent = 'Claiming window…';
+      identityReady.then(function () {
+        return fetch(API + '/consumer/run', { method: 'POST', headers: postHeaders(), body: JSON.stringify(identity()) });
+      }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+        .then(function (res) {
+          if (!res.ok) return showFailure(res.body);
+          toast('ok', 'Window ' + res.body.windowId + ' acknowledged', res.body.readings + ' readings written to historian and analytics');
+          return refresh();
+        })
+        .catch(function (e) { toast('err', 'Request failed', e.message); })
+        .then(function () { state.busy = false; btn.disabled = false; btn.textContent = 'Process next window'; });
+    });
+
+    document.getElementById('retry').addEventListener('click', function () {
+      if (state.busy) return;
+      state.busy = true;
+      var btn = this; btn.disabled = true;
+      identityReady.then(function () {
+        return fetch(API + '/consumer/retry', { method: 'POST', headers: postHeaders(), body: JSON.stringify(identity()) });
+      }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+        .then(function (res) {
+          if (!res.ok) return showFailure(res.body);
+          toast('ok', 'Pending window re-delivered', 'Retried ' + res.body.retried + ' window(s)');
+          return refresh();
+        })
+        .catch(function (e) { toast('err', 'Request failed', e.message); })
+        .then(function () { state.busy = false; btn.disabled = false; });
+    });
+
+    document.getElementById('reset').addEventListener('click', function () {
+      fetch(API + '/consumer/reset', { method: 'POST', headers: postHeaders() })
+        .then(function (r) { return r.json(); })
+        .then(function () {
+          state.history = [];
+          document.body.className = '';
+          document.querySelector('.tab[data-tab="windows"]').click();
+          return refresh();
+        })
+        .then(function () { toast('ok', 'Reset · back to standby', 'Pending entries cleared, consumer group healthy'); })
+        .catch(function (e) { toast('err', 'Reset failed', e.message); });
+    });
+
+    var countdown = 30;
+    setInterval(function () {
+      countdown -= 1;
+      if (countdown < 0) countdown = 30;
+      document.getElementById('next-run').textContent = 'Next scheduled window in 0:' + (countdown < 10 ? '0' : '') + countdown;
+      document.getElementById('clock').textContent = new Intl.DateTimeFormat('en-US', { timeZone: TZ, weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date()) + ' CT';
+    }, 1000);
+
+    setInterval(refresh, 5000);
+    refresh();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
