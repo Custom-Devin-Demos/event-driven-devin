@@ -38,7 +38,7 @@ const TOKEN_TTL_SECONDS = 3600;
 // asserts the user ID on the request (HCPS_GATEWAY_USER_HEADER); GET /auth/session
 // exchanges it for the bearer token the UI uses, so the app opens on the menu.
 // HCPS_SSO_USER is the operator asserted for this host when no header arrives.
-const GATEWAY_USER_HEADER = (process.env.HCPS_GATEWAY_USER_HEADER || 'x-hcps-user').toLowerCase();
+const GATEWAY_USER_HEADER = (process.env.HCPS_GATEWAY_USER_HEADER || '').trim().toLowerCase();
 const SSO_USER = String(process.env.HCPS_SSO_USER ?? 'INQUSER1').trim().toUpperCase();
 const CICS_USER_ID = /^[A-Z0-9]{1,8}$/;
 // Without a configured secret, tokens are only valid for this process lifetime.
@@ -178,7 +178,8 @@ router.post(`${API_V1}/auth/login`, (req, res) => {
 });
 
 router.get(`${API_V1}/auth/session`, (req, res) => {
-  const asserted = String(req.get(GATEWAY_USER_HEADER) || SSO_USER).trim().toUpperCase();
+  const fromGateway = GATEWAY_USER_HEADER ? req.get(GATEWAY_USER_HEADER) : undefined;
+  const asserted = String(fromGateway || SSO_USER).trim().toUpperCase();
   if (!CICS_USER_ID.test(asserted)) {
     return sendContractError(res, new ContractError(401, 'UNAUTHENTICATED', 'Sign-on required', 8));
   }

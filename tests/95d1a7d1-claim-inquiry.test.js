@@ -180,12 +180,42 @@ describe('HCPS claims inquiry v1 contract (95d1a7d1)', () => {
     const me = await request('GET', '/95d1a7d1/api/v1/auth/me', { Authorization: `Bearer ${host.body.accessToken}` });
     expect(me.body).toEqual({ userId: 'INQUSER1', authLevel: '03' });
 
-    const asserted = await request('GET', '/95d1a7d1/api/v1/auth/session', { 'X-HCPS-User': 'auditor1' });
-    expect(asserted.body.userId).toBe('AUDITOR1');
+    // No gateway header is configured for this host, so a client-supplied one is ignored.
+    const spoofed = await request('GET', '/95d1a7d1/api/v1/auth/session', { 'X-HCPS-User': 'auditor1' });
+    expect(spoofed.body.userId).toBe('INQUSER1');
+  });
 
-    const bad = await request('GET', '/95d1a7d1/api/v1/auth/session', { 'X-HCPS-User': 'not a user' });
-    expect(bad.status).toBe(401);
-    expect(bad.body).toEqual({ code: 'UNAUTHENTICATED', message: 'Sign-on required', returnCode: 8 });
+  test('GET /auth/session trusts the gateway header only when one is configured', async () => {
+    const withGateway = (env, fn) =>
+      jest.isolateModules(() => {
+        const prev = { ...process.env };
+        Object.assign(process.env, env);
+        try {
+          fn(require('../app/routes/verticals/95d1a7d1'));
+        } finally {
+          process.env = prev;
+        }
+      });
+    let gatewayRouter;
+    withGateway({ HCPS_GATEWAY_USER_HEADER: 'X-HCPS-User' }, (r) => { gatewayRouter = r; });
+    const app = express();
+    app.use(express.json());
+    app.use(gatewayRouter);
+    const server = await new Promise((resolve) => { const s = http.createServer(app); s.listen(0, () => resolve(s)); });
+    const { port } = server.address();
+    const call = (hdrs) => fetch(`http://127.0.0.1:${port}/95d1a7d1/api/v1/auth/session`, { headers: hdrs })
+      .then(async (r) => ({ status: r.status, body: await r.json() }));
+    try {
+      const asserted = await call({ 'X-HCPS-User': 'auditor1' });
+      expect(asserted.body.userId).toBe('AUDITOR1');
+      const host = await call({});
+      expect(host.body.userId).toBe('INQUSER1');
+      const bad = await call({ 'X-HCPS-User': 'not a user' });
+      expect(bad.status).toBe(401);
+      expect(bad.body).toEqual({ code: 'UNAUTHENTICATED', message: 'Sign-on required', returnCode: 8 });
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
   });
 
   test('GET /worklist queues the pended claims newest first with the behavioral-health claim on it', async () => {
