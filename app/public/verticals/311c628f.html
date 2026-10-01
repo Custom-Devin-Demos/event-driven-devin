@@ -152,6 +152,7 @@
     .toast { position: fixed; right: 24px; bottom: 24px; max-width: 420px; background: rgba(0,0,0,0.85); color: #fff; border-radius: 4px; padding: 14px 18px 14px 16px; font-size: 13px; line-height: 18px; transform: translateX(120%); transition: transform 0.35s ease; z-index: 50; border-left: 4px solid var(--v-red); }
     .toast.show { transform: translateX(0); }
     .toast.ok { border-left-color: var(--v-green); }
+    .toast.warn { border-left-color: var(--v-amber); }
     .toast .t-title { font-weight: 700; margin-bottom: 3px; }
     .toast .t-body { opacity: 0.9; word-break: break-word; }
   </style>
@@ -328,9 +329,9 @@
       var el = document.getElementById('toast');
       document.getElementById('toast-title').textContent = title;
       document.getElementById('toast-body').textContent = body || '';
-      el.className = 'toast show' + (kind === 'ok' ? ' ok' : '');
+      el.className = 'toast show' + (kind === 'ok' || kind === 'warn' ? ' ' + kind : '');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(function () { el.className = 'toast' + (kind === 'ok' ? ' ok' : ''); }, 6000);
+      toastTimer = setTimeout(function () { el.className = 'toast' + (kind === 'ok' || kind === 'warn' ? ' ' + kind : ''); }, 6000);
     }
 
     function renderKpis(o) {
@@ -491,6 +492,10 @@
       }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
         .then(function (res) {
           if (!res.ok) return showFailure(res.body);
+          if (res.body.cancelled || !res.body.success) {
+            toast('warn', 'Window ' + res.body.windowId + ' dropped', 'Consumer group was reset while the window was in flight');
+            return refresh();
+          }
           toast('ok', 'Window ' + res.body.windowId + ' acknowledged', res.body.readings + ' readings written to historian and analytics');
           return refresh();
         })
@@ -507,6 +512,10 @@
       }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
         .then(function (res) {
           if (!res.ok) return showFailure(res.body);
+          if (res.body.cancelled || !res.body.success) {
+            toast('warn', 'Retry dropped', 'Consumer group was reset while the window was in flight');
+            return refresh();
+          }
           toast('ok', 'Pending window re-delivered', 'Retried ' + res.body.retried + ' window(s)');
           return refresh();
         })

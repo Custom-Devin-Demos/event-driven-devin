@@ -216,6 +216,11 @@ function ackWindow(window, readings, run) {
       sink.status = 'current';
       sink.lagWindows = 0;
     });
+  } else {
+    Object.values(DOWNSTREAM).forEach((sink) => {
+      sink.status = 'stale';
+      sink.lagWindows = PENDING.length;
+    });
   }
   WINDOWS.unshift({
     windowId: window.windowId,
