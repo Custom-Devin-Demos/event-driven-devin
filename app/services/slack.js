@@ -297,7 +297,8 @@ async function resolveOnCallMember(alertData) {
  */
 async function postAlertToSlack(alertData) {
   const token = process.env.SLACK_BOT_TOKEN;
-  const channel = process.env.SLACK_CHANNEL_ID;
+  const channel = (alertData.customerConfig && alertData.customerConfig.slackChannelId)
+    || process.env.SLACK_CHANNEL_ID;
 
   if (!token || !channel) {
     logger.warn('Slack not configured — skipping alert post (SLACK_BOT_TOKEN or SLACK_CHANNEL_ID missing)');
@@ -426,9 +427,9 @@ async function postDevinReply(threadTs, prompt, options = {}) {
  *
  * Used in "api" trigger mode (DEVIN_TRIGGER_MODE=api).
  */
-async function postDevinSessionLink(threadTs, sessionUrl) {
+async function postDevinSessionLink(threadTs, sessionUrl, channelOverride) {
   const token = process.env.SLACK_BOT_TOKEN;
-  const channel = process.env.SLACK_CHANNEL_ID;
+  const channel = channelOverride || process.env.SLACK_CHANNEL_ID;
 
   if (!token || !channel) {
     logger.warn('Slack not configured — skipping Devin session link post');
@@ -476,9 +477,9 @@ async function postDevinSessionLink(threadTs, sessionUrl) {
  * Post a thread reply with a link to a ServiceNow incident.
  * Uses the bot token — no user token needed.
  */
-async function postIncidentLink(threadTs, incident, assignmentGroup) {
+async function postIncidentLink(threadTs, incident, assignmentGroup, channelOverride) {
   const token = process.env.SLACK_BOT_TOKEN;
-  const channel = process.env.SLACK_CHANNEL_ID;
+  const channel = channelOverride || process.env.SLACK_CHANNEL_ID;
 
   if (!token || !channel) {
     logger.warn('Slack not configured — skipping ServiceNow incident link post');
