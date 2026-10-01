@@ -158,7 +158,7 @@ async function createSessionAndAlert(alertData) {
 
     // Append Slack thread context to the prompt so Devin can post investigation
     // findings back to the alert thread using curl + SLACK_BOT_TOKEN.
-    const slackChannel = process.env.SLACK_CHANNEL_ID || '';
+    const slackChannel = config.slackChannelId || process.env.SLACK_CHANNEL_ID || '';
     if (slackChannel && threadTs) {
       prompt += `\n\n*Slack Thread:* channel=${slackChannel} thread_ts=${threadTs}`;
     }
@@ -173,7 +173,12 @@ async function createSessionAndAlert(alertData) {
       });
 
       if (incident) {
-        await postIncidentLink(threadTs, incident, config.itsmAssignmentGroup);
+        await postIncidentLink(
+          threadTs,
+          incident,
+          config.itsmAssignmentGroup,
+          ...(config.slackChannelId ? [config.slackChannelId] : []),
+        );
         logger.info('ServiceNow incident created and linked in Slack thread', {
           issueTitle: alertData.issueTitle,
           incidentNumber: incident.number,
@@ -235,7 +240,11 @@ async function createSessionAndAlert(alertData) {
       });
 
       if (session) {
-        await postDevinSessionLink(threadTs, session.url);
+        await postDevinSessionLink(
+          threadTs,
+          session.url,
+          ...(config.slackChannelId ? [config.slackChannelId] : []),
+        );
         logger.info('Devin session created and linked in Slack thread', {
           issueTitle: alertData.issueTitle,
           sessionId: session.sessionId,

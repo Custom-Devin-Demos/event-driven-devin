@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Point Inspection | Tekion</title>
+  <style>
+    :root {
+      --navy: #0b1526;
+      --navy-2: #101f38;
+      --navy-3: #16263f;
+      --accent: #3b82f6;
+      --accent-hover: #5b9bff;
+      --ink: #eef2f8;
+      --muted: #8b98ad;
+      --line: #1f3049;
+      --panel: #0f1c31;
+      --success: #34d399;
+      --warn: #fbbf24;
+      --danger: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--navy);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .topbar {
+      height: 60px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; background: var(--navy-2); border-bottom: 1px solid var(--line);
+      position: sticky; top: 0; z-index: 5;
+    }
+    .wordmark { display: flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 800; letter-spacing: 2.5px; text-transform: lowercase; }
+    .wordmark svg { width: 26px; height: 26px; }
+    .dealer { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+    .dealer-badge { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 800; font-size: 11px; }
+    .content { max-width: 1180px; margin: 0 auto; padding: 26px 30px 120px; }
+
+    .ro-card { display: flex; flex-wrap: wrap; gap: 26px; align-items: center; padding: 20px 24px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 22px; }
+    .ro-field .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+    .ro-field .value { font-weight: 650; font-size: 14px; }
+    .ro-vehicle { font-size: 18px; font-weight: 700; }
+    .progress { margin-left: auto; display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; }
+    .progress-bar { width: 150px; height: 6px; border-radius: 4px; background: var(--line); overflow: hidden; }
+    .progress-bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 22px; }
+    .tab { padding: 10px 18px; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); font-weight: 600; }
+    .tab:hover { color: var(--ink); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .section { margin-bottom: 26px; }
+    .section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .section-head h2 { margin: 0; font-size: 16px; font-weight: 700; }
+    .section-head .count { color: var(--muted); font-size: 12px; }
+    .group { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
+    .group-head { display: flex; justify-content: space-between; align-items: center; padding: 13px 18px; background: var(--navy-3); border-bottom: 1px solid var(--line); }
+    .group-head .title { font-weight: 650; font-size: 13px; }
+    .group-head .hint { color: var(--muted); font-size: 12px; }
+    .item { display: grid; grid-template-columns: minmax(220px, 1.4fr) 1fr auto; gap: 16px; align-items: center; padding: 13px 18px; border-top: 1px solid var(--line); }
+    .item:first-of-type { border-top: 0; }
+    .item-name { font-weight: 600; }
+    .item-sub { margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .measurements { display: flex; gap: 10px; flex-wrap: wrap; }
+    .measurements label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+    .measurements input { width: 74px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--navy); color: var(--ink); }
+    .pills { display: flex; gap: 6px; }
+    .pill { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 12px; font-weight: 650; }
+    .pill.on-pass { background: rgba(52,211,153,.12); border-color: var(--success); color: var(--success); }
+    .pill.on-attention { background: rgba(251,191,36,.12); border-color: var(--warn); color: var(--warn); }
+    .pill.on-fail { background: rgba(248,113,113,.14); border-color: var(--danger); color: var(--danger); }
+
+    .action-bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 30px; background: var(--navy-2); border-top: 1px solid var(--line); z-index: 5; }
+    .action-note { color: var(--muted); font-size: 12px; }
+    .action-buttons { display: flex; gap: 10px; }
+    .btn-secondary { padding: 11px 20px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--ink); font-weight: 650; }
+    .btn-secondary:hover { background: var(--navy-3); }
+    .btn-primary { min-width: 160px; padding: 11px 22px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 700; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled { opacity: .6; cursor: wait; }
+
+    .toast { position: fixed; right: 22px; bottom: 84px; width: 380px; padding: 16px 18px; border-radius: 10px; background: #1d0e10; border: 1px solid #5b2323; color: #fca5a5; box-shadow: 0 12px 30px rgba(0,0,0,.45); opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .25s, transform .25s; z-index: 10; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast-title { font-weight: 700; margin-bottom: 6px; color: #fecaca; }
+    .toast-tech { font-family: "SF Mono", Menlo, monospace; font-size: 12px; white-space: pre-wrap; }
+
+    @media (max-width: 860px) {
+      .item { grid-template-columns: 1fr; }
+      .progress { margin-left: 0; }
+      .action-bar { flex-direction: column; align-items: stretch; }
+      .action-buttons { display: grid; grid-template-columns: 1fr 1fr; }
+      .toast { width: auto; left: 16px; right: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wordmark">
+      <svg viewBox="0 0 26 26" fill="none" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="#3b82f6"/><path d="M7 9h12M13 9v9" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+      tekion
+    </div>
+    <div class="dealer"><span class="dealer-badge">TM</span><span>Techyon Motors · Main St</span></div>
+  </header>
+
+  <main class="content">
+    <section class="ro-card" aria-label="Repair order">
+      <div class="ro-field"><div class="label">Repair Order</div><div class="value" id="ro-id">RO-0410875</div></div>
+      <div class="ro-field"><div class="label">Vehicle</div><div class="value ro-vehicle" id="ro-vehicle">2023 Nebula Nimbus</div></div>
+      <div class="ro-field"><div class="label">VIN</div><div class="value" id="ro-vin">1HGCM82633A004352</div></div>
+      <div class="ro-field"><div class="label">Mileage</div><div class="value" id="ro-mileage">40,000 mi</div></div>
+      <div class="ro-field"><div class="label">Customer</div><div class="value" id="ro-customer">Samuel Wilson</div></div>
+      <div class="ro-field"><div class="label">Advisor</div><div class="value" id="ro-advisor">Dana Kowalski</div></div>
+      <div class="progress"><span>MPI <span id="mpi-progress">0%</span></span><div class="progress-bar"><span id="mpi-bar"></span></div></div>
+    </section>
+
+    <nav class="tabs" aria-label="Inspection tabs">
+      <button class="tab" data-tab="ai">AI Suggested</button>
+      <button class="tab active" data-tab="tires">Tires</button>
+      <button class="tab" data-tab="under-hood">Under Hood</button>
+      <button class="tab" data-tab="brakes">Brakes</button>
+      <button class="tab" data-tab="interior">Interior</button>
+      <button class="tab" data-tab="exterior">Exterior</button>
+    </nav>
+
+    <div id="sections"></div>
+  </main>
+
+  <div class="action-bar">
+    <div class="action-note" id="action-note">MPI 0% complete · status pills update the technician worksheet.</div>
+    <div class="action-buttons">
+      <button class="btn-secondary" id="fill-measurements" type="button">Fill Measurements</button>
+      <button class="btn-primary" id="submit-mpi" type="button">Submit Form</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="alert"><div id="toast-title" class="toast-title"></div><div id="toast-tech" class="toast-tech"></div></div>
+
+  <script>
+    const SECTION_ORDER = ['ai', 'tires', 'under-hood', 'brakes', 'interior', 'exterior'];
+    const MEASUREMENT_LABELS = { treadDepth: 'Tread /32"', pressure: 'PSI', padDepth: 'Pad mm' };
+    const MEASUREMENT_DEFAULTS = { treadDepth: '7/32', pressure: '35', padDepth: '9' };
+    const STATUSES = ['pass', 'needs_attention', 'fail'];
+    const STATUS_LABELS = { pass: 'Pass', needs_attention: 'Attention', fail: 'Fail' };
+
+    const fallbackItems = [
+      { id: 'tires', label: 'Tires', groups: [
+        { id: 'tire-wear', label: 'Check damages', items: [
+          { id: 'tire-lf', label: 'Left Front', measurements: ['treadDepth', 'pressure'], status: 'fail' },
+          { id: 'tire-rf', label: 'Right Front', measurements: ['treadDepth', 'pressure'], status: 'pass' },
+          { id: 'tire-lr', label: 'Left Rear', measurements: ['treadDepth', 'pressure'], status: 'pass' },
+          { id: 'tire-rr', label: 'Right Rear', measurements: ['treadDepth', 'pressure'], status: 'needs_attention' },
+        ]},
+        { id: 'tire-condition', label: 'Tire Pressure, Condition & Age', items: [
+          { id: 'tire-lf-pressure', label: 'Left Front Tire Condition & Pressure', status: 'pass' },
+          { id: 'tire-lf-age', label: 'Left Front Tire Age', status: 'pass' },
+          { id: 'tire-rf-pressure', label: 'Right Front Tire Condition & Pressure', status: 'pass' },
+          { id: 'tire-rf-age', label: 'Right Front Tire Age', status: 'pass' },
+        ]},
+      ]},
+      { id: 'under-hood', label: 'Under Hood', groups: [
+        { id: 'fluids', label: 'Fluid Levels', items: [
+          { id: 'uh-engine-oil', label: 'Engine Oil Level & Condition', status: 'pass' },
+          { id: 'uh-coolant', label: 'Coolant Level & Protection', status: 'pass' },
+          { id: 'uh-brake-fluid', label: 'Brake Fluid Level & Moisture', status: 'needs_attention' },
+          { id: 'uh-washer-fluid', label: 'Washer Fluid Level', status: 'pass' },
+        ]},
+        { id: 'filters-belts-battery', label: 'Filters, Belts & Battery', items: [
+          { id: 'uh-cabin-air-filter', label: 'Cabin Air Filter', status: 'fail' },
+          { id: 'uh-engine-air-filter', label: 'Engine Air Filter', status: 'pass' },
+          { id: 'uh-serpentine-belt', label: 'Serpentine Belt Condition', status: 'pass' },
+          { id: 'uh-battery', label: 'Battery Health & Terminals', status: 'pass' },
+        ]},
+      ]},
+      { id: 'brakes', label: 'Brakes', groups: [
+        { id: 'brake-wear', label: 'Brake Pad & Rotor Wear', items: [
+          { id: 'brk-front-pads', label: 'Front Brake Pads', measurements: ['padDepth'], status: 'pass' },
+          { id: 'brk-rear-pads', label: 'Rear Brake Pads', measurements: ['padDepth'], status: 'pass' },
+          { id: 'brk-rotors', label: 'Rotor Condition & Runout', status: 'pass' },
+        ]},
+      ]},
+      { id: 'interior', label: 'Interior', groups: [
+        { id: 'interior-checks', label: 'Cabin Checks', items: [
+          { id: 'int-hvac', label: 'HVAC Operation', status: 'pass' },
+          { id: 'int-wipers', label: 'Wiper Blades & Washers', status: 'pass' },
+          { id: 'int-lights', label: 'Interior Lights & Instruments', status: 'pass' },
+        ]},
+      ]},
+      { id: 'exterior', label: 'Exterior', groups: [
+        { id: 'exterior-checks', label: 'Exterior Checks', items: [
+          { id: 'ext-headlights', label: 'Headlights & Turn Signals', status: 'pass' },
+          { id: 'ext-glass', label: 'Glass & Mirrors', status: 'pass' },
+          { id: 'ext-body', label: 'Body Panels & Paint', status: 'pass' },
+        ]},
+      ]},
+    ];
+
+    let sections = fallbackItems;
+    const itemStatus = {};
+    let toastTimer = null;
+    let submitting = false;
+
+    function allFlatItems() {
+      return sections.flatMap((s) => s.groups.flatMap((g) => g.items));
+    }
+
+    function updateProgress() {
+      const items = allFlatItems();
+      const done = items.filter((it) => itemStatus[it.id]).length;
+      const pct = items.length ? Math.round((done / items.length) * 100) : 0;
+      document.getElementById('mpi-progress').textContent = pct + '%';
+      document.getElementById('mpi-bar').style.width = pct + '%';
+      document.getElementById('action-note').textContent = 'MPI ' + pct + '% (' + done + '/' + items.length + ') · status pills update the technician worksheet.';
+    }
+
+    function pillButton(item, status) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const active = itemStatus[item.id] === status;
+      btn.className = 'pill' + (active ? ' on-' + (status === 'pass' ? 'pass' : status === 'fail' ? 'fail' : 'attention') : '');
+      btn.textContent = STATUS_LABELS[status];
+      btn.addEventListener('click', () => {
+        itemStatus[item.id] = status;
+        renderSections(activeTab());
+      });
+      return btn;
+    }
+
+    function renderSections(tab) {
+      const container = document.getElementById('sections');
+      container.replaceChildren();
+      sections.forEach((section) => {
+        if (tab !== 'ai' && section.id !== tab) return;
+        const wrap = document.createElement('section');
+        wrap.className = 'section';
+        const head = document.createElement('div');
+        head.className = 'section-head';
+        const total = section.groups.reduce((n, g) => n + g.items.length, 0);
+        head.innerHTML = '<h2></h2><span class="count"></span>';
+        head.querySelector('h2').textContent = section.label;
+        head.querySelector('.count').textContent = total + ' items';
+        wrap.appendChild(head);
+        section.groups.forEach((group) => {
+          const g = document.createElement('div');
+          g.className = 'group';
+          const gh = document.createElement('div');
+          gh.className = 'group-head';
+          gh.innerHTML = '<span class="title"></span><span class="hint">Last MPVI</span>';
+          gh.querySelector('.title').textContent = group.label;
+          g.appendChild(gh);
+          group.items.forEach((item) => {
+            const row = document.createElement('div');
+            row.className = 'item';
+            const name = document.createElement('div');
+            const n = document.createElement('div');
+            n.className = 'item-name';
+            n.textContent = item.label;
+            name.appendChild(n);
+            const sub = document.createElement('div');
+            sub.className = 'item-sub';
+            sub.textContent = item.id;
+            name.appendChild(sub);
+            row.appendChild(name);
+            const meas = document.createElement('div');
+            meas.className = 'measurements';
+            (item.measurements || []).forEach((key) => {
+              const label = document.createElement('label');
+              label.textContent = MEASUREMENT_LABELS[key] || key;
+              const input = document.createElement('input');
+              input.type = 'text';
+              input.dataset.measureFor = item.id + ':' + key;
+              input.placeholder = '—';
+              label.appendChild(input);
+              meas.appendChild(label);
+            });
+            row.appendChild(meas);
+            const pills = document.createElement('div');
+            pills.className = 'pills';
+            STATUSES.forEach((status) => pills.appendChild(pillButton(item, status)));
+            row.appendChild(pills);
+            g.appendChild(row);
+          });
+          wrap.appendChild(g);
+        });
+        container.appendChild(wrap);
+      });
+      updateProgress();
+    }
+
+    function activeTab() {
+      const active = document.querySelector('.tab.active');
+      return active ? active.dataset.tab : 'ai';
+    }
+
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderSections(tab.dataset.tab);
+      });
+    });
+
+    document.getElementById('fill-measurements').addEventListener('click', () => {
+      document.querySelectorAll('[data-measure-for]').forEach((input) => {
+        const key = input.dataset.measureFor.split(':')[1];
+        input.value = MEASUREMENT_DEFAULTS[key] || 'OK';
+      });
+    });
+
+    function showToast(title, tech) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-title').textContent = title;
+      document.getElementById('toast-tech').textContent = tech;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 6000);
+    }
+
+    async function submitMpi() {
+      if (submitting) return;
+      submitting = true;
+      const submitButton = document.getElementById('submit-mpi');
+      submitButton.disabled = true;
+      const measurements = {};
+      document.querySelectorAll('[data-measure-for]').forEach((input) => {
+        if (input.value) measurements[input.dataset.measureFor] = input.value;
+      });
+      try {
+        const response = await fetch('/api/0a537b71/submit-mpi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            repairOrderId: 'RO-0410875',
+            itemStatuses: itemStatus,
+            measurements,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          showToast("We couldn't submit this inspection.", (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error') + '\n' + (payload.code || 'MPI_SUBMISSION_FAILED') + ' · Reference ID: ' + (payload.requestId || 'unavailable'));
+        } else {
+          showToast('Inspection submitted.', 'Confirmation: ' + payload.confirmation + '\nFlagged items: ' + payload.flaggedCount);
+        }
+      } catch (error) {
+        showToast("We couldn't submit this inspection.", 'NetworkError: ' + error.message + '\nMPI_SUBMISSION_FAILED · Reference ID: unavailable');
+      } finally {
+        submitting = false;
+        submitButton.disabled = false;
+      }
+    }
+    document.getElementById('submit-mpi').addEventListener('click', submitMpi);
+
+    // Seed initial statuses from the server/fallback data, then render.
+    function seed() {
+      allFlatItems().forEach((it) => { itemStatus[it.id] = it.status; });
+      renderSections('ai');
+    }
+    seed();
+    fetch('/api/0a537b71/repair-order').then((r) => r.json()).then((payload) => {
+      if (payload.items) {
+        sections = payload.items;
+        allFlatItems().forEach((it) => { if (!itemStatus[it.id]) itemStatus[it.id] = it.status; });
+        renderSections(activeTab());
+      }
+      if (payload.repairOrder) {
+        const ro = payload.repairOrder;
+        document.getElementById('ro-id').textContent = ro.id;
+        document.getElementById('ro-vehicle').textContent = ro.vehicle;
+        document.getElementById('ro-vin').textContent = ro.vin;
+        document.getElementById('ro-mileage').textContent = Number(ro.mileage).toLocaleString('en-US') + ' mi';
+        document.getElementById('ro-customer').textContent = ro.customer.name;
+        document.getElementById('ro-advisor').textContent = ro.advisor;
+      }
+    }).catch(() => {});
+  </script>
+</body>
+</html>
