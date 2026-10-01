@@ -173,6 +173,73 @@ describe('HCPS claims inquiry v1 contract (95d1a7d1)', () => {
     expect(bad.body).toMatchObject({ code: 'UNAUTHENTICATED', returnCode: 8 });
   });
 
+  test('GET /auth/session signs the gateway-asserted operator on without a password', async () => {
+    const host = await request('GET', '/95d1a7d1/api/v1/auth/session', {});
+    expect(host.status).toBe(200);
+    expect(host.body).toMatchObject({ tokenType: 'Bearer', expiresIn: 3600, userId: 'INQUSER1' });
+    const me = await request('GET', '/95d1a7d1/api/v1/auth/me', { Authorization: `Bearer ${host.body.accessToken}` });
+    expect(me.body).toEqual({ userId: 'INQUSER1', authLevel: '03' });
+
+    // No gateway header is configured for this host, so a client-supplied one is ignored.
+    const spoofed = await request('GET', '/95d1a7d1/api/v1/auth/session', { 'X-HCPS-User': 'auditor1' });
+    expect(spoofed.body.userId).toBe('INQUSER1');
+  });
+
+  test('GET /auth/session trusts the gateway header only when one is configured', async () => {
+    const withGateway = (env, fn) =>
+      jest.isolateModules(() => {
+        const prev = { ...process.env };
+        Object.assign(process.env, env);
+        try {
+          fn(require('../app/routes/verticals/95d1a7d1'));
+        } finally {
+          process.env = prev;
+        }
+      });
+    let gatewayRouter;
+    withGateway({ HCPS_GATEWAY_USER_HEADER: 'X-HCPS-User' }, (r) => { gatewayRouter = r; });
+    const app = express();
+    app.use(express.json());
+    app.use(gatewayRouter);
+    const server = await new Promise((resolve) => { const s = http.createServer(app); s.listen(0, () => resolve(s)); });
+    const { port } = server.address();
+    const call = (hdrs) => fetch(`http://127.0.0.1:${port}/95d1a7d1/api/v1/auth/session`, { headers: hdrs })
+      .then(async (r) => ({ status: r.status, body: await r.json() }));
+    try {
+      const asserted = await call({ 'X-HCPS-User': 'auditor1' });
+      expect(asserted.body.userId).toBe('AUDITOR1');
+      const host = await call({});
+      expect(host.body.userId).toBe('INQUSER1');
+      const bad = await call({ 'X-HCPS-User': 'not a user' });
+      expect(bad.status).toBe(401);
+      expect(bad.body).toEqual({ code: 'UNAUTHENTICATED', message: 'Sign-on required', returnCode: 8 });
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  test('GET /worklist queues the pended claims newest first with the behavioral-health claim on it', async () => {
+    const res = await request('GET', '/95d1a7d1/api/v1/worklist', headers);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ returnCode: 0, message: 'Work queue retrieved', userId: 'INQUSER1' });
+    expect(res.body.items.map((i) => i.claimId)).toEqual(['CLM0000512', 'CLM0000417']);
+    expect(res.body.items[1]).toEqual({
+      claimId: 'CLM0000417',
+      memberId: 'MBR0056048',
+      memberName: 'MARCUS ELLINGTON',
+      status: 'P',
+      statusText: 'Pending',
+      serviceDate: '2026-09-18',
+      serviceType: 'BHV',
+      queuedAt: '2026-09-26',
+      reason: 'Member inquiry - payment status',
+    });
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+
+    const anon = await request('GET', '/95d1a7d1/api/v1/worklist', {});
+    expect(anon.status).toBe(401);
+  });
+
   test('claim detail follows the ClaimDetail schema with two-decimal money strings', async () => {
     const res = await request('GET', '/95d1a7d1/api/v1/claims/CLM0000101', headers);
     expect(res.status).toBe(200);
