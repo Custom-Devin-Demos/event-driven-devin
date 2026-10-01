@@ -154,7 +154,7 @@ function isSyntheticProbeEvent(alertData) {
  * fallback does not raise a second alert or Devin session.
  */
 // Verticals whose instant path already alerts; issue webhooks carry no event tags, so match on the culprit's module path.
-const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', 'westpac/ios', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'c28a3fe9', 'a75ccde9', 'b4c3a7fc', '0eda990f', '2eb494c7', 'a1066f3a', 'fe0957f8', '6f38d771', '64e85fcf', 'cb48a22d', 'eda0e2e5', 'e33c0578', '2589dca4', '1d7f8961', '50753c43', '7c6a6ef9/coverage', 'buildcoveragesummary', 'verticals/bac', 'verticals/banamex', 'verticals/d7c4a1b9', 'verticals.d7c4a1b9', '4157609f', 'e57f4315', 'bd631c20', '1182181f', '26af2083', '246706c4', '8c0320af', '0a6f5e56', 'a70e8270', 'adbe35bc', '4e150e99', '9fdcf315', '513ad458', '8d3527ab', '0b0875b5', '631ad31e', 'b2085c10', 'ef51d258', 'f887d0be', 'd3e3804d', 'b6f570dc', 'd708940c', '04525b56', '918bb443', 'b19cd3b6', 'fd043af6', 'verticals/t1.js', '95d1a7d1'];
+const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', 'westpac/ios', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'c28a3fe9', 'a75ccde9', 'b4c3a7fc', '0eda990f', '2eb494c7', 'a1066f3a', 'fe0957f8', '6f38d771', '64e85fcf', 'cb48a22d', 'eda0e2e5', 'e33c0578', '2589dca4', '1d7f8961', '50753c43', '7c6a6ef9/coverage', 'buildcoveragesummary', 'verticals/bac', 'verticals/banamex', 'verticals/d7c4a1b9', 'verticals.d7c4a1b9', '4157609f', 'e57f4315', 'bd631c20', '1182181f', '26af2083', '246706c4', '8c0320af', '0a6f5e56', 'a70e8270', 'adbe35bc', '4e150e99', '9fdcf315', '513ad458', '8d3527ab', '0b0875b5', '631ad31e', 'b2085c10', 'ef51d258', 'f887d0be', 'd3e3804d', 'b6f570dc', 'd708940c', '04525b56', '918bb443', 'b19cd3b6', 'fd043af6', 'fe97a788', 'verticals/t1.js', '95d1a7d1'];
 
 // Alert paths where the service already alerts directly (instant errors and
 // latency-budget breaches); the webhook must not raise a second alert.
@@ -162,7 +162,7 @@ const DIRECT_ALERT_PATHS = ['instant', 'latency'];
 
 // Latency-budget breaches alert directly; their issue webhooks carry no event
 // tags, so match the LatencyBudgetExceeded title/type against these routes.
-const LATENCY_DIRECT_ALERT_ROUTES = ['/api/ef51d258/', '/api/f887d0be/', '/api/d708940c/', '/api/04525b56/', '/api/fd043af6/'];
+const LATENCY_DIRECT_ALERT_ROUTES = ['/api/ef51d258/', '/api/f887d0be/', '/api/d708940c/', '/api/04525b56/', '/api/fd043af6/', '/api/fe97a788/'];
 
 function isInstantPathEvent(alertData) {
   const isDirectAlertError = typeof alertData.issueTitle === 'string'
