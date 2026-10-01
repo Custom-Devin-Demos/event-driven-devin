@@ -248,6 +248,14 @@ describe('HCPS claims inquiry v1 contract (95d1a7d1)', () => {
     expect(ok.body.memberId).toBe('MBR0048213');
   });
 
+  test('a mismatched memberId is rejected before the inquiry runs, so no alert is raised', async () => {
+    const res = await request('GET', '/95d1a7d1/api/v1/claims/CLM0000417?memberId=MBR0000000', headers);
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ code: 'NOT_FOUND', message: 'Claim record not found', returnCode: 4 });
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
   test('non-positive position limits fall back to the 10-row page', async () => {
     const res = await request('GET', '/95d1a7d1/api/v1/claims/CLM0000101/positions?limit=-1', headers);
     expect(res.status).toBe(200);

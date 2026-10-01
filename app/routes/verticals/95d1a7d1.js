@@ -180,11 +180,12 @@ router.get(`${API_V1}/auth/me`, (req, res) => {
 router.get(`${API_V1}/claims/:claimId`, async (req, res) => {
   try {
     const { userId } = authenticate(req);
-    const result = await inquireClaim({ claimId: req.params.claimId, userId });
+    const claimId = String(req.params.claimId || '').trim().toUpperCase();
     const memberId = String(req.query.memberId || '').trim().toUpperCase();
-    if (memberId && memberId !== result.claim.memberId) {
+    if (memberId && readClaimMaster(claimId).memberId !== memberId) {
       throw new ContractError(404, 'NOT_FOUND', 'Claim record not found', 4);
     }
+    const result = await inquireClaim({ claimId, userId });
     res.json(toClaimDetail(result));
   } catch (error) {
     sendContractError(res, error);
