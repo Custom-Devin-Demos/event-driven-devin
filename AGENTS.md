@@ -355,6 +355,22 @@ The 2026 benefit-year renewal moved plan assignment to `member.enrollment.planTy
 - The customer is configured for the ServiceNow path via `itsm: 'servicenow'` + `itsmAssignmentGroup` in `config/customers/907b82bd.js`. In the ServiceNow instance the group's per-group `x_devin.webhook_url.<group sys_id>` / `x_devin.webhook_secret.<group sys_id>` properties select the Devin Automation the business rule dispatches to.
 - Regression coverage lives in `tests/907b82bd-coverage.test.js` and `tests/907b82bd-cost-estimate.test.js`; the estimate tests pin the current PPO fallback and must be updated when the defect is fixed.
 
+### Lilly LillyDirect savings card field-migration scenario (86a0a4f9, /lilly-snow)
+
+The Lilly LillyDirect savings card & pharmacy cost vertical (`/86a0a4f9`, `/lilly-snow`) is a ServiceNow-first sibling of the CVS scenario (`907b82bd`) on a LillyDirect-branded page. It is independent of the Slack-path LillyDirect Self Pay vertical (`eda0e2e5`, `/lilly`) and only reuses its brand assets. All patients, payers, card numbers and prices are synthetic.
+
+| Consumer | Behavior | Signal |
+|----------|----------|--------|
+| `activateSavingsCard()` | Reads the pre-2026 `patient.coverageType` field, resolves no savings program and throws while dereferencing it (`buildActivation`) | HTTP 500 `TypeError` → Sentry → Slack card → **P2 ServiceNow incident** (assignment group "Lilly Patient Services Platform Engineering", CI `customer-86a0a4f9-savings-card`) → business rule → Devin Automation webhook |
+| `estimatePharmacyCost()` | Reads the pre-2026 field and falls back to `commercial_covered`, so Medicare Part D patients are quoted the $25 savings-card price they are not eligible for (federal-program exclusion / anti-kickback exposure) and self-pay and commercially-uncovered patients are quoted $25 instead of their real price | HTTP 200 with no Sentry/Devin alert; `cost_estimate.quoted` carries `program:commercial_covered` on patients whose verified coverage is not commercial-covered |
+
+The 2026 program-year re-enrollment moved coverage classification to `patient.benefitsVerification.coverageType` (`commercial_covered`, `commercial_uncovered`, `medicare`, `self_pay`) in `app/services/verticals/86a0a4f9-patients.js`; both consumers in `app/services/verticals/86a0a4f9.js` still read the old location and only the savings-card path crashes. The defect is deliberately left in place so Devin performs the fix live from the ServiceNow incident. Patient IDs follow `LD` + 8 digits (`LD70419283`, …).
+
+- **`scripts/86a0a4f9-savings-audit.js` is the prevention control** (`npm run audit:86a0a4f9`) — probes both real service paths for every patient and exits non-zero on unresolved or silently reclassified coverage types. Not wired into CI, which is why this shipped.
+- `REMEDIATION_DIRECTIVE` fans out to three child sessions (code blast radius, ServiceNow incident blast radius in the assignment group above, prevention/audit wiring) and ends with "do not deploy and do not close the incident".
+- `config/customers/86a0a4f9.js` sets `itsm: 'servicenow'` + `itsmAssignmentGroup`; the group's `x_devin.webhook_url.<group sys_id>` / `x_devin.webhook_secret.<group sys_id>` properties select the Lilly Devin Automation. The CI name stays within ServiceNow's 32-character limit.
+- Regression coverage lives in `tests/86a0a4f9-savings-card.test.js` and `tests/86a0a4f9-cost-estimate.test.js`; the estimate tests pin the current `commercial_covered` fallback and must be updated when the defect is fixed.
+
 ### FOX One web scenario (a75ccde9, /oncall/c/a75ccde9)
 
 The FOX One on-call skin carries two **frontend** defects aimed at a web team. Both raise the alert from the browser and both require the auto-created session to record its browser work.
