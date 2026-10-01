@@ -81,7 +81,7 @@ const CLAIM_MASTER = [
     serviceDate: '2026-09-18',
     createDate: '2026-09-19',
     lastMaint: '2026-09-26',
-    status: 'A',
+    status: 'P',
     diagnosisCode: 'F41.1',
     procedureCode: '90837',
     serviceType: 'BHV',
@@ -338,6 +338,32 @@ function browseHistory(data) {
   })), page, pageSize);
 }
 
+// MENMAP work queue: the pended / suspended claims with an inquiry against
+// them, newest service date first, at most 10 rows. Each row deep-links to
+// GET /claims/{claimId}; the reason is the queued inquiry's free text (40 chars).
+const WORKLIST_MAX_ROWS = 10;
+const WORK_QUEUE_REASONS = {
+  CLM0000417: 'Member inquiry - payment status',
+  CLM0000512: 'Pended - benefit review',
+};
+
+function listWorklist() {
+  return CLAIM_MASTER
+    .filter((record) => record.status === 'P' || record.status === 'S')
+    .sort((a, b) => b.serviceDate.localeCompare(a.serviceDate))
+    .slice(0, WORKLIST_MAX_ROWS)
+    .map((record) => ({
+      claimId: record.claimId,
+      memberId: record.memberId,
+      memberName: record.memberName,
+      status: record.status,
+      serviceDate: record.serviceDate,
+      serviceType: record.serviceType,
+      queuedAt: record.lastMaint,
+      reason: WORK_QUEUE_REASONS[record.claimId] || 'Member inquiry - claim status',
+    }));
+}
+
 function listClaims() {
   return CLAIM_MASTER.map((record) => ({
     claimId: record.claimId,
@@ -477,6 +503,8 @@ module.exports = {
   browsePositions,
   browseHistory,
   listClaims,
+  listWorklist,
+  WORKLIST_MAX_ROWS,
   summarizeFinancials,
   readClaimMaster,
   CLAIM_MASTER,

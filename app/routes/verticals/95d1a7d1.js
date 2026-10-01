@@ -6,6 +6,7 @@ const {
   browsePositions,
   browseHistory,
   readClaimMaster,
+  listWorklist,
   ValidationError,
 } = require('../../services/verticals/95d1a7d1');
 const {
@@ -33,6 +34,13 @@ router.get('/95d1a7d1', (_req, res) => res.redirect(`${APP_WEB_PATH}/`));
 // SECURITY_AUTH rows for resource CLMINQ; AUTH_LEVEL >= '01' is required (SECMGR parity).
 // ---------------------------------------------------------------------------
 const TOKEN_TTL_SECONDS = 3600;
+// Single sign-on: the gateway in front of this host signs the operator on and
+// asserts the user ID on the request (HCPS_GATEWAY_USER_HEADER); GET /auth/session
+// exchanges it for the bearer token the UI uses, so the app opens on the menu.
+// HCPS_SSO_USER is the operator asserted for this host when no header arrives.
+const GATEWAY_USER_HEADER = (process.env.HCPS_GATEWAY_USER_HEADER || '').trim().toLowerCase();
+const SSO_USER = String(process.env.HCPS_SSO_USER ?? 'INQUSER1').trim().toUpperCase();
+const CICS_USER_ID = /^[A-Z0-9]{1,8}$/;
 // Without a configured secret, tokens are only valid for this process lifetime.
 const JWT_SECRET = process.env.HCPS_JWT_SECRET || crypto.randomBytes(32).toString('hex');
 const DEV_PASSWORD = process.env.HCPS_DEV_PASSWORD || '';
@@ -169,9 +177,36 @@ router.post(`${API_V1}/auth/login`, (req, res) => {
   return res.json({ accessToken: signToken(userId), tokenType: 'Bearer', expiresIn: TOKEN_TTL_SECONDS, userId });
 });
 
+router.get(`${API_V1}/auth/session`, (req, res) => {
+  const fromGateway = GATEWAY_USER_HEADER ? req.get(GATEWAY_USER_HEADER) : undefined;
+  const asserted = String(fromGateway || SSO_USER).trim().toUpperCase();
+  if (!CICS_USER_ID.test(asserted)) {
+    return sendContractError(res, new ContractError(401, 'UNAUTHENTICATED', 'Sign-on required', 8));
+  }
+  return res.json({ accessToken: signToken(asserted), tokenType: 'Bearer', expiresIn: TOKEN_TTL_SECONDS, userId: asserted });
+});
+
 router.get(`${API_V1}/auth/me`, (req, res) => {
   try {
     res.json(authenticate(req));
+  } catch (error) {
+    sendContractError(res, error);
+  }
+});
+
+router.get(`${API_V1}/worklist`, (req, res) => {
+  try {
+    const { userId } = authenticate(req);
+    const items = listWorklist().map((item) => ({
+      ...item,
+      statusText: titleCase(CLAIM_STATUS[item.status] || item.status),
+    }));
+    res.json({
+      returnCode: items.length ? 0 : 4,
+      message: items.length ? 'Work queue retrieved' : 'No claims are queued',
+      userId,
+      items,
+    });
   } catch (error) {
     sendContractError(res, error);
   }
