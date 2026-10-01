@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Send money | PayPal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #0070E0;
+      --ink: #001435;
+      --surface: #FFFFFF;
+      --chrome-bg: #001C64;
+      --chrome-text: #FFFFFF;
+      --page: #F5F7FA;
+      --line: #CBD2D6;
+      --muted: #545D68;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.5 'Figtree', 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spacing: -.01em; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; letter-spacing: inherit; }
+    button, select { cursor: pointer; }
+    .site-header { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+    .header-row { max-width: 1140px; margin: auto; padding: 0 24px; min-height: 68px; display: flex; align-items: center; gap: 32px; }
+    .wordmark { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; }
+    .wordmark svg { display: block; }
+    .wordmark-name { font-size: 22px; font-weight: 800; letter-spacing: -.03em; color: var(--chrome-bg); }
+    .primary-nav { display: flex; gap: 28px; font-size: 15px; font-weight: 600; margin-left: 8px; }
+    .primary-nav a { min-height: 44px; display: inline-flex; align-items: center; color: var(--muted); }
+    .primary-nav a.current { color: var(--chrome-bg); box-shadow: inset 0 -3px 0 var(--accent); }
+    .primary-nav a:hover { color: var(--chrome-bg); }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 20px; font-size: 14px; font-weight: 600; color: var(--muted); }
+    .header-right a { min-height: 44px; display: inline-flex; align-items: center; }
+    .header-right .who { color: var(--chrome-bg); }
+    main { max-width: 1140px; margin: auto; padding: 32px 24px 64px; }
+    .crumbs { font-size: 13px; color: var(--muted); margin: 0 0 18px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, .85fr); gap: 24px; align-items: start; }
+    .card { background: var(--surface); border-radius: 20px; padding: 32px; box-shadow: 0 1px 2px rgba(0, 20, 53, .08), 0 8px 24px rgba(0, 20, 53, .06); }
+    h1 { margin: 0 0 6px; font-size: clamp(28px, 3.4vw, 36px); font-weight: 800; letter-spacing: -.035em; line-height: 1.15; }
+    .lede { margin: 0 0 28px; color: var(--muted); font-size: 15px; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+    .field input, .field select { width: 100%; min-height: 52px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); font-size: 16px; }
+    .field input:hover, .field select:hover { border-color: var(--ink); }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+    .amount-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; }
+    .review { margin: 4px 0 24px; padding: 18px 20px; border-radius: 14px; background: var(--page); display: grid; gap: 10px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+    .submit-btn { width: 100%; min-height: 52px; padding: 14px 28px; border: 0; border-radius: 1000px; background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 82%, var(--chrome-bg)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 12px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--accent); }
+    .status { min-height: 20px; margin: 12px 0 0; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: center; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 12px; font-size: 14.5px; background: var(--page); border-left: 4px solid var(--muted); }
+    .result-box.success { display: block; border-left-color: var(--accent); }
+    .result-box.notice { display: block; }
+    .balance-card { background: var(--chrome-bg); color: var(--chrome-text); }
+    .balance-card .eyebrow { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--chrome-text) 72%, var(--chrome-bg)); }
+    .balance-card .amount { margin: 8px 0 2px; font-size: 34px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+    .balance-card .sub { margin: 0; font-size: 13.5px; color: color-mix(in srgb, var(--chrome-text) 76%, var(--chrome-bg)); }
+    .balance-card ul { margin: 22px 0 0; padding: 0; list-style: none; font-size: 14px; }
+    .balance-card li { display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid color-mix(in srgb, var(--chrome-text) 20%, transparent); }
+    .balance-card li span:last-child { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .aside-note { margin-top: 20px; padding: 24px; border-radius: 20px; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 20, 53, .08); }
+    .aside-note h2 { margin: 0 0 8px; font-size: 17px; font-weight: 700; letter-spacing: -.02em; }
+    .aside-note p { margin: 0 0 14px; font-size: 14px; color: var(--muted); }
+    .aside-note a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 22px; border: 2px solid var(--accent); border-radius: 1000px; color: var(--accent); font-size: 14px; font-weight: 700; }
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); }
+    .footer-inner { max-width: 1140px; margin: auto; padding: 36px 24px 44px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 0 24px; font-size: 14px; font-weight: 600; }
+    .footer-links a { min-height: 44px; display: inline-flex; align-items: center; }
+    .footer-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .footer-legal { margin: 14px 0 0; max-width: 860px; font-size: 12.5px; line-height: 1.7; color: color-mix(in srgb, var(--chrome-text) 74%, var(--chrome-bg)); }
+    @media (max-width: 900px) {
+      .primary-nav { display: none; }
+      .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .header-row { padding: 0 16px; gap: 12px; }
+      .header-right { gap: 12px; }
+      .header-right .who { display: none; }
+      main { padding: 20px 16px 48px; }
+      .card { padding: 22px 18px; border-radius: 16px; }
+      .amount-row { grid-template-columns: 1fr; gap: 0; }
+      .footer-inner { padding: 28px 16px 72px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-row">
+      <a class="wordmark" href="#send" aria-label="PayPal">
+        <svg width="30" height="34" viewBox="0 0 30 34" role="img" aria-hidden="true" focusable="false">
+          <path d="M6 2h11.2c5.1 0 8.3 2.8 8.3 7.3 0 5.6-4 9.2-10 9.2h-4.2L10.1 28H3.4L6 2z" fill="#001C64"></path>
+          <path d="M11.4 8h9.9c4.3 0 6.9 2.4 6.9 6.2 0 5.2-3.8 8.8-9.5 8.8h-4.1L13.4 32H7.2L11.4 8z" fill="#0070E0" opacity=".85"></path>
+        </svg>
+        <span class="wordmark-name">PayPal</span>
+      </a>
+      <nav class="primary-nav" aria-label="Main navigation">
+        <a href="#send" class="current">Send and Request</a>
+        <a href="https://www.paypal.com/us/digital-wallet">Wallet</a>
+        <a href="https://www.paypal.com/us/digital-wallet/send-receive-money">Activity</a>
+        <a href="https://www.paypal.com/us/cshelp/personal">Help</a>
+      </nav>
+      <div class="header-right">
+        <span class="who">Alex Romero</span>
+        <a href="https://www.paypal.com/us/cshelp/personal">Log Out</a>
+      </div>
+    </div>
+  </header>
+  <main id="send">
+    <p class="crumbs">Summary / Send and Request / Send money</p>
+    <div class="layout">
+      <section class="card" aria-labelledby="page-title">
+        <h1 id="page-title">Send money</h1>
+        <p class="lede">Pick who you're paying, choose how you want to pay, and review the details before you send. Payments to friends and family in the US arrive in minutes.</p>
+        <form id="transferForm">
+          <div class="field">
+            <label for="fromAccount">Pay with</label>
+            <select id="fromAccount">
+              <option value="ACCT-1001">PayPal balance · $4,820.15</option>
+              <option value="ACCT-1002">Bank account ····4417</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="toAccount">Send to</label>
+            <select id="toAccount">
+              <option value="ACCT-2001">Jordan Maxwell · jordan.m@example.com</option>
+              <option value="ACCT-2002">Priya Raman · priya.r@example.com</option>
+            </select>
+          </div>
+          <div class="amount-row">
+            <div class="field">
+              <label for="amount">Amount (USD)</label>
+              <input type="number" id="amount" min="1" step="0.01" value="180" required>
+            </div>
+            <div class="field">
+              <label for="accountTier">Payment type</label>
+              <select id="accountTier">
+                <option value="standard">Friends and family</option>
+              </select>
+              <small>Payment type is set for this example.</small>
+            </div>
+          </div>
+          <dl class="review" aria-label="Payment review">
+            <div><dt>Sending to</dt><dd id="reviewRecipient">—</dd></div>
+            <div><dt>Amount</dt><dd id="reviewAmount">—</dd></div>
+            <div><dt>They receive</dt><dd id="reviewTotal">—</dd></div>
+          </dl>
+          <button type="submit" id="submitBtn" class="submit-btn">Send Payment Now</button>
+          <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to send</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+          <p class="status" id="transferStatus" role="status" aria-live="polite">Example payment only. No money moves on this page.</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+      <aside>
+        <div class="card balance-card">
+          <p class="eyebrow">PayPal balance</p>
+          <p class="amount">$4,820.15</p>
+          <p class="sub">Available now · USD</p>
+          <ul>
+            <li><span>Pending</span><span>$0.00</span></li>
+            <li><span>Sent this month</span><span>$1,265.00</span></li>
+            <li><span>Received this month</span><span>$940.50</span></li>
+          </ul>
+        </div>
+        <div class="aside-note">
+          <h2>Sending in the US</h2>
+          <p>Friends and family payments from your PayPal balance or a linked bank account are sent in minutes. The sending fee for this payment type is shown on your receipt once the payment is sent.</p>
+          <a href="https://www.paypal.com/us/cshelp/personal" target="_blank" rel="noopener noreferrer">Visit the Help Center</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="footer-inner">
+    <div class="footer-links">
+      <a href="https://www.paypal.com/us/webapps/mpp/about">About</a>
+      <a href="https://www.paypal.com/us/cshelp/personal">Help</a>
+      <a href="https://www.paypal.com/us/webapps/mpp/ua/legalhub-full">Legal</a>
+      <a href="https://www.paypal.com/us/webapps/mpp/ua/privacy-full">Privacy</a>
+      <a href="https://www.paypal.com/us/webapps/mpp/paypal-fees">Fees</a>
+      <a href="https://www.paypal.com/us/webapps/mpp/ua/useragreement-full">User Agreement</a>
+    </div>
+    <p class="footer-legal">Example consumer wallet experience. Balances, recipients, and transactions shown here are sample data.</p>
+  </div></footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const reviewRecipient = document.getElementById('reviewRecipient');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewTotal = document.getElementById('reviewTotal');
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    let timerHandle = null;
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      timer.className = 'stopwatch on done';
+    }
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+    function recipientName() { return toAccount.options[toAccount.selectedIndex].text.split(' · ')[0]; }
+    function renderReview() {
+      reviewRecipient.textContent = recipientName();
+      const amount = parseFloat(amountInput.value);
+      reviewAmount.textContent = Number.isFinite(amount) ? usd.format(amount) : '—';
+      reviewTotal.textContent = Number.isFinite(amount) ? usd.format(amount) : '—';
+    }
+    toAccount.addEventListener('change', renderReview);
+    amountInput.addEventListener('input', renderReview);
+    form.addEventListener('reset', () => {
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = 'Example payment only. No money moves on this page.';
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timer.className = 'stopwatch';
+      timerValue.textContent = '0.0s';
+      setTimeout(renderReview, 0);
+    });
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      button.disabled = true;
+      button.textContent = 'Sending…';
+      status.textContent = 'Sending your payment…';
+      result.className = 'result-box';
+      result.textContent = '';
+      const recipient = recipientName();
+      const started = startTimer();
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error('Payment could not be sent.');
+        const sentAt = new Date(data.receipt.timestamp);
+        result.className = 'result-box success';
+        const debited = Number(data.debitAmount);
+        const debitedCopy = Number.isFinite(debited) ? ` ${usd.format(debited)} was debited including the sending fee.` : '';
+        result.textContent = `You sent ${usd.format(Number(data.receipt.amount))} to ${recipient} at ${timeFmt.format(sentAt)}.${debitedCopy} Transaction ID ${data.receipt.receiptId}.`;
+        status.textContent = 'Payment sent.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'We could not send this payment right now. Please try again in a few minutes or check the Help Center.';
+        status.textContent = 'Payment not sent.';
+      } finally {
+        stopTimer(started);
+        button.disabled = false;
+        button.textContent = 'Send Payment Now';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

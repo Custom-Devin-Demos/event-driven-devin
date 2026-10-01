@@ -2789,6 +2789,27 @@ const ONCALL_SKINS = {
     supportCenter: 'Viriyah Insurance Customer Service',
     disclaimer: 'NOT ACTUALLY A VIRIYAH INSURANCE SITE — internal demo only, not affiliated with, endorsed by, or a real Viriyah Insurance product.',
   },
+  '9ac83e67': {
+    slug: '9ac83e67',
+    company: 'PayPal',
+    brandMark: 'P',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: {
+      file: '9ac83e67.html',
+      title: 'Send money | PayPal',
+    },
+    theme: {
+      '--accent': '#0070E0',
+      '--ink': '#001435',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#001C64',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'PayPal Help Center',
+    supportCenterSub: 'Sending & Receiving Money',
+    disclaimer: 'NOT ACTUALLY A PAYPAL SITE — internal demo only, not affiliated with, endorsed by, or a real PayPal product.',
+  },
 };
 
 function getOncallSkin(slug) {
