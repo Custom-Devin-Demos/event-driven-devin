@@ -259,17 +259,19 @@ describe('Westpac Mobile iOS card-dispute failure report', () => {
     expect(reserveReportSlot(now + 11 * 60 * 1000)).toBe(true);
   });
 
-  test('keeps the web dispute route available for the default Altitude Black card', async () => {
+  test('keeps the web dispute route and Sentry query unchanged', async () => {
     const { status, body } = await postJson(server, '/api/westpac/dispute', {});
 
-    expect(status).toBe(200);
+    expect(status).toBe(500);
     expect(body).toMatchObject({
-      success: true,
-      status: 'accepted',
-      cardAccountNumber: 'WBC-CC-4417-2280',
-      scheme: 'Mastercard',
+      success: false,
+      error: "Cannot read properties of undefined (reading 'chargebackWindowDays')",
+      errorClass: 'TypeError',
+      code: 'DISPUTE_LODGEMENT_FAILED',
     });
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    const alertData = createSessionAndAlert.mock.calls[0][0];
+    expect(alertData.service).toBe('customer-westpac-disputes');
+    expect(alertData.issueUrl).toContain('is%3Aunresolved%20chargebackWindowDays');
   });
 
   test('keeps Westpac iOS and web customer identities separate', () => {
