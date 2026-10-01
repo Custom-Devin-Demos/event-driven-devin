@@ -2851,6 +2851,7 @@ const ONCALL_SKINS = {
     company: 'Vanta',
     brandMark: 'V',
     vertical: 'hightech',
+    oncallOnly: true,
     page: {
       file: '2b6e98c4.html',
       title: 'Vanta — Workspace seats',
