@@ -32,30 +32,6 @@ const baseRequest = {
   devinEmail: '',
 };
 
-function postJson(server, path, body) {
-  const { port } = server.address();
-  return new Promise((resolve, reject) => {
-    const req = http.request({ port, path, method: 'POST', headers: { 'Content-Type': 'application/json' } }, (res) => {
-      let raw = '';
-      res.on('data', (chunk) => { raw += chunk; });
-      res.on('end', () => resolve({ status: res.statusCode, body: JSON.parse(raw) }));
-    });
-    req.on('error', reject);
-    req.end(JSON.stringify(body));
-  });
-}
-
-function getJson(server, path) {
-  const { port } = server.address();
-  return new Promise((resolve, reject) => {
-    http.get({ port, path }, (res) => {
-      let raw = '';
-      res.on('data', (chunk) => { raw += chunk; });
-      res.on('end', () => resolve({ status: res.statusCode, body: JSON.parse(raw) }));
-    }).on('error', reject);
-  });
-}
-
 describe('HCPS claims inquiry (95d1a7d1)', () => {
   beforeEach(() => {
     createSessionAndAlert.mockClear();
@@ -110,15 +86,15 @@ describe('HCPS claims inquiry (95d1a7d1)', () => {
     expect(alert.culprit).toContain('summarizeFinancials');
     expect(alert.devinUserId).toBe('user-1');
     expect(alert.devinOrgId).toBe('org-1');
-    expect(alert.slackMemberId).toBe('U09MEGVGG2Z');
-    expect(alert.slackMemberIdFallback).toBe('U09MEGVGG2Z');
+    expect(alert.slackMemberId).toBe('');
+    expect(alert.slackMemberIdFallback).toBe('');
   });
 
   test('leaves the on-call mention to the identity email when one is supplied', async () => {
     await expect(inquireClaim({ ...baseRequest, claimId: 'CLM0000417', devinEmail: 'ops@devindemos.com' })).rejects.toThrow(TypeError);
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.slackMemberId).toBe('');
-    expect(alert.slackMemberIdFallback).toBe('U09MEGVGG2Z');
+    expect(alert.slackMemberIdFallback).toBe('');
   });
 
   test('malformed claim ids are rejected before any lookup', async () => {
@@ -148,49 +124,6 @@ describe('HCPS claims inquiry (95d1a7d1)', () => {
     const claims = listClaims();
     expect(claims).toHaveLength(CLAIM_MASTER.length);
     expect(claims.find((c) => c.claimId === 'CLM0000417').serviceType).toBe('BEHAVIORAL');
-  });
-
-  describe('router', () => {
-    let server;
-
-    beforeAll((done) => {
-      const app = express();
-      app.use(express.json());
-      app.use(router);
-      server = http.createServer(app);
-      server.listen(0, done);
-    });
-
-    afterAll((done) => {
-      server.close(done);
-    });
-
-    test('GET /api/95d1a7d1/claims lists the claim master', async () => {
-      const res = await getJson(server, '/api/95d1a7d1/claims');
-      expect(res.status).toBe(200);
-      expect(res.body.claims.map((c) => c.claimId)).toContain('CLM0000101');
-    });
-
-    test('POST returns 200 with the decoded claim', async () => {
-      const res = await postJson(server, '/api/95d1a7d1/inquiry', baseRequest);
-      expect(res.status).toBe(200);
-      expect(res.body.claim.claimId).toBe('CLM0000101');
-    });
-
-    test('POST maps validation, not-found and runtime errors to status codes', async () => {
-      const invalid = await postJson(server, '/api/95d1a7d1/inquiry', { ...baseRequest, claimId: 'nope' });
-      expect(invalid.status).toBe(400);
-      expect(invalid.body.code).toBe('INVALID_CLAIM_ID');
-
-      const missing = await postJson(server, '/api/95d1a7d1/inquiry', { ...baseRequest, claimId: 'CLM0000999' });
-      expect(missing.status).toBe(404);
-      expect(missing.body.code).toBe('CLAIM_NOT_FOUND');
-
-      const failed = await postJson(server, '/api/95d1a7d1/inquiry', { ...baseRequest, claimId: 'CLM0000417' });
-      expect(failed.status).toBe(500);
-      expect(failed.body.errorClass).toBe('TypeError');
-      expect(failed.body.code).toBe('CLAIM_INQUIRY_FAILED');
-    });
   });
 });
 
@@ -303,5 +236,22 @@ describe('HCPS claims inquiry v1 contract (95d1a7d1)', () => {
     expect(res.body).toMatchObject({ returnCode: 0, pageSize: 15, recordCount: 3, hasMore: false });
     expect(res.body.items.map((row) => row.serviceDate)).toEqual(['2026-08-29', '2026-08-21', '2026-08-15']);
     expect(res.body.items[0]).toMatchObject({ claimId: 'CLM0000101', claimType: 'AP', charged: '263.00', paid: '139.00' });
+  });
+
+  test('a mismatched memberId on claim detail maps to RC 4', async () => {
+    const res = await request('GET', '/95d1a7d1/api/v1/claims/CLM0000101?memberId=MBR0000000', headers);
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ code: 'NOT_FOUND', message: 'Claim record not found', returnCode: 4 });
+
+    const ok = await request('GET', '/95d1a7d1/api/v1/claims/CLM0000101?memberId=MBR0048213', headers);
+    expect(ok.status).toBe(200);
+    expect(ok.body.memberId).toBe('MBR0048213');
+  });
+
+  test('non-positive position limits fall back to the 10-row page', async () => {
+    const res = await request('GET', '/95d1a7d1/api/v1/claims/CLM0000101/positions?limit=-1', headers);
+    expect(res.status).toBe(200);
+    expect(res.body.limit).toBe(10);
+    expect(res.body.items).toHaveLength(2);
   });
 });

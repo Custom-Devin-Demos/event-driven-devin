@@ -12,8 +12,8 @@ const {
 } = require('./95d1a7d1-codes');
 
 const SERVICE = 'customer-95d1a7d1-claims-inquiry';
-const ROUTE = '/api/95d1a7d1/inquiry';
-const SLACK_MEMBER_ID = process.env.HCPS_SLACK_MEMBER_ID || 'U09MEGVGG2Z';
+const ROUTE = '/95d1a7d1/api/v1/claims';
+const SLACK_MEMBER_ID = process.env.HCPS_SLACK_MEMBER_ID || '';
 
 const CLAIM_ID_PATTERN = /^CLM\d{7}$/;
 const USER_ID_PATTERN = /^[A-Z0-9]{1,8}$/;

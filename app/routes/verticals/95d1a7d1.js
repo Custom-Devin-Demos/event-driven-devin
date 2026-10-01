@@ -5,7 +5,6 @@ const {
   inquireClaim,
   browsePositions,
   browseHistory,
-  listClaims,
   readClaimMaster,
   ValidationError,
 } = require('../../services/verticals/95d1a7d1');
@@ -34,7 +33,8 @@ router.get('/95d1a7d1', (_req, res) => res.redirect(`${APP_WEB_PATH}/`));
 // SECURITY_AUTH rows for resource CLMINQ; AUTH_LEVEL >= '01' is required (SECMGR parity).
 // ---------------------------------------------------------------------------
 const TOKEN_TTL_SECONDS = 3600;
-const JWT_SECRET = process.env.HCPS_JWT_SECRET || 'hcps-inquiry-dev-secret';
+// Without a configured secret, tokens are only valid for this process lifetime.
+const JWT_SECRET = process.env.HCPS_JWT_SECRET || crypto.randomBytes(32).toString('hex');
 const DEV_PASSWORD = process.env.HCPS_DEV_PASSWORD || '';
 const SECURITY_AUTH = {
   INQUSER1: '03',
@@ -181,6 +181,10 @@ router.get(`${API_V1}/claims/:claimId`, async (req, res) => {
   try {
     const { userId } = authenticate(req);
     const result = await inquireClaim({ claimId: req.params.claimId, userId });
+    const memberId = String(req.query.memberId || '').trim().toUpperCase();
+    if (memberId && memberId !== result.claim.memberId) {
+      throw new ContractError(404, 'NOT_FOUND', 'Claim record not found', 4);
+    }
     res.json(toClaimDetail(result));
   } catch (error) {
     sendContractError(res, error);
@@ -190,7 +194,8 @@ router.get(`${API_V1}/claims/:claimId`, async (req, res) => {
 router.get(`${API_V1}/claims/:claimId/positions`, (req, res) => {
   try {
     const { userId } = authenticate(req);
-    const limit = Math.min(Number.parseInt(req.query.limit, 10) || 10, 20);
+    const requested = Number.parseInt(req.query.limit, 10);
+    const limit = Math.min(requested > 0 ? requested : 10, 20);
     const page = browsePositions({ claimId: req.params.claimId, userId, page: req.query.page, pageSize: limit });
     const items = page.items.map((item) => ({
       claimId: req.params.claimId.toUpperCase(),
@@ -241,32 +246,6 @@ router.get(`${API_V1}/claims/:claimId/history`, (req, res) => {
     });
   } catch (error) {
     sendContractError(res, error);
-  }
-});
-
-router.get('/api/95d1a7d1/claims', (_req, res) => {
-  res.json({ claims: listClaims() });
-});
-
-router.post('/api/95d1a7d1/inquiry', async (req, res) => {
-  const body = req.body || {};
-  try {
-    const result = await inquireClaim({
-      claimId: body.claimId,
-      userId: body.userId,
-      devinUserId: body.devinUserId,
-      devinOrgId: body.devinOrgId,
-      devinEmail: body.devinEmail,
-    });
-    res.json(result);
-  } catch (error) {
-    res.status(error.status || 500).json({
-      success: false,
-      error: error.message,
-      errorClass: error.name,
-      code: error.code || 'CLAIM_INQUIRY_FAILED',
-      requestId: req.requestId,
-    });
   }
 });
 
