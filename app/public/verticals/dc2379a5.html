@@ -82,6 +82,8 @@
     .resource .icon.open { background: #e7f9ec; color: var(--green-ink); }
     .resource .title { font-weight: 600; font-size: 15px; }
     .resource .desc { margin-top: 2px; font-size: 13px; color: var(--muted); }
+    .resource .doc-body { grid-column: 2 / -1; margin: 0; padding: 14px 16px; border-radius: 10px; background: var(--tint); font-size: 14px; line-height: 1.55; color: var(--ink); }
+    .resource .doc-body[hidden] { display: none; }
     .tag { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--tint); color: var(--purple); border: 1px solid var(--tint-2); }
     .tag.public { background: #effbf2; color: var(--green-ink); border-color: #cdeed6; }
 
@@ -162,6 +164,7 @@
       .resource { grid-template-columns: 40px 1fr; }
       .resource .tag { grid-column: 2; justify-self: start; }
       .resource .btn { grid-column: 1 / -1; width: 100%; }
+      .resource .doc-body { grid-column: 1 / -1; }
       table.subs th:nth-child(3), table.subs td:nth-child(3) { display: none; }
       .cta-band { flex-direction: column; align-items: flex-start; padding: 26px; }
       .field-row { grid-template-columns: 1fr; }
@@ -272,7 +275,7 @@
             <h2>Resources</h2>
             <p>Restricted documents are shared under our mutual NDA.</p>
           </div>
-          <button class="btn btn-ghost" type="button" data-request="">Request all documents</button>
+          <button class="btn btn-ghost" type="button" data-request="all">Request all documents</button>
         </div>
         <div class="resources" id="resource-list"></div>
       </div>
@@ -414,8 +417,8 @@
       { id: 'pentest-summary', title: 'Penetration Test Summary', desc: 'Executive summary, Q2 2026', framework: 'Pentest' },
     ];
     var PUBLIC_DOCS = [
-      { title: 'Security Overview', desc: 'How we protect customer data' },
-      { title: 'GDPR Commitment', desc: 'Data protection and DPA overview' },
+      { title: 'Security Overview', desc: 'How we protect customer data', body: 'Customer data is encrypted in transit with TLS 1.2+ and at rest with AES-256. Production access requires SSO with hardware-backed MFA, is granted just-in-time and is logged and reviewed quarterly. Infrastructure runs in isolated AWS accounts with continuous vulnerability scanning and annual third-party penetration tests.' },
+      { title: 'GDPR Commitment', desc: 'Data protection and DPA overview', body: 'We act as a processor for customer data and offer a Data Processing Addendum incorporating the EU Standard Contractual Clauses. Data subject requests are fulfilled within 30 days, subprocessors are listed on this page with 30 days notice of changes, and personal data is deleted within 90 days of contract termination.' },
     ];
     var DEFAULT_SELECTION = ['soc2-type2-report', 'iso27001-certificate', 'iso42001-certificate'];
 
@@ -461,14 +464,23 @@
       var info = el('div');
       info.appendChild(el('div', 'title', doc.title));
       info.appendChild(el('div', 'desc', doc.desc));
-      var link = el('a', 'btn btn-ghost btn-sm', 'View');
-      link.href = 'https://trust.vanta.com/';
-      link.target = '_blank';
-      link.rel = 'noopener';
+      var panel = el('div', 'doc-body', doc.body);
+      panel.id = 'doc-' + doc.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      panel.hidden = true;
+      var view = el('button', 'btn btn-ghost btn-sm', 'View');
+      view.type = 'button';
+      view.setAttribute('aria-expanded', 'false');
+      view.setAttribute('aria-controls', panel.id);
+      view.addEventListener('click', function () {
+        panel.hidden = !panel.hidden;
+        view.setAttribute('aria-expanded', String(!panel.hidden));
+        view.textContent = panel.hidden ? 'View' : 'Hide';
+      });
       row.appendChild(icon);
       row.appendChild(info);
       row.appendChild(el('span', 'tag public', 'Public'));
-      row.appendChild(link);
+      row.appendChild(view);
+      row.appendChild(panel);
       list.appendChild(row);
     });
 
@@ -493,7 +505,9 @@
     var lastTrigger = null;
 
     function openModal(documentId, trigger) {
-      var selected = documentId ? [documentId] : DEFAULT_SELECTION;
+      var selected = DEFAULT_SELECTION;
+      if (documentId === 'all') selected = RESTRICTED.map(function (doc) { return doc.id; });
+      else if (documentId) selected = [documentId];
       options.querySelectorAll('input').forEach(function (input) {
         input.checked = selected.indexOf(input.value) !== -1;
       });

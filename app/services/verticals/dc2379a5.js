@@ -146,7 +146,12 @@ async function requestTrustCenterAccess(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, documents: documentTag },
+      tags: {
+        route: ROUTE,
+        service: SERVICE,
+        documents: documentTag,
+        alert_path: 'instant',
+      },
       extra: { requestId, documents: request.documents, company: request.company },
     });
 

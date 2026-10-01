@@ -4,10 +4,17 @@ jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ ok: true })),
 }));
 
+jest.mock('../app/telemetry/sentry', () => ({
+  Sentry: { captureException: jest.fn() },
+  initSentry: jest.fn(),
+}));
+
 const express = require('express');
 const http = require('http');
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { Sentry } = require('../app/telemetry/sentry');
+const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const trustCenterRoutes = require('../app/routes/verticals/dc2379a5');
 const {
   requestTrustCenterAccess,
@@ -64,6 +71,7 @@ function postRequest(body) {
 afterEach(() => {
   delete FRAMEWORK_ACCESS_POLICIES.iso42001;
   createSessionAndAlert.mockClear();
+  Sentry.captureException.mockClear();
 });
 
 describe('Vanta Trust Center access requests', () => {
@@ -146,6 +154,20 @@ describe('Vanta ISO 42001 Certificate request', () => {
       { key: 'route', value: '/api/dc2379a5/trust-center/access-requests' },
       { key: 'documents', value: 'soc2-type2-report|iso27001-certificate|iso42001-certificate' },
     ]));
+  });
+
+  test('tags the Sentry event so the webhook does not raise a second alert', async () => {
+    await expect(
+      requestTrustCenterAccess({ ...REQUESTER, documents: ['iso42001-certificate'], ...IDENTITY }),
+    ).rejects.toThrow(TypeError);
+
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+    expect(Sentry.captureException.mock.calls[0][1].tags.alert_path).toBe('instant');
+    expect(isInstantPathEvent({
+      culprit: 'app/services/verticals/dc2379a5.js \u2014 buildAccessGrants',
+      tags: [],
+    })).toBe(true);
+    expect(isInstantPathEvent({ culprit: 'buildAccessGrants', tags: [['alert_path', 'instant']] })).toBe(true);
   });
 
   test('returns a 500 response from the route', async () => {
