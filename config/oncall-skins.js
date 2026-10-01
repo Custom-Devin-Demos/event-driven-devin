@@ -2789,6 +2789,24 @@ const ONCALL_SKINS = {
     supportCenter: 'Viriyah Insurance Customer Service',
     disclaimer: 'NOT ACTUALLY A VIRIYAH INSURANCE SITE — internal demo only, not affiliated with, endorsed by, or a real Viriyah Insurance product.',
   },
+  '265cac56': {
+    slug: '265cac56',
+    company: 'Empower',
+    brandMark: 'E',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '265cac56.html', title: 'Transfer funds | Empower' },
+    theme: {
+      '--accent': '#006BD6',
+      '--ink': '#000000',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#002157',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Empower Support',
+    supportCenterSub: 'Personal Dashboard & transfers',
+    disclaimer: 'NOT ACTUALLY AN EMPOWER SITE — internal demo only, not affiliated with, endorsed by, or a real Empower product.',
+  },
 };
 
 function getOncallSkin(slug) {
