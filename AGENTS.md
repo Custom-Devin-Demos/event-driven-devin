@@ -42,6 +42,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Millennium — Pod Capital Allocation** (unlisted — direct URL only) | `/millennium`, `/ff27e25f` | `app/public/verticals/ff27e25f.html` | `POST /api/ff27e25f/allocations` | `app/services/verticals/ff27e25f.js` |
 | **Vista Equity Partners — LP Capital Call Notices** (unlisted — direct URL only) | `/vista`, `/vista-equity`, `/a1066f3a` | `app/public/verticals/a1066f3a.html` | `GET /api/a1066f3a/funds`, `POST /api/a1066f3a/capital-calls` | `app/services/verticals/a1066f3a.js` |
 | **Aravia Therapeutics — Patient Access Portal** (fictional brand, unlisted — direct URL only) | `/patient-access`, `/fcf0f903` | `app/public/verticals/fcf0f903.html` | `POST /api/fcf0f903/enrollment`, `POST /api/fcf0f903/copay-estimate` | `app/services/verticals/fcf0f903.js` |
+| **CVS Health — Aetna Member Coverage (ServiceNow)** (unlisted — direct URL only) | `/cvs-snow`, `/907b82bd` | `app/public/verticals/907b82bd.html` | `POST /api/907b82bd/coverage`, `POST /api/907b82bd/cost-estimate`, `GET /api/907b82bd/context` | `app/services/verticals/907b82bd.js` |
 | **Zuora — AI Usage-Based Pricing** (unlisted — direct URL only) | `/zuora`, `/ce4ebc10` | `app/public/verticals/ce4ebc10.html` | `POST /api/ce4ebc10/publish-pricing` | `app/services/verticals/ce4ebc10.js` |
 | **Rippling — Payroll Run** (unlisted — direct URL only) | `/rippling`, `/a7fb8819` | `app/public/verticals/a7fb8819.html` | `POST /api/a7fb8819/submit-pay-run` | `app/services/verticals/a7fb8819.js` |
 | **Gusto — Payroll Ops On-Call Console** (unlisted — direct URL only) | `/gusto`, `/f8555891` | `app/public/verticals/f8555891.html` | `POST /api/f8555891/release-batch` (failure → monitor card in the on-call alerts channel, no app-created Devin session), `POST /api/f8555891/support-ticket` (customer report → on-call bugs channel; with `split`, one parent ticket `GUS-####` plus threaded sub-tickets `GUS-####.N`) | `app/services/verticals/f8555891.js` |
@@ -326,6 +327,22 @@ The silent half is the point: the crash is what pages you; the quiet quote is wh
 - **`scripts/fcf0f903-copay-audit.js` is the prevention control** (`npm run audit:copay`) — it resolves the benefit for every patient record through both real service paths and exits non-zero for unresolved or silently downgraded tiers. It is not wired into `npm test`/CI, which is why this shipped; wiring it in is the demo's prevention workstream.
 - `REMEDIATION_DIRECTIVE` fans out to three child sessions: code blast radius (incl. the silent estimate consumer), ServiceNow incident blast radius in assignment group "Patient Access Platform Engineering", and prevention/audit wiring. The customer is configured for the ServiceNow incident path via `itsm: 'servicenow'` in `config/customers/fcf0f903.js`.
 - Regression coverage for both paths lives in `tests/fcf0f903-enrollment.test.js` and `tests/fcf0f903-copay-estimate.test.js`; the estimate tests pin the current Standard fallback and must be updated when the defect is fixed.
+
+### CVS Health Aetna member coverage field-migration scenario (907b82bd, /cvs-snow)
+
+The CVS Health Aetna member coverage vertical (`/907b82bd`, `/cvs-snow`) is the ServiceNow-first sibling of the enGen scenario (`7c6a6ef9`): the same field-migration gap with two consumers, on a CVS/Aetna-branded page, with the incident routed to ServiceNow instead of a direct Devin session.
+
+| Consumer | Behavior | Signal |
+|----------|----------|--------|
+| `lookupCoverage()` | Reads the pre-2026 `member.planType` field, resolves no plan and throws while dereferencing it (`buildCoverageSummary`) | HTTP 500 `TypeError` → Sentry → Slack card → **P2 ServiceNow incident** (assignment group "Aetna Member Benefits Platform Engineering") → business rule → Devin Automation webhook |
+| `estimateVisitCost()` | Reads the pre-2026 field and falls back to the Aetna Choice POS II (`ppo`) network default, so HMO/EPO/HDHP members are quoted PPO cost sharing — an HDHP member is told the deductible is met and a specialist visit costs $30 when $1,400 of deductible remains | HTTP 200 with no Sentry/Devin alert; `cost_estimate.quoted` carries `plan:ppo` on members whose enrolled plan is not PPO |
+
+The 2026 benefit-year renewal moved plan assignment to `member.enrollment.planType` in `app/services/verticals/907b82bd-members.js`; both consumers in `app/services/verticals/907b82bd.js` still read the old location and only the coverage path crashes. The defect is deliberately left in place so Devin performs the fix live from the ServiceNow incident. Member IDs follow the Aetna `W` + 9-digit shape (`W204819730`, …).
+
+- **`scripts/907b82bd-benefits-audit.js` is the prevention control** (`npm run audit:907b82bd`) — probes both real service paths for every member and exits non-zero on unresolved or silently downgraded plans. Not wired into CI, which is why this shipped.
+- `REMEDIATION_DIRECTIVE` fans out to three child sessions: code blast radius, ServiceNow incident blast radius in the assignment group above, and prevention/audit wiring. It ends with an explicit "do not deploy, do not close the incident" instruction — ServiceNow stays the system of record and humans own release.
+- The customer is configured for the ServiceNow path via `itsm: 'servicenow'` + `itsmAssignmentGroup` in `config/customers/907b82bd.js`. In the ServiceNow instance the group's per-group `x_devin.webhook_url.<group sys_id>` / `x_devin.webhook_secret.<group sys_id>` properties select the Devin Automation the business rule dispatches to.
+- Regression coverage lives in `tests/907b82bd-coverage.test.js` and `tests/907b82bd-cost-estimate.test.js`; the estimate tests pin the current PPO fallback and must be updated when the defect is fixed.
 
 ### FOX One web scenario (a75ccde9, /oncall/c/a75ccde9)
 
