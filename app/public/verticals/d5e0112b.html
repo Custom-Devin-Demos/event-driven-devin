@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Motor Claim Service | The Viriyah Insurance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --vr-blue: #1434A2;
+      --vr-blue-2: #0D4CA3;
+      --vr-blue-deep: #0B2272;
+      --vr-gold: #FCAF17;
+      --vr-gold-deep: #E39A00;
+      --vr-ink: #212529;
+      --vr-muted: #6C757D;
+      --vr-line: #DEE2E6;
+      --vr-wash: #EAEDF2;
+      --vr-paper: #F8F9FA;
+      --vr-ok: #1E8E4F;
+      --vr-err: #C62828;
+      --vr-radius: 14px;
+      --vr-shadow: 0 10px 30px rgba(11, 34, 114, 0.10), 0 2px 6px rgba(11, 34, 114, 0.06);
+      --font-head: "DBSathornX", "DB Sathorn X", "Prompt", Helvetica, Arial, sans-serif;
+      --font-body: "Sarabun Regular", "Sarabun", Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--font-body); color: var(--vr-ink); background: var(--vr-paper); font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; }
+    h1, h2, h3, h4 { font-family: var(--font-head); font-weight: 600; line-height: 1.25; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* Top utility bar */
+    .utility { background: var(--vr-blue-deep); color: rgba(255,255,255,0.85); font-size: 13px; }
+    .utility .wrap { display: flex; justify-content: space-between; align-items: center; min-height: 36px; gap: 16px; }
+    .utility .hot { display: inline-flex; align-items: center; gap: 8px; }
+    .utility .hot b { color: var(--vr-gold); font-family: var(--font-head); font-size: 15px; letter-spacing: 0.5px; }
+    .utility .links { display: flex; gap: 20px; }
+    .utility .links a:hover { color: #fff; }
+
+    /* Header */
+    header.masthead { background: #fff; box-shadow: 0 1px 0 var(--vr-line), 0 4px 18px rgba(11,34,114,0.05); position: sticky; top: 0; z-index: 50; }
+    .masthead .wrap { display: flex; align-items: center; gap: 28px; min-height: 76px; }
+    .brand { display: flex; align-items: center; gap: 12px; flex: none; }
+    .brand svg { width: 48px; height: 48px; flex: none; }
+    .brand .wm { display: flex; flex-direction: column; line-height: 1.1; }
+    .brand .wm .th { font-family: var(--font-head); font-weight: 700; color: var(--vr-blue); font-size: 20px; }
+    .brand .wm .en { font-family: var(--font-head); font-weight: 600; color: var(--vr-blue-2); font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; }
+    nav.primary { display: flex; gap: 4px; flex: 1; min-width: 0; overflow: hidden; }
+    nav.primary a { font-family: var(--font-head); font-weight: 500; color: var(--vr-ink); font-size: 15px; padding: 10px 14px; border-radius: 8px; min-height: 44px; display: inline-flex; align-items: center; white-space: nowrap; }
+    nav.primary a:hover { color: var(--vr-blue); background: var(--vr-wash); }
+    nav.primary a.active { color: var(--vr-blue); box-shadow: inset 0 -3px 0 var(--vr-gold); border-radius: 8px 8px 0 0; }
+    .head-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+    .lang { display: inline-flex; background: var(--vr-wash); border-radius: 999px; padding: 3px; }
+    .lang button { border: 0; background: transparent; font-family: var(--font-head); font-weight: 600; font-size: 13px; color: var(--vr-muted); min-width: 44px; min-height: 44px; border-radius: 999px; cursor: pointer; }
+    .lang button[aria-pressed="true"] { background: var(--vr-blue); color: #fff; box-shadow: 0 2px 6px rgba(20,52,162,0.35); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-head); font-weight: 600; font-size: 15px; border-radius: 10px; padding: 10px 18px; min-height: 44px; border: 0; cursor: pointer; white-space: nowrap; transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease; }
+    .btn-gold { background: var(--vr-gold); color: var(--vr-blue-deep); }
+    .btn-gold:hover { background: var(--vr-gold-deep); }
+    .btn-blue { background: var(--vr-blue); color: #fff; }
+    .btn-blue:hover { background: var(--vr-blue-deep); }
+
+    /* Hero */
+    .hero { position: relative; overflow: hidden; color: #fff; background: radial-gradient(1200px 400px at 85% -10%, rgba(252,175,23,0.22), transparent 60%), linear-gradient(120deg, var(--vr-blue-deep) 0%, var(--vr-blue) 55%, var(--vr-blue-2) 100%); }
+    .hero::after { content: ""; position: absolute; right: -120px; bottom: -160px; width: 520px; height: 520px; border-radius: 50%; border: 60px solid rgba(252,175,23,0.10); }
+    .hero .wrap { position: relative; z-index: 1; padding-top: 44px; padding-bottom: 112px; }
+    .crumbs { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 18px; }
+    .crumbs span { color: var(--vr-gold); }
+    .hero h1 { font-size: 42px; font-weight: 700; max-width: 720px; }
+    .hero h1 em { font-style: normal; color: var(--vr-gold); }
+    .hero p.lead { margin-top: 14px; font-size: 18px; max-width: 640px; color: rgba(255,255,255,0.88); }
+    .hero-stats { display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; }
+    .chip { display: inline-flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); border-radius: 12px; padding: 10px 16px; backdrop-filter: blur(4px); }
+    .chip b { font-family: var(--font-head); color: var(--vr-gold); font-size: 20px; }
+    .chip span { font-size: 14px; color: rgba(255,255,255,0.9); }
+
+    /* Main layout */
+    main > .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; margin-top: -76px; position: relative; z-index: 2; padding-bottom: 56px; }
+    .card { background: #fff; border-radius: var(--vr-radius); box-shadow: var(--vr-shadow); }
+    .claim-card { padding: 32px; }
+    .card-head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+    .card-head .ico { width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, var(--vr-gold), var(--vr-gold-deep)); display: grid; place-items: center; flex: none; }
+    .card-head h2 { color: var(--vr-blue); font-size: 26px; }
+    .card-head p { color: var(--vr-muted); font-size: 15px; margin-top: 2px; }
+
+    .steps { display: flex; gap: 8px; margin-bottom: 26px; }
+    .step { flex: 1; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--vr-paper); border: 1px solid var(--vr-line); font-size: 14px; color: var(--vr-muted); min-width: 0; }
+    .step .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-head); font-weight: 700; font-size: 13px; background: #fff; border: 1px solid var(--vr-line); flex: none; }
+    .step.on { background: #EEF2FC; border-color: #C9D5F4; color: var(--vr-blue); font-weight: 600; }
+    .step.on .n { background: var(--vr-blue); border-color: var(--vr-blue); color: #fff; }
+    .step .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    fieldset { border: 0; margin-bottom: 22px; }
+    legend { font-family: var(--font-head); font-weight: 600; color: var(--vr-blue-deep); font-size: 17px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+    legend::before { content: ""; width: 4px; height: 18px; border-radius: 2px; background: var(--vr-gold); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; min-width: 0; }
+    .grid-2 .form-group { margin-bottom: 0; }
+    .grid-2 + .form-group, .form-group + .grid-2 { margin-top: 0; }
+    .grid-2 { margin-bottom: 16px; }
+    label { font-family: var(--font-head); font-weight: 500; font-size: 14px; color: #343A40; }
+    label .req { color: var(--vr-err); margin-left: 2px; }
+    input, select, textarea { width: 100%; font-family: var(--font-body); font-size: 16px; color: var(--vr-ink); background: #fff; border: 1.5px solid var(--vr-line); border-radius: 10px; padding: 11px 14px; min-height: 48px; outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+    select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231434A2' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+    textarea { min-height: 96px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: var(--vr-blue); box-shadow: 0 0 0 4px rgba(20,52,162,0.12); }
+    .hint { font-size: 13px; color: var(--vr-muted); }
+    .money { position: relative; }
+    .money input { padding-left: 34px; }
+    .money::before { content: "\0E3F"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--vr-muted); font-weight: 600; }
+    .consent { display: flex; gap: 12px; align-items: flex-start; background: var(--vr-paper); border: 1px solid var(--vr-line); border-radius: 10px; padding: 14px; font-size: 14px; color: #495057; margin-bottom: 22px; }
+    .consent input { width: 22px; min-width: 22px; height: 22px; min-height: 22px; padding: 0; margin-top: 2px; accent-color: var(--vr-blue); }
+    .actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .btn-claim { background: linear-gradient(180deg, var(--vr-blue) 0%, var(--vr-blue-deep) 100%); color: #fff; font-size: 17px; padding: 14px 30px; min-height: 52px; border-radius: 12px; box-shadow: 0 6px 16px rgba(20,52,162,0.30); }
+    .btn-claim:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(20,52,162,0.35); }
+    .btn-claim:disabled { opacity: 0.75; cursor: progress; }
+    .btn-claim .spin { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.35); border-top-color: var(--vr-gold); border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+    .btn-claim.busy .spin { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .actions .hint { flex: 1; min-width: 200px; }
+
+    .result-box { display: none; margin-top: 22px; border-radius: 12px; padding: 18px 20px; border: 1px solid; }
+    .result-box.ok { display: block; background: #EDF8F1; border-color: #BFE3CD; }
+    .result-box.err { display: block; background: #FDEEEE; border-color: #F3C2C2; }
+    .result-box.wait { display: block; background: #EEF2FC; border-color: #C9D5F4; }
+    .result-box h4 { font-size: 17px; margin-bottom: 6px; }
+    .result-box.ok h4 { color: var(--vr-ok); }
+    .result-box.err h4 { color: var(--vr-err); }
+    .result-box.wait h4 { color: var(--vr-blue); }
+    .result-box p { font-size: 15px; color: #343A40; }
+    .result-box dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin-top: 10px; font-size: 14px; }
+    .result-box dt { color: var(--vr-muted); }
+    .result-box dd { font-weight: 600; word-break: break-all; }
+
+    /* Sidebar */
+    aside { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+    .hotline { padding: 24px; background: linear-gradient(150deg, var(--vr-gold) 0%, #FFC94D 100%); color: var(--vr-blue-deep); position: relative; overflow: hidden; }
+    .hotline::after { content: ""; position: absolute; right: -40px; top: -40px; width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,0.22); }
+    .hotline .lbl { font-family: var(--font-head); font-weight: 600; font-size: 15px; }
+    .hotline .num { font-family: var(--font-head); font-weight: 700; font-size: 54px; line-height: 1; margin: 6px 0; letter-spacing: 1px; }
+    .hotline p { font-size: 14px; position: relative; z-index: 1; }
+    .side-card { padding: 22px 24px; }
+    .side-card h3 { color: var(--vr-blue); font-size: 18px; margin-bottom: 12px; }
+    .checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .checklist li { display: flex; gap: 10px; font-size: 15px; }
+    .checklist li::before { content: ""; flex: none; width: 20px; height: 20px; margin-top: 2px; border-radius: 50%; background: #EEF2FC url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3.5 3.5L11 1' stroke='%231434A2' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center no-repeat; }
+    .timeline { list-style: none; position: relative; }
+    .timeline li { position: relative; padding-left: 30px; padding-bottom: 14px; font-size: 15px; }
+    .timeline li::before { content: ""; position: absolute; left: 6px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--vr-gold); box-shadow: 0 0 0 4px rgba(252,175,23,0.22); }
+    .timeline li:not(:last-child)::after { content: ""; position: absolute; left: 10px; top: 20px; bottom: -2px; width: 2px; background: var(--vr-line); }
+    .timeline b { display: block; font-family: var(--font-head); color: var(--vr-blue-deep); font-weight: 600; }
+    .timeline span { color: var(--vr-muted); font-size: 14px; }
+    .vclaim { display: flex; gap: 14px; align-items: center; padding: 18px 20px; }
+    .vclaim .ico { width: 46px; height: 46px; border-radius: 12px; background: var(--vr-blue); display: grid; place-items: center; flex: none; }
+    .vclaim b { font-family: var(--font-head); color: var(--vr-blue); display: block; }
+    .vclaim span { font-size: 14px; color: var(--vr-muted); }
+
+    /* Services strip */
+    .services { padding: 8px 0 56px; }
+    .services h2 { color: var(--vr-blue); font-size: 26px; margin-bottom: 18px; }
+    .svc-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 18px; }
+    .svc { padding: 22px; border-top: 4px solid var(--vr-gold); }
+    .svc .ico { width: 44px; height: 44px; border-radius: 12px; background: #EEF2FC; display: grid; place-items: center; margin-bottom: 12px; }
+    .svc h4 { color: var(--vr-blue-deep); font-size: 17px; margin-bottom: 4px; }
+    .svc p { color: var(--vr-muted); font-size: 14px; }
+
+    /* Footer */
+    footer { background: var(--vr-blue); color: rgba(255,255,255,0.85); }
+    footer .wrap { padding-top: 44px; padding-bottom: 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px; }
+    footer .brand .wm .th, footer .brand .wm .en { color: #fff; }
+    footer h5 { font-family: var(--font-head); color: var(--vr-gold); font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+    footer ul { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+    footer ul a:hover { color: #fff; }
+    footer .addr { font-size: 14px; margin-top: 14px; max-width: 320px; }
+    footer .base { border-top: 1px solid rgba(255,255,255,0.18); margin-top: 32px; padding-top: 18px; font-size: 13px; color: rgba(255,255,255,0.7); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+    .menu-btn { display: none; width: 44px; height: 44px; border: 0; background: var(--vr-wash); border-radius: 10px; cursor: pointer; place-items: center; }
+
+    body.th { line-height: 1.7; }
+
+    @media (max-width: 1400px) {
+      nav.primary a { padding: 10px 10px; }
+      nav.primary a:nth-child(5) { display: none; }
+      .head-actions .btn-gold { display: none; }
+    }
+    @media (max-width: 1100px) {
+      nav.primary a { font-size: 14px; }
+      nav.primary a:nth-child(4) { display: none; }
+    }
+    @media (max-width: 960px) {
+      main > .wrap { grid-template-columns: minmax(0, 1fr); }
+      .svc-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      nav.primary { display: none; }
+      .menu-btn { display: grid; }
+      .masthead .wrap { justify-content: space-between; }
+      .head-actions .btn-blue { display: none; }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 0 16px; }
+      .utility .links { display: none; }
+      .masthead .wrap { min-height: 64px; gap: 10px; }
+      .brand svg { width: 40px; height: 40px; }
+      .brand .wm .th { font-size: 17px; }
+      .brand .wm .en { font-size: 9.5px; letter-spacing: 1.2px; }
+      .hero .wrap { padding-top: 28px; padding-bottom: 96px; }
+      .hero h1 { font-size: 30px; }
+      .hero p.lead { font-size: 16px; }
+      .chip { padding: 8px 12px; }
+      .chip b { font-size: 17px; }
+      .claim-card { padding: 22px 18px; }
+      .card-head h2 { font-size: 22px; }
+      .grid-2 { grid-template-columns: minmax(0, 1fr); }
+      .steps .step .t { display: none; }
+      .steps .step { justify-content: center; }
+      .btn-claim { width: 100%; }
+      .svc-grid { grid-template-columns: minmax(0, 1fr); }
+      .foot-grid { grid-template-columns: minmax(0, 1fr); }
+      .hotline .num { font-size: 46px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility">
+    <div class="wrap">
+      <div class="hot">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FCAF17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
+        <span data-i18n="util.hotline">Accident report 24 hours</span> <b>1557</b>
+      </div>
+      <div class="links">
+        <a href="#" data-i18n="util.policy">Policy search</a>
+        <a href="#" data-i18n="util.garage">Partner garages</a>
+        <a href="#" data-i18n="util.branches">Branches nationwide</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="masthead">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="The Viriyah Insurance">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <rect width="48" height="48" rx="11" fill="#0D4CA3"/>
+          <path d="M24 7.5 28.2 14 24 20.5 19.8 14Z" fill="#FCAF17"/>
+          <path d="M11 18.5 24 31l13-12.5v5.2L24 36.2 11 23.7Z" fill="#FCAF17"/>
+          <path d="M15.5 33.5 24 41l8.5-7.5" fill="none" stroke="#FCAF17" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+          <rect x="22.4" y="20.5" width="3.2" height="8.2" rx="1.6" fill="#FCAF17"/>
+        </svg>
+        <span class="wm"><span class="th">วิริยะประกันภัย</span><span class="en">The Viriyah Insurance</span></span>
+      </a>
+      <nav class="primary" aria-label="Primary">
+        <a href="#" data-i18n="nav.products">Products</a>
+        <a href="#" data-i18n="nav.services">Services</a>
+        <a href="#" class="active" data-i18n="nav.customer">Customer Service</a>
+        <a href="#" data-i18n="nav.agents">Agents / Brokers</a>
+        <a href="#" data-i18n="nav.about">About Us</a>
+      </nav>
+      <div class="head-actions">
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="th" aria-pressed="false">TH</button>
+          <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        </div>
+        <a href="#" class="btn btn-gold" data-i18n="nav.contact">Contact Us</a>
+        <a href="#" class="btn btn-blue" data-i18n="nav.buy">Online Insurance</a>
+        <button type="button" class="menu-btn" aria-label="Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1434A2" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="crumbs"><span data-i18n="crumb.home">Home</span> &nbsp;/&nbsp; <span data-i18n="crumb.cs">Customer Service</span> &nbsp;/&nbsp; <span data-i18n="crumb.claim">Motor Claim Service</span></div>
+      <h1 data-i18n-html="hero.title">Motor Claim Service, <em>wherever you are</em></h1>
+      <p class="lead" data-i18n="hero.lead">Report an accident online and our surveyor will be on the way. Submit your claim notification with your policy and accident details below.</p>
+      <div class="hero-stats">
+        <div class="chip"><b>24/7</b><span data-i18n="hero.chip1">Claim notification</span></div>
+        <div class="chip"><b>1557</b><span data-i18n="hero.chip2">Nationwide hotline</span></div>
+        <div class="chip"><b data-i18n="hero.chip3n">VClaim</b><span data-i18n="hero.chip3">on VCall</span></div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="wrap">
+      <section class="card claim-card" aria-labelledby="claimTitle">
+        <div class="card-head">
+          <div class="ico">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B2272" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17h14M6 17l1.5-5.2A2 2 0 0 1 9.4 10.3h5.2a2 2 0 0 1 1.9 1.5L18 17M5 17v2.5M19 17v2.5"/><circle cx="8" cy="15" r=".6" fill="#0B2272"/><circle cx="16" cy="15" r=".6" fill="#0B2272"/><path d="M12 3v4M9.5 4.5 12 7l2.5-2.5"/></svg>
+          </div>
+          <div>
+            <h2 id="claimTitle" data-i18n="form.title">Report an Accident</h2>
+            <p data-i18n="form.sub">Accident with other parties or without other parties — notify us here.</p>
+          </div>
+        </div>
+
+        <div class="steps" aria-hidden="true">
+          <div class="step on"><span class="n">1</span><span class="t" data-i18n="step.1">Report details</span></div>
+          <div class="step"><span class="n">2</span><span class="t" data-i18n="step.2">Surveyor visit</span></div>
+          <div class="step"><span class="n">3</span><span class="t" data-i18n="step.3">Claim note &amp; repair</span></div>
+        </div>
+
+        <form id="claimForm" novalidate>
+          <fieldset>
+            <legend data-i18n="leg.policy">Policy &amp; vehicle</legend>
+            <div class="form-group">
+              <label for="policyId"><span data-i18n="f.policy">Policy number</span><span class="req">*</span></label>
+              <select id="policyId">
+                <option value="POL-5001" data-i18n="opt.pol1">POL-5001 · Motor Type 1 · Toyota Yaris Ativ · 1กข 4821 Bangkok</option>
+                <option value="POL-5004" data-i18n="opt.pol4">POL-5004 · Motor Type 2+ · Honda City · 7ขค 2390 Chiang Mai</option>
+              </select>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="insuredName"><span data-i18n="f.name">The Insured's name</span><span class="req">*</span></label>
+                <input type="text" id="insuredName" value="Somchai Rattanakul" data-i18n-value="v.name" autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label for="contactNo"><span data-i18n="f.phone">Contact number</span><span class="req">*</span></label>
+                <input type="tel" id="contactNo" value="081 234 5678" inputmode="tel" autocomplete="tel">
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend data-i18n="leg.accident">Accident details</legend>
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="claimType"><span data-i18n="f.type">Type of accident</span><span class="req">*</span></label>
+                <select id="claimType">
+                  <option value="collision" data-i18n="opt.collision">Accident with other parties</option>
+                  <option value="comprehensive" data-i18n="opt.comprehensive">Accident without other parties</option>
+                  <option value="liability" data-i18n="opt.liability">Third-party liability</option>
+                  <option value="property_damage" data-i18n="opt.property">Damage to property</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="amount"><span data-i18n="f.amount">Estimated damage (THB)</span><span class="req">*</span></label>
+                <div class="money"><input type="number" id="amount" value="18500" min="1" step="1" inputmode="numeric"></div>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="accidentTime"><span data-i18n="f.time">Time of the accident</span></label>
+                <input type="datetime-local" id="accidentTime">
+              </div>
+              <div class="form-group">
+                <label for="accidentPlace"><span data-i18n="f.place">Place of the accident</span></label>
+                <input type="text" id="accidentPlace" value="Rama IV Road, Khlong Toei, Bangkok" data-i18n-value="v.place">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="description"><span data-i18n="f.desc">Details of the accident</span><span class="req">*</span></label>
+              <input type="text" id="description" value="Rear-ended at a traffic light, rear bumper and tail lamp damaged" data-i18n-value="v.desc">
+              <span class="hint" data-i18n="f.deschint">Briefly describe what happened and the damage to the vehicle.</span>
+            </div>
+          </fieldset>
+
+          <label class="consent">
+            <input type="checkbox" id="consent" checked>
+            <span data-i18n="f.consent">I confirm the information above is correct and consent to Viriyah Insurance contacting me about this claim.</span>
+          </label>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-claim" id="submitBtn"><span class="spin" aria-hidden="true"></span><span id="submitLabel" data-i18n="btn.submit">Submit Claim Notification</span></button>
+            <span class="hint" data-i18n="btn.hint">Need help right away? Call 1557, available 24 hours nationwide.</span>
+          </div>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </section>
+
+      <aside>
+        <div class="card hotline">
+          <div class="lbl" data-i18n="side.hotlbl">Report an accident immediately</div>
+          <div class="num">1557</div>
+          <p data-i18n="side.hottxt">The Insured or related person can report the accident via telephone 1557 nationwide, 24 hours.</p>
+        </div>
+
+        <div class="card side-card">
+          <h3 data-i18n="side.need">Have these details ready</h3>
+          <ul class="checklist">
+            <li data-i18n="side.n1">The Insured's name and contact number</li>
+            <li data-i18n="side.n2">Car license number and brand</li>
+            <li data-i18n="side.n3">Policy number</li>
+            <li data-i18n="side.n4">Time and place of the accident</li>
+            <li data-i18n="side.n5">Details of the accident</li>
+          </ul>
+        </div>
+
+        <div class="card side-card">
+          <h3 data-i18n="side.after">After you report the accident</h3>
+          <ol class="timeline">
+            <li><b data-i18n="side.a1">Surveyor dispatched</b><span data-i18n="side.a1s">The company sends a surveyor to the accident location.</span></li>
+            <li><b data-i18n="side.a2">Claim note issued</b><span data-i18n="side.a2s">The surveyor records the damage and issues the claim note.</span></li>
+            <li><b data-i18n="side.a3">Repair at partner garage</b><span data-i18n="side.a3s">Take the claim note to a partner repair center of your choice.</span></li>
+          </ol>
+        </div>
+
+        <a class="card vclaim" href="#">
+          <div class="ico">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FCAF17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2.5"/><path d="M10 18h4"/><path d="m9 10 2 2 4-4"/></svg>
+          </div>
+          <div><b>VClaim on VCall</b><span data-i18n="side.vclaim">Minor-damage claims by video call, without waiting for a surveyor.</span></div>
+        </a>
+      </aside>
+    </div>
+
+    <section class="services">
+      <div class="wrap">
+        <h2 data-i18n="svc.title">Claim services</h2>
+        <div class="svc-grid">
+          <div class="card svc">
+            <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1434A2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+            <h4 data-i18n="svc.1">Claim service centers</h4><p data-i18n="svc.1s">Branches and claim service centers nationwide.</p>
+          </div>
+          <div class="card svc">
+            <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1434A2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg></div>
+            <h4 data-i18n="svc.2">Partner repair centers</h4><p data-i18n="svc.2s">Standard garages and dealer service centers.</p>
+          </div>
+          <div class="card svc">
+            <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1434A2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></div>
+            <h4 data-i18n="svc.3">Claim process</h4><p data-i18n="svc.3s">Documents and steps for claiming compensation.</p>
+          </div>
+          <div class="card svc">
+            <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1434A2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
+            <h4 data-i18n="svc.4">Policy search</h4><p data-i18n="svc.4s">Check your coverage and policy status.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <a class="brand" href="#" aria-label="The Viriyah Insurance">
+            <svg viewBox="0 0 48 48" aria-hidden="true">
+              <rect width="48" height="48" rx="11" fill="#fff"/>
+              <path d="M24 7.5 28.2 14 24 20.5 19.8 14Z" fill="#FCAF17"/>
+              <path d="M11 18.5 24 31l13-12.5v5.2L24 36.2 11 23.7Z" fill="#FCAF17"/>
+              <path d="M15.5 33.5 24 41l8.5-7.5" fill="none" stroke="#FCAF17" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+              <rect x="22.4" y="20.5" width="3.2" height="8.2" rx="1.6" fill="#FCAF17"/>
+            </svg>
+            <span class="wm"><span class="th">วิริยะประกันภัย</span><span class="en">The Viriyah Insurance</span></span>
+          </a>
+          <p class="addr" data-i18n="foot.addr">Head office, Bangkok. Accident report and claim notification 24 hours: 1557.</p>
+        </div>
+        <div>
+          <h5 data-i18n="nav.products">Products</h5>
+          <ul>
+            <li><a href="#" data-i18n="foot.p1">Motor Insurance</a></li>
+            <li><a href="#" data-i18n="foot.p2">Compulsory Motor Insurance</a></li>
+            <li><a href="#" data-i18n="foot.p3">Personal Accident Insurance</a></li>
+            <li><a href="#" data-i18n="foot.p4">Property Insurance</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5 data-i18n="nav.customer">Customer Service</h5>
+          <ul>
+            <li><a href="#" data-i18n="crumb.claim">Motor Claim Service</a></li>
+            <li><a href="#" data-i18n="svc.3">Claim process</a></li>
+            <li><a href="#" data-i18n="util.policy">Policy search</a></li>
+            <li><a href="#" data-i18n="util.garage">Partner garages</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5 data-i18n="nav.contact">Contact Us</h5>
+          <ul>
+            <li><a href="#" data-i18n="foot.c1">Call center 1557</a></li>
+            <li><a href="#" data-i18n="util.branches">Branches nationwide</a></li>
+            <li><a href="#" data-i18n="nav.agents">Agents / Brokers</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="base">
+        <span>&copy; The Viriyah Insurance Public Company Limited</span>
+        <span data-i18n="foot.terms">Terms of use &nbsp;·&nbsp; Privacy policy</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+  <script>
+    var I18N = {
+      en: {
+        'util.hotline': 'Accident report 24 hours',
+        'util.policy': 'Policy search',
+        'util.garage': 'Partner garages',
+        'util.branches': 'Branches nationwide',
+        'nav.products': 'Products',
+        'nav.services': 'Services',
+        'nav.customer': 'Customer Service',
+        'nav.agents': 'Agents / Brokers',
+        'nav.about': 'About Us',
+        'nav.contact': 'Contact Us',
+        'nav.buy': 'Online Insurance',
+        'crumb.home': 'Home',
+        'crumb.cs': 'Customer Service',
+        'crumb.claim': 'Motor Claim Service',
+        'hero.title': 'Motor Claim Service, <em>wherever you are</em>',
+        'hero.lead': 'Report an accident online and our surveyor will be on the way. Submit your claim notification with your policy and accident details below.',
+        'hero.chip1': 'Claim notification',
+        'hero.chip2': 'Nationwide hotline',
+        'hero.chip3n': 'VClaim',
+        'hero.chip3': 'on VCall',
+        'form.title': 'Report an Accident',
+        'form.sub': 'Accident with other parties or without other parties — notify us here.',
+        'step.1': 'Report details',
+        'step.2': 'Surveyor visit',
+        'step.3': 'Claim note & repair',
+        'leg.policy': 'Policy & vehicle',
+        'leg.accident': 'Accident details',
+        'f.policy': 'Policy number',
+        'f.name': "The Insured's name",
+        'f.phone': 'Contact number',
+        'f.type': 'Type of accident',
+        'f.amount': 'Estimated damage (THB)',
+        'f.time': 'Time of the accident',
+        'f.place': 'Place of the accident',
+        'f.desc': 'Details of the accident',
+        'f.deschint': 'Briefly describe what happened and the damage to the vehicle.',
+        'f.consent': 'I confirm the information above is correct and consent to Viriyah Insurance contacting me about this claim.',
+        'opt.pol1': 'POL-5001 · Motor Type 1 · Toyota Yaris Ativ · 1กข 4821 Bangkok',
+        'opt.pol4': 'POL-5004 · Motor Type 2+ · Honda City · 7ขค 2390 Chiang Mai',
+        'opt.collision': 'Accident with other parties',
+        'opt.comprehensive': 'Accident without other parties',
+        'opt.liability': 'Third-party liability',
+        'opt.property': 'Damage to property',
+        'v.name': 'Somchai Rattanakul',
+        'v.place': 'Rama IV Road, Khlong Toei, Bangkok',
+        'v.desc': 'Rear-ended at a traffic light, rear bumper and tail lamp damaged',
+        'btn.submit': 'Submit Claim Notification',
+        'btn.busy': 'Submitting claim…',
+        'btn.hint': 'Need help right away? Call 1557, available 24 hours nationwide.',
+        'side.hotlbl': 'Report an accident immediately',
+        'side.hottxt': 'The Insured or related person can report the accident via telephone 1557 nationwide, 24 hours.',
+        'side.need': 'Have these details ready',
+        'side.n1': "The Insured's name and contact number",
+        'side.n2': 'Car license number and brand',
+        'side.n3': 'Policy number',
+        'side.n4': 'Time and place of the accident',
+        'side.n5': 'Details of the accident',
+        'side.after': 'After you report the accident',
+        'side.a1': 'Surveyor dispatched',
+        'side.a1s': 'The company sends a surveyor to the accident location.',
+        'side.a2': 'Claim note issued',
+        'side.a2s': 'The surveyor records the damage and issues the claim note.',
+        'side.a3': 'Repair at partner garage',
+        'side.a3s': 'Take the claim note to a partner repair center of your choice.',
+        'side.vclaim': 'Minor-damage claims by video call, without waiting for a surveyor.',
+        'svc.title': 'Claim services',
+        'svc.1': 'Claim service centers',
+        'svc.1s': 'Branches and claim service centers nationwide.',
+        'svc.2': 'Partner repair centers',
+        'svc.2s': 'Standard garages and dealer service centers.',
+        'svc.3': 'Claim process',
+        'svc.3s': 'Documents and steps for claiming compensation.',
+        'svc.4': 'Policy search',
+        'svc.4s': 'Check your coverage and policy status.',
+        'foot.addr': 'Head office, Bangkok. Accident report and claim notification 24 hours: 1557.',
+        'foot.p1': 'Motor Insurance',
+        'foot.p2': 'Compulsory Motor Insurance',
+        'foot.p3': 'Personal Accident Insurance',
+        'foot.p4': 'Property Insurance',
+        'foot.c1': 'Call center 1557',
+        'foot.terms': 'Terms of use  ·  Privacy policy',
+        'r.wait': 'Submitting your claim notification',
+        'r.waitp': 'Please keep this page open while we register your claim.',
+        'r.ok': 'Claim notification received',
+        'r.okp': 'Your claim has been registered. A surveyor will contact you at the number provided.',
+        'r.ref': 'Claim reference',
+        'r.policy': 'Policy number',
+        'r.amount': 'Estimated damage',
+        'r.excess': 'Excess',
+        'r.payout': 'Approved amount',
+        'r.status': 'Status',
+        'r.approved': 'Approved',
+        'r.time': 'Registered at',
+        'r.err': 'Claim notification could not be completed',
+        'r.timeout': 'Claim submission timed out — please try again in a few minutes.',
+        'r.errgeneric': 'Something went wrong while submitting your claim.',
+        'r.errcall': 'For urgent help, call 1557 (24 hours).',
+        'r.reqid': 'Reference ID',
+        'r.network': 'Network error — please check your connection and try again.',
+        'r.consent': 'Please confirm the information and consent before submitting.',
+        'r.amountReq': 'Please enter the estimated damage amount.'
+      },
+      th: {
+        'util.hotline': 'แจ้งอุบัติเหตุ 24 ชั่วโมง',
+        'util.policy': 'ตรวจสอบกรมธรรม์',
+        'util.garage': 'อู่ในเครือ',
+        'util.branches': 'สาขาทั่วประเทศ',
+        'nav.products': 'ผลิตภัณฑ์',
+        'nav.services': 'จุดบริการ',
+        'nav.customer': 'บริการลูกค้า',
+        'nav.agents': 'สำหรับตัวแทน / นายหน้า',
+        'nav.about': 'เกี่ยวกับเรา',
+        'nav.contact': 'ติดต่อเรา',
+        'nav.buy': 'ซื้อประกันภัยออนไลน์',
+        'crumb.home': 'หน้าแรก',
+        'crumb.cs': 'บริการลูกค้า',
+        'crumb.claim': 'บริการเคลมรถยนต์',
+        'hero.title': 'บริการเคลมรถยนต์ <em>ทุกที่ ทุกเวลา</em>',
+        'hero.lead': 'แจ้งอุบัติเหตุออนไลน์ แล้วพนักงานสำรวจภัยจะรีบไปหาคุณ กรอกข้อมูลกรมธรรม์และรายละเอียดอุบัติเหตุด้านล่างเพื่อแจ้งเคลม',
+        'hero.chip1': 'รับแจ้งเคลม',
+        'hero.chip2': 'สายด่วนทั่วประเทศ',
+        'hero.chip3n': 'VClaim',
+        'hero.chip3': 'on VCall',
+        'form.title': 'แจ้งอุบัติเหตุ',
+        'form.sub': 'เกิดอุบัติเหตุมีคู่กรณีหรือไม่มีคู่กรณี แจ้งเคลมได้ที่นี่',
+        'step.1': 'แจ้งรายละเอียด',
+        'step.2': 'พนักงานสำรวจภัย',
+        'step.3': 'ใบเคลมและซ่อม',
+        'leg.policy': 'กรมธรรม์และรถยนต์',
+        'leg.accident': 'รายละเอียดอุบัติเหตุ',
+        'f.policy': 'เลขที่กรมธรรม์',
+        'f.name': 'ชื่อผู้เอาประกันภัย',
+        'f.phone': 'เบอร์โทรศัพท์ติดต่อ',
+        'f.type': 'ประเภทอุบัติเหตุ',
+        'f.amount': 'ประมาณการความเสียหาย (บาท)',
+        'f.time': 'เวลาที่เกิดเหตุ',
+        'f.place': 'สถานที่เกิดเหตุ',
+        'f.desc': 'รายละเอียดการเกิดเหตุ',
+        'f.deschint': 'อธิบายเหตุการณ์และความเสียหายของรถโดยย่อ',
+        'f.consent': 'ข้าพเจ้ายืนยันว่าข้อมูลข้างต้นถูกต้อง และยินยอมให้วิริยะประกันภัยติดต่อกลับเกี่ยวกับการเคลมนี้',
+        'opt.pol1': 'POL-5001 · ประกันภัยรถยนต์ชั้น 1 · Toyota Yaris Ativ · 1กข 4821 กรุงเทพมหานคร',
+        'opt.pol4': 'POL-5004 · ประกันภัยรถยนต์ชั้น 2+ · Honda City · 7ขค 2390 เชียงใหม่',
+        'opt.collision': 'เกิดอุบัติเหตุมีคู่กรณี',
+        'opt.comprehensive': 'เกิดอุบัติเหตุไม่มีคู่กรณี',
+        'opt.liability': 'ความรับผิดต่อบุคคลภายนอก',
+        'opt.property': 'ทรัพย์สินเสียหาย',
+        'v.name': 'สมชาย รัตนกุล',
+        'v.place': 'ถนนพระรามที่ 4 เขตคลองเตย กรุงเทพมหานคร',
+        'v.desc': 'ถูกชนท้ายขณะติดไฟแดง กันชนหลังและไฟท้ายเสียหาย',
+        'btn.submit': 'ส่งแจ้งเคลม',
+        'btn.busy': 'กำลังส่งแจ้งเคลม…',
+        'btn.hint': 'ต้องการความช่วยเหลือด่วน? โทร 1557 ได้ตลอด 24 ชั่วโมงทั่วประเทศ',
+        'side.hotlbl': 'แจ้งอุบัติเหตุได้ทันที',
+        'side.hottxt': 'ผู้เอาประกันภัยหรือผู้เกี่ยวข้องสามารถแจ้งอุบัติเหตุได้ทันทีที่หมายเลข 1557 ทั่วประเทศ ตลอด 24 ชั่วโมง',
+        'side.need': 'เตรียมข้อมูลเหล่านี้',
+        'side.n1': 'ชื่อผู้เอาประกันภัยและเบอร์โทรศัพท์ติดต่อ',
+        'side.n2': 'หมายเลขทะเบียนรถและยี่ห้อรถ',
+        'side.n3': 'เลขที่กรมธรรม์',
+        'side.n4': 'วัน เวลา และสถานที่เกิดเหตุ',
+        'side.n5': 'รายละเอียดการเกิดเหตุ',
+        'side.after': 'หลังจากแจ้งอุบัติเหตุ',
+        'side.a1': 'ส่งพนักงานสำรวจภัย',
+        'side.a1s': 'บริษัทฯ จัดส่งพนักงานสำรวจภัยไปยังสถานที่เกิดเหตุ',
+        'side.a2': 'ออกใบเคลม',
+        'side.a2s': 'พนักงานสำรวจภัยตรวจสอบความเสียหายและออกใบเคลม',
+        'side.a3': 'ซ่อมที่อู่ในเครือ',
+        'side.a3s': 'นำใบเคลมไปซ่อมที่ศูนย์ซ่อมในเครือที่คุณเลือก',
+        'side.vclaim': 'เคลมความเสียหายเล็กน้อยผ่านวิดีโอคอล ไม่ต้องรอพนักงานสำรวจภัย',
+        'svc.title': 'บริการด้านสินไหม',
+        'svc.1': 'ศูนย์บริการสินไหม',
+        'svc.1s': 'สาขาและศูนย์บริการสินไหมทั่วประเทศ',
+        'svc.2': 'ศูนย์ซ่อมในเครือ',
+        'svc.2s': 'อู่มาตรฐานและศูนย์บริการตัวแทนจำหน่าย',
+        'svc.3': 'ขั้นตอนการเคลม',
+        'svc.3s': 'เอกสารและขั้นตอนการเรียกร้องค่าสินไหมทดแทน',
+        'svc.4': 'ตรวจสอบกรมธรรม์',
+        'svc.4s': 'ตรวจสอบความคุ้มครองและสถานะกรมธรรม์',
+        'foot.addr': 'สำนักงานใหญ่ กรุงเทพมหานคร แจ้งอุบัติเหตุและแจ้งเคลม 24 ชั่วโมง โทร 1557',
+        'foot.p1': 'ประกันภัยรถยนต์',
+        'foot.p2': 'ประกันภัยรถยนต์ภาคบังคับ (พ.ร.บ.)',
+        'foot.p3': 'ประกันภัยอุบัติเหตุส่วนบุคคล',
+        'foot.p4': 'ประกันภัยทรัพย์สิน',
+        'foot.c1': 'ศูนย์บริการลูกค้า 1557',
+        'foot.terms': 'ข้อตกลงการใช้งาน  ·  นโยบายความเป็นส่วนตัว',
+        'r.wait': 'กำลังส่งแจ้งเคลมของคุณ',
+        'r.waitp': 'กรุณาอย่าปิดหน้านี้ระหว่างที่ระบบกำลังบันทึกการเคลม',
+        'r.ok': 'ได้รับแจ้งเคลมเรียบร้อยแล้ว',
+        'r.okp': 'ระบบได้บันทึกการเคลมของคุณแล้ว พนักงานสำรวจภัยจะติดต่อกลับตามเบอร์โทรศัพท์ที่ให้ไว้',
+        'r.ref': 'เลขที่รับแจ้งเคลม',
+        'r.policy': 'เลขที่กรมธรรม์',
+        'r.amount': 'ประมาณการความเสียหาย',
+        'r.excess': 'ค่าเสียหายส่วนแรก',
+        'r.payout': 'จำนวนเงินที่อนุมัติ',
+        'r.status': 'สถานะ',
+        'r.approved': 'อนุมัติ',
+        'r.time': 'บันทึกเมื่อ',
+        'r.err': 'ไม่สามารถดำเนินการแจ้งเคลมได้',
+        'r.timeout': 'การส่งแจ้งเคลมหมดเวลา กรุณาลองใหม่อีกครั้งในอีกสักครู่',
+        'r.errgeneric': 'เกิดข้อผิดพลาดระหว่างการส่งแจ้งเคลม',
+        'r.errcall': 'หากต้องการความช่วยเหลือด่วน โทร 1557 (24 ชั่วโมง)',
+        'r.reqid': 'รหัสอ้างอิง',
+        'r.network': 'การเชื่อมต่อขัดข้อง กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่',
+        'r.consent': 'กรุณายืนยันข้อมูลและให้ความยินยอมก่อนส่ง',
+        'r.amountReq': 'กรุณากรอกประมาณการความเสียหาย'
+      }
+    };
+
+    var lang = 'en';
+    var lastResult = null;
+
+    function t(key) { return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key; }
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function applyLang(next) {
+      var prev = lang;
+      lang = next === 'th' ? 'th' : 'en';
+      document.documentElement.lang = lang;
+      document.body.classList.toggle('th', lang === 'th');
+      document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+      document.querySelectorAll('[data-i18n-html]').forEach(function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+      document.querySelectorAll('[data-i18n-value]').forEach(function (el) {
+        var key = el.getAttribute('data-i18n-value');
+        if (el.value === I18N[prev][key] || el.value === '') el.value = t(key);
+      });
+      document.querySelectorAll('.lang button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false');
+      });
+      var btn = document.getElementById('submitBtn');
+      if (btn.classList.contains('busy')) document.getElementById('submitLabel').textContent = t('btn.busy');
+      if (lastResult) renderResult(lastResult);
+      try { localStorage.setItem('vrLang', lang); } catch (e) {}
+    }
+
+    function fmtTHB(n) {
+      var v = Number(n);
+      if (!isFinite(v)) return '-';
+      return '\u0E3F' + v.toLocaleString(lang === 'th' ? 'th-TH' : 'en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    }
+
+    function fmtTime(iso) {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '-';
+      return d.toLocaleString(lang === 'th' ? 'th-TH' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    function renderResult(r) {
+      var box = document.getElementById('result');
+      if (r.kind === 'wait') {
+        box.className = 'result-box wait';
+        box.innerHTML = '<h4>' + esc(t('r.wait')) + '</h4><p>' + esc(t('r.waitp')) + '</p>';
+      } else if (r.kind === 'ok') {
+        var d = r.data;
+        var ref = 'VCL-' + String(d.claimId || '').slice(0, 8).toUpperCase();
+        box.className = 'result-box ok';
+        box.innerHTML = '<h4>' + esc(t('r.ok')) + '</h4><p>' + esc(t('r.okp')) + '</p>' +
+          '<dl>' +
+          '<dt>' + esc(t('r.ref')) + '</dt><dd>' + esc(ref) + '</dd>' +
+          '<dt>' + esc(t('r.policy')) + '</dt><dd>' + esc(d.policyId) + '</dd>' +
+          '<dt>' + esc(t('r.amount')) + '</dt><dd>' + esc(fmtTHB(d.claimAmount)) + '</dd>' +
+          '<dt>' + esc(t('r.excess')) + '</dt><dd>' + esc(fmtTHB(d.deductible)) + '</dd>' +
+          '<dt>' + esc(t('r.payout')) + '</dt><dd>' + esc(fmtTHB(d.payout)) + '</dd>' +
+          '<dt>' + esc(t('r.status')) + '</dt><dd>' + esc(d.status === 'approved' ? t('r.approved') : d.status) + '</dd>' +
+          '<dt>' + esc(t('r.time')) + '</dt><dd>' + esc(fmtTime(d.processedAt)) + '</dd>' +
+          '</dl>';
+      } else if (r.kind === 'invalid') {
+        box.className = 'result-box err';
+        box.innerHTML = '<h4>' + esc(t('r.err')) + '</h4><p>' + esc(t(r.key)) + '</p>';
+      } else {
+        var e = r.data || {};
+        var msg = r.network ? t('r.network') : (e.code === 'ADJUDICATION_TIMEOUT' || r.status === 504) ? t('r.timeout') : (e.error || t('r.errgeneric'));
+        box.className = 'result-box err';
+        box.innerHTML = '<h4>' + esc(t('r.err')) + '</h4><p>' + esc(msg) + ' ' + esc(t('r.errcall')) + '</p>' +
+          (e.requestId ? '<dl><dt>' + esc(t('r.reqid')) + '</dt><dd>' + esc(e.requestId) + '</dd></dl>' : '');
+      }
+    }
+
+    function showResult(r) { lastResult = r; renderResult(r); }
+
+    document.querySelectorAll('.lang button').forEach(function (b) {
+      b.addEventListener('click', function () { applyLang(b.getAttribute('data-lang')); });
+    });
+
+    (function initTime() {
+      var el = document.getElementById('accidentTime');
+      var d = new Date(Date.now() - 45 * 60 * 1000);
+      var pad = function (n) { return String(n).padStart(2, '0'); };
+      el.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    })();
+
+    (function initLang() {
+      var q = new URLSearchParams(location.search).get('lang');
+      var saved = null;
+      try { saved = localStorage.getItem('vrLang'); } catch (e) {}
+      applyLang(q || saved || 'en');
+    })();
+
+    document.getElementById('claimForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var label = document.getElementById('submitLabel');
+      var amount = parseFloat(document.getElementById('amount').value);
+
+      if (!document.getElementById('consent').checked) { showResult({ kind: 'invalid', key: 'r.consent' }); return; }
+      if (!isFinite(amount) || amount <= 0) { showResult({ kind: 'invalid', key: 'r.amountReq' }); return; }
+
+      btn.disabled = true;
+      btn.classList.add('busy');
+      label.textContent = t('btn.busy');
+      showResult({ kind: 'wait' });
+
+      try {
+        var res = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: document.getElementById('policyId').value,
+            claimType: document.getElementById('claimType').value,
+            amount: amount,
+            description: document.getElementById('description').value,
+          }),
+        });
+        var data = null;
+        try { data = await res.json(); } catch (_) { data = null; }
+        if (res.ok && data && data.success) showResult({ kind: 'ok', data: data });
+        else showResult({ kind: 'err', status: res.status, data: data });
+      } catch (err) {
+        showResult({ kind: 'err', network: true });
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('busy');
+        label.textContent = t('btn.submit');
+      }
+    });
+  </script>
+</body>
+</html>

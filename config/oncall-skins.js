@@ -2772,6 +2772,23 @@ const ONCALL_SKINS = {
     supportCenter: 'Gap Customer Service',
     disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
+  'd5e0112b': {
+    slug: 'd5e0112b',
+    company: 'Viriyah Insurance',
+    brandMark: 'V',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: 'd5e0112b.html', title: 'Motor Claim Service | The Viriyah Insurance' },
+    theme: {
+      '--accent': '#1434A2',
+      '--ink': '#212529',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1434A2',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Viriyah Insurance Customer Service',
+    disclaimer: 'NOT ACTUALLY A VIRIYAH INSURANCE SITE — internal demo only, not affiliated with, endorsed by, or a real Viriyah Insurance product.',
+  },
 };
 
 function getOncallSkin(slug) {
