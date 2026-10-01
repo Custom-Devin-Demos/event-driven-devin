@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caption AI · Exam Processing Console</title>
+  <link rel="icon" href="/verticals/assets/cd608144/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --v-purple: #6022A6;
+      --v-purple-dark: #512286;
+      --v-purple-deep: #472271;
+      --v-lilac: #F1ECF8;
+      --v-bg: #FBF9FD;
+      --v-ink: #1F1F24;
+      --v-muted: #5B5B67;
+      --v-line: #C7C8CF;
+      --v-line-soft: #E6E4EA;
+      --v-white: #FFFFFF;
+      --v-red: #B4233A;
+      --v-red-bg: #FCEEF0;
+      --v-green: #17865D;
+      --v-green-bg: #E8F6EF;
+      --v-amber: #B86A12;
+      --v-amber-bg: #FDF3E4;
+      --v-teal: #2A8C9B;
+      --v-radius: 6px;
+      --v-shadow: 0 1px 2px rgba(31, 31, 36, 0.06), 0 4px 14px rgba(96, 34, 166, 0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Source Sans 3', 'Source Sans Pro', 'Segoe UI', Arial, sans-serif;
+      color: var(--v-ink);
+      background: var(--v-bg);
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--v-purple); text-decoration: none; }
+    button { font-family: inherit; }
+
+    .topbar {
+      background: var(--v-purple-deep);
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 11.5px;
+      letter-spacing: 0.02em;
+      padding: 5px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topbar strong { color: #fff; font-weight: 600; }
+    .topbar a { color: rgba(255, 255, 255, 0.7); font-size: 11px; }
+    .topbar a:hover { color: #fff; }
+
+    header.appbar {
+      background: var(--v-white);
+      border-bottom: 1px solid var(--v-line-soft);
+      display: flex;
+      align-items: center;
+      height: 64px;
+      padding: 0 28px;
+      gap: 22px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .brand { display: flex; align-items: center; gap: 16px; }
+    .brand img { height: 30px; width: auto; object-fit: contain; display: block; }
+    .brand .divider { width: 1px; height: 30px; background: var(--v-line); }
+    .brand .product { display: flex; flex-direction: column; line-height: 1.1; }
+    .brand .product b { font-size: 16px; font-weight: 700; color: var(--v-ink); letter-spacing: -0.01em; }
+    .brand .product span { font-size: 11.5px; color: var(--v-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; }
+    nav.primary { display: flex; gap: 4px; margin-left: 18px; height: 100%; }
+    nav.primary a {
+      color: var(--v-muted);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      border-bottom: 3px solid transparent;
+      height: 100%;
+    }
+    nav.primary a.active { color: var(--v-purple); border-bottom-color: var(--v-purple); }
+    nav.primary a:hover { color: var(--v-purple-dark); }
+    .appbar .right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .env-pill {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--v-purple-dark); background: var(--v-lilac); border: 1px solid #DCD0EE;
+      border-radius: 999px; padding: 4px 10px;
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--v-purple); color: #fff;
+      font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center;
+    }
+
+    main { max-width: 1320px; margin: 0 auto; padding: 24px 28px 48px; }
+
+    .titlebar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+    .titlebar h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+    .titlebar .crumbs { font-size: 12px; color: var(--v-muted); margin-bottom: 4px; }
+    .titlebar .crumbs span { margin: 0 6px; color: var(--v-line); }
+    .titlebar .meta { font-size: 12.5px; color: var(--v-muted); display: flex; gap: 18px; flex-wrap: wrap; }
+    .titlebar .meta b { color: var(--v-ink); font-weight: 600; }
+
+    .status-strip {
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+      background: var(--v-white); border: 1px solid var(--v-line-soft); border-left: 4px solid var(--v-green);
+      border-radius: var(--v-radius); padding: 14px 18px; margin-bottom: 18px; box-shadow: var(--v-shadow);
+    }
+    body.degraded .status-strip { border-left-color: var(--v-red); background: #FFFBFB; }
+    .status-pill { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--v-green); }
+    .status-pill::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 4px rgba(23, 134, 93, 0.15); }
+    body.degraded .status-pill { color: var(--v-red); }
+    body.degraded .status-pill::before { box-shadow: 0 0 0 4px rgba(180, 35, 58, 0.15); }
+    .status-text { font-size: 13.5px; color: var(--v-muted); }
+    .status-text b { color: var(--v-ink); font-weight: 600; }
+    .status-actions { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .btn-primary {
+      background: var(--v-purple); color: #fff; border: 0; border-radius: 4px; cursor: pointer;
+      font-size: 14px; font-weight: 700; padding: 10px 18px; letter-spacing: 0.01em;
+      display: inline-flex; align-items: center; gap: 8px; transition: background 0.15s;
+    }
+    .btn-primary:hover { background: var(--v-purple-dark); }
+    .btn-primary:disabled { opacity: 0.6; cursor: progress; }
+    .btn-primary .count { background: rgba(255, 255, 255, 0.2); border-radius: 999px; padding: 1px 8px; font-size: 12px; }
+    .reset-link {
+      display: none; background: none; border: 1px solid var(--v-line); color: var(--v-muted); border-radius: 3px;
+      font-size: 11px; padding: 3px 8px; cursor: pointer; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .reset-link:hover { color: var(--v-purple-dark); border-color: var(--v-purple-dark); }
+    body.degraded .reset-link { display: inline-block; }
+
+    .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 18px; }
+    .kpi { background: var(--v-white); border: 1px solid var(--v-line-soft); border-radius: var(--v-radius); padding: 14px 16px; box-shadow: var(--v-shadow); }
+    .kpi .label { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--v-muted); font-weight: 600; }
+    .kpi .value { font-size: 28px; font-weight: 300; margin-top: 6px; letter-spacing: -0.02em; line-height: 1.1; }
+    .kpi .value small { font-size: 13px; color: var(--v-muted); font-weight: 400; margin-left: 4px; }
+    .kpi .sub { font-size: 12px; color: var(--v-muted); margin-top: 6px; }
+    .kpi.alert .value { color: var(--v-red); }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+    .card { background: var(--v-white); border: 1px solid var(--v-line-soft); border-radius: var(--v-radius); box-shadow: var(--v-shadow); margin-bottom: 18px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--v-line-soft); }
+    .card-head h2 { font-size: 15px; font-weight: 700; }
+    .card-head .hint { font-size: 12px; color: var(--v-muted); }
+    .card-body { padding: 16px 18px; }
+
+    .stages { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; position: relative; }
+    .stage { position: relative; padding: 0 10px 0 0; }
+    .stage .dot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--v-line); background: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--v-muted); position: relative; z-index: 1; }
+    .stage::after { content: ''; position: absolute; top: 12px; left: 26px; right: 0; height: 2px; background: var(--v-line-soft); }
+    .stage:last-child::after { display: none; }
+    .stage.ok .dot { border-color: var(--v-green); background: var(--v-green); color: #fff; }
+    .stage.ok::after { background: var(--v-green); }
+    .stage.failed .dot { border-color: var(--v-red); background: var(--v-red); color: #fff; }
+    .stage.pending .dot { border-style: dashed; }
+    .stage .name { font-size: 13px; font-weight: 700; margin-top: 10px; }
+    .stage .detail { font-size: 11.5px; color: var(--v-muted); margin-top: 2px; line-height: 1.35; padding-right: 8px; }
+    .stage.failed .name { color: var(--v-red); }
+
+    .tabs { display: flex; gap: 2px; padding: 0 18px; border-bottom: 1px solid var(--v-line-soft); }
+    .tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 12px 14px; font-size: 13.5px; font-weight: 600; color: var(--v-muted); cursor: pointer; }
+    .tabs button.active { color: var(--v-purple); border-bottom-color: var(--v-purple); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--v-muted); font-weight: 700; padding: 10px 12px; border-bottom: 1px solid var(--v-line-soft); background: #FAF8FC; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--v-line-soft); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    td.mono, .mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 12px; }
+    .chip { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.03em; white-space: nowrap; }
+    .chip.ok { background: var(--v-green-bg); color: var(--v-green); }
+    .chip.failed { background: var(--v-red-bg); color: var(--v-red); }
+    .chip.running { background: var(--v-amber-bg); color: var(--v-amber); }
+    .chip.proto { background: var(--v-lilac); color: var(--v-purple-dark); }
+    .chip.new { background: #E5F4F6; color: var(--v-teal); }
+    .muted { color: var(--v-muted); }
+    .row-flag td { background: #FFF8F4; }
+
+    .failure { display: none; border-left: 4px solid var(--v-red); }
+    body.degraded .failure { display: block; }
+    .failure .card-head h2 { color: var(--v-red); }
+    .failure dl { display: grid; grid-template-columns: 110px 1fr; row-gap: 8px; column-gap: 12px; font-size: 13px; }
+    .failure dt { color: var(--v-muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 2px; }
+    .failure dd { word-break: break-word; }
+    .failure pre { background: #2A1F3A; color: #F3E8FF; font-size: 11.5px; padding: 12px 14px; border-radius: 4px; overflow: auto; margin-top: 14px; line-height: 1.5; }
+    .failure .next { margin-top: 12px; font-size: 12.5px; color: var(--v-muted); }
+
+    .views { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .view { font-size: 11.5px; border: 1px solid var(--v-line); border-radius: 3px; padding: 2px 7px; color: var(--v-ink); background: #fff; }
+    .view.ef { border-color: #C9B6E8; background: var(--v-lilac); color: var(--v-purple-dark); }
+    .view .mode { color: var(--v-teal); font-weight: 700; margin-left: 4px; }
+    .proto { padding: 12px 0; border-bottom: 1px solid var(--v-line-soft); }
+    .proto:last-child { border-bottom: 0; padding-bottom: 0; }
+    .proto:first-child { padding-top: 0; }
+    .proto .name { font-weight: 700; font-size: 13.5px; display: flex; align-items: center; gap: 8px; }
+    .proto .ver { font-size: 11.5px; color: var(--v-muted); font-weight: 400; }
+    .proto .note { font-size: 12px; color: var(--v-teal); margin-top: 4px; }
+
+    .list { list-style: none; }
+    .list li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--v-line-soft); font-size: 13px; }
+    .list li:last-child { border-bottom: 0; }
+    .list .sub { font-size: 11.5px; color: var(--v-muted); display: block; margin-top: 1px; }
+
+    footer { border-top: 1px solid var(--v-line-soft); padding: 18px 28px; font-size: 11.5px; color: var(--v-muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: #fff; }
+
+    .toast {
+      position: fixed; right: 24px; bottom: 24px; max-width: 420px; background: rgba(0, 0, 0, 0.85); color: #fff;
+      padding: 14px 18px; border-radius: 6px; font-size: 13.5px; line-height: 1.4; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      transform: translateX(120%); transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 50;
+    }
+    .toast.show { transform: translateX(0); }
+    .toast b { display: block; margin-bottom: 3px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #F7B2BE; }
+    .toast.ok b { color: #9CE3C4; }
+    .toast .mono { color: #E9DDF8; }
+
+    @media (max-width: 1100px) {
+      .kpis { grid-template-columns: repeat(3, 1fr); }
+      .grid { grid-template-columns: 1fr; }
+      .stages { grid-template-columns: repeat(3, 1fr); row-gap: 20px; }
+      nav.primary { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div><strong>GE HealthCare</strong> &nbsp;·&nbsp; Caption Health division &nbsp;·&nbsp; Internal tooling — confidential</div>
+    <a href="/">← All Demos</a>
+  </div>
+
+  <header class="appbar">
+    <div class="brand">
+      <img src="https://s7d9.scene7.com/is/image/gehealthcare/logo-Light-GEHC?fmt=webp" alt="GE HealthCare"
+           onerror="this.onerror=null;this.src='/verticals/assets/cd608144/logo.webp';">
+      <div class="divider"></div>
+      <div class="product"><b>Caption AI</b><span>Exam Processing Console</span></div>
+    </div>
+    <nav class="primary">
+      <a href="#" class="active">Pipeline</a>
+      <a href="#">Studies</a>
+      <a href="#">Device fleet</a>
+      <a href="#">Protocols</a>
+      <a href="#">Audit log</a>
+    </nav>
+    <div class="right">
+      <span class="env-pill">Prod · us-east-1</span>
+      <span class="muted" style="font-size:12.5px">pipeline-ops</span>
+      <div class="avatar">PO</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="titlebar">
+      <div>
+        <div class="crumbs">Caption AI<span>/</span>Exam processing<span>/</span>Batch pipeline</div>
+        <h1>Guided exam batch pipeline</h1>
+      </div>
+      <div class="meta">
+        <div>Pipeline <b id="meta-version">—</b></div>
+        <div>Scheduler <b id="meta-scheduler">—</b></div>
+        <div>Last successful batch <b id="meta-last">—</b></div>
+      </div>
+    </div>
+
+    <div class="status-strip">
+      <span class="status-pill" id="status-pill">Ready</span>
+      <span class="status-text" id="status-text">Loading pipeline state…</span>
+      <div class="status-actions">
+        <button class="reset-link" id="reset-btn" type="button" title="Clear the failed run and put the pipeline back to Ready for the next demo">Reset</button>
+        <button class="btn-primary" id="process-btn" type="button">
+          Process pending studies <span class="count" id="pending-count">—</span>
+        </button>
+      </div>
+    </div>
+
+    <section class="kpis">
+      <div class="kpi"><div class="label">Pending studies</div><div class="value" id="kpi-pending">—</div><div class="sub" id="kpi-pending-sub">synced from Vscan Air SL</div></div>
+      <div class="kpi"><div class="label">Studies processed · 24h</div><div class="value" id="kpi-studies">—</div><div class="sub">exported to Verisound + PACS</div></div>
+      <div class="kpi"><div class="label">AutoEF computed · 24h</div><div class="value" id="kpi-ef">—</div><div class="sub">blended PLAX / AP4 / AP2</div></div>
+      <div class="kpi"><div class="label">Mean batch latency</div><div class="value" id="kpi-latency">—</div><div class="sub">last 6 completed batches</div></div>
+      <div class="kpi" id="kpi-failed-card"><div class="label">Failed batches</div><div class="value" id="kpi-failed">—</div><div class="sub" id="kpi-failed-sub">no failures today</div></div>
+    </section>
+
+    <div class="grid">
+      <div>
+        <section class="card">
+          <div class="card-head"><h2>Processing stages</h2><span class="hint" id="stage-hint">Next batch: —</span></div>
+          <div class="card-body"><div class="stages" id="stages"></div></div>
+        </section>
+
+        <section class="card">
+          <div class="tabs">
+            <button class="active" data-tab="runs">Batch history</button>
+            <button data-tab="queue">Pending studies</button>
+            <button data-tab="devices">Device fleet</button>
+          </div>
+          <div class="tab-panel active" id="tab-runs">
+            <table>
+              <thead><tr><th>Batch</th><th>Started</th><th>Trigger</th><th>Studies</th><th>AutoEF</th><th>Duration</th><th>Status</th></tr></thead>
+              <tbody id="runs-body"></tbody>
+            </table>
+          </div>
+          <div class="tab-panel" id="tab-queue">
+            <table>
+              <thead><tr><th>Study</th><th>Site</th><th>Operator</th><th>Protocol</th><th>Clips</th><th>Acquired</th></tr></thead>
+              <tbody id="queue-body"></tbody>
+            </table>
+          </div>
+          <div class="tab-panel" id="tab-devices">
+            <table>
+              <thead><tr><th>Device</th><th>Site</th><th>Firmware</th><th>Studies today</th><th>Last sync</th></tr></thead>
+              <tbody id="devices-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div>
+        <section class="card failure" id="failure-card">
+          <div class="card-head"><h2>Batch halted</h2><span class="hint" id="failure-batch"></span></div>
+          <div class="card-body">
+            <dl>
+              <dt>Stage</dt><dd id="failure-stage"></dd>
+              <dt>Study</dt><dd class="mono" id="failure-study"></dd>
+              <dt>Error</dt><dd class="mono" id="failure-error"></dd>
+              <dt>Impact</dt><dd id="failure-impact"></dd>
+            </dl>
+            <pre id="failure-log"></pre>
+            <div class="next">Batch rolled back — no reports exported. Sentry, Datadog and the on-call Slack channel have been notified.</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>Caption Guidance protocols</h2><span class="hint">EF views shaded</span></div>
+          <div class="card-body" id="protocols"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>Sites</h2><span class="hint" id="sites-hint"></span></div>
+          <div class="card-body"><ul class="list" id="sites"></ul></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>Export targets</h2></div>
+          <div class="card-body"><ul class="list" id="exports"></ul></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div>© GE HealthCare · Caption AI™, Caption Guidance™ and Vscan Air™ are trademarks of GE HealthCare. Internal use only — simulated data, no PHI.</div>
+    <div>Console build 2026.09 · <a href="/">← All Demos</a></div>
+  </footer>
+
+  <div class="toast" id="toast"><b id="toast-title">Error</b><span id="toast-body"></span></div>
+
+  <script>
+    var API = '/api/cd608144';
+    var overview = null;
+
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+      })
+      .catch(function () {});
+
+    function postHeaders() {
+      var h = { 'Content-Type': 'application/json' };
+      var secret = localStorage.getItem('sessionSecret');
+      if (secret) h['x-session-secret'] = secret;
+      return h;
+    }
+    function identity() {
+      return {
+        devinOrgId: localStorage.getItem('devinOrgId') || undefined,
+        devinUserId: localStorage.getItem('devinUserId') || undefined,
+        devinEmail: localStorage.getItem('devinEmail') || undefined
+      };
+    }
+    function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function $(id) { return document.getElementById(id); }
+
+    var toastTimer = null;
+    function toast(title, body, ok) {
+      var el = $('toast');
+      el.className = 'toast' + (ok ? ' ok' : '');
+      $('toast-title').textContent = title;
+      $('toast-body').innerHTML = body;
+      requestAnimationFrame(function () { el.classList.add('show'); });
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { el.classList.remove('show'); }, 6000);
+    }
+
+    function siteName(id) {
+      var s = (overview.sites || []).filter(function (x) { return x.id === id; })[0];
+      return s ? s.name.split(' · ')[0] : id;
+    }
+
+    function renderStages() {
+      var failedRun = overview.status === 'degraded' ? overview.runs.filter(function (r) { return r.status === 'failed'; })[0] : null;
+      var failedIdx = failedRun ? overview.stages.map(function (s) { return s.id; }).indexOf(failedRun.stage) : -1;
+      $('stages').innerHTML = overview.stages.map(function (s, i) {
+        var cls = 'stage';
+        if (failedRun) cls += i < failedIdx ? ' ok' : i === failedIdx ? ' failed' : ' pending';
+        else cls += ' ok';
+        var mark = cls.indexOf('failed') > -1 ? '!' : cls.indexOf('pending') > -1 ? String(i + 1) : '✓';
+        return '<div class="' + cls + '"><div class="dot">' + mark + '</div><div class="name">' + esc(s.label) + '</div><div class="detail">' + esc(s.detail) + '</div></div>';
+      }).join('');
+      $('stage-hint').textContent = 'Next batch: ' + overview.nextBatchId;
+    }
+
+    function renderRuns() {
+      $('runs-body').innerHTML = overview.runs.map(function (r) {
+        var chip = r.status === 'completed' ? '<span class="chip ok">Exported</span>'
+          : r.status === 'failed' ? '<span class="chip failed">Failed · ' + esc(r.stage) + '</span>'
+          : '<span class="chip running">Running</span>';
+        return '<tr' + (r.status === 'failed' ? ' class="row-flag"' : '') + '>'
+          + '<td class="mono">' + esc(r.batchId) + '</td>'
+          + '<td>' + esc(r.startedAt) + '</td>'
+          + '<td class="muted">' + esc(r.trigger) + '</td>'
+          + '<td>' + r.studiesProcessed + ' / ' + r.studiesTotal + '</td>'
+          + '<td>' + r.autoEfComputed + '</td>'
+          + '<td>' + (r.durationMs != null ? (r.durationMs / 1000).toFixed(2) + ' s' : '—') + '</td>'
+          + '<td>' + chip + '</td></tr>';
+      }).join('');
+    }
+
+    function renderQueue() {
+      $('queue-body').innerHTML = overview.queue.map(function (q) {
+        var isNew = q.protocolId === 'rhd-screening';
+        return '<tr><td class="mono">' + esc(q.studyId) + '<span class="sub muted" style="display:block;font-size:11px">' + esc(q.patientRef) + ' · ' + esc(q.device) + '</span></td>'
+          + '<td>' + esc(siteName(q.site)) + '</td>'
+          + '<td>' + esc(q.operator) + '</td>'
+          + '<td><span class="chip ' + (isNew ? 'new' : 'proto') + '">' + esc(q.protocol) + '</span></td>'
+          + '<td>' + q.clips + ' <span class="muted">/ ' + q.views + ' views</span></td>'
+          + '<td>' + esc(q.acquiredAt) + '</td></tr>';
+      }).join('') || '<tr><td colspan="6" class="muted">Queue is empty — all synced studies have been exported.</td></tr>';
+    }
+
+    function renderDevices() {
+      $('devices-body').innerHTML = overview.devices.map(function (d) {
+        return '<tr><td class="mono">' + esc(d.serial) + '</td><td>' + esc(siteName(d.site)) + '</td><td>' + esc(d.firmware) + '</td><td>' + d.studiesToday + '</td><td>' + esc(d.lastSync) + '</td></tr>';
+      }).join('');
+    }
+
+    function renderProtocols() {
+      $('protocols').innerHTML = overview.protocols.map(function (p) {
+        return '<div class="proto"><div class="name">' + esc(p.name) + ' <span class="ver">v' + esc(p.version) + '</span>' + (p.rolloutNote ? ' <span class="chip new">New</span>' : '') + '</div>'
+          + (p.rolloutNote ? '<div class="note">' + esc(p.rolloutNote) + '</div>' : '')
+          + '<div class="views">' + p.views.map(function (v) {
+            return '<span class="view' + (v.ef ? ' ef' : '') + '" title="' + esc(v.label) + '">' + esc(v.code) + (v.doppler ? '<span class="mode">' + esc(v.doppler) + '</span>' : '') + '</span>';
+          }).join('') + '</div></div>';
+      }).join('');
+    }
+
+    function renderSides() {
+      $('sites').innerHTML = overview.sites.map(function (s) {
+        return '<li><div>' + esc(s.name) + '<span class="sub">' + esc(s.city) + '</span></div><span class="chip proto">' + esc(s.program) + '</span></li>';
+      }).join('');
+      $('sites-hint').textContent = overview.sites.length + ' sites · ' + overview.devices.length + ' devices online';
+      $('exports').innerHTML = overview.exportTargets.map(function (t) {
+        return '<li><div>' + esc(t.label) + '<span class="sub">' + esc(t.kind) + '</span></div><span class="chip ok">Connected</span></li>';
+      }).join('');
+    }
+
+    function renderStatus() {
+      var s = overview.summary;
+      var degraded = overview.status === 'degraded';
+      document.body.classList.toggle('degraded', degraded);
+      $('meta-version').textContent = 'v' + overview.pipelineVersion;
+      $('meta-scheduler').textContent = overview.scheduler;
+      $('meta-last').textContent = s.lastSuccessfulRunAt ? s.lastSuccessfulRunAt + ' UTC' : '—';
+      $('pending-count').textContent = s.pendingStudies;
+      $('kpi-pending').textContent = s.pendingStudies;
+      $('kpi-pending-sub').textContent = s.pendingStudies ? 'synced from Vscan Air SL · awaiting ' + overview.nextBatchId : 'queue drained';
+      $('kpi-studies').textContent = s.studiesProcessed24h;
+      $('kpi-ef').textContent = s.autoEfComputed24h;
+      $('kpi-latency').innerHTML = (s.meanBatchLatencyMs / 1000).toFixed(2) + '<small>s</small>';
+      $('kpi-failed').textContent = s.failedRuns;
+      $('kpi-failed-card').classList.toggle('alert', s.failedRuns > 0);
+      $('kpi-failed-sub').textContent = s.failedRuns ? 'last halt at ' + overview.lastError.stage + ' stage' : 'no failures today';
+
+      if (degraded) {
+        var e = overview.lastError;
+        var run = overview.runs.filter(function (r) { return r.status === 'failed'; })[0];
+        $('status-pill').textContent = 'Degraded';
+        $('status-text').innerHTML = 'Batch <b>' + esc(e.batchId) + '</b> halted at <b>' + esc(e.stage) + '</b> on <b>' + esc(e.studyId) + '</b> · ' + s.pendingStudies + ' studies still pending';
+        $('failure-batch').textContent = e.batchId;
+        $('failure-stage').textContent = e.stage + ' — ' + (overview.stages.filter(function (x) { return x.id === e.stage; })[0] || {}).label;
+        $('failure-study').textContent = e.studyId;
+        $('failure-error').textContent = e.type + ': ' + e.message;
+        $('failure-impact').textContent = run ? run.studiesProcessed + ' of ' + run.studiesTotal + ' studies passed AutoEF before the halt; ' + run.studiesTotal + ' reports not delivered to sites' : '';
+        $('failure-log').textContent = '[' + e.at + '] ERROR cd608144-api stage=' + e.stage + ' study=' + e.studyId + '\n' + e.type + ': ' + e.message + '\n    at computeAutoEf (app/services/verticals/cd608144.js)\n    at processStudy (app/services/verticals/cd608144.js)\n    at processPendingBatch (app/services/verticals/cd608144.js)';
+      } else {
+        $('status-pill').textContent = 'Ready';
+        $('status-text').innerHTML = '<b>' + s.pendingStudies + '</b> studies pending · all stages healthy · last export ' + esc(s.lastSuccessfulRunAt || '—') + ' UTC';
+      }
+    }
+
+    function render() {
+      renderStatus();
+      renderStages();
+      renderRuns();
+      renderQueue();
+      renderDevices();
+      renderProtocols();
+      renderSides();
+    }
+
+    function loadOverview() {
+      return fetch(API + '/overview').then(function (r) { return r.json(); }).then(function (data) {
+        overview = data;
+        render();
+      }).catch(function (err) {
+        $('status-text').textContent = 'Could not load pipeline state: ' + err.message;
+      });
+    }
+
+    document.querySelectorAll('.tabs button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+        document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.toggle('active', p.id === 'tab-' + btn.dataset.tab); });
+      });
+    });
+
+    $('process-btn').addEventListener('click', function () {
+      var btn = $('process-btn');
+      btn.disabled = true;
+      identityReady.then(function () {
+        return fetch(API + '/process', {
+          method: 'POST',
+          headers: postHeaders(),
+          body: JSON.stringify(Object.assign({ trigger: 'manual' }, identity()))
+        });
+      }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+        .then(function (res) {
+          if (res.ok) {
+            toast('Batch exported', res.body.run.studiesProcessed + ' studies processed · ' + res.body.run.autoEfComputed + ' AutoEF results delivered', true);
+          } else {
+            toast('Batch halted', '<span class="mono">' + esc(res.body.errorType || 'Error') + ': ' + esc(res.body.error) + '</span>', false);
+          }
+        })
+        .catch(function (err) { toast('Request failed', esc(err.message), false); })
+        .then(function () { btn.disabled = false; return loadOverview(); });
+    });
+
+    $('reset-btn').addEventListener('click', function () {
+      fetch(API + '/process/reset', { method: 'POST', headers: postHeaders() })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          document.body.classList.remove('degraded');
+          document.querySelector('.tabs button[data-tab="runs"]').click();
+          toast('Reset · back to Ready', res.pendingStudies + ' studies re-queued for the next batch', true);
+          return loadOverview();
+        })
+        .catch(function (err) { toast('Reset failed', esc(err.message), false); });
+    });
+
+    loadOverview();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
