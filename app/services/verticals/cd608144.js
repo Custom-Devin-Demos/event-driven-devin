@@ -18,7 +18,7 @@ const QUALITY_THRESHOLD = 60;
 
 const STAGES = [
   { id: 'ingest', label: 'Ingest', detail: 'Pull completed exams from Vscan Air SL sync' },
-  { id: 'protocol', label: 'Protocol match', detail: 'Resolve the Caption Guidance protocol the exam ran' },
+  { id: 'protocol', label: 'Protocol match', detail: 'Resolve the guided scan protocol the exam ran' },
   { id: 'quality', label: 'Quality Meter', detail: 'Score every clip, keep the best per view' },
   { id: 'autoef', label: 'AutoEF', detail: 'Blend ejection fraction across EF-capable views' },
   { id: 'report', label: 'Report build', detail: 'Assemble the structured exam report' },
@@ -184,7 +184,7 @@ function clipKey(clip) {
 function resolveProtocol(study) {
   const protocol = PROTOCOLS[study.protocol];
   if (!protocol) {
-    throw new Error(`Unknown Caption Guidance protocol "${study.protocol}" on ${study.studyId}`);
+    throw new Error(`Unknown scan protocol "${study.protocol}" on ${study.studyId}`);
   }
   return protocol;
 }
@@ -510,7 +510,7 @@ async function processPendingBatch(data = {}) {
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: SERVICE,
-      verticalLabel: 'Caption AI Exam Processing Console',
+      verticalLabel: 'GE HealthCare Exam Processing Console',
       tags: [
         { key: 'route', value: ROUTE },
         { key: 'service', value: SERVICE },

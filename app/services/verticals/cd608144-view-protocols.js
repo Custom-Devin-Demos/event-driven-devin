@@ -1,5 +1,5 @@
 /**
- * Caption Guidance scan protocols and the echocardiographic views they walk
+ * Guided scan protocols and the echocardiographic views they walk
  * the user through. A protocol is an ordered list of views; a view may be
  * acquired in B-mode (default) or with a Doppler mode layered on top.
  */
@@ -19,7 +19,7 @@ const VIEWS = {
 const PROTOCOLS = {
   'cardiac-10': {
     id: 'cardiac-10',
-    name: 'Caption Guidance · 10-view cardiac',
+    name: 'Guided scan · 10-view cardiac',
     shortName: '10-view cardiac',
     version: '4.2',
     views: [
@@ -37,7 +37,7 @@ const PROTOCOLS = {
   },
   'cardiac-quick': {
     id: 'cardiac-quick',
-    name: 'Caption Guidance · Quick 4-view',
+    name: 'Guided scan · Quick 4-view',
     shortName: 'Quick 4-view',
     version: '4.2',
     views: [
