@@ -44,16 +44,7 @@ const CARDS = {
 };
 
 const DISPUTE_RULES = {
-  westpac_altitude_black_mastercard: {
-    label: 'Altitude Black Mastercard',
-    scheme: 'Mastercard',
-    chargebackWindowDays: 120,
-    maxDisputeAmount: 25000,
-    provisionalCreditEligible: true,
-    provisionalCreditCapAmount: 5000,
-    investigationDays: 10,
-    disputeQueue: 'cards-mastercard-daily',
-  },
+  // westpac_altitude_black_mastercard moved to the FY26 Mastercard scheme-rules registry; registration pending
   westpac_low_rate_card: {
     label: 'Low Rate Card',
     scheme: 'Visa',
