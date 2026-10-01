@@ -2789,6 +2789,24 @@ const ONCALL_SKINS = {
     supportCenter: 'Viriyah Insurance Customer Service',
     disclaimer: 'NOT ACTUALLY A VIRIYAH INSURANCE SITE — internal demo only, not affiliated with, endorsed by, or a real Viriyah Insurance product.',
   },
+  '6e4dcdc1': {
+    slug: '6e4dcdc1',
+    company: 'IG Wealth Management',
+    brandMark: 'IG',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '6e4dcdc1.html', title: 'Make a contribution | IG Wealth Management' },
+    theme: {
+      '--accent': '#0072CE',
+      '--ink': '#2D2D2F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#001E60',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'IG Wealth Management Support',
+    supportCenterSub: 'Online access & contributions',
+    disclaimer: 'NOT ACTUALLY AN IG WEALTH MANAGEMENT SITE — internal demo only, not affiliated with, endorsed by, or a real IG Wealth Management product.',
+  },
 };
 
 function getOncallSkin(slug) {
