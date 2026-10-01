@@ -515,9 +515,11 @@
     });
 
     document.getElementById('reset').addEventListener('click', function () {
+      if (state.busy) return;
       fetch(API + '/consumer/reset', { method: 'POST', headers: postHeaders() })
-        .then(function (r) { return r.json(); })
-        .then(function () {
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, body: j }; }); })
+        .then(function (res) {
+          if (!res.ok || !res.body.success) throw new Error(res.body.error || res.body.message || 'Reset rejected (HTTP ' + res.status + ')');
           state.history = [];
           document.body.className = '';
           document.querySelector('.tab[data-tab="windows"]').click();

@@ -82,6 +82,7 @@ const WINDOWS = [];
 const PENDING = [];
 const DOWNSTREAM = {};
 let WINDOW_COUNTER = 0;
+let GENERATION = 0;
 
 function createRandom(seed) {
   let state = seed >>> 0;
@@ -108,13 +109,13 @@ function streamEntryId(windowNo, index, baseMs) {
   return `${baseMs + index * 125}-${windowNo % 7}`;
 }
 
-function buildWindow(windowNo, receivedAt) {
+function buildWindow(windowNo, receivedAt, firmware) {
   const random = createRandom(311628 + windowNo * 7919);
   const entries = [];
   const baseMs = secondsAgo(SITE.windowSeconds, receivedAt);
   for (let i = 0; i < SITE.windowSize; i += 1) {
     const tag = TAG_CATALOG[i % TAG_CATALOG.length];
-    const rack = rackFor(tag.unit);
+    const rack = firmware ? { ...rackFor(tag.unit), firmware } : rackFor(tag.unit);
     const sample = {
       seq: windowNo * SITE.windowSize + i,
       value: round(tag.lo + (tag.hi - tag.lo) * random(), tag.decimals),
@@ -205,9 +206,17 @@ function ackWindow(window, readings, run) {
   STREAM.lagMs = 380 + Math.round(Math.random() * 90);
   STREAM.entriesProcessed += readings.length;
   STREAM.windowsProcessed += 1;
-  STREAM.status = 'healthy';
-  STREAM.stalledAt = null;
-  STREAM.blockingEntryId = null;
+  const pendingIndex = PENDING.findIndex((p) => p.windowId === window.windowId);
+  if (pendingIndex >= 0) PENDING.splice(pendingIndex, 1);
+  if (!PENDING.length) {
+    STREAM.status = 'healthy';
+    STREAM.stalledAt = null;
+    STREAM.blockingEntryId = null;
+    Object.values(DOWNSTREAM).forEach((sink) => {
+      sink.status = 'current';
+      sink.lagWindows = 0;
+    });
+  }
   WINDOWS.unshift({
     windowId: window.windowId,
     windowNo: window.windowNo,
@@ -397,6 +406,7 @@ function alertData(error, window, run, meta) {
 async function consumeWindow(window, meta, trigger) {
   const run = { requestId: uuidv4(), stage: 'claim', failedIndex: -1 };
   const startedAt = Date.now();
+  const generation = GENERATION;
 
   logger.info('Sensor stream window claimed', {
     requestId: run.requestId,
@@ -411,6 +421,10 @@ async function consumeWindow(window, meta, trigger) {
 
   try {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
+    if (generation !== GENERATION) {
+      logger.warn('Sensor stream window dropped — consumer group was reset mid-delivery', { requestId: run.requestId, windowId: window.windowId, service: SERVICE });
+      return { success: false, cancelled: true, windowId: window.windowId, summary: currentSummary() };
+    }
     const readings = processWindow(window, run);
     run.stage = 'ack';
     run.durationMs = Date.now() - startedAt;
@@ -489,7 +503,17 @@ async function consumeWindow(window, meta, trigger) {
   }
 }
 
+function redeliverHead(meta, trigger) {
+  const head = PENDING[PENDING.length - 1];
+  const window = buildWindow(head.windowNo, Date.parse(head.receivedAt) + SITE.windowSeconds * 1000);
+  logger.info('Re-delivering pending sensor window', { windowId: window.windowId, deliveries: head.deliveries + 1, trigger, service: SERVICE });
+  return consumeWindow(window, meta, trigger);
+}
+
 async function runNextWindow(meta = {}) {
+  if (PENDING.length) {
+    return redeliverHead(meta, meta.trigger || 'manual');
+  }
   WINDOW_COUNTER += 1;
   const window = buildWindow(WINDOW_COUNTER, Date.now());
   return consumeWindow(window, meta, meta.trigger || 'manual');
@@ -499,15 +523,12 @@ async function retryPending(meta = {}) {
   if (!PENDING.length) {
     return { success: true, retried: 0, summary: currentSummary() };
   }
-  const head = PENDING[PENDING.length - 1];
-  const window = buildWindow(head.windowNo, Date.parse(head.receivedAt) + SITE.windowSeconds * 1000);
-  logger.info('Re-delivering pending sensor window', { windowId: window.windowId, deliveries: head.deliveries + 1, service: SERVICE });
-  const result = await consumeWindow(window, meta, 'retry');
-  PENDING.splice(PENDING.indexOf(head), 1);
-  return { ...result, retried: 1 };
+  const result = await redeliverHead(meta, 'retry');
+  return { ...result, retried: result.cancelled ? 0 : 1 };
 }
 
 function seedStore() {
+  GENERATION += 1;
   WINDOWS.length = 0;
   PENDING.length = 0;
   WINDOW_COUNTER = 0;
@@ -537,9 +558,8 @@ function seedStore() {
   for (let i = SEEDED_WINDOWS; i >= 1; i -= 1) {
     const receivedAt = secondsAgo(i * SITE.windowSeconds + 4, now);
     const windowNo = 6179 - SEEDED_WINDOWS + (SEEDED_WINDOWS - i) + 1;
-    const window = buildWindow(windowNo, receivedAt);
-    const legacyEntries = window.entries.filter((entry) => !entry.frame.schemaRef);
-    const readings = enrichReadings(decodeWindow(legacyEntries));
+    const window = buildWindow(windowNo, receivedAt, FIRMWARE_ROLLOUT.fromFirmware);
+    const readings = enrichReadings(decodeWindow(window.entries));
     const completedAt = new Date(receivedAt + 180 + Math.round(random() * 90)).toISOString();
     Object.values(DOWNSTREAM).forEach((sink) => {
       sink.rowsWritten += window.entries.length;
@@ -552,8 +572,8 @@ function seedStore() {
       completedAt,
       status: 'acked',
       entries: window.entries.length,
-      firmware: { [FIRMWARE_ROLLOUT.fromFirmware]: window.entries.length },
-      units: unitRollup(readings.concat(window.entries.filter((e) => e.frame.schemaRef).map((e) => ({ unit: e.frame.sig.unit, quality: 'good' })))),
+      firmware: summarizeFirmware(window.entries),
+      units: unitRollup(readings),
       requestId: uuidv4(),
       durationMs: 180 + Math.round(random() * 90),
     });
@@ -564,6 +584,11 @@ function seedStore() {
 }
 
 function getOverview() {
+  if (STREAM.status === 'stalled') {
+    const backlog = liveBacklog();
+    recordMetric('sensor.stream.consumer.lag_ms', backlog.lagMs, [`site:${SITE.id}`, `group:${SITE.consumerGroup}`]);
+    recordMetric('sensor.stream.pending_entries', backlog.pendingEntries, [`site:${SITE.id}`, `group:${SITE.consumerGroup}`]);
+  }
   return {
     site: SITE,
     summary: currentSummary(),
