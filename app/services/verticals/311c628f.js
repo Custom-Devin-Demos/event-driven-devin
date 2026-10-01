@@ -332,7 +332,7 @@ function alertData(error, window, run, meta) {
   const backlog = liveBacklog();
   return {
     issueTitle: `${error.name}: ${error.message}`,
-    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/311c628f-sensor-ingest-${window.windowNo}`,
+    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
     culprit: 'app/services/verticals/311c628f.js — enrichReadings',
     errorType: error.name || 'Error',
     errorValue: error.message,
