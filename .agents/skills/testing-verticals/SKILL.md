@@ -457,5 +457,23 @@ If promotional cards bleed outside the hero section, add `overflow: hidden` to t
 - Use the `EC2_SSH_KEY` secret and resolve the IP via `ping -c1 devindemos.com`
 - The deploy GitHub Action runs on push to `main` but does NOT update `.env` — per-customer env vars must be added manually via SSH
 
+## Isolated local startup (no real alerts)
+
+Local shells may inherit real notification credentials. When a run must not post to Slack or start a Devin session, start the server with an allowlisted environment and confirm it does not load a production `.env`:
+
+```bash
+env -i PATH="$PATH" HOME="$HOME" NODE_ENV=development PORT=3000 DD_TRACE_ENABLED=false node app/server.js
+```
+
+Startup should say Sentry is disabled. An intentional failure then logs the alert-trigger path followed by "Slack not configured" and no thread timestamp to trigger Devin — that proves the trigger fired, not that delivery works.
+
+## HCPS claims inquiry (`/95d1a7d1`) — SSO and work queue
+
+- Open `/95d1a7d1` in a fresh incognito window so a stale sessionStorage token cannot mask a broken `/auth/session` exchange. Expect an automatic sign-on as the host default operator (`INQUSER1`) and the work queue; check the server log for `/auth/session`, `/auth/me`, `/worklist`.
+- Clicking `CLM0000417` navigates to `/claims?claimId=CLM0000417&memberId=MBR0056048` and fails on load (BACKEND_ERROR, HTTP 500, RC=8). Healthy rows: `CLM0000512` from the queue, `CLM0000101` by deep link.
+- Sign off (PF3) sets sessionStorage `hcps.signedOff=1`; reload and same-tab navigation to the app root must stay on the manual sign-on form with no new `/auth/session` call. A genuinely new incognito tab (Ctrl+T, not a duplicate) still auto-signs on while the first stays signed off. Manual `INQUSER1 / INQUSER1` restores the queue and clears the marker.
+- The gateway user header is opt-in: with `HCPS_GATEWAY_USER_HEADER` unset, a client-supplied `X-HCPS-User` is ignored. Configured-gateway behaviour is unit-tested; test it separately from the local default mode.
+- Address-bar autocomplete may pick an old deep route; add a harmless unique query string to force a root navigation.
+
 ## Devin Secrets Needed
 - `EC2_SSH_KEY`: SSH private key for accessing the EC2 production host
