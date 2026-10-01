@@ -153,7 +153,14 @@ function seedRuns() {
 const QUEUE = [];
 const RUNS = [];
 const PROCESSED = [];
-const pipelineState = { status: 'ready', degradedSince: null, lastError: null, nextBatchNo: 12 };
+const pipelineState = {
+  status: 'ready',
+  degradedSince: null,
+  lastError: null,
+  nextBatchNo: 12,
+  activeRunId: null,
+  generation: 0,
+};
 
 function seedState() {
   QUEUE.length = 0;
@@ -165,6 +172,7 @@ function seedState() {
   pipelineState.degradedSince = null;
   pipelineState.lastError = null;
   pipelineState.nextBatchNo = 12;
+  pipelineState.activeRunId = null;
 }
 
 seedState();
@@ -366,6 +374,23 @@ async function processPendingBatch(data = {}) {
   const startTime = Date.now();
   const requestId = uuidv4();
   const batchId = `CAI-BATCH-240917-${String(pipelineState.nextBatchNo).padStart(3, '0')}`;
+
+  if (pipelineState.activeRunId) {
+    logger.warn('Exam batch already running — request rejected', {
+      requestId,
+      activeRunId: pipelineState.activeRunId,
+      service: SERVICE,
+    });
+    incrementMetric('exam_pipeline.batch.rejected', { route: ROUTE, reason: 'busy' });
+    return { success: false, busy: true, activeRunId: pipelineState.activeRunId, status: pipelineState.status };
+  }
+  if (QUEUE.length === 0) {
+    logger.info('No pending studies — nothing to process', { requestId, service: SERVICE });
+    incrementMetric('exam_pipeline.batch.rejected', { route: ROUTE, reason: 'empty' });
+    return { success: true, noWork: true, run: null, reports: [], status: pipelineState.status };
+  }
+
+  const generation = pipelineState.generation;
   const studies = QUEUE.slice();
   const run = {
     runId: requestId,
@@ -382,6 +407,7 @@ async function processPendingBatch(data = {}) {
     error: null,
   };
   RUNS.unshift(run);
+  pipelineState.activeRunId = requestId;
 
   logger.info('Processing pending exam batch', {
     requestId,
@@ -393,6 +419,14 @@ async function processPendingBatch(data = {}) {
 
   try {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
+
+    if (generation !== pipelineState.generation) {
+      run.status = 'discarded';
+      run.durationMs = Date.now() - startTime;
+      logger.warn('Exam batch discarded — console was reset mid-run', { requestId, batchId, service: SERVICE });
+      incrementMetric('exam_pipeline.batch.discarded', { route: ROUTE });
+      return { success: false, discarded: true, run: summarizeRun(run), status: pipelineState.status };
+    }
 
     const reports = [];
     for (const study of studies) {
@@ -412,6 +446,10 @@ async function processPendingBatch(data = {}) {
     PROCESSED.unshift(...reports);
     QUEUE.length = 0;
     pipelineState.nextBatchNo += 1;
+    pipelineState.activeRunId = null;
+    pipelineState.status = 'ready';
+    pipelineState.degradedSince = null;
+    pipelineState.lastError = null;
 
     incrementMetric('exam_pipeline.batch.success', { route: ROUTE });
     recordTiming('exam_pipeline.batch.latency', run.durationMs, { route: ROUTE });
@@ -425,6 +463,14 @@ async function processPendingBatch(data = {}) {
 
     return { success: true, run: summarizeRun(run), reports };
   } catch (error) {
+    pipelineState.activeRunId = null;
+    if (generation !== pipelineState.generation) {
+      run.status = 'discarded';
+      run.durationMs = Date.now() - startTime;
+      logger.warn('Exam batch discarded — console was reset mid-run', { requestId, batchId, service: SERVICE });
+      incrementMetric('exam_pipeline.batch.discarded', { route: ROUTE });
+      return { success: false, discarded: true, run: summarizeRun(run), status: pipelineState.status };
+    }
     run.status = 'failed';
     run.durationMs = Date.now() - startTime;
     run.error = {
@@ -501,6 +547,7 @@ async function processPendingBatch(data = {}) {
 
 function resetPipeline() {
   const cleared = RUNS.filter((run) => run.trigger !== 'scheduler').length + PROCESSED.length;
+  pipelineState.generation += 1;
   seedState();
   logger.info('Demo state reset', { cleared, service: SERVICE });
   incrementMetric('exam_pipeline.reset', { route: `${ROUTE}/reset` });

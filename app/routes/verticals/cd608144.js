@@ -25,6 +25,10 @@ router.post('/api/cd608144/process', verifySessionSecret, async (req, res) => {
       devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,
     });
+    if (result.busy) {
+      res.status(409).json(result);
+      return;
+    }
     res.json(result);
   } catch (error) {
     res.status(500).json({

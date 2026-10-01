@@ -482,6 +482,7 @@
       $('meta-scheduler').textContent = overview.scheduler;
       $('meta-last').textContent = s.lastSuccessfulRunAt ? s.lastSuccessfulRunAt + ' UTC' : '—';
       $('pending-count').textContent = s.pendingStudies;
+      $('process-btn').disabled = s.pendingStudies === 0;
       $('kpi-pending').textContent = s.pendingStudies;
       $('kpi-pending-sub').textContent = s.pendingStudies ? 'synced from Vscan Air SL · awaiting ' + overview.nextBatchId : 'queue drained';
       $('kpi-studies').textContent = s.studiesProcessed24h;
@@ -545,19 +546,30 @@
         });
       }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
         .then(function (res) {
-          if (res.ok) {
+          if (res.ok && res.body.noWork) {
+            toast('Nothing to process', 'The queue is empty — no studies are waiting.', true);
+          } else if (res.ok && res.body.discarded) {
+            toast('Batch discarded', 'The console was reset while this batch was running.', false);
+          } else if (res.ok && res.body.success) {
             toast('Batch exported', res.body.run.studiesProcessed + ' studies processed · ' + res.body.run.autoEfComputed + ' AutoEF results delivered', true);
+          } else if (res.body.busy) {
+            toast('Batch already running', 'Wait for the active batch to finish before starting another.', false);
           } else {
-            toast('Batch halted', '<span class="mono">' + esc(res.body.errorType || 'Error') + ': ' + esc(res.body.error) + '</span>', false);
+            toast('Batch halted', '<span class="mono">' + esc(res.body.errorType || 'Error') + ': ' + esc(res.body.error || 'Request rejected') + '</span>', false);
           }
         })
         .catch(function (err) { toast('Request failed', esc(err.message), false); })
-        .then(function () { btn.disabled = false; return loadOverview(); });
+        .then(function () { return loadOverview(); });
     });
 
     $('reset-btn').addEventListener('click', function () {
       fetch(API + '/process/reset', { method: 'POST', headers: postHeaders() })
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          return r.json().then(function (body) {
+            if (!r.ok) throw new Error(body.error || ('Reset rejected (HTTP ' + r.status + ')'));
+            return body;
+          });
+        })
         .then(function (res) {
           document.body.classList.remove('degraded');
           document.querySelector('.tabs button[data-tab="runs"]').click();
