@@ -510,7 +510,7 @@ async function consumeWindow(window, meta, trigger) {
 
 function redeliverHead(meta, trigger) {
   const head = PENDING[PENDING.length - 1];
-  const window = buildWindow(head.windowNo, Date.parse(head.receivedAt) + SITE.windowSeconds * 1000);
+  const window = buildWindow(head.windowNo, Date.parse(head.receivedAt));
   logger.info('Re-delivering pending sensor window', { windowId: window.windowId, deliveries: head.deliveries + 1, trigger, service: SERVICE });
   return consumeWindow(window, meta, trigger);
 }
