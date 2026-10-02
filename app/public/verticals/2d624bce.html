@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shopping Bag | Gap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #144EBB;
+      --ink: #020202;
+      --surface: #FFFFFF;
+      --chrome-bg: #000000;
+      --chrome-text: #FFFFFF;
+      --page: #F1F1F2;
+      --line: #CBCACA;
+      --muted: #666666;
+      --sale: #BC0712;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 14px/1.45 Lato, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; color: inherit; }
+    .uninav { background: var(--chrome-bg); color: var(--chrome-text); }
+    .uninav-row { display: flex; align-items: center; justify-content: space-between; height: 46px; padding: 0 16px; font-size: 12px; letter-spacing: .2px; }
+    .uninav-row .brand-link { font-weight: 700; color: var(--chrome-text); text-decoration: none; }
+    .uninav-icons { display: flex; gap: 6px; }
+    .icon-btn { width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; color: var(--chrome-text); cursor: pointer; position: relative; }
+    .icon-btn svg { width: 24px; height: 24px; }
+    .bag-count { position: absolute; top: 18px; left: 0; right: 0; font-size: 10px; font-weight: 700; text-align: center; }
+    .promo { text-align: center; padding: 14px 16px 16px; font-size: 14px; letter-spacing: .2px; position: relative; }
+    .promo a { position: absolute; right: 16px; top: 15px; font-size: 12px; }
+    .mainnav { display: flex; align-items: center; gap: 48px; height: 90px; padding: 0 60px; border-bottom: 1px solid #E6E6E6; }
+    .mark { display: inline-flex; align-items: center; justify-content: center; min-width: 64px; height: 44px; padding: 0 14px; background: var(--accent); color: #fff; border-radius: 4px; font: 700 22px/1 Lato, sans-serif; text-decoration: none; }
+    .divisions { display: flex; gap: 24px; font-size: 16px; letter-spacing: .32px; }
+    .divisions a { text-decoration: none; }
+    .search { margin-left: auto; display: flex; align-items: center; width: 270px; height: 32px; padding: 0 4px; background: #F7F7F7; border-bottom: 1px solid #E6E6E6; }
+    .search input { flex: 1; border: 0; background: transparent; font-size: 14px; outline: none; }
+    .search svg { width: 22px; height: 22px; }
+    .page { background: var(--page); padding: 32px 16px 48px; }
+    .layout { max-width: 1044px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 653px) minmax(0, 375px); gap: 16px; align-items: start; }
+    .panel { background: var(--surface); padding: 16px; margin-bottom: 16px; }
+    h1 { margin: 0; padding-bottom: 16px; font-size: 24px; font-weight: 700; }
+    h2 { margin: 0; font-size: 16px; font-weight: 700; }
+    .notice { display: flex; align-items: center; gap: 12px; background: var(--page); border-radius: 4px; padding: 16px; font-size: 12px; margin-bottom: 16px; }
+    .section-head { padding-bottom: 16px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+    .section-head span { font-weight: 400; font-size: 14px; }
+    .line-item { display: grid; grid-template-columns: 100px minmax(0, 1fr) auto; gap: 8px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid #EDEDED; }
+    .line-item:last-of-type { border-bottom: 0; margin-bottom: 0; }
+    .thumb { width: 100px; height: 133px; background: #E9E9EA; object-fit: cover; display: block; }
+    .thumb-fallback { width: 100px; height: 133px; background: #E9E9EA; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+    .item-name { font-weight: 700; margin: 0 0 4px; }
+    .item-attrs { margin: 0 0 4px; }
+    .item-qty { color: var(--muted); font-size: 13px; }
+    .prices { text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; gap: 4px; }
+    .was { color: var(--muted); text-decoration: line-through; }
+    .save-chip { background: var(--page); font-size: 12px; font-weight: 600; padding: 2px 4px; }
+    .now { color: var(--sale); font-weight: 700; }
+    .now.regular { color: var(--ink); }
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: block; font-weight: 700; margin-bottom: 6px; }
+    .field select { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #8E8E8E; border-radius: 4px; background: #fff; }
+    .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
+    .summary-row { display: flex; justify-content: space-between; padding: 6px 0; }
+    .ship-progress { margin: 16px 0 12px; }
+    .total-row { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); margin-top: 16px; padding-top: 16px; }
+    .total-row label { font-size: 18px; font-weight: 700; }
+    .total-row label span { font-size: 13px; font-weight: 400; color: var(--muted); }
+    .total-row input { width: 120px; border: 0; background: transparent; text-align: right; font-size: 18px; font-weight: 700; padding: 0; -moz-appearance: textfield; }
+    .total-row input::-webkit-outer-spin-button, .total-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .bnpl { font-size: 12px; color: var(--muted); margin: 12px 0 16px; }
+    .place-btn { width: 100%; min-height: 44px; border: 0; border-radius: 4px; background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .place-btn:hover { background: color-mix(in srgb, var(--accent) 85%, #000); }
+    .place-btn:disabled { opacity: .75; cursor: wait; }
+    .fine { font-size: 12px; color: var(--muted); margin: 12px 0 0; }
+    .result-box { display: none; margin-top: 12px; padding: 12px 14px; border-radius: 4px; font-size: 14px; }
+    .result-box.success { display: block; background: #EAF5EC; border: 1px solid #9BCFA6; color: #1B5E2B; }
+    .result-box.notice { display: block; background: #FCEBEC; border: 1px solid #F0B3B7; color: #8E0A12; }
+    .promo-box { background: var(--page); border-radius: 6px; padding: 16px; display: flex; gap: 8px; margin-top: 12px; }
+    .promo-box input { flex: 1; min-width: 0; min-height: 44px; border: 1px solid #8E8E8E; border-radius: 4px; padding: 0 12px; background: #fff; }
+    .promo-box button { min-height: 44px; padding: 0 16px; border: 1px solid #2B2B2B; border-radius: 4px; background: #fff; cursor: pointer; }
+    footer { background: var(--surface); border-top: 1px solid #E6E6E6; padding: 32px 60px; font-size: 13px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-bottom: 20px; }
+    .footer-links a { text-decoration: none; }
+    .footer-legal { color: var(--muted); font-size: 12px; }
+    @media (max-width: 900px) {
+      .mainnav { gap: 16px; height: auto; padding: 16px; flex-wrap: wrap; }
+      .divisions { order: 3; width: 100%; overflow-x: auto; gap: 18px; font-size: 15px; padding-bottom: 4px; }
+      .search { width: auto; flex: 1; }
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      .page { padding: 16px 0 32px; }
+      .promo a { position: static; display: block; margin-top: 4px; }
+      footer { padding: 24px 16px; }
+    }
+    @media (max-width: 480px) {
+      .line-item { grid-template-columns: 80px minmax(0, 1fr); }
+      .thumb, .thumb-fallback { width: 80px; height: 107px; }
+      .prices { grid-column: 2; align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="uninav">
+      <div class="uninav-row">
+        <a class="brand-link" href="#top">Gap</a>
+        <div class="uninav-icons">
+          <button class="icon-btn" type="button" aria-label="My account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4.5"/><path d="M3.5 21c1.2-4.3 4.5-6.5 8.5-6.5s7.3 2.2 8.5 6.5z"/></svg></button>
+          <button class="icon-btn" type="button" aria-label="3 items in your shopping bag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.5 7.5h15l-1 13.5h-13z"/><path d="M8.5 7.5V6a3.5 3.5 0 0 1 7 0v1.5"/></svg><span class="bag-count">3</span></button>
+        </div>
+      </div>
+      <div class="promo">Extra 50% off sale <a href="#top">Details</a></div>
+    </div>
+    <nav class="mainnav" aria-label="Main">
+      <a class="mark" href="#top" aria-label="Gap home">Gap</a>
+      <div class="divisions"><a href="#top">Women</a><a href="#top">Men</a><a href="#top">Girls</a><a href="#top">Boys</a><a href="#top">Baby &amp; Toddler</a><a href="#top">Accessories</a><a href="#top">GapX</a></div>
+      <label class="search"><input type="search" placeholder="Search Gap" aria-label="Search Gap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="m15.5 15.5 6 6"/></svg></label>
+    </nav>
+  </header>
+
+  <main class="page" id="top">
+    <form id="transferForm" class="layout" novalidate>
+      <div>
+        <section class="panel" aria-labelledby="bag-heading">
+          <h1 id="bag-heading">Bag</h1>
+          <div class="notice">Ready when you are. These must-haves won't be around forever.</div>
+          <h2 class="section-head">Shipping <span id="itemCount">3 Items</span></h2>
+          <div id="lineItems"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="delivery-heading">
+          <h2 class="section-head" id="delivery-heading">Delivery</h2>
+          <div class="field">
+            <label for="toAccount">Ship to / Pickup</label>
+            <select id="toAccount">
+              <option value="ACCT-1002">Ship to Address &mdash; 500 Market St, San Francisco, CA</option>
+              <option value="ACCT-1003">Pickup in store</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="accountTier">Shipping method</label>
+            <select id="accountTier">
+              <option value="standard" selected>Standard</option>
+              <option value="premium">Express</option>
+              <option value="basic">Economy</option>
+            </select>
+            <small id="shipNote">Free shipping on orders $50+.</small>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="payment-heading">
+          <h2 class="section-head" id="payment-heading">Payment</h2>
+          <div class="field">
+            <label for="fromAccount">Payment method</label>
+            <select id="fromAccount">
+              <option value="ACCT-1004">Visa ending 1004</option>
+              <option value="ACCT-1001">Mastercard ending 1001</option>
+            </select>
+          </div>
+        </section>
+      </div>
+
+      <aside>
+        <section class="panel" aria-labelledby="summary-heading">
+          <h2 id="summary-heading">Order Summary</h2>
+          <p class="ship-progress">You qualify for free shipping.</p>
+          <div class="summary-row"><span>Subtotal</span><span id="sumSubtotal"></span></div>
+          <div class="summary-row"><span>Savings</span><span id="sumSavings"></span></div>
+          <div class="summary-row"><span>Shipping</span><span id="sumShipping"></span></div>
+          <div class="summary-row"><span>Est. Tax</span><span id="sumTax"></span></div>
+          <div class="total-row"><label for="amount">Est. Total</label><input type="number" id="amount" step="0.01" readonly></div>
+          <p class="bnpl">PayPal Pay in 4, Afterpay and Klarna available for orders $35+</p>
+          <button type="submit" id="submitBtn" class="place-btn">Place Order</button>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <p class="fine">By placing your order, you agree to the Terms of Use and Privacy Policy.</p>
+        </section>
+        <section class="panel" aria-labelledby="promos-heading">
+          <h2 id="promos-heading">Promos</h2>
+          <div class="promo-box"><input type="text" placeholder="Enter Promo Code" aria-label="Enter Promo Code"><button type="button">Apply</button></div>
+        </section>
+      </aside>
+    </form>
+  </main>
+
+  <footer>
+    <div class="footer-links"><a href="#top">Customer Service</a><a href="#top">Order Status</a><a href="#top">Shipping</a><a href="#top">Returns &amp; Exchanges</a><a href="#top">Gift Cards</a><a href="#top">Find a Store</a></div>
+    <div class="footer-legal">Your Privacy Choices &middot; Privacy Policy &middot; Terms of Use</div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const ITEMS = [
+      { name: 'Organic Cotton VintageSoft T-Shirt', attrs: 'M | Fresh White', qty: 1, was: 24.95, now: 14.00, img: 'https://www1.assets-gap.com/webcontent/0062/754/613/cn62754613.jpg' },
+      { name: 'Supima\u00AE Cotton Relaxed T-Shirt', attrs: 'M | Optic White', qty: 1, was: 49.95, now: 49.95, img: 'https://secure-www.gap.com/webcontent/0062/754/629/cn62754629.jpg' },
+      { name: 'Modern Crew T-Shirt', attrs: 'L | True Black', qty: 1, was: 29.95, now: 17.00, img: 'https://secure-www.gap.com/webcontent/0063/007/612/cn63007612.jpg' },
+    ];
+    const SHIPPING = { standard: 0, premium: 15, basic: 0 };
+    const TAX_RATE = 0.08625;
+    const usd = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const tierSelect = document.getElementById('accountTier');
+    const toSelect = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+
+    const list = document.getElementById('lineItems');
+    ITEMS.forEach((item) => {
+      const row = document.createElement('div');
+      row.className = 'line-item';
+      const img = document.createElement('img');
+      img.className = 'thumb';
+      img.alt = item.name;
+      img.src = item.img;
+      img.onerror = () => { const f = document.createElement('div'); f.className = 'thumb-fallback'; f.textContent = 'Gap'; img.replaceWith(f); };
+      const info = document.createElement('div');
+      info.innerHTML = '<p class="item-name"></p><p class="item-attrs"></p><span class="item-qty"></span>';
+      info.querySelector('.item-name').textContent = item.name;
+      info.querySelector('.item-attrs').textContent = item.attrs;
+      info.querySelector('.item-qty').textContent = 'Qty ' + item.qty;
+      const prices = document.createElement('div');
+      prices.className = 'prices';
+      if (item.was > item.now) {
+        prices.innerHTML = '<span class="was"></span><span class="save-chip"></span><span class="now"></span>';
+        prices.querySelector('.was').textContent = usd(item.was);
+        prices.querySelector('.save-chip').textContent = 'Savings ' + usd(item.was - item.now);
+      } else {
+        prices.innerHTML = '<span class="now regular"></span>';
+      }
+      prices.querySelector('.now').textContent = usd(item.now);
+      row.append(img, info, prices);
+      list.appendChild(row);
+    });
+
+    function updateSummary() {
+      const subtotal = ITEMS.reduce((s, i) => s + i.was * i.qty, 0);
+      const merch = ITEMS.reduce((s, i) => s + i.now * i.qty, 0);
+      const savings = subtotal - merch;
+      const pickup = toSelect.value === 'ACCT-1003';
+      const shipping = pickup ? 0 : (SHIPPING[tierSelect.value] || 0);
+      const tax = Math.round(merch * TAX_RATE * 100) / 100;
+      const total = Math.round((merch + shipping + tax) * 100) / 100;
+      tierSelect.disabled = pickup;
+      document.getElementById('shipNote').textContent = pickup ? 'Ready for pickup in 2 hours at your selected store.' : 'Free shipping on orders $50+.';
+      document.getElementById('sumSubtotal').textContent = usd(subtotal);
+      document.getElementById('sumSavings').textContent = '-' + usd(savings);
+      document.getElementById('sumShipping').textContent = shipping ? usd(shipping) : 'FREE';
+      document.getElementById('sumTax').textContent = usd(tax);
+      amountInput.value = total.toFixed(2);
+    }
+    tierSelect.addEventListener('change', updateSummary);
+    toSelect.addEventListener('change', updateSummary);
+    form.addEventListener('reset', () => setTimeout(() => { result.className = 'result-box'; result.textContent = ''; updateSummary(); }, 0));
+    updateSummary();
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      button.disabled = true;
+      button.textContent = 'Placing Order\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: toSelect.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: tierSelect.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('Order not placed');
+        result.className = 'result-box success';
+        result.textContent = 'Thank you for your order. Order number ' + data.receipt.receiptId + ' \u00B7 ' + usd(data.receipt.amount) + '. A confirmation email is on its way.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = "We couldn't place your order. Please try again.";
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Place Order';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

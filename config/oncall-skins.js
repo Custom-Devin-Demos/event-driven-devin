@@ -2956,6 +2956,23 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Loan Operations & Disbursement Support',
     disclaimer: 'NOT A REAL WORLD BANK SYSTEM — internal demo only, fictional LoanTrack product, not affiliated with or endorsed by the World Bank Group.',
   },
+  '2d624bce': {
+    slug: '2d624bce',
+    company: 'Gap',
+    brandMark: 'G',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '2d624bce.html', title: 'Shopping Bag | Gap' },
+    theme: {
+      '--accent': '#144EBB',
+      '--ink': '#020202',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Gap Customer Service',
+    disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
+  },
 };
 
 function getOncallSkin(slug) {
