@@ -22,6 +22,7 @@ const { createDevinSession } = require('../app/services/devin-api');
 const { postOncallAlert } = require('../app/services/oncall');
 const { getOncallSkin } = require('../config/oncall-skins');
 
+const LOANTRACK = getOncallSkin('9ecaa5d1');
 const TEAMS_URL = 'https://teams.example.test/workflows/hook';
 const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL'];
 const savedEnv = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
@@ -66,8 +67,7 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
 
   test('posts the same LoanTrack alert to Slack and Teams, with no session', async () => {
     setEnv({ slack: true, teams: true });
-    const skin = getOncallSkin('9ecaa5d1');
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', skin, devinEmail: 'julia@example.com' });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', skin: LOANTRACK, devinEmail: 'julia@example.com' });
 
     expect(result).toMatchObject({ ok: true, channel: 'C0TEST', teams: true });
     expect(createDevinSession).not.toHaveBeenCalled();
@@ -88,14 +88,14 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
   test('a failed Teams post never blocks the Slack alert', async () => {
     setEnv({ slack: true, teams: true });
     axios.post.mockRejectedValue(Object.assign(new Error('boom'), { response: { status: 500 } }));
-    const result = await postOncallAlert('banking', { runRef: 'run-abc' });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', skin: LOANTRACK });
     expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST' });
     expect(postMessage).toHaveBeenCalledTimes(1);
   });
 
   test('Teams alone is enough to deliver the alert', async () => {
     setEnv({ slack: false, teams: true });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc' });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', skin: LOANTRACK });
     expect(result).toEqual({ ok: true, teams: true });
     expect(postMessage).not.toHaveBeenCalled();
     expect(teamsCard().actions[0]).toMatchObject({ type: 'Action.OpenUrl', title: 'View in Datadog' });
@@ -105,7 +105,7 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     setEnv({ slack: true, teams: true });
     let releaseTeams;
     axios.post.mockReturnValue(new Promise((resolve) => { releaseTeams = resolve; }));
-    const pending = postOncallAlert('banking', { runRef: 'run-abc' });
+    const pending = postOncallAlert('banking', { runRef: 'run-abc', skin: LOANTRACK });
     await new Promise((resolve) => { setTimeout(resolve, 0); });
     expect(postMessage).toHaveBeenCalledTimes(1);
     releaseTeams({ status: 202 });
@@ -115,7 +115,7 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
   test('a Slack failure still reports the Teams delivery', async () => {
     setEnv({ slack: true, teams: true });
     postMessage.mockRejectedValueOnce(new Error('channel_not_found'));
-    const result = await postOncallAlert('banking', { runRef: 'run-abc' });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', skin: LOANTRACK });
     expect(result).toEqual({ ok: true, teams: true });
   });
 
@@ -127,11 +127,29 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
 
   test('Teams-only alerts still run opted-in skin automation, without a Slack thread reply', async () => {
     setEnv({ slack: false, teams: true });
-    const skin = getOncallSkin('4b663efb');
+    const skin = { ...getOncallSkin('4b663efb'), teamsAlerts: true };
     const result = await postOncallAlert(skin.vertical, { skin });
     expect(createDevinSession).toHaveBeenCalledTimes(1);
     expect(postThreadReply).not.toHaveBeenCalled();
     expect(result).toMatchObject({ ok: true, teams: true, sessionUrl: 'https://app.devin.ai/sessions/session-abc' });
+  });
+
+  test('skins without teamsAlerts stay Slack-only even with a Teams webhook', async () => {
+    setEnv({ slack: true, teams: true });
+    const skin = getOncallSkin('4b663efb');
+    expect(skin.teamsAlerts).toBeFalsy();
+    const unskinned = await postOncallAlert('banking', { runRef: 'run-abc' });
+    const skinned = await postOncallAlert(skin.vertical, { runRef: 'run-def', skin });
+    expect(unskinned).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST' });
+    expect(skinned.teams).toBeUndefined();
+    expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  test('a Teams webhook alone does not deliver alerts for other skins', async () => {
+    setEnv({ slack: false, teams: true });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc' });
+    expect(result).toMatchObject({ ok: false, skipped: true });
+    expect(axios.post).not.toHaveBeenCalled();
   });
 
   test('skips when neither Slack nor Teams is configured', async () => {

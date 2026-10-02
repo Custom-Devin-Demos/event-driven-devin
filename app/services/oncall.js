@@ -28,8 +28,8 @@ const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech'
  *   SLACK_ONCALL_ALERTS_CHANNEL_NAME / SLACK_ONCALL_BUGS_CHANNEL_NAME — labels the
  *     on-call ribbon shows after posting (default #oncall-alerts / #oncall-bugs)
  *   SLACK_ONCALL_BOT_TOKEN         — bot token override (default: SLACK_BOT_TOKEN)
- *   ONCALL_TEAMS_WEBHOOK_URL       — optional Teams Workflows webhook; when set,
- *     alert cards are also posted to that Teams channel as Adaptive Cards
+ *   ONCALL_TEAMS_WEBHOOK_URL       — optional Teams Workflows webhook; alert cards
+ *     from skins with `teamsAlerts: true` are also posted there as Adaptive Cards
  */
 
 const REPO_URL = process.env.ONCALL_REPO_URL || 'https://github.com/COG-GTM/event-driven-devin';
@@ -705,7 +705,10 @@ async function postOncallAlert(scenarioId, options = {}) {
     return { ok: false, error: `Unknown scenario: ${scenarioId}` };
   }
 
-  const { token, alertsChannel, teamsWebhookUrl } = resolveOncallEnv();
+  const skin = options.skin || null;
+  const env = resolveOncallEnv();
+  const { token, alertsChannel } = env;
+  const teamsWebhookUrl = skin && skin.teamsAlerts ? env.teamsWebhookUrl : null;
   const slackReady = Boolean(token && alertsChannel);
   if (!slackReady && !teamsWebhookUrl) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');
@@ -717,7 +720,6 @@ async function postOncallAlert(scenarioId, options = {}) {
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
   const events = 3 + Math.floor(Math.random() * 12);
-  const skin = options.skin || null;
   const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin });
   const card = resolveAlertCard(scenario, skin);
   const brand = skin ? skin.company : scenario.brand;

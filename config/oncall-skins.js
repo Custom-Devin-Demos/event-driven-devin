@@ -61,6 +61,10 @@
  * investigation session prompt keeps the vertical's real endpoint. Keep it
  * metric-shaped and free of the company name.
  *
+ * A skin may set teamsAlerts: true to also post its alert card to the
+ * Microsoft Teams channel behind ONCALL_TEAMS_WEBHOOK_URL. Other skins and
+ * skinless alerts stay Slack-only even when that webhook is configured.
+ *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
  *
@@ -2931,6 +2935,7 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     oncallOnly: true,
     page: { file: '9ecaa5d1.html', title: 'Payment Release | LoanTrack' },
+    teamsAlerts: true,
     alertCard: {
       title: 'p95 latency — payment release submissions',
       service: 'loantrack-disbursement-api',
