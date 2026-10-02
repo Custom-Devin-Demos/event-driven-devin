@@ -2,6 +2,11 @@ jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
 }));
 
+jest.mock('../app/services/devin-api', () => ({
+  listOrgUsers: jest.fn(() => Promise.resolve([])),
+  listEnterpriseAdmins: jest.fn(() => Promise.resolve([])),
+}));
+
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: {
     captureException: jest.fn(),
@@ -21,6 +26,7 @@ jest.mock('../app/telemetry/datadog', () => ({
 
 const express = require('express');
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { listOrgUsers, listEnterpriseAdmins } = require('../app/services/devin-api');
 const { Sentry } = require('../app/telemetry/sentry');
 const { incrementMetric } = require('../app/telemetry/datadog');
 const {
@@ -35,6 +41,7 @@ const {
   IOS_ERROR_PATH,
   isAppReport,
   reportAppFailure,
+  resolveUserIdByEmail,
 } = require('../app/services/verticals/verizon-ios');
 const router = require('../app/routes/verticals/verizon-ios');
 const {
@@ -109,6 +116,10 @@ describe('My Verizon iOS preorder failure report', () => {
     Sentry.captureException.mockClear();
     Sentry.withScope.mockClear();
     incrementMetric.mockClear();
+    listOrgUsers.mockReset();
+    listOrgUsers.mockResolvedValue([]);
+    listEnterpriseAdmins.mockReset();
+    listEnterpriseAdmins.mockResolvedValue([]);
   });
 
   test('accepts a valid app report with client-forwarded identity', async () => {
@@ -124,6 +135,7 @@ describe('My Verizon iOS preorder failure report', () => {
     expect(body.reference).toMatch(/^[0-9a-f-]{36}$/);
     expect(body.receivedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
 
+    await new Promise((resolve) => { setImmediate(resolve); });
     const alertData = createSessionAndAlert.mock.calls[0][0];
     expect(alertData).toMatchObject({
       customer: '4e150e99',
@@ -133,7 +145,6 @@ describe('My Verizon iOS preorder failure report', () => {
       release: APP_RELEASE,
       issueTitle: `${APP_REPORT.errorType}: ${APP_REPORT.errorMessage}`,
       culprit: 'my-verizon/ios checkout_review place_order',
-      devinUserId: '',
       devinOrgId: ORG_ID,
       devinEmail: APP_REPORT.devinEmail,
       slackMemberId: '',
@@ -194,13 +205,13 @@ describe('My Verizon iOS preorder failure report', () => {
     });
   });
 
-  test('clips oversized strings before they reach Sentry and the alert', () => {
-    reportAppFailure({
+  test('clips oversized strings before they reach Sentry and the alert', async () => {
+    await reportAppFailure({
       ...APP_REPORT,
       errorMessage: 'x'.repeat(600),
       stackTrace: 'y'.repeat(5000),
       perks: 'z'.repeat(300),
-    });
+    }).sessionPromise;
 
     const alertData = createSessionAndAlert.mock.calls[0][0];
     expect(alertData.errorValue).toHaveLength(512);
@@ -208,11 +219,11 @@ describe('My Verizon iOS preorder failure report', () => {
     expect(alertData.extra.perks).toHaveLength(256);
   });
 
-  test('falls back to the configured Slack member when no email is forwarded', () => {
+  test('falls back to the configured Slack member when no email is forwarded', async () => {
     const report = { ...APP_REPORT };
     delete report.devinEmail;
 
-    reportAppFailure(report);
+    await reportAppFailure(report).sessionPromise;
 
     const alertData = createSessionAndAlert.mock.calls[0][0];
     expect(alertData.devinUserId).toBe(report.devinUserId);
@@ -220,6 +231,41 @@ describe('My Verizon iOS preorder failure report', () => {
     expect(alertData.devinEmail).toBeUndefined();
     expect(alertData.slackMemberId).toBe(process.env.VERIZON_SLACK_MEMBER_ID || '');
     expect(alertData.slackMemberIdFallback).toBe(process.env.VERIZON_SLACK_MEMBER_ID || '');
+  });
+
+  test('creates the session as the reporter resolved from devinEmail', async () => {
+    listOrgUsers.mockResolvedValue([
+      { user_id: 'user-other', email: 'someone@cognition.ai' },
+      { user_id: 'user-antonio', email: 'Antonio.Ruiz@cognition.ai' },
+    ]);
+
+    await reportAppFailure(APP_REPORT).sessionPromise;
+
+    expect(listOrgUsers).toHaveBeenCalledWith(ORG_ID, expect.any(Object));
+    expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('user-antonio');
+  });
+
+  test('falls back to enterprise admins, then to the customer default user', async () => {
+    listEnterpriseAdmins.mockResolvedValueOnce([{ user_id: 'user-admin', email: APP_REPORT.devinEmail }]);
+    await reportAppFailure(APP_REPORT).sessionPromise;
+    expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('user-admin');
+
+    await reportAppFailure(APP_REPORT).sessionPromise;
+    expect(createSessionAndAlert.mock.calls[1][0].devinUserId).toBeUndefined();
+  });
+
+  test('uses a forwarded devinUserId without looking up the email', async () => {
+    await reportAppFailure({ ...APP_REPORT, devinUserId: 'user-explicit' }).sessionPromise;
+
+    expect(listOrgUsers).not.toHaveBeenCalled();
+    expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('user-explicit');
+  });
+
+  test('resolveUserIdByEmail returns empty on missing input or lookup failure', async () => {
+    expect(await resolveUserIdByEmail('', ORG_ID)).toBe('');
+    expect(await resolveUserIdByEmail(APP_REPORT.devinEmail, '')).toBe('');
+    listOrgUsers.mockRejectedValueOnce(new Error('boom'));
+    expect(await resolveUserIdByEmail(APP_REPORT.devinEmail, ORG_ID)).toBe('');
   });
 
   test('isAppReport requires both the My Verizon source prefix and service', () => {
