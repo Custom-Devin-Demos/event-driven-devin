@@ -2867,6 +2867,26 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Workspace, plan & seats',
     disclaimer: 'NOT ACTUALLY A VANTA SITE — internal demo only, not affiliated with, endorsed by, or a real Vanta product.',
   },
+  'fe4f39ba': {
+    slug: 'fe4f39ba',
+    company: 'GSK',
+    brandMark: 'G',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: {
+      file: 'fe4f39ba.html',
+      title: 'Order Vaccines | GSK',
+    },
+    theme: {
+      '--accent': '#F36633',
+      '--ink': '#151515',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#151515',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'GSK Vaccine Service Center',
+    disclaimer: 'NOT ACTUALLY A GSK SITE — internal demo only, not affiliated with, endorsed by, or a real GSK product.',
+  },
 };
 
 function getOncallSkin(slug) {
