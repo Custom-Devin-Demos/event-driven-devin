@@ -2936,7 +2936,7 @@ const ONCALL_SKINS = {
       service: 'loantrack-disbursement-api',
       release: 'loantrack@2026.4.1',
       team: 'disbursement-oncall',
-      metricQuery: 'p95:trace.express.request.duration{service:loantrack-disbursement-api,resource:POST /api/oncall/banking/transfer}',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
       symptom: 'Payment release submissions hang ~10s before Treasury confirms. Error rate is normal — releases eventually go through.',
       impact: 'Every disbursement officer releasing a payment waits on a spinner for ~10 seconds; Loan Operations is reporting rising ticket volume ahead of the 16:00 UTC cut-off.',
     },

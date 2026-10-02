@@ -626,6 +626,7 @@ async function triggerSkinDevinSession(
     sessionId: session.sessionId,
   });
 
+  if (!channel || !threadTs) return session;
   try {
     await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [
       mrkdwnSection(`:mag: *Devin is investigating this alert* — <${session.url}|View session>`),
@@ -743,21 +744,30 @@ async function postOncallAlert(scenarioId, options = {}) {
     datadogActions(),
     contextBlock(card.service, triggeredBy),
   ];
-  const teams = teamsWebhookUrl
-    ? await postTeamsAlert(teamsWebhookUrl, scenario, skin, {
+  const teamsDelivery = teamsWebhookUrl
+    ? postTeamsAlert(teamsWebhookUrl, scenario, skin, {
       card, brand, runRef, events, firstSeen, triggeredByEmail: validEmail(options.devinEmail),
     })
-    : null;
-  if (!slackReady) {
-    return teams ? { ok: true, teams: true } : { ok: false, error: 'Teams alert post failed' };
+    : Promise.resolve(null);
+  let ts = null;
+  if (slackReady) {
+    try {
+      ts = await postMessage(token, alertsChannel, text, blocks);
+      logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
+    } catch (error) {
+      if (!(await teamsDelivery)) throw error;
+      logger.warn('On-Call Slack alert post failed; alert delivered to Teams', { error: error.message });
+    }
   }
-  const ts = await postMessage(token, alertsChannel, text, blocks);
-  logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
+  const teams = await teamsDelivery;
+  if (!ts && !teams) {
+    return { ok: false, error: 'Teams alert post failed' };
+  }
   const requester = resolveRequesterIdentity(options);
   const session = skin
     ? await triggerSkinDevinSession(scenario, skin, {
       token,
-      channel: alertsChannel,
+      channel: ts ? alertsChannel : null,
       threadTs: ts,
       runRef,
       requester,
@@ -766,8 +776,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   const sonarPR = triggerSkinSonarPR(skin, requester);
   return {
     ok: true,
-    ts,
-    channel: alertsChannel,
+    ...(ts ? { ts, channel: alertsChannel } : {}),
     ...(teams ? { teams: true } : {}),
     ...(session ? { sessionUrl: session.url } : {}),
     ...(sonarPR ? { sonarPR: true } : {}),

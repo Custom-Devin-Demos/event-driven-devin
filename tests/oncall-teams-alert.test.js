@@ -11,10 +11,13 @@ jest.mock('../app/services/slack', () => ({
   postPersonaMessage: jest.fn().mockResolvedValue(undefined),
   inviteToChannel: jest.fn().mockResolvedValue(undefined),
 }));
-jest.mock('../app/services/devin-api', () => ({ createDevinSession: jest.fn() }));
+jest.mock('../app/services/devin-api', () => ({
+  createDevinSession: jest.fn().mockResolvedValue({ sessionId: 'session-abc', url: 'https://app.devin.ai/sessions/session-abc' }),
+}));
+jest.mock('../app/services/sonar-pr-trigger', () => ({ scheduleVulnerablePR: jest.fn() }));
 
 const axios = require('axios');
-const { postMessage } = require('../app/services/slack');
+const { postMessage, postThreadReply } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
 const { postOncallAlert } = require('../app/services/oncall');
 const { getOncallSkin } = require('../config/oncall-skins');
@@ -96,6 +99,39 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(result).toEqual({ ok: true, teams: true });
     expect(postMessage).not.toHaveBeenCalled();
     expect(teamsCard().actions[0]).toMatchObject({ type: 'Action.OpenUrl', title: 'View in Datadog' });
+  });
+
+  test('Slack is posted without waiting for a slow Teams webhook', async () => {
+    setEnv({ slack: true, teams: true });
+    let releaseTeams;
+    axios.post.mockReturnValue(new Promise((resolve) => { releaseTeams = resolve; }));
+    const pending = postOncallAlert('banking', { runRef: 'run-abc' });
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    releaseTeams({ status: 202 });
+    await expect(pending).resolves.toMatchObject({ ok: true, channel: 'C0TEST', teams: true });
+  });
+
+  test('a Slack failure still reports the Teams delivery', async () => {
+    setEnv({ slack: true, teams: true });
+    postMessage.mockRejectedValueOnce(new Error('channel_not_found'));
+    const result = await postOncallAlert('banking', { runRef: 'run-abc' });
+    expect(result).toEqual({ ok: true, teams: true });
+  });
+
+  test('a Slack failure without Teams still throws', async () => {
+    setEnv({ slack: true, teams: false });
+    postMessage.mockRejectedValueOnce(new Error('channel_not_found'));
+    await expect(postOncallAlert('banking', { runRef: 'run-abc' })).rejects.toThrow('channel_not_found');
+  });
+
+  test('Teams-only alerts still run opted-in skin automation, without a Slack thread reply', async () => {
+    setEnv({ slack: false, teams: true });
+    const skin = getOncallSkin('4b663efb');
+    const result = await postOncallAlert(skin.vertical, { skin });
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(postThreadReply).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ ok: true, teams: true, sessionUrl: 'https://app.devin.ai/sessions/session-abc' });
   });
 
   test('skips when neither Slack nor Teams is configured', async () => {
