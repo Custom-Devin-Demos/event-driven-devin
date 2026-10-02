@@ -31,6 +31,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **CFS Lump Sum Withdrawal** (unlisted — direct URL only) | `/cfs` | `app/public/verticals/cfs.html` | `POST /api/cfs/withdrawal` | `app/services/verticals/cfs.js` |
 | **NRMA Insurance Home Claim** (unlisted — direct URL only) | `/nrma`, `/iag` | `app/public/verticals/nrma.html` | `POST /api/nrma/claim` | `app/services/verticals/nrma.js` |
 | **Westpac Card Dispute** (unlisted — direct URL only) | `/westpac` | `app/public/verticals/westpac.html` | `POST /api/westpac/dispute`, `POST /api/westpac/ios/error` (native iOS report bridge) | `app/services/verticals/westpac.js` |
+| **My Verizon iOS (native app report bridge)** (no page — `COG-GTM/demo-verizon-ios` SwiftUI app; routed as customer `4e150e99`) | — | — | `POST /api/verizon/ios/error` | `app/services/verticals/verizon-ios.js` |
 | **S&P Global RatingsDirect Scorecard** (unlisted — direct URL only) | `/ratingsdirect`, `/sp-ratings`, `/spratings` | `app/public/verticals/ratingsdirect.html` | `POST /api/ratingsdirect/scorecard` | `app/services/verticals/ratingsdirect.js` |
 | **NAB Internet Banking** (unlisted — direct URL only) | `/nab` | `app/public/verticals/nab.html` | `POST /api/nab/payment` | `app/services/verticals/nab.js` |
 | **CommBank NetBank — Pay anyone** (unlisted — direct URL only) | `/cba`, `/commbank`, `/netbank` | `app/public/verticals/cba.html` | `POST /api/cba/payment` | `app/services/verticals/cba.js` |
