@@ -458,26 +458,50 @@ function demoPageLine(scenario, skin) {
   return path ? `*Demo page:* ${DEMO_BASE_URL()}${path} — reproduce the symptom on this branded page` : null;
 }
 
+/**
+ * Alert card copy for a scenario with a skin's optional alertCard overrides
+ * applied. Without overrides the scenario itself is returned, so the card is
+ * unchanged.
+ */
+function resolveAlertCard(scenario, skin) {
+  const card = skin && isPlainObject(skin.alertCard) ? skin.alertCard : null;
+  if (!card) return scenario;
+  const pick = (key, fallback) => (typeof card[key] === 'string' && card[key].trim() ? card[key] : fallback);
+  const team = pick('team', null);
+  return {
+    ...scenario,
+    monitor: pick('title', scenario.monitor),
+    service: pick('service', scenario.service),
+    endpoint: pick('endpointLabel', scenario.endpoint),
+    release: pick('release', scenario.release),
+    owner: team ? `${scenario.owner.replace(/\s*\([^)]*\)$/, '')} (${team})` : scenario.owner,
+    metricQuery: pick('metricQuery', scenario.metricQuery),
+    symptom: pick('symptom', scenario.symptom),
+    impact: pick('impact', scenario.impact),
+  };
+}
+
 function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin }) {
 
+  const card = resolveAlertCard(scenario, skin);
   const brand = skin ? skin.company : scenario.brand;
   const lines = [
-    `:rotating_light: *[Triggered] ${scenario.monitor}*`,
+    `:rotating_light: *[Triggered] ${card.monitor}*`,
     '',
-    `*Service:* ${scenario.service} (${brand})`,
+    `*Service:* ${card.service} (${brand})`,
     demoPageLine(scenario, skin),
-    `*Endpoint:* ${scenario.endpoint}`,
+    `*Endpoint:* ${card.endpoint}`,
     `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
-    `*Monitor query:* \`${scenario.metricQuery}\``,
-    `*Owner:* ${scenario.owner} — ${OWNER_DISCLAIMER}`,
+    `*Monitor query:* \`${card.metricQuery}\``,
+    `*Owner:* ${card.owner} — ${OWNER_DISCLAIMER}`,
     runRef ? `*Incident Ref:* ${runRef}` : null,
     triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
-    `Env: production | Release: ${scenario.release}`,
+    `Env: production | Release: ${card.release}`,
     `Events: ${events} | First: ${firstSeen.toISOString()} | Last: ${now.toISOString()}`,
     '',
-    `*Symptom:* ${scenario.symptom}`,
-    `*Impact:* ${scenario.impact}`,
+    `*Symptom:* ${card.symptom}`,
+    `*Impact:* ${card.impact}`,
     `Repo: ${REPO_URL}`,
   ];
 
@@ -643,29 +667,30 @@ async function postOncallAlert(scenarioId, options = {}) {
   const events = 3 + Math.floor(Math.random() * 12);
   const skin = options.skin || null;
   const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin });
+  const card = resolveAlertCard(scenario, skin);
   const brand = skin ? skin.company : scenario.brand;
   const blocks = [
-    headerBlock(`:rotating_light: [Triggered] ${scenario.monitor}`),
+    headerBlock(`:rotating_light: [Triggered] ${card.monitor}`),
     ...fieldPairs([
-      ['Service', `${scenario.service} (${brand})`],
-      ['Endpoint', scenario.endpoint],
+      ['Service', `${card.service} (${brand})`],
+      ['Endpoint', card.endpoint],
       ['Metric value', scenario.metricValue],
       ['Threshold', scenario.threshold],
       ['Baseline', scenario.baseline],
-      ['Release', scenario.release],
+      ['Release', card.release],
       ['Events', `${events} | First: ${firstSeen.toISOString()}`],
-      ['Owner', `${scenario.owner} — ${OWNER_DISCLAIMER}`],
+      ['Owner', `${card.owner} — ${OWNER_DISCLAIMER}`],
       runRef ? ['Incident Ref', runRef] : null,
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
-    mrkdwnSection(`*Monitor query:*\n\`\`\`${scenario.metricQuery}\`\`\``),
+    mrkdwnSection(`*Monitor query:*\n\`\`\`${card.metricQuery}\`\`\``),
     mrkdwnSection(
-      `*Symptom:* ${scenario.symptom}\n*Impact:* ${scenario.impact}\n` +
+      `*Symptom:* ${card.symptom}\n*Impact:* ${card.impact}\n` +
       (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
     datadogActions(),
-    contextBlock(scenario.service, triggeredBy),
+    contextBlock(card.service, triggeredBy),
   ];
   const ts = await postMessage(token, alertsChannel, text, blocks);
   logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
