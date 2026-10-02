@@ -3,8 +3,11 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
+const { getCustomerConfig } = require('../../../config/customers');
 
 const VERIZON_SLACK_MEMBER_ID = process.env.VERIZON_SLACK_MEMBER_ID || '';
+const CUSTOMER = '4e150e99';
 const APP_SERVICE = 'customer-verizon-ios';
 const APP_PROJECT = 'my-verizon-ios';
 const APP_RELEASE = 'my-verizon-ios@12.4.1';
@@ -63,6 +66,25 @@ function isAppSource(body) {
 
 function isAppReport(body) {
   return isAppSource(body) && body.service === APP_SERVICE;
+}
+
+async function resolveUserIdByEmail(email, orgId) {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized || !orgId) return '';
+  try {
+    const { apiKey } = getCustomerConfig(CUSTOMER);
+    const auth = apiKey ? { apiKey } : {};
+    const members = await listOrgUsers(orgId, auth);
+    const member = members.find((user) => (user.email || '').toLowerCase() === normalized);
+    if (member) return member.user_id;
+    const admins = await listEnterpriseAdmins(auth);
+    const admin = admins.find((user) => (user.email || '').toLowerCase() === normalized);
+    if (admin) return admin.user_id;
+    logger.warn('My Verizon iOS reporter email not found in org', { orgId });
+  } catch (error) {
+    logger.warn('My Verizon iOS reporter lookup failed', { error: error.message, orgId });
+  }
+  return '';
 }
 
 function reportAppFailure(report) {
@@ -166,20 +188,20 @@ function reportAppFailure(report) {
     });
   });
 
-  const sessionPromise = createSessionAndAlert({
+  const raiseAlert = (devinUserId) => createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=${encodeURIComponent(APP_SENTRY_ISSUE_QUERY)}`,
     culprit: `${APP_SOURCE_PREFIX}${platform} ${screen} ${action}`,
     errorType,
     errorValue: errorMessage,
-    devinUserId: report.devinUserId,
+    devinUserId,
     devinEmail: report.devinEmail,
     devinOrgId: report.devinOrgId,
     slackMemberId: report.devinEmail ? '' : VERIZON_SLACK_MEMBER_ID,
     slackMemberIdFallback: VERIZON_SLACK_MEMBER_ID,
     service: APP_SERVICE,
     verticalLabel: 'My Verizon — iPhone 18 Preorder (iOS)',
-    customer: '4e150e99',
+    customer: CUSTOMER,
     project: APP_PROJECT,
     release,
     promptAppendix: APP_REMEDIATION_DIRECTIVE,
@@ -212,7 +234,14 @@ function reportAppFailure(report) {
     shortId: '',
     environment,
     triggeredRule: '',
-  }).catch((alertError) => {
+  });
+
+  const needsLookup = !report.devinUserId && report.devinEmail && report.devinOrgId;
+  const sessionPromise = (needsLookup
+    ? resolveUserIdByEmail(report.devinEmail, report.devinOrgId)
+      .then((userId) => raiseAlert(userId || undefined))
+    : raiseAlert(report.devinUserId)
+  ).catch((alertError) => {
     logger.error('Failed to create Devin session for My Verizon iOS app failure report', {
       error: alertError.message,
       reference,
@@ -235,4 +264,5 @@ module.exports = {
   isAppSource,
   isAppReport,
   reportAppFailure,
+  resolveUserIdByEmail,
 };
