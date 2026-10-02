@@ -2887,6 +2887,24 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Capital Activity & Fund Operations',
     disclaimer: 'NOT ACTUALLY AN A16Z SITE — internal demo only, not affiliated with, endorsed by, or a real a16z product.',
   },
+  '9ecaa5d1': {
+    slug: '9ecaa5d1',
+    company: 'LoanTrack',
+    brandMark: 'LT',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '9ecaa5d1.html', title: 'Payment Release | LoanTrack' },
+    theme: {
+      '--accent': '#009FDA',
+      '--ink': '#1F2933',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#002244',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'LoanTrack Service Desk',
+    supportCenterSub: 'Loan Operations & Disbursement Support',
+    disclaimer: 'NOT A REAL WORLD BANK SYSTEM — internal demo only, fictional LoanTrack product, not affiliated with or endorsed by the World Bank Group.',
+  },
 };
 
 function getOncallSkin(slug) {
