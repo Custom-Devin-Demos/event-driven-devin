@@ -54,6 +54,13 @@
  * event-driven alert flow does. customer defaults to 'default'; the GitHub
  * token comes from the environment.
  *
+ * A skin may set alertCard: { title, service, endpointLabel, release, team,
+ * metricQuery, symptom, impact } to replace the matching display text on its
+ * #oncall-alerts card (title is the monitor line, team the owner's team).
+ * Each field is optional and falls back to the vertical's text; the
+ * investigation session prompt keeps the vertical's real endpoint. Keep it
+ * metric-shaped and free of the company name.
+ *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
  *
@@ -2866,6 +2873,36 @@ const ONCALL_SKINS = {
     supportCenter: 'Vanta Support',
     supportCenterSub: 'Workspace, plan & seats',
     disclaimer: 'NOT ACTUALLY A VANTA SITE — internal demo only, not affiliated with, endorsed by, or a real Vanta product.',
+  },
+  'fe4f39ba': {
+    slug: 'fe4f39ba',
+    company: 'GSK',
+    brandMark: 'G',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: {
+      file: 'fe4f39ba.html',
+      title: 'Order Vaccines | GSK',
+    },
+    theme: {
+      '--accent': '#F36633',
+      '--ink': '#151515',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#151515',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: 'Vaccine order submissions hang ~10s',
+      service: 'vaccine-ordering-api',
+      endpointLabel: 'POST /api/orders/submit',
+      release: 'hcp-ordering-web@1.0.3',
+      team: 'hcp-ordering-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:vaccine-ordering-api,resource:POST /api/orders/submit}',
+      symptom: 'Vaccine order submissions hang ~10s before completing. Error rate is normal — orders eventually go through.',
+      impact: 'Every practice placing a vaccine order waits on a spinner for ~10 seconds; the Vaccine Service Center is reporting rising call volume.',
+    },
+    supportCenter: 'GSK Vaccine Service Center',
+    disclaimer: 'NOT ACTUALLY A GSK SITE — internal demo only, not affiliated with, endorsed by, or a real GSK product.',
   },
   '84b091d4': {
     slug: '84b091d4',

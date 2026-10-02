@@ -133,6 +133,9 @@ function setRunCookie(res, runRef, windowMinutes) {
 
 // Startup check: every skin template id must resolve in the shared BUG_CATALOG,
 // otherwise its backend-symptom repro mapping silently does nothing.
+const ALERT_CARD_KEYS = new Set([
+  'title', 'service', 'endpointLabel', 'release', 'team', 'metricQuery', 'symptom', 'impact',
+]);
 const KNOWN_TEMPLATE_IDS = new Set(
   Object.values(BUG_CATALOG).flatMap((entries) => entries.map((t) => t.id))
 );
@@ -196,6 +199,19 @@ for (const skin of Object.values(ONCALL_SKINS)) {
       skin: skin.slug,
       pageFile,
     });
+  }
+  if (skin.alertCard != null) {
+    const invalidAlertCardKeys = isPlainObject(skin.alertCard)
+      ? Object.entries(skin.alertCard)
+        .filter(([key, value]) => !ALERT_CARD_KEYS.has(key) || typeof value !== 'string')
+        .map(([key]) => key)
+      : ['alertCard'];
+    if (invalidAlertCardKeys.length) {
+      logger.warn('On-Call skin alertCard has unknown or non-string fields', {
+        skin: skin.slug,
+        fields: invalidAlertCardKeys,
+      });
+    }
   }
   if (skin.trigger && skin.trigger.kind !== 'bug') {
     logger.warn('On-Call skin trigger has unrecognized kind', {
