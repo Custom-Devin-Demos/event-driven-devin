@@ -520,7 +520,8 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
             if (!d.ok && alertPostedAt === postedAt) alertPostedAt = 0;
             if (ribbonCollapsed) expandRibbon();
             el.style.color = d.ok ? '#3fb950' : '#f85149';
-            el.textContent = d.ok ? postedMsg : (d.error || failedMsg);
+            var deliveredMsg = !d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams');
+            el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
             if (d.ok) scheduleCollapse();
           }).catch(function () {
             if (alertPostedAt === postedAt) alertPostedAt = 0;

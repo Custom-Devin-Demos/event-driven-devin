@@ -2931,6 +2931,15 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     oncallOnly: true,
     page: { file: '9ecaa5d1.html', title: 'Payment Release | LoanTrack' },
+    alertCard: {
+      title: 'p95 latency — payment release submissions',
+      service: 'loantrack-disbursement-api',
+      release: 'loantrack@2026.4.1',
+      team: 'disbursement-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:loantrack-disbursement-api,resource:POST /api/oncall/banking/transfer}',
+      symptom: 'Payment release submissions hang ~10s before Treasury confirms. Error rate is normal — releases eventually go through.',
+      impact: 'Every disbursement officer releasing a payment waits on a spinner for ~10 seconds; Loan Operations is reporting rising ticket volume ahead of the 16:00 UTC cut-off.',
+    },
     theme: {
       '--accent': '#009FDA',
       '--ink': '#1F2933',

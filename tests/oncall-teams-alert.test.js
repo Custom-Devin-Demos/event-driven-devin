@@ -1,0 +1,107 @@
+/* global afterEach, beforeEach, describe, expect, jest, test */
+
+jest.mock('axios');
+jest.mock('../app/services/slack', () => ({
+  OWNER_DISCLAIMER: 'fictional on-call persona',
+  postMessage: jest.fn().mockResolvedValue('1700000000.000100'),
+  postThreadReply: jest.fn().mockResolvedValue('1700000000.000200'),
+  lookupSlackUserByEmail: jest.fn().mockResolvedValue(null),
+  findChannelByNameFragment: jest.fn().mockResolvedValue(null),
+  joinChannel: jest.fn().mockResolvedValue(undefined),
+  postPersonaMessage: jest.fn().mockResolvedValue(undefined),
+  inviteToChannel: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock('../app/services/devin-api', () => ({ createDevinSession: jest.fn() }));
+
+const axios = require('axios');
+const { postMessage } = require('../app/services/slack');
+const { createDevinSession } = require('../app/services/devin-api');
+const { postOncallAlert } = require('../app/services/oncall');
+const { getOncallSkin } = require('../config/oncall-skins');
+
+const TEAMS_URL = 'https://teams.example.test/workflows/hook';
+const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL'];
+const savedEnv = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
+
+function setEnv({ slack, teams }) {
+  ENV_KEYS.forEach((k) => delete process.env[k]);
+  if (slack) {
+    process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-test';
+    process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID = 'C0TEST';
+  }
+  if (teams) process.env.ONCALL_TEAMS_WEBHOOK_URL = TEAMS_URL;
+}
+
+function teamsCard() {
+  const [url, payload] = axios.post.mock.calls[0];
+  expect(url).toBe(TEAMS_URL);
+  expect(payload.type).toBe('message');
+  expect(payload.attachments[0].contentType).toBe('application/vnd.microsoft.card.adaptive');
+  return payload.attachments[0].content;
+}
+
+describe('On-Call alerts routed to Microsoft Teams', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    axios.post.mockResolvedValue({ status: 202 });
+  });
+
+  afterEach(() => {
+    ENV_KEYS.forEach((k) => {
+      if (savedEnv[k] === undefined) delete process.env[k];
+      else process.env[k] = savedEnv[k];
+    });
+  });
+
+  test('without a Teams webhook the alert is Slack-only and unchanged', async () => {
+    setEnv({ slack: true, teams: false });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc' });
+    expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST' });
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  test('posts the same LoanTrack alert to Slack and Teams, with no session', async () => {
+    setEnv({ slack: true, teams: true });
+    const skin = getOncallSkin('9ecaa5d1');
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', skin, devinEmail: 'julia@example.com' });
+
+    expect(result).toMatchObject({ ok: true, channel: 'C0TEST', teams: true });
+    expect(createDevinSession).not.toHaveBeenCalled();
+    expect(postMessage).toHaveBeenCalledTimes(1);
+
+    const card = teamsCard();
+    expect(card.type).toBe('AdaptiveCard');
+    const text = JSON.stringify(card);
+    expect(text).toContain('[Triggered] p95 latency — payment release submissions');
+    expect(text).toContain('loantrack-disbursement-api (LoanTrack)');
+    expect(text).toContain('run-abc');
+    expect(text).toContain('julia@example.com');
+    expect(text).toContain('/oncall/c/9ecaa5d1');
+    expect(text).not.toMatch(/<@|:rotating_light:/);
+    expect(JSON.stringify(postMessage.mock.calls[0][3])).toContain('loantrack-disbursement-api (LoanTrack)');
+  });
+
+  test('a failed Teams post never blocks the Slack alert', async () => {
+    setEnv({ slack: true, teams: true });
+    axios.post.mockRejectedValue(Object.assign(new Error('boom'), { response: { status: 500 } }));
+    const result = await postOncallAlert('banking', { runRef: 'run-abc' });
+    expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST' });
+    expect(postMessage).toHaveBeenCalledTimes(1);
+  });
+
+  test('Teams alone is enough to deliver the alert', async () => {
+    setEnv({ slack: false, teams: true });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc' });
+    expect(result).toEqual({ ok: true, teams: true });
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(teamsCard().actions[0]).toMatchObject({ type: 'Action.OpenUrl', title: 'View in Datadog' });
+  });
+
+  test('skips when neither Slack nor Teams is configured', async () => {
+    setEnv({ slack: false, teams: false });
+    const result = await postOncallAlert('banking');
+    expect(result).toMatchObject({ ok: false, skipped: true });
+    expect(axios.post).not.toHaveBeenCalled();
+  });
+});
