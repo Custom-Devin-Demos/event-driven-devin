@@ -283,6 +283,14 @@
       document.getElementById('units').max = s.unitsRemaining;
     }
 
+    function renderRollup(o) {
+      document.getElementById('hlGross').textContent = money(o.totalGross);
+      document.getElementById('hlNet').textContent = money(o.netAmount);
+      document.getElementById('dtStatus').textContent = o.status;
+      document.getElementById('dtApproval').textContent = o.requiresApproval ? 'Yes \u2014 ' + o.approvalReason : 'No';
+      document.getElementById('dtMaxDisc').textContent = o.maxDiscountPct + '%';
+    }
+
     function toast(kind, title, body) {
       var wrap = document.getElementById('toastWrap');
       var el = document.createElement('div');
@@ -299,6 +307,7 @@
       data.slots.forEach(function (s) { slots[s.slotName] = s; });
       var order = data.orders.filter(function (o) { return o.orderNumber === ORDER_NUMBER; })[0];
       lines = order.lines.slice();
+      renderRollup(order);
       document.getElementById('slotName').innerHTML = data.slots.map(function (s) {
         return '<option value="' + esc(s.slotName) + '"' + (s.slotName === DEFAULT_SLOT ? ' selected' : '') + '>' +
           esc(s.slotName + ' \u2014 ' + s.program + ' (' + s.network + ', ' + fmtDate(s.airDate) + ')') + '</option>';
@@ -344,13 +353,7 @@
         }
         lines.push(body.line);
         renderLines(body.line.name);
-        document.getElementById('hlGross').textContent = money(body.order.totalGross);
-        document.getElementById('hlNet').textContent = money(body.order.netAmount);
-        document.getElementById('dtStatus').textContent = body.order.status;
-        document.getElementById('dtApproval').textContent = body.order.requiresApproval ? 'Yes \u2014 ' + body.order.approvalReason : 'No';
-        document.getElementById('dtMaxDisc').textContent = body.order.maxDiscountPct + '%';
-        var stages = document.querySelectorAll('#path .stage');
-        if (body.order.requiresApproval) { stages[0].className = 'stage done'; stages[1].className = 'stage current'; }
+        renderRollup(body.order);
         result.className = 'result ok';
         result.innerHTML = '<strong>Order Line ' + esc(body.line.name) + ' booked.</strong><br>' +
           esc(body.line.units + ' units \u00d7 ' + money(body.line.unitRate) + ' (' + body.line.rateCard + ') = ' + money(body.line.gross));

@@ -4,13 +4,14 @@ const {
   AD_ORDERS,
   INVENTORY_SLOTS,
   PROGRAMS,
+  rollupOrder,
 } = require('../../services/verticals/2cd6eb18');
 
 const router = express.Router();
 
 router.get('/api/2cd6eb18/ad-orders', (_req, res) => {
   res.json({
-    orders: Object.entries(AD_ORDERS).map(([orderNumber, o]) => ({ orderNumber, ...o })),
+    orders: Object.entries(AD_ORDERS).map(([orderNumber, o]) => ({ orderNumber, ...o, ...rollupOrder(o) })),
     slots: Object.entries(INVENTORY_SLOTS).map(([slotName, s]) => ({
       slotName,
       ...s,

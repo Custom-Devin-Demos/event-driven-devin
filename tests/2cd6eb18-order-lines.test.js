@@ -31,7 +31,7 @@ describe('FOX Ad Sales order line booking', () => {
 
     expect(result.success).toBe(true);
     expect(result.line).toMatchObject({ rateCard: 'RC-0001', unitRate: 106250, gross: 212500, isSportsPremium: true });
-    expect(result.order).toMatchObject({ lineCount: 3, totalGross: 733750, requiresApproval: true });
+    expect(result.order).toMatchObject({ lineCount: 3, totalGross: 733750, requiresApproval: true, status: 'Draft' });
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 

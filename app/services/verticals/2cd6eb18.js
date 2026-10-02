@@ -106,7 +106,7 @@ function priceLine(slot, rateCard, units, discountPct) {
 }
 
 function rollupOrder(order, newLine) {
-  const lines = [...order.lines, newLine];
+  const lines = newLine ? [...order.lines, newLine] : order.lines;
   const totalGross = roundCurrency(lines.reduce((sum, l) => sum + l.gross, 0));
   const netAmount = roundCurrency(totalGross * (1 - order.agencyCommissionPct / 100));
   const maxDiscountPct = Math.max(...lines.map((l) => l.discountPct || 0));
@@ -178,7 +178,7 @@ async function bookOrderLine(data) {
         daypart: slot.daypart,
         airDate: slot.airDate,
       },
-      order: { ...rollup, status: rollup.requiresApproval ? 'Pending Approval' : order.status },
+      order: { ...rollup, status: order.status },
       processedAt: new Date().toISOString(),
     };
   } catch (error) {
@@ -205,7 +205,7 @@ async function bookOrderLine(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, source: 'fox-adsales-booking', network: slot.network, daypart: slot.daypart },
+      tags: { route: ROUTE, service: SERVICE, source: 'fox-adsales-booking', network: slot.network, daypart: slot.daypart, alert_path: 'instant' },
       extra: {
         requestId,
         orderNumber: data.orderNumber,
