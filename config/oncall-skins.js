@@ -2867,6 +2867,26 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Workspace, plan & seats',
     disclaimer: 'NOT ACTUALLY A VANTA SITE — internal demo only, not affiliated with, endorsed by, or a real Vanta product.',
   },
+  '84b091d4': {
+    slug: '84b091d4',
+    company: 'a16z',
+    brandMark: 'a',
+    vertical: 'banking',
+    page: {
+      file: '84b091d4.html',
+      title: 'a16z Perennial | Andreessen Horowitz',
+    },
+    theme: {
+      '--accent': '#154734',
+      '--ink': '#001949',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#154734',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'a16z Perennial Support',
+    supportCenterSub: 'Client Services & Incident Intake',
+    disclaimer: 'NOT ACTUALLY AN A16Z SITE — internal demo only, not affiliated with, endorsed by, or a real a16z product.',
+  },
 };
 
 function getOncallSkin(slug) {
