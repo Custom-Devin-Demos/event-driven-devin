@@ -565,7 +565,8 @@
       const ship = toAccount.options[toAccount.selectedIndex];
       const orderTotal = usd.format(parseFloat(amountInput.value));
       const po = document.getElementById('poNumber').value.trim();
-      button.disabled = true;
+      const locked = Array.from(form.elements).filter((el) => !el.disabled);
+      locked.forEach((el) => { el.disabled = true; });
       button.textContent = 'Placing Order\u2026';
       status.textContent = 'Placing your order\u2026';
       result.className = 'result-box';
@@ -596,7 +597,7 @@
         result.textContent = 'We couldn\u2019t place your order. Please try again or contact the GSK Vaccine Service Center at 1-866-475-8222.';
         status.textContent = 'Order not placed.';
       } finally {
-        button.disabled = false;
+        locked.forEach((el) => { el.disabled = false; });
         button.textContent = 'Place Order';
       }
     });
