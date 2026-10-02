@@ -38,7 +38,10 @@ const publicationState = {
   haltedAt: null,
   lastError: null,
   nextSeq: 1,
+  generation: 0,
 };
+
+const HISTORY_LIMIT = 30;
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -46,6 +49,16 @@ function pad(value) {
 
 function isoDate(date) {
   return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+}
+
+function easternCalendarDate(now) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(now).reduce((acc, part) => Object.assign(acc, { [part.type]: part.value }), {});
+  return new Date(Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day)));
 }
 
 function previousTradingDay(date) {
@@ -57,12 +70,17 @@ function previousTradingDay(date) {
 }
 
 function currentTradeDate() {
-  const now = new Date();
-  const day = now.getUTCDay();
+  const eastern = easternCalendarDate(new Date());
+  const day = eastern.getUTCDay();
   if (day === 0 || day === 6) {
-    return isoDate(previousTradingDay(now));
+    return isoDate(previousTradingDay(eastern));
   }
-  return isoDate(now);
+  return isoDate(eastern);
+}
+
+function recordPublication(run) {
+  PUBLICATIONS.unshift(run);
+  if (PUBLICATIONS.length > HISTORY_LIMIT) PUBLICATIONS.length = HISTORY_LIMIT;
 }
 
 function tradeDateLabel(tradeDate) {
@@ -121,6 +139,7 @@ function seedState() {
   publicationState.haltedAt = null;
   publicationState.lastError = null;
   publicationState.nextSeq = 1;
+  publicationState.generation += 1;
 }
 
 seedState();
@@ -258,6 +277,7 @@ async function publishOfficialClose(data = {}) {
   const requestId = uuidv4();
   const startedAt = new Date();
   const tradeDate = currentTradeDate();
+  const generation = publicationState.generation;
   const run = {
     publicationId: publicationIdFor(tradeDate, publicationState.nextSeq),
     requestId,
@@ -288,6 +308,18 @@ async function publishOfficialClose(data = {}) {
 
   try {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
+
+    if (generation !== publicationState.generation) {
+      run.status = 'discarded';
+      run.durationMs = Date.now() - startedAt.getTime();
+      logger.warn('Official close publication discarded — console was reset mid-run', {
+        requestId,
+        publicationId: run.publicationId,
+        service: SERVICE,
+      });
+      incrementMetric('index_close.publication.discarded', { route: ROUTE });
+      return { success: false, discarded: true, publicationId: run.publicationId, requestId, status: publicationState.status };
+    }
 
     const priceSets = runStage(run, 'collect', () => INDEX_FAMILY.map(
       (index) => collectClosingPrices(index, tradeDate),
@@ -326,7 +358,10 @@ async function publishOfficialClose(data = {}) {
     run.recipients = manifest.deliveries.reduce((sum, delivery) => sum + delivery.recipients, 0);
     run.durationMs = finishedAt.getTime() - startedAt.getTime();
     run.publishedAtLabel = clockLabel(finishedAt);
-    PUBLICATIONS.unshift(run);
+    recordPublication(run);
+    publicationState.status = 'published';
+    publicationState.haltedAt = null;
+    publicationState.lastError = null;
 
     incrementMetric('index_close.publication.success', { route: ROUTE, indices: String(levels.length) });
     recordTiming('index_close.publication.latency', run.durationMs, { route: ROUTE });
@@ -347,7 +382,7 @@ async function publishOfficialClose(data = {}) {
     run.failedStage = run.stage;
     run.durationMs = failedAt.getTime() - startedAt.getTime();
     run.error = { type: error.name, message: error.message };
-    PUBLICATIONS.unshift(run);
+    recordPublication(run);
 
     publicationState.status = 'halted';
     publicationState.haltedAt = failedAt.toISOString();
@@ -385,6 +420,7 @@ async function publishOfficialClose(data = {}) {
         service: SERVICE,
         stage: run.stage || 'unknown',
         index: run.failedIndex || 'n/a',
+        alert_path: 'instant',
       },
       extra: {
         requestId,

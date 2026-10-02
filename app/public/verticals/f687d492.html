@@ -365,10 +365,11 @@
         return headers;
       }
 
-      function toast(title, body, ok) {
+      function toast(title, body, ok, mono) {
         var el = $('toast');
         $('toast-title').textContent = title;
-        $('toast-body').innerHTML = body;
+        $('toast-body').textContent = body;
+        $('toast-body').classList.toggle('mono', !!mono);
         el.classList.toggle('ok', !!ok);
         el.classList.add('show');
         clearTimeout(toastTimer);
@@ -482,16 +483,19 @@
 
       function render(overview) {
         var halted = overview.status === 'halted';
+        var published = overview.status === 'published';
         document.body.classList.toggle('degraded', halted);
         $('trade-date-label').textContent = 'Trade date ' + overview.tradeDateLabel;
         $('engine-version').textContent = 'v' + overview.engineVersion;
         $('footer-engine').textContent = 'Engine v' + overview.engineVersion;
         $('market-close').textContent = overview.marketClose;
         $('first-deadline').textContent = overview.firstDeadline;
-        $('status-label').textContent = halted ? 'Halted' : 'Standby';
+        $('status-label').textContent = halted ? 'Halted' : published ? 'Published' : 'Standby';
         $('status-text').textContent = halted
           ? 'Official close NOT published — stopped at ' + overview.lastError.stage + (overview.lastError.index ? ' (' + overview.lastError.index + ')' : '') + '. Exchanges and vendors are waiting.'
-          : 'Ready to publish the ' + overview.tradeDateLabel + ' official close for ' + overview.summary.indicesInScope + ' indices.';
+          : published
+            ? 'Official close published for the ' + overview.tradeDateLabel + ' session — all ' + overview.summary.channels + ' channels released.'
+            : 'Ready to publish the ' + overview.tradeDateLabel + ' official close for ' + overview.summary.indicesInScope + ' indices.';
 
         $('kpi-indices').textContent = num(overview.summary.indicesInScope);
         $('kpi-constituents').textContent = num(overview.summary.constituentsInScope);
@@ -509,7 +513,7 @@
         $('fact-tolerance').textContent = '±' + overview.summary.toleranceBandPct + '% vs. prior close';
         $('fact-region').textContent = overview.region;
         $('fact-last').textContent = overview.summary.lastPublishedAt ? new Date(overview.summary.lastPublishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + clock(overview.summary.lastPublishedAt) : '—';
-        $('today-hint').textContent = halted ? 'Deadline at risk' : 'Awaiting desk release';
+        $('today-hint').textContent = halted ? 'Deadline at risk' : published ? 'Released' : 'Awaiting desk release';
 
         renderStages(overview);
         renderIndices(overview);
@@ -522,7 +526,7 @@
         return fetch(API + '/overview')
           .then(function (r) { return r.json(); })
           .then(render)
-          .catch(function (err) { toast('Console error', esc(err.message)); });
+          .catch(function (err) { toast('Console error', err.message); });
       }
 
       function showTab(name) {
@@ -549,14 +553,14 @@
         }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
           .then(function (res) {
             if (res.ok) {
-              toast('Published', 'Official close released for ' + res.body.levels.length + ' indices · ' + esc(res.body.manifestId), true);
+              toast('Published', 'Official close released for ' + res.body.levels.length + ' indices · ' + res.body.manifestId, true);
               return loadOverview();
             }
-            toast('Publication halted', '<span class="mono">' + esc(res.body.errorType || 'Error') + ': ' + esc(res.body.error) + '</span>');
+            toast('Publication halted', (res.body.errorType || 'Error') + ': ' + res.body.error, false, true);
             if (res.body.overview) render(res.body.overview);
             else return loadOverview();
           })
-          .catch(function (err) { toast('Publication failed', esc(err.message)); })
+          .catch(function (err) { toast('Publication failed', err.message); })
           .then(function () { btn.disabled = false; btn.classList.remove('busy'); });
       });
 
@@ -567,7 +571,7 @@
             if (res.overview) render(res.overview); else return loadOverview();
           })
           .then(function () { toast('Reset', 'Back to standby · console returned to its opening state', true); })
-          .catch(function (err) { toast('Reset failed', esc(err.message)); });
+          .catch(function (err) { toast('Reset failed', err.message); });
       });
 
       loadOverview();
