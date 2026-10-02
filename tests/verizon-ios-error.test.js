@@ -20,7 +20,6 @@ jest.mock('../app/telemetry/datadog', () => ({
 }));
 
 const express = require('express');
-const http = require('http');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
 const { incrementMetric } = require('../app/telemetry/datadog');
@@ -77,30 +76,18 @@ const APP_REPORT = {
   devinOrgId: ORG_ID,
 };
 
-function postJson(server, path, body) {
+async function postJson(server, path, body) {
   const { port } = server.address();
-  return new Promise((resolve, reject) => {
-    const req = http.request(
-      {
-        host: '127.0.0.1',
-        port,
-        path,
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-      },
-      (res) => {
-        let data = '';
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => resolve({
-          status: res.statusCode,
-          headers: res.headers,
-          body: JSON.parse(data),
-        }));
-      },
-    );
-    req.on('error', reject);
-    req.end(JSON.stringify(body));
+  const response = await fetch(`http://127.0.0.1:${port}${path}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
   });
+  return {
+    status: response.status,
+    headers: Object.fromEntries(response.headers.entries()),
+    body: await response.json(),
+  };
 }
 
 describe('My Verizon iOS preorder failure report', () => {
