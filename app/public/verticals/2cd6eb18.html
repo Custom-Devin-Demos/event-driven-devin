@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AO-000010 | Ad Order | FOX Ad Sales</title>
+  <style>
+    :root {
+      --fox-navy: #0b1b33;
+      --fox-blue: #003b7a;
+      --brand: #0176d3;
+      --brand-dark: #014486;
+      --bg: #eef1f6;
+      --card: #ffffff;
+      --rule: #dddbda;
+      --ink: #181818;
+      --muted: #706e6b;
+      --success: #2e844a;
+      --error: #ba0517;
+      --warn: #fe9339;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 13px/1.5 var(--sans); color: var(--ink); background: var(--bg); }
+    button, input, select { font: inherit; }
+
+    .global-header { display: flex; align-items: center; gap: 18px; height: 52px; padding: 0 18px; background: var(--fox-navy); color: #fff; }
+    .global-header img.logo { height: 26px; width: auto; display: block; }
+    .global-header .app-name { font-size: 16px; font-weight: 600; letter-spacing: .2px; padding-left: 14px; border-left: 1px solid rgba(255,255,255,.25); }
+    .global-header .search { flex: 1; max-width: 520px; margin: 0 auto; }
+    .global-header .search input { width: 100%; height: 32px; border-radius: 4px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.1); color: #fff; padding: 0 12px; }
+    .global-header .search input::placeholder { color: rgba(255,255,255,.7); }
+    .global-header .user { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--brand); display: grid; place-items: center; font-weight: 700; }
+
+    .app-nav { display: flex; gap: 2px; height: 40px; padding: 0 12px; background: #fff; border-bottom: 3px solid var(--fox-blue); box-shadow: 0 2px 2px rgba(0,0,0,.06); }
+    .app-nav a { display: flex; align-items: center; padding: 0 14px; color: var(--ink); text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -3px; }
+    .app-nav a.active { border-bottom-color: var(--brand); font-weight: 600; color: var(--brand-dark); }
+
+    main { max-width: 1280px; margin: 0 auto; padding: 14px; }
+    .card { background: var(--card); border: 1px solid var(--rule); border-radius: 4px; box-shadow: 0 2px 2px rgba(0,0,0,.05); }
+
+    .record-header { padding: 14px 18px; }
+    .record-header .top { display: flex; align-items: center; gap: 12px; }
+    .record-icon { width: 36px; height: 36px; border-radius: 4px; background: #f88962; display: grid; place-items: center; color: #fff; font-weight: 700; }
+    .record-header .eyebrow { font-size: 12px; color: var(--muted); }
+    .record-header h1 { margin: 0; font-size: 18px; font-weight: 700; }
+    .record-header .actions { margin-left: auto; display: flex; }
+    .btn { height: 32px; padding: 0 14px; border: 1px solid var(--rule); background: #fff; color: var(--brand); border-radius: 4px; cursor: pointer; }
+    .btn + .btn { margin-left: -1px; }
+    .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .btn.primary:hover { background: var(--brand-dark); }
+    .btn:disabled { opacity: .6; cursor: progress; }
+    .highlights { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; margin-top: 14px; }
+    .highlights .label { font-size: 12px; color: var(--muted); }
+    .highlights .value { font-size: 14px; }
+
+    .path { display: flex; margin: 14px 0; }
+    .path .stage { flex: 1; text-align: center; padding: 6px 0; background: #ecebea; color: var(--ink); clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%); margin-right: -8px; font-weight: 600; }
+    .path .stage:first-child { clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%); border-radius: 15px 0 0 15px; }
+    .path .stage.current { background: var(--fox-blue); color: #fff; }
+    .path .stage.done { background: var(--success); color: #fff; }
+
+    .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+    .card-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--rule); }
+    .card-header h2 { margin: 0; font-size: 14px; font-weight: 700; }
+    .card-header .ico { width: 24px; height: 24px; border-radius: 4px; background: #3ba755; display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 700; }
+    .card-body { padding: 14px 16px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); background: #fafaf9; padding: 8px; border-bottom: 1px solid var(--rule); text-transform: none; }
+    td { padding: 8px; border-bottom: 1px solid #f3f2f2; }
+    td.num, th.num { text-align: right; }
+    tr.new td { background: #ebf7e6; }
+    .badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; background: #ecebea; }
+    .badge.sports { background: #fef1ee; color: #8c4b02; }
+    a.rec { color: var(--brand); text-decoration: none; }
+
+    .form-row { margin-bottom: 12px; }
+    label { display: block; font-size: 12px; color: #3e3e3c; margin-bottom: 4px; }
+    label .req { color: var(--error); }
+    select, input[type=number] { width: 100%; height: 32px; padding: 0 10px; border: 1px solid #c9c9c9; border-radius: 4px; background: #fff; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .slot-preview { display: flex; gap: 12px; padding: 10px; border: 1px solid var(--rule); border-radius: 4px; background: #fafaf9; margin-bottom: 12px; }
+    .slot-preview img { width: 112px; height: 68px; object-fit: cover; border-radius: 4px; background: var(--fox-navy); }
+    .slot-preview .title { font-weight: 700; }
+    .slot-preview .meta { color: var(--muted); font-size: 12px; }
+
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+    .detail-grid .label { font-size: 12px; color: var(--muted); }
+    .detail-grid .value { border-bottom: 1px solid #f3f2f2; padding-bottom: 4px; }
+
+    .result { margin-top: 12px; display: none; border-radius: 4px; padding: 10px 12px; font-size: 12px; }
+    .result.err { display: block; background: #fef1f1; border: 1px solid #f9b9b9; color: var(--error); }
+    .result.ok { display: block; background: #ebf7e6; border: 1px solid #91db8b; color: #194e31; }
+    .result code { font-family: Menlo, Consolas, monospace; font-size: 11px; word-break: break-word; }
+
+    .toast-wrap { position: fixed; right: 20px; bottom: 20px; z-index: 50; }
+    .toast { display: flex; gap: 12px; min-width: 380px; max-width: 520px; padding: 14px 18px; border-radius: 4px; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.25); animation: slide .2s ease-out; }
+    .toast.error { background: var(--error); }
+    .toast.success { background: var(--success); }
+    .toast h3 { margin: 0 0 2px; font-size: 14px; }
+    .toast p { margin: 0; font-size: 12px; }
+    .toast .x { margin-left: auto; background: none; border: 0; color: #fff; font-size: 18px; cursor: pointer; }
+    @keyframes slide { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    footer { text-align: center; color: var(--muted); font-size: 11px; padding: 20px 0 30px; }
+  </style>
+</head>
+<body>
+  <header class="global-header">
+    <img class="logo" src="https://www.foxcorporation.com/wp-content/themes/foxcorporation/images/fox-logo-white.png" alt="FOX" onerror="this.onerror=null;this.src='https://media.foxcorporation.com/wp-content/uploads/prod/2026/05/18222730/FOX_Entertainment_Logo_White-197x120.png'">
+    <span class="app-name">Ad Sales</span>
+    <div class="search"><input type="search" placeholder="Search Ad Orders, Accounts, Programs..." aria-label="Search"></div>
+    <div class="user"><span>FOX Ad Sales Ops</span><div class="avatar">AS</div></div>
+  </header>
+  <nav class="app-nav">
+    <a href="#">Home</a>
+    <a href="#" class="active">Ad Orders</a>
+    <a href="#">Order Lines</a>
+    <a href="#">Inventory Slots</a>
+    <a href="#">Rate Cards</a>
+    <a href="#">Programs</a>
+    <a href="#">Make-Goods</a>
+    <a href="#">Accounts</a>
+    <a href="#">Reports</a>
+  </nav>
+
+  <main>
+    <section class="card record-header">
+      <div class="top">
+        <div class="record-icon">AO</div>
+        <div>
+          <div class="eyebrow">Ad Order</div>
+          <h1 id="orderTitle">AO-000010</h1>
+        </div>
+        <div class="actions">
+          <button class="btn" type="button">Edit</button>
+          <button class="btn" type="button">Submit for Approval</button>
+          <button class="btn" type="button">Sync to Traffic</button>
+        </div>
+      </div>
+      <div class="highlights">
+        <div><div class="label">Advertiser</div><div class="value"><a class="rec" href="#" id="hlAdvertiser">Toyota Motor North America</a></div></div>
+        <div><div class="label">Agency</div><div class="value"><a class="rec" href="#" id="hlAgency">Horizon Media</a></div></div>
+        <div><div class="label">Flight</div><div class="value" id="hlFlight">Oct 15 &ndash; Nov 30, 2026</div></div>
+        <div><div class="label">Total Gross</div><div class="value" id="hlGross">$521,250.00</div></div>
+        <div><div class="label">Net Amount</div><div class="value" id="hlNet">$458,700.00</div></div>
+        <div><div class="label">Sync Status</div><div class="value" id="hlSync">Not Synced</div></div>
+      </div>
+    </section>
+
+    <div class="path" id="path">
+      <div class="stage current">Draft</div>
+      <div class="stage">Pending Approval</div>
+      <div class="stage">Approved</div>
+      <div class="stage">Sent to Traffic</div>
+      <div class="stage">Trafficked</div>
+    </div>
+
+    <div class="layout">
+      <div>
+        <section class="card">
+          <div class="card-header"><div class="ico">OL</div><h2 id="linesTitle">Order Lines (2)</h2></div>
+          <table>
+            <thead>
+              <tr><th>Order Line</th><th>Program</th><th>Network</th><th>Daypart</th><th>Air Date</th><th class="num">Units</th><th class="num">Unit Rate</th><th class="num">Disc %</th><th class="num">Gross</th><th>Status</th></tr>
+            </thead>
+            <tbody id="linesBody"></tbody>
+          </table>
+        </section>
+
+        <section class="card" style="margin-top:14px">
+          <div class="card-header"><div class="ico" style="background:#7f8de1">i</div><h2>Details</h2></div>
+          <div class="card-body detail-grid">
+            <div><div class="label">Order Number</div><div class="value">AO-000010</div></div>
+            <div><div class="label">Status</div><div class="value" id="dtStatus">Draft</div></div>
+            <div><div class="label">Agency Commission %</div><div class="value">12%</div></div>
+            <div><div class="label">Requires Approval</div><div class="value" id="dtApproval">No</div></div>
+            <div><div class="label">Max Discount %</div><div class="value" id="dtMaxDisc">10%</div></div>
+            <div><div class="label">Traffic Order Id</div><div class="value">&mdash;</div></div>
+          </div>
+        </section>
+      </div>
+
+      <aside>
+        <section class="card">
+          <div class="card-header"><div class="ico" style="background:var(--brand)">+</div><h2>New Order Line</h2></div>
+          <form class="card-body" id="lineForm" novalidate>
+            <div class="form-row">
+              <label for="slotName"><span class="req">*</span> Inventory Slot</label>
+              <select id="slotName" name="slotName"></select>
+            </div>
+            <div class="slot-preview">
+              <img id="slotImg" alt="Program artwork" src="https://media.foxcorporation.com/wp-content/uploads/prod/2026/05/18222801/Sports-Hover-Image.png" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=400&q=80'">
+              <div>
+                <div class="title" id="slotTitle">NASCAR Cup Series</div>
+                <div class="meta" id="slotMeta">FS1 &middot; Live Sports &middot; Oct 25, 2026</div>
+                <div class="meta" id="slotRemaining">12 of 12 units remaining &middot; WO-AV-1007</div>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="form-row">
+                <label for="units"><span class="req">*</span> Units</label>
+                <input type="number" id="units" name="units" min="1" step="1" value="4">
+              </div>
+              <div class="form-row">
+                <label for="discountPct">Discount %</label>
+                <input type="number" id="discountPct" name="discountPct" min="0" max="100" step="0.5" value="0">
+              </div>
+            </div>
+            <div class="meta" style="color:var(--muted);font-size:12px;margin-bottom:12px">Unit rate is resolved from the active Rate Card for the slot&rsquo;s network and daypart. Live Sports carries a 1.25&times; premium.</div>
+            <button class="btn primary" type="submit" id="saveBtn" style="width:100%">Save</button>
+            <div class="result" id="result" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer>FOX Ad Sales &middot; Booking &amp; Traffic &middot; &copy; 2026 FOX Corporation</footer>
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var ORDER_NUMBER = 'AO-000010';
+    var DEFAULT_SLOT = 'INV-00011';
+    var GENRE_ART = {
+      Sports: 'https://media.foxcorporation.com/wp-content/uploads/prod/2026/05/18222801/Sports-Hover-Image.png',
+      Animation: 'https://media.foxcorporation.com/wp-content/uploads/prod/2026/05/18222754/Entertainment-Hover-Image.png',
+      News: 'https://media.foxcorporation.com/wp-content/uploads/prod/2026/05/18222758/News-Hover-Image.png'
+    };
+    var slots = {};
+    var lines = [];
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function money(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function fmtDate(iso) {
+      var d = new Date(iso + 'T12:00:00Z');
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    }
+
+    function renderLines(newName) {
+      document.getElementById('linesTitle').textContent = 'Order Lines (' + lines.length + ')';
+      document.getElementById('linesBody').innerHTML = lines.map(function (l) {
+        var s = slots[l.slot] || {};
+        return '<tr' + (l.name === newName ? ' class="new"' : '') + '>' +
+          '<td><a class="rec" href="#">' + esc(l.name) + '</a></td>' +
+          '<td>' + esc(s.program || '') + '</td>' +
+          '<td>' + esc(s.network || '') + '</td>' +
+          '<td>' + (s.daypart === 'Live Sports' ? '<span class="badge sports">Live Sports</span>' : esc(s.daypart || '')) + '</td>' +
+          '<td>' + esc(s.airDate ? fmtDate(s.airDate) : '') + '</td>' +
+          '<td class="num">' + esc(l.units) + '</td>' +
+          '<td class="num">' + esc(money(l.unitRate)) + '</td>' +
+          '<td class="num">' + esc(l.discountPct || 0) + '</td>' +
+          '<td class="num">' + esc(money(l.gross)) + '</td>' +
+          '<td><span class="badge">' + esc(l.status) + '</span></td></tr>';
+      }).join('');
+    }
+
+    function renderSlotPreview() {
+      var s = slots[document.getElementById('slotName').value];
+      if (!s) return;
+      var img = document.getElementById('slotImg');
+      img.onerror = function () { img.onerror = null; img.src = 'https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=400&q=80'; };
+      img.src = GENRE_ART[s.genre] || GENRE_ART.Sports;
+      document.getElementById('slotTitle').textContent = s.program;
+      document.getElementById('slotMeta').textContent = s.network + ' \u00b7 ' + s.daypart + ' \u00b7 ' + fmtDate(s.airDate);
+      document.getElementById('slotRemaining').textContent = s.unitsRemaining + ' of ' + s.unitsAvailable + ' units remaining \u00b7 ' + s.externalId;
+      document.getElementById('units').max = s.unitsRemaining;
+    }
+
+    function toast(kind, title, body) {
+      var wrap = document.getElementById('toastWrap');
+      var el = document.createElement('div');
+      el.className = 'toast ' + kind;
+      el.setAttribute('role', 'alert');
+      el.innerHTML = '<div><h3>' + esc(title) + '</h3><p>' + esc(body) + '</p></div><button class="x" type="button" aria-label="Close">&times;</button>';
+      el.querySelector('.x').addEventListener('click', function () { el.remove(); });
+      wrap.innerHTML = '';
+      wrap.appendChild(el);
+      setTimeout(function () { el.remove(); }, 6000);
+    }
+
+    fetch('/api/2cd6eb18/ad-orders').then(function (r) { return r.json(); }).then(function (data) {
+      data.slots.forEach(function (s) { slots[s.slotName] = s; });
+      var order = data.orders.filter(function (o) { return o.orderNumber === ORDER_NUMBER; })[0];
+      lines = order.lines.slice();
+      document.getElementById('slotName').innerHTML = data.slots.map(function (s) {
+        return '<option value="' + esc(s.slotName) + '"' + (s.slotName === DEFAULT_SLOT ? ' selected' : '') + '>' +
+          esc(s.slotName + ' \u2014 ' + s.program + ' (' + s.network + ', ' + fmtDate(s.airDate) + ')') + '</option>';
+      }).join('');
+      renderSlotPreview();
+      renderLines();
+    });
+
+    document.getElementById('slotName').addEventListener('change', renderSlotPreview);
+
+    document.getElementById('lineForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('saveBtn');
+      var result = document.getElementById('result');
+      btn.disabled = true;
+      btn.textContent = 'Saving\u2026';
+      result.className = 'result';
+      var payload = {
+        orderNumber: ORDER_NUMBER,
+        slotName: document.getElementById('slotName').value,
+        units: document.getElementById('units').value,
+        discountPct: document.getElementById('discountPct').value,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || ''
+      };
+      fetch('/api/2cd6eb18/order-lines', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function (r) {
+        return r.json().then(function (body) { return { status: r.status, body: body }; });
+      }).then(function (res) {
+        var body = res.body;
+        if (!body.success) {
+          var title = res.status >= 500 ? 'We hit a snag saving this Order Line.' : 'Review the errors on this page.';
+          result.className = 'result err';
+          result.innerHTML = '<strong>' + esc(title) + '</strong><br>' +
+            (body.errorClass ? '<code>' + esc(body.errorClass) + ': ' + esc(body.error) + '</code>' : esc(body.error || 'Unknown error')) +
+            (body.requestId ? '<br><span>Request ID: ' + esc(body.requestId) + '</span>' : '');
+          toast('error', title, res.status >= 500 ? 'Order Line was not booked. The Ad Sales on-call team has been notified.' : (body.error || ''));
+          return;
+        }
+        lines.push(body.line);
+        renderLines(body.line.name);
+        document.getElementById('hlGross').textContent = money(body.order.totalGross);
+        document.getElementById('hlNet').textContent = money(body.order.netAmount);
+        document.getElementById('dtStatus').textContent = body.order.status;
+        document.getElementById('dtApproval').textContent = body.order.requiresApproval ? 'Yes \u2014 ' + body.order.approvalReason : 'No';
+        document.getElementById('dtMaxDisc').textContent = body.order.maxDiscountPct + '%';
+        var stages = document.querySelectorAll('#path .stage');
+        if (body.order.requiresApproval) { stages[0].className = 'stage done'; stages[1].className = 'stage current'; }
+        result.className = 'result ok';
+        result.innerHTML = '<strong>Order Line ' + esc(body.line.name) + ' booked.</strong><br>' +
+          esc(body.line.units + ' units \u00d7 ' + money(body.line.unitRate) + ' (' + body.line.rateCard + ') = ' + money(body.line.gross));
+        toast('success', 'Order Line "' + body.line.name + '" was created.', body.line.program + ' \u00b7 ' + money(body.line.gross));
+      }).catch(function () {
+        result.className = 'result err';
+        result.textContent = 'Network error \u2014 please retry.';
+      }).then(function () {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+      });
+    });
+  </script>
+</body>
+</html>
