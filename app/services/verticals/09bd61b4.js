@@ -132,7 +132,7 @@ function listPendingApprovals() {
     payments = createSeedPayments();
   }
   return payments
-    .filter((payment) => payment.status === 'PENDING_APPROVAL')
+    .filter((payment) => payment.status === 'PENDING_APPROVAL' || payment.status === 'APPROVED')
     .map((payment) => ({ ...payment }));
 }
 
@@ -209,6 +209,7 @@ function reportSubmissionFailure(error, payment, request, requestId, startTime) 
       route: ROUTE,
       paymentType: payment.type,
       approverId: request.approverId,
+      alert_path: 'instant',
     },
     extra: {
       paymentId: payment.id,
