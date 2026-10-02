@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Index Operations &mdash; Official Close Publication</title>
+  <link rel="icon" type="image/x-icon" href="/verticals/assets/f687d492/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --v-red: #D6002A;
+      --v-red-dark: #B00022;
+      --v-red-bg: #FDECEF;
+      --v-ink: #1A1A1A;
+      --v-text: #2B2F36;
+      --v-muted: #5F6B7A;
+      --v-line: #CDD3DA;
+      --v-line-soft: #E3E7EC;
+      --v-bg: #F4F5F7;
+      --v-white: #FFFFFF;
+      --v-green: #0F8A5F;
+      --v-green-bg: #E6F4EE;
+      --v-amber: #B36B00;
+      --v-amber-bg: #FFF4E0;
+      --v-blue: #1F4E8C;
+      --v-blue-bg: #E8EFF8;
+      --v-radius: 4px;
+      --v-shadow: 0 1px 2px rgba(26, 26, 26, 0.06);
+      --v-sans: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      --v-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: var(--v-sans); color: var(--v-text); background: var(--v-bg); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button { font-family: inherit; }
+
+    .topbar { background: var(--v-ink); color: #D9DEE3; font-size: 11.5px; letter-spacing: 0.02em; display: flex; justify-content: space-between; align-items: center; padding: 0 28px; height: 30px; }
+    .topbar strong { color: #fff; font-weight: 600; }
+    .topbar a { color: #9AA6B2; text-decoration: none; font-size: 11.5px; }
+    .topbar a:hover { color: #fff; }
+
+    .appbar { background: var(--v-white); border-bottom: 3px solid var(--v-red); height: 66px; display: flex; align-items: center; padding: 0 28px; gap: 28px; }
+    .brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+    .brand img { height: 26px; width: auto; display: block; object-fit: contain; }
+    .brand .fallback { display: none; color: var(--v-red); font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
+    .brand .divider { width: 1px; height: 34px; background: var(--v-line); }
+    .brand .product { line-height: 1.15; }
+    .brand .product .unit { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--v-muted); font-weight: 600; }
+    .brand .product .app { font-size: 16px; font-weight: 700; color: var(--v-ink); margin-top: 2px; }
+    nav.primary { display: flex; gap: 4px; margin-left: 8px; }
+    nav.primary a { text-decoration: none; font-size: 13.5px; font-weight: 500; color: var(--v-text); padding: 8px 12px; border-radius: 3px; }
+    nav.primary a:hover { background: var(--v-bg); }
+    nav.primary a.active { color: var(--v-red); font-weight: 600; }
+    .appbar .right { margin-left: auto; display: flex; align-items: center; gap: 18px; font-size: 12.5px; color: var(--v-muted); }
+    .appbar .right .user { display: flex; align-items: center; gap: 10px; color: var(--v-text); }
+    .appbar .right .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--v-ink); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+    .statusbar { background: var(--v-white); border-bottom: 1px solid var(--v-line-soft); padding: 12px 28px; display: flex; align-items: center; gap: 22px; }
+    .status { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
+    .status .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--v-green); box-shadow: 0 0 0 4px var(--v-green-bg); }
+    .status .label { font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; color: var(--v-green); }
+    .status .text { color: var(--v-text); }
+    body.degraded .status .dot { background: var(--v-red); box-shadow: 0 0 0 4px var(--v-red-bg); }
+    body.degraded .status .label { color: var(--v-red); }
+    .statusbar .window { font-size: 12.5px; color: var(--v-muted); display: flex; gap: 14px; }
+    .statusbar .window b { color: var(--v-text); font-weight: 600; }
+    .statusbar .actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .btn-primary { background: var(--v-red); color: #fff; border: 0; border-radius: 3px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; cursor: pointer; letter-spacing: 0.01em; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary:hover { background: var(--v-red-dark); }
+    .btn-primary:disabled { opacity: 0.6; cursor: progress; }
+    .btn-primary .spin { width: 12px; height: 12px; border: 2px solid rgba(255, 255, 255, 0.4); border-top-color: #fff; border-radius: 50%; display: none; animation: spin 0.8s linear infinite; }
+    .btn-primary.busy .spin { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .reset-link { display: none; background: none; border: 1px solid var(--v-line); color: var(--v-muted); border-radius: 3px; font-size: 11px; padding: 3px 8px; cursor: pointer; letter-spacing: 0.04em; text-transform: uppercase; }
+    .reset-link:hover { color: var(--v-text); border-color: var(--v-muted); }
+    body.degraded .reset-link { display: inline-block; }
+
+    main { padding: 22px 28px 32px; max-width: 1480px; margin: 0 auto; }
+    .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 18px; }
+    .kpi { background: var(--v-white); border: 1px solid var(--v-line-soft); border-radius: var(--v-radius); padding: 14px 16px; box-shadow: var(--v-shadow); border-top: 3px solid var(--v-ink); }
+    .kpi .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--v-muted); font-weight: 600; }
+    .kpi .value { font-size: 28px; font-weight: 600; margin-top: 6px; letter-spacing: -0.02em; line-height: 1.1; color: var(--v-ink); }
+    .kpi .value small { font-size: 13px; color: var(--v-muted); font-weight: 400; margin-left: 4px; }
+    .kpi .sub { font-size: 12px; color: var(--v-muted); margin-top: 6px; }
+    .kpi.alert { border-top-color: var(--v-red); }
+    .kpi.alert .value { color: var(--v-red); }
+
+    .card { background: var(--v-white); border: 1px solid var(--v-line-soft); border-radius: var(--v-radius); box-shadow: var(--v-shadow); margin-bottom: 18px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--v-line-soft); gap: 12px; }
+    .card-head h2 { font-size: 15px; font-weight: 700; color: var(--v-ink); }
+    .card-head .hint { font-size: 12px; color: var(--v-muted); }
+    .card-body { padding: 16px 18px; }
+
+    .stages { display: grid; grid-template-columns: repeat(5, 1fr); position: relative; }
+    .stage { position: relative; padding-right: 12px; }
+    .stage .dot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--v-line); background: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--v-muted); position: relative; z-index: 1; }
+    .stage::after { content: ''; position: absolute; top: 12px; left: 26px; right: 0; height: 2px; background: var(--v-line-soft); }
+    .stage:last-child::after { display: none; }
+    .stage.ok .dot { border-color: var(--v-green); background: var(--v-green); color: #fff; }
+    .stage.ok::after { background: var(--v-green); }
+    .stage.failed .dot { border-color: var(--v-red); background: var(--v-red); color: #fff; }
+    .stage.pending .dot { border-style: dashed; }
+    .stage .name { font-size: 13px; font-weight: 700; margin-top: 10px; color: var(--v-ink); }
+    .stage .detail { font-size: 11.5px; color: var(--v-muted); margin-top: 2px; line-height: 1.35; }
+    .stage.failed .name { color: var(--v-red); }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+
+    .tabs { display: flex; gap: 2px; padding: 0 18px; border-bottom: 1px solid var(--v-line-soft); }
+    .tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 12px 14px; font-size: 13.5px; font-weight: 600; color: var(--v-muted); cursor: pointer; }
+    .tabs button.active { color: var(--v-red); border-bottom-color: var(--v-red); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--v-muted); font-weight: 700; padding: 10px 12px; border-bottom: 1px solid var(--v-line-soft); background: #F8F9FA; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--v-line-soft); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .mono { font-family: var(--v-mono); font-size: 12px; }
+    .name-cell b { display: block; color: var(--v-ink); }
+    .name-cell span { font-size: 11.5px; color: var(--v-muted); }
+    .chip { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.03em; white-space: nowrap; }
+    .chip.ok { background: var(--v-green-bg); color: var(--v-green); }
+    .chip.failed { background: var(--v-red-bg); color: var(--v-red); }
+    .chip.pending { background: var(--v-amber-bg); color: var(--v-amber); }
+    .chip.queued { background: var(--v-blue-bg); color: var(--v-blue); }
+    .chip.neutral { background: #EEF1F4; color: var(--v-muted); }
+    .up { color: var(--v-green); }
+    .down { color: var(--v-red); }
+    .muted { color: var(--v-muted); }
+    .row-flag td { background: #FFF6F7; }
+
+    .failure { display: none; border-left: 4px solid var(--v-red); }
+    body.degraded .failure { display: block; }
+    .failure .card-head h2 { color: var(--v-red); }
+    .failure dl { display: grid; grid-template-columns: 110px 1fr; row-gap: 8px; column-gap: 12px; font-size: 13px; }
+    .failure dt { color: var(--v-muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 2px; }
+    .failure dd { word-break: break-word; }
+    .failure pre { background: #1A1A1A; color: #F5D5DB; font-size: 11.5px; padding: 12px 14px; border-radius: 4px; overflow: auto; margin-top: 14px; line-height: 1.5; white-space: pre-wrap; }
+    .failure .next { margin-top: 12px; font-size: 12.5px; color: var(--v-muted); }
+    .failure .next li { margin-left: 16px; margin-top: 3px; }
+
+    .timeline { list-style: none; }
+    .timeline li { display: grid; grid-template-columns: 70px 1fr auto; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--v-line-soft); font-size: 13px; align-items: start; }
+    .timeline li:last-child { border-bottom: 0; }
+    .timeline .time { font-family: var(--v-mono); font-size: 12px; color: var(--v-ink); font-weight: 600; }
+    .timeline .what b { display: block; color: var(--v-ink); font-weight: 600; }
+    .timeline .what span { font-size: 11.5px; color: var(--v-muted); }
+
+    .facts { list-style: none; }
+    .facts li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--v-line-soft); font-size: 13px; }
+    .facts li:last-child { border-bottom: 0; }
+    .facts li span:first-child { color: var(--v-muted); }
+    .facts li span:last-child { font-weight: 600; color: var(--v-ink); text-align: right; }
+
+    footer { border-top: 1px solid var(--v-line-soft); padding: 18px 28px; font-size: 11.5px; color: var(--v-muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: #fff; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 440px; background: rgba(0, 0, 0, 0.85); color: #fff; padding: 14px 18px; border-radius: 6px; font-size: 13.5px; line-height: 1.4; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); transform: translateX(120%); transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 50; }
+    .toast.show { transform: translateX(0); }
+    .toast b { display: block; margin-bottom: 3px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #F7B2BE; }
+    .toast.ok b { color: #9CE3C4; }
+    .toast .mono { color: #F3E6E8; }
+
+    @media (max-width: 1100px) {
+      .kpis { grid-template-columns: repeat(3, 1fr); }
+      .grid { grid-template-columns: 1fr; }
+      .stages { grid-template-columns: repeat(3, 1fr); row-gap: 20px; }
+      nav.primary { display: none; }
+      .statusbar .window { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div><strong>S&amp;P Global</strong> &nbsp;·&nbsp; S&amp;P Dow Jones Indices &nbsp;·&nbsp; Index Operations — internal, confidential</div>
+    <a href="/">← All Demos</a>
+  </div>
+
+  <header class="appbar">
+    <div class="brand">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/S%26P_Global_logo.svg" alt="S&amp;P Global"
+           onerror="this.onerror=null;this.src='/images/spg-ratings/sandp-1.png';">
+      <span class="fallback">S&amp;P Global</span>
+      <span class="divider"></span>
+      <div class="product">
+        <div class="unit">S&amp;P Dow Jones Indices</div>
+        <div class="app">Official Close Publication</div>
+      </div>
+    </div>
+    <nav class="primary">
+      <a href="#overview" class="active">Overview</a>
+      <a href="#indices" data-tab="indices">Index family</a>
+      <a href="#distribution" data-tab="distribution">Distribution</a>
+      <a href="#log" data-tab="log">Publication log</a>
+    </nav>
+    <div class="right">
+      <span id="trade-date-label">Trade date —</span>
+      <span class="user"><span class="avatar">IO</span> Index Ops · US Equity desk</span>
+    </div>
+  </header>
+
+  <div class="statusbar">
+    <div class="status">
+      <span class="dot"></span>
+      <span class="label" id="status-label">Standby</span>
+      <span class="text" id="status-text">Loading publication state…</span>
+    </div>
+    <div class="window">
+      <span>Market close <b id="market-close">16:00 ET</b></span>
+      <span>First deadline <b id="first-deadline">16:20 ET</b> · exchange settlement</span>
+      <span>Engine <b id="engine-version">—</b></span>
+    </div>
+    <div class="actions">
+      <button class="reset-link" id="reset-btn" title="Clear the halted publication and return the console to standby">Reset</button>
+      <button class="btn-primary" id="publish-btn"><span class="spin"></span><span>Publish official close</span></button>
+    </div>
+  </div>
+
+  <main>
+    <section class="kpis" id="overview">
+      <div class="kpi"><div class="label">Indices in scope</div><div class="value" id="kpi-indices">—</div><div class="sub">U.S. equity headline family</div></div>
+      <div class="kpi"><div class="label">Constituents to price</div><div class="value" id="kpi-constituents">—</div><div class="sub">Official 4:00 pm closing prints</div></div>
+      <div class="kpi"><div class="label">Distribution channels</div><div class="value" id="kpi-channels">—</div><div class="sub" id="kpi-channels-sub">Exchanges · vendors · SFTP · web</div></div>
+      <div class="kpi"><div class="label">Recipients awaiting</div><div class="value" id="kpi-recipients">—</div><div class="sub">ETF issuers, exchanges, data vendors</div></div>
+      <div class="kpi" id="kpi-failed-card"><div class="label">Publications this week</div><div class="value" id="kpi-published">—</div><div class="sub" id="kpi-published-sub">On time · 0 halted</div></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Publication pipeline</h2>
+        <span class="hint" id="pipeline-hint">Next publication —</span>
+      </div>
+      <div class="card-body">
+        <div class="stages" id="stages"></div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <div>
+        <section class="card">
+          <div class="tabs">
+            <button class="active" data-tab="indices">Index family</button>
+            <button data-tab="distribution">Distribution</button>
+            <button data-tab="log">Publication log</button>
+          </div>
+          <div class="tab-panel active" id="tab-indices">
+            <table>
+              <thead><tr><th>Index</th><th>Ticker</th><th class="num">Constituents</th><th class="num">Prior close</th><th class="num">Official close</th><th class="num">Change</th><th>Settlement use</th></tr></thead>
+              <tbody id="indices-body"></tbody>
+            </table>
+          </div>
+          <div class="tab-panel" id="tab-distribution">
+            <table>
+              <thead><tr><th>Channel</th><th>Audience</th><th class="num">Recipients</th><th>Format</th><th>Deadline</th><th>Status</th></tr></thead>
+              <tbody id="channels-body"></tbody>
+            </table>
+          </div>
+          <div class="tab-panel" id="tab-log">
+            <table>
+              <thead><tr><th>Publication</th><th>Trade date</th><th>Status</th><th>Published</th><th class="num">Indices</th><th class="num">Channels</th><th class="num">Recipients</th><th class="num">Duration</th></tr></thead>
+              <tbody id="log-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div>
+        <section class="card failure" id="failure-card">
+          <div class="card-head">
+            <h2>Publication halted</h2>
+            <span class="chip failed">Sev-1</span>
+          </div>
+          <div class="card-body">
+            <dl>
+              <dt>Stage</dt><dd id="f-stage">—</dd>
+              <dt>Index</dt><dd id="f-index">—</dd>
+              <dt>Error</dt><dd id="f-type" class="mono">—</dd>
+              <dt>Publication</dt><dd id="f-pub" class="mono">—</dd>
+              <dt>Request</dt><dd id="f-req" class="mono">—</dd>
+              <dt>Halted at</dt><dd id="f-time">—</dd>
+            </dl>
+            <pre id="f-message"></pre>
+            <div class="next">
+              Automated response in flight:
+              <ul>
+                <li>Exception captured in Sentry · Datadog monitor <span class="mono">index_close.publication.failure</span> firing</li>
+                <li>Alert posted to the on-call channel in Slack</li>
+                <li>Devin session opened to investigate and prepare a fix</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>Today's publication</h2><span class="hint" id="today-hint">—</span></div>
+          <div class="card-body">
+            <ul class="facts">
+              <li><span>Publication ID</span><span id="fact-pub" class="mono">—</span></li>
+              <li><span>Trade date</span><span id="fact-date">—</span></li>
+              <li><span>Release mode</span><span>Manual · desk approved</span></li>
+              <li><span>Tolerance band</span><span id="fact-tolerance">—</span></li>
+              <li><span>Region</span><span id="fact-region">—</span></li>
+              <li><span>Last published</span><span id="fact-last">—</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>Publication window</h2><span class="hint">Eastern time</span></div>
+          <div class="card-body">
+            <ul class="timeline">
+              <li><span class="time">16:00</span><span class="what"><b>Market close</b><span>Closing auctions complete · official prints on the tape</span></span><span class="chip ok">Done</span></li>
+              <li><span class="time">16:20</span><span class="what"><b>Exchange settlement values</b><span>Cboe and CME price index options &amp; futures off these levels</span></span><span class="chip queued" id="tl-settlement">Queued</span></li>
+              <li><span class="time">16:30</span><span class="what"><b>Vendor feeds</b><span>Bloomberg, LSEG, FactSet, ICE show the official close</span></span><span class="chip queued" id="tl-vendor">Queued</span></li>
+              <li><span class="time">17:15</span><span class="what"><b>End-of-day index files</b><span>ETF issuers and index funds strike NAV from these files</span></span><span class="chip queued" id="tl-eod">Queued</span></li>
+              <li><span class="time">17:30</span><span class="what"><b>Public index pages</b><span>Press and retail investors see the published close</span></span><span class="chip queued" id="tl-web">Queued</span></li>
+            </ul>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div>S&amp;P Dow Jones Indices · Index Operations · U.S. Equity · Official Close Publication · <span id="footer-engine">—</span></div>
+    <div>Demo environment — mock constituents and closing prints. Not for redistribution.</div>
+  </footer>
+
+  <div class="toast" id="toast"><b id="toast-title">Error</b><span id="toast-body"></span></div>
+
+  <script>
+    (function () {
+      var API = '/api/f687d492';
+      var $ = function (id) { return document.getElementById(id); };
+      var toastTimer = null;
+      var sessionSecret = new URLSearchParams(location.search).get('sessionSecret') || localStorage.getItem('sessionSecret');
+      if (sessionSecret) localStorage.setItem('sessionSecret', sessionSecret);
+
+      var identityReady = fetch('/api/config')
+        .then(function (r) { return r.json(); })
+        .then(function (cfg) {
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          if (cfg.defaultOrgId && !localStorage.getItem('devinOrgId')) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.defaultUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+        })
+        .catch(function () {});
+
+      function identity() {
+        return {
+          devinOrgId: localStorage.getItem('devinOrgId') || undefined,
+          devinUserId: localStorage.getItem('devinUserId') || undefined,
+          devinEmail: localStorage.getItem('devinEmail') || undefined
+        };
+      }
+
+      function postHeaders() {
+        var headers = { 'Content-Type': 'application/json' };
+        if (sessionSecret) headers['x-session-secret'] = sessionSecret;
+        return headers;
+      }
+
+      function toast(title, body, ok, mono) {
+        var el = $('toast');
+        $('toast-title').textContent = title;
+        $('toast-body').textContent = body;
+        $('toast-body').classList.toggle('mono', !!mono);
+        el.classList.toggle('ok', !!ok);
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { el.classList.remove('show'); }, 6000);
+      }
+
+      function esc(value) {
+        return String(value == null ? '' : value)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      function num(value) { return Number(value).toLocaleString('en-US'); }
+      function level(value) { return value == null ? '—' : Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+      function pct(value) {
+        if (value == null) return '—';
+        var sign = value > 0 ? '+' : '';
+        var cls = value > 0 ? 'up' : (value < 0 ? 'down' : 'muted');
+        return '<span class="' + cls + '">' + sign + Number(value).toFixed(2) + '%</span>';
+      }
+      function clock(iso) {
+        if (!iso) return '—';
+        return new Date(iso).toLocaleTimeString('en-US', { hour12: false, timeZone: 'America/New_York' }) + ' ET';
+      }
+
+      function renderStages(overview) {
+        var failedRun = overview.status === 'halted' ? overview.publications[0] : null;
+        var html = overview.stages.map(function (stage, i) {
+          var cls = 'pending';
+          var mark = String(i + 1);
+          if (failedRun) {
+            if (failedRun.failedStage === stage.name) { cls = 'failed'; mark = '!'; }
+            else {
+              var failedIndex = overview.stages.findIndex(function (s) { return s.name === failedRun.failedStage; });
+              if (i < failedIndex) { cls = 'ok'; mark = '✓'; }
+            }
+          }
+          return '<div class="stage ' + cls + '"><div class="dot">' + mark + '</div><div class="name">' + esc(stage.name) + '</div><div class="detail">' + esc(stage.detail) + '</div></div>';
+        }).join('');
+        $('stages').innerHTML = html;
+      }
+
+      function renderIndices(overview) {
+        $('indices-body').innerHTML = overview.indices.map(function (index) {
+          var halted = overview.status === 'halted';
+          var closeCell = index.officialClose != null
+            ? '<span class="mono">' + level(index.officialClose) + '</span>'
+            : (halted ? '<span class="chip failed">Not published</span>' : '<span class="chip pending">Awaiting publication</span>');
+          return '<tr class="' + (halted && overview.lastError && overview.lastError.index === index.ticker ? 'row-flag' : '') + '">' +
+            '<td class="name-cell"><b>' + esc(index.name) + '</b><span>' + esc(index.family) + '</span></td>' +
+            '<td class="mono">' + esc(index.ticker) + '</td>' +
+            '<td class="num">' + num(index.constituents) + '</td>' +
+            '<td class="num mono">' + level(index.priorClose) + '</td>' +
+            '<td class="num">' + closeCell + '</td>' +
+            '<td class="num">' + pct(index.changePct) + '</td>' +
+            '<td class="muted">' + esc(index.settlementUse) + '</td>' +
+          '</tr>';
+        }).join('');
+      }
+
+      function renderChannels(overview) {
+        var halted = overview.status === 'halted';
+        var published = overview.publications.length && overview.publications[0].status === 'published' && overview.publications[0].tradeDate === overview.tradeDate;
+        var chip = halted ? '<span class="chip failed">Blocked</span>' : (published ? '<span class="chip ok">Delivered</span>' : '<span class="chip queued">Queued</span>');
+        $('channels-body').innerHTML = overview.channels.map(function (channel) {
+          return '<tr>' +
+            '<td class="name-cell"><b>' + esc(channel.label) + '</b><span>' + (channel.critical ? 'Contractual deadline' : 'Best effort') + '</span></td>' +
+            '<td class="muted">' + esc(channel.audience) + '</td>' +
+            '<td class="num">' + num(channel.recipients) + '</td>' +
+            '<td>' + esc(channel.format) + '</td>' +
+            '<td class="mono">' + esc(channel.deadline) + '</td>' +
+            '<td>' + chip + '</td>' +
+          '</tr>';
+        }).join('');
+        var tl = { settlement: $('tl-settlement'), vendor: $('tl-vendor'), eod: $('tl-eod'), web: $('tl-web') };
+        Object.keys(tl).forEach(function (key) {
+          tl[key].className = 'chip ' + (halted ? 'failed' : (published ? 'ok' : 'queued'));
+          tl[key].textContent = halted ? 'Blocked' : (published ? 'Delivered' : 'Queued');
+        });
+      }
+
+      function renderLog(overview) {
+        $('log-body').innerHTML = overview.publications.map(function (run) {
+          var failed = run.status === 'failed';
+          var status = failed
+            ? '<span class="chip failed">Halted</span><div class="muted" style="font-size:11.5px;margin-top:3px">' + esc(run.failedStage) + (run.failedIndex ? ' · ' + esc(run.failedIndex) : '') + '</div>'
+            : '<span class="chip ok">Published</span>';
+          return '<tr class="' + (failed ? 'row-flag' : '') + '">' +
+            '<td class="mono">' + esc(run.publicationId) + '</td>' +
+            '<td>' + esc(run.tradeDateLabel) + '</td>' +
+            '<td>' + status + '</td>' +
+            '<td class="mono">' + (failed ? clock(run.startedAt) : esc(run.publishedAtLabel)) + '</td>' +
+            '<td class="num">' + (failed ? '0' : num(run.indicesPublished)) + '</td>' +
+            '<td class="num">' + (failed ? '0' : num(run.channelsDelivered)) + '</td>' +
+            '<td class="num">' + (failed ? '0' : num(run.recipients)) + '</td>' +
+            '<td class="num mono">' + (run.durationMs / 1000).toFixed(1) + 's</td>' +
+          '</tr>';
+        }).join('');
+      }
+
+      function renderFailure(overview) {
+        var err = overview.lastError;
+        if (!err) return;
+        $('f-stage').textContent = err.stage || '—';
+        $('f-index').textContent = err.index || '—';
+        $('f-type').textContent = err.type || 'Error';
+        $('f-pub').textContent = err.publicationId || '—';
+        $('f-req').textContent = err.requestId || '—';
+        $('f-time').textContent = clock(overview.haltedAt);
+        $('f-message').textContent = (err.type || 'Error') + ': ' + err.message + '\n    at computeOfficialLevel (app/services/verticals/f687d492.js)\n    at publishOfficialClose (app/services/verticals/f687d492.js)';
+      }
+
+      function render(overview) {
+        var halted = overview.status === 'halted';
+        var published = overview.status === 'published';
+        document.body.classList.toggle('degraded', halted);
+        $('trade-date-label').textContent = 'Trade date ' + overview.tradeDateLabel;
+        $('engine-version').textContent = 'v' + overview.engineVersion;
+        $('footer-engine').textContent = 'Engine v' + overview.engineVersion;
+        $('market-close').textContent = overview.marketClose;
+        $('first-deadline').textContent = overview.firstDeadline;
+        $('status-label').textContent = halted ? 'Halted' : published ? 'Published' : 'Standby';
+        $('status-text').textContent = halted
+          ? 'Official close NOT published — stopped at ' + overview.lastError.stage + (overview.lastError.index ? ' (' + overview.lastError.index + ')' : '') + '. Exchanges and vendors are waiting.'
+          : published
+            ? 'Official close published for the ' + overview.tradeDateLabel + ' session — all ' + overview.summary.channels + ' channels released.'
+            : 'Ready to publish the ' + overview.tradeDateLabel + ' official close for ' + overview.summary.indicesInScope + ' indices.';
+
+        $('kpi-indices').textContent = num(overview.summary.indicesInScope);
+        $('kpi-constituents').textContent = num(overview.summary.constituentsInScope);
+        $('kpi-channels').textContent = num(overview.summary.channels);
+        $('kpi-recipients').textContent = num(overview.summary.recipients);
+        $('kpi-published').innerHTML = num(overview.summary.publishedOnTime) + '<small>on time</small>';
+        $('kpi-published-sub').textContent = overview.summary.failedPublications
+          ? overview.summary.failedPublications + ' halted · deadline at risk'
+          : 'Every session published before 16:20 ET';
+        $('kpi-failed-card').classList.toggle('alert', overview.summary.failedPublications > 0);
+
+        $('pipeline-hint').textContent = (halted ? 'Halted publication ' : 'Next publication ') + (halted ? overview.lastError.publicationId : overview.nextPublicationId);
+        $('fact-pub').textContent = halted ? overview.lastError.publicationId : overview.nextPublicationId;
+        $('fact-date').textContent = overview.tradeDateLabel;
+        $('fact-tolerance').textContent = '±' + overview.summary.toleranceBandPct + '% vs. prior close';
+        $('fact-region').textContent = overview.region;
+        $('fact-last').textContent = overview.summary.lastPublishedAt ? new Date(overview.summary.lastPublishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + clock(overview.summary.lastPublishedAt) : '—';
+        $('today-hint').textContent = halted ? 'Deadline at risk' : published ? 'Released' : 'Awaiting desk release';
+
+        renderStages(overview);
+        renderIndices(overview);
+        renderChannels(overview);
+        renderLog(overview);
+        if (halted) renderFailure(overview);
+      }
+
+      function loadOverview() {
+        return fetch(API + '/overview')
+          .then(function (r) { return r.json(); })
+          .then(render)
+          .catch(function (err) { toast('Console error', err.message); });
+      }
+
+      function showTab(name) {
+        document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === name); });
+        document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.toggle('active', p.id === 'tab-' + name); });
+      }
+      document.querySelectorAll('.tabs button').forEach(function (b) {
+        b.addEventListener('click', function () { showTab(b.dataset.tab); });
+      });
+      document.querySelectorAll('nav.primary a[data-tab]').forEach(function (a) {
+        a.addEventListener('click', function (e) { e.preventDefault(); showTab(a.dataset.tab); });
+      });
+
+      $('publish-btn').addEventListener('click', function () {
+        var btn = $('publish-btn');
+        btn.disabled = true;
+        btn.classList.add('busy');
+        identityReady.then(function () {
+          return fetch(API + '/publish', {
+            method: 'POST',
+            headers: postHeaders(),
+            body: JSON.stringify(Object.assign({ trigger: 'manual' }, identity()))
+          });
+        }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+          .then(function (res) {
+            if (res.ok) {
+              toast('Published', 'Official close released for ' + res.body.levels.length + ' indices · ' + res.body.manifestId, true);
+              return loadOverview();
+            }
+            toast('Publication halted', (res.body.errorType || 'Error') + ': ' + res.body.error, false, true);
+            if (res.body.overview) render(res.body.overview);
+            else return loadOverview();
+          })
+          .catch(function (err) { toast('Publication failed', err.message); })
+          .then(function () { btn.disabled = false; btn.classList.remove('busy'); });
+      });
+
+      $('reset-btn').addEventListener('click', function () {
+        fetch(API + '/publish/reset', { method: 'POST', headers: postHeaders() })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (res.overview) render(res.overview); else return loadOverview();
+          })
+          .then(function () { toast('Reset', 'Back to standby · console returned to its opening state', true); })
+          .catch(function (err) { toast('Reset failed', err.message); });
+      });
+
+      loadOverview();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
