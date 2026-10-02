@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { buildTeamsAlertCard, postTeamsCard } = require('./teams');
 const { createDevinSession } = require('./devin-api');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
@@ -27,6 +28,8 @@ const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech'
  *   SLACK_ONCALL_ALERTS_CHANNEL_NAME / SLACK_ONCALL_BUGS_CHANNEL_NAME — labels the
  *     on-call ribbon shows after posting (default #oncall-alerts / #oncall-bugs)
  *   SLACK_ONCALL_BOT_TOKEN         — bot token override (default: SLACK_BOT_TOKEN)
+ *   ONCALL_TEAMS_WEBHOOK_URL       — optional Teams Workflows webhook; alert cards
+ *     from skins with `teamsAlerts: true` are also posted there as Adaptive Cards
  */
 
 const REPO_URL = process.env.ONCALL_REPO_URL || 'https://github.com/COG-GTM/event-driven-devin';
@@ -363,6 +366,7 @@ function resolveOncallEnv() {
     token: process.env.SLACK_ONCALL_BOT_TOKEN || process.env.SLACK_BOT_TOKEN,
     alertsChannel: process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID,
     bugsChannel: process.env.SLACK_ONCALL_BUGS_CHANNEL_ID,
+    teamsWebhookUrl: process.env.ONCALL_TEAMS_WEBHOOK_URL,
   };
 }
 
@@ -622,6 +626,7 @@ async function triggerSkinDevinSession(
     sessionId: session.sessionId,
   });
 
+  if (!channel || !threadTs) return session;
   try {
     await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [
       mrkdwnSection(`:mag: *Devin is investigating this alert* — <${session.url}|View session>`),
@@ -648,24 +653,73 @@ function triggerSkinSonarPR(skin, requester) {
 /**
  * Post an alert card for the given scenario to the On-Call alerts channel.
  */
+function validEmail(email) {
+  return email && EMAIL_RE.test(email) ? email : null;
+}
+
+/**
+ * Mirror of the Slack alert card for Teams. Delivery is best-effort: a failed
+ * Teams post is logged and never blocks the Slack card.
+ */
+async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef, events, firstSeen, triggeredByEmail }) {
+  const demoPath = demoPagePath(scenario, skin);
+  const teamsCard = buildTeamsAlertCard({
+    title: `\u{1F6A8} [Triggered] ${card.monitor}`,
+    facts: [
+      ['Service', `${card.service} (${brand})`],
+      ['Endpoint', card.endpoint],
+      ['Metric value', scenario.metricValue],
+      ['Threshold', scenario.threshold],
+      ['Baseline', scenario.baseline],
+      ['Release', card.release],
+      ['Events', `${events} | First: ${firstSeen.toISOString()}`],
+      ['Owner', `${card.owner} — ${OWNER_DISCLAIMER}`],
+      ['Incident Ref', runRef],
+      ['Triggered by', triggeredByEmail],
+    ],
+    monitorQuery: card.metricQuery,
+    body: [
+      `**Symptom:** ${card.symptom}`,
+      `**Impact:** ${card.impact}`,
+      demoPath ? `**Demo page:** ${DEMO_BASE_URL()}${demoPath} — reproduce the symptom on this branded page` : null,
+      `Repo: ${REPO_URL}`,
+    ],
+    actions: [
+      { title: 'View in Datadog', url: DD_URL() },
+      demoPath ? { title: 'Open demo page', url: `${DEMO_BASE_URL()}${demoPath}` } : null,
+    ],
+  });
+  try {
+    await postTeamsCard(webhookUrl, teamsCard);
+    logger.info('On-Call alert posted to Teams', { scenario: scenario.vertical || scenario.service });
+    return true;
+  } catch (error) {
+    logger.warn('On-Call Teams alert post failed', { error: error.message, status: error.response && error.response.status });
+    return false;
+  }
+}
+
 async function postOncallAlert(scenarioId, options = {}) {
   const scenario = ALERT_SCENARIOS[scenarioId];
   if (!scenario) {
     return { ok: false, error: `Unknown scenario: ${scenarioId}` };
   }
 
-  const { token, alertsChannel } = resolveOncallEnv();
-  if (!token || !alertsChannel) {
+  const skin = options.skin || null;
+  const env = resolveOncallEnv();
+  const { token, alertsChannel } = env;
+  const teamsWebhookUrl = skin && skin.teamsAlerts ? env.teamsWebhookUrl : null;
+  const slackReady = Boolean(token && alertsChannel);
+  if (!slackReady && !teamsWebhookUrl) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');
     return { ok: false, skipped: true, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
   const runRef = options.runRef || (options.unique !== false ? makeRunRef() : null);
-  const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
+  const triggeredBy = slackReady ? await resolveTriggeredBy(token, options.devinEmail) : null;
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
   const events = 3 + Math.floor(Math.random() * 12);
-  const skin = options.skin || null;
   const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin });
   const card = resolveAlertCard(scenario, skin);
   const brand = skin ? skin.company : scenario.brand;
@@ -692,13 +746,30 @@ async function postOncallAlert(scenarioId, options = {}) {
     datadogActions(),
     contextBlock(card.service, triggeredBy),
   ];
-  const ts = await postMessage(token, alertsChannel, text, blocks);
-  logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
+  const teamsDelivery = teamsWebhookUrl
+    ? postTeamsAlert(teamsWebhookUrl, scenario, skin, {
+      card, brand, runRef, events, firstSeen, triggeredByEmail: validEmail(options.devinEmail),
+    })
+    : Promise.resolve(null);
+  let ts = null;
+  if (slackReady) {
+    try {
+      ts = await postMessage(token, alertsChannel, text, blocks);
+      logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
+    } catch (error) {
+      if (!(await teamsDelivery)) throw error;
+      logger.warn('On-Call Slack alert post failed; alert delivered to Teams', { error: error.message });
+    }
+  }
+  const teams = await teamsDelivery;
+  if (!ts && !teams) {
+    return { ok: false, error: 'Teams alert post failed' };
+  }
   const requester = resolveRequesterIdentity(options);
   const session = skin
     ? await triggerSkinDevinSession(scenario, skin, {
       token,
-      channel: alertsChannel,
+      channel: ts ? alertsChannel : null,
       threadTs: ts,
       runRef,
       requester,
@@ -707,8 +778,8 @@ async function postOncallAlert(scenarioId, options = {}) {
   const sonarPR = triggerSkinSonarPR(skin, requester);
   return {
     ok: true,
-    ts,
-    channel: alertsChannel,
+    ...(ts ? { ts, channel: alertsChannel } : {}),
+    ...(teams ? { teams: true } : {}),
     ...(session ? { sessionUrl: session.url } : {}),
     ...(sonarPR ? { sonarPR: true } : {}),
   };

@@ -61,6 +61,10 @@
  * investigation session prompt keeps the vertical's real endpoint. Keep it
  * metric-shaped and free of the company name.
  *
+ * A skin may set teamsAlerts: true to also post its alert card to the
+ * Microsoft Teams channel behind ONCALL_TEAMS_WEBHOOK_URL. Other skins and
+ * skinless alerts stay Slack-only even when that webhook is configured.
+ *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
  *
@@ -2931,6 +2935,16 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     oncallOnly: true,
     page: { file: '9ecaa5d1.html', title: 'Payment Release | LoanTrack' },
+    teamsAlerts: true,
+    alertCard: {
+      title: 'p95 latency — payment release submissions',
+      service: 'loantrack-disbursement-api',
+      release: 'loantrack@2026.4.1',
+      team: 'disbursement-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      symptom: 'Payment release submissions hang ~10s before Treasury confirms. Error rate is normal — releases eventually go through.',
+      impact: 'Every disbursement officer releasing a payment waits on a spinner for ~10 seconds; Loan Operations is reporting rising ticket volume ahead of the 16:00 UTC cut-off.',
+    },
     theme: {
       '--accent': '#009FDA',
       '--ink': '#1F2933',
