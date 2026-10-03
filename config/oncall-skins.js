@@ -2973,6 +2973,34 @@ const ONCALL_SKINS = {
     supportCenter: 'Gap Customer Service',
     disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
+  'a2088cb4': {
+    slug: 'a2088cb4',
+    company: 'connpass',
+    brandMark: 'c',
+    vertical: 'hightech',
+    page: {
+      // Natively branded Japanese event page: the attendee registration
+      // form reuses the hightech provisioning ids and the shim reroutes it.
+      file: 'a2088cb4.html',
+      title: 'Shibuya.dev 勉強会 #42 - LLM アプリ開発ハンズオン - connpass',
+    },
+    theme: {
+      '--accent': '#a82400',
+      '--ink': '#444444',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#333333',
+      '--chrome-text': '#ffffff',
+    },
+    alertCard: {
+      title: 'p95 latency trending up — event registration submissions',
+      team: 'event-registration-oncall',
+      symptom: 'Event registration submissions slowed after the last release and get slower with every request. Process RSS trends up alongside it.',
+      impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served events that open at the top of the hour are hit hardest.',
+    },
+    supportCenter: 'connpass サポート',
+    supportCenterSub: 'お問い合わせ・障害報告窓口',
+    disclaimer: 'NOT ACTUALLY A CONNPASS SITE — internal demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（社内デモ用）。',
+  },
 };
 
 function getOncallSkin(slug) {
