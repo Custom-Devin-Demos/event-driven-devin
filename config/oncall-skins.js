@@ -2978,6 +2978,7 @@ const ONCALL_SKINS = {
     company: 'connpass',
     brandMark: 'c',
     vertical: 'hightech',
+    oncallOnly: true,
     page: {
       // Natively branded Japanese event page: the attendee registration
       // form reuses the hightech provisioning ids and the shim reroutes it.

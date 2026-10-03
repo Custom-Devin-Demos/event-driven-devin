@@ -390,6 +390,13 @@
       const result = document.getElementById('result');
       const tierSelect = document.getElementById('planTier');
       const tierLabel = tierSelect.options[tierSelect.selectedIndex].textContent.replace(/（.*）$/, '');
+      const showResult = (kind, title, detail) => {
+        result.replaceChildren();
+        const t = document.createElement('div'); t.className = 'result_title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'result_detail'; d.textContent = detail;
+        result.append(t, d);
+        result.className = 'result_box ' + kind;
+      };
       btn.disabled = true; btn.textContent = '申込処理中...';
       result.className = 'result_box';
       try {
@@ -408,18 +415,15 @@
         });
         const data = await res.json();
         if (!res.ok) {
-          result.className = 'result_box error';
-          result.innerHTML = `<div class="result_title">申し込みを完了できませんでした</div><div class="result_detail">${data.errorClass}: ${data.error}</div>`;
+          showResult('error', '申し込みを完了できませんでした', `${data.errorClass}: ${data.error}`);
         } else {
           const receipt = String(data.licenseId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
-          result.className = 'result_box success';
-          result.innerHTML = `<div class="result_title">参加申し込みを受け付けました</div><div class="result_detail">${tierLabel} ／ 受付番号 ${receipt}</div>`;
+          showResult('success', '参加申し込みを受け付けました', `${tierLabel} ／ 受付番号 ${receipt}`);
           const card = document.querySelector('.ptype[data-ptype="' + tierSelect.value + '"] .count');
           if (card) card.textContent = String(parseInt(card.textContent, 10) + 1);
         }
       } catch (err) {
-        result.className = 'result_box error';
-        result.innerHTML = `<div class="result_title">通信エラー</div><div class="result_detail">${err.message}</div>`;
+        showResult('error', '通信エラー', err.message);
       } finally { btn.disabled = false; btn.textContent = 'このイベントに申し込む'; }
     });
   </script>
