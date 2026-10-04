@@ -149,10 +149,9 @@ describe('CommBank iOS Pay anyone failure report', () => {
       culprit: APP_FLUTTER_CULPRIT,
       devinUserId: APP_REPORT.devinUserId,
       devinOrgId: ORG_ID,
-      sessionPlatform: CBA_IOS_SESSION_PLATFORM,
+      sessionPlatform: CBA_IOS_SESSION_PLATFORM || undefined,
       promptAppendix: APP_REMEDIATION_DIRECTIVE,
     });
-    expect(CBA_IOS_SESSION_PLATFORM).toBe('macos');
     expect(alertData.tags).toEqual(expect.arrayContaining([
       { key: 'platform', value: 'web' },
       { key: 'service', value: APP_SERVICE },
@@ -415,5 +414,26 @@ describe('CommBank iOS Pay anyone failure report', () => {
     expect(APP_REMEDIATION_DIRECTIVE).toContain('STOP for human approval');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('recording');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('app/services/verticals/cba.js');
+  });
+  test('CBA_IOS_SESSION_PLATFORM defaults to macos and follows the environment', () => {
+    const original = process.env.CBA_IOS_SESSION_PLATFORM;
+    const load = () => {
+      let value;
+      jest.isolateModules(() => {
+        ({ CBA_IOS_SESSION_PLATFORM: value } = require('../app/services/verticals/cba-ios'));
+      });
+      return value;
+    };
+    try {
+      delete process.env.CBA_IOS_SESSION_PLATFORM;
+      expect(load()).toBe('macos');
+      process.env.CBA_IOS_SESSION_PLATFORM = 'mac-pool';
+      expect(load()).toBe('mac-pool');
+      process.env.CBA_IOS_SESSION_PLATFORM = '';
+      expect(load()).toBe('');
+    } finally {
+      if (original === undefined) delete process.env.CBA_IOS_SESSION_PLATFORM;
+      else process.env.CBA_IOS_SESSION_PLATFORM = original;
+    }
   });
 });

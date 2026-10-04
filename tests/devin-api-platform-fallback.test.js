@@ -46,6 +46,22 @@ describe('createDevinSession platform placement', () => {
     expect(axios.post.mock.calls[1][1]).toEqual({ prompt: 'prompt' });
   });
 
+  test('does not retry an unrelated 400 even when a platform was requested', async () => {
+    const rejection = new Error('Request failed with status code 400');
+    rejection.response = { status: 400, data: { detail: 'create_as_user_id: user not found in organization' } };
+    axios.post.mockRejectedValueOnce(rejection);
+
+    const result = await createDevinSession('prompt', {
+      apiKey: 'key',
+      orgId: 'org_test',
+      userId: 'user-missing',
+      platform: 'macos',
+    });
+
+    expect(result).toBeNull();
+    expect(axios.post).toHaveBeenCalledTimes(1);
+  });
+
   test('does not retry when no platform was requested', async () => {
     const rejection = new Error('Request failed with status code 400');
     rejection.response = { status: 400, data: { detail: 'bad prompt' } };

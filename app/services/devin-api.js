@@ -87,6 +87,18 @@ function resolveServiceAuth(options = {}) {
  * @param {string[]} [options.repos] - Repositories ('owner/repo') to scope the session to
  * @returns {Object|null} - { sessionId, url } or null if failed/not configured
  */
+/**
+ * True when the v3 API rejected the request because of the `platform` label
+ * (the 400 body names the platform/outpost and lists the valid labels), as
+ * opposed to any other validation error, which must not be retried.
+ */
+function isPlatformRejection(body, error) {
+  if (!body.platform || error.response?.status !== 400) return false;
+  const data = error.response?.data;
+  const text = (typeof data === 'string' ? data : JSON.stringify(data || '')).toLowerCase();
+  return text.includes('platform') || text.includes('outpost');
+}
+
 async function createDevinSession(prompt, options = {}) {
   const { serviceKey, orgId } = resolveServiceAuth(options);
 
@@ -133,7 +145,7 @@ async function createDevinSession(prompt, options = {}) {
     try {
       response = await post(body);
     } catch (error) {
-      if (!body.platform || error.response?.status !== 400) {
+      if (!isPlatformRejection(body, error)) {
         throw error;
       }
       // The org has no platform/outpost with that label — fall back to the
