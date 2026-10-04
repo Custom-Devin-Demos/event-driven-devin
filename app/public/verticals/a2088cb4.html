@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shibuya.dev 勉強会 #42 - LLM アプリ開発ハンズオン - connpass</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cp-red: #a82400;
+      --cp-red-light: #c82a16;
+      --cp-ink: #444444;
+      --cp-text: #333333;
+      --cp-muted: #999999;
+      --cp-line: #cccccc;
+      --cp-header-bg: #ececec;
+      --cp-header-line: #d6d6d6;
+      --cp-page-bg: #f7f7f7;
+      --cp-th-bg: #ebe9e3;
+      --cp-open: #ff6600;
+      --cp-offer: #f0b55e;
+      --cp-footer-bg: #ebeced;
+      --cp-ok-bg: #ddebdd;
+      --cp-ok: #336633;
+      --cp-ng-bg: #fbe4e0;
+      --sans: "Lucida Grande", Verdana, "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "Hiragino Sans", "Noto Sans JP", "MS Pゴシック", "MS P Gothic", Osaka, sans-serif;
+      --num: "Montserrat", sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--sans); font-size: 12px; line-height: 18px; color: var(--cp-ink); background: var(--cp-page-bg); -webkit-font-smoothing: antialiased; }
+    a { color: var(--cp-red); }
+    p { margin: 0; }
+    h1, h2, h3 { margin: 0; font-weight: bold; }
+    .container { width: 1060px; max-width: 100%; margin: 0 auto; padding: 0 10px; }
+
+    /* ---------- header ---------- */
+    #header { background: var(--cp-header-bg); border-bottom: 1px solid var(--cp-header-line); }
+    #header .container { display: flex; align-items: center; min-height: 73px; }
+    .logo { display: flex; align-items: center; text-decoration: none; margin-top: 4px; }
+    .logo svg { display: block; height: 44px; width: auto; }
+    .search_box { display: flex; margin-left: 15px; }
+    .search_box input { width: 155px; height: 24px; border: 1px solid #b6b6b6; border-right: none; border-radius: 3px 0 0 3px; padding: 2px 6px; font-family: var(--sans); font-size: 12px; color: var(--cp-text); background: #fff; }
+    .search_box button { width: 29px; height: 24px; border: 1px solid #b6b6b6; border-radius: 0 3px 3px 0; background: linear-gradient(#fafafa 50%, #eee 51%); color: #555; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+    .header_nav { margin-left: 15px; font-weight: bold; }
+    .header_nav a { color: #000; text-decoration: none; }
+    .header_nav a:hover { text-decoration: underline; }
+    .header_owner { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .header_user { display: flex; align-items: center; gap: 6px; color: var(--cp-text); text-decoration: none; font-weight: bold; }
+    .avatar { width: 28px; height: 28px; border-radius: 3px; background: linear-gradient(135deg, #5a7285, #475b7f); color: #fff; font-family: var(--num); font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+
+    /* ---------- buttons (site conventions) ---------- */
+    .btn { display: inline-block; padding: 4px 6px; font-size: 12px; min-height: 18px; line-height: 18px; color: var(--cp-text); text-align: center; text-decoration: none; text-shadow: 0 1px 1px rgba(255,255,255,0.75); vertical-align: middle; cursor: pointer; border-radius: 4px; font-family: var(--sans); }
+    .btn:hover { opacity: 0.8; }
+    .btn_default { background: linear-gradient(#fafafa 50%, #eee 51%); border: 1px solid #b6b6b6; }
+    .btn_action { background: linear-gradient(#333 50%, #000 51%); border: 1px solid #000; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,0.75); }
+    .btn_size_large { font-weight: bold; padding: 8px 20px; font-size: 14px; border-radius: 6px; }
+    .btn_size_small { padding: 2px 4px; font-size: 11px; border-radius: 3px; }
+    .btn_width_full { display: block; width: 100%; }
+    button.btn:disabled { color: #ddd; background: #777; border-color: #666; cursor: default; opacity: 1; }
+
+    /* ---------- social row ---------- */
+    .social_btn_area { display: flex; gap: 10px; margin: 20px 0 15px; }
+    .social_btn { display: inline-flex; align-items: center; gap: 6px; height: 20px; padding: 0 8px; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; text-decoration: none; }
+    .social_btn.hatena { background: #00a4de; }
+    .social_btn.fb { background: #1877f2; }
+    .social_btn.x { background: #000; border-radius: 10px; }
+
+    /* ---------- layout ---------- */
+    .layout { display: flex; align-items: flex-start; gap: 0; padding-bottom: 30px; }
+    #main { width: 728px; padding-right: 10px; flex: none; }
+    #side_area { width: 310px; padding-left: 10px; flex: none; }
+    .round_box, .group_box { background: #fff; border: 1px solid var(--cp-line); border-radius: 3px; margin-bottom: 10px; }
+    .round_box_title_2 { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: var(--cp-header-bg); border-radius: 3px 3px 0 0; font-size: 12px; }
+    .group_inner { padding: 10px; }
+    .group_inner + .group_inner { border-top: 1px solid var(--cp-line); }
+    .text_center { text-align: center; }
+
+    /* ---------- event header ---------- */
+    .event_header_area { padding: 10px 10px 0; }
+    .event_header_inner { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 10px; border-bottom: 1px dotted #999; }
+    .event_schedule_badge { width: 50px; height: 62px; background: var(--cp-offer); color: #fff; text-align: center; flex: none; }
+    .event_schedule_badge .month { display: block; font-size: 11px; line-height: 14px; padding-top: 5px; }
+    .event_schedule_badge .day { display: block; font-family: var(--num); font-weight: 700; font-size: 26px; line-height: 30px; }
+    .event_title { font-size: 26px; line-height: 32px; font-weight: normal; color: var(--cp-text); word-break: break-all; }
+    .event_sub_title { margin-top: 6px; font-size: 12px; color: #666; }
+    .event_owner_area { padding: 10px 0; color: var(--cp-muted); }
+    .event_owner_area a { color: var(--cp-muted); text-decoration: none; }
+
+    /* ---------- event banner (drawn in-page, no customer assets) ---------- */
+    .event_image { margin: 0 10px 10px; height: 240px; border: 1px solid var(--cp-line); background: radial-gradient(circle at 15% 20%, rgba(255,255,255,0.25), transparent 45%), linear-gradient(135deg, #2b3340 0%, #475b7f 55%, #a82400 140%); color: #fff; display: flex; flex-direction: column; justify-content: center; padding: 28px 36px; }
+    .event_image .kicker { font-family: var(--num); font-weight: 600; letter-spacing: 0.2em; font-size: 12px; opacity: 0.85; }
+    .event_image .headline { font-size: 34px; line-height: 44px; font-weight: bold; margin-top: 8px; }
+    .event_image .meta { margin-top: 14px; font-size: 14px; opacity: 0.9; }
+
+    /* ---------- tables ---------- */
+    .common_table { width: 100%; border-collapse: collapse; background: #fff; margin-bottom: 10px; word-break: break-all; }
+    .common_table th, .common_table td { border: 1px solid var(--cp-line); padding: 5px 10px; vertical-align: middle; text-align: left; }
+    .common_table th { background: var(--cp-th-bg) repeating-linear-gradient(-45deg, rgba(255,255,255,0.45) 0 1px, transparent 1px 4px); font-weight: bold; }
+    .th20 th { width: 20%; }
+    .ptypes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .ptype { position: relative; min-height: 70px; padding: 6px 8px; border: 1px solid #e3e3e3; border-radius: 3px; background: #fcfbfa; }
+    .ptype_name { font-size: 14px; font-weight: bold; color: var(--cp-text); }
+    .join_fee { margin-top: 4px; color: #666; }
+    .participants { margin-top: 6px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .determine { color: var(--cp-muted); }
+    .determine.lottery { color: #5480dd; }
+    .amount { font-family: var(--num); font-weight: 700; font-size: 16px; color: var(--cp-text); }
+    .amount.amount_over { color: var(--cp-red); }
+    .participants small { font-family: var(--sans); font-size: 11px; font-weight: normal; }
+
+    /* ---------- description ---------- */
+    .title_3 { font-size: 16px; font-weight: bold; margin: 10px 0; border-left: 3px solid var(--cp-red); padding: 8px 7px; color: var(--cp-text); }
+    .description { padding: 0 10px 10px; }
+    .description h3 { font-size: 14px; margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid #ddd; }
+    .description p { margin: 6px 0; line-height: 1.8; }
+    .description ul { margin: 6px 0; padding-left: 20px; line-height: 1.8; }
+    .description .common_table td:first-child { width: 110px; color: #666; font-family: var(--num); font-weight: 600; }
+
+    .participants_list { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 10px 10px; }
+    .participants_list .avatar { width: 36px; height: 36px; font-size: 11px; }
+    .participants_list .more { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; color: var(--cp-muted); font-size: 11px; }
+
+    /* ---------- side: group ---------- */
+    .group_title a { font-size: 14px; font-weight: bold; }
+    .group_sub_title { color: #666; margin-top: 2px; }
+    .group_detail { display: flex; gap: 10px; margin-top: 10px; }
+    .group_thumb { width: 108px; height: 72px; flex: none; border: 1px solid var(--cp-line); background: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--num); font-weight: 700; color: #475b7f; font-size: 14px; letter-spacing: -0.02em; }
+    .group_thumb span { color: var(--cp-red); }
+    .group_date_area { flex: 1; background: var(--cp-page-bg); padding: 10px; text-align: right; color: #666; }
+    .group_date_area p + p { margin-top: 6px; }
+    .group_date_area a { font-family: var(--num); font-weight: 700; color: var(--cp-text); }
+
+    /* ---------- side: schedule + entry ---------- */
+    .label_status_event { display: inline-block; width: 100%; padding: 6px; margin-bottom: 4px; border-radius: 3px; color: #fff; text-align: center; }
+    .label_status_event.open { background: var(--cp-open); }
+    .ymd { font-size: 20px; line-height: 30px; color: var(--cp-text); }
+    .hi { font-size: 20px; color: var(--cp-text); }
+    .dtend { color: var(--cp-text); }
+    .calendar_btn_area { margin-top: 8px; display: flex; justify-content: center; gap: 12px; }
+    .calendar_btn_area a { color: var(--cp-red); }
+    .entry_form label { display: block; font-weight: bold; margin-bottom: 4px; color: var(--cp-text); }
+    .form_input_select { width: 100%; height: 34px; border: 1px solid var(--cp-line); border-radius: 0; padding: 0 28px 0 8px; font-family: var(--sans); font-size: 13px; color: var(--cp-text); background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center; appearance: none; -webkit-appearance: none; }
+    .form_input_select:hover { background-color: #f3f3f3; border-color: #999; }
+    .form_input_select:focus { outline: none; border-color: var(--cp-red); }
+    .entry_note { margin: 6px 0 10px; color: var(--cp-muted); }
+    #submitBtn { min-height: 44px; }
+    .period { margin-top: 10px; color: var(--cp-muted); }
+    .result_box { display: none; margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 12px; }
+    .result_box.success { display: block; background: var(--cp-ok-bg); color: var(--cp-ok); }
+    .result_box.error { display: block; background: var(--cp-ng-bg); color: var(--cp-red); }
+    .result_box .result_title { font-weight: bold; }
+    .result_box .result_detail { margin-top: 2px; word-break: break-all; }
+    .event_inquiry_area a { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: bold; color: var(--cp-red); }
+
+    /* ---------- footer ---------- */
+    #footer { width: 100%; background: var(--cp-footer-bg); border-top: 1px solid var(--cp-line); box-shadow: inset 0 1px 0 #fff; color: #666; padding: 20px 0; }
+    #footer .container { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+    #footer a { color: #666; text-decoration: none; }
+    #footer a:hover { text-decoration: underline; }
+    #footer a + a { margin-left: 10px; border-left: 1px solid var(--cp-line); padding-left: 10px; }
+    .footer_copy { font-family: var(--num); font-weight: 600; font-size: 11px; }
+
+    @media (max-width: 800px) {
+      .container { width: 100%; }
+      #header .container { min-height: 52px; }
+      .logo svg { height: 34px; }
+      .search_box input { width: 120px; }
+      .header_nav, .header_user span { display: none; }
+      .layout { flex-direction: column; }
+      #main, #side_area { width: 100%; padding: 0; }
+      #side_area { order: -1; }
+      .side_group_box { display: none; }
+      .event_title { font-size: 20px; line-height: 28px; }
+      .event_image { height: 180px; padding: 20px; }
+      .event_image .headline { font-size: 24px; line-height: 32px; }
+      .ptypes { grid-template-columns: 1fr; }
+      .th20 th { width: 28%; }
+      .pc_only { display: none; }
+      .calendar_btn_area a, .event_inquiry_area a { min-height: 44px; display: inline-flex; align-items: center; }
+      .form_input_select { height: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="demo-disclaimer" style="background:#fef3c7;color:#92400e;font-size:12px;font-weight:600;text-align:center;padding:8px 16px;">NOT ACTUALLY A CONNPASS SITE — demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（デモ用）。</div>
+  <script>
+    // The on-call route's brand shim injects the same bar; keep only one.
+    document.addEventListener('DOMContentLoaded', function () {
+      var mine = document.getElementById('demo-disclaimer');
+      if (!mine) return;
+      var dup = Array.prototype.some.call(document.body.children, function (el) {
+        return el !== mine && el.tagName === 'DIV' && el.textContent.indexOf('NOT ACTUALLY A CONNPASS SITE') === 0;
+      });
+      if (dup) mine.remove();
+    });
+  </script>
+  <div id="header">
+    <div class="container">
+      <a class="logo" href="#" aria-label="connpass">
+        <svg viewBox="0 0 150 56" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M14 4 H148 L136 44 H2 Z" fill="#a82400"/>
+          <path d="M11 2 H145 L133 42 H-1 Z" fill="#c82a16"/>
+          <text x="71" y="31" text-anchor="middle" font-family="Montserrat, Verdana, sans-serif" font-weight="700" font-size="25" fill="#fff" letter-spacing="-0.5">connpass</text>
+          <text x="128" y="54" text-anchor="end" font-family="Verdana, sans-serif" font-size="7" fill="#666" font-style="italic">IT勉強会支援プラットフォーム</text>
+        </svg>
+      </a>
+      <form class="search_box" onsubmit="return false">
+        <input type="text" placeholder="イベントを探す" aria-label="イベントを探す">
+        <button type="button" aria-label="検索"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+      </form>
+      <nav class="header_nav"><a href="#">新着イベント</a></nav>
+      <div class="header_owner">
+        <a class="header_user" href="#"><span class="avatar">YS</span><span>yamada_dev</span></a>
+        <a class="btn btn_default" href="#">ダッシュボード</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="social_btn_area">
+      <a class="social_btn hatena" href="#">B! <span style="font-family:var(--num)">12</span></a>
+      <a class="social_btn fb" href="#">f &nbsp;シェアする</a>
+      <a class="social_btn x" href="#">𝕏 &nbsp;ポストする</a>
+    </div>
+
+    <div class="layout">
+      <div id="main">
+        <div class="round_box">
+          <div class="event_header_area">
+            <div class="event_header_inner">
+              <div class="event_schedule_badge"><span class="month">10月</span><span class="day">24</span></div>
+              <div>
+                <h1 class="event_title">Shibuya.dev 勉強会 #42 - LLM アプリ開発ハンズオン</h1>
+                <p class="event_sub_title">RAG と評価の基礎を 3 時間で。初参加・初心者歓迎、懇親会あり</p>
+              </div>
+            </div>
+            <p class="event_owner_area">主催 : <a href="#">Shibuya.dev</a></p>
+          </div>
+          <div class="event_image" role="img" aria-label="Shibuya.dev 勉強会 #42 バナー">
+            <span class="kicker">SHIBUYA.DEV #42</span>
+            <span class="headline">LLM アプリ開発ハンズオン</span>
+            <span class="meta">2026/10/24(土) 14:00〜17:00 ・ 渋谷 / オンライン</span>
+          </div>
+
+          <div class="group_inner event_ptype_area">
+            <table class="common_table th20">
+              <tbody>
+                <tr>
+                  <th class="text_center">開催日時</th>
+                  <td>2026/10/24(土) 14:00 〜 17:00（受付開始 13:30）</td>
+                </tr>
+                <tr>
+                  <th class="text_center">会場</th>
+                  <td>渋谷ソラスタ コンファレンス 3F セミナールーム（東京都渋谷区道玄坂1-2-3）／ オンライン配信あり</td>
+                </tr>
+                <tr>
+                  <th class="text_center">募集内容</th>
+                  <td>
+                    <div class="ptypes">
+                      <div class="ptype" data-ptype="business">
+                        <p class="ptype_name">会場参加</p>
+                        <p class="join_fee">無料</p>
+                        <p class="participants"><span class="determine">先着順</span><span><span class="amount"><span class="count">38</span>/40</span><small>人</small></span></p>
+                      </div>
+                      <div class="ptype" data-ptype="starter">
+                        <p class="ptype_name">オンライン参加</p>
+                        <p class="join_fee">無料</p>
+                        <p class="participants"><span class="determine">先着順</span><span><span class="amount"><span class="count">164</span>/300</span><small>人</small></span></p>
+                      </div>
+                      <div class="ptype" data-ptype="professional">
+                        <p class="ptype_name">LT 発表枠</p>
+                        <p class="join_fee">無料</p>
+                        <p class="participants"><span class="determine lottery">抽選</span><span><span class="amount"><span class="count">9</span>/5</span><small>人</small></span></p>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 class="title_3">イベントの説明</h2>
+          <div class="description">
+            <h3>概要</h3>
+            <p>Shibuya.dev は渋谷周辺のエンジニアが集まる勉強会コミュニティです。第 42 回は LLM を使ったアプリケーション開発のハンズオンを行います。簡単な RAG アプリをゼロから組み上げ、最後に評価の考え方までを一通り体験します。</p>
+            <h3>タイムテーブル</h3>
+            <table class="common_table">
+              <tbody>
+                <tr><td>13:30</td><td>受付開始</td></tr>
+                <tr><td>14:00</td><td>オープニング・環境確認</td></tr>
+                <tr><td>14:15</td><td>ハンズオン第 1 部：ドキュメント取り込みと検索</td></tr>
+                <tr><td>15:30</td><td>休憩</td></tr>
+                <tr><td>15:45</td><td>ハンズオン第 2 部：回答生成と評価</td></tr>
+                <tr><td>16:30</td><td>LT（5 分 × 5 本）</td></tr>
+                <tr><td>17:00</td><td>終了・懇親会（会場参加のみ、自由参加）</td></tr>
+              </tbody>
+            </table>
+            <h3>対象者</h3>
+            <ul>
+              <li>Python の基本的な文法が分かる方</li>
+              <li>LLM アプリ開発に興味がある方（経験は問いません）</li>
+              <li>初参加の方も歓迎します</li>
+            </ul>
+            <h3>持ち物</h3>
+            <ul>
+              <li>ノート PC（Python 3.11 以上がインストールされていること）</li>
+              <li>各種 API キーは当日の案内に従って発行します</li>
+            </ul>
+            <h3>注意事項</h3>
+            <ul>
+              <li>会場参加枠は先着順です。定員に達した場合はオンライン参加枠をご利用ください。</li>
+              <li>参加できなくなった場合は、他の方のために早めのキャンセルをお願いします。</li>
+              <li>参加者同士の交流を目的としない参加（勧誘・営業目的など）はお断りします。</li>
+            </ul>
+          </div>
+
+          <h2 class="title_3">参加者（211人）</h2>
+          <div class="participants_list">
+            <span class="avatar">TK</span><span class="avatar">MA</span><span class="avatar">RS</span><span class="avatar">KN</span><span class="avatar">HI</span><span class="avatar">YO</span><span class="avatar">AS</span><span class="avatar">JT</span><span class="avatar">MK</span><span class="avatar">NN</span><span class="avatar">EK</span><span class="avatar">SF</span><span class="avatar">RT</span><span class="avatar">AY</span><span class="avatar">KO</span><span class="avatar">DM</span>
+            <span class="more">他 195 人</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="side_area">
+        <div class="group_box side_group_box">
+          <div class="round_box_title_2">主催グループ <a class="btn btn_default btn_size_small" href="#">メンバーになる</a></div>
+          <div class="group_inner">
+            <p class="group_title"><a href="#">Shibuya.dev</a></p>
+            <p class="group_sub_title">渋谷周辺のエンジニアによる勉強会コミュニティ</p>
+            <div class="group_detail">
+              <div class="group_thumb">shibuya<span>.</span>dev</div>
+              <div class="group_date_area">
+                <p>イベント数 <a href="#">42回</a></p>
+                <p>メンバー数 <a href="#">1,280人</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="group_box">
+          <div class="group_inner event_schedule_area text_center">
+            <span class="label_status_event open">募集中</span>
+            <span class="dtstart"><p class="ymd">2026/10/24(土)</p><span class="hi">14:00</span></span>
+            〜
+            <span class="dtend">17:00</span>
+            <div class="calendar_btn_area pc_only">
+              <a href="#">Googleカレンダー</a>
+              <a href="#">icsファイル</a>
+            </div>
+          </div>
+          <div class="group_inner event_entry_area">
+            <form id="provisionForm" class="entry_form" autocomplete="off">
+              <label for="planTier">参加枠を選択</label>
+              <select id="planTier" class="form_input_select">
+                <option value="business">会場参加（残り 2 人）</option>
+                <option value="starter">オンライン参加（残り 136 人）</option>
+                <option value="professional">LT 発表枠（抽選）</option>
+              </select>
+              <p class="entry_note">申し込みは 1 アカウントにつき 1 枠まで。参加枠は申込後にマイページから変更できます。</p>
+              <input type="hidden" id="product" value="enterprise_suite">
+              <input type="hidden" id="seats" value="1">
+              <input type="hidden" id="region" value="ap-south">
+              <button type="submit" class="btn btn_action btn_size_large btn_width_full" id="submitBtn">このイベントに申し込む</button>
+            </form>
+            <div id="result" class="result_box" aria-live="polite"></div>
+            <p class="text_center period">募集期間<br>2026/10/03(土) 12:00 〜<br>2026/10/24(土) 13:00</p>
+          </div>
+          <div class="group_inner event_inquiry_area">
+            <a href="#"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>イベントへのお問い合わせ</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer">
+    <div class="container">
+      <div>
+        <a href="#">connpassとは</a><a href="#">利用規約</a><a href="#">プライバシーポリシー</a><a href="#">ヘルプ</a><a href="#">お問い合わせ</a>
+      </div>
+      <div class="footer_copy">© connpass</div>
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    // Same button, two flows: the registration POST drives the alert flow via
+    // the on-call shim, and the first submit also declares the skin's SEV-1
+    // story. Later submits inside the incident window only add traffic.
+    const SEV1_KIND = 'licensing-latency';
+    const SEV1_SKIN = 'a2088cb4';
+    let sev1DeclaredAt = 0;
+    let sev1WindowMs = 30 * 60 * 1000;
+    const sev1Status = (ok, msg) => {
+      const ribbon = document.getElementById('oncall-ribbon');
+      const dot = document.getElementById('oncall-dot');
+      if (!ribbon) return;
+      let el = document.getElementById('oncall-sev1-status');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'oncall-sev1-status';
+        el.style.cssText = 'margin-top:6px;max-width:220px;';
+        ribbon.appendChild(el);
+      }
+      el.style.color = ok ? '#3fb950' : '#f85149';
+      el.textContent = msg;
+      if (dot && dot.style.display === 'block') { dot.style.display = 'none'; ribbon.style.display = 'block'; }
+    };
+    // The browser's oncall_run cookie scopes incident state, so a reload or a
+    // second tab joins the SEV-1 this browser already has open instead of
+    // declaring another one.
+    const activeSev1 = () => fetch('/api/oncall/incident/state', { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .then((list) => (Array.isArray(list) ? list : []).find((e) =>
+        e.kind === SEV1_KIND && e.status === 'declared' && e.msRemaining > 0) || null)
+      .catch(() => null);
+    const declareSev1 = async () => {
+      // Only the on-call (shimmed) route declares; the bare page is the
+      // legacy error track and stays untouched.
+      if (!document.getElementById('oncall-ribbon')) return;
+      if (sev1DeclaredAt && Date.now() - sev1DeclaredAt < sev1WindowMs) return;
+      const declaredAt = Date.now();
+      sev1DeclaredAt = declaredAt;
+      const open = await activeSev1();
+      if (open) {
+        sev1WindowMs = open.msRemaining;
+        sev1Status(true, 'Joined open SEV-1 (IR-' + (open.publicId || open.runRef) + ', ref ' + open.runRef + ')');
+        return;
+      }
+      fetch('/api/oncall/incident', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ kind: SEV1_KIND, skin: SEV1_SKIN, devinEmail: localStorage.getItem('devinEmail') || '' }),
+      }).then((r) => r.json().then((data) => ({ code: r.status, data })))
+        .then(({ code, data }) => {
+          if (code === 200 && data.provider === 'datadog') {
+            if (data.windowMinutes) sev1WindowMs = data.windowMinutes * 60 * 1000;
+            sev1Status(true, 'SEV-1 declared (IR-' + (data.publicId || data.id) + ', ref ' + data.runRef + '). Slack channel incoming…');
+          } else if (code === 200) {
+            if (data.windowMinutes) sev1WindowMs = data.windowMinutes * 60 * 1000;
+            sev1Status(true, 'SEV-1 posted to ' + data.channel + ' (ref ' + data.runRef + ')');
+          } else {
+            if (sev1DeclaredAt === declaredAt) sev1DeclaredAt = 0;
+            sev1Status(false, 'SEV-1 skipped — ' + (data.error || 'declare failed'));
+          }
+        })
+        .catch((err) => {
+          if (sev1DeclaredAt === declaredAt) sev1DeclaredAt = 0;
+          sev1Status(false, 'SEV-1 declare failed: ' + err.message);
+        });
+    };
+
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      declareSev1();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const tierSelect = document.getElementById('planTier');
+      const tierLabel = tierSelect.options[tierSelect.selectedIndex].textContent.replace(/（.*）$/, '');
+      const showResult = (kind, title, detail) => {
+        result.replaceChildren();
+        const t = document.createElement('div'); t.className = 'result_title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'result_detail'; d.textContent = detail;
+        result.append(t, d);
+        result.className = 'result_box ' + kind;
+      };
+      btn.disabled = true; btn.textContent = '申込処理中...';
+      result.className = 'result_box';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: document.getElementById('product').value,
+            planName: tierSelect.value,
+            seats: parseInt(document.getElementById('seats').value, 10),
+            billingCycle: 'annual',
+            region: document.getElementById('region').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showResult('error', '申し込みを完了できませんでした', `${data.errorClass}: ${data.error}`);
+        } else {
+          const receipt = String(data.licenseId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
+          showResult('success', '参加申し込みを受け付けました', `${tierLabel} ／ 受付番号 ${receipt}`);
+          const card = document.querySelector('.ptype[data-ptype="' + tierSelect.value + '"] .count');
+          if (card) card.textContent = String(parseInt(card.textContent, 10) + 1);
+        }
+      } catch (err) {
+        showResult('error', '通信エラー', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'このイベントに申し込む'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
