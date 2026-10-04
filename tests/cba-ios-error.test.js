@@ -332,6 +332,24 @@ describe('CommBank iOS Pay anyone failure report', () => {
     expect(webAlert.promptAppendix).toBeUndefined();
   });
 
+  test('keeps the Flutter release on webhook-created alerts and falls back to the native release', () => {
+    const base = {
+      issueTitle: APP_REPORT.errorMessage,
+      culprit: APP_FLUTTER_CULPRIT,
+      tags: [['service', APP_SERVICE]],
+    };
+    const flutterRelease = `${APP_FLUTTER_RELEASE_PREFIX}1.0.0`;
+    expect(applyCustomerIdentity({ ...base, release: flutterRelease }).release).toBe(flutterRelease);
+    expect(applyCustomerIdentity({ ...base, release: '' }).release).toBe(APP_RELEASE);
+    expect(applyCustomerIdentity(base).release).toBe(APP_RELEASE);
+  });
+
+  test('recognizes a tagless Flutter issue webhook by its Dart culprit', () => {
+    expect(isInstantPathEvent({ culprit: APP_FLUTTER_CULPRIT, tags: [] })).toBe(true);
+    expect(isInstantPathEvent({ culprit: 'profileFor (CommBankApp/lib/core/npp_addressing_profiles.dart)', tags: [] })).toBe(true);
+    expect(isInstantPathEvent({ culprit: 'settlePayment (app/services/verticals/cba.js)', tags: [] })).toBe(false);
+  });
+
   test('recognizes the iOS instant path from transaction culprit and tag', () => {
     expect(isInstantPathEvent({
       issueTitle: APP_REPORT.errorMessage,
