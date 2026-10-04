@@ -2999,7 +2999,7 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'connpass サポート',
     supportCenterSub: 'お問い合わせ・障害報告窓口',
-    disclaimer: 'NOT ACTUALLY A CONNPASS SITE — internal demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（社内デモ用）。',
+    disclaimer: 'NOT ACTUALLY A CONNPASS SITE — demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（デモ用）。',
     // SEV-1 opt-in: the native page declares this story from the same
     // registration button that drives the alert flow, and the shared console
     // at /incident shows its live state.
