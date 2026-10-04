@@ -56,8 +56,9 @@ Steps:
    Flutter (from \`CommBankApp/\`): \`flutter test\`, then \`flutter run -d chrome --dart-define=CBA_DISABLE_FAILURE_REPORTS=1\`
    for the browser, and on a macOS session \`flutter run -d <iPhone simulator> --dart-define=CBA_DISABLE_FAILURE_REPORTS=1\`
    for iOS. Native Swift: \`make generate && make test-commbank && CBA_DISABLE_FAILURE_REPORTS=1 make run-commbank\`.
-   Log on, open Pay → Sunrise Plumbing Pty Ltd, Pay now → Confirm and pay, and confirm "We couldn't make this
-   payment" with \`PaymentAddressingError.unregisteredPayIdType\`. The Mia Thompson (mobile) and Daniel Okafor
+   The Flutter app opens on Home with no log-on: tap Pay now on the "Invoice 80114 is due today" card (or open
+   Pay → Sunrise Plumbing Pty Ltd → Pay now) → Confirm and pay, and confirm "We couldn't make this payment"
+   with \`PaymentAddressingError.unregisteredPayIdType\`. The native app logs on first, then the same Pay flow. The Mia Thompson (mobile) and Daniel Okafor
    (email) payees should continue to succeed.
 2. Fix the data, not just the crash site: register an accurate \`abn\` (business PayID) addressing profile
    that resolves against the NPP Addressing Service and is Osko eligible, and keep the lookup failing with
