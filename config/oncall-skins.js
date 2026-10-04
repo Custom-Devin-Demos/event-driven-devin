@@ -3050,6 +3050,34 @@ const ONCALL_SKINS = {
     supportCenter: 'connpass サポート',
     disclaimer: 'NOT ACTUALLY A CONNPASS SITE — internal demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（社内デモ用）。',
   },
+  '4875267e': {
+    slug: '4875267e',
+    company: 'connpass',
+    brandMark: 'c',
+    vertical: 'hightech',
+    page: {
+      // Natively branded Japanese event page: the attendee registration form
+      // in the side column reuses the hightech provisioning ids so the shared
+      // shim reroutes and degrades it with no backend changes.
+      file: '4875267e.html',
+      title: 'Fukuoka.go #27 - Go で学ぶ並行処理の基礎と実践 - connpass',
+    },
+    theme: {
+      '--accent': '#C82A16',
+      '--ink': '#444444',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#333333',
+      '--chrome-text': '#ffffff',
+    },
+    alertCard: {
+      title: 'p95 latency trending up — event registration submissions',
+      team: 'event-registration-oncall',
+      symptom: 'Event registration submissions are slow and get slower with every request. Process RSS trends up alongside it.',
+      impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served slots that open at a fixed time are hit hardest.',
+    },
+    supportCenter: 'connpass サポート',
+    disclaimer: 'NOT ACTUALLY A CONNPASS SITE — internal demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（社内デモ用）。',
+  },
 };
 
 function getOncallSkin(slug) {
