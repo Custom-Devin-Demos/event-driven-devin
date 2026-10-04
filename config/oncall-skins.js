@@ -3022,6 +3022,34 @@ const ONCALL_SKINS = {
       },
     },
   },
+  '8c797d91': {
+    slug: '8c797d91',
+    company: 'connpass',
+    brandMark: 'c',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: {
+      // Natively branded Japanese event page: the attendee registration
+      // form reuses the hightech provisioning ids and the shim reroutes it.
+      file: '8c797d91.html',
+      title: 'Kanda.js 勉強会 #31 - Web フロントエンドの可観測性入門 - connpass',
+    },
+    theme: {
+      '--accent': '#C82A16',
+      '--ink': '#444444',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#333333',
+      '--chrome-text': '#ffffff',
+    },
+    alertCard: {
+      title: 'p95 latency trending up — event registration submissions',
+      team: 'event-registration-oncall',
+      symptom: 'Event registration submissions slowed after the last release and get slower with every request. Process RSS trends up alongside it.',
+      impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served slots that open at a fixed time are hit hardest.',
+    },
+    supportCenter: 'connpass サポート',
+    disclaimer: 'NOT ACTUALLY A CONNPASS SITE — internal demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（社内デモ用）。',
+  },
 };
 
 function getOncallSkin(slug) {
