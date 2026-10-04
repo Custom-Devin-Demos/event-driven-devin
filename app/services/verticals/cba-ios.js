@@ -4,9 +4,11 @@ const { incrementMetric } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
-// Native CommBank iOS app (github.com/COG-GTM/event-driven-ios, CommBankMobile +
-// CommBankCore). The app reports its own platform failures here; this host only
-// bridges them to Sentry, Slack and a Devin session scoped to the Swift repo.
+// CommBank app clients in github.com/COG-GTM/event-driven-ios: the Flutter app
+// (CommBankApp/, hosted at /commbankapp and run natively on iOS) and the native
+// SwiftUI app (CommBankMobile + CommBankCore). Both report their own platform
+// failures here; this host only bridges them to Sentry, Slack and a Devin
+// session scoped to that repo.
 // On-call mention is resolved from the report's devinEmail; CBA_SLACK_MEMBER_ID is an
 // optional env opt-in fallback. No named person is hard-coded here (see AGENTS.md).
 const CBA_SLACK_MEMBER_ID = process.env.CBA_SLACK_MEMBER_ID || '';
@@ -18,46 +20,64 @@ const APP_REPO = 'github.com/COG-GTM/event-driven-ios';
 const IOS_ERROR_PATH = '/api/cba/ios/error';
 const APP_SCENARIO = 'payid-abn-addressing-profile';
 const APP_CULPRIT = 'CommBankCore/Sources/CommBankCore/NPPAddressingProfiles.swift — NPPAddressingRegistry.profile(for:)';
+const APP_FLUTTER_RELEASE_PREFIX = 'commbank-app-flutter@';
+const APP_FLUTTER_CULPRIT = 'CommBankApp/lib/core/npp_addressing_profiles.dart — NPPAddressingRegistry.profileFor';
+const APP_WEB_PATH = '/commbankapp';
 const APP_SENTRY_ISSUE_QUERY = 'is:unresolved PaymentAddressingError';
 
-const APP_REMEDIATION_DIRECTIVE = `*Repository to investigate and fix:* \`${APP_REPO}\` (Swift / SwiftUI, iOS 17+)
+const APP_REMEDIATION_DIRECTIVE = `*Repository to investigate and fix:* \`${APP_REPO}\`
 
-This is the native CommBank app in \`COG-GTM/event-driven-ios\` (\`CommBankCore\` Swift package +
-\`CommBankMobile\` SwiftUI target). It is iOS only: there is no web or Android build in that
-repository, and the NetBank web demo on this host (\`/cba\`, \`app/services/verticals/cba.js\`) is a
-separate, unrelated surface — do not modify it. Read the repo's \`AGENTS.md\` first and leave the
-HUB24 and Westpac apps untouched.
+\`COG-GTM/event-driven-ios\` holds two CommBank clients that share the same seeded data and the same
+planted defect. Read the repo's \`AGENTS.md\` first and leave the HUB24 and Westpac apps untouched. The
+NetBank web demo on this host (\`/cba\`, \`app/services/verticals/cba.js\`) is a separate, unrelated
+surface — do not modify it.
 
-The failing path is Pay anyone → Confirm and pay with a PayID payee:
+Identify the client from the Sentry event's \`release\`:
+- \`${APP_FLUTTER_RELEASE_PREFIX}*\` → the Flutter app in \`CommBankApp/\` (Dart; runs in the browser at
+  \`${APP_WEB_PATH}\` on this host and natively on the iOS simulator). \`platform\` is \`web\` or \`ios\`.
+  Registry: \`CommBankApp/lib/core/npp_addressing_profiles.dart\`; crash site \`${APP_FLUTTER_CULPRIT}\`,
+  thrown from \`PaymentService.pay\` in \`CommBankApp/lib/core/payment_service.dart\`.
+- \`${APP_PROJECT}@*\` → the native SwiftUI app (\`CommBankCore\` Swift package + \`CommBankMobile\` target).
+  Registry: \`CommBankCore/Sources/CommBankCore/NPPAddressingProfiles.swift\`; crash site \`${APP_CULPRIT}\`,
+  thrown from \`PaymentService.pay(_:)\`.
+
+The failing path is Pay → Sunrise Plumbing Pty Ltd → Pay now → Confirm and pay:
 - Client identity: \`${APP_SERVICE}\`, source prefix \`${APP_SOURCE_PREFIX}\`, report endpoint \`${IOS_ERROR_PATH}\`
-- Swift registry: \`CommBankCore/Sources/CommBankCore/NPPAddressingProfiles.swift\`
-- Crash site: \`${APP_CULPRIT}\`, thrown from \`PaymentService.pay(_:)\`
 - Seeded PayID types: \`email\`, \`mobile\`, and \`abn\` (the default payee, Sunrise Plumbing Pty Ltd, is an ABN PayID)
 
 The defect is that \`NPPAddressingRegistry.profiles\` registers \`email\` and \`mobile\` but never
 registers \`abn\` — business PayIDs shipped with the 2026 NetBank payee refresh without an addressing
-profile. \`NPPAddressingRegistry.profile(for:)\` therefore returns nil and \`PaymentService.pay\` throws
+profile. The lookup therefore returns nil/null and \`PaymentService.pay\` throws
 \`PaymentAddressingError.unregisteredPayIdType\`, so Pay now fails for the default Sunrise Plumbing
 payee while the email and mobile payees succeed.
 
 Steps:
-1. Reproduce on the iOS simulator from a macOS session: \`make generate && make test-commbank && CBA_DISABLE_FAILURE_REPORTS=1 make run-commbank\`;
-   follow the README/Makefile, log on, open Pay → Sunrise Plumbing Pty Ltd, tap Pay now → Confirm and pay,
-   and confirm "We couldn't make this payment" with \`PaymentAddressingError.unregisteredPayIdType\`.
-   The Mia Thompson (mobile) and Daniel Okafor (email) payees should continue to succeed.
+1. Reproduce with failure reporting OFF.
+   Flutter (from \`CommBankApp/\`): \`flutter test\`, then \`flutter run -d chrome --dart-define=CBA_DISABLE_FAILURE_REPORTS=1\`
+   for the browser, and on a macOS session \`flutter run -d <iPhone simulator> --dart-define=CBA_DISABLE_FAILURE_REPORTS=1\`
+   for iOS. Native Swift: \`make generate && make test-commbank && CBA_DISABLE_FAILURE_REPORTS=1 make run-commbank\`.
+   Log on, open Pay → Sunrise Plumbing Pty Ltd, Pay now → Confirm and pay, and confirm "We couldn't make this
+   payment" with \`PaymentAddressingError.unregisteredPayIdType\`. The Mia Thompson (mobile) and Daniel Okafor
+   (email) payees should continue to succeed.
 2. Fix the data, not just the crash site: register an accurate \`abn\` (business PayID) addressing profile
    that resolves against the NPP Addressing Service and is Osko eligible, and keep the lookup failing with
-   a typed error for genuinely unknown types rather than crashing.
-3. Add a completeness test asserting every \`PayIdType\` case resolves to a registered addressing profile.
-   Keep \`CommBankCore\` \`swift test\` green.
-4. Keep the client identity (\`${APP_SERVICE}\`, \`${APP_SOURCE_PREFIX}ios\`, \`${IOS_ERROR_PATH}\`)
-   and the report payload shape unchanged. Re-run the simulator repro on the fix commit and confirm the
-   Sunrise Plumbing payment now shows the "Payment successful" receipt.
+   a typed error for genuinely unknown types rather than crashing. Fix the client that reported; apply the
+   same registry fix to the other client as well so the two stay in parity.
+3. Add a completeness test asserting every \`PayIdType\` resolves to a registered addressing profile
+   (\`flutter test\` for Dart, \`swift test --package-path CommBankCore\` for Swift). Keep both green.
+4. Keep the client identity (\`${APP_SERVICE}\`, \`${APP_SOURCE_PREFIX}<platform>\`, \`${IOS_ERROR_PATH}\`)
+   and the report payload shape unchanged. Re-run the repro on the fix commit and confirm the Sunrise Plumbing
+   payment now shows the "Payment successful" receipt.
 5. Open a PR against \`main\`, request Devin Review, and STOP for human approval.
-6. After approval, verify on a macOS child session with a recording of the simulator run.
+6. After approval, verify on a macOS child session with a recording of the iOS simulator run
+   (\`flutter run -d <iPhone simulator>\` for the Flutter client).
 
 All reproductions must run with failure reporting off (\`CBA_DISABLE_FAILURE_REPORTS=1\`) so they do not
 spawn extra alerts or sessions.`;
+
+function isFlutterRelease(release) {
+  return typeof release === 'string' && release.startsWith(APP_FLUTTER_RELEASE_PREFIX);
+}
 
 function clip(value, max) {
   if (value === undefined || value === null) return '';
@@ -175,7 +195,7 @@ function reportAppFailure(report) {
   const sessionPromise = createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=${encodeURIComponent(APP_SENTRY_ISSUE_QUERY)}`,
-    culprit: APP_CULPRIT,
+    culprit: isFlutterRelease(release) ? APP_FLUTTER_CULPRIT : APP_CULPRIT,
     errorType,
     errorValue: errorMessage,
     devinUserId: report.devinUserId,
@@ -184,7 +204,7 @@ function reportAppFailure(report) {
     slackMemberId: '',
     slackMemberIdFallback: CBA_SLACK_MEMBER_ID,
     service: APP_SERVICE,
-    verticalLabel: 'CommBank app — Pay anyone (iOS)',
+    verticalLabel: `CommBank app — Pay anyone (${platform})`,
     customer: 'cba',
     project: APP_PROJECT,
     release,
@@ -212,7 +232,11 @@ module.exports = {
   IOS_ERROR_PATH,
   APP_SCENARIO,
   APP_CULPRIT,
+  APP_FLUTTER_CULPRIT,
+  APP_FLUTTER_RELEASE_PREFIX,
+  APP_WEB_PATH,
   APP_REMEDIATION_DIRECTIVE,
+  isFlutterRelease,
   isAppSource,
   isAppReport,
   reportAppFailure,

@@ -450,13 +450,14 @@ const CUSTOMER_ALERT_IDENTITY = {
       scenario: WESTPAC_IOS_SCENARIO,
     },
   },
-  // CommBank native SwiftUI app (github.com/COG-GTM/event-driven-ios), iOS
-  // only. Reports arrive via /api/cba/ios/error; remediation lands in the Swift
-  // repo and is verified on the iOS simulator from a macOS session. Routed as
-  // customer cba like the NetBank web vertical, with its own service identity.
+  // CommBank app clients (github.com/COG-GTM/event-driven-ios): the Flutter app
+  // (hosted at /commbankapp, also iOS) and the native SwiftUI app. Reports
+  // arrive via /api/cba/ios/error; remediation lands in that repo and is
+  // verified on the iOS simulator from a macOS session. Routed as customer cba
+  // like the NetBank web vertical, with its own service identity.
   'cba-ios': {
     customer: 'cba',
-    verticalLabel: 'CommBank app (iOS)',
+    verticalLabel: 'CommBank app (Flutter web/iOS + native iOS)',
     service: 'customer-cba-ios',
     project: 'commbank-mobile-ios',
     release: 'commbank-mobile-ios@1.0.0',
