@@ -88,15 +88,19 @@ function resolveServiceAuth(options = {}) {
  * @returns {Object|null} - { sessionId, url } or null if failed/not configured
  */
 /**
- * True when the v3 API rejected the request because of the `platform` label
- * (the 400 body names the platform/outpost and lists the valid labels), as
- * opposed to any other validation error, which must not be retried.
+ * True when the v3 API rejected the request because of the `platform` label,
+ * as opposed to any other validation error, which must not be retried.
+ *
+ * The API answers with an RFC 7807 problem body, e.g.
+ *   { "status": 400, "detail": "platform 'xyz' is not configured for this org.
+ *     Available platforms: ['linux', 'macos', 'windows']; available outpost pools: [...]" }
  */
 function isPlatformRejection(body, error) {
   if (!body.platform || error.response?.status !== 400) return false;
   const data = error.response?.data;
-  const text = (typeof data === 'string' ? data : JSON.stringify(data || '')).toLowerCase();
-  return text.includes('platform') || text.includes('outpost');
+  const detail = typeof data === 'string' ? data : String(data?.detail ?? data?.message ?? '');
+  return detail.includes(`platform '${body.platform}'`)
+    || /\bplatform\b[^.]*\bnot configured\b/i.test(detail);
 }
 
 async function createDevinSession(prompt, options = {}) {

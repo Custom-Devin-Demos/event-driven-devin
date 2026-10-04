@@ -31,7 +31,17 @@ describe('createDevinSession platform placement', () => {
 
   test('retries on the org default placement when the platform label is rejected', async () => {
     const rejection = new Error('Request failed with status code 400');
-    rejection.response = { status: 400, data: { detail: 'Unknown platform. Available: macOS, windows' } };
+    // Verbatim shape of the v3 API's RFC 7807 rejection for an unconfigured platform label.
+    rejection.response = {
+      status: 400,
+      data: {
+        type: 'about:blank',
+        title: 'Bad Request',
+        status: 400,
+        detail: "platform 'macos' is not configured for this org. Available platforms: ['linux', 'windows']; available outpost pools: ['phil-mac']",
+        instance: '/v3/organizations/org_test/sessions',
+      },
+    };
     axios.post.mockRejectedValueOnce(rejection).mockResolvedValueOnce(session);
 
     const result = await createDevinSession('prompt', {
