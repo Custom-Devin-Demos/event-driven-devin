@@ -29,6 +29,7 @@ const {
   APP_FLUTTER_CULPRIT,
   APP_FLUTTER_RELEASE_PREFIX,
   APP_WEB_PATH,
+  CBA_IOS_SESSION_PLATFORM,
   APP_PROJECT,
   APP_REMEDIATION_DIRECTIVE,
   APP_RELEASE,
@@ -148,8 +149,10 @@ describe('CommBank iOS Pay anyone failure report', () => {
       culprit: APP_FLUTTER_CULPRIT,
       devinUserId: APP_REPORT.devinUserId,
       devinOrgId: ORG_ID,
+      sessionPlatform: CBA_IOS_SESSION_PLATFORM,
       promptAppendix: APP_REMEDIATION_DIRECTIVE,
     });
+    expect(CBA_IOS_SESSION_PLATFORM).toBe('macos');
     expect(alertData.tags).toEqual(expect.arrayContaining([
       { key: 'platform', value: 'web' },
       { key: 'service', value: APP_SERVICE },

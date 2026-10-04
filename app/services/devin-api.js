@@ -117,9 +117,9 @@ async function createDevinSession(prompt, options = {}) {
       body.repos = options.repos;
     }
 
-    const response = await axios.post(
+    const post = (payload) => axios.post(
       `${DEVIN_API_BASE}/v3/organizations/${orgId}/sessions`,
-      body,
+      payload,
       {
         headers: {
           Authorization: `Bearer ${serviceKey}`,
@@ -128,6 +128,24 @@ async function createDevinSession(prompt, options = {}) {
         timeout: 15000,
       },
     );
+
+    let response;
+    try {
+      response = await post(body);
+    } catch (error) {
+      if (!body.platform || error.response?.status !== 400) {
+        throw error;
+      }
+      // The org has no platform/outpost with that label — fall back to the
+      // org default placement rather than losing the session.
+      logger.warn('Devin platform label rejected — retrying with the org default placement', {
+        platform: body.platform,
+        data: error.response?.data,
+      });
+      const fallbackBody = { ...body };
+      delete fallbackBody.platform;
+      response = await post(fallbackBody);
+    }
 
     const sessionId = response.data.session_id;
     const url = response.data.url || `https://app.devin.ai/sessions/${sessionId}`;

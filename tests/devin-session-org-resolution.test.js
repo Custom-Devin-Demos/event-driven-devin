@@ -61,6 +61,15 @@ describe('Devin org resolution for direct (non-browser) reports', () => {
     delete process.env.DEVIN_ORG_ID_5B992AE7;
   });
 
+  test('forwards the vertical\'s sessionPlatform to the v3 session request', async () => {
+    await createSessionAndAlert({ ...portalAlert, sessionPlatform: 'macos' });
+
+    expect(createDevinSession).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ platform: 'macos' }),
+    );
+  });
+
   test('uses the customer-scoped org and user when the report carries neither', async () => {
     await createSessionAndAlert({ ...portalAlert });
 

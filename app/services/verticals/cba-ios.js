@@ -23,6 +23,11 @@ const APP_CULPRIT = 'CommBankCore/Sources/CommBankCore/NPPAddressingProfiles.swi
 const APP_FLUTTER_RELEASE_PREFIX = 'commbank-app-flutter@';
 const APP_FLUTTER_CULPRIT = 'CommBankApp/lib/core/npp_addressing_profiles.dart — NPPAddressingRegistry.profileFor';
 const APP_WEB_PATH = '/commbankapp';
+// Fix sessions must drive the iOS Simulator, so place them on a macOS VM.
+// Set CBA_IOS_SESSION_PLATFORM to the org's macOS platform label (or '' for the org default).
+const CBA_IOS_SESSION_PLATFORM = process.env.CBA_IOS_SESSION_PLATFORM === undefined
+  ? 'macos'
+  : process.env.CBA_IOS_SESSION_PLATFORM;
 const APP_SENTRY_ISSUE_QUERY = 'is:unresolved PaymentAddressingError';
 
 const APP_REMEDIATION_DIRECTIVE = `*Repository to investigate and fix:* \`${APP_REPO}\`
@@ -209,6 +214,7 @@ function reportAppFailure(report) {
     customer: 'cba',
     project: APP_PROJECT,
     release,
+    sessionPlatform: CBA_IOS_SESSION_PLATFORM || undefined,
     promptAppendix: APP_REMEDIATION_DIRECTIVE,
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
     extra,
@@ -236,6 +242,7 @@ module.exports = {
   APP_FLUTTER_CULPRIT,
   APP_FLUTTER_RELEASE_PREFIX,
   APP_WEB_PATH,
+  CBA_IOS_SESSION_PLATFORM,
   APP_REMEDIATION_DIRECTIVE,
   isFlutterRelease,
   isAppSource,
