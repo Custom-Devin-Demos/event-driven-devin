@@ -625,11 +625,17 @@
           slot.dataset.count = String(count);
           slot.textContent = count + '/' + cap;
           slot.appendChild(el('small', null, '人'));
-          var opt = tierSelect.options[tierSelect.selectedIndex];
-          opt.textContent = opt.textContent.replace(/\d+\/\d+人/, count + '/' + cap + '人');
+          var opt = Array.prototype.find.call(tierSelect.options, function (option) { return option.value === slotKey; });
+          if (opt) opt.textContent = opt.textContent.replace(/\d+\/\d+人/, count + '/' + cap + '人');
           if (count >= cap) {
             slot.parentNode.classList.add('is_full');
-            opt.textContent = opt.textContent.replace('先着順', '満席');
+            if (opt) {
+              opt.textContent = opt.textContent.replace('先着順', '満席');
+              opt.disabled = true;
+            }
+            var open = Array.prototype.find.call(tierSelect.options, function (option) { return !option.disabled; });
+            if (open) tierSelect.value = open.value;
+            btn.disabled = !open;
           }
         }
         document.querySelectorAll('.js_attendee_total').forEach(function (node) {
@@ -681,8 +687,8 @@
           show('error', '申し込みを受け付けられませんでした', ['通信状態を確認して、もう一度お試しください。']);
         } finally {
           clearTimeout(slowTimer);
-          btn.disabled = false;
-          btn.textContent = BTN_LABEL;
+          btn.disabled = !Array.prototype.some.call(tierSelect.options, function (option) { return !option.disabled; });
+          btn.textContent = btn.disabled ? '満席のため申し込めません' : BTN_LABEL;
         }
       });
 
