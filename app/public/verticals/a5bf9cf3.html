@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyChart - Find a Provider</title>
+  <link rel="icon" href="/verticals/assets/a5bf9cf3/favicon.ico" type="image/x-icon">
+  <style>
+    @font-face { font-family: "a5bf9cf3-sans"; font-weight: normal; font-style: normal; src: url("/verticals/assets/a5bf9cf3/sourcesanspro-regular-webfont.woff2") format("woff2"); }
+    @font-face { font-family: "a5bf9cf3-sans"; font-weight: bold; font-style: normal; src: url("/verticals/assets/a5bf9cf3/sourcesanspro-semibold-webfont.woff2") format("woff2"); }
+    :root {
+      --a5bf9cf3-brand: #0084d6;
+      --a5bf9cf3-text: #363636;
+      --a5bf9cf3-muted: #565656;
+      --a5bf9cf3-label: #767676;
+      --a5bf9cf3-link: #0084d6;
+      --a5bf9cf3-card-link: #00b3e3;
+      --a5bf9cf3-border: #cccccc;
+      --a5bf9cf3-input-border: #dbdbdb;
+      --a5bf9cf3-hover: #ebf5fc;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; min-height: 100%; }
+    body {
+      position: relative;
+      font-family: "a5bf9cf3-sans", Calibri, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.25;
+      color: var(--a5bf9cf3-text);
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before { content: " "; position: fixed; inset: 0; background-color: var(--a5bf9cf3-brand); z-index: -2; }
+    body::after {
+      content: " "; position: fixed; inset: 0; z-index: -1;
+      background-image: url("https://mychart.summahealth.org/MyChart/en-us/images/background.svg");
+      background-size: cover; background-position: 50% 100%; background-repeat: no-repeat;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    svg { fill: currentColor; }
+
+    #a5bf9cf3-wrap { display: flex; flex-direction: column; min-height: 100vh; }
+    .a5bf9cf3-header { position: sticky; top: 0; z-index: 10; height: 52px; background: #fff; box-shadow: rgba(0, 0, 0, 0.2) 0 0 9.6px 0; }
+    .a5bf9cf3-header-grid { max-width: 1152px; height: 52px; margin: 0 auto; padding: 0 8px; display: flex; align-items: center; justify-content: space-between; }
+    .a5bf9cf3-logo { display: flex; align-items: center; width: 122.4px; height: 36px; }
+    .a5bf9cf3-logo img { height: 36px; width: auto; display: block; }
+    .a5bf9cf3-extras { display: flex; align-items: center; gap: 10px; }
+    .a5bf9cf3-lang { display: flex; align-items: center; gap: 2px; height: 36px; padding: 0 6px 0 7px; border: 0; border-radius: 6px; background: #6d6d6d; color: #fff; cursor: pointer; }
+    .a5bf9cf3-lang .globe { width: 26px; height: 26px; }
+    .a5bf9cf3-lang .chev { width: 10px; height: 10px; }
+    .a5bf9cf3-epic { height: 36px; width: auto; display: block; }
+
+    .a5bf9cf3-content { position: relative; width: 1152px; max-width: 100%; margin: 0 auto; flex: 1; display: grid; grid-template-rows: 1fr auto; box-shadow: rgba(0, 0, 0, 0.2) 0 2px 5px 0; }
+    .a5bf9cf3-content::after { content: ""; position: absolute; inset: 0; background-color: rgba(255, 255, 255, 0.5); z-index: -1; }
+    .a5bf9cf3-main { position: relative; background-color: rgba(255, 255, 255, 0.88); padding: 0 20px 32px; overflow-x: clip; }
+    .a5bf9cf3-hero { position: relative; margin-left: -20px; width: calc(100% + 40px); padding: 48px 0; background: #fff; text-align: center; }
+    .a5bf9cf3-hero::before { content: ""; position: absolute; top: 166px; left: -32px; right: -32px; height: 80px; background: #fff; border-radius: 3px 3px 50% 50% / 3px 3px 50px 50px; }
+    .a5bf9cf3-hero > * { position: relative; z-index: 1; }
+    .a5bf9cf3-hero h1 { margin: 0; padding: 12px 0 8px; font-size: 46.1841px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.25; }
+    .a5bf9cf3-hero p { margin: 0; font-size: 16px; }
+
+    .a5bf9cf3-search { position: relative; z-index: 1; width: 720px; max-width: 100%; margin: 0 auto; padding: 24px; background: #fff; border: 1px solid var(--a5bf9cf3-border); border-radius: 6px; display: flex; flex-wrap: wrap; gap: 0 8px; }
+    .a5bf9cf3-search h2 { width: 100%; margin: 0 0 8px; font-size: 22.7812px; font-weight: 400; line-height: 28.5px; }
+    .a5bf9cf3-field { position: relative; display: flex; align-items: stretch; height: 44.7px; background: #fff; border: 1px solid var(--a5bf9cf3-input-border); border-radius: 4px; }
+    .a5bf9cf3-field:focus-within { border-color: #101010; box-shadow: 0 0 0 1px #101010; }
+    .a5bf9cf3-field .lead { flex: none; width: 32px; height: 32px; margin: 5px 0 0 1px; color: var(--a5bf9cf3-muted); }
+    .a5bf9cf3-field .lead-img { flex: none; width: 32px; height: 32px; margin: 5px 0 0 1px; padding: 4px; }
+    .a5bf9cf3-labelled { position: relative; flex: 1; min-width: 0; }
+    .a5bf9cf3-labelled label { position: absolute; top: 0; left: 6.4px; padding-top: 3.2px; font-size: 12px; line-height: 15.5px; color: var(--a5bf9cf3-label); pointer-events: none; }
+    .a5bf9cf3-labelled input { width: 100%; height: 43.2px; margin-top: -1px; padding: 19.2px 6.4px 4px; border: 0; border-radius: 4px; outline: none; background: transparent; color: #000; font-size: 16px; }
+    .a5bf9cf3-query { width: 100%; }
+    .a5bf9cf3-row { width: 100%; display: flex; gap: 8px; align-items: flex-end; margin-top: 8px; }
+    .a5bf9cf3-insurance { flex: 0 0 272.5px; }
+    .a5bf9cf3-divider { width: 1px; margin: 8px 0; background: var(--a5bf9cf3-input-border); }
+    .a5bf9cf3-dd { width: 44px; border: 0; background: #fff; color: var(--a5bf9cf3-muted); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .a5bf9cf3-dd svg { width: 12px; height: 12px; }
+    .a5bf9cf3-location { flex: 0 0 272.5px; display: flex; flex-direction: column; }
+    .a5bf9cf3-geo { align-self: flex-start; display: inline-flex; align-items: center; height: 18.4px; margin-bottom: 4px; padding: 0; border: 0; background: none; color: var(--a5bf9cf3-link); font-size: 13.6px; cursor: pointer; }
+    .a5bf9cf3-geo svg { width: 15.7px; height: 18.4px; margin: 0 4px; }
+    .a5bf9cf3-geo:hover span { text-decoration: underline; }
+    .a5bf9cf3-run { flex: 1 1 0; min-width: fit-content; height: 45.19px; padding: 12.6px 0; border: 0; border-radius: 4px; background: #dbdbdb; color: var(--a5bf9cf3-muted); font-size: 16px; line-height: 20px; cursor: pointer; transition: background-color .15s ease; }
+    .a5bf9cf3-run:hover { background: #cfcfcf; }
+    .a5bf9cf3-run.primary { background: var(--a5bf9cf3-brand); color: #fff; }
+    .a5bf9cf3-run.primary:hover { background: #0073bb; }
+    .a5bf9cf3-clear { flex: none; width: 40px; margin: 1px 1px 1px 0; padding: 0 8px; border: 0; border-radius: 4px; background: #fff; color: var(--a5bf9cf3-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .a5bf9cf3-clear[hidden] { display: none; }
+    .a5bf9cf3-clear svg { width: 24px; height: 24px; }
+    .a5bf9cf3-popup { position: absolute; top: 100%; left: -1px; right: -1px; z-index: 50; margin: 0 0 8px; padding: 0; list-style: none; background: #f2f2f2; border: 1px solid var(--a5bf9cf3-input-border); border-radius: 4px; box-shadow: #000 0 0 2px 0; overflow-y: auto; color: #000; text-align: left; }
+    .a5bf9cf3-popup[hidden] { display: none; }
+    .a5bf9cf3-suggest { max-height: 513px; }
+    .a5bf9cf3-listbox { max-height: 360px; }
+    .a5bf9cf3-popup ul { list-style: none; margin: 0; padding: 0; }
+    .a5bf9cf3-option, .a5bf9cf3-count { padding: 4px 8px; min-height: 32px; background: #fff; border-bottom: 2px solid #fff; font-size: 16px; line-height: 22px; cursor: pointer; }
+    .a5bf9cf3-option.focused { background: #cce6f7; border-bottom-color: var(--a5bf9cf3-brand); }
+    .a5bf9cf3-option.empty { color: var(--a5bf9cf3-muted); }
+    .a5bf9cf3-option mark { background: transparent; color: inherit; font-weight: 700; }
+    .a5bf9cf3-count { min-height: 29px; font-size: 13.6px; line-height: 19px; font-style: italic; cursor: default; }
+    .a5bf9cf3-group-header { display: block; padding: 3.2px 6.4px; font-size: 12px; line-height: 19.5px; color: #505050; }
+    .a5bf9cf3-search-for { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 36px; padding: 4px 8px 8px; border: 0; background: #fff; color: var(--a5bf9cf3-link); font-size: 16px; cursor: pointer; }
+    .a5bf9cf3-search-for svg { width: 18px; height: 18px; color: var(--a5bf9cf3-muted); }
+    .a5bf9cf3-search-for:hover span { text-decoration: underline; }
+    .a5bf9cf3-run[aria-busy="true"] { cursor: progress; opacity: .75; }
+
+    .a5bf9cf3-common { width: 720px; max-width: 100%; margin: 0 auto; padding-top: 16px; }
+    .a5bf9cf3-common h2 { margin: 0; padding: 12px 8px 8px; font-size: 22.7812px; font-weight: 400; line-height: 28.5px; }
+    .a5bf9cf3-common ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; }
+    .a5bf9cf3-card { width: 223.97px; margin: 8px; background: #fff; border: 1px solid var(--a5bf9cf3-border); border-radius: 6px; transition: all .15s ease; }
+    .a5bf9cf3-card:hover { background: var(--a5bf9cf3-hover); }
+    .a5bf9cf3-card a { display: flex; align-items: center; min-height: 48px; padding: 8px; color: var(--a5bf9cf3-card-link); }
+    .a5bf9cf3-card-icon { flex: none; width: 32px; height: 32px; margin-right: 8px; }
+    .a5bf9cf3-card-title { flex: 1; color: var(--a5bf9cf3-text); font-weight: 700; line-height: 20px; }
+    .a5bf9cf3-card-arrow { flex: none; width: 24px; height: 24px; margin: 8px -5px 8px 8px; color: var(--a5bf9cf3-muted); }
+
+    .a5bf9cf3-footer { display: grid; font-size: 14.2222px; color: var(--a5bf9cf3-muted); }
+    .a5bf9cf3-footer-main { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 4px; background: rgba(255, 255, 255, 0.88); }
+    .a5bf9cf3-badges { display: flex; gap: 8px; }
+    .a5bf9cf3-badges img { height: 38px; width: auto; display: block; }
+    .a5bf9cf3-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0 16px; padding-top: 18px; }
+    .a5bf9cf3-links a:hover { text-decoration: underline; }
+    .a5bf9cf3-footer-sub { padding: 8px 16px 8px; text-align: center; background: rgba(255, 255, 255, 0.88); }
+
+    .a5bf9cf3-toast {
+      position: fixed; right: 24px; bottom: 24px; z-index: 30;
+      max-width: min(420px, calc(100vw - 48px));
+      padding: 14px 18px 14px 20px;
+      background: #fff; color: var(--a5bf9cf3-text);
+      border: 1px solid var(--a5bf9cf3-border); border-radius: 6px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+      font-size: 15px; line-height: 20px;
+      transform: translateX(calc(100% + 32px)); opacity: 0;
+      transition: transform .3s ease, opacity .3s ease;
+    }
+    .a5bf9cf3-toast.visible { transform: translateX(0); opacity: 1; }
+    .a5bf9cf3-toast.error { border-left: 4px solid #c8102e; }
+    .a5bf9cf3-toast.ok { border-left: 4px solid var(--a5bf9cf3-brand); }
+
+    @media (max-width: 768px) {
+      .a5bf9cf3-row { flex-wrap: wrap; }
+      .a5bf9cf3-insurance, .a5bf9cf3-location { flex-basis: 100%; }
+      .a5bf9cf3-card { width: calc(100% - 16px); }
+      .a5bf9cf3-footer-main { flex-direction: column; gap: 8px; }
+      .a5bf9cf3-links { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><defs><symbol id="scheduling_continue_default"><use xlink:href="#_flat_arrowrightsmall" /></symbol><symbol id="_flat_arrowrightsmall" viewBox="0 0 32 32"><path d="M26.75,15.48l-7.65-7.9c-.29-.3-.76-.31-1.06-.02-.3.29-.31.76-.02,1.06l6.42,6.63H5.79c-.41,0-.75.34-.75.75s.34.75.75.75h18.66l-6.41,6.63c-.29.3-.28.77.02,1.06.15.14.33.21.52.21s.39-.08.54-.23l7.65-7.9c.28-.29.28-.75,0-1.04Z" stroke-width="0" /></symbol><symbol id="specialty_neurology_default"><use xlink:href="#_emblem_brain" /></symbol><symbol id="_emblem_brain" viewBox="0 0 64 64"><path d="M30.23,55.18c.03,2.41-1.9,4.38-4.31,4.41-2.31.03-4.24-1.76-4.4-4.07-.6.16-1.23.25-1.85.25-3.5,0-6.33-2.83-6.33-6.33,0,0,0,0,0-.01v-.45c-3.43-.81-5.56-4.26-4.75-7.69.13-.57.34-1.11.63-1.62-2.42-2.53-2.33-6.54.2-8.96.73-.7,1.61-1.21,2.58-1.5-1.31-1.3-2.08-3.04-2.18-4.88,0-2.71,1.73-5.12,4.3-6-.71-.85-1.13-1.9-1.21-3,0-2.4,1.94-4.35,4.34-4.36,0,0,0,0,.01,0h.26c.07-3.51,2.84-6.38,6.35-6.56,3.28,0,6,3.24,6.32,6.48v43.75c.03.18.04.36.04.54Z" fill="#fb7373" /><path d="M22.29,22.61c-.38,0-.77-.11-1.12-.34-2.12-1.43-2.96-4.39-1.9-6.74,1.07-2.38,3.84-3.67,6.33-2.95,1.06.31,1.67,1.42,1.36,2.48-.31,1.06-1.42,1.67-2.48,1.36-.55-.16-1.31.2-1.56.75-.26.57-.02,1.44.49,1.78.92.62,1.16,1.86.54,2.78-.39.57-1.02.88-1.66.88Z" fill="#d84a5b" /><path d="M15.93,38.35c-.94,0-1.88-.19-2.75-.59-1-.46-1.45-1.64-.99-2.65.46-1.01,1.65-1.45,2.65-.99,1.21.55,2.92.03,3.65-1.12.75-1.18.51-3.02-.5-3.94-.82-.74-.88-2.01-.13-2.83.74-.82,2.01-.88,2.83-.13,2.47,2.24,2.99,6.22,1.18,9.05-1.3,2.04-3.6,3.2-5.93,3.2Z" fill="#d84a5b" /><path d="M24.35,51.47c-2.33,0-4.56-1.61-5.25-3.87-.75-2.49.49-5.29,2.83-6.38,1-.46,2.19-.03,2.65.98.46,1,.03,2.19-.98,2.65-.53.24-.86,1.01-.68,1.59.18.6.94,1.1,1.54,1.02,1.1-.13,2.09.64,2.23,1.74.13,1.1-.64,2.09-1.74,2.23-.2.03-.41.04-.61.04Z" fill="#d84a5b" /><path d="M33.81,54.64V10.89c.32-3.24,3.04-6.48,6.32-6.48,3.51.18,6.28,3.05,6.35,6.56h.26s0,0,.01,0c2.4,0,4.35,1.96,4.34,4.36-.08,1.1-.5,2.15-1.21,3,2.57.88,4.3,3.29,4.3,6-.1,1.84-.87,3.58-2.18,4.88.97.29,1.85.8,2.58,1.5,2.53,2.42,2.62,6.43.2,8.96.28.51.49,1.05.63,1.62.81,3.43-1.31,6.88-4.75,7.69v.45s0,0,0,.01c0,3.5-2.83,6.33-6.33,6.33-.62,0-1.25-.09-1.85-.25-.15,2.31-2.09,4.09-4.4,4.07-2.41-.03-4.34-2-4.31-4.41,0-.18.01-.36.04-.54Z" fill="#fb7373" /><path d="M41.71,22.61c-.64,0-1.27-.31-1.66-.88-.62-.92-.38-2.16.54-2.78.51-.34.75-1.21.49-1.78-.25-.55-1-.91-1.56-.75-1.06.31-2.17-.3-2.48-1.36-.31-1.06.3-2.17,1.36-2.48,2.49-.72,5.26.57,6.33,2.95,1.06,2.35.22,5.31-1.9,6.74-.34.23-.73.34-1.12.34Z" fill="#d84a5b" /><path d="M48.07,38.35c-2.32,0-4.63-1.17-5.93-3.2-1.8-2.83-1.28-6.8,1.18-9.05.82-.74,2.08-.68,2.83.13.74.82.68,2.08-.13,2.83-1.01.92-1.25,2.76-.5,3.94.73,1.15,2.44,1.68,3.65,1.12,1-.46,2.19-.02,2.65.99.46,1,.02,2.19-.99,2.65-.88.4-1.82.59-2.75.59Z" fill="#d84a5b" /><path d="M39.65,51.47c-.2,0-.41-.01-.61-.04-1.1-.13-1.88-1.13-1.74-2.23s1.15-1.87,2.23-1.74c.61.07,1.36-.42,1.54-1.02.17-.57-.16-1.35-.68-1.59-1-.46-1.44-1.65-.98-2.65.46-1,1.65-1.44,2.65-.98,2.34,1.08,3.59,3.88,2.84,6.38-.69,2.27-2.92,3.87-5.25,3.87Z" fill="#d84a5b" /></symbol><symbol id="specialty_gastroenterology_default"><use xlink:href="#_emblem_stomach" /></symbol><symbol id="_emblem_stomach" viewBox="0 0 64 64"><path d="M42.72,20.24c-1.5.45-3.11-.02-4.14-1.19-2.81-3.29-4.54-7.36-4.98-11.66l-.06-.6c-.17-1.68-1.66-2.9-3.34-2.73h0c-1.67.17-2.89,1.65-2.73,3.33l.06.62c.64,6.36,3.49,12.29,8.05,16.76.65.68,1.04,1.57,1.09,2.5.25,3.58,0,10.73-5.03,14.41-1.77,1.23-3.83,1.42-6.08,1.53-1.41.04-2.62-.05-3.99-.23-1.6-.21-2.03-.27-3.17-.76-.31-.14-.62-.3-.91-.49l-.9-.6-.22-.12c-2-1.05-4.41-.97-6.33.22-1.95,1.25-3.11,3.42-3.07,5.73v9.94c0,1.68,1.37,3.05,3.05,3.05h.75c1.68,0,3.05-1.37,3.05-3.05v-6.46c0-.34.1-.67.3-.95.54-.68,1.52-.79,2.2-.25.14.11.26.24.35.39,1.99,2.95,9.8,12.52,25.5,7.25.09-.03.18-.07.28-.11,1.53-.66,13.77-6.4,14.41-22.76,0-.09,0-.18,0-.27-.06-1.63-.92-17.32-14.13-13.5Z" fill="#ff6c91" /></symbol><symbol id="specialty_cardiology_default"><use xlink:href="#_emblem_heartwithline" /></symbol><symbol id="_emblem_heartwithline" viewBox="0 0 64 64"><path d="M31.77,12.27C18.5.05-2.62,11.4,5.74,31.55c.46.97.93,1.93,1.39,2.89,3.73,6.96,10.91,14.8,22.88,23,1.07.73,2.46.73,3.53,0,49.8-34.04,16.55-62.04-1.76-45.17Z" fill="#fb7373" /><path d="M44.64,30.84h-11.55c-.71,0-1.34.42-1.62,1.07l-2.49,5.81-6.03-18.12c-.24-.72-.91-1.2-1.66-1.21h-.01c-.75,0-1.42.47-1.66,1.18l-3.93,11.27H5.47c.09.23.16.46.26.71.45.94.91,1.89,1.36,2.82h9.84c.75,0,1.42-.47,1.66-1.18l2.63-7.56,5.86,17.61c.23.7.87,1.18,1.6,1.21h.07c.71,0,1.34-.42,1.62-1.07l3.86-9h10.39c.98,0,1.76-.79,1.76-1.76s-.79-1.76-1.76-1.76Z" fill="#fff" /></symbol><symbol id="specialty_orthopedics_default"><use xlink:href="#_emblem_bone" /></symbol><symbol id="_emblem_bone" viewBox="0 0 64 64"><path d="M59.08,50.32c3.11-3.26,2.99-8.43-.27-11.54-2.29-2.18-5.52-2.78-8.31-1.81-1.88.65-3.97.18-5.42-1.2l-17.46-16.66c-1.44-1.38-2.01-3.44-1.45-5.35.84-2.84.1-6.04-2.19-8.22-3.26-3.11-8.43-2.99-11.54.27-1.44,1.51-2.19,3.44-2.25,5.38-1.93.15-3.82.99-5.27,2.5-3.11,3.26-2.99,8.43.27,11.54,2.29,2.18,5.52,2.78,8.31,1.81,1.88-.65,3.97-.18,5.42,1.2l17.46,16.66c1.44,1.38,2.01,3.44,1.45,5.35-.84,2.84-.1,6.04,2.19,8.22,3.26,3.11,8.43,2.99,11.54-.27,1.44-1.51,2.19-3.44,2.25-5.38,1.93-.15,3.82-.99,5.27-2.5Z" fill="#34b4ff" /></symbol><symbol id="specialty_womenshealthalternative_default"><use xlink:href="#_emblem_fetus" /></symbol><symbol id="_emblem_fetus" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26.8" fill="#34b4ff" /><path d="M35.9,38.38c-3.47.01-6.77-1.47-9.06-4.08-1.81-2.16-2.78-4.89-2.75-7.7.03-1.78,1.48-3.21,3.26-3.22h0c1.8.02,3.24,1.49,3.23,3.29-.02,1.24.4,2.45,1.19,3.41,1.1,1.18,2.66,1.83,4.28,1.78,1.8-.03,3.28,1.41,3.31,3.21.03,1.72-1.29,3.17-3.01,3.3h-.45Z" fill="#bde9ff" /><path d="M30,49.53h-.6c-2.99,0-5.83-1.29-7.81-3.53-1.32-1.75-1.92-3.93-1.69-6.11,0-.93,0-1.39-.15-1.6-.29-.38-1.31-.8-3.31-.82-1.8-.1-3.17-1.64-3.07-3.44.09-1.66,1.42-2.98,3.07-3.07h0c3.93,0,6.77,1.19,8.45,3.42,1.14,1.66,1.66,3.67,1.45,5.67,0,1.18,0,1.55.25,1.86.83.72,1.9,1.1,3,1.06.92.04,1.84-.14,2.67-.54,1.59-.85,3.56-.25,4.41,1.33.85,1.59.25,3.56-1.33,4.41-.09.05-.18.09-.28.13-1.58.77-3.31,1.18-5.06,1.22Z" fill="#bde9ff" /><path d="M20.29,42.24c1.85-1.8,4-3.25,6.35-4.3,0,0,5.72-2.5,5.81-4-.03-.41.13-.81.43-1.09.1-.07.22-.11.34-.14,1.39-.52,6.21-2.11,9.26.64,1.24,1.19,2,2.8,2.14,4.51.22,3.69-2.93,6.31-4.71,7.79-2.01,1.64-4.38,2.79-6.91,3.35" fill="#bde9ff" /><circle cx="41.58" cy="23.38" r="7.19" fill="#bde9ff" /></symbol><symbol id="specialty_primarycare_default"><use xlink:href="#_emblem_heartinhands" /></symbol><symbol id="_emblem_heartinhands" viewBox="0 0 64 64"><path d="M40.64,6.74c-3.56,0-6.71,1.83-8.64,4.64-1.93-2.8-5.08-4.64-8.64-4.64-5.87,0-10.63,4.96-10.63,11.08,0,13.85,19.27,22.16,19.27,22.16,0,0,19.27-8.31,19.27-22.16,0-6.12-4.76-11.08-10.63-11.08Z" fill="#ff6c91" /><path d="M59.99,27.63v-.09c0-.15.09-1.71-1.11-1.86-2.28-.3-3,3.41-3.92,9.44-.12.85-.24,1.7-.4,2.56h0c-.39,2.11-1.27,4.11-2.57,5.82-1.14,1.53-2.49,2.89-4,4.06-.31.23-.74.19-1-.1-.26-.32-.2-.79.12-1.05,3.49-2.81,5.4-5.68,6-8.93h0c.23-1.51,0-1.66-.33-2-.51-.81-1.58-1.06-2.4-.55-.25.16-.46.38-.6.64-4.06,5.73-5.44,6.33-7,7-2.16.9-4.34,3-6,5.06-1.73,2.08-1.45,5.17.62,6.9.07.06.15.12.23.18l1.25.91c2.86,2.11,6.76,2.11,9.62,0,5.1-3.69,11.84-11.46,11.48-27.98Z" fill="#fdba19" /><path d="M21.22,42.59c-1.56-.71-2.94-1.31-7-7-.31-.45-.77-.78-1.31-.9-.66,0-1.29.29-1.7.81-.38.35-.56.5-.31,2h0c.6,3.25,2.51,6.12,6,8.93.32.25.37.71.12,1.02-.25.32-.71.37-1.02.12-1.51-1.17-2.86-2.53-4-4.06-1.28-1.7-2.15-3.68-2.53-5.78h0c-.15-.86-.28-1.71-.4-2.56-1-6-1.64-9.74-3.92-9.44-1.22.08-1.14,1.64-1.14,1.79v.09c-.37,16.51,6.38,24.29,11.49,28.05,2.86,2.11,6.76,2.11,9.62,0l1.25-.91c2.18-1.61,2.64-4.67,1.03-6.85-.06-.08-.12-.15-.18-.23-1.64-2.05-3.83-4.2-6.01-5.1Z" fill="#fdba19" /></symbol><symbol id="providerfinder_locationarrow_default"><use xlink:href="#_flat_locationarrow" /></symbol><symbol id="_flat_locationarrow" viewBox="0 0 32 32"><path d="M15.71,27.08c-.08,0-.17,0-.26-.02-.71-.11-1.27-.67-1.39-1.38l-.95-6.01-6.79-1.2c-.71-.13-1.26-.69-1.36-1.41-.1-.72.28-1.41.93-1.73L23.42,6.95c.64-.31,1.4-.17,1.9.33.5.51.62,1.27.3,1.91l-8.43,16.97c-.28.56-.86.92-1.49.92ZM24.14,8.28s-.05,0-.07.02L6.54,16.67c-.06.03-.1.1-.09.17,0,.07.06.13.13.14l7.32,1.3c.32.06.56.31.61.62l1.04,6.54c.01.07.07.13.14.14h.03c.06,0,.12-.03.15-.09l8.43-16.97c.03-.06.02-.14-.03-.19-.03-.03-.07-.05-.12-.05Z" /></symbol><symbol id="form_runsearch_default"><use xlink:href="#_flat_magnifyingglass" /></symbol><symbol id="_flat_magnifyingglass" viewBox="0 0 32 32"><path d="m24.7,24.6l-5.27-5.76c1.44-1.34,2.35-3.25,2.35-5.36,0-4.05-3.29-7.34-7.34-7.34s-7.34,3.29-7.34,7.34,3.29,7.34,7.34,7.34c1.39,0,2.7-.4,3.81-1.08.02.03.03.06.05.09l5.29,5.78c.15.16.35.24.55.24.18,0,.36-.06.51-.2.3-.28.33-.75.05-1.06ZM8.6,13.48c0-3.22,2.62-5.84,5.84-5.84s5.84,2.62,5.84,5.84-2.62,5.84-5.84,5.84-5.84-2.62-5.84-5.84Z" /></symbol><symbol id="clearinput_default"><use xlink:href="#_flat_x" /></symbol><symbol id="_flat_x" viewBox="0 0 32 32"><path d="M17.06,16l7.94-7.94c.29-.29.29-.77,0-1.06s-.77-.29-1.06,0l-7.94,7.94-7.94-7.94c-.29-.29-.77-.29-1.06,0s-.29.77,0,1.06l7.94,7.94-7.94,7.94c-.29.29-.29.77,0,1.06.15.15.34.22.53.22s.38-.07.53-.22l7.94-7.94,7.94,7.94c.15.15.34.22.53.22s.38-.07.53-.22c.29-.29.29-.77,0-1.06l-7.94-7.94Z" stroke-width="0" /></symbol><symbol id="dropdown_default"><use xlink:href="#_flat_chevrondown" /></symbol><symbol id="_flat_chevrondown" viewBox="7 10 18 15"><path d="m24 12.16-.91-.91a.88.88 0 0 0-1.24 0L16 17.07l-5.82-5.82a.88.88 0 0 0-1.24 0l-.94.91a.88.88 0 0 0 0 1.24l7.35 7.35a.88.88 0 0 0 1.24 0L24 13.4a.88.88 0 0 0 0-1.24Z" /></symbol><symbol id="header_globe_default"><use xlink:href="#_flat_globe" /></symbol><symbol id="_flat_globe" viewBox="0 0 32 32"><path d="M26.86,14.56s0-.02,0-.02c0,0,0,0,0-.01-.31-2.31-1.34-4.38-2.86-6-.01-.02-.04-.04-.05-.06-2-2.11-4.82-3.43-7.95-3.43s-6.08,1.39-8.08,3.58c0,0-.01,0-.02.01-.03.02-.04.06-.07.08-1.73,1.94-2.79,4.49-2.79,7.29,0,6.05,4.92,10.96,10.96,10.96s10.96-4.92,10.96-10.96c0-.49-.04-.97-.11-1.44ZM6.54,16c0-2.05.66-3.95,1.78-5.5.18.37.29.79.17,1.12-.6,1.58.02,2.83.95,3.25.12.05.51.34.81.54,1.13.8,1.8,1.22,2.33,1.31.33.62.75,1.14,1.28,1.52.12.08.23.14.35.2.02.07.02.14.05.21.29.85.93,1.55,1.5,2.16.41.45.88.95.9,1.24.06.74-.22,2.56-.36,3.4-.1,0-.2.01-.29.01-5.22,0-9.46-4.25-9.46-9.46ZM19.37,24.83c.76-1.69,1.93-4.38,2.3-5.66.16-.56.07-1.09-.27-1.53-.94-1.23-3.62-1.23-4.09-1.23-.44-.03-1.82-.06-2.6.57-.4-.3-.71-.73-.94-1.28.01-.33-.11-.63-.27-.88-.03-.12-.04-.24-.06-.36.24.1.5.14.79.06.62-.17.92-.77,1.15-1.4.35-.96,1.48-1.52,2.13-1.54.55-.02,1-.35,1.19-.87.2-.57.04-1.21-.41-1.61-.25-.22-.92-.64-2.06-.14.22-.32.35-.69.27-1.13-.08-.48-.4-.9-.97-1.28.16,0,.33-.02.49-.02,2.48,0,4.73.97,6.42,2.53-.49.97-1.24,3.01.07,4.65,1.03,1.29,2.18,1.65,2.94,1.72.01.19.03.37.03.56,0,4.03-2.54,7.47-6.09,8.83Z" stroke-width="0" /></symbol></defs></svg>
+  <div id="a5bf9cf3-wrap">
+    <header class="a5bf9cf3-header">
+      <div class="a5bf9cf3-header-grid">
+        <a class="a5bf9cf3-logo" href="#" title="Back to the login page"><img src="https://mychart.summahealth.org/MyChart/en-us/images/logo.svg" alt="Summa Health" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80'"></a>
+        <div class="a5bf9cf3-extras">
+          <button type="button" class="a5bf9cf3-lang" title="Change language" aria-haspopup="true" aria-expanded="false"><svg class="globe" aria-hidden="true"><use href="#header_globe_default"/></svg><svg class="chev" aria-hidden="true"><use href="#dropdown_default"/></svg></button>
+          <img class="a5bf9cf3-epic" src="https://mychart.summahealth.org/MyChart/en-US/images/MyChartIsEpic.svg" alt="MyChart is Epic logo" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80'">
+        </div>
+      </div>
+    </header>
+
+    <div class="a5bf9cf3-content">
+      <main class="a5bf9cf3-main" id="main">
+        <div class="a5bf9cf3-hero">
+          <h1>Find a Provider</h1>
+          <p>Discover the right person for your care.</p>
+        </div>
+
+        <form class="a5bf9cf3-search" id="a5bf9cf3-search-form" novalidate>
+          <h2>What are you looking for?</h2>
+          <div class="a5bf9cf3-field a5bf9cf3-query">
+            <svg class="lead" aria-hidden="true"><use href="#form_runsearch_default"/></svg>
+            <div class="a5bf9cf3-labelled">
+              <label for="a5bf9cf3-q">Specialty, condition, or provider</label>
+              <input id="a5bf9cf3-q" type="text" role="combobox" maxlength="200" autocomplete="off" enterkeyhint="search" aria-autocomplete="list" aria-controls="a5bf9cf3-q-suggestions" aria-expanded="false" aria-label="Specialty, condition, or provider">
+            </div>
+            <button type="button" class="a5bf9cf3-clear" id="a5bf9cf3-q-clear" aria-label="Clear search" hidden><svg aria-hidden="true"><use href="#clearinput_default"/></svg></button>
+            <div class="a5bf9cf3-popup a5bf9cf3-suggest" id="a5bf9cf3-q-popup" hidden>
+              <div class="a5bf9cf3-count" id="a5bf9cf3-q-count" role="presentation" aria-live="polite"></div>
+              <ul id="a5bf9cf3-q-suggestions" role="listbox" aria-label="Specialty, condition, or provider"></ul>
+              <button type="button" class="a5bf9cf3-search-for" id="a5bf9cf3-q-searchfor"><svg aria-hidden="true"><use href="#form_runsearch_default"/></svg><span></span></button>
+            </div>
+          </div>
+          <div class="a5bf9cf3-row">
+            <div class="a5bf9cf3-field a5bf9cf3-insurance">
+              <img class="lead-img" src="https://mychart.summahealth.org/MyChart/en-US/images/provider-finder/insurance_shield.svg" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80'">
+              <div class="a5bf9cf3-labelled">
+                <label for="a5bf9cf3-ins">Insurance (optional)</label>
+                <input id="a5bf9cf3-ins" type="text" role="combobox" autocomplete="off" aria-autocomplete="list" aria-controls="a5bf9cf3-ins-options" aria-expanded="false" aria-label="Insurance (optional)">
+              </div>
+              <span class="a5bf9cf3-divider"></span>
+              <button type="button" class="a5bf9cf3-dd" id="a5bf9cf3-ins-toggle" aria-label="Insurance (optional)" aria-controls="a5bf9cf3-ins-options" aria-expanded="false" tabindex="-1"><svg aria-hidden="true"><use href="#dropdown_default"/></svg></button>
+              <ul class="a5bf9cf3-popup a5bf9cf3-listbox" id="a5bf9cf3-ins-options" role="listbox" aria-label="Insurance (optional)" hidden></ul>
+            </div>
+            <div class="a5bf9cf3-location">
+              <button type="button" class="a5bf9cf3-geo"><svg aria-hidden="true"><use href="#providerfinder_locationarrow_default"/></svg><span>Use my current location</span></button>
+              <div class="a5bf9cf3-field">
+                <img class="lead-img" src="https://mychart.summahealth.org/MyChart/en-US/images/provider-finder/location_pin.svg" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80'">
+                <div class="a5bf9cf3-labelled">
+                  <label for="a5bf9cf3-zip">ZIP code (optional)</label>
+                  <input id="a5bf9cf3-zip" type="text" inputmode="numeric" maxlength="10" autocomplete="postal-code" aria-label="ZIP code (optional)">
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="a5bf9cf3-run" id="a5bf9cf3-run" aria-label="Search">Search</button>
+          </div>
+        </form>
+
+        <section class="a5bf9cf3-common">
+          <h2>Common searches</h2>
+          <ul role="list">
+            <li class="a5bf9cf3-card"><a href="#" data-term="Family Medicine" data-term-id="1034" aria-label="Family Medicine"><svg class="a5bf9cf3-card-icon" role="img" aria-hidden="true"><use href="#specialty_primarycare_default"/></svg><span class="a5bf9cf3-card-title">Family Medicine</span><svg class="a5bf9cf3-card-arrow" aria-hidden="true"><use href="#scheduling_continue_default"/></svg></a></li>
+            <li class="a5bf9cf3-card"><a href="#" data-term="Obstetrics and Gynecology" data-term-id="1082" aria-label="Obstetrics and Gynecology"><svg class="a5bf9cf3-card-icon" role="img" aria-hidden="true"><use href="#specialty_womenshealthalternative_default"/></svg><span class="a5bf9cf3-card-title">Obstetrics and Gynecology</span><svg class="a5bf9cf3-card-arrow" aria-hidden="true"><use href="#scheduling_continue_default"/></svg></a></li>
+            <li class="a5bf9cf3-card"><a href="#" data-term="Orthopedics" data-term-id="2031" aria-label="Orthopedics"><svg class="a5bf9cf3-card-icon" role="img" aria-hidden="true"><use href="#specialty_orthopedics_default"/></svg><span class="a5bf9cf3-card-title">Orthopedics</span><svg class="a5bf9cf3-card-arrow" aria-hidden="true"><use href="#scheduling_continue_default"/></svg></a></li>
+            <li class="a5bf9cf3-card"><a href="#" data-term="Cardiology" data-term-id="1012" aria-label="Cardiology"><svg class="a5bf9cf3-card-icon" role="img" aria-hidden="true"><use href="#specialty_cardiology_default"/></svg><span class="a5bf9cf3-card-title">Cardiology</span><svg class="a5bf9cf3-card-arrow" aria-hidden="true"><use href="#scheduling_continue_default"/></svg></a></li>
+            <li class="a5bf9cf3-card"><a href="#" data-term="Gastroenterology" data-term-id="1049" aria-label="Gastroenterology"><svg class="a5bf9cf3-card-icon" role="img" aria-hidden="true"><use href="#specialty_gastroenterology_default"/></svg><span class="a5bf9cf3-card-title">Gastroenterology</span><svg class="a5bf9cf3-card-arrow" aria-hidden="true"><use href="#scheduling_continue_default"/></svg></a></li>
+            <li class="a5bf9cf3-card"><a href="#" data-term="Neurology" data-term-id="1079" aria-label="Neurology"><svg class="a5bf9cf3-card-icon" role="img" aria-hidden="true"><use href="#specialty_neurology_default"/></svg><span class="a5bf9cf3-card-title">Neurology</span><svg class="a5bf9cf3-card-arrow" aria-hidden="true"><use href="#scheduling_continue_default"/></svg></a></li>
+          </ul>
+        </section>
+      </main>
+
+      <footer class="a5bf9cf3-footer">
+        <div class="a5bf9cf3-footer-main">
+          <div class="a5bf9cf3-badges">
+            <a href="https://itunes.apple.com/us/app/mychart/id382952264?mt=8"><img src="https://mychart.summahealth.org/MyChart/en-US/images/badge_apple.png" alt="MyChart for iOS" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80'"></a>
+            <a href="https://play.google.com/store/apps/details?id=epic.mychart.android&amp;hl=en"><img src="https://mychart.summahealth.org/MyChart/en-US/images/badge_android.png" alt="MyChart for Android" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80'"></a>
+          </div>
+          <nav class="a5bf9cf3-links">
+            <a href="https://open.epic.com/Tutorial/PatientAuthentication?whereFrom=MyChart">Interoperability Guide</a>
+            <a href="#">FAQs</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms and Conditions</a>
+            <a href="#">High Contrast Theme</a>
+          </nav>
+        </div>
+        <div class="a5bf9cf3-footer-sub"><a href="#">MyChart® licensed from Epic Systems Corporation© 1999 - 2026</a></div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var form = document.getElementById('a5bf9cf3-search-form');
+      var runButton = document.getElementById('a5bf9cf3-run');
+      var queryInput = document.getElementById('a5bf9cf3-q');
+      var insuranceInput = document.getElementById('a5bf9cf3-ins');
+      var zipInput = document.getElementById('a5bf9cf3-zip');
+      var plans = [];
+      var terms = [];
+      var providers = [];
+
+      fetch('/api/a5bf9cf3/providers').then(function (res) { return res.json(); }).then(function (catalog) {
+        plans = catalog.insurancePlans || [];
+        terms = catalog.searchTerms || [];
+        providers = catalog.providers || [];
+      }).catch(function () {});
+
+      function escapeRegExp(text) { return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+      function wordPrefix(query) {
+        return new RegExp('(^|[\\s(/-])(' + escapeRegExp(query) + ')', 'i');
+      }
+
+      function markedOption(text, matcher, id) {
+        var li = document.createElement('li');
+        li.className = 'a5bf9cf3-option';
+        li.id = id;
+        li.setAttribute('role', 'option');
+        li.setAttribute('data-text', text);
+        var match = matcher ? matcher.exec(text) : null;
+        if (match) {
+          var start = match.index + match[1].length;
+          var mark = document.createElement('mark');
+          mark.textContent = text.substr(start, match[2].length);
+          li.appendChild(document.createTextNode(text.slice(0, start)));
+          li.appendChild(mark);
+          li.appendChild(document.createTextNode(text.slice(start + match[2].length)));
+        } else {
+          li.textContent = text;
+        }
+        return li;
+      }
+
+      function combobox(input, popup, list, onPick) {
+        var state = { items: [], index: -1 };
+        function setOpen(open) {
+          popup.hidden = !open;
+          input.setAttribute('aria-expanded', String(open));
+          if (!open) { state.index = -1; input.removeAttribute('aria-activedescendant'); }
+        }
+        function focusItem(index) {
+          state.items.forEach(function (item, i) { item.classList.toggle('focused', i === index); item.setAttribute('aria-selected', String(i === index)); });
+          state.index = index;
+          var item = state.items[index];
+          if (item) { input.setAttribute('aria-activedescendant', item.id); item.scrollIntoView({ block: 'nearest' }); }
+        }
+        list.addEventListener('mousedown', function (event) { event.preventDefault(); });
+        popup.addEventListener('mousedown', function (event) { event.preventDefault(); });
+        list.addEventListener('click', function (event) {
+          var item = event.target.closest('[role=option]');
+          if (item) { onPick(item); setOpen(false); }
+        });
+        input.addEventListener('keydown', function (event) {
+          if (popup.hidden || !state.items.length) return;
+          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            var step = event.key === 'ArrowDown' ? 1 : -1;
+            focusItem((state.index + step + state.items.length) % state.items.length);
+          } else if (event.key === 'Enter' && state.index > -1) {
+            event.preventDefault();
+            onPick(state.items[state.index]);
+            setOpen(false);
+          } else if (event.key === 'Escape') {
+            setOpen(false);
+          }
+        });
+        input.addEventListener('blur', function () { setOpen(false); });
+        return {
+          render: function (items, focusedIndex) {
+            state.items = items;
+            setOpen(items.length > 0);
+            focusItem(typeof focusedIndex === 'number' ? focusedIndex : -1);
+          },
+          close: function () { setOpen(false); },
+          isOpen: function () { return !popup.hidden; }
+        };
+      }
+
+      var clearButton = document.getElementById('a5bf9cf3-q-clear');
+      var suggestPopup = document.getElementById('a5bf9cf3-q-popup');
+      var suggestList = document.getElementById('a5bf9cf3-q-suggestions');
+      var suggestCount = document.getElementById('a5bf9cf3-q-count');
+      var searchFor = document.getElementById('a5bf9cf3-q-searchfor');
+
+      function syncQueryState() {
+        var hasText = queryInput.value.trim().length > 0;
+        clearButton.hidden = !queryInput.value;
+        runButton.classList.toggle('primary', hasText);
+      }
+
+      var querySuggest = combobox(queryInput, suggestPopup, suggestList, function (item) {
+        queryInput.value = item.getAttribute('data-text');
+        syncQueryState();
+      });
+
+      function renderSuggestions() {
+        var query = queryInput.value.trim();
+        suggestList.innerHTML = '';
+        if (query.length < 2) { querySuggest.close(); return; }
+        var matcher = wordPrefix(query);
+        var termMatches = terms.filter(function (term) { return matcher.test(term.text); })
+          .sort(function (a, b) { return a.text.length - b.text.length; });
+        var providerMatches = providers.filter(function (provider) { return matcher.test(provider.label); });
+        var total = termMatches.length + providerMatches.length;
+        termMatches = termMatches.slice(0, 10);
+        providerMatches = providerMatches.slice(0, 10 - termMatches.length);
+        var items = [];
+        function group(label, entries, textOf, prefix) {
+          if (!entries.length) return;
+          var li = document.createElement('li');
+          li.setAttribute('role', 'group');
+          var inner = document.createElement('ul');
+          if (label) {
+            var header = document.createElement('span');
+            header.className = 'a5bf9cf3-group-header';
+            header.setAttribute('role', 'presentation');
+            header.id = 'a5bf9cf3-q-group-' + prefix;
+            header.textContent = label;
+            li.setAttribute('aria-labelledby', header.id);
+            li.appendChild(header);
+          }
+          entries.forEach(function (entry, i) {
+            var option = markedOption(textOf(entry), matcher, 'a5bf9cf3-q-opt-' + prefix + i);
+            inner.appendChild(option);
+            items.push(option);
+          });
+          li.appendChild(inner);
+          suggestList.appendChild(li);
+        }
+        group('', termMatches, function (term) { return term.text; }, 't');
+        group('Providers', providerMatches, function (provider) { return provider.label; }, 'p');
+        var shown = termMatches.length + providerMatches.length;
+        suggestCount.textContent = (total > shown ? 'Top ' + shown : shown) + (shown === 1 ? ' suggestion' : ' suggestions') + ' from your search';
+        searchFor.querySelector('span').textContent = 'Search for "' + query + '"';
+        querySuggest.render(items);
+      }
+
+      queryInput.addEventListener('input', function () { syncQueryState(); renderSuggestions(); });
+      clearButton.addEventListener('click', function () {
+        queryInput.value = '';
+        syncQueryState();
+        querySuggest.close();
+        queryInput.focus();
+      });
+      searchFor.addEventListener('click', function () {
+        querySuggest.close();
+        runSearch();
+      });
+
+      var insuranceToggle = document.getElementById('a5bf9cf3-ins-toggle');
+      var insuranceList = document.getElementById('a5bf9cf3-ins-options');
+      var selectedPlan = '';
+      var currentPosition = null;
+      var insurancePicker = combobox(insuranceInput, insuranceList, insuranceList, function (item) {
+        selectedPlan = item.getAttribute('data-id');
+        insuranceInput.value = selectedPlan ? item.getAttribute('data-text') : '';
+      });
+
+      function renderPlans(filter) {
+        insuranceList.innerHTML = '';
+        var needle = (filter || '').trim().toLowerCase();
+        var entries = [{ id: '', label: 'Select an option' }].concat(plans.filter(function (plan) {
+          return !needle || plan.label.toLowerCase().indexOf(needle) > -1;
+        }));
+        var items = entries.map(function (plan, i) {
+          var option = markedOption(plan.label, null, 'a5bf9cf3-ins-opt-' + i);
+          option.setAttribute('data-id', plan.id);
+          if (!plan.id) option.classList.add('empty');
+          insuranceList.appendChild(option);
+          return option;
+        });
+        var current = items.map(function (item) { return item.getAttribute('data-id'); }).indexOf(selectedPlan);
+        insurancePicker.render(items, current > -1 ? current : 0);
+      }
+
+      insuranceToggle.addEventListener('mousedown', function (event) { event.preventDefault(); });
+      insuranceToggle.addEventListener('click', function () {
+        var open = insurancePicker.isOpen();
+        insuranceToggle.setAttribute('aria-expanded', String(!open));
+        if (open) { insurancePicker.close(); return; }
+        insuranceInput.focus();
+        renderPlans('');
+      });
+      insuranceInput.addEventListener('input', function () {
+        selectedPlan = '';
+        renderPlans(insuranceInput.value);
+      });
+      insuranceInput.addEventListener('keydown', function (event) {
+        if (event.key === 'ArrowDown' && !insurancePicker.isOpen()) { event.preventDefault(); renderPlans(''); }
+      });
+
+      function planId(label) {
+        if (selectedPlan) return selectedPlan;
+        var match = plans.filter(function (plan) { return plan.label.toLowerCase() === String(label).trim().toLowerCase(); })[0];
+        return match ? match.id : '';
+      }
+
+      function showToast(message, isError) {
+        var toast = document.createElement('div');
+        toast.className = 'a5bf9cf3-toast ' + (isError ? 'error' : 'ok');
+        toast.setAttribute('role', 'status');
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        requestAnimationFrame(function () { toast.classList.add('visible'); });
+        setTimeout(function () {
+          toast.classList.remove('visible');
+          setTimeout(function () { toast.remove(); }, 320);
+        }, 6000);
+      }
+
+      function runSearch() {
+        if (runButton.getAttribute('aria-busy') === 'true') return;
+        runButton.setAttribute('aria-busy', 'true');
+        fetch('/api/a5bf9cf3/providers/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: queryInput.value,
+            insurance: planId(insuranceInput.value),
+            zip: currentPosition ? '' : zipInput.value,
+            lat: currentPosition ? currentPosition.lat : null,
+            lng: currentPosition ? currentPosition.lng : null,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        }).then(function (res) {
+          return res.json().then(function (json) { return { ok: res.ok, json: json }; });
+        }).then(function (result) {
+          if (!result.ok || result.json.success === false) {
+            showToast((result.json.errorClass || 'Error') + ': ' + (result.json.error || 'Request failed'), true);
+          } else {
+            showToast(result.json.total + ' providers found' + (result.json.specialty ? ' for ' + result.json.specialty : ''), false);
+          }
+        }).catch(function (error) {
+          showToast((error.name || 'Error') + ': ' + (error.message || 'Request failed'), true);
+        }).finally(function () {
+          runButton.removeAttribute('aria-busy');
+        });
+      }
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        runSearch();
+      });
+
+      Array.prototype.forEach.call(document.querySelectorAll('.a5bf9cf3-card a'), function (link) {
+        link.addEventListener('click', function (event) {
+          event.preventDefault();
+          queryInput.value = link.getAttribute('data-term');
+          syncQueryState();
+          runSearch();
+        });
+      });
+
+      document.querySelector('.a5bf9cf3-geo').addEventListener('click', function () {
+        if (!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(function (position) {
+          currentPosition = { lat: position.coords.latitude, lng: position.coords.longitude };
+          zipInput.value = 'Current location';
+        }, function () {});
+      });
+      zipInput.addEventListener('input', function () { currentPosition = null; });
+    })();
+  </script>
+</body>
+</html>
