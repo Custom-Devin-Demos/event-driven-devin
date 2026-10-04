@@ -39,6 +39,13 @@ function reserveReportSlot(now = Date.now()) {
   return true;
 }
 
+// Seconds until the oldest accepted report ages out of the window and frees a slot.
+function retryAfterSeconds(now = Date.now()) {
+  if (acceptedAt.length === 0) return 1;
+  const remainingMs = acceptedAt[0] + REPORT_WINDOW_MS - now;
+  return Math.max(1, Math.ceil(remainingMs / 1000));
+}
+
 router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
 
@@ -51,7 +58,7 @@ router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
   }
 
   if (!reserveReportSlot()) {
-    res.set('Retry-After', String(Math.ceil(REPORT_WINDOW_MS / 1000)));
+    res.set('Retry-After', String(retryAfterSeconds()));
     return res.status(429).json({
       received: false,
       status: 'throttled',
@@ -142,3 +149,4 @@ router.post('/api/cba/payment', async (req, res) => {
 
 module.exports = router;
 module.exports.reserveReportSlot = reserveReportSlot;
+module.exports.retryAfterSeconds = retryAfterSeconds;

@@ -6,7 +6,7 @@ jest.mock('../app/telemetry/sentry', () => ({
   Sentry: {
     captureException: jest.fn(),
     withScope: jest.fn((callback) => {
-      const scope = { setTransactionName: jest.fn() };
+      const scope = { setTransactionName: jest.fn(), addEventProcessor: jest.fn() };
       callback(scope);
       return scope;
     }),
@@ -178,6 +178,11 @@ describe('CommBank iOS Pay anyone failure report', () => {
 
     const scope = Sentry.withScope.mock.results[0].value;
     expect(scope.setTransactionName).toHaveBeenCalledWith(`POST ${IOS_ERROR_PATH}`);
+    const processor = scope.addEventProcessor.mock.calls[0][0];
+    expect(processor({ release: 'acme-checkout@1.0.0', environment: 'staging' })).toMatchObject({
+      release: APP_RELEASE,
+      environment: 'prod',
+    });
     const [error, context] = Sentry.captureException.mock.calls[0];
     expect(error.name).toBe(APP_REPORT.errorType);
     expect(error.stack).toContain('NPPAddressingProfiles.swift');
@@ -190,7 +195,7 @@ describe('CommBank iOS Pay anyone failure report', () => {
     });
   });
 
-  test('falls back to the configured Slack member when no email is forwarded', () => {
+  test('never hard-codes an on-call member when no email is forwarded', () => {
     const report = { ...APP_REPORT };
     delete report.devinEmail;
 
@@ -199,7 +204,8 @@ describe('CommBank iOS Pay anyone failure report', () => {
     const alertData = createSessionAndAlert.mock.calls[0][0];
     expect(alertData.devinUserId).toBe(report.devinUserId);
     expect(alertData.devinEmail).toBeUndefined();
-    expect(alertData.slackMemberId).toBe(process.env.CBA_SLACK_MEMBER_ID || 'U0BU46F4WCU');
+    expect(alertData.slackMemberId).toBe('');
+    expect(alertData.slackMemberIdFallback).toBe(process.env.CBA_SLACK_MEMBER_ID || '');
   });
 
   test('isAppReport requires both the CommBank source prefix and service', () => {
@@ -236,15 +242,19 @@ describe('CommBank iOS Pay anyone failure report', () => {
   });
 
   test('throttles accepted reports after the per-route cap', async () => {
-    const { reserveReportSlot } = require('../app/routes/verticals/cba');
+    const { reserveReportSlot, retryAfterSeconds } = require('../app/routes/verticals/cba');
     const now = Date.now();
     while (reserveReportSlot(now)) { /* fill the window */ }
 
     const { status, headers, body } = await postJson(server, IOS_ERROR_PATH, APP_REPORT);
     expect(status).toBe(429);
-    expect(headers['retry-after']).toBe('600');
+    const retryAfter = Number(headers['retry-after']);
+    expect(retryAfter).toBeGreaterThanOrEqual(1);
+    expect(retryAfter).toBeLessThanOrEqual(600);
     expect(body).toMatchObject({ received: false, status: 'throttled' });
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+    // Retry-After tracks the oldest accepted slot, not the full window.
+    expect(retryAfterSeconds(now + 9 * 60 * 1000)).toBe(60);
     expect(reserveReportSlot(now + 11 * 60 * 1000)).toBe(true);
   });
 
@@ -295,6 +305,13 @@ describe('CommBank iOS Pay anyone failure report', () => {
       issueTitle: APP_REPORT.errorMessage,
       culprit: APP_CULPRIT,
       tags: [['service', APP_SERVICE], ['alert_path', 'instant']],
+    })).toBe(true);
+    // Tagless issue webhooks whose culprit is the Swift stack frame must not re-alert.
+    expect(isInstantPathEvent({ issueTitle: APP_REPORT.errorMessage, culprit: APP_CULPRIT, tags: [] })).toBe(true);
+    expect(isInstantPathEvent({
+      issueTitle: APP_REPORT.errorMessage,
+      culprit: 'NPPAddressingRegistry.profile(for:)',
+      tags: [],
     })).toBe(true);
 
     const alertData = extractAlertData({

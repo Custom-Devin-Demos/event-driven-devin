@@ -7,7 +7,9 @@ const { createSessionAndAlert } = require('../devin-session');
 // Native CommBank iOS app (github.com/COG-GTM/event-driven-ios, CommBankMobile +
 // CommBankCore). The app reports its own platform failures here; this host only
 // bridges them to Sentry, Slack and a Devin session scoped to the Swift repo.
-const CBA_SLACK_MEMBER_ID = process.env.CBA_SLACK_MEMBER_ID || 'U0BU46F4WCU';
+// On-call mention is resolved from the report's devinEmail; CBA_SLACK_MEMBER_ID is an
+// optional env opt-in fallback. No named person is hard-coded here (see AGENTS.md).
+const CBA_SLACK_MEMBER_ID = process.env.CBA_SLACK_MEMBER_ID || '';
 const APP_SERVICE = 'customer-cba-ios';
 const APP_PROJECT = 'commbank-mobile-ios';
 const APP_RELEASE = 'commbank-mobile-ios@1.0.0';
@@ -165,6 +167,8 @@ function reportAppFailure(report) {
 
   Sentry.withScope((scope) => {
     scope.setTransactionName(`POST ${IOS_ERROR_PATH}`);
+    // Label the event with the native app's release/environment rather than this host's.
+    scope.addEventProcessor((event) => ({ ...event, release, environment }));
     Sentry.captureException(error, { tags, extra });
   });
 
@@ -177,7 +181,7 @@ function reportAppFailure(report) {
     devinUserId: report.devinUserId,
     devinEmail: report.devinEmail,
     devinOrgId: report.devinOrgId,
-    slackMemberId: report.devinEmail ? '' : CBA_SLACK_MEMBER_ID,
+    slackMemberId: '',
     slackMemberIdFallback: CBA_SLACK_MEMBER_ID,
     service: APP_SERVICE,
     verticalLabel: 'CommBank app — Pay anyone (iOS)',
