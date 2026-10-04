@@ -576,6 +576,41 @@
         return document.querySelector('.participants[data-slot="' + slot + '"]');
       }
 
+      function showResult(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '';
+        var t = document.createElement('div');
+        t.className = 'error-title';
+        t.textContent = title;
+        var d = document.createElement('div');
+        d.className = 'error-detail';
+        d.textContent = detail;
+        result.appendChild(t);
+        result.appendChild(d);
+      }
+
+      function slotIsFull(slot) {
+        var counter = slotCounter(slot);
+        return !!(counter && counter.classList.contains('full'));
+      }
+
+      function markSlotFull(slot) {
+        var opt = productSel.querySelector('option[value="' + slot + '"]');
+        if (opt) {
+          opt.disabled = true;
+          opt.textContent = SLOT_LABELS[slot] + '（満席）';
+        }
+        if (productSel.value === slot) {
+          var open = Array.prototype.find.call(productSel.options, function (o) { return !o.disabled; });
+          if (open) productSel.value = open.value;
+        }
+        var anyOpen = Array.prototype.some.call(productSel.options, function (o) { return !o.disabled; });
+        if (!anyOpen) {
+          btn.disabled = true;
+          btn.textContent = '満席のため申し込めません';
+        }
+      }
+
       function bumpCounts(slot) {
         var counter = slotCounter(slot);
         if (counter) {
@@ -587,9 +622,11 @@
           if (!isNaN(cap) && next >= cap) {
             counter.classList.add('full');
             counter.querySelector('.determine').textContent = '満席';
+            markSlotFull(slot);
+          } else {
+            var opt = productSel.querySelector('option[value="' + slot + '"]');
+            if (opt) opt.textContent = SLOT_LABELS[slot] + '（先着順 ' + next + '/' + cap + '人）';
           }
-          var opt = productSel.querySelector('option[value="' + slot + '"]');
-          if (opt) opt.textContent = SLOT_LABELS[slot] + '（先着順 ' + next + '/' + cap + '人）';
         }
         ['attendeeTotal', 'attendeeTotal2'].forEach(function (id) {
           var el = document.getElementById(id);
@@ -607,6 +644,10 @@
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
         var slot = productSel.value;
+        if (slotIsFull(slot)) {
+          showResult('error', 'この参加枠は満席です', '別の参加枠を選択してください。');
+          return;
+        }
         btn.disabled = true;
         btn.textContent = '申し込み処理中…';
         result.className = 'result-box';
@@ -627,19 +668,18 @@
           });
           var data = await res.json();
           if (!res.ok) {
-            result.className = 'result-box error';
-            result.innerHTML = '<div class="error-title">申し込みを完了できませんでした</div><div class="error-detail">' + (data.errorClass || 'Error') + ': ' + (data.error || '') + '</div>';
+            showResult('error', '申し込みを完了できませんでした', (data.errorClass || 'Error') + ': ' + (data.error || ''));
           } else {
-            result.className = 'result-box success';
-            result.innerHTML = '<div class="error-title">申し込みが完了しました</div><div class="error-detail">' + SLOT_LABELS[slot] + ' で参加登録しました。受付番号: ' + (data.licenseId || '-') + '。確認メールをお送りしました。</div>';
+            showResult('success', '申し込みが完了しました', SLOT_LABELS[slot] + ' で参加登録しました。受付番号: ' + (data.licenseId || '-') + '。マイページの「申し込んだイベント」から確認できます。');
             bumpCounts(slot);
           }
         } catch (err) {
-          result.className = 'result-box error';
-          result.innerHTML = '<div class="error-title">通信エラー</div><div class="error-detail">' + err.message + '</div>';
+          showResult('error', '通信エラー', err.message);
         } finally {
-          btn.disabled = false;
-          btn.textContent = 'このイベントに申し込む';
+          if (!btn.textContent.startsWith('満席')) {
+            btn.disabled = false;
+            btn.textContent = 'このイベントに申し込む';
+          }
         }
       });
     })();
