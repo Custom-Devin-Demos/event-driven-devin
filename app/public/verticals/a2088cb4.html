@@ -384,8 +384,57 @@
     })();
   </script>
   <script>
+    // Same button, two flows: the registration POST drives the alert flow via
+    // the on-call shim, and the first submit also declares the skin's SEV-1
+    // story. Later submits inside the incident window only add traffic.
+    const SEV1_KIND = 'licensing-latency';
+    const SEV1_SKIN = 'a2088cb4';
+    let sev1DeclaredAt = 0;
+    let sev1WindowMs = 30 * 60 * 1000;
+    const sev1Status = (ok, msg) => {
+      const ribbon = document.getElementById('oncall-ribbon');
+      const dot = document.getElementById('oncall-dot');
+      if (!ribbon) return;
+      let el = document.getElementById('oncall-sev1-status');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'oncall-sev1-status';
+        el.style.cssText = 'margin-top:6px;max-width:220px;';
+        ribbon.appendChild(el);
+      }
+      el.style.color = ok ? '#3fb950' : '#f85149';
+      el.textContent = msg;
+      if (dot && dot.style.display === 'block') { dot.style.display = 'none'; ribbon.style.display = 'block'; }
+    };
+    const declareSev1 = () => {
+      if (sev1DeclaredAt && Date.now() - sev1DeclaredAt < sev1WindowMs) return;
+      const declaredAt = Date.now();
+      sev1DeclaredAt = declaredAt;
+      fetch('/api/oncall/incident', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ kind: SEV1_KIND, skin: SEV1_SKIN, devinEmail: localStorage.getItem('devinEmail') || '' }),
+      }).then((r) => r.json().then((data) => ({ code: r.status, data })))
+        .then(({ code, data }) => {
+          if (code === 200 && data.provider === 'datadog') {
+            if (data.windowMinutes) sev1WindowMs = data.windowMinutes * 60 * 1000;
+            sev1Status(true, 'SEV-1 declared (IR-' + (data.publicId || data.id) + ', ref ' + data.runRef + '). Slack channel incoming…');
+          } else if (code === 200) {
+            if (data.windowMinutes) sev1WindowMs = data.windowMinutes * 60 * 1000;
+            sev1Status(true, 'SEV-1 posted to ' + data.channel + ' (ref ' + data.runRef + ')');
+          } else {
+            if (sev1DeclaredAt === declaredAt) sev1DeclaredAt = 0;
+            sev1Status(false, 'SEV-1 skipped — ' + (data.error || 'declare failed'));
+          }
+        })
+        .catch((err) => {
+          if (sev1DeclaredAt === declaredAt) sev1DeclaredAt = 0;
+          sev1Status(false, 'SEV-1 declare failed: ' + err.message);
+        });
+    };
+
     document.getElementById('provisionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      declareSev1();
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
       const tierSelect = document.getElementById('planTier');

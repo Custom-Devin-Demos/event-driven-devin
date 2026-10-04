@@ -3001,6 +3001,27 @@ const ONCALL_SKINS = {
     supportCenter: 'connpass サポート',
     supportCenterSub: 'お問い合わせ・障害報告窓口',
     disclaimer: 'NOT ACTUALLY A CONNPASS SITE — internal demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（社内デモ用）。',
+    // SEV-1 opt-in: the native page declares this story from the same
+    // registration button that drives the alert flow, and the shared console
+    // at /incident shows its live state.
+    incident: {
+      kind: 'licensing-latency',
+      chatter: {
+        vocabulary: {
+          'License provisioning slowdown': 'Event registration slowdown',
+          'slow seat provisioning': 'slow event registration',
+          'enterprise customer': 'event organizer',
+          'activation that used to be instant': 'confirmation that used to be instant',
+          'per license': 'per attendee',
+          'license DB': 'events DB',
+          'slow provisioning': 'slow registrations',
+          'provisioning calls': 'registration submissions',
+          'provisioning call': 'registration submission',
+          'provisioning works': 'registration works',
+          'orgs': 'organizers',
+        },
+      },
+    },
   },
 };
 

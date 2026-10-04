@@ -219,3 +219,42 @@ describe('SEV-1 persona chatter vocabulary', () => {
     expect(skinned.some((line) => line.username === 'Jordan Patel (payments-oncall)')).toBe(true);
   });
 });
+
+describe('SEV-1 persona chatter vocabulary — a2088cb4 (hightech)', () => {
+  const story = SEV1_INCIDENTS['licensing-latency'];
+  const skin = ONCALL_SKINS['a2088cb4'];
+
+  test('skin opts into the hightech story', () => {
+    expect(skin.vertical).toBe('hightech');
+    expect(skin.incident.kind).toBe('licensing-latency');
+    expect(story.vertical).toBe(skin.vertical);
+  });
+
+  test('rewrites provisioning wording into event-registration wording', () => {
+    const vocabulary = getSev1ChatterVocabulary(story, skin, 'licensing-latency');
+    const script = buildSev1Chatter(story, vocabulary);
+    const text = script.map((line) => line.text).join('\n');
+
+    expect(text).toContain('slow event registration');
+    expect(text).toContain('event organizer');
+    expect(text).toContain('registration submissions');
+    expect(text).toContain('More organizers reporting');
+    expect(text).not.toContain('seat provisioning');
+    expect(text).not.toContain('per license');
+    expect(text).not.toMatch(/\bprovisioning\b/);
+    // Truthful telemetry wording survives.
+    expect(text).toContain('the licensing service itself');
+    expect(text).toContain('`POST /api/oncall/licenses/provision`');
+  });
+
+  test('localizes declared incident copy but keeps the service and endpoint', () => {
+    const vocabulary = getSev1ChatterVocabulary(story, skin, 'licensing-latency');
+    const copy = buildSev1IncidentCopy(story, vocabulary);
+
+    expect(copy.title).toBe('Event registration slowdown — latency and memory climbing on licensing-api');
+    expect(copy.label).toBe('Event registration slowdown — licensing-api latency + RSS climbing');
+    expect(copy.summary).toContain('POST /api/oncall/licenses/provision p95 at ~6.8s');
+    expect(copy.summary).toContain('Every registration submission is slow and getting slower.');
+    expect(story.title).toBe('License provisioning slowdown — latency and memory climbing on licensing-api');
+  });
+});
