@@ -375,15 +375,15 @@
                     <div class="ptypes">
                       <div class="ptype">
                         <div class="ptype_text"><p class="ptype_name">一般参加枠</p><p class="join_fee">無料</p></div>
-                        <div class="participants"><span class="determine">先着順</span><span class="amount">47/60<small>人</small></span></div>
+                        <div class="participants"><span class="determine">先着順</span><span class="amount" data-slot="enterprise" data-count="47" data-cap="60">47/60<small>人</small></span></div>
                       </div>
                       <div class="ptype">
                         <div class="ptype_text"><p class="ptype_name">LT枠（5分）</p><p class="join_fee">無料</p></div>
-                        <div class="participants is_full"><span class="determine">先着順</span><span class="amount">5/5<small>人</small></span></div>
+                        <div class="participants is_full"><span class="determine">先着順</span><span class="amount" data-slot="business" data-count="5" data-cap="5">5/5<small>人</small></span></div>
                       </div>
                       <div class="ptype">
                         <div class="ptype_text"><p class="ptype_name">ブログ書きます枠</p><p class="join_fee">無料</p></div>
-                        <div class="participants"><span class="determine">先着順</span><span class="amount">3/5<small>人</small></span></div>
+                        <div class="participants"><span class="determine">先着順</span><span class="amount" data-slot="starter" data-count="3" data-cap="5">3/5<small>人</small></span></div>
                       </div>
                     </div>
                   </td>
@@ -463,11 +463,11 @@
         </div>
 
         <div class="group_box">
-          <h3 class="event_detail_title">参加者（55人）</h3>
+          <h3 class="event_detail_title">参加者（<span class="js_attendee_total">55</span>人）</h3>
           <div class="group_inner">
             <div class="participant_grid" aria-label="参加者一覧">
               <span style="background:#5b8def">あ</span><span style="background:#e0883a">K</span><span style="background:#4caf7d">ゆ</span><span style="background:#9b6bd1">R</span><span style="background:#d1556b">な</span><span style="background:#3aa7b5">S</span><span style="background:#8d8d8d">こ</span><span style="background:#b58a3a">T</span><span style="background:#5b8def">ま</span><span style="background:#4caf7d">H</span><span style="background:#d1556b">り</span><span style="background:#9b6bd1">Y</span>
-              <span class="more">参加者一覧（55人）</span>
+              <span class="more">参加者一覧（<span class="js_attendee_total">55</span>人）</span>
             </div>
           </div>
         </div>
@@ -517,7 +517,7 @@
           <div class="group_inner conflict_note">開催日時が重複しているイベントに申し込んでいる場合、このイベントには申し込むことができません</div>
           <div class="group_inner period_area text_center">
             <strong>募集期間</strong>
-            2026/10/20(月) 12:00 〜<br>2026/11/27(金) 21:00
+            2026/10/20(火) 12:00 〜<br>2026/11/27(金) 21:00
           </div>
           <div class="group_inner">
             <a class="inquiry_link" href="#"><span class="icon_mail" aria-hidden="true"></span>イベントへのお問い合わせ</a>
@@ -617,6 +617,25 @@
       function receiptNo(id) {
         return String(id || '').replace(/-/g, '').slice(0, 8).toUpperCase();
       }
+      function recordRegistration(slotKey) {
+        var slot = document.querySelector('.amount[data-slot="' + slotKey + '"]');
+        if (slot) {
+          var count = parseInt(slot.dataset.count, 10) + 1;
+          var cap = parseInt(slot.dataset.cap, 10);
+          slot.dataset.count = String(count);
+          slot.textContent = count + '/' + cap;
+          slot.appendChild(el('small', null, '人'));
+          var opt = tierSelect.options[tierSelect.selectedIndex];
+          opt.textContent = opt.textContent.replace(/\d+\/\d+人/, count + '/' + cap + '人');
+          if (count >= cap) {
+            slot.parentNode.classList.add('is_full');
+            opt.textContent = opt.textContent.replace('先着順', '満席');
+          }
+        }
+        document.querySelectorAll('.js_attendee_total').forEach(function (node) {
+          node.textContent = String(parseInt(node.textContent, 10) + 1);
+        });
+      }
 
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -629,6 +648,7 @@
             result.appendChild(el('p', null, '通常より時間がかかっています。そのままお待ちください。'));
           }
         }, 3000);
+        var slotKey = tierSelect.value;
         var tierLabel = selectedTierLabel();
         try {
           var res = await fetch('/api/licenses/provision', {
@@ -649,6 +669,7 @@
             show('error', '申し込みを受け付けられませんでした', ['時間をおいてから、もう一度お試しください。']);
           } else {
             show('success', '申し込みが完了しました', []);
+            recordRegistration(slotKey);
             var dl = el('dl');
             dl.appendChild(el('dt', null, '受付番号')); dl.appendChild(el('dd', null, receiptNo(data.licenseId)));
             dl.appendChild(el('dt', null, '参加枠')); dl.appendChild(el('dd', null, tierLabel));
