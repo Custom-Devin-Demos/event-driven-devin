@@ -87,6 +87,22 @@ function resolveServiceAuth(options = {}) {
  * @param {string[]} [options.repos] - Repositories ('owner/repo') to scope the session to
  * @returns {Object|null} - { sessionId, url } or null if failed/not configured
  */
+/**
+ * True when the v3 API rejected the request because of the `platform` label,
+ * as opposed to any other validation error, which must not be retried.
+ *
+ * The API answers with an RFC 7807 problem body, e.g.
+ *   { "status": 400, "detail": "platform 'xyz' is not configured for this org.
+ *     Available platforms: ['linux', 'macos', 'windows']; available outpost pools: [...]" }
+ */
+function isPlatformRejection(body, error) {
+  if (!body.platform || error.response?.status !== 400) return false;
+  const data = error.response?.data;
+  const detail = typeof data === 'string' ? data : String(data?.detail ?? data?.message ?? '');
+  return detail.includes(`platform '${body.platform}'`)
+    || /\bplatform\b[^.]*\bnot configured\b/i.test(detail);
+}
+
 async function createDevinSession(prompt, options = {}) {
   const { serviceKey, orgId } = resolveServiceAuth(options);
 
@@ -117,9 +133,9 @@ async function createDevinSession(prompt, options = {}) {
       body.repos = options.repos;
     }
 
-    const response = await axios.post(
+    const post = (payload) => axios.post(
       `${DEVIN_API_BASE}/v3/organizations/${orgId}/sessions`,
-      body,
+      payload,
       {
         headers: {
           Authorization: `Bearer ${serviceKey}`,
@@ -128,6 +144,24 @@ async function createDevinSession(prompt, options = {}) {
         timeout: 15000,
       },
     );
+
+    let response;
+    try {
+      response = await post(body);
+    } catch (error) {
+      if (!isPlatformRejection(body, error)) {
+        throw error;
+      }
+      // The org has no platform/outpost with that label — fall back to the
+      // org default placement rather than losing the session.
+      logger.warn('Devin platform label rejected — retrying with the org default placement', {
+        platform: body.platform,
+        data: error.response?.data,
+      });
+      const fallbackBody = { ...body };
+      delete fallbackBody.platform;
+      response = await post(fallbackBody);
+    }
 
     const sessionId = response.data.session_id;
     const url = response.data.url || `https://app.devin.ai/sessions/${sessionId}`;

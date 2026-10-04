@@ -237,6 +237,7 @@ async function createSessionAndAlert(alertData) {
         orgId: resolvedOrgId,
         userId: resolvedUserId,
         title: alertData.title,
+        platform: alertData.sessionPlatform,
       });
 
       if (session) {
