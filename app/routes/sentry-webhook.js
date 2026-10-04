@@ -84,7 +84,7 @@ function extractAlertData(payload) {
       count: issue.count || '',
       shortId: issue.shortId || '',
       project: issue.project?.slug || issue.project?.name || '',
-      release: event.release?.version || '',
+      release: event.release?.version || (typeof event.release === 'string' ? event.release : ''),
       environment: event.environment || '',
       triggeredRule: '',
     };

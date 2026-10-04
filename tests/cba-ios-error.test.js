@@ -344,6 +344,25 @@ describe('CommBank iOS Pay anyone failure report', () => {
     expect(applyCustomerIdentity(base).release).toBe(APP_RELEASE);
   });
 
+  test('issue webhooks with a string Flutter release keep it through extraction and identity', () => {
+    const flutterRelease = `${APP_FLUTTER_RELEASE_PREFIX}1.0.0`;
+    const payload = (release) => ({
+      action: 'created',
+      data: {
+        issue: {
+          id: 'cba-ios-2',
+          title: APP_REPORT.errorMessage,
+          culprit: 'confirmPayment (CommBankApp/lib/app_model.dart)',
+          metadata: { type: APP_REPORT.errorType, value: APP_REPORT.errorMessage },
+        },
+        event: { release, tags: [['service', APP_SERVICE]] },
+      },
+    });
+    expect(applyCustomerIdentity(extractAlertData(payload(flutterRelease))).release).toBe(flutterRelease);
+    expect(applyCustomerIdentity(extractAlertData(payload({ version: flutterRelease }))).release).toBe(flutterRelease);
+    expect(applyCustomerIdentity(extractAlertData(payload(undefined))).release).toBe(APP_RELEASE);
+  });
+
   test('recognizes a tagless Flutter issue webhook by its Dart culprit', () => {
     expect(isInstantPathEvent({ culprit: APP_FLUTTER_CULPRIT, tags: [] })).toBe(true);
     expect(isInstantPathEvent({ culprit: 'profileFor (CommBankApp/lib/core/npp_addressing_profiles.dart)', tags: [] })).toBe(true);
