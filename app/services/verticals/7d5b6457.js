@@ -78,7 +78,7 @@ const VERIFICATION_TIMEOUT_MS = 2500;
 const VERIFICATION_ATTEMPTS = 3;
 const MAX_CLAIM_AMOUNT = 100000000;
 
-const SLACK_MEMBER_ID = process.env.SLACK_MEMBER_ID_7D5B6457 || 'U0C1N7TQ7MM';
+const SLACK_MEMBER_ID = process.env.SLACK_MEMBER_ID_7D5B6457 || '';
 
 const SENTRY_ISSUE_QUERY = 'is:unresolved "Instrument verification timed out"';
 
@@ -107,6 +107,11 @@ function gatewayTimeoutError(message) {
   error.code = 'INSTRUMENT_VERIFICATION_TIMEOUT';
   error.statusCode = 504;
   return error;
+}
+
+function applicantProfile(slug) {
+  const tenant = getTenant(slug);
+  return tenant ? { ...tenant.applicant } : undefined;
 }
 
 function routeTag(tenant) {
@@ -172,6 +177,10 @@ async function verifyInstrument(tenant, instrument) {
 }
 
 function parseRequest(data) {
+  if (data.acknowledged !== true) {
+    throw validationError('Applicant acknowledgement is required', 'ACKNOWLEDGEMENT_REQUIRED');
+  }
+
   const instrument = INSTRUMENTS[String(data.instrumentId || '')];
   if (!instrument) {
     throw validationError('Unknown executive instrument', 'UNKNOWN_INSTRUMENT');
@@ -322,6 +331,7 @@ module.exports = {
   submitEnforcementRequest,
   verifyInstrument,
   getTenant,
+  applicantProfile,
   TENANTS,
   INSTRUMENTS,
   REQUEST_TYPES,

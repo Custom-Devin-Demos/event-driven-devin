@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const { submitEnforcementRequest, getTenant } = require('../../services/verticals/7d5b6457');
+const { submitEnforcementRequest, getTenant, applicantProfile } = require('../../services/verticals/7d5b6457');
 
 const router = express.Router();
 
@@ -20,6 +20,7 @@ async function handleSubmit(req, res) {
       requestType: body.requestType,
       amount: body.amount,
       details: body.details,
+      acknowledged: body.acknowledged,
       devinUserId: body.devinUserId,
       devinOrgId: body.devinOrgId,
       devinEmail: body.devinEmail,
@@ -42,6 +43,12 @@ async function handleSubmit(req, res) {
 router.get('/7d5b6457/:tenant', (req, res, next) => {
   if (!getTenant(req.params.tenant)) return next();
   sendPage(req, res);
+});
+
+router.get('/api/7d5b6457/:tenant/applicant', (req, res) => {
+  const applicant = applicantProfile(req.params.tenant);
+  if (!applicant) return res.status(404).json({ success: false, code: 'UNKNOWN_TENANT' });
+  return res.json({ success: true, applicant });
 });
 
 router.post('/api/7d5b6457/:tenant/enforcement-requests', handleSubmit);

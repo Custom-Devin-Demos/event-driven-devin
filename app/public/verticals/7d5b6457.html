@@ -343,19 +343,22 @@
       .catch(function () {});
   </script>
   <script>
-    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
-
     // The page is only served at /7d5b6457/<slug>, so the tenant is its URL.
     var TENANT_SLUG = (window.location.pathname.match(/^\/7d5b6457\/([^/]+)/) || [])[1] || '';
     var SUBMIT_ENDPOINT = '/api/7d5b6457/' + encodeURIComponent(TENANT_SLUG) + '/enforcement-requests';
 
-    var APPLICANTS = { nouf: { name: 'نورة الحربي', id: '••••••2271' } };
-    var applicant = APPLICANTS[TENANT_SLUG.toLowerCase()];
-    if (applicant) {
-      document.getElementById('nj-applicant-name').textContent = applicant.name;
-      document.getElementById('nj-applicant-name-header').textContent = applicant.name;
-      document.getElementById('nj-applicant-id').textContent = applicant.id;
-      document.getElementById('nj-avatar').textContent = applicant.name.replace(/^ال/, '').charAt(0);
+    if (TENANT_SLUG) {
+      fetch('/api/7d5b6457/' + encodeURIComponent(TENANT_SLUG) + '/applicant')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (body) {
+          if (!body || !body.applicant) return;
+          var applicant = body.applicant;
+          document.getElementById('nj-applicant-name').textContent = applicant.fullName;
+          document.getElementById('nj-applicant-name-header').textContent = applicant.fullName;
+          document.getElementById('nj-applicant-id').textContent = applicant.nationalIdMasked;
+          document.getElementById('nj-avatar').textContent = applicant.fullName.replace(/^ال/, '').charAt(0);
+        })
+        .catch(function () {});
     }
 
     var form = document.getElementById('enforcementForm');
@@ -443,8 +446,9 @@
             requestType: requestType.value,
             amount: parseFloat(amount.value),
             details: details.value,
+            acknowledged: ack.checked,
             devinUserId: localStorage.getItem('devinUserId') || '',
-            devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
             devinEmail: localStorage.getItem('devinEmail') || '',
           }),
         });

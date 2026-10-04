@@ -5,13 +5,14 @@ jest.mock('../app/services/devin-session', () => ({
 const service = require('../app/services/verticals/7d5b6457');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 
-const { submitEnforcementRequest, getTenant, TENANTS, clock } = service;
+const { submitEnforcementRequest, getTenant, applicantProfile, TENANTS, clock } = service;
 
 const DEFAULT_REQUEST = {
   instrumentId: 'JDG-4470099812',
   requestType: 'financial',
   amount: 85000,
   details: 'لم يسدد المنفذ ضده المبلغ المحكوم به',
+  acknowledged: true,
 };
 
 describe('enforcement-request tenants', () => {
@@ -52,6 +53,8 @@ describe('enforcement-request tenants', () => {
       .rejects.toMatchObject({ code: 'UNKNOWN_TENANT' });
     expect(getTenant('')).toBeUndefined();
     expect(getTenant('NOUF')).toBe(TENANTS.nouf);
+    expect(applicantProfile('nouf')).toEqual(TENANTS.nouf.applicant);
+    expect(applicantProfile('nope')).toBeUndefined();
   });
 
   it('rejects malformed requests before contacting the registry', async () => {
@@ -61,6 +64,8 @@ describe('enforcement-request tenants', () => {
       .rejects.toMatchObject({ code: 'UNKNOWN_INSTRUMENT', statusCode: 400 });
     await expect(submitEnforcementRequest({ ...DEFAULT_REQUEST, tenant: 'nouf', requestType: 'x' }))
       .rejects.toMatchObject({ code: 'UNKNOWN_REQUEST_TYPE', statusCode: 400 });
+    await expect(submitEnforcementRequest({ ...DEFAULT_REQUEST, tenant: 'nouf', acknowledged: false }))
+      .rejects.toMatchObject({ code: 'ACKNOWLEDGEMENT_REQUIRED', statusCode: 400 });
     expect(slept).toBe(0);
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
