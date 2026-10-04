@@ -3044,7 +3044,7 @@ const ONCALL_SKINS = {
     alertCard: {
       title: 'p95 latency trending up — event registration submissions',
       team: 'event-registration-oncall',
-      symptom: 'Event registration submissions slowed after the last release and get slower with every request. Process RSS trends up alongside it.',
+      symptom: 'Event registration submissions are slow and get slower with every request. Process RSS trends up alongside it.',
       impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served slots that open at a fixed time are hit hardest.',
     },
     supportCenter: 'connpass サポート',
