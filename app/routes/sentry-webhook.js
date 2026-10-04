@@ -84,7 +84,7 @@ function extractAlertData(payload) {
       count: issue.count || '',
       shortId: issue.shortId || '',
       project: issue.project?.slug || issue.project?.name || '',
-      release: event.release?.version || '',
+      release: event.release?.version || (typeof event.release === 'string' ? event.release : ''),
       environment: event.environment || '',
       triggeredRule: '',
     };
@@ -156,7 +156,7 @@ function isSyntheticProbeEvent(alertData) {
  * fallback does not raise a second alert or Devin session.
  */
 // Verticals whose instant path already alerts; issue webhooks carry no event tags, so match on the culprit's module path.
-const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', 'westpac/ios', 'cba/ios', 'commbankcore', 'nppaddressingregistry', 'verizon/ios', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'c28a3fe9', 'a75ccde9', 'b4c3a7fc', '0eda990f', '2eb494c7', 'a1066f3a', 'fe0957f8', '6f38d771', '64e85fcf', 'cb48a22d', 'eda0e2e5', 'e33c0578', '2589dca4', '1d7f8961', '50753c43', '7c6a6ef9/coverage', 'buildcoveragesummary', 'verticals/bac', 'verticals/banamex', 'verticals/d7c4a1b9', 'verticals.d7c4a1b9', '4157609f', 'e57f4315', 'bd631c20', '1182181f', '26af2083', '246706c4', '8c0320af', '0a6f5e56', 'a70e8270', 'adbe35bc', '4e150e99', '9fdcf315', '513ad458', '8d3527ab', '0b0875b5', '631ad31e', 'b2085c10', 'ef51d258', 'f887d0be', 'd3e3804d', 'b6f570dc', 'd708940c', '04525b56', '918bb443', 'b19cd3b6', 'fd043af6', 'fe97a788', 'verticals/t1.js', '311c628f', 'cd608144', 'ed1d21a0', '95d1a7d1', 'dc2379a5', 'f687d492', '2cd6eb18', 'd3827a8c'];
+const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', 'westpac/ios', 'cba/ios', 'commbankcore', 'commbankapp/', 'nppaddressingregistry', 'verizon/ios', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'c28a3fe9', 'a75ccde9', 'b4c3a7fc', '0eda990f', '2eb494c7', 'a1066f3a', 'fe0957f8', '6f38d771', '64e85fcf', 'cb48a22d', 'eda0e2e5', 'e33c0578', '2589dca4', '1d7f8961', '50753c43', '7c6a6ef9/coverage', 'buildcoveragesummary', 'verticals/bac', 'verticals/banamex', 'verticals/d7c4a1b9', 'verticals.d7c4a1b9', '4157609f', 'e57f4315', 'bd631c20', '1182181f', '26af2083', '246706c4', '8c0320af', '0a6f5e56', 'a70e8270', 'adbe35bc', '4e150e99', '9fdcf315', '513ad458', '8d3527ab', '0b0875b5', '631ad31e', 'b2085c10', 'ef51d258', 'f887d0be', 'd3e3804d', 'b6f570dc', 'd708940c', '04525b56', '918bb443', 'b19cd3b6', 'fd043af6', 'fe97a788', 'verticals/t1.js', '311c628f', 'cd608144', 'ed1d21a0', '95d1a7d1', 'dc2379a5', 'f687d492', '2cd6eb18', 'd3827a8c'];
 // Verticals where only one code path alerts directly: every term must appear in the culprit.
 const INSTANT_PATH_CULPRIT_SIGNATURES = [['86a0a4f9', 'buildactivation'], ['/api/86a0a4f9/savings-card']];
 
@@ -450,16 +450,20 @@ const CUSTOMER_ALERT_IDENTITY = {
       scenario: WESTPAC_IOS_SCENARIO,
     },
   },
-  // CommBank native SwiftUI app (github.com/COG-GTM/event-driven-ios), iOS
-  // only. Reports arrive via /api/cba/ios/error; remediation lands in the Swift
-  // repo and is verified on the iOS simulator from a macOS session. Routed as
-  // customer cba like the NetBank web vertical, with its own service identity.
+  // CommBank app clients (github.com/COG-GTM/event-driven-ios): the Flutter app
+  // (hosted at /commbankapp, also iOS) and the native SwiftUI app. Reports
+  // arrive via /api/cba/ios/error; remediation lands in that repo and is
+  // verified on the iOS simulator from a macOS session. Routed as customer cba
+  // like the NetBank web vertical, with its own service identity.
   'cba-ios': {
     customer: 'cba',
-    verticalLabel: 'CommBank app (iOS)',
+    verticalLabel: 'CommBank app (Flutter web/iOS + native iOS)',
     service: 'customer-cba-ios',
     project: 'commbank-mobile-ios',
     release: 'commbank-mobile-ios@1.0.0',
+    // The event's own release tells Flutter (commbank-app-flutter@*) from native
+    // Swift apart; only fall back to the native release when Sentry sent none.
+    keepEventRelease: true,
     promptAppendix: CBA_IOS_REMEDIATION_DIRECTIVE,
     tagOverrides: {
       customer: 'customer-cba-ios',
@@ -503,7 +507,8 @@ function applyCustomerIdentity(alertData) {
 
   if (!slug) return alertData;
 
-  const { tagOverrides, ...fields } = CUSTOMER_ALERT_IDENTITY[slug];
+  const { tagOverrides, keepEventRelease, ...fields } = CUSTOMER_ALERT_IDENTITY[slug];
+  if (keepEventRelease && alertData.release) fields.release = alertData.release;
   const overridden = new Set(Object.keys(tagOverrides));
   // Sentry issue-alert webhooks deliver tags as [key, value] arrays while the
   // instant path uses { key, value } objects; normalize so overridden tags are

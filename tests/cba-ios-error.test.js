@@ -26,6 +26,9 @@ const { Sentry } = require('../app/telemetry/sentry');
 const { incrementMetric } = require('../app/telemetry/datadog');
 const {
   APP_CULPRIT,
+  APP_FLUTTER_CULPRIT,
+  APP_FLUTTER_RELEASE_PREFIX,
+  APP_WEB_PATH,
   APP_PROJECT,
   APP_REMEDIATION_DIRECTIVE,
   APP_RELEASE,
@@ -123,6 +126,40 @@ describe('CommBank iOS Pay anyone failure report', () => {
     incrementMetric.mockClear();
   });
 
+  test('routes Flutter (web/iOS) reports to the Dart registry culprit with the same identity', async () => {
+    const flutterReport = {
+      ...APP_REPORT,
+      source: `${APP_SOURCE_PREFIX}web`,
+      platform: 'web',
+      release: `${APP_FLUTTER_RELEASE_PREFIX}1.0.0`,
+      device: 'Chrome',
+    };
+    const { status, body } = await postJson(server, IOS_ERROR_PATH, flutterReport);
+
+    expect(status).toBe(202);
+    expect(body.service).toBe(APP_SERVICE);
+
+    const alertData = createSessionAndAlert.mock.calls[0][0];
+    expect(alertData).toMatchObject({
+      customer: 'cba',
+      service: APP_SERVICE,
+      verticalLabel: 'CommBank app — Pay anyone (web)',
+      release: `${APP_FLUTTER_RELEASE_PREFIX}1.0.0`,
+      culprit: APP_FLUTTER_CULPRIT,
+      devinUserId: APP_REPORT.devinUserId,
+      devinOrgId: ORG_ID,
+      promptAppendix: APP_REMEDIATION_DIRECTIVE,
+    });
+    expect(alertData.tags).toEqual(expect.arrayContaining([
+      { key: 'platform', value: 'web' },
+      { key: 'service', value: APP_SERVICE },
+    ]));
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('CommBankApp/lib/core/npp_addressing_profiles.dart');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('NPPAddressingProfiles.swift');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain(APP_WEB_PATH);
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('CBA_DISABLE_FAILURE_REPORTS=1');
+  });
+
   test('accepts a valid app report and forwards the client identity', async () => {
     const { status, body } = await postJson(server, IOS_ERROR_PATH, APP_REPORT);
 
@@ -139,7 +176,7 @@ describe('CommBank iOS Pay anyone failure report', () => {
     expect(alertData).toMatchObject({
       customer: 'cba',
       service: APP_SERVICE,
-      verticalLabel: 'CommBank app — Pay anyone (iOS)',
+      verticalLabel: 'CommBank app — Pay anyone (ios)',
       project: APP_PROJECT,
       release: APP_RELEASE,
       culprit: APP_CULPRIT,
@@ -275,7 +312,7 @@ describe('CommBank iOS Pay anyone failure report', () => {
     });
     expect(appAlert).toMatchObject({
       customer: 'cba',
-      verticalLabel: 'CommBank app (iOS)',
+      verticalLabel: 'CommBank app (Flutter web/iOS + native iOS)',
       service: APP_SERVICE,
       project: APP_PROJECT,
       release: APP_RELEASE,
@@ -293,6 +330,43 @@ describe('CommBank iOS Pay anyone failure report', () => {
     });
     expect(webAlert.service).toBeUndefined();
     expect(webAlert.promptAppendix).toBeUndefined();
+  });
+
+  test('keeps the Flutter release on webhook-created alerts and falls back to the native release', () => {
+    const base = {
+      issueTitle: APP_REPORT.errorMessage,
+      culprit: APP_FLUTTER_CULPRIT,
+      tags: [['service', APP_SERVICE]],
+    };
+    const flutterRelease = `${APP_FLUTTER_RELEASE_PREFIX}1.0.0`;
+    expect(applyCustomerIdentity({ ...base, release: flutterRelease }).release).toBe(flutterRelease);
+    expect(applyCustomerIdentity({ ...base, release: '' }).release).toBe(APP_RELEASE);
+    expect(applyCustomerIdentity(base).release).toBe(APP_RELEASE);
+  });
+
+  test('issue webhooks with a string Flutter release keep it through extraction and identity', () => {
+    const flutterRelease = `${APP_FLUTTER_RELEASE_PREFIX}1.0.0`;
+    const payload = (release) => ({
+      action: 'created',
+      data: {
+        issue: {
+          id: 'cba-ios-2',
+          title: APP_REPORT.errorMessage,
+          culprit: 'confirmPayment (CommBankApp/lib/app_model.dart)',
+          metadata: { type: APP_REPORT.errorType, value: APP_REPORT.errorMessage },
+        },
+        event: { release, tags: [['service', APP_SERVICE]] },
+      },
+    });
+    expect(applyCustomerIdentity(extractAlertData(payload(flutterRelease))).release).toBe(flutterRelease);
+    expect(applyCustomerIdentity(extractAlertData(payload({ version: flutterRelease }))).release).toBe(flutterRelease);
+    expect(applyCustomerIdentity(extractAlertData(payload(undefined))).release).toBe(APP_RELEASE);
+  });
+
+  test('recognizes a tagless Flutter issue webhook by its Dart culprit', () => {
+    expect(isInstantPathEvent({ culprit: APP_FLUTTER_CULPRIT, tags: [] })).toBe(true);
+    expect(isInstantPathEvent({ culprit: 'profileFor (CommBankApp/lib/core/npp_addressing_profiles.dart)', tags: [] })).toBe(true);
+    expect(isInstantPathEvent({ culprit: 'settlePayment (app/services/verticals/cba.js)', tags: [] })).toBe(false);
   });
 
   test('recognizes the iOS instant path from transaction culprit and tag', () => {
