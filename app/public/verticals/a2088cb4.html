@@ -406,10 +406,27 @@
       el.textContent = msg;
       if (dot && dot.style.display === 'block') { dot.style.display = 'none'; ribbon.style.display = 'block'; }
     };
-    const declareSev1 = () => {
+    // The browser's oncall_run cookie scopes incident state, so a reload or a
+    // second tab joins the SEV-1 this browser already has open instead of
+    // declaring another one.
+    const activeSev1 = () => fetch('/api/oncall/incident/state', { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .then((list) => (Array.isArray(list) ? list : []).find((e) =>
+        e.kind === SEV1_KIND && e.status === 'declared' && e.msRemaining > 0) || null)
+      .catch(() => null);
+    const declareSev1 = async () => {
+      // Only the on-call (shimmed) route declares; the bare page is the
+      // legacy error track and stays untouched.
+      if (!document.getElementById('oncall-ribbon')) return;
       if (sev1DeclaredAt && Date.now() - sev1DeclaredAt < sev1WindowMs) return;
       const declaredAt = Date.now();
       sev1DeclaredAt = declaredAt;
+      const open = await activeSev1();
+      if (open) {
+        sev1WindowMs = open.msRemaining;
+        sev1Status(true, 'Joined open SEV-1 (IR-' + (open.publicId || open.runRef) + ', ref ' + open.runRef + ')');
+        return;
+      }
       fetch('/api/oncall/incident', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
         body: JSON.stringify({ kind: SEV1_KIND, skin: SEV1_SKIN, devinEmail: localStorage.getItem('devinEmail') || '' }),
