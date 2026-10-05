@@ -74,6 +74,8 @@ log "lock acquired"
 
 # ── 1. disk + backups ───────────────────────────────────────────────────────
 docker image prune -f >/dev/null || true
+# Every deploy rebuilds images, so stale build cache accumulates on the 19G root.
+docker builder prune -f --filter until=24h >/dev/null || true
 AVAIL_MB=$(df -Pm / | awk 'NR==2 {print $4}')
 [ "$AVAIL_MB" -ge "$MIN_FREE_MB" ] || die "only ${AVAIL_MB}MB free on /, need ${MIN_FREE_MB}MB"
 
