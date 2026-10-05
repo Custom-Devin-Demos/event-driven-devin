@@ -1,4 +1,4 @@
-/* global beforeEach, describe, expect, jest, test */
+/* global afterAll, beforeEach, describe, expect, jest, test */
 
 const { setImmediate } = require('timers');
 
@@ -37,10 +37,17 @@ const {
   IDENTITY_VERIFICATION_PROVIDERS,
   REMEDIATION_DIRECTIVE,
 } = require('../app/services/verticals/b25c3f24');
+const originalAffirmSlackChannelId = process.env.SLACK_CHANNEL_ID_B25C3F24;
 
 describe('Affirm identity verification service (b25c3f24)', () => {
+  afterAll(() => {
+    if (originalAffirmSlackChannelId === undefined) delete process.env.SLACK_CHANNEL_ID_B25C3F24;
+    else process.env.SLACK_CHANNEL_ID_B25C3F24 = originalAffirmSlackChannelId;
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env.SLACK_CHANNEL_ID_B25C3F24;
     createLinearIssue.mockResolvedValue(null);
     createSessionAndAlert.mockResolvedValue(null);
     addLinearComment.mockResolvedValue(null);
@@ -111,13 +118,21 @@ describe('Affirm identity verification service (b25c3f24)', () => {
       },
     });
 
-    await expect(verifyIdentity({
-      planId: 'plan-12',
-      ssnLast4: '1234',
-      orderTotal: 1944.39,
-    })).rejects.toThrow(TypeError);
-    await flushAsyncWork();
+    const previousChannelId = process.env.SLACK_CHANNEL_ID_B25C3F24;
+    process.env.SLACK_CHANNEL_ID_B25C3F24 = 'C_AFFIRM';
+    try {
+      await expect(verifyIdentity({
+        planId: 'plan-12',
+        ssnLast4: '1234',
+        orderTotal: 1944.39,
+      })).rejects.toThrow(TypeError);
+      await flushAsyncWork();
+    } finally {
+      if (previousChannelId === undefined) delete process.env.SLACK_CHANNEL_ID_B25C3F24;
+      else process.env.SLACK_CHANNEL_ID_B25C3F24 = previousChannelId;
+    }
 
+    expect(process.env.SLACK_CHANNEL_ID_B25C3F24).toBe(previousChannelId);
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.promptAppendix).toContain('COG-9999');
     expect(alert.promptAppendix).toContain('The ticket is created in In Progress, and the app comments your session link on it and posts the ticket link in the Slack alert thread.');
@@ -132,7 +147,7 @@ describe('Affirm identity verification service (b25c3f24)', () => {
       body: expect.stringContaining('https://app.devin.ai/sessions/abc'),
     }));
     expect(addLinearComment.mock.calls[0][0].body).not.toContain('1234');
-    expect(postLinearIssueLink).toHaveBeenCalledWith('1.2', issue);
+    expect(postLinearIssueLink).toHaveBeenCalledWith('1.2', issue, 'C_AFFIRM');
   });
 
   test('posts the Slack ticket link even when the session comment fails', async () => {
@@ -161,7 +176,7 @@ describe('Affirm identity verification service (b25c3f24)', () => {
     await flushAsyncWork();
 
     expect(addLinearComment).toHaveBeenCalled();
-    expect(postLinearIssueLink).toHaveBeenCalledWith('1.2', issue);
+    expect(postLinearIssueLink).toHaveBeenCalledWith('1.2', issue, undefined);
   });
 
   test('posts the Slack ticket link when a session was not created', async () => {
@@ -185,7 +200,7 @@ describe('Affirm identity verification service (b25c3f24)', () => {
     })).rejects.toThrow(TypeError);
     await flushAsyncWork();
 
-    expect(postLinearIssueLink).toHaveBeenCalledWith('1.2', issue);
+    expect(postLinearIssueLink).toHaveBeenCalledWith('1.2', issue, undefined);
     expect(addLinearComment).not.toHaveBeenCalled();
   });
 

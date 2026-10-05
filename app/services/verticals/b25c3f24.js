@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
+const { getCustomerConfig } = require('../../../config/customers');
 const { createSessionAndAlert } = require('../devin-session');
 const { declareDatadogIncident } = require('../datadog-incidents');
 const {
@@ -283,7 +284,11 @@ async function verifyIdentity(data) {
       const session = outcome && outcome.session;
       if (issue && outcome && outcome.threadTs) {
         try {
-          await postLinearIssueLink(outcome.threadTs, issue);
+          await postLinearIssueLink(
+            outcome.threadTs,
+            issue,
+            getCustomerConfig('b25c3f24').slackChannelId || undefined,
+          );
         } catch (err) {
           logger.warn('Failed to post Linear issue link to Slack alert thread', {
             error: err.message,
