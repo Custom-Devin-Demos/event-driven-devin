@@ -295,6 +295,22 @@ describe('shared iOS demo failure report endpoint', () => {
     expect(await resolveUserIdByEmail('reporter@example.com', '')).toBe('');
   });
 
+  test('resolves an email-only reporter against the configured customer org', async () => {
+    const original = process.env.DEVIN_ORG_ID_IOS_DEMOS;
+    process.env.DEVIN_ORG_ID_IOS_DEMOS = 'org-configured';
+    listOrgUsers.mockResolvedValueOnce([{ user_id: 'user-reporter', email: 'reporter@example.com' }]);
+    try {
+      const report = { ...appReport(), devinUserId: '', devinEmail: 'reporter@example.com' };
+      delete report.devinOrgId;
+      await reportAppFailure('abcd1234', report).sessionPromise;
+      expect(listOrgUsers).toHaveBeenCalledWith('org-configured', expect.any(Object));
+      expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('user-reporter');
+    } finally {
+      if (original === undefined) delete process.env.DEVIN_ORG_ID_IOS_DEMOS;
+      else process.env.DEVIN_ORG_ID_IOS_DEMOS = original;
+    }
+  });
+
   test('defaults the session platform to macOS when the environment override is unset', async () => {
     const original = process.env.IOS_DEMOS_SESSION_PLATFORM;
     let isolatedService;

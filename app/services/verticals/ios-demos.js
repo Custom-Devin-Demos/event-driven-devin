@@ -228,9 +228,10 @@ function reportAppFailure(slug, report) {
     triggeredRule: '',
   });
 
-  const needsLookup = !body.devinUserId && body.devinEmail && body.devinOrgId;
+  const lookupOrgId = body.devinOrgId || getCustomerConfig(CUSTOMER).devinOrgId || process.env.DEVIN_ORG_ID || '';
+  const needsLookup = !body.devinUserId && body.devinEmail && lookupOrgId;
   const sessionPromise = (needsLookup
-    ? resolveUserIdByEmail(body.devinEmail, body.devinOrgId)
+    ? resolveUserIdByEmail(body.devinEmail, lookupOrgId)
       .then((userId) => raiseAlert(userId || undefined))
     : raiseAlert(body.devinUserId)
   ).catch((alertError) => {
