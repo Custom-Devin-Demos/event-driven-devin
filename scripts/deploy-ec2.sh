@@ -85,25 +85,29 @@ cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 
 # Optional .env sync from the deploy workflow (Actions secrets). Applied under
 # the lock and after the backup above, so rollback restores the previous .env.
-# Allowlisted keys only; a value that isn't a single-line https URL is skipped
+# The staged file must be exactly one `KEY=value` line for an allowlisted key,
+# with a single-line https URL value; anything else is logged and skipped
 # (deploy continues with the current .env).
 ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL)
 if [ -n "${ENV_SYNC_FILE:-}" ] && [ -s "$ENV_SYNC_FILE" ]; then
-  while IFS= read -r line || [ -n "$line" ]; do
-    key=${line%%=*}; val=${line#*=}
-    if [[ " ${ENV_SYNC_KEYS[*]} " != *" $key "* ]]; then log "env sync: ignoring non-allowlisted key"; continue; fi
-    if ! [[ "$val" =~ ^https://[^[:space:]\"\'\$]+$ ]]; then
-      log "env sync: WARNING $key is not a single-line https URL; leaving .env unchanged"
-      continue
-    fi
-    if grep -qxF "$key=$val" "$APP_DIR/.env"; then log "env sync: $key unchanged"; continue; fi
+  sync_line=$(head -n 1 "$ENV_SYNC_FILE")
+  sync_key=${sync_line%%=*}; sync_val=${sync_line#*=}
+  if [ "$(wc -l < "$ENV_SYNC_FILE")" != 1 ] || [ "$(wc -c < "$ENV_SYNC_FILE")" != $(( ${#sync_line} + 1 )) ]; then
+    log "env sync: WARNING staged file is not exactly one line; leaving .env unchanged"
+  elif [[ " ${ENV_SYNC_KEYS[*]} " != *" $sync_key "* ]]; then
+    log "env sync: WARNING non-allowlisted key; leaving .env unchanged"
+  elif ! [[ "$sync_val" =~ ^https://[^[:space:]\"\'\$]+$ ]]; then
+    log "env sync: WARNING $sync_key is not a single-line https URL; leaving .env unchanged"
+  elif grep -qxF "$sync_key=$sync_val" "$APP_DIR/.env"; then
+    log "env sync: $sync_key unchanged"
+  else
     tmp_env=$(mktemp "$APP_DIR/.env.sync.XXXXXX")
-    grep -v "^$key=" "$APP_DIR/.env" > "$tmp_env" || true
-    printf '%s=%s\n' "$key" "$val" >> "$tmp_env"
+    grep -v "^$sync_key=" "$APP_DIR/.env" > "$tmp_env" || true
+    printf '%s=%s\n' "$sync_key" "$sync_val" >> "$tmp_env"
     cat "$tmp_env" > "$APP_DIR/.env"
     rm -f "$tmp_env"
-    log "env sync: $key updated"
-  done < "$ENV_SYNC_FILE"
+    log "env sync: $sync_key updated"
+  fi
 fi
 
 # Back up exactly the top-level entries this deploy will touch.

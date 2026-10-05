@@ -80,7 +80,7 @@ jobs:
           fi
           printf 'ONCALL_TEAMS_WEBHOOK_URL=%s\n' "$ONCALL_TEAMS_WEBHOOK_URL" | \
             ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
-            'umask 077 && mkdir -p /home/ubuntu/incoming && cat > /home/ubuntu/incoming/env-sync-${{ github.sha }}'
+            'umask 077 && mkdir -p /home/ubuntu/incoming && cat > /home/ubuntu/incoming/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
 
       # Everything below happens on the host through scripts/deploy-ec2.sh
       # (taken from the release being deployed): lock, backup, mirror the tree
@@ -95,8 +95,10 @@ jobs:
           rm -rf "$STAGING" && mkdir -p "$STAGING"
           tar xzf "/home/ubuntu/release-$SHA.tar.gz" -C "$STAGING"
           rm -f "/home/ubuntu/release-$SHA.tar.gz"
-          ENV_SYNC="/home/ubuntu/incoming/env-sync-$SHA"
+          ENV_SYNC="/home/ubuntu/incoming/env-sync-$SHA-${{ github.run_id }}-${{ github.run_attempt }}"
           trap 'rm -rf "$STAGING" "$ENV_SYNC"' EXIT
+          # Staged files left by interrupted runs are never applied; remove them.
+          find /home/ubuntu/incoming -maxdepth 1 -name 'env-sync-*' ! -path "$ENV_SYNC" -delete 2>/dev/null || true
           ENV_SYNC_FILE="$ENV_SYNC" bash "$STAGING/scripts/deploy-ec2.sh" "$STAGING" "${{ github.repository }}@${SHA:0:7}"
           EOF
 
