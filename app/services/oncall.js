@@ -1535,12 +1535,18 @@ function isValidChatterVocabulary(vocabulary) {
  * strings (headings, button, status labels). Only flat string values are
  * accepted; the page falls back to its English default for any other key.
  */
-const BCP47_LANG_TAG = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
+function isValidLocaleTag(tag) {
+  try {
+    return Intl.getCanonicalLocales(tag).length === 1;
+  } catch (_err) {
+    return false;
+  }
+}
 
 function isValidIncidentCopy(copy) {
   return isPlainObject(copy) &&
     Object.values(copy).every((value) => typeof value === 'string') &&
-    (copy.lang === undefined || BCP47_LANG_TAG.test(copy.lang));
+    (copy.lang === undefined || isValidLocaleTag(copy.lang));
 }
 
 function replaceChatterVocabulary(text, vocabulary) {

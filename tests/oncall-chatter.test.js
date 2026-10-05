@@ -324,6 +324,8 @@ describe('SEV-1 persona chatter vocabulary — 4875267e (hightech, Japanese term
   test('only accepts a well-formed BCP 47 tag for copy.lang', () => {
     expect(isValidIncidentCopy({ lang: 'ja' })).toBe(true);
     expect(isValidIncidentCopy({ lang: 'ja-JP' })).toBe(true);
+    expect(isValidIncidentCopy({ lang: 'en-US-u-ca-gregory' })).toBe(true);
+    expect(isValidIncidentCopy({ lang: 'en-US-US' })).toBe(false);
     expect(isValidIncidentCopy({ lang: 'not a locale!' })).toBe(false);
     expect(isValidIncidentCopy({ lang: '' })).toBe(false);
     expect(() => new Date().toLocaleString('not a locale!')).toThrow(RangeError);
