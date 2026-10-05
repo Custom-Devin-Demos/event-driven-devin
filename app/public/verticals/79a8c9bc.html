@@ -75,6 +75,11 @@
     .submit-btn { display: block; width: 100%; min-height: 56px; padding: 12px 32px; border: 0; border-radius: 9999px; background: var(--accent); color: var(--chrome-text); font-size: 20px; font-weight: 700; }
     .submit-btn:hover { background: color-mix(in srgb, var(--accent) 80%, var(--chrome-bg)); }
     .submit-btn:disabled { cursor: wait; opacity: .8; }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 12px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .06em; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--accent); }
     .status { min-height: 22px; margin: 14px 0 0; font-size: 14px; text-align: center; color: var(--muted); }
     .result-box { display: none; margin-top: 16px; padding: 16px 20px; border-radius: 6px; border-left: 4px solid var(--muted); background: var(--paper); font-size: 14px; }
     .result-box.success { display: block; border-left-color: var(--go); }
@@ -175,6 +180,7 @@
               </div>
               <dl class="summary" aria-label="Transfer summary"><div><dt>From → To</dt><dd id="summaryDirection">—</dd></div><div><dt>Amount</dt><dd id="summaryAmount">—</dd></div><div><dt>Fee</dt><dd id="summaryFee">—</dd></div><div><dt>Total debit</dt><dd id="summaryTotal">—</dd></div></dl>
               <button type="submit" id="submitBtn" class="submit-btn">Transfer Now</button>
+              <div class="stopwatch" id="submitTimer" role="timer" aria-live="off"><span class="sw-label">Transfer time</span><span class="sw-value" id="submitTimerValue">0.0s</span></div>
               <p class="status" id="transferStatus" role="status" aria-live="polite">Review your transfer before submitting.</p>
               <div id="result" class="result-box" role="status" aria-live="polite"></div>
             </form>
@@ -261,7 +267,29 @@
     toAccount.addEventListener('change', onAccountChange);
     amountInput.addEventListener('input', renderSummary);
     tierSelect.addEventListener('change', renderSummary);
+    const timer = document.getElementById('submitTimer');
+    const timerValue = document.getElementById('submitTimerValue');
+    let timerHandle = null;
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      timer.className = 'stopwatch on done';
+    }
     form.addEventListener('reset', () => {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timer.className = 'stopwatch';
+      timerValue.textContent = '0.0s';
       result.className = 'result-box';
       result.textContent = '';
       status.textContent = idleStatus;
@@ -277,6 +305,7 @@
         return;
       }
       button.disabled = true;
+      const started = startTimer();
       button.textContent = 'Processing…';
       status.textContent = 'Your transfer is processing…';
       result.className = 'result-box';
@@ -306,6 +335,7 @@
         result.textContent = 'We can’t complete your transfer right now. Please try again later or call 1-866-671-5353.';
         status.textContent = 'Transfers are unavailable right now.';
       } finally {
+        stopTimer(started);
         button.disabled = false;
         button.textContent = 'Transfer Now';
       }
