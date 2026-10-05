@@ -49,6 +49,8 @@ describe('on-call hub routes', () => {
     expect(html).toContain("localStorage.getItem('oncallTeamsAlerts') === 'on'");
     expect(html).toContain("localStorage.getItem('oncallTeamsWebhookUrl')");
     expect(html).toMatch(/if \(d\.teamsError\)[^\n]*invalid/);
+    expect(html).toContain('id="oncall-teams-copy"');
+    expect(html).toContain('teams.microsoft.com/l/channel/');
   });
 });
 

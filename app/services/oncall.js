@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
-const { buildTeamsAlertCard, isTeamsWebhookUrl, postTeamsCard } = require('./teams');
+const { buildTeamsAlertCard, isTeamsWebhookUrl, postTeamsCard, teamsCardPlainText } = require('./teams');
 const { createDevinSession } = require('./devin-api');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
@@ -661,12 +661,11 @@ function validEmail(email) {
 }
 
 /**
- * Mirror of the Slack alert card for Teams. Delivery is best-effort: a failed
- * Teams post is logged and never blocks the Slack card.
+ * Mirror of the Slack alert card for Teams.
  */
-async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef, events, firstSeen, triggeredByEmail }) {
+function buildOncallTeamsCard(scenario, skin, { card, brand, runRef, events, firstSeen, triggeredByEmail }) {
   const demoPath = demoPagePath(scenario, skin);
-  const teamsCard = buildTeamsAlertCard({
+  return buildTeamsAlertCard({
     title: `\u{1F6A8} [Triggered] ${card.monitor}`,
     facts: [
       ['Service', `${card.service} (${brand})`],
@@ -692,6 +691,13 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
       demoPath ? { title: 'Open demo page', url: `${DEMO_BASE_URL()}${demoPath}` } : null,
     ],
   });
+}
+
+/**
+ * Delivery is best-effort: a failed Teams post is logged and never blocks the
+ * Slack card.
+ */
+async function postTeamsAlert(webhookUrl, scenario, teamsCard) {
   try {
     await postTeamsCard(webhookUrl, teamsCard);
     logger.info('On-Call alert posted to Teams', { scenario: scenario.vertical || scenario.service });
@@ -756,11 +762,12 @@ async function postOncallAlert(scenarioId, options = {}) {
     datadogActions(),
     contextBlock(card.service, triggeredBy),
   ];
-  const teamsDelivery = teamsWebhookUrl
-    ? postTeamsAlert(teamsWebhookUrl, scenario, skin, {
+  const teamsCard = teamsWebhookUrl || options.teams
+    ? buildOncallTeamsCard(scenario, skin, {
       card, brand, runRef, events, firstSeen, triggeredByEmail: validEmail(options.devinEmail),
     })
-    : Promise.resolve(null);
+    : null;
+  const teamsDelivery = teamsWebhookUrl ? postTeamsAlert(teamsWebhookUrl, scenario, teamsCard) : Promise.resolve(null);
   let ts = null;
   if (slackReady) {
     try {
@@ -790,7 +797,10 @@ async function postOncallAlert(scenarioId, options = {}) {
     ok: true,
     ...(ts ? { ts, channel: alertsChannel } : {}),
     ...(teams ? { teams: true } : {}),
-    ...(options.teams && !teams ? { teamsFailed: true } : {}),
+    ...(options.teams && teamsWebhookUrl && !teams ? { teamsFailed: true } : {}),
+    // Not auto-posted: the hub offers a one-click copy of this text so the
+    // user pastes it into Teams themselves (no webhook needed).
+    ...(options.teams && !teams ? { teamsText: teamsCardPlainText(teamsCard) } : {}),
     ...(userTeamsUrlInvalid ? { teamsError: 'teamsWebhookUrl must be a Microsoft Teams Workflow webhook URL' } : {}),
     ...(session ? { sessionUrl: session.url } : {}),
     ...(sonarPR ? { sonarPR: true } : {}),

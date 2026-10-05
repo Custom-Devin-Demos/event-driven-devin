@@ -224,7 +224,8 @@ describe('per-user Teams toggle (hub-local setting)', () => {
   test('non-Teams URLs are never posted to, and the Slack alert still goes out', async () => {
     setEnv({ slack: true, teams: true });
     const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true, teamsWebhookUrl: 'http://169.254.169.254/latest/meta-data' });
-    expect(result).toMatchObject({ ok: true, channel: 'C0TEST', teamsFailed: true, teamsError: expect.stringMatching(/Teams Workflow webhook/) });
+    expect(result).toMatchObject({ ok: true, channel: 'C0TEST', teamsError: expect.stringMatching(/Teams Workflow webhook/), teamsText: expect.any(String) });
+    expect(result.teamsFailed).toBeUndefined();
     expect(postMessage).toHaveBeenCalledTimes(1);
     expect(axios.post).not.toHaveBeenCalled();
   });
@@ -249,13 +250,32 @@ describe('per-user Teams toggle (hub-local setting)', () => {
     setEnv({ slack: true, teams: true });
     axios.post.mockRejectedValue(new Error('boom'));
     const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true });
-    expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST', teamsFailed: true });
+    expect(result).toMatchObject({ ok: true, ts: '1700000000.000100', channel: 'C0TEST', teamsFailed: true, teamsText: expect.any(String) });
   });
 
-  test('toggle on without any webhook stays Slack-only and flags the miss', async () => {
+  test('toggle on without any webhook returns the alert as paste-ready text for Teams', async () => {
     setEnv({ slack: true, teams: false });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true, devinEmail: 'se@cognition.ai' });
+    expect(result).toMatchObject({ ok: true, ts: '1700000000.000100', channel: 'C0TEST' });
+    expect(result.teamsFailed).toBeUndefined();
+    expect(axios.post).not.toHaveBeenCalled();
+    const lines = result.teamsText.split('\n');
+    expect(lines[0]).toMatch(/^\u{1F6A8} \[Triggered\] /u);
+    expect(lines).toEqual(expect.arrayContaining([
+      'Incident Ref: run-abc',
+      'Triggered by: se@cognition.ai',
+      'Monitor query',
+      expect.stringMatching(/^Symptom: /),
+      expect.stringMatching(/^\[View in Datadog\]\(https:/),
+    ]));
+    expect(result.teamsText).not.toMatch(/<[a-z]|\*\*/);
+  });
+
+  test('no paste text when the alert was already posted to Teams', async () => {
+    setEnv({ slack: true, teams: true });
     const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true });
-    expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST', teamsFailed: true });
+    expect(result).toMatchObject({ ok: true, teams: true });
+    expect(result.teamsText).toBeUndefined();
   });
 });
 

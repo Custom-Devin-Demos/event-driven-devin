@@ -64,6 +64,23 @@ function teamsCardText(card) {
   return lines.join('<br>');
 }
 
+// Plain-text rendering of a card for pasting into a Teams channel by hand, so
+// a native Devin Teams responder reads it as an ordinary human message.
+function teamsCardPlainText(card) {
+  const lines = [];
+  card.body.forEach((block) => {
+    if (block.type === 'FactSet') {
+      block.facts.forEach((f) => lines.push(`${f.title}: ${f.value}`));
+    } else if (block.fontType === 'Monospace') {
+      lines.push(`\`${block.text}\``);
+    } else {
+      lines.push(block.text.replace(/\*\*(.+?)\*\*/g, '$1'));
+    }
+  });
+  (card.actions || []).forEach((a) => lines.push(`[${a.title}](${a.url})`));
+  return lines.join('\n');
+}
+
 // Teams Workflow / Power Automate / legacy incoming-webhook hosts. A hub user
 // can supply their own webhook URL, so anything else is refused to keep the
 // server from POSTing to arbitrary destinations.
@@ -95,4 +112,4 @@ async function postTeamsCard(webhookUrl, card) {
   return response.status;
 }
 
-module.exports = { buildTeamsAlertCard, isTeamsWebhookUrl, postTeamsCard, teamsCardText };
+module.exports = { buildTeamsAlertCard, isTeamsWebhookUrl, postTeamsCard, teamsCardPlainText, teamsCardText };
