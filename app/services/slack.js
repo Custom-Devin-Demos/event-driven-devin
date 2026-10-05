@@ -520,6 +520,49 @@ async function postIncidentLink(threadTs, incident, assignmentGroup, channelOver
 }
 
 /**
+ * Post a thread reply with a link to a Linear issue.
+ * Uses the bot token — no user token needed.
+ */
+async function postLinearIssueLink(threadTs, issue, channelOverride) {
+  const token = process.env.SLACK_BOT_TOKEN;
+  const channel = channelOverride || process.env.SLACK_CHANNEL_ID;
+
+  if (!token || !channel) {
+    logger.warn('Slack not configured — skipping Linear issue link post');
+    return null;
+  }
+
+  try {
+    const text = `:ticket: Linear ticket <${issue.url}|${issue.identifier}> opened and set to In Progress — Devin will link the PR here and move it to In Review.`;
+    const blocks = [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text,
+        },
+      },
+    ];
+    const replyTs = await postThreadReply(token, channel, threadTs, text, blocks);
+
+    logger.info('Linear issue link posted to Slack thread', {
+      channel,
+      threadTs,
+      replyTs,
+      identifier: issue.identifier,
+    });
+    return replyTs;
+  } catch (error) {
+    logger.error('Failed to post Linear issue link', {
+      error: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    return null;
+  }
+}
+
+/**
  * Find a public channel whose name contains the given fragment.
  * Returns { id, name } or null. Requires the `channels:read` scope.
  */
@@ -725,6 +768,7 @@ module.exports = {
   postBugReportToTriage,
   postDevinSessionLink,
   postIncidentLink,
+  postLinearIssueLink,
   postThreadReply,
   lookupSlackUserByEmail,
   inviteToChannel,

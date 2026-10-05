@@ -13,7 +13,10 @@ jest.mock('../app/services/datadog-incidents', () => ({
 jest.mock('../app/services/linear', () => ({
   createLinearIssue: jest.fn().mockResolvedValue(null),
   addLinearComment: jest.fn().mockResolvedValue(null),
-  updateLinearIssueState: jest.fn().mockResolvedValue(null),
+}));
+
+jest.mock('../app/services/slack', () => ({
+  postLinearIssueLink: jest.fn().mockResolvedValue(null),
 }));
 
 jest.mock('../app/telemetry/sentry', () => ({
@@ -25,8 +28,8 @@ const { declareDatadogIncident } = require('../app/services/datadog-incidents');
 const {
   createLinearIssue,
   addLinearComment,
-  updateLinearIssueState,
 } = require('../app/services/linear');
+const { postLinearIssueLink } = require('../app/services/slack');
 const { Sentry } = require('../app/telemetry/sentry');
 const {
   verifyIdentity,
@@ -41,7 +44,7 @@ describe('Affirm identity verification service (b25c3f24)', () => {
     createLinearIssue.mockResolvedValue(null);
     createSessionAndAlert.mockResolvedValue(null);
     addLinearComment.mockResolvedValue(null);
-    updateLinearIssueState.mockResolvedValue(null);
+    postLinearIssueLink.mockResolvedValue(null);
   });
 
   async function flushAsyncWork() {
@@ -92,11 +95,12 @@ describe('Affirm identity verification service (b25c3f24)', () => {
   });
 
   test('links the Devin session and directs the ticket lifecycle when Linear creates an issue', async () => {
-    createLinearIssue.mockResolvedValue({
+    const issue = {
       id: 'iss_1',
       identifier: 'COG-9999',
       url: 'https://linear.app/cog-gtm/issue/COG-9999',
-    });
+    };
+    createLinearIssue.mockResolvedValue(issue);
     createSessionAndAlert.mockResolvedValue({
       triggered: true,
       throttled: false,
@@ -116,60 +120,28 @@ describe('Affirm identity verification service (b25c3f24)', () => {
 
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.promptAppendix).toContain('COG-9999');
-    expect(alert.promptAppendix).toContain('The app moves the ticket to In Progress and comments your session link right after your session is created');
+    expect(alert.promptAppendix).toContain('The ticket is created in In Progress, and the app comments your session link on it and posts the ticket link in the Slack alert thread.');
     expect(alert.promptAppendix).toContain('In Review');
     expect(alert.promptAppendix).toContain('Do NOT move the ticket to Done');
+    expect(createLinearIssue).toHaveBeenCalledWith(expect.objectContaining({
+      assigneeId: '4d616028-0c12-4ad9-b117-0661170e857e',
+      stateId: '99c9b96f-39b3-4a09-9112-53c054f3dbab',
+    }));
     expect(addLinearComment).toHaveBeenCalledWith(expect.objectContaining({
       issueId: 'iss_1',
       body: expect.stringContaining('https://app.devin.ai/sessions/abc'),
     }));
     expect(addLinearComment.mock.calls[0][0].body).not.toContain('1234');
-    expect(updateLinearIssueState).toHaveBeenCalledWith({
-      issueId: 'iss_1',
-      stateId: '99c9b96f-39b3-4a09-9112-53c054f3dbab',
-    });
+    expect(postLinearIssueLink).toHaveBeenCalledWith('1.2', issue);
   });
 
-  test('still comments when moving the Linear issue to In Progress fails', async () => {
-    createLinearIssue.mockResolvedValue({
+  test('posts the Slack ticket link even when the session comment fails', async () => {
+    const issue = {
       id: 'iss_1',
       identifier: 'COG-9999',
       url: 'https://linear.app/cog-gtm/issue/COG-9999',
-    });
-    createSessionAndAlert.mockResolvedValue({
-      triggered: true,
-      throttled: false,
-      threadTs: '1.2',
-      session: {
-        sessionId: 'devin-abc',
-        url: 'https://app.devin.ai/sessions/abc',
-      },
-    });
-    updateLinearIssueState.mockRejectedValueOnce(new Error('boom'));
-
-    await expect(verifyIdentity({
-      planId: 'plan-12',
-      ssnLast4: '1234',
-      orderTotal: 1944.39,
-    })).rejects.toThrow(TypeError);
-    await flushAsyncWork();
-
-    expect(updateLinearIssueState).toHaveBeenCalledWith({
-      issueId: 'iss_1',
-      stateId: '99c9b96f-39b3-4a09-9112-53c054f3dbab',
-    });
-    expect(addLinearComment).toHaveBeenCalledWith(expect.objectContaining({
-      issueId: 'iss_1',
-      body: expect.stringContaining('https://app.devin.ai/sessions/abc'),
-    }));
-  });
-
-  test('still moves the Linear issue to In Progress when commenting fails', async () => {
-    createLinearIssue.mockResolvedValue({
-      id: 'iss_1',
-      identifier: 'COG-9999',
-      url: 'https://linear.app/cog-gtm/issue/COG-9999',
-    });
+    };
+    createLinearIssue.mockResolvedValue(issue);
     createSessionAndAlert.mockResolvedValue({
       triggered: true,
       throttled: false,
@@ -188,14 +160,33 @@ describe('Affirm identity verification service (b25c3f24)', () => {
     })).rejects.toThrow(TypeError);
     await flushAsyncWork();
 
-    expect(updateLinearIssueState).toHaveBeenCalledWith({
-      issueId: 'iss_1',
-      stateId: '99c9b96f-39b3-4a09-9112-53c054f3dbab',
+    expect(addLinearComment).toHaveBeenCalled();
+    expect(postLinearIssueLink).toHaveBeenCalledWith('1.2', issue);
+  });
+
+  test('posts the Slack ticket link when a session was not created', async () => {
+    const issue = {
+      id: 'iss_1',
+      identifier: 'COG-9999',
+      url: 'https://linear.app/cog-gtm/issue/COG-9999',
+    };
+    createLinearIssue.mockResolvedValue(issue);
+    createSessionAndAlert.mockResolvedValue({
+      triggered: false,
+      throttled: true,
+      threadTs: '1.2',
+      session: null,
     });
-    expect(addLinearComment).toHaveBeenCalledWith(expect.objectContaining({
-      issueId: 'iss_1',
-      body: expect.stringContaining('https://app.devin.ai/sessions/abc'),
-    }));
+
+    await expect(verifyIdentity({
+      planId: 'plan-12',
+      ssnLast4: '1234',
+      orderTotal: 1944.39,
+    })).rejects.toThrow(TypeError);
+    await flushAsyncWork();
+
+    expect(postLinearIssueLink).toHaveBeenCalledWith('1.2', issue);
+    expect(addLinearComment).not.toHaveBeenCalled();
   });
 
   test('uses the base remediation directive and skips Linear follow-up without an issue', async () => {
@@ -218,7 +209,7 @@ describe('Affirm identity verification service (b25c3f24)', () => {
 
     expect(createSessionAndAlert.mock.calls[0][0].promptAppendix).toBe(REMEDIATION_DIRECTIVE);
     expect(addLinearComment).not.toHaveBeenCalled();
-    expect(updateLinearIssueState).not.toHaveBeenCalled();
+    expect(postLinearIssueLink).not.toHaveBeenCalled();
   });
 
   test('rejects an invalid SSN last four without alerting', async () => {
