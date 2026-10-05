@@ -49,8 +49,11 @@ describe('on-call hub routes', () => {
     expect(html).toContain("localStorage.getItem('oncallTeamsAlerts') === 'on'");
     expect(html).toContain("localStorage.getItem('oncallTeamsWebhookUrl')");
     expect(html).toMatch(/if \(d\.teamsError\)[^\n]*invalid/);
-    expect(html).toContain('id="oncall-teams-copy"');
+    // 63dbb52f hides the ribbon, so the copy action floats on its own.
+    expect(html).toMatch(/<button type="button" id="oncall-teams-copy" style="display:none;position:fixed;/);
     expect(html).toContain('teams.microsoft.com/l/channel/');
+    // Stale paste text is dropped before each new alert post.
+    expect(html).toMatch(/alertPostedAt = postedAt;\s*teamsText = '';/);
   });
 });
 

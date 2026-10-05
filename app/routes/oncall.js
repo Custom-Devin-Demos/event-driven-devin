@@ -419,6 +419,11 @@ const TEAMS_CHANNEL_URL = process.env.ONCALL_TEAMS_CHANNEL_URL
 
 function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
   const bugTrigger = skinTrigger && skinTrigger.kind === 'bug' ? skinTrigger : null;
+  // Skins that hide the ribbon still need the Teams copy action, so it floats
+  // on its own there.
+  const teamsCopyButton = '<button type="button" id="oncall-teams-copy" style="display:none;'
+    + (hideRibbon ? 'position:fixed;bottom:16px;right:16px;z-index:9999;font:12px monospace;box-shadow:0 4px 12px rgba(0,0,0,0.3);' : 'margin-top:6px;font:inherit;')
+    + 'padding:5px 8px;background:#5b5fc7;color:#fff;border:0;border-radius:4px;cursor:pointer;"></button>';
   return `
   <div id="oncall-dot" title="Devin On-Call demo" style="display:none;position:fixed;bottom:16px;right:16px;z-index:9999;width:14px;height:14px;border-radius:50%;background:#3fb950;border:2px solid #0d1117;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>
   <div id="oncall-ribbon" style="${hideRibbon ? 'display:none;' : ''}position:fixed;bottom:16px;right:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
@@ -428,8 +433,9 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
       Unique per run
     </label>
     <div id="oncall-status" style="margin-top:6px;max-width:220px;"></div>
-    <button type="button" id="oncall-teams-copy" style="display:none;margin-top:6px;padding:5px 8px;background:#5b5fc7;color:#fff;border:0;border-radius:4px;font:inherit;cursor:pointer;"></button>
+    ${hideRibbon ? '' : teamsCopyButton}
   </div>
+  ${hideRibbon ? teamsCopyButton : ''}
   <script>
     (function () {
       const apiPath = ${JSON.stringify(scenario.apiPath)};
@@ -525,11 +531,13 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
               statusEl.textContent = retryMsg;
             }
             if (ribbonCollapsed) dotEl.title = retryMsg;
-            else scheduleCollapse();
+            else if (!teamsText) scheduleCollapse();
             return origFetch(url.replace(apiPath, oncallApiPath), opts);
           }
           var postedAt = Date.now();
           alertPostedAt = postedAt;
+          teamsText = '';
+          if (teamsCopyBtn) teamsCopyBtn.style.display = 'none';
           if (ribbonCollapsed) expandRibbon();
           const unique = document.getElementById('oncall-unique').checked;
           var triggerUrl = bugTrigger ? '/api/oncall/bug' : '/api/oncall/trigger/' + vertical;
@@ -572,6 +580,10 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
             if (teamsCopyBtn) {
               teamsCopyBtn.style.display = teamsText ? 'block' : 'none';
               teamsCopyBtn.textContent = teamsCopyLabel;
+            }
+            if (teamsText && collapseTimer) {
+              clearTimeout(collapseTimer);
+              collapseTimer = null;
             }
             if (d.ok && !teamsText) scheduleCollapse();
           }).catch(function () {
