@@ -83,6 +83,37 @@ mkdir -p "$RELEASES_DIR"
 cp "$APP_DIR/.env" "$RELEASES_DIR/env.$TS"
 cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 
+# Optional .env sync from the deploy workflow (Actions secrets). Applied under
+# the lock and after the backup above, so rollback restores the previous .env.
+# The staged file must be exactly one `KEY=value` line for an allowlisted key,
+# with a single-line https URL value; anything else is logged and skipped
+# (deploy continues with the current .env).
+ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL)
+if [ -n "${ENV_SYNC_FILE:-}" ] && [ -s "$ENV_SYNC_FILE" ]; then
+  sync_line=$(head -n 1 "$ENV_SYNC_FILE")
+  sync_key=${sync_line%%=*}; sync_val=${sync_line#*=}
+  if [ "$(wc -l < "$ENV_SYNC_FILE")" != 1 ] || [ "$(wc -c < "$ENV_SYNC_FILE")" != "$(printf '%s\n' "$sync_line" | wc -c)" ]; then
+    log "env sync: WARNING staged file is not exactly one line; leaving .env unchanged"
+  elif [[ " ${ENV_SYNC_KEYS[*]} " != *" $sync_key "* ]]; then
+    log "env sync: WARNING non-allowlisted key; leaving .env unchanged"
+  elif ! [[ "$sync_val" =~ ^https://[^[:space:]\"\'\$]+$ ]]; then
+    log "env sync: WARNING $sync_key is not a single-line https URL; leaving .env unchanged"
+  elif grep -qxF "$sync_key=$sync_val" "$APP_DIR/.env"; then
+    log "env sync: $sync_key unchanged"
+  else
+    tmp_env=$(mktemp "$APP_DIR/.env.sync.XXXXXX")
+    grep -v "^$sync_key=" "$APP_DIR/.env" > "$tmp_env" || true
+    printf '%s=%s\n' "$sync_key" "$sync_val" >> "$tmp_env"
+    cat "$tmp_env" > "$APP_DIR/.env"
+    rm -f "$tmp_env"
+    log "env sync: $sync_key updated"
+  fi
+  rm -f "$ENV_SYNC_FILE"
+fi
+# Staged files abandoned by interrupted runs (never applied) are pruned here,
+# under the lock, so a waiting run's freshly staged file is never touched.
+find "$(dirname "${ENV_SYNC_FILE:-/home/ubuntu/incoming/x}")" -maxdepth 1 -name 'env-sync-*' -mmin +60 -delete 2>/dev/null || true
+
 # Back up exactly the top-level entries this deploy will touch.
 mapfile -t TOP_ENTRIES < <(cd "$STAGING" && ls -A)
 TOUCHED=()
