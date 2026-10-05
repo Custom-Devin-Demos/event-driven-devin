@@ -30,6 +30,8 @@ const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech'
  *   SLACK_ONCALL_BOT_TOKEN         — bot token override (default: SLACK_BOT_TOKEN)
  *   ONCALL_TEAMS_WEBHOOK_URL       — optional Teams Workflows webhook; alert cards
  *     from skins with `teamsAlerts: true` are also posted there as Adaptive Cards
+ *   ONCALL_TEAMS_ALL_ALERTS=true   — post every alert card to that webhook, not
+ *     only `teamsAlerts` skins
  */
 
 const REPO_URL = process.env.ONCALL_REPO_URL || 'https://github.com/COG-GTM/event-driven-devin';
@@ -367,6 +369,7 @@ function resolveOncallEnv() {
     alertsChannel: process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID,
     bugsChannel: process.env.SLACK_ONCALL_BUGS_CHANNEL_ID,
     teamsWebhookUrl: process.env.ONCALL_TEAMS_WEBHOOK_URL,
+    teamsAllAlerts: process.env.ONCALL_TEAMS_ALL_ALERTS === 'true',
   };
 }
 
@@ -708,7 +711,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   const skin = options.skin || null;
   const env = resolveOncallEnv();
   const { token, alertsChannel } = env;
-  const teamsWebhookUrl = skin && skin.teamsAlerts ? env.teamsWebhookUrl : null;
+  const teamsWebhookUrl = env.teamsAllAlerts || (skin && skin.teamsAlerts) ? env.teamsWebhookUrl : null;
   const slackReady = Boolean(token && alertsChannel);
   if (!slackReady && !teamsWebhookUrl) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');

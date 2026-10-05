@@ -24,7 +24,7 @@ const { getOncallSkin } = require('../config/oncall-skins');
 
 const LOANTRACK = getOncallSkin('9ecaa5d1');
 const TEAMS_URL = 'https://teams.example.test/workflows/hook';
-const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL'];
+const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL', 'ONCALL_TEAMS_ALL_ALERTS'];
 const savedEnv = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
 
 function setEnv({ slack, teams }) {
@@ -82,6 +82,11 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(text).toContain('julia@example.com');
     expect(text).toContain('/oncall/c/9ecaa5d1');
     expect(text).not.toMatch(/<@|:rotating_light:/);
+    const plain = axios.post.mock.calls[0][1].text;
+    expect(plain).toContain('<b>[Triggered] p95 latency — payment release submissions</b>'.replace('<b>', '<b>\u{1F6A8} '));
+    expect(plain).toContain('<b>Service:</b> loantrack-disbursement-api (LoanTrack)');
+    expect(plain).toContain('<b>Symptom:</b>');
+    expect(plain).toContain('>View in Datadog</a>');
     expect(JSON.stringify(postMessage.mock.calls[0][3])).toContain('loantrack-disbursement-api (LoanTrack)');
   });
 
@@ -150,6 +155,18 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     const result = await postOncallAlert('banking', { runRef: 'run-abc' });
     expect(result).toMatchObject({ ok: false, skipped: true });
     expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  test('ONCALL_TEAMS_ALL_ALERTS sends skinless and non-Teams skin alerts to Teams', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_ALL_ALERTS = 'true';
+    const skin = getOncallSkin('4b663efb');
+    const unskinned = await postOncallAlert('banking', { runRef: 'run-abc' });
+    const skinned = await postOncallAlert(skin.vertical, { runRef: 'run-def', skin });
+    expect(unskinned).toMatchObject({ ok: true, channel: 'C0TEST', teams: true });
+    expect(skinned).toMatchObject({ ok: true, channel: 'C0TEST', teams: true });
+    expect(axios.post).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(teamsCard())).toContain('run-abc');
   });
 
   test('skips when neither Slack nor Teams is configured', async () => {

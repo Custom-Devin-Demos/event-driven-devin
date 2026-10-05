@@ -41,9 +41,33 @@ function buildTeamsAlertCard({ title, facts, monitorQuery, body, actions }) {
   };
 }
 
+function escapeHtml(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Plain-text (HTML) rendering of a card for Workflows that post a message instead of
+// the card: Teams responders can't read Adaptive Card contents.
+function teamsCardText(card) {
+  const lines = [];
+  card.body.forEach((block) => {
+    if (block.type === 'FactSet') {
+      block.facts.forEach((f) => lines.push(`<b>${escapeHtml(f.title)}:</b> ${escapeHtml(f.value)}`));
+    } else if (block.fontType === 'Monospace') {
+      lines.push(`<code>${escapeHtml(block.text)}</code>`);
+    } else if (block.weight === 'Bolder') {
+      lines.push(`<b>${escapeHtml(block.text)}</b>`);
+    } else {
+      lines.push(escapeHtml(block.text).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'));
+    }
+  });
+  (card.actions || []).forEach((a) => lines.push(`<a href="${escapeHtml(a.url)}">${escapeHtml(a.title)}</a>`));
+  return lines.join('<br>');
+}
+
 async function postTeamsCard(webhookUrl, card) {
   const response = await axios.post(webhookUrl, {
     type: 'message',
+    text: teamsCardText(card),
     attachments: [{ contentType: ADAPTIVE_CARD_CONTENT_TYPE, contentUrl: null, content: card }],
   }, {
     headers: { 'Content-Type': 'application/json' },
@@ -52,4 +76,4 @@ async function postTeamsCard(webhookUrl, card) {
   return response.status;
 }
 
-module.exports = { buildTeamsAlertCard, postTeamsCard };
+module.exports = { buildTeamsAlertCard, postTeamsCard, teamsCardText };

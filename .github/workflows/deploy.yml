@@ -67,6 +67,21 @@ jobs:
             /tmp/release.tar.gz \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/release-${{ github.sha }}.tar.gz
 
+      # Optional: stage ONCALL_TEAMS_WEBHOOK_URL (Teams Workflow webhook for
+      # On-Call alerts) for the host .env, so it can be set without SSH access.
+      # deploy-ec2.sh applies it under the deploy lock, after its .env backup.
+      # Skipped when the secret is unset.
+      - name: Stage On-Call Teams webhook for host .env
+        env:
+          ONCALL_TEAMS_WEBHOOK_URL: ${{ secrets.ONCALL_TEAMS_WEBHOOK_URL }}
+        run: |
+          if [ -z "$ONCALL_TEAMS_WEBHOOK_URL" ]; then
+            echo "ONCALL_TEAMS_WEBHOOK_URL secret not set; host .env left unchanged"; exit 0
+          fi
+          printf 'ONCALL_TEAMS_WEBHOOK_URL=%s\n' "$ONCALL_TEAMS_WEBHOOK_URL" | \
+            ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
+            'umask 077 && mkdir -p /home/ubuntu/incoming && cat > /home/ubuntu/incoming/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
+
       # Everything below happens on the host through scripts/deploy-ec2.sh
       # (taken from the release being deployed): lock, backup, mirror the tree
       # while preserving verticals + host-only files, build, health, smoke every
@@ -80,8 +95,9 @@ jobs:
           rm -rf "$STAGING" && mkdir -p "$STAGING"
           tar xzf "/home/ubuntu/release-$SHA.tar.gz" -C "$STAGING"
           rm -f "/home/ubuntu/release-$SHA.tar.gz"
-          trap 'rm -rf "$STAGING"' EXIT
-          bash "$STAGING/scripts/deploy-ec2.sh" "$STAGING" "${{ github.repository }}@${SHA:0:7}"
+          ENV_SYNC="/home/ubuntu/incoming/env-sync-$SHA-${{ github.run_id }}-${{ github.run_attempt }}"
+          trap 'rm -rf "$STAGING" "$ENV_SYNC"' EXIT
+          ENV_SYNC_FILE="$ENV_SYNC" bash "$STAGING/scripts/deploy-ec2.sh" "$STAGING" "${{ github.repository }}@${SHA:0:7}"
           EOF
 
       - name: Clean up SSH key
