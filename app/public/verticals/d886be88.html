@@ -65,6 +65,11 @@
     .submit-btn { display: block; width: 100%; min-height: 60px; border: 0; background: var(--accent); color: var(--chrome-text); font-size: 18px; font-weight: 700; letter-spacing: .04em; }
     .submit-btn:hover { background: color-mix(in srgb, var(--accent) 82%, var(--chrome-bg)); }
     .submit-btn:disabled { cursor: wait; opacity: .8; }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 12px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .06em; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--accent); }
     .status { min-height: 22px; margin: 12px 0 0; font-size: 13px; text-align: center; color: var(--muted); }
     .result-box { display: none; margin-top: 16px; padding: 16px 20px; border-left: 4px solid var(--muted); background: var(--paper); font-size: 14px; }
     .result-box.success { display: block; border-left-color: var(--accent); }
@@ -151,6 +156,7 @@
             </div>
             <dl class="summary" aria-label="お申し込み内容の確認"><div><dt>サービス</dt><dd id="summaryProduct">—</dd></div><div><dt>追加ライセンス数</dt><dd id="summarySeats">—</dd></div><div><dt>プラン</dt><dd id="summaryPlan">—</dd></div></dl>
             <button type="submit" id="submitBtn" class="submit-btn">この内容で申し込む</button>
+              <div class="stopwatch" id="submitTimer" role="timer" aria-live="off"><span class="sw-label">処理時間</span><span class="sw-value" id="submitTimerValue">0.0s</span></div>
             <p class="status" id="orderStatus" role="status" aria-live="polite">内容をご確認のうえ、お申し込みください。</p>
             <div id="result" class="result-box" role="status" aria-live="polite"></div>
           </form>
@@ -220,7 +226,29 @@
     }
     [product, planTier].forEach((el) => el.addEventListener('change', renderSummary));
     seats.addEventListener('input', renderSummary);
+    const timer = document.getElementById('submitTimer');
+    const timerValue = document.getElementById('submitTimerValue');
+    let timerHandle = null;
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      timer.className = 'stopwatch on done';
+    }
     form.addEventListener('reset', () => {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timer.className = 'stopwatch';
+      timerValue.textContent = '0.0s';
       result.className = 'result-box';
       result.textContent = '';
       status.textContent = idleStatus;
@@ -232,6 +260,7 @@
       const serviceName = optionLabel(product);
       const customer = endUser.value.trim();
       button.disabled = true;
+      const started = startTimer();
       button.textContent = '送信中…';
       status.textContent = 'お申し込みを処理しています…';
       result.className = 'result-box';
@@ -261,6 +290,7 @@
         result.textContent = 'お申し込みを完了できませんでした。時間をおいて再度お試しいただくか、担当営業までお問い合わせください。';
         status.textContent = 'ただいまお申し込みを受け付けられません。';
       } finally {
+        stopTimer(started);
         button.disabled = false;
         button.textContent = submitLabel;
       }
