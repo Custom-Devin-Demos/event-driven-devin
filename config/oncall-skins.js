@@ -3231,6 +3231,35 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Insurance Consulting & Technology — Incident Intake',
     disclaimer: 'NOT ACTUALLY A WTW SITE — internal demo only, not affiliated with, endorsed by, or a real WTW product.',
   },
+  'd7dd38ef': {
+    slug: 'd7dd38ef',
+    company: 'MetLife',
+    brandMark: 'M',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: 'd7dd38ef.html', title: 'File a claim | MetLife MyBenefits' },
+    theme: {
+      '--accent': '#0061A0',
+      '--ink': '#1F2A33',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#00456E',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: 'p95 latency — group benefits claim submissions',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/insurance/claim}',
+      metricValue: '7.8s and climbing',
+      threshold: '> 1.5s',
+      baseline: '~350ms (7-day p95)',
+      release: 'mybenefits-claims@1.0.3',
+      team: 'benefits-claims-oncall',
+      symptom: 'Claim submissions hang ~8s while upstream adjudication latency is elevated; slow adjudication calls are retried until the request gives up with a gateway timeout.',
+      impact: 'Every employee filing a dental, disability or life claim waits ~8 seconds on a spinner; contact-center claim calls are rising.',
+    },
+    supportCenter: 'MetLife Group Benefits Support',
+    supportCenterSub: 'MyBenefits Claims Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A METLIFE SITE — internal demo only, not affiliated with, endorsed by, or a real MetLife product.',
+  },
 };
 
 function getOncallSkin(slug) {

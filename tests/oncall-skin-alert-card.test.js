@@ -114,4 +114,21 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
     expect(text).toContain(`Release: ${scenario.release}`);
     expect(text).toContain(`*Symptom:* ${scenario.symptom}`);
   });
+
+  test('d7dd38ef reports insurance claim latency as a p95 metric, not a 5xx rate', async () => {
+    const skin = getOncallSkin('d7dd38ef');
+    expect(skin.vertical).toBe('insurance');
+    const { text, blocks } = await postCard(skin);
+
+    expect(text).toContain('*[Triggered] p95 latency — group benefits claim submissions*');
+    expect(text).toContain('*Metric value:* 7.8s and climbing | *Threshold:* > 1.5s | *Baseline:* ~350ms (7-day p95)');
+    expect(text).toContain('`p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/insurance/claim}`');
+    expect(blocks).toContain('7.8s and climbing');
+    for (const out of [text, blocks]) {
+      expect(out).not.toMatch(/5xx|error rate|504 on/i);
+    }
+    for (const key of ['release', 'team', 'metricQuery']) {
+      expect(skin.alertCard[key]).not.toMatch(new RegExp(skin.company, 'i'));
+    }
+  });
 });
