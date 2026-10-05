@@ -3085,13 +3085,51 @@ const ONCALL_SKINS = {
     disclaimer: 'NOT ACTUALLY A MANABIBA SITE — manabiba is a fictional brand; internal demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・社内デモ用）。',
     // SEV-1 opt-in: the same hightech story the alert track degrades, so the
     // shared console at /oncall/c/4875267e/incident tells the same story as
-    // the page. The vocabulary only swaps product nouns for manabiba's
-    // Japanese terms; service names and endpoints stay truthful.
+    // the page. `copy` localizes the console's own UI strings; the
+    // vocabulary localizes the story title/summary and swaps product nouns in
+    // the responder chatter. Service names and endpoints stay truthful.
     incident: {
       kind: 'licensing-latency',
+      copy: {
+        lang: 'ja',
+        title: 'SEV-1 インシデントコンソール',
+        eyebrow: '重大インシデント対応',
+        heading: 'SEV-1 インシデントコンソール',
+        intro: 'このサービスの重大インシデントを宣言し、状況を監視します。',
+        brandSub: 'SEV-1 インシデントコンソール',
+        footer: 'インシデント対応',
+        liveTitle: '現在のインシデント状況',
+        liveDesc: 'このセッションで宣言されたインシデントの一覧です。',
+        loadingState: 'インシデント状況を読み込んでいます。',
+        noOpenIncidents: '対応中のインシデントはありません。',
+        stateUnavailable: 'インシデント状況を取得できません',
+        declareTitle: 'インシデントを宣言',
+        declareDesc: 'このサービスに関連する SEV-1 を宣言します。',
+        loadingDefinition: 'インシデント定義を読み込んでいます。',
+        definitionUnavailable: 'インシデント定義を取得できません',
+        declareButton: 'SEV-1 インシデントを宣言する',
+        incidentFallback: 'SEV-1 インシデント',
+        status: 'ステータス',
+        autoResolvesIn: '自動解決まで',
+        publicId: '公開 IR ID',
+        pendingProviderId: 'プロバイダ ID 発行待ち',
+        incidentRef: 'インシデント参照番号',
+        declaredAt: '宣言日時',
+        resolved: '解決済み',
+        windowElapsed: '対応期間終了',
+        resolveFailed: '自動解決に失敗',
+        declaring: 'インシデントを宣言しています…',
+        declaredDatadog: 'SEV-1 を宣言しました（IR-{id}、参照 {ref}）。Slack チャンネルを作成中…',
+        declaredSlack: 'SEV-1 を {channel} に投稿しました（参照 {ref}）。',
+        declareFailed: 'インシデントの宣言に失敗しました。',
+      },
       chatter: {
         vocabulary: {
           'License provisioning slowdown': 'イベント申し込みの遅延',
+          'latency and memory climbing on licensing-api': 'licensing-api のレイテンシとメモリが上昇中',
+          'licensing-api latency + RSS climbing': 'licensing-api のレイテンシ + RSS 上昇',
+          'and climbing under sustained traffic; process RSS trends up alongside it.': 'で、継続的なトラフィック下で上昇し続けています。プロセスの RSS もこれに伴って増加中です。',
+          'Every provisioning call is slow and getting slower.': 'すべての申し込みリクエストが遅く、回を重ねるごとに遅くなっています。',
           'slow seat provisioning': 'slow イベント申し込み',
           'enterprise customer': '勉強会の主催者',
           'activation that used to be instant': '参加確定 that used to be instant',

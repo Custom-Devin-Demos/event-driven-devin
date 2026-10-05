@@ -7,6 +7,7 @@ const {
   replaceChatterVocabulary,
   getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
+  isValidIncidentCopy,
 } = require('../app/services/oncall');
 const { ONCALL_SKINS } = require('../config/oncall-skins');
 
@@ -291,10 +292,32 @@ describe('SEV-1 persona chatter vocabulary — 4875267e (hightech, Japanese term
     const vocabulary = getSev1ChatterVocabulary(story, skin, 'licensing-latency');
     const copy = buildSev1IncidentCopy(story, vocabulary);
 
-    expect(copy.title).toBe('イベント申し込みの遅延 — latency and memory climbing on licensing-api');
-    expect(copy.label).toBe('イベント申し込みの遅延 — licensing-api latency + RSS climbing');
+    expect(copy.title).toBe('イベント申し込みの遅延 — licensing-api のレイテンシとメモリが上昇中');
+    expect(copy.label).toBe('イベント申し込みの遅延 — licensing-api のレイテンシ + RSS 上昇');
     expect(copy.summary).toContain('POST /api/oncall/licenses/provision p95 at ~6.8s');
-    expect(copy.summary).toContain('Every 申し込みリクエスト is slow and getting slower.');
+    expect(copy.summary).toContain('すべての申し込みリクエストが遅く');
+    expect(copy.summary).not.toMatch(/provisioning/);
     expect(story.title).toBe('License provisioning slowdown — latency and memory climbing on licensing-api');
+    expect(story.summary).toContain('Every provisioning call is slow and getting slower.');
+  });
+
+  test('localizes the shared console UI strings via incident.copy', () => {
+    expect(isValidIncidentCopy(skin.incident.copy)).toBe(true);
+    expect(skin.incident.copy.lang).toBe('ja');
+    expect(skin.incident.copy.declareButton).toBe('SEV-1 インシデントを宣言する');
+    expect(skin.incident.copy.declaredDatadog).toContain('{id}');
+    expect(skin.incident.copy.declaredDatadog).toContain('{ref}');
+    expect(skin.incident.copy.declaredSlack).toContain('{channel}');
+    // Other incident skins keep the English defaults.
+    expect(ONCALL_SKINS['e7c9dc7a'].incident.copy).toBeUndefined();
+  });
+
+  test('rejects non-string incident copy values', () => {
+    expect(isValidIncidentCopy({ heading: 'x' })).toBe(true);
+    expect(isValidIncidentCopy({})).toBe(true);
+    expect(isValidIncidentCopy({ heading: 1 })).toBe(false);
+    expect(isValidIncidentCopy({ nested: { a: 'b' } })).toBe(false);
+    expect(isValidIncidentCopy(['a'])).toBe(false);
+    expect(isValidIncidentCopy(null)).toBe(false);
   });
 });

@@ -1530,6 +1530,16 @@ function isValidChatterVocabulary(vocabulary) {
       replacement.trim());
 }
 
+/**
+ * incident.copy on a skin localizes the shared SEV-1 console's own UI
+ * strings (headings, button, status labels). Only flat string values are
+ * accepted; the page falls back to its English default for any other key.
+ */
+function isValidIncidentCopy(copy) {
+  return isPlainObject(copy) &&
+    Object.values(copy).every((value) => typeof value === 'string');
+}
+
 function replaceChatterVocabulary(text, vocabulary) {
   if (!isPlainObject(vocabulary)) return String(text);
   const replacements = Object.entries(vocabulary)
@@ -2129,6 +2139,7 @@ module.exports = {
   replaceChatterVocabulary,
   isPlainObject,
   isValidChatterVocabulary,
+  isValidIncidentCopy,
   getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
   getSev1State,
