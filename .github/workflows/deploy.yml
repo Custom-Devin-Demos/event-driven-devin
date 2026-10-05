@@ -67,6 +67,29 @@ jobs:
             /tmp/release.tar.gz \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/release-${{ github.sha }}.tar.gz
 
+      # Optional: upsert ONCALL_TEAMS_WEBHOOK_URL (Teams Workflow webhook for
+      # On-Call alerts) into the host .env from the Actions secret, so it can be
+      # set without SSH access. Runs before deploy-ec2.sh so it is backed up and
+      # picked up on restart. Skipped when the secret is unset.
+      - name: Sync On-Call Teams webhook into host .env
+        env:
+          ONCALL_TEAMS_WEBHOOK_URL: ${{ secrets.ONCALL_TEAMS_WEBHOOK_URL }}
+        run: |
+          if [ -z "$ONCALL_TEAMS_WEBHOOK_URL" ]; then
+            echo "ONCALL_TEAMS_WEBHOOK_URL secret not set; leaving host .env unchanged"; exit 0
+          fi
+          printf '%s' "$ONCALL_TEAMS_WEBHOOK_URL" | ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} '
+            set -euo pipefail
+            f=/home/ubuntu/.env
+            v=$(cat)
+            tmp=$(mktemp)
+            grep -v "^ONCALL_TEAMS_WEBHOOK_URL=" "$f" > "$tmp" || true
+            printf "ONCALL_TEAMS_WEBHOOK_URL=%s\n" "$v" >> "$tmp"
+            cat "$tmp" > "$f"
+            rm -f "$tmp"
+            echo "ONCALL_TEAMS_WEBHOOK_URL updated in host .env"
+          '
+
       # Everything below happens on the host through scripts/deploy-ec2.sh
       # (taken from the release being deployed): lock, backup, mirror the tree
       # while preserving verticals + host-only files, build, health, smoke every

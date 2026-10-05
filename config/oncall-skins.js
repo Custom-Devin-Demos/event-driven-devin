@@ -63,7 +63,8 @@
  *
  * A skin may set teamsAlerts: true to also post its alert card to the
  * Microsoft Teams channel behind ONCALL_TEAMS_WEBHOOK_URL. Other skins and
- * skinless alerts stay Slack-only even when that webhook is configured.
+ * skinless alerts stay Slack-only even when that webhook is configured,
+ * unless ONCALL_TEAMS_ALL_ALERTS=true.
  *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
