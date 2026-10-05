@@ -42,7 +42,7 @@ The defect is that \`ReceiptFormatter.receiptLine(_:)\` resolves every order lin
 product and the receipt throws \`OrderError.unknownLineItem\` for every iPhone 18 preorder.
 
 Steps:
-1. This session runs on macOS with Xcode and the iOS Simulator; do the work here and do not create child sessions. Reproduce on the iOS simulator: \`make run\` (sets
+1. This session is requested on macOS. Confirm with \`uname -s\` and \`xcodebuild -version\`: on macOS, do all the work here and do not create child sessions; only if this session is not on macOS (platform fallback), create one macOS child session for the simulator work. Reproduce on the iOS simulator: \`make run\` (sets
    \`MYVZ_DISABLE_FAILURE_REPORTS=1\` by default), configure an iPhone 18 Pro preorder, tap Place order on
    checkout review, and confirm \`OrderError.unknownLineItem\` for \`PROMO-IP18-LAUNCH\`.
 2. Fix the root cause so launch-promotion credit lines render on the receipt; do not just swallow the

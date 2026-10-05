@@ -405,6 +405,8 @@ describe('My Verizon iOS preorder failure report', () => {
 
   test('directive keeps the work on macOS and never merges the demo fix PR', () => {
     expect(APP_REMEDIATION_DIRECTIVE).toContain('do not create child sessions');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('uname -s');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('only if this session is not on macOS');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('DO NOT MERGE');
   });
 
@@ -417,6 +419,27 @@ describe('My Verizon iOS preorder failure report', () => {
         ({ VERIZON_IOS_SESSION_PLATFORM: value } = require('../app/services/verticals/verizon-ios'));
       });
       expect(value).toBe('macos');
+    } finally {
+      if (original === undefined) delete process.env.VERIZON_IOS_SESSION_PLATFORM;
+      else process.env.VERIZON_IOS_SESSION_PLATFORM = original;
+    }
+  });
+
+  test('uses the org default when VERIZON_IOS_SESSION_PLATFORM is empty', async () => {
+    const original = process.env.VERIZON_IOS_SESSION_PLATFORM;
+    let isolatedReportAppFailure;
+    let isolatedCreateSessionAndAlert;
+    try {
+      process.env.VERIZON_IOS_SESSION_PLATFORM = '';
+      jest.isolateModules(() => {
+        ({ createSessionAndAlert: isolatedCreateSessionAndAlert } = require('../app/services/devin-session'));
+        ({ reportAppFailure: isolatedReportAppFailure } = require('../app/services/verticals/verizon-ios'));
+      });
+
+      await isolatedReportAppFailure(APP_REPORT).sessionPromise;
+      expect(isolatedCreateSessionAndAlert).toHaveBeenCalledWith(expect.objectContaining({
+        sessionPlatform: undefined,
+      }));
     } finally {
       if (original === undefined) delete process.env.VERIZON_IOS_SESSION_PLATFORM;
       else process.env.VERIZON_IOS_SESSION_PLATFORM = original;
