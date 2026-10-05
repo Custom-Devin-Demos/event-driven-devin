@@ -69,7 +69,7 @@
     .field label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; color: var(--chrome-bg); }
     .field input, .field select { width: 100%; min-height: 52px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--ink) 40%, var(--surface)); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: 16px; }
     .field small { display: block; margin-top: 6px; font-size: 12px; color: var(--muted); }
-    .summary { margin: 4px 0 28px; padding: 18px 22px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 6%, var(--surface)); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .summary { margin: 4px 0 28px; padding: 18px 22px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 6%, var(--surface)); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
     .summary dt { font-size: 12px; font-weight: 600; color: var(--muted); }
     .summary dd { margin: 2px 0 0; font-size: 15px; font-weight: 700; color: var(--chrome-bg); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
     .submit-btn { display: block; width: 100%; min-height: 56px; padding: 12px 32px; border: 0; border-radius: 9999px; background: var(--accent); color: var(--chrome-text); font-size: 20px; font-weight: 700; }
@@ -173,7 +173,7 @@
                 <div class="field"><label for="amount">Amount (USD)</label><input type="number" id="amount" min="1" step="0.01" value="2500" required></div>
                 <div class="field"><label for="accountTier">Banking program</label><select id="accountTier"><option value="standard">Fifth Third Momentum® Banking</option><option value="premium">Fifth Third Preferred Banking</option><option value="basic">Fifth Third Express Banking®</option></select><small>Shown on your account profile.</small></div>
               </div>
-              <dl class="summary" aria-label="Transfer summary"><div><dt>From → To</dt><dd id="summaryDirection">—</dd></div><div><dt>Amount</dt><dd id="summaryAmount">—</dd></div><div><dt>Transfer date</dt><dd id="summaryDate">—</dd></div></dl>
+              <dl class="summary" aria-label="Transfer summary"><div><dt>From → To</dt><dd id="summaryDirection">—</dd></div><div><dt>Amount</dt><dd id="summaryAmount">—</dd></div><div><dt>Fee</dt><dd id="summaryFee">—</dd></div><div><dt>Total debit</dt><dd id="summaryTotal">—</dd></div></dl>
               <button type="submit" id="submitBtn" class="submit-btn">Transfer Now</button>
               <p class="status" id="transferStatus" role="status" aria-live="polite">Review your transfer before submitting.</p>
               <div id="result" class="result-box" role="status" aria-live="polite"></div>
@@ -207,7 +207,7 @@
   <footer>
     <div class="wrap">
       <div class="notices"><h4>NOTICES &amp; DISCLOSURES</h4><p>Example online banking experience. Account names, numbers and balances are illustrative only.</p><p>Zelle<sup>®</sup> and the Zelle<sup>®</sup> related marks are wholly owned by Early Warning Services, LLC.</p></div>
-      <div class="contact"><div><h4>Contact Us</h4><a class="phone" href="#top">1-866-671-5353</a></div><div><h4>Branch &amp; ATM Locator</h4><a class="pill-light" style="background: var(--accent); color: var(--chrome-text);" href="https://www.53.com/content/fifth-third/en.html">Find a location</a></div></div>
+      <div class="contact"><div><h4>Contact Us</h4><a class="phone" href="tel:+18666715353">1-866-671-5353</a></div><div><h4>Branch &amp; ATM Locator</h4><a class="pill-light" style="background: var(--accent); color: var(--chrome-text);" href="https://www.53.com/content/fifth-third/en.html">Find a location</a></div></div>
       <nav class="footer-links" aria-label="Footer"><a href="https://www.53.com/content/fifth-third/en.html">About Us</a><a href="https://www.53.com/content/fifth-third/en.html">Customer Service</a><a href="https://www.53.com/content/fifth-third/en.html">Careers</a><a href="https://www.53.com/content/fifth-third/en.html">Investor Relations</a><a href="https://www.53.com/content/fifth-third/en.html">Media Center</a><a href="https://www.53.com/content/fifth-third/en.html">Security</a><a href="https://www.53.com/content/fifth-third/en.html">Privacy</a><a href="https://www.53.com/content/fifth-third/en.html">Site Map</a></nav>
       <p class="copyright">Deposit and credit products offered by Fifth Third Bank, National Association. Member FDIC. Equal Housing Lender.</p>
     </div>
@@ -231,7 +231,10 @@
     const amountInput = document.getElementById('amount');
     const summaryDirection = document.getElementById('summaryDirection');
     const summaryAmount = document.getElementById('summaryAmount');
-    const summaryDate = document.getElementById('summaryDate');
+    const summaryFee = document.getElementById('summaryFee');
+    const summaryTotal = document.getElementById('summaryTotal');
+    const tierSelect = document.getElementById('accountTier');
+    const FEE_TIERS = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.50 }, basic: { rate: 0.002, flat: 4.99 } };
     const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
     const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
@@ -241,7 +244,10 @@
       summaryDirection.textContent = `${label(fromAccount)} → ${label(toAccount)}`;
       const amount = parseFloat(amountInput.value);
       summaryAmount.textContent = Number.isFinite(amount) ? usd.format(amount) : '—';
-      summaryDate.textContent = dateFmt.format(new Date());
+      const tier = FEE_TIERS[tierSelect.value] || FEE_TIERS.standard;
+      const fee = Number.isFinite(amount) ? Math.max(tier.rate * amount, tier.flat) : NaN;
+      summaryFee.textContent = Number.isFinite(fee) ? usd.format(fee) : '—';
+      summaryTotal.textContent = Number.isFinite(fee) ? usd.format(amount + fee) : '—';
     }
     function onAccountChange() {
       if (result.classList.contains('validation') && fromAccount.value !== toAccount.value) {
@@ -254,6 +260,7 @@
     fromAccount.addEventListener('change', onAccountChange);
     toAccount.addEventListener('change', onAccountChange);
     amountInput.addEventListener('input', renderSummary);
+    tierSelect.addEventListener('change', renderSummary);
     form.addEventListener('reset', () => {
       result.className = 'result-box';
       result.textContent = '';
