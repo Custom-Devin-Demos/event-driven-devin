@@ -80,7 +80,7 @@
   .cols a:hover{color:var(--txt)}
   .copy{font-size:12px;line-height:1.6;margin:22px 0}
   .ft-legal{display:flex;gap:22px;flex-wrap:wrap;font-size:12px;color:var(--txt)}
-  .toast{position:fixed;right:24px;bottom:24px;z-index:50;width:420px;background:#202024;border-radius:10px;border-left:4px solid var(--red);padding:18px 20px;box-shadow:0 12px 40px rgba(0,0,0,.5);display:none;font-size:14px;line-height:1.5}
+  .toast{position:fixed;right:24px;bottom:24px;z-index:50;width:min(420px,calc(100vw - 48px));background:#202024;border-radius:10px;border-left:4px solid var(--red);padding:18px 20px;box-shadow:0 12px 40px rgba(0,0,0,.5);display:none;font-size:14px;line-height:1.5}
   .toast.ok{border-left-color:var(--green)}
   .toast h6{font-size:15px;font-weight:700;margin-bottom:6px}
   .toast code{display:block;margin-top:10px;background:#101014;border-radius:6px;padding:8px 10px;font-size:12px;color:#ff9a9a;white-space:pre-wrap;word-break:break-word}
@@ -183,11 +183,11 @@
           <option value="matchmaking-error">Matchmaking / connection error</option>
         </select></div>
       <div class="row">
-        <div class="field"><label for="displayName">Epic display name</label><input id="displayName" name="displayName" value="NightShift_Mike"></div>
-        <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" value="mike.schmidt@example.com"></div>
+        <div class="field"><label for="displayName">Epic display name</label><input id="displayName" name="displayName" maxlength="64" value="NightShift_Mike"></div>
+        <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" maxlength="254" value="mike.schmidt@example.com"></div>
       </div>
       <div class="field"><label for="description">Describe the issue</label>
-        <textarea id="description" name="description">I bought the Five Nights at Freddy's Bundle (2,800 V-Bucks) from the Fortnitemares Item Shop about an hour ago. The V-Bucks were taken from my balance but the outfits aren't in my Locker. Restarting the game didn't help.</textarea></div>
+        <textarea id="description" name="description" maxlength="4000">I bought the Five Nights at Freddy's Bundle (2,800 V-Bucks) from the Fortnitemares Item Shop about an hour ago. The V-Bucks were taken from my balance but the outfits aren't in my Locker. Restarting the game didn't help.</textarea></div>
       <button class="btn btn-blue submit" id="submitBtn" type="submit">Submit request</button>
     </form>
   </div>
@@ -249,6 +249,8 @@
       const res = await fetch('/api/50a88f70/support-ticket', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
+        document.getElementById('statusPill').classList.remove('degraded');
+        document.getElementById('statusText').textContent = 'All systems operational';
         showToast(true, '<h6>Request submitted</h6>Your case number is <b>' + esc(data.ticketId) + '</b>. ' + esc(data.message || ''));
       } else if (res.status === 400) {
         showToast(false, '<h6>Check your request</h6>' + esc(data.error || 'Some details are missing.'));

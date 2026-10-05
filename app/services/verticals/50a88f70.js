@@ -93,7 +93,10 @@ function validateTicketRequest(data) {
   if (!PLATFORMS[data.platform]) throw validationError('Choose a platform.', 'INVALID_PLATFORM');
   if (!TOPICS[data.topic]) throw validationError('Choose what you need help with.', 'INVALID_TOPIC');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) throw validationError('Enter a valid email address.', 'INVALID_EMAIL');
+  if (data.email.length > 254) throw validationError('Enter a valid email address.', 'INVALID_EMAIL');
+  if (data.displayName.length > 64) throw validationError('Epic display names are 64 characters or fewer.', 'DISPLAY_NAME_TOO_LONG');
   if (data.description.length < 10) throw validationError('Tell us a little more about the issue.', 'DESCRIPTION_TOO_SHORT');
+  if (data.description.length > 4000) throw validationError('Keep your description under 4,000 characters.', 'DESCRIPTION_TOO_LONG');
 }
 
 function resolveQueueKey(product, topic) {
@@ -202,6 +205,7 @@ async function submitSupportTicket(data = {}) {
         product: normalized.product,
         topic: normalized.topic,
         platform: normalized.platform,
+        alert_path: 'instant',
       },
       extra: {
         requestId,
