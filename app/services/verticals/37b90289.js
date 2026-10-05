@@ -6,7 +6,7 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
-const SLACK_MEMBER_ID = process.env.EPIQ_SLACK_MEMBER_ID || 'U08S7AVJ478';
+const SLACK_MEMBER_ID = process.env.EPIQ_SLACK_MEMBER_ID || '';
 
 const SERVICE = 'customer-37b90289-case-search';
 const ROUTE = '/api/37b90289/case-search';
@@ -87,17 +87,17 @@ async function queryCourtDocket(courtCode, debtorName, chapter) {
 
   for (let index = 0; index < caseCount; index += 1) {
     const caseHash = (hash + Math.imul(index, 0x9e3779b9)) >>> 0;
-    const caseYear = 24 + (caseHash % 3);
+    const startDate = Date.UTC(2024, 0, 1);
+    const filedDate = new Date(startDate + ((caseHash >>> 12) % 1004) * 86400000)
+      .toISOString()
+      .slice(0, 10);
+    const caseYear = filedDate.slice(2, 4);
     let caseNumberSuffix = 10000 + ((caseHash >>> 4) % 89999);
     while (matches.some((match) => match.caseNumber === `${caseYear}-${caseNumberSuffix}`)) {
       caseNumberSuffix = 10000 + ((caseNumberSuffix - 9999) % 89999);
     }
     const caseNumber = `${caseYear}-${caseNumberSuffix}`;
     const caseChapter = chapterValues[(caseHash >>> 8) % chapterValues.length];
-    const startDate = Date.UTC(2024, 0, 1);
-    const filedDate = new Date(startDate + ((caseHash >>> 12) % 1096) * 86400000)
-      .toISOString()
-      .slice(0, 10);
     const match = {
       court: courtCode,
       courtLabel,

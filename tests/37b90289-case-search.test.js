@@ -106,6 +106,16 @@ describe('Epiq AACER case search', () => {
     expect(result.courtSummaries.map((summary) => summary.matchCount)).toEqual(
       NATIONWIDE_COURTS.map((court) => result.results.filter((match) => match.court === court).length),
     );
+    const nationwideSearches = [result];
+    for (const debtorName of ['Tupperware Brands', 'WeWork']) {
+      nationwideSearches.push(await searchCases({ debtorName }));
+    }
+    for (const nationwide of nationwideSearches) {
+      for (const match of nationwide.results) {
+        expect(match.caseNumber.slice(0, 2)).toBe(match.filedDate.slice(2, 4));
+        expect(match.filedDate <= '2026-09-30').toBe(true);
+      }
+    }
     for (const court of NATIONWIDE_COURTS) {
       const courtCases = result.results.filter((match) => match.court === court);
       expect(new Set(courtCases.map((match) => match.caseNumber)).size).toBe(courtCases.length);
@@ -212,6 +222,8 @@ describe('Epiq AACER case search', () => {
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.culprit).toContain('collectCourtDockets');
     expect(alert.customer).toBe('37b90289');
+    expect(alert.slackMemberId).toBe('');
+    expect(alert.slackMemberIdFallback).toBe(process.env.EPIQ_SLACK_MEMBER_ID || '');
     expect(alert.promptAppendix).toBe(REMEDIATION_DIRECTIVE);
     expect(alert.tags).toEqual(expect.arrayContaining([
       { key: 'duration_ms', value: String(result.durationMs) },
