@@ -106,6 +106,7 @@ async function registerAttendee(data) {
       error: error.message,
       errorClass: error.name,
       durationMs: duration,
+      service: SERVICE,
     });
 
     Sentry.captureException(error, {
