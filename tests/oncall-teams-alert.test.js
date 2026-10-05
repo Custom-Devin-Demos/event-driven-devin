@@ -229,6 +229,15 @@ describe('per-user Teams toggle (hub-local setting)', () => {
     expect(axios.post).not.toHaveBeenCalled();
   });
 
+  test('an invalid per-user URL does not suppress server-managed Teams routing', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_ALL_ALERTS = 'true';
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true, teamsWebhookUrl: 'https://invalid.example/hook' });
+    expect(result).toMatchObject({ ok: true, teams: true, teamsError: expect.stringMatching(/Teams Workflow webhook/) });
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
+  });
+
   test('an invalid per-user URL with no Slack configured delivers nothing', async () => {
     setEnv({ slack: false, teams: true });
     const result = await postOncallAlert('banking', { teams: true, teamsWebhookUrl: 'https://evil.example/x' });
