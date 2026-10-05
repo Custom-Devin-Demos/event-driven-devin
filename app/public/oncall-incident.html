@@ -179,6 +179,13 @@
     function t(key) {
       return typeof COPY[key] === 'string' ? COPY[key] : COPY_DEFAULTS[key];
     }
+    function formatDeclaredAt(value) {
+      try {
+        return new Date(value).toLocaleString(t('lang'));
+      } catch (_err) {
+        return new Date(value).toLocaleString();
+      }
+    }
     function fmt(template, vars) {
       return template.replace(/\{(\w+)\}/g, function (_, name) {
         return vars[name] == null ? '' : String(vars[name]);
@@ -265,7 +272,7 @@
         [
           [t('publicId'), entry.publicId ? 'IR-' + entry.publicId : t('pendingProviderId')],
           [t('incidentRef'), entry.runRef],
-          [t('declaredAt'), new Date(entry.declaredAt).toLocaleString(t('lang'))],
+          [t('declaredAt'), formatDeclaredAt(entry.declaredAt)],
           [remainingTerm, remainingLabel(entry)],
         ].forEach(function (pair) {
           var term = document.createElement('dt');
