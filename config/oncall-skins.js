@@ -3105,6 +3105,7 @@ const ONCALL_SKINS = {
     company: 'FOCAL by MOZN',
     brandMark: 'F',
     vertical: 'banking',
+    oncallOnly: true,
     page: { file: '97531c84.html', title: 'Release held payment | FOCAL' },
     theme: {
       '--accent': '#04AEAE',
