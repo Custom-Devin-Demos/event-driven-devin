@@ -109,7 +109,7 @@ async function registerAttendee(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, slot: data.slotId },
+      tags: { route: ROUTE, service: SERVICE, slot: data.slotId, alert_path: 'instant' },
       extra: { registrationId, eventId: EVENT.id, displayName: data.displayName },
     });
 
@@ -127,6 +127,7 @@ async function registerAttendee(data) {
       tags: [
         { key: 'route', value: ROUTE },
         { key: 'service', value: SERVICE },
+        { key: 'alert_path', value: 'instant' },
       ],
       extra: { registrationId, eventId: EVENT.id, slotId: data.slotId, displayName: data.displayName },
       level: 'error',
