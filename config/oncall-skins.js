@@ -3083,6 +3083,28 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'manabiba サポート',
     disclaimer: 'NOT ACTUALLY A MANABIBA SITE — manabiba is a fictional brand; internal demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・社内デモ用）。',
+    // SEV-1 opt-in: the same hightech story the alert track degrades, so the
+    // shared console at /oncall/c/4875267e/incident tells the same story as
+    // the page. The vocabulary only swaps product nouns for manabiba's
+    // Japanese terms; service names and endpoints stay truthful.
+    incident: {
+      kind: 'licensing-latency',
+      chatter: {
+        vocabulary: {
+          'License provisioning slowdown': 'イベント申し込みの遅延',
+          'slow seat provisioning': 'slow イベント申し込み',
+          'enterprise customer': '勉強会の主催者',
+          'activation that used to be instant': '参加確定 that used to be instant',
+          'per license': 'per 参加者',
+          'license DB': 'イベント DB',
+          'slow provisioning': 'slow 申し込み処理',
+          'provisioning calls': '申し込みリクエスト',
+          'provisioning call': '申し込みリクエスト',
+          'provisioning works': '申し込み自体は通る',
+          'orgs': '主催者',
+        },
+      },
+    },
   },
   '0ada2330': {
     slug: '0ada2330',
