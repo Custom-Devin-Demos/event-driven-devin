@@ -181,7 +181,7 @@ function reportAppFailure(slug, report) {
   if (context !== undefined) extra.context = context;
 
   Sentry.withScope((scope) => {
-    scope.setTransactionName(`POST ${route}`);
+    scope.setTransactionName(`ios-demos/${slug}/ios ${screen} ${action}`);
     Sentry.captureException(error, { tags, extra });
   });
 

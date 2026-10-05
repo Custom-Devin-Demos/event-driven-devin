@@ -7,6 +7,7 @@ const {
   replaceChatterVocabulary,
   getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
+  isValidIncidentCopy,
 } = require('../app/services/oncall');
 const { ONCALL_SKINS } = require('../config/oncall-skins');
 
@@ -256,5 +257,77 @@ describe('SEV-1 persona chatter vocabulary — a2088cb4 (hightech)', () => {
     expect(copy.summary).toContain('POST /api/oncall/licenses/provision p95 at ~6.8s');
     expect(copy.summary).toContain('Every registration submission is slow and getting slower.');
     expect(story.title).toBe('License provisioning slowdown — latency and memory climbing on licensing-api');
+  });
+});
+
+describe('SEV-1 persona chatter vocabulary — 4875267e (hightech, Japanese terms)', () => {
+  const story = SEV1_INCIDENTS['licensing-latency'];
+  const skin = ONCALL_SKINS['4875267e'];
+
+  test('skin opts into the hightech story', () => {
+    expect(skin.vertical).toBe('hightech');
+    expect(skin.incident.kind).toBe('licensing-latency');
+    expect(story.vertical).toBe(skin.vertical);
+  });
+
+  test('swaps provisioning nouns for manabiba terms and keeps telemetry wording', () => {
+    const vocabulary = getSev1ChatterVocabulary(story, skin, 'licensing-latency');
+    const script = buildSev1Chatter(story, vocabulary);
+    const text = script.map((line) => line.text).join('\n');
+
+    expect(text).toContain('slow イベント申し込み');
+    expect(text).toContain('One 勉強会の主催者 flagging');
+    expect(text).toContain('per 参加者');
+    expect(text).toContain('More 主催者 reporting');
+    expect(text).toContain('申し込みリクエスト');
+    expect(text).not.toContain('seat provisioning');
+    expect(text).not.toContain('per license');
+    expect(text).not.toMatch(/\bprovisioning\b/);
+    // Truthful telemetry wording survives.
+    expect(text).toContain('the licensing service itself');
+    expect(text).toContain('`POST /api/oncall/licenses/provision`');
+  });
+
+  test('localizes declared incident copy but keeps the service and endpoint', () => {
+    const vocabulary = getSev1ChatterVocabulary(story, skin, 'licensing-latency');
+    const copy = buildSev1IncidentCopy(story, vocabulary);
+
+    expect(copy.title).toBe('イベント申し込みの遅延 — licensing-api のレイテンシとメモリが上昇中');
+    expect(copy.label).toBe('イベント申し込みの遅延 — licensing-api のレイテンシ + RSS 上昇');
+    expect(copy.summary).toContain('POST /api/oncall/licenses/provision p95 at ~6.8s');
+    expect(copy.summary).toContain('すべての申し込みリクエストが遅く');
+    expect(copy.summary).not.toMatch(/provisioning/);
+    expect(story.title).toBe('License provisioning slowdown — latency and memory climbing on licensing-api');
+    expect(story.summary).toContain('Every provisioning call is slow and getting slower.');
+  });
+
+  test('localizes the shared console UI strings via incident.copy', () => {
+    expect(isValidIncidentCopy(skin.incident.copy)).toBe(true);
+    expect(skin.incident.copy.lang).toBe('ja');
+    expect(skin.incident.copy.declareButton).toBe('SEV-1 インシデントを宣言する');
+    expect(skin.incident.copy.declaredDatadog).toContain('{id}');
+    expect(skin.incident.copy.declaredDatadog).toContain('{ref}');
+    expect(skin.incident.copy.declaredSlack).toContain('{channel}');
+    // Other incident skins keep the English defaults.
+    expect(ONCALL_SKINS['e7c9dc7a'].incident.copy).toBeUndefined();
+  });
+
+  test('rejects non-string incident copy values', () => {
+    expect(isValidIncidentCopy({ heading: 'x' })).toBe(true);
+    expect(isValidIncidentCopy({})).toBe(true);
+    expect(isValidIncidentCopy({ heading: 1 })).toBe(false);
+    expect(isValidIncidentCopy({ nested: { a: 'b' } })).toBe(false);
+    expect(isValidIncidentCopy(['a'])).toBe(false);
+    expect(isValidIncidentCopy(null)).toBe(false);
+  });
+
+  test('only accepts a well-formed BCP 47 tag for copy.lang', () => {
+    expect(isValidIncidentCopy({ lang: 'ja' })).toBe(true);
+    expect(isValidIncidentCopy({ lang: 'ja-JP' })).toBe(true);
+    expect(isValidIncidentCopy({ lang: 'en-US-u-ca-gregory' })).toBe(true);
+    expect(isValidIncidentCopy({ lang: 'en-US-US' })).toBe(false);
+    expect(isValidIncidentCopy({ lang: 'not a locale!' })).toBe(false);
+    expect(isValidIncidentCopy({ lang: '' })).toBe(false);
+    expect(() => new Date().toLocaleString('not a locale!')).toThrow(RangeError);
   });
 });
