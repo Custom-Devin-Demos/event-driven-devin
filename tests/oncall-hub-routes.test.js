@@ -43,6 +43,13 @@ describe('on-call hub routes', () => {
     expect(directHtml).toEqual(await skinned.text());
     expect(directHtml).toContain('/api/oncall/marketplace/cart');
   });
+
+  test('the shim sends the per-user Teams settings and surfaces an invalid personal webhook', async () => {
+    const html = await (await fetch(`${baseUrl}/oncall/c/63dbb52f`)).text();
+    expect(html).toContain("localStorage.getItem('oncallTeamsAlerts') === 'on'");
+    expect(html).toContain("localStorage.getItem('oncallTeamsWebhookUrl')");
+    expect(html).toMatch(/if \(d\.teamsError\)[^\n]*invalid/);
+  });
 });
 
 describe('on-call hub page contract', () => {
