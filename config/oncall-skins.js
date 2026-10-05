@@ -3100,6 +3100,22 @@ const ONCALL_SKINS = {
     supportCenter: 'Proximus Support',
     disclaimer: 'NOT ACTUALLY A PROXIMUS SITE — internal demo only, not affiliated with, endorsed by, or a real Proximus product.',
   },
+  '97531c84': {
+    slug: '97531c84',
+    company: 'FOCAL by MOZN',
+    brandMark: 'F',
+    vertical: 'banking',
+    page: { file: '97531c84.html', title: 'Release held payment | FOCAL' },
+    theme: {
+      '--accent': '#04AEAE',
+      '--ink': '#1F222D',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#080B17',
+      '--chrome-text': '#F0F5F5',
+    },
+    supportCenter: 'FOCAL Support',
+    disclaimer: 'NOT ACTUALLY A FOCAL BY MOZN SITE — internal demo only, not affiliated with, endorsed by, or a real MOZN or FOCAL product.',
+  },
 };
 
 function getOncallSkin(slug) {
