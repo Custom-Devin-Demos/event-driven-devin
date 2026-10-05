@@ -278,9 +278,9 @@
             <label class="label" for="currentPlan">Mobile line</label>
             <div class="select-wrap">
               <select id="currentPlan">
-                <option value="PLUS-24" data-line="0470 12 34 56" selected>0470 12 34 56 · Mobile Easy</option>
-                <option value="BASIC-12" data-line="0471 98 76 54">0471 98 76 54 · Mobile Essential</option>
-                <option value="ULTRA-36" data-line="0472 55 44 33">0472 55 44 33 · Mobile Smart</option>
+                <option value="PLUS-24" data-line="0470 12 34 56" data-account="CUST-3002" selected>0470 12 34 56 · Mobile Easy</option>
+                <option value="BASIC-12" data-line="0471 98 76 54" data-account="CUST-3001">0471 98 76 54 · Mobile Essential</option>
+                <option value="ULTRA-36" data-line="0472 55 44 33" data-account="CUST-3003">0472 55 44 33 · Mobile Smart</option>
               </select>
               <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 4l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
             </div>
@@ -462,6 +462,11 @@
         return option ? option.dataset.line : '';
       }
 
+      function lineForAccount(accountId) {
+        var option = currentPlan.querySelector('option[data-account="' + accountId + '"]');
+        return option ? option.dataset.line : '';
+      }
+
       function firstUpgradeFrom(code) {
         var codes = Object.keys(PLANS);
         var preferred = code === DEFAULT_TARGET ? 'FAMILY-PLUS-12' : DEFAULT_TARGET;
@@ -540,7 +545,7 @@
       form.addEventListener('submit', async function (event) {
         event.preventDefault();
         var submittedName = PLANS[newPlan.value].name;
-        var submittedLine = lineNumber();
+        var submittedAccount = currentPlan.selectedOptions[0].dataset.account;
         clearResult();
         setPending(true);
         slowStatus.hidden = true;
@@ -550,7 +555,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              accountId: 'CUST-3001',
+              accountId: submittedAccount,
               currentPlanCode: currentPlan.value,
               targetPlanCode: newPlan.value,
               billingDay: 15,
@@ -560,8 +565,9 @@
             }),
           });
           if (!res.ok) throw new Error('request failed');
-          await res.json().catch(function () { return {}; });
-          showResult('success', 'Your subscription has been changed', submittedName + ' is active on ' + submittedLine + ' from today. You\u2019ll receive a confirmation by SMS and e-mail.');
+          var data = await res.json().catch(function () { return {}; });
+          var confirmedLine = lineForAccount(data.accountId || submittedAccount);
+          showResult('success', 'Your subscription has been changed', submittedName + ' is active on ' + confirmedLine + ' from today. You\u2019ll receive a confirmation by SMS and e-mail.');
         } catch (err) {
           showResult('error', 'We couldn\u2019t change your subscription', 'Nothing has changed on your line. Please try again in a few minutes.');
         } finally {
