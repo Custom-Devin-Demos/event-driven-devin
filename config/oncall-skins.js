@@ -3052,12 +3052,12 @@ const ONCALL_SKINS = {
   },
   '4875267e': {
     slug: '4875267e',
-    company: 'tsudoi',
-    brandMark: 't',
+    company: 'manabiba',
+    brandMark: 'm',
     vertical: 'hightech',
     page: {
       // Natively branded Japanese event page under the fictional brand
-      // "tsudoi" (an original mark and name, not a clone of any real event
+      // "manabiba" (an original mark and name, not a clone of any real event
       // platform): the attendee registration form
       // in the side column reuses the hightech provisioning ids so the shared
       // shim reroutes and degrades it with no backend changes. Two tracks
@@ -3065,7 +3065,7 @@ const ONCALL_SKINS = {
       // and the bare /4875267e keeps the legacy /api/licenses/provision
       // error track (Sentry → Slack → Devin) like the stock hightech page.
       file: '4875267e.html',
-      title: 'Fukuoka.go #27 - Go で学ぶ並行処理の基礎と実践 - tsudoi',
+      title: 'Fukuoka.go #27 - Go で学ぶ並行処理の基礎と実践 - manabiba',
     },
     theme: {
       '--accent': '#D9502A',
@@ -3080,8 +3080,8 @@ const ONCALL_SKINS = {
       symptom: 'Event registration submissions are slow and get slower with every request. Process RSS trends up alongside it.',
       impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served slots that open at a fixed time are hit hardest.',
     },
-    supportCenter: 'tsudoi サポート',
-    disclaimer: 'NOT ACTUALLY A TSUDOI SITE — tsudoi is a fictional brand; internal demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・社内デモ用）。',
+    supportCenter: 'manabiba サポート',
+    disclaimer: 'NOT ACTUALLY A MANABIBA SITE — manabiba is a fictional brand; internal demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・社内デモ用）。',
   },
   '0ada2330': {
     slug: '0ada2330',
