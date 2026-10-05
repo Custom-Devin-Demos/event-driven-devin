@@ -402,6 +402,7 @@ describe('shared iOS demo failure report endpoint', () => {
       'ios-demos/abcd1234/ios checkout place_order',
       'ios-demos/abcd1234/ios/checkout/place_order.swift',
       'checkout.place_order(ios-demos/abcd1234/ios/checkout/place_order)',
+      'POST /api/ios/abcd1234/error',
     ]) {
       expect(isInstantPathEvent({ culprit, tags: [] })).toBe(true);
     }
