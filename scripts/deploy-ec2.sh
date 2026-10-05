@@ -83,6 +83,29 @@ mkdir -p "$RELEASES_DIR"
 cp "$APP_DIR/.env" "$RELEASES_DIR/env.$TS"
 cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 
+# Optional .env sync from the deploy workflow (Actions secrets). Applied under
+# the lock and after the backup above, so rollback restores the previous .env.
+# Allowlisted keys only; a value that isn't a single-line https URL is skipped
+# (deploy continues with the current .env).
+ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL)
+if [ -n "${ENV_SYNC_FILE:-}" ] && [ -s "$ENV_SYNC_FILE" ]; then
+  while IFS= read -r line || [ -n "$line" ]; do
+    key=${line%%=*}; val=${line#*=}
+    if [[ " ${ENV_SYNC_KEYS[*]} " != *" $key "* ]]; then log "env sync: ignoring non-allowlisted key"; continue; fi
+    if ! [[ "$val" =~ ^https://[^[:space:]\"\'\$]+$ ]]; then
+      log "env sync: WARNING $key is not a single-line https URL; leaving .env unchanged"
+      continue
+    fi
+    if grep -qxF "$key=$val" "$APP_DIR/.env"; then log "env sync: $key unchanged"; continue; fi
+    tmp_env=$(mktemp "$APP_DIR/.env.sync.XXXXXX")
+    grep -v "^$key=" "$APP_DIR/.env" > "$tmp_env" || true
+    printf '%s=%s\n' "$key" "$val" >> "$tmp_env"
+    cat "$tmp_env" > "$APP_DIR/.env"
+    rm -f "$tmp_env"
+    log "env sync: $key updated"
+  done < "$ENV_SYNC_FILE"
+fi
+
 # Back up exactly the top-level entries this deploy will touch.
 mapfile -t TOP_ENTRIES < <(cd "$STAGING" && ls -A)
 TOUCHED=()

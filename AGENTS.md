@@ -770,7 +770,7 @@ EOF
 
 ### Important Notes
 
-- **Teams On-Call webhook:** `ONCALL_TEAMS_WEBHOOK_URL` is the one `.env` value the deploy workflow writes: when the `ONCALL_TEAMS_WEBHOOK_URL` Actions secret is set, `deploy.yml` upserts it into `/home/ubuntu/.env` before `deploy-ec2.sh` runs.
+- **Teams On-Call webhook:** `ONCALL_TEAMS_WEBHOOK_URL` is the one `.env` value the deploy workflow writes: when the `ONCALL_TEAMS_WEBHOOK_URL` Actions secret is set, `deploy.yml` stages it on the host and `deploy-ec2.sh` writes it into `/home/ubuntu/.env` under the deploy lock, after the `.env` backup (so rollback restores the previous value). Only allowlisted keys (`ENV_SYNC_KEYS`) with single-line https values are applied.
 - **`.env` location:** The production `.env` file lives at `/home/ubuntu/.env` on EC2. It contains all secrets (`SENTRY_DSN`, `DD_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN`, `DOMAIN_NAME`, `CERT_EMAIL`, etc.) and must never be overwritten or deleted.
 - **SSL certificates:** Stored in `./certbot/conf/` on EC2. These persist across deploys — the tarball and deploy workflow explicitly exclude this directory. Never delete this directory or you'll need to re-run `scripts/init-ssl.sh`.
 - **Backup before deploy:** Always back up `.env` before extracting the tarball. If the `.env` is accidentally removed, Slack alerts, Sentry, and Datadog will silently stop working.

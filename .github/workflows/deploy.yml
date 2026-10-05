@@ -67,28 +67,20 @@ jobs:
             /tmp/release.tar.gz \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/release-${{ github.sha }}.tar.gz
 
-      # Optional: upsert ONCALL_TEAMS_WEBHOOK_URL (Teams Workflow webhook for
-      # On-Call alerts) into the host .env from the Actions secret, so it can be
-      # set without SSH access. Runs before deploy-ec2.sh so it is backed up and
-      # picked up on restart. Skipped when the secret is unset.
-      - name: Sync On-Call Teams webhook into host .env
+      # Optional: stage ONCALL_TEAMS_WEBHOOK_URL (Teams Workflow webhook for
+      # On-Call alerts) for the host .env, so it can be set without SSH access.
+      # deploy-ec2.sh applies it under the deploy lock, after its .env backup.
+      # Skipped when the secret is unset.
+      - name: Stage On-Call Teams webhook for host .env
         env:
           ONCALL_TEAMS_WEBHOOK_URL: ${{ secrets.ONCALL_TEAMS_WEBHOOK_URL }}
         run: |
           if [ -z "$ONCALL_TEAMS_WEBHOOK_URL" ]; then
-            echo "ONCALL_TEAMS_WEBHOOK_URL secret not set; leaving host .env unchanged"; exit 0
+            echo "ONCALL_TEAMS_WEBHOOK_URL secret not set; host .env left unchanged"; exit 0
           fi
-          printf '%s' "$ONCALL_TEAMS_WEBHOOK_URL" | ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} '
-            set -euo pipefail
-            f=/home/ubuntu/.env
-            v=$(cat)
-            tmp=$(mktemp)
-            grep -v "^ONCALL_TEAMS_WEBHOOK_URL=" "$f" > "$tmp" || true
-            printf "ONCALL_TEAMS_WEBHOOK_URL=%s\n" "$v" >> "$tmp"
-            cat "$tmp" > "$f"
-            rm -f "$tmp"
-            echo "ONCALL_TEAMS_WEBHOOK_URL updated in host .env"
-          '
+          printf 'ONCALL_TEAMS_WEBHOOK_URL=%s\n' "$ONCALL_TEAMS_WEBHOOK_URL" | \
+            ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
+            'umask 077 && mkdir -p /home/ubuntu/incoming && cat > /home/ubuntu/incoming/env-sync-${{ github.sha }}'
 
       # Everything below happens on the host through scripts/deploy-ec2.sh
       # (taken from the release being deployed): lock, backup, mirror the tree
@@ -103,8 +95,9 @@ jobs:
           rm -rf "$STAGING" && mkdir -p "$STAGING"
           tar xzf "/home/ubuntu/release-$SHA.tar.gz" -C "$STAGING"
           rm -f "/home/ubuntu/release-$SHA.tar.gz"
-          trap 'rm -rf "$STAGING"' EXIT
-          bash "$STAGING/scripts/deploy-ec2.sh" "$STAGING" "${{ github.repository }}@${SHA:0:7}"
+          ENV_SYNC="/home/ubuntu/incoming/env-sync-$SHA"
+          trap 'rm -rf "$STAGING" "$ENV_SYNC"' EXIT
+          ENV_SYNC_FILE="$ENV_SYNC" bash "$STAGING/scripts/deploy-ec2.sh" "$STAGING" "${{ github.repository }}@${SHA:0:7}"
           EOF
 
       - name: Clean up SSH key
