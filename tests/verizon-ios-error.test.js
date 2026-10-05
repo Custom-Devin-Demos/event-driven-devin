@@ -39,6 +39,7 @@ const {
   APP_SERVICE,
   APP_SOURCE_PREFIX,
   IOS_ERROR_PATH,
+  VERIZON_IOS_SESSION_PLATFORM,
   isAppReport,
   reportAppFailure,
   resolveUserIdByEmail,
@@ -148,6 +149,7 @@ describe('My Verizon iOS preorder failure report', () => {
       devinOrgId: ORG_ID,
       devinEmail: APP_REPORT.devinEmail,
       slackMemberId: '',
+      sessionPlatform: VERIZON_IOS_SESSION_PLATFORM || undefined,
       promptAppendix: APP_REMEDIATION_DIRECTIVE,
     });
     expect(alertData.slackChannelId).toBeUndefined();
@@ -214,6 +216,7 @@ describe('My Verizon iOS preorder failure report', () => {
     }).sessionPromise;
 
     const alertData = createSessionAndAlert.mock.calls[0][0];
+    expect(alertData.sessionPlatform).toBe(VERIZON_IOS_SESSION_PLATFORM || undefined);
     expect(alertData.errorValue).toHaveLength(512);
     expect(alertData.extra.stackTrace).toHaveLength(4000);
     expect(alertData.extra.perks).toHaveLength(256);
@@ -226,6 +229,7 @@ describe('My Verizon iOS preorder failure report', () => {
     await reportAppFailure(report).sessionPromise;
 
     const alertData = createSessionAndAlert.mock.calls[0][0];
+    expect(alertData.sessionPlatform).toBe(VERIZON_IOS_SESSION_PLATFORM || undefined);
     expect(alertData.devinUserId).toBe(report.devinUserId);
     expect(alertData.devinOrgId).toBe(report.devinOrgId);
     expect(alertData.devinEmail).toBeUndefined();
@@ -243,15 +247,18 @@ describe('My Verizon iOS preorder failure report', () => {
 
     expect(listOrgUsers).toHaveBeenCalledWith(ORG_ID, expect.any(Object));
     expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('user-antonio');
+    expect(createSessionAndAlert.mock.calls[0][0].sessionPlatform).toBe(VERIZON_IOS_SESSION_PLATFORM || undefined);
   });
 
   test('falls back to enterprise admins, then to the customer default user', async () => {
     listEnterpriseAdmins.mockResolvedValueOnce([{ user_id: 'user-admin', email: APP_REPORT.devinEmail }]);
     await reportAppFailure(APP_REPORT).sessionPromise;
     expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('user-admin');
+    expect(createSessionAndAlert.mock.calls[0][0].sessionPlatform).toBe(VERIZON_IOS_SESSION_PLATFORM || undefined);
 
     await reportAppFailure(APP_REPORT).sessionPromise;
     expect(createSessionAndAlert.mock.calls[1][0].devinUserId).toBeUndefined();
+    expect(createSessionAndAlert.mock.calls[1][0].sessionPlatform).toBe(VERIZON_IOS_SESSION_PLATFORM || undefined);
   });
 
   test('uses a forwarded devinUserId without looking up the email', async () => {
@@ -259,6 +266,7 @@ describe('My Verizon iOS preorder failure report', () => {
 
     expect(listOrgUsers).not.toHaveBeenCalled();
     expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('user-explicit');
+    expect(createSessionAndAlert.mock.calls[0][0].sessionPlatform).toBe(VERIZON_IOS_SESSION_PLATFORM || undefined);
   });
 
   test('resolveUserIdByEmail returns empty on missing input or lookup failure', async () => {
@@ -392,7 +400,26 @@ describe('My Verizon iOS preorder failure report', () => {
     expect(APP_REMEDIATION_DIRECTIVE).toContain('OrderError.unknownLineItem');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('swift test --package-path MyVerizonCore');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('MYVZ_DISABLE_FAILURE_REPORTS=1');
-    expect(APP_REMEDIATION_DIRECTIVE).toContain('STOP for human approval');
     expect(APP_REMEDIATION_DIRECTIVE).not.toContain('4e150e99.js —');
+  });
+
+  test('directive keeps the work on macOS and never merges the demo fix PR', () => {
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('do not create child sessions');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('DO NOT MERGE');
+  });
+
+  test('VERIZON_IOS_SESSION_PLATFORM defaults to macos when unset', () => {
+    const original = process.env.VERIZON_IOS_SESSION_PLATFORM;
+    let value;
+    try {
+      delete process.env.VERIZON_IOS_SESSION_PLATFORM;
+      jest.isolateModules(() => {
+        ({ VERIZON_IOS_SESSION_PLATFORM: value } = require('../app/services/verticals/verizon-ios'));
+      });
+      expect(value).toBe('macos');
+    } finally {
+      if (original === undefined) delete process.env.VERIZON_IOS_SESSION_PLATFORM;
+      else process.env.VERIZON_IOS_SESSION_PLATFORM = original;
+    }
   });
 });
