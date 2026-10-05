@@ -458,8 +458,64 @@
 
       facilitySel.addEventListener('change', function () { renderFacility(facilitySel.value); });
 
+      var DRAFT_KEY = 'tenlog-draft-059b9215';
+      var DRAFT_FIELDS = ['policyId', 'claimType', 'inspectedOn', 'amount', 'description'];
+      var photoInput = document.getElementById('photos');
+      var photoNames = [];
+
+      function renderPhotos() {
+        var thumbs = document.querySelector('.dropzone .thumbs');
+        var count = document.querySelector('.dropzone .text b');
+        thumbs.innerHTML = '';
+        photoNames.forEach(function (name) {
+          var t = document.createElement('span');
+          t.className = 'thumb';
+          t.setAttribute('data-label', name);
+          thumbs.appendChild(t);
+        });
+        count.textContent = '添付 ' + photoNames.length + '件';
+      }
+
+      photoInput.addEventListener('change', function () {
+        Array.prototype.forEach.call(photoInput.files, function (f) {
+          if (photoNames.indexOf(f.name) === -1) photoNames.push(f.name);
+        });
+        renderPhotos();
+      });
+
+      function readDraft() {
+        try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) { return null; }
+      }
+
+      function saveDraft() {
+        var draft = { photos: photoNames.slice(), savedAt: new Date().toISOString() };
+        DRAFT_FIELDS.forEach(function (id) { draft[id] = document.getElementById(id).value; });
+        try {
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function restoreDraft() {
+        var draft = readDraft();
+        if (!draft) return false;
+        DRAFT_FIELDS.forEach(function (id) {
+          if (typeof draft[id] === 'string') document.getElementById(id).value = draft[id];
+        });
+        renderFacility(facilitySel.value);
+        if (typeof draft.amount === 'string') document.getElementById('amount').value = draft.amount;
+        if (Array.isArray(draft.photos)) { photoNames = draft.photos.slice(); renderPhotos(); }
+        return true;
+      }
+
       document.getElementById('draftBtn').addEventListener('click', function () {
-        showResult('success', '下書きを保存しました', '端末に保存されました。通信回復後も提出できます。');
+        if (saveDraft()) {
+          showResult('success', '下書きを保存しました', '端末に保存されました。通信回復後も提出できます。');
+        } else {
+          showResult('error', '下書きを保存できませんでした', '端末の保存領域を利用できません。');
+        }
       });
 
       function showResult(kind, title, detail) {
@@ -511,7 +567,8 @@
               inspectionType: document.getElementById('claimType').value,
               value: value,
               inspectedOn: document.getElementById('inspectedOn').value,
-              notes: document.getElementById('description').value
+              notes: document.getElementById('description').value,
+              photos: photoNames.slice()
             };
           var res = await fetch(apiPath, {
             method: 'POST',
@@ -526,6 +583,7 @@
             showResult('error', '点検結果の提出を完了できませんでした', detail);
           } else {
             var ref = data.reportId || data.claimId || '-';
+            try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* storage unavailable */ }
             showResult('success', '成績書を生成しました', '受付番号: ' + ref + '。前回値と照合した判定結果を含む成績書 PDF を「成績書」メニューからダウンロードできます。承認者に通知しました。');
           }
         } catch (err) {
@@ -537,6 +595,8 @@
       });
 
       renderFacility(facilitySel.value);
+      photoNames = ['銘板', '計器指示値'];
+      if (!restoreDraft()) renderPhotos();
 
       // The on-call shim injects its own disclaimer bar on /oncall/c/…; keep
       // the page's native bar only on the bare page.

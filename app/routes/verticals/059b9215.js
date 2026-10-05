@@ -23,6 +23,7 @@ router.post('/api/059b9215/inspection', async (req, res) => {
       value: Number(req.body.value) || 0,
       inspectedOn: req.body.inspectedOn || '',
       notes: req.body.notes || '',
+      photos: Array.isArray(req.body.photos) ? req.body.photos.map(String).slice(0, 20) : [],
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,

@@ -98,6 +98,7 @@ async function submitInspection(data) {
       remark: judgement.remark,
       inspectedOn: data.inspectedOn,
       notes: data.notes,
+      photos: data.photos || [],
       status: 'report-generated',
       submittedAt: new Date().toISOString(),
     };

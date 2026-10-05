@@ -3129,7 +3129,7 @@ const ONCALL_SKINS = {
     alertCard: {
       title: '5xx rate spiking — inspection result submissions',
       team: 'inspection-platform-oncall',
-      symptom: 'Inspection result submissions hang ~8s and then fail with 504 Gateway Timeout; no inspection report is generated. Upstream report-generation latency is elevated.',
+      symptom: 'Inspection result submissions hang ~8s and then fail with 504 Gateway Timeout; no inspection report is generated. Upstream dependency latency on the submission path is elevated.',
       impact: 'Field inspectors cannot submit inspection results from site; every submission times out after a long hang and the inspection report is never generated.',
     },
     incident: {
