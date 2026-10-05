@@ -145,7 +145,7 @@
             <div class="form-grid">
               <div class="field wide"><label for="endUser">エンドユーザーさま企業名 <span class="req">必須</span></label><input type="text" id="endUser" value="株式会社サンプル商事" required></div>
               <div class="field wide"><label for="product">サービス <span class="req">必須</span></label><select id="product"><option value="microsoft_365">Microsoft 365</option><option value="azure">Microsoft Azure</option><option value="dropbox_business">Dropbox</option><option value="zoom_workplace">Zoom</option></select></div>
-              <div class="field"><label for="seats">追加ライセンス数 <span class="req">必須</span></label><input type="number" id="seats" value="50" min="1" max="250" required></div>
+              <div class="field"><label for="seats">追加ライセンス数 <span class="req">必須</span></label><input type="number" id="seats" value="50" min="1" max="250" step="1" required></div>
               <div class="field"><label for="planTier">プラン</label><select id="planTier"><option value="enterprise">エンタープライズ</option><option value="business">ビジネス</option><option value="starter">スターター</option></select></div>
               <div class="field wide"><label for="region">提供リージョン</label><select id="region"><option value="jp-east">東日本</option><option value="jp-west">西日本</option></select><small>契約期間は年間契約（自動更新）です。</small></div>
             </div>
@@ -179,8 +179,8 @@
     <section class="partner" aria-labelledby="partner-heading">
       <div class="wrap">
         <h2 id="partner-heading">IT-EXchange IDをお持ちの販売パートナーさま</h2>
-        <p>ログインすると、ご契約中のサービスの確認やお申し込み状況の確認ができます。</p>
-        <a class="pill" href="#order">ログイン</a>
+        <p>ご契約中のクラウドサービスへのライセンス追加は、こちらのフォームからお申し込みいただけます。</p>
+        <a class="pill" href="#order">お申し込みフォームへ</a>
       </div>
     </section>
   </main>
@@ -214,8 +214,8 @@
     function optionLabel(select) { return select.options[select.selectedIndex].text; }
     function renderSummary() {
       document.getElementById('summaryProduct').textContent = optionLabel(product);
-      const n = parseInt(seats.value, 10);
-      document.getElementById('summarySeats').textContent = Number.isFinite(n) && n > 0 ? `${n.toLocaleString('ja-JP')} ライセンス` : '—';
+      const n = seats.valueAsNumber;
+      document.getElementById('summarySeats').textContent = Number.isInteger(n) && n > 0 ? `${n.toLocaleString('ja-JP')} ライセンス` : '—';
       document.getElementById('summaryPlan').textContent = optionLabel(planTier);
     }
     [product, planTier].forEach((el) => el.addEventListener('change', renderSummary));
@@ -243,7 +243,7 @@
           body: JSON.stringify({
             orgName: document.getElementById('product').value,
             planName: document.getElementById('planTier').value,
-            seats: parseInt(document.getElementById('seats').value, 10),
+            seats: document.getElementById('seats').valueAsNumber,
             billingCycle: 'annual',
             devinUserId: localStorage.getItem('devinUserId') || '',
             devinOrgId: localStorage.getItem('devinOrgId') || '',
