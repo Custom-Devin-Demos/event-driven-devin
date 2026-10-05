@@ -17,6 +17,11 @@ const IOS_ERROR_PATH = '/api/verizon/ios/error';
 const APP_SCENARIO = 'iphone18-preorder-receipt-unknown-line-item';
 const APP_CULPRIT = 'MyVerizonCore/Sources/MyVerizonCore/Checkout/ReceiptFormatter.swift — ReceiptFormatter.receiptLine(_:)';
 const APP_SENTRY_ISSUE_QUERY = 'is:unresolved OrderError.unknownLineItem';
+// Fix sessions must drive the iOS Simulator, so place them on a macOS VM.
+// Set VERIZON_IOS_SESSION_PLATFORM to the org's macOS platform label (or '' for the org default).
+const VERIZON_IOS_SESSION_PLATFORM = process.env.VERIZON_IOS_SESSION_PLATFORM === undefined
+  ? 'macos'
+  : process.env.VERIZON_IOS_SESSION_PLATFORM;
 
 const APP_REMEDIATION_DIRECTIVE = `*Repository to investigate and fix:* \`${APP_REPO}\` (Swift / SwiftUI, native iOS)
 
@@ -37,7 +42,7 @@ The defect is that \`ReceiptFormatter.receiptLine(_:)\` resolves every order lin
 product and the receipt throws \`OrderError.unknownLineItem\` for every iPhone 18 preorder.
 
 Steps:
-1. Reproduce on the iOS simulator from a macOS session: \`make run\` (sets
+1. This session is requested on macOS. Confirm with \`uname -s\` and \`xcodebuild -version\`: on macOS, do all the work here and do not create child sessions; only if this session is not on macOS (platform fallback), create one macOS child session for the simulator work. Reproduce on the iOS simulator: \`make run\` (sets
    \`MYVZ_DISABLE_FAILURE_REPORTS=1\` by default), configure an iPhone 18 Pro preorder, tap Place order on
    checkout review, and confirm \`OrderError.unknownLineItem\` for \`PROMO-IP18-LAUNCH\`.
 2. Fix the root cause so launch-promotion credit lines render on the receipt; do not just swallow the
@@ -47,8 +52,7 @@ Steps:
    Makefile defaults to iPhone 17 / iOS 26.5).
 4. Keep the client identity (\`${APP_SERVICE}\`, \`${APP_SOURCE_PREFIX}ios\`, \`POST ${IOS_ERROR_PATH}\`)
    and the report payload shape unchanged. Re-run the simulator repro on the fix commit.
-5. Open a PR against \`main\` of \`COG-GTM/demo-verizon-ios\`, request Devin Review, post findings back to
-   the Slack thread, and STOP for human approval before merging.
+5. Open a **draft** PR against \`main\` of \`COG-GTM/demo-verizon-ios\` titled with a \`[DEMO — DO NOT MERGE]\` prefix, request Devin Review, post findings back to the Slack thread, and never merge it: the planted defect on \`main\` is kept for future demos.
 
 Reproduction safety: every platform failure report raises a real Slack alert and Devin session. Always
 run the app with \`MYVZ_DISABLE_FAILURE_REPORTS=1\` (\`make run\` sets it by default) unless the alert
@@ -204,6 +208,7 @@ function reportAppFailure(report) {
     customer: CUSTOMER,
     project: APP_PROJECT,
     release,
+    sessionPlatform: VERIZON_IOS_SESSION_PLATFORM || undefined,
     promptAppendix: APP_REMEDIATION_DIRECTIVE,
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
     extra: {
@@ -260,6 +265,7 @@ module.exports = {
   IOS_ERROR_PATH,
   APP_SCENARIO,
   APP_CULPRIT,
+  VERIZON_IOS_SESSION_PLATFORM,
   APP_REMEDIATION_DIRECTIVE,
   isAppSource,
   isAppReport,

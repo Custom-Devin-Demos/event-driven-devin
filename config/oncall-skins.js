@@ -3077,19 +3077,24 @@ const ONCALL_SKINS = {
   },
   '4875267e': {
     slug: '4875267e',
-    company: 'connpass',
-    brandMark: 'c',
+    company: 'manabiba',
+    brandMark: 'm',
     vertical: 'hightech',
-    oncallOnly: true,
     page: {
-      // Natively branded Japanese event page: the attendee registration form
+      // Natively branded Japanese event page under the fictional brand
+      // "manabiba" (an original mark and name, not a clone of any real event
+      // platform): the attendee registration form
       // in the side column reuses the hightech provisioning ids so the shared
-      // shim reroutes and degrades it with no backend changes.
+      // shim reroutes and degrades it with no backend changes. Two tracks
+      // share the one file: /oncall/c/4875267e is the shimmed latency alert,
+      // and the bare /4875267e posts to its own event-registration API
+      // (app/routes/verticals/4875267e.js → /api/4875267e/register) whose
+      // failure runs the legacy error track (Sentry → Slack → Devin).
       file: '4875267e.html',
-      title: 'Fukuoka.go #27 - Go で学ぶ並行処理の基礎と実践 - connpass',
+      title: 'Fukuoka.go #27 - Go で学ぶ並行処理の基礎と実践 - manabiba',
     },
     theme: {
-      '--accent': '#C82A16',
+      '--accent': '#D9502A',
       '--ink': '#444444',
       '--surface': '#ffffff',
       '--chrome-bg': '#333333',
@@ -3101,8 +3106,48 @@ const ONCALL_SKINS = {
       symptom: 'Event registration submissions are slow and get slower with every request. Process RSS trends up alongside it.',
       impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served slots that open at a fixed time are hit hardest.',
     },
-    supportCenter: 'connpass サポート',
-    disclaimer: 'NOT ACTUALLY A CONNPASS SITE — internal demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（社内デモ用）。',
+    supportCenter: 'manabiba サポート',
+    disclaimer: 'NOT ACTUALLY A MANABIBA SITE — manabiba is a fictional brand; internal demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・社内デモ用）。',
+  },
+  'd886be88': {
+    slug: 'd886be88',
+    company: 'SB C&S',
+    brandMark: 'EX',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: { file: 'd886be88.html', title: 'ライセンス追加のお申し込み | IT-EXchange | SB C&S' },
+    theme: {
+      '--accent': '#0095FF',
+      '--ink': '#222222',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#2C5383',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: 'p95 latency trending up — cloud service license order submissions',
+      release: 'partner-portal@1.0.3',
+      team: 'partner-portal-oncall',
+      symptom: 'License order submissions from the partner portal are slow and get slower with every request. Process RSS trends up alongside it.',
+      impact: 'Every reseller adding cloud service licenses for an end-user customer waits longer with each order; month-end order volume is hit hardest.',
+    },
+    supportCenter: 'IT-EXchange お問い合わせ',
+    disclaimer: 'NOT ACTUALLY AN SB C&S SITE — internal demo only, not affiliated with, endorsed by, or a real SB C&S product. ／ SB C&S の実際のサイトではありません（社内デモ用）。',
+  },
+  '0ada2330': {
+    slug: '0ada2330',
+    company: 'Proximus',
+    brandMark: 'P',
+    vertical: 'telco',
+    page: { file: '0ada2330.html', title: 'Change your mobile subscription | MyProximus' },
+    theme: {
+      '--accent': '#5C2D91',
+      '--ink': '#252525',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#5C2D91',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Proximus Support',
+    disclaimer: 'NOT ACTUALLY A PROXIMUS SITE — internal demo only, not affiliated with, endorsed by, or a real Proximus product.',
   },
 };
 
