@@ -3062,8 +3062,9 @@ const ONCALL_SKINS = {
       // in the side column reuses the hightech provisioning ids so the shared
       // shim reroutes and degrades it with no backend changes. Two tracks
       // share the one file: /oncall/c/4875267e is the shimmed latency alert,
-      // and the bare /4875267e keeps the legacy /api/licenses/provision
-      // error track (Sentry → Slack → Devin) like the stock hightech page.
+      // and the bare /4875267e posts to its own event-registration API
+      // (app/routes/verticals/4875267e.js → /api/4875267e/register) whose
+      // failure runs the legacy error track (Sentry → Slack → Devin).
       file: '4875267e.html',
       title: 'Fukuoka.go #27 - Go で学ぶ並行処理の基礎と実践 - manabiba',
     },
