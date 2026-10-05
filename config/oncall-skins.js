@@ -3209,6 +3209,27 @@ const ONCALL_SKINS = {
     supportCenter: 'Proximus Support',
     disclaimer: 'NOT ACTUALLY A PROXIMUS SITE — internal demo only, not affiliated with, endorsed by, or a real Proximus product.',
   },
+  '8284d802': {
+    slug: '8284d802',
+    company: 'WTW',
+    brandMark: 'W',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: {
+      file: '8284d802.html',
+      title: 'Radar for claims — Claims triage | WTW',
+    },
+    theme: {
+      '--accent': '#7f35b2',
+      '--ink': '#2a2a2b',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#1e0034',
+      '--chrome-text': '#f1f0f2',
+    },
+    supportCenter: 'WTW Software Support',
+    supportCenterSub: 'Insurance Consulting & Technology — Incident Intake',
+    disclaimer: 'NOT ACTUALLY A WTW SITE — internal demo only, not affiliated with, endorsed by, or a real WTW product.',
+  },
   '059b9215': {
     slug: '059b9215',
     company: '菱陽システムズ',
