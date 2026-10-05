@@ -3055,11 +3055,13 @@ const ONCALL_SKINS = {
     company: 'connpass',
     brandMark: 'c',
     vertical: 'hightech',
-    oncallOnly: true,
     page: {
       // Natively branded Japanese event page: the attendee registration form
       // in the side column reuses the hightech provisioning ids so the shared
-      // shim reroutes and degrades it with no backend changes.
+      // shim reroutes and degrades it with no backend changes. Two tracks
+      // share the one file: /oncall/c/4875267e is the shimmed latency alert,
+      // and the bare /4875267e keeps the legacy /api/licenses/provision
+      // error track (Sentry → Slack → Devin) like the stock hightech page.
       file: '4875267e.html',
       title: 'Fukuoka.go #27 - Go で学ぶ並行処理の基礎と実践 - connpass',
     },
@@ -3102,6 +3104,22 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'IT-EXchange お問い合わせ',
     disclaimer: 'NOT ACTUALLY AN SB C&S SITE — internal demo only, not affiliated with, endorsed by, or a real SB C&S product. ／ SB C&S の実際のサイトではありません（社内デモ用）。',
+  },
+  '0ada2330': {
+    slug: '0ada2330',
+    company: 'Proximus',
+    brandMark: 'P',
+    vertical: 'telco',
+    page: { file: '0ada2330.html', title: 'Change your mobile subscription | MyProximus' },
+    theme: {
+      '--accent': '#5C2D91',
+      '--ink': '#252525',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#5C2D91',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Proximus Support',
+    disclaimer: 'NOT ACTUALLY A PROXIMUS SITE — internal demo only, not affiliated with, endorsed by, or a real Proximus product.',
   },
 };
 
