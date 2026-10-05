@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
-const { buildTeamsAlertCard, postTeamsCard } = require('./teams');
+const { buildTeamsAlertCard, isTeamsWebhookUrl, postTeamsCard } = require('./teams');
 const { createDevinSession } = require('./devin-api');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
@@ -711,7 +711,12 @@ async function postOncallAlert(scenarioId, options = {}) {
   const skin = options.skin || null;
   const env = resolveOncallEnv();
   const { token, alertsChannel } = env;
-  const teamsWebhookUrl = env.teamsAllAlerts || (skin && skin.teamsAlerts) ? env.teamsWebhookUrl : null;
+  const userTeamsUrl = options.teams ? options.teamsWebhookUrl : null;
+  if (userTeamsUrl && !isTeamsWebhookUrl(userTeamsUrl)) {
+    return { ok: false, error: 'teamsWebhookUrl must be a Microsoft Teams Workflow webhook URL' };
+  }
+  const teamsWebhookUrl = userTeamsUrl
+    || (options.teams || env.teamsAllAlerts || (skin && skin.teamsAlerts) ? env.teamsWebhookUrl : null);
   const slackReady = Boolean(token && alertsChannel);
   if (!slackReady && !teamsWebhookUrl) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');
@@ -783,6 +788,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     ok: true,
     ...(ts ? { ts, channel: alertsChannel } : {}),
     ...(teams ? { teams: true } : {}),
+    ...(options.teams && !teams ? { teamsFailed: true } : {}),
     ...(session ? { sessionUrl: session.url } : {}),
     ...(sonarPR ? { sonarPR: true } : {}),
   };

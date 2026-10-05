@@ -20,10 +20,12 @@ const axios = require('axios');
 const { postMessage, postThreadReply } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
 const { postOncallAlert } = require('../app/services/oncall');
+const { isTeamsWebhookUrl } = require('../app/services/teams');
 const { getOncallSkin } = require('../config/oncall-skins');
 
 const LOANTRACK = getOncallSkin('9ecaa5d1');
 const TEAMS_URL = 'https://teams.example.test/workflows/hook';
+const USER_TEAMS_URL = 'https://default8019.65.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/abc/triggers/manual/paths/invoke?sig=x';
 const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL', 'ONCALL_TEAMS_ALL_ALERTS'];
 const savedEnv = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
 
@@ -175,4 +177,89 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(result).toMatchObject({ ok: false, skipped: true });
     expect(axios.post).not.toHaveBeenCalled();
   });
+});
+
+describe('per-user Teams toggle (hub-local setting)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    axios.post.mockResolvedValue({ status: 202 });
+  });
+
+  afterEach(() => {
+    ENV_KEYS.forEach((k) => {
+      if (savedEnv[k] === undefined) delete process.env[k];
+      else process.env[k] = savedEnv[k];
+    });
+  });
+
+  test('toggle on sends a skinless alert to the shared Teams webhook as well as Slack', async () => {
+    setEnv({ slack: true, teams: true });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true });
+    expect(result).toMatchObject({ ok: true, channel: 'C0TEST', teams: true });
+    expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
+  });
+
+  test('a per-user webhook URL overrides the shared one', async () => {
+    setEnv({ slack: true, teams: true });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true, teamsWebhookUrl: USER_TEAMS_URL });
+    expect(result).toMatchObject({ ok: true, teams: true });
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(axios.post.mock.calls[0][0]).toBe(USER_TEAMS_URL);
+    expect(axios.post.mock.calls[0][2]).toMatchObject({ maxRedirects: 0 });
+  });
+
+  test('a per-user webhook works with no shared webhook configured', async () => {
+    setEnv({ slack: true, teams: false });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true, teamsWebhookUrl: USER_TEAMS_URL });
+    expect(result).toMatchObject({ ok: true, teams: true });
+  });
+
+  test('the URL is ignored when the toggle is off', async () => {
+    setEnv({ slack: true, teams: false });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: false, teamsWebhookUrl: USER_TEAMS_URL });
+    expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST' });
+    expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  test('non-Teams URLs are refused before anything is posted', async () => {
+    setEnv({ slack: true, teams: true });
+    const result = await postOncallAlert('banking', { teams: true, teamsWebhookUrl: 'http://169.254.169.254/latest/meta-data' });
+    expect(result).toMatchObject({ ok: false, error: expect.stringMatching(/Teams Workflow webhook/) });
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  test('a requested Teams post that fails is reported alongside the Slack delivery', async () => {
+    setEnv({ slack: true, teams: true });
+    axios.post.mockRejectedValue(new Error('boom'));
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true });
+    expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST', teamsFailed: true });
+  });
+
+  test('toggle on without any webhook stays Slack-only and flags the miss', async () => {
+    setEnv({ slack: true, teams: false });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true });
+    expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST', teamsFailed: true });
+  });
+});
+
+describe('isTeamsWebhookUrl', () => {
+  test.each([
+    'https://prod-12.westus.logic.azure.com/workflows/abc/triggers/manual/paths/invoke?sig=x',
+    USER_TEAMS_URL,
+    'https://cognition.webhook.office.com/webhookb2/abc',
+  ])('accepts %s', (url) => expect(isTeamsWebhookUrl(url)).toBe(true));
+
+  test.each([
+    'http://prod-12.westus.logic.azure.com/workflows/abc',
+    'https://logic.azure.com/workflows/abc',
+    'https://evil.com/.logic.azure.com',
+    'https://prod.logic.azure.com.evil.com/x',
+    'https://user:pw@prod.logic.azure.com/x',
+    'https://prod.logic.azure.com:8443/x',
+    'https://169.254.169.254/latest',
+    'not a url',
+    '',
+    null,
+  ])('rejects %s', (url) => expect(isTeamsWebhookUrl(url)).toBe(false));
 });

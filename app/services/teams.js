@@ -64,6 +64,24 @@ function teamsCardText(card) {
   return lines.join('<br>');
 }
 
+// Teams Workflow / Power Automate / legacy incoming-webhook hosts. A hub user
+// can supply their own webhook URL, so anything else is refused to keep the
+// server from POSTing to arbitrary destinations.
+const TEAMS_WEBHOOK_HOST_SUFFIXES = ['.logic.azure.com', '.api.powerplatform.com', '.webhook.office.com'];
+
+function isTeamsWebhookUrl(value) {
+  if (typeof value !== 'string' || value.length > 2048) return false;
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== 'https:' || url.username || url.password || (url.port && url.port !== '443')) return false;
+  const host = url.hostname.toLowerCase();
+  return TEAMS_WEBHOOK_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix) && host.length > suffix.length);
+}
+
 async function postTeamsCard(webhookUrl, card) {
   const response = await axios.post(webhookUrl, {
     type: 'message',
@@ -72,8 +90,9 @@ async function postTeamsCard(webhookUrl, card) {
   }, {
     headers: { 'Content-Type': 'application/json' },
     timeout: 10000,
+    maxRedirects: 0,
   });
   return response.status;
 }
 
-module.exports = { buildTeamsAlertCard, postTeamsCard, teamsCardText };
+module.exports = { buildTeamsAlertCard, isTeamsWebhookUrl, postTeamsCard, teamsCardText };

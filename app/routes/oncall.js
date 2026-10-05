@@ -503,6 +503,8 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
                 devinEmail: localStorage.getItem('devinEmail') || '',
                 devinUserId: localStorage.getItem('devinUserId') || '',
                 devinOrgId: localStorage.getItem('devinOrgId') || '',
+                teams: localStorage.getItem('oncallTeamsAlerts') === 'on',
+                teamsWebhookUrl: localStorage.getItem('oncallTeamsAlerts') === 'on' ? (localStorage.getItem('oncallTeamsWebhookUrl') || '') : '',
               };
           var postedMsg = bugTrigger ? 'Support ticket filed to ' + ${JSON.stringify(BUGS_CHANNEL_LABEL)} : 'Alert posted to ' + ${JSON.stringify(ALERTS_CHANNEL_LABEL)};
           var skippedMsg = bugTrigger ? 'Ticket skipped — no report reached Slack' : 'Alert post skipped — no alert reached Slack';
@@ -525,6 +527,7 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
             if (ribbonCollapsed) expandRibbon();
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             var deliveredMsg = !d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams');
+            if (d.teamsFailed) deliveredMsg += ' (Teams post failed — check your webhook in the On-Call hub)';
             el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
             if (d.ok) scheduleCollapse();
           }).catch(function () {
@@ -570,7 +573,7 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
   next();
 }, oncallCap('trigger'), async (req, res) => {
   try {
-    const { unique, devinEmail, devinUserId, devinOrgId, skin } = req.body || {};
+    const { unique, devinEmail, devinUserId, devinOrgId, skin, teams, teamsWebhookUrl } = req.body || {};
     const skinConfig = getOncallSkin(skin);
     const skinMatches = Boolean(skinConfig && skinConfig.vertical === req.params.vertical);
     if (skinConfig && !skinMatches) {
@@ -586,6 +589,8 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
       devinUserId,
       devinOrgId,
       skin: skinMatches ? skinConfig : null,
+      teams: teams === true,
+      teamsWebhookUrl: typeof teamsWebhookUrl === 'string' && teamsWebhookUrl.trim() ? teamsWebhookUrl.trim() : null,
     });
     res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {
@@ -728,7 +733,7 @@ router.get('/api/oncall/scenarios', (_req, res) => {
       backend: Boolean(t.infraKind),
     })),
   }));
-  res.json({ scenarios, bugReports, bugCatalog });
+  res.json({ scenarios, bugReports, bugCatalog, teamsDefaultWebhook: Boolean(process.env.ONCALL_TEAMS_WEBHOOK_URL) });
 });
 
 /**
