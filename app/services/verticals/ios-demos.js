@@ -46,7 +46,7 @@ Steps:
    \`main\` is kept for future demos.
 
 Reproduction safety: every failure report raises a real Slack alert and Devin session. Never run \`make demo\` and
-never set \`DEMO_DISABLE_FAILURE_REPORTS=0\`; \`make run\` and \`make test\` keep reports off.`;
+never launch the app with \`-demoReports on\`; \`make run\` and \`make test\` keep reports off.`;
 }
 
 // For the Sentry webhook identity (no slug available statically).
