@@ -397,6 +397,13 @@ describe('shared iOS demo failure report endpoint', () => {
     expect(throttled.headers['retry-after']).toBe('600');
   });
 
+  test('names the Sentry transaction after the instant culprit so route errors still alert', async () => {
+    await reportAppFailure('abcd1234', appReport()).sessionPromise;
+    const scope = Sentry.withScope.mock.results[0].value;
+    expect(scope.setTransactionName).toHaveBeenCalledWith('ios-demos/abcd1234/ios checkout place_order');
+    expect(isInstantPathEvent({ culprit: 'POST /api/ios/abcd1234/error', tags: [] })).toBe(false);
+  });
+
   test('recognizes the shared instant culprit and maps its Sentry identity', () => {
     for (const culprit of [
       'ios-demos/abcd1234/ios checkout place_order',
