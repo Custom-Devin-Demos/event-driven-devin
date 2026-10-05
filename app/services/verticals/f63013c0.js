@@ -359,6 +359,8 @@ function syntheticCheckout(customer, retryPct) {
 function startTraffic({ rate = 9, retryPct = 0.7, flipAfterSeconds = 120 } = {}) {
   if (traffic.running) stopTraffic();
   traffic.running = true;
+  // Traffic starts on the healthy baseline; the armed flip ships 2026-10.
+  psp.setVersion('2025-06');
   psp.armFlip(flipAfterSeconds, '2026-10');
   traffic.interval = setInterval(() => {
     const customer = SYNTHETIC_CUSTOMERS[crypto.randomInt(SYNTHETIC_CUSTOMERS.length)];
@@ -493,36 +495,6 @@ async function checkout(data, { synthetic = false } = {}) {
   }
 }
 
-function bankView(cardToken) {
-  const auths = psp.listAuthorizations({ cardToken })
-    .slice()
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .map((a) => {
-      const order = orderStore.get(a.reference);
-      let status = 'PENDING';
-      if (a.status === 'VOIDED' || a.voidedAt) status = 'VOIDED';
-      else if (order && order.status === 'paid') status = 'CAPTURED';
-      return {
-        id: a.id,
-        amount: a.amount,
-        currency: a.currency,
-        descriptor: a.descriptor,
-        status,
-        orderReference: a.reference,
-        createdAt: a.createdAt,
-        voidedAt: a.voidedAt,
-      };
-    });
-  const known = cardToken === ACCOUNT.card.token;
-  return {
-    card: {
-      brand: known ? ACCOUNT.card.brand : 'Card',
-      last4: known ? ACCOUNT.card.last4 : String(cardToken || '').slice(-4),
-    },
-    authorizations: auths,
-  };
-}
-
 function getOrder(id) {
   return orderStore.get(id);
 }
@@ -585,7 +557,6 @@ module.exports = {
   getMetrics,
   getOrder,
   completeOrder,
-  bankView,
   startTraffic,
   stopTraffic,
   reset,

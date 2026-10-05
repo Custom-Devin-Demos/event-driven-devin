@@ -10,8 +10,6 @@ const router = express.Router();
 // entry plus one file; bare /f63013c0 deliberately serves nothing.
 const PAGES = {
   retail: 'retail.html',
-  'retail/bank': 'retail-bank.html',
-  'retail/ops': 'retail-ops.html',
 };
 const PAGES_DIR = path.join(__dirname, '..', '..', 'public', 'verticals', 'f63013c0', 'rb');
 for (const [key, file] of Object.entries(PAGES)) {
@@ -36,15 +34,6 @@ router.get('/api/f63013c0/metrics', (_req, res) => {
 
 router.get('/api/f63013c0/health', (_req, res) => {
   res.json({ success: true, status: 'ok' });
-});
-
-// "Claire's bank" view: pending/voided authorizations on a card.
-router.get('/api/f63013c0/bank', (req, res) => {
-  const cardToken = text(req.query.cardToken, 128);
-  if (!cardToken) {
-    return res.status(400).json({ success: false, code: 'VALIDATION_ERROR', message: 'cardToken is required' });
-  }
-  return res.json({ success: true, ...service.bankView(cardToken) });
 });
 
 router.post('/api/f63013c0/checkout', verifySessionSecret, async (req, res) => {

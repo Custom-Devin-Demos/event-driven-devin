@@ -59,6 +59,7 @@ beforeEach(() => {
 
 describe('Ralph Lauren checkout (f63013c0)', () => {
   test('Claire\'s default basket checks out for $568 on API 2025-06', async () => {
+    psp.setVersion('2025-06');
     const res = await post('/api/f63013c0/checkout', CLAIRE_ORDER);
     const body = await res.json();
     expect(res.status).toBe(200);
@@ -69,8 +70,18 @@ describe('Ralph Lauren checkout (f63013c0)', () => {
     expect(body.order.lines).toHaveLength(2);
   });
 
+  test('card checkout is broken by default: reset leaves the PSP on 2026-10', async () => {
+    service.reset();
+    const res = await post('/api/f63013c0/checkout', CLAIRE_ORDER);
+    const body = await res.json();
+    expect(res.status).toBe(502);
+    expect(body.success).toBe(false);
+    expect(body.code).toBe('PAYMENT_FAILED');
+    expect(body.message).toBe("Your payment couldn't be processed. Please try again.");
+    expect(psp.getVersion()).toBe('2026-10');
+  });
+
   test('paypal confirms even when the PSP is on API 2026-10', async () => {
-    psp.setVersion('2026-10');
     const res = await post('/api/f63013c0/checkout', { ...CLAIRE_ORDER, paymentMethod: 'paypal', cardToken: undefined });
     const body = await res.json();
     expect(res.status).toBe(200);
@@ -106,6 +117,7 @@ describe('Ralph Lauren checkout (f63013c0)', () => {
   });
 
   test('metrics exposes the dashboard shape', async () => {
+    psp.setVersion('2025-06');
     await post('/api/f63013c0/checkout', CLAIRE_ORDER);
     const m = await (await fetch(`${base}/api/f63013c0/metrics`)).json();
     expect(m.window).toBe('60s');
@@ -123,13 +135,13 @@ describe('Ralph Lauren checkout (f63013c0)', () => {
     expect(Array.isArray(m.history)).toBe(true);
   });
 
-  test('storefront, bank and ops pages are served; bare slug 404s', async () => {
-    for (const p of ['/f63013c0/rb/retail', '/f63013c0/rb/retail/bank', '/f63013c0/rb/retail/ops']) {
-      const res = await fetch(`${base}${p}`);
-      expect(res.status).toBe(200);
-      expect(res.headers.get('content-type')).toMatch(/text\/html/);
+  test('storefront page is served; bank/ops and bare slug 404', async () => {
+    const res = await fetch(`${base}/f63013c0/rb/retail`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toMatch(/text\/html/);
+    for (const p of ['/f63013c0', '/f63013c0/rb/retail/bank', '/f63013c0/rb/retail/ops']) {
+      expect((await fetch(`${base}${p}`)).status).toBe(404);
     }
-    expect((await fetch(`${base}/f63013c0`)).status).toBe(404);
   });
 });
 

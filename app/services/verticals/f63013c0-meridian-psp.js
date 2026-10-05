@@ -139,7 +139,9 @@ function reset() {
   state.flipAt = null;
   state.authorizations = [];
   state.idempotency = new Map();
-  state.apiVersion = '2025-06';
+  // Vendor auto-upgrade has already happened: reset lands on the broken
+  // 2026-10 API; demo/unflip is the only way back to healthy 2025-06.
+  state.apiVersion = '2026-10';
 }
 
 module.exports = {
