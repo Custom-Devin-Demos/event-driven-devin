@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ralph Lauren | Men's, Women's, Kids' &amp; Home · DEMO ENVIRONMENT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #041E3A; --ink: #1C1C1C; --ivory: #F3EDE2; --imgbg: #F2F2F0; --line: #DDDAD4;
+    --meta: #6E6E6E; --red: #A6192E; --white: #FFFFFF;
+    --serif: 'Cormorant Garamond', 'Times New Roman', serif;
+    --sans: 'Hanken Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --mono: 'IBM Plex Mono', 'Helvetica Neue', Arial, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--sans); color: var(--ink); background: var(--white); font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; }
+  img { display: block; max-width: 100%; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 28px; border: 1px solid var(--navy); background: var(--navy); color: #fff; font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; border-radius: 0; transition: background .2s, color .2s, opacity .2s; }
+  .btn:hover { background: #0b2f57; }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .btn.ghost { background: #fff; color: var(--navy); }
+  .btn.ghost:hover { background: var(--ivory); }
+  .btn.block { width: 100%; }
+  .link-u { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; border-bottom: 1px solid currentColor; padding-bottom: 3px; }
+
+  /* Promo bar */
+  .promo { background: var(--navy); color: #fff; height: 34px; display: flex; align-items: center; justify-content: center; position: relative; font-size: 11px; letter-spacing: .04em; }
+  .promo u { text-underline-offset: 2px; }
+  .promo .demo-chip { position: absolute; left: 16px; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; border: 1px solid rgba(255,255,255,.5); padding: 2px 8px; }
+  .promo .util { position: absolute; right: 20px; display: flex; gap: 22px; font-size: 11px; }
+  .promo .util span { display: inline-flex; align-items: center; gap: 6px; }
+
+  /* Header */
+  header.site { position: sticky; top: 0; z-index: 30; background: #fff; border-bottom: 1px solid var(--line); }
+  .hdr { height: 66px; display: grid; grid-template-columns: 260px 1fr 260px; align-items: center; padding: 0 32px; }
+  .wordmark { font-family: var(--serif); font-weight: 500; font-size: 23px; letter-spacing: .36em; color: var(--navy); white-space: nowrap; }
+  nav.main { display: flex; justify-content: center; gap: 30px; }
+  nav.main a { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--navy); padding: 6px 0; border-bottom: 1px solid transparent; transition: border-color .2s; }
+  nav.main a:hover, nav.main a.on { border-color: var(--navy); }
+  nav.main a.sale { color: var(--red); }
+  .icons { display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
+  .icons button, .icons a { background: none; border: 0; color: var(--navy); display: inline-flex; align-items: center; gap: 6px; position: relative; }
+  .icons svg { width: 19px; height: 19px; stroke: var(--navy); fill: none; stroke-width: 1.3; }
+  .icons .who { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+  .bag-count { position: absolute; top: -6px; right: -9px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--navy); color: #fff; font-size: 9px; font-family: var(--mono); display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+
+  .view { display: none; }
+  .view.on { display: block; }
+
+  /* Home */
+  .hero { position: relative; height: 78vh; min-height: 520px; overflow: hidden; background: #2b2117; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; filter: saturate(.85) contrast(1.02); }
+  .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05) 40%, rgba(0,0,0,.45)); }
+  .hero .copy { position: absolute; left: 0; right: 0; bottom: 76px; text-align: center; color: #fff; z-index: 2; }
+  .hero h1 { font-family: var(--serif); font-weight: 400; font-size: 56px; letter-spacing: .02em; line-height: 1.05; margin: 12px 0 22px; }
+  .hero .eyebrow { font-size: 12px; letter-spacing: .3em; }
+  .hero .link-u { color: #fff; }
+  .two-up { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
+  .tile { position: relative; overflow: hidden; aspect-ratio: 4/5; background: var(--imgbg); cursor: pointer; }
+  .tile img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+  .tile:hover img { transform: scale(1.02); }
+  .tile .cap { position: absolute; left: 0; right: 0; bottom: 40px; text-align: center; color: #fff; text-shadow: 0 1px 12px rgba(0,0,0,.35); }
+  .tile .cap h2 { font-family: var(--serif); font-weight: 400; font-size: 36px; margin: 6px 0 14px; }
+  .section-head { text-align: center; padding: 64px 0 30px; }
+  .section-head h2 { font-family: var(--serif); font-weight: 400; font-size: 38px; color: var(--ink); margin-top: 8px; }
+  .section-head p { color: var(--meta); margin-top: 8px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px 16px; padding: 0 32px 72px; }
+  .card { cursor: default; }
+  .card .ph { position: relative; aspect-ratio: 4/5; background: var(--imgbg); overflow: hidden; }
+  .card .ph img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+  .card:hover .ph img { transform: scale(1.03); }
+  .card .add { position: absolute; left: 12px; right: 12px; bottom: 12px; opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s; height: 40px; }
+  .card:hover .add, .card .add:focus { opacity: 1; transform: none; }
+  .card .brand { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--meta); margin-top: 12px; }
+  .card .nm { font-size: 13px; margin-top: 4px; }
+  .card .pr { font-size: 13px; margin-top: 4px; }
+  .empty { grid-column: 1 / -1; text-align: center; padding: 50px 0 20px; color: var(--meta); }
+  .band { display: grid; grid-template-columns: 1.1fr 1fr; background: var(--ivory); }
+  .band img { width: 100%; height: 100%; object-fit: cover; min-height: 460px; }
+  .band .txt { padding: 70px 64px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 16px; }
+  .band h2 { font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 1.1; color: var(--navy); }
+  .band p { color: #45413b; max-width: 420px; font-size: 14px; }
+
+  /* Bag + checkout */
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 44px 32px 80px; }
+  .page-title { font-family: var(--serif); font-weight: 400; font-size: 38px; margin-bottom: 6px; }
+  .crumbs { color: var(--meta); font-size: 12px; margin-bottom: 26px; }
+  .crumbs a { border-bottom: 1px solid var(--line); }
+  .cols { display: grid; grid-template-columns: 1fr 380px; gap: 56px; align-items: start; }
+  .line { display: grid; grid-template-columns: 120px 1fr auto; gap: 22px; padding: 22px 0; border-top: 1px solid var(--line); }
+  .line:last-child { border-bottom: 1px solid var(--line); }
+  .line .ph { aspect-ratio: 4/5; background: var(--imgbg); overflow: hidden; }
+  .line .ph img { width: 100%; height: 100%; object-fit: cover; }
+  .line .nm { font-size: 14px; font-weight: 500; }
+  .line .meta { color: var(--meta); font-size: 12px; margin-top: 4px; }
+  .line .ctrls { display: flex; gap: 18px; align-items: center; margin-top: 16px; font-size: 12px; }
+  .line select { height: 32px; border: 1px solid var(--line); background: #fff; padding: 0 10px; font-family: inherit; }
+  .line label.gift { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+  .line .rm { background: none; border: 0; border-bottom: 1px solid var(--meta); color: var(--meta); font-size: 11px; font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; padding: 0; }
+  .line .amt { font-size: 14px; text-align: right; }
+  .summary { background: var(--ivory); padding: 28px; position: sticky; top: 90px; }
+  .summary h3 { font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; font-weight: 500; margin-bottom: 18px; }
+  .summary .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+  .summary .row.total { border-top: 1px solid #d6cfc2; margin-top: 10px; padding-top: 14px; font-size: 15px; font-weight: 600; }
+  .summary .btn { margin-top: 18px; }
+  .summary .mini { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; font-size: 12px; }
+  .summary .mini .ph { aspect-ratio: 4/5; background: var(--imgbg); overflow: hidden; }
+  .summary .mini .ph img { width: 100%; height: 100%; object-fit: cover; }
+  .summary .note { color: var(--meta); font-size: 11px; margin-top: 14px; }
+  .paypal { margin-top: 10px; height: 46px; width: 100%; background: #FFC439; border: 0; border-radius: 0; font-weight: 700; font-size: 16px; font-style: italic; color: #003087; letter-spacing: -.01em; }
+  .paypal span { color: #009cde; }
+  .or { text-align: center; color: var(--meta); font-size: 11px; margin-top: 12px; font-family: var(--mono); letter-spacing: .14em; }
+
+  .step { border-top: 1px solid var(--line); padding: 24px 0; }
+  .step:last-of-type { border-bottom: 1px solid var(--line); }
+  .step h3 { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; font-weight: 500; margin-bottom: 14px; }
+  .step h3 .edit { color: var(--meta); font-size: 11px; border-bottom: 1px solid var(--line); }
+  .step .val { font-size: 14px; line-height: 1.6; }
+  .step .val .muted { color: var(--meta); }
+  .opt { display: flex; align-items: center; gap: 14px; border: 1px solid var(--line); padding: 16px 18px; margin-bottom: 10px; cursor: pointer; transition: border-color .2s; }
+  .opt.on { border-color: var(--navy); box-shadow: inset 0 0 0 1px var(--navy); }
+  .opt input { accent-color: var(--navy); width: 16px; height: 16px; }
+  .opt .grow { flex: 1; font-size: 14px; }
+  .opt .muted { color: var(--meta); font-size: 12px; }
+  .visa { font-family: Arial, sans-serif; font-weight: 800; font-style: italic; color: #1a1f71; font-size: 15px; letter-spacing: -.02em; border: 1px solid var(--line); padding: 1px 6px; }
+  .pp-mark { font-weight: 800; font-style: italic; color: #003087; font-size: 15px; }
+  .pp-mark span { color: #009cde; }
+  textarea { width: 100%; height: 70px; border: 1px solid var(--line); padding: 10px 12px; font-family: inherit; font-size: 13px; resize: none; }
+  .pay-error { display: none; border: 1px solid var(--red); background: #fbf3f4; color: var(--red); padding: 14px 16px; margin: 0 0 16px; font-size: 13px; flex-direction: column; align-items: flex-start; gap: 12px; line-height: 1.5; }
+  .pay-error.on { display: flex; }
+  .pay-error .btn { height: 36px; padding: 0 18px; font-size: 11px; background: var(--red); border-color: var(--red); flex-shrink: 0; }
+  .terms { color: var(--meta); font-size: 11px; margin-top: 12px; }
+
+  .confirm { text-align: center; max-width: 640px; margin: 0 auto; padding: 80px 32px 90px; }
+  .confirm h1 { font-family: var(--serif); font-weight: 400; font-size: 46px; margin: 12px 0 12px; }
+  .confirm .num { font-family: var(--mono); font-size: 13px; letter-spacing: .1em; margin: 10px 0 26px; }
+  .confirm .box { background: var(--ivory); text-align: left; padding: 24px 28px; margin: 26px 0; font-size: 13px; }
+  .confirm .box .row { display: flex; justify-content: space-between; padding: 4px 0; }
+
+  /* Footer */
+  footer.site { border-top: 1px solid var(--line); background: #fff; }
+  .foot { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 40px; padding: 56px 32px 40px; }
+  .foot h4 { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 14px; color: var(--navy); }
+  .foot li { list-style: none; color: #474747; font-size: 12px; padding: 4px 0; }
+  .foot form { display: flex; margin-top: 10px; }
+  .foot input { flex: 1; height: 42px; border: 1px solid var(--line); border-right: 0; padding: 0 12px; font-family: inherit; }
+  .foot form .btn { height: 42px; padding: 0 18px; }
+  .foot p { color: #474747; font-size: 12px; }
+  .demo-strip { background: var(--ivory); border-top: 1px solid var(--line); padding: 14px 32px; display: flex; justify-content: space-between; align-items: center; gap: 20px; font-size: 11px; color: #4b463f; }
+  .demo-strip b { font-family: var(--mono); letter-spacing: .16em; color: var(--navy); font-weight: 500; }
+  .demo-strip a { border-bottom: 1px solid currentColor; }
+  .copy-row { padding: 14px 32px 22px; color: var(--meta); font-size: 11px; }
+
+  @media (max-width: 1100px) { .hdr { grid-template-columns: 1fr auto; } nav.main { display: none; } .grid { grid-template-columns: repeat(2, 1fr); } .cols { grid-template-columns: 1fr; } .foot { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="promo">
+  <span class="demo-chip">DEMO ENVIRONMENT</span>
+  <span>Complimentary Shipping &amp; Returns With an RL Account: <u>Signed in as Claire</u></span>
+  <div class="util">
+    <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>US English</span>
+    <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.4"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0113 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>Find a store</span>
+  </div>
+</div>
+
+<header class="site">
+  <div class="hdr">
+    <a href="#/" class="wordmark" aria-label="Ralph Lauren home">RALPH LAUREN</a>
+    <nav class="main" id="nav">
+      <a href="#/" data-cat="men">Men</a>
+      <a href="#/" data-cat="women">Women</a>
+      <a href="#/" data-cat="kids">Kids &amp; Baby</a>
+      <a href="#/" data-cat="home">Home</a>
+      <a href="#/" data-cat="gifts">Gifts</a>
+      <a href="#/" data-cat="discover">Discover</a>
+      <a href="#/" data-cat="sale" class="sale">Sale</a>
+    </nav>
+    <div class="icons">
+      <button title="Search" aria-label="Search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
+      <button title="Account" aria-label="Account"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/></svg><span class="who">Claire</span></button>
+      <button title="Wishlist" aria-label="Wishlist"><svg viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0112 7.4a4.3 4.3 0 017.5 2.4C19.5 15.4 12 20 12 20z"/></svg></button>
+      <a href="#/bag" title="Shopping Bag" aria-label="Shopping bag" id="bagIcon"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6L5 8z"/><path d="M9 8V6.5a3 3 0 016 0V8"/></svg><span class="bag-count" id="bagCount">0</span></a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HOME -->
+  <section class="view" id="v-home">
+    <div class="hero">
+      <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=2000&q=80" alt="Autumn tailoring and knitwear on a rail" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=2000&q=80'">
+      <div class="copy">
+        <div class="eyebrow">Fall / Holiday 2026</div>
+        <h1>The Heritage Season</h1>
+        <a href="#shop" class="link-u">Shop the Collection</a>
+      </div>
+    </div>
+    <div class="two-up">
+      <div class="tile" data-jump="men">
+        <img src="https://images.unsplash.com/photo-1617114919297-3c8ddb01f599?w=1200&q=80" alt="Man in a suede jacket" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=1200&q=80'">
+        <div class="cap"><div class="eyebrow">Men</div><h2>Country Layers</h2><span class="link-u">Shop Men</span></div>
+      </div>
+      <div class="tile" data-jump="women">
+        <img src="https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=1200&q=80" alt="Woman in an ivory blazer" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&q=80'">
+        <div class="cap"><div class="eyebrow">Women</div><h2>Autumn Tailoring</h2><span class="link-u">Shop Women</span></div>
+      </div>
+    </div>
+    <div class="section-head" id="shop">
+      <div class="eyebrow" id="gridEyebrow">Gifts</div>
+      <h2 id="gridTitle">Gifts for the Season</h2>
+      <p id="gridSub">Cashmere, tweed and heritage leather, with a signature gift box on request.</p>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="band" id="discover">
+      <img src="https://images.unsplash.com/photo-1616627561839-074385245ff6?w=1400&q=80" alt="A bedroom styled with a knitted throw" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1400&q=80'">
+      <div class="txt">
+        <div class="eyebrow">Ralph Lauren Home</div>
+        <h2>The Art of<br>the Gift</h2>
+        <p>Every eligible piece can arrive in our signature navy gift box, finished with a ribbon and a handwritten note, for $5.</p>
+        <button class="btn" data-jump="home">Shop Home</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- BAG -->
+  <section class="view" id="v-bag">
+    <div class="wrap">
+      <div class="crumbs"><a href="#/">Continue Shopping</a></div>
+      <h1 class="page-title">Shopping Bag <span id="bagTitleCount" style="color:var(--meta);font-size:22px"></span></h1>
+      <div class="cols" style="margin-top:22px">
+        <div id="bagLines"></div>
+        <aside class="summary">
+          <h3>Order Summary</h3>
+          <div id="bagSummary"></div>
+          <button class="btn block" id="toCheckout">Checkout</button>
+          <div class="or">OR</div>
+          <button class="paypal" id="bagPaypal" aria-label="Check out with PayPal">Pay<span>Pal</span></button>
+          <p class="note">Complimentary shipping and returns for RL account holders. Prices in USD.</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHECKOUT -->
+  <section class="view" id="v-checkout">
+    <div class="wrap">
+      <div class="crumbs"><a href="#/bag">Back to Bag</a></div>
+      <h1 class="page-title">Secure Checkout</h1>
+      <div class="cols" style="margin-top:22px">
+        <div>
+          <div class="step">
+            <h3>1. Contact <span class="edit">Signed in</span></h3>
+            <div class="val" id="coContact"></div>
+          </div>
+          <div class="step">
+            <h3>2. Shipping <span class="edit">Saved address</span></h3>
+            <label class="opt on"><input type="radio" checked name="ship"><span class="grow" id="coAddress"></span><span class="muted">Complimentary · 3–5 days</span></label>
+          </div>
+          <div class="step">
+            <h3>3. Gift Options</h3>
+            <div class="val muted" id="coGift" style="margin-bottom:10px"></div>
+            <textarea id="giftMsg" maxlength="200">Happy birthday, Dad. With love, Claire</textarea>
+          </div>
+          <div class="step">
+            <h3>4. Payment</h3>
+            <label class="opt on" data-pay="card"><input type="radio" name="pay" value="card" checked><span class="visa">VISA</span><span class="grow" id="coCard"></span><span class="muted">Saved card</span></label>
+            <label class="opt" data-pay="paypal"><input type="radio" name="pay" value="paypal"><span class="pp-mark">Pay<span>Pal</span></span><span class="grow">PayPal</span><span class="muted">claire.mallory@example.com</span></label>
+          </div>
+        </div>
+        <aside class="summary">
+          <h3>Your Order</h3>
+          <div id="coMini"></div>
+          <div id="coSummary" style="margin-top:10px"></div>
+          <div style="margin-top:18px">
+            <div class="pay-error" id="payError" role="alert"><span id="payErrorMsg"></span><button class="btn" id="tryAgain">Try again</button></div>
+            <button class="btn block" id="placeOrder">Place Order</button>
+          </div>
+          <p class="terms">By placing your order you agree to the Terms of Use and Privacy Notice. Sandbox: no real payment is taken.</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONFIRMATION -->
+  <section class="view" id="v-confirm">
+    <div class="confirm">
+      <div class="eyebrow">Order Confirmed</div>
+      <h1>Thank you, Claire</h1>
+      <p>Your order has been received and a confirmation is on its way to claire.mallory@example.com.</p>
+      <div class="num" id="cfNum"></div>
+      <div class="box" id="cfBox"></div>
+      <a href="#/" class="btn">Continue Shopping</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="foot">
+    <div>
+      <h4>Sign Up for Emails</h4>
+      <p>Be the first to know about new collections, special events and what's happening at Ralph Lauren.</p>
+      <form onsubmit="return false"><input type="email" placeholder="Enter Email Address" aria-label="Email address"><button class="btn" type="submit">Submit</button></form>
+    </div>
+    <div><h4>Customer Service</h4><ul><li>My Account</li><li>Live Chat</li><li>Customer Support</li><li>Shipping &amp; Delivery</li><li>Returns &amp; Exchanges Policy</li><li>Check Order Status</li><li>Gift Cards</li></ul></div>
+    <div><h4>Company</h4><ul><li>About Us</li><li>Careers</li><li>World of RL</li><li>Global Citizenship &amp; Sustainability</li><li>Satisfaction Guarantee</li></ul></div>
+    <div><h4>More From RL</h4><ul><li>Personalize Your Experience</li><li>Find a Store</li><li>Download the Ralph Lauren App</li><li>Book an Appointment</li></ul></div>
+  </div>
+  <div class="demo-strip">
+    <span><b>DEMO ENVIRONMENT</b> &nbsp;·&nbsp; Sandbox storefront for a Devin incident demo. Synthetic customers, cards and orders only; no real payments. Imagery: Unsplash stock.</span>
+    <span>Demo panes: <a href="/f63013c0/rb/retail/bank" target="_blank" rel="noopener">Claire's bank</a> · <a href="/f63013c0/rb/retail/ops" target="_blank" rel="noopener">Checkout health</a></span>
+  </div>
+  <div class="copy-row">Sandbox environment · Payments processed by Meridian Pay (fictional) · <span id="pspVer"></span></div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var API = '/api/f63013c0';
+  var FALLBACK_IMG = 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80';
+  var IMAGES = {
+    'RL-KN-001': 'https://images.unsplash.com/photo-1580331451062-99ff652288d7?w=900&q=80',
+    'RL-AC-014': 'https://images.unsplash.com/photo-1609803384069-19f3e5a70e75?w=900&q=80',
+    'RL-SH-102': 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=900&q=80',
+    'RL-OW-220': 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=900&q=80',
+    'RL-AC-031': 'https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=900&q=80',
+    'RL-KN-044': 'https://images.unsplash.com/photo-1631541909061-71e349d1f203?w=900&q=80',
+    'RL-HM-301': 'https://images.unsplash.com/photo-1616627561839-074385245ff6?w=900&q=80',
+    'RL-WM-118': 'https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=900&q=80'
+  };
+  var BRAND = {
+    'RL-KN-001': 'Polo Ralph Lauren', 'RL-AC-014': 'Polo Ralph Lauren', 'RL-SH-102': 'Polo Ralph Lauren',
+    'RL-OW-220': 'Polo Ralph Lauren', 'RL-AC-031': 'Polo Ralph Lauren', 'RL-KN-044': 'Polo Ralph Lauren',
+    'RL-HM-301': 'Ralph Lauren Home', 'RL-WM-118': 'Lauren Ralph Lauren'
+  };
+  var CATS = {
+    men: { eyebrow: 'Men', title: 'Men\u2019s Heritage Layers', sub: 'Cable knits, oxford cloth and waxed-cotton outerwear.', skus: ['RL-KN-001', 'RL-KN-044', 'RL-SH-102', 'RL-OW-220', 'RL-AC-031', 'RL-AC-014'] },
+    women: { eyebrow: 'Women', title: 'Autumn Tailoring', sub: 'Tweed, cashmere and finishing touches.', skus: ['RL-WM-118', 'RL-KN-001', 'RL-AC-014'] },
+    kids: { eyebrow: 'Kids & Baby', title: 'Kids & Baby', sub: '', skus: [] },
+    home: { eyebrow: 'Ralph Lauren Home', title: 'For the Home', sub: 'Textiles to layer through the season.', skus: ['RL-HM-301'] },
+    gifts: { eyebrow: 'Gifts', title: 'Gifts for the Season', sub: 'Cashmere, tweed and heritage leather, with a signature gift box on request.', skus: null },
+    sale: { eyebrow: 'Sale', title: 'Sale', sub: '', skus: [] }
+  };
+
+  var catalog = null;
+  var products = {};
+  var bag = [];
+  var placing = false;
+  var lastRequest = null;
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function money(n) { return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+  function img(sku, alt) { return '<img src="' + esc(IMAGES[sku] || FALLBACK_IMG) + '" alt="' + esc(alt) + '" loading="lazy" onerror="this.onerror=null;this.src=\'' + FALLBACK_IMG + '\'">'; }
+  function giftFee() { return (catalog && catalog.giftBoxFee) || 5; }
+
+  function totals() {
+    var sub = 0, gift = 0, count = 0;
+    bag.forEach(function (l) {
+      var p = products[l.sku]; if (!p) return;
+      sub += p.price * l.qty; count += l.qty;
+      if (l.giftBox) gift += giftFee();
+    });
+    return { sub: sub, gift: gift, total: sub + gift, count: count };
+  }
+
+  function postHeaders() {
+    var h = { 'Content-Type': 'application/json' };
+    var secret = localStorage.getItem('sessionSecret');
+    if (secret) h['x-session-secret'] = secret;
+    return h;
+  }
+
+  function renderGrid(cat) {
+    var c = CATS[cat] || CATS.gifts;
+    $('gridEyebrow').textContent = c.eyebrow;
+    $('gridTitle').textContent = c.title;
+    $('gridSub').textContent = c.sub;
+    var list = (catalog ? catalog.products : []).filter(function (p) { return !c.skus || c.skus.indexOf(p.sku) !== -1; });
+    if (!list.length) {
+      $('grid').innerHTML = '<div class="empty">The ' + esc(c.title) + ' edit arrives soon in this sandbox. <a class="link-u" href="#shop" data-jump="gifts">Shop Gifts</a></div>';
+      return;
+    }
+    $('grid').innerHTML = list.map(function (p) {
+      return '<div class="card"><div class="ph">' + img(p.sku, p.name) +
+        '<button class="btn add" data-add="' + esc(p.sku) + '">Add to Bag</button></div>' +
+        '<div class="brand">' + esc(BRAND[p.sku] || 'Ralph Lauren') + '</div>' +
+        '<div class="nm">' + esc(p.name) + '</div><div class="pr">' + money(p.price) + '</div></div>';
+    }).join('');
+    document.querySelectorAll('#nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-cat') === cat); });
+  }
+
+  function renderBagCount() {
+    var t = totals();
+    $('bagCount').textContent = t.count;
+    $('bagTitleCount').textContent = t.count ? '(' + t.count + ')' : '';
+  }
+
+  function summaryRows(t) {
+    return '<div class="row"><span>Subtotal</span><span>' + money(t.sub) + '</span></div>' +
+      (t.gift ? '<div class="row"><span>Signature gift box</span><span>' + money(t.gift) + '</span></div>' : '') +
+      '<div class="row"><span>Shipping</span><span>Complimentary</span></div>' +
+      '<div class="row total"><span>Total</span><span>' + money(t.total) + '</span></div>';
+  }
+
+  function renderBag() {
+    renderBagCount();
+    var t = totals();
+    if (!bag.length) {
+      $('bagLines').innerHTML = '<div class="empty" style="text-align:left;padding:30px 0">Your shopping bag is empty.</div>';
+    } else {
+      $('bagLines').innerHTML = bag.map(function (l) {
+        var p = products[l.sku]; if (!p) return '';
+        var opts = '';
+        for (var i = 1; i <= 5; i++) opts += '<option' + (i === l.qty ? ' selected' : '') + '>' + i + '</option>';
+        return '<div class="line"><div class="ph">' + img(p.sku, p.name) + '</div><div>' +
+          '<div class="meta" style="margin:0 0 4px;font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase;font-size:10px">' + esc(BRAND[p.sku] || 'Ralph Lauren') + '</div>' +
+          '<div class="nm">' + esc(p.name) + '</div><div class="meta">Style ' + esc(p.sku) + ' · ' + money(p.price) + '</div>' +
+          '<div class="ctrls"><span>Qty <select data-qty="' + esc(p.sku) + '">' + opts + '</select></span>' +
+          (p.giftBoxEligible ? '<label class="gift"><input type="checkbox" data-gift="' + esc(p.sku) + '"' + (l.giftBox ? ' checked' : '') + '> Signature gift box (+' + money(giftFee()) + ')</label>' : '') +
+          '<button class="rm" data-rm="' + esc(p.sku) + '">Remove</button></div></div>' +
+          '<div class="amt">' + money(p.price * l.qty + (l.giftBox ? giftFee() : 0)) + '</div></div>';
+      }).join('');
+    }
+    $('bagSummary').innerHTML = summaryRows(t);
+    $('toCheckout').disabled = !bag.length;
+    $('bagPaypal').disabled = !bag.length;
+  }
+
+  function renderCheckout() {
+    var c = catalog.customer, a = c.address || {}, card = c.card || {};
+    $('coContact').innerHTML = esc(c.name) + '<br><span class="muted">' + esc(c.email) + '</span>';
+    $('coAddress').innerHTML = esc(c.name) + '<br><span class="muted">' + esc(a.line1) + (a.line2 ? ', ' + esc(a.line2) : '') + '<br>' + esc(a.city) + ', ' + esc(a.state) + ' ' + esc(a.zip) + '</span>';
+    $('coCard').innerHTML = esc(card.brand || 'Visa') + ' ending in ' + esc(card.last4) + ' <span class="muted">· Exp ' + esc(card.exp) + '</span>';
+    var gifts = bag.filter(function (l) { return l.giftBox; }).map(function (l) { return products[l.sku] ? products[l.sku].name : l.sku; });
+    $('coGift').textContent = gifts.length ? 'Signature gift box: ' + gifts.join(', ') : 'No gift box selected.';
+    $('coMini').innerHTML = bag.map(function (l) {
+      var p = products[l.sku]; if (!p) return '';
+      return '<div class="mini"><div class="ph">' + img(p.sku, p.name) + '</div><div>' + esc(p.name) + '<br><span style="color:var(--meta)">Qty ' + l.qty + (l.giftBox ? ' · Gift box' : '') + '</span></div><div>' + money(p.price * l.qty) + '</div></div>';
+    }).join('');
+    $('coSummary').innerHTML = summaryRows(totals());
+  }
+
+  function selectedPay() { var r = document.querySelector('input[name="pay"]:checked'); return r ? r.value : 'card'; }
+
+  function buildRequest(method) {
+    var c = catalog.customer;
+    var body = {
+      cartId: catalog.basket.cartId,
+      customerId: c.id,
+      addressId: (c.address || {}).id,
+      lines: bag.map(function (l) { return { sku: l.sku, qty: l.qty, giftBox: !!l.giftBox }; }),
+      paymentMethod: method,
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || ''
+    };
+    if (method === 'card') body.cardToken = (c.card || {}).token;
+    return body;
+  }
+
+  function setPlacing(on, method) {
+    placing = on;
+    $('placeOrder').disabled = on;
+    $('tryAgain').disabled = on;
+    $('placeOrder').textContent = on ? (method === 'paypal' ? 'Connecting to PayPal\u2026' : 'Processing\u2026') : 'Place Order';
+  }
+
+  function submit(body) {
+    if (placing) return;
+    lastRequest = body;
+    setPlacing(true, body.paymentMethod);
+    fetch(API + '/checkout', { method: 'POST', headers: postHeaders(), body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (res.ok && res.d && res.d.success) {
+          $('payError').classList.remove('on');
+          showConfirmation(res.d.order || {}, body.paymentMethod);
+          return;
+        }
+        var d = res.d || {};
+        if (d.requestId && window.console) console.info('[DEMO] checkout failed, requestId', d.requestId);
+        $('payErrorMsg').textContent = d.message || 'Your payment couldn\u2019t be processed. Please try again.';
+        $('payError').classList.add('on');
+      })
+      .catch(function () {
+        $('payErrorMsg').textContent = 'Your payment couldn\u2019t be processed. Please try again.';
+        $('payError').classList.add('on');
+      })
+      .then(function () { setPlacing(false); });
+  }
+
+  function showConfirmation(order, method) {
+    var t = totals();
+    var c = catalog.customer, a = c.address || {};
+    $('cfNum').textContent = 'Order No. ' + (order.id || '').toUpperCase();
+    $('cfBox').innerHTML = bag.map(function (l) {
+      var p = products[l.sku]; return p ? '<div class="row"><span>' + esc(p.name) + ' × ' + l.qty + '</span><span>' + money(p.price * l.qty) + '</span></div>' : '';
+    }).join('') +
+      (t.gift ? '<div class="row"><span>Signature gift box</span><span>' + money(t.gift) + '</span></div>' : '') +
+      '<div class="row" style="border-top:1px solid #d6cfc2;margin-top:8px;padding-top:10px;font-weight:600"><span>Total</span><span>' + money(order.total != null ? order.total : t.total) + '</span></div>' +
+      '<div class="row" style="color:var(--meta);margin-top:8px"><span>Paid with</span><span>' + (method === 'paypal' ? 'PayPal' : 'Visa ending in ' + esc((c.card || {}).last4)) + '</span></div>' +
+      '<div class="row" style="color:var(--meta)"><span>Shipping to</span><span>' + esc(a.line1) + ', ' + esc(a.city) + ', ' + esc(a.state) + '</span></div>';
+    location.hash = '#/confirmation';
+  }
+
+  function add(sku) {
+    var l = bag.find(function (x) { return x.sku === sku; });
+    if (l) l.qty = Math.min(5, l.qty + 1); else bag.push({ sku: sku, qty: 1, giftBox: false });
+    renderBag();
+    location.hash = '#/bag';
+  }
+
+  function route() {
+    var h = location.hash || '#/';
+    var view = h.indexOf('#/bag') === 0 ? 'bag' : h.indexOf('#/checkout') === 0 ? 'checkout' : h.indexOf('#/confirmation') === 0 ? 'confirm' : 'home';
+    if (view === 'checkout' && (!catalog || !bag.length)) { location.hash = '#/bag'; return; }
+    if (view === 'confirm' && !$('cfNum').textContent) { location.hash = '#/'; return; }
+    ['home', 'bag', 'checkout', 'confirm'].forEach(function (v) { $('v-' + v).classList.toggle('on', v === view); });
+    if (view === 'bag') renderBag();
+    if (view === 'checkout') { renderCheckout(); $('payError').classList.remove('on'); }
+    if (h === '#shop') return;
+    window.scrollTo(0, 0);
+  }
+
+  function jump(cat) {
+    if (cat === 'discover') { location.hash = '#/'; setTimeout(function () { $('discover').scrollIntoView(); }, 0); return; }
+    renderGrid(cat);
+    if ((location.hash || '#/') !== '#/') location.hash = '#/';
+    setTimeout(function () { $('shop').scrollIntoView(); }, 0);
+  }
+
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-add],[data-rm],[data-jump],#nav a,[data-pay]');
+    if (!el) return;
+    if (el.hasAttribute('data-add')) { e.preventDefault(); return add(el.getAttribute('data-add')); }
+    if (el.hasAttribute('data-rm')) { bag = bag.filter(function (l) { return l.sku !== el.getAttribute('data-rm'); }); return renderBag(); }
+    if (el.hasAttribute('data-jump')) { e.preventDefault(); return jump(el.getAttribute('data-jump')); }
+    if (el.hasAttribute('data-cat')) { e.preventDefault(); return jump(el.getAttribute('data-cat')); }
+    if (el.hasAttribute('data-pay')) {
+      document.querySelectorAll('[data-pay]').forEach(function (o) { o.classList.toggle('on', o === el); });
+      $('payError').classList.remove('on');
+    }
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.hasAttribute('data-qty')) { var l = bag.find(function (x) { return x.sku === t.getAttribute('data-qty'); }); if (l) l.qty = parseInt(t.value, 10); renderBag(); }
+    if (t.hasAttribute('data-gift')) { var g = bag.find(function (x) { return x.sku === t.getAttribute('data-gift'); }); if (g) g.giftBox = t.checked; renderBag(); }
+  });
+  $('toCheckout').addEventListener('click', function () { location.hash = '#/checkout'; });
+  $('bagPaypal').addEventListener('click', function () {
+    location.hash = '#/checkout';
+    setTimeout(function () { document.querySelector('[data-pay="paypal"]').click(); }, 0);
+  });
+  $('placeOrder').addEventListener('click', function () { submit(buildRequest(selectedPay())); });
+  $('tryAgain').addEventListener('click', function () { if (lastRequest) submit(lastRequest); });
+  window.addEventListener('hashchange', route);
+
+  if (!(localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId'))) {
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+    }).catch(function () {});
+  }
+
+  fetch(API + '/catalog').then(function (r) { return r.json(); }).then(function (d) {
+    catalog = d;
+    (d.products || []).forEach(function (p) { products[p.sku] = p; });
+    bag = ((d.basket && d.basket.lines) || []).map(function (l) { return { sku: l.sku, qty: l.qty, giftBox: !!l.giftBox }; });
+    if (d.pspApiVersion) $('pspVer').textContent = 'PSP API ' + d.pspApiVersion;
+    renderGrid('gifts');
+    renderBag();
+    route();
+  }).catch(function () {
+    $('grid').innerHTML = '<div class="empty">We\u2019re having trouble loading products. Please refresh.</div>';
+    route();
+  });
+})();
+</script>
+</body>
+</html>
