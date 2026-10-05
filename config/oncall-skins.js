@@ -3214,6 +3214,7 @@ const ONCALL_SKINS = {
     company: 'WTW',
     brandMark: 'W',
     vertical: 'insurance',
+    oncallOnly: true,
     page: {
       file: '8284d802.html',
       title: 'Radar for claims — Claims triage | WTW',

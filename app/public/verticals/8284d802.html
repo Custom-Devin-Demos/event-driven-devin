@@ -249,7 +249,7 @@
                 <label for="claimType">Loss type</label>
                 <select id="claimType">
                   <option value="collision">Collision</option>
-                  <option value="comprehensive">Weather / storm damage</option>
+                  <option value="weather">Weather / storm damage</option>
                   <option value="theft">Theft</option>
                   <option value="liability">Third-party liability</option>
                 </select>
@@ -328,6 +328,11 @@
     })();
   </script>
   <script>
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
     document.getElementById('claimForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       var btn = document.getElementById('submitBtn');
@@ -358,18 +363,18 @@
         if (response.ok) {
           result.className = 'success';
           result.innerHTML = '<div class="title">Triage decision returned</div>'
-            + '<div class="detail">Claim <code>' + data.claimId + '</code> — valid, repairable. Indicated settlement $' + Number(data.payout).toLocaleString()
+            + '<div class="detail">Claim <code>' + esc(data.claimId) + '</code> — valid, repairable. Indicated settlement $' + Number(data.payout).toLocaleString()
             + (data.deductible != null ? ' after $' + Number(data.deductible).toLocaleString() + ' deductible' : '') + '.</div>'
             + '<div class="timing">Decision latency ' + elapsed + ' s</div>';
         } else {
           result.className = 'error';
           result.innerHTML = '<div class="title">Triage decision unavailable</div>'
-            + '<div class="detail">' + (data.error || 'The claim could not be scored.') + '</div>'
-            + '<div class="timing">' + (data.errorClass ? data.errorClass + ' · ' : '') + 'HTTP ' + response.status + (data.requestId ? ' · request ' + data.requestId : '') + ' · ' + elapsed + ' s</div>';
+            + '<div class="detail">' + esc(data.error || 'The claim could not be scored.') + '</div>'
+            + '<div class="timing">' + (data.errorClass ? esc(data.errorClass) + ' · ' : '') + 'HTTP ' + response.status + (data.requestId ? ' · request ' + esc(data.requestId) : '') + ' · ' + elapsed + ' s</div>';
         }
       } catch (err) {
         result.className = 'error';
-        result.innerHTML = '<div class="title">Network error</div><div class="detail">' + err.message + '</div>';
+        result.innerHTML = '<div class="title">Network error</div><div class="detail">' + esc(err.message) + '</div>';
       } finally {
         btn.disabled = false;
         btn.classList.remove('loading');
