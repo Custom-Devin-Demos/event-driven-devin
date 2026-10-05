@@ -3081,6 +3081,22 @@ const ONCALL_SKINS = {
     supportCenter: 'connpass サポート',
     disclaimer: 'NOT ACTUALLY A CONNPASS SITE — internal demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（社内デモ用）。',
   },
+  '0ada2330': {
+    slug: '0ada2330',
+    company: 'Proximus',
+    brandMark: 'P',
+    vertical: 'telco',
+    page: { file: '0ada2330.html', title: 'Change your mobile subscription | MyProximus' },
+    theme: {
+      '--accent': '#5C2D91',
+      '--ink': '#252525',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#5C2D91',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Proximus Support',
+    disclaimer: 'NOT ACTUALLY A PROXIMUS SITE — internal demo only, not affiliated with, endorsed by, or a real Proximus product.',
+  },
 };
 
 function getOncallSkin(slug) {
