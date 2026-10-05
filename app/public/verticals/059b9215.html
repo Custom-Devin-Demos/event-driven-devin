@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>点検結果の提出 - 点検クラウド TENLOG | 菱陽システムズ</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #d9532b;
+      --accent-dark: #b8421f;
+      --accent-wash: #fdf1ec;
+      --ink: #1f2a37;
+      --ink-soft: #4b5563;
+      --ink-muted: #6b7280;
+      --canvas: #f3f5f8;
+      --surface: #ffffff;
+      --chrome: #132c45;
+      --chrome-deep: #0d1f31;
+      --chrome-text: #f4f7fb;
+      --chrome-muted: #a9b8c9;
+      --line: #d9dee6;
+      --line-soft: #e9edf2;
+      --wash: #f7f9fb;
+      --ok: #1d7a46;
+      --ok-wash: #e8f5ee;
+      --warn: #b7791f;
+      --warn-wash: #fdf5e4;
+      --ng: #b42318;
+      --ng-wash: #fdecea;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      color: var(--ink);
+      background: var(--canvas);
+      font-size: 14px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+
+    /* App bar */
+    .appbar {
+      background: var(--chrome);
+      color: var(--chrome-text);
+      border-bottom: 3px solid var(--accent);
+    }
+    .appbar-inner {
+      max-width: 1180px; margin: 0 auto; padding: 0 20px;
+      display: flex; align-items: center; gap: 28px; min-height: 60px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+    .brand svg { width: 34px; height: 34px; flex: none; }
+    .brand-name { font-weight: 700; font-size: 17px; letter-spacing: 0.02em; line-height: 1.2; }
+    .brand-name small { display: block; font-size: 11px; font-weight: 400; color: var(--chrome-muted); letter-spacing: 0.04em; }
+    .nav { display: flex; gap: 0; margin-left: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+    .nav::-webkit-scrollbar { display: none; }
+    .nav a {
+      display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px;
+      color: var(--chrome-muted); font-size: 13.5px; font-weight: 500; white-space: nowrap;
+      border-bottom: 3px solid transparent; margin-bottom: -3px;
+    }
+    .nav a:hover { color: var(--chrome-text); }
+    .nav a.active { color: #fff; border-bottom-color: #fff; }
+    .user { margin-left: auto; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+    .user .org { font-size: 12px; color: var(--chrome-muted); text-align: right; line-height: 1.3; }
+    .user .org b { display: block; color: var(--chrome-text); font-weight: 500; font-size: 13px; }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%; background: #2a4d70; color: #fff;
+      display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
+    }
+
+    /* Page head */
+    .pagehead { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .pagehead-inner { max-width: 1180px; margin: 0 auto; padding: 18px 20px 20px; }
+    .crumbs { font-size: 12px; color: var(--ink-muted); display: flex; gap: 8px; flex-wrap: wrap; }
+    .crumbs span::before { content: "›"; margin-right: 8px; color: #b0b7c3; }
+    .crumbs span:first-child::before { content: none; margin: 0; }
+    .pagehead h1 { margin: 6px 0 4px; font-size: 24px; font-weight: 700; letter-spacing: 0.01em; }
+    .pagehead p { margin: 0; color: var(--ink-soft); }
+    .pagehead-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .status-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+      background: var(--wash); border: 1px solid var(--line); font-size: 12px; color: var(--ink-soft); white-space: nowrap;
+    }
+    .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+
+    /* Layout */
+    .main { max-width: 1180px; margin: 0 auto; padding: 24px 20px 40px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+    .card-head { padding: 16px 22px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .card-head h2 { margin: 0; font-size: 16px; font-weight: 700; }
+    .card-head .meta { font-size: 12px; color: var(--ink-muted); }
+    .card-body { padding: 22px; }
+
+    /* Form */
+    .step { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-weight: 700; font-size: 14px; }
+    .step .num {
+      width: 24px; height: 24px; border-radius: 50%; background: var(--chrome); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+    }
+    .section + .section { margin-top: 26px; padding-top: 24px; border-top: 1px dashed var(--line); }
+    .grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 13px; font-weight: 500; color: var(--ink-soft); display: flex; align-items: center; gap: 8px; }
+    .req { font-size: 10px; font-weight: 700; color: #fff; background: var(--accent); padding: 1px 6px; border-radius: 3px; letter-spacing: 0.08em; }
+    .opt { font-size: 10px; font-weight: 500; color: var(--ink-muted); background: var(--wash); border: 1px solid var(--line); padding: 0 6px; border-radius: 3px; }
+    .control {
+      width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 6px;
+      background: #fff; outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    .control:focus { border-color: var(--chrome); box-shadow: 0 0 0 3px rgba(19, 44, 69, 0.14); }
+    select.control {
+      min-width: 0; max-width: 100%;
+      appearance: none; -webkit-appearance: none; padding-right: 36px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%234b5563' stroke-width='1.8'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+    }
+    textarea.control { min-height: 96px; resize: vertical; }
+    .unit-wrap { position: relative; }
+    .unit-wrap .control { padding-right: 52px; }
+    .unit-wrap .unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--ink-muted); }
+    .hint { font-size: 12px; color: var(--ink-muted); margin: 0; }
+    .prev {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line-soft);
+      border: 1px solid var(--line-soft); border-radius: 6px; overflow: hidden;
+    }
+    .prev div { background: var(--wash); padding: 10px 12px; }
+    .prev dt { font-size: 11px; color: var(--ink-muted); margin: 0; }
+    .prev dd { margin: 2px 0 0; font-weight: 700; font-size: 15px; }
+    .prev dd small { font-weight: 400; font-size: 11px; color: var(--ink-muted); margin-left: 2px; }
+
+    .dropzone {
+      border: 1.5px dashed var(--line); border-radius: 6px; background: var(--wash);
+      padding: 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .dropzone .thumbs { display: flex; gap: 8px; }
+    .thumb {
+      width: 56px; height: 56px; border-radius: 4px; background: linear-gradient(135deg, #cfd8e3, #9fb0c3);
+      position: relative; overflow: hidden; border: 1px solid var(--line);
+    }
+    .thumb::after {
+      content: attr(data-label); position: absolute; left: 0; right: 0; bottom: 0; font-size: 9px; line-height: 1.2;
+      padding: 2px 4px; background: rgba(19, 44, 69, 0.78); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .dropzone .text { flex: 1; min-width: 160px; }
+    .dropzone .text b { display: block; font-size: 13px; }
+    .dropzone .text span { font-size: 12px; color: var(--ink-muted); }
+    .file-btn {
+      position: relative; overflow: hidden; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px;
+      border: 1px solid var(--line); border-radius: 6px; background: #fff; font-weight: 500; cursor: pointer; white-space: nowrap;
+    }
+    .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+    .actions { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line-soft); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .btn-primary {
+      min-height: 48px; padding: 0 26px; border: 0; border-radius: 6px; background: var(--accent); color: #fff;
+      font-weight: 700; font-size: 15px; cursor: pointer; letter-spacing: 0.02em; transition: background .15s;
+      box-shadow: 0 2px 0 var(--accent-dark);
+    }
+    .btn-primary:hover { background: var(--accent-dark); }
+    .btn-primary:disabled { background: #c9ccd2; box-shadow: none; cursor: default; }
+    .btn-ghost {
+      min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 6px; background: #fff;
+      font-weight: 500; cursor: pointer; color: var(--ink-soft);
+    }
+    .actions .note { font-size: 12px; color: var(--ink-muted); flex-basis: 100%; }
+
+    .result-box { display: none; margin-top: 18px; padding: 16px 18px; border-radius: 6px; border: 1px solid var(--line); }
+    .result-box.success { display: block; background: var(--ok-wash); border-color: #bfe3cd; }
+    .result-box.error { display: block; background: var(--ng-wash); border-color: #f3c2bd; }
+    .result-box .result-title { font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .result-box.success .result-title { color: var(--ok); }
+    .result-box.error .result-title { color: var(--ng); }
+    .result-box .result-detail { font-size: 13px; color: var(--ink-soft); word-break: break-word; }
+
+    /* Sidebar */
+    .side { display: flex; flex-direction: column; gap: 20px; }
+    .list { list-style: none; margin: 0; padding: 0; }
+    .list li { display: flex; align-items: flex-start; gap: 12px; padding: 12px 22px; border-top: 1px solid var(--line-soft); }
+    .list li:first-child { border-top: 0; }
+    .list .time { font-size: 12px; color: var(--ink-muted); white-space: nowrap; width: 44px; padding-top: 2px; }
+    .list .what { flex: 1; min-width: 0; }
+    .list .what b { display: block; font-weight: 500; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .list .what span { font-size: 12px; color: var(--ink-muted); }
+    .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; white-space: nowrap; font-weight: 500; }
+    .badge.done { background: var(--ok-wash); color: var(--ok); }
+    .badge.now { background: var(--accent-wash); color: var(--accent-dark); }
+    .badge.todo { background: var(--wash); color: var(--ink-muted); border: 1px solid var(--line); }
+    .kv { margin: 0; padding: 0 22px 18px; }
+    .kv div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line-soft); font-size: 13px; }
+    .kv div:first-child { border-top: 0; }
+    .kv dt { color: var(--ink-muted); margin: 0; }
+    .kv dd { margin: 0; font-weight: 500; text-align: right; }
+    .kv .grade-ok { color: var(--ok); }
+    .kv .grade-warn { color: var(--warn); }
+    .help { padding: 18px 22px; font-size: 13px; color: var(--ink-soft); }
+    .help p { margin: 0 0 8px; }
+    .help a { color: #0b5cad; text-decoration: underline; }
+
+    /* Footer */
+    .footer { background: var(--chrome-deep); color: var(--chrome-muted); font-size: 12px; }
+    .footer-inner { max-width: 1180px; margin: 0 auto; padding: 22px 20px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .footer-inner nav { display: flex; gap: 18px; flex-wrap: wrap; }
+    .footer-inner nav a:hover { color: #fff; }
+
+    .demo-notice { background: #fef3c7; color: #92400e; font-size: 12px; font-weight: 600; text-align: center; padding: 8px 16px; }
+
+    @media (max-width: 1240px) {
+      .user .org { display: none; }
+    }
+    @media (max-width: 900px) {
+      .main { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .appbar-inner { gap: 14px; padding: 0 14px; flex-wrap: wrap; min-height: 56px; }
+      .brand { padding: 10px 0 4px; }
+      .nav { order: 3; flex-basis: 100%; margin: 0; }
+      .user { padding-top: 10px; }
+      .pagehead-inner, .main { padding-left: 14px; padding-right: 14px; }
+      .pagehead h1 { font-size: 20px; }
+      .card-body, .card-head { padding-left: 16px; padding-right: 16px; }
+      .grid-2 { grid-template-columns: minmax(0, 1fr); }
+      .prev { grid-template-columns: minmax(0, 1fr); }
+      .btn-primary { width: 100%; }
+      .btn-ghost { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="demoNotice" class="demo-notice">NOT ACTUALLY A RYOYO SYSTEMS SITE — 菱陽システムズ and 点検クラウド TENLOG are fictional brands; demo only, not affiliated with, endorsed by, or a product of any real company. ／ 実在する企業・サービスのサイトではありません（架空ブランド・デモ用）。</div>
+  <header class="appbar">
+    <div class="appbar-inner">
+      <a class="brand" href="#" aria-label="点検クラウド TENLOG">
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+          <rect x="2" y="2" width="36" height="36" rx="8" fill="#ffffff"/>
+          <path d="M11 13h18v4h-7v12h-4V17h-7z" fill="#132c45"/>
+          <path d="M9 30l5-6 4 3 7-9 6 5" fill="none" stroke="#d9532b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="brand-name">点検クラウド TENLOG<small>菱陽システムズ 保守DXプラットフォーム</small></span>
+      </a>
+      <nav class="nav" aria-label="メインナビゲーション">
+        <a href="#">ダッシュボード</a>
+        <a href="#">点検予定</a>
+        <a href="#" class="active" aria-current="page">点検結果の提出</a>
+        <a href="#">成績書</a>
+        <a href="#">設備台帳</a>
+        <a href="#">異常兆候モニタ</a>
+      </nav>
+      <div class="user">
+        <div class="org"><b>佐藤 健一（電気主任技術者）</b>関東保安サービス株式会社 北関東支所</div>
+        <span class="avatar">佐</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="pagehead">
+    <div class="pagehead-inner">
+      <div class="crumbs"><span>ホーム</span><span>点検業務</span><span>点検結果の提出</span></div>
+      <div class="pagehead-row">
+        <div>
+          <h1>点検結果の提出</h1>
+          <p>現場で測定した結果を提出すると、前回値・判定基準と照合して成績書（点検報告書）が自動生成されます。</p>
+        </div>
+        <div class="status-chips">
+          <span class="chip"><span class="dot"></span>オンライン — 同期済み 09:42</span>
+          <span class="chip">未提出 2件</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="main">
+    <div>
+      <section class="card">
+        <div class="card-head">
+          <h2>点検結果を提出して成績書を生成</h2>
+          <span class="meta">提出先: 北関東支所 技術グループ</span>
+        </div>
+        <div class="card-body">
+          <form id="claimForm" novalidate>
+            <div class="section">
+              <div class="step"><span class="num">1</span>点検対象</div>
+              <div class="grid-2">
+                <div class="field full">
+                  <label for="policyId">点検対象設備 <span class="req">必須</span></label>
+                  <select id="policyId" class="control">
+                    <option value="FAC-2041">北関東物流センター 受変電設備 — キュービクル式高圧受電設備（6.6kV）</option>
+                    <option value="FAC-2187">湾岸データセンター 第2変電室 — 特別高圧受変電設備（66kV）</option>
+                    <option value="FAC-2302">相模川浄水場 動力盤 — 低圧動力盤・自家発電設備</option>
+                    <option value="FAC-2415">本社ビル 非常用発電設備 — 非常用ディーゼル発電機（500kVA）</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="claimType">点検種別 <span class="req">必須</span></label>
+                  <select id="claimType" class="control">
+                    <option value="monthly">月次点検</option>
+                    <option value="annual">年次点検（停電）</option>
+                    <option value="special">臨時点検</option>
+                    <option value="precision">精密点検</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="inspectedOn">点検実施日 <span class="req">必須</span></label>
+                  <input type="date" id="inspectedOn" class="control" value="2026-10-05">
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="step"><span class="num">2</span>測定結果</div>
+              <div class="grid-2">
+                <div class="field">
+                  <label for="amount">絶縁抵抗 測定値 <span class="req">必須</span></label>
+                  <div class="unit-wrap">
+                    <input type="number" id="amount" class="control" value="460" min="0" step="0.1" inputmode="decimal">
+                    <span class="unit">MΩ</span>
+                  </div>
+                  <p class="hint">主回路（R-S-T 一括）— 対地間。500V 絶縁抵抗計で測定。</p>
+                </div>
+                <div class="field">
+                  <label>前回値・判定基準 <span class="opt">自動表示</span></label>
+                  <dl class="prev">
+                    <div><dt>前回値（2026-09-02）</dt><dd id="prevValue">480<small>MΩ</small></dd></div>
+                    <div><dt>注意帯</dt><dd id="cautionValue">&lt; 10<small>MΩ</small></dd></div>
+                    <div><dt>規定値（下限）</dt><dd id="minValue">5<small>MΩ</small></dd></div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="step"><span class="num">3</span>写真・所見</div>
+              <div class="grid-2">
+                <div class="field full">
+                  <label>現場写真 <span class="opt">任意</span></label>
+                  <div class="dropzone">
+                    <div class="thumbs">
+                      <span class="thumb" data-label="銘板"></span>
+                      <span class="thumb" data-label="計器指示値"></span>
+                    </div>
+                    <div class="text"><b>添付 2件</b><span>タブレットで撮影した写真は設備・測定項目ごとに自動で整理されます。</span></div>
+                    <label class="file-btn">写真を追加<input type="file" id="photos" accept="image/*" multiple></label>
+                  </div>
+                </div>
+                <div class="field full">
+                  <label for="description">所見・特記事項 <span class="opt">任意</span></label>
+                  <input type="text" id="description" class="control" value="外観・異音・異臭なし。端子部の変色なし。" placeholder="例: 端子部に軽微な変色あり、次回点検で経過観察">
+                </div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button type="submit" class="btn-primary" id="submitBtn">点検結果を提出して成績書を生成</button>
+              <button type="button" class="btn-ghost" id="draftBtn">下書きとして保存</button>
+              <span class="note">提出後、成績書 PDF は「成績書」メニューからダウンロードできます。承認者（技術グループ）に通知が送られます。</span>
+            </div>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="side">
+      <section class="card">
+        <div class="card-head"><h2>本日の点検予定</h2><span class="meta">10月5日（月）</span></div>
+        <ul class="list">
+          <li><span class="time">09:00</span><div class="what"><b>北関東物流センター 受変電設備</b><span>月次点検 — 佐藤</span></div><span class="badge now">提出待ち</span></li>
+          <li><span class="time">11:00</span><div class="what"><b>さいたま第3配送拠点 キュービクル</b><span>月次点検 — 佐藤</span></div><span class="badge done">成績書済</span></li>
+          <li><span class="time">14:00</span><div class="what"><b>湾岸データセンター 第2変電室</b><span>臨時点検 — 佐藤・田中</span></div><span class="badge todo">予定</span></li>
+          <li><span class="time">16:30</span><div class="what"><b>相模川浄水場 動力盤</b><span>月次点検 — 田中</span></div><span class="badge todo">予定</span></li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><h2>設備情報</h2><span class="meta" id="facilityCode">FAC-2041</span></div>
+        <dl class="kv">
+          <div><dt>設備区分</dt><dd id="facilityKind">自家用電気工作物（高圧）</dd></div>
+          <div><dt>遠隔監視</dt><dd id="facilityMonitor">センサ接続中・異常兆候なし</dd></div>
+          <div><dt>前回判定</dt><dd id="facilityGrade" class="grade-ok">良</dd></div>
+          <div><dt>次回年次点検</dt><dd id="facilityNext">2027-02（停電）</dd></div>
+        </dl>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><h2>ヘルプ</h2></div>
+        <div class="help">
+          <p>圏外の現場では結果を端末に保存し、通信回復後に提出できます（オフライン入力）。</p>
+          <p>測定値が注意帯または規定値未満の場合、提出時に注意喚起が表示され、成績書に「要対策」として記載されます。</p>
+          <p><a href="#">点検手順ガイドを見る</a> ・ <a href="#">TENLOG サポートセンター</a></p>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>© 2026 菱陽システムズ株式会社 — 点検クラウド TENLOG</div>
+      <nav><a href="#">利用規約</a><a href="#">プライバシー</a><a href="#">セキュリティ</a><a href="#">お問い合わせ</a></nav>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('claimForm');
+      var btn = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      var facilitySel = document.getElementById('policyId');
+      var SUBMIT_LABEL = btn.textContent;
+
+      var FACILITIES = {
+        'FAC-2041': { contract: 'POL-5001', kind: '自家用電気工作物（高圧）', prevDate: '2026-09-02', prev: 480, caution: 10, min: 5, monitor: 'センサ接続中・異常兆候なし', grade: '良', next: '2027-02（停電）' },
+        'FAC-2187': { contract: 'POL-5002', kind: '自家用電気工作物（特別高圧）', prevDate: '2026-09-10', prev: 1250, caution: 500, min: 100, monitor: 'センサ接続中・異常兆候なし', grade: '良', next: '2027-05（停電）' },
+        'FAC-2302': { contract: 'POL-5003', kind: '自家用電気工作物（低圧・自家発）', prevDate: '2026-09-18', prev: 32, caution: 1, min: 0.2, monitor: '遠隔監視対象外', grade: '良', next: '2026-12' },
+        'FAC-2415': { contract: 'POL-5004', kind: '非常用予備発電装置', prevDate: '2026-09-25', prev: 28, caution: 1, min: 0.2, monitor: '運転時間 12.5h／月', grade: '注意', next: '2027-01' }
+      };
+
+      function setText(id, text) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = text;
+      }
+
+      function renderFacility(id) {
+        var f = FACILITIES[id] || FACILITIES['FAC-2041'];
+        document.getElementById('prevValue').innerHTML = f.prev + '<small>MΩ</small>';
+        document.getElementById('prevValue').parentNode.querySelector('dt').textContent = '前回値（' + f.prevDate + '）';
+        document.getElementById('cautionValue').innerHTML = '&lt; ' + f.caution + '<small>MΩ</small>';
+        document.getElementById('minValue').innerHTML = f.min + '<small>MΩ</small>';
+        setText('facilityCode', id);
+        setText('facilityKind', f.kind);
+        setText('facilityMonitor', f.monitor);
+        setText('facilityNext', f.next);
+        var grade = document.getElementById('facilityGrade');
+        grade.textContent = f.grade;
+        grade.className = f.grade === '良' ? 'grade-ok' : 'grade-warn';
+        document.getElementById('amount').value = String(Math.round(f.prev * 0.96 * 10) / 10);
+      }
+
+      facilitySel.addEventListener('change', function () { renderFacility(facilitySel.value); });
+
+      document.getElementById('draftBtn').addEventListener('click', function () {
+        showResult('success', '下書きを保存しました', '端末に保存されました。通信回復後も提出できます。');
+      });
+
+      function showResult(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '';
+        var t = document.createElement('div');
+        t.className = 'result-title';
+        t.textContent = title;
+        var d = document.createElement('div');
+        d.className = 'result-detail';
+        d.textContent = detail;
+        result.appendChild(t);
+        result.appendChild(d);
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var facilityId = facilitySel.value;
+        var facility = FACILITIES[facilityId] || FACILITIES['FAC-2041'];
+        var value = parseFloat(document.getElementById('amount').value);
+        if (isNaN(value)) {
+          showResult('error', '測定値を入力してください', '絶縁抵抗の測定値（MΩ）は必須です。');
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = '提出中… 成績書を生成しています';
+        result.className = 'result-box';
+        result.innerHTML = '';
+        try {
+          var identity = {
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          };
+          // Under the on-call shim (/oncall/c/…) the claim request is what
+          // gets rerouted and degraded; the bare page submits through the
+          // inspection API instead.
+          var shimmed = !!document.getElementById('oncall-unique');
+          var apiPath = shimmed ? '/api/insurance/claim' : '/api/059b9215/inspection';
+          var payload = shimmed
+            ? {
+              policyId: facility.contract,
+              claimType: document.getElementById('claimType').value,
+              amount: value,
+              description: document.getElementById('description').value
+            }
+            : {
+              facilityId: facilityId,
+              inspectionType: document.getElementById('claimType').value,
+              value: value,
+              inspectedOn: document.getElementById('inspectedOn').value,
+              notes: document.getElementById('description').value
+            };
+          var res = await fetch(apiPath, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.assign(payload, identity))
+          });
+          var data = await res.json();
+          if (!res.ok) {
+            var detail = res.status === 504
+              ? 'タイムアウトしました。しばらく待ってから再度お試しください。（HTTP 504）'
+              : (data.errorClass || 'Error') + ': ' + (data.error || '');
+            showResult('error', '点検結果の提出を完了できませんでした', detail);
+          } else {
+            var ref = data.reportId || data.claimId || '-';
+            showResult('success', '成績書を生成しました', '受付番号: ' + ref + '。前回値と照合した判定結果を含む成績書 PDF を「成績書」メニューからダウンロードできます。承認者に通知しました。');
+          }
+        } catch (err) {
+          showResult('error', '通信エラー', err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = SUBMIT_LABEL;
+        }
+      });
+
+      renderFacility(facilitySel.value);
+
+      // The on-call shim injects its own disclaimer bar on /oncall/c/…; keep
+      // the page's native bar only on the bare page.
+      window.addEventListener('load', function () {
+        var notice = document.getElementById('demoNotice');
+        if (notice && (document.getElementById('oncall-unique') || document.querySelector('body > div[style*="fef3c7"]'))) notice.remove();
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

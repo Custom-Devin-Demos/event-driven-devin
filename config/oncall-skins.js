@@ -3100,6 +3100,57 @@ const ONCALL_SKINS = {
     supportCenter: 'Proximus Support',
     disclaimer: 'NOT ACTUALLY A PROXIMUS SITE — internal demo only, not affiliated with, endorsed by, or a real Proximus product.',
   },
+  '059b9215': {
+    slug: '059b9215',
+    company: '菱陽システムズ',
+    brandMark: 'T',
+    vertical: 'insurance',
+    page: {
+      // Natively branded Japanese maintenance-DX portal under the fictional
+      // brand "菱陽システムズ / 点検クラウド TENLOG" (an original mark and
+      // name, not a clone of any real inspection product): field inspectors
+      // submit inspection results and the service generates the inspection
+      // report. The submission form reuses the insurance claim ids so the
+      // shared shim reroutes and degrades it with no backend changes. Two
+      // tracks share the one file: /oncall/c/059b9215 is the shimmed 504
+      // alert, and the bare /059b9215 posts to its own inspection API
+      // (app/routes/verticals/059b9215.js → /api/059b9215/inspection) whose
+      // failure runs the legacy error track (Sentry → Slack → Devin).
+      file: '059b9215.html',
+      title: '点検結果の提出 - 点検クラウド TENLOG | 菱陽システムズ',
+    },
+    theme: {
+      '--accent': '#d9532b',
+      '--ink': '#1f2a37',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#132c45',
+      '--chrome-text': '#f4f7fb',
+    },
+    alertCard: {
+      title: '5xx rate spiking — inspection result submissions',
+      team: 'inspection-platform-oncall',
+      symptom: 'Inspection result submissions hang ~8s and then fail with 504 Gateway Timeout; no inspection report is generated. Upstream report-generation latency is elevated.',
+      impact: 'Field inspectors cannot submit inspection results from site; every submission times out after a long hang and the inspection report is never generated.',
+    },
+    incident: {
+      kind: 'insurance-claims',
+      chatter: {
+        vocabulary: {
+          'Claim submissions failing': 'Inspection result submissions failing',
+          'Policyholders cannot file claims through the portal': 'Field inspectors cannot submit inspection results through the portal',
+          'Quotes and policy reads are fine': 'Facility lookups and past report reads are fine',
+          'claim submissions': 'inspection result submissions',
+          'claim submission': 'inspection result submission',
+          'adjudication vendor': 'report-generation vendor',
+          'policyholders': 'field inspectors',
+          'claims path': 'inspection submission path',
+          'one claim': 'one submission',
+        },
+      },
+    },
+    supportCenter: 'TENLOG サポートセンター',
+    disclaimer: 'NOT ACTUALLY A RYOYO SYSTEMS SITE — 菱陽システムズ and 点検クラウド TENLOG are fictional brands; demo only, not affiliated with, endorsed by, or a product of any real company. ／ 実在する企業・サービスのサイトではありません（架空ブランド・デモ用）。',
+  },
 };
 
 function getOncallSkin(slug) {
