@@ -3,13 +3,14 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
+const { getCustomerConfig } = require('../../../config/customers');
 const { createSessionAndAlert } = require('../devin-session');
 const { declareDatadogIncident } = require('../datadog-incidents');
 const {
   createLinearIssue,
   addLinearComment,
-  updateLinearIssueState,
 } = require('../linear');
+const { postLinearIssueLink } = require('../slack');
 
 const LINEAR_TEAM_ID = process.env.LINEAR_TEAM_ID_B25C3F24 || '3c9f0e1e-54da-442d-8949-a62489060822';
 const LINEAR_ASSIGNEE_ID = process.env.LINEAR_ASSIGNEE_ID_B25C3F24 || '4d616028-0c12-4ad9-b117-0661170e857e';
@@ -105,7 +106,7 @@ function buildRemediationDirective(issue) {
     REMEDIATION_DIRECTIVE,
     '',
     `*Linear ticket:* ${issue.identifier} — ${issue.url}`,
-    'The app moves the ticket to In Progress and comments your session link right after your session is created. If either update is missing, perform only that update yourself first. Ticket lifecycle you own:',
+    'The ticket is created in In Progress, and the app comments your session link on it and posts the ticket link in the Slack alert thread. If the ticket is not In Progress or your session link is missing, do only that missing update yourself first.',
     `- As soon as your PR is open: comment on the ticket with the PR URL (Linear MCP \`create_comment\` / or the GraphQL API with \`LINEAR_API_KEY\`), add the PR link to the ticket, and move the ticket to the "In Review" state (id '${LINEAR_STATE_IN_REVIEW_ID}').`,
     '- Do NOT move the ticket to Done. The reviewer moves it to Done after approving and merging the PR.',
     '- If you push follow-up commits after review feedback, leave the ticket In Review and add a short comment.',
@@ -239,6 +240,7 @@ async function verifyIdentity(data) {
           teamId: LINEAR_TEAM_ID,
           assigneeId: LINEAR_ASSIGNEE_ID,
           priority: 2,
+          stateId: LINEAR_STATE_IN_PROGRESS_ID,
         });
       } catch (err) {
         logger.warn('Failed to create Linear issue for Affirm identity verification', { error: err.message, checkoutId });
@@ -280,26 +282,28 @@ async function verifyIdentity(data) {
         triggeredRule: '',
       });
       const session = outcome && outcome.session;
-      if (issue && session) {
-        const stateUpdated = await updateLinearIssueState({
-          issueId: issue.id,
-          stateId: LINEAR_STATE_IN_PROGRESS_ID,
-        })
-          .then(() => true)
-          .catch((err) => {
-            logger.warn('Failed to move Linear issue to In Progress', {
-              error: err.message,
-              identifier: issue.identifier,
-              checkoutId,
-            });
-            return false;
+      if (issue && outcome && outcome.threadTs) {
+        try {
+          await postLinearIssueLink(
+            outcome.threadTs,
+            issue,
+            getCustomerConfig('b25c3f24').slackChannelId || undefined,
+          );
+        } catch (err) {
+          logger.warn('Failed to post Linear issue link to Slack alert thread', {
+            error: err.message,
+            identifier: issue.identifier,
+            checkoutId,
           });
+        }
+      }
+      if (issue && session) {
         const commented = await addLinearComment({
           issueId: issue.id,
           body: [
             `Devin picked this up: ${session.url}`,
             '',
-            'Moving to **In Progress**. The PR link will be posted here and the ticket moved to **In Review** once the fix is ready.',
+            'The PR link will be posted here and the ticket moved to **In Review** once the fix is ready.',
           ].join('\n'),
         })
           .then(() => true)
@@ -315,7 +319,6 @@ async function verifyIdentity(data) {
           identifier: issue.identifier,
           sessionId: session.sessionId,
           checkoutId,
-          stateUpdated,
           commented,
         });
       }
