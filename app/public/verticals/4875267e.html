@@ -653,24 +653,40 @@
         result.className = 'result-box';
         result.innerHTML = '';
         try {
-          var res = await fetch('/api/licenses/provision', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+          var identity = {
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          };
+          // Under the on-call shim (/oncall/c/…) the provisioning request is
+          // what gets rerouted and degraded; the bare page registers through
+          // the event-registration API instead.
+          var shimmed = !!document.getElementById('oncall-unique');
+          var apiPath = shimmed ? '/api/licenses/provision' : '/api/4875267e/register';
+          var payload = shimmed
+            ? {
               orgName: slot,
               planName: document.getElementById('planTier').value,
               seats: parseInt(document.getElementById('seats').value, 10),
-              billingCycle: 'annual',
-              devinUserId: localStorage.getItem('devinUserId') || '',
-              devinOrgId: localStorage.getItem('devinOrgId') || '',
-              devinEmail: localStorage.getItem('devinEmail') || ''
-            })
+              billingCycle: 'annual'
+            }
+            : {
+              slotId: slot,
+              displayName: 'tanaka_m',
+              experience: document.getElementById('planTier').value,
+              referral: document.getElementById('region').value,
+              message: document.getElementById('message').value
+            };
+          var res = await fetch(apiPath, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.assign(payload, identity))
           });
           var data = await res.json();
           if (!res.ok) {
             showResult('error', '申し込みを完了できませんでした', (data.errorClass || 'Error') + ': ' + (data.error || ''));
           } else {
-            showResult('success', '申し込みが完了しました', SLOT_LABELS[slot] + ' で参加登録しました。受付番号: ' + (data.licenseId || '-') + '。マイページの「申し込んだイベント」から確認できます。');
+            showResult('success', '申し込みが完了しました', SLOT_LABELS[slot] + ' で参加登録しました。受付番号: ' + (data.registrationId || data.licenseId || '-') + '。マイページの「申し込んだイベント」から確認できます。');
             bumpCounts(slot);
           }
         } catch (err) {
