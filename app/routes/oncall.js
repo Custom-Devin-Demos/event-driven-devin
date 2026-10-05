@@ -17,6 +17,7 @@ const {
   getSev1IncidentKinds,
   isPlainObject,
   isValidChatterVocabulary,
+  isValidIncidentCopy,
   getSev1State,
   setOncallConfigOverride,
   getOncallConfigView,
@@ -176,6 +177,9 @@ for (const skin of Object.values(ONCALL_SKINS)) {
       logger.warn('On-Call skin incident chatter vocabulary is invalid', {
         skin: skin.slug,
       });
+    }
+    if (skin.incident.copy != null && !isValidIncidentCopy(skin.incident.copy)) {
+      logger.warn('On-Call skin incident copy is invalid', { skin: skin.slug });
     }
     if (
       (incidentStory == null || incidentStory.vertical !== skin.vertical) &&

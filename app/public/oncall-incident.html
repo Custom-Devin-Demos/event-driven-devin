@@ -107,22 +107,22 @@
   </header>
 
   <main>
-    <div class="eyebrow">Major incident operations</div>
-    <h1>SEV-1 incident console</h1>
+    <div class="eyebrow" id="eyebrow">Major incident operations</div>
+    <h1 id="heading">SEV-1 incident console</h1>
     <p class="intro" id="intro"></p>
 
     <div class="grid">
       <section class="card">
-        <h2>Live incident status</h2>
-        <p class="card-desc">Open incidents declared for this session.</p>
+        <h2 id="live-title">Live incident status</h2>
+        <p class="card-desc" id="live-desc">Open incidents declared for this session.</p>
         <div class="state" id="incident-state" aria-live="polite">
-          <p class="empty">Loading incident state.</p>
+          <p class="empty" id="state-loading">Loading incident state.</p>
         </div>
       </section>
 
       <section class="card">
-        <h2>Declare incident</h2>
-        <p class="card-desc">Declare the SEV-1 associated with this service.</p>
+        <h2 id="declare-title">Declare incident</h2>
+        <p class="card-desc" id="declare-desc">Declare the SEV-1 associated with this service.</p>
         <div class="kind-label" id="kind-label">Loading incident definition.</div>
         <p class="kind-summary" id="kind-summary"></p>
         <button id="declare-incident" type="button">Declare SEV-1 incident</button>
@@ -139,10 +139,63 @@
     var incidentStory = null;
     var incidentReady = false;
 
+    // Console copy. A skin may localize any of these via incident.copy
+    // (string values only); everything else falls back to the English default.
+    var COPY_DEFAULTS = {
+      lang: 'en',
+      title: 'SEV-1 Incident Console',
+      eyebrow: 'Major incident operations',
+      heading: 'SEV-1 incident console',
+      intro: 'Declare and monitor the major incident for this service.',
+      brandSub: 'SEV-1 incident console',
+      footer: 'Incident operations',
+      liveTitle: 'Live incident status',
+      liveDesc: 'Open incidents declared for this session.',
+      loadingState: 'Loading incident state.',
+      noOpenIncidents: 'No open incidents.',
+      stateUnavailable: 'Incident state unavailable',
+      declareTitle: 'Declare incident',
+      declareDesc: 'Declare the SEV-1 associated with this service.',
+      loadingDefinition: 'Loading incident definition.',
+      definitionUnavailable: 'Incident definition unavailable',
+      declareButton: 'Declare SEV-1 incident',
+      incidentFallback: 'SEV-1 incident',
+      status: 'Status',
+      autoResolvesIn: 'Auto-resolves in',
+      publicId: 'Public IR id',
+      pendingProviderId: 'Pending provider id',
+      incidentRef: 'Incident ref',
+      declaredAt: 'Declared',
+      resolved: 'Resolved',
+      windowElapsed: 'Window elapsed',
+      resolveFailed: 'Auto-resolve failed',
+      declaring: 'Declaring incident…',
+      declaredDatadog: 'SEV-1 declared (IR-{id}, ref {ref}). Slack channel incoming…',
+      declaredSlack: 'SEV-1 posted to {channel} (ref {ref}).',
+      declareFailed: 'Failed to declare incident.'
+    };
+    var COPY = SKIN && SKIN.incident && SKIN.incident.copy &&
+      typeof SKIN.incident.copy === 'object' ? SKIN.incident.copy : {};
+    function t(key) {
+      return typeof COPY[key] === 'string' ? COPY[key] : COPY_DEFAULTS[key];
+    }
+    function formatDeclaredAt(value) {
+      try {
+        return new Date(value).toLocaleString(t('lang'));
+      } catch (_err) {
+        return new Date(value).toLocaleString();
+      }
+    }
+    function fmt(template, vars) {
+      return template.replace(/\{(\w+)\}/g, function (_, name) {
+        return vars[name] == null ? '' : String(vars[name]);
+      });
+    }
+
     function remainingLabel(entry) {
-      if (entry.status === 'resolved') return 'Resolved';
-      if (entry.status === 'window_elapsed') return 'Window elapsed';
-      if (entry.status === 'resolve_failed') return 'Auto-resolve failed';
+      if (entry.status === 'resolved') return t('resolved');
+      if (entry.status === 'window_elapsed') return t('windowElapsed');
+      if (entry.status === 'resolve_failed') return t('resolveFailed');
       var seconds = Math.ceil((entry.msRemaining || 0) / 1000);
       var minutes = Math.floor(seconds / 60);
       return minutes > 0
@@ -159,7 +212,17 @@
           'Open the customer-specific incident console to continue.';
         return;
       }
-      document.title = 'SEV-1 Incident Console — ' + SKIN.company;
+      document.documentElement.lang = t('lang');
+      document.title = t('title') + ' — ' + SKIN.company;
+      [
+        ['eyebrow', 'eyebrow'], ['heading', 'heading'],
+        ['live-title', 'liveTitle'], ['live-desc', 'liveDesc'], ['state-loading', 'loadingState'],
+        ['declare-title', 'declareTitle'], ['declare-desc', 'declareDesc'],
+        ['kind-label', 'loadingDefinition'], ['declare-incident', 'declareButton']
+      ].forEach(function (pair) {
+        var el = document.getElementById(pair[0]);
+        if (el) el.textContent = t(pair[1]);
+      });
       Object.keys(SKIN.theme || {}).forEach(function (key) {
         if (/^--(accent|ink|surface|chrome-bg|chrome-text)$/.test(key)) {
           document.documentElement.style.setProperty(key, SKIN.theme[key]);
@@ -167,9 +230,9 @@
       });
       document.getElementById('brand-mark').textContent = SKIN.brandMark || SKIN.company.charAt(0);
       document.getElementById('brand-name').textContent = SKIN.company;
-      document.getElementById('brand-sub').textContent = 'SEV-1 incident console';
-      document.getElementById('intro').textContent = 'Declare and monitor the major incident for this service.';
-      document.getElementById('footer').textContent = SKIN.company + ' · Incident operations';
+      document.getElementById('brand-sub').textContent = t('brandSub');
+      document.getElementById('intro').textContent = t('intro');
+      document.getElementById('footer').textContent = SKIN.company + ' · ' + t('footer');
       document.getElementById('disclaimer').textContent = SKIN.disclaimer || '';
       document.getElementById('disclaimer').style.display = SKIN.disclaimer ? 'block' : 'none';
     }
@@ -184,13 +247,13 @@
       var state = document.getElementById('incident-state');
       state.textContent = '';
       if (!Array.isArray(entries)) {
-        state.textContent = 'Incident state unavailable: unexpected response.';
+        state.textContent = t('stateUnavailable') + ': unexpected response.';
         return;
       }
       if (!entries.length) {
         var empty = document.createElement('p');
         empty.className = 'empty';
-        empty.textContent = 'No open incidents.';
+        empty.textContent = t('noOpenIncidents');
         state.appendChild(empty);
         return;
       }
@@ -199,17 +262,17 @@
         article.className = 'incident';
         var title = document.createElement('div');
         title.className = 'incident-title';
-        title.textContent = entry.label || 'SEV-1 incident';
+        title.textContent = entry.label || t('incidentFallback');
         var details = document.createElement('dl');
         var remainingTerm = entry.status === 'resolved' ||
           entry.status === 'window_elapsed' ||
           entry.status === 'resolve_failed'
-          ? 'Status'
-          : 'Auto-resolves in';
+          ? t('status')
+          : t('autoResolvesIn');
         [
-          ['Public IR id', entry.publicId ? 'IR-' + entry.publicId : 'Pending provider id'],
-          ['Incident ref', entry.runRef],
-          ['Declared', new Date(entry.declaredAt).toLocaleString()],
+          [t('publicId'), entry.publicId ? 'IR-' + entry.publicId : t('pendingProviderId')],
+          [t('incidentRef'), entry.runRef],
+          [t('declaredAt'), formatDeclaredAt(entry.declaredAt)],
           [remainingTerm, remainingLabel(entry)],
         ].forEach(function (pair) {
           var term = document.createElement('dt');
@@ -231,7 +294,7 @@
         .then(renderState)
         .catch(function (error) {
           var state = document.getElementById('incident-state');
-          state.textContent = 'Incident state unavailable: ' + error.message;
+          state.textContent = t('stateUnavailable') + ': ' + error.message;
         });
     }
 
@@ -252,7 +315,7 @@
         })
         .catch(function (error) {
           incidentReady = false;
-          document.getElementById('kind-label').textContent = 'Incident definition unavailable';
+          document.getElementById('kind-label').textContent = t('definitionUnavailable');
           document.getElementById('kind-summary').textContent = error.message;
           document.getElementById('declare-incident').disabled = true;
         });
@@ -263,7 +326,7 @@
     declareButton.addEventListener('click', function () {
       var button = declareButton;
       button.disabled = true;
-      setDeclareStatus(true, 'Declaring incident…');
+      setDeclareStatus(true, t('declaring'));
       fetch('/api/oncall/incident', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -280,11 +343,11 @@
         .then(function (outcome) {
           var data = outcome.data;
           if (outcome.code === 200 && data.provider === 'datadog') {
-            setDeclareStatus(true, 'SEV-1 declared (IR-' + (data.publicId || data.id) + ', ref ' + data.runRef + '). Slack channel incoming…');
+            setDeclareStatus(true, fmt(t('declaredDatadog'), { id: data.publicId || data.id, ref: data.runRef }));
           } else if (outcome.code === 200) {
-            setDeclareStatus(true, 'SEV-1 posted to ' + data.channel + ' (ref ' + data.runRef + ').');
+            setDeclareStatus(true, fmt(t('declaredSlack'), { channel: data.channel, ref: data.runRef }));
           } else {
-            setDeclareStatus(false, data.error || 'Failed to declare incident.');
+            setDeclareStatus(false, data.error || t('declareFailed'));
           }
           return loadState();
         })
