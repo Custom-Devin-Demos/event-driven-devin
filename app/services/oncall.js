@@ -712,11 +712,12 @@ async function postOncallAlert(scenarioId, options = {}) {
   const env = resolveOncallEnv();
   const { token, alertsChannel } = env;
   const userTeamsUrl = options.teams ? options.teamsWebhookUrl : null;
-  if (userTeamsUrl && !isTeamsWebhookUrl(userTeamsUrl)) {
-    return { ok: false, error: 'teamsWebhookUrl must be a Microsoft Teams Workflow webhook URL' };
+  const userTeamsUrlInvalid = Boolean(userTeamsUrl) && !isTeamsWebhookUrl(userTeamsUrl);
+  if (userTeamsUrlInvalid) {
+    logger.warn('Ignoring per-user Teams webhook: not a Teams Workflow webhook URL');
   }
-  const teamsWebhookUrl = userTeamsUrl
-    || (options.teams || env.teamsAllAlerts || (skin && skin.teamsAlerts) ? env.teamsWebhookUrl : null);
+  const teamsWebhookUrl = userTeamsUrlInvalid ? null : (userTeamsUrl
+    || (options.teams || env.teamsAllAlerts || (skin && skin.teamsAlerts) ? env.teamsWebhookUrl : null));
   const slackReady = Boolean(token && alertsChannel);
   if (!slackReady && !teamsWebhookUrl) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');
@@ -789,6 +790,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     ...(ts ? { ts, channel: alertsChannel } : {}),
     ...(teams ? { teams: true } : {}),
     ...(options.teams && !teams ? { teamsFailed: true } : {}),
+    ...(userTeamsUrlInvalid ? { teamsError: 'teamsWebhookUrl must be a Microsoft Teams Workflow webhook URL' } : {}),
     ...(session ? { sessionUrl: session.url } : {}),
     ...(sonarPR ? { sonarPR: true } : {}),
   };

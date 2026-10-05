@@ -328,11 +328,11 @@
       urlInput.value = localStorage.getItem('oncallTeamsWebhookUrl') || '';
       function render() {
         var url = urlInput.value.trim();
-        var valid = !url || TEAMS_HOST_RE.test(url);
+        var valid = !url || (url.length <= 2048 && TEAMS_HOST_RE.test(url));
         panel.classList.toggle('on', toggle.checked);
         hint.classList.toggle('err', toggle.checked && (!valid || (!url && !teamsDefaultWebhook)));
         if (!toggle.checked) {
-          hint.textContent = 'Off: your alerts go to Slack only. Saved in this browser only.';
+          hint.textContent = 'Off: no personal Teams delivery (server-managed Teams routing, if configured, still applies). Saved in this browser only.';
         } else if (!valid) {
           hint.textContent = 'That is not a Teams Workflow webhook URL (expected *.logic.azure.com or *.api.powerplatform.com).';
         } else if (url) {
@@ -349,8 +349,10 @@
       });
       urlInput.addEventListener('input', function () {
         var url = urlInput.value.trim();
+        // Persist exactly what is shown, even when invalid: the server then
+        // refuses that Teams post rather than reusing a previously saved URL.
         if (!url) localStorage.removeItem('oncallTeamsWebhookUrl');
-        else if (TEAMS_HOST_RE.test(url)) localStorage.setItem('oncallTeamsWebhookUrl', url);
+        else localStorage.setItem('oncallTeamsWebhookUrl', url);
         render();
       });
       render();

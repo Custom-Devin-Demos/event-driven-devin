@@ -221,11 +221,18 @@ describe('per-user Teams toggle (hub-local setting)', () => {
     expect(axios.post).not.toHaveBeenCalled();
   });
 
-  test('non-Teams URLs are refused before anything is posted', async () => {
+  test('non-Teams URLs are never posted to, and the Slack alert still goes out', async () => {
     setEnv({ slack: true, teams: true });
-    const result = await postOncallAlert('banking', { teams: true, teamsWebhookUrl: 'http://169.254.169.254/latest/meta-data' });
-    expect(result).toMatchObject({ ok: false, error: expect.stringMatching(/Teams Workflow webhook/) });
-    expect(postMessage).not.toHaveBeenCalled();
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true, teamsWebhookUrl: 'http://169.254.169.254/latest/meta-data' });
+    expect(result).toMatchObject({ ok: true, channel: 'C0TEST', teamsFailed: true, teamsError: expect.stringMatching(/Teams Workflow webhook/) });
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  test('an invalid per-user URL with no Slack configured delivers nothing', async () => {
+    setEnv({ slack: false, teams: true });
+    const result = await postOncallAlert('banking', { teams: true, teamsWebhookUrl: 'https://evil.example/x' });
+    expect(result).toMatchObject({ ok: false, skipped: true });
     expect(axios.post).not.toHaveBeenCalled();
   });
 

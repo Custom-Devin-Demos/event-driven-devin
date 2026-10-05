@@ -527,7 +527,7 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
             if (ribbonCollapsed) expandRibbon();
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             var deliveredMsg = !d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams');
-            if (d.teamsFailed) deliveredMsg += ' (Teams post failed — check your webhook in the On-Call hub)';
+            if (d.teamsFailed) deliveredMsg += d.teamsError ? ' (Teams skipped — your webhook URL in the On-Call hub is invalid)' : ' (Teams post failed — check your webhook in the On-Call hub)';
             el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
             if (d.ok) scheduleCollapse();
           }).catch(function () {
