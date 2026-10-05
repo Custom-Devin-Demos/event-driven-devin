@@ -1,4 +1,5 @@
 const express = require('express');
+const { legacyAlertsSuppressed } = require('../../services/oncall-suppression');
 const {
   APP_SERVICE,
   IOS_ERROR_PATH,
@@ -89,7 +90,7 @@ router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
     status: 'accepted',
     reference,
     service: APP_SERVICE,
-    sessionRequested: true,
+    sessionRequested: !legacyAlertsSuppressed(),
     receivedAt: new Date().toISOString(),
     slug,
   });

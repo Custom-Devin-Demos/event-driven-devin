@@ -38,6 +38,7 @@ process.env.REPORT_CAP_IOS_DEMOS_PER_SLUG_MAX = '3';
 process.env.REPORT_CAP_IOS_DEMOS_WINDOW_MINUTES = '10';
 
 const express = require('express');
+const { runWithLegacyAlertsSuppressed } = require('../app/services/oncall-suppression');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { listOrgUsers, listEnterpriseAdmins } = require('../app/services/devin-api');
 const { Sentry } = require('../app/telemetry/sentry');
@@ -91,11 +92,11 @@ function appReport(slug = 'abcd1234') {
   };
 }
 
-async function postJson(server, path, body) {
+async function postJson(server, path, body, headers = {}) {
   const { port } = server.address();
   const response = await fetch(`http://127.0.0.1:${port}${path}`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...headers },
     body: JSON.stringify(body),
   });
   return {
@@ -111,6 +112,12 @@ describe('shared iOS demo failure report endpoint', () => {
   beforeAll((done) => {
     const app = express();
     app.use(express.json());
+    app.use((req, _res, next) => {
+      if (req.headers['x-oncall-mode'] === '1') {
+        return runWithLegacyAlertsSuppressed(() => next());
+      }
+      return next();
+    });
     app.use(router);
     server = app.listen(0, done);
   });
@@ -208,7 +215,13 @@ describe('shared iOS demo failure report endpoint', () => {
       { key: 'action', value: 'place_order' },
       { key: 'alert_path', value: 'instant' },
     ]));
-    expect(createSessionAndAlert.mock.calls[0][0].issueUrl).toContain(`project=${APP_PROJECT}`);
+    expect(new URL(createSessionAndAlert.mock.calls[0][0].issueUrl).searchParams.get('project'))
+      .toBe(process.env.SENTRY_PROJECT_ID || '');
+    expect(Sentry.captureException.mock.calls[0][0].stack).toBe(
+      'CheckoutError: The checkout failed\n'
+      + '    at checkout.place_order (ios-demos/abcd1234/ios/checkout/place_order.swift:1:1)',
+    );
+    expect(Sentry.captureException.mock.calls[0][0].stack).not.toContain(report.stackTrace);
     expect(decodeURIComponent(createSessionAndAlert.mock.calls[0][0].issueUrl)).toContain(
       'is:unresolved demo_slug:abcd1234',
     );
@@ -218,6 +231,18 @@ describe('shared iOS demo failure report endpoint', () => {
       screen: 'checkout',
       action: 'place_order',
     }));
+  });
+
+  test('accepts on-call reports without requesting a legacy session', async () => {
+    const { status, body } = await postJson(
+      server,
+      '/api/ios/abcd1234/error',
+      appReport(),
+      { 'x-oncall-mode': '1' },
+    );
+
+    expect(status).toBe(202);
+    expect(body.sessionRequested).toBe(false);
   });
 
   test('clips context to 12 scalar entries and never adds it to tags', async () => {
@@ -357,10 +382,13 @@ describe('shared iOS demo failure report endpoint', () => {
   });
 
   test('recognizes the shared instant culprit and maps its Sentry identity', () => {
-    expect(isInstantPathEvent({
-      culprit: 'ios-demos/abcd1234/ios checkout place_order',
-      tags: [],
-    })).toBe(true);
+    for (const culprit of [
+      'ios-demos/abcd1234/ios checkout place_order',
+      'ios-demos/abcd1234/ios/checkout/place_order.swift',
+      'checkout.place_order(ios-demos/abcd1234/ios/checkout/place_order)',
+    ]) {
+      expect(isInstantPathEvent({ culprit, tags: [] })).toBe(true);
+    }
 
     const alertData = applyCustomerIdentity({
       service: APP_SERVICE,

@@ -160,7 +160,7 @@ function reportAppFailure(slug, report) {
 
   const error = new Error(errorMessage);
   error.name = errorType;
-  if (stackTrace) error.stack = `${errorType}: ${errorMessage}\n${stackTrace}`;
+  error.stack = `${errorType}: ${errorMessage}\n    at ${screen}.${action} (ios-demos/${slug}/ios/${screen}/${action}.swift:1:1)`;
 
   const extra = {
     reference,
@@ -187,7 +187,7 @@ function reportAppFailure(slug, report) {
 
   const raiseAlert = (devinUserId) => createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
-    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=${encodeURIComponent(`is:unresolved demo_slug:${slug}`)}`,
+    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=${encodeURIComponent(`is:unresolved demo_slug:${slug}`)}`,
     culprit: `ios-demos/${slug}/ios ${screen} ${action}`,
     errorType,
     errorValue: errorMessage,
