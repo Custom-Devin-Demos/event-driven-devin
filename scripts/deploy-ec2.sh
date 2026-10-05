@@ -92,7 +92,7 @@ ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL)
 if [ -n "${ENV_SYNC_FILE:-}" ] && [ -s "$ENV_SYNC_FILE" ]; then
   sync_line=$(head -n 1 "$ENV_SYNC_FILE")
   sync_key=${sync_line%%=*}; sync_val=${sync_line#*=}
-  if [ "$(wc -l < "$ENV_SYNC_FILE")" != 1 ] || [ "$(wc -c < "$ENV_SYNC_FILE")" != $(( ${#sync_line} + 1 )) ]; then
+  if [ "$(wc -l < "$ENV_SYNC_FILE")" != 1 ] || [ "$(wc -c < "$ENV_SYNC_FILE")" != "$(printf '%s\n' "$sync_line" | wc -c)" ]; then
     log "env sync: WARNING staged file is not exactly one line; leaving .env unchanged"
   elif [[ " ${ENV_SYNC_KEYS[*]} " != *" $sync_key "* ]]; then
     log "env sync: WARNING non-allowlisted key; leaving .env unchanged"
@@ -108,7 +108,11 @@ if [ -n "${ENV_SYNC_FILE:-}" ] && [ -s "$ENV_SYNC_FILE" ]; then
     rm -f "$tmp_env"
     log "env sync: $sync_key updated"
   fi
+  rm -f "$ENV_SYNC_FILE"
 fi
+# Staged files abandoned by interrupted runs (never applied) are pruned here,
+# under the lock, so a waiting run's freshly staged file is never touched.
+find "$(dirname "${ENV_SYNC_FILE:-/home/ubuntu/incoming/x}")" -maxdepth 1 -name 'env-sync-*' -mmin +60 -delete 2>/dev/null || true
 
 # Back up exactly the top-level entries this deploy will touch.
 mapfile -t TOP_ENTRIES < <(cd "$STAGING" && ls -A)

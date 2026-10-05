@@ -97,8 +97,6 @@ jobs:
           rm -f "/home/ubuntu/release-$SHA.tar.gz"
           ENV_SYNC="/home/ubuntu/incoming/env-sync-$SHA-${{ github.run_id }}-${{ github.run_attempt }}"
           trap 'rm -rf "$STAGING" "$ENV_SYNC"' EXIT
-          # Staged files left by interrupted runs are never applied; remove them.
-          find /home/ubuntu/incoming -maxdepth 1 -name 'env-sync-*' ! -path "$ENV_SYNC" -delete 2>/dev/null || true
           ENV_SYNC_FILE="$ENV_SYNC" bash "$STAGING/scripts/deploy-ec2.sh" "$STAGING" "${{ github.repository }}@${SHA:0:7}"
           EOF
 
