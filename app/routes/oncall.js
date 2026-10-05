@@ -135,7 +135,8 @@ function setRunCookie(res, runRef, windowMinutes) {
 // Startup check: every skin template id must resolve in the shared BUG_CATALOG,
 // otherwise its backend-symptom repro mapping silently does nothing.
 const ALERT_CARD_KEYS = new Set([
-  'title', 'service', 'endpointLabel', 'release', 'team', 'metricQuery', 'symptom', 'impact',
+  'title', 'service', 'endpointLabel', 'release', 'team', 'metricQuery', 'metricValue', 'threshold',
+  'baseline', 'symptom', 'impact',
 ]);
 const KNOWN_TEMPLATE_IDS = new Set(
   Object.values(BUG_CATALOG).flatMap((entries) => entries.map((t) => t.id))

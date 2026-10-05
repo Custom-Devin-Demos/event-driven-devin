@@ -121,9 +121,9 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
     const { text, blocks } = await postCard(skin);
 
     expect(text).toContain('*[Triggered] p95 latency — group benefits claim submissions*');
-    expect(text).toContain('*Metric value:* 7.8s and climbing | *Threshold:* > 1.5s | *Baseline:* ~350ms (7-day p95)');
+    expect(text).toContain('*Metric value:* 7.6s | *Threshold:* > 1.5s | *Baseline:* ~350ms (7-day p95)');
     expect(text).toContain('`p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/insurance/claim}`');
-    expect(blocks).toContain('7.8s and climbing');
+    expect(blocks).toContain('7.6s');
     for (const out of [text, blocks]) {
       expect(out).not.toMatch(/5xx|error rate|504 on/i);
     }

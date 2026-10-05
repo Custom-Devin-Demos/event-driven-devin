@@ -3248,7 +3248,7 @@ const ONCALL_SKINS = {
     alertCard: {
       title: 'p95 latency — group benefits claim submissions',
       metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/insurance/claim}',
-      metricValue: '7.8s and climbing',
+      metricValue: '7.6s',
       threshold: '> 1.5s',
       baseline: '~350ms (7-day p95)',
       release: 'mybenefits-claims@1.0.3',
