@@ -3488,6 +3488,30 @@ const ONCALL_SKINS = {
     supportCenterSub: '点検クラウド TENLOG カスタマーサポート',
     disclaimer: 'NOT ACTUALLY A RYOYO SYSTEMS SITE — 菱陽システムズ and 点検クラウド TENLOG are fictional brands; demo only, not affiliated with, endorsed by, or a product of any real company. ／ 実在する企業・サービスのサイトではありません（架空ブランド・デモ用）。',
   },
+  '5510cd6b': {
+    slug: '5510cd6b',
+    company: 'Doppel',
+    brandMark: 'D',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '5510cd6b.html',
+      title: 'Doppel \u2014 Simulation',
+    },
+    accent: '#1C84FC',
+    accentDark: '#1268D0',
+    theme: {
+      '--accent': '#1C84FC',
+      '--ink': '#1B141B',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#1B141B',
+      '--chrome-text': '#F5F5F5',
+    },
+    supportCenter: 'Doppel Support',
+    supportCenterSub: 'Customer Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A DOPPEL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Doppel product.',
+  },
 };
 
 function getOncallSkin(slug) {
