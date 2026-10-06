@@ -11,22 +11,19 @@
   var TEAMS_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="19" cy="6.2" r="2.4" fill="#5059C9"/><rect x="15" y="9.6" width="8" height="9" rx="3" fill="#5059C9"/><circle cx="12.5" cy="4.8" r="3" fill="#7B83EB"/><rect x="7" y="9" width="11" height="12.5" rx="3.2" fill="#7B83EB"/><rect x="1" y="6" width="12" height="12" rx="2" fill="#4B53BC"/><path fill="#fff" d="M4 9h6v1.7H7.9V15H6.1v-4.3H4z"/></svg>';
 
   var CSS = ''
-    + '.adp{display:flex;flex-direction:column;gap:10px;font-family:inherit;letter-spacing:normal}'
-    + '.adp-text{display:flex;flex-direction:column;gap:6px;min-width:0}'
-    + '.adp-title{font-size:12px;color:rgba(25,25,25,.56)}'
-    + '.adp-summary{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1.45;color:rgba(25,25,25,.56);order:2}'
+    + '.adp{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;font-family:inherit;letter-spacing:normal}'
+    + '.adp-title{font-size:13px;color:#141414}'
+    + '.adp-summary{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1.4;color:#5f5f5f}'
     + '.adp-summary svg{width:13px;height:13px;flex:none}'
     + '.adp-summary b{color:#141414;font-weight:400}'
-    + '.adp-summary.warn{color:#9a4a00}'
-    + '.adp-seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid rgba(0,0,0,.16);border-radius:2px;overflow:hidden}'
-    + '.adp-opt{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border:0;background:#fff;color:rgba(25,25,25,.56);font:inherit;font-size:13px;line-height:1;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}'
-    + '.adp-opt+.adp-opt{border-left:1px solid rgba(0,0,0,.16)}'
+    + '.adp-summary.warn{color:#a85500}'
+    + '.adp-seg{display:inline-grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px;background:#f0f0f0;border-radius:999px}'
+    + '.adp-opt{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:30px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:#5f5f5f;font:inherit;font-size:13px;line-height:1;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,box-shadow .15s}'
     + '.adp-opt svg{width:15px;height:15px;transition:filter .15s,opacity .15s}'
     + '.adp-opt:not(.on) svg{filter:grayscale(1);opacity:.5}'
-    + '.adp-opt:hover:not(.on){color:#141414;background:#f7f6f5}'
-    + '.adp-opt.on{background:#141414;color:#fff}'
-    + '.adp-opt.on svg{filter:none;opacity:1;background:#fff;border-radius:3px;padding:2px;width:19px;height:19px}'
-    + '.adp-opt:focus-visible{outline:2px solid #2600ff;outline-offset:-2px}';
+    + '.adp-opt:hover:not(.on){color:#141414}'
+    + '.adp-opt.on{background:#fff;color:#141414;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.04)}'
+    + '.adp-opt:focus-visible{outline:2px solid #317cff;outline-offset:1px}';
 
   function normalize(value) {
     return value === 'slack' || value === 'teams' ? value : null;
@@ -77,7 +74,7 @@
     injectCss();
     el.innerHTML = ''
       + '<div class="adp">'
-      + '<div class="adp-title" id="adp-title" title="Saved in this browser and shared by the demo hub and the On-Call hub. It never changes anyone else\'s alerts.">Post alerts to</div>'
+      + '<div class="adp-title" id="adp-title">Post alerts to</div>'
       + '<div class="adp-seg" role="radiogroup" aria-labelledby="adp-title">'
       + '<button type="button" class="adp-opt" role="radio" data-value="slack">' + SLACK_ICON + 'Slack</button>'
       + '<button type="button" class="adp-opt" role="radio" data-value="teams">' + TEAMS_ICON + 'Microsoft Teams</button>'
