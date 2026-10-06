@@ -3113,7 +3113,7 @@ const ONCALL_SKINS = {
     // Bug-report portal opt-in: /oncall/c/4875267e/report. Product areas and
     // templates are the attendee/organizer vocabulary of the event page; the
     // template ids stay the shared hightech BUG_CATALOG ids so a filed report
-    // still activates the same real degradation the alert track exercises.
+    // describes the same standing staged slowdown the alert track exercises.
     // `copy` localizes the shared portal's own UI strings (same pattern as
     // incident.copy on the SEV-1 console).
     bugPortal: {

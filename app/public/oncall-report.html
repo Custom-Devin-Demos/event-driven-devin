@@ -574,15 +574,17 @@
             descEdited = false;
           } else {
             statusEl.className = 'status err';
-            if (r.data && r.data.error) console.warn('On-call bug report post failed: ' + r.data.error);
-            statusEl.textContent = r.code === 429 ? t('submitRateLimited')
-              : (!LOCALIZED && r.data && r.data.error) || t('submitFailed');
+            var detail = r.data && r.data.error;
+            if (detail) console.warn('On-call bug report post failed: ' + detail);
+            statusEl.textContent = LOCALIZED
+              ? t(r.code === 429 ? 'submitRateLimited' : 'submitFailed')
+              : detail || t('submitFailed');
           }
         })
         .catch(function (err) {
           console.warn('On-call bug report post failed: ' + err.message);
           statusEl.className = 'status err';
-          statusEl.textContent = t('submitFailed');
+          statusEl.textContent = LOCALIZED ? t('submitFailed') : err.message;
         })
         .finally(function () { submitBtn.disabled = false; });
     });
