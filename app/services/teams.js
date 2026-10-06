@@ -9,7 +9,7 @@ const axios = require('axios');
 const ADAPTIVE_CARD_CONTENT_TYPE = 'application/vnd.microsoft.card.adaptive';
 
 function buildTeamsAlertCard({
-  title, facts, monitorQuery, codeTitle = 'Monitor query', body = [], actions = [], color = 'Attention',
+  title, facts, monitorQuery, codeTitle = 'Monitor query', body = [], actions = [], color = 'Attention', footer,
 }) {
   return {
     $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
@@ -36,6 +36,11 @@ function buildTeamsAlertCard({
         { type: 'TextBlock', text: monitorQuery, fontType: 'Monospace', wrap: true },
       ] : []),
       ...body.filter(Boolean).map((text) => ({ type: 'TextBlock', text, wrap: true, spacing: 'Small' })),
+      // Teams hands responders only the card's top-level TextBlocks (FactSet rows
+      // are dropped), so anything a responder must match on goes in the footer.
+      ...(footer ? [{
+        type: 'TextBlock', text: footer, size: 'Small', isSubtle: true, wrap: true, spacing: 'Small',
+      }] : []),
     ],
     actions: actions
       .filter((a) => a && a.url)

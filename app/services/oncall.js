@@ -570,7 +570,6 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
       ['Release', card.release],
       ['Events', `${events} | First: ${firstSeen.toISOString()}`],
       ['Owner', `${card.owner} — ${OWNER_DISCLAIMER}`],
-      ['Incident Ref', runRef],
       ['Triggered by', triggeredByEmail],
     ],
     monitorQuery: card.metricQuery,
@@ -584,6 +583,11 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
       { title: 'View in Datadog', url: DD_URL() },
       demoPath ? { title: 'Open demo page', url: `${DEMO_BASE_URL()}${demoPath}` } : null,
     ],
+    footer: [
+      runRef ? `Incident Ref: ${runRef}` : null,
+      `Service: ${card.service}`,
+      `Endpoint: ${card.endpoint}`,
+    ].filter(Boolean).join(' | '),
   });
   try {
     await postTeamsCard(webhookUrl, teamsCard);
