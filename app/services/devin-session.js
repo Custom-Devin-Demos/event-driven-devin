@@ -12,7 +12,7 @@ const { getCustomerConfig } = require('../../config/customers');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { legacyAlertsSuppressed } = require('./oncall-suppression');
 const { currentAlertDestination } = require('./alert-destination');
-const { buildTeamsAlertCard, postTeamsCard } = require('./teams');
+const { buildTeamsAlertCard, buildTeamsFieldCard, postTeamsCard } = require('./teams');
 
 let servicenowConfigWarningLogged = false;
 
@@ -38,26 +38,33 @@ function buildTeamsAlertCardForAlert(alertData) {
   const owner = typeof alertData.devinEmail === 'string' && EMAIL_RE.test(alertData.devinEmail)
     ? alertData.devinEmail
     : null;
-  return buildTeamsAlertCard({
+  const service = alertData.service || 'checkout-api';
+  return buildTeamsFieldCard({
     title: `\u{1F6A8} Sentry Alert — ${alertData.verticalLabel || 'Checkout'} Error`,
-    facts: [
-      ['Error', alertData.issueTitle],
-      ['Severity', alertData.level || 'error'],
-      ['Location', alertData.culprit],
-      ['Type', alertData.errorType],
-      ['Release', alertData.release || process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2'],
-      ['Environment', alertData.environment || process.env.DD_ENV || 'prod'],
-      ['On-Call', 'Devin AI (auto-investigating)'],
-      ['Triggered by', owner],
-      ['Service', alertData.service || 'checkout-api'],
-      ['Detected', new Date().toISOString()],
+    sections: [
+      {
+        fields: [
+          ['Error', alertData.issueTitle],
+          ['Severity', alertData.level || 'error'],
+          ['Location', alertData.culprit, { mono: true }],
+          ['Type', alertData.errorType],
+        ],
+      },
+      { code: { label: 'Message', text: alertData.errorValue } },
+      {
+        fields: [
+          ['Release', alertData.release || process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2'],
+          ['Environment', alertData.environment || process.env.DD_ENV || 'prod'],
+          ['On-Call', 'Devin AI (auto-investigating)'],
+          ['Triggered by', owner],
+        ],
+      },
     ],
-    monitorQuery: alertData.errorValue,
-    codeTitle: 'Message',
     actions: [
       { title: 'View in Sentry', url: alertData.issueUrl },
       { title: 'View in Datadog', url: process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
     ],
+    footer: `Service: ${service} | ${new Date().toISOString()}`,
   });
 }
 
@@ -302,6 +309,20 @@ async function createSessionAndAlert(alertData) {
       });
     }
 
+    // Teams-only alerts are picked up by the Devin Teams responder on the
+    // channel, which investigates and replies in the alert's thread. Creating
+    // a session here as well would start a second investigation.
+    if (!threadTs && teamsUrl) {
+      logger.info('Alert posted to Teams; leaving the investigation to the Teams responder', {
+        issueTitle: alertData.issueTitle,
+        customer: config.customer,
+      });
+      scheduleVulnerablePR(0, config.customer, resolvedUserId, resolvedOrgId);
+      return {
+        triggered: true, throttled: false, threadTs: null, teams: true, session: null,
+      };
+    }
+
     // Step 2: Check global session cap before creating a Devin session
     const capCheck = canCreateSession();
     let session = null;
@@ -338,14 +359,6 @@ async function createSessionAndAlert(alertData) {
             ...(config.slackChannelId ? [config.slackChannelId] : []),
           );
         }
-        if (teamsUrl) {
-          await postTeamsFollowUp(teamsUrl, alertData, {
-            title: '\u{1F50D} Devin is investigating this alert',
-            facts: [['Session', session.url]],
-            actionTitle: 'View in Devin',
-            url: session.url,
-          });
-        }
         logger.info('Devin session created and linked', {
           issueTitle: alertData.issueTitle,
           sessionId: session.sessionId,
@@ -353,7 +366,6 @@ async function createSessionAndAlert(alertData) {
           devinUserId: resolvedUserId || 'service-user',
           devinOrgId: resolvedOrgId || 'default',
           threadTs,
-          teams: Boolean(teamsUrl),
         });
       } else {
         // API failed — release the optimistic reservation so the slot
@@ -377,7 +389,6 @@ async function createSessionAndAlert(alertData) {
       triggered: !throttled,
       throttled,
       threadTs,
-      ...(teamsUrl ? { teams: true } : {}),
       session,
     };
   } catch (error) {

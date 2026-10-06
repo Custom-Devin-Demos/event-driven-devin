@@ -52,8 +52,9 @@ function teamsCards() {
   });
 }
 
-function factsOf(card) {
-  return Object.fromEntries(card.body.find((b) => b.type === 'FactSet').facts.map((f) => [f.title, f.value]));
+function fieldsOf(card) {
+  return Object.fromEntries(card.body.filter((b) => b.type === 'ColumnSet')
+    .flatMap((row) => row.columns.map((col) => [col.items[0].text, col.items[1]])));
 }
 
 describe('hub demo alert destination (Slack / Teams)', () => {
@@ -81,30 +82,41 @@ describe('hub demo alert destination (Slack / Teams)', () => {
     expect(axios.post).not.toHaveBeenCalled();
   });
 
-  test('Teams posts the alert card and the session link, with nothing sent to Slack', async () => {
+  test('Teams posts a Slack-style alert card and leaves the session to the Teams responder', async () => {
     const result = await runWithAlertDestination('teams', () => createSessionAndAlert(alert()));
-    expect(result).toMatchObject({ triggered: true, threadTs: null, teams: true });
+    expect(result).toMatchObject({
+      triggered: true, threadTs: null, teams: true, session: null,
+    });
     expect(postAlertToSlack).not.toHaveBeenCalled();
     expect(postBugReportToTriage).not.toHaveBeenCalled();
     expect(postDevinSessionLink).not.toHaveBeenCalled();
-    expect(createDevinSession.mock.calls[0][0]).not.toContain('Slack Thread');
+    expect(createDevinSession).not.toHaveBeenCalled();
 
-    const [alertCard, followUp] = teamsCards();
+    const cards = teamsCards();
+    expect(cards).toHaveLength(1);
+    const [alertCard] = cards;
     expect(alertCard.body[0].text).toBe('\u{1F6A8} Sentry Alert — Banking Error');
-    expect(factsOf(alertCard)).toMatchObject({
+    const fields = fieldsOf(alertCard);
+    expect(Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, v.text]))).toMatchObject({
       Error: alert().issueTitle,
+      Severity: 'error',
       Type: 'TypeError',
       Location: 'app/services/verticals/banking.js',
       'On-Call': 'Devin AI (auto-investigating)',
       'Triggered by': 'presenter@example.com',
-      Service: 'banking-api',
     });
-    expect(alertCard.body.some((b) => b.text === 'Message')).toBe(true);
-    expect(alertCard.actions.map((a) => a.title)).toEqual(['View in Sentry', 'View in Datadog']);
-    expect(followUp.body[0].text).toMatch(/Devin is investigating/);
-    expect(followUp.actions).toEqual([
-      { type: 'Action.OpenUrl', title: 'View in Devin', url: 'https://app.devin.ai/sessions/session-123' },
-    ]);
+    expect(fields.Location.fontType).toBe('Monospace');
+    expect(alertCard.body.filter((b) => b.type === 'ColumnSet')).toHaveLength(4);
+    const message = alertCard.body.find((b) => b.type === 'Container');
+    expect(message.items[0]).toMatchObject({ text: alert().errorValue, fontType: 'Monospace' });
+    expect(alertCard.body.find((b) => b.type === 'ActionSet').actions.map((a) => a.title))
+      .toEqual(['View in Sentry', 'View in Datadog']);
+    expect(alertCard.body[alertCard.body.length - 1].text).toMatch(/^Service: banking-api \| \d{4}-/);
+
+    const text = axios.post.mock.calls[0][1].text;
+    expect(text).toContain('<b>Location:</b> app/services/verticals/banking.js');
+    expect(text).toContain('<code>Cannot read properties');
+    expect(text).toContain('>View in Sentry</a>');
   });
 
   test('Teams without a server webhook falls back to Slack', async () => {

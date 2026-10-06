@@ -43,6 +43,63 @@ function buildTeamsAlertCard({
   };
 }
 
+function fieldBlock([label, value, opts = {}]) {
+  return {
+    type: 'Column',
+    width: 'stretch',
+    items: [
+      { type: 'TextBlock', text: label, weight: 'Bolder', wrap: true },
+      {
+        type: 'TextBlock', text: String(value), wrap: true, spacing: 'None', ...(opts.mono ? { fontType: 'Monospace' } : {}),
+      },
+    ],
+  };
+}
+
+/**
+ * Slack-style alert card: two fields per row, an optional full-width code
+ * block between rows, buttons, then a small footer line.
+ */
+function buildTeamsFieldCard({
+  title, sections, actions = [], footer, color = 'Attention',
+}) {
+  const body = [{
+    type: 'TextBlock', text: title, weight: 'Bolder', size: 'Medium', color, wrap: true,
+  }];
+  sections.forEach((section) => {
+    if (section.code) {
+      body.push({ type: 'TextBlock', text: section.code.label, weight: 'Bolder', spacing: 'Medium' });
+      body.push({
+        type: 'Container',
+        style: 'emphasis',
+        spacing: 'Small',
+        items: [{ type: 'TextBlock', text: section.code.text, fontType: 'Monospace', wrap: true }],
+      });
+      return;
+    }
+    const fields = section.fields.filter((f) => f && f[1]);
+    for (let i = 0; i < fields.length; i += 2) {
+      body.push({ type: 'ColumnSet', spacing: 'Medium', columns: fields.slice(i, i + 2).map(fieldBlock) });
+    }
+  });
+  const buttons = actions.filter((a) => a && a.url)
+    .map(({ title: actionTitle, url }) => ({ type: 'Action.OpenUrl', title: actionTitle, url }));
+  if (buttons.length) body.push({ type: 'ActionSet', spacing: 'Medium', actions: buttons });
+  if (footer) {
+    body.push({
+      type: 'TextBlock', text: footer, size: 'Small', isSubtle: true, wrap: true, spacing: 'Small',
+    });
+  }
+  return {
+    $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+    type: 'AdaptiveCard',
+    version: '1.4',
+    msteams: { width: 'Full' },
+    body,
+    actions: [],
+  };
+}
+
 function escapeHtml(value) {
   return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -51,9 +108,19 @@ function escapeHtml(value) {
 // the card: Teams responders can't read Adaptive Card contents.
 function teamsCardText(card) {
   const lines = [];
-  card.body.forEach((block) => {
+  const linkOf = (a) => `<a href="${escapeHtml(a.url)}">${escapeHtml(a.title)}</a>`;
+  const walk = (block) => {
     if (block.type === 'FactSet') {
       block.facts.forEach((f) => lines.push(`<b>${escapeHtml(f.title)}:</b> ${escapeHtml(f.value)}`));
+    } else if (block.type === 'ColumnSet') {
+      block.columns.forEach((col) => {
+        const [label, value] = col.items;
+        lines.push(`<b>${escapeHtml(label.text)}:</b> ${escapeHtml(value.text)}`);
+      });
+    } else if (block.type === 'Container') {
+      block.items.forEach(walk);
+    } else if (block.type === 'ActionSet') {
+      block.actions.forEach((a) => lines.push(linkOf(a)));
     } else if (block.fontType === 'Monospace') {
       lines.push(`<code>${escapeHtml(block.text)}</code>`);
     } else if (block.weight === 'Bolder') {
@@ -61,8 +128,9 @@ function teamsCardText(card) {
     } else {
       lines.push(escapeHtml(block.text).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'));
     }
-  });
-  (card.actions || []).forEach((a) => lines.push(`<a href="${escapeHtml(a.url)}">${escapeHtml(a.title)}</a>`));
+  };
+  card.body.forEach(walk);
+  (card.actions || []).forEach((a) => lines.push(linkOf(a)));
   return lines.join('<br>');
 }
 
@@ -97,4 +165,6 @@ async function postTeamsCard(webhookUrl, card) {
   return response.status;
 }
 
-module.exports = { buildTeamsAlertCard, isTeamsWebhookUrl, postTeamsCard, teamsCardText };
+module.exports = {
+  buildTeamsAlertCard, buildTeamsFieldCard, isTeamsWebhookUrl, postTeamsCard, teamsCardText,
+};
