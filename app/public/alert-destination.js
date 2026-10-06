@@ -11,25 +11,22 @@
   var TEAMS_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="19" cy="6.2" r="2.4" fill="#5059C9"/><rect x="15" y="9.6" width="8" height="9" rx="3" fill="#5059C9"/><circle cx="12.5" cy="4.8" r="3" fill="#7B83EB"/><rect x="7" y="9" width="11" height="12.5" rx="3.2" fill="#7B83EB"/><rect x="1" y="6" width="12" height="12" rx="2" fill="#4B53BC"/><path fill="#fff" d="M4 9h6v1.7H7.9V15H6.1v-4.3H4z"/></svg>';
 
   var CSS = ''
-    + '.adp{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;padding:14px 16px;border:1px solid rgba(15,19,28,.08);border-radius:12px;background:#fff;font-family:inherit;letter-spacing:normal}'
-    + '.adp-text{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 260px}'
-    + '.adp-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;font-weight:600;color:#0f131c}'
-    + '.adp-scope{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;border:1px solid rgba(15,19,28,.12);border-radius:999px;padding:1px 8px;cursor:help}'
-    + '.adp-summary{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;line-height:1.45;color:#6b7280}'
-    + '.adp-summary svg{width:14px;height:14px;flex:none}'
-    + '.adp-summary b{color:#0f131c;font-weight:600}'
-    + '.adp-summary.warn{color:#b45309}'
-    + '.adp-seg{display:inline-flex;gap:4px;padding:4px;border-radius:11px;background:#eef0f3}'
-    + '.adp-opt{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border:0;border-radius:8px;background:transparent;color:#4b5563;font:inherit;font-size:13px;font-weight:600;line-height:1;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s}'
-    + '.adp-opt svg{width:16px;height:16px;transition:filter .15s,opacity .15s}'
-    + '.adp-opt:not(.on) svg{filter:grayscale(1);opacity:.55}'
-    + '.adp-opt:hover:not(.on){color:#0f131c}'
-    + '.adp-opt:hover:not(.on) svg{filter:none;opacity:.9}'
-    + '.adp-opt.on{background:#fff;color:#0f131c;box-shadow:0 1px 2px rgba(15,19,28,.12),0 0 0 1px rgba(15,19,28,.06)}'
-    + '.adp-opt.on[data-value=slack]{box-shadow:0 1px 2px rgba(15,19,28,.12),inset 0 -2px 0 #4A154B}'
-    + '.adp-opt.on[data-value=teams]{box-shadow:0 1px 2px rgba(15,19,28,.12),inset 0 -2px 0 #5B5FC7}'
-    + '.adp-opt:focus-visible{outline:2px solid #7c8aff;outline-offset:2px}'
-    + '.adp-opt{white-space:nowrap}@media (max-width:560px){.adp-seg{width:100%}.adp-opt{flex:1;justify-content:center;padding:9px 10px}}';
+    + '.adp{display:flex;flex-direction:column;gap:10px;font-family:inherit;letter-spacing:normal}'
+    + '.adp-text{display:flex;flex-direction:column;gap:6px;min-width:0}'
+    + '.adp-title{font-size:12px;color:rgba(25,25,25,.56)}'
+    + '.adp-summary{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1.45;color:rgba(25,25,25,.56);order:2}'
+    + '.adp-summary svg{width:13px;height:13px;flex:none}'
+    + '.adp-summary b{color:#141414;font-weight:400}'
+    + '.adp-summary.warn{color:#9a4a00}'
+    + '.adp-seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid rgba(0,0,0,.16);border-radius:2px;overflow:hidden}'
+    + '.adp-opt{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border:0;background:#fff;color:rgba(25,25,25,.56);font:inherit;font-size:13px;line-height:1;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}'
+    + '.adp-opt+.adp-opt{border-left:1px solid rgba(0,0,0,.16)}'
+    + '.adp-opt svg{width:15px;height:15px;transition:filter .15s,opacity .15s}'
+    + '.adp-opt:not(.on) svg{filter:grayscale(1);opacity:.5}'
+    + '.adp-opt:hover:not(.on){color:#141414;background:#f7f6f5}'
+    + '.adp-opt.on{background:#141414;color:#fff}'
+    + '.adp-opt.on svg{filter:none;opacity:1;background:#fff;border-radius:3px;padding:2px;width:19px;height:19px}'
+    + '.adp-opt:focus-visible{outline:2px solid #2600ff;outline-offset:-2px}';
 
   function normalize(value) {
     return value === 'slack' || value === 'teams' ? value : null;
@@ -80,15 +77,13 @@
     injectCss();
     el.innerHTML = ''
       + '<div class="adp">'
-      + '<div class="adp-text">'
-      + '<div class="adp-title" id="adp-title">Send my demo alerts to'
-      + '<span class="adp-scope" title="Saved in this browser and shared by the demo hub and the On-Call hub. It never changes anyone else\'s alerts.">This browser only</span></div>'
-      + '<div class="adp-summary" aria-live="polite"></div>'
-      + '</div>'
+      + '<div class="adp-title" id="adp-title" title="Saved in this browser and shared by the demo hub and the On-Call hub. It never changes anyone else\'s alerts.">Send my demo alerts to</div>'
       + '<div class="adp-seg" role="radiogroup" aria-labelledby="adp-title">'
       + '<button type="button" class="adp-opt" role="radio" data-value="slack">' + SLACK_ICON + 'Slack</button>'
       + '<button type="button" class="adp-opt" role="radio" data-value="teams">' + TEAMS_ICON + 'Microsoft Teams</button>'
-      + '</div></div>';
+      + '</div>'
+      + '<div class="adp-summary" aria-live="polite"></div>'
+      + '</div>';
     var buttons = Array.prototype.slice.call(el.querySelectorAll('.adp-opt'));
     var summary = el.querySelector('.adp-summary');
 
