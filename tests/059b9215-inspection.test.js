@@ -22,7 +22,7 @@ const { submitInspection, FACILITIES } = require('../app/services/verticals/059b
 const inspectionRouter = require('../app/routes/verticals/059b9215');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const { ONCALL_SKINS } = require('../config/oncall-skins');
-const { BUG_CATALOG, SEV1_INCIDENTS, isValidBugPortalCopy, isValidIncidentCopy, getSev1ChatterVocabulary, buildSev1IncidentCopy } = require('../app/services/oncall');
+const { BUG_CATALOG, SEV1_INCIDENTS, isValidIncidentCopy, getSev1ChatterVocabulary, buildSev1IncidentCopy } = require('../app/services/oncall');
 const oncallRoutes = require('../app/routes/oncall');
 
 const PAGE = fs.readFileSync(path.join(__dirname, '../app/public/verticals/059b9215.html'), 'utf8');
@@ -132,10 +132,11 @@ describe('inspection result submission (059b9215)', () => {
     });
 
     test('localizes the shared report portal and SEV-1 console UI strings without touching other skins', () => {
-      expect(isValidBugPortalCopy(skin.bugPortal.copy)).toBe(true);
+      expect(isValidIncidentCopy(skin.bugPortal.copy)).toBe(true);
       expect(skin.bugPortal.copy.lang).toBe('ja');
-      expect(skin.bugPortal.copy.submit).toBe('報告を送信');
-      expect(skin.bugPortal.copy.symptomActive).toContain('{minutes}');
+      expect(skin.bugPortal.copy.submitButton).toBe('報告を送信');
+      expect(skin.bugPortal.copy.asideTipStatus).toContain('{link}');
+      expect(skin.bugPortal.copy.submittedSkippedActivated).toContain('{minutes}');
       expect(isValidIncidentCopy(skin.incident.copy)).toBe(true);
       expect(skin.incident.copy.lang).toBe('ja');
       const story = SEV1_INCIDENTS['insurance-claims'];
@@ -170,7 +171,7 @@ describe('inspection result submission (059b9215)', () => {
         expect(html).toContain('window.ONCALL_SKIN');
         expect(html).toContain('insurance-claim-timeout');
         expect(html).toContain('サポートリクエストの送信');
-        expect(html).toContain('data-copy="heroTitle"');
+        expect(html).toContain('id="hero-title"');
       });
 
       test('the generic /oncall/report keeps its English defaults and no skin', async () => {
@@ -178,7 +179,7 @@ describe('inspection result submission (059b9215)', () => {
         expect(res.status).toBe(200);
         const html = await res.text();
         expect(html).not.toContain('window.ONCALL_SKIN =');
-        expect(html).toContain('<h1 data-copy="heroTitle">Submit a support request</h1>');
+        expect(html).toContain('<h1 id="hero-title">Submit a support request</h1>');
         expect(html).not.toMatch(JP);
       });
     });
