@@ -78,8 +78,7 @@ describe('on-call hub page contract', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'oncall.html'), 'utf8');
 
   test('hub keeps the shared on-call mechanics', () => {
-    for (const marker of ['href="https://coggtm.slack.com/archives/C0BVC5WS88G"', 'href="/oncall/report"']) {
-      expect(html).toContain(marker);
-    }
+    expect(html).toContain('href="https://coggtm.slack.com/archives/C0BVC5WS88G"');
+    expect(html).not.toContain('/oncall/report');
   });
 });
