@@ -530,7 +530,7 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
             if (d.teamsError) deliveredMsg += ' (your Teams webhook URL in the On-Call hub is invalid, so your own channel was skipped)';
             else if (d.teamsFailed) deliveredMsg += ' (Teams post failed — check your webhook in the On-Call hub)';
             el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
-            if (d.ok) scheduleCollapse();
+            if (d.ok && !d.teamsFailed && !d.teamsError) scheduleCollapse();
           }).catch(function () {
             if (alertPostedAt === postedAt) alertPostedAt = 0;
             if (ribbonCollapsed) expandRibbon();
