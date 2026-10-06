@@ -35,7 +35,7 @@
 
     <section class="cg-section cg-hero">
       <h1>Event-Driven Devin demos</h1>
-      <p class="cg-prose cg-lede">Each demo app has a bug in its main action. Open a demo and run that action. The error posts an alert to <span id="hero-dest">Slack</span>, and Devin opens a session to find the root cause and open a PR.</p>
+      <p class="cg-prose cg-lede">Each demo app has a bug in its main action. Open a demo and run that action. The error posts an alert to <span id="hero-dest"><code>#automated-alerts</code> in Slack</span>, and Devin opens a session to find the root cause and open a PR. Join the channel before you start.</p>
       <div class="cg-hero-row">
         <div id="alertDestPicker"></div>
       </div>
@@ -102,8 +102,9 @@
       var destPicker = window.AlertDestination.mount(document.getElementById('alertDestPicker'));
       var teamsAlerts = false;
       function renderDest(dest) {
-        var label = dest === 'teams' && teamsAlerts ? 'Microsoft Teams' : 'Slack';
-        document.getElementById('hero-dest').textContent = label;
+        document.getElementById('hero-dest').innerHTML = dest === 'teams' && teamsAlerts
+          ? '<code>automations-demo</code> in Microsoft Teams'
+          : '<code>#automated-alerts</code> in Slack';
       }
       window.AlertDestination.onChange(renderDest);
       renderDest(window.AlertDestination.get());
