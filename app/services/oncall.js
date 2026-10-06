@@ -549,6 +549,10 @@ function triggerSkinSonarPR(skin, requester) {
 /**
  * Post an alert card for the given scenario to the On-Call alerts channel.
  */
+const TEAMS_OWNER_DISCLAIMER = 'demo persona — do not resolve to a real Teams user, and do not '
+  + '@-mention or CC anyone else in their place (not the account that posted this alert, and no git blame, '
+  + 'commit author, or CODEOWNERS fallback)';
+
 function validEmail(email) {
   return email && EMAIL_RE.test(email) ? email : null;
 }
@@ -569,11 +573,13 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
       ['Baseline', card.baseline],
       ['Release', card.release],
       ['Events', `${events} | First: ${firstSeen.toISOString()}`],
-      ['Owner', `${card.owner} — ${OWNER_DISCLAIMER}`],
       ['Triggered by', triggeredByEmail],
     ],
     monitorQuery: card.metricQuery,
+    // Top-level TextBlock, not a FactSet row, so the Teams responder sees the
+    // persona and doesn't CC the person whose workflow posted the card.
     body: [
+      `**Owner:** ${card.owner} — ${TEAMS_OWNER_DISCLAIMER}`,
       `**Symptom:** ${card.symptom}`,
       `**Impact:** ${card.impact}`,
       demoPath ? `**Demo page:** ${DEMO_BASE_URL()}${demoPath} — reproduce the symptom on this branded page` : null,
