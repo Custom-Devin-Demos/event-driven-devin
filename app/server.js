@@ -76,11 +76,12 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Middleware: per-browser alert destination (Slack / Teams / Both) chosen on
-// the hubs and carried in the alert_destination cookie.
+// Middleware: per-browser alert destination (Slack / Teams) chosen on the
+// hubs and carried in the alert_destination cookie. No cookie leaves the
+// request without a choice, so server-managed Teams routing still applies.
 app.use((req, _res, next) => {
   const destination = alertDestinationFromCookie(req.headers.cookie);
-  if (destination && destination !== 'slack') {
+  if (destination) {
     return runWithAlertDestination(destination, () => next());
   }
   next();
