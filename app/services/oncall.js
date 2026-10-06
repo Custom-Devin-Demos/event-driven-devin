@@ -585,13 +585,14 @@ function resolveSessionIdentity(requester, config) {
 
 /**
  * Create the auto-triage Devin session for a skin that opted in, and reply
- * with its link in the alert thread. Never throws: a failed session must not
+ * with its link in the Slack alert thread, or on Teams for Teams-only alerts.
+ * Never throws: a failed session must not
  * fail the alert that triggered it.
  */
 async function triggerSkinDevinSession(
   scenario,
   skin,
-  { token, channel, threadTs, runRef, requester },
+  { token, channel, threadTs, teamsWebhookUrl, runRef, requester },
 ) {
   const config = skin.devinSession;
   if (!config || !config.auto) return null;
@@ -626,6 +627,18 @@ async function triggerSkinDevinSession(
     sessionId: session.sessionId,
   });
 
+  if (teamsWebhookUrl) {
+    try {
+      await postTeamsCard(teamsWebhookUrl, buildTeamsAlertCard({
+        title: '\u{1F50D} Devin is investigating this alert',
+        color: 'Accent',
+        facts: [['Alert', scenario.monitor], ['Incident Ref', runRef]],
+        actions: [{ title: 'View session', url: session.url }],
+      }));
+    } catch (error) {
+      logger.error('On-Call skin session link Teams post failed', { skin: skin.slug, error: error.message });
+    }
+  }
   if (!channel || !threadTs) return session;
   try {
     await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [
@@ -708,8 +721,19 @@ async function postOncallAlert(scenarioId, options = {}) {
   const skin = options.skin || null;
   const env = resolveOncallEnv();
   const { token, alertsChannel } = env;
-  const teamsWebhookUrl = env.teamsAllAlerts || (skin && skin.teamsAlerts) ? env.teamsWebhookUrl : null;
-  const slackReady = Boolean(token && alertsChannel);
+  // destination: 'slack' | 'teams' from the presenter's hub choice. Teams skips
+  // Slack so one demo is never investigated by both the Slack and the Teams
+  // responder; with no Teams webhook configured it falls back to Slack.
+  const destination = options.destination === 'slack' || options.destination === 'teams' ? options.destination : null;
+  const teamsWanted = destination === 'teams';
+  const teamsOnly = teamsWanted && Boolean(env.teamsWebhookUrl);
+  if (teamsWanted && !teamsOnly) {
+    logger.warn('Teams On-Call alert requested but ONCALL_TEAMS_WEBHOOK_URL is not set — posting to Slack');
+  }
+  // Server-managed Teams routing only applies to callers that made no choice.
+  const serverTeamsRouting = !destination && (env.teamsAllAlerts || Boolean(skin && skin.teamsAlerts));
+  const teamsWebhookUrl = teamsOnly || serverTeamsRouting ? env.teamsWebhookUrl : null;
+  const slackReady = Boolean(token && alertsChannel) && !teamsOnly;
   if (!slackReady && !teamsWebhookUrl) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');
     return { ok: false, skipped: true, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
@@ -771,6 +795,7 @@ async function postOncallAlert(scenarioId, options = {}) {
       token,
       channel: ts ? alertsChannel : null,
       threadTs: ts,
+      teamsWebhookUrl: teams && !ts ? teamsWebhookUrl : null,
       runRef,
       requester,
     })
@@ -780,6 +805,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     ok: true,
     ...(ts ? { ts, channel: alertsChannel } : {}),
     ...(teams ? { teams: true } : {}),
+    ...(teamsWanted && !teamsOnly ? { teamsFailed: true } : {}),
     ...(session ? { sessionUrl: session.url } : {}),
     ...(sonarPR ? { sonarPR: true } : {}),
   };

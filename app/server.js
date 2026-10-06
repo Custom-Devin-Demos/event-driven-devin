@@ -32,6 +32,7 @@ const incidentLabRoutes = require('./routes/incident-lab');
 const lifecoRoutes = require('./routes/lifeco');
 const incidentLabEngine = require('./services/incident-lab/engine');
 const { runWithLegacyAlertsSuppressed } = require('./services/oncall-suppression');
+const { alertDestinationFromCookie, runWithAlertDestination } = require('./services/alert-destination');
 const path = require('path');
 
 const app = express();
@@ -71,6 +72,17 @@ app.use((req, _res, next) => {
   const runRef = (match && match[1]) || (typeof probeRef === 'string' && /^[A-Za-z0-9-]+$/.test(probeRef) ? probeRef : null);
   if (runRef) {
     return runWithOncallRun(runRef, () => next());
+  }
+  next();
+});
+
+// Middleware: per-browser alert destination (Slack / Teams) chosen on the
+// hubs and carried in the alert_destination cookie. No cookie leaves the
+// request without a choice, so server-managed Teams routing still applies.
+app.use((req, _res, next) => {
+  const destination = alertDestinationFromCookie(req.headers.cookie);
+  if (destination) {
+    return runWithAlertDestination(destination, () => next());
   }
   next();
 });

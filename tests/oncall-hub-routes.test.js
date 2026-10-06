@@ -62,6 +62,16 @@ describe('on-call hub routes', () => {
     expect(directHtml).toEqual(await skinned.text());
     expect(directHtml).toContain('/api/oncall/marketplace/cart');
   });
+
+  test('the shim sends the per-user alert destination and keeps a Teams fallback notice open', async () => {
+    const html = await (await fetch(`${baseUrl}/oncall/c/63dbb52f`)).text();
+    expect(html).toContain("localStorage.getItem('alertDestination')");
+    expect(html).toContain("alertDestination: alertDestination,");
+    expect(html).not.toContain('teamsWebhookUrl');
+    expect(html).toMatch(/if \(d\.teamsFailed\)[^\n]*went to Slack/);
+    expect(html).toContain("if (d.ok && !d.teamsFailed) scheduleCollapse();");
+    expect(html).toContain("else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }");
+  });
 });
 
 describe('on-call hub page contract', () => {

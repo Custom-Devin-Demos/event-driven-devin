@@ -1,14 +1,16 @@
 const axios = require('axios');
 
 /**
- * Microsoft Teams delivery for On-Call alerts via a Teams Workflows
+ * Microsoft Teams delivery for demo alerts via a Teams Workflows
  * "Post to a channel when a webhook request is received" URL. The workflow
  * posts the Adaptive Card it receives into the configured channel.
  */
 
 const ADAPTIVE_CARD_CONTENT_TYPE = 'application/vnd.microsoft.card.adaptive';
 
-function buildTeamsAlertCard({ title, facts, monitorQuery, body, actions }) {
+function buildTeamsAlertCard({
+  title, facts, monitorQuery, codeTitle = 'Monitor query', body = [], actions = [], color = 'Attention',
+}) {
   return {
     $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
     type: 'AdaptiveCard',
@@ -20,7 +22,7 @@ function buildTeamsAlertCard({ title, facts, monitorQuery, body, actions }) {
         text: title,
         weight: 'Bolder',
         size: 'Medium',
-        color: 'Attention',
+        color,
         wrap: true,
       },
       {
@@ -30,7 +32,7 @@ function buildTeamsAlertCard({ title, facts, monitorQuery, body, actions }) {
           .map(([label, value]) => ({ title: label, value: String(value) })),
       },
       ...(monitorQuery ? [
-        { type: 'TextBlock', text: 'Monitor query', weight: 'Bolder', spacing: 'Medium' },
+        { type: 'TextBlock', text: codeTitle, weight: 'Bolder', spacing: 'Medium' },
         { type: 'TextBlock', text: monitorQuery, fontType: 'Monospace', wrap: true },
       ] : []),
       ...body.filter(Boolean).map((text) => ({ type: 'TextBlock', text, wrap: true, spacing: 'Small' })),
@@ -64,6 +66,24 @@ function teamsCardText(card) {
   return lines.join('<br>');
 }
 
+// Teams Workflow / Power Automate / legacy incoming-webhook hosts. A hub user
+// can supply their own webhook URL, so anything else is refused to keep the
+// server from POSTing to arbitrary destinations.
+const TEAMS_WEBHOOK_HOST_SUFFIXES = ['.logic.azure.com', '.api.powerplatform.com', '.webhook.office.com'];
+
+function isTeamsWebhookUrl(value) {
+  if (typeof value !== 'string' || value.length > 2048) return false;
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== 'https:' || url.username || url.password || (url.port && url.port !== '443')) return false;
+  const host = url.hostname.toLowerCase();
+  return TEAMS_WEBHOOK_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix) && host.length > suffix.length);
+}
+
 async function postTeamsCard(webhookUrl, card) {
   const response = await axios.post(webhookUrl, {
     type: 'message',
@@ -72,8 +92,9 @@ async function postTeamsCard(webhookUrl, card) {
   }, {
     headers: { 'Content-Type': 'application/json' },
     timeout: 10000,
+    maxRedirects: 0,
   });
   return response.status;
 }
 
-module.exports = { buildTeamsAlertCard, postTeamsCard, teamsCardText };
+module.exports = { buildTeamsAlertCard, isTeamsWebhookUrl, postTeamsCard, teamsCardText };
