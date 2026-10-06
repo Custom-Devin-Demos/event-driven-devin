@@ -180,6 +180,49 @@
     .toast b { display: block; font-weight: 700; font-size: 16px; margin-bottom: 4px; }
     .toast code { display: block; margin-top: 8px; font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 12px; line-height: 16px; color: var(--fg-2); word-break: break-word; }
 
+    /* ---------- Playback error dialog ---------- */
+    .err-overlay {
+      position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center;
+      padding: 24px; background: rgba(0,0,0,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility .25s ease;
+    }
+    .err-overlay.show { opacity: 1; visibility: visible; }
+    .err-dialog {
+      width: min(640px, 100%); border-radius: 16px; overflow: hidden; background: #121212; color: var(--fg);
+      border: 1px solid #2a2a2a; box-shadow: 0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.04);
+      transform: translateY(16px) scale(.98); transition: transform .25s ease;
+    }
+    .err-overlay.show .err-dialog { transform: none; }
+    .err-head {
+      display: flex; align-items: center; gap: 14px; padding: 20px 28px;
+      background: var(--live-red); color: #fff;
+    }
+    .err-head svg { width: 32px; height: 32px; flex: none; }
+    .err-head h2 { margin: 0; font: 700 24px/28px var(--font); letter-spacing: -.01em; }
+    .err-head span { display: block; font: 500 14px/18px var(--font); opacity: .9; margin-top: 2px; }
+    .err-body { padding: 24px 28px 28px; }
+    .err-body p { margin: 0 0 18px; font: 500 17px/24px var(--font); color: var(--fg-2); }
+    .err-detail {
+      display: block; padding: 16px 18px; border-radius: 10px; background: #1d0a0a; border: 1px solid rgba(229,9,20,.45);
+      font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 14px; line-height: 20px; color: #ff6b6b; word-break: break-word;
+    }
+    .err-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .err-chip {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+      background: #1d1d1d; border: 1px solid #333; font: 600 13px/16px var(--font); color: var(--fg-2);
+    }
+    .err-chip b { font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-weight: 600; color: var(--fg); letter-spacing: .02em; }
+    .err-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; flex-wrap: wrap; }
+    .err-actions .btn { min-width: 140px; }
+    .err-actions .btn--ghost { background: transparent; color: var(--fg); border: 1px solid #444; }
+    .err-actions .btn--ghost:hover { background: #1d1d1d; }
+    @media (max-width: 767px) {
+      .err-head { padding: 18px 20px; }
+      .err-head h2 { font-size: 20px; line-height: 24px; }
+      .err-body { padding: 20px; }
+      .err-actions .btn { flex: 1 1 auto; }
+    }
+
     @media (max-width: 1119px) {
       :root { --pad: 24px; }
       .hero { min-height: 560px; aspect-ratio: auto; height: 72vh; }
@@ -695,6 +738,27 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <div class="err-overlay" id="errOverlay" role="alertdialog" aria-modal="true" aria-labelledby="errTitle" aria-describedby="errDesc" aria-hidden="true">
+    <div class="err-dialog">
+      <div class="err-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <div>
+          <h2 id="errTitle">Playback unavailable</h2>
+          <span id="errSubtitle">We couldn&rsquo;t start this channel.</span>
+        </div>
+      </div>
+      <div class="err-body">
+        <p id="errDesc">Something went wrong while starting your stream. Our team has been notified &mdash; please try again shortly.</p>
+        <code class="err-detail" id="errDetail"></code>
+        <div class="err-meta" id="errMeta"></div>
+        <div class="err-actions">
+          <button class="btn btn--ghost" type="button" id="errClose">Dismiss</button>
+          <button class="btn" type="button" id="errRetry">Try again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     var identityReady = fetch('/api/config')
       .then(function (response) { return response.json(); })
@@ -759,10 +823,44 @@
       toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
     }
 
+    var errOverlay = document.getElementById('errOverlay');
+    var lastError = { channel: null, trigger: null };
+    function showError(subtitle, detail, meta, channel, trigger) {
+      lastError = { channel: channel, trigger: trigger };
+      document.getElementById('errSubtitle').innerHTML = subtitle;
+      document.getElementById('errDetail').innerHTML = detail;
+      document.getElementById('errMeta').innerHTML = meta;
+      errOverlay.classList.add('show');
+      errOverlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      document.getElementById('errClose').focus();
+    }
+    function hideError() {
+      errOverlay.classList.remove('show');
+      errOverlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+    document.getElementById('errClose').addEventListener('click', hideError);
+    document.getElementById('errRetry').addEventListener('click', function () {
+      hideError();
+      if (lastError.channel) startPlayback(lastError.channel, lastError.trigger);
+    });
+    errOverlay.addEventListener('click', function (e) { if (e.target === errOverlay) hideError(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && errOverlay.classList.contains('show')) hideError();
+    });
+
     function esc(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
       });
+    }
+
+    function channelLabel(slug) {
+      var el = document.querySelector('[data-channel="' + slug + '"] .tile-logo img, [data-channel="' + slug + '"][aria-label]');
+      if (el && el.getAttribute('alt')) return el.getAttribute('alt');
+      if (el && el.getAttribute('aria-label')) return el.getAttribute('aria-label').split(',')[0];
+      return slug === 'pluto-tv-trending-now' ? 'Pluto TV Trending Now' : slug;
     }
 
     var pending = false;
@@ -783,17 +881,20 @@
         })
       }); })
         .then(function (res) {
-          return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+          return res.json().then(function (data) { return { ok: res.ok, status: res.status, data: data }; });
         })
         .then(function (result) {
           pending = false;
           if (trigger) { trigger.disabled = false; trigger.classList.remove('is-loading'); }
           if (!result.ok || !result.data.success) {
-            showToast(
-              'Playback unavailable',
-              'We couldn\'t start this channel right now. Please try again shortly.' +
-                '<code>' + esc(result.data.errorClass || 'Error') + ': ' + esc(result.data.error || '') +
-                (result.data.requestId ? ' &middot; ' + esc(result.data.requestId) : '') + '</code>'
+            var d0 = result.data || {};
+            showError(
+              'We couldn&rsquo;t start <b>' + esc(channelLabel(channel)) + '</b>.',
+              esc(d0.errorClass || 'Error') + ': ' + esc(d0.error || 'Unknown error'),
+              '<span class="err-chip">HTTP <b>' + esc(result.status) + '</b></span>' +
+                (d0.code ? '<span class="err-chip">Code <b>' + esc(d0.code) + '</b></span>' : '') +
+                (d0.requestId ? '<span class="err-chip">Request ID <b>' + esc(d0.requestId) + '</b></span>' : ''),
+              channel, trigger
             );
             return;
           }
@@ -808,7 +909,7 @@
         .catch(function (err) {
           pending = false;
           if (trigger) { trigger.disabled = false; trigger.classList.remove('is-loading'); }
-          showToast('Playback unavailable', 'Network error.<code>' + esc(err.message) + '</code>');
+          showError('We couldn&rsquo;t reach the playback service.', 'NetworkError: ' + esc(err.message), '', channel, trigger);
         });
     }
 
