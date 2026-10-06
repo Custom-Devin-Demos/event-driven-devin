@@ -117,7 +117,7 @@
     }
     .nav-save-btn:hover { opacity: 0.85; }
     .nav-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .nav-dest { min-width: 0; cursor: pointer; }
+    .alert-dest { margin: 0 0 24px; }
     .nav-status {
       font-size: 11px;
       font-family: var(--font-sans);
@@ -583,14 +583,6 @@
         <input type="text" class="nav-input" id="emailInput" placeholder="Enter email" autocomplete="off" />
       </div>
       <button type="button" class="nav-save-btn" id="saveIdentityBtn">Save</button>
-      <div class="nav-select-wrap" id="alertDestWrap">
-        <span class="nav-select-label">Alerts</span>
-        <select class="nav-input nav-dest" id="alertDestSelect" aria-label="Send alerts to">
-          <option value="slack">Slack</option>
-          <option value="teams">Microsoft Teams</option>
-          <option value="both">Slack + Teams</option>
-        </select>
-      </div>
       <span class="nav-status" id="identityStatus"></span>
     </div>
   </nav>
@@ -642,6 +634,8 @@
       <span class="section-title">Verticals</span>
       <span class="section-count">9 demos</span>
     </div>
+
+    <div class="alert-dest" id="alertDestPicker"></div>
 
     <div class="grid">
 
@@ -872,13 +866,7 @@
       }
 
       /* ---- Alert destination (per browser) ---- */
-      var destSelect = document.getElementById('alertDestSelect');
-      var DEST_LABELS = { slack: 'Alerts go to Slack', teams: 'Alerts go to Microsoft Teams only', both: 'Alerts go to Slack and Teams' };
-      destSelect.value = window.AlertDestination.get();
-      destSelect.addEventListener('change', function () {
-        var value = window.AlertDestination.set(destSelect.value);
-        setStatus(DEST_LABELS[value] + ' (this browser only)', 'success');
-      });
+      var destPicker = window.AlertDestination.mount(document.getElementById('alertDestPicker'));
 
       /* ---- Restore persisted values ---- */
       orgNameInput.value = localStorage.getItem('devinOrgName') || '';
@@ -972,11 +960,7 @@
           }
 
           // Without a server Teams webhook, Teams choices fall back to Slack.
-          if (!cfg.teamsAlerts) {
-            Array.prototype.forEach.call(destSelect.options, function (opt) {
-              if (opt.value !== 'slack') opt.textContent += ' (not set up)';
-            });
-          }
+          destPicker.setTeamsAvailable(cfg.teamsAlerts);
         })
         .catch(function () {
           // config endpoint failed — inputs still usable

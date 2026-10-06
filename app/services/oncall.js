@@ -711,10 +711,9 @@ async function postOncallAlert(scenarioId, options = {}) {
   const skin = options.skin || null;
   const env = resolveOncallEnv();
   const { token, alertsChannel } = env;
-  // destination: 'slack' | 'teams' | 'both' from the presenter's hub choice;
-  // the legacy `teams: true` flag means 'both'.
-  const destination = options.destination || (options.teams ? 'both' : 'slack');
-  const teamsRequested = destination !== 'slack';
+  // destination: 'slack' | 'teams' from the presenter's hub choice. Teams skips
+  // Slack so one demo is never investigated by both the Slack and the Teams responder.
+  const teamsRequested = options.destination === 'teams';
   const userTeamsUrl = teamsRequested ? options.teamsWebhookUrl : null;
   const userTeamsUrlInvalid = Boolean(userTeamsUrl) && !isTeamsWebhookUrl(userTeamsUrl);
   if (userTeamsUrlInvalid) {
@@ -723,8 +722,8 @@ async function postOncallAlert(scenarioId, options = {}) {
   const serverTeamsRouting = env.teamsAllAlerts || Boolean(skin && skin.teamsAlerts);
   const teamsWebhookUrl = (!userTeamsUrlInvalid && userTeamsUrl)
     || ((teamsRequested && !userTeamsUrlInvalid) || serverTeamsRouting ? env.teamsWebhookUrl : null);
-  const slackReady = Boolean(token && alertsChannel) && destination !== 'teams';
-  if (destination === 'teams' && !teamsWebhookUrl) {
+  const slackReady = Boolean(token && alertsChannel) && !teamsRequested;
+  if (teamsRequested && !teamsWebhookUrl) {
     logger.warn('Teams-only On-Call alert requested but no usable Teams webhook — skipping alert post');
     return {
       ok: false,

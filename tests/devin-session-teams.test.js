@@ -25,7 +25,9 @@ const {
 } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
 const { createSessionAndAlert } = require('../app/services/devin-session');
-const { alertDestinationFromCookie, runWithAlertDestination } = require('../app/services/alert-destination');
+const {
+  alertDestinationFromCookie, runWithAlertDestination,
+} = require('../app/services/alert-destination');
 
 const TEAMS_URL = 'https://default1.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/abc';
 const savedEnv = { url: process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL, channel: process.env.SLACK_CHANNEL_ID };
@@ -53,7 +55,7 @@ function factsOf(card) {
   return Object.fromEntries(card.body.find((b) => b.type === 'FactSet').facts.map((f) => [f.title, f.value]));
 }
 
-describe('hub demo alert destination (Slack / Teams / Both)', () => {
+describe('hub demo alert destination (Slack / Teams)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     axios.post.mockResolvedValue({ status: 202 });
@@ -104,15 +106,6 @@ describe('hub demo alert destination (Slack / Teams / Both)', () => {
     ]);
   });
 
-  test('Both posts to Slack and Teams', async () => {
-    const result = await runWithAlertDestination('both', () => createSessionAndAlert(alert()));
-    expect(result).toMatchObject({ triggered: true, threadTs: 'thread-123', teams: true });
-    expect(postAlertToSlack).toHaveBeenCalledTimes(1);
-    expect(postDevinSessionLink).toHaveBeenCalledTimes(1);
-    expect(createDevinSession.mock.calls[0][0]).toContain('*Slack Thread:* channel=C123 thread_ts=thread-123');
-    expect(teamsCards()).toHaveLength(2);
-  });
-
   test('Teams without a server webhook falls back to Slack', async () => {
     delete process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL;
     const result = await runWithAlertDestination('teams', () => createSessionAndAlert(alert()));
@@ -127,20 +120,13 @@ describe('hub demo alert destination (Slack / Teams / Both)', () => {
     expect(result).toBeNull();
     expect(createDevinSession).not.toHaveBeenCalled();
   });
-
-  test('a failed Teams post never blocks the Slack alert in Both mode', async () => {
-    axios.post.mockRejectedValue(new Error('boom'));
-    const result = await runWithAlertDestination('both', () => createSessionAndAlert(alert()));
-    expect(result).toMatchObject({ triggered: true, threadTs: 'thread-123' });
-    expect(result.teams).toBeUndefined();
-    expect(axios.post).toHaveBeenCalledTimes(1);
-  });
 });
 
 describe('alertDestinationFromCookie', () => {
   test('reads only known values from the alert_destination cookie', () => {
     expect(alertDestinationFromCookie('a=1; alert_destination=teams; b=2')).toBe('teams');
-    expect(alertDestinationFromCookie('alert_destination=both')).toBe('both');
+    expect(alertDestinationFromCookie('alert_destination=both')).toBeNull();
+    expect(alertDestinationFromCookie('alert_destination=slack')).toBe('slack');
     expect(alertDestinationFromCookie('alert_destination=teamsx')).toBeNull();
     expect(alertDestinationFromCookie('xalert_destination=teams')).toBeNull();
     expect(alertDestinationFromCookie(undefined)).toBeNull();

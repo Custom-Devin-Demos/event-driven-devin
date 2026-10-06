@@ -179,7 +179,7 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
   });
 });
 
-describe('per-user Teams toggle (hub-local setting)', () => {
+describe('per-user alert destination (Slack or Teams, hub-local setting)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     axios.post.mockResolvedValue({ status: 202 });
@@ -192,17 +192,18 @@ describe('per-user Teams toggle (hub-local setting)', () => {
     });
   });
 
-  test('toggle on sends a skinless alert to the shared Teams webhook as well as Slack', async () => {
+  test('Teams sends the alert to the shared Teams webhook only, skipping Slack', async () => {
     setEnv({ slack: true, teams: true });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true });
-    expect(result).toMatchObject({ ok: true, channel: 'C0TEST', teams: true });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams' });
+    expect(result).toEqual({ ok: true, teams: true });
+    expect(postMessage).not.toHaveBeenCalled();
     expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
   });
 
   test('a per-user webhook URL overrides the shared one', async () => {
     setEnv({ slack: true, teams: true });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true, teamsWebhookUrl: USER_TEAMS_URL });
-    expect(result).toMatchObject({ ok: true, teams: true });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', teamsWebhookUrl: USER_TEAMS_URL });
+    expect(result).toEqual({ ok: true, teams: true });
     expect(axios.post).toHaveBeenCalledTimes(1);
     expect(axios.post.mock.calls[0][0]).toBe(USER_TEAMS_URL);
     expect(axios.post.mock.calls[0][2]).toMatchObject({ maxRedirects: 0 });
@@ -210,104 +211,9 @@ describe('per-user Teams toggle (hub-local setting)', () => {
 
   test('a per-user webhook works with no shared webhook configured', async () => {
     setEnv({ slack: true, teams: false });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true, teamsWebhookUrl: USER_TEAMS_URL });
-    expect(result).toMatchObject({ ok: true, teams: true });
-  });
-
-  test('the URL is ignored when the toggle is off', async () => {
-    setEnv({ slack: true, teams: false });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: false, teamsWebhookUrl: USER_TEAMS_URL });
-    expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST' });
-    expect(axios.post).not.toHaveBeenCalled();
-  });
-
-  test('non-Teams URLs are never posted to, and the Slack alert still goes out', async () => {
-    setEnv({ slack: true, teams: true });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true, teamsWebhookUrl: 'http://169.254.169.254/latest/meta-data' });
-    expect(result).toMatchObject({ ok: true, channel: 'C0TEST', teamsFailed: true, teamsError: expect.stringMatching(/Teams Workflow webhook/) });
-    expect(postMessage).toHaveBeenCalledTimes(1);
-    expect(axios.post).not.toHaveBeenCalled();
-  });
-
-  test('an invalid per-user URL does not suppress server-managed Teams routing', async () => {
-    setEnv({ slack: true, teams: true });
-    process.env.ONCALL_TEAMS_ALL_ALERTS = 'true';
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true, teamsWebhookUrl: 'https://invalid.example/hook' });
-    expect(result).toMatchObject({ ok: true, teams: true, teamsError: expect.stringMatching(/Teams Workflow webhook/) });
-    expect(axios.post).toHaveBeenCalledTimes(1);
-    expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
-  });
-
-  test('an invalid per-user URL with no Slack configured delivers nothing', async () => {
-    setEnv({ slack: false, teams: true });
-    const result = await postOncallAlert('banking', { teams: true, teamsWebhookUrl: 'https://evil.example/x' });
-    expect(result).toMatchObject({ ok: false, skipped: true });
-    expect(axios.post).not.toHaveBeenCalled();
-  });
-
-  test('a requested Teams post that fails is reported alongside the Slack delivery', async () => {
-    setEnv({ slack: true, teams: true });
-    axios.post.mockRejectedValue(new Error('boom'));
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true });
-    expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST', teamsFailed: true });
-  });
-
-  test('toggle on without any webhook stays Slack-only and flags the miss', async () => {
-    setEnv({ slack: true, teams: false });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', teams: true });
-    expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST', teamsFailed: true });
-  });
-});
-
-describe('per-user alert destination (Slack / Teams / Both)', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    axios.post.mockResolvedValue({ status: 202 });
-  });
-
-  afterEach(() => {
-    ENV_KEYS.forEach((k) => {
-      if (savedEnv[k] === undefined) delete process.env[k];
-      else process.env[k] = savedEnv[k];
-    });
-  });
-
-  test('Teams sends the alert to Teams only, skipping Slack', async () => {
-    setEnv({ slack: true, teams: true });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams' });
-    expect(result).toEqual({ ok: true, teams: true });
-    expect(postMessage).not.toHaveBeenCalled();
-    expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
-  });
-
-  test('Teams uses a personal webhook when one is set', async () => {
-    setEnv({ slack: true, teams: false });
     const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', teamsWebhookUrl: USER_TEAMS_URL });
     expect(result).toEqual({ ok: true, teams: true });
     expect(postMessage).not.toHaveBeenCalled();
-    expect(axios.post.mock.calls[0][0]).toBe(USER_TEAMS_URL);
-  });
-
-  test('Teams with no usable webhook fails instead of posting to Slack', async () => {
-    setEnv({ slack: true, teams: false });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', teamsWebhookUrl: 'https://evil.example/x' });
-    expect(result).toMatchObject({ ok: false, error: expect.stringMatching(/No Teams webhook/), teamsError: expect.any(String) });
-    expect(postMessage).not.toHaveBeenCalled();
-    expect(axios.post).not.toHaveBeenCalled();
-  });
-
-  test('a failed Teams-only post reports the failure', async () => {
-    setEnv({ slack: true, teams: true });
-    axios.post.mockRejectedValue(new Error('boom'));
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams' });
-    expect(result).toEqual({ ok: false, error: 'Teams alert post failed' });
-    expect(postMessage).not.toHaveBeenCalled();
-  });
-
-  test('Both behaves like the legacy teams flag', async () => {
-    setEnv({ slack: true, teams: true });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'both' });
-    expect(result).toMatchObject({ ok: true, channel: 'C0TEST', teams: true });
   });
 
   test('Slack ignores a saved personal webhook', async () => {
@@ -315,6 +221,38 @@ describe('per-user alert destination (Slack / Teams / Both)', () => {
     const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'slack', teamsWebhookUrl: USER_TEAMS_URL });
     expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST' });
     expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  test('non-Teams URLs are never posted to, and Teams with no usable webhook fails instead of posting to Slack', async () => {
+    setEnv({ slack: true, teams: true });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', teamsWebhookUrl: 'http://169.254.169.254/latest/meta-data' });
+    expect(result).toMatchObject({ ok: false, error: expect.stringMatching(/No Teams webhook/), teamsError: expect.stringMatching(/Teams Workflow webhook/) });
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  test('an invalid per-user URL does not suppress server-managed Teams routing', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_ALL_ALERTS = 'true';
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', teamsWebhookUrl: 'https://invalid.example/hook' });
+    expect(result).toMatchObject({ ok: true, teams: true, teamsError: expect.stringMatching(/Teams Workflow webhook/) });
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
+  });
+
+  test('Teams with no webhook at all fails without posting to Slack', async () => {
+    setEnv({ slack: true, teams: false });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams' });
+    expect(result).toMatchObject({ ok: false, error: expect.stringMatching(/No Teams webhook/) });
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  test('a failed Teams post reports the failure', async () => {
+    setEnv({ slack: true, teams: true });
+    axios.post.mockRejectedValue(new Error('boom'));
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams' });
+    expect(result).toEqual({ ok: false, error: 'Teams alert post failed' });
+    expect(postMessage).not.toHaveBeenCalled();
   });
 });
 

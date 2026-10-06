@@ -31,7 +31,7 @@ function resolveAlertRouting() {
     logger.warn('Teams alert destination requested but AUTOMATIONS_TEAMS_WEBHOOK_URL is not set — posting to Slack');
     return { slack: true, teamsUrl: null };
   }
-  return { slack: destination === 'both', teamsUrl };
+  return { slack: false, teamsUrl };
 }
 
 function buildTeamsAlertCardForAlert(alertData) {
