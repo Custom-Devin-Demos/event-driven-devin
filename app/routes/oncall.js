@@ -8,14 +8,7 @@ const {
   INFRA_INCIDENTS,
   postOncallInfraIncident,
   getInfraState,
-  postOncallIncident,
-  SEV1_INCIDENTS,
-  getSev1ChatterVocabulary,
-  getSev1IncidentKinds,
   isPlainObject,
-  isValidChatterVocabulary,
-  isValidIncidentCopy,
-  getSev1State,
   setOncallConfigOverride,
   getOncallConfigView,
 } = require('../services/oncall');
@@ -48,7 +41,6 @@ const router = express.Router();
  * or infra kind) are rejected before consuming quota.
  */
 const ONCALL_HOURLY_CAPS = {
-  incident: 10,
   trigger: 50,
   alert: 50,
   infra: 50,
@@ -139,53 +131,6 @@ for (const skin of Object.values(ONCALL_SKINS)) {
       skin: skin.slug,
       vertical: skin.vertical,
     });
-  }
-  if (skin.incident) {
-    const incidentStory = Object.prototype.hasOwnProperty.call(
-      SEV1_INCIDENTS,
-      skin.incident.kind,
-    )
-      ? SEV1_INCIDENTS[skin.incident.kind]
-      : null;
-    if (!incidentStory) {
-      logger.warn('On-Call skin references unknown incident kind', {
-        skin: skin.slug,
-        incidentKind: skin.incident.kind,
-      });
-    } else if (incidentStory.vertical !== skin.vertical) {
-      logger.warn('On-Call skin incident vertical mismatch', {
-        skin: skin.slug,
-        incidentKind: skin.incident.kind,
-        skinVertical: skin.vertical,
-        incidentVertical: incidentStory.vertical,
-      });
-    }
-    const chatter = skin.incident.chatter;
-    const vocabulary = isPlainObject(chatter) && chatter.vocabulary;
-    const invalidVocabulary = chatter != null && (
-      !isPlainObject(chatter) ||
-      (vocabulary != null && !isValidChatterVocabulary(vocabulary))
-    );
-    if (invalidVocabulary) {
-      logger.warn('On-Call skin incident chatter vocabulary is invalid', {
-        skin: skin.slug,
-      });
-    }
-    if (skin.incident.copy != null && !isValidIncidentCopy(skin.incident.copy)) {
-      logger.warn('On-Call skin incident copy is invalid', { skin: skin.slug });
-    }
-    if (
-      (incidentStory == null || incidentStory.vertical !== skin.vertical) &&
-      skin.incident.chatter &&
-      skin.incident.chatter.vocabulary != null
-    ) {
-      logger.warn('On-Call skin incident chatter vocabulary cannot apply', {
-        skin: skin.slug,
-        incidentKind: skin.incident.kind,
-        skinVertical: skin.vertical,
-        incidentVertical: incidentStory && incidentStory.vertical,
-      });
-    }
   }
   const pageFile = skin.page && skin.page.file;
   if (
@@ -313,34 +258,6 @@ for (const skin of Object.values(ONCALL_SKINS)) {
   if (!skin.oncallOnly || !skin.page || !skin.page.file) continue;
   router.get(`/${path.basename(skin.page.file, '.html')}`, (_req, res, next) => serveSkinPage(skin, res, next));
 }
-
-/**
- * GET /oncall/c/:slug/incident — customer-skinned SEV-1 incident console.
- */
-router.get('/oncall/c/:slug/incident', (req, res, next) => {
-  const skin = getOncallSkin(req.params.slug);
-  const incidentKind = skin && skin.incident && skin.incident.kind;
-  const incidentStory = incidentKind && SEV1_INCIDENTS[incidentKind];
-  const validIncident = skin &&
-    skin.incident &&
-    Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, incidentKind) &&
-    incidentStory.vertical === skin.vertical;
-  if (!validIncident) {
-    if (skin && skin.incident) {
-      logger.warn('On-Call incident route rejected invalid skin configuration', {
-        skin: req.params.slug,
-        incidentKind,
-        skinVertical: skin.vertical,
-        incidentVertical: incidentStory && incidentStory.vertical,
-      });
-    }
-    return next();
-  }
-  sendSkinnedPage(res, next, 'oncall-incident.html', {
-    ...skin,
-    incidentKind: skin.incident.kind,
-  });
-});
 
 /**
  * GET /oncall — On-Call demo control page.
@@ -732,75 +649,6 @@ router.post('/api/oncall/latency', oncallCap('infra'), async (req, res) => {
 });
 
 /**
- * POST /api/oncall/incident — declare a SEV-1 incident.
- * Body: { kind?: 'banking-transfers'|'insurance-claims'|'licensing-latency'|'telco-upgrades', devinEmail?: string }
- * Declares a Datadog incident backed by the matching vertical's real
- * degradation (Datadog creates the Slack incident channel), starts a
- * synthetic probe loop against the affected endpoint so telemetry records
- * the failure, and auto-resolves when the incident window ends.
- */
-router.post('/api/oncall/incident', oncallCap('incident'), async (req, res) => {
-  try {
-    const { kind, devinEmail, skin } = req.body || {};
-    const skinConfig = getOncallSkin(skin);
-    const knownKind = !kind ||
-      Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, kind);
-    const storyKind = knownKind && kind
-      ? kind
-      : 'banking-transfers';
-    const incidentStory = SEV1_INCIDENTS[storyKind];
-    const configuredVocabulary = skinConfig &&
-      skinConfig.incident &&
-      skinConfig.incident.chatter &&
-      skinConfig.incident.chatter.vocabulary;
-    const vocabulary = knownKind
-      ? getSev1ChatterVocabulary(incidentStory, skinConfig, storyKind)
-      : null;
-    const skinMatches = Boolean(
-      skinConfig &&
-      incidentStory &&
-      skinConfig.vertical === incidentStory.vertical,
-    );
-    const kindMatches = Boolean(
-      skinConfig &&
-      skinConfig.incident &&
-      skinConfig.incident.kind === storyKind,
-    );
-    if (
-      skinConfig &&
-      incidentStory &&
-      configuredVocabulary != null &&
-      (!skinMatches || !kindMatches)
-    ) {
-      logger.warn('On-Call incident skin/vertical mismatch — using generic chatter', {
-        skin: skinConfig.slug,
-        reason: !skinMatches ? 'vertical_mismatch' : 'incident_kind_mismatch',
-        configuredKind: skinConfig.incident && skinConfig.incident.kind,
-        requestedKind: kind,
-        skinVertical: skinConfig.vertical,
-        incidentVertical: incidentStory.vertical,
-      });
-    }
-    const result = await postOncallIncident({
-      kind,
-      devinEmail,
-      vocabulary,
-      vocabularyConfigured: Boolean(
-        knownKind &&
-        configuredVocabulary != null &&
-        skinMatches &&
-        kindMatches,
-      ),
-    });
-    if (result.ok) setRunCookie(res, result.runRef, result.windowMinutes);
-    res.status(result.ok ? 200 : 400).json(result);
-  } catch (error) {
-    logger.error('On-Call incident post failed', { error: error.message });
-    res.status(500).json({ ok: false, error: error.message });
-  }
-});
-
-/**
  * GET /api/oncall/config — effective runtime config for the caller's run
  * (oncall_run cookie / x-synthetic-monitor header), or for ?runRef=.
  * Shows the shipped defaults, any live per-run override, and its expiry.
@@ -830,20 +678,6 @@ router.post('/api/oncall/config', oncallCap('config'), (req, res) => {
   const result = setOncallConfigOverride(runRef, patch);
   if (!result.ok) return res.status(400).json(result);
   res.json(result);
-});
-
-/**
- * GET /api/oncall/incident/kinds — available SEV-1 incident stories.
- */
-router.get('/api/oncall/incident/kinds', (req, res) => {
-  res.json(getSev1IncidentKinds(getOncallSkin(req.query.skin)));
-});
-
-/**
- * GET /api/oncall/incident/state — live status of declared SEV-1 incidents.
- */
-router.get('/api/oncall/incident/state', (_req, res) => {
-  res.json(getSev1State());
 });
 
 module.exports = router;

@@ -5,17 +5,12 @@
  * without touching any mechanics. /oncall/c/<slug> serves the skin's chosen
  * vertical page (skin.vertical) rebranded with the customer's name, mark, and
  * theme, with the on-call shim active — that single URL is what a DE shares.
- * /oncall/c/<slug>/incident serves an opted-in incident console. The alerts
- * surface is enabled by default; incident is an optional opt-in surface. An
- * incident may optionally define chatter.vocabulary as a flat
- * source-phrase-to-replacement map, and incident.copy may override the
- * shared console's own UI strings (flat string maps,
- * optional BCP 47 `lang`) so a localized skin stays localized on every surface. The generic /oncall hub itself is never
+ * The generic /oncall hub itself is never
  * skinned. Adding a customer = adding one entry here.
  *
  * Two separate theme keys, one per surface: page.theme themes the stock
  * vertical page served through the brand shim, while the top-level theme
- * themes the incident console. For stock-page skins without
+ * themes skinned surfaces other than the page. For stock-page skins without
  * page.file, the top-level theme falls back into the page shim too, so a
  * stock-page skin needs just one theme block. A natively branded page keeps
  * its own palette and is never overridden by the console theme; set page.theme
@@ -483,25 +478,6 @@ const ONCALL_SKINS = {
       '--chrome-text': '#ffffff',
     },
     disclaimer: 'NOT ACTUALLY A DOORDASH SITE — internal demo only, not affiliated with, endorsed by, or a real DoorDash product.',
-    incident: {
-      kind: 'banking-transfers',
-      chatter: {
-        vocabulary: {
-          'enterprise customers': 'high-volume Dashers',
-          'the payments gateway': 'the payout processor',
-          'settlement timeouts': 'payout settlement timeouts',
-          'Gateway team': 'Payout processor team',
-          // Keep this repo-truthful code-path wording shielded from the broader transfer keys.
-          'transfer path': 'transfer path',
-          'the gateway': 'the payout processor',
-          'Fund transfers degraded': 'Fast Pay cash outs degraded',
-          'Transfers': 'Fast Pay cash outs',
-          'transfers': 'Fast Pay cash outs',
-          'transfer': 'Fast Pay cash out',
-          'customers': 'Dashers',
-        },
-      },
-    },
   },
   '81fea074': {
     slug: '81fea074',
@@ -2589,27 +2565,6 @@ const ONCALL_SKINS = {
       impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served events that open at the top of the hour are hit hardest.',
     },
     disclaimer: 'NOT ACTUALLY A CONNPASS SITE — demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（デモ用）。',
-    // SEV-1 opt-in: the native page declares this story from the same
-    // registration button that drives the alert flow, and the shared console
-    // at /incident shows its live state.
-    incident: {
-      kind: 'licensing-latency',
-      chatter: {
-        vocabulary: {
-          'License provisioning slowdown': 'Event registration slowdown',
-          'slow seat provisioning': 'slow event registration',
-          'enterprise customer': 'event organizer',
-          'activation that used to be instant': 'confirmation that used to be instant',
-          'per license': 'per attendee',
-          'license DB': 'events DB',
-          'slow provisioning': 'slow registrations',
-          'provisioning calls': 'registration submissions',
-          'provisioning call': 'registration submission',
-          'provisioning works': 'registration works',
-          'orgs': 'organizers',
-        },
-      },
-    },
   },
   '8c797d91': {
     slug: '8c797d91',
@@ -2670,66 +2625,6 @@ const ONCALL_SKINS = {
       impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served slots that open at a fixed time are hit hardest.',
     },
     disclaimer: 'NOT ACTUALLY A MANABIBA SITE — manabiba is a fictional brand; demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・デモ用）。',
-    // SEV-1 opt-in: the same hightech story the alert track degrades, so the
-    // shared console at /oncall/c/4875267e/incident tells the same story as
-    // the page. `copy` localizes the console's own UI strings; the
-    // vocabulary localizes the story title/summary and swaps product nouns in
-    // the responder chatter. Service names and endpoints stay truthful.
-    incident: {
-      kind: 'licensing-latency',
-      copy: {
-        lang: 'ja',
-        title: 'SEV-1 インシデントコンソール',
-        eyebrow: '重大インシデント対応',
-        heading: 'SEV-1 インシデントコンソール',
-        intro: 'このサービスの重大インシデントを宣言し、状況を監視します。',
-        brandSub: 'SEV-1 インシデントコンソール',
-        footer: 'インシデント対応',
-        liveTitle: '現在のインシデント状況',
-        liveDesc: 'このセッションで宣言されたインシデントの一覧です。',
-        loadingState: 'インシデント状況を読み込んでいます。',
-        noOpenIncidents: '対応中のインシデントはありません。',
-        stateUnavailable: 'インシデント状況を取得できません',
-        declareTitle: 'インシデントを宣言',
-        declareDesc: 'このサービスに関連する SEV-1 を宣言します。',
-        loadingDefinition: 'インシデント定義を読み込んでいます。',
-        definitionUnavailable: 'インシデント定義を取得できません',
-        declareButton: 'SEV-1 インシデントを宣言する',
-        incidentFallback: 'SEV-1 インシデント',
-        status: 'ステータス',
-        autoResolvesIn: '自動解決まで',
-        publicId: '公開 IR ID',
-        pendingProviderId: 'プロバイダ ID 発行待ち',
-        incidentRef: 'インシデント参照番号',
-        declaredAt: '宣言日時',
-        resolved: '解決済み',
-        windowElapsed: '対応期間終了',
-        resolveFailed: '自動解決に失敗',
-        declaring: 'インシデントを宣言しています…',
-        declaredDatadog: 'SEV-1 を宣言しました（IR-{id}、参照 {ref}）。Slack チャンネルを作成中…',
-        declaredSlack: 'SEV-1 を {channel} に投稿しました（参照 {ref}）。',
-        declareFailed: 'インシデントの宣言に失敗しました。',
-      },
-      chatter: {
-        vocabulary: {
-          'License provisioning slowdown': 'イベント申し込みの遅延',
-          'latency and memory climbing on licensing-api': 'licensing-api のレイテンシとメモリが上昇中',
-          'licensing-api latency + RSS climbing': 'licensing-api のレイテンシ + RSS 上昇',
-          'and climbing under sustained traffic; process RSS trends up alongside it.': 'で、継続的なトラフィック下で上昇し続けています。プロセスの RSS もこれに伴って増加中です。',
-          'Every provisioning call is slow and getting slower.': 'すべての申し込みリクエストが遅く、回を重ねるごとに遅くなっています。',
-          'slow seat provisioning': 'slow イベント申し込み',
-          'enterprise customer': '勉強会の主催者',
-          'activation that used to be instant': '参加確定 that used to be instant',
-          'per license': 'per 参加者',
-          'license DB': 'イベント DB',
-          'slow provisioning': 'slow 申し込み処理',
-          'provisioning calls': '申し込みリクエスト',
-          'provisioning call': '申し込みリクエスト',
-          'provisioning works': '申し込み自体は通る',
-          'orgs': '主催者',
-        },
-      },
-    },
   },
   'd886be88': {
     slug: 'd886be88',
@@ -2848,63 +2743,6 @@ const ONCALL_SKINS = {
       team: 'inspection-platform-oncall',
       symptom: 'Inspection result submissions hang ~8s and then fail with 504 Gateway Timeout; no inspection report is generated. Upstream dependency latency on the submission path is elevated.',
       impact: 'Field inspectors cannot submit inspection results from site; every submission times out after a long hang and the inspection report is never generated.',
-    },
-    // SEV-1 opt-in: the same insurance story the alert track degrades. `copy`
-    // localizes the shared console's own UI strings; the vocabulary swaps the
-    // story's product nouns in the responder chatter. Service names and
-    // endpoints stay truthful.
-    incident: {
-      kind: 'insurance-claims',
-      copy: {
-        lang: 'ja',
-        title: 'SEV-1 インシデントコンソール',
-        eyebrow: '重大インシデント対応',
-        heading: 'SEV-1 インシデントコンソール',
-        intro: 'このサービスの重大インシデントを宣言し、状況を監視します。',
-        brandSub: 'SEV-1 インシデントコンソール',
-        footer: 'インシデント対応',
-        liveTitle: '現在のインシデント状況',
-        liveDesc: 'このセッションで宣言されたインシデントの一覧です。',
-        loadingState: 'インシデント状況を読み込んでいます。',
-        noOpenIncidents: '対応中のインシデントはありません。',
-        stateUnavailable: 'インシデント状況を取得できません',
-        declareTitle: 'インシデントを宣言',
-        declareDesc: 'このサービスに関連する SEV-1 を宣言します。',
-        loadingDefinition: 'インシデント定義を読み込んでいます。',
-        definitionUnavailable: 'インシデント定義を取得できません',
-        declareButton: 'SEV-1 インシデントを宣言する',
-        incidentFallback: 'SEV-1 インシデント',
-        status: 'ステータス',
-        autoResolvesIn: '自動解決まで',
-        publicId: '公開 IR ID',
-        pendingProviderId: 'プロバイダ ID 発行待ち',
-        incidentRef: 'インシデント参照番号',
-        declaredAt: '宣言日時',
-        resolved: '解決済み',
-        windowElapsed: '対応期間終了',
-        resolveFailed: '自動解決に失敗',
-        declaring: 'インシデントを宣言しています…',
-        declaredDatadog: 'SEV-1 を宣言しました（IR-{id}、参照 {ref}）。Slack チャンネルを作成中…',
-        declaredSlack: 'SEV-1 を {channel} に投稿しました（参照 {ref}）。',
-        declareFailed: 'インシデントの宣言に失敗しました。',
-      },
-      chatter: {
-        vocabulary: {
-          // Story title/summary (shown on the console) in Japanese; the
-          // endpoint, service name and status code stay as the monitor says.
-          'Claim submissions failing': '点検結果の提出が失敗',
-          'hangs ~8s then fails with': 'への提出が約8秒ハングしたのち、',
-          'on ~100% of submissions. Policyholders cannot file claims through the portal.':
-            'でほぼ 100% が失敗しています。現場の点検員はポータルから点検結果を提出できません。',
-          'Quotes and policy reads are fine': 'Facility lookups and past report reads are fine',
-          'claim submissions': 'inspection result submissions',
-          'claim submission': 'inspection result submission',
-          'adjudication vendor': 'report-generation vendor',
-          'policyholders': 'field inspectors',
-          'claims path': 'inspection submission path',
-          'one claim': 'one submission',
-        },
-      },
     },
     disclaimer: 'NOT ACTUALLY A RYOYO SYSTEMS SITE — 菱陽システムズ and 点検クラウド TENLOG are fictional brands; demo only, not affiliated with, endorsed by, or a product of any real company. ／ 実在する企業・サービスのサイトではありません（架空ブランド・デモ用）。',
   },
