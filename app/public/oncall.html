@@ -214,7 +214,7 @@
       <div class="teams-panel" id="teams-panel">
         <label class="teams-toggle"><input type="checkbox" id="teams-toggle"> Also post my alerts to Microsoft Teams</label>
         <div class="teams-url">
-          <input type="url" id="teams-url" placeholder="Optional: a Teams Workflow webhook URL to post automatically" autocomplete="off" spellcheck="false" aria-label="Teams Workflow webhook URL">
+          <input type="url" id="teams-url" placeholder="Optional: your own Teams Workflow webhook URL" autocomplete="off" spellcheck="false" aria-label="Teams Workflow webhook URL">
         </div>
         <div class="teams-hint" id="teams-hint"></div>
       </div>
@@ -330,7 +330,7 @@
         var url = urlInput.value.trim();
         var valid = !url || (url.length <= 2048 && TEAMS_HOST_RE.test(url));
         panel.classList.toggle('on', toggle.checked);
-        hint.classList.toggle('err', toggle.checked && !valid);
+        hint.classList.toggle('err', toggle.checked && (!valid || (!url && !teamsDefaultWebhook)));
         if (!toggle.checked) {
           hint.textContent = 'Off: no personal Teams delivery (server-managed Teams routing, if configured, still applies). Saved in this browser only.';
         } else if (!valid) {
@@ -340,7 +340,7 @@
         } else if (teamsDefaultWebhook) {
           hint.textContent = 'On: your alerts also post to the shared Teams channel (COG-GTM \u203a General). Paste a webhook above to use your own channel instead.';
         } else {
-          hint.textContent = 'On: after each alert, the demo ribbon shows \u201cCopy for Teams & open General\u201d. Paste it into the channel and the Devin Teams responder picks it up. Optionally paste a Workflow webhook URL above to post automatically.';
+          hint.textContent = 'No shared Teams channel is configured on this server. Paste your Teams Workflow webhook URL above.';
         }
       }
       toggle.addEventListener('change', function () {
