@@ -22,7 +22,7 @@ router.post('/api/oncall/banking/transfer', async (req, res) => {
       amount: req.body.amount || 500,
       accountTier: req.body.accountTier || 'standard',
       userId: req.body.userId || 'usr_banking_1',
-    });
+    }, { debugTimings: req.get('x-debug-timings') === '1' });
     res.json(result);
   } catch (error) {
     const statusCode = error.code === 'INSUFFICIENT_FUNDS' ? 422 : 500;
@@ -207,7 +207,7 @@ router.post('/api/oncall/industrials/quote', async (req, res) => {
       quantity: req.body.quantity || 25,
       itarControlled: req.body.itarControlled === true,
       site: req.body.site || 'f3-mesa',
-    });
+    }, { debugTimings: req.get('x-debug-timings') === '1' });
     res.json(result);
   } catch (error) {
     res.status(500).json({

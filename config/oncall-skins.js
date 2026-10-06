@@ -5,18 +5,16 @@
  * without touching any mechanics. /oncall/c/<slug> serves the skin's chosen
  * vertical page (skin.vertical) rebranded with the customer's name, mark, and
  * theme, with the on-call shim active — that single URL is what a DE shares.
- * /oncall/c/<slug>/report serves the matching branded support portal, and
- * /oncall/c/<slug>/incident serves an opted-in incident console. The alerts
- * surface is enabled by default; bugPortal and incident are optional opt-in
- * surfaces. An incident may optionally define chatter.vocabulary as a flat
- * source-phrase-to-replacement map, and incident.copy / bugPortal.copy may
- * override the shared console's / portal's own UI strings (flat string maps,
- * optional BCP 47 `lang`) so a localized skin stays localized on every surface. The generic /oncall hub itself is never
+ * /oncall/c/<slug>/report serves the matching branded support portal. The
+ * alerts surface is enabled by default; bugPortal is an optional opt-in
+ * surface, and bugPortal.copy may override the shared portal's own UI strings
+ * (flat string map, optional BCP 47 `lang`) so a localized skin stays
+ * localized on every surface. The generic /oncall hub itself is never
  * skinned. Adding a customer = adding one entry here.
  *
  * Two separate theme keys, one per surface: page.theme themes the stock
  * vertical page served through the brand shim, while the top-level theme
- * themes the report portal and incident console. For stock-page skins without
+ * themes the report portal. For stock-page skins without
  * page.file, the top-level theme falls back into the page shim too, so a
  * stock-page skin needs just one theme block. A natively branded page keeps
  * its own palette and is never overridden by the portal theme; set page.theme
@@ -3076,8 +3074,7 @@ const ONCALL_SKINS = {
     // templates are the attendee/organizer vocabulary of the event page; the
     // template ids stay the shared hightech BUG_CATALOG ids so a filed report
     // describes the same standing staged slowdown the alert track exercises.
-    // `copy` localizes the shared portal's own UI strings (same pattern as
-    // incident.copy on the SEV-1 console).
+    // `copy` localizes the shared portal's own UI strings.
     bugPortal: {
       products: [
         {
