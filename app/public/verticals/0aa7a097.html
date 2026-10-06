@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watch TV Shows Streaming | Peacock</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold-1: #FFE000;
+      --gold-2: #FCCC12;
+      --gold-3: #FFA800;
+      --black: #000000;
+      --panel: #121212;
+      --panel-2: #1E1E1E;
+      --text: #FFFFFF;
+      --text-2: rgba(255, 255, 255, 0.78);
+      --text-3: rgba(255, 255, 255, 0.55);
+      --line: rgba(255, 255, 255, 0.16);
+      --link: #069DE0;
+      --danger: #FF6B6B;
+      --cta: linear-gradient(90deg, var(--gold-1) 0%, var(--gold-2) 50%, var(--gold-3) 100%);
+      --sans: Outfit, Helvetica, Arial, sans-serif;
+      --gutter: 56px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--black); }
+    body { font-family: var(--sans); color: var(--text); background: var(--black); font-size: 16px; line-height: 1.4; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    img { display: block; }
+    :focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; }
+    [hidden] { display: none !important; }
+
+    /* Header */
+    .site-header { position: sticky; top: 0; z-index: 50; height: 88px; background: var(--black); display: flex; align-items: center; gap: 40px; padding: 0 var(--gutter); }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--cta); color: var(--black); display: grid; place-items: center; font-size: 22px; font-weight: 700; line-height: 1; }
+    .nav { display: flex; gap: 28px; font-size: 15px; font-weight: 500; color: var(--text-2); }
+    .nav a { padding: 8px 0; border-bottom: 2px solid transparent; }
+    .nav a:hover, .nav a.active { color: var(--text); }
+    .nav a.active { border-bottom-color: var(--gold-2); }
+    .header-actions { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .icon-btn { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--text); }
+    .icon-btn:hover { background: rgba(255,255,255,0.1); }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #3A6EA5; color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 15px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 28px; border-radius: 999px; font-size: 15px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+    .pill-gold { background: var(--cta); color: var(--black); }
+    .pill-gold:hover { filter: brightness(1.05); }
+    .pill-dark { background: rgba(255,255,255,0.14); color: var(--text); }
+    .pill-dark:hover { background: rgba(255,255,255,0.22); }
+
+    /* Billboard */
+    .billboard { position: relative; min-height: 560px; display: flex; align-items: flex-end; overflow: hidden; background: var(--panel); }
+    .billboard img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+    .billboard::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, #000 0%, rgba(0,0,0,0.65) 28%, rgba(0,0,0,0) 62%), linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 55%); }
+    .billboard-copy { position: relative; z-index: 1; padding: 0 var(--gutter) 56px; max-width: 760px; }
+    .eyebrow { font-size: 14px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-2); margin-bottom: 10px; }
+    .billboard h1 { font-size: 64px; font-weight: 500; line-height: 1.05; letter-spacing: -0.02em; }
+    .billboard h2 { font-size: 26px; font-weight: 600; margin-top: 14px; }
+    .billboard p { font-size: 17px; color: var(--text-2); margin-top: 10px; }
+    .billboard .actions { display: flex; gap: 14px; margin-top: 24px; flex-wrap: wrap; }
+
+    /* Rails */
+    .rails { padding: 24px 0 64px; }
+    .rail { margin-top: 36px; }
+    .rail h3 { font-size: 26px; font-weight: 500; letter-spacing: -0.01em; padding: 0 var(--gutter); margin-bottom: 16px; }
+    .tiles { display: flex; gap: 14px; overflow-x: auto; padding: 4px var(--gutter) 12px; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
+    .tiles::-webkit-scrollbar { display: none; }
+    .tile { flex: none; position: relative; border-radius: 12px; overflow: hidden; background: var(--panel-2); scroll-snap-align: start; text-align: left; transition: transform 0.15s ease; }
+    .tile:hover { transform: scale(1.03); }
+    .tile.portrait { width: 200px; aspect-ratio: 2 / 3; }
+    .tile.landscape { width: 340px; aspect-ratio: 16 / 9; }
+    .tile img { width: 100%; height: 100%; object-fit: cover; }
+    .tile .fallback { display: none; position: absolute; inset: 0; padding: 16px; align-items: flex-end; font-size: 18px; font-weight: 600; background: linear-gradient(160deg, #2a2a2a, #111); }
+    .tile.no-img .fallback { display: flex; }
+    .tile .badge { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,0.72); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; }
+    .tile .caption { position: absolute; left: 0; right: 0; bottom: 0; padding: 28px 14px 12px; background: linear-gradient(0deg, rgba(0,0,0,0.85), rgba(0,0,0,0)); font-size: 15px; font-weight: 600; }
+
+    /* Watch page */
+    .watch { padding: 24px var(--gutter) 64px; }
+    .crumb { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; font-weight: 500; color: var(--text-2); }
+    .crumb:hover { color: var(--text); }
+    .watch-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 40px; margin-top: 8px; align-items: start; }
+    .player { position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #000; }
+    .player .poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: filter 0.3s ease; }
+    .player .poster-fallback { position: absolute; inset: 0; background: linear-gradient(160deg, #2a2a2a, #0a0a0a); }
+    .player::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 45%); pointer-events: none; }
+    .player.loading .poster { filter: brightness(0.35) blur(2px); }
+    .player.playing .poster { filter: none; }
+    .player-center { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; }
+    .play-btn { width: 96px; height: 96px; border-radius: 50%; background: var(--cta); color: var(--black); display: grid; place-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.15s ease; }
+    .play-btn:hover { transform: scale(1.06); }
+    .play-btn:disabled { cursor: default; }
+    .play-btn .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .player.loading .play-btn, .player.playing .play-btn { display: none; }
+    .buffer { display: none; flex-direction: column; align-items: center; gap: 16px; font-size: 16px; font-weight: 500; color: var(--text-2); }
+    .player.loading .buffer { display: flex; }
+    .ring { width: 64px; height: 64px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.18); border-top-color: var(--gold-2); animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .controls { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 16px 20px; display: none; align-items: center; gap: 16px; font-size: 14px; font-weight: 500; }
+    .player.playing .controls { display: flex; }
+    .controls .bar { flex: 1; height: 4px; border-radius: 4px; background: rgba(255,255,255,0.25); overflow: hidden; }
+    .controls .bar span { display: block; height: 100%; width: 0; background: var(--gold-2); transition: width 1s linear; }
+    .controls .ctl { width: 44px; height: 44px; display: grid; place-items: center; }
+    .player-title { position: absolute; left: 20px; top: 16px; z-index: 3; font-size: 15px; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,0.6); display: none; }
+    .player.playing .player-title { display: block; }
+
+    .meta-title { font-size: 44px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.05; margin-top: 28px; }
+    .meta-line { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 15px; color: var(--text-2); }
+    .meta-line .rating { border: 1px solid var(--text-3); border-radius: 4px; padding: 0 6px; font-size: 13px; font-weight: 600; }
+    .exclusive { margin-top: 18px; font-size: 20px; font-weight: 600; }
+    .desc { margin-top: 10px; font-size: 17px; color: var(--text-2); max-width: 760px; }
+    .watch-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 24px; align-items: center; }
+    .watch-actions .ep { font-size: 15px; color: var(--text-3); }
+
+    .result-box { margin-top: 18px; border-radius: 12px; font-size: 15px; }
+    .result-box:empty { display: none; }
+    .result-box .r-head { font-weight: 600; font-size: 16px; }
+    .result-box .r-detail { color: var(--text-2); margin-top: 2px; }
+    .result-box.success { padding: 14px 18px; background: rgba(252, 204, 18, 0.1); border: 1px solid rgba(252, 204, 18, 0.4); }
+    .result-box.error { padding: 14px 18px; background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.45); }
+    .result-box.error .r-head { color: var(--danger); }
+
+    .side h4 { font-size: 20px; font-weight: 500; margin-bottom: 14px; }
+    .up-next { display: flex; flex-direction: column; gap: 12px; }
+    .up-next button { display: grid; grid-template-columns: 132px 1fr; gap: 12px; align-items: center; text-align: left; padding: 6px; border-radius: 12px; min-height: 44px; }
+    .up-next button:hover { background: rgba(255,255,255,0.08); }
+    .up-next .thumb { position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: var(--panel-2); }
+    .up-next .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .up-next .t { font-size: 15px; font-weight: 600; }
+    .up-next .s { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+
+    /* Footer */
+    footer { background: var(--black); border-top: 1px solid var(--line); padding: 48px var(--gutter) 40px; color: var(--text-2); font-size: 14px; }
+    .foot-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+    .foot-cols h5 { color: var(--text); font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+    .foot-cols a { display: block; padding: 6px 0; }
+    .foot-cols a:hover { color: var(--text); }
+    .foot-legal { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; color: var(--text-3); font-size: 13px; }
+
+    @media (max-width: 960px) {
+      :root { --gutter: 24px; }
+      .nav { display: none; }
+      .watch-grid { grid-template-columns: minmax(0, 1fr); }
+      .billboard h1 { font-size: 48px; }
+    }
+    @media (max-width: 600px) {
+      :root { --gutter: 16px; }
+      .site-header { height: 64px; gap: 12px; }
+      .brand { font-size: 22px; }
+      .brand-mark { width: 30px; height: 30px; font-size: 19px; }
+      .billboard { min-height: 460px; }
+      .billboard-copy { padding-bottom: 32px; }
+      .billboard h1 { font-size: 38px; }
+      .billboard h2 { font-size: 20px; }
+      .billboard p { font-size: 15px; }
+      .rail h3 { font-size: 21px; }
+      .tile.portrait { width: 140px; }
+      .tile.landscape { width: 260px; }
+      .meta-title { font-size: 32px; margin-top: 20px; }
+      .exclusive { font-size: 17px; }
+      .desc { font-size: 15px; }
+      .play-btn { width: 72px; height: 72px; }
+      .watch-actions .pill { flex: 1 1 100%; }
+      .foot-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header" id="top">
+    <a class="brand" href="#" data-nav="home" aria-label="Peacock home"><span class="brand-mark" aria-hidden="true">P</span>Peacock</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#" data-nav="home" class="active">Home</a>
+      <a href="#" data-nav="home">TV Shows</a>
+      <a href="#" data-nav="home">Movies</a>
+      <a href="#" data-nav="home">Sports</a>
+      <a href="#" data-nav="home">News</a>
+      <a href="#" data-nav="home">Channels</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" type="button" aria-label="Search">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
+      <button class="icon-btn" type="button" aria-label="Profile"><span class="avatar" aria-hidden="true">J</span></button>
+    </div>
+  </header>
+
+  <main>
+    <section id="catalogView" aria-label="Browse">
+      <div class="billboard">
+        <img id="heroImg" alt="" src="https://www.peacocktv.com/dam/growth/assets/Library/TheOffice/2-0-design-updates/the-office-main-hero-d.jpg?downsize=1920:*&output-format=webp&output-quality=85" onerror="this.remove()">
+        <div class="billboard-copy">
+          <div class="eyebrow">Peacock Exclusive</div>
+          <h1>The Office</h1>
+          <h2>Streaming Exclusively on Peacock</h2>
+          <p>Led by the comically incompetent Michael Scott, foibles, feuds and office romances unfold at paper supply company Dunder Mifflin.</p>
+          <div class="actions">
+            <button type="button" class="pill pill-gold" data-show="the-office">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>Watch Now
+            </button>
+            <button type="button" class="pill pill-dark" data-show="the-office">Details</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="rails">
+        <section class="rail" aria-label="New and Buzzworthy Series">
+          <h3>New and Buzzworthy Series</h3>
+          <div class="tiles" id="portraitRail"></div>
+        </section>
+        <section class="rail" aria-label="Must-See TV">
+          <h3>Must-See TV</h3>
+          <div class="tiles" id="landscapeRail"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="watchView" class="watch" aria-label="Watch" hidden>
+      <button type="button" class="crumb" data-nav="home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back to Browse
+      </button>
+      <div class="watch-grid">
+        <div>
+          <form id="provisionForm" novalidate>
+            <input type="hidden" id="product" value="">
+            <input type="hidden" id="seats" value="1">
+            <input type="hidden" id="planTier" value="premium">
+            <input type="hidden" id="region" value="us-east">
+            <div class="player" id="player">
+              <div class="poster-fallback" aria-hidden="true"></div>
+              <img class="poster" id="poster" alt="" hidden>
+              <div class="player-title" id="playerTitle"></div>
+              <div class="player-center">
+                <button type="submit" class="play-btn" id="submitBtn">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+                  <span class="sr" id="submitLabel">Play</span>
+                </button>
+                <div class="buffer" aria-hidden="true"><div class="ring"></div><span>Loading</span></div>
+              </div>
+              <div class="controls" aria-hidden="true">
+                <span class="ctl"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+                <span id="elapsed">0:00</span>
+                <div class="bar"><span id="progress"></span></div>
+                <span id="duration">22:00</span>
+              </div>
+            </div>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+
+          <h1 class="meta-title" id="showTitle"></h1>
+          <div class="meta-line" id="showMeta"></div>
+          <div class="exclusive">Streaming on Peacock</div>
+          <p class="desc" id="showDesc"></p>
+          <div class="watch-actions">
+            <button type="button" class="pill pill-gold" id="playFromStart">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>Play S1 E1
+            </button>
+            <button type="button" class="pill pill-dark" id="addList">+ My Stuff</button>
+          </div>
+        </div>
+        <aside class="side" aria-label="More Like This">
+          <h4>More Like This</h4>
+          <div class="up-next" id="upNext"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="foot-cols">
+      <div><h5>Browse</h5><a href="#" data-nav="home">TV Shows</a><a href="#" data-nav="home">Movies</a><a href="#" data-nav="home">Sports</a><a href="#" data-nav="home">News</a><a href="#" data-nav="home">Channels</a></div>
+      <div><h5>Plans</h5><a href="#top">Peacock Premium</a><a href="#top">Peacock Premium Plus</a><a href="#top">Bundles</a><a href="#top">Gift Cards</a></div>
+      <div><h5>Help</h5><a href="#top">Help Center</a><a href="#top">Supported Devices</a><a href="#top">Contact Us</a><a href="#top">Accessibility</a></div>
+      <div><h5>Company</h5><a href="#top">About</a><a href="#top">Press</a><a href="#top">Privacy Policy</a><a href="#top">Terms of Use</a></div>
+    </div>
+    <div class="foot-legal">
+      <span>Pick a Plan. Cancel Anytime.</span>
+      <span>&copy; 2026 Peacock TV LLC. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var CDN = 'https://www.peacocktv.com/dam/growth/assets/Library/';
+      var Q = '?downsize=1200:*&output-format=webp&output-quality=80';
+      var SHOWS = [
+        { id: 'the-office', title: 'The Office', hero: 'TheOffice/2-0-design-updates/the-office-main-hero-d.jpg', vert: 'TheOffice/office-vertical-art.jpg', meta: ['Comedy', '9 Seasons', '203 Episodes', '2005'], rating: 'TV-PG', mins: 22,
+          desc: 'Led by the comically incompetent Michael Scott, foibles, feuds and office romances unfold at paper supply company Dunder Mifflin.' },
+        { id: 'parks-and-recreation', title: 'Parks and Recreation', hero: 'ParksRecreation/parks-hero-d-v2.jpg', vert: 'ParksRecreation/parks-and-rec-description-image.jpg', meta: ['Comedy', '7 Seasons', '126 Episodes', '2009'], rating: 'TV-PG', mins: 22,
+          desc: 'The day-to-day activities of the Parks and Recreation Department in Pawnee, Indiana, and its Deputy Director, Leslie Knope.' },
+        { id: 'yellowstone', title: 'Yellowstone', hero: 'Yellowstone/s5B/yellowstone-s5b-seo-hero-d.jpg', vert: 'Yellowstone/s5B/yellowstone-vert.jpg', meta: ['Drama', '5 Seasons', '53 Episodes', '2018'], rating: 'TV-MA', mins: 52,
+          desc: 'John Dutton and his family work to protect their vast ranch.' },
+        { id: 'law-and-order-svu', title: 'Law & Order: Special Victims Unit', hero: 'LawOrderSVU/s28/svu-s28-hero-d.jpg', vert: 'LawOrderSVU/s28/svu-s28-vert.jpg', meta: ['Drama', 'TV Series', '1999'], rating: 'TV-14', mins: 43,
+          desc: 'Captain Benson and her NYPD squad fight for justice in ripped-from-the-headlines cases.' },
+        { id: 'rhobh', title: 'The Real Housewives of Beverly Hills', hero: 'RealHousewivesOfBeverlyHills/s15/rhobh-s15-seo-hero-d-v2.jpg', vert: 'RealHousewivesOfBeverlyHills/s15/rhobh-s15-vert.jpg', meta: ['Reality', '15 Seasons', '2010'], rating: 'TV-14', mins: 42,
+          desc: 'Affluent women enjoying the Beverly Hills lifestyle.' },
+        { id: 'below-deck', title: 'Below Deck', hero: 'belowdeck/s13/below-deck-s13-hero-d.jpg', vert: 'belowdeck/s13/below-deck-s13-vert.jpg', meta: ['Reality', '12 Seasons', '2013'], rating: 'TV-14', mins: 42,
+          desc: 'Crew members live and work aboard a mega-yacht during charter season.' },
+      ];
+      var byId = {};
+      SHOWS.forEach(function (s) { byId[s.id] = s; });
+
+      function img(src, alt, cls) {
+        var el = document.createElement('img');
+        el.src = src; el.alt = alt || ''; el.loading = 'lazy';
+        if (cls) el.className = cls;
+        el.onerror = function () { if (el.parentNode) el.parentNode.classList.add('no-img'); el.remove(); };
+        return el;
+      }
+      function tile(show, kind) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'tile ' + kind;
+        b.dataset.show = show.id;
+        b.setAttribute('aria-label', show.title);
+        b.appendChild(img(CDN + (kind === 'portrait' ? show.vert : show.hero) + Q, show.title));
+        var fb = document.createElement('span'); fb.className = 'fallback'; fb.textContent = show.title; b.appendChild(fb);
+        if (kind === 'landscape') { var c = document.createElement('span'); c.className = 'caption'; c.textContent = show.title; b.appendChild(c); }
+        return b;
+      }
+      var portraitRail = document.getElementById('portraitRail');
+      var landscapeRail = document.getElementById('landscapeRail');
+      SHOWS.forEach(function (s) { portraitRail.appendChild(tile(s, 'portrait')); });
+      SHOWS.slice().reverse().forEach(function (s) { landscapeRail.appendChild(tile(s, 'landscape')); });
+
+      var catalogView = document.getElementById('catalogView');
+      var watchView = document.getElementById('watchView');
+      var form = document.getElementById('provisionForm');
+      var product = document.getElementById('product');
+      var player = document.getElementById('player');
+      var poster = document.getElementById('poster');
+      var playerTitle = document.getElementById('playerTitle');
+      var btn = document.getElementById('submitBtn');
+      var btnLabel = document.getElementById('submitLabel');
+      var playFromStart = document.getElementById('playFromStart');
+      var result = document.getElementById('result');
+      var elapsedEl = document.getElementById('elapsed');
+      var durationEl = document.getElementById('duration');
+      var progress = document.getElementById('progress');
+      var inFlight = false;
+      var clock = null;
+
+      function fmt(sec) { var m = Math.floor(sec / 60); var s = sec % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
+      function stopClock() { if (clock) { clearInterval(clock); clock = null; } }
+      function showResult(kind, head, detail) {
+        result.className = 'result-box ' + kind;
+        result.replaceChildren();
+        var h = document.createElement('div'); h.className = 'r-head'; h.textContent = head;
+        var d = document.createElement('div'); d.className = 'r-detail'; d.textContent = detail;
+        result.append(h, d);
+      }
+      function clearResult() { result.className = 'result-box'; result.replaceChildren(); }
+      function resetPlayer() {
+        stopClock();
+        player.classList.remove('loading', 'playing');
+        progress.style.width = '0';
+        elapsedEl.textContent = '0:00';
+        playerTitle.textContent = '';
+        clearResult();
+      }
+
+      function openShow(id) {
+        var show = byId[id];
+        if (!show || inFlight) return;
+        form.reset();
+        resetPlayer();
+        product.value = show.id;
+        poster.hidden = false;
+        poster.onerror = function () { poster.hidden = true; };
+        poster.src = CDN + show.hero + Q;
+        poster.alt = show.title;
+        document.getElementById('showTitle').textContent = show.title;
+        var meta = document.getElementById('showMeta');
+        meta.replaceChildren();
+        show.meta.forEach(function (m) { var s = document.createElement('span'); s.textContent = m; meta.appendChild(s); });
+        var r = document.createElement('span'); r.className = 'rating'; r.textContent = show.rating; meta.appendChild(r);
+        document.getElementById('showDesc').textContent = show.desc;
+        durationEl.textContent = fmt(show.mins * 60);
+        btnLabel.textContent = 'Play ' + show.title;
+        var upNext = document.getElementById('upNext');
+        upNext.replaceChildren();
+        SHOWS.filter(function (s) { return s.id !== id; }).slice(0, 4).forEach(function (s) {
+          var b = document.createElement('button'); b.type = 'button'; b.dataset.show = s.id;
+          var th = document.createElement('span'); th.className = 'thumb'; th.appendChild(img(CDN + s.hero + Q, ''));
+          var tx = document.createElement('span');
+          var t = document.createElement('div'); t.className = 't'; t.textContent = s.title;
+          var st = document.createElement('div'); st.className = 's'; st.textContent = s.meta[0] + ' \u00b7 ' + s.rating;
+          tx.append(t, st); b.append(th, tx); upNext.appendChild(b);
+        });
+        catalogView.hidden = true;
+        watchView.hidden = false;
+        document.title = show.title + ' | Peacock';
+        window.scrollTo(0, 0);
+      }
+      function goHome() {
+        if (inFlight) return;
+        form.reset();
+        resetPlayer();
+        product.value = '';
+        watchView.hidden = true;
+        catalogView.hidden = false;
+        document.title = 'Watch TV Shows Streaming | Peacock';
+        window.scrollTo(0, 0);
+      }
+
+      document.addEventListener('click', function (e) {
+        var showEl = e.target.closest('[data-show]');
+        if (showEl) { e.preventDefault(); openShow(showEl.dataset.show); return; }
+        var navEl = e.target.closest('[data-nav="home"]');
+        if (navEl) { e.preventDefault(); goHome(); }
+      });
+      playFromStart.addEventListener('click', function () { if (!inFlight) form.requestSubmit(btn); });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var show = byId[product.value];
+        if (inFlight || !show) return;
+        inFlight = true;
+        btn.disabled = true;
+        playFromStart.disabled = true;
+        form.setAttribute('aria-busy', 'true');
+        resetPlayer();
+        player.classList.add('loading');
+        try {
+          var res = await fetch('/api/licenses/provision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: document.getElementById('product').value,
+              planName: document.getElementById('planTier').value,
+              seats: parseInt(document.getElementById('seats').value, 10),
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          if (!res.ok) throw new Error('playback failed');
+          await res.json();
+          player.classList.remove('loading');
+          player.classList.add('playing');
+          playerTitle.textContent = show.title + ' \u00b7 S1 E1';
+          var total = show.mins * 60;
+          var sec = 0;
+          clock = setInterval(function () {
+            sec = Math.min(sec + 1, total);
+            elapsedEl.textContent = fmt(sec);
+            progress.style.width = (sec / total * 100) + '%';
+            if (sec >= total) stopClock();
+          }, 1000);
+          showResult('success', 'Now playing: ' + show.title, 'Season 1, Episode 1');
+        } catch (err) {
+          player.classList.remove('loading');
+          showResult('error', 'We\u2019re having trouble playing this video', 'Please try again. If the problem continues, visit the Peacock Help Center.');
+        } finally {
+          inFlight = false;
+          btn.disabled = false;
+          playFromStart.disabled = false;
+          form.removeAttribute('aria-busy');
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

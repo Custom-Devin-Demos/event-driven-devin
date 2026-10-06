@@ -2873,6 +2873,28 @@ const ONCALL_SKINS = {
     supportCenter: 'Shop Cummins Customer Support',
     disclaimer: 'NOT ACTUALLY A CUMMINS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
   },
+  '0aa7a097': {
+    slug: '0aa7a097',
+    company: 'Peacock',
+    brandMark: 'P',
+    vertical: 'hightech',
+    page: { file: '0aa7a097.html', title: 'Watch TV Shows Streaming | Peacock' },
+    alertCard: {
+      title: 'p95 latency trending up \u2014 video start (time to first frame)',
+      team: 'playback-oncall',
+      symptom: 'Time to first frame jumped after the last release and creeps higher with every Play request. Process RSS trends up alongside it.',
+      impact: 'Viewers pressing Play wait several seconds before the first frame appears, and the wait grows under sustained traffic.',
+    },
+    theme: {
+      '--accent': '#FCCC12',
+      '--ink': '#111111',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Peacock Help Center',
+    disclaimer: 'NOT ACTUALLY A PEACOCK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Peacock product.',
+  },
 };
 
 function getOncallSkin(slug) {
