@@ -107,8 +107,9 @@ describe('hub demo alert destination (Slack / Teams)', () => {
     });
     expect(fields.Location.fontType).toBe('Monospace');
     expect(alertCard.body.filter((b) => b.type === 'ColumnSet')).toHaveLength(4);
-    const message = alertCard.body.find((b) => b.type === 'Container');
-    expect(message.items[0]).toMatchObject({ text: alert().errorValue, fontType: 'Monospace' });
+    expect(alertCard.body).toContainEqual(expect.objectContaining({
+      type: 'TextBlock', text: alert().errorValue, fontType: 'Monospace',
+    }));
     expect(alertCard.body.find((b) => b.type === 'ActionSet').actions.map((a) => a.title))
       .toEqual(['View in Sentry', 'View in Datadog']);
     expect(alertCard.body[alertCard.body.length - 1].text).toMatch(/^Service: banking-api \| \d{4}-/);
