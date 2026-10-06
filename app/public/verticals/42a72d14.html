@@ -111,6 +111,8 @@
       padding: 20px 18px; color: var(--ink); min-height: 44px;
     }
     .plan:hover { border-color: #9a9a9a; }
+    .plan:disabled { cursor: default; background: var(--wash); color: var(--muted); }
+    .plan:disabled:hover { border-color: var(--line); }
     .plan[aria-pressed="true"] { border: 2px solid var(--red); padding: 19px 17px; }
     .plan .tag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--red); text-transform: uppercase; letter-spacing: 0.4px; min-height: 18px; }
     .plan .name { font-size: 18px; font-weight: 700; margin-top: 4px; }
@@ -308,10 +310,9 @@
           <div class="form-group">
             <label for="currentPlan">Line</label>
             <select id="currentPlan">
-              <option value="BASIC-12" data-number="416-555-0142" data-holder="Alex Martin" data-plan="5G+ Lite &middot; $50/mo">416-555-0142 &mdash; Alex (5G+ Lite)</option>
-              <option value="PLUS-24" data-number="647-555-0187" data-holder="Jordan Martin" data-plan="5G+ Essentials &middot; $55/mo">647-555-0187 &mdash; Jordan (5G+ Essentials)</option>
-              <option value="ULTRA-36" data-number="905-555-0119" data-holder="Sam Martin" data-plan="5G+ Popular &middot; $70/mo">905-555-0119 &mdash; Sam (5G+ Popular)</option>
-              <option value="FAMILY-PLUS-12" data-number="437-555-0163" data-holder="Riley Martin" data-plan="5G+ Ultimate &middot; $85/mo">437-555-0163 &mdash; Riley (5G+ Ultimate)</option>
+              <option value="BASIC-12" data-account="CUST-3001" data-number="416-555-0142" data-holder="Alex Martin" data-plan="5G+ Lite &middot; $50/mo">416-555-0142 &mdash; Alex (5G+ Lite)</option>
+              <option value="PLUS-24" data-account="CUST-3002" data-number="647-555-0187" data-holder="Jordan Martin" data-plan="5G+ Essentials &middot; $55/mo">647-555-0187 &mdash; Jordan (5G+ Essentials)</option>
+              <option value="ULTRA-36" data-account="CUST-3003" data-number="905-555-0119" data-holder="Sam Martin" data-plan="5G+ Popular &middot; $70/mo">905-555-0119 &mdash; Sam (5G+ Popular)</option>
             </select>
           </div>
           <div class="form-group">
@@ -342,7 +343,7 @@
             <div class="big"><span>Monthly plan total</span><span id="totAll">$70.00/mo</span></div>
           </div>
           <div class="terms">
-            <input type="checkbox" id="agree" checked>
+            <input type="checkbox" id="agree" required checked>
             <label for="agree">I agree to the plan terms and understand my new plan starts today.</label>
           </div>
           <button type="submit" class="btn-submit" id="submitBtn">Confirm plan change</button>
@@ -350,7 +351,7 @@
         <div id="result" class="result-box" role="status" aria-live="polite"></div>
         <ul class="info-list">
           <li><span>Starts</span><span>Today</span></li>
-          <li><span>Account</span><span>Ending in 3001</span></li>
+          <li><span>Account</span><span id="sumAccount">Ending in 3001</span></li>
           <li><span>Need help?</span><span>Chat with us in the Rogers app</span></li>
         </ul>
       </section>
@@ -407,6 +408,17 @@
         document.getElementById('sumNumber').textContent = line.dataset.number;
         document.getElementById('sumHolder').textContent = line.dataset.holder;
         document.getElementById('sumPlan').textContent = line.dataset.plan;
+        document.getElementById('sumAccount').textContent = 'Ending in ' + line.dataset.account.slice(-4);
+
+        Array.prototype.forEach.call(planSel.options, (o) => { o.disabled = o.value === lineSel.value; });
+        if (selectedOption(planSel).disabled) {
+          planSel.value = Array.prototype.find.call(planSel.options, (o) => !o.disabled).value;
+        }
+        tiles.forEach((t) => {
+          const isCurrent = t.dataset.plan === lineSel.value;
+          t.disabled = isCurrent;
+          t.querySelector('.tag').textContent = isCurrent ? 'Your plan' : t.dataset.tag;
+        });
 
         const plan = Number(selectedOption(planSel).dataset.price);
         const addon = selectedOption(addonSel);
@@ -419,6 +431,7 @@
         tiles.forEach((t) => t.setAttribute('aria-pressed', String(t.dataset.plan === planSel.value)));
       }
 
+      tiles.forEach((t) => { t.dataset.tag = t.querySelector('.tag').textContent; });
       tiles.forEach((t) => t.addEventListener('click', () => {
         planSel.value = t.dataset.plan;
         renderSummary();
@@ -426,6 +439,22 @@
       [lineSel, planSel, addonSel].forEach((el) => el.addEventListener('change', renderSummary));
       form.addEventListener('reset', () => setTimeout(renderSummary, 0));
       renderSummary();
+
+      function showResult(kind, title, lines) {
+        const result = document.getElementById('result');
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        const head = document.createElement('div');
+        head.className = 'result-title';
+        head.textContent = title;
+        result.appendChild(head);
+        lines.forEach((text) => {
+          const line = document.createElement('div');
+          line.className = 'result-detail';
+          line.textContent = text;
+          result.appendChild(line);
+        });
+      }
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -442,7 +471,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              accountId: 'CUST-3001',
+              accountId: selectedOption(lineSel).dataset.account,
               currentPlanCode: lineSel.value,
               targetPlanCode: planSel.value,
               billingDay: 15,
@@ -453,21 +482,16 @@
           });
           const data = await response.json().catch(() => ({}));
           if (!response.ok || !data.success) {
-            result.className = 'result-box error';
-            result.innerHTML = '<div class="result-title">We couldn\u2019t change your plan right now</div>'
-              + '<div class="result-detail">Your current plan hasn\u2019t changed. Please try again in a few minutes.</div>';
+            showResult('error', 'We couldn\u2019t change your plan right now',
+              ['Your current plan hasn\u2019t changed. Please try again in a few minutes.']);
           } else {
             const ref = String(data.upgradeId || '').replace(/-/g, '').slice(0, 10).toUpperCase();
-            result.className = 'result-box success';
-            result.innerHTML = '<div class="result-title">Your plan change is confirmed</div>'
-              + '<div class="result-detail">' + lineNumber + ' is now on ' + planLabel
-              + (data.effectiveDate ? ', starting ' + data.effectiveDate : '')
-              + '.<br>Confirmation number ' + ref + '</div>';
+            const starts = /^\d{4}-\d{2}-\d{2}$/.test(data.effectiveDate || '') ? ', starting ' + data.effectiveDate : '';
+            showResult('success', 'Your plan change is confirmed',
+              [lineNumber + ' is now on ' + planLabel + starts + '.', 'Confirmation number ' + ref]);
           }
         } catch (err) {
-          result.className = 'result-box error';
-          result.innerHTML = '<div class="result-title">We couldn\u2019t reach MyRogers</div>'
-            + '<div class="result-detail">Check your connection and try again.</div>';
+          showResult('error', 'We couldn\u2019t reach MyRogers', ['Check your connection and try again.']);
         } finally {
           btn.disabled = false;
           btn.textContent = 'Confirm plan change';
