@@ -111,13 +111,16 @@ describe('hub demo alert destination (Slack / Teams)', () => {
       type: 'TextBlock', text: alert().errorValue, fontType: 'Monospace',
     }));
     expect(alertCard.body.find((b) => b.type === 'ActionSet').actions.map((a) => a.title))
-      .toEqual(['View in Sentry', 'View in Datadog']);
+      .toEqual(['Watch Devin', 'View in Sentry', 'View in Datadog']);
+    expect(alertCard.body.find((b) => b.type === 'ActionSet').actions[0].url)
+      .toBe('https://app.devin.ai/automations/5604e34de0df4e4da8e8f3ccc5659899');
     expect(alertCard.body[alertCard.body.length - 1].text).toMatch(/^Service: banking-api \| Location: app\/services\/verticals\/banking\.js \| Type: TypeError \| \d{4}-/);
 
     const text = axios.post.mock.calls[0][1].text;
     expect(text).toContain('<b>Location:</b> app/services/verticals/banking.js');
     expect(text).toContain('<code>Cannot read properties');
     expect(text).toContain('>View in Sentry</a>');
+    expect(text).toContain('>Watch Devin</a>');
   });
 
   test('Teams without a server webhook falls back to Slack', async () => {
