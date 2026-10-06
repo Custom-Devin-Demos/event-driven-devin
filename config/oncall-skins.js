@@ -9,7 +9,9 @@
  * /oncall/c/<slug>/incident serves an opted-in incident console. The alerts
  * surface is enabled by default; bugPortal and incident are optional opt-in
  * surfaces. An incident may optionally define chatter.vocabulary as a flat
- * source-phrase-to-replacement map. The generic /oncall hub itself is never
+ * source-phrase-to-replacement map, and incident.copy / bugPortal.copy may
+ * override the shared console's / portal's own UI strings (flat string maps,
+ * optional BCP 47 `lang`) so a localized skin stays localized on every surface. The generic /oncall hub itself is never
  * skinned. Adding a customer = adding one entry here.
  *
  * Two separate theme keys, one per surface: page.theme themes the stock
@@ -3108,7 +3110,90 @@ const ONCALL_SKINS = {
       impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served slots that open at a fixed time are hit hardest.',
     },
     supportCenter: 'manabiba サポート',
-    disclaimer: 'NOT ACTUALLY A MANABIBA SITE — manabiba is a fictional brand; internal demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・社内デモ用）。',
+    disclaimer: 'NOT ACTUALLY A MANABIBA SITE — manabiba is a fictional brand; demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・デモ用）。',
+    supportCenterSub: 'お問い合わせ・不具合の報告',
+    // Bug-report portal opt-in: /oncall/c/4875267e/report. Product areas and
+    // templates are the attendee/organizer vocabulary of the event page; the
+    // template ids stay the shared hightech BUG_CATALOG ids so a filed report
+    // describes the same standing staged slowdown the alert track exercises.
+    // `copy` localizes the shared portal's own UI strings (same pattern as
+    // incident.copy on the SEV-1 console).
+    bugPortal: {
+      products: [
+        {
+          area: 'hightech',
+          label: 'manabiba — イベント申し込み',
+          persona: { name: '佐藤 美咲', email: 'misaki.sato@kumo-mail.jp', sev: 'Medium' },
+          templates: [
+            {
+              id: 'hightech-provision-slowdown',
+              label: 'イベントの申し込みが遅い',
+              sev: 'Medium',
+              text: '勉強会の「このイベントに申し込む」ボタンを押すと、申し込みが確定するまで毎回 7〜8 秒ほど待たされます。エラーにはならず最終的には申し込めるのですが、試すたびに少しずつ遅くなっている気がします。同じ勉強会に申し込んだ他の参加者からも同じ声が出ています。',
+            },
+            {
+              id: 'hightech-renewal-slow',
+              label: '大規模イベントの先着受付が追いつかない',
+              sev: 'High',
+              text: '主催者です。今週末に開催する 200 名規模のカンファレンスで先着順の受付を開始したところ、参加者から「申し込みボタンを押しても画面が固まったまま」という問い合わせが相次いでいます。受付自体は通るようですが毎回かなり待たされ、キャンセル待ちの繰り上げ処理も同じように遅いです。土曜日が本番なので、それまでに解消したいです。',
+            },
+          ],
+        },
+      ],
+      copy: {
+        lang: 'ja',
+        title: '不具合を報告',
+        navHelp: 'ヘルプ',
+        navStatus: 'サービス稼働状況',
+        navReport: '不具合を報告',
+        heroTitle: 'サポートへのお問い合わせ',
+        heroIntro: 'サービスの不具合をご報告いただくフォームです。対象の機能、実際に起きたこと、期待していた動作をご記入ください。サポートエンジニアリングチームが内容を確認します。',
+        formHeading: 'お問い合わせ内容',
+        nameLabel: 'お名前',
+        emailLabel: 'メールアドレス',
+        productLabel: '対象の機能',
+        productPlaceholder: '対象の機能を選択してください…',
+        templateLabel: 'どのような問題ですか？',
+        severityLabel: '影響度',
+        sevLow: '低',
+        sevLowDesc: '軽微な不便',
+        sevMedium: '中',
+        sevMediumDesc: '一部の機能が使いづらい',
+        sevHigh: '高',
+        sevHighDesc: '作業が止まっている',
+        sevCritical: '緊急',
+        sevCriticalDesc: '参加者に影響が出ている',
+        descriptionLabel: '何が起きましたか？',
+        descriptionHint: '何をしようとしたか、期待していた動作、実際に起きたことをご記入ください。',
+        descriptionPlaceholder: '例：イベントの申し込みボタンを押したところ、確定するまで 10 秒ほど待たされました…',
+        resetTemplate: 'テンプレートに戻す',
+        submitButton: '報告を送信',
+        privacyNote: '内容はオンコールのエンジニアリングキューにも共有されます。',
+        asideBeforeTitle: '送信前にご確認ください',
+        asideTipStatus: '既知の障害がないか{link}をご確認ください。',
+        asideTipStatusLink: 'サービス稼働状況ページ',
+        asideTipRetry: '一時的なネットワークエラーは、再試行で解消する場合があります。',
+        asideTipWhen: '問題が発生し始めた時刻をご記入ください。',
+        slaTitle: '対応目標時間',
+        slaCritical: '15 分',
+        slaHigh: '1 時間',
+        slaMedium: '4 時間',
+        slaLow: '1 営業日',
+        footerQueue: 'サポートエンジニアリングキュー',
+        footerPrivacy: 'プライバシー',
+        footerTerms: '利用規約',
+        errName: 'お名前を入力してください。',
+        errEmail: '有効なメールアドレスを入力してください。',
+        errProduct: '対象の機能を選択してください。',
+        errDescription: '何が起きたかをご記入ください。',
+        submitting: '報告を送信しています…',
+        submittedOk: '報告を受け付けました。サポートエンジニアリングチームに共有し、オンコールキューに登録しました。追ってメールでご連絡します。',
+        submittedSkipped: '報告をこの環境に記録しました。チケット配信が設定されていないため、サポートキューには送信されていません。',
+        submittedSkippedActivated: ' 報告いただいた事象は再現できるよう、この環境で {minutes} 分間有効になっています。',
+        submitFailed: '報告の送信中に問題が発生しました。もう一度お試しください。',
+        submitRateLimited: 'この操作の送信回数が上限に達しました。しばらく時間をおいてから再度お試しください。',
+      },
+    },
     // SEV-1 opt-in: the same hightech story the alert track degrades, so the
     // shared console at /oncall/c/4875267e/incident tells the same story as
     // the page. `copy` localizes the console's own UI strings; the
@@ -3230,6 +3315,178 @@ const ONCALL_SKINS = {
     supportCenter: 'WTW Software Support',
     supportCenterSub: 'Insurance Consulting & Technology — Incident Intake',
     disclaimer: 'NOT ACTUALLY A WTW SITE — internal demo only, not affiliated with, endorsed by, or a real WTW product.',
+  },
+  '059b9215': {
+    slug: '059b9215',
+    company: '菱陽システムズ',
+    brandMark: 'T',
+    vertical: 'insurance',
+    page: {
+      // Natively branded Japanese maintenance-DX portal under the fictional
+      // brand "菱陽システムズ / 点検クラウド TENLOG" (an original mark and
+      // name, not a clone of any real inspection product): field inspectors
+      // submit inspection results and the service generates the inspection
+      // report. The submission form reuses the insurance claim ids so the
+      // shared shim reroutes and degrades it with no backend changes. Two
+      // tracks share the one file: /oncall/c/059b9215 is the shimmed 504
+      // alert, and the bare /059b9215 posts to its own inspection API
+      // (app/routes/verticals/059b9215.js → /api/059b9215/inspection) whose
+      // failure runs the legacy error track (Sentry → Slack → Devin).
+      file: '059b9215.html',
+      title: '点検結果の提出 - 点検クラウド TENLOG | 菱陽システムズ',
+    },
+    theme: {
+      '--accent': '#d9532b',
+      '--ink': '#1f2a37',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#132c45',
+      '--chrome-text': '#f4f7fb',
+    },
+    alertCard: {
+      title: '5xx rate spiking — inspection result submissions',
+      team: 'inspection-platform-oncall',
+      symptom: 'Inspection result submissions hang ~8s and then fail with 504 Gateway Timeout; no inspection report is generated. Upstream dependency latency on the submission path is elevated.',
+      impact: 'Field inspectors cannot submit inspection results from site; every submission times out after a long hang and the inspection report is never generated.',
+    },
+    // SEV-1 opt-in: the same insurance story the alert track degrades. `copy`
+    // localizes the shared console's own UI strings; the vocabulary swaps the
+    // story's product nouns in the responder chatter. Service names and
+    // endpoints stay truthful.
+    incident: {
+      kind: 'insurance-claims',
+      copy: {
+        lang: 'ja',
+        title: 'SEV-1 インシデントコンソール',
+        eyebrow: '重大インシデント対応',
+        heading: 'SEV-1 インシデントコンソール',
+        intro: 'このサービスの重大インシデントを宣言し、状況を監視します。',
+        brandSub: 'SEV-1 インシデントコンソール',
+        footer: 'インシデント対応',
+        liveTitle: '現在のインシデント状況',
+        liveDesc: 'このセッションで宣言されたインシデントの一覧です。',
+        loadingState: 'インシデント状況を読み込んでいます。',
+        noOpenIncidents: '対応中のインシデントはありません。',
+        stateUnavailable: 'インシデント状況を取得できません',
+        declareTitle: 'インシデントを宣言',
+        declareDesc: 'このサービスに関連する SEV-1 を宣言します。',
+        loadingDefinition: 'インシデント定義を読み込んでいます。',
+        definitionUnavailable: 'インシデント定義を取得できません',
+        declareButton: 'SEV-1 インシデントを宣言する',
+        incidentFallback: 'SEV-1 インシデント',
+        status: 'ステータス',
+        autoResolvesIn: '自動解決まで',
+        publicId: '公開 IR ID',
+        pendingProviderId: 'プロバイダ ID 発行待ち',
+        incidentRef: 'インシデント参照番号',
+        declaredAt: '宣言日時',
+        resolved: '解決済み',
+        windowElapsed: '対応期間終了',
+        resolveFailed: '自動解決に失敗',
+        declaring: 'インシデントを宣言しています…',
+        declaredDatadog: 'SEV-1 を宣言しました（IR-{id}、参照 {ref}）。Slack チャンネルを作成中…',
+        declaredSlack: 'SEV-1 を {channel} に投稿しました（参照 {ref}）。',
+        declareFailed: 'インシデントの宣言に失敗しました。',
+      },
+      chatter: {
+        vocabulary: {
+          // Story title/summary (shown on the console) in Japanese; the
+          // endpoint, service name and status code stay as the monitor says.
+          'Claim submissions failing': '点検結果の提出が失敗',
+          'hangs ~8s then fails with': 'への提出が約8秒ハングしたのち、',
+          'on ~100% of submissions. Policyholders cannot file claims through the portal.':
+            'でほぼ 100% が失敗しています。現場の点検員はポータルから点検結果を提出できません。',
+          'Quotes and policy reads are fine': 'Facility lookups and past report reads are fine',
+          'claim submissions': 'inspection result submissions',
+          'claim submission': 'inspection result submission',
+          'adjudication vendor': 'report-generation vendor',
+          'policyholders': 'field inspectors',
+          'claims path': 'inspection submission path',
+          'one claim': 'one submission',
+        },
+      },
+    },
+    // Bug-report portal opt-in (/oncall/c/059b9215/report): one product area
+    // backed by the insurance catalog so the templates keep their real repro
+    // mapping; the copy is what a field inspector / safety manager would write.
+    bugPortal: {
+      copy: {
+        lang: 'ja',
+        title: 'お問い合わせ・不具合報告',
+        navHelp: 'ヘルプ記事',
+        navStatus: 'サービス稼働状況',
+        navReport: '不具合を報告',
+        heroTitle: 'サポートリクエストの送信',
+        heroIntro: '製品の不具合を報告するフォームです。対象の機能、発生した事象、期待していた結果を記入してください。サポートエンジニアリングが内容を確認します。',
+        formHeading: '不具合の内容',
+        nameLabel: 'お名前',
+        emailLabel: '業務用メールアドレス',
+        productLabel: '対象の機能',
+        productPlaceholder: '対象の機能を選択してください…',
+        templateLabel: 'どのような問題ですか？',
+        severityLabel: '重要度',
+        sevLow: '低',
+        sevLowDesc: '軽微な不便',
+        sevMedium: '中',
+        sevMediumDesc: '機能が劣化',
+        sevHigh: '高',
+        sevHighDesc: '業務が止まっている',
+        sevCritical: '緊急',
+        sevCriticalDesc: '顧客に影響',
+        descriptionLabel: '何が起きましたか？',
+        descriptionHint: '何をしようとして、何を期待し、実際に何が起きたかを記入してください。',
+        resetTemplate: 'テンプレートに戻す',
+        descriptionPlaceholder: '例: 点検結果を提出したところ、10秒ほど待たされたあとエラーになりました…',
+        submitButton: '報告を送信',
+        privacyNote: '報告はオンコールエンジニアリングのキューに転送されます。',
+        asideBeforeTitle: '送信前にご確認ください',
+        asideTipStatus: '{link}で既知の障害を確認してください。',
+        asideTipStatusLink: 'サービス稼働状況ページ',
+        asideTipRetry: '一時的なネットワークエラーは再試行で解消する場合があります。',
+        asideTipWhen: '問題が始まった時刻を記入してください。',
+        slaTitle: '初動目標',
+        slaCritical: '15分',
+        slaHigh: '1時間',
+        slaMedium: '4時間',
+        slaLow: '1営業日',
+        footerQueue: 'サポートエンジニアリングキュー',
+        footerPrivacy: 'プライバシー',
+        footerTerms: '利用規約',
+        errName: 'お名前を入力してください。',
+        errEmail: '有効なメールアドレスを入力してください。',
+        errProduct: '対象の機能を選択してください。',
+        errDescription: '発生した事象を記入してください。',
+        submitting: '報告を送信しています…',
+        submittedSkipped: '報告をローカルに記録しました。この環境ではチケット配信が設定されていないため、サポートキューには転送されていません。',
+        submittedSkippedActivated: ' 報告された事象を再現できるよう、この環境で {minutes} 分間有効になっています。',
+        submittedOk: '報告を受け付けました。サポートエンジニアリングチームに転送し、オンコールキューに登録しました。追って担当者からメールで連絡します。',
+        submitFailed: '報告の送信中にエラーが発生しました。もう一度お試しください。',
+        submitRateLimited: 'この操作の送信回数が上限に達しました。しばらく時間をおいてから再度お試しください。',
+      },
+      products: [
+        {
+          area: 'insurance',
+          label: '点検クラウド TENLOG — 点検結果の提出・成績書',
+          persona: { name: '佐藤 健一', email: 'k.sato@towa-hoan.example', sev: 'High' },
+          templates: [
+            {
+              id: 'insurance-claim-timeout',
+              label: '点検結果の提出がタイムアウトする',
+              sev: 'High',
+              text: '現場の点検員からの報告です。点検結果を入力して「点検結果を提出」を押すと、10秒近く待たされたあと「ゲートウェイタイムアウト」のエラーになり、成績書が生成されません。点検種別を変えて4回やり直しましたが、毎回同じように止まってタイムアウトします。施設情報の表示や過去の成績書の閲覧は問題ありません。',
+            },
+            {
+              id: 'insurance-storm-claims',
+              label: '年次点検の一斉提出が全件失敗',
+              sev: 'Critical',
+              text: '保安管理の立場からエスカレーションします。本日は受配電設備の年次点検報告の締切で、点検員約20名が現場から一斉に提出していますが、1件も通りません。すべて「提出中」のまま止まり、最後にタイムアウトのエラーで終わります。現場では紙の成績書を手書きで起こし始めており、顧客への報告期限に影響が出ています。',
+            },
+          ],
+        },
+      ],
+    },
+    supportCenter: 'TENLOG サポートセンター',
+    supportCenterSub: '点検クラウド TENLOG カスタマーサポート',
+    disclaimer: 'NOT ACTUALLY A RYOYO SYSTEMS SITE — 菱陽システムズ and 点検クラウド TENLOG are fictional brands; demo only, not affiliated with, endorsed by, or a product of any real company. ／ 実在する企業・サービスのサイトではありません（架空ブランド・デモ用）。',
   },
 };
 
