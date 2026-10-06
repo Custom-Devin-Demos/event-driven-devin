@@ -2804,6 +2804,28 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Prior Authorization Portal Resource Center',
     disclaimer: 'Internal demo only — fictional product build, not affiliated with or endorsed by Surescripts.',
   },
+  'e8abbeff': {
+    slug: 'e8abbeff',
+    company: 'Tubi',
+    brandMark: 't',
+    vertical: 'hightech',
+    page: { file: 'e8abbeff.html', title: 'Activate Tubi on Your Device' },
+    alertCard: {
+      title: 'p95 latency trending up \u2014 device activation',
+      team: 'device-activation-oncall',
+      symptom: 'Device activation latency jumped after the last release and creeps higher with every request. Process RSS trends up alongside it.',
+      impact: 'Viewers entering the code from their TV wait several seconds on Activate, and the wait grows under sustained traffic.',
+    },
+    theme: {
+      '--accent': '#FFFF13',
+      '--ink': '#0B0019',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0B0019',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Tubi Support',
+    disclaimer: 'NOT ACTUALLY A TUBI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Tubi product.',
+  },
 };
 
 function getOncallSkin(slug) {
