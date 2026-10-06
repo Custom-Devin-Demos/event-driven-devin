@@ -18,6 +18,7 @@ const {
   isPlainObject,
   isValidChatterVocabulary,
   isValidIncidentCopy,
+  isValidBugPortalCopy,
   getSev1State,
   setOncallConfigOverride,
   getOncallConfigView,
@@ -228,6 +229,9 @@ for (const skin of Object.values(ONCALL_SKINS)) {
       skin: skin.slug,
       templateId: skin.trigger.templateId,
     });
+  }
+  if (skin.bugPortal && skin.bugPortal.copy != null && !isValidBugPortalCopy(skin.bugPortal.copy)) {
+    logger.warn('On-Call skin bug portal copy is invalid', { skin: skin.slug });
   }
   const products = (skin.bugPortal && skin.bugPortal.products) || [];
   for (const product of products) {

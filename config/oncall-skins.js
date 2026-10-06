@@ -9,7 +9,9 @@
  * /oncall/c/<slug>/incident serves an opted-in incident console. The alerts
  * surface is enabled by default; bugPortal and incident are optional opt-in
  * surfaces. An incident may optionally define chatter.vocabulary as a flat
- * source-phrase-to-replacement map. The generic /oncall hub itself is never
+ * source-phrase-to-replacement map, and incident.copy / bugPortal.copy may
+ * override the shared console's / portal's own UI strings (flat string maps,
+ * optional BCP 47 `lang`) so a localized skin stays localized on every surface. The generic /oncall hub itself is never
  * skinned. Adding a customer = adding one entry here.
  *
  * Two separate theme keys, one per surface: page.theme themes the stock
@@ -3263,12 +3265,53 @@ const ONCALL_SKINS = {
       symptom: 'Inspection result submissions hang ~8s and then fail with 504 Gateway Timeout; no inspection report is generated. Upstream dependency latency on the submission path is elevated.',
       impact: 'Field inspectors cannot submit inspection results from site; every submission times out after a long hang and the inspection report is never generated.',
     },
+    // SEV-1 opt-in: the same insurance story the alert track degrades. `copy`
+    // localizes the shared console's own UI strings; the vocabulary swaps the
+    // story's product nouns in the responder chatter. Service names and
+    // endpoints stay truthful.
     incident: {
       kind: 'insurance-claims',
+      copy: {
+        lang: 'ja',
+        title: 'SEV-1 インシデントコンソール',
+        eyebrow: '重大インシデント対応',
+        heading: 'SEV-1 インシデントコンソール',
+        intro: 'このサービスの重大インシデントを宣言し、状況を監視します。',
+        brandSub: 'SEV-1 インシデントコンソール',
+        footer: 'インシデント対応',
+        liveTitle: '現在のインシデント状況',
+        liveDesc: 'このセッションで宣言されたインシデントの一覧です。',
+        loadingState: 'インシデント状況を読み込んでいます。',
+        noOpenIncidents: '対応中のインシデントはありません。',
+        stateUnavailable: 'インシデント状況を取得できません',
+        declareTitle: 'インシデントを宣言',
+        declareDesc: 'このサービスに関連する SEV-1 を宣言します。',
+        loadingDefinition: 'インシデント定義を読み込んでいます。',
+        definitionUnavailable: 'インシデント定義を取得できません',
+        declareButton: 'SEV-1 インシデントを宣言する',
+        incidentFallback: 'SEV-1 インシデント',
+        status: 'ステータス',
+        autoResolvesIn: '自動解決まで',
+        publicId: '公開 IR ID',
+        pendingProviderId: 'プロバイダ ID 発行待ち',
+        incidentRef: 'インシデント参照番号',
+        declaredAt: '宣言日時',
+        resolved: '解決済み',
+        windowElapsed: '対応期間終了',
+        resolveFailed: '自動解決に失敗',
+        declaring: 'インシデントを宣言しています…',
+        declaredDatadog: 'SEV-1 を宣言しました（IR-{id}、参照 {ref}）。Slack チャンネルを作成中…',
+        declaredSlack: 'SEV-1 を {channel} に投稿しました（参照 {ref}）。',
+        declareFailed: 'インシデントの宣言に失敗しました。',
+      },
       chatter: {
         vocabulary: {
-          'Claim submissions failing': 'Inspection result submissions failing',
-          'Policyholders cannot file claims through the portal': 'Field inspectors cannot submit inspection results through the portal',
+          // Story title/summary (shown on the console) in Japanese; the
+          // endpoint, service name and status code stay as the monitor says.
+          'Claim submissions failing': '点検結果の提出が失敗',
+          'hangs ~8s then fails with': 'への提出が約8秒ハングしたのち、',
+          'on ~100% of submissions. Policyholders cannot file claims through the portal.':
+            'でほぼ 100% が失敗しています。現場の点検員はポータルから点検結果を提出できません。',
           'Quotes and policy reads are fine': 'Facility lookups and past report reads are fine',
           'claim submissions': 'inspection result submissions',
           'claim submission': 'inspection result submission',
@@ -3279,7 +3322,85 @@ const ONCALL_SKINS = {
         },
       },
     },
+    // Bug-report portal opt-in (/oncall/c/059b9215/report): one product area
+    // backed by the insurance catalog so the templates keep their real repro
+    // mapping; the copy is what a field inspector / safety manager would write.
+    bugPortal: {
+      copy: {
+        lang: 'ja',
+        title: 'お問い合わせ・不具合報告',
+        navHelp: 'ヘルプ記事',
+        navStatus: 'サービス稼働状況',
+        navReport: '不具合を報告',
+        heroTitle: 'サポートリクエストの送信',
+        heroIntro: '製品の不具合を報告するフォームです。対象の機能、発生した事象、期待していた結果を記入してください。サポートエンジニアリングが内容を確認します。',
+        issueDetails: '不具合の内容',
+        nameLabel: 'お名前',
+        emailLabel: '業務用メールアドレス',
+        productLabel: '対象の機能',
+        productPlaceholder: '対象の機能を選択してください…',
+        templateLabel: 'どのような問題ですか？',
+        severityLabel: '重要度',
+        sevLow: '低',
+        sevLowDesc: '軽微な不便',
+        sevMedium: '中',
+        sevMediumDesc: '機能が劣化',
+        sevHigh: '高',
+        sevHighDesc: '業務が止まっている',
+        sevCritical: '緊急',
+        sevCriticalDesc: '顧客に影響',
+        descLabel: '何が起きましたか？',
+        descHint: '何をしようとして、何を期待し、実際に何が起きたかを記入してください。',
+        resetTemplate: 'テンプレートに戻す',
+        descPlaceholder: '例: 点検結果を提出したところ、10秒ほど待たされたあとエラーになりました…',
+        submit: '報告を送信',
+        privacyNote: '報告はオンコールエンジニアリングのキューに転送されます。',
+        beforeTitle: '送信前にご確認ください',
+        beforeTip1: 'サービス稼働状況ページで既知の障害を確認してください。',
+        beforeTip2: '一時的なネットワークエラーは再試行で解消する場合があります。',
+        beforeTip3: '問題が始まった時刻を記入してください。',
+        slaTitle: '初動目標',
+        slaCritical: '15分',
+        slaHigh: '1時間',
+        slaMedium: '4時間',
+        slaLow: '1営業日',
+        footerQueue: 'サポートエンジニアリングキュー',
+        footerPrivacy: 'プライバシー',
+        footerTerms: '利用規約',
+        errName: 'お名前を入力してください。',
+        errEmail: '有効なメールアドレスを入力してください。',
+        errProduct: '対象の機能を選択してください。',
+        errDescription: '発生した事象を記入してください。',
+        submitting: '報告を送信しています…',
+        recordedLocally: '報告をローカルに記録しました。この環境ではチケット配信が設定されていないため、サポートキューには転送されていません。',
+        symptomActive: ' 報告された事象を再現できるよう、この環境で {minutes} 分間有効になっています。',
+        filed: '報告を受け付けました。サポートエンジニアリングチームに転送し、オンコールキューに登録しました。追って担当者からメールで連絡します。',
+        failed: '報告の送信中にエラーが発生しました。もう一度お試しください。',
+      },
+      products: [
+        {
+          area: 'insurance',
+          label: '点検クラウド TENLOG — 点検結果の提出・成績書',
+          persona: { name: '佐藤 健一', email: 'k.sato@towa-hoan.example', sev: 'High' },
+          templates: [
+            {
+              id: 'insurance-claim-timeout',
+              label: '点検結果の提出がタイムアウトする',
+              sev: 'High',
+              text: '現場の点検員からの報告です。点検結果を入力して「点検結果を提出」を押すと、10秒近く待たされたあと「ゲートウェイタイムアウト」のエラーになり、成績書が生成されません。点検種別を変えて4回やり直しましたが、毎回同じように止まってタイムアウトします。施設情報の表示や過去の成績書の閲覧は問題ありません。',
+            },
+            {
+              id: 'insurance-storm-claims',
+              label: '年次点検の一斉提出が全件失敗',
+              sev: 'Critical',
+              text: '保安管理の立場からエスカレーションします。本日は受配電設備の年次点検報告の締切で、点検員約20名が現場から一斉に提出していますが、1件も通りません。すべて「提出中」のまま止まり、最後にタイムアウトのエラーで終わります。現場では紙の成績書を手書きで起こし始めており、顧客への報告期限に影響が出ています。',
+            },
+          ],
+        },
+      ],
+    },
     supportCenter: 'TENLOG サポートセンター',
+    supportCenterSub: '点検クラウド TENLOG カスタマーサポート',
     disclaimer: 'NOT ACTUALLY A RYOYO SYSTEMS SITE — 菱陽システムズ and 点検クラウド TENLOG are fictional brands; demo only, not affiliated with, endorsed by, or a product of any real company. ／ 実在する企業・サービスのサイトではありません（架空ブランド・デモ用）。',
   },
 };

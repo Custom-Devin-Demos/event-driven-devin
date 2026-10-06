@@ -22,6 +22,8 @@ const { submitInspection, FACILITIES } = require('../app/services/verticals/059b
 const inspectionRouter = require('../app/routes/verticals/059b9215');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const { ONCALL_SKINS } = require('../config/oncall-skins');
+const { BUG_CATALOG, SEV1_INCIDENTS, isValidBugPortalCopy, isValidIncidentCopy, getSev1ChatterVocabulary, buildSev1IncidentCopy } = require('../app/services/oncall');
+const oncallRoutes = require('../app/routes/oncall');
 
 const PAGE = fs.readFileSync(path.join(__dirname, '../app/public/verticals/059b9215.html'), 'utf8');
 
@@ -106,6 +108,79 @@ describe('inspection result submission (059b9215)', () => {
     test('incident vocabulary leaves the truthful telemetry surface alone', () => {
       const sources = Object.keys(skin.incident.chatter.vocabulary);
       expect(sources.some((s) => /insurance-api|\/api\/oncall|504|monitor/i.test(s))).toBe(false);
+    });
+  });
+
+  describe('bug portal + console localization', () => {
+    const skin = ONCALL_SKINS['059b9215'];
+    const JP = /[\u3040-\u30ff\u4e00-\u9fff]/;
+
+    test('offers one TENLOG product area whose templates are real insurance catalog ids, written in Japanese', () => {
+      const products = skin.bugPortal.products;
+      expect(products).toHaveLength(1);
+      expect(products[0].area).toBe(skin.vertical);
+      expect(products[0].label).toMatch(JP);
+      expect(products[0].persona.name).toMatch(JP);
+      const catalogIds = BUG_CATALOG.insurance.map((t) => t.id);
+      for (const template of products[0].templates) {
+        expect(catalogIds).toContain(template.id);
+        expect(template.label).toMatch(JP);
+        expect(template.text).toMatch(JP);
+        expect(template.text).not.toMatch(/claim|policy|insur|保険/i);
+        expect(template.text).not.toMatch(/vendor|adjudicat|upstream|依存/i);
+      }
+    });
+
+    test('localizes the shared report portal and SEV-1 console UI strings without touching other skins', () => {
+      expect(isValidBugPortalCopy(skin.bugPortal.copy)).toBe(true);
+      expect(skin.bugPortal.copy.lang).toBe('ja');
+      expect(skin.bugPortal.copy.submit).toBe('報告を送信');
+      expect(skin.bugPortal.copy.symptomActive).toContain('{minutes}');
+      expect(isValidIncidentCopy(skin.incident.copy)).toBe(true);
+      expect(skin.incident.copy.lang).toBe('ja');
+      const story = SEV1_INCIDENTS['insurance-claims'];
+      const copy = buildSev1IncidentCopy(story, getSev1ChatterVocabulary(story, skin, 'insurance-claims'));
+      expect(copy.label).toBe('点検結果の提出が失敗 — insurance-api 504s');
+      expect(copy.title).toContain('504 Gateway Timeout on insurance-api');
+      expect(copy.summary).toContain('POST /api/oncall/insurance/claim');
+      expect(copy.summary).toContain('504');
+      expect(copy.summary).toContain('現場の点検員はポータルから点検結果を提出できません');
+      expect(copy.summary).not.toMatch(/claim submissions|policyholders/i);
+      expect(story.label).toBe('Claim submissions failing — insurance-api 504s');
+      expect(ONCALL_SKINS['63dbb52f'].bugPortal.copy).toBeUndefined();
+      expect(ONCALL_SKINS['e7c9dc7a'].incident.copy).toBeUndefined();
+    });
+
+    describe('report route', () => {
+      let server;
+      let baseUrl;
+      beforeAll(async () => {
+        const app = express();
+        app.use(express.json());
+        app.use(oncallRoutes);
+        await new Promise((resolve) => { server = app.listen(0, '127.0.0.1', resolve); });
+        baseUrl = `http://127.0.0.1:${server.address().port}`;
+      });
+      afterAll((done) => { server.close(done); });
+
+      test('/oncall/c/059b9215/report serves the portal with the skin and its Japanese copy', async () => {
+        const res = await fetch(`${baseUrl}/oncall/c/059b9215/report`);
+        expect(res.status).toBe(200);
+        const html = await res.text();
+        expect(html).toContain('window.ONCALL_SKIN');
+        expect(html).toContain('insurance-claim-timeout');
+        expect(html).toContain('サポートリクエストの送信');
+        expect(html).toContain('data-copy="heroTitle"');
+      });
+
+      test('the generic /oncall/report keeps its English defaults and no skin', async () => {
+        const res = await fetch(`${baseUrl}/oncall/report`);
+        expect(res.status).toBe(200);
+        const html = await res.text();
+        expect(html).not.toContain('window.ONCALL_SKIN =');
+        expect(html).toContain('<h1 data-copy="heroTitle">Submit a support request</h1>');
+        expect(html).not.toMatch(JP);
+      });
     });
   });
 

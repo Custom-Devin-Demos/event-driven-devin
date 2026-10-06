@@ -1546,11 +1546,15 @@ function isValidLocaleTag(tag) {
   }
 }
 
-function isValidIncidentCopy(copy) {
+// Skin-supplied UI-string overrides for a shared page (incident console,
+// report portal): a flat map of string values, optionally with a BCP 47 lang.
+function isValidSkinCopy(copy) {
   return isPlainObject(copy) &&
     Object.values(copy).every((value) => typeof value === 'string') &&
     (copy.lang === undefined || isValidLocaleTag(copy.lang));
 }
+const isValidIncidentCopy = isValidSkinCopy;
+const isValidBugPortalCopy = isValidSkinCopy;
 
 function replaceChatterVocabulary(text, vocabulary) {
   if (!isPlainObject(vocabulary)) return String(text);
@@ -2152,6 +2156,7 @@ module.exports = {
   isPlainObject,
   isValidChatterVocabulary,
   isValidIncidentCopy,
+  isValidBugPortalCopy,
   getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
   getSev1State,
