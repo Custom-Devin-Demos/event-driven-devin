@@ -197,53 +197,36 @@ describe('per-user alert destination (Slack or Teams, hub-local setting)', () =>
     const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams' });
     expect(result).toEqual({ ok: true, teams: true });
     expect(postMessage).not.toHaveBeenCalled();
+    expect(axios.post).toHaveBeenCalledTimes(1);
     expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
   });
 
-  test('a per-user webhook URL overrides the shared one', async () => {
+  test('a caller-supplied webhook URL is ignored', async () => {
     setEnv({ slack: true, teams: true });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', teamsWebhookUrl: USER_TEAMS_URL });
-    expect(result).toEqual({ ok: true, teams: true });
+    await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', teamsWebhookUrl: USER_TEAMS_URL });
     expect(axios.post).toHaveBeenCalledTimes(1);
-    expect(axios.post.mock.calls[0][0]).toBe(USER_TEAMS_URL);
-    expect(axios.post.mock.calls[0][2]).toMatchObject({ maxRedirects: 0 });
+    expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
   });
 
-  test('a per-user webhook works with no shared webhook configured', async () => {
-    setEnv({ slack: true, teams: false });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', teamsWebhookUrl: USER_TEAMS_URL });
-    expect(result).toEqual({ ok: true, teams: true });
-    expect(postMessage).not.toHaveBeenCalled();
-  });
-
-  test('Slack ignores a saved personal webhook', async () => {
-    setEnv({ slack: true, teams: false });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'slack', teamsWebhookUrl: USER_TEAMS_URL });
+  test('Slack posts to Slack only', async () => {
+    setEnv({ slack: true, teams: true });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'slack' });
     expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST' });
     expect(axios.post).not.toHaveBeenCalled();
   });
 
-  test('non-Teams URLs are never posted to, and Teams with no usable webhook fails instead of posting to Slack', async () => {
-    setEnv({ slack: true, teams: true });
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', teamsWebhookUrl: 'http://169.254.169.254/latest/meta-data' });
-    expect(result).toMatchObject({ ok: false, error: expect.stringMatching(/No Teams webhook/), teamsError: expect.stringMatching(/Teams Workflow webhook/) });
-    expect(postMessage).not.toHaveBeenCalled();
+  test('Teams with no webhook configured falls back to Slack and flags it', async () => {
+    setEnv({ slack: true, teams: false });
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams' });
+    expect(result).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST', teamsFailed: true });
     expect(axios.post).not.toHaveBeenCalled();
   });
 
-  test('an invalid per-user URL does not suppress server-managed Teams routing', async () => {
+  test('Teams with server-managed routing still posts Teams only', async () => {
     setEnv({ slack: true, teams: true });
     process.env.ONCALL_TEAMS_ALL_ALERTS = 'true';
-    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', teamsWebhookUrl: 'https://invalid.example/hook' });
-    expect(result).toMatchObject({ ok: true, teams: true, teamsError: expect.stringMatching(/Teams Workflow webhook/) });
-    expect(axios.post).toHaveBeenCalledTimes(1);
-    expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
-  });
-
-  test('Teams with no webhook at all fails without posting to Slack', async () => {
-    setEnv({ slack: true, teams: false });
     const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams' });
-    expect(result).toMatchObject({ ok: false, error: expect.stringMatching(/No Teams webhook/) });
+    expect(result).toEqual({ ok: true, teams: true });
     expect(postMessage).not.toHaveBeenCalled();
   });
 

@@ -115,12 +115,6 @@
     .status.err { background:var(--paper); border:1px solid var(--danger); color:var(--danger); }
     .teams-panel { display:flex; flex-direction:column; gap:10px; max-width:780px; margin:0 0 24px; }
     .teams-panel .adp { border-color:var(--line); background:var(--paper); }
-    .teams-hint:empty { display:none; }
-    .teams-hint { font-size:13px; color:var(--muted); line-height:1.5; }
-    .teams-hint.err { color:var(--danger); }
-    .teams-url { display:none; gap:8px; flex-wrap:wrap; }
-    .teams-panel.on .teams-url { display:flex; }
-    .teams-url input { flex:1; min-width:240px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font:12px var(--mono); color:var(--ink); background:var(--wash); }
     .wide-row { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:stretch; }
     .wide-card { display:flex; flex-direction:column; border:1px solid var(--line); border-radius:10px; padding:32px; background:var(--paper); color:var(--ink); text-decoration:none; transition:background .2s; }
     .wide-title { font:500 20px/1.15 var(--serif); margin-bottom:8px; }
@@ -213,10 +207,6 @@
       <p class="section-desc" id="alert-desc">Each card opens a branded page in on-call mode. Submit the customer action, it degrades, and an alert lands in <code>#oncall-alerts</code> for Devin to investigate. <span id="retry-note"></span></p>
       <div class="teams-panel" id="teams-panel">
         <div id="dest-picker"></div>
-        <div class="teams-url">
-          <input type="url" id="teams-url" placeholder="Optional: your own Teams Workflow webhook URL" autocomplete="off" spellcheck="false" aria-label="Teams Workflow webhook URL">
-        </div>
-        <div class="teams-hint" id="teams-hint"></div>
       </div>
       <div class="grid" id="alert-grid"></div>
     </div>
@@ -317,50 +307,11 @@
         'join the same incident and show the latency climbing.';
     }
 
-    // Per-user alert destination (Slack or Teams): stored only in this browser,
-    // shared with the demo hub, and sent with each alert trigger, so it never
-    // changes the shared server configuration.
-    var TEAMS_HOST_RE = /^https:\/\/[^\/?#@]+\.(logic\.azure\.com|api\.powerplatform\.com|webhook\.office\.com)(:443)?(\/|$)/i;
-    function setupTeamsToggle(teamsDefaultWebhook) {
-      var panel = document.getElementById('teams-panel');
-      var urlInput = document.getElementById('teams-url');
-      var hint = document.getElementById('teams-hint');
-      window.AlertDestination.mount(document.getElementById('dest-picker'));
-      urlInput.value = localStorage.getItem('oncallTeamsWebhookUrl') || '';
-      function render() {
-        var url = urlInput.value.trim();
-        var valid = !url || (url.length <= 2048 && TEAMS_HOST_RE.test(url));
-        var teams = window.AlertDestination.get() === 'teams';
-        panel.classList.toggle('on', teams);
-        hint.classList.toggle('err', teams && (!valid || (!url && !teamsDefaultWebhook)));
-        if (!teams) {
-          hint.textContent = '';
-        } else if (!valid) {
-          hint.textContent = 'That is not a Teams Workflow webhook URL (expected *.logic.azure.com or *.api.powerplatform.com).';
-        } else if (url) {
-          hint.textContent = 'Posting to your own Teams channel via this webhook.';
-        } else if (teamsDefaultWebhook) {
-          hint.textContent = 'Posting to the shared Teams channel. Paste your own Workflow webhook above to use your channel instead.';
-        } else {
-          hint.textContent = 'No shared Teams channel is configured on this server. Paste your Teams Workflow webhook URL above.';
-        }
-      }
-      window.AlertDestination.onChange(render);
-      urlInput.addEventListener('input', function () {
-        var url = urlInput.value.trim();
-        // Persist exactly what is shown, even when invalid: the server then
-        // refuses that Teams post rather than reusing a previously saved URL.
-        if (!url) localStorage.removeItem('oncallTeamsWebhookUrl');
-        else localStorage.setItem('oncallTeamsWebhookUrl', url);
-        render();
-      });
-      render();
-    }
-
     async function init() {
       const res = await fetch('/api/oncall/scenarios');
       const { scenarios, teamsDefaultWebhook } = await res.json();
-      setupTeamsToggle(Boolean(teamsDefaultWebhook));
+      // Per-user Slack/Teams choice, saved in this browser and shared with the demo hub.
+      window.AlertDestination.mount(document.getElementById('dest-picker'), { teamsAvailable: Boolean(teamsDefaultWebhook) });
 
       const grid = document.getElementById('alert-grid');
       grid.classList.add(`cols-${columnCount(scenarios.length)}`);

@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
-const { buildTeamsAlertCard, isTeamsWebhookUrl, postTeamsCard } = require('./teams');
+const { buildTeamsAlertCard, postTeamsCard } = require('./teams');
 const { createDevinSession } = require('./devin-api');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
@@ -712,25 +712,16 @@ async function postOncallAlert(scenarioId, options = {}) {
   const env = resolveOncallEnv();
   const { token, alertsChannel } = env;
   // destination: 'slack' | 'teams' from the presenter's hub choice. Teams skips
-  // Slack so one demo is never investigated by both the Slack and the Teams responder.
-  const teamsRequested = options.destination === 'teams';
-  const userTeamsUrl = teamsRequested ? options.teamsWebhookUrl : null;
-  const userTeamsUrlInvalid = Boolean(userTeamsUrl) && !isTeamsWebhookUrl(userTeamsUrl);
-  if (userTeamsUrlInvalid) {
-    logger.warn('Ignoring per-user Teams webhook: not a Teams Workflow webhook URL');
+  // Slack so one demo is never investigated by both the Slack and the Teams
+  // responder; with no Teams webhook configured it falls back to Slack.
+  const teamsWanted = options.destination === 'teams';
+  const teamsOnly = teamsWanted && Boolean(env.teamsWebhookUrl);
+  if (teamsWanted && !teamsOnly) {
+    logger.warn('Teams On-Call alert requested but ONCALL_TEAMS_WEBHOOK_URL is not set — posting to Slack');
   }
   const serverTeamsRouting = env.teamsAllAlerts || Boolean(skin && skin.teamsAlerts);
-  const teamsWebhookUrl = (!userTeamsUrlInvalid && userTeamsUrl)
-    || ((teamsRequested && !userTeamsUrlInvalid) || serverTeamsRouting ? env.teamsWebhookUrl : null);
-  const slackReady = Boolean(token && alertsChannel) && !teamsRequested;
-  if (teamsRequested && !teamsWebhookUrl) {
-    logger.warn('Teams-only On-Call alert requested but no usable Teams webhook — skipping alert post');
-    return {
-      ok: false,
-      error: 'No Teams webhook available — add one in the On-Call hub or send alerts to Slack',
-      ...(userTeamsUrlInvalid ? { teamsError: 'teamsWebhookUrl must be a Microsoft Teams Workflow webhook URL' } : {}),
-    };
-  }
+  const teamsWebhookUrl = teamsOnly || serverTeamsRouting ? env.teamsWebhookUrl : null;
+  const slackReady = Boolean(token && alertsChannel) && !teamsOnly;
   if (!slackReady && !teamsWebhookUrl) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');
     return { ok: false, skipped: true, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
@@ -801,8 +792,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     ok: true,
     ...(ts ? { ts, channel: alertsChannel } : {}),
     ...(teams ? { teams: true } : {}),
-    ...(teamsRequested && !teams ? { teamsFailed: true } : {}),
-    ...(userTeamsUrlInvalid ? { teamsError: 'teamsWebhookUrl must be a Microsoft Teams Workflow webhook URL' } : {}),
+    ...(teamsWanted && !teamsOnly ? { teamsFailed: true } : {}),
     ...(session ? { sessionUrl: session.url } : {}),
     ...(sonarPR ? { sonarPR: true } : {}),
   };

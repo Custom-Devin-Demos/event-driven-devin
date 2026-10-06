@@ -506,7 +506,6 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
                 devinUserId: localStorage.getItem('devinUserId') || '',
                 devinOrgId: localStorage.getItem('devinOrgId') || '',
                 alertDestination: alertDestination,
-                teamsWebhookUrl: alertDestination === 'teams' ? (localStorage.getItem('oncallTeamsWebhookUrl') || '') : '',
               };
           var postedMsg = bugTrigger ? 'Support ticket filed to ' + ${JSON.stringify(BUGS_CHANNEL_LABEL)} : 'Alert posted to ' + ${JSON.stringify(ALERTS_CHANNEL_LABEL)};
           var skippedMsg = bugTrigger ? 'Ticket skipped — no report reached Slack' : 'Alert post skipped — no alert reached Slack';
@@ -529,10 +528,9 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
             if (ribbonCollapsed) expandRibbon();
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             var deliveredMsg = !d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams');
-            if (d.teamsError) deliveredMsg += ' (your Teams webhook URL in the On-Call hub is invalid, so your own channel was skipped)';
-            else if (d.teamsFailed) deliveredMsg += ' (Teams post failed — check your webhook in the On-Call hub)';
+            if (d.teamsFailed) deliveredMsg += ' (Teams is not set up on this server, so it went to Slack)';
             el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
-            if (d.ok && !d.teamsFailed && !d.teamsError) scheduleCollapse();
+            if (d.ok && !d.teamsFailed) scheduleCollapse();
             else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }
           }).catch(function () {
             if (alertPostedAt === postedAt) alertPostedAt = 0;
@@ -578,7 +576,7 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
 }, oncallCap('trigger'), async (req, res) => {
   try {
     const {
-      unique, devinEmail, devinUserId, devinOrgId, skin, teamsWebhookUrl, alertDestination,
+      unique, devinEmail, devinUserId, devinOrgId, skin, alertDestination,
     } = req.body || {};
     const skinConfig = getOncallSkin(skin);
     const skinMatches = Boolean(skinConfig && skinConfig.vertical === req.params.vertical);
@@ -596,7 +594,6 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
       devinOrgId,
       skin: skinMatches ? skinConfig : null,
       destination: normalizeAlertDestination(alertDestination) || 'slack',
-      teamsWebhookUrl: typeof teamsWebhookUrl === 'string' && teamsWebhookUrl.trim() ? teamsWebhookUrl.trim() : null,
     });
     res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {
