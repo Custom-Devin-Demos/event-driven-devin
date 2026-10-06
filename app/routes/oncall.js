@@ -20,6 +20,7 @@ const {
   getOncallConfigView,
 } = require('../services/oncall');
 const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
+const { normalizeAlertDestination } = require('../services/alert-destination');
 const {
   FLEET,
   isFleetReport,
@@ -440,6 +441,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon) {
           alertPostedAt = postedAt;
           if (ribbonCollapsed) expandRibbon();
           const unique = document.getElementById('oncall-unique').checked;
+          var alertDestination = localStorage.getItem('alertDestination') === 'teams' ? 'teams' : 'slack';
           var triggerUrl = '/api/oncall/trigger/' + vertical;
           var triggerBody = {
               unique: unique,
@@ -447,6 +449,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon) {
               devinEmail: localStorage.getItem('devinEmail') || '',
               devinUserId: localStorage.getItem('devinUserId') || '',
               devinOrgId: localStorage.getItem('devinOrgId') || '',
+              alertDestination: alertDestination,
           };
           var postedMsg = 'Alert posted to ' + ${JSON.stringify(ALERTS_CHANNEL_LABEL)};
           var skippedMsg = 'Alert post skipped — no alert reached Slack';
@@ -469,8 +472,10 @@ function buildOncallShim(scenario, skinSlug, hideRibbon) {
             if (ribbonCollapsed) expandRibbon();
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             var deliveredMsg = !d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams');
+            if (d.teamsFailed) deliveredMsg += ' (Teams is not set up on this server, so it went to Slack)';
             el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
-            if (d.ok) scheduleCollapse();
+            if (d.ok && !d.teamsFailed) scheduleCollapse();
+            else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }
           }).catch(function () {
             if (alertPostedAt === postedAt) alertPostedAt = 0;
             if (ribbonCollapsed) expandRibbon();
@@ -514,7 +519,9 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
   next();
 }, oncallCap('trigger'), async (req, res) => {
   try {
-    const { unique, devinEmail, devinUserId, devinOrgId, skin } = req.body || {};
+    const {
+      unique, devinEmail, devinUserId, devinOrgId, skin, alertDestination,
+    } = req.body || {};
     const skinConfig = getOncallSkin(skin);
     const skinMatches = Boolean(skinConfig && skinConfig.vertical === req.params.vertical);
     if (skinConfig && !skinMatches) {
@@ -530,6 +537,7 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
       devinUserId,
       devinOrgId,
       skin: skinMatches ? skinConfig : null,
+      destination: normalizeAlertDestination(alertDestination),
     });
     res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {
@@ -661,7 +669,7 @@ router.get('/api/oncall/scenarios', (_req, res) => {
       symptom: s.symptom,
       retryWindow: Boolean(s.retryWindow),
     }));
-  res.json({ scenarios });
+  res.json({ scenarios, teamsDefaultWebhook: Boolean(process.env.ONCALL_TEAMS_WEBHOOK_URL) });
 });
 
 /**
