@@ -7,8 +7,9 @@
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="stylesheet" href="/devin-brand.css">
   <style>
-    .oc-incident { display:flex; align-items:center; justify-content:space-between; gap:12px 20px; flex-wrap:wrap; padding:14px 16px; border-radius:12px; background:var(--red-bg); border:1px solid rgba(176,0,32,.14); }
-    .oc-incident h3 { font-size:15px; font-weight:400; color:var(--red-ink); }
+    .oc-incident { display:flex; align-items:center; justify-content:space-between; gap:12px 20px; flex-wrap:wrap; padding:14px 16px; border-radius:12px; background:var(--surface); border:1px solid var(--line); }
+    .oc-incident h3 { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:400; }
+    .oc-incident h3::before { content:''; width:8px; height:8px; border-radius:50%; background:var(--red-ink); }
     .oc-incident p { font-size:13px; color:var(--muted); margin-top:2px; }
   </style>
 </head>
@@ -99,14 +100,14 @@
     };
 
     var VERTICAL_META = {
-      banking: { tint: 'blue', icon: ICONS.banking, vertical: 'Banking', desc: 'Transfer funds. Transfers take ~10s.' },
-      insurance: { tint: 'green', icon: ICONS.insurance, vertical: 'Insurance', desc: 'Submit a claim. It hangs, then returns a 504.' },
-      hightech: { tint: 'purple', icon: ICONS.hightech, vertical: 'High Tech', desc: 'Provision a license. Each request is slower than the last.' },
-      voice: { tint: 'orange', icon: ICONS.voice, vertical: 'Voice', desc: 'Finalize a transcript. Each one is slower than the last.' },
-      inference: { tint: 'purple', icon: ICONS.inference, vertical: 'Inference', desc: 'Run a completion. Time to first token rises each run.' },
-      telco: { tint: 'red', icon: ICONS.telco, vertical: 'Telco', desc: 'Upgrade a plan. Upgrades are slow.' },
-      industrials: { tint: 'orange', icon: ICONS.industrials, vertical: 'Industrials', desc: 'Request a quote for factory F3. It takes ~14s; other factories take ~310ms.' },
-      marketplace: { tint: 'green', icon: ICONS.marketplace, vertical: 'Marketplace', desc: 'Add to cart. It hangs ~8s, then returns a 504.' },
+      banking: { icon: ICONS.banking, vertical: 'Banking', desc: 'Transfer funds. Transfers take ~10s.' },
+      insurance: { icon: ICONS.insurance, vertical: 'Insurance', desc: 'Submit a claim. It hangs, then returns a 504.' },
+      hightech: { icon: ICONS.hightech, vertical: 'High Tech', desc: 'Provision a license. Each request is slower than the last.' },
+      voice: { icon: ICONS.voice, vertical: 'Voice', desc: 'Finalize a transcript. Each one is slower than the last.' },
+      inference: { icon: ICONS.inference, vertical: 'Inference', desc: 'Run a completion. Time to first token rises each run.' },
+      telco: { icon: ICONS.telco, vertical: 'Telco', desc: 'Upgrade a plan. Upgrades are slow.' },
+      industrials: { icon: ICONS.industrials, vertical: 'Industrials', desc: 'Request a quote for factory F3. It takes ~14s; other factories take ~310ms.' },
+      marketplace: { icon: ICONS.marketplace, vertical: 'Marketplace', desc: 'Add to cart. It hangs ~8s, then returns a 504.' },
     };
 
     // Column count the grid actually renders: a single row up to four cards,
@@ -153,13 +154,13 @@
       grid.classList.add(`cols-${columnCount(scenarios.length)}`);
       renderRetryNote(scenarios);
       scenarios.forEach((s) => {
-        const meta = VERTICAL_META[s.id] || { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/></svg>', vertical: s.id, desc: '', tint: 'blue' };
+        const meta = VERTICAL_META[s.id] || { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/></svg>', vertical: s.id, desc: '' };
         const link = document.createElement('a');
         link.className = 'dv-card';
         link.href = '/oncall/' + s.id;
         link.innerHTML =
           '<div class="dv-card-top">' +
-            '<span class="dv-chip t-' + meta.tint + '">' + meta.icon + '</span>' +
+            '<span class="dv-chip">' + meta.icon + '</span>' +
             '<div><div class="dv-card-kicker">' + escapeHtml(meta.vertical) + '</div>' +
             '<div class="dv-card-title">' + escapeHtml(s.brand.replace(/ \(.*\)$/, '')) + '</div></div>' +
             '<svg class="dv-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17 17 7M8 7h9v9"/></svg>' +
