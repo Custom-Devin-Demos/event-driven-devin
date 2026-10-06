@@ -2793,6 +2793,7 @@ const ONCALL_SKINS = {
     alertCard: {
       title: 'p95 latency trending up \u2014 client site user provisioning',
       release: 'client-portal@1.0.3',
+      baseline: '~350ms (7-day p95, before client-portal@1.0.3)',
       team: 'client-portal-oncall',
       symptom: 'Adding users to client collaboration sites slowed after the last release and gets slower with every request. Process RSS trends up alongside it.',
       impact: 'Every client admin adding colleagues to an engagement site waits longer with each submission; busy-season onboarding is hit hardest.',
