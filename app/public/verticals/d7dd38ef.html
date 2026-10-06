@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File a claim | MetLife MyBenefits</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #0061a0;
+      --blue-deep: #00456e;
+      --blue-bright: #0090da;
+      --blue-wash: #e8f3fa;
+      --green: #a4ce4e;
+      --green-dark: #4f7a12;
+      --green-wash: #f1f8e6;
+      --ink: #1f2a33;
+      --ink-2: #3d4a55;
+      --muted: #66737e;
+      --line: #d6dee5;
+      --paper: #ffffff;
+      --bad: #b3261e;
+      --warn: #9a5b00;
+      --body: Inter, "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: var(--body); font-size: 16px; line-height: 1.5; color: var(--ink); background: #f5f8fa; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; }
+    .wrap { width: min(1160px, 100% - 48px); margin: 0 auto; }
+
+    .utility { background: var(--blue-deep); color: #d7e8f3; font-size: 13px; }
+    .utility .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 36px; gap: 16px; }
+    .utility nav { display: flex; gap: 22px; }
+
+    .masthead { background: #fff; border-bottom: 1px solid var(--line); }
+    .masthead .wrap { display: flex; align-items: center; min-height: 76px; gap: 48px; }
+    .logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 26px; letter-spacing: -0.02em; color: var(--blue); line-height: 1; min-height: 44px; }
+    .logo .mark { display: inline-grid; grid-template-columns: 1fr 1fr; gap: 3px; width: 26px; height: 26px; }
+    .logo .mark i { display: block; border-radius: 3px; background: var(--blue-bright); }
+    .logo .mark i:nth-child(2), .logo .mark i:nth-child(3) { background: var(--green); }
+    .logo small { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0; border-left: 1px solid var(--line); padding-left: 10px; }
+    .mainnav { display: flex; gap: 32px; font-size: 15px; font-weight: 500; color: var(--ink-2); }
+    .mainnav a { position: relative; padding: 8px 0; }
+    .mainnav a.current { color: var(--blue); }
+    .mainnav a.current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 3px; border-radius: 2px; background: var(--green); }
+    .masthead .actions { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--blue-wash); color: var(--blue); display: grid; place-items: center; font-weight: 600; font-size: 14px; border: 1px solid #c7deed; }
+    .who { font-size: 13px; color: var(--muted); text-align: right; line-height: 1.3; }
+    .who strong { display: block; color: var(--ink); font-size: 14px; }
+
+    .hero { background: linear-gradient(115deg, var(--blue) 0%, var(--blue-bright) 100%); color: #fff; position: relative; overflow: hidden; }
+    .hero::after { content: ""; position: absolute; right: -120px; top: -140px; width: 420px; height: 420px; border-radius: 50%; background: rgba(164, 206, 78, .22); }
+    .hero .wrap { position: relative; z-index: 1; padding: 44px 0 40px; }
+    .crumbs { font-size: 13px; color: #cfe6f5; margin: 0 0 12px; }
+    .hero h1 { font-size: clamp(32px, 4vw, 44px); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 12px; font-weight: 700; }
+    .hero p { font-size: 17px; color: #e6f2fa; max-width: 620px; margin: 0; }
+
+    .steps { background: #fff; border-bottom: 1px solid var(--line); }
+    .steps ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); }
+    .steps li { padding: 16px 0 16px 18px; border-left: 1px solid var(--line); font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+    .steps li:first-child { border-left: 0; padding-left: 0; }
+    .steps li b { width: 26px; height: 26px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--blue-wash); color: var(--blue); font-size: 13px; }
+    .steps li.on { color: var(--ink); font-weight: 600; }
+    .steps li.on b { background: var(--blue); color: #fff; }
+    .steps li.done b { background: var(--green); color: #1f3a00; }
+
+    .section { padding: 36px 0 24px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .8fr); gap: 28px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 1px 2px rgba(0, 40, 70, .04); }
+    .card-head { padding: 24px 28px 0; }
+    .card-head h2 { font-size: 22px; margin: 0 0 4px; color: var(--ink); letter-spacing: -0.01em; }
+    .card-head p { margin: 0; font-size: 14px; color: var(--muted); }
+    form { padding: 20px 28px 28px; }
+    fieldset { border: 0; margin: 0 0 18px; padding: 0; }
+    legend { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 8px; padding: 0; }
+    .types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .type { position: relative; }
+    .type input { position: absolute; opacity: 0; inset: 0; }
+    .type span { display: flex; flex-direction: column; gap: 2px; min-height: 76px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--ink); background: #fff; }
+    .type span small { font-size: 12px; font-weight: 400; color: var(--muted); }
+    .type input:checked + span { border-color: var(--blue); background: var(--blue-wash); box-shadow: inset 0 0 0 1px var(--blue); }
+    .type input:focus-visible + span { outline: 2px solid var(--blue-bright); outline-offset: 2px; }
+    .form-group { margin-bottom: 18px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 7px; }
+    select, input[type="text"], input[type="number"], input[type="date"] { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid #aab7c2; border-radius: 6px; font: inherit; font-size: 15px; color: var(--ink); background: #fff; }
+    select:focus, input:focus { outline: 2px solid var(--blue-bright); outline-offset: 1px; border-color: var(--blue); }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--ink-2); margin: 4px 0 20px; font-weight: 400; }
+    .consent input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--blue); flex: none; }
+    .submit { width: 100%; min-height: 52px; border: 0; border-radius: 999px; background: var(--blue); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: background .15s; }
+    .submit:hover { background: var(--blue-deep); }
+    .submit:disabled { background: #6f9fc2; cursor: wait; }
+    .submit .spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .submit.loading .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .meta { display: flex; gap: 18px; font-size: 12px; color: var(--muted); margin-top: 14px; flex-wrap: wrap; }
+    .meta span::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 7px; vertical-align: 1px; }
+
+    #result { display: none; margin: 0 28px 28px; padding: 16px 18px; border-left: 4px solid var(--blue); background: var(--blue-wash); border-radius: 6px; font-size: 14px; }
+    #result.success { display: block; border-color: var(--green-dark); background: var(--green-wash); }
+    #result.error { display: block; border-color: var(--warn); background: #fdf6ea; }
+    #result .title { font-weight: 600; margin-bottom: 4px; }
+    #result .detail { color: var(--ink-2); }
+    #result .detail code { font-size: 12px; background: #fff; border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; }
+    #result .timing { margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+    .aside { display: grid; gap: 20px; }
+    .panel { padding: 22px 24px; }
+    .panel h3 { font-size: 17px; margin: 0 0 12px; color: var(--ink); }
+    .panel ul { list-style: none; padding: 0; margin: 0; }
+    .panel li { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+    .panel li:first-child { border-top: 0; padding-top: 0; }
+    .panel li span:last-child { color: var(--muted); text-align: right; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .03em; padding: 3px 9px; border-radius: 999px; background: var(--green-wash); color: var(--green-dark); }
+    .badge.blue { background: var(--blue-wash); color: var(--blue); }
+    .panel.tint { background: var(--blue-deep); color: #fff; border-color: var(--blue-deep); }
+    .panel.tint h3 { color: #fff; }
+    .panel.tint p { margin: 0; font-size: 14px; color: #d7e8f3; line-height: 1.6; }
+    .panel.tint a { display: inline-block; margin-top: 10px; color: var(--green); font-weight: 600; padding: 10px 0; }
+
+    .table { margin-top: 28px; background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .table h3 { margin: 0; padding: 16px 24px; font-size: 16px; border-bottom: 1px solid var(--line); }
+    .table .thead, .table .row { display: grid; grid-template-columns: 1fr 1.2fr 1fr 1fr; gap: 16px; padding: 13px 24px; font-size: 14px; align-items: center; }
+    .table .thead { background: #f5f8fa; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+    .table .row { border-top: 1px solid var(--line); }
+    .table .row strong { font-weight: 600; }
+
+    footer { margin-top: 56px; background: var(--blue-deep); color: #cfe0ec; font-size: 14px; }
+    footer .wrap { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 36px; padding: 44px 0 32px; }
+    footer .brand { font-weight: 700; font-size: 24px; color: #fff; line-height: 1.1; }
+    footer .brand small { display: block; font-weight: 400; font-size: 13px; margin-top: 10px; color: #a9c6da; }
+    footer h4 { margin: 0 0 12px; color: #fff; font-size: 14px; }
+    footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    footer .legal { border-top: 1px solid #1d6390; padding: 16px 0; font-size: 12px; color: #a9c6da; }
+    footer .legal .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0; }
+    footer .legal .demo { color: #fff; font-weight: 600; }
+
+    @media (max-width: 900px) {
+      .mainnav, .who { display: none; }
+      .grid { grid-template-columns: 1fr; }
+      .steps ol { grid-template-columns: 1fr 1fr; }
+      .steps li:nth-child(3) { border-left: 0; padding-left: 0; }
+      .steps li:nth-child(n+3) { border-top: 1px solid var(--line); }
+      .table .thead { display: none; }
+      .table .row { grid-template-columns: 1fr 1fr; }
+      footer .wrap { grid-template-columns: 1fr 1fr; gap: 28px; }
+    }
+    @media (max-width: 480px) {
+      .wrap { width: min(1160px, 100% - 32px); }
+      .utility nav { display: none; }
+      .logo { font-size: 22px; }
+      .logo small { display: none; }
+      .avatar { width: 44px; height: 44px; }
+      .hero .wrap { padding: 32px 0 28px; }
+      .hero p { font-size: 15px; }
+      .types { grid-template-columns: 1fr; }
+      .type span { min-height: 56px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .card-head, form { padding-left: 20px; padding-right: 20px; }
+      #result { margin-left: 20px; margin-right: 20px; }
+      .steps li { font-size: 13px; }
+      footer .wrap { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility">
+    <div class="wrap">
+      <span>MyBenefits &nbsp;·&nbsp; Group benefits for employees</span>
+      <nav aria-label="Utility links"><a href="#">Español</a><a href="#">Help</a><a href="#">Contact us</a></nav>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="MetLife MyBenefits home">
+        <span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>MetLife<small>MyBenefits</small>
+      </a>
+      <nav class="mainnav" aria-label="Main menu">
+        <a href="#">My coverage</a>
+        <a href="#" class="current">Claims</a>
+        <a href="#">Find a dentist</a>
+        <a href="#">Documents</a>
+      </nav>
+      <div class="actions">
+        <div class="who"><strong>Jamie Rivera</strong>Northwind Logistics plan</div>
+        <span class="avatar" aria-label="Signed in as Jamie Rivera">JR</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="wrap">
+      <p class="crumbs">Claims &nbsp;›&nbsp; File a claim</p>
+      <h1>File a claim</h1>
+      <p>Submit a dental, disability or life claim online. Most claims are received instantly and you can track their status any time in MyBenefits.</p>
+    </div>
+  </section>
+
+  <section class="steps" aria-label="Claim steps">
+    <div class="wrap">
+      <ol>
+        <li class="done"><b>✓</b>Choose coverage</li>
+        <li class="on"><b>2</b>Claim details</li>
+        <li><b>3</b>Submit</li>
+        <li><b>4</b>Track status</li>
+      </ol>
+    </div>
+  </section>
+
+  <main class="section" id="claim">
+    <div class="wrap">
+      <div class="grid">
+        <div class="card">
+          <div class="card-head">
+            <h2>Tell us about your claim</h2>
+            <p>Group benefits through your employer · Plan 0451</p>
+          </div>
+          <form id="claimForm">
+            <fieldset>
+              <legend>What are you filing for?</legend>
+              <div class="types">
+                <label class="type"><input type="radio" name="benefit" value="dental" data-policy="POL-5004" data-amount="420" data-desc="Two crowns and an exam at an in-network dentist" checked><span>Dental<small>Cleanings, fillings, crowns</small></span></label>
+                <label class="type"><input type="radio" name="benefit" value="disability" data-policy="POL-5002" data-amount="3800" data-desc="Short-term disability — surgery recovery, 6 weeks off work"><span>Disability<small>Short- &amp; long-term</small></span></label>
+                <label class="type"><input type="radio" name="benefit" value="life" data-policy="POL-5003" data-amount="50000" data-desc="Basic group life benefit — beneficiary claim"><span>Life<small>Basic &amp; supplemental</small></span></label>
+              </div>
+            </fieldset>
+            <div class="form-group">
+              <label for="policyId">Coverage</label>
+              <select id="policyId">
+                <option value="POL-5004">Group Dental PPO — Employee + family</option>
+                <option value="POL-5002">Short-Term Disability — 60% of weekly earnings</option>
+                <option value="POL-5003">Basic Group Life — 1× annual salary</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="serviceDate">Date of service or event</label>
+                <input type="date" id="serviceDate" value="2026-09-28" required>
+              </div>
+              <div class="form-group">
+                <label for="amount">Amount claimed (USD)</label>
+                <input type="number" id="amount" value="420" min="1" step="0.01">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="description">Description</label>
+              <input type="text" id="description" value="Two crowns and an exam at an in-network dentist" placeholder="Briefly describe the claim">
+              <div class="hint">You can upload itemized bills, statements or certificates after submitting.</div>
+            </div>
+            <label class="consent"><input type="checkbox" id="attest" required checked>I confirm the information provided is complete and accurate to the best of my knowledge.</label>
+            <button type="submit" class="submit" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span class="label">Submit claim</span></button>
+            <div class="meta"><span>Secure submission</span><span>Instant confirmation</span><span>Direct deposit available</span></div>
+          </form>
+          <div id="result" role="status" aria-live="polite"></div>
+        </div>
+
+        <div class="aside">
+          <div class="card panel">
+            <h3>Your coverage</h3>
+            <ul>
+              <li><span>Dental PPO</span><span><span class="badge">Active</span></span></li>
+              <li><span>Short-Term Disability</span><span><span class="badge">Active</span></span></li>
+              <li><span>Basic Group Life</span><span><span class="badge">Active</span></span></li>
+              <li><span>Employer</span><span>Northwind Logistics</span></li>
+            </ul>
+          </div>
+          <div class="card panel">
+            <h3>What happens next</h3>
+            <ul>
+              <li><span>Claim received</span><span><span class="badge blue">Instant</span></span></li>
+              <li><span>Review by claims team</span><span>1–3 business days</span></li>
+              <li><span>Decision &amp; payment</span><span>Direct deposit or check</span></li>
+            </ul>
+          </div>
+          <div class="card panel tint">
+            <h3>Need help with a claim?</h3>
+            <p>Call a benefits specialist Monday–Friday, 8am–11pm ET, or start a chat from MyBenefits.</p>
+            <a href="#">Contact a specialist →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="table" aria-label="Recent claims">
+        <h3>Recent claims</h3>
+        <div class="thead"><span>Claim</span><span>Type</span><span>Submitted</span><span>Status</span></div>
+        <div class="row"><strong>DN-4471920</strong><span>Dental · cleaning</span><span>Aug 14, 2026</span><span><span class="badge">Paid</span></span></div>
+        <div class="row"><strong>DN-4398811</strong><span>Dental · filling</span><span>Jun 02, 2026</span><span><span class="badge">Paid</span></span></div>
+        <div class="row"><strong>VS-2210457</strong><span>Vision · exam</span><span>Mar 21, 2026</span><span><span class="badge">Paid</span></span></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="brand">MetLife<small>Group benefits · MyBenefits portal</small></div>
+      <div><h4>Benefits</h4><ul><li>Dental</li><li>Disability</li><li>Life</li><li>Accident &amp; Critical Illness</li></ul></div>
+      <div><h4>Claims</h4><ul><li>File a claim</li><li>Track a claim</li><li>Claim forms</li><li>Direct deposit</li></ul></div>
+      <div><h4>Support</h4><ul><li>Contact us</li><li>Accessibility</li><li>Privacy</li><li>Terms of use</li></ul></div>
+    </div>
+    <div class="legal"><div class="wrap"><span class="demo">NOT ACTUALLY A METLIFE SITE — internal demo only, not affiliated with, endorsed by, or a real MetLife product.</span><span>Fictional member, employer and claim data.</span></div></div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    var BENEFIT_LABELS = { dental: 'Dental', disability: 'Disability', life: 'Life' };
+    function selectedBenefit() {
+      return document.querySelector('input[name="benefit"]:checked');
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="benefit"]'), function (radio) {
+      radio.addEventListener('change', function () {
+        document.getElementById('policyId').value = radio.dataset.policy;
+        document.getElementById('amount').value = radio.dataset.amount;
+        document.getElementById('description').value = radio.dataset.desc;
+      });
+    });
+    document.getElementById('claimForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var label = btn.querySelector('.label');
+      var result = document.getElementById('result');
+      var benefit = selectedBenefit();
+      var started = Date.now();
+      var ticker = setInterval(function () {
+        label.textContent = 'Submitting claim… ' + ((Date.now() - started) / 1000).toFixed(1) + ' s';
+      }, 100);
+      btn.disabled = true;
+      btn.classList.add('loading');
+      label.textContent = 'Submitting claim…';
+      result.className = '';
+      result.innerHTML = '';
+      try {
+        var response = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: document.getElementById('policyId').value,
+            claimType: benefit ? benefit.value : 'dental',
+            amount: parseFloat(document.getElementById('amount').value),
+            description: document.getElementById('description').value,
+            serviceDate: document.getElementById('serviceDate').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await response.json();
+        var elapsed = ((Date.now() - started) / 1000).toFixed(1);
+        var kind = BENEFIT_LABELS[benefit && benefit.value] || 'Benefit';
+        if (response.ok) {
+          result.className = 'success';
+          result.innerHTML = '<div class="title">' + esc(kind) + ' claim received</div>'
+            + '<div class="detail">Confirmation <code>' + esc(String(data.claimId || '').slice(0, 8).toUpperCase()) + '</code> — estimated benefit $' + Number(data.payout).toLocaleString()
+            + '. We\u2019ll email you when a decision is made.</div>'
+            + '<div class="timing">Submitted in ' + elapsed + ' s</div>';
+        } else {
+          result.className = 'error';
+          result.innerHTML = '<div class="title">Your claim is taking longer than expected</div>'
+            + '<div class="detail">' + esc(data.error || 'We couldn\u2019t confirm your claim yet. Please try again.') + '</div>'
+            + '<div class="timing">Waited ' + elapsed + ' s · HTTP ' + response.status + (data.requestId ? ' · reference ' + esc(data.requestId) : '') + '</div>';
+        }
+      } catch (err) {
+        result.className = 'error';
+        result.innerHTML = '<div class="title">Connection problem</div><div class="detail">' + esc(err.message) + '</div>';
+      } finally {
+        clearInterval(ticker);
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        label.textContent = 'Submit claim';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
