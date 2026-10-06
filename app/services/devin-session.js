@@ -18,6 +18,9 @@ let servicenowConfigWarningLogged = false;
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 
+// The Teams automation's page lists its runs, so the new session is at the top.
+const DEFAULT_TEAMS_AUTOMATION_URL = 'https://app.devin.ai/automations/5604e34de0df4e4da8e8f3ccc5659899';
+
 /**
  * Where this request's alert goes, from the presenter's hub choice
  * (alert_destination cookie). Teams needs AUTOMATIONS_TEAMS_WEBHOOK_URL; without
@@ -61,6 +64,7 @@ function buildTeamsAlertCardForAlert(alertData) {
       },
     ],
     actions: [
+      { title: 'Watch Devin', url: process.env.AUTOMATIONS_TEAMS_AUTOMATION_URL || DEFAULT_TEAMS_AUTOMATION_URL },
       { title: 'View in Sentry', url: alertData.issueUrl },
       { title: 'View in Datadog', url: process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
     ],
