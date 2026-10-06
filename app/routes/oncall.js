@@ -9,7 +9,6 @@ const {
   postOncallInfraIncident,
   getInfraState,
   isPlainObject,
-  isValidIncidentCopy,
   setOncallConfigOverride,
   getOncallConfigView,
 } = require('../services/oncall');

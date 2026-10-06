@@ -1179,25 +1179,6 @@ function isPlainObject(value) {
       Object.getPrototypeOf(value) === null);
 }
 
-/**
- * Skin copy maps localize a shared page's own UI strings. Only flat string
- * values are accepted; the page falls back to its English default for any
- * other key.
- */
-function isValidLocaleTag(tag) {
-  try {
-    return Intl.getCanonicalLocales(tag).length === 1;
-  } catch (_err) {
-    return false;
-  }
-}
-
-function isValidIncidentCopy(copy) {
-  return isPlainObject(copy) &&
-    Object.values(copy).every((value) => typeof value === 'string') &&
-    (copy.lang === undefined || isValidLocaleTag(copy.lang));
-}
-
 module.exports = {
   ALERT_SCENARIOS,
   postOncallAlert,
@@ -1206,7 +1187,6 @@ module.exports = {
   postOncallInfraIncident,
   getInfraState,
   isPlainObject,
-  isValidIncidentCopy,
   buildOncallSessionPrompt,
   setOncallConfigOverride,
   getOncallConfigView,

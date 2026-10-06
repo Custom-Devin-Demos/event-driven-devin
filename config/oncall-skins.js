@@ -5,9 +5,7 @@
  * without touching any mechanics. /oncall/c/<slug> serves the skin's chosen
  * vertical page (skin.vertical) rebranded with the customer's name, mark, and
  * theme, with the on-call shim active — that single URL is what a DE shares.
- * The alerts surface is the only surface; a skin may override strings with a
- * flat string map (optional BCP 47 `lang`) so a localized skin stays
- * localized on every surface. The generic /oncall hub itself is never
+ * The generic /oncall hub itself is never
  * skinned. Adding a customer = adding one entry here.
  *
  * Two separate theme keys, one per surface: page.theme themes the stock
