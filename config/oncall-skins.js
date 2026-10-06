@@ -3488,6 +3488,34 @@ const ONCALL_SKINS = {
     supportCenterSub: '点検クラウド TENLOG カスタマーサポート',
     disclaimer: 'NOT ACTUALLY A RYOYO SYSTEMS SITE — 菱陽システムズ and 点検クラウド TENLOG are fictional brands; demo only, not affiliated with, endorsed by, or a product of any real company. ／ 実在する企業・サービスのサイトではありません（架空ブランド・デモ用）。',
   },
+  'd95cd337': {
+    slug: 'd95cd337',
+    company: 'Surescripts',
+    brandMark: 'S',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: 'd95cd337.html', title: 'Submit prior authorization | Surescripts Prior Authorization Portal' },
+    teamsAlerts: true,
+    alertCard: {
+      title: 'p95 latency — ePA request submissions',
+      service: 'surescripts-epa-gateway',
+      release: 'surescripts-epa-gateway@2026.10.1',
+      team: 'epa-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:surescripts-epa-gateway,resource:POST /api/oncall/insurance/claim}',
+      symptom: 'PA submissions hang ~10s before the payer acknowledgement. Error rate is normal — requests eventually reach the payer.',
+      impact: 'Prescribers wait on a spinner for ~10 seconds on every ePA request; patients leave the pharmacy without therapy while the PA is still pending.',
+    },
+    theme: {
+      '--accent': '#E46B34',
+      '--ink': '#1F2D3A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#23557A',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Surescripts Prior Authorization Support',
+    supportCenterSub: 'Prior Authorization Portal Resource Center',
+    disclaimer: 'Internal demo only — fictional product build, not affiliated with or endorsed by Surescripts.',
+  },
 };
 
 function getOncallSkin(slug) {
