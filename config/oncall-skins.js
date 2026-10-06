@@ -2826,6 +2826,29 @@ const ONCALL_SKINS = {
     supportCenter: 'Tubi Support',
     disclaimer: 'NOT ACTUALLY A TUBI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Tubi product.',
   },
+  '7772b48a': {
+    slug: '7772b48a',
+    company: 'Cummins',
+    brandMark: 'C',
+    vertical: 'marketplace',
+    oncallOnly: true,
+    page: { file: '7772b48a.html', title: 'Onan Lubricating Oil Filter 122-0833 | Shop Cummins' },
+    theme: {
+      '--accent': '#DA291C',
+      '--ink': '#1A1B1E',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#2E2E2E',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: '5xx rate \u2014 genuine parts add-to-cart',
+      team: 'parts-commerce-oncall',
+      symptom: 'Add-to-cart requests on genuine parts hang ~8s and then fail with 504 Gateway Timeout. Stock reservation latency against the distribution-center inventory service is elevated.',
+      impact: 'Customers cannot add genuine parts to their cart; every add sits on a spinner and then errors, so no parts orders can start.',
+    },
+    supportCenter: 'Shop Cummins Customer Support',
+    disclaimer: 'NOT ACTUALLY A CUMMINS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
+  },
 };
 
 function getOncallSkin(slug) {
