@@ -1,8 +1,21 @@
+function loadBanking() {
+  const saved = { days: process.env.SCREENING_WINDOW_DAYS, conc: process.env.SCREENING_CONCURRENCY };
+  delete process.env.SCREENING_WINDOW_DAYS;
+  delete process.env.SCREENING_CONCURRENCY;
+  let mod;
+  jest.isolateModules(() => {
+    mod = require('../app/services/oncall-verticals/banking');
+  });
+  if (saved.days !== undefined) process.env.SCREENING_WINDOW_DAYS = saved.days;
+  if (saved.conc !== undefined) process.env.SCREENING_CONCURRENCY = saved.conc;
+  return mod;
+}
+
 const {
   runComplianceScreening,
   COMPLIANCE_CONFIG,
   SCREENING_PARTNER_MAX_IN_FLIGHT,
-} = require('../app/services/oncall-verticals/banking');
+} = loadBanking();
 
 describe('on-call banking compliance screening', () => {
   test('ships a parallel screening default within the partner ceiling', () => {
