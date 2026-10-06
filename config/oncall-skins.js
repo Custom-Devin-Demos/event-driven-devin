@@ -3189,6 +3189,7 @@ const ONCALL_SKINS = {
         submittedSkipped: '報告をこの環境に記録しました。チケット配信が設定されていないため、サポートキューには送信されていません。',
         submittedSkippedActivated: ' 報告いただいた事象は再現できるよう、この環境で {minutes} 分間有効になっています。',
         submitFailed: '報告の送信中に問題が発生しました。もう一度お試しください。',
+        submitRateLimited: 'この操作の送信回数が上限に達しました。しばらく時間をおいてから再度お試しください。',
       },
     },
     // SEV-1 opt-in: the same hightech story the alert track degrades, so the

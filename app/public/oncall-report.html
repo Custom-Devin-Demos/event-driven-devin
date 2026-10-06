@@ -295,10 +295,12 @@
       submittedOk: 'Thanks — your report has been filed with our support engineering team. Reference has been routed to the on-call queue; you\'ll get an email update shortly.',
       submittedSkipped: 'Report recorded locally. Ticket delivery is not configured in this environment, so it was not routed to the support queue.',
       submittedSkippedActivated: ' The reported symptom is now active here for {minutes} minutes so it can be reproduced.',
-      submitFailed: 'Something went wrong submitting your report. Please try again.'
+      submitFailed: 'Something went wrong submitting your report. Please try again.',
+      submitRateLimited: 'Hourly limit reached for this action. Please try again later.'
     };
     var COPY = SKIN && SKIN.bugPortal && SKIN.bugPortal.copy &&
       typeof SKIN.bugPortal.copy === 'object' ? SKIN.bugPortal.copy : {};
+    var LOCALIZED = Object.keys(COPY).length > 0;
     function t(key) {
       return typeof COPY[key] === 'string' ? COPY[key] : COPY_DEFAULTS[key];
     }
@@ -572,12 +574,15 @@
             descEdited = false;
           } else {
             statusEl.className = 'status err';
-            statusEl.textContent = (r.data && r.data.error) || t('submitFailed');
+            if (r.data && r.data.error) console.warn('On-call bug report post failed: ' + r.data.error);
+            statusEl.textContent = r.code === 429 ? t('submitRateLimited')
+              : (!LOCALIZED && r.data && r.data.error) || t('submitFailed');
           }
         })
         .catch(function (err) {
+          console.warn('On-call bug report post failed: ' + err.message);
           statusEl.className = 'status err';
-          statusEl.textContent = err.message;
+          statusEl.textContent = t('submitFailed');
         })
         .finally(function () { submitBtn.disabled = false; });
     });
