@@ -5,243 +5,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Devin On-Call | Event-Driven Devin</title>
   <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="stylesheet" href="/cognition-brand.css">
   <style>
-    @font-face { font-family:'STK Bureau Serif'; src:url('/brand/STKBureauSerif-Book.otf') format('opentype'); font-weight:400; font-style:normal; font-display:swap; }
-    @font-face { font-family:'STK Bureau Serif'; src:url('/brand/STKBureauSerif-Medium.otf') format('opentype'); font-weight:500; font-style:normal; font-display:swap; }
-    @font-face { font-family:'NB International Pro'; src:url('/brand/NBInternationalPro-Regular.otf') format('opentype'); font-weight:400; font-style:normal; font-display:swap; }
-    :root {
-      --surface:#fff; --paper:var(--surface); --ink:#0f131c;
-      --ink-2:rgb(14,17,25);
-      --muted:rgb(130,132,137);
-      --muted-2:rgba(15,19,28,.5);
-      --line:rgba(15,19,28,.08);
-      --surface-muted:rgb(243,243,244); --wash:var(--surface-muted); --body-bg:var(--surface-muted);
-      --danger:#b3261e; --warning:#b45309; --success:#2f7d32;
-      --accent:#7c8aff; --chrome-bg:#141924; --chrome-deep:rgb(16,20,28); --chrome-text:#eaf0f9;
-      --chrome-muted:rgba(234,240,249,.5);
-      --chrome-line:rgba(234,240,249,.12);
-      --chrome-hover:rgba(234,240,249,.03);
-      --hero-content-padding-top:96px;
-      --oncall-disclaimer-height:0px;
-      --serif:'STK Bureau Serif', Georgia, 'Times New Roman', serif;
-      --sans:'NB International Pro', 'Helvetica Neue', Arial, sans-serif;
-      --mono:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    }
-    @supports (color:color-mix(in srgb,red 50%,blue)) {
-      :root {
-        --ink-2:color-mix(in srgb,var(--ink) 90%,#000);
-        --muted:color-mix(in srgb,var(--ink) 52%,var(--surface));
-        --muted-2:color-mix(in srgb,var(--ink) 50%,transparent);
-        --line:color-mix(in srgb,var(--ink) 8%,transparent);
-        --surface-muted:color-mix(in srgb,var(--surface) 95%,var(--ink)); --wash:var(--surface-muted); --body-bg:var(--surface-muted);
-        --chrome-deep:color-mix(in srgb,var(--chrome-bg) 78%,#000);
-        --chrome-muted:color-mix(in srgb,var(--chrome-text) 50%,transparent);
-        --chrome-line:color-mix(in srgb,var(--chrome-text) 12%,transparent);
-        --chrome-hover:color-mix(in srgb,var(--chrome-text) 3%,transparent);
-      }
-    }
-    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-    html { scroll-behavior:smooth; }
-    body { background:var(--body-bg,var(--wash)); color:var(--ink); font-family:var(--sans); line-height:1.6; min-height:100vh; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
-    nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; height:72px; padding:0 40px; background:var(--wash); border-bottom:1px solid transparent; box-shadow:none; transition:box-shadow .3s; }
-    nav.scrolled { box-shadow:0 1px 0 var(--line); }
-    .nav-left { display:flex; align-items:center; gap:24px; }
-    .nav-logo { display:flex; align-items:center; gap:10px; color:var(--ink); text-decoration:none; }
-    .nav-logo svg { width:28px; height:28px; }
-    .nav-logo-text { font-size:16px; font-weight:600; letter-spacing:-.01em; }
-    .nav-links { display:flex; align-items:center; gap:24px; list-style:none; }
-    .nav-links a { color:var(--ink); font-size:13px; font-weight:500; letter-spacing:.02em; text-decoration:none; text-transform:none; transition:opacity .2s; }
-    .nav-links a:hover { opacity:.6; }
-    .nav-links a.active { text-decoration:underline; text-underline-offset:6px; }
-    .nav-cta { display:inline-flex; align-items:center; gap:6px; border-radius:6px; background:var(--ink); color:#fff; padding:8px 20px; font-size:12px; font-weight:500; letter-spacing:.02em; text-decoration:none; white-space:nowrap; transition:opacity .2s; }
-    .nav-cta:hover { opacity:.85; }
-    .hero { margin-top:72px; background:var(--chrome-bg); color:var(--chrome-text); display:flex; flex-direction:column; }
-    .hero-content { width:100%; max-width:1200px; margin:0 auto; padding:var(--hero-content-padding-top) 40px 48px; }
-    .hero-badge { display:inline-flex; align-items:center; gap:8px; padding:5px 14px; border:1px solid var(--chrome-line); border-radius:100px; color:var(--chrome-muted); font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; margin-bottom:28px; }
-    .hero-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); display:inline-block; }
-    .hero h1 { font-family:var(--serif); font-size:clamp(40px,6vw,64px); font-weight:400; line-height:1.15; letter-spacing:-.02em; color:var(--chrome-text); text-transform:none; max-width:800px; margin-bottom:16px; }
-    .hero-sub { color:var(--chrome-muted); max-width:640px; font-size:15px; }
-    .hero-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:24px; }
-    .hero-cta { display:inline-flex; align-items:center; gap:8px; padding:11px 22px; border:1px solid var(--accent); border-radius:100px; background:var(--accent); color:#fff; font-family:var(--sans); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; text-decoration:none; text-align:center; line-height:1.4; max-width:100%; transition:all .2s; }
-    .hero-cta:hover { background:#98a3ff; border-color:#98a3ff; }
-    .hero-cta-ghost { background:transparent; color:var(--chrome-text); border-color:var(--chrome-line); }
-    .hero-cta-ghost:hover { background:rgba(255,255,255,.06); border-color:var(--chrome-text); }
-    .hero-note { margin-top:20px; display:inline-flex; flex-wrap:wrap; align-items:center; gap:6px 8px; padding:10px 16px; border:1px solid var(--chrome-line); border-radius:8px; color:var(--chrome-muted); font-size:13px; }
-    .hero-note code { font-family:var(--mono); font-size:12px; color:var(--chrome-text); background:rgba(255,255,255,.06); border:1px solid var(--chrome-line); border-radius:4px; padding:1px 6px; }
-    .pipeline-section { width:100%; background:var(--chrome-deep); padding:32px 0 48px; }
-    .pipeline-inner { max-width:1200px; margin:0 auto; padding:0 40px; }
-    .section-title,.card-vertical { color:var(--muted); font-family:var(--sans); font-size:11px; letter-spacing:.14em; text-transform:uppercase; }
-    .pipeline-label { color:var(--chrome-muted); font-family:var(--sans); font-size:11px; letter-spacing:.14em; text-transform:uppercase; margin-bottom:16px; }
-    .pipeline-track { display:flex; align-items:stretch; width:100%; border:1px solid var(--chrome-line); border-radius:8px; overflow:hidden; }
-    .pipeline-step { flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:16px 12px; color:var(--chrome-muted); border-right:1px solid var(--chrome-line); font-size:13px; white-space:nowrap; transition:background .2s; }
-    .pipeline-step:last-child { border-right:0; }
-    .pipeline-step:hover { background:var(--chrome-hover); color:var(--chrome-text); }
-    .pipeline-step .step-num { width:20px; height:20px; border-radius:50%; background:rgba(124,138,255,.12); display:flex; align-items:center; justify-content:center; color:var(--accent); font-family:var(--mono); font-size:10px; font-weight:700; }
-    .sections { max-width:1200px; margin:0 auto; padding:48px 40px 96px; }
-    .section { margin-bottom:96px; }
-    .section:last-child { margin-bottom:0; }
-    .section-header { display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }
-    .section-header .section-title { margin-right:auto; }
-    .section h2 { font:400 28px/1.15 var(--serif); margin:0 0 16px; }
-    .badge { padding:3px 8px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); font:11px var(--mono); }
-    .section-desc { max-width:780px; font-size:15px; color:var(--muted); line-height:1.6; margin-bottom:24px; }
-    .section-desc code { font-family:var(--mono); font-size:13px; color:var(--ink); background:var(--wash); border:1px solid var(--line); border-radius:4px; padding:1px 5px; }
-    .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
-    .grid.cols-1 { grid-template-columns:repeat(1,minmax(0,1fr)); }
-    .grid.cols-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .grid.cols-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
-    .grid.cols-4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
-    .card { display:flex; flex-direction:column; min-width:0; background:var(--paper); padding:24px; position:relative; color:var(--ink); text-decoration:none; }
-    a.card:hover,a.wide-card:hover { background:var(--wash); }
-    .card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px; }
-    .card-icon { display:flex; align-items:center; justify-content:center; width:40px; height:40px; background:var(--wash); border:1px solid var(--line); border-radius:10px; color:var(--ink); font-size:0; }
-    .card-icon svg { width:24px; height:24px; }
-    .card-arrow { display:flex; align-items:center; justify-content:center; width:28px; height:28px; color:var(--ink); border-radius:0; opacity:0; transform:translate(-4px,4px); transition:all .2s; }
-    a.card:hover .card-arrow { opacity:1; transform:translate(0,0); }
-    .card-arrow svg { width:14px; height:14px; }
-    .card-body { margin-top:18px; margin-bottom:16px; }
-    .card-vertical { margin-bottom:8px; }
-    .card-brand { font:500 20px/1.15 var(--serif); color:var(--ink); margin-bottom:8px; }
-    .card-desc { font-size:15px; color:var(--muted); line-height:1.6; display:block; overflow:visible; }
-    .fire-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 22px; border:1px solid var(--ink); border-radius:6px; background:transparent; color:var(--ink); font-family:var(--sans); font-size:11px; letter-spacing:.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap; transition:all .2s; }
-    .fire-btn:hover { background:var(--ink); border-color:var(--ink); color:#fff; }
-    .fire-btn.sev { border-color:var(--ink); background:var(--ink); color:#fff; }
-    .fire-btn.sev:hover { background:var(--ink-2); border-color:var(--ink-2); }
-    .fire-btn:disabled { opacity:.5; cursor:wait; }
-    .fire-btn.sev:disabled { background:var(--ink); border-color:var(--ink); color:var(--paper); }
-    .status { display:none; margin-top:12px; padding:9px 12px; border-radius:6px; font-size:13px; line-height:1.5; }
-    .status.ok,.status.err { display:block; }
-    .status.ok { background:var(--wash); border:1px solid var(--line); color:var(--ink); }
-    .status.err { background:var(--paper); border:1px solid var(--danger); color:var(--danger); }
-    .teams-panel { display:flex; flex-direction:column; gap:10px; max-width:780px; margin:0 0 24px; }
-    .teams-panel .adp { border-color:var(--line); background:var(--paper); }
-    .wide-row { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:stretch; }
-    .wide-card { display:flex; flex-direction:column; border:1px solid var(--line); border-radius:10px; padding:32px; background:var(--paper); color:var(--ink); text-decoration:none; transition:background .2s; }
-    .wide-title { font:500 20px/1.15 var(--serif); margin-bottom:8px; }
-    .wide-desc { font-size:15px; color:var(--muted); line-height:1.6; margin-bottom:16px; }
-    .wide-cta { margin-top:auto; color:var(--accent); font-size:13px; text-transform:none; }
-    footer { background:var(--paper); border-top:1px solid var(--line); color:var(--ink); padding:48px 40px 36px; }
-    .footer-top { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:32px; margin-bottom:40px; }
-    .footer-brand-logo { height:24px; width:auto; display:block; margin-bottom:16px; mix-blend-mode:multiply; }
-    .footer-brand-sub { color:var(--muted); }
-    .footer-bottom { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; padding-top:28px; border-top:1px solid var(--line); }
-    .footer-links { display:flex; gap:20px; }
-    .footer-links a { text-decoration:none; }
-    .footer-copy,.footer-links a { color:var(--muted-2); }
-    @media (max-width:1100px) { .grid, .grid[class*="cols-"] { grid-template-columns:repeat(2,minmax(0,1fr)); } .grid.cols-2 { grid-template-columns:minmax(0,1fr); } }
-    @media (max-width:900px) { .wide-row { grid-template-columns:1fr; } }
-    @media (max-width:768px) { :root { --hero-content-padding-top:48px; } nav { padding:0 20px; } .nav-links { display:none; } .hero-content { padding:var(--hero-content-padding-top) 20px 40px; } .pipeline-section { padding:24px 0 40px; } .pipeline-inner { padding:0 20px; } .pipeline-step { font-size:10px; padding:10px 6px; } .pipeline-step .step-num { display:none; } .sections { padding:48px 20px 64px; } .fire-btn { min-height:44px; } footer { padding:40px 20px 32px; } }
-    @media (max-width:600px) { .grid, .grid[class*="cols-"] { grid-template-columns:minmax(0,1fr); } .pipeline-track { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .pipeline-step { min-width:0; min-height:48px; white-space:normal; text-align:center; } .pipeline-step:nth-child(even) { border-right:0; } .pipeline-step:nth-child(-n+4) { border-bottom:1px solid var(--chrome-line); } }
-    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
+    .oc-incident { display:flex; align-items:center; justify-content:space-between; gap:12px 24px; flex-wrap:wrap; }
+    .oc-incident h3 { font-size:17px; font-weight:400; letter-spacing:-.01em; }
+    .oc-incident p { font-size:15px; margin-top:2px; }
   </style>
 </head>
 <body>
 
-  <!-- NAV -->
-  <nav>
-    <div class="nav-left">
-      <a href="/" class="nav-logo">
-        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="8" cy="8" r="3" fill="currentColor" opacity="0.7"/>
-          <circle cx="24" cy="8" r="3" fill="currentColor" opacity="0.7"/>
-          <circle cx="8" cy="24" r="3" fill="currentColor" opacity="0.7"/>
-          <circle cx="24" cy="24" r="3" fill="currentColor" opacity="0.7"/>
-          <circle cx="16" cy="16" r="4" fill="currentColor"/>
-          <line x1="11" y1="8" x2="21" y2="8" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-          <line x1="11" y1="24" x2="21" y2="24" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-          <line x1="8" y1="11" x2="8" y2="21" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-          <line x1="24" y1="11" x2="24" y2="21" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-          <line x1="10" y1="10" x2="14" y2="14" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-          <line x1="22" y1="10" x2="18" y2="14" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-          <line x1="10" y1="22" x2="14" y2="18" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-          <line x1="22" y1="22" x2="18" y2="18" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-        </svg>
-        <span class="nav-logo-text">Event-Driven Devin</span>
+  <nav class="cg-nav">
+    <div class="cg-nav-inner">
+      <a href="/" class="cg-brand">
+        <img src="/brand/COGNITION_LOCKUP_HORIZONTAL_WHITE.svg" alt="Cognition">
+        <span class="cg-brand-sep" aria-hidden="true"></span>
+        <span class="cg-brand-name">On-Call</span>
       </a>
-      <ul class="nav-links">
-        <li><a href="https://devin.ai" target="_blank" rel="noopener">devin</a></li>
-        <li><a href="https://cognition.ai" target="_blank" rel="noopener">cognition</a></li>
-      </ul>
+      <div class="cg-nav-right">
+        <ul class="cg-nav-links">
+          <li class="cg-hide-sm"><a href="https://docs.devin.ai" target="_blank" rel="noopener">Docs</a></li>
+        </ul>
+        <a class="cg-btn cg-btn-ghost cg-btn-sm" id="nav-cta" href="/">&larr; All demos</a>
+      </div>
     </div>
-    <a class="nav-cta" id="nav-cta" href="/">&larr; all demos</a>
   </nav>
 
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-content">
-      <div class="hero-badge" id="hero-badge">DEVIN ON-CALL</div>
-      <h1>On-call operations</h1>
-      <p class="hero-sub">Trigger an incident. The running service degrades, alerting fires, and Devin picks up the alert and investigates.</p>
-      <div class="hero-actions">
-        <a class="hero-cta" href="https://coggtm.slack.com/archives/C0BVC5WS88G" target="_blank" rel="noopener">Major incident (SEV-1) &rarr; open incident channel</a>
-      </div>
-      <p class="hero-note">Before you start, make sure you&rsquo;re in <code>#oncall-alerts</code> &mdash; that&rsquo;s where the alerts land.</p>
-    </div>
-  </section>
+  <main class="cg-main">
 
-  <!-- PIPELINE -->
-  <div class="pipeline-section">
-    <div class="pipeline-inner">
-      <div class="pipeline-label">How it works</div>
-      <div class="pipeline-track">
-        <div class="pipeline-step"><span class="step-num">1</span> Fire Event</div>
-        <div class="pipeline-step"><span class="step-num">2</span> Telemetry Captures</div>
-        <div class="pipeline-step"><span class="step-num">3</span> Alert in <span id="pipeline-dest">Slack</span></div>
-        <div class="pipeline-step"><span class="step-num">4</span> Responder Investigates</div>
-        <div class="pipeline-step"><span class="step-num">5</span> Root Cause</div>
-        <div class="pipeline-step"><span class="step-num">6</span> Fix PR</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="sections">
-
-    <!-- 1. APPLICATION ERRORS -->
-    <div class="section">
-      <div class="section-header">
-        <span class="section-title">Alert Responder</span>
-        <span class="badge" id="alert-badge">#oncall-alerts</span>
-      </div>
-      <h2 id="alert-heading">Production degradations</h2>
-      <p class="section-desc" id="alert-desc">Each card opens a branded page in on-call mode. Submit the customer action, it degrades, and an alert lands in <span id="alert-dest-label"><code>#oncall-alerts</code></span> for Devin to investigate. <span id="retry-note"></span></p>
-      <div class="teams-panel" id="teams-panel">
+    <section class="cg-section cg-hero">
+      <h1>Devin On-Call demos</h1>
+      <p class="cg-prose cg-lede">Open a demo and submit its main action. An alert posts to <span id="hero-dest"><code>#oncall-alerts</code></span> and Devin investigates in the alert thread. Join the channel before you start.</p>
+      <div class="cg-hero-row">
         <div id="dest-picker"></div>
       </div>
-      <div class="grid" id="alert-grid"></div>
-    </div>
+    </section>
 
-    <!-- 2. BEYOND ALERTS -->
-    <div class="section">
-      <div class="section-header">
-        <span class="section-title">Beyond Alerts</span>
-        <span class="badge">SEV-1</span>
-      </div>
-      <h2>Beyond machine alerts</h2>
-      <p class="section-desc">Not everything starts as a machine alert.</p>
-      <div class="wide-row">
-        <a class="wide-card" href="https://coggtm.slack.com/archives/C0BVC5WS88G" target="_blank" rel="noopener">
-          <div class="wide-title">Major Incident (SEV-1)</div>
-          <div class="wide-desc">Major incidents are declared in Slack. Devin joins the incident channel and investigates alongside the responders.</div>
-          <div class="wide-cta">Open incident channel &rarr;</div>
-        </a>
-      </div>
-    </div>
+    <section class="cg-section cg-section-flush" id="alerts">
+      <div class="cg-table" id="alert-grid"></div>
+      <p class="cg-footnote" id="retry-note"></p>
+    </section>
 
-  </div>
-
-  <!-- FOOTER -->
-  <footer>
-    <div class="footer-top">
-      <div class="footer-brand">
-        <img class="footer-brand-logo" src="/brand/COGNITION_LOCKUP_HORIZONTAL_WHITE.svg" alt="Cognition">
-        <p class="footer-brand-sub">The AI software engineer</p>
+    <section class="cg-section oc-incident">
+      <div>
+        <h3>SEV-1 demo incident</h3>
+        <p class="cg-prose">Major incidents run in this Slack channel. Devin joins and investigates there.</p>
       </div>
-    </div>
-    <div class="footer-bottom">
-      <span class="footer-copy">Event-Driven Devin &copy; 2026</span>
-      <div class="footer-links">
-        <a href="https://devin.ai" target="_blank" rel="noopener">Devin</a>
-        <a href="https://cognition.ai" target="_blank" rel="noopener">Cognition</a>
+      <a class="cg-btn" href="https://coggtm.slack.com/archives/C0BVC5WS88G" target="_blank" rel="noopener">Demo incident channel &rarr;</a>
+    </section>
+
+  </main>
+
+  <footer class="cg-footer">
+    <div class="cg-footer-inner">
+      <div class="cg-footer-left">
+        <img src="/brand/COGNITION_LOCKUP_HORIZONTAL_WHITE.svg" alt="Cognition">
+        <span>Event-Driven Devin &copy; 2026</span>
+      </div>
+      <div class="cg-footer-links">
+        <a href="https://devin.ai" target="_blank" rel="noopener">devin.ai</a>
         <a href="https://docs.devin.ai" target="_blank" rel="noopener">Documentation</a>
       </div>
     </div>
@@ -249,42 +70,16 @@
 
   <script src="/alert-destination.js"></script>
   <script>
-    (function () {
-      window.addEventListener('scroll', function () {
-        document.querySelector('nav').classList.toggle('scrolled', window.scrollY > 10);
-      });
-    })();
-
-    var ICONS = {
-      banking: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M3 9h18L12 4 3 9Z"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></svg>',
-      insurance: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M12 3 19 6v5c0 4.5-2.8 8-7 10-4.2-2-7-5.5-7-10V6l7-3Z"/></svg>',
-      hightech: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><rect x="3" y="4" width="18" height="13" rx="1"/><path d="M8 21h8M12 17v4"/></svg>',
-      voice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
-      telco: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M7 4.5 9.5 3l2 4-2 1.5a14 14 0 0 0 6 6L17 13l4 2-1.5 2.5c-.7 1.2-2.2 1.7-3.5 1.2A18 18 0 0 1 5.3 8c-.5-1.3 0-2.8 1.7-3.5Z"/></svg>',
-      industrials: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9l6 3V7l6 3V5l4 2v13"/><path d="M3 20h18M7 16v4M12 16v4M17 16v4"/></svg>',
-      inference: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 7.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="M12 3v18M4 7.5l8 4.5 8-4.5"/></svg>',
-      marketplace: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 8H6"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>'
-    };
-
     var VERTICAL_META = {
-      banking: { icon: ICONS.banking, vertical: 'Banking', desc: 'Online banking dashboard. Transfers hang ~10s before completing.' },
-      insurance: { icon: ICONS.insurance, vertical: 'Insurance', desc: 'Claims portal. Claim submissions hang and eventually time out with a 504.' },
-      hightech: { icon: ICONS.hightech, vertical: 'High Tech', desc: 'SaaS admin console. Provisioning slows with each request; memory climbs.' },
-      voice: { icon: ICONS.voice, vertical: 'Voice', desc: 'Dictation console. Transcript finalization slows with each utterance; memory climbs.' },
-      inference: { icon: ICONS.inference, vertical: 'Inference', desc: 'Model serving console. Time to first token climbs with each completion; memory climbs.' },
-      telco: { icon: ICONS.telco, vertical: 'Telco', desc: 'Self-service portal. Plan upgrades slowed after the catalog refresh.' },
-      industrials: { icon: ICONS.industrials, vertical: 'Industrials', desc: 'Instant quote service. F3 requests take ~14s before completing; other factories stay near 310ms.' },
-      marketplace: { icon: ICONS.marketplace, vertical: 'Marketplace', desc: 'Online marketplace product page. Add-to-cart hangs ~8s, then fails with a 504.' },
+      banking: { vertical: 'Banking', desc: 'Transfer funds. Transfers take ~10s.' },
+      insurance: { vertical: 'Insurance', desc: 'Submit a claim. It hangs, then returns a 504.' },
+      hightech: { vertical: 'High Tech', desc: 'Provision a license. Each request is slower than the last.' },
+      voice: { vertical: 'Voice', desc: 'Finalize a transcript. Each one is slower than the last.' },
+      inference: { vertical: 'Inference', desc: 'Run a completion. Time to first token rises each run.' },
+      telco: { vertical: 'Telco', desc: 'Upgrade a plan. Upgrades are slow.' },
+      industrials: { vertical: 'Industrials', desc: 'Request a quote for factory F3. It takes ~14s; other factories take ~310ms.' },
+      marketplace: { vertical: 'Marketplace', desc: 'Add to cart. It hangs ~8s, then returns a 504.' },
     };
-
-    // Column count the grid actually renders: a single row up to four cards,
-    // then even rows of three when the count divides by three, otherwise rows
-    // of four. Only classes cols-1..cols-4 exist, so stay inside that range.
-    function columnCount(count) {
-      if (count <= 4) return Math.max(count, 1);
-      if (count % 3 === 0) return 3;
-      return 4;
-    }
 
     // The climbing-latency brands come from the scenarios themselves
     // (retryWindow) so the prose can't drift from the shim's behavior.
@@ -306,34 +101,25 @@
       // Per-user Slack/Teams choice, saved in this browser and shared with the demo hub.
       var destPicker = document.getElementById('dest-picker');
       window.AlertDestination.mount(destPicker, { teamsAvailable: Boolean(teamsDefaultWebhook) });
-      var destLabel = document.getElementById('alert-dest-label');
       function renderDestLabel(dest) {
         var teams = dest === 'teams' && teamsDefaultWebhook;
-        destLabel.innerHTML = teams ? 'Microsoft Teams' : '<code>#oncall-alerts</code>';
-        document.getElementById('alert-badge').textContent = teams ? 'Microsoft Teams' : '#oncall-alerts';
-        document.getElementById('pipeline-dest').textContent = teams ? 'Teams' : 'Slack';
+        document.getElementById('hero-dest').innerHTML = teams ? 'Teams <code>oncall-demo</code>' : '<code>#oncall-alerts</code>';
       }
       window.AlertDestination.onChange(renderDestLabel);
       renderDestLabel(window.AlertDestination.get());
 
       const grid = document.getElementById('alert-grid');
-      grid.classList.add(`cols-${columnCount(scenarios.length)}`);
+      grid.innerHTML = '<div class="cg-thead" aria-hidden="true"><span>Demo</span><span>What to do</span><span>Path</span></div>';
       renderRetryNote(scenarios);
       scenarios.forEach((s) => {
-        const meta = VERTICAL_META[s.id] || { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="12" cy="12" r="8"/></svg>', vertical: s.id, desc: '' };
+        const meta = VERTICAL_META[s.id] || { vertical: s.id, desc: '' };
         const link = document.createElement('a');
-        link.className = 'card';
+        link.className = 'cg-row';
         link.href = '/oncall/' + s.id;
         link.innerHTML =
-          '<div class="card-top">' +
-            '<div class="card-icon">' + meta.icon + '</div>' +
-            '<div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>' +
-          '</div>' +
-          '<div class="card-body">' +
-            '<div class="card-vertical">' + escapeHtml(meta.vertical) + '</div>' +
-            '<div class="card-brand">' + escapeHtml(s.brand.replace(/ \(.*\)$/, '')) + '</div>' +
-            '<div class="card-desc">' + escapeHtml(meta.desc) + '</div>' +
-          '</div>';
+          '<span class="cg-row-name">' + escapeHtml(s.brand.replace(/ \(.*\)$/, '')) + '</span>' +
+          '<span class="cg-row-desc">' + escapeHtml(meta.desc) + '</span>' +
+          '<span class="cg-row-path">/oncall/' + escapeHtml(s.id) + '</span>';
         grid.appendChild(link);
       });
     }

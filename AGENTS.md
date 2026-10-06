@@ -420,6 +420,7 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   ├── incidentModes.js           # Scenario state management (healthy, checkout-regression, etc.)
 │   ├── public/
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
+│   │   ├── cognition-brand.css    # Cognition editorial shell (paper, hairlines, nav, steps, card grid) shared by hub.html and oncall.html
 │   │   ├── index.html             # Retail eCommerce storefront UI
 │   │   └── verticals/
 │   │       ├── banking.html       # Apex Bank — Online Banking
