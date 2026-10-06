@@ -250,7 +250,10 @@
         $("sumPatient").textContent = label($("patient"));
         $("sumDrug").textContent = label($("drug")).replace(/\s*\(.*?\)/, "").replace(/\/dose pen|\/0\.\d mL pen| tablet/, "");
         $("sumPayer").textContent = label($("policyId"));
-        $("description").value = $("drug").value + " — " + $("diagnosis").value + " — patient " + $("patient").value;
+        const answers = Array.from(document.querySelectorAll(".questions .q"))
+          .map((q) => (q.querySelector("input").checked ? "Y" : "N") + ": " + q.textContent.trim())
+          .join("; ");
+        $("description").value = $("drug").value + " — " + $("diagnosis").value + " — patient " + $("patient").value + " — payer answers: " + answers;
       }
       ["patient", "drug", "policyId", "diagnosis"].forEach((id) => {
         $(id).addEventListener("change", sync);

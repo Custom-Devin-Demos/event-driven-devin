@@ -3497,13 +3497,12 @@ const ONCALL_SKINS = {
     page: { file: 'd95cd337.html', title: 'Submit prior authorization | Surescripts Prior Authorization Portal' },
     teamsAlerts: true,
     alertCard: {
-      title: 'p95 latency — ePA request submissions',
+      title: 'ePA request submissions hanging, then timing out (504)',
       service: 'surescripts-epa-gateway',
       release: 'surescripts-epa-gateway@2026.10.1',
       team: 'epa-oncall',
-      metricQuery: 'p95:trace.express.request.duration{service:surescripts-epa-gateway,resource:POST /api/oncall/insurance/claim}',
-      symptom: 'PA submissions hang ~10s before the payer acknowledgement. Error rate is normal — requests eventually reach the payer.',
-      impact: 'Prescribers wait on a spinner for ~10 seconds on every ePA request; patients leave the pharmacy without therapy while the PA is still pending.',
+      symptom: 'PA submissions hang ~7–10s waiting for the payer acknowledgement, then fail with 504 Gateway Timeout. Upstream payer adjudication latency is elevated.',
+      impact: 'Prescribers wait on a spinner and the PA is never sent; patients leave the pharmacy without therapy.',
     },
     theme: {
       '--accent': '#E46B34',
