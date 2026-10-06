@@ -221,7 +221,7 @@
       .err-head { padding: 18px 20px; }
       .err-head h2 { font-size: 20px; line-height: 24px; }
       .err-body { padding: 20px; }
-      .err-actions { flex-direction: column-reverse; }
+      .err-actions { flex-direction: column; }
       .err-actions .btn { width: 100%; min-width: 0; }
     }
 
@@ -828,6 +828,7 @@
     var errOverlay = document.getElementById('errOverlay');
     var lastError = { channel: null, trigger: null };
     var errReturnFocus = null;
+    var errFocusRaf = 0;
     function setPageInert(inert) {
       Array.prototype.forEach.call(document.body.children, function (el) {
         if (el === errOverlay || el.tagName === 'SCRIPT') return;
@@ -848,10 +849,16 @@
       var closeBtn = document.getElementById('errClose');
       closeBtn.focus();
       if (document.activeElement !== closeBtn) {
-        requestAnimationFrame(function () { requestAnimationFrame(function () { closeBtn.focus(); }); });
+        errFocusRaf = requestAnimationFrame(function () {
+          errFocusRaf = requestAnimationFrame(function () {
+            errFocusRaf = 0;
+            if (errOverlay.classList.contains('show')) closeBtn.focus();
+          });
+        });
       }
     }
     function hideError() {
+      if (errFocusRaf) { cancelAnimationFrame(errFocusRaf); errFocusRaf = 0; }
       errOverlay.classList.remove('show');
       errOverlay.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
