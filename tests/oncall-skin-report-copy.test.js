@@ -56,8 +56,11 @@ describe('4875267e bug-report portal (Japanese)', () => {
   });
 
   test('other bug-portal skins keep the English defaults', () => {
+    // Skins that deliberately localize the shared portal (each covered by its
+    // own test file); every other bug-portal skin must stay on the defaults.
+    const LOCALIZED = new Set(['4875267e', '059b9215']);
     const others = Object.values(ONCALL_SKINS).filter(
-      (s) => s.bugPortal && s.slug !== '4875267e',
+      (s) => s.bugPortal && !LOCALIZED.has(s.slug),
     );
     expect(others.length).toBeGreaterThan(0);
     for (const other of others) expect(other.bugPortal.copy).toBeUndefined();
