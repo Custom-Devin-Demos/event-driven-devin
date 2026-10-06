@@ -85,28 +85,43 @@ cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 
 # Optional .env sync from the deploy workflow (Actions secrets). Applied under
 # the lock and after the backup above, so rollback restores the previous .env.
-# The staged file must be exactly one `KEY=value` line for an allowlisted key,
-# with a single-line https URL value; anything else is logged and skipped
+# The staged file holds one `KEY=value` line per allowlisted key, each with a
+# single-line https URL value. Invalid or duplicate lines are logged and
+# skipped; a file with more lines than allowlisted keys is ignored entirely
 # (deploy continues with the current .env).
-ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL)
+ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL AUTOMATIONS_TEAMS_WEBHOOK_URL)
+is_env_sync_key() {
+  local key
+  for key in "${ENV_SYNC_KEYS[@]}"; do [ "$key" = "$1" ] && return 0; done
+  return 1
+}
 if [ -n "${ENV_SYNC_FILE:-}" ] && [ -s "$ENV_SYNC_FILE" ]; then
-  sync_line=$(head -n 1 "$ENV_SYNC_FILE")
-  sync_key=${sync_line%%=*}; sync_val=${sync_line#*=}
-  if [ "$(wc -l < "$ENV_SYNC_FILE")" != 1 ] || [ "$(wc -c < "$ENV_SYNC_FILE")" != "$(printf '%s\n' "$sync_line" | wc -c)" ]; then
-    log "env sync: WARNING staged file is not exactly one line; leaving .env unchanged"
-  elif [[ " ${ENV_SYNC_KEYS[*]} " != *" $sync_key "* ]]; then
-    log "env sync: WARNING non-allowlisted key; leaving .env unchanged"
-  elif ! [[ "$sync_val" =~ ^https://[^[:space:]\"\'\$]+$ ]]; then
-    log "env sync: WARNING $sync_key is not a single-line https URL; leaving .env unchanged"
-  elif grep -qxF "$sync_key=$sync_val" "$APP_DIR/.env"; then
-    log "env sync: $sync_key unchanged"
+  if [ "$(wc -l < "$ENV_SYNC_FILE")" -gt "${#ENV_SYNC_KEYS[@]}" ]; then
+    log "env sync: WARNING staged file has more lines than allowlisted keys; leaving .env unchanged"
   else
-    tmp_env=$(mktemp "$APP_DIR/.env.sync.XXXXXX")
-    grep -v "^$sync_key=" "$APP_DIR/.env" > "$tmp_env" || true
-    printf '%s=%s\n' "$sync_key" "$sync_val" >> "$tmp_env"
-    cat "$tmp_env" > "$APP_DIR/.env"
-    rm -f "$tmp_env"
-    log "env sync: $sync_key updated"
+    synced_keys=" "
+    while IFS= read -r sync_line || [ -n "$sync_line" ]; do
+      sync_key=${sync_line%%=*}; sync_val=${sync_line#*=}
+      if [[ "$sync_line" != *=* ]] || ! is_env_sync_key "$sync_key"; then
+        log "env sync: WARNING non-allowlisted key; line skipped"
+      elif [[ "$synced_keys" == *" $sync_key "* ]]; then
+        log "env sync: WARNING duplicate $sync_key; line skipped"
+      elif ! [[ "$sync_val" =~ ^https://[^[:space:]\"\'\$]+$ ]]; then
+        log "env sync: WARNING $sync_key is not a single-line https URL; line skipped"
+      else
+        synced_keys+="$sync_key "
+        if grep -qxF "$sync_key=$sync_val" "$APP_DIR/.env"; then
+          log "env sync: $sync_key unchanged"
+        else
+          tmp_env=$(mktemp "$APP_DIR/.env.sync.XXXXXX")
+          grep -v "^$sync_key=" "$APP_DIR/.env" > "$tmp_env" || true
+          printf '%s=%s\n' "$sync_key" "$sync_val" >> "$tmp_env"
+          cat "$tmp_env" > "$APP_DIR/.env"
+          rm -f "$tmp_env"
+          log "env sync: $sync_key updated"
+        fi
+      fi
+    done < "$ENV_SYNC_FILE"
   fi
   rm -f "$ENV_SYNC_FILE"
 fi

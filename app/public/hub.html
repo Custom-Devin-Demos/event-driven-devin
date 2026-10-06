@@ -117,6 +117,7 @@
     }
     .nav-save-btn:hover { opacity: 0.85; }
     .nav-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .alert-dest { margin: 0 0 24px; }
     .nav-status {
       font-size: 11px;
       font-family: var(--font-sans);
@@ -634,6 +635,8 @@
       <span class="section-count">9 demos</span>
     </div>
 
+    <div class="alert-dest" id="alertDestPicker"></div>
+
     <div class="grid">
 
       <a href="/retail" class="card">
@@ -824,6 +827,7 @@
     </div>
   </footer>
 
+  <script src="/alert-destination.js"></script>
   <script>
     (function () {
       // Generate ASCII art background
@@ -860,6 +864,9 @@
         statusEl.textContent = msg;
         statusEl.className = 'nav-status' + (type ? ' ' + type : '');
       }
+
+      /* ---- Alert destination (per browser) ---- */
+      var destPicker = window.AlertDestination.mount(document.getElementById('alertDestPicker'));
 
       /* ---- Restore persisted values ---- */
       orgNameInput.value = localStorage.getItem('devinOrgName') || '';
@@ -950,8 +957,10 @@
 
           if (cfg.lockOrg && cfg.lockUser) {
             saveBtn.style.display = 'none';
-            statusEl.style.display = 'none';
           }
+
+          // Without a server Teams webhook, Teams choices fall back to Slack.
+          destPicker.setTeamsAvailable(cfg.teamsAlerts);
         })
         .catch(function () {
           // config endpoint failed — inputs still usable
