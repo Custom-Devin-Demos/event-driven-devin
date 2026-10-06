@@ -420,7 +420,7 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   ├── incidentModes.js           # Scenario state management (healthy, checkout-regression, etc.)
 │   ├── public/
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
-│   │   ├── cognition-brand.css    # Cognition brand shell (fonts, palette, nav, numbered sections, cards) shared by hub.html and oncall.html
+│   │   ├── devin-brand.css        # Devin brand shell (palette, nav, steps, tinted cards) shared by hub.html and oncall.html
 │   │   ├── index.html             # Retail eCommerce storefront UI
 │   │   ├── oncall-report.html     # Shared customer-skinned support portal
 │   │   ├── oncall-incident.html   # Shared customer-skinned SEV-1 incident console
