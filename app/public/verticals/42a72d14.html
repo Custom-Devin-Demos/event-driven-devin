@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Change your plan | MyRogers</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #da291c;
+      --red-hover: #b52217;
+      --red-soft: #fdf0ef;
+      --slate: #1f1f1f;
+      --ink: #1f1f1f;
+      --body: #414042;
+      --muted: #6e6e6e;
+      --line: #dcdcdc;
+      --line-soft: #ececec;
+      --wash: #f6f6f6;
+      --white: #ffffff;
+      --link: #2f6fa7;
+      --green: #1b7f3b;
+      --green-bg: #eef8f1;
+      --sans: 'Ted Next Var', Figtree, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--white);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    ul { list-style: none; }
+    .wrap { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---------- utility bar ---------- */
+    .util { background: var(--slate); color: var(--white); font-size: 14px; }
+    .util .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; }
+    .util ul { display: flex; align-items: center; gap: 24px; }
+    .util a { display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; }
+    .util .signed { display: inline-flex; align-items: center; gap: 8px; background: var(--white); color: var(--ink); padding: 0 16px; min-height: 48px; font-weight: 600; }
+    .util .signed svg { flex: 0 0 auto; }
+
+    /* ---------- main nav ---------- */
+    .mainnav { background: var(--red); color: var(--white); }
+    .mainnav .wrap { display: flex; align-items: center; gap: 28px; min-height: 64px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; flex: 0 0 auto; }
+    .brand .mark {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--white); color: var(--red);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 17px;
+    }
+    .brand .word { font-weight: 800; font-size: 20px; letter-spacing: 1.5px; }
+    .mainnav nav { flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+    .mainnav nav::-webkit-scrollbar { display: none; }
+    .mainnav nav ul { display: flex; gap: 24px; }
+    .mainnav nav a { display: inline-flex; align-items: center; min-height: 44px; font-size: 15px; font-weight: 600; white-space: nowrap; }
+    .search {
+      flex: 0 0 220px; display: flex; align-items: center; justify-content: space-between;
+      background: var(--white); color: var(--muted); border-radius: 4px;
+      min-height: 40px; padding: 0 12px; font-size: 14px;
+    }
+
+    /* ---------- MyRogers sub nav ---------- */
+    .subnav { border-bottom: 1px solid var(--line); background: var(--white); }
+    .subnav .wrap { display: flex; align-items: center; gap: 28px; overflow-x: auto; scrollbar-width: none; }
+    .subnav .wrap::-webkit-scrollbar { display: none; }
+    .subnav .label { font-weight: 800; font-size: 18px; white-space: nowrap; padding-right: 8px; }
+    .subnav a {
+      display: inline-flex; align-items: center; min-height: 56px; font-size: 15px; color: var(--body);
+      white-space: nowrap; border-bottom: 3px solid transparent;
+    }
+    .subnav a.on { color: var(--ink); font-weight: 700; border-bottom-color: var(--red); }
+
+    /* ---------- page head ---------- */
+    .page-head { padding-top: 36px; padding-bottom: 28px; }
+    .crumbs { font-size: 14px; color: var(--muted); margin-bottom: 12px; }
+    .crumbs a { color: var(--link); text-decoration: underline; }
+    .page-head h1 { font-size: 42px; font-weight: 700; line-height: 1.15; }
+    .page-head p { margin-top: 12px; font-size: 16px; color: var(--body); max-width: 720px; }
+
+    /* ---------- layout ---------- */
+    .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 32px; align-items: start; padding-bottom: 64px; }
+    .card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 28px; }
+    .card + .card { margin-top: 24px; }
+    .card h2 { font-size: 24px; font-weight: 700; line-height: 1.25; margin-bottom: 6px; }
+    .card .sub { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+
+    /* line summary */
+    .line { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+    .line .ico { width: 56px; height: 56px; border-radius: 50%; background: var(--wash); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+    .line dl { flex: 1 1 220px; display: grid; grid-template-columns: auto 1fr; gap: 8px 20px; font-size: 15px; }
+    .line dt { color: var(--muted); }
+    .line dd { font-weight: 600; }
+
+    /* plan tiles */
+    .plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .plan {
+      position: relative; text-align: left; cursor: pointer;
+      display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
+      background: var(--white); border: 1px solid var(--line); border-radius: 12px;
+      padding: 20px 18px; color: var(--ink); min-height: 44px;
+    }
+    .plan:hover { border-color: #9a9a9a; }
+    .plan[aria-pressed="true"] { border: 2px solid var(--red); padding: 19px 17px; }
+    .plan .tag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--red); text-transform: uppercase; letter-spacing: 0.4px; min-height: 18px; }
+    .plan .name { font-size: 18px; font-weight: 700; margin-top: 4px; }
+    .plan .price { margin-top: 10px; font-size: 32px; font-weight: 800; line-height: 1; }
+    .plan .price sup { font-size: 16px; font-weight: 700; vertical-align: top; position: relative; top: 4px; }
+    .plan .price small { font-size: 14px; font-weight: 500; color: var(--muted); }
+    .plan ul { margin-top: 14px; border-top: 1px solid var(--line-soft); padding-top: 12px; font-size: 14px; color: var(--body); }
+    .plan li { padding: 3px 0 3px 20px; position: relative; }
+    .plan li::before { content: ''; position: absolute; left: 2px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+    .plans-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+
+    /* form */
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+    .form-group select, .form-group input[type="text"] {
+      width: 100%; min-height: 48px; padding: 0 14px;
+      background: var(--white); border: 1px solid #8c8c8c; border-radius: 4px;
+      color: var(--ink); font-size: 16px;
+    }
+    .form-group select:focus, .form-group input:focus { outline: 2px solid var(--red); outline-offset: 1px; }
+    .form-note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    .totals { background: var(--wash); border-radius: 8px; padding: 16px; margin: 4px 0 18px; font-size: 15px; }
+    .totals div { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+    .totals .big { font-weight: 800; font-size: 18px; border-top: 1px solid var(--line); margin-top: 6px; padding-top: 10px; }
+    .terms { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--body); margin-bottom: 18px; }
+    .terms input { width: 20px; height: 20px; margin-top: 12px; accent-color: var(--red); flex: 0 0 auto; }
+    .terms label { display: flex; align-items: center; min-height: 44px; }
+    .btn-submit {
+      width: 100%; min-height: 52px; border: 0; border-radius: 32px;
+      background: var(--red); color: var(--white); font-size: 17px; font-weight: 700; cursor: pointer;
+    }
+    .btn-submit:hover { background: var(--red-hover); }
+    .btn-submit:disabled { background: #b8b8b8; cursor: default; }
+    .result-box { display: none; margin-top: 20px; padding: 16px 18px; border-radius: 8px; font-size: 15px; }
+    .result-box.success { display: block; background: var(--green-bg); border-left: 4px solid var(--green); }
+    .result-box.error { display: block; background: var(--red-soft); border-left: 4px solid var(--red); }
+    .result-title { font-weight: 700; font-size: 17px; margin-bottom: 4px; }
+    .result-detail { color: var(--body); }
+    .info-list { margin-top: 20px; border-top: 1px solid var(--line-soft); }
+    .info-list li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
+    .info-list li span:first-child { color: var(--muted); }
+    .info-list li span:last-child { font-weight: 600; text-align: right; }
+
+    /* footer */
+    footer.site { background: var(--slate); color: var(--white); }
+    .connect { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; padding: 32px 0 20px; border-bottom: 1px solid #3a3a3a; }
+    .connect h3 { font-size: 26px; font-weight: 700; }
+    .connect ul { display: flex; gap: 24px; flex-wrap: wrap; font-size: 15px; }
+    .connect a { display: inline-flex; align-items: center; min-height: 44px; }
+    .foot-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; padding: 28px 0; }
+    .foot-cols h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .foot-cols a { display: flex; align-items: center; min-height: 36px; font-size: 14px; color: #d0d0d0; }
+    .legal { border-top: 1px solid #3a3a3a; padding: 18px 0 28px; font-size: 13px; color: #bdbdbd; }
+
+    @media (max-width: 1024px) {
+      .cols { grid-template-columns: minmax(0, 1fr); }
+      .search { display: none; }
+    }
+    @media (max-width: 720px) {
+      .util .hide-sm { display: none; }
+      .mainnav .wrap { gap: 16px; }
+      .page-head h1 { font-size: 32px; }
+      .card { padding: 20px; }
+      .plans { grid-template-columns: minmax(0, 1fr); }
+      .foot-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="util">
+    <div class="wrap">
+      <ul>
+        <li class="hide-sm"><a href="#">About Rogers</a></li>
+        <li><a href="#">Business</a></li>
+        <li class="hide-sm"><a href="#">Rogers Bank</a></li>
+      </ul>
+      <ul>
+        <li class="hide-sm"><a href="#">Find a store</a></li>
+        <li class="hide-sm"><a href="#">ON</a></li>
+        <li class="hide-sm"><a href="#">Français</a></li>
+        <li>
+          <a class="signed" href="#">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="none" stroke="#1f1f1f" stroke-width="2"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" fill="none" stroke="#1f1f1f" stroke-width="2"/></svg>
+            Hi, Alex
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <header class="mainnav">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Rogers home">
+        <span class="mark" aria-hidden="true">R</span>
+        <span class="word">ROGERS</span>
+      </a>
+      <nav aria-label="Main">
+        <ul>
+          <li><a href="#">Mobile</a></li>
+          <li><a href="#">Internet</a></li>
+          <li><a href="#">TV &amp; Streaming</a></li>
+          <li><a href="#">Home Security</a></li>
+          <li><a href="#">Deals</a></li>
+          <li><a href="#">My Offers</a></li>
+          <li><a href="#">Support</a></li>
+        </ul>
+      </nav>
+      <div class="search" aria-hidden="true">
+        <span>Search</span>
+        <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="#6e6e6e" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="#6e6e6e" stroke-width="2"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="subnav">
+    <div class="wrap">
+      <span class="label">MyRogers</span>
+      <a href="#">Overview</a>
+      <a href="#">Billing</a>
+      <a href="#">Usage</a>
+      <a class="on" href="#">Plan &amp; add-ons</a>
+      <a href="#">Devices</a>
+      <a href="#">Profile &amp; settings</a>
+    </div>
+  </div>
+
+  <div class="wrap page-head">
+    <div class="crumbs"><a href="#">MyRogers</a> &rsaquo; <a href="#">Mobile</a> &rsaquo; Change plan</div>
+    <h1>Change your plan</h1>
+    <p>Pick a new 5G+ plan for any line on your account. Your new plan starts today, and any difference for the rest of this billing period shows on your next bill.</p>
+  </div>
+
+  <main class="wrap cols">
+    <div>
+      <section class="card" aria-labelledby="lineHeading">
+        <h2 id="lineHeading">Your line</h2>
+        <div class="sub">The line you are changing, and the plan it has today.</div>
+        <div class="line">
+          <span class="ico" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5" fill="none" stroke="#1f1f1f" stroke-width="1.8"/><path d="M10.5 18.5h3" stroke="#1f1f1f" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </span>
+          <dl>
+            <dt>Phone number</dt><dd id="sumNumber">416-555-0142</dd>
+            <dt>Line holder</dt><dd id="sumHolder">Alex Martin</dd>
+            <dt>Current plan</dt><dd id="sumPlan">5G+ Lite &middot; $50/mo</dd>
+            <dt>Bill date</dt><dd>15th of each month</dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="plansHeading">
+        <h2 id="plansHeading">5G+ mobile plans</h2>
+        <div class="sub">With Internet or TV service and after Auto-Pay Discount. Prices per line, per month.</div>
+        <div class="plans" id="planTiles">
+          <button type="button" class="plan" data-plan="PLUS-24" aria-pressed="false">
+            <span class="tag">&nbsp;</span>
+            <div class="name">5G+ Essentials</div>
+            <div class="price"><sup>$</sup>55<small>/mo</small></div>
+            <ul>
+              <li>100 GB of High-Speed Data</li>
+              <li>Data, talk and text in US for 24 months</li>
+              <li>Get Rogers Satellite on us</li>
+            </ul>
+          </button>
+          <button type="button" class="plan" data-plan="ULTRA-36" aria-pressed="false">
+            <span class="tag">Most popular</span>
+            <div class="name">5G+ Popular</div>
+            <div class="price"><sup>$</sup>70<small>/mo</small></div>
+            <ul>
+              <li>Unlimited High-Speed Data</li>
+              <li>Data, talk and text in US, Mexico &amp; Caribbean for 24 months</li>
+              <li>Unlimited calling to 27 countries</li>
+            </ul>
+          </button>
+          <button type="button" class="plan" data-plan="UNLIMITED-24" aria-pressed="false">
+            <span class="tag">5-year price guarantee</span>
+            <div class="name">5G+ Ultimate</div>
+            <div class="price"><sup>$</sup>85<small>/mo</small></div>
+            <ul>
+              <li>Unlimited High-Speed Data</li>
+              <li>Data, talk and text in 64 destinations</li>
+              <li>Priority Network Access</li>
+            </ul>
+          </button>
+        </div>
+        <div class="plans-note">Taxes extra. Unlimited data at reduced speeds after your High-Speed Data is used.</div>
+      </section>
+    </div>
+
+    <div>
+      <section class="card" aria-labelledby="formHeading">
+        <h2 id="formHeading">Review your change</h2>
+        <div class="sub">Choose the line and the plan you want, then confirm.</div>
+        <form id="upgradeForm">
+          <div class="form-group">
+            <label for="currentPlan">Line</label>
+            <select id="currentPlan">
+              <option value="BASIC-12" data-number="416-555-0142" data-holder="Alex Martin" data-plan="5G+ Lite &middot; $50/mo">416-555-0142 &mdash; Alex (5G+ Lite)</option>
+              <option value="PLUS-24" data-number="647-555-0187" data-holder="Jordan Martin" data-plan="5G+ Essentials &middot; $55/mo">647-555-0187 &mdash; Jordan (5G+ Essentials)</option>
+              <option value="ULTRA-36" data-number="905-555-0119" data-holder="Sam Martin" data-plan="5G+ Popular &middot; $70/mo">905-555-0119 &mdash; Sam (5G+ Popular)</option>
+              <option value="FAMILY-PLUS-12" data-number="437-555-0163" data-holder="Riley Martin" data-plan="5G+ Ultimate &middot; $85/mo">437-555-0163 &mdash; Riley (5G+ Ultimate)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="newPlan">New plan</label>
+            <select id="newPlan">
+              <option value="PLUS-24" data-price="55">5G+ Essentials &mdash; $55/mo</option>
+              <option value="ULTRA-36" data-price="70" selected>5G+ Popular &mdash; $70/mo</option>
+              <option value="UNLIMITED-24" data-price="85">5G+ Ultimate &mdash; $85/mo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="addon">Add-on</label>
+            <select id="addon">
+              <option value="none" data-price="0">No add-on</option>
+              <option value="international" data-price="12">Roam Like Home &mdash; $12/day</option>
+              <option value="hotspot" data-price="8">Extra 10 GB data &mdash; $8/mo</option>
+              <option value="insurance" data-price="9">Device Protection &mdash; $9/mo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="promoCode">Promo code</label>
+            <input type="text" id="promoCode" placeholder="Optional" autocomplete="off">
+            <div class="form-note">Offer codes from My Offers apply to the new plan only.</div>
+          </div>
+          <div class="totals" aria-live="polite">
+            <div><span>New plan</span><span id="totPlan">$70.00/mo</span></div>
+            <div><span>Add-on</span><span id="totAddon">&mdash;</span></div>
+            <div class="big"><span>Monthly plan total</span><span id="totAll">$70.00/mo</span></div>
+          </div>
+          <div class="terms">
+            <input type="checkbox" id="agree" checked>
+            <label for="agree">I agree to the plan terms and understand my new plan starts today.</label>
+          </div>
+          <button type="submit" class="btn-submit" id="submitBtn">Confirm plan change</button>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <ul class="info-list">
+          <li><span>Starts</span><span>Today</span></li>
+          <li><span>Account</span><span>Ending in 3001</span></li>
+          <li><span>Need help?</span><span>Chat with us in the Rogers app</span></li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="connect">
+        <h3>Connect with us</h3>
+        <ul>
+          <li><a href="#">Contact us</a></li>
+          <li><a href="#">Find a store</a></li>
+          <li><a href="#">Track your order</a></li>
+          <li><a href="#">Quick Pay</a></li>
+          <li><a href="#">MyRogers</a></li>
+        </ul>
+      </div>
+      <div class="foot-cols">
+        <div><h4>Shop</h4><a href="#">Mobility</a><a href="#">Cell phones</a><a href="#">Home internet</a><a href="#">TV plans</a></div>
+        <div><h4>Mobile services</h4><a href="#">Mobile plans</a><a href="#">Roaming &amp; travel plans</a><a href="#">Plans and add-ons</a><a href="#">SIM &amp; eSIM</a></div>
+        <div><h4>Internet &amp; TV services</h4><a href="#">Home internet plans</a><a href="#">Internet + TV bundles</a><a href="#">Streaming</a><a href="#">Home security</a></div>
+        <div><h4>Deals &amp; promotions</h4><a href="#">Mobile</a><a href="#">Internet</a><a href="#">TV</a><a href="#">Student offers</a></div>
+      </div>
+      <div class="legal">Privacy &middot; Terms &amp; conditions &middot; Accessibility &middot; Security</div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (response) {
+        return response.json();
+      }).then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const form = document.getElementById('upgradeForm');
+      const lineSel = document.getElementById('currentPlan');
+      const planSel = document.getElementById('newPlan');
+      const addonSel = document.getElementById('addon');
+      const tiles = Array.prototype.slice.call(document.querySelectorAll('#planTiles .plan'));
+      const money = (n) => '$' + n.toFixed(2);
+
+      function selectedOption(sel) { return sel.options[sel.selectedIndex]; }
+
+      function renderSummary() {
+        const line = selectedOption(lineSel);
+        document.getElementById('sumNumber').textContent = line.dataset.number;
+        document.getElementById('sumHolder').textContent = line.dataset.holder;
+        document.getElementById('sumPlan').textContent = line.dataset.plan;
+
+        const plan = Number(selectedOption(planSel).dataset.price);
+        const addon = selectedOption(addonSel);
+        const addonPrice = Number(addon.dataset.price);
+        const perDay = addon.value === 'international';
+        document.getElementById('totPlan').textContent = money(plan) + '/mo';
+        document.getElementById('totAddon').textContent = addonPrice ? money(addonPrice) + (perDay ? '/day' : '/mo') : '\u2014';
+        document.getElementById('totAll').textContent = money(plan + (perDay ? 0 : addonPrice)) + '/mo';
+
+        tiles.forEach((t) => t.setAttribute('aria-pressed', String(t.dataset.plan === planSel.value)));
+      }
+
+      tiles.forEach((t) => t.addEventListener('click', () => {
+        planSel.value = t.dataset.plan;
+        renderSummary();
+      }));
+      [lineSel, planSel, addonSel].forEach((el) => el.addEventListener('change', renderSummary));
+      form.addEventListener('reset', () => setTimeout(renderSummary, 0));
+      renderSummary();
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const result = document.getElementById('result');
+        const planLabel = selectedOption(planSel).textContent.split(' \u2014 ')[0];
+        const lineNumber = selectedOption(lineSel).dataset.number;
+        btn.disabled = true;
+        btn.textContent = 'Updating your plan\u2026';
+        result.className = 'result-box';
+        result.innerHTML = '';
+        try {
+          const response = await fetch('/api/telco/upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              accountId: 'CUST-3001',
+              currentPlanCode: lineSel.value,
+              targetPlanCode: planSel.value,
+              billingDay: 15,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) {
+            result.className = 'result-box error';
+            result.innerHTML = '<div class="result-title">We couldn\u2019t change your plan right now</div>'
+              + '<div class="result-detail">Your current plan hasn\u2019t changed. Please try again in a few minutes.</div>';
+          } else {
+            const ref = String(data.upgradeId || '').replace(/-/g, '').slice(0, 10).toUpperCase();
+            result.className = 'result-box success';
+            result.innerHTML = '<div class="result-title">Your plan change is confirmed</div>'
+              + '<div class="result-detail">' + lineNumber + ' is now on ' + planLabel
+              + (data.effectiveDate ? ', starting ' + data.effectiveDate : '')
+              + '.<br>Confirmation number ' + ref + '</div>';
+          }
+        } catch (err) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="result-title">We couldn\u2019t reach MyRogers</div>'
+            + '<div class="result-detail">Check your connection and try again.</div>';
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Confirm plan change';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

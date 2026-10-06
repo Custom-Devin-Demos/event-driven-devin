@@ -2873,6 +2873,23 @@ const ONCALL_SKINS = {
     supportCenter: 'Shop Cummins Customer Support',
     disclaimer: 'NOT ACTUALLY A CUMMINS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
   },
+  '42a72d14': {
+    slug: '42a72d14',
+    company: 'Rogers',
+    brandMark: 'R',
+    vertical: 'telco',
+    page: { file: '42a72d14.html', title: 'Change your plan | MyRogers' },
+    theme: {
+      '--accent': '#DA291C',
+      '--ink': '#1F1F1F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1F1F1F',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Rogers Support',
+    devinSession: { auto: true },
+    disclaimer: 'NOT ACTUALLY A ROGERS SITE — internal demo only, not affiliated with, endorsed by, or a real Rogers product.',
+  },
 };
 
 function getOncallSkin(slug) {
