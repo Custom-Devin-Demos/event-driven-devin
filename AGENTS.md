@@ -421,7 +421,6 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   ├── public/
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
 │   │   ├── index.html             # Retail eCommerce storefront UI
-│   │   ├── oncall-report.html     # Shared customer-skinned support portal
 │   │   ├── oncall-incident.html   # Shared customer-skinned SEV-1 incident console
 │   │   └── verticals/
 │   │       ├── banking.html       # Apex Bank — Online Banking
@@ -450,7 +449,7 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   │   │   ├── healthcare.js      # Healthcare: providers + appointments
 │   │   │   ├── telco.js           # Telco: plans + upgrades
 │   │   │   └── payer.js           # Payer: ID cards + pharmacy claims
-│   │   ├── oncall.js              # On-Call demo pages, alert/bug triggers, skinned routes
+│   │   ├── oncall.js              # On-Call demo pages, alert triggers, skinned routes
 │   │   ├── oncall-verticals.js    # On-call vertical slice endpoints (/api/oncall/<vertical>/...)
 │   │   ├── internal-jobs.js       # Slow-query patrol jobs (container-network-only; nginx returns 404)
 │   │   ├── checkout.js            # Legacy checkout endpoint

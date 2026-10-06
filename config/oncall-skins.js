@@ -2670,12 +2670,6 @@ const ONCALL_SKINS = {
       impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served slots that open at a fixed time are hit hardest.',
     },
     disclaimer: 'NOT ACTUALLY A MANABIBA SITE — manabiba is a fictional brand; demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・デモ用）。',
-    // Bug-report portal opt-in: /oncall/c/4875267e/report. Product areas and
-    // templates are the attendee/organizer vocabulary of the event page; the
-    // template ids stay the shared hightech BUG_CATALOG ids so a filed report
-    // describes the same standing staged slowdown the alert track exercises.
-    // `copy` localizes the shared portal's own UI strings (same pattern as
-    // incident.copy on the SEV-1 console).
     // SEV-1 opt-in: the same hightech story the alert track degrades, so the
     // shared console at /oncall/c/4875267e/incident tells the same story as
     // the page. `copy` localizes the console's own UI strings; the
@@ -2883,9 +2877,6 @@ const ONCALL_SKINS = {
         },
       },
     },
-    // Bug-report portal opt-in (/oncall/c/059b9215/report): one product area
-    // backed by the insurance catalog so the templates keep their real repro
-    // mapping; the copy is what a field inspector / safety manager would write.
     disclaimer: 'NOT ACTUALLY A RYOYO SYSTEMS SITE — 菱陽システムズ and 点検クラウド TENLOG are fictional brands; demo only, not affiliated with, endorsed by, or a product of any real company. ／ 実在する企業・サービスのサイトではありません（架空ブランド・デモ用）。',
   },
 };

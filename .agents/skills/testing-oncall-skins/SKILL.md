@@ -1,6 +1,6 @@
 ---
 name: testing-oncall-skins
-description: How to run and verify On-Call customer skins (/oncall/c/<slug>) end-to-end, including the native-page variant, shim rerouting, report portal, and mobile checks.
+description: How to run and verify On-Call customer skins (/oncall/c/<slug>) end-to-end, including the native-page variant, shim rerouting, and mobile checks.
 ---
 
 # Testing On-Call Customer Skins
