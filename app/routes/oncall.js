@@ -593,7 +593,7 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
       devinUserId,
       devinOrgId,
       skin: skinMatches ? skinConfig : null,
-      destination: normalizeAlertDestination(alertDestination) || 'slack',
+      destination: normalizeAlertDestination(alertDestination),
     });
     res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {

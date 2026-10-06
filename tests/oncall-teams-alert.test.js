@@ -237,6 +237,35 @@ describe('per-user alert destination (Slack or Teams, hub-local setting)', () =>
     expect(result).toEqual({ ok: false, error: 'Teams alert post failed' });
     expect(postMessage).not.toHaveBeenCalled();
   });
+
+  test('an explicit Slack choice overrides server-managed Teams routing', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_ALL_ALERTS = 'true';
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'slack', skin: LOANTRACK });
+    expect(result).toMatchObject({ ok: true, ts: '1700000000.000100' });
+    expect(result.teams).toBeUndefined();
+    expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  test('callers without a choice keep server-managed Teams routing', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_ALL_ALERTS = 'true';
+    const result = await postOncallAlert('banking', { runRef: 'run-abc' });
+    expect(result).toMatchObject({ ok: true, ts: '1700000000.000100', teams: true });
+  });
+
+  test('a Teams-only auto-session skin posts the session link to Teams', async () => {
+    setEnv({ slack: true, teams: true });
+    const skin = { ...LOANTRACK, teamsAlerts: false, devinSession: { auto: true } };
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', skin });
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({ ok: true, teams: true, sessionUrl: 'https://app.devin.ai/sessions/session-abc' });
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(postThreadReply).not.toHaveBeenCalled();
+    expect(axios.post).toHaveBeenCalledTimes(2);
+    const followUp = axios.post.mock.calls[1][1].attachments[0].content;
+    expect(followUp.actions).toEqual([{ type: 'Action.OpenUrl', title: 'View session', url: 'https://app.devin.ai/sessions/session-abc' }]);
+  });
 });
 
 describe('isTeamsWebhookUrl', () => {

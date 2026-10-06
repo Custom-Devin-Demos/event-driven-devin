@@ -204,7 +204,7 @@
         <span class="badge" id="alert-badge">#oncall-alerts</span>
       </div>
       <h2 id="alert-heading">Production degradations</h2>
-      <p class="section-desc" id="alert-desc">Each card opens a branded page in on-call mode. Submit the customer action, it degrades, and an alert lands in <code>#oncall-alerts</code> for Devin to investigate. <span id="retry-note"></span></p>
+      <p class="section-desc" id="alert-desc">Each card opens a branded page in on-call mode. Submit the customer action, it degrades, and an alert lands in <span id="alert-dest-label"><code>#oncall-alerts</code></span> for Devin to investigate. <span id="retry-note"></span></p>
       <div class="teams-panel" id="teams-panel">
         <div id="dest-picker"></div>
       </div>
@@ -311,7 +311,14 @@
       const res = await fetch('/api/oncall/scenarios');
       const { scenarios, teamsDefaultWebhook } = await res.json();
       // Per-user Slack/Teams choice, saved in this browser and shared with the demo hub.
-      window.AlertDestination.mount(document.getElementById('dest-picker'), { teamsAvailable: Boolean(teamsDefaultWebhook) });
+      var destPicker = document.getElementById('dest-picker');
+      window.AlertDestination.mount(destPicker, { teamsAvailable: Boolean(teamsDefaultWebhook) });
+      var destLabel = document.getElementById('alert-dest-label');
+      function renderDestLabel(dest) {
+        destLabel.innerHTML = dest === 'teams' && teamsDefaultWebhook ? 'Microsoft Teams' : '<code>#oncall-alerts</code>';
+      }
+      window.AlertDestination.onChange(renderDestLabel);
+      renderDestLabel(window.AlertDestination.get());
 
       const grid = document.getElementById('alert-grid');
       grid.classList.add(`cols-${columnCount(scenarios.length)}`);
