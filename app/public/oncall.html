@@ -114,8 +114,12 @@
     .status.ok { background:var(--wash); border:1px solid var(--line); color:var(--ink); }
     .status.err { background:var(--paper); border:1px solid var(--danger); color:var(--danger); }
     .teams-panel { display:flex; flex-direction:column; gap:10px; max-width:780px; margin:0 0 24px; padding:14px 16px; border:1px solid var(--line); border-radius:10px; background:var(--paper); }
-    .teams-toggle { display:flex; align-items:center; gap:10px; font-size:14px; color:var(--ink); cursor:pointer; }
-    .teams-toggle input { width:16px; height:16px; accent-color:var(--accent); }
+    .dest-picker { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:14px; color:var(--ink); }
+    .dest-options { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+    .dest-options label { padding:6px 14px; font-size:13px; cursor:pointer; color:var(--muted); background:var(--wash); }
+    .dest-options label + label { border-left:1px solid var(--line); }
+    .dest-options label.active { background:var(--accent); color:#fff; }
+    .dest-options input { position:absolute; opacity:0; pointer-events:none; }
     .teams-hint { font-size:13px; color:var(--muted); line-height:1.5; }
     .teams-hint.err { color:var(--danger); }
     .teams-url { display:none; gap:8px; flex-wrap:wrap; }
@@ -212,7 +216,14 @@
       <h2 id="alert-heading">Production degradations</h2>
       <p class="section-desc" id="alert-desc">Each card opens a branded page in on-call mode. Submit the customer action, it degrades, and an alert lands in <code>#oncall-alerts</code> for Devin to investigate. <span id="retry-note"></span></p>
       <div class="teams-panel" id="teams-panel">
-        <label class="teams-toggle"><input type="checkbox" id="teams-toggle"> Also post my alerts to Microsoft Teams</label>
+        <div class="dest-picker" role="radiogroup" aria-label="Send my alerts to">
+          <span>Send my alerts to</span>
+          <span class="dest-options" id="dest-options">
+            <label><input type="radio" name="alert-dest" value="slack"> Slack</label>
+            <label><input type="radio" name="alert-dest" value="teams"> Microsoft Teams</label>
+            <label><input type="radio" name="alert-dest" value="both"> Both</label>
+          </span>
+        </div>
         <div class="teams-url">
           <input type="url" id="teams-url" placeholder="Optional: your own Teams Workflow webhook URL" autocomplete="off" spellcheck="false" aria-label="Teams Workflow webhook URL">
         </div>
@@ -264,6 +275,7 @@
     </div>
   </footer>
 
+  <script src="/alert-destination.js"></script>
   <script>
     (function () {
       window.addEventListener('scroll', function () {
@@ -316,36 +328,45 @@
         'join the same incident and show the latency climbing.';
     }
 
-    // Per-user Teams delivery: stored only in this browser and sent with each
-    // alert trigger, so it never changes the shared server configuration.
+    // Per-user alert destination (Slack / Teams / Both): stored only in this
+    // browser and sent with each alert trigger, so it never changes the shared
+    // server configuration.
     var TEAMS_HOST_RE = /^https:\/\/[^\/?#@]+\.(logic\.azure\.com|api\.powerplatform\.com|webhook\.office\.com)(:443)?(\/|$)/i;
     function setupTeamsToggle(teamsDefaultWebhook) {
       var panel = document.getElementById('teams-panel');
-      var toggle = document.getElementById('teams-toggle');
+      var radios = Array.prototype.slice.call(document.querySelectorAll('input[name="alert-dest"]'));
       var urlInput = document.getElementById('teams-url');
       var hint = document.getElementById('teams-hint');
-      toggle.checked = localStorage.getItem('oncallTeamsAlerts') === 'on';
+      var destination = window.AlertDestination.get();
       urlInput.value = localStorage.getItem('oncallTeamsWebhookUrl') || '';
       function render() {
         var url = urlInput.value.trim();
         var valid = !url || (url.length <= 2048 && TEAMS_HOST_RE.test(url));
-        panel.classList.toggle('on', toggle.checked);
-        hint.classList.toggle('err', toggle.checked && (!valid || (!url && !teamsDefaultWebhook)));
-        if (!toggle.checked) {
-          hint.textContent = 'Off: no personal Teams delivery (server-managed Teams routing, if configured, still applies). Saved in this browser only.';
+        var teams = destination !== 'slack';
+        var where = destination === 'teams' ? 'only to' : 'to Slack and to';
+        radios.forEach(function (r) {
+          r.checked = r.value === destination;
+          r.parentNode.classList.toggle('active', r.checked);
+        });
+        panel.classList.toggle('on', teams);
+        hint.classList.toggle('err', teams && (!valid || (!url && !teamsDefaultWebhook)));
+        if (!teams) {
+          hint.textContent = 'Your alerts post to Slack (server-managed Teams routing, if configured, still applies). Saved in this browser only.';
         } else if (!valid) {
           hint.textContent = 'That is not a Teams Workflow webhook URL (expected *.logic.azure.com or *.api.powerplatform.com).';
         } else if (url) {
-          hint.textContent = 'On: your alerts also post to your own Teams channel via this webhook. Saved in this browser only.';
+          hint.textContent = 'Your alerts post ' + where + ' your own Teams channel via this webhook. Saved in this browser only.';
         } else if (teamsDefaultWebhook) {
-          hint.textContent = 'On: your alerts also post to the shared Teams channel. Paste a webhook above to use your own channel instead.';
+          hint.textContent = 'Your alerts post ' + where + ' the shared Teams channel. Paste a webhook above to use your own channel instead.';
         } else {
           hint.textContent = 'No shared Teams channel is configured on this server. Paste your Teams Workflow webhook URL above.';
         }
       }
-      toggle.addEventListener('change', function () {
-        localStorage.setItem('oncallTeamsAlerts', toggle.checked ? 'on' : 'off');
-        render();
+      radios.forEach(function (r) {
+        r.addEventListener('change', function () {
+          destination = window.AlertDestination.set(r.value);
+          render();
+        });
       });
       urlInput.addEventListener('input', function () {
         var url = urlInput.value.trim();

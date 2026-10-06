@@ -1,14 +1,16 @@
 const axios = require('axios');
 
 /**
- * Microsoft Teams delivery for On-Call alerts via a Teams Workflows
+ * Microsoft Teams delivery for demo alerts via a Teams Workflows
  * "Post to a channel when a webhook request is received" URL. The workflow
  * posts the Adaptive Card it receives into the configured channel.
  */
 
 const ADAPTIVE_CARD_CONTENT_TYPE = 'application/vnd.microsoft.card.adaptive';
 
-function buildTeamsAlertCard({ title, facts, monitorQuery, body, actions }) {
+function buildTeamsAlertCard({
+  title, facts, monitorQuery, codeTitle = 'Monitor query', body = [], actions = [], color = 'Attention',
+}) {
   return {
     $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
     type: 'AdaptiveCard',
@@ -20,7 +22,7 @@ function buildTeamsAlertCard({ title, facts, monitorQuery, body, actions }) {
         text: title,
         weight: 'Bolder',
         size: 'Medium',
-        color: 'Attention',
+        color,
         wrap: true,
       },
       {
@@ -30,7 +32,7 @@ function buildTeamsAlertCard({ title, facts, monitorQuery, body, actions }) {
           .map(([label, value]) => ({ title: label, value: String(value) })),
       },
       ...(monitorQuery ? [
-        { type: 'TextBlock', text: 'Monitor query', weight: 'Bolder', spacing: 'Medium' },
+        { type: 'TextBlock', text: codeTitle, weight: 'Bolder', spacing: 'Medium' },
         { type: 'TextBlock', text: monitorQuery, fontType: 'Monospace', wrap: true },
       ] : []),
       ...body.filter(Boolean).map((text) => ({ type: 'TextBlock', text, wrap: true, spacing: 'Small' })),

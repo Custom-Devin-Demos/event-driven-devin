@@ -46,7 +46,8 @@ describe('on-call hub routes', () => {
 
   test('the shim sends the per-user Teams settings and surfaces an invalid personal webhook', async () => {
     const html = await (await fetch(`${baseUrl}/oncall/c/63dbb52f`)).text();
-    expect(html).toContain("localStorage.getItem('oncallTeamsAlerts') === 'on'");
+    expect(html).toContain("localStorage.getItem('alertDestination')");
+    expect(html).toContain("alertDestination: alertDestination,");
     expect(html).toContain("localStorage.getItem('oncallTeamsWebhookUrl')");
     expect(html).toMatch(/if \(d\.teamsError\)[^\n]*invalid/);
     expect(html).toContain("if (d.ok && !d.teamsFailed && !d.teamsError) scheduleCollapse();");

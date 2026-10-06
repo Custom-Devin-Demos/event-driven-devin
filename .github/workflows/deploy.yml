@@ -67,19 +67,28 @@ jobs:
             /tmp/release.tar.gz \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/release-${{ github.sha }}.tar.gz
 
-      # Optional: stage ONCALL_TEAMS_WEBHOOK_URL (Teams Workflow webhook for
-      # On-Call alerts) from the MAIN_ONCALL_TEAMS_WEBHOOK_URL Actions secret into
-      # the host .env, so it can be set without SSH access.
-      # deploy-ec2.sh applies it under the deploy lock, after its .env backup.
-      # Skipped when the secret is unset.
-      - name: Stage On-Call Teams webhook for host .env
+      # Optional: stage the Teams Workflow webhooks into the host .env from
+      # Actions secrets, so they can be set without SSH access:
+      #   MAIN_ONCALL_TEAMS_WEBHOOK_URL      -> ONCALL_TEAMS_WEBHOOK_URL (On-Call alerts)
+      #   MAIN_AUTOMATIONS_TEAMS_WEBHOOK_URL -> AUTOMATIONS_TEAMS_WEBHOOK_URL (hub demo alerts)
+      # deploy-ec2.sh applies them under the deploy lock, after its .env backup.
+      # Skipped when neither secret is set.
+      - name: Stage Teams webhooks for host .env
         env:
           ONCALL_TEAMS_WEBHOOK_URL: ${{ secrets.MAIN_ONCALL_TEAMS_WEBHOOK_URL }}
+          AUTOMATIONS_TEAMS_WEBHOOK_URL: ${{ secrets.MAIN_AUTOMATIONS_TEAMS_WEBHOOK_URL }}
         run: |
-          if [ -z "$ONCALL_TEAMS_WEBHOOK_URL" ]; then
-            echo "MAIN_ONCALL_TEAMS_WEBHOOK_URL secret not set; host .env left unchanged"; exit 0
+          sync=""
+          if [ -n "$ONCALL_TEAMS_WEBHOOK_URL" ]; then
+            sync+="ONCALL_TEAMS_WEBHOOK_URL=$ONCALL_TEAMS_WEBHOOK_URL"$'\n'
           fi
-          printf 'ONCALL_TEAMS_WEBHOOK_URL=%s\n' "$ONCALL_TEAMS_WEBHOOK_URL" | \
+          if [ -n "$AUTOMATIONS_TEAMS_WEBHOOK_URL" ]; then
+            sync+="AUTOMATIONS_TEAMS_WEBHOOK_URL=$AUTOMATIONS_TEAMS_WEBHOOK_URL"$'\n'
+          fi
+          if [ -z "$sync" ]; then
+            echo "No Teams webhook secrets set; host .env left unchanged"; exit 0
+          fi
+          printf '%s' "$sync" | \
             ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
             'umask 077 && mkdir -p /home/ubuntu/incoming && cat > /home/ubuntu/incoming/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
 

@@ -11,8 +11,78 @@ const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getCustomerConfig } = require('../../config/customers');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { legacyAlertsSuppressed } = require('./oncall-suppression');
+const { currentAlertDestination } = require('./alert-destination');
+const { buildTeamsAlertCard, postTeamsCard } = require('./teams');
 
 let servicenowConfigWarningLogged = false;
+
+const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+
+/**
+ * Where this request's alert goes, from the presenter's hub choice
+ * (alert_destination cookie). Teams needs AUTOMATIONS_TEAMS_WEBHOOK_URL; without
+ * it the alert stays on Slack so the demo never goes silent.
+ */
+function resolveAlertRouting() {
+  const destination = currentAlertDestination();
+  if (destination === 'slack') return { slack: true, teamsUrl: null };
+  const teamsUrl = process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL;
+  if (!teamsUrl) {
+    logger.warn('Teams alert destination requested but AUTOMATIONS_TEAMS_WEBHOOK_URL is not set — posting to Slack');
+    return { slack: true, teamsUrl: null };
+  }
+  return { slack: destination === 'both', teamsUrl };
+}
+
+function buildTeamsAlertCardForAlert(alertData) {
+  const owner = typeof alertData.devinEmail === 'string' && EMAIL_RE.test(alertData.devinEmail)
+    ? alertData.devinEmail
+    : null;
+  return buildTeamsAlertCard({
+    title: `\u{1F6A8} Sentry Alert — ${alertData.verticalLabel || 'Checkout'} Error`,
+    facts: [
+      ['Error', alertData.issueTitle],
+      ['Severity', alertData.level || 'error'],
+      ['Location', alertData.culprit],
+      ['Type', alertData.errorType],
+      ['Release', alertData.release || process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2'],
+      ['Environment', alertData.environment || process.env.DD_ENV || 'prod'],
+      ['On-Call', 'Devin AI (auto-investigating)'],
+      ['Triggered by', owner],
+      ['Service', alertData.service || 'checkout-api'],
+      ['Detected', new Date().toISOString()],
+    ],
+    monitorQuery: alertData.errorValue,
+    codeTitle: 'Message',
+    actions: [
+      { title: 'View in Sentry', url: alertData.issueUrl },
+      { title: 'View in Datadog', url: process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
+    ],
+  });
+}
+
+async function postAlertTeamsCard(teamsUrl, card, what) {
+  try {
+    await postTeamsCard(teamsUrl, card);
+    logger.info(`${what} posted to Teams`);
+    return true;
+  } catch (error) {
+    logger.error(`Failed to post ${what.toLowerCase()} to Teams`, {
+      error: error.message,
+      status: error.response?.status,
+    });
+    return false;
+  }
+}
+
+function postTeamsFollowUp(teamsUrl, alertData, { title, facts, actionTitle, url }) {
+  return postAlertTeamsCard(teamsUrl, buildTeamsAlertCard({
+    title,
+    color: 'Accent',
+    facts: [['Alert', alertData.issueTitle], ...facts],
+    actions: [{ title: actionTitle, url }],
+  }), title.replace(/^\W+/, ''));
+}
 
 /**
  * Build the investigation prompt from alert data.
@@ -141,18 +211,27 @@ async function createSessionAndAlert(alertData) {
       devinOrgId: resolvedOrgId || 'default',
     });
 
+    const routing = resolveAlertRouting();
+
     // Mirror the bug report to the dedicated triage channel (#automated-devin-triage).
     // Report-only: this copy never triggers a Devin session. Fire-and-forget so it
     // can't block or break the primary alert + Devin flow.
-    postBugReportToTriage(alertData).catch((err) => {
-      logger.warn('Triage bug report mirror failed', { error: err.message });
-    });
+    if (routing.slack) {
+      postBugReportToTriage(alertData).catch((err) => {
+        logger.warn('Triage bug report mirror failed', { error: err.message });
+      });
+    }
 
-    // Step 1: Post the rich alert message (bot token)
-    const threadTs = await postAlertToSlack(alertData);
+    // Step 1: Post the rich alert message (Slack bot token and/or Teams card)
+    const teamsDelivery = routing.teamsUrl
+      ? postAlertTeamsCard(routing.teamsUrl, buildTeamsAlertCardForAlert(alertData), 'Alert')
+      : Promise.resolve(false);
+    const threadTs = routing.slack ? await postAlertToSlack(alertData) : null;
+    const teamsPosted = await teamsDelivery;
+    const teamsUrl = teamsPosted ? routing.teamsUrl : null;
 
-    if (!threadTs) {
-      logger.warn('Alert post returned no thread timestamp — cannot trigger Devin reply');
+    if (!threadTs && !teamsPosted) {
+      logger.warn('Alert was not delivered to Slack or Teams — cannot trigger Devin reply');
       return null;
     }
 
@@ -173,13 +252,23 @@ async function createSessionAndAlert(alertData) {
       });
 
       if (incident) {
-        await postIncidentLink(
-          threadTs,
-          incident,
-          config.itsmAssignmentGroup,
-          ...(config.slackChannelId ? [config.slackChannelId] : []),
-        );
-        logger.info('ServiceNow incident created and linked in Slack thread', {
+        if (threadTs) {
+          await postIncidentLink(
+            threadTs,
+            incident,
+            config.itsmAssignmentGroup,
+            ...(config.slackChannelId ? [config.slackChannelId] : []),
+          );
+        }
+        if (teamsUrl) {
+          await postTeamsFollowUp(teamsUrl, alertData, {
+            title: `\u{1F3AB} ServiceNow incident ${incident.number} created`,
+            facts: [['Assignment group', config.itsmAssignmentGroup]],
+            actionTitle: 'Open incident',
+            url: incident.url,
+          });
+        }
+        logger.info('ServiceNow incident created and linked', {
           issueTitle: alertData.issueTitle,
           incidentNumber: incident.number,
           customer: config.customer,
@@ -190,6 +279,7 @@ async function createSessionAndAlert(alertData) {
           triggered: true,
           throttled: false,
           threadTs,
+          ...(teamsUrl ? { teams: true } : {}),
           session: null,
           incident,
         };
@@ -241,18 +331,29 @@ async function createSessionAndAlert(alertData) {
       });
 
       if (session) {
-        await postDevinSessionLink(
-          threadTs,
-          session.url,
-          ...(config.slackChannelId ? [config.slackChannelId] : []),
-        );
-        logger.info('Devin session created and linked in Slack thread', {
+        if (threadTs) {
+          await postDevinSessionLink(
+            threadTs,
+            session.url,
+            ...(config.slackChannelId ? [config.slackChannelId] : []),
+          );
+        }
+        if (teamsUrl) {
+          await postTeamsFollowUp(teamsUrl, alertData, {
+            title: '\u{1F50D} Devin is investigating this alert',
+            facts: [['Session', session.url]],
+            actionTitle: 'View in Devin',
+            url: session.url,
+          });
+        }
+        logger.info('Devin session created and linked', {
           issueTitle: alertData.issueTitle,
           sessionId: session.sessionId,
           customer: config.customer,
           devinUserId: resolvedUserId || 'service-user',
           devinOrgId: resolvedOrgId || 'default',
           threadTs,
+          teams: Boolean(teamsUrl),
         });
       } else {
         // API failed — release the optimistic reservation so the slot
@@ -272,7 +373,13 @@ async function createSessionAndAlert(alertData) {
       scheduleVulnerablePR(0, config.customer, resolvedUserId, resolvedOrgId);
     }
 
-    return { triggered: !throttled, throttled, threadTs, session };
+    return {
+      triggered: !throttled,
+      throttled,
+      threadTs,
+      ...(teamsUrl ? { teams: true } : {}),
+      session,
+    };
   } catch (error) {
     logger.error('Failed to post alert or trigger Devin', {
       error: error.message,

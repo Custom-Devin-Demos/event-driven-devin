@@ -711,15 +711,27 @@ async function postOncallAlert(scenarioId, options = {}) {
   const skin = options.skin || null;
   const env = resolveOncallEnv();
   const { token, alertsChannel } = env;
-  const userTeamsUrl = options.teams ? options.teamsWebhookUrl : null;
+  // destination: 'slack' | 'teams' | 'both' from the presenter's hub choice;
+  // the legacy `teams: true` flag means 'both'.
+  const destination = options.destination || (options.teams ? 'both' : 'slack');
+  const teamsRequested = destination !== 'slack';
+  const userTeamsUrl = teamsRequested ? options.teamsWebhookUrl : null;
   const userTeamsUrlInvalid = Boolean(userTeamsUrl) && !isTeamsWebhookUrl(userTeamsUrl);
   if (userTeamsUrlInvalid) {
     logger.warn('Ignoring per-user Teams webhook: not a Teams Workflow webhook URL');
   }
   const serverTeamsRouting = env.teamsAllAlerts || Boolean(skin && skin.teamsAlerts);
   const teamsWebhookUrl = (!userTeamsUrlInvalid && userTeamsUrl)
-    || ((options.teams && !userTeamsUrlInvalid) || serverTeamsRouting ? env.teamsWebhookUrl : null);
-  const slackReady = Boolean(token && alertsChannel);
+    || ((teamsRequested && !userTeamsUrlInvalid) || serverTeamsRouting ? env.teamsWebhookUrl : null);
+  const slackReady = Boolean(token && alertsChannel) && destination !== 'teams';
+  if (destination === 'teams' && !teamsWebhookUrl) {
+    logger.warn('Teams-only On-Call alert requested but no usable Teams webhook — skipping alert post');
+    return {
+      ok: false,
+      error: 'No Teams webhook available — add one in the On-Call hub or send alerts to Slack',
+      ...(userTeamsUrlInvalid ? { teamsError: 'teamsWebhookUrl must be a Microsoft Teams Workflow webhook URL' } : {}),
+    };
+  }
   if (!slackReady && !teamsWebhookUrl) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');
     return { ok: false, skipped: true, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
@@ -790,7 +802,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     ok: true,
     ...(ts ? { ts, channel: alertsChannel } : {}),
     ...(teams ? { teams: true } : {}),
-    ...(options.teams && !teams ? { teamsFailed: true } : {}),
+    ...(teamsRequested && !teams ? { teamsFailed: true } : {}),
     ...(userTeamsUrlInvalid ? { teamsError: 'teamsWebhookUrl must be a Microsoft Teams Workflow webhook URL' } : {}),
     ...(session ? { sessionUrl: session.url } : {}),
     ...(sonarPR ? { sonarPR: true } : {}),
