@@ -50,6 +50,7 @@ describe('on-call hub routes', () => {
     expect(html).toContain("localStorage.getItem('oncallTeamsWebhookUrl')");
     expect(html).toMatch(/if \(d\.teamsError\)[^\n]*invalid/);
     expect(html).toContain("if (d.ok && !d.teamsFailed && !d.teamsError) scheduleCollapse();");
+    expect(html).toContain("else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }");
   });
 });
 

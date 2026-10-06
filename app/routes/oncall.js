@@ -531,6 +531,7 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
             else if (d.teamsFailed) deliveredMsg += ' (Teams post failed — check your webhook in the On-Call hub)';
             el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
             if (d.ok && !d.teamsFailed && !d.teamsError) scheduleCollapse();
+            else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }
           }).catch(function () {
             if (alertPostedAt === postedAt) alertPostedAt = 0;
             if (ribbonCollapsed) expandRibbon();
