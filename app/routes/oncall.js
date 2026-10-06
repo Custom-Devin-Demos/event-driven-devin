@@ -130,7 +130,8 @@ function setRunCookie(res, runRef, windowMinutes) {
 }
 
 const ALERT_CARD_KEYS = new Set([
-  'title', 'service', 'endpointLabel', 'release', 'team', 'metricQuery', 'symptom', 'impact',
+  'title', 'service', 'endpointLabel', 'release', 'team', 'metricQuery', 'metricValue', 'threshold',
+  'baseline', 'symptom', 'impact',
 ]);
 for (const skin of Object.values(ONCALL_SKINS)) {
   if (!ALERT_SCENARIOS[skin.vertical]) {
