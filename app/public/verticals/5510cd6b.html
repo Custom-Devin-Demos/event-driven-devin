@@ -324,13 +324,13 @@
                   </select>
                 </div>
                 <div class="form-row">
-                  <div class="form-group"><label for="seats">Users to add</label><input type="number" id="seats" value="25" min="1"></div>
+                  <div class="form-group"><label for="seats">Users to add</label><input type="number" id="seats" value="25" min="1" max="250"></div>
                   <div class="form-group">
-                    <label for="planTier">Directory group</label>
+                    <label for="planTier">Seat tier</label>
                     <select id="planTier">
-                      <option value="enterprise">Finance &amp; Treasury</option>
-                      <option value="business">IT Service Desk</option>
-                      <option value="starter">All employees</option>
+                      <option value="enterprise">Enterprise</option>
+                      <option value="business">Business</option>
+                      <option value="starter">Starter</option>
                     </select>
                   </div>
                 </div>
@@ -390,7 +390,14 @@
     })();
   </script>
   <script>
-    const RESIDENCY_LABELS = { 'us-east': 'United States', 'eu-west': 'European Union', 'ap-south': 'Asia-Pacific' };
+    function showResult(kind, head, detail) {
+      const result = document.getElementById('result');
+      result.className = 'result-box ' + kind;
+      result.replaceChildren();
+      const h = document.createElement('div'); h.className = 'r-head'; h.textContent = head;
+      const d = document.createElement('div'); d.className = 'r-detail'; d.textContent = detail;
+      result.append(h, d);
+    }
     document.getElementById('provisionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -404,17 +411,13 @@
         });
         const data = await res.json();
         if (!res.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = `<div class="r-head">Enrollment failed</div><div class="r-detail">${data.errorClass}: ${data.error}</div>`;
+          showResult('error', 'Enrollment failed', `${data.errorClass}: ${data.error}`);
         } else {
           const program = document.getElementById('product').selectedOptions[0].textContent;
-          const residency = RESIDENCY_LABELS[document.getElementById('region').value] || '';
-          result.className = 'result-box success';
-          result.innerHTML = `<div class="r-head">Users added</div><div class="r-detail">${data.seatsAdded} users added to ${program} &mdash; ${residency} &mdash; ${data.licenseId}</div>`;
+          showResult('success', 'Users added', `${data.seatsAdded} users added to ${program} \u2014 ${data.licenseId}`);
         }
       } catch (err) {
-        result.className = 'result-box error';
-        result.innerHTML = `<div class="r-head">Network error</div><div class="r-detail">${err.message}</div>`;
+        showResult('error', 'Network error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Add users'; }
     });
   </script>

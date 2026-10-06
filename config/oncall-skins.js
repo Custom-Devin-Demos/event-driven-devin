@@ -3508,6 +3508,13 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1B141B',
       '--chrome-text': '#F5F5F5',
     },
+    alertCard: {
+      title: 'p95 latency trending up \u2014 simulation user enrollment',
+      team: 'simulation-oncall',
+      symptom: 'Adding users to simulation programs slowed after the last release and gets slower with every request. Process RSS trends up alongside it.',
+      impact: 'Every admin enrolling users into a simulation wave waits longer with each submission; large directory syncs before a scheduled wave are hit hardest.',
+      release: 'simulation-svc@1.0.3',
+    },
     supportCenter: 'Doppel Support',
     supportCenterSub: 'Customer Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A DOPPEL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Doppel product.',
