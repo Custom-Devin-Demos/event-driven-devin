@@ -64,7 +64,14 @@ function buildTeamsAlertCardForAlert(alertData) {
       { title: 'View in Sentry', url: alertData.issueUrl },
       { title: 'View in Datadog', url: process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
     ],
-    footer: `Service: ${service} | ${new Date().toISOString()}`,
+    // Teams hands responders only top-level TextBlocks, not ColumnSet contents,
+    // so the facts the investigation needs are repeated in the footer.
+    footer: [
+      `Service: ${service}`,
+      alertData.culprit ? `Location: ${alertData.culprit}` : null,
+      alertData.errorType ? `Type: ${alertData.errorType}` : null,
+      new Date().toISOString(),
+    ].filter(Boolean).join(' | '),
   });
 }
 

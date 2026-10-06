@@ -112,7 +112,7 @@ describe('hub demo alert destination (Slack / Teams)', () => {
     }));
     expect(alertCard.body.find((b) => b.type === 'ActionSet').actions.map((a) => a.title))
       .toEqual(['View in Sentry', 'View in Datadog']);
-    expect(alertCard.body[alertCard.body.length - 1].text).toMatch(/^Service: banking-api \| \d{4}-/);
+    expect(alertCard.body[alertCard.body.length - 1].text).toMatch(/^Service: banking-api \| Location: app\/services\/verticals\/banking\.js \| Type: TypeError \| \d{4}-/);
 
     const text = axios.post.mock.calls[0][1].text;
     expect(text).toContain('<b>Location:</b> app/services/verticals/banking.js');
