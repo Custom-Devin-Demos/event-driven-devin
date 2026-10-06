@@ -62,6 +62,11 @@
     .nav-signin:hover { background: #fff566; }
     .nav-menu { display: none; width: 40px; height: 40px; align-items: center; justify-content: center; }
     .nav-menu svg { width: 24px; height: 24px; }
+    .mobile-menu { display: none; position: fixed; top: var(--nav-h); left: 0; right: 0; z-index: 49; padding: 8px var(--pad) 24px; background: #000; border-top: 1px solid #1d1d1d; }
+    .mobile-menu.open { display: block; }
+    .mobile-menu a { display: flex; align-items: center; height: 48px; font: 500 18px/22px var(--font); color: var(--fg); border-bottom: 1px solid #1d1d1d; }
+    .mobile-menu a:hover { color: var(--yellow); }
+    .mobile-menu .nav-signin { display: inline-flex; margin-top: 16px; border-bottom: 0; color: #000; }
 
     /* ---------- Hero ---------- */
     .hero { position: relative; margin-bottom: 12px; min-height: 748px; aspect-ratio: 1385 / 868; background: var(--canvas); }
@@ -217,9 +222,17 @@
     </div>
     <div class="nav-right">
       <a class="nav-signin" href="#">Sign In</a>
-      <button class="nav-menu" type="button" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></button>
+      <button class="nav-menu" id="navMenu" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></button>
     </div>
   </nav>
+
+  <div class="mobile-menu" id="mobileMenu" hidden>
+    <a href="#">Home</a>
+    <a href="#live-tv">Live TV</a>
+    <a href="#movies">Movies</a>
+    <a href="#shows">Shows</a>
+    <a class="nav-signin" href="#">Sign In</a>
+  </div>
 
   <main id="main">
     <section class="hero">
@@ -680,19 +693,31 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
-    (function () {
-      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
-      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
-        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
-        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
-      }).catch(function () {});
-    })();
-  </script>
-  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
     var nav = document.getElementById('nav');
     function onScroll() { nav.classList.toggle('scrolled', window.scrollY > 8); }
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
+
+    var navMenu = document.getElementById('navMenu');
+    var mobileMenu = document.getElementById('mobileMenu');
+    function setMenu(open) {
+      mobileMenu.hidden = !open;
+      mobileMenu.classList.toggle('open', open);
+      nav.classList.toggle('scrolled', open || window.scrollY > 8);
+      navMenu.setAttribute('aria-expanded', open ? 'true' : 'false');
+      navMenu.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    }
+    navMenu.addEventListener('click', function () { setMenu(mobileMenu.hidden); });
+    mobileMenu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { setMenu(false); }); });
+    window.addEventListener('resize', function () { if (window.innerWidth > 767) setMenu(false); });
 
     document.querySelectorAll('.track-wrap').forEach(function (wrap) {
       var track = wrap.querySelector('.track');
@@ -743,7 +768,7 @@
       pending = true;
       if (trigger) { trigger.disabled = true; trigger.classList.add('is-loading'); }
 
-      fetch('/api/f2f7c956/playback-session', {
+      identityReady.then(function () { return fetch('/api/f2f7c956/playback-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -753,7 +778,7 @@
           devinOrgId: localStorage.getItem('devinOrgId') || '',
           devinEmail: localStorage.getItem('devinEmail') || ''
         })
-      })
+      }); })
         .then(function (res) {
           return res.json().then(function (data) { return { ok: res.ok, data: data }; });
         })

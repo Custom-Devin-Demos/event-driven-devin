@@ -254,6 +254,7 @@ async function startPlaybackSession(data) {
       });
     });
 
+    error.requestId = requestId;
     throw error;
   }
 }

@@ -25,7 +25,7 @@ router.post('/api/f2f7c956/playback-session', async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: error.code || 'PLAYBACK_SESSION_FAILED',
-      requestId: req.requestId,
+      requestId: error.requestId || req.requestId,
     });
   }
 });
