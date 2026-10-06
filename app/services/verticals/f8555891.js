@@ -4,7 +4,7 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { declareDatadogIncident } = require('../datadog-incidents');
 const { postOncallAlert, postOncallBugReport } = require('../oncall');
-const { currentAlertDestination } = require('../alert-destination');
+const { selectedAlertDestination } = require('../alert-destination');
 
 const SERVICE = 'customer-f8555891-payroll';
 const ROUTE = '/api/f8555891/release-batch';
@@ -283,7 +283,7 @@ async function releaseBatch(data) {
 
     postOncallAlert('f8555891', {
       runRef: batchId,
-      destination: currentAlertDestination(),
+      destination: selectedAlertDestination(),
       devinEmail: data.devinEmail,
     }).catch((err) => logger.warn('Gusto payroll on-call alert failed', { error: err.message, batchId }));
 

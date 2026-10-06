@@ -27,6 +27,7 @@ const { createDevinSession } = require('../app/services/devin-api');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const {
   alertDestinationFromCookie, runWithAlertDestination,
+  currentAlertDestination, selectedAlertDestination,
 } = require('../app/services/alert-destination');
 
 const TEAMS_URL = 'https://default1.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/abc';
@@ -119,6 +120,17 @@ describe('hub demo alert destination (Slack / Teams)', () => {
     const result = await runWithAlertDestination('teams', () => createSessionAndAlert(alert()));
     expect(result).toBeNull();
     expect(createDevinSession).not.toHaveBeenCalled();
+  });
+});
+
+describe('selectedAlertDestination', () => {
+  test('is null without a browser choice while currentAlertDestination defaults to Slack', () => {
+    runWithAlertDestination(null, () => {
+      expect(selectedAlertDestination()).toBeNull();
+      expect(currentAlertDestination()).toBe('slack');
+    });
+    runWithAlertDestination('slack', () => expect(selectedAlertDestination()).toBe('slack'));
+    expect(selectedAlertDestination()).toBeNull();
   });
 });
 

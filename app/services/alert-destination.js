@@ -22,12 +22,17 @@ function alertDestinationFromCookie(cookieHeader) {
 }
 
 function runWithAlertDestination(destination, fn) {
-  return storage.run({ destination: normalizeAlertDestination(destination) || 'slack' }, fn);
+  return storage.run({ destination: normalizeAlertDestination(destination) }, fn);
+}
+
+/** The browser's explicit choice for this request, or null if it never picked one. */
+function selectedAlertDestination() {
+  const store = storage.getStore();
+  return (store && store.destination) || null;
 }
 
 function currentAlertDestination() {
-  const store = storage.getStore();
-  return (store && store.destination) || 'slack';
+  return selectedAlertDestination() || 'slack';
 }
 
 module.exports = {
@@ -36,4 +41,5 @@ module.exports = {
   alertDestinationFromCookie,
   runWithAlertDestination,
   currentAlertDestination,
+  selectedAlertDestination,
 };

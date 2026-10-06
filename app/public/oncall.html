@@ -187,7 +187,7 @@
       <div class="pipeline-track">
         <div class="pipeline-step"><span class="step-num">1</span> Fire Event</div>
         <div class="pipeline-step"><span class="step-num">2</span> Telemetry Captures</div>
-        <div class="pipeline-step"><span class="step-num">3</span> Alert in Slack</div>
+        <div class="pipeline-step"><span class="step-num">3</span> Alert in <span id="pipeline-dest">Slack</span></div>
         <div class="pipeline-step"><span class="step-num">4</span> Responder Investigates</div>
         <div class="pipeline-step"><span class="step-num">5</span> Root Cause</div>
         <div class="pipeline-step"><span class="step-num">6</span> Fix PR</div>
@@ -315,7 +315,10 @@
       window.AlertDestination.mount(destPicker, { teamsAvailable: Boolean(teamsDefaultWebhook) });
       var destLabel = document.getElementById('alert-dest-label');
       function renderDestLabel(dest) {
-        destLabel.innerHTML = dest === 'teams' && teamsDefaultWebhook ? 'Microsoft Teams' : '<code>#oncall-alerts</code>';
+        var teams = dest === 'teams' && teamsDefaultWebhook;
+        destLabel.innerHTML = teams ? 'Microsoft Teams' : '<code>#oncall-alerts</code>';
+        document.getElementById('alert-badge').textContent = teams ? 'Microsoft Teams' : '#oncall-alerts';
+        document.getElementById('pipeline-dest').textContent = teams ? 'Teams' : 'Slack';
       }
       window.AlertDestination.onChange(renderDestLabel);
       renderDestLabel(window.AlertDestination.get());
