@@ -11,19 +11,17 @@
   var TEAMS_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="19" cy="6.2" r="2.4" fill="#5059C9"/><rect x="15" y="9.6" width="8" height="9" rx="3" fill="#5059C9"/><circle cx="12.5" cy="4.8" r="3" fill="#7B83EB"/><rect x="7" y="9" width="11" height="12.5" rx="3.2" fill="#7B83EB"/><rect x="1" y="6" width="12" height="12" rx="2" fill="#4B53BC"/><path fill="#fff" d="M4 9h6v1.7H7.9V15H6.1v-4.3H4z"/></svg>';
 
   var CSS = ''
-    + '.adp{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;font-family:inherit;letter-spacing:normal}'
-    + '.adp-title{font-size:13px;color:#141414}'
-    + '.adp-summary{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1.4;color:#5f5f5f}'
-    + '.adp-summary svg{width:13px;height:13px;flex:none}'
-    + '.adp-summary b{color:#141414;font-weight:400}'
-    + '.adp-summary.warn{color:#a85500}'
-    + '.adp-seg{display:inline-grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px;background:#f0f0f0;border-radius:999px}'
-    + '.adp-opt{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:30px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:#5f5f5f;font:inherit;font-size:13px;line-height:1;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,box-shadow .15s}'
-    + '.adp-opt svg{width:15px;height:15px;transition:filter .15s,opacity .15s}'
-    + '.adp-opt:not(.on) svg{filter:grayscale(1);opacity:.5}'
+    + '.adp{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;font-family:inherit;letter-spacing:normal}'
+    + '.adp-title{font-size:13px;color:rgba(25,25,25,.56)}'
+    + '.adp-summary{font-size:12px;line-height:1.4;color:rgba(25,25,25,.56)}'
+    + '.adp-summary:not(.warn){display:none}'
+    + '.adp-summary.warn{color:#9a4a00}'
+    + '.adp-seg{display:inline-grid;grid-template-columns:auto auto;border:1px solid rgba(0,0,0,.18);border-radius:2px;overflow:hidden}'
+    + '.adp-opt{display:inline-flex;align-items:center;justify-content:center;height:26px;padding:0 10px;border:0;border-radius:0;background:transparent;color:rgba(25,25,25,.56);font:inherit;font-size:13px;line-height:1;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}'
+    + '.adp-opt svg{display:none}'
     + '.adp-opt:hover:not(.on){color:#141414}'
-    + '.adp-opt.on{background:#fff;color:#141414;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.04)}'
-    + '.adp-opt:focus-visible{outline:2px solid #317cff;outline-offset:1px}';
+    + '.adp-opt.on{background:#141414;color:#fff}'
+    + '.adp-opt:focus-visible{outline:2px solid #2600ff;outline-offset:-2px}';
 
   function normalize(value) {
     return value === 'slack' || value === 'teams' ? value : null;
