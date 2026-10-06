@@ -3519,6 +3519,33 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A DOPPEL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Doppel product.',
   },
+  'd95cd337': {
+    slug: 'd95cd337',
+    company: 'Surescripts',
+    brandMark: 'S',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: 'd95cd337.html', title: 'Submit prior authorization | Surescripts Prior Authorization Portal' },
+    teamsAlerts: true,
+    alertCard: {
+      title: 'ePA request submissions hanging, then timing out (504)',
+      service: 'surescripts-epa-gateway',
+      release: 'surescripts-epa-gateway@2026.10.1',
+      team: 'epa-oncall',
+      symptom: 'PA submissions hang ~7–10s waiting for the payer acknowledgement, then fail with 504 Gateway Timeout. Upstream payer adjudication latency is elevated.',
+      impact: 'Prescribers wait on a spinner and the PA is never sent; patients leave the pharmacy without therapy.',
+    },
+    theme: {
+      '--accent': '#E46B34',
+      '--ink': '#1F2D3A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#23557A',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Surescripts Prior Authorization Support',
+    supportCenterSub: 'Prior Authorization Portal Resource Center',
+    disclaimer: 'Internal demo only — fictional product build, not affiliated with or endorsed by Surescripts.',
+  },
 };
 
 function getOncallSkin(slug) {
