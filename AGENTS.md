@@ -120,7 +120,7 @@ Routes are mounted from `app/routes/oncall-verticals.js`, except the two native-
 
 **Voice fixes require real-audio verification.** Any fix touching the voice transcribe path (`app/services/oncall-verticals/voice.js` or `POST /api/oncall/voice/transcribe`) must be verified with real audio, not typed input: follow the "Voice (dictation) specifics" section of `.agents/skills/testing-oncall-skins/SKILL.md` — piper TTS speaks the utterance, ffplay plays it in a visible terminal, whisper.cpp transcribes it live, and the transcript finalizes on the page with the latency stopwatch on screen. Record 2–3 finalizes before and after the fix to show the climbing latency and the flat fast profile.
 
-Customer skins receive the alerts surface by default. Optional `bugPortal` and `incident` skin config entries opt into `/oncall/c/:slug/report` and `/oncall/c/:slug/incident` respectively.
+Customer skins receive the alerts surface by default. Major incidents are not simulated per skin: the `/oncall` hub links to the fixed Slack incident channel, and the long-form incident demo is the Incident Lab (`/oncall/incident-lab`).
 
 **On-call (`/oncall`) cards never route to a real person.** Their *Owner* field is a scenario persona (`OWNER_DISCLAIMER` in `app/services/slack.js`) and the only real mention on an on-call card is *Triggered by*, resolved from the `devinEmail` the run supplied. A responder that cannot resolve the persona must @-mention nobody in its place — do not fall back to `git blame`, commit authors, or CODEOWNERS to find someone to cc, since every file here was last touched by whoever built the demo, not by whoever is on call.
 
@@ -422,8 +422,6 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
 │   │   ├── cognition-brand.css    # Cognition editorial shell (paper, hairlines, nav, steps, card grid) shared by hub.html and oncall.html
 │   │   ├── index.html             # Retail eCommerce storefront UI
-│   │   ├── oncall-report.html     # Shared customer-skinned support portal
-│   │   ├── oncall-incident.html   # Shared customer-skinned SEV-1 incident console
 │   │   └── verticals/
 │   │       ├── banking.html       # Apex Bank — Online Banking
 │   │       ├── financial-services.html  # Meridian Capital — Trading Platform
@@ -451,7 +449,7 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   │   │   ├── healthcare.js      # Healthcare: providers + appointments
 │   │   │   ├── telco.js           # Telco: plans + upgrades
 │   │   │   └── payer.js           # Payer: ID cards + pharmacy claims
-│   │   ├── oncall.js              # On-Call demo pages, alert/bug triggers, skinned routes
+│   │   ├── oncall.js              # On-Call demo pages, alert triggers, skinned routes
 │   │   ├── oncall-verticals.js    # On-call vertical slice endpoints (/api/oncall/<vertical>/...)
 │   │   ├── internal-jobs.js       # Slow-query patrol jobs (container-network-only; nginx returns 404)
 │   │   ├── checkout.js            # Legacy checkout endpoint
@@ -658,11 +656,7 @@ Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of wha
 | `SENTRY_DSN` | Sentry project DSN | Yes |
 | `DD_API_KEY` | Datadog API key | Yes (for Docker) |
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes (for Docker) |
-| `DD_INCIDENT_APP_KEY` | Datadog application key for Incident Management (SEV-1 declare/resolve). Owner needs an Incident Management seat. Falls back to `DD_APPLICATION_KEY` | For SEV-1 incidents |
-| `ONCALL_SEV1_WINDOW_MS` | SEV-1 degradation window in ms (default 30 min) | No |
-| `ONCALL_SEV1_AUTO_RESOLVE` | Set to `false` to leave the Datadog incident open when the window ends — synthetic probe traffic still stops, but responders resolve the incident themselves and Slack auto-archives the channel on its own schedule (default `true`) | No |
-| `ONCALL_SEV1_PROBE_INTERVAL_MS` | Base delay between synthetic probe requests against the affected endpoint while a SEV-1 is open, measured from when the previous request completes. The effective delay is this base multiplied per evidence phase (6x/3x/1.5x/1x across the window), so at the default 10s base and 30-min window probes run every ~60s early on and every ~10s in the final phase | No |
-| `ONCALL_SEV1_PROBE_MAX` | Max concurrent SEV-1 probe loops (default 25) | No |
+| `DD_INCIDENT_APP_KEY` | Datadog application key for Incident Management (declare/resolve for the Incident Lab and the vertical SEV-2s). Owner needs an Incident Management seat. Falls back to `DD_APPLICATION_KEY` | For Datadog incidents |
 | `ONCALL_CONFIG_OVERRIDE_TTL_MS` | Lifetime of a per-run config override (`POST /api/oncall/config`; the shipped baseline comes from `SCREENING_WINDOW_DAYS`/`SCREENING_CONCURRENCY`) when its run has no live incident window to inherit (default 45 min) | No |
 | `ONCALL_CONFIG_OVERRIDE_MAX` | Cap on concurrently registered per-run config overrides; at capacity the oldest override without a live incident is evicted first (default 50) | No |
 | `SCREENING_WINDOW_DAYS` | Compliance-screening lookback window for the on-call banking transfer path (default 90) | No |
@@ -676,9 +670,8 @@ Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of wha
 | `SLACK_TRIAGE_CHANNEL_ID` | Channel ID for the report-only bug-report mirror (default `#automated-devin-triage`). Never triggers a Devin session. Bot must be invited to the channel | No |
 | `SLACK_TRIAGE_BOT_TOKEN` | Bot token for the triage mirror post (defaults to `SLACK_BOT_TOKEN`) | No |
 | `SLACK_ONCALL_ALERTS_CHANNEL_ID` | Channel ID for on-call (`/oncall`) alert + incident posts | For on-call alerts |
-| `SLACK_ONCALL_BUGS_CHANNEL_ID` | Channel ID for on-call bug-report posts | For on-call bug reports |
+| `SLACK_ONCALL_BUGS_CHANNEL_ID` | Channel ID for Gusto (`/gusto`) support-ticket posts | For Gusto support tickets |
 | `SLACK_ONCALL_ALERTS_CHANNEL_NAME` | Display label the on-call page ribbon shows after an alert posts ("Alert posted to …"). Label only — routing is decided by `SLACK_ONCALL_ALERTS_CHANNEL_ID` (default `#oncall-alerts`) | No |
-| `SLACK_ONCALL_BUGS_CHANNEL_NAME` | Display label the on-call ribbon shows after a bug report posts. Label only — routing is decided by `SLACK_ONCALL_BUGS_CHANNEL_ID` (default `#oncall-bugs`) | No |
 | `SLACK_ONCALL_BOT_TOKEN` | Bot token for on-call posts (defaults to `SLACK_BOT_TOKEN`) | No |
 | `DEVIN_TRIGGER_MODE` | `slack` (default) or `api` — how Devin is triggered | No |
 | `DEVIN_API_KEY` | Devin API key | For api mode |
@@ -778,7 +771,7 @@ EOF
 
 ### Important Notes
 
-- **Teams webhooks:** `ONCALL_TEAMS_WEBHOOK_URL` (On-Call alerts) and `AUTOMATIONS_TEAMS_WEBHOOK_URL` (hub demo alerts from `createSessionAndAlert`) are the only `.env` values the deploy workflow writes: when the `MAIN_ONCALL_TEAMS_WEBHOOK_URL` / `MAIN_AUTOMATIONS_TEAMS_WEBHOOK_URL` Actions secrets are set, `deploy.yml` stages them on the host and `deploy-ec2.sh` writes them into `/home/ubuntu/.env` under the deploy lock, after the `.env` backup (so rollback restores the previous value). Where each presenter's alerts go (Slack or Teams, never both) is a per-browser choice shared by `/` and `/oncall`, saved in localStorage and the `alert_destination` cookie (`app/services/alert-destination.js`); it never changes server config. Only allowlisted keys (`ENV_SYNC_KEYS`) with single-line https values are applied.
+- **Teams webhooks:** `ONCALL_TEAMS_WEBHOOK_URL` (On-Call alerts) and `AUTOMATIONS_TEAMS_WEBHOOK_URL` (hub demo alerts from `createSessionAndAlert`) are the only `.env` values the deploy workflow writes: when the `MAIN_ONCALL_TEAMS_WEBHOOK_URL` / `MAIN_AUTOMATIONS_TEAMS_WEBHOOK_URL` Actions secrets are set, `deploy.yml` stages them on the host and `deploy-ec2.sh` writes them into `/home/ubuntu/.env` under the deploy lock, after the `.env` backup (so rollback restores the previous value). Where each presenter's alerts go (Slack or Teams, never both) is a per-browser choice shared by `/` and `/oncall`, saved in localStorage and the `alert_destination` cookie (`app/services/alert-destination.js`); it never changes server config. Hub alerts routed to Teams post one Slack-style card and create no app-side Devin session: the Devin Teams responder on that channel investigates and replies in the alert's thread. Only allowlisted keys (`ENV_SYNC_KEYS`) with single-line https values are applied.
 - **`.env` location:** The production `.env` file lives at `/home/ubuntu/.env` on EC2. It contains all secrets (`SENTRY_DSN`, `DD_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN`, `DOMAIN_NAME`, `CERT_EMAIL`, etc.) and must never be overwritten or deleted.
 - **SSL certificates:** Stored in `./certbot/conf/` on EC2. These persist across deploys — the tarball and deploy workflow explicitly exclude this directory. Never delete this directory or you'll need to re-run `scripts/init-ssl.sh`.
 - **Backup before deploy:** Always back up `.env` before extracting the tarball. If the `.env` is accidentally removed, Slack alerts, Sentry, and Datadog will silently stop working.

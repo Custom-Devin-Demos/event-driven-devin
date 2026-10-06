@@ -84,6 +84,12 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(text).toContain('julia@example.com');
     expect(text).toContain('/oncall/c/9ecaa5d1');
     expect(text).not.toMatch(/<@|:rotating_light:/);
+    // Responders only receive top-level TextBlocks, so the Incident Ref must not live in the FactSet.
+    const facts = card.body.find((b) => b.type === 'FactSet').facts.map((f) => f.title);
+    expect(facts).not.toContain('Incident Ref');
+    const footer = card.body[card.body.length - 1];
+    expect(footer).toMatchObject({ type: 'TextBlock', isSubtle: true });
+    expect(footer.text).toBe('Incident Ref: run-abc | Service: loantrack-disbursement-api | Endpoint: POST /api/oncall/banking/transfer');
     const plain = axios.post.mock.calls[0][1].text;
     expect(plain).toContain('<b>[Triggered] p95 latency — payment release submissions</b>'.replace('<b>', '<b>\u{1F6A8} '));
     expect(plain).toContain('<b>Service:</b> loantrack-disbursement-api (LoanTrack)');
