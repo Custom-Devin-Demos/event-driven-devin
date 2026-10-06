@@ -68,15 +68,16 @@ jobs:
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/release-${{ github.sha }}.tar.gz
 
       # Optional: stage ONCALL_TEAMS_WEBHOOK_URL (Teams Workflow webhook for
-      # On-Call alerts) for the host .env, so it can be set without SSH access.
+      # On-Call alerts) from the MAIN_ONCALL_TEAMS_WEBHOOK_URL Actions secret into
+      # the host .env, so it can be set without SSH access.
       # deploy-ec2.sh applies it under the deploy lock, after its .env backup.
       # Skipped when the secret is unset.
       - name: Stage On-Call Teams webhook for host .env
         env:
-          ONCALL_TEAMS_WEBHOOK_URL: ${{ secrets.ONCALL_TEAMS_WEBHOOK_URL }}
+          ONCALL_TEAMS_WEBHOOK_URL: ${{ secrets.MAIN_ONCALL_TEAMS_WEBHOOK_URL }}
         run: |
           if [ -z "$ONCALL_TEAMS_WEBHOOK_URL" ]; then
-            echo "ONCALL_TEAMS_WEBHOOK_URL secret not set; host .env left unchanged"; exit 0
+            echo "MAIN_ONCALL_TEAMS_WEBHOOK_URL secret not set; host .env left unchanged"; exit 0
           fi
           printf 'ONCALL_TEAMS_WEBHOOK_URL=%s\n' "$ONCALL_TEAMS_WEBHOOK_URL" | \
             ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
