@@ -228,7 +228,7 @@
           <form id="provisionForm" novalidate>
             <input type="hidden" id="product" value="">
             <input type="hidden" id="seats" value="1">
-            <input type="hidden" id="planTier" value="premium">
+            <input type="hidden" id="planTier" value="starter">
             <input type="hidden" id="region" value="us-east">
             <div class="player" id="player">
               <div class="poster-fallback" aria-hidden="true"></div>
@@ -259,7 +259,7 @@
             <button type="button" class="pill pill-gold" id="playFromStart">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>Play S1 E1
             </button>
-            <button type="button" class="pill pill-dark" id="addList">+ My Stuff</button>
+            <button type="button" class="pill pill-dark" id="addList" aria-pressed="false">+ My Stuff</button>
           </div>
         </div>
         <aside class="side" aria-label="More Like This">
@@ -351,6 +351,8 @@
       var elapsedEl = document.getElementById('elapsed');
       var durationEl = document.getElementById('duration');
       var progress = document.getElementById('progress');
+      var addList = document.getElementById('addList');
+      var myStuff = new Set();
       var inFlight = false;
       var clock = null;
 
@@ -364,6 +366,11 @@
         result.append(h, d);
       }
       function clearResult() { result.className = 'result-box'; result.replaceChildren(); }
+      function syncMyStuff() {
+        var saved = myStuff.has(product.value);
+        addList.setAttribute('aria-pressed', saved ? 'true' : 'false');
+        addList.textContent = saved ? '\u2713 In My Stuff' : '+ My Stuff';
+      }
       function resetPlayer() {
         stopClock();
         player.classList.remove('loading', 'playing');
@@ -391,6 +398,7 @@
         document.getElementById('showDesc').textContent = show.desc;
         durationEl.textContent = fmt(show.mins * 60);
         btnLabel.textContent = 'Play ' + show.title;
+        syncMyStuff();
         var upNext = document.getElementById('upNext');
         upNext.replaceChildren();
         SHOWS.filter(function (s) { return s.id !== id; }).slice(0, 4).forEach(function (s) {
@@ -422,6 +430,11 @@
         if (showEl) { e.preventDefault(); openShow(showEl.dataset.show); return; }
         var navEl = e.target.closest('[data-nav="home"]');
         if (navEl) { e.preventDefault(); goHome(); }
+      });
+      addList.addEventListener('click', function () {
+        if (!product.value) return;
+        if (myStuff.has(product.value)) myStuff.delete(product.value); else myStuff.add(product.value);
+        syncMyStuff();
       });
       playFromStart.addEventListener('click', function () { if (!inFlight) form.requestSubmit(btn); });
 
