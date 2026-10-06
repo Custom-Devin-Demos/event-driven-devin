@@ -77,7 +77,7 @@
     injectCss();
     el.innerHTML = ''
       + '<div class="adp">'
-      + '<div class="adp-title" id="adp-title" title="Saved in this browser and shared by the demo hub and the On-Call hub. It never changes anyone else\'s alerts.">Send my demo alerts to</div>'
+      + '<div class="adp-title" id="adp-title" title="Saved in this browser and shared by the demo hub and the On-Call hub. It never changes anyone else\'s alerts.">Post alerts to</div>'
       + '<div class="adp-seg" role="radiogroup" aria-labelledby="adp-title">'
       + '<button type="button" class="adp-opt" role="radio" data-value="slack">' + SLACK_ICON + 'Slack</button>'
       + '<button type="button" class="adp-opt" role="radio" data-value="teams">' + TEAMS_ICON + 'Microsoft Teams</button>'
