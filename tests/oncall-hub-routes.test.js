@@ -33,6 +33,25 @@ describe('on-call hub routes', () => {
     expect(branded.status).toBe(404);
   });
 
+  test('toy SEV-1 incident routes are gone', async () => {
+    const [consolePage, declare, kinds, state] = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/a2088cb4/incident`),
+      fetch(`${baseUrl}/api/oncall/incident`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'licensing-latency', skin: 'a2088cb4' }),
+      }),
+      fetch(`${baseUrl}/api/oncall/incident/kinds`),
+      fetch(`${baseUrl}/api/oncall/incident/state`),
+    ]);
+    expect([consolePage.status, declare.status, kinds.status, state.status]).toEqual([404, 404, 404, 404]);
+  });
+
+  test('skinned pages no longer declare SEV-1 incidents from the browser', () => {
+    const page = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'verticals', 'a2088cb4.html'), 'utf8');
+    expect(page).not.toContain('/api/oncall/incident');
+  });
+
   test('an oncallOnly native page is served shimmed at its direct slug too', async () => {
     const [direct, skinned] = await Promise.all([
       fetch(`${baseUrl}/63dbb52f`),

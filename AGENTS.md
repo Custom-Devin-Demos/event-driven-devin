@@ -120,7 +120,7 @@ Routes are mounted from `app/routes/oncall-verticals.js`, except the two native-
 
 **Voice fixes require real-audio verification.** Any fix touching the voice transcribe path (`app/services/oncall-verticals/voice.js` or `POST /api/oncall/voice/transcribe`) must be verified with real audio, not typed input: follow the "Voice (dictation) specifics" section of `.agents/skills/testing-oncall-skins/SKILL.md` — piper TTS speaks the utterance, ffplay plays it in a visible terminal, whisper.cpp transcribes it live, and the transcript finalizes on the page with the latency stopwatch on screen. Record 2–3 finalizes before and after the fix to show the climbing latency and the flat fast profile.
 
-Customer skins receive the alerts surface by default. Optional `bugPortal` and `incident` skin config entries opt into `/oncall/c/:slug/report` and `/oncall/c/:slug/incident` respectively.
+Customer skins receive the alerts surface by default. An optional `bugPortal` skin config entry opts into `/oncall/c/:slug/report`. Major incidents are not simulated per skin: the `/oncall` hub links to the fixed Slack incident channel, and the long-form incident demo is the Incident Lab (`/oncall/incident-lab`).
 
 **On-call (`/oncall`) cards never route to a real person.** Their *Owner* field is a scenario persona (`OWNER_DISCLAIMER` in `app/services/slack.js`) and the only real mention on an on-call card is *Triggered by*, resolved from the `devinEmail` the run supplied. A responder that cannot resolve the persona must @-mention nobody in its place — do not fall back to `git blame`, commit authors, or CODEOWNERS to find someone to cc, since every file here was last touched by whoever built the demo, not by whoever is on call.
 
@@ -422,7 +422,6 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
 │   │   ├── index.html             # Retail eCommerce storefront UI
 │   │   ├── oncall-report.html     # Shared customer-skinned support portal
-│   │   ├── oncall-incident.html   # Shared customer-skinned SEV-1 incident console
 │   │   └── verticals/
 │   │       ├── banking.html       # Apex Bank — Online Banking
 │   │       ├── financial-services.html  # Meridian Capital — Trading Platform
@@ -657,11 +656,7 @@ Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of wha
 | `SENTRY_DSN` | Sentry project DSN | Yes |
 | `DD_API_KEY` | Datadog API key | Yes (for Docker) |
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes (for Docker) |
-| `DD_INCIDENT_APP_KEY` | Datadog application key for Incident Management (SEV-1 declare/resolve). Owner needs an Incident Management seat. Falls back to `DD_APPLICATION_KEY` | For SEV-1 incidents |
-| `ONCALL_SEV1_WINDOW_MS` | SEV-1 degradation window in ms (default 30 min) | No |
-| `ONCALL_SEV1_AUTO_RESOLVE` | Set to `false` to leave the Datadog incident open when the window ends — synthetic probe traffic still stops, but responders resolve the incident themselves and Slack auto-archives the channel on its own schedule (default `true`) | No |
-| `ONCALL_SEV1_PROBE_INTERVAL_MS` | Base delay between synthetic probe requests against the affected endpoint while a SEV-1 is open, measured from when the previous request completes. The effective delay is this base multiplied per evidence phase (6x/3x/1.5x/1x across the window), so at the default 10s base and 30-min window probes run every ~60s early on and every ~10s in the final phase | No |
-| `ONCALL_SEV1_PROBE_MAX` | Max concurrent SEV-1 probe loops (default 25) | No |
+| `DD_INCIDENT_APP_KEY` | Datadog application key for Incident Management (declare/resolve for the Incident Lab and the vertical SEV-2s). Owner needs an Incident Management seat. Falls back to `DD_APPLICATION_KEY` | For Datadog incidents |
 | `ONCALL_CONFIG_OVERRIDE_TTL_MS` | Lifetime of a per-run config override (`POST /api/oncall/config`; the shipped baseline comes from `SCREENING_WINDOW_DAYS`/`SCREENING_CONCURRENCY`) when its run has no live incident window to inherit (default 45 min) | No |
 | `ONCALL_CONFIG_OVERRIDE_MAX` | Cap on concurrently registered per-run config overrides; at capacity the oldest override without a live incident is evicted first (default 50) | No |
 | `SCREENING_WINDOW_DAYS` | Compliance-screening lookback window for the on-call banking transfer path (default 90) | No |
