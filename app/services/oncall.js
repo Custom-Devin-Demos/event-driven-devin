@@ -14,7 +14,7 @@ const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech'
 /**
  * On-Call demo service.
  *
- * Posts alert cards, human-style bug reports, and incident bursts to the
+ * Posts alert cards, support tickets, and incident bursts to the
  * dedicated On-Call Slack channels. Alert-only by default: the On-Call
  * responders listening to the channels pick the messages up on their own.
  * A skin may opt its own branded page into auto-triage with
@@ -242,126 +242,6 @@ const ALERT_SCENARIOS = {
     unlisted: true,
   },
 };
-
-/**
- * Canned human-style bug reports for the Bug Triage Responder demo.
- * Deliberately fuzzy: they describe symptoms, not stack traces, so the
- * responder has to reproduce and dig.
- */
-const BUG_CATALOG = {
-  banking: [
-    {
-      id: 'banking-transfer-slow',
-      label: 'Transfers extremely slow',
-      sev: 'High',
-      text: 'Hey team — customers are saying fund transfers in online banking take forever now. The spinner sits there for a good ten seconds on every single transfer before it finally goes through. Any amount, both accounts, every time. Support ticket volume on this is climbing today.',
-    },
-    {
-      id: 'banking-payroll-cutoff',
-      label: 'Payroll batch missing cutoff',
-      sev: 'Critical',
-      text: "Escalating from treasury ops: our payroll batch runs transfers one after another and each one now takes ~10 seconds, so the batch is going to miss the 2pm wire cutoff. Nothing errors — it's just painfully slow, and it was fine on Friday. Please treat as urgent.",
-    },
-  ],
-  insurance: [
-    {
-      id: 'insurance-claim-timeout',
-      label: 'Claim submissions timing out',
-      sev: 'High',
-      text: "Support escalation: policyholders can't file claims through the portal. The claim form hangs for close to ten seconds and then fails with a gateway timeout. One customer tried 4 times with different claim types — same hang, same timeout.",
-    },
-    {
-      id: 'insurance-storm-claims',
-      label: 'Storm-damage claims blocked',
-      sev: 'Critical',
-      text: 'We have a wave of storm-damage claims coming in after last night and NONE of them are going through the portal — every submission spins and then dies with a timeout error. Adjusters are telling customers to fax paperwork like it is 1995.',
-    },
-  ],
-  hightech: [
-    {
-      id: 'hightech-provision-slowdown',
-      label: 'Provisioning noticeably slow',
-      sev: 'Medium',
-      text: "Sales flagged that provisioning trial licenses is painfully slow — every request sits for seven or eight seconds before completing. Not failing, just slow, and it seems to get a little worse with every license we add.",
-    },
-    {
-      id: 'hightech-renewal-slow',
-      label: 'Renewal seat expansion crawling',
-      sev: 'High',
-      text: 'Customer success here — our biggest renewal of the quarter is trying to add 200 seats and every provisioning call in the admin console sits there for ages before completing. They renew Friday and their admin is convinced our platform is falling over.',
-    },
-  ],
-  voice: [
-    {
-      id: 'voice-transcript-slow',
-      label: 'Transcripts slow to finalize',
-      sev: 'Medium',
-      text: "Users are saying dictation feels broken — you finish speaking and the polished transcript takes seven or eight seconds to show up. It does arrive and it's correct, just slow, and a few people swear it gets a little worse the more they dictate.",
-    },
-    {
-      id: 'voice-meeting-notes-lag',
-      label: 'Meeting notes lagging behind',
-      sev: 'High',
-      text: 'Customer success escalation: a large workspace dictates all their meeting follow-ups and every utterance now sits on "Finalizing…" for ages before the text lands. They dictate hundreds of notes a day and are threatening to switch back to typing.',
-    },
-  ],
-  telco: [
-    {
-      id: 'telco-upgrade-slow',
-      label: 'Plan upgrades very slow',
-      sev: 'Medium',
-      text: 'Getting complaints in the app store reviews that plan changes take forever now — "hit upgrade to Ultra and stared at a spinner for ten seconds". People assume it failed and hit it again. This seems to have started after the plan lineup was refreshed.',
-    },
-    {
-      id: 'telco-family-plan',
-      label: 'Family plan upgrade crawling',
-      sev: 'High',
-      text: "My whole family is on the Plus plan and I upgraded us to Ultra last night. Every line I upgraded sat on the confirm screen for close to ten seconds — I honestly thought it was frozen. It did go through eventually, but something is clearly wrong.",
-    },
-  ],
-  marketplace: [
-    {
-      id: 'marketplace-cart-timeout',
-      label: 'Add to cart fails with a timeout',
-      sev: 'High',
-      text: 'Shoppers cannot put marketplace items in the basket. You press add to cart, the button spins for about eight seconds and then an error comes back saying it could not be reserved. Same product, same seller, every attempt.',
-    },
-    {
-      id: 'marketplace-campaign-conversion',
-      label: 'Campaign traffic converting at zero',
-      sev: 'Critical',
-      text: 'Escalating from trading: the weekend kitchen-appliance campaign is live, traffic is fine and product pages load, but basket adds have collapsed to almost nothing. Every add we try ourselves spins for ages and then errors out. We are burning media spend on a storefront that cannot take an order.',
-    },
-  ],
-  industrials: [
-    {
-      id: 'industrials-quote-timeout',
-      label: 'Instant quote spins before completing',
-      sev: 'High',
-      text: 'Buyer at a defense prime here — our instant quote spins on "Running DFM analysis" for about 15 seconds and then finally returns. Same part, same quantity, every time — started recently.',
-    },
-    {
-      id: 'industrials-program-quotes-blocked',
-      label: 'Program quotes crawling',
-      sev: 'Critical',
-      text: 'Program manager escalation: every quote for one program crawls while quotes on other programs come back in about a second. We need the affected program quotes for today\'s sourcing review.',
-    },
-  ],
-};
-
-function findBugTemplate(templateId) {
-  if (!templateId) return null;
-  for (const entries of Object.values(BUG_CATALOG)) {
-    const match = entries.find((t) => t.id === templateId);
-    if (match) return match;
-  }
-  return null;
-}
-
-// Back-compat: legacy scenarioId (product area) → first template's text.
-const BUG_REPORTS = Object.fromEntries(
-  Object.entries(BUG_CATALOG).map(([area, entries]) => [area, entries[0].text]),
-);
 
 function resolveOncallEnv() {
   return {
@@ -794,43 +674,24 @@ async function postOncallAlert(scenarioId, options = {}) {
  * ticket is filed as a sub-ticket in that parent ticket's thread; `ticketId`
  * is shown in the header the way a support tool labels a case.
  */
-async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter, skinSlug, submittedFrom: submittedFromUrl, threadTs, ticketId, parentTicketId }) {
+async function postOncallBugReport({ text, reporter, severity, productArea, devinEmail, supportCenter, submittedFrom, threadTs, ticketId, parentTicketId }) {
   const { token, bugsChannel } = resolveOncallEnv();
 
-  const template = findBugTemplate(templateId);
-  const body = text || (template && template.text) || BUG_REPORTS[scenarioId];
+  const body = text;
   if (!body) {
-    return { ok: false, error: `No bug report text and unknown scenario: ${scenarioId}` };
-  }
-
-  // Backend-symptom templates activate the matching infra degradation so the
-  // Bug Triage Responder's repro steps genuinely reproduce. The template id is
-  // resolved server-side against the catalog — only known kinds can activate.
-  let activated = null;
-  const runRef = makeRunRef();
-  if (template && template.infraKind && INFRA_INCIDENTS[template.infraKind]) {
-    supersedePriorRun(runRef);
-    if (activateInfraIncident(template.infraKind, INFRA_WINDOW_MS, runRef)) {
-      activated = template.infraKind;
-    }
+    return { ok: false, error: 'No bug report text' };
   }
 
   if (!token || !bugsChannel) {
-    logger.warn('On-Call bugs channel not configured — skipping bug report post', { activated });
+    logger.warn('On-Call bugs channel not configured — skipping bug report post');
     return {
       ok: false,
       skipped: true,
       error: 'SLACK_ONCALL_BUGS_CHANNEL_ID or bot token not configured',
-      activated,
-      runRef: activated ? runRef : null,
-      windowMinutes: activated ? Math.round(INFRA_WINDOW_MS / 60000) : null,
     };
   }
 
   const triggeredBy = await resolveTriggeredBy(token, devinEmail);
-  // The page a skinned ticket came from is stamped on the ticket itself, the way
-  // a support tool records the originating URL — no separate demo-page message.
-  const submittedFrom = submittedFromUrl || (skinSlug ? `${DEMO_BASE_URL()}/oncall/c/${skinSlug}` : null);
   let message = [
     body,
     triggeredBy ? `Triggered by: ${triggeredBy}` : null,
@@ -871,21 +732,10 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     ];
   }
 
-  let ts;
-  try {
-    ts = threadTs
-      ? await postThreadReply(token, bugsChannel, threadTs, message, blocks)
-      : await postMessage(token, bugsChannel, message, blocks);
-  } catch (error) {
-    // Keep observable state consistent with what was announced: if the ticket
-    // never posted, don't leave the app silently degraded for the full window.
-    if (activated) revertScopedInfra(runRef, 'bug report post failed');
-    throw error;
-  }
+  const ts = threadTs
+    ? await postThreadReply(token, bugsChannel, threadTs, message, blocks)
+    : await postMessage(token, bugsChannel, message, blocks);
   logger.info('On-Call bug report posted', {
-    scenario: scenarioId || 'custom',
-    template: templateId || null,
-    activated,
     channel: bugsChannel,
     ts,
     threadTs: threadTs || null,
@@ -895,9 +745,6 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     ok: true,
     ts,
     channel: bugsChannel,
-    activated,
-    runRef: activated ? runRef : null,
-    windowMinutes: activated ? Math.round(INFRA_WINDOW_MS / 60000) : null,
   };
 }
 
@@ -2137,8 +1984,6 @@ function isSev1DebugTimingsUnlocked(vertical, runRef) {
 
 module.exports = {
   ALERT_SCENARIOS,
-  BUG_REPORTS,
-  BUG_CATALOG,
   postOncallAlert,
   postOncallBugReport,
   INFRA_INCIDENTS,

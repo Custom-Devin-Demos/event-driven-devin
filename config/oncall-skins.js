@@ -5,22 +5,21 @@
  * without touching any mechanics. /oncall/c/<slug> serves the skin's chosen
  * vertical page (skin.vertical) rebranded with the customer's name, mark, and
  * theme, with the on-call shim active — that single URL is what a DE shares.
- * /oncall/c/<slug>/report serves the matching branded support portal, and
  * /oncall/c/<slug>/incident serves an opted-in incident console. The alerts
- * surface is enabled by default; bugPortal and incident are optional opt-in
- * surfaces. An incident may optionally define chatter.vocabulary as a flat
- * source-phrase-to-replacement map, and incident.copy / bugPortal.copy may
- * override the shared console's / portal's own UI strings (flat string maps,
+ * surface is enabled by default; incident is an optional opt-in surface. An
+ * incident may optionally define chatter.vocabulary as a flat
+ * source-phrase-to-replacement map, and incident.copy may override the
+ * shared console's own UI strings (flat string maps,
  * optional BCP 47 `lang`) so a localized skin stays localized on every surface. The generic /oncall hub itself is never
  * skinned. Adding a customer = adding one entry here.
  *
  * Two separate theme keys, one per surface: page.theme themes the stock
  * vertical page served through the brand shim, while the top-level theme
- * themes the report portal and incident console. For stock-page skins without
+ * themes the incident console. For stock-page skins without
  * page.file, the top-level theme falls back into the page shim too, so a
  * stock-page skin needs just one theme block. A natively branded page keeps
- * its own palette and is never overridden by the portal theme; set page.theme
- * only when the page needs different variables from the portal surfaces.
+ * its own palette and is never overridden by the console theme; set page.theme
+ * only when the page needs different variables from the console.
  *
  * Slugs are anonymous 8-char hex ids (generate with `openssl rand -hex 4`),
  * never the customer's name, so shared URLs don't leak who a demo is for.
@@ -32,16 +31,6 @@
  * the responder investigates the repo that REPO_URL (app/services/oncall.js)
  * points at, so those must stay truthful for the investigation to be
  * believable.
- *
- * Bug portal templates reference existing BUG_CATALOG template ids (see
- * app/services/oncall.js) so backend-symptom reports keep activating the
- * matching real degradation; only the customer-facing copy changes.
- *
- * A skin may set trigger: { kind: 'bug', templateId, persona, severity,
- * productArea } to make its page's primary action file a human-style support
- * ticket in #oncall-bugs (via /api/oncall/bug) instead of posting the
- * monitor-style alert card to #oncall-alerts. templateId must exist in
- * BUG_CATALOG. Two skins can share one page file to offer both flavors.
  *
  * A skin may set devinSession: { auto: true, orgId, userId, apiKey } to have
  * its own alerts create a Devin investigation session immediately and reply
@@ -109,8 +98,6 @@ const ONCALL_SKINS = {
         '4. Post the investigation summary and the PR link back in this alert thread. Do not merge; stop for human approval after Devin Review runs.',
       ].join('\n'),
     },
-    supportCenter: 'RBC Royal Bank Support',
-    supportCenterSub: 'Online Banking Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY AN RBC ROYAL BANK SITE — internal demo only, not affiliated with, endorsed by, or a real RBC Royal Bank product.',
   },
   '76bc90d0': {
@@ -127,7 +114,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#003057',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Charles Schwab Support',
     disclaimer: 'NOT ACTUALLY A CHARLES SCHWAB SITE — internal demo only, not affiliated with, endorsed by, or a real Charles Schwab product.',
   },
   'd82eca33': {
@@ -147,7 +133,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1F1F1F',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Toast Guest Support',
     disclaimer: 'NOT ACTUALLY A TOAST SITE — internal demo only, not affiliated with, endorsed by, or a real Toast product.',
   },
   '857b6424': {
@@ -163,8 +148,6 @@ const ONCALL_SKINS = {
     },
     accent: '#F09800',
     accentDark: '#D78700',
-    supportCenter: 'QDOBA Guest Support',
-    supportCenterSub: 'Online Ordering',
     disclaimer: 'NOT ACTUALLY A QDOBA SITE — internal demo only, not affiliated with, endorsed by, or a real Qdoba product.',
   },
   '63dbb52f': {
@@ -187,32 +170,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#E10915',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Kaufland Kundenservice',
-    supportCenterSub: 'Online-Marktplatz Support',
     disclaimer: 'NOT ACTUALLY A KAUFLAND SITE — internal demo only, not affiliated with, endorsed by, or a real Kaufland product.',
-    bugPortal: {
-      products: [
-        {
-          area: 'marketplace',
-          label: 'Kaufland Online-Marktplatz \u2014 Warenkorb',
-          persona: { name: 'Lena Hoffmann', email: 'lena.hoffmann@brightmail.io', sev: 'High' },
-          templates: [
-            {
-              id: 'marketplace-cart-timeout',
-              label: 'Add to cart fails with a timeout',
-              sev: 'High',
-              text: 'Shoppers cannot put marketplace items in the basket. You press "In den Warenkorb", the button spins for about eight seconds and then an error comes back saying the item could not be reserved. Same product, same seller, every attempt.',
-            },
-            {
-              id: 'marketplace-campaign-conversion',
-              label: 'Campaign traffic converting at zero',
-              sev: 'Critical',
-              text: 'Escalating from trading: the weekend kitchen-appliance campaign is live, traffic is fine and product pages load, but basket adds have collapsed to almost nothing. Every add we try ourselves spins for ages and then errors out. We are burning media spend on a storefront that cannot take an order.',
-            },
-          ],
-        },
-      ],
-    },
   },
   '5eae08bb': {
     slug: '5eae08bb',
@@ -230,7 +188,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#08051C',
       '--chrome-text': '#FEF9FF',
     },
-    supportCenter: 'Tyk Support',
     disclaimer: 'NOT ACTUALLY A TYK SITE — internal demo only, not affiliated with, endorsed by, or a real Tyk product.',
   },
   '0f76667b': {
@@ -249,7 +206,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Abacum Support',
     disclaimer: 'NOT ACTUALLY AN ABACUM SITE — internal demo only, not affiliated with, endorsed by, or a real Abacum product.',
   },
   '66cee815': {
@@ -268,7 +224,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#080C25',
       '--chrome-text': '#E4E9EA',
     },
-    supportCenter: 'JFrog Support',
     disclaimer: 'NOT ACTUALLY A JFROG SITE — internal demo only, not affiliated with, endorsed by, or a real JFrog product.',
   },
   'cb414550': {
@@ -291,8 +246,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#101F1E',
       '--chrome-text': '#F9F3E8',
     },
-    supportCenter: 'Arcadia Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY AN ARCADIA SITE — internal demo only, not affiliated with, endorsed by, or a real Arcadia product.',
   },
   '11c8bdaf': {
@@ -311,7 +264,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#3C3C3C',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Fujitsu Support',
     disclaimer: 'NOT ACTUALLY A FUJITSU SITE — internal demo only, not affiliated with, endorsed by, or a real Fujitsu product.',
   },
   '8cc190d2': {
@@ -334,32 +286,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000710',
       '--chrome-text': '#fcfcfd',
     },
-    supportCenter: 'Brex Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A BREX SITE — internal demo only, not affiliated with, endorsed by, or a real Brex product.',
-    bugPortal: {
-      products: [
-        {
-          area: 'banking',
-          label: 'Brex Business Account \u2014 Transfers',
-          persona: { name: 'Dana Whitfield', email: 'dana.whitfield@brightmail.io', sev: 'High' },
-          templates: [
-            {
-              id: 'banking-transfer-slow',
-              label: 'Transfers extremely slow',
-              sev: 'High',
-              text: 'Hey team \u2014 transfers from the business account take about ten seconds now. The spinner sits there on every single transfer before it finally completes. Any amount, both accounts. Multiple people on our side hit this today.',
-            },
-            {
-              id: 'banking-payroll-cutoff',
-              label: 'Payroll batch missing cutoff',
-              sev: 'Critical',
-              text: 'Escalating: our payroll batch runs transfers one after another and each one now takes ~10 seconds, so the batch will miss the wire cutoff. Nothing errors \u2014 it is just painfully slow, and it was fine on Friday. Please treat as urgent.',
-            },
-          ],
-        },
-      ],
-    },
   },
   '8bdcfab6': {
     slug: '8bdcfab6',
@@ -381,32 +308,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Robinhood Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A ROBINHOOD SITE — internal demo only, not affiliated with, endorsed by, or a real Robinhood product.',
-    bugPortal: {
-      products: [
-        {
-          area: 'banking',
-          label: 'Robinhood Banking \u2014 Transfers',
-          persona: { name: 'Marcus Delgado', email: 'marcus.delgado@brightmail.io', sev: 'High' },
-          templates: [
-            {
-              id: 'banking-transfer-slow',
-              label: 'Transfers stuck on a spinner',
-              sev: 'High',
-              text: 'Transfers between my banking and brokerage accounts are supposed to be instant, but every transfer sits on a spinner for about ten seconds before it completes. Tried different amounts and both directions \u2014 same thing every time. Started today.',
-            },
-            {
-              id: 'banking-payroll-cutoff',
-              label: 'Recurring transfers running late',
-              sev: 'Critical',
-              text: 'Escalating: my scheduled recurring transfers run one after another and each one now takes ~10 seconds, so the whole batch is finishing way later than usual. Nothing fails \u2014 it is just painfully slow, and it was fine yesterday. During market hours this really matters.',
-            },
-          ],
-        },
-      ],
-    },
   },
   'df1b99c6': {
     slug: 'df1b99c6',
@@ -426,8 +328,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#010a13',
       '--chrome-text': '#fafafa',
     },
-    supportCenter: 'Bilt Support',
-    supportCenterSub: 'Member Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A BILT REWARDS SITE — internal demo only, not affiliated with, endorsed by, or a real Bilt Rewards product.',
   },
   '70d04b0f': {
@@ -450,8 +350,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#160923',
       '--chrome-text': '#f6f5f1',
     },
-    supportCenter: 'Cyera Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A CYERA SITE — internal demo only, not affiliated with, endorsed by, or a real Cyera product.',
   },
   'cbb43fd1': {
@@ -474,8 +372,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Celonis Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A CELONIS SITE — internal demo only, not affiliated with, endorsed by, or a real Celonis product.',
   },
   'e3ee301c': {
@@ -498,8 +394,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0E0B0B',
       '--chrome-text': '#F4F1EB',
     },
-    supportCenter: 'Hebbia Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A HEBBIA SITE — internal demo only, not affiliated with, endorsed by, or a real Hebbia product.',
   },
   '71dff37b': {
@@ -522,8 +416,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#18181A',
       '--chrome-text': '#F5F4EE',
     },
-    supportCenter: 'Point72 Support',
-    supportCenterSub: 'Trading Operations & Incident Intake',
     disclaimer: 'NOT ACTUALLY A POINT72 SITE — internal demo only, not affiliated with, endorsed by, or a real Point72 product.',
   },
   '704831b7': {
@@ -546,32 +438,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0E2FAE',
       '--chrome-text': '#f2f6ff',
     },
-    supportCenter: 'Hippocratic AI Support',
-    supportCenterSub: 'Deployment Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A HIPPOCRATIC AI SITE — internal demo only, not affiliated with, endorsed by, or a real Hippocratic AI product.',
-    bugPortal: {
-      products: [
-        {
-          area: 'hightech',
-          label: 'Agent Deployment Console \u2014 Campaign Provisioning',
-          persona: { name: 'Priya Raghavan', email: 'priya.raghavan@brightmail.io', sev: 'High' },
-          templates: [
-            {
-              id: 'hightech-provision-slowdown',
-              label: 'Campaign provisioning noticeably slow',
-              sev: 'Medium',
-              text: 'Our deployment team flagged that provisioning a new outreach campaign in the console is painfully slow \u2014 every request sits for seven or eight seconds before completing. Nothing fails, it just crawls, and it seems to get a little worse with every campaign we provision.',
-            },
-            {
-              id: 'hightech-renewal-slow',
-              label: 'Cohort expansion crawling before go-live',
-              sev: 'High',
-              text: 'Clinical ops here \u2014 our health system goes live Monday and we are expanding the chronic care cohort by a couple hundred patients. Every provisioning call in the console sits there for ages before completing. The program director is on our call asking if the platform is falling over.',
-            },
-          ],
-        },
-      ],
-    },
   },
   '2ab8a463': {
     slug: '2ab8a463',
@@ -593,32 +460,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#222B5F',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'You.com Support',
-    supportCenterSub: 'Developer Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A YOU.COM SITE — internal demo only, not affiliated with, endorsed by, or a real You.com product.',
-    bugPortal: {
-      products: [
-        {
-          area: 'hightech',
-          label: 'API Platform \u2014 Capacity Provisioning',
-          persona: { name: 'Devon Ashcroft', email: 'devon.ashcroft@brightmail.io', sev: 'High' },
-          templates: [
-            {
-              id: 'hightech-provision-slowdown',
-              label: 'Provisioning capacity is slow',
-              sev: 'Medium',
-              text: 'Provisioning rate-limit capacity in the API Platform is crawling \u2014 every request sits for seven or eight seconds before the key comes back. Nothing errors, and it seems to get a bit worse with each endpoint we provision.',
-            },
-            {
-              id: 'hightech-renewal-slow',
-              label: 'Bulk key provisioning stalling before launch',
-              sev: 'High',
-              text: 'Platform team here \u2014 we ship our agent to production Monday and are provisioning keys and QPS for four endpoints across two regions. Every provisioning call in the console hangs for ages before it completes, so the whole rollout is behind. Our launch reviewer is asking whether the platform is healthy.',
-            },
-          ],
-        },
-      ],
-    },
   },
   'e7c9dc7a': {
     slug: 'e7c9dc7a',
@@ -640,8 +482,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#4C0C3A',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'DoorDash Support',
-    supportCenterSub: 'Dasher Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A DOORDASH SITE — internal demo only, not affiliated with, endorsed by, or a real DoorDash product.',
     incident: {
       kind: 'banking-transfers',
@@ -661,29 +501,6 @@ const ONCALL_SKINS = {
           'customers': 'Dashers',
         },
       },
-    },
-    bugPortal: {
-      products: [
-        {
-          area: 'banking',
-          label: 'Dasher Earnings \u2014 Fast Pay',
-          persona: { name: 'Alex Rivera', email: 'alex.rivera@brightmail.io', sev: 'High' },
-          templates: [
-            {
-              id: 'banking-transfer-slow',
-              label: 'Fast Pay cash outs stuck on a spinner',
-              sev: 'High',
-              text: 'Cashing out my earnings used to be quick, but now every cash out sits on a spinner for about ten seconds before it goes through. Tried different amounts and both my bank account and my DasherDirect card \u2014 same thing every time. Started today.',
-            },
-            {
-              id: 'banking-payroll-cutoff',
-              label: 'End-of-shift payouts running late',
-              sev: 'Critical',
-              text: 'Escalating on behalf of a market team: Dashers cashing out at the end of the dinner shift are queued one after another and each cash out now takes ~10 seconds, so the whole batch finishes well after the usual window. Nothing errors \u2014 it is just painfully slow, and it was fine yesterday.',
-            },
-          ],
-        },
-      ],
     },
   },
   '81fea074': {
@@ -706,8 +523,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#151B26',
       '--chrome-text': '#F5F4ED',
     },
-    supportCenter: 'Stellic Support',
-    supportCenterSub: 'Institution Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A STELLIC SITE — internal demo only, not affiliated with, endorsed by, or a real Stellic product.',
   },
   '08d969be': {
@@ -728,32 +543,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0A1626',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Hadrian Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A HADRIAN SITE — internal demo only, not affiliated with, endorsed by, or a real Hadrian product.',
-    bugPortal: {
-      products: [
-        {
-          area: 'industrials',
-          label: 'Hadrian Instant Quote — DFM Analysis',
-          persona: { name: 'Morgan Reyes', email: 'morgan.reyes@brightmail.io', sev: 'High' },
-          templates: [
-            {
-              id: 'industrials-quote-timeout',
-              label: 'Instant quote taking too long',
-              sev: 'High',
-              text: 'Buyer at a defense prime here — our instant quote sits on “Running DFM analysis” for about 15 seconds before it finally returns. Same part and quantity every time, and this started recently.',
-            },
-            {
-              id: 'industrials-program-quotes-blocked',
-              label: 'Program quotes crawling',
-              sev: 'Critical',
-              text: 'Program manager escalation: every quote for one aerospace program crawls while quotes for other programs come back in about a second. We need the affected program quotes for today’s sourcing review.',
-            },
-          ],
-        },
-      ],
-    },
   },
   'cdf0771d': {
     slug: 'cdf0771d',
@@ -773,8 +563,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0C0B0A',
       '--chrome-text': '#F8F2EA',
     },
-    supportCenter: 'RadixArk Support',
-    supportCenterSub: 'Platform Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A RADIXARK SITE — internal demo only, not affiliated with, endorsed by, or a real RadixArk product.',
   },
   '2acc11fd': {
@@ -795,8 +583,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1F1F1F',
       '--chrome-text': '#FFFFEB',
     },
-    supportCenter: 'Wispr Flow Support',
-    supportCenterSub: 'Workspace Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A WISPR FLOW SITE — internal demo only, not affiliated with, endorsed by, or a real Wispr Flow product.',
   },
   '3aea27ba': {
@@ -819,8 +605,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#232222',
       '--chrome-text': '#F7F1ED',
     },
-    supportCenter: 'Happen Bank Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A HAPPEN BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Happen Bank product.',
   },
   '32715aba': {
@@ -844,8 +628,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#111116',
       '--chrome-text': '#f5f5f7',
     },
-    supportCenter: 'Mercor Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A MERCOR SITE — internal demo only, not affiliated with, endorsed by, or a real Mercor product.',
   },
   'e51b6dc0': {
@@ -870,32 +652,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#EAF1FB',
     },
     devinSession: { auto: true },
-    supportCenter: 'Crisil Client Support',
-    supportCenterSub: 'Analytics Platform Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A CRISIL SITE — internal demo only, not affiliated with, endorsed by, or a real Crisil product.',
-    bugPortal: {
-      products: [
-        {
-          area: 'banking',
-          label: 'Crisil Integral IQ \u2014 Credit Risk Runs',
-          persona: { name: 'Ananya Rao', email: 'ananya.rao@northmeridiancap.in', sev: 'High' },
-          templates: [
-            {
-              id: 'banking-transfer-slow',
-              label: 'Scoring runs extremely slow',
-              sev: 'High',
-              text: 'Our credit team is telling us Integral IQ scoring runs take forever now. You submit a run and the button sits there for a good ten seconds before results come back. Any portfolio on the standard run tier, every time. It does complete, it is just painfully slow, and it started today.',
-            },
-            {
-              id: 'banking-payroll-cutoff',
-              label: 'Overnight risk batch missing the reporting cutoff',
-              sev: 'Critical',
-              text: 'Escalating from risk ops: our overnight batch submits scoring runs one after another and each one now takes ~10 seconds, so the batch will miss the regulatory reporting cutoff. Nothing errors — it is just slow, and it was fine on Friday. Please treat as urgent.',
-            },
-          ],
-        },
-      ],
-    },
   },
   'a198d45f': {
     slug: 'a198d45f',
@@ -913,8 +670,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#141834',
       '--chrome-text': '#F5F7FC',
     },
-    supportCenter: 'MediCodio Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A MEDICODIO SITE — internal demo only, not affiliated with, endorsed by, or a real MediCodio product.',
   },
 
@@ -934,32 +689,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Genspark Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A GENSPARK SITE — internal demo only, not affiliated with, endorsed by, or a real Genspark product.',
-    bugPortal: {
-      products: [
-        {
-          area: 'hightech',
-          label: 'AI Workspace \u2014 Team Seats & Provisioning',
-          persona: { name: 'Elena Sorokin', email: 'elena.sorokin@northloop.io', sev: 'Medium' },
-          templates: [
-            {
-              id: 'hightech-provision-slowdown',
-              label: 'Adding seats is very slow',
-              sev: 'Medium',
-              text: 'Adding seats to our Team plan is painfully slow — every time I hit "Get Team seats" it sits for seven or eight seconds before the workspace updates. It does go through, it is just slow, and it feels a little worse each time we add another batch.',
-            },
-            {
-              id: 'hightech-renewal-slow',
-              label: 'Bulk seat expansion crawling before renewal',
-              sev: 'High',
-              text: 'We are expanding from 40 to 200 seats ahead of our renewal on Friday and every seat batch in the workspace admin sits there for ages before it completes. Our IT lead is convinced the platform cannot handle our org size.',
-            },
-          ],
-        },
-      ],
-    },
   },
   'ec8c777e': {
     slug: 'ec8c777e',
@@ -977,7 +707,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1F4E86',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: '신한은행 고객센터',
     disclaimer: 'NOT ACTUALLY A SHINHAN BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Shinhan Bank product.',
   },
   '000e17f3': {
@@ -996,7 +725,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0661c4',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: '우리은행 고객센터',
     disclaimer: 'NOT ACTUALLY A WOORI BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Woori Bank product.',
   },
   '63840dfd': {
@@ -1015,7 +743,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#180D43',
       '--chrome-text': '#FDF5EE',
     },
-    supportCenter: 'Chapter Support',
     disclaimer: 'NOT ACTUALLY A CHAPTER SITE — internal demo only, not affiliated with, endorsed by, or a real Chapter product.',
   },
   'd5f6d175': {
@@ -1034,7 +761,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#05071A',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: '신세계포인트 고객센터',
     disclaimer: 'NOT ACTUALLY A SHINSEGAE SITE — internal demo only, not affiliated with, endorsed by, or a real Shinsegae product.',
   },
   'c65bd444': {
@@ -1053,8 +779,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#051766',
       '--chrome-text': '#f2f7ff',
     },
-    supportCenter: 'Korean Air Support',
-    supportCenterSub: 'SKYPASS Member Care',
     disclaimer: 'NOT ACTUALLY A KOREAN AIR SITE — internal demo only, not affiliated with, endorsed by, or a real Korean Air product.',
   },
   'bcda19cc': {
@@ -1073,7 +797,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#001C3D',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: '현대자동차 고객센터',
     disclaimer: 'NOT ACTUALLY A HYUNDAI SITE — internal demo only, not affiliated with, endorsed by, or a real Hyundai product.',
   },
   '4f8523aa': {
@@ -1092,7 +815,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#191C20',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Kakao Pay Support',
     disclaimer: 'NOT ACTUALLY A KAKAO PAY SITE — internal demo only, not affiliated with, endorsed by, or a real Kakao Pay product.',
   },
   '1ac469b4': {
@@ -1111,7 +833,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#052b57',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: '정부24 고객센터',
     disclaimer: 'NOT ACTUALLY A GOV.KR (정부24) SITE — internal demo only, not affiliated with, endorsed by, or a real Government of Korea service.',
   },
   'bf5f21e3': {
@@ -1130,7 +851,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Forrester Client Support',
     disclaimer: 'NOT ACTUALLY A FORRESTER SITE — internal demo only, not affiliated with, endorsed by, or a real Forrester product.',
   },
   '0c15262a': {
@@ -1149,7 +869,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#00605e',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: '하나은행 고객센터',
     disclaimer: 'NOT ACTUALLY A HANA BANK (하나은행) SITE — internal demo only, not affiliated with, endorsed by, or a real Hana Bank product.',
   },
   '5d5755c2': {
@@ -1168,7 +887,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0A0F10',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'MegazoneCloud 고객지원',
     disclaimer: 'NOT ACTUALLY A MEGAZONECLOUD SITE — internal demo only, not affiliated with, endorsed by, or a real MegazoneCloud product.',
   },
   'f5a5bdad': {
@@ -1187,7 +905,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'KRAFTON 고객지원',
     disclaimer: 'NOT ACTUALLY A KRAFTON SITE — internal demo only, not affiliated with, endorsed by, or a real KRAFTON product.',
   },
   'd92336aa': {
@@ -1206,7 +923,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#191919',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: '카카오 고객센터',
     disclaimer: 'NOT ACTUALLY A KAKAO SITE — internal demo only, not affiliated with, endorsed by, or a real Kakao product.',
   },
   'c70eca54': {
@@ -1225,7 +941,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#101010',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: '삼성카드 고객센터',
     disclaimer: 'NOT ACTUALLY A SAMSUNG CARD SITE — internal demo only, not affiliated with, endorsed by, or a real Samsung Card product.',
   },
   '9f7a8436': {
@@ -1244,7 +959,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Mercedes-Benz Customer Assistance',
     disclaimer: 'NOT ACTUALLY A MERCEDES-BENZ SITE — internal demo only, not affiliated with, endorsed by, or a real Mercedes-Benz product.',
   },
   'd22a0a30': {
@@ -1260,7 +974,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#05112A',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Pearson Support',
     disclaimer: 'NOT ACTUALLY A PEARSON SITE — internal demo only, not affiliated with, endorsed by, or a real Pearson product.',
   },
   '93f1b8ec': {
@@ -1276,7 +989,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1F1F1F',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'הראל שירות לקוחות',
     disclaimer: 'NOT ACTUALLY A HAREL SITE — internal demo only, not affiliated with, endorsed by, or a real Harel Insurance product.',
   },
   'd61e15a2': {
@@ -1292,7 +1004,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#262626',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'BMW Customer Support',
     disclaimer: 'NOT ACTUALLY A BMW SITE — internal demo only, not affiliated with, endorsed by, or a real BMW product.',
   },
   'b258a21e': {
@@ -1308,7 +1019,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#262626',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Telekom Kundenservice',
     disclaimer: 'NOT ACTUALLY A DEUTSCHE TELEKOM SITE — internal demo only, not affiliated with, endorsed by, or a real Deutsche Telekom product.',
   },
   'dec00361': {
@@ -1324,7 +1034,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'T-Systems Service Desk',
     disclaimer: 'NOT ACTUALLY A T-SYSTEMS SITE — internal demo only, not affiliated with, endorsed by, or a real T-Systems / Deutsche Telekom product.',
   },
   'c7bbced4': {
@@ -1340,7 +1049,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#052B42',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Nebius Support',
     disclaimer: 'NOT ACTUALLY A NEBIUS SITE — internal demo only, not affiliated with, endorsed by, or a real Nebius product.',
   },
   '1c4b185f': {
@@ -1356,7 +1064,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#282B34',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Stellantis Financial Services Customer Care',
     disclaimer: 'NOT ACTUALLY A STELLANTIS SITE — internal demo only, not affiliated with, endorsed by, or a real Stellantis product.',
   },
   '02238eb0': {
@@ -1372,8 +1079,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0b1f3a',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Harborline FCU Member Services',
-    supportCenterSub: 'Digital Banking Support',
     disclaimer: 'Harborline FCU is a fictional credit union — internal demo only, not affiliated with any real financial institution.',
   },
   'ae0823ea': {
@@ -1389,7 +1094,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#002949',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Client Access Support',
     disclaimer: 'NOT ACTUALLY A RAYMOND JAMES SITE — internal demo only, not affiliated with, endorsed by, or a real Raymond James product.',
   },
   '3febe675': {
@@ -1405,7 +1109,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000835',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Amadeus Developer Support',
     disclaimer: 'NOT ACTUALLY AN AMADEUS SITE — internal demo only, not affiliated with, endorsed by, or a real Amadeus product.',
   },
   'c789e3c0': {
@@ -1421,7 +1124,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1A1A1A',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'NN Klantenservice',
     disclaimer: 'NOT ACTUALLY A NATIONALE-NEDERLANDEN (NN GROUP) SITE — internal demo only, not affiliated with, endorsed by, or a real NN product.',
   },
   'b3387c66': {
@@ -1437,7 +1139,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#01122C',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'British Airways Customer Relations',
     disclaimer: 'NOT ACTUALLY A BRITISH AIRWAYS SITE — internal demo only, not affiliated with, endorsed by, or a real British Airways product.',
   },
   'df86b36f': {
@@ -1453,7 +1154,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#002855',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'L&G Client Services',
     disclaimer: 'NOT ACTUALLY AN L&G SITE — internal demo only, not affiliated with, endorsed by, or a real L&G product.',
   },
   '290929de': {
@@ -1469,7 +1169,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#10069A',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Bank Leumi Customer Service',
     disclaimer: 'NOT ACTUALLY A BANK LEUMI SITE — internal demo only, not affiliated with, endorsed by, or a real Bank Leumi product.',
   },
   '2e94691c': {
@@ -1487,8 +1186,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#25242F',
       '--chrome-text': '#F4F4F6',
     },
-    supportCenter: 'Wiz Support',
-    supportCenterSub: 'Deployment Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A WIZ SITE — internal demo only, not affiliated with, endorsed by, or a real Wiz product.',
   },
   'abb0d034': {
@@ -1507,8 +1204,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#00111D',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Monte Carlo Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A MONTE CARLO SITE — internal demo only, not affiliated with, endorsed by, or a real Monte Carlo product.',
   },
   'c84ab9c6': {
@@ -1526,8 +1221,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#050607',
       '--chrome-text': '#F1F1F1',
     },
-    supportCenter: 'Luma Support',
-    supportCenterSub: 'API Capacity & Platform Support',
     disclaimer: 'NOT ACTUALLY A LUMA SITE — internal demo only, not affiliated with, endorsed by, or a real Luma product.',
   },
   'a46b7c5e': {
@@ -1546,7 +1239,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0B1F42',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Erste Bank Customer Service',
     disclaimer: 'NOT ACTUALLY AN ERSTE BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Erste Group product.',
   },
   '4a3e91b9': {
@@ -1565,7 +1257,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#071D49',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Hargreaves Lansdown Helpdesk',
     disclaimer: 'NOT ACTUALLY A HARGREAVES LANSDOWN SITE — internal demo only, not affiliated with, endorsed by, or a real Hargreaves Lansdown product.',
   },
   '7da5a0a9': {
@@ -1588,7 +1279,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Digital AECOM Support',
     disclaimer: 'NOT ACTUALLY AN AECOM SITE — internal demo only, not affiliated with, endorsed by, or a real AECOM product.',
   },
   '232108b7': {
@@ -1604,7 +1294,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1C1D1B',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Prudential Customer Service',
     disclaimer: 'NOT ACTUALLY A PRUDENTIAL SITE — internal demo only, not affiliated with, endorsed by, or a real Prudential plc product.',
   },
   '7abf90ac': {
@@ -1622,7 +1311,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#001129',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Coursera Learner Help Center',
     disclaimer: 'NOT ACTUALLY A COURSERA SITE — internal demo only, not affiliated with, endorsed by, or a real Coursera product.',
   },
   'f9767587': {
@@ -1640,7 +1328,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#201648',
       '--chrome-text': '#FAFAFA',
     },
-    supportCenter: '1-800-Flowers.com Customer Service',
     disclaimer: 'NOT ACTUALLY A 1-800-FLOWERS.COM SITE — internal demo only, not affiliated with, endorsed by, or a real 1-800-Flowers.com product.',
   },
   'd9d2f2fd': {
@@ -1659,7 +1346,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#006A4D',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Lloyds Bank Help & Support',
     disclaimer: 'NOT ACTUALLY A LLOYDS BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Lloyds Bank product.',
   },
   'f2089246': {
@@ -1682,8 +1368,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#2A2B2F',
       '--chrome-text': '#FEF9EF',
     },
-    supportCenter: 'Function Support',
-    supportCenterSub: 'Member Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A FUNCTION HEALTH SITE — internal demo only, not affiliated with, endorsed by, or a real Function Health product.',
   },
   '1dd18f07': {
@@ -1702,7 +1386,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Eaze Support',
     disclaimer: 'NOT ACTUALLY A EAZE SITE — internal demo only, not affiliated with, endorsed by, or a real Eaze product.',
   },
   '97d17d45': {
@@ -1722,7 +1405,6 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     devinSession: { auto: true },
-    supportCenter: 'Parallel Support',
     disclaimer: 'NOT ACTUALLY A PARALLEL SITE — internal demo only, not affiliated with, endorsed by, or a real Parallel Web Systems product.',
   },
   'b96d078d': {
@@ -1738,7 +1420,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Bloomberg Law Help Desk',
     disclaimer: 'NOT ACTUALLY A BLOOMBERG LAW SITE — internal demo only, not affiliated with, endorsed by, or a real Bloomberg Industry Group product.',
   },
   '4b663efb': {
@@ -1762,8 +1443,6 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     devinSession: { auto: true },
-    supportCenter: 'Nordstrom Customer Care',
-    supportCenterSub: 'Online Orders & Shopping Bag',
     disclaimer: 'NOT ACTUALLY A NORDSTROM SITE — internal demo only, not affiliated with, endorsed by, or a real Nordstrom product.',
   },
   '9cb2eced': {
@@ -1787,32 +1466,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     devinSession: { auto: true },
-    supportCenter: 'Singapore Airlines Support',
-    supportCenterSub: 'Flight Booking & KrisFlyer Support',
     disclaimer: 'NOT ACTUALLY A SINGAPORE AIRLINES SITE — internal demo only, not affiliated with, endorsed by, or a real Singapore Airlines product.',
-    bugPortal: {
-      products: [
-        {
-          area: 'marketplace',
-          label: 'Singapore Airlines \u2014 Book flight',
-          persona: { name: 'Priya Nair', email: 'priya.nair@brightmail.io', sev: 'High' },
-          templates: [
-            {
-              id: 'marketplace-cart-timeout',
-              label: 'Flight search fails with a timeout',
-              sev: 'High',
-              text: 'Customers cannot search for flights. You press "Search" on Book trip, the button spins for about eight seconds and then an error comes back saying seat availability could not be checked. Same route, same dates, every attempt.',
-            },
-            {
-              id: 'marketplace-campaign-conversion',
-              label: 'Fare sale traffic converting at zero',
-              sev: 'Critical',
-              text: 'Escalating from revenue management: the Europe fare sale is live, traffic is fine and the homepage loads, but bookings have collapsed to almost nothing. Every search we try ourselves spins for ages and then errors out. We are burning media spend on a booking flow that cannot return a fare.',
-            },
-          ],
-        },
-      ],
-    },
   },
   '14fa2049': {
     slug: '14fa2049',
@@ -1833,8 +1487,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#00238B',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'CapitaLand Malls Support',
-    supportCenterSub: 'CapitaStar eStore & eCapitaVoucher',
     disclaimer: 'NOT ACTUALLY A CAPITALAND SITE — internal demo only, not affiliated with, endorsed by, or a real CapitaLand product.',
   },
   '5d7c46c1': {
@@ -1850,7 +1502,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1A1B22',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Figure Support',
     disclaimer: 'NOT ACTUALLY A FIGURE SITE — internal demo only, not affiliated with, endorsed by, or a real Figure Lending LLC product.',
   },
   '871f5f7f': {
@@ -1871,8 +1522,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#003C46',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Turnitin Support',
-    supportCenterSub: 'Administrator & Instructor Support',
     disclaimer: 'NOT ACTUALLY A TURNITIN SITE — internal demo only, not affiliated with, endorsed by, or a real Turnitin product.',
   },
   '42d69b95': {
@@ -1888,7 +1537,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#4A0039',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Rippling Help Center',
     disclaimer: 'NOT ACTUALLY A RIPPLING SITE — internal demo only, not affiliated with, endorsed by, or a real Rippling People Center Inc. product.',
   },
   '347abdf0': {
@@ -1904,7 +1552,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0E0B0B',
       '--chrome-text': '#F4F1EB',
     },
-    supportCenter: 'Hebbia Support',
     disclaimer: 'NOT ACTUALLY A HEBBIA SITE — internal demo only, not affiliated with, endorsed by, or a real Hebbia product.',
   },
   '7fcd58da': {
@@ -1920,7 +1567,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000061',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Rabobank Klantenservice',
     disclaimer: 'NOT ACTUALLY A RABOBANK SITE — internal demo only, not affiliated with, endorsed by, or a real Rabobank product.',
   },
   '85b32278': {
@@ -1936,7 +1582,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#001A73',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'PostNL Klantenservice',
     disclaimer: 'NOT ACTUALLY A POSTNL SITE — internal demo only, not affiliated with, endorsed by, or a real PostNL product.',
   },
   '3659ea4f': {
@@ -1952,7 +1597,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#181825',
       '--chrome-text': '#F1F0EE',
     },
-    supportCenter: 'Kela Support',
     disclaimer: 'NOT ACTUALLY A KELA SITE — internal demo only, not affiliated with, endorsed by, or a real Kela product.',
   },
   '0e315106': {
@@ -1975,8 +1619,6 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     devinSession: { auto: true },
-    supportCenter: 'Rootly Support',
-    supportCenterSub: 'Workspace & On-Call Administration',
     disclaimer: 'NOT ACTUALLY A ROOTLY SITE — internal demo only, not affiliated with, endorsed by, or a real Rootly Inc. product.',
   },
   '5626e47f': {
@@ -1995,7 +1637,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0B1B2B',
       '--chrome-text': '#F7F9FC',
     },
-    supportCenter: 'Solocal Support',
     disclaimer: 'NOT ACTUALLY A SOLOCAL SITE — internal demo only, not affiliated with, endorsed by, or a real Solocal product.',
   },
   '3555266e': {
@@ -2011,7 +1652,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#191C1F',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Revolut Support',
     disclaimer: 'NOT ACTUALLY A REVOLUT SITE — internal demo only, not affiliated with, endorsed by, or a real Revolut product.',
   },
   '8bc7a017': {
@@ -2032,8 +1672,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#002037',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Evercore Client Service',
-    supportCenterSub: 'Wealth Management & Trust Company',
     disclaimer: 'NOT ACTUALLY AN EVERCORE SITE — internal demo only, not affiliated with, endorsed by, or a real Evercore product.',
   },
   '20d592fb': {
@@ -2049,8 +1687,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#002037',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Evercore ISI Client Service',
-    supportCenterSub: 'Sales & Trading Desk Support',
     disclaimer: 'NOT ACTUALLY AN EVERCORE SITE — internal demo only, not affiliated with, endorsed by, or a real Evercore product.',
   },
   'e7f54d10': {
@@ -2069,7 +1705,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0A0A0A',
       '--chrome-text': '#F2F3EC',
     },
-    supportCenter: 'InstaLILY Support',
     disclaimer: 'NOT ACTUALLY AN INSTALILY SITE — internal demo only, not affiliated with, endorsed by, or a real InstaLILY product.',
   },
   'f6ea705e': {
@@ -2085,7 +1720,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#042F3A',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Adonis Support',
     disclaimer: 'NOT ACTUALLY AN ADONIS SITE — internal demo only, not affiliated with, endorsed by, or a real Adonis product.',
   },
   '28e47b87': {
@@ -2110,8 +1744,6 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     devinSession: { auto: true },
-    supportCenter: 'Vanguard Client Services',
-    supportCenterSub: 'Personal Investor Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A VANGUARD SITE — internal demo only, not affiliated with, endorsed by, or a real Vanguard product.',
   },
   '848b5205': {
@@ -2135,8 +1767,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#080F5E',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'ZKB Kundenservice',
-    supportCenterSub: 'eBanking Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A ZKB SITE — internal demo only, not affiliated with, endorsed by, or a real ZKB product.',
   },
   '763a0ead': {
@@ -2160,8 +1790,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#001222',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Adyen Support',
-    supportCenterSub: 'Customer Area Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY AN ADYEN SITE — internal demo only, not affiliated with, endorsed by, or a real Adyen product.',
   },
   'a75ccde9': {
@@ -2187,7 +1815,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'FOX One Help',
     disclaimer: 'NOT ACTUALLY A FOX ONE SITE — internal demo only, not affiliated with, endorsed by, or a real FOX / Fox Media LLC product.',
   },
   '3983a181': {
@@ -2204,7 +1831,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#01122C',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'British Airways Help Centre',
     disclaimer: 'NOT ACTUALLY A BRITISH AIRWAYS SITE — internal demo only, not affiliated with, endorsed by, or a real British Airways product.',
   },
   '30922028': {
@@ -2221,7 +1847,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#151D31',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'PaySG Support',
     disclaimer: 'NOT ACTUALLY A GOVTECH SINGAPORE SITE — internal demo only, not affiliated with, endorsed by, or a real GovTech Singapore product.',
   },
   '696c04ec': {
@@ -2242,8 +1867,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#001942',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Careem Pay Support',
-    supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A CAREEM SITE — internal demo only, not affiliated with, endorsed by, or a real Careem product.',
   },
   '9dda44d0': {
@@ -2259,7 +1882,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#101820',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Strategic Education Support',
     disclaimer: 'NOT ACTUALLY A STRATEGIC EDUCATION SITE — internal demo only, not affiliated with, endorsed by, or a real Strategic Education, Inc. product.',
   },
   'ad70f2d2': {
@@ -2278,7 +1900,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#09090A',
       '--chrome-text': '#F5F6F7',
     },
-    supportCenter: 'Drata Support',
     disclaimer: 'NOT ACTUALLY A DRATA SITE — internal demo only, not affiliated with, endorsed by, or a real Drata product.',
   },
   '68cde0d3': {
@@ -2294,8 +1915,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#030628',
       '--chrome-text': '#F9F9FB',
     },
-    supportCenter: 'WorkOS Support',
-    supportCenterSub: 'Enterprise Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A WORKOS SITE — internal demo only, not affiliated with, endorsed by, or a real WorkOS product.',
   },
   'd2c12d14': {
@@ -2311,8 +1930,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#043570',
       '--chrome-text': '#F8F6EE',
     },
-    supportCenter: 'Modern Health Support',
-    supportCenterSub: 'Employer & Member Support',
     disclaimer: 'NOT ACTUALLY A MODERN HEALTH SITE — internal demo only, not affiliated with, endorsed by, or a real Modern Health product.',
   },
   'ce0199ec': {
@@ -2335,8 +1952,6 @@ const ONCALL_SKINS = {
     },
     devinSession: { auto: true },
     sonarPR: { auto: true },
-    supportCenter: 'Cross River Support',
-    supportCenterSub: 'Payments & Accounts Operations',
     disclaimer: 'NOT ACTUALLY A CROSS RIVER SITE — internal demo only, not affiliated with, endorsed by, or a real Cross River product.',
   },
   '4c8c5b8f': {
@@ -2355,7 +1970,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#2D3D45',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'OCBC Support',
     disclaimer: 'NOT ACTUALLY AN OCBC SITE — internal demo only, not affiliated with, endorsed by, or a real OCBC product.',
   },
   '777b1b03': {
@@ -2376,8 +1990,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0A2240',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Boeing Support',
-    supportCenterSub: 'Quality Systems Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A BOEING SITE — internal demo only, not affiliated with, endorsed by, or a real Boeing product.',
   },
   '180f1323': {
@@ -2397,8 +2009,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1D2B36',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'MyBoeingFleet Support',
-    supportCenterSub: 'Parts & Distribution Operator Support',
     disclaimer: 'NOT ACTUALLY A MYBOEINGFLEET SITE — internal demo only, not affiliated with, endorsed by, or a real Boeing product.',
   },
   'bb0a082c': {
@@ -2417,7 +2027,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Gap Customer Service',
     disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
   'afc90dda': {
@@ -2439,8 +2048,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#2167AE',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Zurich Customer Care Center',
-    supportCenterSub: 'Claims Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A ZURICH SITE — internal demo only, not affiliated with, endorsed by, or a real Zurich product.',
   },
   'd949b852': {
@@ -2462,8 +2069,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#001489',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'LSEG Post Trade Client Services',
-    supportCenterSub: 'TradeAgent Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY AN LSEG SITE — internal demo only, not affiliated with, endorsed by, or a real London Stock Exchange Group product.',
   },
   'e63edc26': {
@@ -2485,8 +2090,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#0f0e0d',
       '--chrome-text': '#fafaf9',
     },
-    supportCenter: 'Harvey Support',
-    supportCenterSub: 'Workspace Access & Incident Intake',
     disclaimer: 'NOT ACTUALLY A HARVEY SITE — internal demo only, not affiliated with, endorsed by, or a real Harvey product.',
   },
   '248de71e': {
@@ -2509,7 +2112,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#004200',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'bp Business Solutions Customer Service',
     disclaimer: 'NOT ACTUALLY A BP SITE — internal demo only, not affiliated with, endorsed by, or a real bp product.',
   },
   '31f02f28': {
@@ -2531,7 +2133,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#f8f7f4',
     },
-    supportCenter: 'Erebor Client Service',
     disclaimer: 'NOT ACTUALLY AN EREBOR SITE — internal demo only, not affiliated with, endorsed by, or a real Erebor product.',
   },
   '82b32928': {
@@ -2550,8 +2151,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#052B42',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Nebius Support',
-    supportCenterSub: 'AI Cloud Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A NEBIUS SITE — internal demo only, not affiliated with, endorsed by, or a real Nebius product.',
   },
   '5afb121f': {
@@ -2571,8 +2170,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000028',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'Siemens Support Center',
-    supportCenterSub: 'Digital Industries Software Support',
     disclaimer: 'NOT ACTUALLY A SIEMENS SITE — internal demo only, not affiliated with, endorsed by, or a real Siemens product.',
   },
   'd47f7970': {
@@ -2592,8 +2189,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1A1A1A',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'The Economist Customer Service',
-    supportCenterSub: 'Subscription Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY AN ECONOMIST SITE — internal demo only, not affiliated with, endorsed by, or a real Economist product.',
   },
   'fdc02991': {
@@ -2610,7 +2205,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#102641',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'DIRECTV Support',
     disclaimer: 'NOT ACTUALLY A DIRECTV SITE — internal demo only, not affiliated with, endorsed by, or a real DIRECTV product.',
   },
   '57d22ef0': {
@@ -2627,7 +2221,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#012169',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Bank of America Customer Service',
     disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE — internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
   },
   'cc824d2a': {
@@ -2644,7 +2237,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#00243C',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'PIMCO Client Services',
     disclaimer: 'NOT ACTUALLY A PIMCO SITE — internal demo only, not affiliated with, endorsed by, or a real PIMCO product.',
   },
   'c06e0447': {
@@ -2665,8 +2257,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#144700',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'zooplus Kundenservice',
-    supportCenterSub: 'Onlineshop & Warenkorb',
     disclaimer: 'NOT ACTUALLY A ZOOPLUS SITE — internal demo only, not affiliated with, endorsed by, or a real zooplus product.',
   },
   '93d48678': {
@@ -2686,8 +2276,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#012169',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Accelya Support',
-    supportCenterSub: 'Payments & order accounting',
     disclaimer: 'NOT ACTUALLY AN ACCELYA SITE — internal demo only, not affiliated with, endorsed by, or a real Accelya product.',
   },
   'e2d82a44': {
@@ -2711,8 +2299,6 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     devinSession: { auto: true },
-    supportCenter: 'PC Express Customer Care',
-    supportCenterSub: 'Online Grocery Orders & Pickup',
     disclaimer: '',
   },
   '0a7b0167': {
@@ -2729,8 +2315,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#041330',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Watershed Support',
-    supportCenterSub: 'Reduction Plan & Marketplace',
     disclaimer: 'NOT ACTUALLY A WATERSHED SITE — internal demo only, not affiliated with, endorsed by, or a real Watershed product.',
   },
   '2431a2c4': {
@@ -2747,7 +2331,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#115740',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Northern Trust Private Passport Help Center',
     disclaimer: 'NOT ACTUALLY A NORTHERN TRUST SITE — internal demo only, not affiliated with, endorsed by, or a real Northern Trust product.',
   },
   '8138f16b': {
@@ -2765,8 +2348,6 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     devinSession: { auto: true },
-    supportCenter: 'QBE Broker Support',
-    supportCenterSub: 'c.change Partner Portal',
     disclaimer: 'NOT ACTUALLY A QBE SITE — internal demo only, not affiliated with, endorsed by, or a real QBE Insurance product.',
   },
   '143165b5': {
@@ -2783,7 +2364,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Gap Customer Service',
     disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
   'd5e0112b': {
@@ -2800,7 +2380,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1434A2',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Viriyah Insurance Customer Service',
     disclaimer: 'NOT ACTUALLY A VIRIYAH INSURANCE SITE — internal demo only, not affiliated with, endorsed by, or a real Viriyah Insurance product.',
   },
   '265cac56': {
@@ -2817,8 +2396,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#002157',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Empower Support',
-    supportCenterSub: 'Personal Dashboard & transfers',
     disclaimer: 'NOT ACTUALLY AN EMPOWER SITE — internal demo only, not affiliated with, endorsed by, or a real Empower product.',
   },
   '6e4dcdc1': {
@@ -2835,8 +2412,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#001E60',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'IG Wealth Management Support',
-    supportCenterSub: 'Online access & contributions',
     disclaimer: 'NOT ACTUALLY AN IG WEALTH MANAGEMENT SITE — internal demo only, not affiliated with, endorsed by, or a real IG Wealth Management product.',
   },
   '9ac83e67': {
@@ -2856,8 +2431,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#001C64',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'PayPal Help Center',
-    supportCenterSub: 'Sending & Receiving Money',
     disclaimer: 'NOT ACTUALLY A PAYPAL SITE — internal demo only, not affiliated with, endorsed by, or a real PayPal product.',
   },
   '2b6e98c4': {
@@ -2877,8 +2450,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#260048',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Vanta Support',
-    supportCenterSub: 'Workspace, plan & seats',
     disclaimer: 'NOT ACTUALLY A VANTA SITE — internal demo only, not affiliated with, endorsed by, or a real Vanta product.',
   },
   'fe4f39ba': {
@@ -2908,7 +2479,6 @@ const ONCALL_SKINS = {
       symptom: 'Vaccine order submissions hang ~10s before completing. Error rate is normal — orders eventually go through.',
       impact: 'Every practice placing a vaccine order waits on a spinner for ~10 seconds; the Vaccine Service Center is reporting rising call volume.',
     },
-    supportCenter: 'GSK Vaccine Service Center',
     disclaimer: 'NOT ACTUALLY A GSK SITE — internal demo only, not affiliated with, endorsed by, or a real GSK product.',
   },
   '84b091d4': {
@@ -2927,8 +2497,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#002D2D',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'a16z Limited Partner Services',
-    supportCenterSub: 'Capital Activity & Fund Operations',
     disclaimer: 'NOT ACTUALLY AN A16Z SITE — internal demo only, not affiliated with, endorsed by, or a real a16z product.',
   },
   '9ecaa5d1': {
@@ -2955,8 +2523,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#002244',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'LoanTrack Service Desk',
-    supportCenterSub: 'Loan Operations & Disbursement Support',
     disclaimer: 'NOT A REAL WORLD BANK SYSTEM — internal demo only, fictional LoanTrack product, not affiliated with or endorsed by the World Bank Group.',
   },
   '2d624bce': {
@@ -2973,7 +2539,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Gap Customer Service',
     disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
   '79a8c9bc': {
@@ -2997,8 +2562,6 @@ const ONCALL_SKINS = {
       symptom: 'Transfers between accounts hang ~10s before completing. Error rate is normal — transfers eventually go through.',
       impact: 'Every customer moving money between checking and savings in online banking waits on a spinner for ~10 seconds; Customer Service is reporting rising call volume.',
     },
-    supportCenter: 'Fifth Third Customer Service',
-    supportCenterSub: 'Online and Mobile Banking',
     disclaimer: 'NOT ACTUALLY A FIFTH THIRD BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Fifth Third Bank product.',
   },
   'a2088cb4': {
@@ -3025,8 +2588,6 @@ const ONCALL_SKINS = {
       symptom: 'Event registration submissions slowed after the last release and get slower with every request. Process RSS trends up alongside it.',
       impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served events that open at the top of the hour are hit hardest.',
     },
-    supportCenter: 'connpass サポート',
-    supportCenterSub: 'お問い合わせ・障害報告窓口',
     disclaimer: 'NOT ACTUALLY A CONNPASS SITE — demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（デモ用）。',
     // SEV-1 opt-in: the native page declares this story from the same
     // registration button that drives the alert flow, and the shared console
@@ -3075,7 +2636,6 @@ const ONCALL_SKINS = {
       symptom: 'Event registration submissions are slow and get slower with every request. Process RSS trends up alongside it.',
       impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served slots that open at a fixed time are hit hardest.',
     },
-    supportCenter: 'connpass サポート',
     disclaimer: 'NOT ACTUALLY A CONNPASS SITE — internal demo only, not affiliated with, endorsed by, or a real connpass product. ／ connpass の実際のサイトではありません（社内デモ用）。',
   },
   '4875267e': {
@@ -3109,91 +2669,13 @@ const ONCALL_SKINS = {
       symptom: 'Event registration submissions are slow and get slower with every request. Process RSS trends up alongside it.',
       impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served slots that open at a fixed time are hit hardest.',
     },
-    supportCenter: 'manabiba サポート',
     disclaimer: 'NOT ACTUALLY A MANABIBA SITE — manabiba is a fictional brand; demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・デモ用）。',
-    supportCenterSub: 'お問い合わせ・不具合の報告',
     // Bug-report portal opt-in: /oncall/c/4875267e/report. Product areas and
     // templates are the attendee/organizer vocabulary of the event page; the
     // template ids stay the shared hightech BUG_CATALOG ids so a filed report
     // describes the same standing staged slowdown the alert track exercises.
     // `copy` localizes the shared portal's own UI strings (same pattern as
     // incident.copy on the SEV-1 console).
-    bugPortal: {
-      products: [
-        {
-          area: 'hightech',
-          label: 'manabiba — イベント申し込み',
-          persona: { name: '佐藤 美咲', email: 'misaki.sato@kumo-mail.jp', sev: 'Medium' },
-          templates: [
-            {
-              id: 'hightech-provision-slowdown',
-              label: 'イベントの申し込みが遅い',
-              sev: 'Medium',
-              text: '勉強会の「このイベントに申し込む」ボタンを押すと、申し込みが確定するまで毎回 7〜8 秒ほど待たされます。エラーにはならず最終的には申し込めるのですが、試すたびに少しずつ遅くなっている気がします。同じ勉強会に申し込んだ他の参加者からも同じ声が出ています。',
-            },
-            {
-              id: 'hightech-renewal-slow',
-              label: '大規模イベントの先着受付が追いつかない',
-              sev: 'High',
-              text: '主催者です。今週末に開催する 200 名規模のカンファレンスで先着順の受付を開始したところ、参加者から「申し込みボタンを押しても画面が固まったまま」という問い合わせが相次いでいます。受付自体は通るようですが毎回かなり待たされ、キャンセル待ちの繰り上げ処理も同じように遅いです。土曜日が本番なので、それまでに解消したいです。',
-            },
-          ],
-        },
-      ],
-      copy: {
-        lang: 'ja',
-        title: '不具合を報告',
-        navHelp: 'ヘルプ',
-        navStatus: 'サービス稼働状況',
-        navReport: '不具合を報告',
-        heroTitle: 'サポートへのお問い合わせ',
-        heroIntro: 'サービスの不具合をご報告いただくフォームです。対象の機能、実際に起きたこと、期待していた動作をご記入ください。サポートエンジニアリングチームが内容を確認します。',
-        formHeading: 'お問い合わせ内容',
-        nameLabel: 'お名前',
-        emailLabel: 'メールアドレス',
-        productLabel: '対象の機能',
-        productPlaceholder: '対象の機能を選択してください…',
-        templateLabel: 'どのような問題ですか？',
-        severityLabel: '影響度',
-        sevLow: '低',
-        sevLowDesc: '軽微な不便',
-        sevMedium: '中',
-        sevMediumDesc: '一部の機能が使いづらい',
-        sevHigh: '高',
-        sevHighDesc: '作業が止まっている',
-        sevCritical: '緊急',
-        sevCriticalDesc: '参加者に影響が出ている',
-        descriptionLabel: '何が起きましたか？',
-        descriptionHint: '何をしようとしたか、期待していた動作、実際に起きたことをご記入ください。',
-        descriptionPlaceholder: '例：イベントの申し込みボタンを押したところ、確定するまで 10 秒ほど待たされました…',
-        resetTemplate: 'テンプレートに戻す',
-        submitButton: '報告を送信',
-        privacyNote: '内容はオンコールのエンジニアリングキューにも共有されます。',
-        asideBeforeTitle: '送信前にご確認ください',
-        asideTipStatus: '既知の障害がないか{link}をご確認ください。',
-        asideTipStatusLink: 'サービス稼働状況ページ',
-        asideTipRetry: '一時的なネットワークエラーは、再試行で解消する場合があります。',
-        asideTipWhen: '問題が発生し始めた時刻をご記入ください。',
-        slaTitle: '対応目標時間',
-        slaCritical: '15 分',
-        slaHigh: '1 時間',
-        slaMedium: '4 時間',
-        slaLow: '1 営業日',
-        footerQueue: 'サポートエンジニアリングキュー',
-        footerPrivacy: 'プライバシー',
-        footerTerms: '利用規約',
-        errName: 'お名前を入力してください。',
-        errEmail: '有効なメールアドレスを入力してください。',
-        errProduct: '対象の機能を選択してください。',
-        errDescription: '何が起きたかをご記入ください。',
-        submitting: '報告を送信しています…',
-        submittedOk: '報告を受け付けました。サポートエンジニアリングチームに共有し、オンコールキューに登録しました。追ってメールでご連絡します。',
-        submittedSkipped: '報告をこの環境に記録しました。チケット配信が設定されていないため、サポートキューには送信されていません。',
-        submittedSkippedActivated: ' 報告いただいた事象は再現できるよう、この環境で {minutes} 分間有効になっています。',
-        submitFailed: '報告の送信中に問題が発生しました。もう一度お試しください。',
-        submitRateLimited: 'この操作の送信回数が上限に達しました。しばらく時間をおいてから再度お試しください。',
-      },
-    },
     // SEV-1 opt-in: the same hightech story the alert track degrades, so the
     // shared console at /oncall/c/4875267e/incident tells the same story as
     // the page. `copy` localizes the console's own UI strings; the
@@ -3276,7 +2758,6 @@ const ONCALL_SKINS = {
       symptom: 'License order submissions from the partner portal are slow and get slower with every request. Process RSS trends up alongside it.',
       impact: 'Every reseller adding cloud service licenses for an end-user customer waits longer with each order; month-end order volume is hit hardest.',
     },
-    supportCenter: 'IT-EXchange お問い合わせ',
     disclaimer: 'NOT ACTUALLY AN SB C&S SITE — internal demo only, not affiliated with, endorsed by, or a real SB C&S product. ／ SB C&S の実際のサイトではありません（社内デモ用）。',
   },
   '0ada2330': {
@@ -3292,7 +2773,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#5C2D91',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'Proximus Support',
     disclaimer: 'NOT ACTUALLY A PROXIMUS SITE — internal demo only, not affiliated with, endorsed by, or a real Proximus product.',
   },
   '8284d802': {
@@ -3312,8 +2792,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#1e0034',
       '--chrome-text': '#f1f0f2',
     },
-    supportCenter: 'WTW Software Support',
-    supportCenterSub: 'Insurance Consulting & Technology — Incident Intake',
     disclaimer: 'NOT ACTUALLY A WTW SITE — internal demo only, not affiliated with, endorsed by, or a real WTW product.',
   },
   '059b9215': {
@@ -3408,84 +2886,6 @@ const ONCALL_SKINS = {
     // Bug-report portal opt-in (/oncall/c/059b9215/report): one product area
     // backed by the insurance catalog so the templates keep their real repro
     // mapping; the copy is what a field inspector / safety manager would write.
-    bugPortal: {
-      copy: {
-        lang: 'ja',
-        title: 'お問い合わせ・不具合報告',
-        navHelp: 'ヘルプ記事',
-        navStatus: 'サービス稼働状況',
-        navReport: '不具合を報告',
-        heroTitle: 'サポートリクエストの送信',
-        heroIntro: '製品の不具合を報告するフォームです。対象の機能、発生した事象、期待していた結果を記入してください。サポートエンジニアリングが内容を確認します。',
-        formHeading: '不具合の内容',
-        nameLabel: 'お名前',
-        emailLabel: '業務用メールアドレス',
-        productLabel: '対象の機能',
-        productPlaceholder: '対象の機能を選択してください…',
-        templateLabel: 'どのような問題ですか？',
-        severityLabel: '重要度',
-        sevLow: '低',
-        sevLowDesc: '軽微な不便',
-        sevMedium: '中',
-        sevMediumDesc: '機能が劣化',
-        sevHigh: '高',
-        sevHighDesc: '業務が止まっている',
-        sevCritical: '緊急',
-        sevCriticalDesc: '顧客に影響',
-        descriptionLabel: '何が起きましたか？',
-        descriptionHint: '何をしようとして、何を期待し、実際に何が起きたかを記入してください。',
-        resetTemplate: 'テンプレートに戻す',
-        descriptionPlaceholder: '例: 点検結果を提出したところ、10秒ほど待たされたあとエラーになりました…',
-        submitButton: '報告を送信',
-        privacyNote: '報告はオンコールエンジニアリングのキューに転送されます。',
-        asideBeforeTitle: '送信前にご確認ください',
-        asideTipStatus: '{link}で既知の障害を確認してください。',
-        asideTipStatusLink: 'サービス稼働状況ページ',
-        asideTipRetry: '一時的なネットワークエラーは再試行で解消する場合があります。',
-        asideTipWhen: '問題が始まった時刻を記入してください。',
-        slaTitle: '初動目標',
-        slaCritical: '15分',
-        slaHigh: '1時間',
-        slaMedium: '4時間',
-        slaLow: '1営業日',
-        footerQueue: 'サポートエンジニアリングキュー',
-        footerPrivacy: 'プライバシー',
-        footerTerms: '利用規約',
-        errName: 'お名前を入力してください。',
-        errEmail: '有効なメールアドレスを入力してください。',
-        errProduct: '対象の機能を選択してください。',
-        errDescription: '発生した事象を記入してください。',
-        submitting: '報告を送信しています…',
-        submittedSkipped: '報告をローカルに記録しました。この環境ではチケット配信が設定されていないため、サポートキューには転送されていません。',
-        submittedSkippedActivated: ' 報告された事象を再現できるよう、この環境で {minutes} 分間有効になっています。',
-        submittedOk: '報告を受け付けました。サポートエンジニアリングチームに転送し、オンコールキューに登録しました。追って担当者からメールで連絡します。',
-        submitFailed: '報告の送信中にエラーが発生しました。もう一度お試しください。',
-        submitRateLimited: 'この操作の送信回数が上限に達しました。しばらく時間をおいてから再度お試しください。',
-      },
-      products: [
-        {
-          area: 'insurance',
-          label: '点検クラウド TENLOG — 点検結果の提出・成績書',
-          persona: { name: '佐藤 健一', email: 'k.sato@towa-hoan.example', sev: 'High' },
-          templates: [
-            {
-              id: 'insurance-claim-timeout',
-              label: '点検結果の提出がタイムアウトする',
-              sev: 'High',
-              text: '現場の点検員からの報告です。点検結果を入力して「点検結果を提出」を押すと、10秒近く待たされたあと「ゲートウェイタイムアウト」のエラーになり、成績書が生成されません。点検種別を変えて4回やり直しましたが、毎回同じように止まってタイムアウトします。施設情報の表示や過去の成績書の閲覧は問題ありません。',
-            },
-            {
-              id: 'insurance-storm-claims',
-              label: '年次点検の一斉提出が全件失敗',
-              sev: 'Critical',
-              text: '保安管理の立場からエスカレーションします。本日は受配電設備の年次点検報告の締切で、点検員約20名が現場から一斉に提出していますが、1件も通りません。すべて「提出中」のまま止まり、最後にタイムアウトのエラーで終わります。現場では紙の成績書を手書きで起こし始めており、顧客への報告期限に影響が出ています。',
-            },
-          ],
-        },
-      ],
-    },
-    supportCenter: 'TENLOG サポートセンター',
-    supportCenterSub: '点検クラウド TENLOG カスタマーサポート',
     disclaimer: 'NOT ACTUALLY A RYOYO SYSTEMS SITE — 菱陽システムズ and 点検クラウド TENLOG are fictional brands; demo only, not affiliated with, endorsed by, or a product of any real company. ／ 実在する企業・サービスのサイトではありません（架空ブランド・デモ用）。',
   },
 };
