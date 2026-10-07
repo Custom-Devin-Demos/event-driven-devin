@@ -2896,6 +2896,24 @@ const ONCALL_SKINS = {
     supportCenter: 'Shop Cummins Customer Support',
     disclaimer: 'NOT ACTUALLY A CUMMINS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
   },
+  '103a3994': {
+    slug: '103a3994',
+    company: 'PetSure',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: {
+      file: '103a3994.html',
+      title: 'Pet Insurance',
+    },
+    alertCard: {
+      title: '5xx rate — pet insurance quote requests',
+      release: 'pet-quote-web@1.0.3',
+      team: 'quote-platform-oncall',
+      symptom: 'Quote requests hang ~8s and then fail with 504 Gateway Timeout. Upstream adjudication latency is elevated.',
+      impact: 'Customers cannot get a pet insurance quote; every Get quote request times out after a long hang.',
+    },
+    disclaimer: 'NOT ACTUALLY A PETSURE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real PetSure or Commonwealth Bank product.',
+  },
   '0aa7a097': {
     slug: '0aa7a097',
     company: 'Peacock',
