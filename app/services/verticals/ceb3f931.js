@@ -119,8 +119,6 @@ function buildLaunchManifest(form, profile) {
  * @param {string} data.action - label of the control that triggered the launch
  * @param {string} data.title - form title
  * @param {string} data.responseMode - response mode identifier
- * @param {string} [data.devinUserId]
- * @param {string} [data.devinOrgId]
  */
 async function launchForm(data) {
   const start = Date.now();
@@ -186,8 +184,8 @@ async function launchForm(data) {
       culprit: 'app/services/verticals/ceb3f931.js \u2014 buildLaunchManifest',
       errorType: error.name || 'Error',
       errorValue: error.message,
-      devinUserId: data.devinUserId || OWNER.devinUserId,
-      devinOrgId: data.devinOrgId || OWNER.devinOrgId,
+      devinUserId: OWNER.devinUserId,
+      devinOrgId: OWNER.devinOrgId,
       service: SERVICE,
       verticalLabel: 'Government Form Launch',
       promptAppendix: REMEDIATION_DIRECTIVE,

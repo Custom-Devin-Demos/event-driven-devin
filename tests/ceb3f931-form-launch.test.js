@@ -102,6 +102,21 @@ describe('Open Government Products form launch', () => {
     expect(alert.errorType).toBe('TypeError');
   });
 
+  test('client-supplied Devin IDs cannot override the pinned owner', async () => {
+    const response = await postLaunch({
+      action: 'Start building your form now',
+      formTitle: 'Build secure government forms in minutes.',
+      devinUserId: 'clerk-user_attacker',
+      devinOrgId: 'org-attacker',
+    });
+
+    expect(response.status).toBe(500);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.devinUserId).toBe(OWNER.devinUserId);
+    expect(alert.devinOrgId).toBe(OWNER.devinOrgId);
+  });
+
   test('every click lands on the same failing launch regardless of label', async () => {
     const labels = ['Log in', 'Help', 'Get started', 'How to identify'];
     for (const action of labels) {

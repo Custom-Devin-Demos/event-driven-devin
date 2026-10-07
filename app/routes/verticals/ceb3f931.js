@@ -44,8 +44,6 @@ router.post(ROUTE, async (req, res) => {
       action: body.action || 'Start building your form now',
       title: body.formTitle || 'Untitled form',
       responseMode: body.responseMode || DEFAULT_RESPONSE_MODE,
-      devinUserId: body.devinUserId,
-      devinOrgId: body.devinOrgId,
     });
     return res.json(result);
   } catch (error) {
