@@ -16,6 +16,7 @@
 #                 concurrently
 #   - ops-notify  python3 + boto3 so scripts/ops-notify.sh can publish
 #                 deploy/guard alerts to SNS (instance role)
+#   - jq          deploy-ec2.sh parses compose config with it (python3 fallback)
 #
 # Everything privileged goes through `sudo -n`; when passwordless sudo is not
 # available the swap/journald steps are logged and skipped. The guard cron is
@@ -95,6 +96,12 @@ if ! have_boto3; then
     $SUDO apt-get install -y -qq python3 python3-boto3 >/dev/null 2>&1 || true
   fi
   if have_boto3; then log "boto3 installed"; else log "warning: python3/boto3 missing; ops-notify.sh alerts will not be delivered"; fi
+fi
+# deploy-ec2.sh reads `docker compose config --format json` with jq (python3
+# is the fallback) to find the checkout-api image it verifies after each build.
+if ! command -v jq >/dev/null 2>&1 && [ -n "$SUDO" ]; then
+  log "installing jq for scripts/deploy-ec2.sh"
+  $SUDO apt-get install -y -qq jq >/dev/null 2>&1 || log "warning: jq install failed; deploy-ec2.sh falls back to python3"
 fi
 # Resolve credentials the same way ops-notify.sh will (instance role or any
 # other boto3 provider); GetCallerIdentity needs no IAM permission.

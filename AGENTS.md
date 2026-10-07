@@ -754,15 +754,16 @@ After the initial setup, certificate renewal is fully automatic (certbot checks 
 
 ### EC2 Redeploy Steps
 
-Deployments are automated: the `Deploy to EC2` workflow (`.github/workflows/deploy.yml`) runs on every push to `main` in **both** source repos (COG-GTM and Custom-Devin-Demos), uploads the tree to `/home/ubuntu/incoming/<sha>` and hands it to `scripts/deploy-ec2.sh` on the host. Never `tar xzf` over `/home/ubuntu` by hand — that is how stale files and unregistered verticals used to pile up. For a manual redeploy use the same script:
+Deployments are automated: the `Deploy to EC2` workflow (`.github/workflows/deploy.yml`) runs on every push to `main` in **both** source repos (COG-GTM and Custom-Devin-Demos), uploads the tree to `/var/tmp/devindemos-deploy/<sha>` (outside `/home/ubuntu`, which is the Docker build context of whatever deploy is running) and hands it to `scripts/deploy-ec2.sh` on the host. Never `tar xzf` over `/home/ubuntu` by hand — that is how stale files and unregistered verticals used to pile up. For a manual redeploy use the same script:
 
 ```bash
 tar czf /tmp/release.tar.gz --exclude=node_modules --exclude=.git --exclude=.env --exclude=certbot -C . .
-scp /tmp/release.tar.gz ubuntu@<EC2_IP>:/home/ubuntu/release-manual.tar.gz
+ssh ubuntu@<EC2_IP> 'install -d -m 700 /var/tmp/devindemos-deploy'
+scp /tmp/release.tar.gz ubuntu@<EC2_IP>:/var/tmp/devindemos-deploy/release-manual.tar.gz
 ssh ubuntu@<EC2_IP> bash -s <<'EOF'
 set -euo pipefail
-S=/home/ubuntu/incoming/manual; rm -rf "$S"; mkdir -p "$S"
-tar xzf /home/ubuntu/release-manual.tar.gz -C "$S"; rm -f /home/ubuntu/release-manual.tar.gz
+S=/var/tmp/devindemos-deploy/manual; rm -rf "$S"; mkdir -p "$S"
+tar xzf /var/tmp/devindemos-deploy/release-manual.tar.gz -C "$S"; rm -f /var/tmp/devindemos-deploy/release-manual.tar.gz
 trap 'rm -rf "$S"' EXIT
 bash "$S/scripts/deploy-ec2.sh" "$S" manual
 EOF
