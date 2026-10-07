@@ -144,6 +144,10 @@ describe('Account-opening ID check failure report (6c2cc636)', () => {
     expect(prompt).toContain('CBA-0a1b2c');
     expect(prompt).toContain('-onboarding.disableFailureReports YES');
     expect(prompt).toContain('apps/6c2cc636');
+    expect(prompt).toContain('*Slack Thread:* channel=C0TEST thread_ts=1700000000.000100');
+    expect(prompt).toContain('[DEMO — DO NOT MERGE]');
+    expect(prompt).toContain('**draft** PR');
+    expect(prompt).toContain('reply once in that Slack thread');
     expect(prompt).not.toContain('PA4829173');
     expect(prompt).not.toContain('Mia');
     expect(prompt).not.toContain('1999');
@@ -252,6 +256,7 @@ describe('Account-opening ID check failure report (6c2cc636)', () => {
     // The session is created even though Slack failed; nothing to thread it on.
     expect(postMessage).toHaveBeenCalledTimes(1);
     expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(createDevinSession.mock.calls[0][0]).not.toContain('*Slack Thread:*');
     expect(postThreadReply).not.toHaveBeenCalled();
 
     const second = await request(server, 'POST', PATH, body);
@@ -350,6 +355,9 @@ describe('Account-opening ID check failure report (6c2cc636)', () => {
       expect(replyChannel).toBe('C_A');
       expect(replyTs).toBe('1700000000.000100');
       expect(postMessage.mock.calls.every((call) => call[1] !== 'C_B')).toBe(true);
+      const retryPrompt = createDevinSession.mock.calls[1][0];
+      expect(retryPrompt).toContain('*Slack Thread:* channel=C_A thread_ts=1700000000.000100');
+      expect(retryPrompt).not.toContain('channel=C_B');
     } finally {
       process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID = 'C0TEST';
     }
