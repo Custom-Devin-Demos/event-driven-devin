@@ -2890,7 +2890,6 @@ const ONCALL_SKINS = {
     alertCard: {
       impact: 'Plan changes in MyRogers time out after 6s and subscribers get a "Something went wrong" error; no plan change completes from the browser.',
     },
-    devinSession: { auto: true },
     disclaimer: 'NOT ACTUALLY A ROGERS SITE — internal demo only, not affiliated with, endorsed by, or a real Rogers product.',
   },
 };
