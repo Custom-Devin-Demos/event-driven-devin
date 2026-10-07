@@ -313,10 +313,14 @@ expected_image_dirs() {
   done
 }
 checkout_image() {  # same rule compose applies: service image, else <project>-<service>
-  local img=""
-  if command -v jq >/dev/null 2>&1; then
-    img=$(compose config --format json 2>/dev/null \
-      | jq -r '.services["checkout-api"].image // (.name + "-checkout-api")' 2>/dev/null) || img=""
+  local img="" cfg
+  cfg=$(compose config --format json 2>/dev/null) || cfg=""
+  if [ -n "$cfg" ]; then
+    if command -v jq >/dev/null 2>&1; then
+      img=$(jq -r '.services["checkout-api"].image // (.name + "-checkout-api")' <<<"$cfg" 2>/dev/null) || img=""
+    elif command -v python3 >/dev/null 2>&1; then
+      img=$(python3 -c 'import json,sys; c=json.load(sys.stdin); print(c["services"]["checkout-api"].get("image") or c["name"]+"-checkout-api")' <<<"$cfg" 2>/dev/null) || img=""
+    fi
   fi
   [ -n "$img" ] && [ "$img" != null ] || img=$(compose config --images 2>/dev/null | grep -m1 -- '-checkout-api$' || true)
   echo "$img"
@@ -327,7 +331,7 @@ verify_image() {
   [ -n "$img" ] || { log "cannot resolve the checkout-api image name from compose config"; return 1; }
   # non-empty top-level directories of /app in the image
   have=$(docker run --rm --entrypoint sh "$img" -c \
-    'cd /app && for d in $(ls -A); do [ -d "$d" ] && [ "$(ls -A "$d")" ] && echo "$d"; done') \
+    'cd /app && for d in $(ls -A); do [ -d "$d" ] && [ "$(ls -A "$d")" ] && echo "$d"; done; true') \
     || { log "cannot list /app in image $img"; return 1; }
   for d in $(expected_image_dirs); do
     grep -qxF "$d" <<<"$have" || missing+=("$d")
