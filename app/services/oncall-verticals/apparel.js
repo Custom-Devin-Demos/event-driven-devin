@@ -13,15 +13,15 @@ const STYLES = [
     title: 'Nordstrom Cashmere Crewneck Sweater',
     priceCents: 16900,
     currency: 'USD',
-    variants: {
-      XXS: { sku: '11150327-XXS' },
-      XS: { sku: '11150327-XS' },
-      S: { sku: '11150327-S' },
-      M: { sku: '11150327-M' },
-      L: { sku: '11150327-L' },
-      XL: { sku: '11150327-XL' },
-      XXL: { sku: '11150327-XXL' },
-    },
+    variants: new Map([
+      ['XXS', { sku: '11150327-XXS' }],
+      ['XS', { sku: '11150327-XS' }],
+      ['S', { sku: '11150327-S' }],
+      ['M', { sku: '11150327-M' }],
+      ['L', { sku: '11150327-L' }],
+      ['XL', { sku: '11150327-XL' }],
+      ['XXL', { sku: '11150327-XXL' }],
+    ]),
   },
 ];
 
@@ -54,7 +54,7 @@ async function addToBag(bagData, options = {}) {
     }
 
     const quantity = Math.min(Math.max(parseInt(bagData.quantity, 10) || 1, 1), 5);
-    const variant = style.variants[bagData.size];
+    const variant = style.variants.get(bagData.size);
     const line = { sku: variant.sku };
     const subtotalCents = style.priceCents * quantity;
     const duration = Date.now() - startTime;

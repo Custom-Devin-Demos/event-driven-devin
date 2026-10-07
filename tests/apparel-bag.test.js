@@ -24,6 +24,14 @@ describe('apparel bag', () => {
       .rejects.toMatchObject({ code: 'STYLE_NOT_FOUND' });
   });
 
+  test.each(['__proto__', 'constructor'])(
+    'rejects the size %s with a TypeError',
+    async (size) => {
+      await expect(addToBag({ styleId: '8688977', size }))
+        .rejects.toBeInstanceOf(TypeError);
+    },
+  );
+
   test('adds a catalog size code with USD subtotals', async () => {
     const one = await addToBag({ styleId: '8688977', size: 'M', quantity: 1 });
     expect(one.success).toBe(true);
