@@ -293,10 +293,10 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
  * session finds the cause by reproducing it. Never includes applicant name,
  * passport number or date of birth (the server never receives them).
  */
-function buildSessionPrompt(report, reference) {
+function buildSessionPrompt(report, reference, alert) {
   const app = ACCOUNT_OPENING.slug;
   const appPath = `apps/${app}`;
-  return [
+  const lines = [
     `A customer-visible defect was reported by the ${ACCOUNT_OPENING.brand} account-opening app — a native SwiftUI iOS/macOS app. Investigate it and open a PR with the fix.`,
     '',
     `*Alert:* ${monitorTitle(report)} — Triggered`,
@@ -315,8 +315,16 @@ function buildSessionPrompt(report, reference) {
     `- Native macOS: \`APP=${app} make build-mac\`, then \`open ${appPath}/build-mac/Build/Products/Debug/Demo${app}.app --args -onboarding.disableFailureReports YES\`.`,
     'Then Welcome → Sign up → New to CommBank → Smart Access → Open now → Next → Accept → Check your ID, keep the passport on file selected and tap Agree & Continue.',
     `Run the tests serially with \`APP=${app} SIM_UDID=<udid> make test\` — never start a second xcodebuild while one is running, and interrupt any xcodebuild that exceeds three minutes.`,
-    'Find the root cause, add a regression test that fails before and passes after, prove the fix with a before/after screen recording on the Simulator and the macOS app, and open a fix PR against main. Do not merge or deploy anything: the PR is the end state and a human reviews it.',
-  ].join('\n');
+    'Find the root cause, add a regression test that fails before and passes after, prove the fix with a before/after screen recording on the Simulator and the macOS app, and open a **draft** PR against main titled with a `[DEMO — DO NOT MERGE]` prefix and request Devin Review. Never merge it and do not deploy anything: the planted defect on main is kept for future demos.',
+  ];
+  if (alert) {
+    lines.push(
+      '',
+      `*Slack Thread:* channel=${alert.channel} thread_ts=${alert.ts}`,
+      'When the fix PR is open, reply once in that Slack thread (thread_ts above, not the channel) using the Slack integration available in this session: the root cause in one or two plain sentences, the regression test you added, and the fix PR link. Never include the applicant\'s name, date of birth or passport number.',
+    );
+  }
+  return lines.join('\n');
 }
 
 function resolveSessionIdentity() {
@@ -349,7 +357,7 @@ async function linkSessionInThread(token, channel, threadTs, sessionUrl) {
  * not fail the alert that triggered it. The thread link is a separate
  * step in `deliver`, so a reply failure does not strand the session.
  */
-async function triggerDevinSession(report, reference) {
+async function triggerDevinSession(report, reference, alert) {
   const cap = canCreateSession();
   if (!cap.allowed) {
     logger.warn('Account-opening Devin session creation throttled', { reference, ...cap });
@@ -359,7 +367,7 @@ async function triggerDevinSession(report, reference) {
   const release = reserveSession();
   let session = null;
   try {
-    session = await createDevinSession(buildSessionPrompt(report, reference), {
+    session = await createDevinSession(buildSessionPrompt(report, reference, alert), {
       ...resolveSessionIdentity(),
       title: `[On-Call] ${reference} ${monitorTitle(report)}`,
       platform: SESSION_PLATFORM(),
@@ -421,7 +429,7 @@ async function deliver(report, reference, now) {
     }
 
     if (!entry.session) {
-      const session = await triggerDevinSession(report, reference);
+      const session = await triggerDevinSession(report, reference, entry.alert);
       if (session) {
         entry.session = { id: session.sessionId, url: session.url };
       } else if (!outcome.error) {
