@@ -2980,6 +2980,26 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A POVO SITE — internal demo only, not affiliated with, endorsed by, or a real povo / KDDI product.',
   },
+  '6475b085': {
+    slug: '6475b085',
+    company: 'careviso',
+    brandMark: 'c',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: '6475b085.html', title: 'Submit prior authorization | seeQer by careviso' },
+    theme: {
+      '--accent': '#037BBB',
+      '--ink': '#002938',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#002938',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'careviso Support',
+    alertCard: {
+      impact: 'Prior authorization submissions in seeQer hang for ~9s and end in a timeout; practice staff see no payer acknowledgement and no PA status is recorded.',
+    },
+    disclaimer: 'NOT ACTUALLY A CAREVISO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real careviso product.',
+  },
 };
 
 function getOncallSkin(slug) {
