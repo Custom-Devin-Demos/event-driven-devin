@@ -106,6 +106,8 @@
     width: 100%; height: 50px; appearance: none; -webkit-appearance: none; border: 1px solid var(--ink); border-radius: 0;
     padding: 0 44px 0 15px; font-size: 16px; font-weight: 700; font-family: inherit; color: var(--ink); background: #fff; cursor: pointer;
   }
+  .field.invalid { border-color: #D6001C; }
+  .size-error { margin-top: 6px; color: #D6001C; font-size: 14px; line-height: 20px; }
   .field-wrap svg { position: absolute; right: 16px; top: 15px; pointer-events: none; }
   .viewing { color: var(--red); margin-top: 25px; line-height: 22px; }
   .viewing b { font-weight: 700; }
@@ -396,6 +398,7 @@
             </select>
             <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#191A1B" d="M17.707 9.793a1 1 0 0 0-1.414 0L12 14.086 7.707 9.793a1 1 0 0 0-1.414 1.414l5 5a1 1 0 0 0 1.414 0l5-5a1 1 0 0 0 0-1.414"/></svg>
           </div>
+          <div id="sizeError" class="size-error" role="alert" hidden>Please select a size.</div>
           <input type="hidden" id="quantity" value="1">
 
           <div class="viewing"><b>90</b> people viewing now</div>
@@ -685,6 +688,7 @@
 </script>
 <script>
   const CDN = 'https://n.nordstrommedia.com/it/';
+  const VIDEO_POSTER = '24e4c7be-79f0-449a-a7b3-01968b6f7668';
   const COLORS = [
     ['Grey Dark Charcoal', '056135c5-b414-4acb-86e0-c081e38e5ba6'],
     ['Beige Beach', '8a814abc-726b-4cdd-8f7d-283d74aa5373'],
@@ -706,7 +710,181 @@
     ['Black Rock', '16532786-d287-4f36-b454-92607c32bc7e'],
     ['Burgundy Rhode', 'd78487eb-0537-42cf-b415-218262cdd952'],
   ];
+  const GALLERIES = {
+    'Grey Dark Charcoal': [
+      '056135c5-b414-4acb-86e0-c081e38e5ba6',
+      'a97918c4-d4e8-4aa0-a886-77cefe3a5209',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      'efe2bc70-b5c4-4698-8828-3cac5892bce7',
+      '40b05089-f9db-4240-8fdd-d53ca3ccc6f6',
+      'a20a3505-8ff9-43c8-879c-015f6f1e0626',
+    ],
+    'Beige Beach': [
+      '8a814abc-726b-4cdd-8f7d-283d74aa5373',
+      '0f3e334e-a6e5-46d6-bf40-ae33bc30fda9',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '71a167d3-8fba-4e92-8669-ffe18583891a',
+      '989b66dd-6181-47b8-a303-51014a4deb13',
+      'c2caf242-79fb-443e-a4c6-e7c54639756f',
+    ],
+    'Brown Mole': [
+      'b2289d43-dc16-4ffe-9c03-a25846067958',
+      '3863bdd2-f29f-42a3-8fef-7b3d27f5fc81',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '41706578-1461-4492-83c7-9e05367806cd',
+      '5e8af94f-a183-459e-b44e-c4bb51308aa2',
+      '1e7f6a09-dd9f-431f-9c87-22fe5b5c26c5',
+    ],
+    'Green Aventurine': [
+      'af05329d-2ba2-4b76-a334-da0c1f05fddc',
+      '8f5b0605-1a2e-4b6f-8dcf-109cdc659eae',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      'a9470be6-0d35-43bd-b2bf-c9178887cd03',
+      '0e33585e-a515-482a-97e9-c02ffae72899',
+      '21427145-06d3-4610-9a0c-f8d60c76ad11',
+    ],
+    'Red Celebration': [
+      '6d7359d0-6f78-433c-a30f-d566a604de25',
+      'ddb97319-e4b5-4fe4-9eb4-c89b3d68c788',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '6a05c5b2-b6ba-4c5d-9138-a255e2f462be',
+      'd3e30a48-049a-4839-8d9a-13350f5e2df4',
+      'ccd80555-4977-4ba9-9c38-5694950985ed',
+    ],
+    'Blue Poseidon': [
+      '66b782ec-fb37-4739-8044-08f216ab15c8',
+      '20abef55-9023-41d1-b452-5660da8770f0',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      'd4fc0463-cccd-4053-b9ec-780587c8072a',
+      'e6ed1102-07d5-400a-b90d-1a77dd432987',
+      '5d036bb6-db9f-4fe5-95e9-bfacbc7dd01f',
+    ],
+    'Pink Boss': [
+      'b531d139-4d50-4ad8-a46c-e56d3b8ff400',
+      'daca81a4-d192-47a3-bc5d-9947d3549d5c',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '44ad88d9-04e4-4758-ad49-bdf99f48cf7b',
+      'c3520747-0d59-4a06-9dc0-94ba01d7c001',
+      'e5fb1572-a2fb-42ec-89d2-e8e1001ee5af',
+    ],
+    'Grey Silk Heather': [
+      'e7f9ad4a-9eef-43d3-ac95-8212f3cecd41',
+      'd8de7a85-41c1-469f-a2b9-005b1bb9f039',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '61950dfe-53af-447f-b464-d52be34f91db',
+      '9ca8013d-8589-46f0-92bd-b099fa88029b',
+      '052b7d9c-5208-4b78-979f-fba06afc8217',
+    ],
+    'Pink Chalk': [
+      '98a97fb9-10bb-4806-8c6f-6cb68ea1c55f',
+      '2eb4bef0-62d5-47d9-b6ca-892261c73afe',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      'd01f4444-9949-483b-9e2b-848f37321386',
+      'e24f04d4-6782-4dce-956b-41d15b08ba51',
+      '1da57ba6-bdc8-4f29-8a71-5fe985c20166',
+    ],
+    'Blue Racer': [
+      'ac79024a-0c71-44f7-b057-2aba6b41df7c',
+      '4e4109c6-5360-4806-90fd-4e3c5d65d72a',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      'c3468675-84ab-4b7e-9f3d-9a3c035d5766',
+      'aa7c5f0f-4de7-41a3-8260-faf78229a06c',
+      '97a2ef94-4677-4a12-859a-ff7a632585b7',
+    ],
+    'Blue Xenon': [
+      '7e353349-64ce-40b1-b81f-47f13e53485d',
+      '2dd1a08d-4cb2-49b3-8969-0f9978b99cf9',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      'c09a943c-b9c8-45f3-a0a9-5fbb345cf019',
+      'aa57cdd7-3a20-45ee-911d-94cf3049dd47',
+      'f1dba22e-242c-4820-84d2-89eccee6d55b',
+    ],
+    'Tan Finch': [
+      'de7dde58-541a-40d4-8681-5e32f07f1096',
+      '1a55b577-0efe-4ef6-8922-61a137d13368',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      'c1ba1267-95a2-4b65-9767-4a2700ef054c',
+      '7d428e72-ef0d-45bb-83bb-de78390c5bd5',
+      '03c9bcfa-2382-4ccf-b22e-5ba5e825b96b',
+    ],
+    'Green Cress': [
+      '72be08b3-fd2f-48de-905d-93f41ce8de22',
+      '791d6bc5-15ce-4dab-a88c-25558dc7fe87',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '1be7cc0a-c2c6-45e3-98d8-a95ee337e69a',
+      '6dace7d6-78f9-4ef4-8287-d135fa1962cc',
+      '1c777397-0d45-4176-9805-66accf8cad24',
+    ],
+    'Olive Woodland': [
+      '9887c6c2-473b-406e-91ad-cdee21e05fe9',
+      'f9a2df45-a9d9-4d77-a125-64af0c4482e1',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '10e70813-32e0-4faf-9be7-1a6b9b6114f3',
+      '3aa2b985-0782-4e5e-b27d-4c1d9fb6d356',
+      '0cc28d24-3af6-4484-a646-b4579d465378',
+    ],
+    'Purple Adventure': [
+      '190e58cb-7f9f-475c-9f76-bcfda7b8aeb1',
+      '666ebd17-9fed-4174-a54c-82c6fb87b91c',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '63a3bac3-eb1e-4d3d-af84-f20273e273b7',
+      '708bca0e-af5d-43fd-a0fb-360cf4f9cbbd',
+      '0a3ba57f-0f9e-4e0b-b75e-4bd4467edc77',
+    ],
+    'Green Ponderosa': [
+      'be54fffc-ef7b-4788-b27e-0b7098a9bd96',
+      '4d6106f9-95a4-4af6-ac42-0f71da4d5be8',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '02cd9718-488e-4703-89c9-6d1b1e6e404b',
+      '7f9e08e3-4a3a-45c7-a872-86616c4a0dd4',
+      '617295c2-2fbc-4a53-9d2a-caa61e330978',
+    ],
+    'Navy Night': [
+      '83eb89c0-5259-413d-bc72-8dbae6c533f9',
+      'cdf3b9fc-e4b3-4e4b-b23e-957ed8889510',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '26af61fc-030e-4a14-be8e-a67504136441',
+      '5a2295db-5c42-4614-98b4-269cb842057b',
+      'ecebb744-4813-4a1c-ba79-98bf7590363d',
+    ],
+    'Black Rock': [
+      '16532786-d287-4f36-b454-92607c32bc7e',
+      'b3ca07c8-836c-4774-9eac-8d9406f8ddb9',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '04577a10-375c-45b3-85b2-8306f9aefd0f',
+      '5c7f510e-d7bb-403c-bf6f-deb0ce544cb6',
+      '5067a496-4e2c-428a-8360-cc2a74f866c4',
+    ],
+    'Burgundy Rhode': [
+      'd78487eb-0537-42cf-b415-218262cdd952',
+      '5ee87f01-92fb-4515-bf3e-a6a7ec10d044',
+      '24e4c7be-79f0-449a-a7b3-01968b6f7668',
+      '6c4b1f17-8649-4a66-b3d4-cf4f676ed017',
+      'fc39b81e-61f4-45d0-a4ef-7e6652cb0549',
+      '2ab5f030-583f-41b4-88c5-0dd71af70fc4',
+    ],
+  };
   const swatches = document.getElementById('swatches');
+  const galleryFigures = Array.from(document.querySelectorAll('#media figure'));
+  const play = document.querySelector('.play');
+  function renderGallery(color) {
+    const gallery = GALLERIES[color];
+    const lastRowStart = gallery.length ? Math.floor((gallery.length - 1) / 2) * 2 : -1;
+    galleryFigures.forEach(function (figure, i) {
+      const visible = i < gallery.length;
+      figure.hidden = !visible;
+      figure.classList.toggle('faded', visible && i >= lastRowStart);
+      if (!visible) return;
+      figure.querySelector('img').src = CDN + gallery[i] + '.jpeg?w=780&h=1170&crop=pad';
+      figure.querySelector('img').alt = 'Cashmere Crewneck Sweater, ' +
+        (i === 0 ? 'Main' : 'Alternate') + ', color, ' + color.toUpperCase();
+    });
+    const videoIndex = gallery.indexOf(VIDEO_POSTER);
+    if (play) {
+      if (videoIndex >= 0) galleryFigures[videoIndex].appendChild(play);
+      play.style.display = videoIndex >= 0 ? 'flex' : 'none';
+    }
+  }
   COLORS.forEach(function (c, i) {
     const b = document.createElement('button');
     b.type = 'button';
@@ -720,20 +898,26 @@
       swatches.querySelectorAll('.swatch').forEach(function (s) { s.classList.remove('active'); });
       b.classList.add('active');
       document.getElementById('colorLabel').textContent = c[0];
-      const main = document.getElementById('mainImg');
-      main.src = CDN + c[1] + '.jpeg?w=780&h=1170&crop=pad';
-      main.alt = 'Cashmere Crewneck Sweater, Main, color, ' + c[0].toUpperCase();
+      renderGallery(c[0]);
     });
     swatches.appendChild(b);
   });
+  renderGallery(COLORS[0][0]);
 
   document.querySelectorAll('.pickbox input').forEach(function (r) {
     r.addEventListener('change', function () {
       document.querySelectorAll('.pickbox').forEach(function (p) { p.classList.toggle('selected', p.querySelector('input').checked); });
     });
   });
-  document.getElementById('sizeSelect').addEventListener('change', function (e) {
+  const sizeSelect = document.getElementById('sizeSelect');
+  const sizeError = document.getElementById('sizeError');
+  sizeSelect.addEventListener('change', function (e) {
     const picked = !!e.target.value;
+    if (picked) {
+      sizeError.hidden = true;
+      sizeSelect.classList.remove('invalid');
+      sizeSelect.removeAttribute('aria-invalid');
+    }
     document.querySelectorAll('.pickbox .sub').forEach(function (s) {
       s.innerHTML = picked ? s.getAttribute('data-ready') : 'Size selection needed';
     });
@@ -744,6 +928,16 @@
     const btn = document.getElementById('addToCartBtn');
     const result = document.getElementById('result');
     const label = btn.innerHTML;
+    if (!sizeSelect.value) {
+      sizeError.hidden = false;
+      sizeSelect.classList.add('invalid');
+      sizeSelect.setAttribute('aria-invalid', 'true');
+      sizeSelect.focus();
+      return;
+    }
+    sizeError.hidden = true;
+    sizeSelect.classList.remove('invalid');
+    sizeSelect.removeAttribute('aria-invalid');
     const show = (cls, title, detail) => {
       result.className = 'result-box ' + cls;
       result.textContent = '';
@@ -777,7 +971,7 @@
       } else {
         document.getElementById('bagCount').textContent = String(data.quantity || 1);
         show('success', 'Added to your Bag', (data.quantity || 1) + ' x Cashmere Crewneck Sweater, ' +
-          document.getElementById('colorLabel').textContent + ', size ' + (document.getElementById('sizeSelect').value || 'Medium') + '.');
+          document.getElementById('colorLabel').textContent + ', size ' + sizeSelect.value + '.');
       }
     } catch (err) {
       show('error', 'We couldn\u2019t add this item to your Bag.', 'Something went wrong on our end. Please try again in a few minutes.');
