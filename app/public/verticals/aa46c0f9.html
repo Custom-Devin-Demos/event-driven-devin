@@ -466,9 +466,14 @@
     }).join('');
   }
 
-  var eff = new Date(); eff.setDate(eff.getDate() + 1);
-  var EFFECTIVE_DATE = eff.getFullYear() + '-' + String(eff.getMonth() + 1).padStart(2, '0') + '-' + String(eff.getDate()).padStart(2, '0');
-  document.getElementById('eff-date').textContent = eff.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  function nextLocalDate() {
+    var eff = new Date(); eff.setDate(eff.getDate() + 1);
+    return {
+      iso: eff.getFullYear() + '-' + String(eff.getMonth() + 1).padStart(2, '0') + '-' + String(eff.getDate()).padStart(2, '0'),
+      label: eff.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    };
+  }
+  document.getElementById('eff-date').textContent = nextLocalDate().label;
   document.querySelectorAll('.choice input').forEach(function (i) { i.addEventListener('change', render); });
   render();
 
@@ -508,6 +513,8 @@
     hideToast();
 
     var bundle = selected('bundle');
+    var effDate = nextLocalDate();
+    document.getElementById('eff-date').textContent = effDate.label;
     fetch('/api/aa46c0f9/quote/purchase', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -519,7 +526,7 @@
         coveragePackage: selected('pkg'),
         bundle: bundle === 'none' ? null : bundle,
         paymentPlan: selected('plan'),
-        effectiveDate: EFFECTIVE_DATE,
+        effectiveDate: effDate.iso,
         devinUserId: localStorage.getItem('devinUserId') || '',
         devinOrgId: localStorage.getItem('devinOrgId') || '',
         devinEmail: localStorage.getItem('devinEmail') || '',

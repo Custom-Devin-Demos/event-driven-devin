@@ -160,14 +160,29 @@ describe('Travelers auto quote purchase (aa46c0f9)', () => {
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
+  test('rejects an effective date in the past without an alert', async () => {
+    await expect(purchasePolicy({ ...DEFAULT_QUOTE, bundle: null, effectiveDate: '2020-01-01' }))
+      .rejects.toMatchObject({
+        name: 'ValidationError',
+        code: 'INVALID_EFFECTIVE_DATE',
+        status: 400,
+      });
+
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
   test('echoes back a supplied effective date', async () => {
+    const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10);
     const result = await purchasePolicy({
       ...DEFAULT_QUOTE,
       bundle: null,
-      effectiveDate: '2026-10-08',
+      effectiveDate: futureDate,
     });
 
-    expect(result.effectiveDate).toBe('2026-10-08');
+    expect(result.effectiveDate).toBe(futureDate);
   });
 
   test('annual payment plan drops the $3 installment fee', async () => {
