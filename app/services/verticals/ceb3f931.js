@@ -50,6 +50,16 @@ const RESPONSE_MODES = {
 };
 
 /**
+ * Alternate identifiers callers may send for a response mode (e.g. the
+ * builder's "Storage mode" label), mapped to the canonical RESPONSE_MODES key.
+ */
+const RESPONSE_MODE_ALIASES = {
+  storage: 'encrypt',
+  encrypted: 'encrypt',
+  'multi-respondent': 'multirespondent',
+};
+
+/**
  * Starter field set applied to every newly launched form.
  */
 const STARTER_FIELDS = [
@@ -72,7 +82,20 @@ const REMEDIATION_DIRECTIVE = [
 
 function resolveResponseMode(mode) {
   const key = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
-  return RESPONSE_MODES[key];
+  const canonical = Object.prototype.hasOwnProperty.call(RESPONSE_MODE_ALIASES, key)
+    ? RESPONSE_MODE_ALIASES[key]
+    : key;
+  return Object.prototype.hasOwnProperty.call(RESPONSE_MODES, canonical)
+    ? RESPONSE_MODES[canonical]
+    : undefined;
+}
+
+function unsupportedResponseModeError(mode) {
+  const error = new Error(`Unsupported response mode: ${String(mode)}`);
+  error.name = 'UnsupportedResponseModeError';
+  error.code = 'UNSUPPORTED_RESPONSE_MODE';
+  error.statusCode = 400;
+  return error;
 }
 
 function buildEncryptionPolicy(profile) {
@@ -135,8 +158,18 @@ async function launchForm(data) {
     service: SERVICE,
   });
 
+  const profile = resolveResponseMode(data.responseMode);
+  if (!profile) {
+    logger.warn('Form launch rejected: unsupported response mode', {
+      referenceNumber,
+      action: data.action,
+      responseMode: data.responseMode,
+      service: SERVICE,
+    });
+    throw unsupportedResponseModeError(data.responseMode);
+  }
+
   try {
-    const profile = resolveResponseMode(data.responseMode);
     const manifest = buildLaunchManifest(form, profile);
     const duration = Date.now() - start;
 
@@ -222,6 +255,7 @@ module.exports = {
   resolveResponseMode,
   buildLaunchManifest,
   RESPONSE_MODES,
+  RESPONSE_MODE_ALIASES,
   STARTER_FIELDS,
   OWNER,
   REMEDIATION_DIRECTIVE,

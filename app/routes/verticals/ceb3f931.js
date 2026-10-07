@@ -4,8 +4,8 @@ const { launchForm, ROUTE } = require('../../services/verticals/ceb3f931');
 const router = express.Router();
 
 // Response mode the landing page launches new forms in. The builder exposes
-// this as "Storage mode" on the create-form dialog.
-const DEFAULT_RESPONSE_MODE = 'storage';
+// this as "Storage mode" on the create-form dialog; the persisted key is 'encrypt'.
+const DEFAULT_RESPONSE_MODE = 'encrypt';
 
 // The page carries no secret, so abuse of the public launch endpoint is
 // bounded by this per-route sliding window on top of the global session cap.
@@ -47,7 +47,7 @@ router.post(ROUTE, async (req, res) => {
     });
     return res.json(result);
   } catch (error) {
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
       error: error.message,
       errorClass: error.name,
