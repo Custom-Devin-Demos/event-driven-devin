@@ -173,8 +173,10 @@
     }
 
     async function loadCatalog() {
-      const response = await fetch(`/api/77560b41/catalog?region=${encodeURIComponent(currentRegion())}`);
+      const region = currentRegion();
+      const response = await fetch(`/api/77560b41/catalog?region=${encodeURIComponent(region)}`);
       const data = await response.json();
+      if (region !== currentRegion()) return;
       catalog = data.catalog;
       renderProducts();
       renderCart();
@@ -233,9 +235,6 @@
             <span>${window.label}<div class="cutoff">${window.cutoffLabel}</div></span>
           </label>`).join('')}
         </div>`).join('');
-      document.querySelector('#window-grid').addEventListener('change', (event) => {
-        if (event.target.name === 'delivery-window') selectedWindow = event.target.value;
-      }, { once: true });
       document.querySelector('#checkout-panel').classList.remove('hidden');
       document.querySelector('#checkout-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -244,7 +243,7 @@
       const payload = {
         region: currentRegion(),
         items: [...cart].map(([sku, qty]) => ({ sku, qty })),
-        deliveryWindowId: selectedWindow,
+        deliveryWindowId: document.querySelector('#window-grid input[name="delivery-window"]:checked')?.value || selectedWindow,
         devinUserId: localStorage.getItem('devinUserId') || '',
         devinOrgId: localStorage.getItem('devinOrgId') || '',
         devinEmail: localStorage.getItem('devinEmail') || '',

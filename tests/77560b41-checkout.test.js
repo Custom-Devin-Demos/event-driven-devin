@@ -25,12 +25,14 @@ const verticalRouter = require('../app/routes/verticals/77560b41');
 const {
   REGIONS,
   CATALOG,
+  INVENTORY,
   ORDERS_TODAY,
   getDeliveryWindows,
   getOpsSummary,
   checkout,
   groupIncident,
   reportCheckoutFailure,
+  failureAlertPayload,
   resetIncidentState,
 } = require('../app/services/verticals/77560b41');
 
@@ -143,6 +145,11 @@ describe('Misfits Market catalog and checkout', () => {
   test.each([
     [{ region: 'unknown', items: [{ sku: 'gala-apples', qty: 1 }], deliveryWindowId: 'x' }, 'UNKNOWN_REGION'],
     [{ region: 'nj-pa-ny', items: [], deliveryWindowId: 'x' }, 'EMPTY_BOX'],
+    [{
+      region: 'nj-pa-ny',
+      items: Array.from({ length: 31 }, () => ({ sku: 'gala-apples', qty: 1 })),
+      deliveryWindowId: 'x',
+    }, 'TOO_MANY_ITEMS'],
     [{ region: 'nj-pa-ny', items: [{ sku: 'mystery', qty: 1 }], deliveryWindowId: 'x' }, 'UNKNOWN_SKU'],
     [{ region: 'nj-pa-ny', items: [{ sku: 'gala-apples', qty: 21 }], deliveryWindowId: 'x' }, 'INVALID_QUANTITY'],
     [{ region: 'nj-pa-ny', items: [{ sku: 'gala-apples', qty: 1 }], deliveryWindowId: 'not-a-window' }, 'UNKNOWN_DELIVERY_WINDOW'],
@@ -198,6 +205,46 @@ describe('Misfits Market catalog and checkout', () => {
       .toBe(before.ordersByRegion.find((row) => row.region === 'nj-pa-ny').confirmed + 1);
   });
 
+  test('failed Chicago processing attempts increment Ops failed counts', async () => {
+    const warehouseInventory = INVENTORY['WH-IL-ROMEOVILLE'];
+    const originalCarrotInventory = warehouseInventory['rainbow-carrots'];
+    const before = getOpsSummary();
+    warehouseInventory['rainbow-carrots'] = undefined;
+    try {
+      await expect(checkout({
+        region: 'chicago',
+        items: [{ sku: 'rainbow-carrots', qty: 1 }],
+        deliveryWindowId: (await firstWindow('chicago')).id,
+      })).rejects.toThrow();
+    } finally {
+      warehouseInventory['rainbow-carrots'] = originalCarrotInventory;
+    }
+    const after = getOpsSummary();
+    expect(after.kpis.failedCheckouts).toBe(before.kpis.failedCheckouts + 1);
+    expect(after.ordersByRegion.find((row) => row.region === 'chicago').checkout_failed)
+      .toBe(before.ordersByRegion.find((row) => row.region === 'chicago').checkout_failed + 1);
+  });
+
+  test('ops summary refreshes seeded orders and prunes live orders from prior dates', async () => {
+    const previousDate = new Date('2026-04-01T12:00:00.000Z');
+    const nextDate = new Date('2026-04-02T12:00:00.000Z');
+    await checkout({
+      region: 'nj-pa-ny',
+      items: [{ sku: 'gala-apples', qty: 1 }],
+      deliveryWindowId: (await firstWindow('nj-pa-ny')).id,
+    }, { now: previousDate });
+
+    const previousSummary = getOpsSummary(previousDate);
+    expect(previousSummary.kpis.ordersToday).toBe(121);
+    expect(ORDERS_TODAY.every((order) => order.placedAt.startsWith('2026-04-01'))).toBe(true);
+
+    const nextSummary = getOpsSummary(nextDate);
+    expect(nextSummary.date).toBe('2026-04-02');
+    expect(nextSummary.kpis.ordersToday).toBe(120);
+    expect(ORDERS_TODAY.every((order) => order.placedAt.startsWith('2026-04-02'))).toBe(true);
+    getOpsSummary();
+  });
+
   test('delivery regions and catalog cover every configured warehouse', () => {
     expect(Object.values(REGIONS).map((region) => region.warehouseId)).toEqual([
       'WH-NJ-DELANCO', 'WH-IL-ROMEOVILLE', 'WH-TX-DALLAS',
@@ -227,12 +274,36 @@ describe('Misfits Market instant alert grouping', () => {
     expect(later).toMatchObject({ isNew: true, occurrenceCount: 1 });
   });
 
-  test('failure reporter sends the alert once for a new incident and not for grouped repeats', () => {
+  test('failure reporter keeps a delivered incident for grouped repeats', async () => {
+    createSessionAndAlert.mockResolvedValue({ threadTs: '1.2' });
     const error = new TypeError("Cannot read properties of undefined (reading 'sku')");
     reportCheckoutFailure(error, { ...failureContext, now: 1000 });
+    await Promise.resolve();
     reportCheckoutFailure(error, { ...failureContext, now: 1000 + 60000, orderId: 'MM-TEST-002' });
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     expect(Sentry.captureException).toHaveBeenCalledTimes(2);
+  });
+
+  test.each([
+    ['resolve without a result', () => createSessionAndAlert.mockResolvedValueOnce(null)],
+    ['reject', () => createSessionAndAlert.mockRejectedValueOnce(new Error('alert unavailable'))],
+  ])('failure reporter retries when alert delivery %s', async (_deliveryOutcome, mockDelivery) => {
+    mockDelivery();
+    const error = new TypeError('synthetic checkout failure');
+    reportCheckoutFailure(error, { ...failureContext, now: 1000 });
+    await Promise.resolve();
+    await Promise.resolve();
+    reportCheckoutFailure(error, { ...failureContext, now: 1000 + 60000, orderId: 'MM-TEST-002' });
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+  });
+
+  test('truthy alert result without a thread keeps the incident grouped', async () => {
+    createSessionAndAlert.mockResolvedValue({ sessionId: 'session-1' });
+    const error = new TypeError('synthetic checkout failure');
+    reportCheckoutFailure(error, { ...failureContext, now: 1000 });
+    await Promise.resolve();
+    reportCheckoutFailure(error, { ...failureContext, now: 1000 + 60000, orderId: 'MM-TEST-002' });
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
   });
 
   test('failure after the grouping window triggers another alert', () => {
@@ -255,6 +326,9 @@ describe('Misfits Market instant alert grouping', () => {
       devinOrgId: 'org-1',
       devinEmail: 'demo@example.com',
     });
+    expect(alert.slackMemberId).not.toBe('');
+    expect(alert.slackMemberIdFallback).not.toBe('');
+    expect(alert.slackMemberId).toBeUndefined();
     expect(alert.promptAppendix).toContain('ORDERS_TODAY');
     expect(alert.promptAppendix).toContain('tests/77560b41-checkout.test.js');
     expect(alert.tags).toEqual(expect.arrayContaining([
@@ -263,5 +337,14 @@ describe('Misfits Market instant alert grouping', () => {
       { key: 'warehouse', value: 'WH-IL-ROMEOVILLE' },
     ]));
     expect(Sentry.captureException.mock.calls[0][1].tags.alert_path).toBe('instant');
+  });
+
+  test('alert payload omits empty Slack identity fields when no member is configured', () => {
+    const alert = failureAlertPayload(new TypeError('synthetic checkout failure'), {
+      ...failureContext,
+      devinEmail: undefined,
+    });
+    expect(alert.slackMemberId).not.toBe('');
+    expect(alert.slackMemberIdFallback).not.toBe('');
   });
 });

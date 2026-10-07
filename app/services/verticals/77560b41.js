@@ -9,7 +9,7 @@ const { getCustomerConfig } = require('../../../config/customers');
 const SERVICE = 'customer-77560b41-checkout';
 const ROUTE = '/api/77560b41/checkout';
 const CULPRIT = 'app/services/verticals/77560b41.js — applySubstitutions';
-const SLACK_MEMBER_ID = process.env.C77560B41_SLACK_MEMBER_ID || 'U08S7AVJ478';
+const SLACK_MEMBER_ID = process.env.C77560B41_SLACK_MEMBER_ID || '';
 const INCIDENT_WINDOW_MS = 30 * 60 * 1000;
 
 const REGIONS = {
@@ -135,7 +135,8 @@ const REMEDIATION_DIRECTIVE = [
   '- Test: `tests/77560b41-checkout.test.js`',
 ].join('\n');
 
-const ORDERS_TODAY = buildSeededOrders();
+let seededOrdersDate = new Date().toISOString().slice(0, 10);
+const ORDERS_TODAY = buildSeededOrders(seededOrdersDate);
 const liveOrders = [];
 const incidents = new Map();
 
@@ -262,6 +263,9 @@ function validateCheckout(data) {
   if (!Array.isArray(data.items) || data.items.length === 0) {
     throw validationError('Add at least one item to your box.', 'EMPTY_BOX');
   }
+  if (data.items.length > 30) {
+    throw validationError('A box can contain no more than 30 items.', 'TOO_MANY_ITEMS');
+  }
   for (const entry of data.items) {
     if (!entry || !CATALOG_BY_SKU[entry.sku]) {
       throw validationError(`Unknown catalog item: ${entry && entry.sku}`, 'UNKNOWN_SKU');
@@ -314,11 +318,11 @@ function groupIncident({ errorClass, culprit, region, now = Date.now() }) {
   const current = incidents.get(key);
   if (current && now - current.startedAt < INCIDENT_WINDOW_MS) {
     current.occurrences += 1;
-    return { isNew: false, occurrenceCount: current.occurrences, incident: current };
+    return { key, isNew: false, occurrenceCount: current.occurrences, incident: current };
   }
   const incident = { startedAt: now, occurrences: 1, threadTs: null };
   incidents.set(key, incident);
-  return { isNew: true, occurrenceCount: 1, incident };
+  return { key, isNew: true, occurrenceCount: 1, incident };
 }
 
 function resetIncidentState() {
@@ -336,8 +340,8 @@ function failureAlertPayload(error, context) {
     devinUserId: context.devinUserId,
     devinOrgId: context.devinOrgId,
     devinEmail: context.devinEmail,
-    slackMemberId: context.devinEmail ? '' : SLACK_MEMBER_ID,
-    slackMemberIdFallback: SLACK_MEMBER_ID,
+    ...(!context.devinEmail && SLACK_MEMBER_ID ? { slackMemberId: SLACK_MEMBER_ID } : {}),
+    ...(SLACK_MEMBER_ID ? { slackMemberIdFallback: SLACK_MEMBER_ID } : {}),
     service: SERVICE,
     verticalLabel: 'Misfits Market Checkout',
     promptAppendix: REMEDIATION_DIRECTIVE,
@@ -400,9 +404,14 @@ function reportCheckoutFailure(error, context) {
     const alert = failureAlertPayload(error, context);
     createSessionAndAlert(alert)
       .then((result) => {
+        if (!result) {
+          if (incidents.get(grouping.key) === grouping.incident) incidents.delete(grouping.key);
+          return;
+        }
         grouping.incident.threadTs = result && result.threadTs ? result.threadTs : null;
       })
       .catch((alertError) => {
+        if (incidents.get(grouping.key) === grouping.incident) incidents.delete(grouping.key);
         logger.error('Failed to create Devin session for Misfits Market checkout error', {
           error: alertError.message,
           orderId: context.orderId,
@@ -447,6 +456,7 @@ async function checkout(data, options = {}) {
   const { region, deliveryWindow } = validateCheckout(data);
   const orderId = createOrderId();
   const skus = data.items.map((item) => item.sku);
+  const now = options.now === undefined ? new Date() : new Date(options.now);
   try {
     const items = applySubstitutions(data.items, region.warehouseId);
     const subtotalCents = items.reduce((sum, item) => sum + item.unitPriceCents * item.qty, 0);
@@ -463,11 +473,18 @@ async function checkout(data, options = {}) {
       deliveryWindow,
       totals,
       status: 'confirmed',
-      placedAt: new Date().toISOString(),
+      placedAt: now.toISOString(),
     };
     liveOrders.push(order);
     return { success: true, orderId, region: region.id, items, deliveryWindow, totals };
   } catch (error) {
+    liveOrders.push({
+      id: orderId,
+      region: region.id,
+      items: data.items.map(({ sku, qty }) => ({ sku, qty })),
+      status: 'checkout_failed',
+      placedAt: now.toISOString(),
+    });
     reportCheckoutFailure(error, {
       region: region.id,
       warehouseId: region.warehouseId,
@@ -477,6 +494,7 @@ async function checkout(data, options = {}) {
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
       devinEmail: data.devinEmail,
+      now: now.getTime(),
     });
     throw error;
   }
@@ -491,8 +509,7 @@ function seededHash(value) {
   return hash >>> 0;
 }
 
-function buildSeededOrders() {
-  const today = new Date().toISOString().slice(0, 10);
+function buildSeededOrders(today = new Date().toISOString().slice(0, 10)) {
   const regionIds = Object.keys(REGIONS);
   const skus = CATALOG.map((item) => item.sku);
   return Array.from({ length: 120 }, (_, index) => {
@@ -516,8 +533,20 @@ function buildSeededOrders() {
   });
 }
 
-function getOpsSummary() {
-  const orders = [...ORDERS_TODAY, ...liveOrders];
+function getSeededOrders(today) {
+  if (today !== seededOrdersDate) {
+    seededOrdersDate = today;
+    ORDERS_TODAY.splice(0, ORDERS_TODAY.length, ...buildSeededOrders(today));
+  }
+  return ORDERS_TODAY;
+}
+
+function getOpsSummary(now = new Date()) {
+  const today = new Date(now).toISOString().slice(0, 10);
+  const seededOrders = getSeededOrders(today);
+  const todayLiveOrders = liveOrders.filter((order) => order.placedAt.slice(0, 10) === today);
+  liveOrders.splice(0, liveOrders.length, ...todayLiveOrders);
+  const orders = [...seededOrders, ...todayLiveOrders];
   const ordersByRegion = Object.values(REGIONS).map((region) => {
     const regionOrders = orders.filter((order) => order.region === region.id);
     return {
@@ -536,7 +565,7 @@ function getOpsSummary() {
   }));
   const onTimePct = Math.round(ROUTES.reduce((sum, route) => sum + route.onTimePct, 0) / ROUTES.length);
   return {
-    date: new Date().toISOString().slice(0, 10),
+    date: today,
     kpis: {
       ordersToday: orders.length,
       failedCheckouts: orders.filter((order) => order.status === 'checkout_failed').length,
