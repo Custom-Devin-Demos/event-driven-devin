@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pix | Santander</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #CC0000;
+      --ink: #222222;
+      --surface: #FFFFFF;
+      --chrome-bg: #222222;
+      --chrome-text: #FFFFFF;
+      --paper: color-mix(in srgb, #DEEDF2 35%, var(--surface));
+      --line: color-mix(in srgb, var(--ink) 16%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 70%, var(--surface));
+      --accent-deep: color-mix(in srgb, var(--accent) 80%, #000000);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 16px/1.5 'Open Sans', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    input:focus, select:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .wrap { max-width: 1156px; margin: 0 auto; padding: 0 24px; }
+
+    .topbar { background: var(--surface); border-bottom: 4px solid color-mix(in srgb, var(--ink) 8%, var(--surface)); }
+    .topbar-row { display: flex; align-items: center; min-height: 82px; padding: 0 30px; max-width: 1440px; margin: 0 auto; }
+    .brand { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--accent); }
+    .brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--chrome-text); font: 700 18px/1 'Open Sans', Arial, sans-serif; }
+    .brand-name { font: 600 22px/1 'Open Sans', Arial, sans-serif; letter-spacing: -.01em; }
+    .segments { display: flex; margin-left: 30px; }
+    .segments a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; font-size: 16px; color: var(--ink); }
+    .segments a.current { color: var(--accent); }
+    .search { display: flex; align-items: center; gap: 12px; margin-left: 36px; color: var(--muted); font-size: 16px; min-height: 44px; flex: 1; }
+    .search svg { flex: none; }
+    .top-actions { display: flex; align-items: center; gap: 38px; padding-left: 46px; border-left: 1px solid var(--line); min-height: 82px; }
+    .profile { display: flex; align-items: center; justify-content: space-between; width: 250px; min-height: 48px; padding: 0 16px; border: 1px solid color-mix(in srgb, var(--ink) 55%, var(--surface)); border-radius: 2px; background: var(--surface); color: var(--ink); }
+    .access { display: inline-flex; align-items: center; justify-content: center; width: 230px; min-height: 48px; border-radius: 2px; background: var(--accent); color: var(--chrome-text); font-size: 16px; }
+    .access:hover, .submit-btn:hover:not(:disabled) { background: var(--accent-deep); }
+    .mainnav { background: var(--accent); }
+    .mainnav nav { display: flex; gap: 0; max-width: 1440px; margin: 0 auto; padding: 0 32px; overflow-x: auto; scrollbar-width: none; }
+    .mainnav a { display: inline-flex; align-items: center; min-height: 56px; padding: 0 16px; color: var(--chrome-text); font: 400 18px/1 Arial, Helvetica, sans-serif; white-space: nowrap; }
+    .mainnav a.current { box-shadow: inset 0 -4px 0 var(--chrome-text); }
+
+    .crumbs { font-size: 14px; color: var(--muted); padding: 16px 0 0; }
+    .crumbs a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; }
+    .crumbs span { margin: 0 8px; }
+    .intro { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 40px; align-items: center; padding: 8px 0 40px; }
+    h1 { margin: 0 0 12px; font-size: clamp(32px, 4.4vw, 48px); font-weight: 400; line-height: 1.15; letter-spacing: -.02em; color: var(--ink); }
+    .intro p { margin: 0; max-width: 640px; font-size: 18px; color: var(--muted); }
+    .pix-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .pix-badges span { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 16px; background: color-mix(in srgb, var(--accent) 8%, var(--surface)); color: var(--accent-deep); font-size: 14px; font-weight: 600; }
+    .intro-icon { width: 96px; height: 96px; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+    .intro-icon img { width: 56px; height: 56px; }
+    .intro-icon .fallback { display: none; width: 48px; height: 48px; border-radius: 12px; transform: rotate(45deg); border: 6px solid var(--accent); }
+
+    .pix-section { background: var(--paper); padding: 48px 0 72px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .8fr); gap: 32px; align-items: start; }
+    .card { background: var(--surface); border-radius: 4px; padding: 32px 36px 36px; box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 12%, transparent); }
+    .card h2 { margin: 0; font-size: 24px; font-weight: 400; color: var(--ink); }
+    .card-intro { margin: 6px 0 28px; font-size: 14px; color: var(--muted); }
+    .steps { display: flex; gap: 8px; margin: 0 0 28px; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
+    .steps li { display: flex; align-items: center; gap: 8px; }
+    .steps li + li::before { content: ''; width: 24px; border-top: 1px solid var(--line); }
+    .steps b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line); font-weight: 600; font-size: 12px; }
+    .steps .on { color: var(--ink); }
+    .steps .on b { border-color: var(--accent); background: var(--accent); color: var(--chrome-text); }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+    .field { min-width: 0; margin-bottom: 24px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--ink); }
+    .field input, .field select { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid color-mix(in srgb, var(--ink) 40%, var(--surface)); border-radius: 2px; background: var(--surface); color: var(--ink); font-size: 16px; }
+    .field small { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); }
+    .money { position: relative; }
+    .money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+    .money input { padding-left: 46px; font-size: 20px; }
+    .summary { margin: 4px 0 24px; padding: 18px 20px; border-radius: 4px; background: color-mix(in srgb, var(--ink) 4%, var(--surface)); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+    .summary div { min-width: 0; }
+    .summary dt { font-size: 12px; color: var(--muted); }
+    .summary dd { margin: 2px 0 0; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+    .submit-btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; border: 0; border-radius: 2px; background: var(--accent); color: var(--chrome-text); font-size: 16px; font-weight: 600; }
+    .submit-btn:disabled { background: color-mix(in srgb, var(--accent) 55%, var(--surface)); cursor: progress; }
+    .status { margin: 14px 0 0; font-size: 14px; color: var(--muted); text-align: center; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 4px; font-size: 15px; white-space: pre-line; }
+    .result-box.success { display: block; background: #EAF7EE; border-left: 4px solid #008437; color: #0B4F26; }
+    .result-box.notice { display: block; background: color-mix(in srgb, var(--accent) 7%, var(--surface)); border-left: 4px solid var(--accent); color: var(--accent-deep); }
+    .reset-link { display: none; margin: 12px auto 0; min-height: 44px; padding: 0 16px; border: 1px solid var(--accent); border-radius: 2px; background: var(--surface); color: var(--accent); }
+    .reset-link.on { display: block; }
+
+    .side { display: grid; gap: 24px; }
+    .tile { background: var(--surface); border-radius: 4px; overflow: hidden; box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 12%, transparent); }
+    .tile-body { padding: 22px 24px 24px; }
+    .tile h3 { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
+    .tile p { margin: 0 0 12px; font-size: 14px; color: var(--muted); }
+    .tile ul { margin: 0; padding-left: 18px; font-size: 14px; color: var(--muted); }
+    .tile ul li { margin-bottom: 6px; }
+    .tile a.more { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); text-decoration: underline; font-size: 14px; }
+    .tile-photo { display: flex; gap: 16px; align-items: stretch; }
+    .tile-photo img { width: 120px; object-fit: cover; flex: none; }
+    .tile-photo .ph-fallback { display: none; width: 120px; flex: none; background: linear-gradient(160deg, var(--accent), var(--accent-deep)); }
+    .tile-photo .tile-body { padding-left: 0; }
+
+    .help { padding: 56px 0 64px; }
+    .help h2 { margin: 0 0 24px; font-size: 32px; font-weight: 400; letter-spacing: -.02em; }
+    .help-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .help-grid a { display: flex; flex-direction: column; justify-content: center; min-height: 120px; padding: 20px; border-radius: 4px; background: var(--surface); box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 12%, transparent); }
+    .help-grid h4 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+    .help-grid p { margin: 0; font-size: 14px; color: var(--muted); }
+
+    footer { background: var(--chrome-bg); color: var(--chrome-text); padding: 48px 0 32px; }
+    .foot-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; padding-bottom: 32px; border-bottom: 1px solid color-mix(in srgb, var(--chrome-text) 25%, var(--chrome-bg)); }
+    .foot-cols h4 { margin: 0 0 12px; font-size: 16px; font-weight: 600; }
+    .foot-cols a { display: flex; align-items: center; min-height: 44px; font-size: 14px; }
+    .legal { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; padding-top: 24px; font-size: 12px; color: color-mix(in srgb, var(--chrome-text) 80%, var(--chrome-bg)); }
+    .legal p { margin: 0; }
+    .legal nav { display: flex; gap: 16px; }
+    .legal nav a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; }
+
+    @media (max-width: 1100px) {
+      .search { display: none; }
+      .segments { margin-left: auto; }
+      .top-actions { gap: 16px; padding-left: 24px; margin-left: 16px; }
+      .profile { width: 180px; }
+      .access { width: 140px; }
+    }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .help-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .foot-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .segments, .profile { display: none; }
+      .top-actions { margin-left: auto; border-left: 0; padding-left: 0; min-height: 64px; }
+      .topbar-row { min-height: 64px; padding: 0 16px; }
+    }
+    @media (max-width: 560px) {
+      .wrap { padding: 0 16px; }
+      .access { width: auto; padding: 0 20px; }
+      .mainnav nav { padding: 0 8px; }
+      .mainnav a { font-size: 16px; min-height: 48px; padding: 0 12px; }
+      .intro { grid-template-columns: 1fr; padding-bottom: 28px; }
+      .intro-icon { display: none; }
+      .intro p { font-size: 16px; }
+      .pix-section { padding: 24px 0 48px; }
+      .card { padding: 24px 18px 28px; }
+      .form-grid, .summary { grid-template-columns: 1fr; }
+      .steps { flex-wrap: wrap; }
+      .steps li + li::before { width: 12px; }
+      .help-grid, .foot-cols { grid-template-columns: 1fr; }
+      .help h2 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="topbar-row">
+        <a class="brand" href="#top" aria-label="Santander — início"><span class="brand-mark" aria-hidden="true">S</span><span class="brand-name">Santander</span></a>
+        <nav class="segments" aria-label="Segmento"><a class="current" href="#top" aria-current="page">Para você</a><a href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer">Para sua empresa</a></nav>
+        <div class="search" role="search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="m15.5 15.5 6 6"/></svg><span>O que você procura ?</span></div>
+        <div class="top-actions">
+          <div class="profile" aria-label="Tipo de cliente">Pessoa Física<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m5 9 7 7 7-7"/></svg></div>
+          <a class="access" href="#pix">Acessar</a>
+        </div>
+      </div>
+    </div>
+    <div class="mainnav">
+      <nav aria-label="Menu principal"><a class="current" href="#top" aria-current="page">Meu dia a dia</a><a href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer">Produtos e Serviços</a><a href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer">Open Finance</a><a href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer">Atendimento</a><a href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer">Segurança</a><a href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer">Agências</a><a href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer">Blog</a></nav>
+    </div>
+  </header>
+  <main id="top">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Você está em"><a href="#top">Início</a><span>›</span><a href="#top">Meu dia a dia</a><span>›</span>Pix</nav>
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <h1 id="page-title">Transferir com Pix</h1>
+          <p>Envie dinheiro na hora, a qualquer dia e horário, usando a chave Pix de quem vai receber: CPF, celular, e-mail ou chave aleatória.</p>
+          <div class="pix-badges"><span>24 horas, 7 dias por semana</span><span>Por chave, QR Code ou agência e conta</span><span>Comprovante na hora</span></div>
+        </div>
+        <div class="intro-icon" aria-hidden="true">
+          <img src="https://www.santander.com.br/sites/WPC_CMS/imagem/24-07-12_191336_M_ic_bank_values_48.svg" alt="" width="56" height="56" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <div class="fallback"></div>
+        </div>
+      </section>
+    </div>
+    <section class="pix-section" id="pix" aria-labelledby="pix-heading">
+      <div class="wrap">
+        <div class="layout">
+          <div class="card">
+            <h2 id="pix-heading">Novo Pix</h2>
+            <p class="card-intro">Contas e contatos de exemplo. Nenhum valor é movimentado nesta página.</p>
+            <ol class="steps" aria-label="Etapas"><li class="on"><b>1</b>Dados do Pix</li><li id="stepReview"><b>2</b>Revisão</li><li id="stepDone"><b>3</b>Comprovante</li></ol>
+            <form id="transferForm">
+              <div class="form-grid">
+                <div class="field"><label for="fromAccount">Pagar com</label><select id="fromAccount"><option value="ACCT-1001">Conta Corrente · 01.234567-8</option><option value="ACCT-1002">Conta Poupança · 60.234567-8</option></select></div>
+                <div class="field"><label for="toAccount">Para quem</label><select id="toAccount"><option value="ACCT-2001" data-key="CPF ***.456.789-**">Mariana Costa Ribeiro</option><option value="ACCT-2002" data-key="Celular (11) 9****-4821">Rafael Souza Lima</option><option value="ACCT-2003" data-key="CNPJ 12.345.678/0001-**">Padaria Pão Dourado Ltda</option><option value="ACCT-2004" data-key="E-mail j***@email.com">Juliana Alves Pereira</option></select><small id="keyHint">Chave Pix salva nos seus contatos.</small></div>
+                <div class="field"><label for="amount">Valor</label><div class="money"><span aria-hidden="true">R$</span><input type="number" id="amount" min="0.01" step="0.01" value="350" inputmode="decimal" required></div></div>
+                <div class="field"><label for="accountTier">Relacionamento</label><select id="accountTier"><option value="standard">Conta Santander</option><option value="premium">Santander Select</option><option value="basic">Conta Universitária</option></select><small>Conforme o cadastro da sua conta.</small></div>
+              </div>
+              <dl class="summary" aria-label="Resumo do Pix"><div><dt>Para</dt><dd id="summaryTo">—</dd></div><div><dt>Chave Pix</dt><dd id="summaryKey">—</dd></div><div><dt>Valor</dt><dd id="summaryAmount">—</dd></div><div><dt>Pagar com</dt><dd id="summaryFrom">—</dd></div></dl>
+              <button type="submit" id="submitBtn" class="submit-btn">Transferir agora</button>
+              <p class="status" id="pixStatus" role="status" aria-live="polite">Confira os dados antes de confirmar.</p>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+              <button type="reset" id="newPix" class="reset-link">Fazer outro Pix</button>
+            </form>
+          </div>
+          <aside class="side" aria-label="Mais sobre Pix">
+            <div class="tile">
+              <div class="tile-body">
+                <h3>Seus limites Pix</h3>
+                <p>Ajuste quanto pode ser enviado por Pix durante o dia e no período noturno, das 20h às 6h.</p>
+                <ul><li>Aumentos de limite levam de 24 a 48 horas</li><li>Reduções valem na hora</li><li>Cadastre contatos para limites diferenciados</li></ul>
+                <a class="more" href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer">Gerenciar limites</a>
+              </div>
+            </div>
+            <div class="tile tile-photo">
+              <img src="https://www.santander.com.br/sites/WPC_CMS/imagem/22-08-24_172717_M_veja_tamabe_pra_voce_canais_digitais_226x254_x_v2.webp" alt="" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+              <div class="ph-fallback" aria-hidden="true"></div>
+              <div class="tile-body">
+                <h3>Pix no Aplicativo Santander</h3>
+                <p>Pague com QR Code, agende transferências e use o Pix Automático para contas recorrentes.</p>
+                <a class="more" href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer">Conheça o app</a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+    <section class="help" aria-labelledby="help-heading">
+      <div class="wrap">
+        <h2 id="help-heading">Tudo sobre Pix</h2>
+        <div class="help-grid">
+          <a href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer"><h4>Minhas chaves</h4><p>Cadastre, consulte ou faça a portabilidade das suas chaves Pix.</p></a>
+          <a href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer"><h4>Pix Agendado</h4><p>Programe transferências para uma data futura.</p></a>
+          <a href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer"><h4>Comprovantes</h4><p>Consulte e compartilhe os comprovantes dos seus Pix.</p></a>
+          <a href="https://www.santander.com.br/" target="_blank" rel="noopener noreferrer"><h4>Segurança no Pix</h4><p>Saiba como se proteger de golpes e o que fazer em caso de fraude.</p></a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="wrap">
+      <div class="foot-cols">
+        <div><h4>Produtos e Serviços</h4><a href="https://www.santander.com.br/">Conta corrente</a><a href="https://www.santander.com.br/">Cartões de crédito</a><a href="https://www.santander.com.br/">Seguros</a><a href="https://www.santander.com.br/">Investimentos</a><a href="https://www.santander.com.br/">Tarifas e pacotes de serviços</a></div>
+        <div><h4>Sobre o Santander</h4><a href="https://www.santander.com.br/">Sobre nós</a><a href="https://www.santander.com.br/">Educação Financeira</a><a href="https://www.santander.com.br/">Sustentabilidade</a><a href="https://www.santander.com.br/">Relações com Investidores</a></div>
+        <div><h4>Fale com a gente</h4><a href="https://www.santander.com.br/">Central de Atendimento</a><a href="https://www.santander.com.br/">S.A.C</a><a href="https://www.santander.com.br/">Ouvidoria</a><a href="https://www.santander.com.br/">Encontre nossas agências</a></div>
+        <div><h4>Segurança</h4><a href="https://www.santander.com.br/">Dicas de segurança</a><a href="https://www.santander.com.br/">Golpes e fraudes</a><a href="https://www.santander.com.br/">Privacidade</a></div>
+      </div>
+      <div class="legal">
+        <p>Experiência de exemplo do internet banking. Nomes, contas e chaves Pix são ilustrativos.</p>
+        <nav aria-label="Políticas"><a href="https://www.santander.com.br/">Política de Privacidade</a><a href="https://www.santander.com.br/">Segurança</a><a href="https://www.santander.com.br/">LGPD</a></nav>
+      </div>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('pixStatus');
+    const newPix = document.getElementById('newPix');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const stepReview = document.getElementById('stepReview');
+    const stepDone = document.getElementById('stepDone');
+    const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    const stamp = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' });
+    const idleStatus = 'Confira os dados antes de confirmar.';
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function renderSummary() {
+      const to = selected(toAccount);
+      document.getElementById('summaryTo').textContent = to.text;
+      document.getElementById('summaryKey').textContent = to.dataset.key;
+      document.getElementById('summaryFrom').textContent = selected(fromAccount).text.split(' · ')[0];
+      const amount = parseFloat(amountInput.value);
+      document.getElementById('summaryAmount').textContent = Number.isFinite(amount) && amount > 0 ? brl.format(amount) : '—';
+    }
+    function setStep(n) {
+      stepReview.className = n >= 2 ? 'on' : '';
+      stepDone.className = n >= 3 ? 'on' : '';
+    }
+    [fromAccount, toAccount, document.getElementById('accountTier')].forEach((el) => el.addEventListener('change', renderSummary));
+    amountInput.addEventListener('input', renderSummary);
+    form.addEventListener('reset', () => {
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = idleStatus;
+      newPix.className = 'reset-link';
+      setStep(1);
+      setTimeout(renderSummary, 0);
+    });
+    renderSummary();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const amount = parseFloat(amountInput.value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        result.className = 'result-box notice';
+        result.textContent = 'Informe um valor maior que zero.';
+        return;
+      }
+      button.disabled = true;
+      button.textContent = 'Enviando…';
+      status.textContent = 'Estamos enviando seu Pix…';
+      result.className = 'result-box';
+      result.textContent = '';
+      newPix.className = 'reset-link';
+      setStep(2);
+      const recipient = selected(toAccount).text;
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('pix-failed');
+        result.className = 'result-box success';
+        const fee = Number(data.fee) || 0;
+        const charges = fee > 0 ? ` · Tarifa: ${brl.format(fee)} · Total debitado: ${brl.format(Number(data.debitAmount))}` : '';
+        result.textContent = `Pix enviado para ${recipient}.\nValor: ${brl.format(Number(data.receipt.amount))}${charges}\n${stamp.format(new Date(data.receipt.timestamp))} · ID da transação: ${data.receipt.receiptId}`;
+        status.textContent = 'Pix concluído.';
+        setStep(3);
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'Não foi possível concluir o seu Pix agora. Tente novamente em alguns minutos ou fale com a Central de Atendimento.';
+        status.textContent = 'Pix não concluído.';
+        setStep(1);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Transferir agora';
+        newPix.className = 'reset-link on';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
