@@ -180,49 +180,42 @@
     .toast b { display: block; font-weight: 700; font-size: 16px; margin-bottom: 4px; }
     .toast code { display: block; margin-top: 8px; font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 12px; line-height: 16px; color: var(--fg-2); word-break: break-word; }
 
-    /* ---------- Playback error dialog ---------- */
-    .err-overlay {
-      position: fixed; inset: 0; z-index: 120; display: flex; align-items: flex-start; justify-content: center;
-      overflow-y: auto; -webkit-overflow-scrolling: touch;
-      padding: 24px; background: rgba(0,0,0,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-      opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility .25s ease;
+    /* ---------- Playback error toast (top of screen) ---------- */
+    .err-toast {
+      position: fixed; top: calc(var(--nav-h) + 12px); left: 50%; z-index: 120;
+      width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - var(--nav-h) - 24px); display: flex; align-items: flex-start; gap: 14px;
+      padding: 16px 18px 16px 20px; border-radius: 12px; background: var(--live-red); color: #fff;
+      box-shadow: 0 16px 40px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.12);
+      transform: translate(-50%, -24px); opacity: 0; visibility: hidden;
+      transition: transform .3s ease, opacity .3s ease, visibility .3s ease;
     }
-    .err-overlay.show { opacity: 1; visibility: visible; }
-    .err-dialog {
-      width: min(640px, 100%); margin: auto; border-radius: 16px; overflow: hidden; background: #121212; color: var(--fg);
-      border: 1px solid #2a2a2a; box-shadow: 0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.04);
-      transform: translateY(16px) scale(.98); transition: transform .25s ease;
-    }
-    .err-overlay.show .err-dialog { transform: none; }
-    .err-head {
-      display: flex; align-items: center; gap: 14px; padding: 20px 28px;
-      background: var(--live-red); color: #fff;
-    }
-    .err-head svg { width: 32px; height: 32px; flex: none; }
-    .err-head h2 { margin: 0; font: 700 24px/28px var(--font); letter-spacing: -.01em; }
-    .err-head span { display: block; font: 500 14px/18px var(--font); opacity: .9; margin-top: 2px; }
-    .err-body { padding: 24px 28px 28px; }
-    .err-body p { margin: 0 0 18px; font: 500 17px/24px var(--font); color: var(--fg-2); }
+    .err-toast.show { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
+    .err-toast > svg { width: 26px; height: 26px; flex: none; margin-top: 1px; }
+    .err-toast-body { flex: 1 1 auto; min-width: 0; max-height: calc(100dvh - var(--nav-h) - 56px); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+    .err-toast-title { font: 700 17px/22px var(--font); }
+    .err-toast-title b { font-weight: 700; text-decoration: underline; text-decoration-color: rgba(255,255,255,.5); }
     .err-detail {
-      display: block; padding: 16px 18px; border-radius: 10px; background: #1d0a0a; border: 1px solid rgba(229,9,20,.45);
-      font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 14px; line-height: 20px; color: #ff6b6b; word-break: break-word;
+      display: block; margin-top: 8px; padding: 8px 12px; border-radius: 8px; background: rgba(0,0,0,.28);
+      font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 13px; line-height: 18px; color: #fff; word-break: break-word;
     }
-    .err-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .err-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     .err-chip {
-      display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
-      background: #1d1d1d; border: 1px solid #333; font: 600 13px/16px var(--font); color: var(--fg-2);
+      display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px;
+      background: rgba(255,255,255,.16); font: 600 12px/16px var(--font); color: rgba(255,255,255,.9);
+      max-width: 100%; flex-wrap: wrap;
     }
-    .err-chip b { font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-weight: 600; color: var(--fg); letter-spacing: .02em; }
-    .err-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; flex-wrap: wrap; }
-    .err-actions .btn { min-width: 140px; }
-    .err-actions .btn--ghost { background: transparent; color: var(--fg); border: 1px solid #444; }
-    .err-actions .btn--ghost:hover { background: #1d1d1d; }
+    .err-chip b { font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-weight: 600; color: #fff; letter-spacing: .02em; word-break: break-all; }
+    .err-close {
+      flex: none; width: 36px; height: 36px; margin: -6px -6px 0 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+      color: #fff; background: transparent; transition: background .15s ease;
+    }
+    .err-close:hover, .err-close:focus-visible { background: rgba(255,255,255,.18); outline: none; }
+    .err-close svg { width: 20px; height: 20px; }
     @media (max-width: 767px) {
-      .err-head { padding: 18px 20px; }
-      .err-head h2 { font-size: 20px; line-height: 24px; }
-      .err-body { padding: 20px; }
-      .err-actions { flex-direction: column; }
-      .err-actions .btn { width: 100%; min-width: 0; }
+      .err-toast { top: calc(var(--nav-h) + 8px); max-height: calc(100dvh - var(--nav-h) - 16px); padding: 14px 14px 14px 16px; gap: 12px; }
+      .err-toast-body { max-height: calc(100dvh - var(--nav-h) - 44px); }
+      .err-toast-title { font-size: 15px; line-height: 20px; }
+      .err-detail { font-size: 12px; line-height: 16px; }
     }
 
     @media (max-width: 1119px) {
@@ -740,23 +733,17 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <div class="err-overlay" id="errOverlay" role="alertdialog" aria-modal="true" aria-labelledby="errTitle" aria-describedby="errDesc" aria-hidden="true">
-    <div class="err-dialog">
-      <div class="err-head">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-        <div>
-          <h2 id="errTitle">Playback unavailable</h2>
-          <span id="errSubtitle">We couldn&rsquo;t start this channel.</span>
-        </div>
-      </div>
-      <div class="err-body">
-        <p id="errDesc">Something went wrong while starting your stream. Our team has been notified &mdash; please try again shortly.</p>
-        <code class="err-detail" id="errDetail"></code>
-        <div class="err-meta" id="errMeta"></div>
-        <div class="err-actions">
-          <button class="btn btn--ghost" type="button" id="errClose">Dismiss</button>
-          <button class="btn" type="button" id="errRetry">Try again</button>
-        </div>
+  <div class="err-toast" id="errToast" role="alert" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+    <div class="err-toast-body">
+      <div class="err-toast-title" id="errTitle">Playback unavailable</div>
+      <code class="err-detail" id="errDetail"></code>
+      <div class="err-meta" id="errMeta"></div>
+    </div>
+    <button class="err-close" type="button" id="errClose" aria-label="Dismiss error">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
       </div>
     </div>
   </div>
@@ -825,62 +812,21 @@
       toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
     }
 
-    var errOverlay = document.getElementById('errOverlay');
-    var lastError = { channel: null, trigger: null };
-    var errReturnFocus = null;
-    var errFocusRaf = 0;
-    function setPageInert(inert) {
-      Array.prototype.forEach.call(document.body.children, function (el) {
-        if (el === errOverlay || el.tagName === 'SCRIPT') return;
-        if (inert) el.setAttribute('inert', ''); else el.removeAttribute('inert');
-      });
-    }
-    function showError(subtitle, detail, meta, channel, trigger) {
-      lastError = { channel: channel, trigger: trigger };
-      errReturnFocus = trigger || document.activeElement;
-      document.getElementById('errSubtitle').innerHTML = subtitle;
+    var errToast = document.getElementById('errToast');
+    function showError(title, detail, meta) {
+      document.getElementById('errTitle').innerHTML = title;
       document.getElementById('errDetail').innerHTML = detail;
       document.getElementById('errMeta').innerHTML = meta;
-      errOverlay.classList.add('show');
-      errOverlay.setAttribute('aria-hidden', 'false');
-      errOverlay.scrollTop = 0;
-      document.body.style.overflow = 'hidden';
-      setPageInert(true);
-      var closeBtn = document.getElementById('errClose');
-      closeBtn.focus();
-      if (document.activeElement !== closeBtn) {
-        errFocusRaf = requestAnimationFrame(function () {
-          errFocusRaf = requestAnimationFrame(function () {
-            errFocusRaf = 0;
-            if (errOverlay.classList.contains('show')) closeBtn.focus();
-          });
-        });
-      }
+      errToast.classList.add('show');
+      errToast.setAttribute('aria-hidden', 'false');
     }
     function hideError() {
-      if (errFocusRaf) { cancelAnimationFrame(errFocusRaf); errFocusRaf = 0; }
-      errOverlay.classList.remove('show');
-      errOverlay.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
-      setPageInert(false);
-      if (errReturnFocus && typeof errReturnFocus.focus === 'function') errReturnFocus.focus();
-      errReturnFocus = null;
+      errToast.classList.remove('show');
+      errToast.setAttribute('aria-hidden', 'true');
     }
-    errOverlay.addEventListener('keydown', function (e) {
-      if (e.key !== 'Tab') return;
-      var focusable = errOverlay.querySelectorAll('button:not([disabled])');
-      var first = focusable[0], last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    });
     document.getElementById('errClose').addEventListener('click', hideError);
-    document.getElementById('errRetry').addEventListener('click', function () {
-      hideError();
-      if (lastError.channel) startPlayback(lastError.channel, lastError.trigger);
-    });
-    errOverlay.addEventListener('click', function (e) { if (e.target === errOverlay) hideError(); });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && errOverlay.classList.contains('show')) hideError();
+      if (e.key === 'Escape' && errToast.classList.contains('show')) hideError();
     });
 
     function esc(value) {
@@ -900,6 +846,7 @@
     function startPlayback(channel, trigger) {
       if (pending) return;
       pending = true;
+      hideError();
       if (trigger) { trigger.disabled = true; trigger.classList.add('is-loading'); }
 
       identityReady.then(function () { return fetch('/api/f2f7c956/playback-session', {
@@ -922,12 +869,11 @@
           if (!result.ok || !result.data.success) {
             var d0 = result.data || {};
             showError(
-              'We couldn&rsquo;t start <b>' + esc(channelLabel(channel)) + '</b>.',
+              'Playback unavailable &mdash; we couldn&rsquo;t start <b>' + esc(channelLabel(channel)) + '</b>.',
               esc(d0.errorClass || 'Error') + ': ' + esc(d0.error || 'Unknown error'),
               '<span class="err-chip">HTTP <b>' + esc(result.status) + '</b></span>' +
                 (d0.code ? '<span class="err-chip">Code <b>' + esc(d0.code) + '</b></span>' : '') +
-                (d0.requestId ? '<span class="err-chip">Request ID <b>' + esc(d0.requestId) + '</b></span>' : ''),
-              channel, trigger
+                (d0.requestId ? '<span class="err-chip">Request ID <b>' + esc(d0.requestId) + '</b></span>' : '')
             );
             return;
           }
@@ -942,7 +888,7 @@
         .catch(function (err) {
           pending = false;
           if (trigger) { trigger.disabled = false; trigger.classList.remove('is-loading'); }
-          showError('We couldn&rsquo;t reach the playback service.', 'NetworkError: ' + esc(err.message), '', channel, trigger);
+          showError('Playback unavailable &mdash; we couldn&rsquo;t reach the playback service.', 'NetworkError: ' + esc(err.message), '');
         });
     }
 
