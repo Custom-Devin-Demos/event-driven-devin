@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Submit prior authorization | seeQer by careviso</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cv-navy: #002938;
+      --cv-blue: #037bbb;
+      --cv-green: #85bd00;
+      --cv-green-deep: #6a9900;
+      --cv-mist: #eef5f8;
+      --cv-mist-2: #dce9ef;
+      --cv-line: #cfdde4;
+      --cv-muted: #5a7280;
+      --cv-white: #ffffff;
+      --cv-red: #b3261e;
+      --cv-amber: #9a6a00;
+      --radius-card: 24px;
+      --radius-pill: 100px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Montserrat", "proxima-nova", "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--cv-navy);
+      background: var(--cv-white);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--cv-blue); }
+    button, input, select { font: inherit; color: inherit; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .wrap { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+
+    /* ---- Top band + floating nav ---- */
+    .band {
+      background:
+        radial-gradient(900px 420px at 80% -10%, rgba(3, 123, 187, 0.55), transparent 65%),
+        radial-gradient(600px 320px at 10% 110%, rgba(133, 189, 0, 0.28), transparent 60%),
+        var(--cv-navy);
+      color: var(--cv-white);
+      padding: 16px 0 72px;
+    }
+    .nav {
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--cv-navy);
+      border-radius: var(--radius-pill);
+      padding: 10px 12px 10px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0, 20, 30, 0.25);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--cv-navy); min-height: 44px; }
+    .brand-mark {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--cv-blue), var(--cv-green));
+      display: grid; place-items: center;
+      color: var(--cv-white); font-weight: 700; font-size: 20px; line-height: 1;
+    }
+    .brand-word { font-weight: 600; font-size: 22px; letter-spacing: -0.01em; }
+    .brand-word em { font-style: normal; color: var(--cv-blue); font-weight: 400; font-size: 13px; margin-left: 8px; letter-spacing: 0.02em; }
+    .nav-links { display: flex; gap: 4px; margin-left: 8px; }
+    .nav-links a {
+      text-decoration: none; color: var(--cv-navy); font-weight: 500; font-size: 15px;
+      padding: 10px 12px; border-radius: var(--radius-pill); min-height: 44px; display: inline-flex; align-items: center; white-space: nowrap;
+    }
+    .nav-links a[aria-current="page"] { background: var(--cv-mist); color: var(--cv-blue); font-weight: 600; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .practice { font-size: 12px; color: var(--cv-muted); text-align: right; line-height: 1.25; white-space: nowrap; }
+    .practice strong { display: block; color: var(--cv-navy); font-weight: 600; }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%; background: var(--cv-mist-2); color: var(--cv-navy);
+      display: grid; place-items: center; font-weight: 600; font-size: 14px; border: 0;
+    }
+    .pill {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 44px; padding: 10px 22px; border-radius: var(--radius-pill);
+      font-weight: 600; font-size: 15px; text-decoration: none; border: 1px solid transparent; cursor: pointer;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+    .pill-green { background: var(--cv-green); color: var(--cv-navy); }
+    .pill-green:hover { background: #93cf0a; }
+    .pill-blue { background: var(--cv-blue); color: var(--cv-white); }
+    .pill-blue:hover { background: #0469a0; }
+    .pill-outline { background: transparent; color: var(--cv-blue); border-color: var(--cv-blue); }
+    .pill-outline:hover { background: var(--cv-mist); }
+    .pill:focus-visible { outline: 3px solid var(--cv-blue); outline-offset: 3px; }
+
+    .hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 32px; align-items: center; margin-top: 44px; }
+    .eyebrow { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cv-green); font-weight: 600; margin: 0 0 14px; }
+    .hero h1 { font-size: clamp(30px, 4vw, 44px); font-weight: 600; line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.01em; }
+    .hero p { font-size: 17px; color: rgba(255, 255, 255, 0.86); margin: 0 0 24px; max-width: 560px; }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-visual {
+      position: relative; border-radius: var(--radius-card); overflow: hidden;
+      border: 1px solid rgba(133, 189, 0, 0.6); background: rgba(255, 255, 255, 0.06); min-height: 260px;
+    }
+    .hero-visual img { display: block; width: 100%; height: 100%; min-height: 260px; object-fit: cover; }
+    .hero-visual .fallback {
+      display: none; padding: 32px; color: rgba(255, 255, 255, 0.9); font-size: 15px; line-height: 1.6;
+    }
+    .hero-visual.no-img img { display: none; }
+    .hero-visual.no-img .fallback { display: block; }
+    .hero-visual .chip {
+      position: absolute; left: 16px; bottom: 16px; background: var(--cv-white); color: var(--cv-navy);
+      border-radius: 16px; padding: 10px 14px; font-size: 13px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    .hero-visual .chip strong { color: var(--cv-blue); }
+
+    /* ---- Steps ---- */
+    .steps {
+      margin-top: -36px; background: var(--cv-white); border-radius: 18px; border: 1px solid var(--cv-line);
+      box-shadow: 0 12px 40px rgba(0, 41, 56, 0.1); padding: 14px 18px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    }
+    .step { display: flex; align-items: center; gap: 10px; padding: 8px 6px; font-size: 14px; color: var(--cv-muted); }
+    .step .n {
+      width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700;
+      background: var(--cv-mist); color: var(--cv-muted); flex: none;
+    }
+    .step.done .n { background: var(--cv-green); color: var(--cv-navy); }
+    .step.now { color: var(--cv-navy); font-weight: 600; }
+    .step.now .n { background: var(--cv-blue); color: var(--cv-white); }
+
+    /* ---- Main ---- */
+    main { padding: 40px 0 64px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+    .card {
+      background: var(--cv-white); border: 1px solid var(--cv-line); border-radius: var(--radius-card);
+      padding: 28px; box-shadow: 0 6px 24px rgba(0, 41, 56, 0.05);
+    }
+    .card h2 { margin: 0 0 6px; font-size: 24px; font-weight: 700; color: var(--cv-blue); }
+    .card .lede { margin: 0 0 22px; color: var(--cv-muted); font-size: 15px; }
+    .divider { height: 1px; background: linear-gradient(90deg, var(--cv-green), rgba(133, 189, 0, 0)); margin: 6px 0 22px; }
+
+    .case-strip {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: var(--cv-mist); border-radius: 16px; padding: 14px 16px; margin-bottom: 22px;
+    }
+    .case-strip div span { display: block; font-size: 12px; color: var(--cv-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .case-strip div strong { font-weight: 600; font-size: 15px; }
+
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .field .hint { font-size: 13px; color: var(--cv-muted); margin-top: 6px; }
+    .control {
+      width: 100%; min-height: 48px; padding: 11px 16px; border-radius: 14px; border: 1px solid var(--cv-line);
+      background: var(--cv-white); color: var(--cv-navy); font-size: 15px;
+    }
+    .control:focus { outline: none; border-color: var(--cv-blue); box-shadow: 0 0 0 3px rgba(3, 123, 187, 0.2); }
+    select.control { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--cv-navy) 50%), linear-gradient(135deg, var(--cv-navy) 50%, transparent 50%); background-position: calc(100% - 20px) 21px, calc(100% - 14px) 21px; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 40px; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .svc { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .svc label {
+      border: 1px solid var(--cv-line); border-radius: 14px; padding: 12px 14px; cursor: pointer; display: flex; gap: 10px; align-items: flex-start; min-height: 44px; font-weight: 500; font-size: 14px;
+    }
+    .svc label input { margin-top: 3px; accent-color: var(--cv-blue); width: 16px; height: 16px; flex: none; }
+    .svc label small { display: block; color: var(--cv-muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+    .svc label:has(input:checked) { border-color: var(--cv-blue); background: var(--cv-mist); }
+    .docs { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+    .docs li { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    .docs .ok { width: 20px; height: 20px; border-radius: 50%; background: var(--cv-green); color: var(--cv-navy); display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none; }
+    .docs .todo { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--cv-line); flex: none; }
+    .attest { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--cv-muted); margin: 6px 0 20px; }
+    .attest input { margin-top: 3px; accent-color: var(--cv-blue); width: 18px; height: 18px; flex: none; }
+    .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    #submitBtn { min-width: 260px; }
+    #submitBtn[disabled] { opacity: 0.7; cursor: progress; }
+    .timing { font-size: 13px; color: var(--cv-muted); min-height: 20px; }
+
+    .result-box { margin-top: 22px; border-radius: 16px; padding: 18px 20px; display: none; font-size: 15px; }
+    .result-box.show { display: block; }
+    .result-box h3 { margin: 0 0 6px; font-size: 17px; font-weight: 700; }
+    .result-box p { margin: 0 0 8px; }
+    .result-box p:last-child { margin-bottom: 0; }
+    .result-box .meta { font-size: 13px; color: var(--cv-muted); }
+    .result-box.pending { background: var(--cv-mist); border: 1px solid var(--cv-mist-2); }
+    .result-box.success { background: #f3fae3; border: 1px solid #cfe69a; }
+    .result-box.success h3 { color: var(--cv-green-deep); }
+    .result-box.error { background: #fdf2f1; border: 1px solid #f1c5c2; }
+    .result-box.error h3 { color: var(--cv-red); }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--cv-blue); border-right-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: -2px; margin-right: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .aside .card + .card { margin-top: 20px; }
+    .aside h3 { margin: 0 0 12px; font-size: 16px; font-weight: 700; }
+    .kv { display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; font-size: 14px; }
+    .kv dt { color: var(--cv-muted); margin: 0; }
+    .kv dd { margin: 0; font-weight: 600; text-align: right; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; }
+    .badge-green { background: #eaf6cc; color: var(--cv-green-deep); }
+    .badge-blue { background: var(--cv-mist); color: var(--cv-blue); }
+    .badge-amber { background: #fff4d6; color: var(--cv-amber); }
+    .timeline { list-style: none; padding: 0; margin: 0; }
+    .timeline li { position: relative; padding-left: 26px; padding-bottom: 14px; font-size: 14px; }
+    .timeline li::before { content: ""; position: absolute; left: 6px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--cv-blue); }
+    .timeline li::after { content: ""; position: absolute; left: 10px; top: 18px; bottom: -2px; width: 1px; background: var(--cv-line); }
+    .timeline li:last-child::after { display: none; }
+    .timeline small { display: block; color: var(--cv-muted); }
+
+    .recent { margin-top: 32px; }
+    .recent h2 { font-size: 22px; font-weight: 700; margin: 0 0 14px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--cv-line); border-radius: 18px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
+    th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--cv-line); white-space: nowrap; }
+    th { background: var(--cv-mist); font-weight: 600; font-size: 13px; color: var(--cv-muted); }
+    tr:last-child td { border-bottom: 0; }
+
+    /* ---- Footer ---- */
+    footer { background: var(--cv-navy); color: var(--cv-white); padding: 44px 0 0; margin-top: 24px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px; padding-bottom: 32px; }
+    .foot-grid h4 { margin: 0 0 10px; font-size: 14px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cv-green); }
+    .foot-grid ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: 14px; }
+    .foot-grid a { color: rgba(255, 255, 255, 0.85); text-decoration: none; display: inline-block; padding: 4px 0; }
+    .foot-grid p { margin: 0; font-size: 14px; color: rgba(255, 255, 255, 0.8); max-width: 360px; }
+    .foot-legal { font-size: 12px; color: rgba(255, 255, 255, 0.65); padding-bottom: 20px; }
+    .foot-bar { background: linear-gradient(90deg, var(--cv-green), var(--cv-blue)); padding: 14px 0; font-size: 14px; }
+    .foot-bar .wrap { display: flex; gap: 20px; flex-wrap: wrap; }
+    .foot-bar a { color: var(--cv-white); text-decoration: none; }
+
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .nav-links { display: none; }
+    }
+    @media (max-width: 600px) {
+      .wrap { width: calc(100% - 24px); }
+      .nav { padding: 8px 8px 8px 14px; gap: 12px; }
+      .brand-word { font-size: 19px; }
+      .brand-word em { display: none; }
+      .practice { display: none; }
+      .band { padding-bottom: 60px; }
+      .hero { margin-top: 28px; }
+      .steps { grid-template-columns: 1fr; padding: 10px 14px; }
+      .card { padding: 20px 16px; border-radius: 18px; }
+      .case-strip { grid-template-columns: 1fr; }
+      .two, .svc { grid-template-columns: 1fr; }
+      #submitBtn { width: 100%; min-width: 0; }
+      .foot-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="band">
+    <div class="wrap">
+      <nav class="nav" aria-label="seeQer">
+        <a class="brand" href="#" aria-label="careviso seeQer home">
+          <span class="brand-mark" aria-hidden="true">c</span>
+          <span class="brand-word">careviso<em>seeQer</em></span>
+        </a>
+        <div class="nav-links">
+          <a href="#">All Cases</a>
+          <a href="#">Eligibility</a>
+          <a href="#" aria-current="page">Prior Authorization</a>
+          <a href="#">Cost Estimates</a>
+          <a href="#">Reports</a>
+        </div>
+        <div class="nav-right">
+          <div class="practice"><strong>Lakeside Oncology Associates</strong>Vienna, VA · NPI 1932 0048 71</div>
+          <button class="avatar" type="button" aria-label="Account menu">MR</button>
+          <a class="pill pill-green" href="#" style="white-space:nowrap;">Book a Demo</a>
+        </div>
+      </nav>
+
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Prior authorization processing</p>
+          <h1>Submit a prior authorization for this case</h1>
+          <p>seeQer builds the request from the case, attaches the clinical documentation and routes it to the payer’s electronic PA pathway. Status and payer responses post back to All Cases.</p>
+          <div class="hero-actions">
+            <a class="pill pill-blue" href="#paForm">Start request</a>
+            <a class="pill pill-outline" href="#" style="color:#fff;border-color:rgba(255,255,255,0.6);">View payer policy</a>
+          </div>
+        </div>
+        <div class="hero-visual" id="heroVisual">
+          <img src="https://cdn.prod.website-files.com/65f88552c6ad8ce7791beb99/65f88deb6b0943b94301c355_careviso-Hero-healthcare-transparency-software.webp"
+               alt="Clinician reviewing coverage details with a patient"
+               onerror="document.getElementById('heroVisual').classList.add('no-img')">
+          <div class="fallback">Verify eligibility and benefits, determine patient cost responsibility and conduct prior authorizations in one workflow.</div>
+          <div class="chip">PA likelihood for this service: <strong>High — policy criteria met</strong></div>
+        </div>
+      </section>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="steps" aria-label="Workflow progress">
+      <div class="step done"><span class="n">✓</span>Eligibility verified</div>
+      <div class="step done"><span class="n">✓</span>PA required for service</div>
+      <div class="step now"><span class="n">3</span>Submit request</div>
+      <div class="step"><span class="n">4</span>Track payer response</div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <div class="grid">
+      <section class="card">
+        <h2>Prior authorization request</h2>
+        <p class="lede">Review the request seeQer prepared from the case, then submit it to the payer.</p>
+        <div class="divider"></div>
+
+        <div class="case-strip" aria-label="Patient and case">
+          <div><span>Patient</span><strong>Jordan Ellis</strong></div>
+          <div><span>DOB · MRN</span><strong>03/14/1971 · 00482913</strong></div>
+          <div><span>Case</span><strong>CS-2026-11874</strong></div>
+        </div>
+
+        <form id="claimForm" novalidate>
+          <div class="field">
+            <label for="policyId">Payer plan on file</label>
+            <select id="policyId" class="control" required>
+              <option value="POL-5001">Aetna Choice POS II — Member W204 118 7731</option>
+              <option value="POL-5002">Anthem Blue Cross PPO — Member XDP 905 221 004</option>
+              <option value="POL-5003">UnitedHealthcare Choice Plus — Member 998 204 115</option>
+              <option value="POL-5004">Humana Medicare Advantage HMO — Member H41 882 309</option>
+            </select>
+            <div class="hint">Eligibility verified today. Payer requires prior authorization for this service.</div>
+          </div>
+
+          <div class="field">
+            <span class="sr-only" id="svcLabel">Service requested</span>
+            <label>Service requested</label>
+            <div class="svc" role="radiogroup" aria-labelledby="svcLabel">
+              <label><input type="radio" name="service" value="infusion" data-amount="8450" data-desc="Infusion therapy, 6 cycles, J9271 + 96413, oncology clinic" checked> Infusion therapy <small>J9271 · 96413 · 6 cycles</small></label>
+              <label><input type="radio" name="service" value="imaging" data-amount="2310" data-desc="PET/CT skull base to mid-thigh, 78815, restaging"> Advanced imaging <small>78815 · PET/CT restaging</small></label>
+              <label><input type="radio" name="service" value="specialty_rx" data-amount="12800" data-desc="Specialty pharmacy, oral oncolytic, 30-day supply"> Specialty pharmacy <small>Oral oncolytic · 30-day supply</small></label>
+              <label><input type="radio" name="service" value="genetic_test" data-amount="3900" data-desc="Molecular tumor profiling, 81455, treatment selection"> Molecular testing <small>81455 · Tumor profiling</small></label>
+            </div>
+            <input type="hidden" id="claimType" value="infusion">
+          </div>
+
+          <div class="two">
+            <div class="field">
+              <label for="amount">Estimated billed charges (USD)</label>
+              <input type="number" id="amount" class="control" min="1" step="0.01" value="8450" required>
+              <div class="hint">Used for the patient cost responsibility estimate.</div>
+            </div>
+            <div class="field">
+              <label for="urgency">Request priority</label>
+              <select id="urgency" class="control">
+                <option value="standard">Standard — payer determination 1–3 business days</option>
+                <option value="expedited">Expedited — clinical urgency</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="description">Clinical summary for the payer</label>
+            <input type="text" id="description" class="control" value="Infusion therapy, 6 cycles, J9271 + 96413, oncology clinic" required maxlength="200">
+            <div class="hint">Pulled from the ordering provider’s note. Edit if the payer needs additional context.</div>
+          </div>
+
+          <div class="field">
+            <label>Clinical documentation attached</label>
+            <ul class="docs">
+              <li><span class="ok">✓</span>Ordering provider progress note — 09/30/2026</li>
+              <li><span class="ok">✓</span>Pathology report and staging summary</li>
+              <li><span class="ok">✓</span>Prior therapies and response</li>
+              <li><span class="todo" aria-hidden="true"></span>Payer-specific attestation form (optional)</li>
+            </ul>
+          </div>
+
+          <label class="attest">
+            <input type="checkbox" id="attest" checked>
+            I confirm the clinical documentation supports medical necessity for the requested service.
+          </label>
+
+          <div class="actions">
+            <button type="submit" id="submitBtn" class="pill pill-blue">Submit prior authorization</button>
+            <span class="timing" id="timing" aria-live="polite"></span>
+          </div>
+
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <aside class="aside">
+        <section class="card">
+          <h3>Case summary</h3>
+          <dl class="kv">
+            <dt>Ordering provider</dt><dd>Dr. Priya Raman, MD</dd>
+            <dt>Site of service</dt><dd>Lakeside Oncology — Vienna</dd>
+            <dt>Diagnosis</dt><dd>C34.12</dd>
+            <dt>Service</dt><dd id="sumService">Infusion therapy</dd>
+            <dt>Estimated charges</dt><dd id="sumAmount">$8,450.00</dd>
+            <dt>PA on file</dt><dd><span class="badge badge-amber">None for this service</span></dd>
+          </dl>
+        </section>
+        <section class="card">
+          <h3>What happens after you submit</h3>
+          <ol class="timeline">
+            <li>Request sent to the payer’s electronic PA pathway<small>Acknowledgement is usually returned within seconds.</small></li>
+            <li>Payer determination<small>Standard requests: 1–3 business days. Status updates post to All Cases.</small></li>
+            <li>Patient cost responsibility estimate<small>Updated once the determination and allowed amount are returned.</small></li>
+          </ol>
+        </section>
+        <section class="card">
+          <h3>Need help with this request?</h3>
+          <p style="margin:0 0 14px;font-size:14px;color:var(--cv-muted);">careviso Support can review payer requirements and documentation before submission.</p>
+          <a class="pill pill-outline" href="#">Contact careviso Support</a>
+        </section>
+      </aside>
+    </div>
+
+    <section class="recent">
+      <h2>Recent prior authorizations — Lakeside Oncology Associates</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Case</th><th>Patient</th><th>Service</th><th>Payer</th><th>Submitted</th><th>PA status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>CS-2026-11862</td><td>M. Okafor</td><td>PET/CT 78815</td><td>Anthem Blue Cross PPO</td><td>Oct 6, 2026</td><td><span class="badge badge-green">Approved</span></td></tr>
+            <tr><td>CS-2026-11859</td><td>L. Brennan</td><td>Infusion J9271</td><td>Aetna Choice POS II</td><td>Oct 6, 2026</td><td><span class="badge badge-blue">Pending payer review</span></td></tr>
+            <tr><td>CS-2026-11851</td><td>S. Alvarez</td><td>Molecular testing 81455</td><td>UnitedHealthcare Choice Plus</td><td>Oct 5, 2026</td><td><span class="badge badge-green">Approved</span></td></tr>
+            <tr><td>CS-2026-11840</td><td>R. Chen</td><td>Oral oncolytic</td><td>Humana Medicare Advantage</td><td>Oct 3, 2026</td><td><span class="badge badge-amber">Additional information requested</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <div class="brand" style="color:#fff;margin-bottom:12px;">
+            <span class="brand-mark" aria-hidden="true">c</span>
+            <span class="brand-word" style="color:#fff;">careviso</span>
+          </div>
+          <p>Healthcare transparency software. Verify eligibility and benefits, determine patient cost responsibility and conduct prior authorizations with seeQer.</p>
+        </div>
+        <div>
+          <h4>Solutions</h4>
+          <ul><li><a href="#">Prior authorization processing</a></li><li><a href="#">Benefits verification</a></li><li><a href="#">Patient cost estimates</a></li></ul>
+        </div>
+        <div>
+          <h4>Clients</h4>
+          <ul><li><a href="#">Health systems</a></li><li><a href="#">Physician practices</a></li><li><a href="#">Laboratories</a></li></ul>
+        </div>
+        <div>
+          <h4>Offices</h4>
+          <ul><li>Vienna, VA</li><li>Orlando, FL</li><li>Charlotte, NC</li></ul>
+        </div>
+      </div>
+      <div class="foot-legal">Internal demo only. Not affiliated with, endorsed by, or a real careviso product. Patient and case data shown are fictitious.</div>
+    </div>
+    <div class="foot-bar">
+      <div class="wrap"><a href="#">Terms of Use</a><a href="#">Privacy Policy</a><a href="#">Cookie Settings</a><a href="#">Sitemap</a></div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    var SERVICE_LABELS = { infusion: 'Infusion therapy', imaging: 'Advanced imaging', specialty_rx: 'Specialty pharmacy', genetic_test: 'Molecular testing' };
+    var usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+    var form = document.getElementById('claimForm');
+    var submitBtn = document.getElementById('submitBtn');
+    var result = document.getElementById('result');
+    var timing = document.getElementById('timing');
+    var amountEl = document.getElementById('amount');
+    var descEl = document.getElementById('description');
+    var claimTypeEl = document.getElementById('claimType');
+
+    function syncSummary() {
+      var svc = document.querySelector('input[name="service"]:checked');
+      document.getElementById('sumService').textContent = svc ? SERVICE_LABELS[svc.value] : '—';
+      var amt = parseFloat(amountEl.value);
+      document.getElementById('sumAmount').textContent = isNaN(amt) ? '—' : usd.format(amt);
+    }
+    document.querySelectorAll('input[name="service"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        claimTypeEl.value = radio.value;
+        amountEl.value = radio.dataset.amount;
+        descEl.value = radio.dataset.desc;
+        syncSummary();
+      });
+    });
+    amountEl.addEventListener('input', syncSummary);
+    form.addEventListener('reset', function () { setTimeout(syncSummary, 0); });
+
+    function showResult(kind, html) {
+      result.className = 'result-box show ' + kind;
+      result.innerHTML = html;
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!document.getElementById('attest').checked) {
+        showResult('error', '<h3>Attestation required</h3><p>Confirm that the clinical documentation supports medical necessity before submitting.</p>');
+        return;
+      }
+      var amt = parseFloat(amountEl.value);
+      if (isNaN(amt) || amt <= 0) {
+        showResult('error', '<h3>Check the estimated charges</h3><p>Enter the estimated billed charges for this service.</p>');
+        return;
+      }
+
+      var payerLabel = document.getElementById('policyId').selectedOptions[0].textContent.split(' — ')[0];
+      var svcLabel = document.getElementById('sumService').textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting to payer…';
+      timing.textContent = '';
+      showResult('pending', '<h3><span class="spinner" aria-hidden="true"></span>Sending request to ' + esc(payerLabel) + '</h3><p>Waiting for the payer pathway to acknowledge the prior authorization request.</p>');
+
+      var started = performance.now();
+      var tick = setInterval(function () {
+        timing.textContent = 'Waiting for payer acknowledgement · ' + ((performance.now() - started) / 1000).toFixed(1) + ' s';
+      }, 100);
+
+      try {
+        var res = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: document.getElementById('policyId').value,
+            claimType: claimTypeEl.value,
+            amount: parseFloat(amountEl.value),
+            description: descEl.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          }),
+        });
+        var elapsed = ((performance.now() - started) / 1000).toFixed(1);
+        var data = {};
+        try { data = await res.json(); } catch (_) { data = {}; }
+
+        if (res.ok && data.success) {
+          var ref = data.claimId || data.claim && data.claim.id || data.id || '';
+          showResult('success',
+            '<h3>Prior authorization request sent</h3>' +
+            '<p>' + esc(payerLabel) + ' acknowledged the request for ' + esc(svcLabel) + '. Payer determination will post to All Cases.</p>' +
+            (ref ? '<p class="meta">Reference ' + esc(ref) + ' · acknowledged in ' + elapsed + ' s</p>' : '<p class="meta">Acknowledged in ' + elapsed + ' s</p>'));
+        } else {
+          showResult('error',
+            '<h3>The payer pathway did not acknowledge this request</h3>' +
+            '<p>The request for ' + esc(svcLabel) + ' to ' + esc(payerLabel) + ' could not be confirmed. Nothing was submitted twice. Try again in a few minutes, or check All Cases before resubmitting.</p>' +
+            '<p class="meta">Waited ' + elapsed + ' s' + (data.requestId ? ' · reference ' + esc(data.requestId) : '') + '</p>');
+        }
+      } catch (err) {
+        var elapsedErr = ((performance.now() - started) / 1000).toFixed(1);
+        showResult('error',
+          '<h3>The payer pathway did not acknowledge this request</h3>' +
+          '<p>The request could not be confirmed. Nothing was submitted twice. Try again in a few minutes, or check All Cases before resubmitting.</p>' +
+          '<p class="meta">Waited ' + elapsedErr + ' s</p>');
+      } finally {
+        clearInterval(tick);
+        timing.textContent = '';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit prior authorization';
+      }
+    });
+    syncSummary();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
