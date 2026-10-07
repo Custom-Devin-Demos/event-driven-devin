@@ -102,7 +102,7 @@ A static showcase recreating the home pages of the Power Corporation group of co
 
 ### On-call vertical slice (Flows 1–2)
 
-Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves the same branded pages in on-call mode with their primary action rerouted (via an injected fetch shim in `app/routes/oncall.js`) to a parallel set of endpoints backed by copied services carrying performance-degradation bugs instead of TypeErrors:
+Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves the same branded pages in on-call mode with their primary action rerouted (via an injected fetch shim in `app/routes/oncall.js`) to a parallel set of endpoints backed by copied services with scenario-specific performance degradations or TypeErrors:
 
 | Vertical | On-call API Endpoint | Service File |
 |----------|---------------------|--------------|
@@ -112,6 +112,7 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 | Insurance | `POST /api/oncall/insurance/claim` | `app/services/oncall-verticals/insurance.js` |
 | Industrials | `POST /api/oncall/industrials/quote` | `app/services/oncall-verticals/industrials.js` |
 | Marketplace | `POST /api/oncall/marketplace/cart` | `app/services/oncall-verticals/marketplace.js` |
+| Apparel | `POST /api/oncall/apparel/bag` | `app/services/oncall-verticals/apparel.js` |
 | Grocery | `POST /api/oncall/grocery/checkout` | `app/services/oncall-verticals/grocery.js` |
 | Voice | `POST /api/oncall/voice/transcribe` | `app/services/oncall-verticals/voice.js` |
 | Samsara Fleet (native iOS/macOS app) | `POST /api/oncall/26a3d261/eta-failure` | `app/services/oncall-verticals/fleet.js` |
