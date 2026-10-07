@@ -200,6 +200,8 @@
       .hdr-main { margin-top: 0; padding-bottom: 0; align-items: center; }
       .site-header .hdr-main .logo svg { width: 205px; height: 48px; }
       .menu-btn { display: flex; }
+      .site-header.nav-open .primary-nav { display: block; position: absolute; left: 0; right: 0; top: 100%; height: auto; padding: 8px 20px 16px; background: #fff; border-top: 1px solid var(--gray-400); box-shadow: 0 8px 12px rgba(0,0,0,.12); }
+      .site-header.nav-open .primary-nav a { padding: 11px 0; min-height: 44px; }
       main { margin-top: 32px; }
       .mantle-band { display: none; }
       .mantle-card { display: block; min-height: 0; margin: 0; padding: 28px 12px; border-radius: 0; }
@@ -293,11 +295,11 @@
           <a class="hbtn hbtn-outline" href="#">Join Our Team</a>
           <a class="hbtn hbtn-solid" href="#">Contact Us</a>
         </div>
-        <button class="menu-btn" type="button" aria-label="Open menu"><span></span><span></span><span></span></button>
+        <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="primaryNav"><span></span><span></span><span></span></button>
       </div>
     </div>
     <nav aria-label="Primary">
-      <ul class="primary-nav">
+      <ul class="primary-nav" id="primaryNav">
         <li><a href="#">About Us</a></li>
         <li><a href="#">Home Care</a></li>
         <li><a href="#">Hospice Care</a></li>
@@ -321,7 +323,7 @@
           <h1>Health Plans</h1>
           <p class="mantle-lede">We offer health plans that were created to help you live well in the comfort of your home and community. How can we help you?</p>
 
-          <form id="claimForm" class="claim" novalidate>
+          <form id="claimForm" class="claim">
             <h2 class="claim-title">Submit a member claim</h2>
             <div class="claim-grid">
               <div class="fld">
@@ -532,13 +534,21 @@
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
       if (btn.disabled) return;
+      const amountEl = document.getElementById('amount');
+      const amount = parseFloat(amountEl.value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="r-title">Please enter the amount you paid.</div><div>The amount must be greater than $0.</div>';
+        amountEl.focus();
+        return;
+      }
       btn.disabled = true; btn.textContent = 'Submitting…';
       result.className = 'result-box';
       result.innerHTML = '';
       try {
         const res = await fetch('/api/insurance/claim', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount: parseFloat(document.getElementById('amount').value), description: document.getElementById('description').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount, description: document.getElementById('description').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
@@ -553,6 +563,21 @@
         result.innerHTML = '<div class="r-title">We couldn’t submit your claim right now.</div><div>Please check your connection and try again.</div>';
       } finally { btn.disabled = false; btn.textContent = 'Submit Claim'; }
     });
+  </script>
+  <script>
+    (function () {
+      const header = document.querySelector('.site-header');
+      const toggle = header.querySelector('.menu-btn');
+      const setOpen = (open) => {
+        header.classList.toggle('nav-open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      };
+      toggle.addEventListener('click', () => setOpen(!header.classList.contains('nav-open')));
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && header.classList.contains('nav-open')) { setOpen(false); toggle.focus(); }
+      });
+    })();
   </script>
   <script src="/session-cap-banner.js"></script>
 </body>
