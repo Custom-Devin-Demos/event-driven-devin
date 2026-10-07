@@ -6,19 +6,19 @@
   <title>Misfits Ops — Today</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Fraunces:wght@700&display=swap" rel="stylesheet">
   <style>
-    :root { --cream:#FFF9EA; --green:#B0C471; --pale:#D7E1B8; --yellow:#F1C34A; --ink:#243a2c; --muted:#6a7568; --line:#e7e5db; }
+    :root { --cream:#FFF9EA; --green:#B0C471; --pale:#D7E1B8; --yellow:#F1C34A; --ink:#2d2d2d; --muted:#6b6b6b; --line:#e7e5db; }
     * { box-sizing:border-box; }
-    body { margin:0; background:var(--cream); color:var(--ink); font-family:"DM Sans",sans-serif; }
+    body { margin:0; background:var(--cream); color:var(--ink); font-family:"Hanken Grotesk",sans-serif; }
     header { background:#fffdf6; border-bottom:1px solid var(--line); padding:17px max(22px,calc((100vw - 1180px)/2)); display:flex; justify-content:space-between; align-items:center; }
-    header a { color:var(--ink); text-decoration:none; font:800 22px Nunito,sans-serif; }
+    header a { color:var(--ink); text-decoration:none; font:700 22px Fraunces,serif; letter-spacing:-.3px; }
     header span { color:var(--muted); font-size:13px; }
     main { max-width:1180px; margin:auto; padding:35px 22px 60px; }
     .title-row { display:flex; justify-content:space-between; align-items:end; margin-bottom:24px; gap:18px; }
     h1,h2,h3,p { margin-top:0; }
-    h1 { font:800 34px Nunito,sans-serif; letter-spacing:-1px; margin-bottom:4px; }
-    h2 { font:800 20px Nunito,sans-serif; margin-bottom:16px; }
+    h1 { font:700 34px "Hanken Grotesk",sans-serif; letter-spacing:-1px; margin-bottom:4px; }
+    h2 { font:700 20px "Hanken Grotesk",sans-serif; margin-bottom:16px; }
     .muted { color:var(--muted); font-size:13px; }
     .live { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); }
     .dot { width:8px; height:8px; background:#7fa344; border-radius:50%; }
@@ -26,7 +26,7 @@
     .card,.section { background:white; border:1px solid var(--line); border-radius:18px; }
     .card { padding:20px; }
     .card-label { color:var(--muted); font-size:13px; font-weight:700; }
-    .card-value { font:800 32px Nunito,sans-serif; margin-top:8px; }
+    .card-value { font:700 32px "Hanken Grotesk",sans-serif; margin-top:8px; }
     .section { margin-top:20px; padding:21px; overflow:hidden; }
     .table-wrap { overflow-x:auto; }
     table { width:100%; border-collapse:collapse; min-width:550px; }
@@ -37,9 +37,11 @@
     .pill.failed { background:#f9e5dc; color:#90482f; }
     .stock-list { display:grid; grid-template-columns:repeat(3,1fr); gap:13px; }
     .warehouse { background:#fffdf7; border:1px solid var(--line); border-radius:14px; padding:15px; }
-    .warehouse h3 { font:800 14px Nunito,sans-serif; margin:0 0 9px; }
+    .warehouse h3 { font:700 14px "Hanken Grotesk",sans-serif; margin:0 0 9px; }
     .stock-line { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-top:1px solid var(--line); font-size:12px; }
-    .stock-qty { font-weight:800; white-space:nowrap; }
+    .stock-item { display:flex; align-items:center; gap:8px; }
+    .stock-item img { width:28px; height:28px; border-radius:4px; object-fit:cover; }
+    .stock-qty { font-weight:700; white-space:nowrap; }
     .route-progress { display:flex; align-items:center; gap:8px; min-width:130px; }
     .bar { height:7px; flex:1; background:#edf0e5; border-radius:9px; overflow:hidden; }
     .bar span { display:block; height:100%; background:var(--green); border-radius:9px; }
@@ -47,7 +49,7 @@
   </style>
 </head>
 <body>
-  <header><a href="/misfits">Misfits Market 🥕</a><span>Operations console · <a href="/misfits" style="font:inherit">Storefront</a></span></header>
+  <header><a href="/misfits">Misfits Market</a><span>Operations console · <a href="/misfits" style="font:inherit">Storefront</a></span></header>
   <main>
     <div class="title-row"><div><h1>Misfits Ops — Today</h1><p class="muted" id="date-label">Live fulfillment overview</p></div><div class="live"><span class="dot"></span>Auto-refreshes every 15 seconds</div></div>
     <section class="kpis" aria-label="Today at a glance">
@@ -82,7 +84,7 @@
         <td>${region.confirmed + region.checkout_failed}</td></tr>`).join('');
       document.querySelector('#low-stock').innerHTML = data.lowStock.map((warehouse) => `
         <article class="warehouse"><h3>${warehouse.warehouseId}</h3>
-        ${warehouse.items.map((item) => `<div class="stock-line"><span>${item.emoji} ${item.name}</span><span class="stock-qty">${item.onHand} · ${item.avgDailyUnits}/day</span></div>`).join('')}
+        ${warehouse.items.map((item) => `<div class="stock-line"><span class="stock-item">${item.image ? `<img src="${item.image}" alt="">` : item.emoji} ${item.name}</span><span class="stock-qty">${item.onHand} · ${item.avgDailyUnits}/day</span></div>`).join('')}
         </article>`).join('');
       document.querySelector('#routes-body').innerHTML = data.routes.map((route) => `
         <tr><td><strong>${route.id}</strong></td><td>${route.region}</td><td>${route.driver}</td><td>${route.stops}</td>

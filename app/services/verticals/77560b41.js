@@ -37,18 +37,18 @@ const REGIONS = {
 };
 
 const CATALOG = [
-  { sku: 'honeycrisp-apples', name: 'Honeycrisp Apples', emoji: '🍎', unit: '3 lb bag', priceCents: 699, category: 'produce' },
-  { sku: 'gala-apples', name: 'Gala Apples', emoji: '🍏', unit: '3 lb bag', priceCents: 549, category: 'produce' },
-  { sku: 'rainbow-carrots', name: 'Rainbow Carrots', emoji: '🥕', unit: '1 lb bunch', priceCents: 399, category: 'produce' },
-  { sku: 'baby-spinach', name: 'Baby Spinach', emoji: '🥬', unit: '5 oz clamshell', priceCents: 349, category: 'produce' },
-  { sku: 'avocados', name: 'Hass Avocados', emoji: '🥑', unit: '4 count', priceCents: 599, category: 'produce' },
-  { sku: 'strawberries', name: 'Organic Strawberries', emoji: '🍓', unit: '1 lb carton', priceCents: 649, category: 'produce' },
-  { sku: 'sweet-potatoes', name: 'Sweet Potatoes', emoji: '🍠', unit: '2 lb bag', priceCents: 429, category: 'produce' },
-  { sku: 'broccoli', name: 'Broccoli Crowns', emoji: '🥦', unit: '2 count', priceCents: 379, category: 'produce' },
-  { sku: 'organic-eggs', name: 'Pasture-Raised Eggs', emoji: '🥚', unit: 'dozen', priceCents: 699, category: 'protein' },
-  { sku: 'chicken-breast', name: 'Organic Chicken Breast', emoji: '🍗', unit: '1 lb pack', priceCents: 1099, category: 'protein' },
-  { sku: 'ground-turkey', name: 'Ground Turkey', emoji: '🦃', unit: '1 lb pack', priceCents: 899, category: 'protein' },
-  { sku: 'wild-salmon', name: 'Wild-Caught Salmon', emoji: '🐟', unit: '12 oz pack', priceCents: 1299, category: 'protein' },
+  { sku: 'honeycrisp-apples', name: 'Honeycrisp Apples', emoji: '🍎', image: '/verticals/77560b41/img/honeycrisp-apples.jpg', unit: '3 lb bag', priceCents: 699, category: 'produce' },
+  { sku: 'gala-apples', name: 'Gala Apples', emoji: '🍏', image: '/verticals/77560b41/img/gala-apples.jpg', unit: '3 lb bag', priceCents: 549, category: 'produce' },
+  { sku: 'rainbow-carrots', name: 'Rainbow Carrots', emoji: '🥕', image: '/verticals/77560b41/img/rainbow-carrots.jpg', unit: '1 lb bunch', priceCents: 399, category: 'produce' },
+  { sku: 'baby-spinach', name: 'Baby Spinach', emoji: '🥬', image: '/verticals/77560b41/img/baby-spinach.jpg', unit: '5 oz clamshell', priceCents: 349, category: 'produce' },
+  { sku: 'avocados', name: 'Hass Avocados', emoji: '🥑', image: '/verticals/77560b41/img/avocados.jpg', unit: '4 count', priceCents: 599, category: 'produce' },
+  { sku: 'strawberries', name: 'Organic Strawberries', emoji: '🍓', image: '/verticals/77560b41/img/strawberries.jpg', unit: '1 lb carton', priceCents: 649, category: 'produce' },
+  { sku: 'sweet-potatoes', name: 'Sweet Potatoes', emoji: '🍠', image: '/verticals/77560b41/img/sweet-potatoes.jpg', unit: '2 lb bag', priceCents: 429, category: 'produce' },
+  { sku: 'broccoli', name: 'Broccoli Crowns', emoji: '🥦', image: '/verticals/77560b41/img/broccoli.jpg', unit: '2 count', priceCents: 379, category: 'produce' },
+  { sku: 'organic-eggs', name: 'Pasture-Raised Eggs', emoji: '🥚', image: '/verticals/77560b41/img/organic-eggs.jpg', unit: 'dozen', priceCents: 699, category: 'protein' },
+  { sku: 'chicken-breast', name: 'Organic Chicken Breast', emoji: '🍗', image: '/verticals/77560b41/img/chicken-breast.jpg', unit: '1 lb pack', priceCents: 1099, category: 'protein' },
+  { sku: 'ground-turkey', name: 'Ground Turkey', emoji: '🦃', image: '/verticals/77560b41/img/ground-turkey.jpg', unit: '1 lb pack', priceCents: 899, category: 'protein' },
+  { sku: 'wild-salmon', name: 'Wild-Caught Salmon', emoji: '🐟', image: '/verticals/77560b41/img/wild-salmon.jpg', unit: '12 oz pack', priceCents: 1299, category: 'protein' },
 ];
 
 const CATALOG_BY_SKU = Object.fromEntries(CATALOG.map((item) => [item.sku, item]));
@@ -298,6 +298,7 @@ function applySubstitutions(items, warehouseId) {
         sku: substitute.sku,
         name: substitute.name,
         emoji: substitute.emoji,
+        image: substitute.image,
         qty,
         unitPriceCents: substitute.priceCents,
         substitutedFrom: sku,
@@ -307,6 +308,7 @@ function applySubstitutions(items, warehouseId) {
       sku,
       name: item.name,
       emoji: item.emoji,
+      image: item.image,
       qty,
       unitPriceCents: item.priceCents,
     };
