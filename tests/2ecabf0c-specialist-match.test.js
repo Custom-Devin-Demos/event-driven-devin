@@ -11,6 +11,7 @@ const { createSessionAndAlert } = require('../app/services/devin-session');
 const routes = require('../app/routes/verticals/2ecabf0c');
 const {
   matchSpecialists,
+  nextConsultSlot,
   COMPANIES,
   ROUTING_OPTIONS,
   AVAILABILITY_LOOKUP_POLICY,
@@ -74,6 +75,14 @@ describe('VGM Group specialist match', () => {
       expect(new Date(m.nextAvailable).getTime()).toBeGreaterThan(Date.now());
       expect([0, 6]).not.toContain(new Date(m.nextAvailable).getUTCDay());
     });
+  });
+
+  test.each([
+    ['CDT', '2026-07-10T15:00:00Z', 1, '2026-07-13T13:00:00.000Z'],
+    ['CST', '2026-12-10T15:00:00Z', 1, '2026-12-11T14:00:00.000Z'],
+    ['Sunday evening CDT (Monday in UTC)', '2026-10-12T01:00:00Z', 1, '2026-10-12T13:00:00.000Z'],
+  ])('consult slots are 8am Chicago business-day time (%s)', (label, now, offset, expected) => {
+    expect(nextConsultSlot(new Date(now), offset, 8, 0).toISOString()).toBe(expected);
   });
 
   test('matches are deterministic for the same business', async () => {

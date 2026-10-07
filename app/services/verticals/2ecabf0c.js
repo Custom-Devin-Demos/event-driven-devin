@@ -72,15 +72,41 @@ function hashValue(value) {
   return hash >>> 0;
 }
 
-function nextBusinessDay(from, offsetDays) {
-  const date = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()));
+const CONSULT_TIME_ZONE = 'America/Chicago';
+
+function zonedParts(date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: CONSULT_TIME_ZONE,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+  }).formatToParts(date);
+  const value = (type) => Number(parts.find((part) => part.type === type).value);
+  return {
+    year: value('year'), month: value('month'), day: value('day'), hour: value('hour'), minute: value('minute'),
+  };
+}
+
+function consultTimeToUtc(year, month, day, hour, minute) {
+  const guess = Date.UTC(year, month - 1, day, hour, minute);
+  const local = zonedParts(new Date(guess));
+  const offsetMs = Date.UTC(local.year, local.month - 1, local.day, local.hour, local.minute) - guess;
+  return new Date(guess - offsetMs);
+}
+
+function nextConsultSlot(from, offsetDays, hour, minute) {
+  const today = zonedParts(from);
+  const date = new Date(Date.UTC(today.year, today.month - 1, today.day));
   let remaining = offsetDays;
   while (remaining > 0) {
     date.setUTCDate(date.getUTCDate() + 1);
     const day = date.getUTCDay();
     if (day !== 0 && day !== 6) remaining -= 1;
   }
-  return date;
+  return consultTimeToUtc(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), hour, minute);
 }
 
 async function lookupCompanyAvailability(companyKey, request) {
@@ -89,9 +115,7 @@ async function lookupCompanyAvailability(companyKey, request) {
 
   const company = COMPANIES.find((entry) => entry.key === companyKey);
   const seed = hashValue(`${request.businessName.toLowerCase()}:${request.industry}:${companyKey}`);
-  const slotDate = nextBusinessDay(new Date(), 1 + (seed % 5));
-  const slotHour = 8 + (seed % 9);
-  slotDate.setUTCHours(slotHour + 5, (seed % 2) * 30, 0, 0);
+  const slotDate = nextConsultSlot(new Date(), 1 + (seed % 5), 8 + (seed % 9), (seed % 2) * 30);
 
   return {
     companyKey,
@@ -287,6 +311,7 @@ async function matchSpecialists(data = {}) {
 
 module.exports = {
   matchSpecialists,
+  nextConsultSlot,
   COMPANIES,
   ROUTING_OPTIONS,
   INDUSTRIES,
