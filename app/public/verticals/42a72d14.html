@@ -387,8 +387,7 @@
       <h2 id="errorTitle">Something went wrong</h2>
       <p id="errorText">We couldn&rsquo;t complete your plan change. Your current plan and bill haven&rsquo;t changed.</p>
       <div class="err-actions">
-        <button type="button" class="primary" id="errorView">View my plan</button>
-        <button type="button" class="secondary" id="errorClose">Close</button>
+        <button type="button" class="primary" id="errorClose">OK</button>
       </div>
     </div>
   </dialog>
@@ -499,13 +498,6 @@
         if (typeof errorDialog.showModal === 'function' && !errorDialog.open) errorDialog.showModal();
       }
       document.getElementById('errorClose').addEventListener('click', () => errorDialog.close());
-      document.getElementById('errorView').addEventListener('click', () => {
-        errorDialog.close();
-        const lineCard = document.getElementById('lineHeading');
-        lineCard.setAttribute('tabindex', '-1');
-        lineCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        lineCard.focus({ preventScroll: true });
-      });
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -548,8 +540,8 @@
         } catch (err) {
           if (err && err.name === 'AbortError') {
             showResult('error', 'We couldn\u2019t confirm your plan change',
-              ['Check your plan in MyRogers before trying again.']);
-            showErrorDialog('Your plan change timed out and we couldn\u2019t confirm whether it went through. Check your plan in MyRogers before trying again.');
+              ['Please wait a few minutes before trying again.']);
+            showErrorDialog('Your plan change timed out and we couldn\u2019t confirm whether it went through. Please wait a few minutes before trying again.');
           } else {
             showResult('error', 'We couldn\u2019t reach MyRogers', ['Check your connection and try again.']);
           }
