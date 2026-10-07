@@ -114,9 +114,11 @@ function roundCents(amount) {
  * Hartford, CT). Returns YYYY-MM-DD offset by `offsetDays` from today.
  */
 function policyDate(offsetDays = 0) {
-  return new Date(Date.now() + offsetDays * 86400000).toLocaleDateString('en-CA', {
-    timeZone: 'America/New_York',
-  });
+  const [y, m, d] = new Date()
+    .toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
+    .split('-')
+    .map(Number);
+  return new Date(Date.UTC(y, m - 1, d + offsetDays)).toISOString().slice(0, 10);
 }
 
 /**
@@ -243,6 +245,16 @@ async function purchasePolicy(data) {
   try {
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
+    // Re-resolve the earliest effective date at bind time: the request may
+    // have crossed midnight in New York while it was being rated.
+    const bindEarliest = policyDate(1);
+    if (data.effectiveDate && data.effectiveDate < bindEarliest) {
+      throw validationError(
+        `Effective date must be on or after ${bindEarliest}: ${data.effectiveDate}`,
+        'INVALID_EFFECTIVE_DATE',
+      );
+    }
+
     const stateFactor = STATE_FACTORS[data.state];
     const drivers = Array.isArray(data.drivers) && data.drivers.length > 0
       ? data.drivers
@@ -310,10 +322,12 @@ async function purchasePolicy(data) {
       annualPremium: roundCents(annualPremium),
       monthlyPremium: roundCents(monthlyPremium),
       paymentPlan,
-      effectiveDate: data.effectiveDate || earliestEffective,
+      effectiveDate: data.effectiveDate || bindEarliest,
       boundAt: new Date().toISOString(),
     };
   } catch (error) {
+    if (error.name === 'ValidationError') throw error;
+
     const duration = Date.now() - startTime;
 
     incrementMetric('auto_quote_purchase.failure', {

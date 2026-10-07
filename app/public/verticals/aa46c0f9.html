@@ -467,10 +467,11 @@
   }
 
   function nextPolicyDate() {
-    var tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    var parts = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }).split('-');
+    var tomorrow = new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]) + 1));
     return {
-      iso: tomorrow.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }),
-      label: tomorrow.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'long', day: 'numeric', year: 'numeric' }),
+      iso: tomorrow.toISOString().slice(0, 10),
+      label: tomorrow.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' }),
     };
   }
   document.getElementById('eff-date').textContent = nextPolicyDate().label;

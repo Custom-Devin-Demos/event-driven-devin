@@ -202,6 +202,67 @@ describe('Travelers auto quote purchase (aa46c0f9)', () => {
     });
   });
 
+  describe('policy dates across DST and midnight crossings', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    test('fall-back: Nov 1 00:30 EDT still counts Nov 2 as tomorrow', async () => {
+      jest.useFakeTimers({ doNotFake: ['setTimeout'] });
+      jest.setSystemTime(new Date('2026-11-01T04:30:00Z'));
+
+      await expect(purchasePolicy({ ...DEFAULT_QUOTE, bundle: null, effectiveDate: '2026-11-01' }))
+        .rejects.toMatchObject({
+          name: 'ValidationError',
+          code: 'INVALID_EFFECTIVE_DATE',
+          status: 400,
+        });
+      expect(createSessionAndAlert).not.toHaveBeenCalled();
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+
+      const result = await purchasePolicy({ ...DEFAULT_QUOTE, bundle: null });
+      expect(result.effectiveDate).toBe('2026-11-02');
+    });
+
+    test('spring-forward: Mar 7 23:30 EST counts Mar 8 as tomorrow', async () => {
+      jest.useFakeTimers({ doNotFake: ['setTimeout'] });
+      jest.setSystemTime(new Date('2026-03-08T04:30:00Z'));
+
+      const result = await purchasePolicy({
+        ...DEFAULT_QUOTE,
+        bundle: null,
+        effectiveDate: '2026-03-08',
+      });
+      expect(result.effectiveDate).toBe('2026-03-08');
+
+      const defaulted = await purchasePolicy({ ...DEFAULT_QUOTE, bundle: null });
+      expect(defaulted.effectiveDate).toBe('2026-03-08');
+    });
+
+    test('midnight crossing: a request started before midnight binds on the new day', async () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-10-08T03:59:59.950Z'));
+
+      const bound = purchasePolicy({ ...DEFAULT_QUOTE, bundle: null });
+      const rejected = expect(purchasePolicy({
+        ...DEFAULT_QUOTE,
+        bundle: null,
+        effectiveDate: '2026-10-08',
+      })).rejects.toMatchObject({
+        name: 'ValidationError',
+        code: 'INVALID_EFFECTIVE_DATE',
+        status: 400,
+      });
+      await jest.advanceTimersByTimeAsync(300);
+
+      const result = await bound;
+      expect(result.effectiveDate).toBe('2026-10-09');
+      await rejected;
+      expect(createSessionAndAlert).not.toHaveBeenCalled();
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+  });
+
   test('annual payment plan drops the $3 installment fee', async () => {
     const result = await purchasePolicy({
       ...DEFAULT_QUOTE,
