@@ -61,11 +61,16 @@ jobs:
             --exclude=certbot \
             -C . .
 
+      # Everything this workflow writes on the host goes under /var/tmp, outside
+      # /home/ubuntu: that directory is the Docker build context of the deploy
+      # running there, and files appearing/vanishing in it mid-build (another
+      # repo's release upload + extract) produced images missing src/ and vendor/.
       - name: Upload release to EC2
         run: |
+          ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} 'mkdir -p /var/tmp/devindemos-deploy'
           scp -i ~/.ssh/ec2_key \
             /tmp/release.tar.gz \
-            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/release-${{ github.sha }}.tar.gz
+            ubuntu@${{ secrets.EC2_HOST }}:/var/tmp/devindemos-deploy/release-${{ github.sha }}.tar.gz
 
       # Optional: stage the Teams Workflow webhooks into the host .env from
       # Actions secrets, so they can be set without SSH access:
@@ -90,7 +95,7 @@ jobs:
           fi
           printf '%s' "$sync" | \
             ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
-            'umask 077 && mkdir -p /home/ubuntu/incoming && cat > /home/ubuntu/incoming/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
+            'umask 077 && mkdir -p /var/tmp/devindemos-deploy && cat > /var/tmp/devindemos-deploy/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
 
       # Everything below happens on the host through scripts/deploy-ec2.sh
       # (taken from the release being deployed): lock, backup, mirror the tree
@@ -101,11 +106,12 @@ jobs:
           ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} bash -s <<'EOF'
           set -euo pipefail
           SHA="${{ github.sha }}"
-          STAGING="/home/ubuntu/incoming/$SHA"
+          INCOMING=/var/tmp/devindemos-deploy
+          STAGING="$INCOMING/$SHA"
           rm -rf "$STAGING" && mkdir -p "$STAGING"
-          tar xzf "/home/ubuntu/release-$SHA.tar.gz" -C "$STAGING"
-          rm -f "/home/ubuntu/release-$SHA.tar.gz"
-          ENV_SYNC="/home/ubuntu/incoming/env-sync-$SHA-${{ github.run_id }}-${{ github.run_attempt }}"
+          tar xzf "$INCOMING/release-$SHA.tar.gz" -C "$STAGING"
+          rm -f "$INCOMING/release-$SHA.tar.gz"
+          ENV_SYNC="$INCOMING/env-sync-$SHA-${{ github.run_id }}-${{ github.run_attempt }}"
           trap 'rm -rf "$STAGING" "$ENV_SYNC"' EXIT
           ENV_SYNC_FILE="$ENV_SYNC" bash "$STAGING/scripts/deploy-ec2.sh" "$STAGING" "${{ github.repository }}@${SHA:0:7}"
           EOF
