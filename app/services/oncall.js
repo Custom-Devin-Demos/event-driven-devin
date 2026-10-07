@@ -507,14 +507,13 @@ function resolveSessionIdentity(requester, config) {
 
 /**
  * Create the auto-triage Devin session for a skin that opted in, and reply
- * with its link in the Slack alert thread, or on Teams for Teams-only alerts.
- * Never throws: a failed session must not
- * fail the alert that triggered it.
+ * with its link in the Slack alert thread. Never throws: a failed session must
+ * not fail the alert that triggered it.
  */
 async function triggerSkinDevinSession(
   scenario,
   skin,
-  { token, channel, threadTs, teamsWebhookUrl, runRef, requester },
+  { token, channel, threadTs, runRef, requester },
 ) {
   const config = skin.devinSession;
   if (!config || !config.auto) return null;
@@ -549,19 +548,6 @@ async function triggerSkinDevinSession(
     sessionId: session.sessionId,
   });
 
-  if (teamsWebhookUrl) {
-    try {
-      await postTeamsCard(teamsWebhookUrl, buildTeamsAlertCard({
-        title: '\u{1F50D} Devin is investigating this alert',
-        color: 'Accent',
-        facts: [['Alert', scenario.monitor], ['Incident Ref', runRef]],
-        actions: [{ title: 'View session', url: session.url }],
-      }));
-    } catch (error) {
-      logger.error('On-Call skin session link Teams post failed', { skin: skin.slug, error: error.message });
-    }
-  }
-  if (!channel || !threadTs) return session;
   try {
     await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [
       mrkdwnSection(`:mag: *Devin is investigating this alert* — <${session.url}|View session>`),
@@ -722,14 +708,11 @@ async function postOncallAlert(scenarioId, options = {}) {
     return { ok: false, error: 'Teams alert post failed' };
   }
   const requester = resolveRequesterIdentity(options);
-  const session = skin
+  // Teams-only alerts skip the skin's session: the Teams channel responder
+  // already investigates the alert, and a second session would duplicate it.
+  const session = skin && ts
     ? await triggerSkinDevinSession(scenario, skin, {
-      token,
-      channel: ts ? alertsChannel : null,
-      threadTs: ts,
-      teamsWebhookUrl: teams && !ts ? teamsWebhookUrl : null,
-      runRef,
-      requester,
+      token, channel: alertsChannel, threadTs: ts, runRef, requester,
     })
     : null;
   const sonarPR = triggerSkinSonarPR(skin, requester);
