@@ -572,29 +572,40 @@
       result.className = 'result-box';
       result.textContent = '';
       try {
-        const response = await fetch('/api/banking/transfer', {
+        const response = await fetch('/api/vaccines/order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            fromAccount: document.getElementById('fromAccount').value,
-            toAccount: document.getElementById('toAccount').value,
-            amount: parseFloat(document.getElementById('amount').value),
-            accountTier: document.getElementById('accountTier').value,
+            ndc: k.ndc,
+            quantity: qty,
+            practiceAccount: fromAccount.value,
+            shipTo: toAccount.value,
+            delivery: deliveryValue(),
+            poNumber: po,
             devinUserId: localStorage.getItem('devinUserId') || '',
             devinOrgId: localStorage.getItem('devinOrgId') || '',
             devinEmail: localStorage.getItem('devinEmail') || '',
           }),
         });
-        const data = await response.json();
-        if (!response.ok || !data.receipt) throw new Error('Order could not be placed.');
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.orderId) {
+          const err = new Error(data.error || 'Order could not be placed.');
+          err.status = response.status;
+          err.requestId = data.requestId;
+          throw err;
+        }
         result.className = 'result-box success';
-        result.textContent = 'Thank you. Order ' + data.receipt.receiptId + ' is placed: ' + qty + ' \u00d7 ' + k.label
+        result.textContent = 'Thank you. Order ' + data.orderId + ' is placed: ' + qty + ' \u00d7 ' + k.label
           + ' (' + qty * k.doses + ' doses) to ' + ship.dataset.name + '. Order total ' + orderTotal
           + (po ? ', PO ' + po : '') + '.';
         status.textContent = 'Order placed.';
-      } catch (_error) {
+      } catch (error) {
         result.className = 'result-box notice';
-        result.textContent = 'We couldn\u2019t place your order. Please try again or contact the GSK Vaccine Service Center at 1-866-475-8222.';
+        result.textContent = 'We couldn\u2019t place your order'
+          + (error.status ? ' (error ' + error.status + ')' : '') + '. '
+          + (error.status ? error.message + ' ' : '')
+          + 'If the problem continues, contact the GSK Vaccine Service Center at 1-866-475-8222'
+          + (error.requestId ? ' and quote reference ' + error.requestId : '') + '.';
         status.textContent = 'Order not placed.';
       } finally {
         locked.forEach((el) => { el.disabled = false; });
