@@ -114,6 +114,7 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 | Marketplace | `POST /api/oncall/marketplace/cart` | `app/services/oncall-verticals/marketplace.js` |
 | Apparel | `POST /api/oncall/apparel/bag` | `app/services/oncall-verticals/apparel.js` |
 | Grocery | `POST /api/oncall/grocery/checkout` | `app/services/oncall-verticals/grocery.js` |
+| Vaccines (GSK skin `fe4f39ba`) | `POST /api/oncall/vaccines/order` | `app/services/oncall-verticals/vaccines.js` |
 | Voice | `POST /api/oncall/voice/transcribe` | `app/services/oncall-verticals/voice.js` |
 | Samsara Fleet (native iOS/macOS app) | `POST /api/oncall/26a3d261/eta-failure` | `app/services/oncall-verticals/fleet.js` |
 | Partiful RSVP (native iOS/macOS app + `/partiful` web replica) | `POST /api/oncall/205bc15f/rsvp-page-failure` | `app/services/oncall-verticals/partiful.js` |

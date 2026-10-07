@@ -51,13 +51,13 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
     const skin = getOncallSkin('fe4f39ba');
     const { text, blocks } = await postCard(skin);
 
-    expect(text).toContain(':rotating_light: *[Triggered] Vaccine order submissions hang ~10s*');
+    expect(text).toContain(':rotating_light: *[Triggered] Vaccine order submissions failing (504)*');
     expect(text).toContain('*Service:* vaccine-ordering-api (GSK)');
-    expect(text).toContain('*Endpoint:* POST /api/orders/submit');
+    expect(text).toContain('*Endpoint:* POST /api/oncall/vaccines/order');
     expect(text).toContain('*Owner:* Jordan Patel (hcp-ordering-oncall) — fictional on-call persona');
-    expect(text).toContain('Release: hcp-ordering-web@1.0.3');
+    expect(text).toContain('Release: hcp-ordering-web@1.0.4');
     expect(text).toContain('/oncall/c/fe4f39ba');
-    expect(blocks).toContain('[Triggered] Vaccine order submissions hang ~10s');
+    expect(blocks).toContain('[Triggered] Vaccine order submissions failing (504)');
     expect(blocks).toContain('Service: `vaccine-ordering-api`');
     for (const out of [text, blocks]) {
       expect(out).not.toMatch(/banking|apex|transfer|payments-oncall|checkout-api/i);
