@@ -17,6 +17,7 @@ const jira = require('../app/services/jira');
 const routes = require('../app/routes/verticals/a1eccdb6');
 const {
   loadContinueWatching, buildContinueWatching, watchLog, CATALOG, JIRA_PROJECT_KEY,
+  reportFailure, resetIncidents,
 } = require('../app/services/verticals/a1eccdb6');
 
 function request(method, path, body) {
@@ -105,5 +106,48 @@ describe('routes', () => {
     const res = await request('POST', '/api/a1eccdb6/continue-watching', {});
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({ success: false, code: 'CW_PROFILE_REQUIRED', jira: null });
+  });
+});
+
+describe('a1eccdb6 failure reporting', () => {
+  beforeEach(() => resetIncidents());
+
+  test('concurrent failures share one filing and one dispatch', async () => {
+    let release;
+    const gate = new Promise((resolve) => { release = resolve; });
+    const fileIncident = jest.fn(async () => { await gate; return { issue: { key: 'JOAN-1' } }; });
+    const dispatch = jest.fn(async () => true);
+    const first = reportFailure('sig-a', fileIncident, dispatch);
+    const second = reportFailure('sig-a', fileIncident, dispatch);
+    release();
+    const [a, b] = await Promise.all([first, second]);
+    await a.dispatching;
+    expect(a.filed).toBe(b.filed);
+    expect(fileIncident).toHaveBeenCalledTimes(1);
+    expect(dispatch).toHaveBeenCalledTimes(1);
+  });
+
+  test('a dispatch that starts no session is retried against the same ticket', async () => {
+    const fileIncident = jest.fn(async () => ({ issue: { key: 'JOAN-2' } }));
+    const dispatch = jest.fn()
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    await (await reportFailure('sig-b', fileIncident, dispatch)).dispatching;
+    await (await reportFailure('sig-b', fileIncident, dispatch)).dispatching;
+    await reportFailure('sig-b', fileIncident, dispatch);
+    expect(fileIncident).toHaveBeenCalledTimes(1);
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch.mock.calls[1][0]).toEqual({ issue: { key: 'JOAN-2' } });
+  });
+
+  test('a dispatch that throws is retried on the next failure', async () => {
+    const fileIncident = jest.fn(async () => ({ issue: null }));
+    const dispatch = jest.fn()
+      .mockRejectedValueOnce(new Error('slack down'))
+      .mockResolvedValueOnce(true);
+    await (await reportFailure('sig-c', fileIncident, dispatch)).dispatching;
+    await (await reportFailure('sig-c', fileIncident, dispatch)).dispatching;
+    expect(fileIncident).toHaveBeenCalledTimes(1);
+    expect(dispatch).toHaveBeenCalledTimes(2);
   });
 });

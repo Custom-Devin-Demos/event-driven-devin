@@ -268,13 +268,49 @@ async function linkSessionOnTicket(issue, alertResult) {
   }
 }
 
-const recentTickets = new Map();
+// One incident per failure signature for TICKET_DEDUPE_MS. The ticket is filed once
+// (concurrent failures share the in-flight filing); the alert/session dispatch is
+// retried on later failures until one actually starts a session.
+const incidents = new Map();
 
-function recentTicket(signature) {
-  const hit = recentTickets.get(signature);
+function currentIncident(signature) {
+  const hit = incidents.get(signature);
   if (hit && Date.now() - hit.at < TICKET_DEDUPE_MS) return hit;
-  recentTickets.delete(signature);
+  incidents.delete(signature);
   return null;
+}
+
+async function reportFailure(signature, fileIncident, dispatch) {
+  let incident = currentIncident(signature);
+  if (!incident) {
+    incident = { at: Date.now(), dispatched: false, dispatching: null };
+    incident.filing = Promise.resolve()
+      .then(fileIncident)
+      .catch((error) => {
+        incidents.delete(signature);
+        throw error;
+      });
+    incidents.set(signature, incident);
+  }
+  const filed = await incident.filing;
+  if (!incident.dispatched && !incident.dispatching) {
+    incident.dispatching = Promise.resolve()
+      .then(() => dispatch(filed))
+      .then((started) => {
+        incident.dispatched = Boolean(started);
+      })
+      .catch((error) => {
+        logger.error('Failed to create Devin session for a1eccdb6 error', { error: error.message, signature });
+      })
+      .finally(() => {
+        incident.dispatching = null;
+      });
+  }
+  return { filed, dispatching: incident.dispatching };
+}
+
+function resetIncidents() {
+  incidents.clear();
 }
 
 /* ------------------------------------------------------------------ */
@@ -312,65 +348,70 @@ async function loadContinueWatching(data) {
     error.requestId = requestId;
     error.code = 'CW_RAIL_FAILED';
     const signature = `${profile.id}:${error.name}:${error.message}`;
-    const previous = recentTicket(signature);
-    if (previous) {
-      error.sentryEventId = previous.sentryEventId;
-      error.jira = previous.jira;
-      throw error;
-    }
 
-    const sentryEventId = Sentry.captureException(error, {
-      tags: {
-        route: ROUTE, service: SERVICE, profile_id: profile.id, alert_path: 'instant',
-      },
-      extra: { requestId, events: events.length, replayed: events.filter((e) => e.replayed).length },
-    });
-    const sentryUrl = sentryIssueUrl(sentryEventId);
-    const issue = await fileJiraTicket({
-      error, requestId, profile, events, sentryEventId, sentryUrl,
-    });
-    const jiraRef = issue ? { key: issue.key, url: issue.url } : null;
-    recentTickets.set(signature, { at: Date.now(), sentryEventId, jira: jiraRef });
-
-    createSessionAndAlert({
-      title: issue ? `${issue.key}: Continue Watching fails after watch-history replay` : 'Continue Watching fails after watch-history replay',
-      issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: sentryUrl,
-      culprit: 'app/services/verticals/a1eccdb6.js — buildContinueWatching',
-      errorType: error.name || 'Error',
-      errorValue: error.message,
-      devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail,
-      devinOrgId: data.devinOrgId,
-      service: SERVICE,
-      verticalLabel: 'Streaming — Continue Watching',
-      promptAppendix: buildPromptAppendix(issue, sentryEventId),
-      customer: 'a1eccdb6',
-      ...(SLACK_MEMBER_ID ? { slackMemberId: SLACK_MEMBER_ID, slackMemberIdFallback: SLACK_MEMBER_ID } : {}),
-      tags: [
-        { key: 'route', value: ROUTE },
-        { key: 'service', value: SERVICE },
-        { key: 'profile_id', value: profile.id },
-        ...(issue ? [{ key: 'jira', value: issue.key }] : []),
-      ],
-      extra: {
-        requestId, jiraKey: issue?.key || '', jiraUrl: issue?.url || '',
-      },
-      level: 'error',
-      platform: 'node',
-      firstSeen: '',
-      lastSeen: new Date().toISOString(),
-      count: '',
-      shortId: '',
-      project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || `${SERVICE}@1.0.0`,
-      environment: process.env.DD_ENV || 'prod',
-      triggeredRule: '',
-    })
-      .then((result) => linkSessionOnTicket(issue, result))
-      .catch((alertError) => {
-        logger.error('Failed to create Devin session for a1eccdb6 error', { error: alertError.message, requestId });
+    const fileIncident = async () => {
+      const sentryEventId = Sentry.captureException(error, {
+        tags: {
+          route: ROUTE, service: SERVICE, profile_id: profile.id, alert_path: 'instant',
+        },
+        extra: { requestId, events: events.length, replayed: events.filter((e) => e.replayed).length },
       });
+      const sentryUrl = sentryIssueUrl(sentryEventId);
+      const issue = await fileJiraTicket({
+        error, requestId, profile, events, sentryEventId, sentryUrl,
+      });
+      return { sentryEventId, sentryUrl, issue };
+    };
+
+    const dispatch = async ({ sentryEventId, sentryUrl, issue }) => {
+      const result = await createSessionAndAlert({
+        title: issue ? `${issue.key}: Continue Watching fails after watch-history replay` : 'Continue Watching fails after watch-history replay',
+        issueTitle: `${error.name}: ${error.message}`,
+        issueUrl: sentryUrl,
+        culprit: 'app/services/verticals/a1eccdb6.js — buildContinueWatching',
+        errorType: error.name || 'Error',
+        errorValue: error.message,
+        devinUserId: data.devinUserId,
+        devinEmail: data.devinEmail,
+        devinOrgId: data.devinOrgId,
+        service: SERVICE,
+        verticalLabel: 'Streaming — Continue Watching',
+        promptAppendix: buildPromptAppendix(issue, sentryEventId),
+        customer: 'a1eccdb6',
+        ...(SLACK_MEMBER_ID ? { slackMemberId: data.devinEmail ? '' : SLACK_MEMBER_ID, slackMemberIdFallback: SLACK_MEMBER_ID } : {}),
+        tags: [
+          { key: 'route', value: ROUTE },
+          { key: 'service', value: SERVICE },
+          { key: 'profile_id', value: profile.id },
+          ...(issue ? [{ key: 'jira', value: issue.key }] : []),
+        ],
+        extra: {
+          requestId, jiraKey: issue?.key || '', jiraUrl: issue?.url || '',
+        },
+        level: 'error',
+        platform: 'node',
+        firstSeen: '',
+        lastSeen: new Date().toISOString(),
+        count: '',
+        shortId: '',
+        project: 'event-driven-devin',
+        release: process.env.SENTRY_RELEASE || `${SERVICE}@1.0.0`,
+        environment: process.env.DD_ENV || 'prod',
+        triggeredRule: '',
+      });
+      await linkSessionOnTicket(issue, result);
+      return Boolean(result?.session);
+    };
+
+    let sentryEventId;
+    let jiraRef = null;
+    try {
+      const { filed } = await reportFailure(signature, fileIncident, dispatch);
+      sentryEventId = filed.sentryEventId;
+      jiraRef = filed.issue ? { key: filed.issue.key, url: filed.issue.url } : null;
+    } catch (reportError) {
+      logger.error('Failed to report a1eccdb6 rail failure', { error: reportError.message, requestId });
+    }
 
     error.sentryEventId = sentryEventId;
     error.jira = jiraRef;
@@ -389,4 +430,6 @@ module.exports = {
   PROFILES,
   REMEDIATION_DIRECTIVE,
   JIRA_PROJECT_KEY,
+  reportFailure,
+  resetIncidents,
 };
