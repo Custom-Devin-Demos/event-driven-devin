@@ -181,7 +181,6 @@
     }
     .err-dialog h2 { font-size: 22px; font-weight: 700; line-height: 1.25; margin-bottom: 8px; }
     .err-dialog p { font-size: 15px; color: var(--body); margin-bottom: 8px; }
-    .err-dialog .err-ref { font-size: 13px; color: var(--muted); }
     .err-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
     .err-actions button {
       flex: 1 1 140px; min-height: 48px; border-radius: 32px; font-size: 16px; font-weight: 700; cursor: pointer;
@@ -387,9 +386,8 @@
       <div class="err-icon" aria-hidden="true">!</div>
       <h2 id="errorTitle">Something went wrong</h2>
       <p id="errorText">We couldn&rsquo;t complete your plan change. Your current plan and bill haven&rsquo;t changed.</p>
-      <p class="err-ref" id="errorRef"></p>
       <div class="err-actions">
-        <button type="button" class="primary" id="errorRetry">Try again</button>
+        <button type="button" class="primary" id="errorView">View my plan</button>
         <button type="button" class="secondary" id="errorClose">Close</button>
       </div>
     </div>
@@ -498,13 +496,15 @@
       const errorDialog = document.getElementById('errorDialog');
       function showErrorDialog(message) {
         document.getElementById('errorText').textContent = message;
-        document.getElementById('errorRef').textContent = 'Reference ' + Date.now().toString(36).toUpperCase();
         if (typeof errorDialog.showModal === 'function' && !errorDialog.open) errorDialog.showModal();
       }
       document.getElementById('errorClose').addEventListener('click', () => errorDialog.close());
-      document.getElementById('errorRetry').addEventListener('click', () => {
+      document.getElementById('errorView').addEventListener('click', () => {
         errorDialog.close();
-        document.getElementById('submitBtn').focus();
+        const lineCard = document.getElementById('lineHeading');
+        lineCard.setAttribute('tabindex', '-1');
+        lineCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        lineCard.focus({ preventScroll: true });
       });
 
       form.addEventListener('submit', async (e) => {
@@ -547,9 +547,9 @@
           }
         } catch (err) {
           if (err && err.name === 'AbortError') {
-            showResult('error', 'We couldn\u2019t change your plan right now',
-              ['Your current plan hasn\u2019t changed. Please try again in a few minutes.']);
-            showErrorDialog('Your plan change timed out before it could be completed. Your current plan and bill haven\u2019t changed.');
+            showResult('error', 'We couldn\u2019t confirm your plan change',
+              ['Check your plan in MyRogers before trying again.']);
+            showErrorDialog('Your plan change timed out and we couldn\u2019t confirm whether it went through. Check your plan in MyRogers before trying again.');
           } else {
             showResult('error', 'We couldn\u2019t reach MyRogers', ['Check your connection and try again.']);
           }
