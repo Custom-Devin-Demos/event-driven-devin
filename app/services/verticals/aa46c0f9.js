@@ -194,6 +194,20 @@ async function purchasePolicy(data) {
   }
   const bundle = resolveBundle(data.bundle);
 
+  const paymentPlan = data.paymentPlan || 'monthly';
+  if (!['monthly', 'annual'].includes(paymentPlan)) {
+    throw validationError(
+      `Unknown payment plan: ${data.paymentPlan}`,
+      'INVALID_PAYMENT_PLAN',
+    );
+  }
+  if (data.effectiveDate && !/^\d{4}-\d{2}-\d{2}$/.test(data.effectiveDate)) {
+    throw validationError(
+      `Invalid effective date: ${data.effectiveDate}`,
+      'INVALID_EFFECTIVE_DATE',
+    );
+  }
+
   const startTime = Date.now();
   const quoteId = uuidv4();
   const policyNumber = `TRV-${String(Math.floor(100000 + Math.random() * 900000))}`;
@@ -253,7 +267,6 @@ async function purchasePolicy(data) {
       (sum, policy) => sum + policy.premium + policy.premiumTax,
       0,
     );
-    const paymentPlan = data.paymentPlan === 'annual' ? 'annual' : 'monthly';
     const monthlyPremium = paymentPlan === 'monthly'
       ? annualPremium / 12 + 3
       : annualPremium / 12;

@@ -244,7 +244,7 @@
           <label class="choice" data-pkg="basic">
             <input type="radio" name="pkg" value="basic">
             <div class="top"><span class="radio"></span><span class="label">Basic</span></div>
-            <div class="price"><span data-pkg-price="basic">$&ndash;</span><small> /mo</small></div>
+            <div class="price"><span data-pkg-price="basic">$&ndash;</span><small data-pkg-unit="basic"> /mo</small></div>
             <ul>
               <li><svg class="ic"><use href="#check-1-12"></use></svg>Liability 25/50/25</li>
               <li><svg class="ic"><use href="#check-1-12"></use></svg>$1,000 collision deductible</li>
@@ -255,7 +255,7 @@
             <span class="tag">Most popular</span>
             <input type="radio" name="pkg" value="standard" checked>
             <div class="top"><span class="radio"></span><span class="label">Standard</span></div>
-            <div class="price"><span data-pkg-price="standard">$&ndash;</span><small> /mo</small></div>
+            <div class="price"><span data-pkg-price="standard">$&ndash;</span><small data-pkg-unit="standard"> /mo</small></div>
             <ul>
               <li><svg class="ic"><use href="#check-1-12"></use></svg>Liability 100/300/100</li>
               <li><svg class="ic"><use href="#check-1-12"></use></svg>$500 collision deductible</li>
@@ -265,7 +265,7 @@
           <label class="choice" data-pkg="premier">
             <input type="radio" name="pkg" value="premier">
             <div class="top"><span class="radio"></span><span class="label">Premier</span></div>
-            <div class="price"><span data-pkg-price="premier">$&ndash;</span><small> /mo</small></div>
+            <div class="price"><span data-pkg-price="premier">$&ndash;</span><small data-pkg-unit="premier"> /mo</small></div>
             <ul>
               <li><svg class="ic"><use href="#check-1-12"></use></svg>Liability 250/500/250</li>
               <li><svg class="ic"><use href="#check-1-12"></use></svg>Premier New Car Replacement&reg;</li>
@@ -440,7 +440,9 @@
     syncChoices();
     var pkg = selected('pkg'); var bundleKey = selected('bundle'); var plan = selected('plan');
     Object.keys(PACKAGES).forEach(function (k) {
-      document.querySelector('[data-pkg-price="' + k + '"]').textContent = money(estimate(k, bundleKey, 'monthly').monthly);
+      var cardEstimate = estimate(k, bundleKey, plan);
+      document.querySelector('[data-pkg-price="' + k + '"]').textContent = plan === 'monthly' ? money(cardEstimate.monthly) : money(cardEstimate.annual);
+      document.querySelector('[data-pkg-unit="' + k + '"]').textContent = plan === 'monthly' ? ' /mo' : ' /yr';
     });
     var e = estimate(pkg, bundleKey, plan);
     if (plan === 'monthly') {
@@ -465,6 +467,7 @@
   }
 
   var eff = new Date(); eff.setDate(eff.getDate() + 1);
+  var EFFECTIVE_DATE = eff.getFullYear() + '-' + String(eff.getMonth() + 1).padStart(2, '0') + '-' + String(eff.getDate()).padStart(2, '0');
   document.getElementById('eff-date').textContent = eff.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   document.querySelectorAll('.choice input').forEach(function (i) { i.addEventListener('change', render); });
   render();
@@ -516,6 +519,7 @@
         coveragePackage: selected('pkg'),
         bundle: bundle === 'none' ? null : bundle,
         paymentPlan: selected('plan'),
+        effectiveDate: EFFECTIVE_DATE,
         devinUserId: localStorage.getItem('devinUserId') || '',
         devinOrgId: localStorage.getItem('devinOrgId') || '',
         devinEmail: localStorage.getItem('devinEmail') || '',
