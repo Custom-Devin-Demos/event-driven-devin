@@ -28,6 +28,14 @@ const {
   reportRsvpPageFailure,
   getRsvpPageFailureStatus,
 } = require('../services/oncall-verticals/partiful');
+const {
+  ACCOUNT_OPENING,
+  isAccountOpeningReport,
+  isKnownReference: isKnownAccountOpeningReference,
+  hasReference: hasAccountOpeningReference,
+  normalizeReport: normalizeAccountOpeningReport,
+  reportIdCheckFailure,
+} = require('../services/oncall-verticals/account-opening');
 
 const router = express.Router();
 
@@ -571,6 +579,64 @@ router.get(`${PARTIFUL_FAILURE_PATH}/:reference`, (req, res) => {
   const status = getRsvpPageFailureStatus(req.params.reference, token);
   if (!status) return res.status(404).json({ error: 'Unknown reference' });
   return res.json(status);
+});
+
+const ACCOUNT_OPENING_FAILURE_PATH = `/api/oncall/${ACCOUNT_OPENING.slug}/id-check-failure`;
+const accountOpeningTriggerCap = oncallCap('trigger');
+
+/**
+ * POST /api/oncall/6c2cc636/id-check-failure — online ID check rejection
+ * reported by the native CommBank account-opening app when Agree & Continue
+ * cannot accept the selected document. Acknowledged at once with the
+ * incident reference; exactly one alert card and one macOS Devin session
+ * follow asynchronously, the session linked in the alert's thread.
+ */
+router.post(ACCOUNT_OPENING_FAILURE_PATH, (req, res, next) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  if (!isAccountOpeningReport(body)) {
+    return res.status(400).json({
+      received: false,
+      error: `Expected an account-opening/<ios|macos> source with service ${ACCOUNT_OPENING.service}`,
+    });
+  }
+  const report = normalizeAccountOpeningReport(body);
+  if (!report) {
+    return res.status(400).json({
+      received: false,
+      error: 'Expected a known reason code plus bounded document and applicant facts',
+    });
+  }
+  // A retried report with a reference the pipeline already knows is
+  // acknowledged here, before the shared trigger cap, so duplicates
+  // never burn quota. Unknown references continue into the cap.
+  if (report.reference && isKnownAccountOpeningReference(report.reference)) {
+    return res.status(202).json({
+      received: true,
+      reference: report.reference,
+      service: ACCOUNT_OPENING.service,
+      sessionRequested: true,
+      receivedAt: new Date().toISOString(),
+    });
+  }
+  // A cached but incomplete reference is a retry of the same incident:
+  // it bypasses the trigger cap entirely rather than consuming it.
+  if (report.reference && hasAccountOpeningReference(report.reference)) {
+    req.accountOpeningRetry = true;
+  }
+  req.accountOpeningReport = report;
+  next();
+}, (req, res, next) => (req.accountOpeningRetry ? next() : accountOpeningTriggerCap(req, res, next)), (req, res) => {
+  const result = reportIdCheckFailure(req.accountOpeningReport);
+  if (!result) {
+    return res.status(400).json({ received: false, error: 'Invalid report' });
+  }
+  return res.status(202).json({
+    received: true,
+    reference: result.reference,
+    service: ACCOUNT_OPENING.service,
+    sessionRequested: true,
+    receivedAt: new Date().toISOString(),
+  });
 });
 
 /**
