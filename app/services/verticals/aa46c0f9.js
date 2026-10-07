@@ -115,7 +115,7 @@ function roundCents(amount) {
  */
 function resolveBundle(bundle) {
   if (bundle === undefined || bundle === null || bundle === 'none') return null;
-  const offer = BUNDLE_OFFERS[bundle];
+  const offer = Object.hasOwn(BUNDLE_OFFERS, bundle) ? BUNDLE_OFFERS[bundle] : null;
   if (!offer) {
     throw validationError(`Unknown bundle: ${bundle}`, 'INVALID_BUNDLE');
   }
@@ -182,7 +182,10 @@ async function purchasePolicy(data) {
     throw validationError('At least one vehicle is required', 'NO_VEHICLES');
   }
 
-  const coveragePackage = COVERAGE_PACKAGES[data.coveragePackage || 'standard'];
+  const packageKey = data.coveragePackage || 'standard';
+  const coveragePackage = Object.hasOwn(COVERAGE_PACKAGES, packageKey)
+    ? COVERAGE_PACKAGES[packageKey]
+    : null;
   if (!coveragePackage) {
     throw validationError(
       `Unknown coverage package: ${data.coveragePackage}`,
