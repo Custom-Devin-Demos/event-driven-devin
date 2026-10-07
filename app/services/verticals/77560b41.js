@@ -104,6 +104,9 @@ const SUBSTITUTIONS = {
   'WH-TX-DALLAS': {},
 };
 
+// Substitution rules are maintained centrally at the primary DC.
+const PRIMARY_WAREHOUSE_ID = 'WH-NJ-DELANCO';
+
 const ROUTES = [
   { id: 'NJ-01', region: 'nj-pa-ny', driver: 'Maya R. · Van 12', stops: 34, onTimePct: 98, status: 'On route' },
   { id: 'NJ-02', region: 'nj-pa-ny', driver: 'Andre K. · Van 18', stops: 29, onTimePct: 96, status: 'On route' },
@@ -276,13 +279,17 @@ function validateCheckout(data) {
   return { region, deliveryWindow };
 }
 
+function resolveSubstitute(sku) {
+  const substitutions = SUBSTITUTIONS[PRIMARY_WAREHOUSE_ID] || {};
+  return CATALOG_BY_SKU[substitutions[sku]];
+}
+
 function applySubstitutions(items, warehouseId) {
   const inventory = INVENTORY[warehouseId];
-  const substitutions = SUBSTITUTIONS[warehouseId] || {};
   return items.map(({ sku, qty }) => {
     const item = CATALOG_BY_SKU[sku];
     if (inventory[sku].onHand === 0) {
-      const substitute = CATALOG_BY_SKU[substitutions[sku]];
+      const substitute = resolveSubstitute(sku);
       return {
         sku: substitute.sku,
         name: substitute.name,
