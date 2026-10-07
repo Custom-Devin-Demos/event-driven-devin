@@ -35,6 +35,11 @@ KEEP_RELEASES=${KEEP_RELEASES:-5}
 HEALTH_URL=${HEALTH_URL:-http://localhost:3000/health}
 BASE_URL=${BASE_URL:-http://localhost:3000}
 MIN_FREE_MB=${MIN_FREE_MB:-3072}
+# Docker build cache to keep across deploys (BuildKit evicts least-recently
+# used entries above this); one full rebuild of the stack is ~3.5G.
+BUILD_CACHE_KEEP=${BUILD_CACHE_KEEP:-1GB}
+PM2_LOG_DIR=${PM2_LOG_DIR:-$APP_DIR/.pm2/logs}
+PM2_LOG_MAX_MB=${PM2_LOG_MAX_MB:-50}
 
 # Vertical registries: never deleted on the host (see header).
 PROTECTED_APP=(routes/verticals public/verticals services/verticals)
@@ -73,11 +78,22 @@ if ! flock -w 900 8; then die "another deploy has held $APP_DIR/.deploy.lock for
 log "lock acquired"
 
 # ── 1. disk + backups ───────────────────────────────────────────────────────
+# Every deploy rebuilds images, so dangling images, build cache and pm2 logs
+# accumulate on the root volume; reclaim them before the free-space check.
 docker image prune -f >/dev/null || true
-# Every deploy rebuilds images, so stale build cache accumulates on the 19G root.
-docker builder prune -f --filter until=24h >/dev/null || true
+docker builder prune -f --keep-storage "$BUILD_CACHE_KEEP" >/dev/null || true
+if [ -d "$PM2_LOG_DIR" ]; then
+  find "$PM2_LOG_DIR" -maxdepth 1 -type f -name '*.log' -size +"${PM2_LOG_MAX_MB}M" \
+    -exec truncate -s 0 {} + 2>/dev/null || true
+fi
 AVAIL_MB=$(df -Pm / | awk 'NR==2 {print $4}')
-[ "$AVAIL_MB" -ge "$MIN_FREE_MB" ] || die "only ${AVAIL_MB}MB free on /, need ${MIN_FREE_MB}MB"
+if [ "$AVAIL_MB" -lt "$MIN_FREE_MB" ]; then
+  log "disk usage on /:"
+  df -h / | log_lines '   '
+  docker system df 2>/dev/null | log_lines '   ' || true
+  du -sh "$RELEASES_DIR" "$PM2_LOG_DIR" /var/log 2>/dev/null | log_lines '   ' || true
+  die "only ${AVAIL_MB}MB free on /, need ${MIN_FREE_MB}MB"
+fi
 
 mkdir -p "$RELEASES_DIR"
 cp "$APP_DIR/.env" "$RELEASES_DIR/env.$TS"
