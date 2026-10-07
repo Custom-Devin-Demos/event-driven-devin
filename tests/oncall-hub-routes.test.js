@@ -63,6 +63,20 @@ describe('on-call hub routes', () => {
     expect(directHtml).toContain('/api/oncall/marketplace/cart');
   });
 
+  test('the Nordstrom sweater uses the apparel endpoint without changing the shoe skin', async () => {
+    const [direct, skinned, shoe] = await Promise.all([
+      fetch(`${baseUrl}/0d1ff688`),
+      fetch(`${baseUrl}/oncall/c/0d1ff688`),
+      fetch(`${baseUrl}/oncall/c/4b663efb`),
+    ]);
+    expect(direct.status).toBe(200);
+    expect(shoe.status).toBe(200);
+    const directHtml = await direct.text();
+    expect(directHtml).toEqual(await skinned.text());
+    expect(directHtml).toContain('/api/oncall/apparel/bag');
+    expect(await shoe.text()).toContain('/api/oncall/marketplace/cart');
+  });
+
   test('the shim sends the per-user alert destination and keeps a Teams fallback notice open', async () => {
     const html = await (await fetch(`${baseUrl}/oncall/c/63dbb52f`)).text();
     expect(html).toContain("localStorage.getItem('alertDestination')");
