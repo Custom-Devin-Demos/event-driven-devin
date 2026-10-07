@@ -1402,7 +1402,7 @@ const ONCALL_SKINS = {
     slug: '0d1ff688',
     company: 'Nordstrom',
     brandMark: 'N',
-    vertical: 'marketplace',
+    vertical: 'apparel',
     hideRibbon: true,
     oncallOnly: true,
     page: {

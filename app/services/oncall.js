@@ -179,6 +179,26 @@ const ALERT_SCENARIOS = {
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },
+  apparel: {
+    vertical: 'apparel',
+    page: '0d1ff688.html',
+    apiPath: '/api/apparel/bag',
+    oncallApiPath: '/api/oncall/apparel/bag',
+    owner: 'Dana Whitfield (bag-checkout-oncall)',
+    brand: 'Department Store (Product Detail)',
+    service: 'bag-api',
+    endpoint: 'POST /api/oncall/apparel/bag',
+    monitor: '5xx rate — POST /api/oncall/apparel/bag',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/apparel/bag,http.status_code:500}',
+    metricValue: '500 on ~100% of add-to-bag requests',
+    threshold: '> 2% error rate',
+    baseline: '<0.2% (7-day)',
+    release: 'pdp-web@2.14.0',
+    symptom: 'Add to Bag fails immediately with HTTP 500 (TypeError in bag-api). Latency is normal. Onset coincides with the pdp-web 2.14.0 size-picker release.',
+    impact: 'Shoppers cannot add apparel to their Bag; every Add to Bag errors right after a size is picked.',
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   grocery: {
     vertical: 'grocery',
     page: 'e2d82a44.html',

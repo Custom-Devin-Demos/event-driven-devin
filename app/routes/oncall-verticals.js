@@ -7,6 +7,7 @@ const { finalizeTranscript } = require('../services/oncall-verticals/voice');
 const { runCompletion } = require('../services/oncall-verticals/inference');
 const { processQuote } = require('../services/oncall-verticals/industrials');
 const { addToCart } = require('../services/oncall-verticals/marketplace');
+const { addToBag } = require('../services/oncall-verticals/apparel');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
@@ -241,6 +242,29 @@ router.post('/api/oncall/marketplace/cart', async (req, res) => {
         : error.message,
       errorClass: error.name,
       code: error.code || 'CART_ADD_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/apparel/bag — add an apparel style to the bag
+ */
+router.post('/api/oncall/apparel/bag', async (req, res) => {
+  try {
+    const result = await addToBag({
+      styleId: req.body.styleId || '8688977',
+      size: req.body.size,
+      color: req.body.color,
+      quantity: req.body.quantity || 1,
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(error.code === 'STYLE_NOT_FOUND' ? 404 : 500).json({
+      success: false,
+      error: 'We couldn\u2019t add this item to your Bag.',
+      errorClass: error.name,
+      code: error.code || 'BAG_ADD_FAILED',
       requestId: req.requestId,
     });
   }
