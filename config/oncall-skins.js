@@ -2961,6 +2961,25 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A ROGERS SITE — internal demo only, not affiliated with, endorsed by, or a real Rogers product.',
   },
+  '11ce35c8': {
+    slug: '11ce35c8',
+    company: 'povo',
+    brandMark: 'p',
+    vertical: 'telco',
+    page: { file: '11ce35c8.html', title: 'Mua topping | povo2.0' },
+    theme: {
+      '--accent': '#FFFA00',
+      '--ink': '#333333',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#333333',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'povo Customer Support',
+    alertCard: {
+      impact: 'Topping purchases in the povo2.0 app wait ~9 seconds before confirming; purchase completion rate is dropping.',
+    },
+    disclaimer: 'NOT ACTUALLY A POVO SITE — internal demo only, not affiliated with, endorsed by, or a real povo / KDDI product.',
+  },
 };
 
 function getOncallSkin(slug) {
