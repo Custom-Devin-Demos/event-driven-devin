@@ -144,13 +144,15 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     await expect(postOncallAlert('banking', { runRef: 'run-abc' })).rejects.toThrow('channel_not_found');
   });
 
-  test('Teams-only alerts still run opted-in skin automation, without a Slack thread reply', async () => {
+  test('Teams-only alerts leave the investigation to the Teams responder', async () => {
     setEnv({ slack: false, teams: true });
     const skin = { ...getOncallSkin('4b663efb'), teamsAlerts: true };
     const result = await postOncallAlert(skin.vertical, { skin });
-    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(createDevinSession).not.toHaveBeenCalled();
     expect(postThreadReply).not.toHaveBeenCalled();
-    expect(result).toMatchObject({ ok: true, teams: true, sessionUrl: 'https://app.devin.ai/sessions/session-abc' });
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({ ok: true, teams: true });
+    expect(result.sessionUrl).toBeUndefined();
   });
 
   test('skins without teamsAlerts stay Slack-only even with a Teams webhook', async () => {
@@ -266,17 +268,27 @@ describe('per-user alert destination (Slack or Teams, hub-local setting)', () =>
     expect(result).toMatchObject({ ok: true, ts: '1700000000.000100', teams: true });
   });
 
-  test('a Teams-only auto-session skin posts the session link to Teams', async () => {
+  test('a Teams choice on an auto-session skin posts only the alert card, with no session', async () => {
     setEnv({ slack: true, teams: true });
     const skin = { ...LOANTRACK, teamsAlerts: false, devinSession: { auto: true } };
     const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'teams', skin });
-    expect(createDevinSession).toHaveBeenCalledTimes(1);
-    expect(result).toMatchObject({ ok: true, teams: true, sessionUrl: 'https://app.devin.ai/sessions/session-abc' });
+    expect(createDevinSession).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ ok: true, teams: true });
+    expect(result.sessionUrl).toBeUndefined();
     expect(postMessage).not.toHaveBeenCalled();
     expect(postThreadReply).not.toHaveBeenCalled();
-    expect(axios.post).toHaveBeenCalledTimes(2);
-    const followUp = axios.post.mock.calls[1][1].attachments[0].content;
-    expect(followUp.actions).toEqual([{ type: 'Action.OpenUrl', title: 'View session', url: 'https://app.devin.ai/sessions/session-abc' }]);
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(axios.post.mock.calls[0][1])).not.toContain('Devin is investigating');
+  });
+
+  test('a Slack choice on an auto-session skin still links the session in the alert thread', async () => {
+    setEnv({ slack: true, teams: true });
+    const skin = { ...LOANTRACK, teamsAlerts: false, devinSession: { auto: true } };
+    const result = await postOncallAlert('banking', { runRef: 'run-abc', destination: 'slack', skin });
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(postThreadReply).toHaveBeenCalledTimes(1);
+    expect(axios.post).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ ok: true, ts: '1700000000.000100', sessionUrl: 'https://app.devin.ai/sessions/session-abc' });
   });
 });
 
