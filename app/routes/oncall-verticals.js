@@ -7,6 +7,7 @@ const { finalizeTranscript } = require('../services/oncall-verticals/voice');
 const { runCompletion } = require('../services/oncall-verticals/inference');
 const { processQuote } = require('../services/oncall-verticals/industrials');
 const { addToCart } = require('../services/oncall-verticals/marketplace');
+const { submitOrder } = require('../services/oncall-verticals/vaccines');
 const { addToBag } = require('../services/oncall-verticals/apparel');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
@@ -242,6 +243,34 @@ router.post('/api/oncall/marketplace/cart', async (req, res) => {
         : error.message,
       errorClass: error.name,
       code: error.code || 'CART_ADD_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/vaccines/order — submit a practice's vaccine order
+ */
+router.post('/api/oncall/vaccines/order', async (req, res) => {
+  try {
+    const result = await submitOrder({
+      ndc: req.body.ndc || '5816084952',
+      quantity: req.body.quantity || 1,
+      practiceAccount: req.body.practiceAccount || 'ACCT-1004',
+      shipTo: req.body.shipTo || 'ACCT-2101',
+      accountTier: req.body.accountTier || 'standard',
+      delivery: req.body.delivery === 'nextday' ? 'nextday' : 'standard',
+    });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'ALLOCATION_TIMEOUT';
+    res.status(isTimeout ? 504 : 500).json({
+      success: false,
+      error: isTimeout
+        ? 'Your order timed out while confirming vaccine allocation. Please try again in a few minutes.'
+        : error.message,
+      errorClass: error.name,
+      code: error.code || 'ORDER_SUBMIT_FAILED',
       requestId: req.requestId,
     });
   }
