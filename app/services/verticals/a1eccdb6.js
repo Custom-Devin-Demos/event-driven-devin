@@ -14,7 +14,7 @@ const JIRA_ASSIGNEE_ACCOUNT_ID = process.env.A1ECCDB6_JIRA_ASSIGNEE_ACCOUNT_ID |
 const SLACK_MEMBER_ID = process.env.A1ECCDB6_SLACK_MEMBER_ID || '';
 
 const RAIL_LIMIT = 12;
-const TICKET_DEDUPE_MS = 10 * 60 * 1000;
+const TICKET_DEDUPE_MS = 60 * 1000;
 
 const CATALOG = {
   'ep-harbor-lights-s2e4': { title: 'Harbor Lights', subtitle: 'S2 E4 · The Long Tide', type: 'episode', durationSeconds: 3120, art: 'harbor' },
