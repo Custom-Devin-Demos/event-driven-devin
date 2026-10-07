@@ -2896,6 +2896,31 @@ const ONCALL_SKINS = {
     supportCenter: 'Shop Cummins Customer Support',
     disclaimer: 'NOT ACTUALLY A CUMMINS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cummins product.',
   },
+  '0aa7a097': {
+    slug: '0aa7a097',
+    company: 'Peacock',
+    brandMark: 'P',
+    vertical: 'grocery',
+    oncallOnly: true,
+    page: { file: '0aa7a097.html', title: 'Watch TV Shows Streaming | Peacock' },
+    alertCard: {
+      title: '5xx rate spiking \u2014 video start failures',
+      team: 'playback-oncall',
+      release: 'player-web@1.0.6',
+      metricValue: '500 on ~100% of Play requests',
+      symptom: 'Pressing Play fails immediately with HTTP 500 on every title. Latency is normal. Onset coincides with the weekly offers catalog refresh.',
+      impact: 'Viewers cannot start any title; every Play shows a playback error before the first frame.',
+    },
+    theme: {
+      '--accent': '#FCCC12',
+      '--ink': '#111111',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Peacock Help Center',
+    disclaimer: 'NOT ACTUALLY A PEACOCK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Peacock product.',
+  },
 };
 
 function getOncallSkin(slug) {
