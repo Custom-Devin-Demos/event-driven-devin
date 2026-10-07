@@ -143,7 +143,7 @@ if [ -n "${ENV_SYNC_FILE:-}" ] && [ -s "$ENV_SYNC_FILE" ]; then
 fi
 # Staged files abandoned by interrupted runs (never applied) are pruned here,
 # under the lock, so a waiting run's freshly staged file is never touched.
-find "$(dirname "${ENV_SYNC_FILE:-/home/ubuntu/incoming/x}")" -maxdepth 1 -name 'env-sync-*' -mmin +60 -delete 2>/dev/null || true
+find "$(dirname "${ENV_SYNC_FILE:-/var/tmp/devindemos-deploy/x}")" -maxdepth 1 -name 'env-sync-*' -mmin +60 -delete 2>/dev/null || true
 
 # Back up exactly the top-level entries this deploy will touch.
 mapfile -t TOP_ENTRIES < <(cd "$STAGING" && ls -A)
@@ -290,8 +290,63 @@ bash "$APP_DIR/scripts/host-bootstrap.sh" 2>&1 | log_lines || fail "host bootstr
 compose config -q || fail "docker compose config is invalid"
 AVAIL_MEM_MB=$(awk '/^(MemAvailable|SwapFree):/ {s += $2} END {print int(s / 1024)}' /proc/meminfo)
 log "building with ${AVAIL_MEM_MB}MB available (RAM + swap)"
+# The build context is the live $APP_DIR, and files written there while the
+# context is sent (release uploads, pm2, guards) have produced images missing
+# whole directories that were on disk (src/, vendor/). Check that the image
+# holds every directory the release ships before starting it; one plain
+# rebuild has always recovered.
+dockerignored() {  # top-level name vs .dockerignore (nested paths/negations ignored)
+  local pat
+  while IFS= read -r pat; do
+    pat=${pat%%#*}; pat=${pat//[[:space:]]/}; pat=${pat%/}
+    [ -z "$pat" ] && continue
+    case $pat in */*|!*) continue;; esac
+    # shellcheck disable=SC2053  # $pat is a glob on purpose
+    [[ $1 == $pat ]] && return 0
+  done < "$APP_DIR/.dockerignore"
+  return 1
+}
+expected_image_dirs() {
+  local e
+  for e in "${TOP_ENTRIES[@]}"; do
+    [ -d "$STAGING/$e" ] && [ "$e" != node_modules ] && ! dockerignored "$e" && echo "$e"
+  done
+}
+checkout_image() {  # same rule compose applies: service image, else <project>-<service>
+  local img="" cfg
+  cfg=$(compose config --format json 2>/dev/null) || cfg=""
+  if [ -n "$cfg" ]; then
+    if command -v jq >/dev/null 2>&1; then
+      img=$(jq -r '.services["checkout-api"].image // (.name + "-checkout-api")' <<<"$cfg" 2>/dev/null) || img=""
+    elif command -v python3 >/dev/null 2>&1; then
+      img=$(python3 -c 'import json,sys; c=json.load(sys.stdin); print(c["services"]["checkout-api"].get("image") or c["name"]+"-checkout-api")' <<<"$cfg" 2>/dev/null) || img=""
+    fi
+  fi
+  [ -n "$img" ] && [ "$img" != null ] || img=$(compose config --images 2>/dev/null | grep -m1 -- '-checkout-api$' || true)
+  echo "$img"
+}
+verify_image() {
+  local img have d missing=()
+  img=$(checkout_image)
+  [ -n "$img" ] || { log "cannot resolve the checkout-api image name from compose config"; return 1; }
+  # non-empty top-level directories of /app in the image
+  have=$(docker run --rm --entrypoint sh "$img" -c \
+    'cd /app && for d in $(ls -A); do [ -d "$d" ] && [ "$(ls -A "$d")" ] && echo "$d"; done; true') \
+    || { log "cannot list /app in image $img"; return 1; }
+  for d in $(expected_image_dirs); do
+    grep -qxF "$d" <<<"$have" || missing+=("$d")
+  done
+  [ ${#missing[@]} = 0 ] && return 0
+  log "built image $img is missing or empty: ${missing[*]} (present in release and on disk)"
+  return 1
+}
 # One image at a time: parallel builds are what OOM-hung the host.
 compose build checkout-api >/dev/null || fail "checkout-api image build failed"
+if ! verify_image; then
+  log "rebuilding checkout-api once (incomplete build context)"
+  compose build checkout-api >/dev/null || fail "checkout-api image rebuild failed"
+  verify_image || fail "checkout-api image still incomplete after rebuild"
+fi
 compose build loadgen >/dev/null || fail "loadgen image build failed"
 compose up -d --no-deps checkout-api >/dev/null || fail "checkout-api failed to start"
 
