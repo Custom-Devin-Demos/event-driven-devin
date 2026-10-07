@@ -2883,7 +2883,6 @@ const ONCALL_SKINS = {
     alertCard: {
       title: '5xx rate spiking \u2014 video start failures',
       team: 'playback-oncall',
-      service: 'playback-api',
       release: 'player-web@1.0.6',
       metricValue: '500 on ~100% of Play requests',
       symptom: 'Pressing Play fails immediately with HTTP 500 on every title. Latency is normal. Onset coincides with the weekly offers catalog refresh.',
