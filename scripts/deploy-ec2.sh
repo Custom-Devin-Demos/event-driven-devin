@@ -91,7 +91,7 @@ if [ "$AVAIL_MB" -lt "$MIN_FREE_MB" ]; then
   log "disk usage on /:"
   df -h / | log_lines '   '
   docker system df 2>/dev/null | log_lines '   ' || true
-  du -sh "$RELEASES_DIR" "$PM2_LOG_DIR" /var/lib/docker /var/log 2>/dev/null | log_lines '   ' || true
+  du -sh "$RELEASES_DIR" "$PM2_LOG_DIR" /var/log 2>/dev/null | log_lines '   ' || true
   die "only ${AVAIL_MB}MB free on /, need ${MIN_FREE_MB}MB"
 fi
 
