@@ -20,21 +20,16 @@ const { getScopedConfig } = require('../../incidentModes');
  *    per-client rate limit (VendorOps VO-8821).
  *  - VO-8821 is closed: the partner raised the per-client ceiling to 32
  *    concurrent calls, so the temporary cap of 4 no longer applies. Any value
- *    up to 32 is sanctioned and needs no further VendorOps sign-off.
- *  - Default raised 1 → 16 so a 90-day window screens in ~3 partner round
- *    trips instead of ~36. Overlapping transfers share the 32-call
- *    per-client ceiling through the process-wide screening slot pool below.
+ *    up to 32 is sanctioned and needs no further VendorOps sign-off; the
+ *    shipped default was never raised back.
  */
-const SCREENING_PARTNER_MAX_IN_FLIGHT = 32;
-const DEFAULT_SCREENING_CONCURRENCY = 16;
-
 const COMPLIANCE_CONFIG = {
   screeningWindowDays: Number(process.env.SCREENING_WINDOW_DAYS) > 0
     ? Number(process.env.SCREENING_WINDOW_DAYS)
     : 90,
   screeningConcurrency: Number(process.env.SCREENING_CONCURRENCY) > 0
-    ? Math.min(SCREENING_PARTNER_MAX_IN_FLIGHT, Math.max(1, Math.floor(Number(process.env.SCREENING_CONCURRENCY))))
-    : DEFAULT_SCREENING_CONCURRENCY,
+    ? Math.max(1, Math.floor(Number(process.env.SCREENING_CONCURRENCY)))
+    : 1,
 };
 
 /**
@@ -145,26 +140,6 @@ function effectiveComplianceConfig() {
 }
 
 /**
- * Process-wide pool of screening-partner call slots, so overlapping transfers
- * together never exceed the partner's per-client concurrency ceiling.
- */
-const screeningSlots = { inFlight: 0, waiters: [] };
-
-function acquireScreeningSlot() {
-  if (screeningSlots.inFlight < SCREENING_PARTNER_MAX_IN_FLIGHT) {
-    screeningSlots.inFlight++;
-    return Promise.resolve();
-  }
-  return new Promise((resolve) => screeningSlots.waiters.push(resolve));
-}
-
-function releaseScreeningSlot() {
-  const next = screeningSlots.waiters.shift();
-  if (next) next();
-  else screeningSlots.inFlight--;
-}
-
-/**
  * Screen a single historical transaction against the sanctions watchlist.
  */
 async function screenTransaction(txn) {
@@ -186,21 +161,11 @@ async function runComplianceScreening(fromAccount, accountTier) {
 
   const { screeningWindowDays, screeningConcurrency } = effectiveComplianceConfig();
   const window = ACCOUNT_HISTORY.filter((txn) => txn.daysAgo <= screeningWindowDays);
-  const results = new Array(window.length);
-  let next = 0;
-  const worker = async () => {
-    while (next < window.length) {
-      const idx = next++;
-      await acquireScreeningSlot();
-      try {
-        results[idx] = await screenTransaction(window[idx]);
-      } finally {
-        releaseScreeningSlot();
-      }
-    }
-  };
-  const workers = Math.min(screeningConcurrency, SCREENING_PARTNER_MAX_IN_FLIGHT, window.length);
-  await Promise.all(Array.from({ length: workers }, worker));
+  const results = [];
+  for (let i = 0; i < window.length; i += screeningConcurrency) {
+    const batch = window.slice(i, i + screeningConcurrency);
+    results.push(...await Promise.all(batch.map((txn) => screenTransaction(txn))));
+  }
   return { account: fromAccount, screened: results.length, cleared: results.every((r) => r.cleared) };
 }
 
@@ -386,4 +351,4 @@ async function processTransfer(data, options = {}) {
   }
 }
 
-module.exports = { processTransfer, runComplianceScreening, ACCOUNTS, COMPLIANCE_CONFIG, SCREENING_PARTNER_MAX_IN_FLIGHT };
+module.exports = { processTransfer, ACCOUNTS, COMPLIANCE_CONFIG };
