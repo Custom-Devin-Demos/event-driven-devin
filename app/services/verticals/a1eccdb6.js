@@ -400,7 +400,8 @@ async function loadContinueWatching(data) {
         triggeredRule: '',
       });
       await linkSessionOnTicket(issue, result);
-      return Boolean(result?.session);
+      // A delivered Teams card hands the investigation to the Teams responder (session: null).
+      return Boolean(result?.session || (result?.teams && result?.triggered));
     };
 
     let sentryEventId;
