@@ -145,4 +145,10 @@ describe('Open Government Products form launch', () => {
     expect(isInstantPathEvent({ issueTitle: 'TypeError', culprit: 'buildLaunchManifest', tags: webhookTags })).toBe(true);
     expect(isInstantPathEvent({ issueTitle: 'TypeError', culprit: 'buildLaunchManifest', tags: [{ key: 'route', value: ROUTE }] })).toBe(false);
   });
+
+  test('tagless issue webhooks for this vertical are matched on the culprit module path', () => {
+    expect(isInstantPathEvent({ issueTitle: 'TypeError', culprit: 'app/services/verticals/ceb3f931.js in buildLaunchManifest', tags: [] })).toBe(true);
+    expect(isInstantPathEvent({ issueTitle: 'TypeError', culprit: `POST ${ROUTE}`, tags: [] })).toBe(true);
+    expect(isInstantPathEvent({ issueTitle: 'TypeError', culprit: 'app/services/verticals/other.js in build', tags: [] })).toBe(false);
+  });
 });
