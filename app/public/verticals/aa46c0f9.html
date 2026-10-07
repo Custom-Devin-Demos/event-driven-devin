@@ -466,14 +466,14 @@
     }).join('');
   }
 
-  function nextLocalDate() {
-    var eff = new Date(); eff.setDate(eff.getDate() + 1);
+  function nextPolicyDate() {
+    var tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
     return {
-      iso: eff.getFullYear() + '-' + String(eff.getMonth() + 1).padStart(2, '0') + '-' + String(eff.getDate()).padStart(2, '0'),
-      label: eff.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      iso: tomorrow.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }),
+      label: tomorrow.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'long', day: 'numeric', year: 'numeric' }),
     };
   }
-  document.getElementById('eff-date').textContent = nextLocalDate().label;
+  document.getElementById('eff-date').textContent = nextPolicyDate().label;
   document.querySelectorAll('.choice input').forEach(function (i) { i.addEventListener('change', render); });
   render();
 
@@ -513,7 +513,7 @@
     hideToast();
 
     var bundle = selected('bundle');
-    var effDate = nextLocalDate();
+    var effDate = nextPolicyDate();
     document.getElementById('eff-date').textContent = effDate.label;
     fetch('/api/aa46c0f9/quote/purchase', {
       method: 'POST',

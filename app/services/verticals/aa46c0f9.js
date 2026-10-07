@@ -110,6 +110,16 @@ function roundCents(amount) {
 }
 
 /**
+ * Policy dates are rated in America/New_York (the quote is issued for
+ * Hartford, CT). Returns YYYY-MM-DD offset by `offsetDays` from today.
+ */
+function policyDate(offsetDays = 0) {
+  return new Date(Date.now() + offsetDays * 86400000).toLocaleDateString('en-CA', {
+    timeZone: 'America/New_York',
+  });
+}
+
+/**
  * Resolve the bundle attached to the quote. `null`, `'none'`, or a missing
  * value means auto-only; unknown bundle keys are rejected.
  */
@@ -207,12 +217,10 @@ async function purchasePolicy(data) {
       'INVALID_EFFECTIVE_DATE',
     );
   }
-  const earliestEffective = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
+  const earliestEffective = policyDate(1);
   if (data.effectiveDate && data.effectiveDate < earliestEffective) {
     throw validationError(
-      `Effective date is in the past: ${data.effectiveDate}`,
+      `Effective date must be on or after ${earliestEffective}: ${data.effectiveDate}`,
       'INVALID_EFFECTIVE_DATE',
     );
   }
@@ -302,8 +310,7 @@ async function purchasePolicy(data) {
       annualPremium: roundCents(annualPremium),
       monthlyPremium: roundCents(monthlyPremium),
       paymentPlan,
-      effectiveDate: data.effectiveDate
-        || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+      effectiveDate: data.effectiveDate || earliestEffective,
       boundAt: new Date().toISOString(),
     };
   } catch (error) {

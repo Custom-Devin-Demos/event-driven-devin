@@ -160,29 +160,46 @@ describe('Travelers auto quote purchase (aa46c0f9)', () => {
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
-  test('rejects an effective date in the past without an alert', async () => {
-    await expect(purchasePolicy({ ...DEFAULT_QUOTE, bundle: null, effectiveDate: '2020-01-01' }))
-      .rejects.toMatchObject({
-        name: 'ValidationError',
-        code: 'INVALID_EFFECTIVE_DATE',
-        status: 400,
-      });
-
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
-    expect(Sentry.captureException).not.toHaveBeenCalled();
-  });
-
-  test('echoes back a supplied effective date', async () => {
-    const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10);
-    const result = await purchasePolicy({
-      ...DEFAULT_QUOTE,
-      bundle: null,
-      effectiveDate: futureDate,
+  describe('effective date (rated in America/New_York)', () => {
+    // 2026-10-08T02:00:00Z is Oct 7, 10pm in New York: NY today = '2026-10-07',
+    // NY tomorrow = '2026-10-08'.
+    beforeEach(() => {
+      jest.useFakeTimers({ doNotFake: ['setTimeout'] });
+      jest.setSystemTime(new Date('2026-10-08T02:00:00Z'));
     });
 
-    expect(result.effectiveDate).toBe(futureDate);
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    test.each(['2026-10-07', '2020-01-01'])('rejects %s without an alert', async (effectiveDate) => {
+      await expect(purchasePolicy({ ...DEFAULT_QUOTE, bundle: null, effectiveDate }))
+        .rejects.toMatchObject({
+          name: 'ValidationError',
+          code: 'INVALID_EFFECTIVE_DATE',
+          status: 400,
+        });
+
+      expect(createSessionAndAlert).not.toHaveBeenCalled();
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+
+    test('accepts New York tomorrow and echoes it back', async () => {
+      const result = await purchasePolicy({
+        ...DEFAULT_QUOTE,
+        bundle: null,
+        effectiveDate: '2026-10-08',
+      });
+
+      expect(result.effectiveDate).toBe('2026-10-08');
+      expect(result.status).toBe('bound');
+    });
+
+    test('defaults to New York tomorrow when omitted', async () => {
+      const result = await purchasePolicy({ ...DEFAULT_QUOTE, bundle: null });
+
+      expect(result.effectiveDate).toBe('2026-10-08');
+    });
   });
 
   test('annual payment plan drops the $3 installment fee', async () => {
