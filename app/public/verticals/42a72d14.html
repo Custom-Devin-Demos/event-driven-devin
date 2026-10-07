@@ -167,6 +167,29 @@
     .foot-cols a { display: flex; align-items: center; min-height: 44px; font-size: 14px; color: #d0d0d0; }
     .legal { border-top: 1px solid #3a3a3a; padding: 18px 0 28px; font-size: 13px; color: #bdbdbd; }
 
+    /* error dialog */
+    .err-dialog {
+      width: min(440px, calc(100vw - 32px)); margin: auto; padding: 0; border: 0; border-radius: 12px;
+      color: var(--ink); box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+    }
+    .err-dialog::backdrop { background: rgba(31, 31, 31, 0.6); }
+    .err-dialog .err-top { height: 6px; background: var(--red); border-radius: 12px 12px 0 0; }
+    .err-dialog .err-body { padding: 28px 28px 24px; }
+    .err-dialog .err-icon {
+      width: 48px; height: 48px; border-radius: 50%; background: var(--red-soft); color: var(--red);
+      display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; margin-bottom: 16px;
+    }
+    .err-dialog h2 { font-size: 22px; font-weight: 700; line-height: 1.25; margin-bottom: 8px; }
+    .err-dialog p { font-size: 15px; color: var(--body); margin-bottom: 8px; }
+    .err-dialog .err-ref { font-size: 13px; color: var(--muted); }
+    .err-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+    .err-actions button {
+      flex: 1 1 140px; min-height: 48px; border-radius: 32px; font-size: 16px; font-weight: 700; cursor: pointer;
+    }
+    .err-actions .primary { background: var(--red); color: var(--white); border: 0; }
+    .err-actions .primary:hover { background: var(--red-hover); }
+    .err-actions .secondary { background: var(--white); color: var(--ink); border: 1px solid var(--ink); }
+
     @media (max-width: 1024px) {
       .cols { grid-template-columns: minmax(0, 1fr); }
       .search { display: none; }
@@ -358,6 +381,20 @@
     </div>
   </main>
 
+  <dialog id="errorDialog" class="err-dialog" aria-labelledby="errorTitle" aria-describedby="errorText">
+    <div class="err-top"></div>
+    <div class="err-body">
+      <div class="err-icon" aria-hidden="true">!</div>
+      <h2 id="errorTitle">Something went wrong</h2>
+      <p id="errorText">We couldn&rsquo;t complete your plan change. Your current plan and bill haven&rsquo;t changed.</p>
+      <p class="err-ref" id="errorRef"></p>
+      <div class="err-actions">
+        <button type="button" class="primary" id="errorRetry">Try again</button>
+        <button type="button" class="secondary" id="errorClose">Close</button>
+      </div>
+    </div>
+  </dialog>
+
   <footer class="site">
     <div class="wrap">
       <div class="connect">
@@ -458,6 +495,18 @@
         });
       }
 
+      const errorDialog = document.getElementById('errorDialog');
+      function showErrorDialog(message) {
+        document.getElementById('errorText').textContent = message;
+        document.getElementById('errorRef').textContent = 'Reference ' + Date.now().toString(36).toUpperCase();
+        if (typeof errorDialog.showModal === 'function' && !errorDialog.open) errorDialog.showModal();
+      }
+      document.getElementById('errorClose').addEventListener('click', () => errorDialog.close());
+      document.getElementById('errorRetry').addEventListener('click', () => {
+        errorDialog.close();
+        document.getElementById('submitBtn').focus();
+      });
+
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
@@ -468,10 +517,13 @@
         btn.textContent = 'Updating your plan\u2026';
         result.className = 'result-box';
         result.innerHTML = '';
+        const controller = new AbortController();
+        const timeoutTimer = setTimeout(() => controller.abort(), 6000);
         try {
           const response = await fetch('/api/telco/upgrade', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
             body: JSON.stringify({
               accountId: selectedOption(lineSel).dataset.account,
               currentPlanCode: lineSel.value,
@@ -486,6 +538,7 @@
           if (!response.ok || !data.success) {
             showResult('error', 'We couldn\u2019t change your plan right now',
               ['Your current plan hasn\u2019t changed. Please try again in a few minutes.']);
+            showErrorDialog('We couldn\u2019t complete your plan change. Your current plan and bill haven\u2019t changed.');
           } else {
             const ref = String(data.upgradeId || '').replace(/-/g, '').slice(0, 10).toUpperCase();
             const starts = /^\d{4}-\d{2}-\d{2}$/.test(data.effectiveDate || '') ? ', starting ' + data.effectiveDate : '';
@@ -493,8 +546,15 @@
               [lineNumber + ' is now on ' + planLabel + starts + '.', 'Confirmation number ' + ref]);
           }
         } catch (err) {
-          showResult('error', 'We couldn\u2019t reach MyRogers', ['Check your connection and try again.']);
+          if (err && err.name === 'AbortError') {
+            showResult('error', 'We couldn\u2019t change your plan right now',
+              ['Your current plan hasn\u2019t changed. Please try again in a few minutes.']);
+            showErrorDialog('Your plan change timed out before it could be completed. Your current plan and bill haven\u2019t changed.');
+          } else {
+            showResult('error', 'We couldn\u2019t reach MyRogers', ['Check your connection and try again.']);
+          }
         } finally {
+          clearTimeout(timeoutTimer);
           btn.disabled = false;
           btn.textContent = 'Confirm plan change';
         }
