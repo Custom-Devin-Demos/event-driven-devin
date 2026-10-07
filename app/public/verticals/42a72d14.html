@@ -412,7 +412,9 @@
 
         Array.prototype.forEach.call(planSel.options, (o) => { o.disabled = o.value === lineSel.value; });
         if (selectedOption(planSel).disabled) {
-          planSel.value = Array.prototype.find.call(planSel.options, (o) => !o.disabled).value;
+          const options = Array.prototype.slice.call(planSel.options);
+          const nextTier = options.slice(planSel.selectedIndex + 1).find((o) => !o.disabled);
+          planSel.value = (nextTier || options.find((o) => !o.disabled)).value;
         }
         tiles.forEach((t) => {
           const isCurrent = t.dataset.plan === lineSel.value;
