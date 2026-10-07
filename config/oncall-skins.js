@@ -2935,6 +2935,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     supportCenter: 'Rogers Support',
+    devinSession: { auto: true },
     alertCard: {
       impact: 'Plan changes in MyRogers time out after 6s and subscribers get a "Something went wrong" error; nobody sees a confirmation.',
     },
