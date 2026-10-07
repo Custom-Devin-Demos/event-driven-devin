@@ -15,6 +15,21 @@ describe('Sentry customer identity mapping', () => {
     expect(isInstantPathEvent(alertData)).toBe(true);
   });
 
+  test('recognizes Misfits Market events tagged as instant-path alerts', () => {
+    expect(isInstantPathEvent({
+      tags: [['alert_path', 'instant'], ['service', 'customer-77560b41-checkout']],
+      culprit: 'app/services/verticals/77560b41.js — applySubstitutions',
+    })).toBe(true);
+  });
+
+  test('recognizes tagless Misfits Market issue webhooks by culprit module path', () => {
+    expect(isInstantPathEvent({
+      issueTitle: "TypeError: Cannot read properties of undefined (reading 'sku')",
+      culprit: 'app/services/verticals/77560b41.js — applySubstitutions',
+      tags: [],
+    })).toBe(true);
+  });
+
   test.each([
     { tags: [['alert_path', 'latency']] },
     { tags: [{ key: 'alert_path', value: 'latency' }] },

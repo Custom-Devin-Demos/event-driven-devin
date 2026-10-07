@@ -1,0 +1,40 @@
+name: Misfits Market E2E
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/services/verticals/77560b41.js'
+      - 'app/routes/verticals/77560b41.js'
+      - 'app/public/verticals/77560b41.html'
+      - 'app/public/verticals/77560b41/ops.html'
+      - 'app/routes/sentry-webhook.js'
+      - 'config/customers/77560b41.js'
+      - 'tests/77560b41-checkout.test.js'
+      - 'tests/sentry-webhook.test.js'
+      - '.env.example'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'e2e/**'
+      - 'playwright.config.js'
+      - '.github/workflows/misfits-e2e.yml'
+
+jobs:
+  misfits-e2e:
+    name: misfits-e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: misfits-playwright-report
+          path: playwright-report/
+          retention-days: 7
