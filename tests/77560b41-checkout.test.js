@@ -205,6 +205,24 @@ describe('Misfits Market catalog and checkout', () => {
       .toBe(before.ordersByRegion.find((row) => row.region === 'nj-pa-ny').confirmed + 1);
   });
 
+  test('summarizing yesterday does not discard today live orders', async () => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    const before = getOpsSummary(today);
+    await checkout({
+      region: 'nj-pa-ny',
+      items: [{ sku: 'gala-apples', qty: 1 }],
+      deliveryWindowId: (await firstWindow('nj-pa-ny')).id,
+    }, { now: today });
+
+    expect(getOpsSummary(yesterday).kpis.ordersToday).toBe(120);
+    const after = getOpsSummary(today);
+    expect(after.kpis.ordersToday).toBe(before.kpis.ordersToday + 1);
+    expect(after.ordersByRegion.find((row) => row.region === 'nj-pa-ny').confirmed)
+      .toBe(before.ordersByRegion.find((row) => row.region === 'nj-pa-ny').confirmed + 1);
+  });
+
   test('failed Chicago processing attempts increment Ops failed counts', async () => {
     const warehouseInventory = INVENTORY['WH-IL-ROMEOVILLE'];
     const originalCarrotInventory = warehouseInventory['rainbow-carrots'];

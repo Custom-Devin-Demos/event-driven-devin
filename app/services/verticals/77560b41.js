@@ -545,7 +545,9 @@ function getOpsSummary(now = new Date()) {
   const today = new Date(now).toISOString().slice(0, 10);
   const seededOrders = getSeededOrders(today);
   const todayLiveOrders = liveOrders.filter((order) => order.placedAt.slice(0, 10) === today);
-  liveOrders.splice(0, liveOrders.length, ...todayLiveOrders);
+  const wallClockToday = new Date().toISOString().slice(0, 10);
+  const retainedLiveOrders = liveOrders.filter((order) => order.placedAt.slice(0, 10) >= wallClockToday);
+  liveOrders.splice(0, liveOrders.length, ...retainedLiveOrders);
   const orders = [...seededOrders, ...todayLiveOrders];
   const ordersByRegion = Object.values(REGIONS).map((region) => {
     const regionOrders = orders.filter((order) => order.region === region.id);
