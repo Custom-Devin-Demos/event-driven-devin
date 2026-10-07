@@ -108,6 +108,15 @@
     .controls .ctl { width: 44px; height: 44px; display: grid; place-items: center; }
     .player-title { position: absolute; left: 20px; top: 16px; z-index: 3; font-size: 15px; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,0.6); display: none; }
     .player.playing .player-title { display: block; }
+    .player.failed .poster { filter: brightness(0.2) grayscale(1); }
+    .player.failed .play-btn { display: none; }
+    .player-error { position: absolute; inset: 0; z-index: 4; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; background: rgba(0,0,0,0.72); }
+    .player.failed .player-error { display: flex; }
+    .player-error .err-icon { width: 56px; height: 56px; border-radius: 50%; border: 3px solid #ff6b6b; color: #ff6b6b; display: grid; place-items: center; font-size: 30px; font-weight: 700; line-height: 1; }
+    .player-error .err-title { font-size: 22px; font-weight: 600; }
+    .player-error .err-detail { font-size: 15px; color: var(--text-2); max-width: 420px; }
+    .player-error .err-code { font-size: 13px; color: var(--text-3); letter-spacing: 0.04em; }
+    .player-error .err-retry { margin-top: 6px; min-height: 44px; padding: 0 22px; border-radius: 999px; background: #fff; color: var(--black); font-size: 15px; font-weight: 600; }
 
     .meta-title { font-size: 44px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.05; margin-top: 28px; }
     .meta-line { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 15px; color: var(--text-2); }
@@ -225,11 +234,8 @@
       </button>
       <div class="watch-grid">
         <div>
-          <form id="provisionForm" novalidate>
+          <form id="playForm" novalidate>
             <input type="hidden" id="product" value="">
-            <input type="hidden" id="seats" value="1">
-            <input type="hidden" id="planTier" value="starter">
-            <input type="hidden" id="region" value="us-east">
             <div class="player" id="player">
               <div class="poster-fallback" aria-hidden="true"></div>
               <img class="poster" id="poster" alt="" hidden>
@@ -240,6 +246,13 @@
                   <span class="sr" id="submitLabel">Play</span>
                 </button>
                 <div class="buffer" aria-hidden="true"><div class="ring"></div><span>Loading</span></div>
+              </div>
+              <div class="player-error" id="playerError" role="alert">
+                <div class="err-icon" aria-hidden="true">!</div>
+                <div class="err-title">We’re having trouble playing this title</div>
+                <div class="err-detail">Something went wrong while starting your video. Please try again.</div>
+                <div class="err-code" id="errCode"></div>
+                <button type="button" class="err-retry" id="retryBtn">Try again</button>
               </div>
               <div class="controls" aria-hidden="true">
                 <span class="ctl"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
@@ -339,7 +352,7 @@
 
       var catalogView = document.getElementById('catalogView');
       var watchView = document.getElementById('watchView');
-      var form = document.getElementById('provisionForm');
+      var form = document.getElementById('playForm');
       var product = document.getElementById('product');
       var player = document.getElementById('player');
       var poster = document.getElementById('poster');
@@ -352,6 +365,8 @@
       var durationEl = document.getElementById('duration');
       var progress = document.getElementById('progress');
       var addList = document.getElementById('addList');
+      var errCode = document.getElementById('errCode');
+      var retryBtn = document.getElementById('retryBtn');
       var myStuff = new Set();
       var inFlight = false;
       var clock = null;
@@ -373,7 +388,8 @@
       }
       function resetPlayer() {
         stopClock();
-        player.classList.remove('loading', 'playing');
+        player.classList.remove('loading', 'playing', 'failed');
+        errCode.textContent = '';
         progress.style.width = '0';
         elapsedEl.textContent = '0:00';
         playerTitle.textContent = '';
@@ -437,6 +453,7 @@
         syncMyStuff();
       });
       playFromStart.addEventListener('click', function () { if (!inFlight) form.requestSubmit(btn); });
+      retryBtn.addEventListener('click', function () { if (!inFlight) form.requestSubmit(btn); });
 
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -449,20 +466,17 @@
         resetPlayer();
         player.classList.add('loading');
         try {
-          var res = await fetch('/api/licenses/provision', {
+          var res = await fetch('/api/grocery/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              orgName: document.getElementById('product').value,
-              planName: document.getElementById('planTier').value,
-              seats: parseInt(document.getElementById('seats').value, 10),
-              billingCycle: 'annual',
+              storeId: '1039',
               devinUserId: localStorage.getItem('devinUserId') || '',
               devinOrgId: localStorage.getItem('devinOrgId') || '',
               devinEmail: localStorage.getItem('devinEmail') || '',
             }),
           });
-          if (!res.ok) throw new Error('playback failed');
+          if (!res.ok) { var fail = new Error('playback failed'); fail.status = res.status; throw fail; }
           await res.json();
           player.classList.remove('loading');
           player.classList.add('playing');
@@ -478,7 +492,9 @@
           showResult('success', 'Now playing: ' + show.title, 'Season 1, Episode 1');
         } catch (err) {
           player.classList.remove('loading');
-          showResult('error', 'We\u2019re having trouble playing this video', 'Please try again. If the problem continues, visit the Peacock Help Center.');
+          player.classList.add('failed');
+          errCode.textContent = 'Error code: VS-' + (err.status || 'NET');
+          showResult('error', 'Playback error', 'If the problem continues, visit the Peacock Help Center.');
         } finally {
           inFlight = false;
           btn.disabled = false;
