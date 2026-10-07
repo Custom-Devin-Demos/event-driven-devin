@@ -183,7 +183,7 @@
     /* ---------- Playback error toast (top of screen) ---------- */
     .err-toast {
       position: fixed; top: calc(var(--nav-h) + 12px); left: 50%; z-index: 120;
-      width: min(760px, calc(100vw - 32px)); display: flex; align-items: flex-start; gap: 14px;
+      width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - var(--nav-h) - 24px); display: flex; align-items: flex-start; gap: 14px;
       padding: 16px 18px 16px 20px; border-radius: 12px; background: var(--live-red); color: #fff;
       box-shadow: 0 16px 40px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.12);
       transform: translate(-50%, -24px); opacity: 0; visibility: hidden;
@@ -191,7 +191,7 @@
     }
     .err-toast.show { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
     .err-toast > svg { width: 26px; height: 26px; flex: none; margin-top: 1px; }
-    .err-toast-body { flex: 1 1 auto; min-width: 0; }
+    .err-toast-body { flex: 1 1 auto; min-width: 0; max-height: calc(100dvh - var(--nav-h) - 56px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .err-toast-title { font: 700 17px/22px var(--font); }
     .err-toast-title b { font-weight: 700; text-decoration: underline; text-decoration-color: rgba(255,255,255,.5); }
     .err-detail {
@@ -211,11 +211,39 @@
     .err-close:hover, .err-close:focus-visible { background: rgba(255,255,255,.18); outline: none; }
     .err-close svg { width: 20px; height: 20px; }
     @media (max-width: 767px) {
-      .err-toast { top: calc(var(--nav-h) + 8px); padding: 14px 14px 14px 16px; gap: 12px; }
+      .err-toast { top: calc(var(--nav-h) + 8px); max-height: calc(100dvh - var(--nav-h) - 16px); padding: 14px 14px 14px 16px; gap: 12px; }
+      .err-toast-body { max-height: calc(100dvh - var(--nav-h) - 44px); }
       .err-toast-title { font-size: 15px; line-height: 20px; }
       .err-detail { font-size: 12px; line-height: 16px; }
     }
 
+    @media (max-width: 1119px) {
+      :root { --pad: 24px; }
+      .hero { min-height: 560px; aspect-ratio: auto; height: 72vh; }
+      .hero-text h1 { font-size: 44px; line-height: 44px; }
+      .bucket { min-height: 0; padding-top: 96px; }
+      .bucket--short { padding-bottom: 64px; }
+      .f-lists { flex-wrap: wrap; }
+      .f-list { flex: 1 1 40%; }
+    }
+    @media (max-width: 767px) {
+      :root { --pad: 16px; }
+      .nav-links, .nav-signin { display: none; }
+      .nav-menu { display: flex; }
+      .hero-text h1 { font-size: 36px; line-height: 38px; }
+      .hero-text p { font-size: 16px; line-height: 20px; }
+      .cta-row { padding: 4px 0; }
+      .bucket { padding-top: 64px; }
+      .bucket-content h2 { font-size: 28px; line-height: 32px; }
+      .slide { flex-basis: 140px; }
+      .slide--wide { flex-basis: 260px; }
+      .faq { gap: 36px; }
+      .acc-header h3 { font-size: 18px; }
+      .f-list { flex: 1 1 100%; }
+    }
+    @media (hover: none) and (pointer: coarse) {
+      .chev { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -817,6 +845,7 @@
     function startPlayback(channel, trigger) {
       if (pending) return;
       pending = true;
+      hideError();
       if (trigger) { trigger.disabled = true; trigger.classList.add('is-loading'); }
 
       identityReady.then(function () { return fetch('/api/f2f7c956/playback-session', {
