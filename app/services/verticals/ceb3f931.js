@@ -70,8 +70,33 @@ const REMEDIATION_DIRECTIVE = [
   'and add a regression test under tests/ that locks the fix in. Open a pull request against main.',
 ].join(' ');
 
+/**
+ * Builder labels and legacy identifiers that clients send for a response mode,
+ * mapped to the identifier persisted on the form document.
+ */
+const RESPONSE_MODE_ALIASES = {
+  storage: 'encrypt',
+  'storage mode': 'encrypt',
+  'email mode': 'email',
+  'multi-respondent': 'multirespondent',
+  'multi-respondent mode': 'multirespondent',
+};
+
+class UnknownResponseModeError extends Error {
+  constructor(mode) {
+    super(`Unknown response mode: ${String(mode)}`);
+    this.name = 'UnknownResponseModeError';
+    this.code = 'UNKNOWN_RESPONSE_MODE';
+    this.statusCode = 400;
+  }
+}
+
 function resolveResponseMode(mode) {
-  const key = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
+  const raw = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
+  const key = Object.prototype.hasOwnProperty.call(RESPONSE_MODE_ALIASES, raw) ? RESPONSE_MODE_ALIASES[raw] : raw;
+  if (!Object.prototype.hasOwnProperty.call(RESPONSE_MODES, key)) {
+    throw new UnknownResponseModeError(mode);
+  }
   return RESPONSE_MODES[key];
 }
 
@@ -135,8 +160,9 @@ async function launchForm(data) {
     service: SERVICE,
   });
 
+  const profile = resolveResponseMode(data.responseMode);
+
   try {
-    const profile = resolveResponseMode(data.responseMode);
     const manifest = buildLaunchManifest(form, profile);
     const duration = Date.now() - start;
 
@@ -222,6 +248,8 @@ module.exports = {
   resolveResponseMode,
   buildLaunchManifest,
   RESPONSE_MODES,
+  RESPONSE_MODE_ALIASES,
+  UnknownResponseModeError,
   STARTER_FIELDS,
   OWNER,
   REMEDIATION_DIRECTIVE,

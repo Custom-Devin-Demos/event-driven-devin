@@ -19,12 +19,16 @@ const http = require('http');
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
+const { incrementMetric } = require('../app/telemetry/datadog');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const launchRoutes = require('../app/routes/verticals/ceb3f931');
 const {
   launchForm,
   buildLaunchManifest,
+  resolveResponseMode,
   RESPONSE_MODES,
+  RESPONSE_MODE_ALIASES,
+  UnknownResponseModeError,
   OWNER,
   SERVICE,
   ROUTE,
@@ -69,7 +73,15 @@ function postLaunch(body) {
 afterEach(() => {
   createSessionAndAlert.mockClear();
   Sentry.captureException.mockClear();
+  incrementMetric.mockReset();
 });
+
+// Forces a failure inside the launch try block so the alert path can be exercised.
+function failNextLaunch() {
+  incrementMetric.mockImplementationOnce(() => {
+    throw new TypeError("Cannot read properties of undefined (reading 'code')");
+  });
+}
 
 describe('Open Government Products form launch', () => {
   test('builds a manifest for a registered response mode', () => {
@@ -80,18 +92,91 @@ describe('Open Government Products form launch', () => {
     expect(manifest.fields).toHaveLength(5);
   });
 
-  test('the landing page launch fails with a TypeError and raises exactly one alert', async () => {
+  test('the route default response mode resolves to a registered profile', () => {
+    expect(resolveResponseMode(launchRoutes.DEFAULT_RESPONSE_MODE)).toBe(RESPONSE_MODES.encrypt);
+  });
+
+  test('the landing page launch (no responseMode sent) succeeds in Storage mode without alerting', async () => {
     const response = await postLaunch({
       action: 'Start building your form now',
       formTitle: 'Build secure government forms in minutes.',
       ...IDENTITY,
     });
 
-    expect(response.status).toBe(500);
-    expect(response.body.success).toBe(false);
-    expect(response.body.errorClass).toBe('TypeError');
-    expect(response.body.error).toMatch(/reading 'encryption'|reading 'retention'|reading 'code'/);
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.referenceNumber).toMatch(/^FRM-[0-9A-F]{8}$/);
+    expect(response.body.manifest.responseMode).toBe('encrypt');
+    expect(response.body.manifest.modeLabel).toBe('Storage mode');
+    expect(response.body.manifest.encryption.secretKeyFingerprint).toMatch(/^[0-9A-F]{16}$/);
+    expect(response.body.manifest.retention.purgeAt).not.toBeNull();
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
 
+  test('every click launches successfully regardless of label', async () => {
+    const labels = ['Log in', 'Help', 'Get started', 'How to identify'];
+    for (const action of labels) {
+      // eslint-disable-next-line no-await-in-loop
+      const response = await postLaunch({ action, ...IDENTITY });
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+    }
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['storage', 'encrypt'],
+    ['Storage', 'encrypt'],
+    [' Storage mode ', 'encrypt'],
+    ['encrypt', 'encrypt'],
+    ['email', 'email'],
+    ['Email mode', 'email'],
+    ['multirespondent', 'multirespondent'],
+    ['Multi-respondent', 'multirespondent'],
+  ])('response mode %p resolves to the %p profile', (mode, code) => {
+    expect(resolveResponseMode(mode).code).toBe(code);
+  });
+
+  test('every alias points at a registered profile', () => {
+    for (const target of Object.values(RESPONSE_MODE_ALIASES)) {
+      expect(RESPONSE_MODES).toHaveProperty(target);
+    }
+  });
+
+  test('the "storage" label launches through the service instead of throwing a TypeError', async () => {
+    const result = await launchForm({ action: 'Get started', title: 'Health declaration', responseMode: 'storage' });
+    expect(result.success).toBe(true);
+    expect(result.manifest.responseMode).toBe('encrypt');
+  });
+
+  test.each([undefined, null, '', 'paper', 'constructor', '__proto__', 42])(
+    'unknown response mode %p fails with a typed error, not a TypeError',
+    (mode) => {
+      expect(() => resolveResponseMode(mode)).toThrow(UnknownResponseModeError);
+    },
+  );
+
+  test('an unknown response mode is rejected with 400 and raises no alert', async () => {
+    const response = await postLaunch({ action: 'Get started', responseMode: 'paper', ...IDENTITY });
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body.code).toBe('UNKNOWN_RESPONSE_MODE');
+    expect(response.body.errorClass).toBe('UnknownResponseModeError');
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test('a launch failure raises exactly one alert pinned to the owner', async () => {
+    failNextLaunch();
+    const response = await postLaunch({
+      action: 'Start building your form now',
+      devinUserId: 'clerk-user_attacker',
+      devinOrgId: 'org-attacker',
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body.errorClass).toBe('TypeError');
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.customer).toBe('ceb3f931');
@@ -102,40 +187,8 @@ describe('Open Government Products form launch', () => {
     expect(alert.errorType).toBe('TypeError');
   });
 
-  test('client-supplied Devin IDs cannot override the pinned owner', async () => {
-    const response = await postLaunch({
-      action: 'Start building your form now',
-      formTitle: 'Build secure government forms in minutes.',
-      devinUserId: 'clerk-user_attacker',
-      devinOrgId: 'org-attacker',
-    });
-
-    expect(response.status).toBe(500);
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-    const alert = createSessionAndAlert.mock.calls[0][0];
-    expect(alert.devinUserId).toBe(OWNER.devinUserId);
-    expect(alert.devinOrgId).toBe(OWNER.devinOrgId);
-  });
-
-  test('every click lands on the same failing launch regardless of label', async () => {
-    const labels = ['Log in', 'Help', 'Get started', 'How to identify'];
-    for (const action of labels) {
-      // eslint-disable-next-line no-await-in-loop
-      const response = await postLaunch({ action, ...IDENTITY });
-      expect(response.status).toBe(500);
-      expect(response.body.errorClass).toBe('TypeError');
-    }
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(labels.length);
-  });
-
-  test('a registered response mode launches successfully', async () => {
-    const result = await launchForm({ action: 'Get started', title: 'Health declaration', responseMode: 'encrypt', ...IDENTITY });
-    expect(result.success).toBe(true);
-    expect(result.manifest.modeLabel).toBe('Storage mode');
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
-  });
-
   test('the Sentry capture carries the instant-path tag so the webhook skips it', async () => {
+    failNextLaunch();
     await postLaunch({ action: 'Start building your form now', ...IDENTITY });
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     const [, context] = Sentry.captureException.mock.calls[0];
