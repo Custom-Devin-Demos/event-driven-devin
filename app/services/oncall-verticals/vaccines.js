@@ -36,7 +36,8 @@ const DISTRIBUTION_CENTERS = [
 
 const ALLOCATION_DEADLINE_MS = 8000;
 const DC_CALL_LATENCY_MS = [1000, 1250];
-const NEXT_DAY_FEE_CENTS = 4500;
+const NEXT_DAY_FEE_CENTS = 3500;
+const TIER_FACTOR = { premium: 0.94, standard: 1, basic: 1.08 };
 
 /**
  * Ask one distribution center to hold allocation. Each call is a round trip
@@ -128,7 +129,8 @@ async function submitOrder(orderData, options = {}) {
 
     const duration = Date.now() - startTime;
     const shippingCents = orderData.delivery === 'nextday' ? NEXT_DAY_FEE_CENTS : 0;
-    const subtotalCents = item.priceCents * quantity;
+    const unitCents = Math.round(item.priceCents * (TIER_FACTOR[orderData.accountTier] || 1));
+    const subtotalCents = unitCents * quantity;
 
     incrementMetric('vaccine_order.submit.success', { route: ROUTE, ndc: item.ndc });
     recordTiming('vaccine_order.submit.latency', duration, { route: ROUTE });
@@ -138,6 +140,7 @@ async function submitOrder(orderData, options = {}) {
       orderId: `ORD-${orderId.slice(0, 8).toUpperCase()}`,
       ndc: item.ndc,
       quantity,
+      unitPrice: unitCents / 100,
       doses: quantity * item.dosesPerPack,
       subtotal: subtotalCents / 100,
       total: (subtotalCents + shippingCents) / 100,

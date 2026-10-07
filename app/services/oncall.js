@@ -247,7 +247,7 @@ const ALERT_SCENARIOS = {
     service: 'vaccine-ordering-api',
     endpoint: 'POST /api/oncall/vaccines/order',
     monitor: '5xx rate — POST /api/oncall/vaccines/order',
-    metricQuery: 'sum:trace.express.request.errors{service:vaccine-ordering-api,resource:POST /api/oncall/vaccines/order,http.status_code:504}',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/vaccines/order,http.status_code:504}',
     metricValue: '504 on ~100% of order submissions',
     threshold: '> 5% error rate',
     baseline: '<0.3% (7-day)',

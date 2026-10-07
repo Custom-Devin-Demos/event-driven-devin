@@ -258,6 +258,7 @@ router.post('/api/oncall/vaccines/order', async (req, res) => {
       quantity: req.body.quantity || 1,
       practiceAccount: req.body.practiceAccount || 'ACCT-1004',
       shipTo: req.body.shipTo || 'ACCT-2101',
+      accountTier: req.body.accountTier || 'standard',
       delivery: req.body.delivery === 'nextday' ? 'nextday' : 'standard',
     });
     res.json(result);

@@ -19,14 +19,22 @@ describe('vaccine order submission', () => {
     expect(Date.now() - started).toBeLessThan(500);
   });
 
-  test('places the order once the center walk is short enough', async () => {
+  test('places the order once the center walk is short enough, priced like the page', async () => {
     const trimmed = DISTRIBUTION_CENTERS.splice(0, DISTRIBUTION_CENTERS.length - 2);
     try {
       const result = await submitOrder({ ndc: '58160-849-52', quantity: 2, delivery: 'nextday' });
       expect(result.success).toBe(true);
       expect(result.orderId).toMatch(/^ORD-[0-9A-F]{8}$/);
       expect(result.doses).toBe(20);
-      expect(result.total).toBe(4105);
+      expect(result.total).toBe(4095);
+
+      const premium = await submitOrder({ ndc: '5816084952', quantity: 2, accountTier: 'premium' });
+      expect(premium.unitPrice).toBe(1908.2);
+      expect(premium.total).toBe(3816.4);
+
+      const basic = await submitOrder({ ndc: '5816082111', quantity: 3, accountTier: 'basic', delivery: 'nextday' });
+      expect(basic.unitPrice).toBe(664.2);
+      expect(basic.total).toBe(2027.6);
     } finally {
       DISTRIBUTION_CENTERS.unshift(...trimmed);
     }
