@@ -178,7 +178,7 @@
         <div>
           <h1 id="page-title">Transferir com Pix</h1>
           <p>Envie dinheiro na hora, a qualquer dia e horário, usando a chave Pix de quem vai receber: CPF, celular, e-mail ou chave aleatória.</p>
-          <div class="pix-badges"><span>24 horas, 7 dias por semana</span><span>Sem tarifa para pessoa física</span><span>Comprovante na hora</span></div>
+          <div class="pix-badges"><span>24 horas, 7 dias por semana</span><span>Por chave, QR Code ou agência e conta</span><span>Comprovante na hora</span></div>
         </div>
         <div class="intro-icon" aria-hidden="true">
           <img src="https://www.santander.com.br/sites/WPC_CMS/imagem/24-07-12_191336_M_ic_bank_values_48.svg" alt="" width="56" height="56" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
@@ -317,6 +317,7 @@
       result.textContent = '';
       newPix.className = 'reset-link';
       setStep(2);
+      const recipient = selected(toAccount).text;
       try {
         const response = await fetch('/api/banking/transfer', {
           method: 'POST',
@@ -334,7 +335,9 @@
         const data = await response.json();
         if (!response.ok || !data.receipt) throw new Error('pix-failed');
         result.className = 'result-box success';
-        result.textContent = `Pix enviado para ${selected(toAccount).text}.\nValor: ${brl.format(Number(data.receipt.amount))} · ${stamp.format(new Date(data.receipt.timestamp))}\nID da transação: ${data.receipt.receiptId}`;
+        const fee = Number(data.fee) || 0;
+        const charges = fee > 0 ? ` · Tarifa: ${brl.format(fee)} · Total debitado: ${brl.format(Number(data.debitAmount))}` : '';
+        result.textContent = `Pix enviado para ${recipient}.\nValor: ${brl.format(Number(data.receipt.amount))}${charges}\n${stamp.format(new Date(data.receipt.timestamp))} · ID da transação: ${data.receipt.receiptId}`;
         status.textContent = 'Pix concluído.';
         setStep(3);
       } catch (_error) {

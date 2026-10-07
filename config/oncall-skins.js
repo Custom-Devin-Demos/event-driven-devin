@@ -2571,6 +2571,7 @@ const ONCALL_SKINS = {
     company: 'Santander',
     brandMark: 'S',
     vertical: 'banking',
+    oncallOnly: true,
     page: { file: '80565c6b.html', title: 'Pix | Santander' },
     theme: {
       '--accent': '#CC0000',
