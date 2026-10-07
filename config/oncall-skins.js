@@ -2921,6 +2921,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Peacock Help Center',
     disclaimer: 'NOT ACTUALLY A PEACOCK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Peacock product.',
   },
+  '42a72d14': {
+    slug: '42a72d14',
+    company: 'Rogers',
+    brandMark: 'R',
+    vertical: 'telco',
+    page: { file: '42a72d14.html', title: 'Change your plan | MyRogers' },
+    theme: {
+      '--accent': '#DA291C',
+      '--ink': '#1F1F1F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1F1F1F',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Rogers Support',
+    alertCard: {
+      impact: 'Plan changes in MyRogers time out after 6s and subscribers get a "Something went wrong" error; nobody sees a confirmation.',
+    },
+    disclaimer: 'NOT ACTUALLY A ROGERS SITE — internal demo only, not affiliated with, endorsed by, or a real Rogers product.',
+  },
 };
 
 function getOncallSkin(slug) {
