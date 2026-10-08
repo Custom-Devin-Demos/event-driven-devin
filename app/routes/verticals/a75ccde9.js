@@ -10,6 +10,8 @@ const {
   reportQualityFindings,
 } = require('../../services/verticals/a75ccde9-quality');
 
+const ctv = require('../../services/verticals/a75ccde9-ctv');
+
 const router = express.Router();
 const ERROR_PATH = '/api/a75ccde9/error';
 const AUDIT_PATH = '/api/a75ccde9/quality-audit';
@@ -26,6 +28,20 @@ function allowCrossOrigin(req, res, next) {
 }
 
 router.options(ERROR_PATH, allowCrossOrigin);
+router.options(ctv.ERROR_PATH, allowCrossOrigin);
+
+// FOX One TV app beacon: navigator.sendBeacon posts JSON as text/plain (no CORS preflight on TV browsers).
+router.post(ctv.ERROR_PATH, allowCrossOrigin, express.text({ type: 'text/plain', limit: '32kb' }), (req, res) => {
+  const body = ctv.parseReport(req.body);
+  if (!ctv.isAppReport(body)) {
+    return res.status(400).json({
+      received: false,
+      error: `Expected { message, platform } with platform in ${ctv.PLATFORMS.join('|')}`,
+    });
+  }
+  const { reference } = ctv.reportAppFailure(body);
+  return res.status(202).json({ received: true, reference, service: ctv.APP_SERVICE, sessionRequested: true });
+});
 
 router.post(ERROR_PATH, allowCrossOrigin, (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
