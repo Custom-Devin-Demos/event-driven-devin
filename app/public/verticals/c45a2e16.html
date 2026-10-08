@@ -264,7 +264,8 @@
       const today = new Date();
       const payments = [];
       for (let i = 0; i < count; i += 1) {
-        const due = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + i, today.getUTCDate()));
+        const lastDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + i + 1, 0)).getUTCDate();
+        const due = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + i, Math.min(today.getUTCDate(), lastDay)));
         const extra = i > 0 && leftover > 0 ? 1 : 0;
         leftover -= extra;
         payments.push({ dueDate: due.toISOString().slice(0, 10), amount: (base + extra) / 100 });
@@ -312,7 +313,13 @@
 
     renderPlans();
     renderPreview();
-    form.addEventListener('change', () => { button.disabled = false; resetResult(); renderPreview(); });
+    let completed = false;
+    form.addEventListener('change', () => {
+      if (completed) return;
+      button.disabled = false;
+      resetResult();
+      renderPreview();
+    });
 
     function notice(text) {
       result.className = 'result-box notice';
@@ -321,6 +328,7 @@
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (completed) return;
       if (!TENANT_SLUG) { notice(NOTICES.UNKNOWN_TENANT); return; }
       const plan = selectedPlan();
       button.disabled = true;
@@ -356,6 +364,8 @@
         notice(FAILED);
       } finally {
         if (confirmed) {
+          completed = true;
+          document.getElementById('plans').disabled = true;
           button.textContent = 'Paid';
         } else {
           button.disabled = false;

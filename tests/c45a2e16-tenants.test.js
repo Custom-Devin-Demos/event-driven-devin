@@ -51,6 +51,11 @@ describe('checkout plan tenants', () => {
     expect(plan.payments.map((p) => p.amount)).toEqual([1374.75, 1374.75, 1374.75, 1374.75]);
   });
 
+  it('clamps month-end due dates to the last day of shorter months', () => {
+    const plan = buildPaymentPlan(TENANTS.nouf.order, 'pay_in_4', new Date('2026-01-31T10:00:00Z'));
+    expect(plan.payments.map((p) => p.dueDate)).toEqual(['2026-01-31', '2026-02-28', '2026-03-31', '2026-04-30']);
+  });
+
   it('fails Pay in 24 with a TypeError and alerts under the tenant label and schedule key', async () => {
     await expect(confirmCheckout({ tenant: 'nouf', plan: 'pay_in_24', orderRef: 'TMR-ORD-7731-20582' }))
       .rejects.toBeInstanceOf(TypeError);

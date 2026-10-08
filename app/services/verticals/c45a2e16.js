@@ -82,9 +82,10 @@ function resolveInstalmentSchedule(scheduleKey) {
 }
 
 function addMonths(date, months) {
-  const next = new Date(date.getTime());
-  next.setUTCMonth(next.getUTCMonth() + months);
-  return next;
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() + months;
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(year, month, Math.min(date.getUTCDate(), lastDay)));
 }
 
 function buildPaymentPlan(order, scheduleKey, now = new Date()) {
