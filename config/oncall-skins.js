@@ -3066,6 +3066,30 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A ITAÚ SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Itaú product.',
   },
+  'fc9b0f00': {
+    slug: 'fc9b0f00',
+    company: 'Zoom',
+    brandMark: 'Z',
+    vertical: 'hightech',
+    page: { file: 'fc9b0f00.html', title: 'Add Licenses - Zoom' },
+    alertCard: {
+      title: 'p95 latency trending up \u2014 Add licenses',
+      team: 'workplace-billing-oncall',
+      release: 'web-billing@6.12.0',
+      baseline: '~350ms (7-day p95, before web-billing@6.12.0)',
+      symptom: 'Add licenses latency jumped after the last release and creeps higher with every request. Process RSS trends up alongside it.',
+      impact: 'Account admins buying Zoom Workplace licenses wait several seconds on checkout, and the wait grows under sustained traffic.',
+    },
+    theme: {
+      '--accent': '#0B5CFF',
+      '--ink': '#00031F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#00053D',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Zoom Support',
+    disclaimer: 'NOT ACTUALLY A ZOOM SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Zoom product.',
+  },
 };
 
 function getOncallSkin(slug) {
