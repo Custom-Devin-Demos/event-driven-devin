@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your global payroll, fully managed, every day - CloudPay</title>
+  <link rel="icon" href="https://www.cloudpay.com/app/uploads/2024/01/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #0066ff;
+      --blue-dark: #0056d6;
+      --navy: #003a8c;
+      --cyan: #76f6ff;
+      --hero: #d6f3f9;
+      --ink: #202020;
+      --grey: #f7f7f7;
+      --muted: #475467;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; font-family: 'Inter', sans-serif; color: #000; font-size: 16px; line-height: 1.5; background: #fff; }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; }
+    .container { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+    .btn { display: inline-block; background: var(--blue); color: #fff; font-family: inherit; font-size: 16px; font-weight: 500; padding: 13px 30px; border: 0; border-radius: 0; cursor: pointer; transition: background .2s; }
+    .btn:hover { background: var(--blue-dark); }
+    .btn-sm { font-size: 14px; font-weight: 600; padding: 10px 18px; }
+    .btn-dark { background: #000; }
+    .btn-dark:hover { background: #333; }
+    h2.blue { color: var(--blue); font-size: 30px; font-weight: 700; margin: 0 0 18px; line-height: 1.2; }
+    h2.black { color: #000; font-size: 30px; font-weight: 700; margin: 0 0 18px; line-height: 1.2; }
+
+    /* News bar + header */
+    .newsbar { background: var(--cyan); }
+    .newsbar .container { display: flex; align-items: center; justify-content: space-between; height: 55px; }
+    .newsbar .label { font-size: 15px; font-weight: 600; }
+    .newsbar .headline { font-size: 18px; font-weight: 600; }
+    .newsbar .btn { background: #202020; padding: 7px 40px; font-size: 15px; font-weight: 600; }
+    header { background: #fff; position: relative; z-index: 20; box-shadow: 0 2px 8px rgba(0, 0, 0, .04); }
+    header .container { display: flex; align-items: center; justify-content: space-between; height: 116px; }
+    header .logo img { height: 62px; display: block; }
+    header .logo .fallback { display: none; color: var(--blue); font-size: 34px; letter-spacing: .02em; }
+    nav.main { display: flex; align-items: center; gap: 34px; font-size: 17px; font-weight: 600; color: #000; }
+    nav.main a { display: inline-flex; align-items: center; gap: 8px; }
+    nav.main a:hover { color: var(--blue); }
+    nav.main svg.chev { width: 10px; height: 10px; }
+    nav.main svg.search { width: 20px; height: 20px; fill: var(--navy); }
+
+    /* Hero */
+    .hero { background: var(--hero); position: relative; overflow: hidden; }
+    .hero::before, .hero::after { content: ''; position: absolute; border: 2px solid rgba(118, 246, 255, .7); border-radius: 50%; }
+    .hero::before { width: 1500px; height: 520px; right: -560px; top: 170px; }
+    .hero::after { width: 1300px; height: 420px; right: -520px; top: 230px; border-color: rgba(255, 255, 255, .8); }
+    .hero .container { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 520px; align-items: center; min-height: 540px; }
+    .hero h1 { color: var(--blue); font-size: 55px; font-weight: 700; line-height: 1.15; margin: 0 0 16px; }
+    .hero .sub { font-size: 32px; line-height: 1.5; margin: 0 0 54px; color: #111; }
+    .hero .tag { font-size: 20px; margin: 0 0 34px; }
+    .hero .btn { font-size: 17px; padding: 14px 30px; }
+    .hero-visual { position: relative; height: 470px; }
+    .todo { position: absolute; right: 0; top: 50px; width: 360px; background: #fff; border-radius: 6px; box-shadow: 0 10px 30px rgba(0, 58, 140, .12); overflow: hidden; }
+    .todo h4 { font-size: 24px; font-weight: 600; margin: 0; padding: 26px 26px 22px; }
+    .todo ul { list-style: none; margin: 0; padding: 12px 14px 16px; background: #f2f2f2; }
+    .todo li { background: #fff; border-radius: 6px; display: grid; grid-template-columns: 1fr 64px 86px; align-items: center; gap: 6px; padding: 12px 12px; margin-bottom: 9px; font-size: 14px; font-weight: 500; box-shadow: 0 1px 2px rgba(0, 0, 0, .05); }
+    .todo li:last-child { margin-bottom: 0; }
+    .todo li .t { color: var(--blue); }
+    .todo li .c { color: #333; }
+    .todo .pill { font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px; text-align: center; }
+    .pill.done { background: #c7f0c2; color: #166b2a; }
+    .pill.pending { background: #d8e6ff; color: var(--blue); }
+    .chip { position: absolute; background: #fff; border-radius: 30px; padding: 10px 20px 10px 14px; display: flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 600; box-shadow: 0 6px 20px rgba(0, 58, 140, .12); }
+    .chip svg { width: 32px; height: 26px; }
+    .chip.auto { left: 0; top: 268px; }
+    .chip.status { left: 60px; top: 382px; }
+
+    /* Logos */
+    .logos { background: var(--grey); padding: 54px 0; }
+    .logos .container { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+    .logos img { height: 40px; max-width: 160px; object-fit: contain; }
+
+    /* Welcome cards */
+    .welcome { padding: 80px 0 40px; }
+    .welcome p.lead { margin: 0 0 46px; font-size: 16px; }
+    .flip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .flip-grid img { width: 100%; aspect-ratio: 405 / 582; object-fit: cover; display: block; background: var(--grey); }
+
+    /* Unify */
+    .unify { padding: 70px 0 80px; text-align: center; }
+    .unify p.lead { max-width: 640px; margin: 0 auto 50px; font-size: 16px; }
+    .sol-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+    .sol { background: var(--grey); padding: 40px 30px 40px; text-align: center; }
+    .sol img { height: 170px; object-fit: contain; margin-bottom: 26px; }
+    .sol h3 { font-size: 26px; font-weight: 700; color: var(--ink); margin: 0 0 10px; }
+    .sol p { margin: 0 0 24px; color: #333; }
+
+    /* Pay-run preview */
+    .deliver { background: var(--blue); color: #fff; padding: 80px 0 90px; }
+    .deliver .intro { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: end; margin-bottom: 40px; }
+    .deliver h2 { font-size: 30px; font-weight: 700; margin: 0 0 14px; }
+    .deliver .eyebrow { font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--cyan); margin: 0 0 10px; }
+    .deliver .intro p { margin: 0; font-size: 16px; color: #e8f0ff; }
+    .panel { background: #fff; color: #000; padding: 36px 40px; }
+    .panel h3 { font-size: 26px; font-weight: 700; margin: 0 0 6px; color: var(--ink); }
+    .panel .hint { margin: 0 0 26px; color: var(--muted); font-size: 15px; }
+    form .grid { display: grid; grid-template-columns: 1fr 1fr 1.2fr auto; gap: 18px; align-items: end; }
+    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--ink); }
+    input, select { width: 100%; font-family: inherit; font-size: 15px; padding: 12px 14px; border: 1px solid #c9d1dd; border-radius: 0; background: #fff; color: #000; }
+    input:focus, select:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+    form .btn { height: 47px; white-space: nowrap; }
+    form .btn:disabled { background: #7aa9f5; cursor: progress; }
+    .loading { display: none; align-items: center; gap: 14px; margin-top: 26px; padding: 16px 18px; background: #eef4ff; color: var(--navy); font-weight: 500; }
+    .loading.show { display: flex; }
+    .spinner { width: 22px; height: 22px; border: 3px solid #bcd3ff; border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .success { display: none; margin-top: 26px; padding: 16px 18px; background: #e6f7ea; border-left: 4px solid #1f9d55; color: #14532d; font-weight: 500; }
+    .success.show { display: block; }
+    .results { display: none; margin-top: 22px; }
+    .results.show { display: block; }
+    .results .meta { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; background: #f2f6fd; color: var(--navy); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid #dbe4f3; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eef1f6; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    tfoot td { font-weight: 700; background: #fafbfd; }
+    .st { font-size: 12px; font-weight: 600; border-radius: 20px; padding: 3px 10px; white-space: nowrap; }
+    .st.ready { background: #c7f0c2; color: #166b2a; }
+    .st.wait { background: #fff1c2; color: #8a5a00; }
+
+    /* Stats */
+    .stats { padding: 90px 0 70px; text-align: center; }
+    .stats h2 { margin-bottom: 40px; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: stretch; }
+    .stat-col { display: flex; flex-direction: column; justify-content: space-around; gap: 60px; padding: 40px 0; }
+    .stat b { display: block; color: var(--blue); font-size: 46px; font-weight: 700; line-height: 1.2; }
+    .stat span { display: block; font-size: 19px; font-weight: 600; margin-top: 10px; line-height: 1.35; }
+    .stat-mid { background: var(--grey); padding: 40px 0 0; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+    .globe { width: 78%; aspect-ratio: 1; margin: 50px auto -38%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #9ff6ff 0, #4f9bff 28%, #1f6bff 55%, #0a4fe0 100%); box-shadow: inset -30px -40px 80px rgba(0, 30, 120, .35); }
+
+    /* Partnerships */
+    .partners { padding: 60px 0 80px; }
+    .partners .container { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .partners p { margin: 0 0 30px; max-width: 470px; }
+    .hcm { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 50px; }
+    .hcm div { border: 2px solid var(--blue); height: 92px; display: flex; align-items: center; justify-content: center; padding: 14px; }
+    .hcm img { max-height: 54px; max-width: 170px; object-fit: contain; }
+
+    /* Customers */
+    .customers { padding: 70px 0 60px; }
+    .customers h2 { font-size: 34px; }
+    .customers p.lead { max-width: 620px; margin: 0 0 46px; }
+    .quotes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .quotes img { width: 100%; display: block; background: var(--grey); }
+
+    /* Resources */
+    .resources { padding: 40px 0 90px; }
+    .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin-top: 36px; }
+    .res-grid img { width: 100%; display: block; background: var(--grey); }
+
+    footer { background: var(--ink); color: #fff; }
+    footer .top { border-bottom: 1px solid #3a3a3a; }
+    footer .top .container { display: flex; align-items: center; justify-content: space-between; height: 120px; }
+    footer .top img { height: 48px; filter: brightness(0) invert(1); }
+    footer .top b { font-size: 19px; font-weight: 600; }
+    footer .cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; padding: 36px 0 30px; }
+    footer h5 { font-size: 17px; font-weight: 600; margin: 0 0 18px; }
+    footer .cols a { display: block; font-size: 15px; margin-bottom: 4px; color: #f2f2f2; }
+    footer .bottom { display: flex; justify-content: space-between; align-items: center; padding: 26px 0 40px; font-size: 16px; }
+    footer .social { display: flex; gap: 22px; }
+    footer .social svg { width: 24px; height: 24px; fill: #fff; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 420px; background: #b42318; color: #fff; padding: 16px 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); z-index: 50; opacity: 0; visibility: hidden; transform: translateY(16px); transition: opacity .25s, transform .25s, visibility .25s; }
+    .toast.show { opacity: 1; visibility: visible; transform: translateY(0); }
+    .toast strong { display: block; margin-bottom: 4px; }
+    .toast span { font-size: 14px; }
+
+    @media (max-width: 960px) {
+      nav.main, .newsbar .label { display: none; }
+      .hero .container, .deliver .intro, .partners .container { grid-template-columns: 1fr; }
+      .hero-visual { display: none; }
+      .flip-grid, .sol-grid, .res-grid, .quotes, .stat-grid, footer .cols { grid-template-columns: 1fr; }
+      form .grid { grid-template-columns: 1fr; }
+      .logos .container { flex-wrap: wrap; justify-content: center; }
+      .results { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="newsbar">
+    <div class="container">
+      <span class="label">Latest News</span>
+      <span class="headline">CloudPay Celebrates three decades of innovation</span>
+      <a class="btn" href="#">Read more</a>
+    </div>
+  </div>
+
+  <header>
+    <div class="container">
+      <a class="logo" href="#" aria-label="CloudPay home">
+        <img src="https://www.cloudpay.com/app/uploads/2025/06/CloudPay-Logo_Astro_RGB-1.svg" alt="CloudPay" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <span class="fallback">cloudpay</span>
+      </a>
+      <nav class="main" aria-label="Main">
+        <a href="#unify">Our Solutions <svg class="chev" viewBox="0 0 10 10"><path d="M1 3l4 4 4-4" fill="none" stroke="#000" stroke-width="1.6"/></svg></a>
+        <a href="#preview">Service <svg class="chev" viewBox="0 0 10 10"><path d="M1 3l4 4 4-4" fill="none" stroke="#000" stroke-width="1.6"/></svg></a>
+        <a href="#resources">Resources <svg class="chev" viewBox="0 0 10 10"><path d="M1 3l4 4 4-4" fill="none" stroke="#000" stroke-width="1.6"/></svg></a>
+        <a href="#partners">Partnerships <svg class="chev" viewBox="0 0 10 10"><path d="M1 3l4 4 4-4" fill="none" stroke="#000" stroke-width="1.6"/></svg></a>
+        <a href="#customers">About <svg class="chev" viewBox="0 0 10 10"><path d="M1 3l4 4 4-4" fill="none" stroke="#000" stroke-width="1.6"/></svg></a>
+        <a href="#preview">Contact us</a>
+        <a href="#">Login</a>
+        <a href="#" aria-label="Search"><svg class="search" viewBox="0 0 24 24"><path d="M10 2a8 8 0 0 1 6.32 12.9l5.39 5.4-1.41 1.4-5.4-5.39A8 8 0 1 1 10 2zm0 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg></a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <div>
+        <h1>CloudPay Navigator</h1>
+        <p class="sub">See everything. Stay in control.<br>Deliver with confidence.</p>
+        <p class="tag">One operating system for end-to-end global payroll</p>
+        <a class="btn" href="#preview">Learn more</a>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="todo">
+          <h4>To Do&rsquo;s</h4>
+          <ul>
+            <li><span class="t">Generate Reports</span><span class="c">&#x1F1EC;&#x1F1E7; UK</span><span class="pill done">Completed</span></li>
+            <li><span class="t">Import Data</span><span class="c">&#x1F1FA;&#x1F1F8; US</span><span class="pill done">Completed</span></li>
+            <li><span class="t">Lock Run</span><span class="c">&#x1F1ED;&#x1F1F0; HK</span><span class="pill pending">Pending</span></li>
+            <li><span class="t">Generate GL</span><span class="c">&#x1F1F9;&#x1F1ED; TH</span><span class="pill pending">Pending</span></li>
+          </ul>
+        </div>
+        <div class="chip auto"><svg viewBox="0 0 32 26"><path d="M30 7H4m0 0l5-5M4 7l5 5" fill="none" stroke="#202020" stroke-width="2.4"/><path d="M2 19h26m0 0l-5-5m5 5l-5 5" fill="none" stroke="#0066ff" stroke-width="2.4"/></svg>Automation</div>
+        <div class="chip status"><svg viewBox="0 0 32 26"><path d="M24 4H9a5 5 0 0 0 0 10h14a5 5 0 0 1 0 10H6" fill="none" stroke="#202020" stroke-width="2.4"/><circle cx="26" cy="22" r="3.4" fill="#fff" stroke="#0066ff" stroke-width="2.4"/></svg>Status tracking</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="logos" aria-label="Customers">
+    <div class="container">
+      <img src="https://www.cloudpay.com/app/uploads/2024/11/lseg-logo.svg" alt="LSEG" onerror="this.style.display='none'">
+      <img src="https://www.cloudpay.com/app/uploads/2024/11/Expedia_Logo_2023.svg" alt="Expedia" onerror="this.style.display='none'">
+      <img src="https://www.cloudpay.com/app/uploads/2024/11/Medtronic_logo.svg" alt="Medtronic" onerror="this.style.display='none'">
+      <img src="https://www.cloudpay.com/app/uploads/2024/03/1024px-Dropbox_logo_2017-1.png" alt="Dropbox" onerror="this.style.display='none'">
+      <img src="https://www.cloudpay.com/app/uploads/2024/11/Visa_2021.svg" alt="Visa" onerror="this.style.display='none'">
+      <img src="https://www.cloudpay.com/app/uploads/2024/11/Wayfair_logo.svg" alt="Wayfair" onerror="this.style.display='none'">
+    </div>
+  </section>
+
+  <section class="welcome">
+    <div class="container">
+      <h2 class="blue">Welcome to the future of global payroll</h2>
+      <p class="lead">All your global payroll needs, delivered by the High-Performance Payroll People.</p>
+      <div class="flip-grid">
+        <img src="https://www.cloudpay.com/app/uploads/2025/07/Technology-Leadership.png" alt="Technology leadership — providing you with the pinnacle of payroll technology and innovation" onerror="this.style.visibility='hidden'">
+        <img src="https://www.cloudpay.com/app/uploads/2025/07/Service-excellence-front.png" alt="Service excellence — delivering unwavering excellence in your managed payroll services" onerror="this.style.visibility='hidden'">
+        <img src="https://www.cloudpay.com/app/uploads/2026/05/AAA-Cards-Level-5-1.png" alt="Global reach — your truly global, fully-integrated multi-country payroll solution" onerror="this.style.visibility='hidden'">
+      </div>
+    </div>
+  </section>
+
+  <section class="unify" id="unify">
+    <div class="container">
+      <h2 class="black">The easiest way to unify your global payroll and pay</h2>
+      <p class="lead">Global payroll, salary payments and pay-on-demand services – all delivered as managed services through a seamless, unified, global, cloud-based system.</p>
+      <div class="sol-grid">
+        <div class="sol"><img src="https://www.cloudpay.com/app/uploads/2025/06/homepage-payroll.png" alt="" onerror="this.style.visibility='hidden'"><h3>Payroll</h3><p>Simplified, unified and friction-free payroll</p><a class="btn btn-sm" href="#preview">Learn more</a></div>
+        <div class="sol"><img src="https://www.cloudpay.com/app/uploads/2025/06/homepage-payments-x3.png" alt="" onerror="this.style.visibility='hidden'"><h3>Payments</h3><p>Speedy payment solutions that give you certainty</p><a class="btn btn-sm" href="#preview">Learn more</a></div>
+        <div class="sol"><img src="https://www.cloudpay.com/app/uploads/2025/06/homepage-pod-x3.png" alt="" onerror="this.style.visibility='hidden'"><h3>Pay On-Demand</h3><p>Flexible pay options for a more motivated workforce</p><a class="btn btn-sm" href="#preview">Learn more</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="deliver" id="preview">
+    <div class="container">
+      <div class="intro">
+        <div>
+          <p class="eyebrow">CloudPay Navigator</p>
+          <h2>Preview your multi-country pay run</h2>
+        </div>
+        <p>Navigator polls each in-country payroll provider for its current-period pay-run preview — headcount, gross and net pay, and USD-equivalent totals — so you can review every country before approval.</p>
+      </div>
+      <div class="panel">
+        <h3>Pay-run preview</h3>
+        <p class="hint">Results are consolidated in CloudPay directory order using today&rsquo;s FX reference rates.</p>
+        <form id="preview-form" novalidate>
+          <div class="grid">
+            <div><label for="companyName">Company name</label><input id="companyName" name="companyName" value="Northwind Global Ltd" autocomplete="organization"></div>
+            <div><label for="email">Work email</label><input id="email" name="email" type="email" value="payroll@northwindglobal.com" autocomplete="email"></div>
+            <div><label for="scope">Countries</label>
+              <select id="scope" name="scope">
+                <option value="all" selected>All CloudPay countries (14 in-country providers)</option>
+                <option value="gb">United Kingdom only</option>
+                <option value="us">United States only</option>
+                <option value="sg">Singapore only</option>
+              </select>
+            </div>
+            <button class="btn" id="preview-button" type="submit">Preview pay run</button>
+          </div>
+        </form>
+        <div class="loading" id="loading" role="status"><div class="spinner"></div><span>Polling in-country payroll providers for pay-run previews&hellip;</span></div>
+        <div class="success" id="preview-success" role="status"></div>
+        <div class="results" id="results">
+          <div class="meta" id="r-meta"></div>
+          <table>
+            <thead><tr><th>Country</th><th>In-country provider</th><th class="num">Headcount</th><th class="num">Gross (local)</th><th class="num">Net (local)</th><th class="num">Gross (USD)</th><th>Status</th></tr></thead>
+            <tbody id="rows"></tbody>
+            <tfoot><tr><td colspan="2">Total</td><td class="num" id="t-head"></td><td></td><td></td><td class="num" id="t-gross"></td><td></td></tr></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="container">
+      <h2 class="black">Our innovation is built on 25+ years of payroll experience</h2>
+      <div class="stat-grid">
+        <div class="stat-col"><div class="stat"><b>25+</b><span>years of<br>payroll experience</span></div><div class="stat"><b>3m+</b><span>payslips processed<br>annually</span></div></div>
+        <div class="stat-mid"><div class="stat"><b>140+</b><span>countries serviced<br>globally</span></div><div class="globe" aria-hidden="true"></div></div>
+        <div class="stat-col"><div class="stat"><b>$19b+</b><span>annual payments<br>value</span></div><div class="stat"><b>110+</b><span>currencies handled<br>worldwide</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="partners" id="partners">
+    <div class="container">
+      <div>
+        <h2 class="blue">Global pay, global partnerships</h2>
+        <p>Among our many global partnerships, we work with the world&rsquo;s best HCM technology partners to deliver you the most seamless, comprehensive, integrated pay experience possible.</p>
+        <a class="btn" href="#preview">Talk to us</a>
+      </div>
+      <div class="hcm">
+        <div><img src="https://www.cloudpay.com/app/uploads/2026/08/Workday-logo.svg" alt="Workday" onerror="this.style.display='none'"></div>
+        <div><img src="https://www.cloudpay.com/app/uploads/2026/08/Oracle-1.svg" alt="Oracle" onerror="this.style.display='none'"></div>
+        <div><img src="https://www.cloudpay.com/app/uploads/2026/08/Hibob.svg" alt="HiBob" onerror="this.style.display='none'"></div>
+        <div><img src="https://www.cloudpay.com/app/uploads/2026/08/SAP.svg" alt="SAP SuccessFactors" onerror="this.style.display='none'"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="customers" id="customers">
+    <div class="container">
+      <h2 class="black">Meet our customers</h2>
+      <p class="lead">We are extremely proud to provide our customers with their global pay services – so proud, in fact, that we caught up with a few of them to share their experiences with you.</p>
+      <div class="quotes">
+        <img src="https://www.cloudpay.com/app/uploads/2025/06/Homepage-datasite-x2.png" alt="Datasite testimonial" onerror="this.style.visibility='hidden'">
+        <img src="https://www.cloudpay.com/app/uploads/2025/06/Homepage-LSEG-x2.png" alt="LSEG testimonial" onerror="this.style.visibility='hidden'">
+      </div>
+    </div>
+  </section>
+
+  <section class="resources" id="resources">
+    <div class="container">
+      <h2 class="blue" style="font-size:34px">Explore our latest news and resources</h2>
+      <div class="res-grid">
+        <img src="https://www.cloudpay.com/app/uploads/2025/11/Building-a-business-case-1-768x957.png" alt="Building a business case" onerror="this.style.visibility='hidden'">
+        <img src="https://www.cloudpay.com/app/uploads/2026/06/Global-Payroll-Efficiency-Index-PEI-2026-3-768x957.png" alt="Global Payroll Efficiency Index (PEI) 2026" onerror="this.style.visibility='hidden'">
+        <img src="https://www.cloudpay.com/app/uploads/2025/11/Future-readiness-1-768x957.png" alt="Future readiness" onerror="this.style.visibility='hidden'">
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="top"><div class="container"><img src="https://www.cloudpay.com/app/uploads/2025/06/CloudPay-Logo_Astro_RGB-1.svg" alt="CloudPay" onerror="this.style.display='none'"><b>The High-Performance Payroll People</b></div></div>
+    <div class="container">
+      <div class="cols">
+        <div><h5>Solutions</h5><a href="#">Global Payroll</a><a href="#">Global Payments</a><a href="#">Global Pay On-Demand</a></div>
+        <div><h5>Service</h5><a href="#">Platform</a><a href="#">CloudPay App</a><a href="#">Onboarding</a><a href="#">Compliance</a><a href="#">HCM Integrations</a></div>
+        <div><h5>Resources</h5><a href="#">Reports</a><a href="#">Blog</a><a href="#">Payroll Guides</a><a href="#">Events</a></div>
+        <div><h5>About CloudPay</h5><a href="#">Our Culture</a><a href="#">Careers</a><a href="#">Our Locations</a><a href="#">Our Customers</a><a href="#">Gender Pay Gap Report</a><a href="#">Modern Slavery Statement</a><a href="#">Code of Conduct and Ethics</a><a href="#">Trust Center</a></div>
+      </div>
+      <div class="bottom">
+        <div class="social" aria-label="Social links">
+          <svg viewBox="0 0 24 24"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.06c.53-1 1.83-2.06 3.77-2.06 4.03 0 4.77 2.65 4.77 6.1V21h-4v-5.1c0-1.22-.02-2.78-1.7-2.78-1.7 0-1.96 1.33-1.96 2.7V21h-4z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8.6v-7.7H10v-3h2.6V9.1c0-2.6 1.6-4 3.9-4 1.1 0 2 .1 2.3.1v2.7h-1.6c-1.3 0-1.5.6-1.5 1.5v1.9h3l-.4 3h-2.6V22H20a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77zm-1.08 16.17h1.7L7.4 4.73H5.58z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
+        </div>
+        <span>Copyright CloudPay Inc. 2026 &nbsp;|&nbsp; <a href="#">Privacy Policy</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="alert"><strong>We couldn't preview your pay run</strong><span id="toast-copy"></span></div>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    var form = document.getElementById('preview-form');
+    var button = document.getElementById('preview-button');
+    var buttonHtml = button.innerHTML;
+    var results = document.getElementById('results');
+    var loading = document.getElementById('loading');
+    var success = document.getElementById('preview-success');
+    var rows = document.getElementById('rows');
+    var toast = document.getElementById('toast');
+    var toastTimer;
+
+    function showToast(text) {
+      document.getElementById('toast-copy').textContent = text;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+    }
+
+    function money(amount, currency) {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, maximumFractionDigits: 0 }).format(amount);
+    }
+
+    function formatDate(isoDate) {
+      return new Date(isoDate + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    }
+
+    function render(body) {
+      rows.innerHTML = '';
+      body.countries.forEach(function (c) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td></td><td></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td><td><span class="st"></span></td>';
+        var cells = tr.children;
+        cells[0].textContent = c.flag + ' ' + c.country;
+        cells[1].textContent = c.provider;
+        cells[2].textContent = c.headcount.toLocaleString('en-US');
+        cells[3].textContent = money(c.grossLocal, c.currency);
+        cells[4].textContent = money(c.netLocal, c.currency);
+        cells[5].textContent = money(c.grossUsd, 'USD');
+        var st = cells[6].firstChild;
+        st.textContent = c.status;
+        st.classList.add(c.status === 'Ready for approval' ? 'ready' : 'wait');
+        rows.appendChild(tr);
+      });
+      document.getElementById('t-head').textContent = body.totals.headcount.toLocaleString('en-US');
+      document.getElementById('t-gross').textContent = money(body.totals.grossUsd, 'USD');
+      document.getElementById('r-meta').textContent = body.countriesPolled + ' provider' + (body.countriesPolled === 1 ? '' : 's') +
+        ' polled · ' + body.scope.label + ' · FX rates as of ' + formatDate(body.ratesAsOf) + ' · request ' + body.requestId + ' · ' + (body.durationMs / 1000).toFixed(2) + 's';
+    }
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      if (button.disabled) return;
+
+      button.disabled = true;
+      button.textContent = 'Polling providers…';
+      success.classList.remove('show');
+      results.classList.remove('show');
+      loading.classList.add('show');
+
+      await identityReady;
+
+      var payload = {
+        companyName: document.getElementById('companyName').value,
+        email: document.getElementById('email').value,
+        scope: document.getElementById('scope').value,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      };
+
+      fetch('/api/b1e1bd35/pay-run-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function (response) {
+          return response.json().then(function (body) { return { ok: response.ok, body: body }; });
+        })
+        .then(function (result) {
+          if (!result.ok || !result.body.success) {
+            showToast((result.body.errorClass || 'Error') + ': ' + (result.body.error || 'Unknown error') +
+              ' · ' + (result.body.code || 'PAY_RUN_PREVIEW_FAILED'));
+            return;
+          }
+          var body = result.body;
+          success.textContent = 'Pay run ' + body.payRunId + ' preview ready for ' + body.companyName + ' — ' + body.payPeriod.label + ', ' +
+            body.countriesPolled + ' countr' + (body.countriesPolled === 1 ? 'y' : 'ies') + ', input cut-off ' + formatDate(body.inputCutoff) +
+            ', pay date ' + formatDate(body.payDate) + '.';
+          success.classList.add('show');
+          render(body);
+          results.classList.add('show');
+        })
+        .catch(function (error) {
+          showToast('NetworkError: ' + error.message);
+        })
+        .finally(function () {
+          loading.classList.remove('show');
+          button.disabled = false;
+          button.innerHTML = buttonHtml;
+        });
+    });
+  </script>
+</body>
+</html>
