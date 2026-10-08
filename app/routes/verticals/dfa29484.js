@@ -1,5 +1,5 @@
 const express = require('express');
-const { getCapitalAccount, generateStatement, getStatementCsv } = require('../../services/verticals/dfa29484');
+const { getCapitalAccount, generateStatement, getStatementDocument } = require('../../services/verticals/dfa29484');
 
 const router = express.Router();
 
@@ -38,8 +38,8 @@ router.post('/api/dfa29484/statements', async (req, res) => {
 
 router.get('/api/dfa29484/statements/:statementId/download', (req, res) => {
   try {
-    const { filename, body } = getStatementCsv(req.params.statementId);
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    const { filename, contentType, body } = getStatementDocument(req.params.statementId);
+    res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(body);
   } catch (error) {

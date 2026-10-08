@@ -364,7 +364,7 @@
   function openModal() {
     state.lastResult = null;
     el('form-pane').hidden = false; el('progress-pane').hidden = true; el('result').hidden = true;
-    el('btn-run').textContent = 'Generate'; el('btn-run').disabled = false; el('btn-cancel').textContent = 'Cancel';
+    el('btn-run').textContent = 'Generate'; el('btn-run').disabled = false; el('btn-run').onclick = runGenerate; el('btn-cancel').textContent = 'Cancel';
     el('modal-hint').textContent = 'Statements are generated per vehicle and consolidated into one document.';
     el('modal').hidden = false;
   }
@@ -453,7 +453,7 @@
             el('modal-hint').textContent = 'Statement ' + b.statement.id + ' added to Documents.';
             var r = el('result'); r.className = 'result'; r.hidden = false;
             r.innerHTML = '<span>Statement <b>' + esc(b.statement.id) + '</b> ready · ' + b.rows.length + ' vehicles · ' + b.statement.format.toUpperCase() + (b.statement.pages ? ' · ' + b.statement.pages + ' pages' : '') + '</span>' +
-              (b.statement.downloadUrl ? '<a class="btn" href="' + esc(b.statement.downloadUrl) + '">Download CSV</a>' : '');
+              (b.statement.downloadUrl ? '<a class="btn" href="' + esc(b.statement.downloadUrl) + '">Download ' + esc(b.statement.format.toUpperCase()) + '</a>' : '');
             toast('Capital account statement ready', b.statement.id + ' · ' + b.rows.length + ' vehicles rendered', true);
             el('btn-run').textContent = 'Done'; el('btn-run').onclick = function () { el('modal').hidden = true; };
             el('btn-cancel').textContent = 'Close';

@@ -132,6 +132,30 @@ const FUND_ADMIN_FEED = {
   },
 };
 
+/**
+ * Earlier quarters are rolled back from the current administrator feed so every
+ * period offered in the portal has an allocation on file. Blocks the
+ * administrator omitted (e.g. the co-invest's fee-free managementFee) stay absent.
+ */
+function rollBack(record, factor) {
+  const scaled = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (typeof value === 'number') scaled[key] = Math.round(value * factor * 100) / 100;
+    else if (value && typeof value === 'object') scaled[key] = rollBack(value, factor);
+    else scaled[key] = value;
+  }
+  if (record.managementFee) scaled.managementFee.rateBps = record.managementFee.rateBps;
+  if (record.carriedInterest) scaled.carriedInterest.hurdleBps = record.carriedInterest.hurdleBps;
+  return scaled;
+}
+
+const PRIOR_PERIOD_FACTORS = { '2026Q2': 0.94, '2026Q1': 0.88 };
+for (const [periodId, factor] of Object.entries(PRIOR_PERIOD_FACTORS)) {
+  FUND_ADMIN_FEED[periodId] = Object.fromEntries(
+    Object.entries(FUND_ADMIN_FEED['2026Q3']).map(([vehicleId, record]) => [vehicleId, rollBack(record, factor)]),
+  );
+}
+
 const STATEMENTS = [
   { id: 'STMT-2026Q2-0417', periodId: '2026Q2', vehicleIds: ['OCDL-IV', 'GPSC-V', 'NLRE-II'], format: 'pdf', generatedAt: '2026-07-21T14:02:11.000Z', pages: 9 },
   { id: 'STMT-2026Q1-0388', periodId: '2026Q1', vehicleIds: ['OCDL-IV', 'GPSC-V', 'NLRE-II'], format: 'pdf', generatedAt: '2026-04-19T09:48:36.000Z', pages: 9 },
@@ -153,7 +177,7 @@ function publicStatement(stmt) {
     format: stmt.format,
     generatedAt: stmt.generatedAt,
     pages: stmt.pages,
-    downloadUrl: stmt.format === 'csv' ? `/api/dfa29484/statements/${stmt.id}/download` : null,
+    downloadUrl: stmt.rows ? `/api/dfa29484/statements/${stmt.id}/download` : null,
   };
 }
 
@@ -316,7 +340,7 @@ async function generateStatement(data) {
       vehicleIds: request.vehicleIds,
       format: request.format,
       generatedAt: new Date().toISOString(),
-      pages: request.format === 'pdf' ? 3 + rows.length * 2 : null,
+      pages: request.format === 'pdf' ? rows.length + 1 : null,
       rows,
     };
     STATEMENTS.push(stmt);
@@ -393,20 +417,97 @@ async function generateStatement(data) {
   }
 }
 
-function getStatementCsv(statementId) {
+const CSV_COLUMNS = ['vehicleId', 'vehicleName', 'beginningBalance', 'contributions', 'distributions', 'netInvestmentIncome', 'realizedGain', 'unrealizedGain', 'managementFee', 'carriedInterest', 'endingBalance'];
+
+function statementCsv(stmt) {
+  const escape = (v) => `"${String(v).replace(/"/g, '""')}"`;
+  const lines = [CSV_COLUMNS.join(',')].concat(stmt.rows.map((r) => CSV_COLUMNS.map((c) => escape(r[c])).join(',')));
+  return `${lines.join('\n')}\n`;
+}
+
+function pdfText(value) {
+  return String(value)
+    .replace(/[\u2018\u2019]/g, '\'').replace(/[\u201c\u201d]/g, '"').replace(/[\u2013\u2014]/g, '-').replace(/\u00b7/g, '-')
+    .replace(/[^\x20-\x7e]/g, '?')
+    .replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+}
+
+/**
+ * Render a minimal multi-page PDF (one text page per section) without external libraries.
+ */
+function renderPdf(pages) {
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    null,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+  ];
+  const pageIds = [];
+  pages.forEach((lines) => {
+    const content = ['BT', '/F1 11 Tf', '15 TL', '54 750 Td']
+      .concat(lines.map((line) => `(${pdfText(line)}) Tj T*`))
+      .concat(['ET'])
+      .join('\n');
+    objects.push(`<< /Length ${Buffer.byteLength(content, 'latin1')} >>\nstream\n${content}\nendstream`);
+    const contentId = objects.length;
+    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentId} 0 R >>`);
+    pageIds.push(objects.length);
+  });
+  objects[1] = `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(' ')}] /Count ${pageIds.length} >>`;
+
+  let out = '%PDF-1.4\n';
+  const offsets = [];
+  objects.forEach((obj, i) => {
+    offsets.push(Buffer.byteLength(out, 'latin1'));
+    out += `${i + 1} 0 obj\n${obj}\nendobj\n`;
+  });
+  const xref = Buffer.byteLength(out, 'latin1');
+  out += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}`;
+  out += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return Buffer.from(out, 'latin1');
+}
+
+function statementPdf(stmt) {
+  const period = PERIODS.find((p) => p.id === stmt.periodId) || { label: stmt.periodId, asOf: '' };
+  const summary = [
+    'Blue Owl Investor Portal - Capital Account Statement',
+    `${INVESTOR.name}`,
+    `Reporting period: ${period.label} (as of ${period.asOf})`,
+    `Statement ${stmt.id} - generated ${stmt.generatedAt}`,
+    '',
+    'Vehicle                                   Beginning balance    Ending balance',
+  ].concat(stmt.rows.map((r) => `${r.vehicleName.padEnd(40)} ${String(r.beginningBalance).padStart(18)} ${String(r.endingBalance).padStart(18)}`))
+    .concat(['', 'Prepared from fund administrator records. Unaudited unless stated. Confidential - for the named limited partner only.']);
+  const sections = stmt.rows.map((r) => [
+    `${r.vehicleName}`,
+    `${INVESTOR.name} - ${period.label}`,
+    '',
+    `Beginning balance            ${r.beginningBalance}`,
+    `Contributions                ${r.contributions}`,
+    `Distributions                ${r.distributions}`,
+    `Net investment income        ${r.netInvestmentIncome}`,
+    `Realized gain / (loss)       ${r.realizedGain}`,
+    `Unrealized gain / (loss)     ${r.unrealizedGain}`,
+    `Management fee               ${r.managementFee}${r.feeBasis ? ` (${r.feeBasis}, ${r.feeRateBps} bps)` : ''}`,
+    `Carried interest             ${r.carriedInterest}`,
+    `Ending balance               ${r.endingBalance}`,
+  ]);
+  return renderPdf([summary].concat(sections));
+}
+
+function getStatementDocument(statementId) {
   const stmt = STATEMENTS.find((s) => s.id === statementId);
   if (!stmt) throw clientError('Statement not found.', 'STATEMENT_NOT_FOUND', 404);
-  if (stmt.format !== 'csv' || !stmt.rows) throw clientError('Only CSV statements can be downloaded here.', 'FORMAT_NOT_DOWNLOADABLE', 409);
-  const columns = ['vehicleId', 'vehicleName', 'beginningBalance', 'contributions', 'distributions', 'netInvestmentIncome', 'realizedGain', 'unrealizedGain', 'managementFee', 'carriedInterest', 'endingBalance'];
-  const escape = (v) => `"${String(v).replace(/"/g, '""')}"`;
-  const lines = [columns.join(',')].concat(stmt.rows.map((r) => columns.map((c) => escape(r[c])).join(',')));
-  return { filename: `${stmt.id}.csv`, body: `${lines.join('\n')}\n` };
+  if (!stmt.rows) throw clientError('This statement predates the portal archive; request a copy from Investor Relations.', 'STATEMENT_NOT_ARCHIVED', 409);
+  if (stmt.format === 'pdf') {
+    return { filename: `${stmt.id}.pdf`, contentType: 'application/pdf', body: statementPdf(stmt) };
+  }
+  return { filename: `${stmt.id}.csv`, contentType: 'text/csv; charset=utf-8', body: statementCsv(stmt) };
 }
 
 module.exports = {
   getCapitalAccount,
   generateStatement,
-  getStatementCsv,
+  getStatementDocument,
   VEHICLES,
   PERIODS,
 };
