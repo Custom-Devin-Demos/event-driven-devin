@@ -273,6 +273,7 @@
             <option value="ready">Ready for rules</option>
             <option value="rules_complete">Rules complete</option>
             <option value="stalled">Stalled</option>
+            <option value="unsynced">Status unknown</option>
             <option value="submitted">Submitted</option>
           </select>
         </div>
@@ -549,6 +550,11 @@
       var box = document.getElementById('d-rules');
       var pill = document.getElementById('d-rules-pill');
       box.textContent = '';
+      if (status === 'unsynced') {
+        RULE_PLAN.forEach(function (p) { box.appendChild(ruleNode(p.label, 'Unknown — last run not confirmed by server', 'skipped')); });
+        pill.textContent = 'Unknown';
+        return;
+      }
       if (!rules || !rules.length) {
         box.appendChild(el('div', 'rules-empty', 'Run payer rules to verify eligibility, identify the responsible carrier, apply the fee schedule and set coordination of benefits.'));
         pill.textContent = 'Not run';
@@ -632,7 +638,7 @@
 
       if (transportError) {
         var synced = await reconcileClaim(claim);
-        if (!synced) { claim.status = 'unsynced'; claim.projectedReimbursement = null; }
+        if (!synced) { claim.status = 'unsynced'; claim.projectedReimbursement = null; claim.rules = []; }
         state.busy = false;
         renderDrawer(claim);
         renderRows();
