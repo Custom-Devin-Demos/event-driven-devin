@@ -77,6 +77,7 @@
     .chip { display: inline-block; padding: 4px 10px; font-size: 12px; font-weight: 500; white-space: nowrap; }
     .chip.hold { background: var(--warn-wash); color: var(--warn); }
     .chip.sla { background: var(--wash); color: var(--ink); }
+    .chip.done { background: var(--wash); color: var(--ink); }
 
     .card { background: var(--surface); border: 1px solid var(--line); padding: 20px 22px; margin-bottom: 18px; min-width: 0; }
     .card h2 { margin: 0 0 14px; font-family: var(--display); font-weight: 500; font-size: 18px; }
@@ -181,7 +182,7 @@
           <h1>TS-ALR-2026-104382 &middot; SWIFT MT103</h1>
           <div class="sub">Outgoing cross-border payment held for a potential sanctions list match</div>
         </div>
-        <div class="chips"><span class="chip hold">Payment on hold</span><span class="chip sla">SLA 00:42 remaining</span></div>
+        <div class="chips"><span class="chip hold" id="holdChip">Payment on hold</span><span class="chip sla">SLA 00:42 remaining</span></div>
       </div>
 
       <section class="card" aria-label="Transaction details">
@@ -235,7 +236,7 @@
             <li><strong>Assigned to L2 review</strong><br><small>Workflow: cross-border high value &middot; 09:14</small></li>
             <li><strong>Reviewed &mdash; false positive</strong><br><small>S. Alqahtani &middot; 10:02</small></li>
             <li><strong>Second review &mdash; agreed</strong><br><small>M. Alharbi &middot; 10:19</small></li>
-            <li class="pending"><strong>Awaiting release</strong><br><small>Release to payment system</small></li>
+            <li class="pending" id="releaseStep"><strong>Awaiting release</strong><br><small>Release to payment system</small></li>
           </ul>
         </aside>
       </div>
@@ -312,6 +313,13 @@
         result.className = 'result-box success';
         result.textContent = `Payment released. ${sar(data.receipt.amount)} SAR sent to the payment system (ref ${data.receipt.receiptId}).`;
         status.textContent = 'Released.';
+        const chip = document.getElementById('holdChip');
+        chip.className = 'chip done';
+        chip.textContent = 'Released';
+        const step = document.getElementById('releaseStep');
+        step.classList.remove('pending');
+        step.querySelector('strong').textContent = 'Released';
+        step.querySelector('small').textContent = `Payment system \u00b7 ref ${data.receipt.receiptId}`;
       } catch (_error) {
         result.className = 'result-box notice';
         result.textContent = 'The payment was not released. It is still on hold. Try again, or escalate to your supervisor before the SLA expires.';
