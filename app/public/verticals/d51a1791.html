@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pay Bill | Ambrook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #2F4A2E;
+      --accent-hover: #26402A;
+      --ink: #1E231C;
+      --surface: #F6F3EC;
+      --panel: #FFFFFF;
+      --chrome-bg: #1C1F1A;
+      --chrome-text: #F6F3EC;
+      --line: #E3DED2;
+      --line-strong: #CFC9BA;
+      --muted: #6B6F63;
+      --chip: #EFEBE2;
+      --chip-ink: #2E3329;
+      --chip-ai: #EEE9FF;
+      --chip-ai-ink: #4B3FA0;
+      --positive: #3A6B3A;
+      --pending: #8A6A1F;
+      --focus: rgba(47, 74, 46, .35);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 14px/1.45 'Inter', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .serif { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; }
+
+    .app { display: flex; min-height: 100vh; }
+
+    /* Left icon rail */
+    .rail { width: 52px; flex: 0 0 52px; background: var(--chrome-bg); color: var(--chrome-text); display: flex; flex-direction: column; align-items: center; padding: 14px 0 12px; gap: 6px; position: sticky; top: 0; height: 100vh; }
+    .rail .tile { width: 32px; height: 32px; border-radius: 7px; display: grid; place-items: center; font-size: 22px; line-height: 1; color: var(--chrome-text); margin-bottom: 12px; }
+    .rail-btn { width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; color: rgba(246, 243, 236, .72); display: grid; place-items: center; }
+    .rail-btn:hover, .rail-btn.active { background: rgba(255, 255, 255, .08); color: var(--chrome-text); }
+    .rail-btn svg { width: 17px; height: 17px; }
+    .rail .spacer { flex: 1; }
+
+    /* Main */
+    .main { flex: 1; min-width: 0; padding: 22px 28px 40px; }
+    .ledger-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .ledger-head h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.01em; }
+    .head-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .ghost-btn { height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; display: inline-flex; align-items: center; gap: 7px; font-weight: 500; color: var(--ink); }
+    .ghost-btn:hover { background: rgba(0, 0, 0, .05); }
+    .ghost-btn svg { width: 16px; height: 16px; }
+    .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #D9A441; color: #fff; font-size: 11px; font-weight: 600; display: inline-grid; place-items: center; }
+    .primary-btn { height: 36px; padding: 0 14px 0 10px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 500; display: inline-flex; align-items: center; gap: 7px; }
+    .primary-btn:hover { background: var(--accent-hover); }
+    .primary-btn svg { width: 16px; height: 16px; }
+    .icon-btn { width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); display: inline-grid; place-items: center; }
+    .icon-btn:hover { background: rgba(0, 0, 0, .05); color: var(--ink); }
+    .icon-btn svg { width: 16px; height: 16px; }
+
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .filter-btn { height: 38px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--panel); display: inline-flex; align-items: center; gap: 7px; font-weight: 500; }
+    .filter-btn svg { width: 16px; height: 16px; }
+    .search { flex: 1; min-width: 0; height: 38px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--panel); display: flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--muted); }
+    .search svg { width: 16px; height: 16px; flex: 0 0 16px; }
+    .search input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; color: var(--ink); }
+    .search input::placeholder { color: var(--muted); }
+
+    /* Table */
+    .table-wrap { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+    table { width: 100%; min-width: 980px; border-collapse: collapse; }
+    thead th { text-align: left; font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 12px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    thead th.amount, td.amount { text-align: right; }
+    tbody tr { border-bottom: 1px solid var(--line); }
+    tbody tr:last-child { border-bottom: 0; }
+    tbody tr:hover { background: #FBFAF6; }
+    td { padding: 10px; vertical-align: middle; white-space: nowrap; }
+    td.check, th.check { width: 36px; padding-left: 14px; padding-right: 4px; }
+    td.caret, th.caret { width: 26px; padding: 0; color: var(--muted); }
+    td.caret svg { width: 14px; height: 14px; display: block; margin: 0 auto; }
+    .cb { width: 15px; height: 15px; border: 1.5px solid var(--line-strong); border-radius: 4px; display: block; background: #fff; }
+    .date { font-weight: 500; }
+    .date small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); }
+    .date small.pending { color: var(--pending); }
+    .desc { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 26px; height: 26px; border-radius: 50%; flex: 0 0 26px; display: grid; place-items: center; font-size: 11px; font-weight: 600; color: #fff; }
+    .avatar.icon { background: transparent; color: var(--muted); border: 1px solid var(--line-strong); }
+    .avatar.icon svg { width: 14px; height: 14px; }
+    .desc-text strong { display: block; font-weight: 500; }
+    .desc-text span { display: block; font-size: 12px; color: var(--muted); }
+    td.amount { font-weight: 500; font-variant-numeric: tabular-nums; }
+    td.amount.pos { color: var(--positive); }
+    .sub td { color: #3E4438; }
+    .sub td.amount { font-weight: 400; }
+    .sub .desc { padding-left: 2px; color: var(--ink); }
+    .sub .desc svg { width: 14px; height: 14px; color: var(--muted); }
+    .chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 13px; background: var(--chip); color: var(--chip-ink); font-size: 12.5px; font-weight: 500; }
+    .chip.outline { background: #fff; border: 1px solid var(--line-strong); }
+    .chip svg { width: 13px; height: 13px; color: var(--muted); }
+    .chip-ai { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: var(--chip-ai); color: var(--chip-ai-ink); }
+    .chip-ai svg { width: 13px; height: 13px; }
+    .ghost-chip { display: inline-grid; place-items: center; width: 28px; height: 26px; border-radius: 13px; border: 1px solid var(--line); color: var(--muted); background: #fff; }
+    .ghost-chip svg { width: 14px; height: 14px; }
+    td.ai, th.ai { width: 54px; text-align: center; }
+    td.more, th.more { width: 40px; }
+    .pay-bill-btn { height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+    .pay-bill-btn:hover { background: var(--accent-hover); }
+    .pay-bill-btn svg { width: 14px; height: 14px; }
+    .pay-bill-btn[disabled] { background: var(--chip); color: var(--positive); cursor: default; }
+    .status-chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 13px; background: #E6F0E4; color: var(--positive); font-size: 12.5px; font-weight: 500; }
+    .table-foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); background: #FBFAF6; }
+
+    /* Pay panel */
+    .scrim { position: fixed; inset: 0; background: rgba(30, 35, 28, .32); opacity: 0; pointer-events: none; transition: opacity .18s ease; z-index: 50; }
+    .scrim.open { opacity: 1; pointer-events: auto; }
+    .panel { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 100%; background: var(--panel); box-shadow: -12px 0 40px rgba(0, 0, 0, .14); transform: translateX(104%); transition: transform .22s ease; z-index: 60; display: flex; flex-direction: column; }
+    .panel.open { transform: translateX(0); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
+    .panel-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
+    .panel-body { padding: 16px 18px 20px; overflow-y: auto; flex: 1; }
+    .payee { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); margin-bottom: 16px; }
+    .payee .avatar { display: grid; width: 34px; height: 34px; flex-basis: 34px; font-size: 13px; color: #fff; }
+    .payee strong { display: block; font-weight: 600; }
+    .payee span { display: block; font-size: 12px; color: var(--muted); }
+    .payee .due { margin-left: auto; text-align: right; }
+    .payee .due b { display: block; font-size: 16px; font-weight: 600; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+    .field select, .field input { width: 100%; height: 42px; border: 1px solid var(--line-strong); border-radius: 8px; background: #fff; padding: 0 12px; outline: none; }
+    .field select:focus, .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus); }
+    .field small { display: block; margin-top: 5px; font-size: 12px; color: var(--muted); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 18px; }
+    .tags .chip { height: 30px; }
+    .summary { border-top: 1px solid var(--line); padding-top: 12px; margin-bottom: 14px; font-size: 13px; }
+    .summary div { display: flex; justify-content: space-between; padding: 3px 0; color: var(--muted); }
+    .summary div.total { color: var(--ink); font-weight: 600; font-size: 15px; padding-top: 8px; }
+    .submit-btn { width: 100%; height: 48px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+    .submit-btn:hover { background: var(--accent-hover); }
+    .submit-btn[disabled] { opacity: .85; cursor: progress; }
+    .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .35); border-top-color: #fff; animation: spin .8s linear infinite; display: none; }
+    .submit-btn.busy .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress { margin-top: 10px; min-height: 18px; font-size: 12.5px; color: var(--muted); display: flex; align-items: center; justify-content: space-between; }
+    .progress .elapsed { font-variant-numeric: tabular-nums; }
+    .result-box { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.5; }
+    .result-box.success { display: block; background: #E6F0E4; color: #24442A; border: 1px solid #C7DCC4; }
+    .result-box.notice { display: block; background: #FBF1DC; color: #6E4F0C; border: 1px solid #EBD6A3; }
+    .result-box strong { display: block; font-weight: 600; margin-bottom: 2px; }
+    .fineprint { margin-top: 12px; font-size: 11.5px; color: var(--muted); }
+
+    @media (max-width: 760px) {
+      .rail { width: 44px; flex-basis: 44px; }
+      .rail-btn.optional { display: none; }
+      .main { padding: 14px 12px 30px; }
+      .ledger-head h1 { font-size: 20px; }
+      .ghost-btn span.label { display: none; }
+      .panel { width: 100%; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .pay-bill-btn { height: 44px; padding: 0 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="rail" aria-label="Ambrook navigation">
+      <div class="tile serif" aria-label="Ambrook">a</div>
+      <button class="rail-btn" type="button" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+      <button class="rail-btn active" type="button" aria-label="Ledger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+      <button class="rail-btn optional" type="button" aria-label="Accounts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 12 4l9 6M5 10v9M9 10v9M15 10v9M19 10v9M3 21h18"/></svg></button>
+      <button class="rail-btn optional" type="button" aria-label="Receipts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></button>
+      <button class="rail-btn optional" type="button" aria-label="Cards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg></button>
+      <button class="rail-btn optional" type="button" aria-label="Payments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+      <button class="rail-btn optional" type="button" aria-label="Invoices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg></button>
+      <button class="rail-btn optional" type="button" aria-label="Fields"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22V10M12 10c0-4 3-7 7-7 0 4-3 7-7 7zM12 14c0-3-3-5-6-5 0 3 3 5 6 5z"/></svg></button>
+      <button class="rail-btn optional" type="button" aria-label="Reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button>
+      <div class="spacer"></div>
+      <button class="rail-btn" type="button" aria-label="Help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg></button>
+    </nav>
+
+    <main class="main">
+      <header class="ledger-head">
+        <h1>Ledger</h1>
+        <div class="head-actions">
+          <button class="ghost-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7l7-4 7 4M3 13l2.5-6L8 13a2.5 2.5 0 0 1-5 0zM16 13l2.5-6L21 13a2.5 2.5 0 0 1-5 0z"/></svg><span class="label">Reconcile</span></button>
+          <button class="ghost-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4h12l-1.5 4L16 12H4"/></svg><span class="label">Review</span><span class="badge">12</span></button>
+          <button class="primary-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New</button>
+          <button class="icon-btn" type="button" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+        </div>
+      </header>
+
+      <div class="toolbar">
+        <button class="filter-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filter</button>
+        <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" placeholder="Search" aria-label="Search ledger"></label>
+        <button class="icon-btn" type="button" aria-label="Export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg></button>
+      </div>
+
+      <div class="table-wrap">
+        <table id="ledgerTable">
+          <thead>
+            <tr>
+              <th class="check"><span class="cb"></span></th>
+              <th class="caret"></th>
+              <th>Date</th>
+              <th>Description</th>
+              <th class="amount">Amount</th>
+              <th>Category</th>
+              <th>Enterprise</th>
+              <th>Location</th>
+              <th>Contact</th>
+              <th class="ai">3 AI</th>
+              <th class="more"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="buchananRow">
+              <td class="check"><span class="cb"></span></td>
+              <td class="caret"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></td>
+              <td class="date">Aug 21<small class="pending" id="buchananStatus">Pending</small></td>
+              <td><div class="desc"><span class="avatar" style="background:#8A6F4D">B</span><div class="desc-text"><strong>Buchanan Farm &amp; Ranch Supply</strong><span>Bill #10482 &middot; due Aug 28</span></div></div></td>
+              <td class="amount">-$487.30</td>
+              <td><span class="chip outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>Fencing &amp; Supplies</span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 9h18l-1.5 10h-15zM3 9l2-5h14l2 5"/></svg></span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></svg></span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 18c1-2.5 3-3.5 5-3.5s4 1 5 3.5"/></svg></span></td>
+              <td class="ai"><span class="chip-ai" title="Categorized by Ambrook AI"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9z"/></svg></span></td>
+              <td class="more"><button class="pay-bill-btn" id="payBillBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>Pay bill</button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cb"></span></td>
+              <td class="caret"></td>
+              <td class="date">Aug 20<small>Cleared</small></td>
+              <td><div class="desc"><span class="avatar icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div class="desc-text"><strong>Flint Hills Livestock Mkt</strong><span>Sale Day &mdash; 48 steer</span></div></div></td>
+              <td class="amount pos">+$52,320.00</td>
+              <td><span class="chip">Cattle Sales</span></td>
+              <td><span class="chip">Stocker Ops</span></td>
+              <td><span class="chip">South Pasture</span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 18c1-2.5 3-3.5 5-3.5s4 1 5 3.5"/></svg></span></td>
+              <td class="ai"></td>
+              <td class="more"><button class="icon-btn" type="button" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cb"></span></td>
+              <td class="caret"></td>
+              <td class="date">Aug 16</td>
+              <td><div class="desc"><span class="avatar icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><div class="desc-text"><strong>Heartland Vet Services</strong><span>Herd health &mdash; 120 head</span></div></div></td>
+              <td class="amount">-$1,440.00</td>
+              <td><span class="chip">Vet &amp; Medicine</span></td>
+              <td><span class="chip">Cow-Calf</span></td>
+              <td><span class="chip">Home Pasture</span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 18c1-2.5 3-3.5 5-3.5s4 1 5 3.5"/></svg></span></td>
+              <td class="ai"></td>
+              <td class="more"><button class="icon-btn" type="button" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cb"></span></td>
+              <td class="caret"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg></td>
+              <td class="date">Aug 16</td>
+              <td><div class="desc"><span class="avatar icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 12h6M7 15h3"/></svg></span><div class="desc-text"><strong>Waverly Land &amp; Cattle Co.</strong><span>Check 4408, Excavation work</span></div></div></td>
+              <td class="amount pos">+$28,500.00</td>
+              <td><span class="chip">Excavation Income</span></td>
+              <td><span class="chip">Site Work</span></td>
+              <td><span class="chip">Miller Farm Job</span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 18c1-2.5 3-3.5 5-3.5s4 1 5 3.5"/></svg></span></td>
+              <td class="ai"></td>
+              <td class="more"><button class="icon-btn" type="button" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cb"></span></td>
+              <td class="caret"></td>
+              <td class="date">Aug 15</td>
+              <td><div class="desc"><span class="avatar icon" style="color:#B89A3C;border-color:#E6D7A8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2l5 10-5 10-5-10z"/></svg></span><div class="desc-text"><strong>Deposit &mdash; Bull Sale</strong></div></div></td>
+              <td class="amount pos">+$8,500.00</td>
+              <td><span class="chip outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>Bull Sales <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="color:var(--chip-ai-ink)"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/></svg></span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 9h18l-1.5 10h-15zM3 9l2-5h14l2 5"/></svg></span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></svg></span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 18c1-2.5 3-3.5 5-3.5s4 1 5 3.5"/></svg></span></td>
+              <td class="ai"><span class="chip-ai" title="Categorized by Ambrook AI"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9z"/></svg></span></td>
+              <td class="more"><button class="icon-btn" type="button" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cb"></span></td>
+              <td class="caret"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></td>
+              <td class="date">Aug 12</td>
+              <td><div class="desc"><span class="avatar" style="background:#8A6F4D">B</span><div class="desc-text"><strong>Buchanan Farm &amp; Ranch Supply</strong></div></div></td>
+              <td class="amount">-$2,180.00</td>
+              <td></td><td></td><td></td><td></td>
+              <td class="ai"></td>
+              <td class="more"><button class="icon-btn" type="button" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></td>
+            </tr>
+            <tr class="sub">
+              <td class="check"><span class="cb"></span></td>
+              <td class="caret"></td>
+              <td class="date"></td>
+              <td><div class="desc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4v8a3 3 0 0 0 3 3h11M15 11l4 4-4 4"/></svg>Mineral supplement</div></td>
+              <td class="amount">-$780.00</td>
+              <td><span class="chip">Feed &amp; Hay</span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 9h18l-1.5 10h-15zM3 9l2-5h14l2 5"/></svg></span></td>
+              <td><span class="chip">North Pasture</span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 18c1-2.5 3-3.5 5-3.5s4 1 5 3.5"/></svg></span></td>
+              <td class="ai"></td>
+              <td class="more"><button class="icon-btn" type="button" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></td>
+            </tr>
+            <tr class="sub">
+              <td class="check"><span class="cb"></span></td>
+              <td class="caret"></td>
+              <td class="date"></td>
+              <td><div class="desc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4v8a3 3 0 0 0 3 3h11M15 11l4 4-4 4"/></svg>Flint Hills Dozer LLC</div></td>
+              <td class="amount">-$3,200.00</td>
+              <td><span class="chip">Subcontractors</span></td>
+              <td><span class="chip">Land Clearing</span></td>
+              <td><span class="chip">Hennessey Rd Site</span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 18c1-2.5 3-3.5 5-3.5s4 1 5 3.5"/></svg></span></td>
+              <td class="ai"></td>
+              <td class="more"><button class="icon-btn" type="button" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></td>
+            </tr>
+            <tr class="sub">
+              <td class="check"><span class="cb"></span></td>
+              <td class="caret"></td>
+              <td class="date"></td>
+              <td><div class="desc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4v8a3 3 0 0 0 3 3h11M15 11l4 4-4 4"/></svg>Prairie Fuel Delivery</div></td>
+              <td class="amount">-$892.50</td>
+              <td><span class="chip">Fuel &amp; Oil</span></td>
+              <td><span class="chip">Site Work</span></td>
+              <td><span class="chip">Hennessey Rd Site</span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 18c1-2.5 3-3.5 5-3.5s4 1 5 3.5"/></svg></span></td>
+              <td class="ai"></td>
+              <td class="more"><button class="icon-btn" type="button" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></td>
+            </tr>
+            <tr class="sub">
+              <td class="check"><span class="cb"></span></td>
+              <td class="caret"></td>
+              <td class="date"></td>
+              <td><div class="desc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4v8a3 3 0 0 0 3 3h11M15 11l4 4-4 4"/></svg>Livestock salt blocks</div></td>
+              <td class="amount">-$185.00</td>
+              <td><span class="chip">Feed &amp; Hay</span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 9h18l-1.5 10h-15zM3 9l2-5h14l2 5"/></svg></span></td>
+              <td><span class="chip">Home Pasture</span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 18c1-2.5 3-3.5 5-3.5s4 1 5 3.5"/></svg></span></td>
+              <td class="ai"></td>
+              <td class="more"><button class="icon-btn" type="button" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cb"></span></td>
+              <td class="caret"></td>
+              <td class="date">Aug 9</td>
+              <td><div class="desc"><span class="avatar" style="background:#B23B3B">C</span><div class="desc-text"><strong>Casey's &mdash; Cottonwood Falls</strong></div></div></td>
+              <td class="amount">-$218.54</td>
+              <td><span class="chip">Fuel &amp; Oil</span></td>
+              <td><span class="chip">Land Clearing</span></td>
+              <td><span class="chip">Hwy 177 Job Site</span></td>
+              <td><span class="ghost-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 18c1-2.5 3-3.5 5-3.5s4 1 5 3.5"/></svg></span></td>
+              <td class="ai"></td>
+              <td class="more"><button class="icon-btn" type="button" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-foot"><span>Showing 11 of 1,284 transactions &middot; Eddy's Ranch LLC</span><span>Synced 2 min ago &middot; 1 bill awaiting payment</span></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="scrim" id="scrim"></div>
+  <aside class="panel" id="payPanel" role="dialog" aria-modal="true" aria-labelledby="payPanelTitle" aria-hidden="true">
+    <div class="panel-head">
+      <h2 id="payPanelTitle">Pay bill</h2>
+      <button class="icon-btn" type="button" id="closePanel" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="panel-body">
+      <div class="payee">
+        <span class="avatar" style="background:#8A6F4D">B</span>
+        <div><strong>Buchanan Farm &amp; Ranch Supply</strong><span>Bill #10482 &middot; due Aug 28 &middot; ACH &middot;7731</span></div>
+        <div class="due"><b>$487.30</b><span>Amount due</span></div>
+      </div>
+      <form id="transferForm" novalidate>
+        <div class="field">
+          <label for="fromAccount">Pay from</label>
+          <select id="fromAccount">
+            <option value="ACCT-1001">Eddy's Card &middot;4567 &mdash; $25,430.00 available</option>
+            <option value="ACCT-1004">Operating Checking &middot;2210 &mdash; $156,200.00 available</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="toAccount">Pay to</label>
+          <select id="toAccount">
+            <option value="ACCT-EXT-7731">Buchanan Farm &amp; Ranch Supply &mdash; ACH &middot;7731</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="amount">Amount (USD)</label>
+            <input type="number" id="amount" value="487.30" min="1" step="0.01" required>
+          </div>
+          <div class="field">
+            <label for="sendOn">Send on</label>
+            <select id="sendOn">
+              <option value="today">Today &mdash; Aug 21</option>
+              <option value="due">Due date &mdash; Aug 28</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="accountTier">Payment method</label>
+          <select id="accountTier">
+            <option value="standard">ACH &mdash; standard (1&ndash;3 business days, $2.50)</option>
+            <option value="premium">Same-day ACH &mdash; verified payee (free)</option>
+            <option value="basic">Mailed check ($4.99)</option>
+          </select>
+          <small>Ambrook sends the payment to your bank; the bank confirms before it's posted to the Ledger.</small>
+        </div>
+        <div class="field">
+          <label for="memo">Memo</label>
+          <input type="text" id="memo" value="Bill #10482 — fencing wire &amp; T-posts" maxlength="80">
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="enterprise">Enterprise</label>
+            <select id="enterprise">
+              <option>Cow-Calf</option>
+              <option>Stocker Ops</option>
+              <option>Site Work</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="location">Location</label>
+            <select id="location">
+              <option>Home Pasture</option>
+              <option>North Pasture</option>
+              <option>South Pasture</option>
+            </select>
+          </div>
+        </div>
+        <div class="tags">
+          <span class="chip outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>Fencing &amp; Supplies</span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></svg>Receipt attached</span>
+        </div>
+        <div class="summary">
+          <div><span>Bill amount</span><span id="sumAmount">$487.30</span></div>
+          <div><span>Payment fee</span><span id="sumFee">$2.50</span></div>
+          <div class="total"><span>Total</span><span id="sumTotal">$489.80</span></div>
+        </div>
+        <button type="submit" class="submit-btn" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span id="submitLabel">Pay $487.30</span></button>
+        <div class="progress"><span id="payStatus" role="status" aria-live="polite"></span><span class="elapsed" id="payElapsed"></span></div>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <p class="fineprint">Payments are initiated through Ambrook Payments and settle to the payee's bank account. Fees shown before you confirm.</p>
+      </form>
+    </div>
+  </aside>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const panel = document.getElementById('payPanel');
+    const scrim = document.getElementById('scrim');
+    const payBillBtn = document.getElementById('payBillBtn');
+    const closePanel = document.getElementById('closePanel');
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const submitLabel = document.getElementById('submitLabel');
+    const result = document.getElementById('result');
+    const payStatus = document.getElementById('payStatus');
+    const payElapsed = document.getElementById('payElapsed');
+    const amountInput = document.getElementById('amount');
+    const tierInput = document.getElementById('accountTier');
+    const usd = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const FEES = { standard: 2.5, premium: 0, basic: 4.99 };
+
+    function openPanel() {
+      panel.classList.add('open');
+      scrim.classList.add('open');
+      panel.setAttribute('aria-hidden', 'false');
+      setTimeout(() => document.getElementById('fromAccount').focus(), 220);
+    }
+    function hidePanel() {
+      panel.classList.remove('open');
+      scrim.classList.remove('open');
+      panel.setAttribute('aria-hidden', 'true');
+      payBillBtn.focus();
+    }
+    function refreshSummary() {
+      const amount = parseFloat(amountInput.value) || 0;
+      const fee = FEES[tierInput.value] || 0;
+      document.getElementById('sumAmount').textContent = usd(amount);
+      document.getElementById('sumFee').textContent = usd(fee);
+      document.getElementById('sumTotal').textContent = usd(amount + fee);
+      if (!button.disabled) submitLabel.textContent = 'Pay ' + usd(amount);
+    }
+    payBillBtn.addEventListener('click', openPanel);
+    closePanel.addEventListener('click', hidePanel);
+    scrim.addEventListener('click', hidePanel);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.classList.contains('open')) hidePanel(); });
+    amountInput.addEventListener('input', refreshSummary);
+    tierInput.addEventListener('change', refreshSummary);
+
+    let ticker = null;
+    function startTicker() {
+      const started = Date.now();
+      payElapsed.textContent = '0.0s';
+      ticker = setInterval(() => { payElapsed.textContent = ((Date.now() - started) / 1000).toFixed(1) + 's'; }, 100);
+    }
+    function stopTicker() { clearInterval(ticker); ticker = null; }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const amount = parseFloat(amountInput.value);
+      if (!(amount > 0)) {
+        result.className = 'result-box notice';
+        result.textContent = 'Enter an amount greater than $0.00.';
+        return;
+      }
+      button.disabled = true;
+      button.classList.add('busy');
+      submitLabel.textContent = 'Sending to bank\u2026';
+      payStatus.textContent = 'Sending to bank\u2026 waiting for confirmation';
+      result.className = 'result-box';
+      result.textContent = '';
+      startTicker();
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount,
+            accountTier: tierInput.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('Payment could not be sent.');
+        const from = document.getElementById('fromAccount').selectedOptions[0].textContent.split(' \u2014 ')[0];
+        const when = document.getElementById('sendOn').value === 'due' ? 'Aug 28' : 'today';
+        result.className = 'result-box success';
+        result.innerHTML = '';
+        const head = document.createElement('strong');
+        head.textContent = 'Payment scheduled';
+        const body = document.createElement('span');
+        body.textContent = usd(data.receipt.amount) + ' to Buchanan Farm & Ranch Supply from ' + from + ', sending ' + when + '. Bank confirmed in ' + payElapsed.textContent + ' (ref ' + data.receipt.receiptId + ').';
+        result.append(head, body);
+        payStatus.textContent = 'Bank confirmed.';
+        const status = document.getElementById('buchananStatus');
+        status.textContent = 'Scheduled';
+        status.className = '';
+        payBillBtn.disabled = true;
+        payBillBtn.textContent = 'Scheduled';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'The bank did not confirm this payment. Nothing was sent — please try again.';
+        payStatus.textContent = 'Not sent.';
+      } finally {
+        stopTicker();
+        button.disabled = false;
+        button.classList.remove('busy');
+        refreshSummary();
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
