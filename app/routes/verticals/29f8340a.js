@@ -3,7 +3,7 @@ const { reserveTickets, ROUTE } = require('../../services/verticals/29f8340a');
 
 const router = express.Router();
 
-const DEFAULT_PASS_CODE = 'STACK26-EARLYBIRD';
+const DEFAULT_PASS_CODE = 'STACK26-EARLY-BIRD';
 const DEFAULT_ATTENDEE_TYPE = 'public';
 const parsedMax = parseInt(process.env.REPORT_CAP_29F8340A_MAX, 10);
 const REPORT_MAX = Number.isNaN(parsedMax) ? 10 : parsedMax;
@@ -53,7 +53,7 @@ router.post(ROUTE, async (req, res) => {
     });
     return res.json(result);
   } catch (error) {
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
       error: error.message,
       errorClass: error.name,

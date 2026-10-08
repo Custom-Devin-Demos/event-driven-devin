@@ -65,12 +65,29 @@ const REMEDIATION_DIRECTIVE = [
   'and add a regression test under tests/ that locks the fix in. Open a pull request against main.',
 ].join(' ');
 
+/**
+ * Pass codes arrive in mixed case and with inconsistent separators (the
+ * ticketing links print `STACK26-EARLYBIRD`), so lookups compare only the
+ * alphanumeric characters.
+ */
 function normalisePassCode(code) {
-  return typeof code === 'string' ? code.trim().toLowerCase() : '';
+  return typeof code === 'string' ? code.trim().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
 }
 
+const PASS_INDEX = new Map(
+  Object.values(PASS_CATALOGUE).map((pass) => [normalisePassCode(pass.code), pass]),
+);
+
 function resolvePass(code) {
-  return PASS_CATALOGUE[normalisePassCode(code)];
+  return PASS_INDEX.get(normalisePassCode(code));
+}
+
+function unknownPassCodeError(code) {
+  const error = new Error(`Unknown pass code: ${String(code)}`);
+  error.name = 'UnknownPassCodeError';
+  error.code = 'UNKNOWN_PASS_CODE';
+  error.statusCode = 400;
+  return error;
 }
 
 function resolveAttendeeType(type) {
@@ -145,8 +162,18 @@ async function reserveTickets(data) {
     service: SERVICE,
   });
 
+  const pass = resolvePass(data.passCode);
+  if (!pass) {
+    logger.warn('Ticket reservation rejected: unknown pass code', {
+      referenceNumber,
+      action: data.action,
+      passCode: data.passCode,
+      service: SERVICE,
+    });
+    throw unknownPassCodeError(data.passCode);
+  }
+
   try {
-    const pass = resolvePass(data.passCode);
     const attendee = resolveAttendeeType(data.attendeeType);
     const reservation = buildReservation(order, pass, attendee);
     const duration = Date.now() - start;
@@ -231,6 +258,7 @@ async function reserveTickets(data) {
 
 module.exports = {
   reserveTickets,
+  normalisePassCode,
   resolvePass,
   resolveAttendeeType,
   buildReservation,

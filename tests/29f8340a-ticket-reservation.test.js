@@ -23,6 +23,7 @@ const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const ticketRoutes = require('../app/routes/verticals/29f8340a');
 const {
   reserveTickets,
+  resolvePass,
   buildReservation,
   PASS_CATALOGUE,
   ATTENDEE_TYPES,
@@ -67,6 +68,17 @@ function postReservation(body) {
   });
 }
 
+async function withBrokenPass(fn) {
+  const pass = PASS_CATALOGUE['stack26-early-bird'];
+  const { pricing } = pass;
+  delete pass.pricing;
+  try {
+    return await fn();
+  } finally {
+    pass.pricing = pricing;
+  }
+}
+
 afterEach(() => {
   createSessionAndAlert.mockClear();
   Sentry.captureException.mockClear();
@@ -86,46 +98,81 @@ describe('GovTech Singapore STACK Conference ticket reservation', () => {
     expect(reservation.fulfilment.transferable).toBe(true);
   });
 
-  test('the homepage CTA fails with a TypeError and raises exactly one alert', async () => {
+  test('the homepage CTA reserves the default early bird pass (regression: STACK26-EARLYBIRD missed PASS_CATALOGUE)', async () => {
     const response = await postReservation({ action: 'Get your tickets', quantity: 1, ...IDENTITY });
 
-    expect(response.status).toBe(500);
-    expect(response.body.success).toBe(false);
-    expect(response.body.errorClass).toBe('TypeError');
-    expect(response.body.error).toMatch(/reading 'pricing'|reading 'code'|reading 'access'/);
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.referenceNumber).toMatch(/^STK-/);
+    expect(response.body.reservation.passCode).toBe('stack26-early-bird');
+    expect(response.body.reservation.passLabel).toBe('Early bird pass');
+    expect(response.body.reservation.pricing.totalAmountCents).toBe(24900);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
 
+  test('the route default pass code resolves against the catalogue', () => {
+    expect(resolvePass(ticketRoutes.DEFAULT_PASS_CODE)).toBe(PASS_CATALOGUE['stack26-early-bird']);
+  });
+
+  test.each([
+    ['STACK26-EARLYBIRD', 'stack26-early-bird'],
+    ['stack26-early-bird', 'stack26-early-bird'],
+    ['  Stack26_Early_Bird  ', 'stack26-early-bird'],
+    ['STACK26 STANDARD', 'stack26-standard'],
+    ['stack26workshopaddon', 'stack26-workshop-addon'],
+  ])('pass code %p resolves to %p regardless of case and separators', (input, expected) => {
+    expect(resolvePass(input).code).toBe(expected);
+  });
+
+  test.each([undefined, null, '', '   ', 42, 'STACK25-EARLYBIRD'])(
+    'unknown pass code %p is rejected with a 400 instead of a TypeError',
+    async (passCode) => {
+      expect(resolvePass(passCode)).toBeUndefined();
+      await expect(reserveTickets({ action: 'Get your tickets', passCode })).rejects.toMatchObject({
+        name: 'UnknownPassCodeError',
+        code: 'UNKNOWN_PASS_CODE',
+        statusCode: 400,
+      });
+    },
+  );
+
+  test('the route returns 400 UNKNOWN_PASS_CODE for an unknown pass and raises no alert', async () => {
+    const response = await postReservation({ action: 'Get your tickets', passCode: 'STACK25-EARLYBIRD', ...IDENTITY });
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body.code).toBe('UNKNOWN_PASS_CODE');
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test('client-supplied Devin IDs cannot override the pinned owner', async () => {
+    const response = await withBrokenPass(() => postReservation({
+      action: 'Get your tickets',
+      devinUserId: 'clerk-user_attacker',
+      devinOrgId: 'org-attacker',
+    }));
+
+    expect(response.status).toBe(500);
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.customer).toBe('29f8340a');
     expect(alert.service).toBe(SERVICE);
     expect(alert.slackMemberId).toBe('U08S7AVJ478');
     expect(alert.devinUserId).toBe(OWNER.devinUserId);
-    expect(alert.devinOrgId).toBe('org-ed3f47f7577c4ec0bbb3c29f2148bb3c');
+    expect(alert.devinOrgId).toBe(OWNER.devinOrgId);
     expect(alert.errorType).toBe('TypeError');
   });
 
-  test('client-supplied Devin IDs cannot override the pinned owner', async () => {
-    const response = await postReservation({
-      action: 'Get your tickets',
-      devinUserId: 'clerk-user_attacker',
-      devinOrgId: 'org-attacker',
-    });
-
-    expect(response.status).toBe(500);
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-    const alert = createSessionAndAlert.mock.calls[0][0];
-    expect(alert.devinUserId).toBe(OWNER.devinUserId);
-    expect(alert.devinOrgId).toBe(OWNER.devinOrgId);
-  });
-
-  test('every click lands on the same failing reservation regardless of label', async () => {
+  test('every click reserves the same pass regardless of label', async () => {
     const labels = ['About us', 'Explore our products', 'Who we are', 'Privacy Statement'];
     for (const action of labels) {
       const response = await postReservation({ action, ...IDENTITY });
-      expect(response.status).toBe(500);
-      expect(response.body.errorClass).toBe('TypeError');
+      expect(response.status).toBe(200);
+      expect(response.body.reservation.passCode).toBe('stack26-early-bird');
     }
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(labels.length);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
   test('a catalogued pass code reserves successfully', async () => {
@@ -166,7 +213,7 @@ describe('GovTech Singapore STACK Conference ticket reservation', () => {
   });
 
   test('the Sentry capture carries the instant-path tag so the webhook skips it', async () => {
-    await postReservation({ action: 'Get your tickets', ...IDENTITY });
+    await withBrokenPass(() => postReservation({ action: 'Get your tickets', ...IDENTITY }));
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     const [, context] = Sentry.captureException.mock.calls[0];
