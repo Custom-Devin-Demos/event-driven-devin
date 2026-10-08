@@ -250,8 +250,6 @@ function buildAlertMessage(report, { reference, triggeredBy, now }) {
     `Env: production | Release: ${report.release} | Platform: ${report.platformLabel}`,
     `Reported: ${now.toISOString()}`,
     '',
-    `*Symptom:* ${symptomOf(report)}`,
-    `*Impact:* ${PARTIFUL.impact}`,
     `Repo: ${PARTIFUL.repo} (${PARTIFUL.appDir})`,
   ];
   return lines.filter((l) => l !== null).join('\n');
@@ -276,7 +274,7 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `*Symptom:* ${symptomOf(report)}\n*Impact:* ${PARTIFUL.impact}\nRepo: ${PARTIFUL.repo} (${PARTIFUL.appDir})`,
+        text: `Repo: ${PARTIFUL.repo} (${PARTIFUL.appDir})`,
       },
     },
     {

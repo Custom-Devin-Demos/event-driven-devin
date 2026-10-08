@@ -83,7 +83,7 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
       `:rotating_light: *[Triggered] ${scenario.monitor}*`,
       '',
       `*Service:* ${scenario.service} (${skin.company})`,
-      `*Demo page:* https://devindemos.com/oncall/c/${skin.slug} — reproduce the symptom on this branded page`,
+      `*Affected page:* https://devindemos.com/oncall/c/${skin.slug}`,
       `*Endpoint:* ${scenario.endpoint}`,
       `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
       `*Monitor query:* \`${scenario.metricQuery}\``,
@@ -93,8 +93,6 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
       `Env: production | Release: ${scenario.release}`,
       `Events: 3 | First: ${firstSeen} | Last: ${NOW.toISOString()}`,
       '',
-      `*Symptom:* ${scenario.symptom}`,
-      `*Impact:* ${scenario.impact}`,
       'Repo: https://github.com/COG-GTM/event-driven-devin',
     ].join('\n'));
     expect(blocks).toContain(`[Triggered] ${scenario.monitor}`);
@@ -112,7 +110,8 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
     expect(text).toContain(`*[Triggered] ${scenario.monitor}*`);
     expect(text).toContain(`*Endpoint:* ${scenario.endpoint}`);
     expect(text).toContain(`Release: ${scenario.release}`);
-    expect(text).toContain(`*Symptom:* ${scenario.symptom}`);
+    expect(text).not.toContain('*Symptom:*');
+    expect(text).not.toContain('*Impact:*');
   });
 
   test('d7dd38ef reports insurance claim latency as a p95 metric, not a 5xx rate', async () => {
