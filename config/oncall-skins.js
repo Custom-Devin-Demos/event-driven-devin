@@ -3071,6 +3071,7 @@ const ONCALL_SKINS = {
     company: 'Zoom',
     brandMark: 'Z',
     vertical: 'hightech',
+    oncallOnly: true,
     page: { file: 'fc9b0f00.html', title: 'Add Licenses - Zoom' },
     alertCard: {
       title: 'p95 latency trending up \u2014 Add licenses',
