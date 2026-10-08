@@ -470,10 +470,14 @@
     const payElapsed = document.getElementById('payElapsed');
     const amountInput = document.getElementById('amount');
     const tierInput = document.getElementById('accountTier');
-    const usd = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const usd = (n) => '$' + Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     const FEE_TIERS = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.5 }, basic: { rate: 0.002, flat: 4.99 } };
     const feeFor = (tier, amount) => { const t = FEE_TIERS[tier] || FEE_TIERS.standard; return Math.max(t.rate * amount, t.flat); };
-    const validAmount = (n) => n >= 1 && Math.abs(n * 100 - Math.round(n * 100)) < 1e-6;
+    const parseAmount = (text) => {
+      const m = /^(\d+)(?:\.(\d{1,2}))?$/.exec(String(text).trim());
+      return m ? Number(m[1] + '.' + (m[2] || '').padEnd(2, '0')) : NaN;
+    };
+    const validAmount = (n) => n >= 1;
 
     function openPanel() {
       panel.classList.add('open');
@@ -489,7 +493,7 @@
     }
     let paid = false;
     function refreshSummary() {
-      const amount = parseFloat(amountInput.value) || 0;
+      const amount = parseAmount(amountInput.value) || 0;
       const fee = feeFor(tierInput.value, amount);
       document.getElementById('sumAmount').textContent = usd(amount);
       document.getElementById('sumFee').textContent = usd(fee);
@@ -513,7 +517,7 @@
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const amount = parseFloat(amountInput.value);
+      const amount = parseAmount(amountInput.value);
       if (!validAmount(amount)) {
         result.className = 'result-box notice';
         result.textContent = 'Enter an amount of at least $1.00, in whole cents.';
