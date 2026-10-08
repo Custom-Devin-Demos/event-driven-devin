@@ -2,7 +2,7 @@
 
 jest.mock('axios');
 jest.mock('../app/services/slack', () => ({
-  OWNER_DISCLAIMER: 'fictional on-call persona',
+  ownerRotation: jest.requireActual('../app/services/slack').ownerRotation,
   postMessage: jest.fn().mockResolvedValue('1700000000.000100'),
   postThreadReply: jest.fn().mockResolvedValue('1700000000.000200'),
   lookupSlackUserByEmail: jest.fn().mockResolvedValue(null),
@@ -87,12 +87,11 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     // Responders only receive top-level TextBlocks, so the Incident Ref must not live in the FactSet.
     const facts = card.body.find((b) => b.type === 'FactSet').facts.map((f) => f.title);
     expect(facts).not.toContain('Incident Ref');
-    // The fictional owner must be top-level too, or the responder CCs whoever posted the card.
+    // The owner is top-level too, and shows only the rotation, so there is no person to resolve.
     expect(facts).not.toContain('Owner');
     const owner = card.body.find((b) => b.type === 'TextBlock' && b.text.startsWith('**Owner:**'));
-    expect(owner.text).toContain('Jordan Patel');
-    expect(owner.text).toContain('do not resolve to a real Teams user');
-    expect(owner.text).toContain('not the account that posted this alert');
+    expect(owner.text).toBe('**Owner:** disbursement-oncall');
+    expect(text).not.toMatch(/demo persona|Jordan Patel/);
     const footer = card.body[card.body.length - 1];
     expect(footer).toMatchObject({ type: 'TextBlock', isSubtle: true });
     expect(footer.text).toBe('Incident Ref: run-abc | Service: loantrack-disbursement-api | Endpoint: POST /api/oncall/banking/transfer');
