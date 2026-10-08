@@ -378,7 +378,7 @@ function demoPagePath(scenario, skin) {
 
 function demoPageLine(scenario, skin) {
   const path = demoPagePath(scenario, skin);
-  return path ? `*Demo page:* ${DEMO_BASE_URL()}${path} — reproduce the symptom on this branded page` : null;
+  return path ? `*Affected page:* ${DEMO_BASE_URL()}${path}` : null;
 }
 
 /**
@@ -598,12 +598,12 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
     // Top-level TextBlocks: the Teams responder drops FactSet rows.
     body: [
       `**Owner:** ${ownerRotation(card.owner)}`,
-      demoPath ? `**Demo page:** ${DEMO_BASE_URL()}${demoPath} — reproduce the symptom on this branded page` : null,
+      demoPath ? `**Affected page:** ${DEMO_BASE_URL()}${demoPath}` : null,
       `Repo: ${REPO_URL}`,
     ],
     actions: [
       { title: 'View in Datadog', url: DD_URL() },
-      demoPath ? { title: 'Open demo page', url: `${DEMO_BASE_URL()}${demoPath}` } : null,
+      demoPath ? { title: 'Open affected page', url: `${DEMO_BASE_URL()}${demoPath}` } : null,
     ],
     footer: [
       runRef ? `Incident Ref: ${runRef}` : null,
