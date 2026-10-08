@@ -170,6 +170,7 @@ form#completionForm:focus-within { box-shadow: 0 0 0 .5px rgba(165, 180, 252, 0.
   .prose td code { word-break: break-all; }
 }
   article [id] { scroll-margin-top: 96px; }
+@media (min-width: 768px) { .ask-wrap { padding: 0; } }
 </style>
 </head>
 <body>
@@ -445,6 +446,19 @@ form#completionForm:focus-within { box-shadow: 0 0 0 .5px rgba(165, 180, 252, 0.
 </div>
 
 <script>
+(() => {
+  const wrap = document.querySelector('.ask-wrap');
+  const col = document.querySelector('.main > article');
+  const place = () => {
+    if (window.innerWidth < 768) { wrap.style.left = ''; wrap.style.right = ''; return; }
+    const a = col.getBoundingClientRect();
+    const m = col.parentElement.getBoundingClientRect();
+    wrap.style.left = Math.max(a.left, m.left + 24) + 'px';
+    wrap.style.right = (document.documentElement.clientWidth - Math.min(a.right, m.right - 24)) + 'px';
+  };
+  place();
+  window.addEventListener('resize', place);
+})();
 (function () {
   if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
   fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
