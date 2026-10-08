@@ -39,8 +39,10 @@ router.post(ctv.ERROR_PATH, allowCrossOrigin, express.text({ type: 'text/plain',
       error: `Expected { message, platform } with platform in ${ctv.PLATFORMS.join('|')}`,
     });
   }
-  const { reference } = ctv.reportAppFailure(body);
-  return res.status(202).json({ received: true, reference, service: ctv.APP_SERVICE, sessionRequested: true });
+  const { reference, suppressed } = ctv.reportAppFailure(body);
+  return res.status(202).json({
+    received: true, reference, service: ctv.APP_SERVICE, alertQueued: !suppressed, suppressed: suppressed || undefined,
+  });
 });
 
 router.post(ERROR_PATH, allowCrossOrigin, (req, res) => {

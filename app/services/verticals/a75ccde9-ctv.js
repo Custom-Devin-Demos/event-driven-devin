@@ -3,7 +3,7 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
-const { OWNER, resolveUserIdByEmail } = require('./a75ccde9');
+const { resolveUserIdByEmail } = require('./a75ccde9');
 
 // FOX One connected-TV app (COG-GTM/fox-one-ctv) error beacon. The TV app's
 // `src/telemetry/beacon.ts` posts uncaught errors here when launched with ?beacon=<this url>.
@@ -15,10 +15,45 @@ const ERROR_PATH = '/api/a75ccde9/ctv/error';
 const PLATFORMS = ['web', 'tizen', 'webos', 'vizio', 'xbox'];
 const ALERT_COOLDOWN_MS = Number(process.env.A75CCDE9_CTV_ALERT_COOLDOWN_MS) || 60 * 60 * 1000;
 
-let lastAlertAt = 0;
+// Public beacon (TV apps can't hold a secret), so alerts are rate-limited two ways:
+// one alert per failure signature per cooldown, and a global cap per hour across signatures.
+const MAX_ALERTS_PER_HOUR = Number(process.env.A75CCDE9_CTV_MAX_ALERTS_PER_HOUR) || 5;
+const MAX_TRACKED_SIGNATURES = 200;
+const ERROR_CLASSES = ['TypeError', 'ReferenceError', 'SyntaxError', 'RangeError', 'Error'];
+const alertState = new Map();
+let recentAlerts = [];
 
 function resetAlertCooldown() {
-  lastAlertAt = 0;
+  alertState.clear();
+  recentAlerts = [];
+}
+
+function failureSignature(platform, message) {
+  const normalized = message.replace(/\d+/g, 'N').replace(/\s+/g, ' ').trim().slice(0, 160);
+  return `${platform}|${normalized}`;
+}
+
+function claimAlertSlot(signature, now) {
+  for (const [key, entry] of alertState) {
+    if (!entry.inFlight && now - entry.at >= ALERT_COOLDOWN_MS) alertState.delete(key);
+  }
+  recentAlerts = recentAlerts.filter((at) => now - at < 60 * 60 * 1000);
+  const existing = alertState.get(signature);
+  if (existing && (existing.inFlight || now - existing.at < ALERT_COOLDOWN_MS)) return 'cooldown';
+  if (recentAlerts.length >= MAX_ALERTS_PER_HOUR || alertState.size >= MAX_TRACKED_SIGNATURES) return 'rate_limited';
+  alertState.set(signature, { at: now, inFlight: true });
+  recentAlerts.push(now);
+  return 'claimed';
+}
+
+function settleAlertSlot(signature, now, delivered) {
+  if (delivered) {
+    alertState.set(signature, { at: now, inFlight: false });
+    return;
+  }
+  alertState.delete(signature);
+  const index = recentAlerts.indexOf(now);
+  if (index !== -1) recentAlerts.splice(index, 1);
 }
 
 const APP_REMEDIATION_DIRECTIVE = [
@@ -92,7 +127,9 @@ function reportAppFailure(report) {
     alert_path: 'instant',
   };
 
-  incrementMetric('fox_one_ctv.client_error', { route: ERROR_PATH, platform, browser, errorClass: errorType });
+  incrementMetric('fox_one_ctv.client_error', {
+    route: ERROR_PATH, platform, browser, errorClass: ERROR_CLASSES.includes(errorType) ? errorType : 'Other',
+  });
   logger.error('FOX One TV app reported a client error', {
     reference, service: APP_SERVICE, platform, browser, route, errorClass: errorType, error: message,
   });
@@ -102,17 +139,19 @@ function reportAppFailure(report) {
   if (stackTrace) error.stack = stackTrace;
   Sentry.withScope((scope) => {
     scope.setTransactionName(`POST ${ERROR_PATH}`);
+    scope.addEventProcessor((event) => ({ ...event, release, environment }));
     Sentry.captureException(error, { tags, extra: { reference, release, environment, userAgent } });
   });
 
   const now = Date.now();
-  if (now - lastAlertAt < ALERT_COOLDOWN_MS) {
-    logger.warn('FOX One TV alert suppressed by cooldown', { reference, msSinceLastAlert: now - lastAlertAt });
-    return { reference, sessionPromise: Promise.resolve({ triggered: false, suppressed: true }) };
+  const signature = failureSignature(platform, message);
+  const slot = claimAlertSlot(signature, now);
+  if (slot !== 'claimed') {
+    logger.warn('FOX One TV alert suppressed', { reference, reason: slot, platform });
+    return { reference, suppressed: slot, sessionPromise: Promise.resolve({ triggered: false, suppressed: slot }) };
   }
-  lastAlertAt = now;
 
-  const devinEmail = clip(report.devinEmail || OWNER.email, 128);
+  const devinEmail = report.devinEmail ? clip(report.devinEmail, 128) : undefined;
   const raiseAlert = (devinUserId) => createSessionAndAlert({
     issueTitle: `${message} (${platform}, ${browser})`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=${encodeURIComponent(`is:unresolved service:${APP_SERVICE}`)}`,
@@ -122,8 +161,6 @@ function reportAppFailure(report) {
     devinUserId,
     devinEmail,
     devinOrgId: report.devinOrgId,
-    slackMemberId: OWNER.slackMemberId,
-    slackMemberIdFallback: OWNER.slackMemberId,
     service: APP_SERVICE,
     verticalLabel: `FOX One TV (${platform})`,
     promptAppendix: APP_REMEDIATION_DIRECTIVE,
@@ -146,11 +183,16 @@ function reportAppFailure(report) {
   const sessionPromise = (needsLookup
     ? resolveUserIdByEmail(devinEmail, report.devinOrgId).then((userId) => raiseAlert(userId || undefined))
     : raiseAlert(report.devinUserId)
-  ).catch((alertError) => {
+  ).then((result) => {
+    settleAlertSlot(signature, now, Boolean(result));
+    return result;
+  }, (alertError) => {
+    settleAlertSlot(signature, now, false);
     logger.error('Failed to create Devin session for FOX One TV error', { error: alertError.message, reference });
+    return null;
   });
 
-  return { reference, sessionPromise };
+  return { reference, suppressed: false, sessionPromise };
 }
 
 module.exports = {

@@ -1,5 +1,5 @@
 jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
+  createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: true })),
 }));
 jest.mock('../app/services/devin-api', () => ({
   listOrgUsers: jest.fn(() => Promise.resolve([])),
@@ -8,7 +8,7 @@ jest.mock('../app/services/devin-api', () => ({
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: {
     captureException: jest.fn(),
-    withScope: jest.fn((callback) => callback({ setTransactionName: jest.fn() })),
+    withScope: jest.fn((callback) => callback({ setTransactionName: jest.fn(), addEventProcessor: jest.fn() })),
   },
   initSentry: jest.fn(),
 }));
@@ -73,10 +73,49 @@ describe('FOX One TV beacon', () => {
     expect((await post(server, 'not json', 'text/plain')).status).toBe(400);
   });
 
-  it('suppresses repeat alerts within the cooldown', async () => {
-    ctv.reportAppFailure(REPORT);
-    const second = ctv.reportAppFailure(REPORT);
-    await expect(second.sessionPromise).resolves.toEqual({ triggered: false, suppressed: true });
+  it('suppresses repeat alerts for the same failure within the cooldown', async () => {
+    await ctv.reportAppFailure(REPORT).sessionPromise;
+    const second = ctv.reportAppFailure({ ...REPORT, stack: 'different frames' });
+    expect(second.suppressed).toBe('cooldown');
+    await expect(second.sessionPromise).resolves.toEqual({ triggered: false, suppressed: 'cooldown' });
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    const res = await post(server, JSON.stringify(REPORT), 'text/plain');
+    expect(res.body.alertQueued).toBe(false);
+    expect(res.body.suppressed).toBe('cooldown');
+  });
+
+  it('still alerts for a different failure or platform inside the cooldown', async () => {
+    await ctv.reportAppFailure(REPORT).sessionPromise;
+    await ctv.reportAppFailure({ ...REPORT, platform: 'vizio' }).sessionPromise;
+    await ctv.reportAppFailure({ ...REPORT, message: 'ReferenceError: Intl is not defined' }).sessionPromise;
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(3);
+  });
+
+  it('lets the next report retry when alert delivery fails', async () => {
+    createSessionAndAlert.mockImplementationOnce(() => Promise.resolve(null));
+    await ctv.reportAppFailure(REPORT).sessionPromise;
+    createSessionAndAlert.mockImplementationOnce(() => Promise.reject(new Error('slack down')));
+    await ctv.reportAppFailure(REPORT).sessionPromise;
+    const third = ctv.reportAppFailure(REPORT);
+    expect(third.suppressed).toBe(false);
+    await third.sessionPromise;
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(3);
+  });
+
+  it('caps alerts per hour across distinct signatures', async () => {
+    for (let i = 0; i < 7; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await ctv.reportAppFailure({ ...REPORT, message: `TypeError: failure ${'x'.repeat(i)}` }).sessionPromise;
+    }
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(5);
+  });
+
+  it('does not name a person when the report carries no identity, and bounds metric tags', async () => {
+    const { incrementMetric } = require('../app/telemetry/datadog');
+    await ctv.reportAppFailure({ ...REPORT, message: 'Zx9kqError: forged' }).sessionPromise;
+    const args = createSessionAndAlert.mock.calls[0][0];
+    expect(args.devinEmail).toBeUndefined();
+    expect(args.slackMemberId).toBeUndefined();
+    expect(incrementMetric).toHaveBeenLastCalledWith('fox_one_ctv.client_error', expect.objectContaining({ errorClass: 'Other' }));
   });
 });
