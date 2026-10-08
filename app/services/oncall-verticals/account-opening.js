@@ -244,8 +244,6 @@ function buildAlertMessage(report, { reference, triggeredBy, now }) {
     '',
     `Reported: ${now.toISOString()}`,
     '',
-    `*Symptom:* ${symptomLine(report)}`,
-    `*Impact:* ${IMPACT}`,
     `Repo: ${REPO_URL} (${ACCOUNT_OPENING.appDir})`,
   ];
   return lines.filter((l) => l !== null).join('\n');
@@ -269,7 +267,7 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `*Symptom:* ${symptomLine(report)}\n*Impact:* ${IMPACT}\nRepo: ${REPO_URL} (${ACCOUNT_OPENING.appDir})`,
+        text: `Repo: ${REPO_URL} (${ACCOUNT_OPENING.appDir})`,
       },
     },
     {

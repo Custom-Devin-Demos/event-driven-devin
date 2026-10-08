@@ -426,8 +426,6 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     `Env: production | Release: ${card.release}`,
     `Events: ${events} | First: ${firstSeen.toISOString()} | Last: ${now.toISOString()}`,
     '',
-    `*Symptom:* ${card.symptom}`,
-    `*Impact:* ${card.impact}`,
     `Repo: ${REPO_URL}`,
   ];
 
@@ -600,8 +598,6 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
     // Top-level TextBlocks: the Teams responder drops FactSet rows.
     body: [
       `**Owner:** ${ownerRotation(card.owner)}`,
-      `**Symptom:** ${card.symptom}`,
-      `**Impact:** ${card.impact}`,
       demoPath ? `**Demo page:** ${DEMO_BASE_URL()}${demoPath} — reproduce the symptom on this branded page` : null,
       `Repo: ${REPO_URL}`,
     ],
@@ -676,7 +672,6 @@ async function postOncallAlert(scenarioId, options = {}) {
     ]),
     mrkdwnSection(`*Monitor query:*\n\`\`\`${card.metricQuery}\`\`\``),
     mrkdwnSection(
-      `*Symptom:* ${card.symptom}\n*Impact:* ${card.impact}\n` +
       (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
