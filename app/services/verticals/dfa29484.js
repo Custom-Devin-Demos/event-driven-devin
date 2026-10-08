@@ -443,16 +443,17 @@ function pdfText(value) {
 
 /**
  * Render a minimal multi-page PDF (one text page per section) without external libraries.
+ * Courier is used so the space-padded columns line up.
  */
 function renderPdf(pages) {
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
     null,
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>',
   ];
   const pageIds = [];
   pages.forEach((lines) => {
-    const content = ['BT', '/F1 11 Tf', '15 TL', '54 750 Td']
+    const content = ['BT', '/F1 10 Tf', '14 TL', '54 750 Td']
       .concat(lines.map((line) => `(${pdfText(line)}) Tj T*`))
       .concat(['ET'])
       .join('\n');
@@ -485,7 +486,7 @@ function statementPdf(stmt) {
     '',
     'Vehicle                                   Beginning balance    Ending balance',
   ].concat(stmt.rows.map((r) => `${r.vehicleName.padEnd(40)} ${String(r.beginningBalance).padStart(18)} ${String(r.endingBalance).padStart(18)}`))
-    .concat(['', 'Prepared from fund administrator records. Unaudited unless stated. Confidential - for the named limited partner only.']);
+    .concat(['', 'Prepared from fund administrator records. Unaudited unless stated.', 'Confidential - for the named limited partner only.']);
   const sections = stmt.rows.map((r) => [
     `${r.vehicleName}`,
     `${INVESTOR.name} - ${period.label}`,
