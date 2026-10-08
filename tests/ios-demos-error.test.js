@@ -49,9 +49,13 @@ const {
   APP_SERVICE,
   IOS_DEMOS_SESSION_PLATFORM,
   IOS_ERROR_PATH,
+  SHARED_APP_REPO,
   SLUG_PATTERN,
   WEBHOOK_REMEDIATION_DIRECTIVE,
   buildRemediationDirective,
+  clearAppRepoCache,
+  perCustomerAppRepo,
+  resolveAppRepo,
   isAppReport,
   reportAppFailure,
   resolveUserIdByEmail,
@@ -450,6 +454,124 @@ describe('shared iOS demo failure report endpoint', () => {
     expect(directive).toContain('make demo');
     expect(directive).not.toContain('87654321');
     expect(WEBHOOK_REMEDIATION_DIRECTIVE).toContain('demo_slug');
+  });
+
+  test('keeps the shared repo directive unchanged by default', () => {
+    expect(SHARED_APP_REPO).toBe('COG-GTM/event-driven-demos-ios');
+    const directive = buildRemediationDirective('abcd1234');
+    expect(directive).toBe(buildRemediationDirective('abcd1234', SHARED_APP_REPO));
+    expect(directive).toContain('`github.com/COG-GTM/event-driven-demos-ios`');
+    expect(directive).toContain('against `main` of `COG-GTM/event-driven-demos-ios`');
+  });
+
+  test('accepts only COG-GTM per-customer iOS demo repos as appRepo', () => {
+    expect(perCustomerAppRepo('COG-GTM/demo-mars-ios-event-driven')).toBe('COG-GTM/demo-mars-ios-event-driven');
+    expect(perCustomerAppRepo('https://github.com/COG-GTM/demo-mars-ios-event-driven.git/'))
+      .toBe('COG-GTM/demo-mars-ios-event-driven');
+    expect(perCustomerAppRepo('github.com/COG-GTM/demo-mars-ios-event-driven')).toBe('COG-GTM/demo-mars-ios-event-driven');
+    expect(perCustomerAppRepo('COG-GTM/ios-demos')).toBe('COG-GTM/ios-demos');
+    expect(perCustomerAppRepo('github.com/COG-GTM/ios-demos.git')).toBe('COG-GTM/ios-demos');
+    expect(perCustomerAppRepo('COG-GTM/ios-demos-extra')).toBe('');
+    expect(perCustomerAppRepo('COG-GTM/event-driven-demos-ios')).toBe('');
+    expect(perCustomerAppRepo('COG-GTM/event-driven-devin')).toBe('');
+    expect(perCustomerAppRepo('someone/demo-mars-ios-event-driven')).toBe('');
+    expect(perCustomerAppRepo('COG-GTM/../x-ios-event-driven/extra')).toBe('');
+    expect(perCustomerAppRepo(undefined)).toBe('');
+    expect(perCustomerAppRepo({ repo: 'COG-GTM/demo-mars-ios-event-driven' })).toBe('');
+  });
+
+  test('routes to the COG-GTM/ios-demos monorepo only when apps/<slug>/demo.json names the slug', async () => {
+    const repo = 'COG-GTM/ios-demos';
+    const found = { get: jest.fn().mockResolvedValue({ data: '{"slug":"75d39326","appName":"FOX News"}' }) };
+    const otherSlug = { get: jest.fn().mockResolvedValue({ data: '{"slug":"0000aaaa"}' }) };
+
+    clearAppRepoCache();
+    expect(await resolveAppRepo('75d39326', repo, { request: found, token: 't' })).toBe(repo);
+    expect(found.get).toHaveBeenCalledWith(
+      `https://api.github.com/repos/${repo}/contents/apps/75d39326/demo.json`,
+      expect.anything(),
+    );
+    clearAppRepoCache();
+    expect(await resolveAppRepo('75d39326', repo, { request: otherSlug, token: 't' })).toBe(SHARED_APP_REPO);
+    clearAppRepoCache();
+  });
+
+  test('uses a per-customer repo only after GitHub confirms its demo.json names the slug', async () => {
+    const repo = 'COG-GTM/demo-mars-ios-event-driven';
+    const found = { get: jest.fn().mockResolvedValue({ data: '{"slug":"d8bf7f8a","appName":"Mars"}' }) };
+
+    clearAppRepoCache();
+    expect(await resolveAppRepo('d8bf7f8a', repo, { request: found, token: 't' })).toBe(repo);
+    expect(found.get).toHaveBeenCalledWith(
+      `https://api.github.com/repos/${repo}/contents/apps/d8bf7f8a/demo.json`,
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer t' }) }),
+    );
+    expect(await resolveAppRepo('d8bf7f8a', repo, { request: found, token: 't' })).toBe(repo);
+    expect(found.get).toHaveBeenCalledTimes(1);
+    clearAppRepoCache();
+
+    const unverified = [
+      { get: jest.fn().mockRejectedValue({ response: { status: 404 } }) },
+      { get: jest.fn().mockRejectedValue(new Error('socket hang up')) },
+      { get: jest.fn().mockResolvedValue({ data: '{"slug":"00000000"}' }) },
+      { get: jest.fn().mockResolvedValue({ data: 'not json' }) },
+    ];
+    for (const request of unverified) {
+      expect(await resolveAppRepo('d8bf7f8a', repo, { request, token: 't' })).toBe(SHARED_APP_REPO);
+    }
+    const flakyThenFound = { get: jest.fn()
+      .mockRejectedValueOnce(new Error('timeout'))
+      .mockResolvedValueOnce({ data: { slug: 'd8bf7f8a' } }) };
+    expect(await resolveAppRepo('d8bf7f8a', repo, { request: flakyThenFound, token: 't' })).toBe(SHARED_APP_REPO);
+    expect(await resolveAppRepo('d8bf7f8a', repo, { request: flakyThenFound, token: 't' })).toBe(repo);
+    clearAppRepoCache();
+
+    const unused = { get: jest.fn() };
+    expect(await resolveAppRepo('d8bf7f8a', repo, { request: unused, token: '' })).toBe(SHARED_APP_REPO);
+    expect(await resolveAppRepo('d8bf7f8a', 'COG-GTM/event-driven-devin', { request: unused, token: 't' }))
+      .toBe(SHARED_APP_REPO);
+    expect(await resolveAppRepo('NOTASLUG', repo, { request: unused, token: 't' })).toBe(SHARED_APP_REPO);
+    expect(unused.get).not.toHaveBeenCalled();
+  });
+
+  test('routes the remediation session to a verified per-customer appRepo', async () => {
+    const axios = require('axios');
+    const saved = ['GITHUB_PAT', 'github_mcp_pat', 'GITHUB_TOKEN'].map((name) => [name, process.env[name]]);
+    saved.forEach(([name]) => delete process.env[name]);
+    process.env.GITHUB_PAT = 'test-token';
+    const get = jest.spyOn(axios, 'get').mockResolvedValue({ data: { slug: 'abcd1234' } });
+    clearAppRepoCache();
+    try {
+      await reportAppFailure('abcd1234', {
+        ...appReport(),
+        appRepo: 'COG-GTM/demo-mars-ios-event-driven',
+      }).sessionPromise;
+      const { promptAppendix } = createSessionAndAlert.mock.calls[0][0];
+      expect(promptAppendix).toBe(buildRemediationDirective('abcd1234', 'COG-GTM/demo-mars-ios-event-driven'));
+      expect(promptAppendix).toContain('`github.com/COG-GTM/demo-mars-ios-event-driven`');
+      expect(promptAppendix).toContain('against `main` of `COG-GTM/demo-mars-ios-event-driven`');
+      expect(promptAppendix).not.toContain('event-driven-demos-ios');
+
+      createSessionAndAlert.mockClear();
+      await reportAppFailure('abcd1234', { ...appReport(), appRepo: 'COG-GTM/event-driven-devin' }).sessionPromise;
+      expect(createSessionAndAlert.mock.calls[0][0].promptAppendix).toBe(buildRemediationDirective('abcd1234'));
+
+      createSessionAndAlert.mockClear();
+      clearAppRepoCache();
+      delete process.env.GITHUB_PAT;
+      await reportAppFailure('abcd1234', {
+        ...appReport(),
+        appRepo: 'COG-GTM/other-ios-event-driven',
+      }).sessionPromise;
+      expect(createSessionAndAlert.mock.calls[0][0].promptAppendix).toBe(buildRemediationDirective('abcd1234'));
+    } finally {
+      get.mockRestore();
+      clearAppRepoCache();
+      saved.forEach(([name, value]) => {
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      });
+    }
   });
 
   test('exports a reservation function with independent global and per-slug caps', () => {

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capital Account · Blue Owl Investor Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#0B1F3A; --blue:#143D7A; --teal:#1FA6A0; --teal-dark:#15807B;
+    --paper:#F7F4EE; --card:#FFFFFF; --line:#E2DED5; --ink:#1A2233; --muted:#5F6B7A; --soft:#8A94A3;
+    --good:#2C8C5A; --bad:#B3362D; --amber:#B8781C;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; background:var(--paper); color:var(--ink); font-family:'Inter', -apple-system, 'Segoe UI', sans-serif; font-size:14px; line-height:1.45; }
+  [hidden] { display:none !important; }
+  h1,h2,h3,.serif { font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-weight:600; letter-spacing:-.005em; margin:0; }
+  a { color:var(--blue); }
+  button { font-family:inherit; }
+
+  .topbar { background:var(--navy); color:#fff; }
+  .topbar .in { max-width:1180px; margin:0 auto; padding:0 28px; display:flex; align-items:center; height:64px; gap:28px; }
+  .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:#fff; }
+  .brand .mark { width:34px; height:34px; display:block; }
+  .brand .name { font-family:'Cormorant Garamond', serif; font-size:21px; font-weight:700; letter-spacing:.02em; }
+  .brand .sub { font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#A9BBD6; margin-top:-2px; }
+  nav.primary { display:flex; gap:4px; margin-left:12px; }
+  nav.primary a { color:#C9D5E8; text-decoration:none; padding:8px 12px; border-radius:6px; font-size:13.5px; font-weight:500; }
+  nav.primary a:hover { background:rgba(255,255,255,.06); color:#fff; }
+  nav.primary a.active { color:#fff; background:rgba(31,166,160,.18); box-shadow:inset 0 -2px 0 var(--teal); }
+  .topbar .right { margin-left:auto; display:flex; align-items:center; gap:16px; font-size:12.5px; color:#C9D5E8; }
+  .avatar { width:32px; height:32px; border-radius:50%; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:12px; }
+
+  .subbar { background:#fff; border-bottom:1px solid var(--line); }
+  .subbar .in { max-width:1180px; margin:0 auto; padding:18px 28px; display:flex; align-items:flex-end; gap:24px; }
+  .crumbs { font-size:12px; color:var(--soft); margin-bottom:6px; }
+  .crumbs b { color:var(--muted); font-weight:500; }
+  .subbar h1 { font-size:30px; color:var(--navy); line-height:1.1; }
+  .subbar .meta { color:var(--muted); font-size:12.5px; margin-top:4px; }
+  .subbar .actions { margin-left:auto; display:flex; gap:10px; align-items:center; }
+
+  .btn { border:1px solid var(--line); background:#fff; color:var(--navy); padding:10px 16px; border-radius:6px; font-weight:500; font-size:13.5px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+  .btn:hover { border-color:#C9C3B6; }
+  .btn.primary { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .btn.primary:hover { background:#102A4F; }
+  .btn.teal { background:var(--teal); border-color:var(--teal); color:#fff; }
+  .btn.teal:hover { background:var(--teal-dark); }
+  .btn:disabled { opacity:.55; cursor:not-allowed; }
+  .btn .spin { width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  main { max-width:1180px; margin:0 auto; padding:24px 28px 64px; }
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; }
+  .kpi .l { font-size:11.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--soft); font-weight:500; }
+  .kpi .v { font-family:'Cormorant Garamond', serif; font-size:30px; color:var(--navy); margin-top:4px; font-weight:600; }
+  .kpi .s { font-size:12px; color:var(--muted); margin-top:2px; }
+  .kpi .s.good { color:var(--good); }
+
+  .grid { display:grid; grid-template-columns:1fr 320px; gap:18px; align-items:start; }
+  .grid > * { min-width:0; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; }
+  .card .hd { display:flex; align-items:center; padding:16px 20px; border-bottom:1px solid var(--line); gap:12px; }
+  .card .hd h2 { font-size:21px; color:var(--navy); }
+  .card .hd .right { margin-left:auto; color:var(--muted); font-size:12.5px; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--soft); font-weight:500; padding:12px 20px; border-bottom:1px solid var(--line); background:#FBFAF7; }
+  th.num, td.num { text-align:right; font-variant-numeric:tabular-nums; }
+  td { padding:14px 20px; border-bottom:1px solid #EFECE5; vertical-align:top; }
+  tr:last-child td { border-bottom:none; }
+  td .vn { font-weight:600; color:var(--navy); }
+  td .vs { font-size:12px; color:var(--muted); margin-top:2px; }
+  .pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted); background:#FBFAF7; margin-top:6px; }
+  .pill.side { border-color:#BFE6E4; color:var(--teal-dark); background:#EDF9F8; }
+  .bar { height:6px; background:#EEEAE1; border-radius:3px; overflow:hidden; margin-top:8px; width:120px; margin-left:auto; }
+  .bar i { display:block; height:100%; background:var(--blue); }
+
+  .side .row { padding:14px 20px; border-bottom:1px solid #EFECE5; }
+  .side .row:last-child { border-bottom:none; }
+  .side .row .t { font-weight:600; color:var(--navy); }
+  .side .row .d { font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .side .row .d a { font-weight:500; }
+  .side .empty { padding:18px 20px; color:var(--soft); font-size:13px; }
+  .notice { background:#EDF9F8; border:1px solid #BFE6E4; border-radius:10px; padding:14px 16px; font-size:13px; color:#0E4F4C; }
+  .notice b { display:block; color:var(--teal-dark); margin-bottom:2px; }
+
+  /* Modal */
+  .backdrop { position:fixed; inset:0; background:rgba(11,31,58,.45); display:flex; align-items:center; justify-content:center; z-index:40; padding:20px; }
+  .modal { background:#fff; width:720px; max-width:100%; border-radius:12px; box-shadow:0 30px 80px rgba(11,31,58,.35); overflow:hidden; }
+  .modal .mh { padding:20px 24px 14px; border-bottom:1px solid var(--line); display:flex; align-items:flex-start; gap:12px; }
+  .modal .mh h2 { font-size:24px; color:var(--navy); }
+  .modal .mh p { margin:4px 0 0; color:var(--muted); font-size:13px; }
+  .modal .x { margin-left:auto; background:none; border:none; font-size:20px; color:var(--soft); cursor:pointer; line-height:1; padding:4px; }
+  .modal .mb { padding:20px 24px; }
+  .modal .mf { padding:14px 24px; border-top:1px solid var(--line); display:flex; align-items:center; gap:10px; background:#FBFAF7; }
+  .modal .mf .hint { color:var(--muted); font-size:12.5px; }
+  .modal .mf .btns { margin-left:auto; display:flex; gap:10px; }
+  .field { margin-bottom:16px; }
+  .field label.l { display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.09em; color:var(--soft); font-weight:500; margin-bottom:8px; }
+  select { font:inherit; padding:9px 12px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink); min-width:200px; }
+  .checks { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .check { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; cursor:pointer; }
+  .check:hover { border-color:#C9C3B6; }
+  .check input { margin-top:3px; accent-color:var(--teal); }
+  .check .n { font-weight:500; color:var(--navy); font-size:13px; }
+  .check .s { font-size:11.5px; color:var(--muted); }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+  .seg label { padding:8px 16px; cursor:pointer; font-weight:500; color:var(--muted); font-size:13px; }
+  .seg input { display:none; }
+  .seg input:checked + span { color:#fff; }
+  .seg label:has(input:checked) { background:var(--navy); color:#fff; }
+
+  .stepper { display:flex; gap:0; margin-bottom:16px; }
+  .step { flex:1; display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--line); background:#FBFAF7; font-size:12.5px; color:var(--muted); }
+  .step:first-child { border-radius:8px 0 0 8px; } .step:last-child { border-radius:0 8px 8px 0; }
+  .step + .step { border-left:none; }
+  .step .dot { width:20px; height:20px; border-radius:50%; border:2px solid #D4CFC4; display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; flex:none; }
+  .step.active { background:#fff; color:var(--navy); font-weight:500; }
+  .step.active .dot { border-color:var(--teal); border-top-color:transparent; animation:spin .9s linear infinite; }
+  .step.done .dot { background:var(--teal); border-color:var(--teal); }
+  .step.done .dot::after { content:'\2713'; }
+  .step.failed .dot { background:var(--bad); border-color:var(--bad); }
+  .step.failed .dot::after { content:'!'; }
+  .step.failed { color:var(--bad); }
+
+  table.rows th, table.rows td { padding:10px 12px; font-size:12.5px; }
+  table.rows tr.pending td { color:var(--soft); }
+  table.rows tr.failed td { color:var(--bad); background:#FCF3F2; }
+  table.rows tr.ok td.status { color:var(--good); }
+  .result { margin-top:14px; padding:12px 14px; border-radius:8px; background:#EDF9F8; border:1px solid #BFE6E4; color:#0E4F4C; font-size:13px; display:flex; align-items:center; gap:10px; }
+  .result .btn { padding:6px 10px; font-size:12.5px; margin-left:auto; }
+  .result.bad { background:#FCF3F2; border-color:#F0C9C5; color:#7F2A23; }
+
+  .toast { position:fixed; right:24px; bottom:24px; max-width:440px; background:#121B2B; color:#fff; padding:14px 16px; border-radius:8px; box-shadow:0 12px 32px rgba(0,0,0,.3); transform:translateY(calc(100% + 40px)); transition:transform .25s ease; z-index:60; }
+  .toast.show { transform:none; }
+  .toast .t { font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+  .toast .t::before { content:''; width:8px; height:8px; border-radius:50%; background:#F05A44; flex:none; }
+  .toast.good .t::before { background:#3CCB7F; }
+  .toast .d { color:#C8CFDA; font-size:12.5px; word-break:break-word; }
+
+  footer { max-width:1180px; margin:0 auto; padding:18px 28px 36px; color:var(--soft); font-size:11.5px; border-top:1px solid var(--line); display:flex; gap:18px; }
+  footer span:last-child { margin-left:auto; }
+  .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .table-wrap table { min-width:640px; }
+  .modal .table-wrap table { min-width:520px; }
+  @media (max-width: 900px) { .kpis { grid-template-columns:1fr 1fr; } .grid { grid-template-columns:1fr; } nav.primary { display:none; } .checks { grid-template-columns:1fr; } }
+  @media (max-width: 560px) {
+    .subbar .in { flex-wrap:wrap; align-items:flex-start; gap:14px; padding:16px 18px; }
+    .subbar .actions { margin-left:0; width:100%; flex-wrap:wrap; }
+    .subbar .actions .btn { flex:1 1 auto; justify-content:center; }
+    main { padding:18px 14px 48px; }
+    .kpis { grid-template-columns:1fr; }
+    th, td { padding:12px 14px; }
+    body { overflow-x:hidden; }
+    .topbar .in { gap:12px; padding:0 16px; }
+    .modal { width:calc(100% - 16px); max-height:calc(100vh - 16px); overflow-y:auto; }
+    .stepper { flex-direction:column; }
+    .step:first-child { border-radius:8px 8px 0 0; } .step:last-child { border-radius:0 0 8px 8px; }
+    .step + .step { border-left:1px solid var(--line); border-top:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="in">
+    <a class="brand" href="/blueowl">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="2" y="2" width="36" height="36" rx="8" fill="#143D7A"/>
+        <circle cx="14.5" cy="20" r="7.5" fill="#F7F4EE"/>
+        <circle cx="25.5" cy="20" r="7.5" fill="#F7F4EE"/>
+        <circle cx="14.5" cy="20" r="3.2" fill="#0B1F3A"/>
+        <circle cx="25.5" cy="20" r="3.2" fill="#0B1F3A"/>
+        <path d="M20 23.5 L18.4 26.8 L21.6 26.8 Z" fill="#1FA6A0"/>
+      </svg>
+      <span><span class="name">Blue Owl</span><div class="sub">Investor Portal</div></span>
+    </a>
+    <nav class="primary" aria-label="Primary">
+      <a href="#overview">Overview</a>
+      <a href="#capital-account" class="active">Capital Account</a>
+      <a href="#capital-calls">Capital Calls</a>
+      <a href="#distributions">Distributions</a>
+      <a href="#documents">Documents</a>
+    </nav>
+    <div class="right">
+      <span id="user-name">Elena Marsh</span>
+      <div class="avatar" id="user-initials">EM</div>
+    </div>
+  </div>
+</header>
+
+<div class="subbar">
+  <div class="in">
+    <div>
+      <div class="crumbs">Investor Portal &nbsp;/&nbsp; <b id="investor-crumb">Meridian State Teachers’ Retirement System</b></div>
+      <h1 id="page-title">Capital Account</h1>
+      <div class="meta" id="page-meta">As of 30 Sep 2026 · Final · USD</div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="btn-k1" type="button">Request K-1 package</button>
+      <button class="btn primary" id="btn-generate" type="button">Generate capital account statement</button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <section class="kpis" id="kpis">
+    <div class="kpi"><div class="l">Total commitment</div><div class="v" id="kpi-commitment">—</div><div class="s" id="kpi-commitment-s"></div></div>
+    <div class="kpi"><div class="l">Called to date</div><div class="v" id="kpi-called">—</div><div class="s" id="kpi-called-s"></div></div>
+    <div class="kpi"><div class="l">Distributed</div><div class="v" id="kpi-distributed">—</div><div class="s" id="kpi-distributed-s"></div></div>
+    <div class="kpi"><div class="l">Net asset value</div><div class="v" id="kpi-nav">—</div><div class="s" id="kpi-nav-s"></div></div>
+  </section>
+
+  <div class="grid">
+    <section class="card" id="capital-account">
+      <div class="hd"><h2>Capital account by vehicle</h2><div class="right" id="vehicle-count"></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>Vehicle</th><th class="num">Commitment</th><th class="num">Called</th><th class="num">Distributed</th><th class="num">NAV</th><th class="num">Funded</th>
+        </tr></thead>
+        <tbody id="vehicle-rows"><tr><td colspan="6" style="color:var(--soft)">Loading capital account…</td></tr></tbody>
+      </table></div>
+    </section>
+
+    <aside class="side">
+      <div class="card">
+        <div class="hd"><h2>Statements</h2><div class="right" id="stmt-count"></div></div>
+        <div id="statements"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="notice" style="margin-top:14px">
+        <b>Investor Relations</b>
+        <span id="coverage">Thomas Reyes · Managing Director, Investor Relations</span><br>
+        <a href="#contact" style="font-size:12.5px">Message your coverage team</a>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  <span>Blue Owl Investor Portal</span><span>Confidential — for the named limited partner only</span><span>Statements are prepared from fund administrator records and are unaudited unless stated.</span>
+</footer>
+
+<!-- Statement modal -->
+<div class="backdrop" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="mh">
+      <div>
+        <h2 id="modal-title">Generate capital account statement</h2>
+        <p id="modal-sub">Prepared from the fund administrator feed for Meridian State Teachers’ Retirement System.</p>
+      </div>
+      <button class="x" id="modal-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="mb">
+      <div id="form-pane">
+        <div class="field">
+          <label class="l" for="period">Reporting period</label>
+          <select id="period"></select>
+        </div>
+        <div class="field">
+          <label class="l">Vehicles</label>
+          <div class="checks" id="vehicle-checks"></div>
+        </div>
+        <div class="field">
+          <label class="l">Format</label>
+          <div class="seg" id="format">
+            <label><input type="radio" name="format" value="pdf" checked><span>PDF</span></label>
+            <label><input type="radio" name="format" value="csv"><span>CSV</span></label>
+          </div>
+        </div>
+      </div>
+      <div id="progress-pane" hidden>
+        <div class="stepper">
+          <div class="step" id="step-1"><span class="dot"></span>Pulling allocations</div>
+          <div class="step" id="step-2"><span class="dot"></span>Applying waterfall</div>
+          <div class="step" id="step-3"><span class="dot"></span>Rendering</div>
+        </div>
+        <div class="table-wrap"><table class="rows">
+          <thead><tr><th>Vehicle</th><th class="num">Beginning</th><th class="num">Mgmt fee</th><th class="num">Ending</th><th>Status</th></tr></thead>
+          <tbody id="progress-rows"></tbody>
+        </table></div>
+        <div id="result" hidden></div>
+      </div>
+    </div>
+    <div class="mf">
+      <div class="hint" id="modal-hint">Statements are generated per vehicle and consolidated into one document.</div>
+      <div class="btns">
+        <button class="btn" id="btn-cancel" type="button">Cancel</button>
+        <button class="btn teal" id="btn-run" type="button">Generate</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="t" id="toast-t"></div><div class="d" id="toast-d"></div></div>
+
+<script>
+(function () {
+  var state = { account: null, busy: false, lastResult: null };
+  function el(id) { return document.getElementById(id); }
+  function fmtM(n) {
+    n = Number(n);
+    if (Math.abs(n) >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'bn';
+    if (Math.abs(n) >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'm';
+    return '$' + Math.round(n).toLocaleString('en-US');
+  }
+  function fmtFull(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+  function pct(a, b) { return b ? Math.round((a / b) * 100) : 0; }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function toast(title, detail, good) {
+    var t = el('toast'); el('toast-t').textContent = title; el('toast-d').textContent = detail || '';
+    t.classList.toggle('good', !!good); t.classList.add('show');
+    clearTimeout(toast._h); toast._h = setTimeout(function () { t.classList.remove('show'); }, good ? 4500 : 10000);
+  }
+
+  function identity() {
+    return {
+      devinUserId: localStorage.getItem('devinUserId') || 'okta|Cognition|00u23apa1taDNwWlr1d8',
+      devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+      devinEmail: localStorage.getItem('devinEmail') || 'julia.rhee@cognition.ai'
+    };
+  }
+
+  function renderAccount(a) {
+    state.account = a;
+    el('user-name').textContent = a.investor.user.name;
+    el('user-initials').textContent = a.investor.user.initials;
+    el('investor-crumb').textContent = a.investor.name;
+    el('page-meta').textContent = 'As of ' + fmtDate(a.asOf) + ' · Final · USD';
+    el('coverage').textContent = a.investor.coverage.name + ' · ' + a.investor.coverage.title;
+    el('modal-sub').textContent = 'Prepared from the fund administrator feed for ' + a.investor.name + '.';
+
+    el('kpi-commitment').textContent = fmtM(a.totals.commitment);
+    el('kpi-commitment-s').textContent = a.vehicles.length + ' vehicles · ' + fmtM(a.totals.unfunded) + ' unfunded';
+    el('kpi-called').textContent = fmtM(a.totals.called);
+    el('kpi-called-s').textContent = pct(a.totals.called, a.totals.commitment) + '% of commitment';
+    el('kpi-distributed').textContent = fmtM(a.totals.distributed);
+    el('kpi-distributed-s').textContent = 'DPI ' + (a.totals.distributed / a.totals.called).toFixed(2) + 'x';
+    el('kpi-nav').textContent = fmtM(a.totals.nav);
+    var tvpi = ((a.totals.nav + a.totals.distributed) / a.totals.called).toFixed(2);
+    el('kpi-nav-s').textContent = 'TVPI ' + tvpi + 'x · ' + a.statements.length + ' statements on file';
+
+    el('vehicle-count').textContent = a.vehicles.length + ' vehicles · as of ' + fmtDate(a.asOf);
+    el('vehicle-rows').innerHTML = a.vehicles.map(function (v) {
+      return '<tr>' +
+        '<td><div class="vn">' + esc(v.name) + '</div><div class="vs">' + esc(v.strategy) + ' · Vintage ' + v.vintage + '</div>' +
+        '<span class="pill' + (v.sideLetter ? ' side' : '') + '">' + esc(v.feeTerms) + '</span></td>' +
+        '<td class="num">' + fmtM(v.commitment) + '</td><td class="num">' + fmtM(v.called) + '</td>' +
+        '<td class="num">' + fmtM(v.distributed) + '</td><td class="num"><b>' + fmtM(v.nav) + '</b></td>' +
+        '<td class="num">' + pct(v.called, v.commitment) + '%<div class="bar"><i style="width:' + pct(v.called, v.commitment) + '%"></i></div></td>' +
+      '</tr>';
+    }).join('');
+
+    el('stmt-count').textContent = a.statements.length + ' on file';
+    el('statements').innerHTML = a.statements.length ? a.statements.map(function (s) {
+      return '<div class="row"><div class="t">' + esc(s.period) + ' capital account statement</div>' +
+        '<div class="d">' + esc(s.id) + ' · ' + s.vehicleIds.length + ' vehicles · ' + s.format.toUpperCase() + (s.pages ? ' · ' + s.pages + ' pp' : '') + ' · ' + fmtDate(s.generatedAt) +
+        (s.downloadUrl ? ' · <a href="' + esc(s.downloadUrl) + '">Download</a>' : '') + '</div></div>';
+    }).join('') : '<div class="empty">No statements on file.</div>';
+
+    el('period').innerHTML = a.periods.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.label) + ' · as of ' + fmtDate(p.asOf) + '</option>'; }).join('');
+    el('vehicle-checks').innerHTML = a.vehicles.map(function (v) {
+      return '<label class="check"><input type="checkbox" name="vehicle" value="' + esc(v.id) + '" checked>' +
+        '<span><div class="n">' + esc(v.name) + '</div><div class="s">' + esc(v.feeTerms) + '</div></span></label>';
+    }).join('');
+  }
+
+  function loadAccount() {
+    return fetch('/api/dfa29484/capital-account').then(function (r) { return r.json(); })
+      .then(renderAccount)
+      .catch(function () { toast('Couldn’t load capital account', 'Refresh to try again.'); });
+  }
+
+  function selectedVehicles() {
+    return Array.prototype.map.call(document.querySelectorAll('input[name="vehicle"]:checked'), function (i) { return i.value; });
+  }
+  function selectedFormat() { var f = document.querySelector('input[name="format"]:checked'); return f ? f.value : 'pdf'; }
+
+  function openModal() {
+    state.lastResult = null;
+    el('form-pane').hidden = false; el('progress-pane').hidden = true; el('result').hidden = true;
+    el('btn-run').textContent = 'Generate'; el('btn-run').disabled = false; el('btn-run').onclick = runGenerate; el('btn-cancel').textContent = 'Cancel';
+    el('modal-hint').textContent = 'Statements are generated per vehicle and consolidated into one document.';
+    el('modal').hidden = false;
+  }
+  function closeModal() { if (state.busy) return; el('modal').hidden = true; }
+
+  function setStep(n, cls) {
+    for (var i = 1; i <= 3; i++) {
+      var s = el('step-' + i); s.classList.remove('active', 'done', 'failed');
+      if (i < n) s.classList.add('done');
+      else if (i === n) s.classList.add(cls || 'active');
+    }
+  }
+
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  function streamRows(rows, failedVehicleId, vehicleIds) {
+    var tbody = el('progress-rows');
+    var seq = Promise.resolve();
+    vehicleIds.forEach(function (vid) {
+      seq = seq.then(function () {
+        return wait(380).then(function () {
+          var tr = tbody.querySelector('tr[data-v="' + vid + '"]');
+          var row = rows.find(function (r) { return r.vehicleId === vid; });
+          if (row) {
+            tr.className = 'ok';
+            tr.innerHTML = '<td>' + esc(row.vehicleName) + '</td><td class="num">' + fmtFull(row.beginningBalance) + '</td>' +
+              '<td class="num">' + fmtFull(row.managementFee) + '</td><td class="num">' + fmtFull(row.endingBalance) + '</td><td class="status">Rendered</td>';
+          } else if (vid === failedVehicleId) {
+            tr.className = 'failed';
+            tr.cells[4].textContent = 'Failed';
+            tr.cells[1].textContent = tr.cells[2].textContent = tr.cells[3].textContent = '—';
+          } else {
+            tr.className = 'pending';
+            tr.cells[4].textContent = 'Not rendered';
+          }
+        });
+      });
+    });
+    return seq;
+  }
+
+  function runGenerate() {
+    if (state.busy) return;
+    var vehicleIds = selectedVehicles();
+    if (!vehicleIds.length) { toast('Select at least one vehicle', 'Choose the vehicles to include in the statement.'); return; }
+    var periodId = el('period').value, format = selectedFormat();
+    var names = {}; state.account.vehicles.forEach(function (v) { names[v.id] = v.name; });
+
+    state.busy = true;
+    el('btn-run').disabled = true; el('btn-run').innerHTML = '<span class="spin"></span>Generating…';
+    el('btn-cancel').disabled = true;
+    el('form-pane').hidden = true; el('progress-pane').hidden = false; el('result').hidden = true;
+    el('modal-hint').textContent = 'Pulling ' + vehicleIds.length + ' allocation records for ' + el('period').selectedOptions[0].textContent.split(' ·')[0] + '…';
+    el('progress-rows').innerHTML = vehicleIds.map(function (vid) {
+      return '<tr class="pending" data-v="' + esc(vid) + '"><td>' + esc(names[vid]) + '</td><td class="num">…</td><td class="num">…</td><td class="num">…</td><td>Queued</td></tr>';
+    }).join('');
+    setStep(1);
+
+    var body = Object.assign({ periodId: periodId, vehicleIds: vehicleIds, format: format }, identity());
+    var finish = function () {
+      state.busy = false;
+      el('btn-cancel').disabled = false;
+      el('btn-run').disabled = false;
+    };
+
+    fetch('/api/dfa29484/statements', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
+      .then(function (res) {
+        var b = res.body || {};
+        if (res.status === 400 || res.status === 409) {
+          setStep(1, 'failed');
+          el('modal-hint').textContent = b.error || 'The request could not be processed.';
+          toast('Statement not generated', (b.code || 'ERROR') + ': ' + (b.error || 'Unknown error'));
+          el('btn-run').textContent = 'Back'; el('btn-run').onclick = openModal;
+          finish();
+          return;
+        }
+        setStep(2);
+        return wait(500).then(function () {
+          setStep(3);
+          el('modal-hint').textContent = 'Rendering ' + vehicleIds.length + ' vehicle sections…';
+          return streamRows(b.rows || [], b.vehicleId, vehicleIds);
+        }).then(function () {
+          if (b.success) {
+            setStep(4);
+            el('modal-hint').textContent = 'Statement ' + b.statement.id + ' added to Documents.';
+            var r = el('result'); r.className = 'result'; r.hidden = false;
+            r.innerHTML = '<span>Statement <b>' + esc(b.statement.id) + '</b> ready · ' + b.rows.length + ' vehicles · ' + b.statement.format.toUpperCase() + (b.statement.pages ? ' · ' + b.statement.pages + ' pages' : '') + '</span>' +
+              (b.statement.downloadUrl ? '<a class="btn" href="' + esc(b.statement.downloadUrl) + '">Download ' + esc(b.statement.format.toUpperCase()) + '</a>' : '');
+            toast('Capital account statement ready', b.statement.id + ' · ' + b.rows.length + ' vehicles rendered', true);
+            el('btn-run').textContent = 'Done'; el('btn-run').onclick = function () { el('modal').hidden = true; };
+            el('btn-cancel').textContent = 'Close';
+            finish();
+            return loadAccount();
+          }
+          setStep(3, 'failed');
+          var failedName = names[b.vehicleId] || 'a selected vehicle';
+          el('modal-hint').textContent = 'Rendering stopped at ' + failedName + '. ' + (b.rows || []).length + ' of ' + vehicleIds.length + ' vehicles rendered.';
+          var rr = el('result'); rr.className = 'result bad'; rr.hidden = false;
+          rr.innerHTML = '<span>Statement could not be generated — ' + esc(failedName) + ' failed during rendering. Your coverage team has been notified.</span>';
+          toast('Couldn’t generate capital account statement', (b.errorClass || 'Error') + ': ' + (b.error || 'Unknown error') + (b.requestId ? ' · ' + b.requestId : ''));
+          el('btn-run').textContent = 'Try again'; el('btn-run').onclick = openModal;
+          el('btn-cancel').textContent = 'Close';
+          finish();
+        });
+      })
+      .catch(function () {
+        setStep(1, 'failed');
+        el('modal-hint').textContent = 'The statement service could not be reached. Check your connection and try again.';
+        toast('Couldn’t reach the statement service', 'Network error — nothing was generated.');
+        el('btn-run').textContent = 'Try again'; el('btn-run').onclick = openModal;
+        el('btn-cancel').textContent = 'Close';
+        finish();
+      });
+  }
+
+  el('btn-generate').addEventListener('click', function () { if (state.account) openModal(); });
+  el('btn-run').onclick = runGenerate;
+  el('btn-cancel').addEventListener('click', closeModal);
+  el('modal-close').addEventListener('click', closeModal);
+  el('modal').addEventListener('click', function (e) { if (e.target === el('modal')) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+  el('btn-k1').addEventListener('click', function () { toast('K-1 package requested', 'Tax documents are released by the fund administrator in March.', true); });
+
+  loadAccount();
+})();
+</script>
+</body>
+</html>

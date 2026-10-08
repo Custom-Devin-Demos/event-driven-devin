@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Checkout | Tamara</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #9600F1;
+      --ink: #212442;
+      --surface: #FFFFFF;
+      --chrome-bg: #200044;
+      --chrome-text: #FFFFFF;
+      --black: #0B0B12;
+      --muted: color-mix(in srgb, var(--ink) 60%, var(--surface));
+      --line: color-mix(in srgb, var(--ink) 10%, var(--surface));
+      --wash: #F4F5F9;
+      --track: #E9EAF1;
+      --page: #ECEAF6;
+      --store: #0E7C66;
+      --ok: #17613A;
+      --ok-wash: #E8F7EF;
+      --risk: #B4232C;
+      --risk-wash: color-mix(in srgb, var(--risk) 7%, var(--surface));
+      --sans: 'Plus Jakarta Sans', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { overflow-x: hidden; }
+    body { margin: 0; background: var(--page); color: var(--black); font: 15px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+    button, input { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
+
+    .disclaimer { background: #FFF4DB; color: #5C3D00; font-size: 12px; font-weight: 600; text-align: center; padding: 8px 16px; letter-spacing: .02em; }
+    .frame { display: flex; flex-direction: column; max-width: 520px; min-height: 680px; margin: 32px auto 48px; background: var(--surface); border-radius: 28px; overflow: hidden; box-shadow: 0 12px 40px rgba(33, 36, 66, .10); }
+    .step { flex: 1; display: flex; flex-direction: column; }
+
+    .btn { display: block; width: 100%; min-height: 54px; border: 0; border-radius: 128px; background: var(--ink); color: #fff; font-weight: 600; font-size: 16px; cursor: pointer; }
+    .btn:hover:not(:disabled) { background: var(--black); }
+    .btn:focus-visible, .link-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .btn:disabled { opacity: .55; cursor: default; }
+    .btn.store { background: var(--store); }
+    .link-btn { display: block; width: 100%; min-height: 48px; margin-top: 8px; border: 0; background: none; color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: underline; cursor: pointer; }
+
+    .tbadge { display: inline-flex; align-items: center; flex: none; margin-left: auto; padding: 5px 12px; border-radius: 9px; font-weight: 800; font-size: 16px; letter-spacing: -.04em; color: var(--black); background: linear-gradient(100deg, #F6B48A 0%, #F7E3B0 30%, #E9D7F2 55%, #B9D9F5 75%, #B07BD6 100%); }
+
+    /* Merchant store */
+    .shop-bar { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 24px; border-bottom: 1px solid var(--line); }
+    .shop-name { font-weight: 800; font-size: 18px; letter-spacing: -.02em; }
+    .shop-nav { margin-left: auto; display: flex; gap: 16px; color: var(--muted); font-size: 14px; }
+    .product { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 22px; padding: 24px; }
+    .pimg { height: 240px; border-radius: 18px; background: linear-gradient(160deg, #E9DCC7, #C9B79C); display: flex; align-items: center; justify-content: center; }
+    .pimg span { position: relative; width: 92px; height: 184px; border-radius: 22px; background: linear-gradient(160deg, #D8C6A8, #B39B78); border: 4px solid #8F7A5C; }
+    .pimg span::after { content: ""; position: absolute; top: 10px; left: 10px; width: 32px; height: 32px; border-radius: 10px; background: #7B6849; }
+    .pname { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.02em; line-height: 1.25; }
+    .pvar { margin: 4px 0 12px; color: var(--muted); font-size: 13px; }
+    .pprice { font-size: 26px; font-weight: 800; letter-spacing: -.01em; }
+    .widget { display: flex; align-items: center; gap: 12px; margin: 14px 0 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 18px; font-size: 14px; line-height: 1.45; }
+    .widget u { text-underline-offset: 2px; }
+
+    .co { padding: 24px; }
+    .co h2 { margin: 0 0 4px; font-size: 22px; letter-spacing: -.02em; }
+    .co > p { margin: 0 0 18px; color: var(--muted); font-size: 13px; }
+    .pm { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 16px; margin-bottom: 10px; cursor: pointer; }
+    .pm:has(input:checked) { border: 2px solid var(--black); }
+    .pm:has(input:disabled) { opacity: .55; cursor: default; }
+    .pm input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); flex: none; }
+    .pm b { display: block; font-size: 15px; }
+    .pm small { display: block; color: var(--muted); font-size: 12.5px; }
+    .chips { margin-left: auto; display: flex; gap: 6px; }
+    .chips span { font-size: 10.5px; font-weight: 700; border: 1px solid var(--line); border-radius: 5px; padding: 2px 6px; color: var(--ink); }
+    .sum { display: flex; justify-content: space-between; padding: 14px 0 18px; border-top: 1px solid var(--line); margin-top: 8px; font-weight: 700; }
+
+    /* Tamara hosted checkout */
+    .bar { display: flex; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--line); }
+    .wordmark { font-weight: 800; font-size: 28px; letter-spacing: -.045em; line-height: 1; color: var(--black); }
+    .bar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .lang { color: var(--muted); font-size: 16px; }
+    .basket { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 99px; background: var(--wash); font-weight: 600; font-size: 15px; white-space: nowrap; }
+    .content { flex: 1; padding: 24px; }
+    h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -.03em; line-height: 1.15; }
+    .sub { margin: 6px 0 20px; color: var(--muted); font-size: 14px; }
+    .field { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 16px; border: 1px solid var(--line); border-radius: 16px; margin-bottom: 20px; }
+    .field:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .field span { color: var(--muted); font-size: 17px; }
+    .field input { flex: 1; align-self: stretch; min-width: 0; min-height: 54px; border: 0; outline: 0; background: none; font-size: 17px; }
+    .field.code input { text-align: center; letter-spacing: .6em; font-size: 22px; font-weight: 700; }
+
+    .plan-box { margin-top: 18px; background: var(--wash); border-radius: 24px; overflow: hidden; }
+    .plan-main { padding: 20px 20px 18px; }
+    .plans { border: 0; margin: 0; padding: 5px; min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--track); border-radius: 99px; }
+    .plans legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .seg { position: relative; display: block; cursor: pointer; }
+    .seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .seg span { display: flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 99px; font-size: 17px; font-weight: 500; color: color-mix(in srgb, var(--ink) 55%, var(--surface)); transition: background .15s, color .15s, box-shadow .15s; }
+    .seg:hover span { color: var(--ink); }
+    .seg input:checked + span { background: var(--surface); color: var(--ink); box-shadow: 0 2px 8px rgba(33, 36, 66, .12); }
+    .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .plans:disabled .seg { cursor: default; }
+    .price-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; }
+    .price { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+    .badge { flex: none; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 6px 10px; border-radius: 8px; }
+    .price-sub { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+    details { border-top: 1px solid var(--line); }
+    summary { list-style: none; display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 20px; cursor: pointer; font-weight: 600; font-size: 16px; }
+    summary::-webkit-details-marker { display: none; }
+    details[open] summary svg { transform: rotate(180deg); }
+    summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .schedule { padding: 0 20px 16px; }
+    .schedule h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+    .schedule ol { list-style: none; margin: 0; padding: 0; max-height: 264px; overflow-y: auto; }
+    .schedule li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .schedule li:last-child { border-bottom: 0; }
+    .schedule li span { color: var(--muted); }
+    .schedule li.today span { color: var(--accent); font-weight: 600; }
+    #submitBtn { margin-top: 22px; }
+    .fine { margin: 12px 0 0; text-align: center; font-size: 12px; color: var(--muted); }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 16px; font-size: 14px; font-weight: 500; }
+    .result-box.notice { display: block; background: var(--risk-wash); color: var(--risk); }
+    .result-box.success { display: block; background: var(--ok-wash); color: var(--ok); }
+
+    .outcome { text-align: center; padding-top: 28px; }
+    .outcome .icon { width: 72px; height: 72px; margin: 0 auto 18px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 10%, var(--surface)); display: flex; align-items: center; justify-content: center; }
+    .outcome h1 { font-size: 24px; letter-spacing: -.02em; line-height: 1.25; outline: 0; }
+    .outcome p { margin: 8px auto 20px; max-width: 340px; color: var(--muted); font-size: 15px; }
+    .outcome .ref { display: inline-block; margin-bottom: 24px; padding: 4px 12px; border-radius: 99px; background: var(--wash); color: var(--muted); font-size: 12.5px; }
+
+    .urlbar { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 16px 16px; min-height: 40px; border-radius: 12px; background: var(--wash); color: var(--ink); font-size: 14px; }
+
+    @media (max-width: 560px) {
+      .frame { margin: 0; border-radius: 0; box-shadow: none; min-height: calc(100vh - 34px); }
+      .shop-bar, .bar { padding: 12px 16px; gap: 10px; }
+      .shop-nav { display: none; }
+      .product { grid-template-columns: 1fr; padding: 20px 16px; }
+      .pimg { height: 200px; }
+      .co, .content { padding: 20px 16px; }
+      .wordmark { font-size: 25px; }
+      .bar-right { gap: 8px; }
+      .basket { padding: 0 12px; font-size: 14px; }
+      h1 { font-size: 27px; }
+      .plan-main { padding: 16px 14px; }
+      .price { font-size: 23px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="disclaimer">NOT ACTUALLY A TAMARA SITE — internal demo only, not affiliated with, endorsed by, or a real Tamara product.</div>
+  <main class="frame">
+    <section class="step" id="storeStep" aria-label="Product">
+      <header class="shop-bar"><span class="shop-name" data-merchant></span><nav class="shop-nav" aria-label="Store"><span>Phones</span><span>Laptops</span><span>Audio</span><span>Cart</span></nav></header>
+      <div class="product">
+        <div class="pimg" aria-hidden="true"><span></span></div>
+        <div>
+          <h2 class="pname" id="productName"></h2>
+          <p class="pvar" id="productVariant"></p>
+          <div class="pprice" data-total></div>
+          <div class="widget"><div>Pay <b id="widgetMonthly"></b> or in 4 payments.<br>No late fees. <u>More options</u></div><span class="tbadge">tamara</span></div>
+          <button type="button" class="btn store" id="buyBtn">Buy now</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="step" id="merchantCheckout" aria-label="Checkout" hidden>
+      <header class="shop-bar"><span class="shop-name" data-merchant></span><nav class="shop-nav" aria-label="Store"><span>Secure checkout</span></nav></header>
+      <div class="co">
+        <h2>Payment method</h2>
+        <p><span data-item></span> &middot; Delivery to Riyadh</p>
+        <label class="pm"><input type="radio" name="method" value="tamara" checked><div><b>Tamara</b><small>Monthly payments. No late fees.</small></div><span class="tbadge">tamara</span></label>
+        <label class="pm"><input type="radio" name="method" value="card" disabled><div><b>Card</b><small>Unavailable for this order</small></div><span class="chips"><span>mada</span><span>VISA</span><span>MC</span></span></label>
+        <label class="pm"><input type="radio" name="method" value="applepay" disabled><div><b>Apple Pay</b><small>Unavailable for this order</small></div></label>
+        <div class="sum"><span>Order Summary</span><span data-total></span></div>
+        <button type="button" class="btn" id="placeOrderBtn">Place order</button>
+      </div>
+    </section>
+
+    <section class="step" id="tamaraStep" aria-label="Tamara checkout" hidden>
+      <header class="bar">
+        <span class="wordmark" aria-label="Tamara">tamara</span>
+        <div class="bar-right">
+          <span class="lang" lang="ar">العربية</span>
+          <span class="basket"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM5.2 4l.9 2H20a1 1 0 0 1 .9 1.4l-3.3 6.2a2 2 0 0 1-1.8 1.1H8.1l-1 1.8V17h12v-2H7.6l.9-1.6L4.3 4H2V2h3.6z"/></svg><span data-total></span></span>
+        </div>
+      </header>
+
+      <div class="content" id="phoneView">
+        <h1>Enter your mobile number</h1>
+        <p class="sub">We'll send you a code to confirm it's you.</p>
+        <label class="field"><span>+966</span><input type="tel" id="phone" inputmode="tel" autocomplete="tel-national" value="50 123 4567" aria-label="Mobile number"></label>
+        <button type="button" class="btn" id="phoneBtn">Continue</button>
+      </div>
+
+      <div class="content" id="codeView" hidden>
+        <h1>Enter the code</h1>
+        <p class="sub">Sent to +966 <span id="phoneEcho"></span></p>
+        <label class="field code"><input type="text" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="4" value="4821" aria-label="Verification code"></label>
+        <button type="button" class="btn" id="codeBtn">Verify</button>
+      </div>
+
+      <div class="content" id="planView" hidden>
+        <h1>Choose plan</h1>
+        <form id="checkoutForm" novalidate>
+          <div class="plan-box">
+            <div class="plan-main">
+              <fieldset class="plans" id="plans">
+                <legend>Number of payments</legend>
+                <label class="seg"><input type="radio" name="plan" value="pay_in_4" data-count="4"><span>4</span></label>
+                <label class="seg"><input type="radio" name="plan" value="pay_in_6" data-count="6"><span>6</span></label>
+                <label class="seg"><input type="radio" name="plan" value="pay_in_12" data-count="12"><span>12</span></label>
+                <label class="seg"><input type="radio" name="plan" value="pay_in_24" data-count="24" checked><span>24</span></label>
+              </fieldset>
+              <div class="price-row"><span class="price" id="price"></span><span class="badge" id="badge"></span></div>
+              <p class="price-sub" id="priceSub"></p>
+            </div>
+            <details id="details">
+              <summary>See details<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+              <div class="schedule" aria-live="polite"><h3 id="scheduleTitle">Payment schedule</h3><ol id="scheduleList"></ol></div>
+            </details>
+          </div>
+          <button type="submit" id="submitBtn" class="btn">Continue to payment</button>
+          <p class="fine">No late fees. Sharia compliant.</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <div class="content outcome" id="errorView" hidden>
+        <div class="icon"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9600F1" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><circle cx="12" cy="16.5" r=".6" fill="#9600F1"/></svg></div>
+        <h1 id="errorTitle" tabindex="-1">We couldn’t set up your payment plan</h1>
+        <p>You haven’t been charged. Please try again or choose another plan.</p>
+        <span class="ref" id="errorRef"></span>
+        <button type="button" class="btn" id="anotherPlanBtn">Choose another plan</button>
+        <button type="button" class="link-btn" id="backToStoreBtn"></button>
+      </div>
+
+      <div class="urlbar"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3z"/></svg>checkout.tamara.co</div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    // The server writes the tenant's order here; the page is only served at /c45a2e16/<tenant>.
+    const ORDER = /*__TENANT_ORDER__*/null;
+    const TENANT_SLUG = (window.location.pathname.match(/^\/c45a2e16\/([^/]+)/) || [])[1] || '';
+    const CHECKOUT_ENDPOINT = '/api/c45a2e16/' + encodeURIComponent(TENANT_SLUG) + '/checkout';
+    const $ = (id) => document.getElementById(id);
+    const form = $('checkoutForm');
+    const button = $('submitBtn');
+    const result = $('result');
+    const money = (n, digits) => (ORDER ? ORDER.currency : 'SAR') + ' ' + Number(n).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    const sar = (n) => money(n, 2);
+    const fmtDate = (iso) => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    const NOTICES = {
+      UNKNOWN_PLAN: 'Choose a payment plan to continue.',
+      UNKNOWN_TENANT: 'This checkout link is incomplete. Open the link you were given.',
+    };
+    const FAILED = 'We couldn\u2019t set up your payment plan. You haven\u2019t been charged. Please try again or choose another plan.';
+
+    const steps = ['storeStep', 'merchantCheckout', 'tamaraStep'];
+    const views = ['phoneView', 'codeView', 'planView', 'errorView'];
+    function showStep(id) { steps.forEach((s) => { $(s).hidden = s !== id; }); window.scrollTo(0, 0); }
+    function showView(id) { views.forEach((v) => { $(v).hidden = v !== id; }); }
+
+    function fillOrder() {
+      const [name, ...variant] = ORDER.item.split(', ');
+      $('productName').textContent = name;
+      $('productVariant').textContent = variant.join(' \u00b7 ');
+      $('widgetMonthly').textContent = money(Math.round(ORDER.amount / 24), 0) + '/mo';
+      document.querySelectorAll('[data-merchant]').forEach((el) => { el.textContent = ORDER.merchant; });
+      document.querySelectorAll('[data-item]').forEach((el) => { el.textContent = ORDER.item; });
+      document.querySelectorAll('[data-total]').forEach((el) => { el.textContent = money(ORDER.amount, 0); });
+      $('backToStoreBtn').textContent = 'Back to ' + ORDER.merchant;
+    }
+
+    function selectedPlan() { return form.querySelector('input[name="plan"]:checked'); }
+
+    function previewPayments(count) {
+      const total = Math.round(ORDER.amount * 100);
+      const base = Math.floor(total / count);
+      let leftover = total - base * count;
+      const today = new Date();
+      const payments = [];
+      for (let i = 0; i < count; i += 1) {
+        const lastDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + i + 1, 0)).getUTCDate();
+        const due = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + i, Math.min(today.getUTCDate(), lastDay)));
+        const extra = i > 0 && leftover > 0 ? 1 : 0;
+        leftover -= extra;
+        payments.push({ dueDate: due.toISOString().slice(0, 10), amount: (base + extra) / 100 });
+      }
+      return payments;
+    }
+
+    function renderSchedule(payments, title) {
+      $('scheduleTitle').textContent = title;
+      const list = $('scheduleList');
+      list.textContent = '';
+      payments.forEach((p, i) => {
+        const li = document.createElement('li');
+        if (i === 0) li.className = 'today';
+        li.appendChild(Object.assign(document.createElement('span'), { textContent: i === 0 ? 'Today' : fmtDate(p.dueDate) }));
+        li.appendChild(Object.assign(document.createElement('strong'), { textContent: sar(p.amount) }));
+        list.appendChild(li);
+      });
+    }
+
+    function renderPreview() {
+      const count = Number(selectedPlan().dataset.count);
+      const payments = previewPayments(count);
+      $('price').textContent = sar(payments[0].amount) + '/mo.';
+      $('badge').textContent = `${count} payments`;
+      $('priceSub').textContent = count === 4 ? 'No fees. First payment today.' : 'First payment today, then monthly.';
+      renderSchedule(payments, `Payment schedule \u00b7 ${count} payments`);
+    }
+
+    function resetResult() { result.className = 'result-box'; result.textContent = ''; }
+    function notice(text) { result.className = 'result-box notice'; result.textContent = text; }
+
+    let completed = false;
+    let pending = false;
+
+    if (!ORDER || !TENANT_SLUG) {
+      showStep('tamaraStep');
+      showView('planView');
+      $('plans').disabled = true;
+      button.disabled = true;
+      notice(NOTICES.UNKNOWN_TENANT);
+    } else {
+      fillOrder();
+      renderPreview();
+    }
+
+    $('buyBtn').addEventListener('click', () => showStep('merchantCheckout'));
+    $('placeOrderBtn').addEventListener('click', () => { showStep('tamaraStep'); showView('phoneView'); });
+    $('phoneBtn').addEventListener('click', () => { $('phoneEcho').textContent = $('phone').value.trim(); showView('codeView'); });
+    $('codeBtn').addEventListener('click', () => showView('planView'));
+    $('anotherPlanBtn').addEventListener('click', () => { showView('planView'); selectedPlan().focus(); });
+    $('backToStoreBtn').addEventListener('click', () => { resetResult(); showStep('storeStep'); });
+
+    form.addEventListener('change', () => {
+      if (completed || pending) return;
+      resetResult();
+      renderPreview();
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (completed || pending || !ORDER) return;
+      const plan = selectedPlan();
+      pending = true;
+      $('plans').disabled = true;
+      button.disabled = true;
+      button.textContent = 'Setting up your plan\u2026';
+      resetResult();
+      let confirmed = false;
+      try {
+        const response = await fetch(CHECKOUT_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderRef: ORDER.orderRef,
+            plan: plan.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 400 && NOTICES[data.code]) { notice(NOTICES[data.code]); return; }
+        if (!response.ok || !data.checkout) { showFailure(plan); return; }
+        const c = data.checkout;
+        confirmed = true;
+        renderSchedule(c.payments, `${c.plan} confirmed \u00b7 ${c.instalments} payments`);
+        $('details').open = true;
+        result.className = 'result-box success';
+        const next = c.payments[1];
+        result.textContent = `Order confirmed. You paid ${sar(c.payToday)} today.` +
+          (next ? ` Next payment ${sar(next.amount)} on ${fmtDate(next.dueDate)}.` : '') +
+          ` Reference ${c.checkoutId}.`;
+      } catch (_error) {
+        showFailure(plan);
+      } finally {
+        pending = false;
+        if (confirmed) {
+          completed = true;
+          button.textContent = 'Paid';
+        } else {
+          $('plans').disabled = false;
+          button.disabled = false;
+          button.textContent = 'Continue to payment';
+        }
+      }
+    });
+
+    function showFailure(plan) {
+      $('errorRef').textContent = `Pay in ${plan.dataset.count} \u00b7 ${money(ORDER.amount, 0)} \u00b7 ${ORDER.merchant}`;
+      showView('errorView');
+      $('errorTitle').focus();
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

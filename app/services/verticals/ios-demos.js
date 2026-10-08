@@ -1,3 +1,4 @@
+const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric } = require('../../telemetry/datadog');
@@ -9,7 +10,12 @@ const { getCustomerConfig } = require('../../../config/customers');
 const CUSTOMER = 'ios-demos';
 const APP_SERVICE = 'customer-ios-demo';
 const APP_PROJECT = 'ios-event-demos';
-const APP_REPO = 'github.com/COG-GTM/event-driven-demos-ios';
+const SHARED_APP_REPO = 'COG-GTM/event-driven-demos-ios';
+const APP_REPO = `github.com/${SHARED_APP_REPO}`;
+const PER_CUSTOMER_REPO_PATTERN = /^COG-GTM\/[A-Za-z0-9._-]+-ios-event-driven$/;
+const MONOREPO_APP_REPOS = new Set(['COG-GTM/ios-demos']);
+const APP_REPO_CACHE_TTL_MS = 10 * 60 * 1000;
+const appRepoCache = new Map();
 const SLUG_PATTERN = /^[0-9a-f]{8}$/;
 const IOS_ERROR_PATH = '/api/ios/:slug/error';
 const IOS_DEMOS_SLACK_MEMBER_ID = process.env.IOS_DEMOS_SLACK_MEMBER_ID || '';
@@ -21,11 +27,11 @@ function sourceFor(slug) {
   return `ios-demos/${slug}/ios`;
 }
 
-function buildRemediationDirective(slug) {
+function buildRemediationDirective(slug, appRepo = SHARED_APP_REPO) {
   const appDir = `apps/${slug}`;
-  return `*Repository to investigate and fix:* \`${APP_REPO}\` (Swift / SwiftUI, native iOS), folder \`${appDir}/\` only
+  return `*Repository to investigate and fix:* \`github.com/${appRepo}\` (Swift / SwiftUI, native iOS), folder \`${appDir}/\` only
 
-This alert came from iOS demo app \`${slug}\` in \`COG-GTM/event-driven-demos-ios\`. Investigate and fix that Swift
+This alert came from iOS demo app \`${slug}\` in \`${appRepo}\`. Investigate and fix that Swift
 repository only: not this Node repository. Work only inside \`${appDir}/\`; never edit \`apps/_template/\` or another
 app's folder. Read the repo's \`AGENTS.md\`, then \`${appDir}/DEMO.md\` (the customer flow, tap path, reset and
 run commands, and which files you may touch). DEMO.md describes the symptom, not the cause: diagnose it yourself.
@@ -41,7 +47,7 @@ Steps:
 4. Add a regression test that fails before and passes after, and run \`make test APP=${slug}\`.
 5. Keep the client identity (\`ios-demos/${slug}/ios\`, \`${APP_SERVICE}\`, \`POST /api/ios/${slug}/error\`) and the
    report payload shape unchanged. Re-run the simulator repro on the fix commit and record BEFORE/AFTER.
-6. Open a **draft** PR against \`main\` of \`COG-GTM/event-driven-demos-ios\` titled with a \`[DEMO — DO NOT MERGE]\`
+6. Open a **draft** PR against \`main\` of \`${appRepo}\` titled with a \`[DEMO — DO NOT MERGE]\`
    prefix, request Devin Review, post findings back to the Slack thread, and never merge it: the planted defect on
    \`main\` is kept for future demos.
 
@@ -57,6 +63,61 @@ where \`<slug>\` is the \`demo_slug\` tag. Follow that folder's \`DEMO.md\` and 
 (confirm with \`uname -s\`; create one macOS child session only if this session is not on macOS), keep failure
 reports off, fix the root cause with a regression test, and open a draft \`[DEMO — DO NOT MERGE]\` PR that is never
 merged.`;
+
+// Per-customer demo repos (COG-GTM/<name>-ios-event-driven) and the COG-GTM/ios-demos monorepo send `appRepo`;
+// anything else stays on the shared repo.
+function perCustomerAppRepo(value) {
+  if (typeof value !== 'string') return '';
+  const name = value.trim()
+    .replace(/^https?:\/\//i, '')
+    .replace(/^github\.com\//i, '')
+    .replace(/\/+$/, '')
+    .replace(/\.git$/i, '');
+  return PER_CUSTOMER_REPO_PATTERN.test(name) || MONOREPO_APP_REPOS.has(name) ? name : '';
+}
+
+function githubToken() {
+  return process.env.GITHUB_PAT || process.env.github_mcp_pat || process.env.GITHUB_TOKEN || '';
+}
+
+// A per-customer repo is used only after GitHub confirms apps/<slug>/demo.json exists there and names the same slug.
+// Anything unverified (no token, 404, inaccessible repo, malformed file, network error) stays on the shared repo.
+// Only confirmed repos are cached, so a transient failure never pins the fallback.
+async function resolveAppRepo(slug, appRepo, { request = axios, token = githubToken(), now = Date.now() } = {}) {
+  const repo = perCustomerAppRepo(appRepo);
+  if (!repo || !SLUG_PATTERN.test(slug)) return SHARED_APP_REPO;
+
+  const key = `${repo}#${slug}`;
+  const cached = appRepoCache.get(key);
+  if (cached && cached.expiresAt > now) return repo;
+  if (!token) {
+    logger.warn('iOS demo appRepo not verified (no GitHub token); using shared repo', { appRepo: repo, demoSlug: slug });
+    return SHARED_APP_REPO;
+  }
+
+  try {
+    const { data } = await request.get(`https://api.github.com/repos/${repo}/contents/apps/${slug}/demo.json`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.raw+json' },
+      timeout: 5000,
+    });
+    const demo = typeof data === 'string' ? JSON.parse(data) : data;
+    if (!demo || demo.slug !== slug) {
+      logger.warn('iOS demo appRepo demo.json does not match slug; using shared repo', { appRepo: repo, demoSlug: slug });
+      return SHARED_APP_REPO;
+    }
+  } catch (error) {
+    const status = error && error.response && error.response.status;
+    logger.warn('iOS demo appRepo not verified; using shared repo', { appRepo: repo, demoSlug: slug, status });
+    return SHARED_APP_REPO;
+  }
+
+  appRepoCache.set(key, { expiresAt: now + APP_REPO_CACHE_TTL_MS });
+  return repo;
+}
+
+function clearAppRepoCache() {
+  appRepoCache.clear();
+}
 
 function clip(value, max) {
   if (value === undefined || value === null) return '';
@@ -185,7 +246,7 @@ function reportAppFailure(slug, report) {
     Sentry.captureException(error, { tags, extra });
   });
 
-  const raiseAlert = (devinUserId) => createSessionAndAlert({
+  const raiseAlert = (devinUserId, appRepo) => createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=${encodeURIComponent(`is:unresolved demo_slug:${slug}`)}`,
     culprit: `ios-demos/${slug}/ios ${screen} ${action}`,
@@ -202,7 +263,7 @@ function reportAppFailure(slug, report) {
     project: APP_PROJECT,
     release,
     sessionPlatform: IOS_DEMOS_SESSION_PLATFORM || undefined,
-    promptAppendix: buildRemediationDirective(slug),
+    promptAppendix: buildRemediationDirective(slug, appRepo),
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
     extra: {
       reference,
@@ -230,10 +291,14 @@ function reportAppFailure(slug, report) {
 
   const lookupOrgId = body.devinOrgId || getCustomerConfig(CUSTOMER).devinOrgId || process.env.DEVIN_ORG_ID || '';
   const needsLookup = !body.devinUserId && body.devinEmail && lookupOrgId;
-  const sessionPromise = (needsLookup
+  const alertWithRepo = (appRepo) => (needsLookup
     ? resolveUserIdByEmail(body.devinEmail, lookupOrgId)
-      .then((userId) => raiseAlert(userId || undefined))
-    : raiseAlert(body.devinUserId)
+      .then((userId) => raiseAlert(userId || undefined, appRepo))
+    : raiseAlert(body.devinUserId, appRepo));
+  const candidateRepo = perCustomerAppRepo(body.appRepo);
+  const sessionPromise = Promise.resolve(candidateRepo
+    ? resolveAppRepo(slug, candidateRepo).then(alertWithRepo)
+    : alertWithRepo(SHARED_APP_REPO)
   ).catch((alertError) => {
     logger.error('Failed to create Devin session for iOS demo failure report', {
       error: alertError.message,
@@ -249,6 +314,8 @@ module.exports = {
   APP_SERVICE,
   APP_PROJECT,
   APP_REPO,
+  SHARED_APP_REPO,
+  PER_CUSTOMER_REPO_PATTERN,
   SLUG_PATTERN,
   IOS_ERROR_PATH,
   IOS_DEMOS_SESSION_PLATFORM,
@@ -258,4 +325,7 @@ module.exports = {
   WEBHOOK_REMEDIATION_DIRECTIVE,
   reportAppFailure,
   resolveUserIdByEmail,
+  perCustomerAppRepo,
+  resolveAppRepo,
+  clearAppRepoCache,
 };
