@@ -609,6 +609,7 @@
       run.disabled = true;
       run.innerHTML = '<span class="spin"></span>Evaluating payer rules…';
       document.getElementById('submit-carrier').disabled = true;
+      var previousStatus = claim.status;
       setRowStatus(claim.accountId, 'running');
 
       var box = document.getElementById('d-rules');
@@ -631,11 +632,12 @@
       }
 
       if (transportError) {
-        await reconcileClaim(claim);
+        var synced = await reconcileClaim(claim);
+        if (!synced) claim.status = previousStatus;
         state.busy = false;
         renderDrawer(claim);
         renderRows();
-        showToast('error', 'Connection problem', 'The payer-rules response for ' + claim.accountId + ' was lost. The worklist was re-synced with the server; no rule was marked as failed.', transportError.name + ': ' + transportError.message);
+        showToast('error', 'Connection problem', 'The payer-rules response for ' + claim.accountId + ' was lost. ' + (synced ? 'The worklist was re-synced with the server; no rule was marked as failed.' : 'The server could not be reached, so the claim was restored to its previous status. Retry when connectivity is back.'), transportError.name + ': ' + transportError.message);
         return;
       }
 
@@ -682,12 +684,14 @@
     }
 
     async function reconcileClaim(claim) {
+      var synced = false;
       try {
         var response = await fetch(API + '/claims/' + encodeURIComponent(claim.accountId));
         var data = await response.json();
-        if (response.ok && data.success) Object.assign(claim, data.claim);
-      } catch (_ignored) { /* keep local state when the server is unreachable */ }
-      return refreshKpis();
+        if (response.ok && data.success) { Object.assign(claim, data.claim); synced = true; }
+      } catch (_ignored) { synced = false; }
+      await refreshKpis();
+      return synced;
     }
 
     /* Submit to carrier */
