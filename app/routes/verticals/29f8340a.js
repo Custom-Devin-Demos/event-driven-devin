@@ -9,6 +9,7 @@ const parsedMax = parseInt(process.env.REPORT_CAP_29F8340A_MAX, 10);
 const REPORT_MAX = Number.isNaN(parsedMax) ? 10 : parsedMax;
 const parsedWindow = parseInt(process.env.REPORT_CAP_29F8340A_WINDOW_MINUTES, 10);
 const REPORT_WINDOW_MS = (Number.isNaN(parsedWindow) ? 10 : parsedWindow) * 60 * 1000;
+const MAX_ACTION_LENGTH = 120;
 const acceptedAt = [];
 
 function reserveReportSlot(now = Date.now()) {
@@ -19,11 +20,22 @@ function reserveReportSlot(now = Date.now()) {
   return true;
 }
 
+function retryAfterSeconds(now = Date.now()) {
+  if (acceptedAt.length === 0) return 1;
+  return Math.max(1, Math.ceil((acceptedAt[0] + REPORT_WINDOW_MS - now) / 1000));
+}
+
+function clampAction(value) {
+  const text = typeof value === 'string' ? value.trim() : '';
+  return text ? text.slice(0, MAX_ACTION_LENGTH) : 'Get your tickets';
+}
+
 router.post(ROUTE, async (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
 
-  if (!reserveReportSlot()) {
-    res.set('Retry-After', String(Math.ceil(REPORT_WINDOW_MS / 1000)));
+  const now = Date.now();
+  if (!reserveReportSlot(now)) {
+    res.set('Retry-After', String(retryAfterSeconds(now)));
     return res.status(429).json({
       success: false,
       error: 'Ticket reservation cap reached; retry later',
@@ -34,7 +46,7 @@ router.post(ROUTE, async (req, res) => {
 
   try {
     const result = await reserveTickets({
-      action: body.action || 'Get your tickets',
+      action: clampAction(body.action),
       passCode: body.passCode || DEFAULT_PASS_CODE,
       attendeeType: body.attendeeType || DEFAULT_ATTENDEE_TYPE,
       quantity: body.quantity,
@@ -53,4 +65,6 @@ router.post(ROUTE, async (req, res) => {
 
 module.exports = router;
 module.exports.reserveReportSlot = reserveReportSlot;
+module.exports.retryAfterSeconds = retryAfterSeconds;
+module.exports.clampAction = clampAction;
 module.exports.DEFAULT_PASS_CODE = DEFAULT_PASS_CODE;

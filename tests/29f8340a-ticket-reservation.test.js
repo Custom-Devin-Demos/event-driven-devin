@@ -149,6 +149,22 @@ describe('GovTech Singapore STACK Conference ticket reservation', () => {
     expect(reserveReportSlot(base + 11 * 60 * 1000)).toBe(true);
   });
 
+  test('Retry-After reflects the remaining window rather than the full window', () => {
+    const { retryAfterSeconds } = ticketRoutes;
+    const base = Date.now() + 2 * 60 * 60 * 1000;
+    for (let i = 0; i < 10; i += 1) ticketRoutes.reserveReportSlot(base + i);
+    expect(retryAfterSeconds(base + 9 * 60 * 1000 + 59 * 1000)).toBe(1);
+    expect(retryAfterSeconds(base + 5 * 60 * 1000)).toBe(300);
+    expect(ticketRoutes.reserveReportSlot(base + 11 * 60 * 1000)).toBe(true);
+  });
+
+  test('oversized or non-string actions are clamped before reaching the incident report', () => {
+    const { clampAction } = ticketRoutes;
+    expect(clampAction('x'.repeat(500))).toHaveLength(120);
+    expect(clampAction({ nested: true })).toBe('Get your tickets');
+    expect(clampAction('   ')).toBe('Get your tickets');
+  });
+
   test('the Sentry capture carries the instant-path tag so the webhook skips it', async () => {
     await postReservation({ action: 'Get your tickets', ...IDENTITY });
 
