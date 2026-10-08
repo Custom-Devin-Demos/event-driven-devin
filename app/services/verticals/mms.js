@@ -23,7 +23,30 @@ const PRODUCTS = {
     qtyStep: 5,
     collection: 'personalized-favors',
     taxCategory: 'personalized-confectionery',
+    designId: 'classic-m-aqua-white',
   },
+};
+
+// Saved personalization for the cart line; sent to the print queue at checkout.
+const DESIGNS = {
+  'classic-m-aqua-white': {
+    id: 'classic-m-aqua-white',
+    colors: ['aqua blue', 'white'],
+    artwork: { type: 'text', value: 'm', sides: 1 },
+    packaging: 'clear favor bag with ribbon, 1.5 oz',
+  },
+  'photo-upload': {
+    id: 'photo-upload',
+    colors: ['white'],
+    printMethod: 'photo',
+    artwork: { type: 'image', sides: 2 },
+    packaging: 'clear favor bag with ribbon, 1.5 oz',
+  },
+};
+
+const PRINT_PROFILES = {
+  text: { inkProfile: 'edible-cmyk-text', dpi: 300 },
+  photo: { inkProfile: 'edible-cmyk-photo', dpi: 600 },
 };
 
 const FREE_STANDARD_SHIPPING_THRESHOLD = 75;
@@ -49,7 +72,7 @@ const ZIP3_STATES = [
 const SALES_TAX = {
   MA: { categories: { 'candy-confectionery': { rate: 0.0625 }, 'personalized-confectionery': { rate: 0.0625 } } },
   NJ: { categories: { 'candy-confectionery': { rate: 0.06625 }, 'personalized-confectionery': { rate: 0.06625 } } },
-  NY: { categories: { 'candy-confectionery': { rate: 0.08875 } } },
+  NY: { categories: { 'candy-confectionery': { rate: 0.08875 }, 'personalized-confectionery': { rate: 0.08875 } } },
   PA: { categories: { 'candy-confectionery': { rate: 0.06 }, 'personalized-confectionery': { rate: 0.06 } } },
   FL: { categories: { 'candy-confectionery': { rate: 0.07 }, 'personalized-confectionery': { rate: 0.07 } } },
   IL: { categories: { 'candy-confectionery': { rate: 0.1025 }, 'personalized-confectionery': { rate: 0.1025 } } },
@@ -90,8 +113,8 @@ function directive(surface, details) {
 }
 
 const CHECKOUT_DIRECTIVE = directive('checkout', [
-  'The "check out" button posts to `POST /api/mms/checkout`: checkout -> priceCart -> calculateSalesTax.',
-  'Start from the shipping ZIP in the alert\'s `ship_state` tag and work back to the sales tax table for that state and the product\'s tax category.',
+  'The "check out" button posts to `POST /api/mms/checkout`: checkout -> buildPrintJob -> PRINT_PROFILES.',
+  'Start from the design in the alert\'s `design_id` tag and compare its DESIGNS entry with what buildPrintJob expects when it resolves a print profile.',
   'Unsupported destinations must stay a handled 400, never a TypeError.',
 ]);
 
@@ -133,6 +156,7 @@ function buildLineItems(items) {
       lineTotal: roundCents(product.unitPrice * qty),
       collection: product.collection,
       taxCategory: product.taxCategory,
+      designId: product.designId,
     };
   });
   if (lineItems.length === 0) throw validationError('Your cart is empty.', 'EMPTY_CART');
@@ -186,6 +210,21 @@ function findPromotion(code) {
   if (!key) throw validationError('Please enter a promo code.', 'PROMO_REQUIRED');
   if (!Object.hasOwn(PROMOTIONS, key)) throw validationError('The promo code you entered is not valid.', 'PROMO_INVALID');
   return PROMOTIONS[key];
+}
+
+function buildPrintJob(lineItems) {
+  return lineItems.map((li) => {
+    const design = DESIGNS[li.designId];
+    const profile = PRINT_PROFILES[design.printMethod];
+    return {
+      sku: li.sku,
+      qty: li.qty,
+      designId: design.id,
+      inkProfile: profile.inkProfile,
+      dpi: profile.dpi,
+      sides: design.artwork.sides,
+    };
+  });
 }
 
 function calculateSalesTax(state, lineItems, discount) {
@@ -309,22 +348,26 @@ async function checkout(data, now = new Date()) {
   const startTime = Date.now();
   const orderId = uuidv4();
   const lineItems = buildLineItems(data.items);
-  const state = stateForZip(data.zip);
-  const method = SHIPPING_METHODS[data.shippingMethod];
-  if (!method) throw validationError('Please select a shipping method.', 'SHIPPING_METHOD_REQUIRED');
-  const promo = data.promoCode ? findPromotion(data.promoCode) : null;
+  const designIds = [...new Set(lineItems.map((li) => li.designId))].join(',');
 
   logger.info("Processing M&M'S cart checkout", {
-    orderId, service: CHECKOUT_SERVICE, route: CHECKOUT_ROUTE, shipState: state, shippingMethod: method.id,
+    orderId, service: CHECKOUT_SERVICE, route: CHECKOUT_ROUTE, designIds,
   });
 
   try {
     await new Promise((resolve) => { setTimeout(resolve, 60 + Math.random() * 120); });
 
+    const printJob = buildPrintJob(lineItems);
+    const zip = data.zip ? String(data.zip).trim() : '';
+    const state = zip ? stateForZip(zip) : null;
+    const method = SHIPPING_METHODS[data.shippingMethod || 'standard'];
+    if (!method) throw validationError('Please select a shipping method.', 'SHIPPING_METHOD_REQUIRED');
+    const promo = data.promoCode ? findPromotion(data.promoCode) : null;
+
     const subtotal = subtotalOf(lineItems);
     const discount = promo ? computeDiscount(promo, lineItems) : 0;
     const shipping = shippingOptions(subtotal, now).find((option) => option.id === method.id).price;
-    const salesTax = calculateSalesTax(state, lineItems, discount);
+    const salesTax = state ? calculateSalesTax(state, lineItems, discount) : 0;
     const total = roundCents(subtotal - discount + shipping + salesTax);
 
     incrementMetric('mms_checkout.success', { route: CHECKOUT_ROUTE });
@@ -337,6 +380,7 @@ async function checkout(data, now = new Date()) {
       items: lineItems.map((li) => ({
         sku: li.sku, name: li.name, qty: li.qty, unitPrice: li.unitPrice, lineTotal: li.lineTotal,
       })),
+      printJob,
       subtotal,
       discount,
       shipping,
@@ -354,12 +398,10 @@ async function checkout(data, now = new Date()) {
       metric: 'mms_checkout',
       service: CHECKOUT_SERVICE,
       route: CHECKOUT_ROUTE,
-      culprit: 'app/services/verticals/mms.js — calculateSalesTax',
+      culprit: 'app/services/verticals/mms.js — buildPrintJob',
       promptAppendix: CHECKOUT_DIRECTIVE,
-      tags: { ship_state: state, shipping_method: method.id },
-      extra: {
-        orderId, shipZip: String(data.zip).trim(), shipState: state, items: lineItems.map((li) => `${li.sku}x${li.qty}`).join(','),
-      },
+      tags: { design_id: designIds },
+      extra: { orderId, designIds, items: lineItems.map((li) => `${li.sku}x${li.qty}`).join(',') },
     });
     throw error;
   }
@@ -370,10 +412,13 @@ module.exports = {
   estimateShipping,
   applyPromo,
   checkout,
+  buildPrintJob,
   calculateSalesTax,
   computeDiscount,
   stateForZip,
   PRODUCTS,
+  DESIGNS,
+  PRINT_PROFILES,
   PROMOTIONS,
   SALES_TAX,
   SHIPPING_METHODS,

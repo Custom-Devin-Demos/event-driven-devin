@@ -15,7 +15,7 @@ jest.mock('../app/telemetry/datadog', () => ({
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
 const {
-  estimateShipping, applyPromo, checkout,
+  estimateShipping, applyPromo, checkout, DESIGNS,
 } = require('../app/services/verticals/mms');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const { listAliases, getCustomerConfig } = require('../config/customers');
@@ -50,36 +50,50 @@ describe("M&M'S cart (mms)", () => {
     expect(() => estimateShipping({ items: [{ sku: '701130-90450', qty: 22 }], zip: '11249' }))
       .toThrow('increments of 5');
     await expect(applyPromo({ items: ITEMS, code: 'NOPE' })).rejects.toMatchObject({ statusCode: 400 });
-    await expect(checkout({ items: ITEMS, zip: '11249' })).rejects.toMatchObject({ code: 'SHIPPING_METHOD_REQUIRED' });
-    await expect(checkout({ items: ITEMS, zip: '99999', shippingMethod: 'standard' }))
-      .rejects.toMatchObject({ code: 'UNSUPPORTED_ZIP' });
+    await expect(checkout({ items: [] })).rejects.toMatchObject({ code: 'EMPTY_CART' });
+    await expect(checkout({ items: [{ sku: '701130-90450', qty: 22 }] })).rejects.toMatchObject({ code: 'INVALID_QUANTITY' });
     expect(createSessionAndAlert).not.toHaveBeenCalled();
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
-  test('checkout succeeds for a destination with a personalized-confectionery tax rate', async () => {
-    const result = await checkout({ items: ITEMS, zip: '07030', shippingMethod: 'standard' });
-    expect(result).toMatchObject({
-      success: true, subtotal: 55, shipping: 9.99, salesTax: 3.64, total: 68.63,
-    });
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
-  });
-
-  test('checkout to Brooklyn (11249) fails with a TypeError and raises one alert', async () => {
-    await expect(checkout({
-      items: ITEMS, zip: '11249', shippingMethod: 'standard', devinEmail: 'presenter@devindemos.com',
-    })).rejects.toThrow(TypeError);
+  test('check out alerts with no ZIP, shipping method or promo', async () => {
+    await expect(checkout({ items: ITEMS, devinEmail: 'presenter@devindemos.com' }))
+      .rejects.toThrow("Cannot read properties of undefined (reading 'inkProfile')");
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
-    expect(Sentry.captureException.mock.calls[0][1].tags).toMatchObject({ alert_path: 'instant', ship_state: 'NY' });
+    expect(Sentry.captureException.mock.calls[0][1].tags)
+      .toMatchObject({ alert_path: 'instant', design_id: 'classic-m-aqua-white' });
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert).toMatchObject({
       customer: 'mms', service: 'mms-checkout', errorType: 'TypeError', devinEmail: 'presenter@devindemos.com',
     });
-    expect(alert.culprit).toContain('calculateSalesTax');
+    expect(alert.culprit).toContain('buildPrintJob');
     expect(alert.promptAppendix).toContain('COG-GTM/event-driven-devin');
     expect(alert.promptAppendix).toContain('/m&m');
+  });
+
+  test('check out alerts the same way with a ZIP, shipping method and promo filled in', async () => {
+    await expect(checkout({
+      items: ITEMS, zip: '11249', shippingMethod: 'express', promoCode: 'FAVORS10',
+    })).rejects.toThrow(TypeError);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+  });
+
+  test('once the design resolves a print profile, checkout prices the order', async () => {
+    const design = DESIGNS['classic-m-aqua-white'];
+    design.printMethod = 'text';
+    try {
+      await expect(checkout({ items: ITEMS })).resolves.toMatchObject({
+        success: true, subtotal: 55, shipping: 9.99, salesTax: 0, total: 64.99,
+      });
+      await expect(checkout({ items: ITEMS, zip: '11249', shippingMethod: 'standard' })).resolves.toMatchObject({
+        salesTax: 4.88, total: 69.87,
+      });
+      expect(createSessionAndAlert).not.toHaveBeenCalled();
+    } finally {
+      delete design.printMethod;
+    }
   });
 
   test('FAVORS10 applies; SWEET15 fails with a TypeError and raises one alert', async () => {

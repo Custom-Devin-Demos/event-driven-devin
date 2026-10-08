@@ -420,10 +420,8 @@
 
       $('checkoutBtn').addEventListener('click', function () {
         if (state.removed) { setCheckoutMsg('err', 'your cart is empty', 'Add an item before checking out.'); return; }
-        if (!state.zip || !state.options) { setCheckoutMsg('err', 'shipping required', 'Enter your zip code in the shipping estimator and press submit.'); return; }
-        if (!state.method) { setCheckoutMsg('err', 'shipping required', 'Please select a shipping method.'); return; }
         var btn = this; btn.disabled = true; btn.textContent = 'processing\u2026';
-        post('/api/mms/checkout', { zip: state.zip, shippingMethod: state.method, promoCode: state.promo ? state.promo.code : '' }).then(function (r) {
+        post('/api/mms/checkout', { zip: state.zip, shippingMethod: state.method || 'standard', promoCode: state.promo ? state.promo.code : '' }).then(function (r) {
           if (r.ok) {
             $('sumTax').textContent = money(r.data.salesTax);
             $('sumTotal').textContent = money(r.data.total);
