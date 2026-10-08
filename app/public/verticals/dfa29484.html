@@ -302,6 +302,15 @@
 
 <div class="toast" id="toast"><div class="t" id="toast-t"></div><div class="d" id="toast-d"></div></div>
 
+<script>
+  // First visit in this browser: default the shared alert destination to Microsoft Teams.
+  // Runs before alert-destination.js (which persists 'slack' when nothing is saved) and never
+  // overrides a destination the presenter already chose on / or /oncall.
+  if (!localStorage.getItem('dfa29484.alertRoutingDefaulted')) {
+    if (!localStorage.getItem('alertDestination')) localStorage.setItem('alertDestination', 'teams');
+    localStorage.setItem('dfa29484.alertRoutingDefaulted', '1');
+  }
+</script>
 <script src="/alert-destination.js"></script>
 <script>
 (function () {
@@ -326,14 +335,16 @@
 
   (function setupAlertRouting() {
     if (!window.AlertDestination) return;
-    if (!localStorage.getItem('dfa29484.alertRoutingDefaulted')) {
-      window.AlertDestination.set('teams');
-      localStorage.setItem('dfa29484.alertRoutingDefaulted', '1');
-    }
     var picker = window.AlertDestination.mount(el('alertDestPicker'));
-    var teamsAlerts = false;
+    var teamsAlerts = null; // unknown until /api/config answers
     function renderDest(dest) {
-      el('alert-dest-note').innerHTML = dest === 'teams' && teamsAlerts
+      var note = el('alert-dest-note');
+      if (teamsAlerts === null) { note.textContent = 'Checking alert routing…'; return; }
+      if (teamsAlerts === 'unknown') {
+        note.innerHTML = 'Could not confirm server alert configuration — statement failures follow the destination selected above.';
+        return;
+      }
+      note.innerHTML = dest === 'teams' && teamsAlerts
         ? 'Statement failures post an alert card to <b>Microsoft Teams</b>; the Devin Teams responder investigates and replies in the thread.'
         : 'Statement failures post an alert card to <b>#automated-alerts</b> in Slack and start a Devin session.';
     }
@@ -343,7 +354,10 @@
       teamsAlerts = Boolean(cfg.teamsAlerts);
       picker.setTeamsAvailable(teamsAlerts);
       renderDest(window.AlertDestination.get());
-    }).catch(function () {});
+    }).catch(function () {
+      teamsAlerts = 'unknown';
+      renderDest(window.AlertDestination.get());
+    });
   })();
 
   function identity() {
