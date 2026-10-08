@@ -95,12 +95,21 @@ function weekdaysBefore(date, count) {
 }
 
 function payCalendar(now) {
-  const year = now.getUTCFullYear();
-  const monthIndex = now.getUTCMonth();
-  const key = `${year}-${pad2(monthIndex + 1)}`;
-  const label = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(now);
-  const payDate = lastWeekdayOfMonth(year, monthIndex);
-  const inputCutoff = weekdaysBefore(payDate, 5);
+  let periodYear = now.getUTCFullYear();
+  let periodMonth = now.getUTCMonth();
+  let payDate = lastWeekdayOfMonth(periodYear, periodMonth);
+  let inputCutoff = weekdaysBefore(payDate, 5);
+  if (isoDay(now) > isoDay(inputCutoff)) {
+    const next = new Date(Date.UTC(periodYear, periodMonth + 1, 1));
+    periodYear = next.getUTCFullYear();
+    periodMonth = next.getUTCMonth();
+    payDate = lastWeekdayOfMonth(periodYear, periodMonth);
+    inputCutoff = weekdaysBefore(payDate, 5);
+  }
+  const key = `${periodYear}-${pad2(periodMonth + 1)}`;
+  const label = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
+    new Date(Date.UTC(periodYear, periodMonth, 1)),
+  );
   return {
     payPeriod: { key, label },
     payDate: isoDay(payDate),

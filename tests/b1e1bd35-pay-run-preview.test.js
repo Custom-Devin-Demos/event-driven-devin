@@ -88,6 +88,11 @@ describe('CloudPay multi-country pay-run preview', () => {
     ['2026-10-08T12:00:00Z', '2026-10', 'October 2026', '2026-10-30', '2026-10-23', '2026-10-08'],
     ['2026-05-04T12:00:00Z', '2026-05', 'May 2026', '2026-05-29', '2026-05-22', '2026-05-04'],
     ['2026-02-11T12:00:00Z', '2026-02', 'February 2026', '2026-02-27', '2026-02-20', '2026-02-11'],
+    // On the cut-off day itself the current month is still in play.
+    ['2026-10-23T12:00:00Z', '2026-10', 'October 2026', '2026-10-30', '2026-10-23', '2026-10-23'],
+    // Past the cut-off, the period rolls to the next month (Dec -> Jan across the year boundary).
+    ['2026-10-26T12:00:00Z', '2026-11', 'November 2026', '2026-11-30', '2026-11-23', '2026-10-26'],
+    ['2026-12-28T12:00:00Z', '2027-01', 'January 2027', '2027-01-29', '2027-01-22', '2026-12-28'],
   ])('pay calendar for %s', (now, key, label, payDate, inputCutoff, ratesAsOf) => {
     const calendar = payCalendar(new Date(now));
 
@@ -96,6 +101,7 @@ describe('CloudPay multi-country pay-run preview', () => {
     expect(calendar.inputCutoff).toBe(inputCutoff);
     expect(calendar.ratesAsOf).toBe(ratesAsOf);
     expect(new Date(`${calendar.payDate}T00:00:00Z`).getUTCDay()).toBeLessThan(6);
+    expect(calendar.inputCutoff >= calendar.ratesAsOf).toBe(true);
   });
 
   test('previews are deterministic for the same company', async () => {
