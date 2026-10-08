@@ -314,8 +314,9 @@
     renderPlans();
     renderPreview();
     let completed = false;
+    let pending = false;
     form.addEventListener('change', () => {
-      if (completed) return;
+      if (completed || pending) return;
       button.disabled = false;
       resetResult();
       renderPreview();
@@ -328,9 +329,11 @@
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      if (completed) return;
+      if (completed || pending) return;
       if (!TENANT_SLUG) { notice(NOTICES.UNKNOWN_TENANT); return; }
       const plan = selectedPlan();
+      pending = true;
+      document.getElementById('plans').disabled = true;
       button.disabled = true;
       button.textContent = 'Setting up your plan\u2026';
       resetResult();
@@ -363,11 +366,12 @@
       } catch (_error) {
         notice(FAILED);
       } finally {
+        pending = false;
         if (confirmed) {
           completed = true;
-          document.getElementById('plans').disabled = true;
           button.textContent = 'Paid';
         } else {
+          document.getElementById('plans').disabled = false;
           button.disabled = false;
           renderPreview();
         }
