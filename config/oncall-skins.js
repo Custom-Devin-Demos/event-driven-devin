@@ -2716,6 +2716,13 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#080B17',
       '--chrome-text': '#F0F5F5',
     },
+    alertCard: {
+      title: 'p95 latency — held payment release submissions',
+      release: 'screening-console@4.2.0',
+      team: 'transaction-screening-oncall',
+      symptom: 'Releasing a cleared held payment hangs ~9s before the payment system confirms. Error rate is normal — releases eventually go through.',
+      impact: 'Every analyst releasing a false-positive payment from the held queue waits on a spinner for ~9 seconds; held payments are queuing up against their SLA.',
+    },
     supportCenter: 'FOCAL Support',
     disclaimer: 'NOT ACTUALLY A FOCAL BY MOZN SITE — internal demo only, not affiliated with, endorsed by, or a real MOZN or FOCAL product.',
   },
