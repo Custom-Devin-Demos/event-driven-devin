@@ -5,6 +5,7 @@
  * carries it to the server. It only affects this browser. */
 (function () {
   var KEY = 'alertDestination';
+  var EXPLICIT_KEY = 'alertDestinationExplicit'; // set only when the presenter clicks the picker
   var listeners = [];
 
   var SLACK_ICON = '<svg viewBox="0 0 54 54" aria-hidden="true"><path fill="#36C5F0" d="M19.7.1a5.4 5.4 0 0 0 0 10.8h5.4V5.5A5.4 5.4 0 0 0 19.7.1m0 14.4H5.4a5.4 5.4 0 0 0 0 10.8h14.3a5.4 5.4 0 0 0 0-10.8"/><path fill="#2EB67D" d="M53.8 19.9a5.4 5.4 0 0 0-10.8 0v5.4h5.4a5.4 5.4 0 0 0 5.4-5.4m-14.4 0V5.5a5.4 5.4 0 0 0-10.8 0v14.4a5.4 5.4 0 0 0 10.8 0"/><path fill="#ECB22E" d="M34 54a5.4 5.4 0 0 0 0-10.8h-5.4v5.4A5.4 5.4 0 0 0 34 54m0-14.4h14.4a5.4 5.4 0 0 0 0-10.8H34a5.4 5.4 0 0 0 0 10.8"/><path fill="#E01E5A" d="M0 34.2a5.4 5.4 0 0 0 10.8 0v-5.4H5.4A5.4 5.4 0 0 0 0 34.2m14.3 0v14.4a5.4 5.4 0 0 0 10.8 0V34.2a5.4 5.4 0 0 0-10.8 0"/></svg>';
@@ -40,8 +41,9 @@
     listeners.forEach(function (fn) { fn(value); });
   }
 
-  function set(value) {
+  function set(value, explicit) {
     value = normalize(value) || 'slack';
+    if (explicit) localStorage.setItem(EXPLICIT_KEY, '1');
     var changed = localStorage.getItem(KEY) !== value;
     localStorage.setItem(KEY, value);
     writeCookie(value);
@@ -102,12 +104,12 @@
     }
 
     buttons.forEach(function (b) {
-      b.addEventListener('click', function () { set(b.getAttribute('data-value')); });
+      b.addEventListener('click', function () { set(b.getAttribute('data-value'), true); });
       b.addEventListener('keydown', function (e) {
         if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(e.key) === -1) return;
         e.preventDefault();
         var next = buttons[(buttons.indexOf(b) + 1) % buttons.length];
-        set(next.getAttribute('data-value'));
+        set(next.getAttribute('data-value'), true);
         next.focus();
       });
     });

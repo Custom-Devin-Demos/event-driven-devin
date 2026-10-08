@@ -234,6 +234,13 @@
         <span id="coverage">Thomas Reyes · Managing Director, Investor Relations</span><br>
         <a href="#contact" style="font-size:12.5px">Message your coverage team</a>
       </div>
+      <div class="card" style="margin-top:14px" id="alert-routing">
+        <div class="hd"><h2>Alert routing</h2><div class="right" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)">Demo</div></div>
+        <div class="row" style="padding:14px 20px">
+          <div id="alertDestPicker"></div>
+          <div id="alert-dest-note" style="font-size:12.5px;color:var(--muted);margin-top:8px"></div>
+        </div>
+      </div>
     </aside>
   </div>
 </main>
@@ -296,6 +303,16 @@
 <div class="toast" id="toast"><div class="t" id="toast-t"></div><div class="d" id="toast-d"></div></div>
 
 <script>
+  // First visit in this browser: default the shared alert destination to Microsoft Teams.
+  // Runs before alert-destination.js and only when the presenter has never clicked the picker
+  // (alertDestinationExplicit) — the value the shared script persists on its own doesn't count.
+  if (!localStorage.getItem('dfa29484.alertRoutingDefaulted')) {
+    if (!localStorage.getItem('alertDestinationExplicit')) localStorage.setItem('alertDestination', 'teams');
+    localStorage.setItem('dfa29484.alertRoutingDefaulted', '1');
+  }
+</script>
+<script src="/alert-destination.js"></script>
+<script>
 (function () {
   var state = { account: null, busy: false, lastResult: null };
   function el(id) { return document.getElementById(id); }
@@ -315,6 +332,33 @@
     t.classList.toggle('good', !!good); t.classList.add('show');
     clearTimeout(toast._h); toast._h = setTimeout(function () { t.classList.remove('show'); }, good ? 4500 : 10000);
   }
+
+  (function setupAlertRouting() {
+    if (!window.AlertDestination) return;
+    var picker = window.AlertDestination.mount(el('alertDestPicker'));
+    var teamsAlerts = null; // unknown until /api/config answers
+    function renderDest(dest) {
+      var note = el('alert-dest-note');
+      if (teamsAlerts === null) { note.textContent = 'Checking alert routing…'; return; }
+      if (teamsAlerts === 'unknown') {
+        note.innerHTML = 'Could not confirm server alert configuration. If Microsoft Teams is not configured on this server, alerts fall back to <b>#automated-alerts</b> in Slack.';
+        return;
+      }
+      note.innerHTML = dest === 'teams' && teamsAlerts
+        ? 'Statement failures post an alert card to <b>Microsoft Teams</b>; the Devin Teams responder investigates and replies in the thread.'
+        : 'Statement failures post an alert card to <b>#automated-alerts</b> in Slack and start a Devin session.';
+    }
+    window.AlertDestination.onChange(renderDest);
+    renderDest(window.AlertDestination.get());
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      teamsAlerts = Boolean(cfg.teamsAlerts);
+      picker.setTeamsAvailable(teamsAlerts);
+      renderDest(window.AlertDestination.get());
+    }).catch(function () {
+      teamsAlerts = 'unknown';
+      renderDest(window.AlertDestination.get());
+    });
+  })();
 
   function identity() {
     return {
