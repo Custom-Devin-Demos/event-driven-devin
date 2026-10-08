@@ -56,7 +56,7 @@ function routeTag(tenant) {
   return `/api/ebde8c43/${tenant.slug}/release`;
 }
 
-const SLACK_MEMBER_ID = process.env.SLACK_MEMBER_ID_EBDE8C43 || 'U0C1N7TQ7MM';
+const SLACK_MEMBER_ID = process.env.SLACK_MEMBER_ID_EBDE8C43 || '';
 
 const SENTRY_ISSUE_QUERY = 'is:unresolved releasePolicy';
 
