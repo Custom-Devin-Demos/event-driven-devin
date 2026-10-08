@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pix - transfira e receba com facilidade | Nubank</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --nu-purple: #8D0DE3;
+      --nu-purple-dark: #5D0599;
+      --nu-ink: #1E002F;
+      --nu-lilac: #ECDFFF;
+      --nu-lilac-card: #D6B9FE;
+      --nu-lilac-text: #CBA5FD;
+      --nu-form-bg: #F7F2FF;
+      --nu-subnav: #F7F3F8;
+      --nu-cream: #F3EFE6;
+      --nu-grey: #D4D4D8;
+      --nu-white: #FFFFFF;
+      --pad-x: 88px;
+      --text: nuSansText, 'Inter Tight', arial, sans-serif;
+      --display: nuSansDisplay, 'Inter Tight', arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--text); color: #000; background: var(--nu-white); font-size: 16px; line-height: 24px; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    img { display: block; }
+
+    /* Header */
+    .nu-header { position: sticky; top: 0; z-index: 50; }
+    .nu-topbar { height: 64px; background: var(--nu-white); display: flex; align-items: center; padding-right: var(--pad-x); padding-left: var(--pad-x); }
+    .nu-logo { width: 64px; height: 64px; background: var(--nu-purple); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .nu-logo svg { width: 35px; height: 19px; }
+    .nu-menu { display: flex; align-items: center; gap: 16px; margin-left: 16px; list-style: none; }
+    .nu-menu li { display: flex; align-items: center; gap: 4px; height: 48px; }
+    .nu-menu a, .nu-menu span { font-size: 16px; font-weight: 600; line-height: 19.2px; color: var(--nu-ink); }
+    .nu-menu svg { width: 18px; height: 18px; color: var(--nu-purple); }
+    .nu-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .nu-search { width: 40px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--nu-purple); }
+    .nu-search svg { width: 20px; height: 20px; }
+    .nu-pill { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 24px; border-radius: 999px; font-size: 16px; font-weight: 600; line-height: 19.2px; white-space: nowrap; }
+    .nu-pill.outline { color: var(--nu-purple); border: 1px solid var(--nu-purple); }
+    .nu-pill.solid { color: var(--nu-white); background: var(--nu-purple); }
+    .nu-burger { display: none; width: 48px; height: 44px; align-items: center; justify-content: center; color: var(--nu-ink); }
+    .nu-subnav { height: 48px; background: var(--nu-subnav); display: flex; align-items: center; padding: 0 var(--pad-x); }
+    .nu-subnav .crumb { display: flex; align-items: center; gap: 8px; font-size: 22px; font-weight: 600; line-height: 26.4px; color: #000; }
+    .nu-subnav .crumb svg { width: 24px; height: 24px; }
+    .nu-subnav .sublinks { margin-left: auto; display: flex; gap: 24px; list-style: none; }
+    .nu-subnav .sublinks a { font-size: 16px; font-weight: 600; line-height: 19.2px; color: #000; padding-top: 6px; display: block; }
+    .nu-subnav .sublinks a.active { box-shadow: inset 0 -2px 0 var(--nu-purple); padding-bottom: 12px; }
+    .nu-subnav .mobile-title { display: none; }
+
+    /* Hero */
+    .hero { background: var(--nu-lilac); padding: 80px var(--pad-x) 59px; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 704fr) minmax(0, 480fr); column-gap: 80px; align-items: center; max-width: 1264px; margin: 0 auto; }
+    .hero-media img, .hero-media .img-fallback { width: 100%; aspect-ratio: 704 / 555; object-fit: cover; border-radius: 0; }
+    .hero-copy { display: flex; flex-direction: column; }
+    .hero-eyebrow { font-family: var(--display); font-size: 34px; font-weight: 600; line-height: 37.4px; letter-spacing: -0.7px; color: var(--nu-purple); }
+    .hero-title { font-family: var(--display); font-size: 72px; font-weight: 600; line-height: 67.68px; letter-spacing: -1.2px; color: var(--nu-ink); margin-top: 7px; }
+    .hero-text { font-size: 21px; line-height: 29.4px; letter-spacing: -0.25px; color: #000; margin-top: 24px; }
+    .hero-media-m { display: none; }
+    .img-fallback { background: linear-gradient(135deg, #b97cf5, #8D0DE3 60%, #5D0599); }
+
+    .pix-card { margin-top: 24px; background: var(--nu-form-bg); border-radius: 16px; padding: 24px; max-width: 416px; }
+    .pix-card h2 { font-family: var(--display); font-size: 22px; font-weight: 600; line-height: 26.4px; color: var(--nu-ink); padding-bottom: 8px; }
+    .pix-fields { display: grid; gap: 8px; margin-top: 8px; }
+    .pix-field { position: relative; height: 56px; background: var(--nu-white); border: 1px solid #D9D2E0; border-radius: 8px; }
+    .pix-field:focus-within { border-color: var(--nu-purple); }
+    .pix-field label { position: absolute; left: 20px; top: 8px; font-size: 12px; line-height: 14px; font-weight: 500; color: #6E6475; pointer-events: none; }
+    .pix-field select, .pix-field input { width: 100%; height: 100%; border: 0; background: transparent; padding: 22px 40px 0 20px; font-family: var(--text); font-size: 18px; color: var(--nu-ink); outline: none; appearance: none; -webkit-appearance: none; border-radius: 8px; }
+    .pix-field.select::after { content: ''; position: absolute; right: 18px; top: 24px; width: 8px; height: 8px; border-right: 2px solid var(--nu-purple); border-bottom: 2px solid var(--nu-purple); transform: rotate(45deg); pointer-events: none; }
+    .pix-submit { margin-top: 16px; width: 100%; height: 56px; border-radius: 999px; background: var(--nu-purple); color: var(--nu-white); font-family: var(--text); font-size: 20px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
+    .pix-submit:disabled { opacity: .7; cursor: progress; }
+    .pix-submit svg { width: 20px; height: 20px; }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 8px; font-size: 15px; line-height: 21px; }
+    .result-box.success { display: block; background: #EFE3FF; border: 1px solid #C8A2F6; color: var(--nu-ink); }
+    .result-box.error { display: block; background: #FFF1F1; border: 1px solid #F2B8B8; color: #9B1C1C; }
+    .result-box .error-title { font-weight: 600; }
+    .result-box .error-detail { font-size: 13px; opacity: .85; word-break: break-word; }
+
+    /* Features */
+    .features { background: var(--nu-purple); padding: 120px var(--pad-x); }
+    .features h2 { font-family: var(--display); font-size: 58.3px; font-weight: 600; line-height: 58.3px; letter-spacing: -1.166px; color: var(--nu-cream); text-align: center; }
+    .feature-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 80px auto 0; max-width: 1264px; }
+    .feature-card { background: var(--nu-purple-dark); border-radius: 16px; padding: 24px; min-height: 385px; display: flex; flex-direction: column; }
+    .feature-card h3 { font-family: var(--display); font-size: 31.98px; font-weight: 600; line-height: 35.18px; letter-spacing: -0.66px; color: var(--nu-cream); }
+    .feature-card p { font-size: 19.75px; line-height: 27.65px; letter-spacing: -0.235px; color: var(--nu-white); margin-top: 24px; }
+    .feature-icon { margin-top: auto; width: 56px; height: 56px; border-radius: 50%; background: var(--nu-purple); display: flex; align-items: center; justify-content: center; color: var(--nu-white); }
+    .feature-icon svg { width: 28px; height: 28px; }
+
+    /* Accordion sections */
+    .split { padding: 120px var(--pad-x); display: grid; grid-template-columns: minmax(0, 513fr) minmax(0, 620fr); column-gap: 131px; max-width: 1440px; margin: 0 auto; }
+    .split h2 { font-family: var(--display); font-size: 72px; font-weight: 600; line-height: 67.68px; letter-spacing: -1.2px; color: var(--nu-ink); }
+    .split .lead-h { font-family: var(--display); font-size: 48px; font-weight: 600; line-height: 48px; letter-spacing: -1px; color: #000; margin-top: 32px; }
+    .split .lead-p { font-size: 18px; line-height: 25.2px; letter-spacing: -0.25px; margin-top: 22px; }
+    .acc { display: grid; gap: 16px; align-content: start; }
+    .acc details { border-radius: 16px; background: transparent; }
+    .acc summary { list-style: none; cursor: pointer; padding: 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .acc summary::-webkit-details-marker { display: none; }
+    .acc summary h3 { font-family: var(--display); font-size: 28px; font-weight: 600; line-height: 30.8px; letter-spacing: -0.5px; color: var(--nu-ink); }
+    .acc summary svg { width: 24px; height: 24px; color: var(--nu-purple); flex-shrink: 0; transition: transform .2s; }
+    .acc details[open] summary svg { transform: rotate(45deg); }
+    .acc .acc-body { padding: 0 32px 32px; font-size: 18px; line-height: 25.2px; letter-spacing: -0.25px; color: #000; }
+    .acc .acc-body p + p { margin-top: 12px; }
+    .faq-wrap { background: var(--nu-cream); }
+    .faq .lead-p { font-size: 21px; line-height: 29.4px; margin-top: 32px; }
+    .faq .faq-btn { margin-top: 32px; width: 342px; height: 56px; padding: 0 32px; font-size: 20px; justify-content: space-between; }
+    .faq .faq-btn-m { display: none; }
+
+    /* Advantages */
+    .adv { background: var(--nu-lilac); padding: 80px var(--pad-x); }
+    .adv h2 { font-family: var(--display); font-size: 64px; font-weight: 600; line-height: 60.16px; letter-spacing: -1.92px; color: #000; text-align: center; }
+    .adv-stack { max-width: 1264px; margin: 32px auto 0; }
+    .adv-card { position: relative; background: var(--nu-lilac-card); border-radius: 16px 16px 0 0; padding: 32px 32px 72px; height: 477px; overflow: hidden; box-shadow: 0 -1px 0 rgba(255,255,255,.55); }
+    .adv-card + .adv-card { margin-top: -30px; }
+    .adv-card:last-child { border-radius: 16px; }
+    .adv-card h3 { font-family: var(--display); font-size: 36px; font-weight: 600; line-height: 33.84px; letter-spacing: -0.72px; color: #000; }
+    .adv-row { display: flex; gap: 40px; margin-top: 48px; align-items: flex-start; }
+    .adv-row img, .adv-row .img-fallback { width: 580px; max-width: 55%; aspect-ratio: 2 / 1; object-fit: cover; border-radius: 16px; flex-shrink: 0; }
+    .adv-row p { font-size: 22px; line-height: 28.6px; letter-spacing: -0.44px; color: #000; max-width: 382px; }
+
+    /* Blog */
+    .blog { padding: 120px 0 120px 120px; display: grid; grid-template-columns: 412px minmax(0, 1fr); column-gap: 48px; overflow: hidden; }
+    .blog-intro { align-self: center; padding-bottom: 68px; }
+    .blog-intro h2 { font-family: var(--display); font-size: 72px; font-weight: 600; line-height: 67.68px; letter-spacing: -1.2px; color: var(--nu-ink); }
+    .blog-intro .nu-pill { margin-top: 40px; height: 56px; padding: 0 32px; font-size: 20px; gap: 12px; }
+    .blog-intro .nu-pill svg { width: 20px; height: 20px; }
+    .blog-track { display: flex; gap: 16px; overflow: hidden; }
+    .blog-card { position: relative; flex: 0 0 400px; height: 520px; border-radius: 12px; overflow: hidden; color: var(--nu-white); background: #2a0a3d; }
+    .blog-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .blog-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,.82) 80%); }
+    .blog-card .bc-body { position: absolute; left: 40px; right: 40px; bottom: 32px; z-index: 1; }
+    .blog-card .bc-tag { font-size: 22px; font-weight: 600; line-height: 26.4px; }
+    .blog-card h3 { font-family: var(--display); font-size: 34px; font-weight: 600; line-height: 37.4px; letter-spacing: -0.7px; margin-top: 16px; }
+    .blog-card .nu-pill svg { width: 18px; height: 18px; }
+    .blog-card .nu-pill { gap: 8px; margin-top: 16px; height: 56px; padding: 0 32px; color: var(--nu-lilac); border: 1px solid var(--nu-lilac); font-size: 20px; }
+    .blog-arrows { grid-column: 2; display: flex; gap: 8px; justify-content: flex-end; padding-right: 120px; margin-top: 24px; }
+    .blog-arrows button { width: 44px; height: 44px; border-radius: 50%; background: var(--nu-purple); color: var(--nu-white); display: flex; align-items: center; justify-content: center; }
+    .blog-arrows button svg { width: 20px; height: 20px; }
+
+    /* Footer */
+    .nu-footer { background: var(--nu-ink); padding: 112px var(--pad-x) 0; color: var(--nu-white); }
+    .nu-footer h2 { font-family: var(--display); font-size: 96px; font-weight: 600; line-height: 90.24px; letter-spacing: -0.9px; color: var(--nu-cream); padding-bottom: 24px; }
+    .ft-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin-top: 40px; }
+    .ft-group + .ft-group { margin-top: 40px; }
+    .ft-group h3, .ft-group summary { font-size: 20px; font-weight: 600; line-height: 24px; color: var(--nu-lilac-text); list-style: none; }
+    .ft-group summary::-webkit-details-marker { display: none; }
+    .ft-group summary svg { display: none; }
+    .ft-group ul { list-style: none; margin-top: 24px; display: grid; gap: 16px; }
+    .ft-group li a { font-size: 20px; font-weight: 600; line-height: 24px; color: var(--nu-white); }
+    .ft-group .ft-note { font-size: 18px; font-weight: 400; line-height: 25.2px; color: var(--nu-grey); }
+    .ft-social { margin-top: 64px; }
+    .ft-social h3 { font-size: 20px; font-weight: 600; line-height: 24px; color: var(--nu-lilac-text); }
+    .ft-social ul { list-style: none; display: flex; gap: 16px; margin-top: 12px; }
+    .ft-social a { width: 32px; height: 42px; display: flex; align-items: center; justify-content: center; color: var(--nu-white); }
+    .ft-social svg { width: 26px; height: 26px; }
+    .ft-bottom { display: flex; align-items: center; gap: 32px; padding: 64px 0; margin-top: 24px; }
+    .ft-bottom .ft-mark { width: 59px; height: 32px; color: var(--nu-white); flex-shrink: 0; }
+    .ft-bottom p { font-size: 14px; font-weight: 500; line-height: 16.8px; color: var(--nu-grey); }
+    .ft-bottom .a11y { margin-left: auto; width: 32px; height: 32px; color: var(--nu-white); flex-shrink: 0; }
+
+    @media (max-width: 1240px) {
+      .nu-menu, .nu-actions .outline { display: none; }
+      .nu-burger { display: flex; }
+      .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .split { column-gap: 64px; }
+      .blog { padding-left: var(--pad-x); grid-template-columns: 340px minmax(0, 1fr); }
+    }
+    @media (max-width: 1024px) {
+      .split h2, .blog-intro h2, .hero-title { font-size: 56px; line-height: 54px; }
+      .nu-footer h2 { font-size: 64px; line-height: 62px; }
+      .nu-subnav .sublinks { display: none; }
+      .ft-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 40px; }
+    }
+
+    @media (max-width: 767px) {
+      :root { --pad-x: 24px; }
+      .nu-topbar { height: 56px; padding-left: 0; padding-right: 0; }
+      .nu-logo { width: 56px; height: 56px; }
+      .nu-logo svg { width: 24px; height: 13px; }
+      .nu-actions { gap: 0; }
+      .nu-actions .solid { height: 36px; padding: 0 16px; position: relative; order: -1; margin-right: 4px; }
+      .nu-actions .solid::before { content: ''; position: absolute; left: 0; right: 0; top: -4px; bottom: -4px; }
+      .nu-search { width: 48px; }
+      .nu-subnav { padding: 0 8px 0 24px; }
+      .nu-subnav .crumb { display: none; }
+      .nu-subnav .mobile-title { display: flex; width: 100%; height: 48px; align-items: center; justify-content: space-between; font-size: 20px; font-weight: 600; line-height: 24px; color: #000; }
+      .nu-subnav .mobile-title svg { width: 24px; height: 24px; margin-right: 10px; }
+
+      .hero { padding: 48px 24px 48px; }
+      .hero-grid { display: flex; flex-direction: column; }
+      .hero-media { display: none; }
+      .hero-eyebrow { font-size: 24px; line-height: 26.4px; letter-spacing: -0.5px; }
+      .hero-title { font-size: 36px; line-height: 33.84px; letter-spacing: -1.2px; margin-top: 4px; }
+      .hero-media-m { display: block; margin-top: 24px; }
+      .hero-media-m img, .hero-media-m .img-fallback { width: 100%; aspect-ratio: 342 / 285; object-fit: cover; }
+      .hero-text { font-size: 18px; line-height: 25.2px; margin-top: 24px; }
+      .pix-card { margin-top: 23px; max-width: none; }
+      .pix-card h2 { font-size: 20px; line-height: 24px; text-align: center; }
+      .pix-field select, .pix-field input { font-size: 16px; }
+      .pix-submit { font-size: 16px; padding: 0 24px; }
+
+      .features { padding: 80px 24px; }
+      .features h2 { font-size: 36.37px; line-height: 36.37px; text-align: left; letter-spacing: -0.9px; }
+      .feature-grid { grid-template-columns: 1fr; gap: 12px; margin-top: 48px; }
+      .feature-card { min-height: 0; border-radius: 12px; }
+      .feature-card h3 { font-size: 26.36px; line-height: 28.99px; }
+      .feature-card p { font-size: 19.45px; line-height: 27.23px; margin-top: 16px; }
+      .feature-icon { width: 44px; height: 44px; margin-top: 32px; }
+      .feature-icon svg { width: 22px; height: 22px; }
+
+      .split { display: block; padding: 80px 24px; }
+      .split h2 { font-size: 36px; line-height: 33.84px; }
+      .split .lead-h { font-size: 28px; line-height: 28px; }
+      .split .lead-p { font-size: 16px; line-height: 22.4px; margin-top: 18px; }
+      .acc { margin-top: 48px; }
+      .acc details { border-radius: 12px; }
+      .acc summary { padding: 16px; }
+      .acc summary h3 { font-size: 22px; line-height: 24.2px; }
+      .acc .acc-body { padding: 0 16px 16px; font-size: 16px; line-height: 22.4px; }
+      .faq { display: flex; flex-direction: column; }
+      .faq .lead-p { font-size: 18px; line-height: 25.2px; margin-top: 32px; }
+      .faq .acc { margin-top: 32px; }
+      .faq .faq-btn { display: none; }
+      .faq .faq-btn-m { display: inline-flex; margin-top: 32px; width: 100%; height: 48px; padding: 0 24px; font-size: 16px; justify-content: space-between; }
+
+      .adv { padding: 48px 24px; }
+      .adv h2 { font-size: 34px; line-height: 31.96px; letter-spacing: -1px; text-align: left; }
+      .adv-stack { margin-top: 24px; }
+      .adv-card { padding: 24px 24px 48px; height: 435px; }
+      .adv-card + .adv-card { margin-top: -24px; }
+      .adv-card h3 { font-size: 28px; line-height: 26.32px; }
+      .adv-row { flex-direction: column; gap: 24px; }
+      .adv-row img, .adv-row .img-fallback { width: 100%; max-width: none; aspect-ratio: 294 / 152; }
+      .adv-row p { font-size: 18px; line-height: 23.4px; max-width: none; }
+
+      .blog { display: block; padding: 80px 24px; }
+      .blog-intro { padding-bottom: 0; }
+      .blog-intro h2 { font-size: 36px; line-height: 33.84px; }
+      .blog-intro .nu-pill { margin-top: 24px; height: 48px; padding: 0 24px; font-size: 16px; }
+      .blog-track { margin-top: 24px; gap: 8px; margin-right: -24px; }
+      .blog-card { flex-basis: 333px; height: 443px; }
+      .blog-card .bc-body { left: 24px; right: 24px; bottom: 24px; }
+      .blog-card .bc-tag { font-size: 20px; line-height: 24px; }
+      .blog-card h3 { font-size: 24px; line-height: 26.4px; letter-spacing: -0.5px; }
+      .blog-card .nu-pill { font-size: 16px; padding: 0 24px; }
+      .blog-arrows { justify-content: flex-start; padding-right: 0; }
+
+      .nu-footer { padding: 72px 24px 0; }
+      .nu-footer h2 { font-size: 40px; line-height: 37.6px; letter-spacing: -0.864px; padding-bottom: 56px; }
+      .ft-cols { display: block; margin-top: 0; }
+      .ft-col + .ft-col { margin-top: 48px; }
+      .ft-group + .ft-group { margin-top: 48px; }
+      .ft-group h3, .ft-group summary { font-size: 18px; line-height: 21.6px; }
+      .ft-group summary { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+      .ft-group summary svg { display: block; width: 20px; height: 20px; color: var(--nu-lilac-text); }
+      .ft-group details:not([open]) ul { display: none; }
+      .ft-group ul { margin-top: 29px; gap: 24px; }
+      .ft-group li a { font-size: 16px; line-height: 19.2px; }
+      .ft-group .ft-note { font-size: 16px; font-weight: 500; line-height: 20px; }
+      .ft-social h3 { font-size: 18px; line-height: 21.6px; }
+      .ft-bottom { flex-wrap: wrap; gap: 32px; padding: 64px 0 40px; }
+      .ft-bottom p { font-size: 12px; line-height: 14.4px; flex: 1 1 200px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nu-header">
+    <div class="nu-topbar">
+      <a class="nu-logo" href="#" aria-label="Página inicial">
+        <svg viewBox="0 0 35 19" fill="none" aria-hidden="true"><path d="M2.6 19V8.4C2.6 5 5 2.6 8.3 2.6c3.3 0 5.7 2.4 5.7 5.8V19" stroke="#fff" stroke-width="5.2"/><path d="M21 0v10.6c0 3.4 2.4 5.8 5.7 5.8s5.7-2.4 5.7-5.8V0" stroke="#fff" stroke-width="5.2"/></svg>
+      </a>
+      <ul class="nu-menu">
+        <li><span>Para você</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg></li>
+        <li><a href="#">Para seu negócio</a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg></li>
+        <li><a href="#">Segurança</a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg></li>
+        <li><span>Saiba Mais</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg></li>
+      </ul>
+      <div class="nu-actions">
+        <button class="nu-search" type="button" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+        <a class="nu-pill outline" href="#">Login Empresas</a>
+        <a class="nu-pill solid" href="#">Quero ser Nubank</a>
+        <button class="nu-burger" type="button" aria-label="Menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+    </div>
+    <nav class="nu-subnav">
+      <a class="crumb" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5m6-6-6 6 6 6"/></svg>Conta do Nubank</a>
+      <ul class="sublinks">
+        <li><a class="active" href="#">Pix</a></li>
+        <li><a href="#">Assistente de Pagamentos</a></li>
+        <li><a href="#">Contas do Detran</a></li>
+      </ul>
+      <button class="mobile-title" type="button">Pix<svg viewBox="0 0 24 24" fill="none" stroke="#8D0DE3" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg></button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-media">
+          <img src="https://www.datocms-assets.com/120597/1746566116-homem-com-headset-olhando-celular-e-cartao-nubank-na-mesa-ptbr-hero-product-2-desktop.jpg?crop=focalpoint&dpr=1&fit=crop&fm=jpg&q=60&w=2000" alt="Homem com headset olhando o celular e cartão Nubank na mesa" onerror="this.outerHTML='<div class=&quot;img-fallback&quot;></div>'">
+        </div>
+        <div class="hero-copy">
+          <span class="hero-eyebrow">Nubank</span>
+          <h1 class="hero-title">Pix</h1>
+          <div class="hero-media-m">
+            <img src="https://www.datocms-assets.com/120597/1746566491-homem-com-headset-olhando-celular-e-cartao-nubank-na-mesa-ptbr-hero-product-2-mobile.jpg?auto=format&crop=focalpoint&dpr=1&fit=crop&w=1000&q=60" alt="" onerror="this.outerHTML='<div class=&quot;img-fallback&quot;></div>'">
+          </div>
+          <p class="hero-text">O jeito mais prático de fazer transferências e pagamentos instantâneos, do seu jeito.</p>
+          <div class="pix-card">
+            <form id="transferForm">
+              <h2>Fazer um Pix</h2>
+              <div class="pix-fields">
+                <div class="pix-field select"><label for="fromAccount">Sair de</label><select id="fromAccount"><option value="ACCT-1001">Conta do Nubank</option><option value="ACCT-1002">Caixinha</option></select></div>
+                <div class="pix-field select"><label for="toAccount">Para</label><select id="toAccount"><option value="ACCT-EXT-001">Chave Pix &middot; maria.souza@email.com</option><option value="ACCT-1002">Caixinha</option><option value="ACCT-1001">Conta do Nubank</option></select></div>
+                <div class="pix-field"><label for="amount">Valor (R$)</label><input type="number" id="amount" value="250.00" min="1" step="0.01" required></div>
+                <div class="pix-field select"><label for="accountTier">Tipo de conta</label><select id="accountTier"><option value="standard">Conta do Nubank</option><option value="premium">Nubank Ultravioleta</option><option value="basic">Conta básica</option></select></div>
+              </div>
+              <button type="submit" class="pix-submit" id="submitBtn"><span>Transferir com Pix</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></button>
+            </form>
+            <div id="result" class="result-box"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <h2>Pix de forma simples, rápida e segura.</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>Dinheiro chega em segundos</h3>
+          <p>Até entre diferentes instituições, o Pix cai na mesma hora, a qualquer hora do dia ou da noite.</p>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        </div>
+        <div class="feature-card">
+          <h3>Faça Pix de várias maneiras</h3>
+          <p>No app por texto ou áudio, com aproximação na maquininha, usando o saldo da conta ou parcelando até 12x.</p>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18h2"/></svg></div>
+        </div>
+        <div class="feature-card">
+          <h3>Mais segurança</h3>
+          <p>Confirme transações com seu PIN, ajuste seus limites Pix diários e crie listas de confiança para transferências de maior valor.</p>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        </div>
+        <div class="feature-card">
+          <h3>Não custa nada</h3>
+          <p>Você não paga para fazer nem para receber transferências.</p>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.2c-.5-.8-1.4-1.2-2.5-1.2-1.5 0-2.5.8-2.5 1.9 0 2.6 5 1.4 5 4.1 0 1.1-1 2-2.5 2-1.2 0-2.1-.5-2.6-1.3M12 6.5V8m0 8v1.5"/></svg></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="info">
+      <div class="split">
+        <div>
+          <h2>Tudo sobre o Pix do Nubank</h2>
+          <h3 class="lead-h">Modalidades e funções do Pix para você controlar melhor sua vida financeira.</h3>
+          <p class="lead-p">O Pix no Nubank continua evoluindo para trazer mais praticidade para você.</p>
+        </div>
+        <div class="acc">
+          <details><summary><h3>O que é</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary><div class="acc-body"><p>O Pix é um meio de pagamento criado pelo Banco Central em 2020, que rapidamente se tornou o mais usado pelos brasileiros. Com ele, você pode fazer e receber transferências instantâneas, pagar contas e comprar pelo celular a qualquer hora, usando o saldo da conta.</p></div></details>
+          <details><summary><h3>Pix no crédito</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary><div class="acc-body"><p>Você pode usar o limite do seu cartão de crédito para fazer pagamentos com o Pix. O vendedor recebe o valor total instantaneamente, e você tem a opção de parcelar a compra.</p></div></details>
+          <details><summary><h3>Pix Agendado</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary><div class="acc-body"><p>Agende aquelas transferências Pix recorrentes de forma automática e segura. Você pode definir que os pagamentos ocorram mensalmente, quinzenalmente ou semanalmente.</p></div></details>
+          <details><summary><h3>Pix por Mensagem e Áudio</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary><div class="acc-body"><p>Envie Pix pelo app do Nubank até 3x mais rápido digitando ou mandando uma mensagem de voz.</p></div></details>
+          <details><summary><h3>Pix por Aproximação</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary><div class="acc-body"><p>O jeito mais rápido, seguro e flexível de pagar no Pix só com um toque.</p><p>Abra o app do Nu e encoste na maquininha para pagar em segundos com saldo da conta ou no crédito em até 12x.</p></div></details>
+          <details><summary><h3>Lista de Confiança</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary><div class="acc-body"><p>Adicione contatos que você confia para permitir transações acima dos limites determinados pelo Banco Central a qualquer horário, inclusive durante a noite.</p></div></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="adv">
+      <h2>Mais vantagens do Pix no Nubank</h2>
+      <div class="adv-stack">
+        <div class="adv-card">
+          <h3>Pix Cobrança</h3>
+          <div class="adv-row">
+            <img src="https://www.datocms-assets.com/120597/1746614592-mulher-consultando-aplicativo-nubank-no-celular-pix-ptbr-cards-empilhados-desktop.jpg?auto=format&crop=focalpoint&dpr=1&fit=crop&q=60" alt="" onerror="this.outerHTML='<div class=&quot;img-fallback&quot;></div>'">
+            <p>Gere um QR Code para receber pagamentos, sejam eles imediatos ou futuros.</p>
+          </div>
+        </div>
+        <div class="adv-card">
+          <h3>Modo Rua</h3>
+          <div class="adv-row">
+            <img src="https://www.datocms-assets.com/120597/1746555195-homem-sorrindo-com-celular-na-mao-ambiente-externo-ptbr-hero-product-2-mobile.jpg?auto=format&crop=focalpoint&dpr=1&fit=crop&q=60" alt="" onerror="this.outerHTML='<div class=&quot;img-fallback&quot;></div>'">
+            <p>Com essa funcionalidade, você pode definir redes wi-fi confiáveis, como as de sua casa, trabalho ou de familiares. Quando estiver fora delas, seu aplicativo limitará automaticamente o valor de suas transferências via Pix. O melhor é que você escolhe esse limite, garantindo que seu dinheiro fique seguro mesmo em caso de roubo ou furto do seu celular.</p>
+          </div>
+        </div>
+        <div class="adv-card">
+          <h3>Meus Limites Pix</h3>
+          <div class="adv-row">
+            <img src="https://www.datocms-assets.com/120597/1746614104-mulher-segurando-celular-em-uma-mesa-com-frutas-ptbr-cards-empilhados-desktop.jpg?auto=format&crop=focalpoint&dpr=1&fit=crop&q=60" alt="" onerror="this.outerHTML='<div class=&quot;img-fallback&quot;></div>'">
+            <p>Defina um limite total diurno para transações feitas entre 6h e 20h ou para o período noturno, entre 22h e 6h.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog">
+      <div class="blog-intro">
+        <h2>Explore mais no blog do Nubank</h2>
+        <a class="nu-pill solid" href="#">Ir para o Blog do Nu<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+      </div>
+      <div class="blog-track">
+        <article class="blog-card"><img src="https://backend.blog.nubank.com.br/wp-content/uploads/2025/04/homem-branco-barba-escura-toca-marrom-cara-duvida-entre-caixas-header.jpg?quality=60" alt="" onerror="this.remove()"><div class="bc-body"><p class="bc-tag">Pix</p><h3>Precisa declarar Pix no Imposto de Renda 2026?</h3><a class="nu-pill" href="#">Leia aqui<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div></article>
+        <article class="blog-card"><img src="https://backend.blog.nubank.com.br/wp-content/uploads/2025/03/notas-moedas-sacola-de-dinheiro-presente-numa-esteira-roxa-header.jpg?quality=60" alt="" onerror="this.remove()"><div class="bc-body"><p class="bc-tag">Pix</p><h3>Novas regras do Pix: saiba o que muda e o que não muda no sistema de pagamentos instantâneo</h3><a class="nu-pill" href="#">Leia aqui<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div></article>
+        <article class="blog-card"><img src="https://backend.blog.nubank.com.br/wp-content/uploads/2019/05/TED-E-DOC-1.webp?quality=60" alt="" onerror="this.remove()"><div class="bc-body"><p class="bc-tag">Pix</p><h3>DOC e TED vão acabar? Entenda o futuro das transferências!</h3><a class="nu-pill" href="#">Leia aqui<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div></article>
+        <article class="blog-card"><img src="https://backend.blog.nubank.com.br/wp-content/uploads/2022/06/pix-parcelado-HEADER.jpg?quality=60" alt="" onerror="this.remove()"><div class="bc-body"><p class="bc-tag">Pix</p><h3>6 situações que ficaram no passado por causa do Pix</h3><a class="nu-pill" href="#">Leia aqui<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div></article>
+        <article class="blog-card"><img src="https://backend.blog.nubank.com.br/wp-content/uploads/2021/10/chave-pix-cuidados-chunli-unsplash-HEADER.jpg?quality=60" alt="" onerror="this.remove()"><div class="bc-body"><p class="bc-tag">Pix</p><h3>Vai compartilhar a sua chave Pix? Cuidado.</h3><a class="nu-pill" href="#">Leia aqui<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div></article>
+        <article class="blog-card"><img src="https://backend.blog.nubank.com.br/wp-content/uploads/2021/11/pix-mais-seguro-novas-medidas-seguranc%CC%A7a-header.png?quality=60" alt="" onerror="this.remove()"><div class="bc-body"><p class="bc-tag">Pix</p><h3>Pix ainda mais seguro: conheça as novas medidas de segurança</h3><a class="nu-pill" href="#">Leia aqui<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div></article>
+      </div>
+      <div class="blog-arrows">
+        <button type="button" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 6-6 6 6 6"/></svg></button>
+        <button type="button" aria-label="Próximo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></button>
+      </div>
+    </section>
+
+    <section class="faq-wrap">
+      <div class="split faq">
+        <div>
+          <h2>Ficou com alguma dúvida?</h2>
+          <p class="lead-p">Encontre respostas para suas principais dúvidas sobre produtos e serviços do Nubank.</p>
+          <a class="nu-pill solid faq-btn" href="#">Confira perguntas frequentes<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+        </div>
+        <div class="acc">
+          <details><summary><h3>É possível cancelar um Pix?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary><div class="acc-body"><p>Um pagamento ou transferência por Pix não pode ser cancelado após a confirmação com a senha de 4 dígitos, uma vez que o valor é transferido instantaneamente para a conta de destino. Apenas o titular da conta de destino poderá efetuar o estorno da transação.</p></div></details>
+          <details><summary><h3>O Pix Saque e Pix Troco são seguros?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary><div class="acc-body"><p>Sim, o Pix Saque e Pix Troco possuem todas as camadas de segurança já adotadas nas outras transferências de Pix e TED.</p></div></details>
+          <details><summary><h3>Como registrar uma chave Pix na Conta PJ?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary><div class="acc-body"><p>Toque em "Pix", na tela inicial da conta PJ. Em seguida, vá em "Registrar ou trazer chaves".</p></div></details>
+          <details><summary><h3>Como alterar contatos da Lista de Confiança?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary><div class="acc-body"><p>Na tela inicial do seu aplicativo, toque em "Área Pix". Depois, vá até a opção de "Configurar Pix".</p></div></details>
+          <details><summary><h3>Como fazer o reembolso de um Pix?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary><div class="acc-body"><p>Na tela inicial do seu aplicativo, selecione a opção "Conta". Desça a tela até o histórico de movimentação e escolha a transação que deseja reembolsar.</p></div></details>
+        </div>
+        <a class="nu-pill solid faq-btn-m" href="#">Confira perguntas frequentes<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="nu-footer">
+    <h2>Seja qual for sua necessidade, o Nubank tem uma solução</h2>
+    <div class="ft-cols">
+      <div class="ft-col">
+        <div class="ft-group"><details open><summary>Transparência<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary>
+          <ul><li><a href="#">Política de privacidade</a></li><li><a href="#">Política de segurança</a></li><li><a href="#">Termos de Uso</a></li><li><a href="#">Ética, Compliance e ESG</a></li><li><a href="#">Contratos</a></li><li><a href="#">Sobre investimentos</a></li><li><a href="#">Sobre Cripto</a></li><li><a href="#">Relatórios financeiros</a></li><li><a href="#">Convenção de Boletos</a></li><li><a href="#">PLD/CFTP</a></li><li><a href="#">Dados abertos</a></li><li><a href="#">SCR</a></li><li><a href="#">PRSAC</a></li><li><a href="#">Cessão de Créditos (Desenrola)</a></li></ul></details></div>
+      </div>
+      <div class="ft-col">
+        <div class="ft-group"><h3>Carreiras</h3><ul><li><a href="#">Trabalhe com a gente</a></li></ul></div>
+        <div class="ft-group"><details open><summary>Explorar<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></summary>
+          <ul><li><a href="#">Blog</a></li><li><a href="#">Comunidade do Nu</a></li><li><a href="#">Nu Asset</a></li><li><a href="#">InvestNews</a></li><li><a href="#">Nu Global</a></li><li><a href="#">Nu Estados Unidos</a></li><li><a href="#">Nu México</a></li><li><a href="#">Nu Colômbia</a></li></ul></details></div>
+        <div class="ft-group"><h3>Fornecedores</h3><ul><li><a href="#">Seja um fornecedor</a></li></ul></div>
+      </div>
+      <div class="ft-col">
+        <div class="ft-group"><h3>Imprensa</h3><ul><li><a href="#">Sala de Imprensa</a></li></ul></div>
+        <div class="ft-group"><h3>Ajuda</h3><ul><li><a href="#">Segurança</a></li><li><a href="#">Perguntas frequentes</a></li><li><a href="#">Portal de suporte ao falecimento</a></li></ul></div>
+        <div class="ft-group"><h3>Ouvidoria</h3><ul><li class="ft-note">Atendimento em dias úteis das 8h às 18h (horário de Brasília)</li><li><a href="#">0800 887 0463</a></li><li><a href="#">Formulário de Solicitação</a></li><li><a href="#">Procedimentos de Ouvidoria</a></li></ul></div>
+      </div>
+      <div class="ft-col">
+        <div class="ft-group"><h3>Fale com a gente</h3><ul><li><a href="#">Todos os Canais de atendimento</a></li><li class="ft-note">Capitais e regiões metropolitanas</li><li><a href="#">4020 0185</a></li><li class="ft-note">Demais localidades</li><li><a href="#">0800 591 2117</a></li><li class="ft-note">Chamadas do Nubank</li><li><a href="#">0800 591 2117</a></li><li><a href="#">Canal de atendimento em libras</a></li><li><a href="#">Portal de Relacionamento com Autoridades Judiciais e Administrativas</a></li></ul></div>
+      </div>
+    </div>
+    <div class="ft-social">
+      <h3>Redes Sociais</h3>
+      <ul>
+        <li><a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.75h4V21H3V9.75Zm6.5 0h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4V9.75Z"/></svg></a></li>
+        <li><a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4a2.5 2.5 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg></a></li>
+        <li><a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.5 1.6-1.5h1.7V4.4c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.5-4 4.1v2.4H7.6V14h2.8v8h3.1Z"/></svg></a></li>
+        <li><a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a></li>
+        <li><a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L2 3h6.4l4.4 5.8L17.8 3Zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5Z"/></svg></a></li>
+      </ul>
+    </div>
+    <div class="ft-bottom">
+      <svg class="ft-mark" viewBox="0 0 59 32" fill="none" aria-hidden="true"><path d="M4.4 32V14.2C4.4 8.4 8.4 4.4 14 4.4s9.6 4 9.6 9.8V32" stroke="currentColor" stroke-width="8.8"/><path d="M35.4 0v17.8c0 5.8 4 9.8 9.6 9.8s9.6-4 9.6-9.8V0" stroke="currentColor" stroke-width="8.8"/></svg>
+      <p>&copy; 2026 Nu Pagamentos S.A - Instituição de Pagamento. 18.236.120/0001-58. Rua Capote Valente, 39 - São Paulo, SP - 05409-000</p>
+      <svg class="a11y" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><circle cx="16" cy="16" r="14"/><circle cx="16" cy="9" r="2" fill="currentColor"/><path d="M9 13h14M16 13v6m0 0-4 6m4-6 4 6"/></svg>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const label = btn.querySelector('span');
+      const result = document.getElementById('result');
+      btn.disabled = true; label.textContent = 'Processando...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Não foi possível concluir o Pix</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Pix enviado</div><div class="error-detail">Total debitado da conta: R$ ${data.debitAmount}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Erro de conexão</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; label.textContent = 'Transferir com Pix'; }
+    });
+  </script>
+  <script>
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      document.querySelectorAll('.ft-group details').forEach(function (d) { d.removeAttribute('open'); });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

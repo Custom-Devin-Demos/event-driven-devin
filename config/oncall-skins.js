@@ -3108,6 +3108,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A COMMONWEALTH BANK AUSTRALIA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Commonwealth Bank Australia product.',
   },
+  '466f5553': {
+    slug: '466f5553',
+    company: 'Nubank',
+    vertical: 'banking',
+    page: {
+      file: '466f5553.html',
+      title: 'Pix - transfira e receba com facilidade | Nubank',
+    },
+    disclaimer: 'NOT ACTUALLY A NUBANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nubank product.',
+  },
 };
 
 function getOncallSkin(slug) {
