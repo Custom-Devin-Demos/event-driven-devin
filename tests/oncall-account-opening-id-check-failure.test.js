@@ -446,7 +446,8 @@ describe('Account-opening ID check failure report (6c2cc636)', () => {
     expect(postMessage).toHaveBeenCalledTimes(1);
     const [, , text, blocks] = postMessage.mock.calls[0];
     expect(text).toContain('Online ID check rejected a driver licence (account-opening/ios)');
-    expect(text).toContain("We're unable to accept this driver licence");
+    expect(text).not.toMatch(/\*(Symptom|Impact):\*/);
+    expect(JSON.stringify(blocks)).not.toMatch(/(Symptom|Impact):/);
     expect(blocks[0].text.text).toContain('a driver licence');
   });
 
