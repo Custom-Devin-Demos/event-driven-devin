@@ -37,12 +37,12 @@ const STORES = {
 /**
  * Same Day Delivery fee schedules, keyed by delivery zone. Every store with
  * Same Day Delivery is assigned to a zone, and checkout prices delivery from
- * that zone's schedule (base fee, small-basket surcharge, myDG free-fee perk).
+ * that zone's schedule (base fee and the myDG free-fee perk).
  */
 const DELIVERY_FEE_SCHEDULES = {
-  'TN-NASH-01': { baseFee: 6.95, smallBasketFee: 2.00, smallBasketThreshold: 10, myDgFreeDeliveryEligible: true },
-  'TN-NASH-03': { baseFee: 6.95, smallBasketFee: 2.00, smallBasketThreshold: 10, myDgFreeDeliveryEligible: true },
-  'TN-MEM-02': { baseFee: 7.95, smallBasketFee: 2.00, smallBasketThreshold: 10, myDgFreeDeliveryEligible: true },
+  'TN-NASH-01': { baseFee: 6.95, myDgFreeDeliveryEligible: true },
+  'TN-NASH-03': { baseFee: 6.95, myDgFreeDeliveryEligible: true },
+  'TN-MEM-02': { baseFee: 7.95, myDgFreeDeliveryEligible: true },
   // TN-NASH-07 — wave 7 Same Day Delivery rollout (stores went live 2026-10-05);
   // fee schedule to follow from pricing ops
 };
@@ -81,7 +81,7 @@ function roundCents(value) {
 
 function buildLines(items) {
   return items.map((item) => {
-    const product = CATALOG[item && item.sku];
+    const product = item && Object.hasOwn(CATALOG, String(item.sku)) ? CATALOG[item.sku] : undefined;
     if (!product) throw validationError(`Item ${item && item.sku ? item.sku : '(none)'} is not available at this store`);
     const qty = Number(item.qty);
     if (!Number.isInteger(qty) || qty < 1 || qty > 24) {
@@ -91,29 +91,27 @@ function buildLines(items) {
   });
 }
 
-function applyMyDgFreeDelivery(schedule, subtotal, member) {
+function applyMyDgFreeDelivery(schedule, member) {
   const baseFee = schedule.baseFee;
-  const smallBasketFee = subtotal < schedule.smallBasketThreshold ? schedule.smallBasketFee : 0;
   const usesFreeDelivery = Boolean(member && member.freeDeliveriesRemaining > 0 && schedule.myDgFreeDeliveryEligible);
   return {
     baseFee,
-    smallBasketFee,
     myDgDiscount: usesFreeDelivery ? baseFee : 0,
-    deliveryFee: roundCents((usesFreeDelivery ? 0 : baseFee) + smallBasketFee),
+    deliveryFee: usesFreeDelivery ? 0 : baseFee,
     usedFreeDelivery: usesFreeDelivery,
   };
 }
 
-function quoteDelivery(store, subtotal, member) {
+function quoteDelivery(store, member) {
   const schedule = DELIVERY_FEE_SCHEDULES[store.deliveryZone];
-  return applyMyDgFreeDelivery(schedule, subtotal, member);
+  return applyMyDgFreeDelivery(schedule, member);
 }
 
 function priceOrder(lines, fulfillment, store, member) {
   const subtotal = roundCents(lines.reduce((sum, line) => sum + line.lineTotal, 0));
   const delivery = fulfillment === 'delivery'
-    ? quoteDelivery(store, subtotal, member)
-    : { baseFee: 0, smallBasketFee: 0, myDgDiscount: 0, deliveryFee: 0, usedFreeDelivery: false };
+    ? quoteDelivery(store, member)
+    : { baseFee: 0, myDgDiscount: 0, deliveryFee: 0, usedFreeDelivery: false };
   const tax = roundCents(subtotal * TAX_RATE);
   return {
     subtotal,
@@ -134,7 +132,7 @@ async function placeOrder(data) {
   const orderNumber = `DG${Math.floor(Math.random() * 1000000000).toString().padStart(9, '0')}`;
   const items = Array.isArray(data.items) ? data.items : [];
   const fulfillment = data.fulfillment;
-  const store = STORES[data.storeId];
+  const store = Object.hasOwn(STORES, String(data.storeId)) ? STORES[data.storeId] : undefined;
 
   if (items.length === 0) throw validationError('Your cart is empty', 'EMPTY_CART');
   if (!['pickup', 'delivery'].includes(fulfillment)) throw validationError('Choose Store Pickup or Delivery');

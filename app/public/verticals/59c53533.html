@@ -65,7 +65,7 @@
       border: 0; border-radius: 4px; background: var(--dg-yellow);
       display: flex; align-items: center; justify-content: center;
     }
-    .global-header__actions { display: flex; align-items: center; gap: 20px; color: #fff; font-size: 14px; font-weight: 600; white-space: nowrap; }
+    .global-header__actions { display: flex; align-items: center; gap: 20px; padding-right: 12px; color: #fff; font-size: 14px; font-weight: 600; white-space: nowrap; }
     .global-header__actions img { width: 24px; height: 24px; display: block; filter: invert(1); }
     .header-cart { position: relative; background: none; border: 0; padding: 0; }
     .header-cart__count {
@@ -418,10 +418,10 @@
             '</div><div class="product--deals__desc">' + escapeHtml(p.deal.text) + '</div></div>'
           : '';
         var rating = p.rating ? '<div class="product--rating"><b>&#9733; ' + p.rating + '</b> (' + p.reviews + ')</div>' : '<div class="product--rating">&nbsp;</div>';
-        return '<div class="product-card" data-sku="' + p.sku + '">' +
+        return '<div class="product-card" data-sku="' + escapeHtml(p.sku) + '">' +
           '<div class="product-card__image-container">' +
-          '<img class="product--image" src="' + p.image + '" alt="' + escapeHtml(p.name) + '" loading="lazy" onerror="this.onerror=null;this.src=PLACEHOLDER">' +
-          '<button class="product--add-button' + (qty ? ' is-in-cart' : '') + '" data-add="' + p.sku + '" aria-label="Add ' + escapeHtml(p.name) + ' to cart">' +
+          '<img class="product--image" src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.name) + '" loading="lazy" onerror="this.onerror=null;this.src=PLACEHOLDER">' +
+          '<button class="product--add-button' + (qty ? ' is-in-cart' : '') + '" data-add="' + escapeHtml(p.sku) + '" aria-label="Add ' + escapeHtml(p.name) + ' to cart">' +
           (qty ? qty + ' in cart' : '<svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke="#000" stroke-width="2.5" stroke-linecap="round"/></svg>') +
           '</button></div>' +
           '<span class="product-price">' + money(p.price) + '</span>' + rating +
@@ -456,10 +456,10 @@
       $('cart-lines').innerHTML = state.cart.length ? state.cart.map(function (l) {
         var p = state.products[l.sku];
         return '<div class="cart-line">' +
-          '<img src="' + p.image + '" alt="" onerror="this.onerror=null;this.src=PLACEHOLDER">' +
+          '<img src="' + escapeHtml(p.image) + '" alt="" onerror="this.onerror=null;this.src=PLACEHOLDER">' +
           '<div><div class="cart-line__name">' + escapeHtml(p.name) + '</div>' +
-          '<div class="qty"><button data-dec="' + l.sku + '" aria-label="Decrease">&minus;</button><span>' + l.qty +
-          '</span><button data-inc="' + l.sku + '" aria-label="Increase">+</button></div></div>' +
+          '<div class="qty"><button data-dec="' + escapeHtml(l.sku) + '" aria-label="Decrease">&minus;</button><span>' + l.qty +
+          '</span><button data-inc="' + escapeHtml(l.sku) + '" aria-label="Increase">+</button></div></div>' +
           '<div class="cart-line__price">' + money(p.price * l.qty) + '</div></div>';
       }).join('') : '<p style="font-size:14px;color:#595959">Your cart is empty.</p>';
 

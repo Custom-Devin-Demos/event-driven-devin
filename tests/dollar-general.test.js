@@ -167,6 +167,8 @@ describe('Dollar General Same Day Delivery checkout (59c53533)', () => {
     [{ items: PREFILLED_CART, fulfillment: 'delivery', storeId: '99999' }, 'INVALID_ORDER'],
     [{ items: [{ sku: 'NOPE', qty: 1 }], fulfillment: 'pickup', storeId: '13942' }, 'INVALID_ORDER'],
     [{ items: [{ sku: '00931504', qty: 0 }], fulfillment: 'pickup', storeId: '13942' }, 'INVALID_ORDER'],
+    [{ items: [{ sku: '__proto__', qty: 1 }], fulfillment: 'pickup', storeId: '13942' }, 'INVALID_ORDER'],
+    [{ items: PREFILLED_CART, fulfillment: 'pickup', storeId: 'constructor' }, 'INVALID_ORDER'],
   ])('invalid order %# returns a handled 400 without alerting', async (body, code) => {
     const res = await request('POST', '/api/dollar-general/checkout', body);
     expect(res.status).toBe(400);
