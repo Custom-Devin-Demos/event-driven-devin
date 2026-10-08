@@ -3149,6 +3149,26 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A NUBANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nubank product.',
   },
+  'dc88da3c': {
+    slug: 'dc88da3c',
+    company: 'Highmark',
+    brandMark: 'H',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: 'dc88da3c.html', title: 'Submit a Claim | My Highmark' },
+    theme: {
+      '--accent': '#0066B1',
+      '--ink': '#003963',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#003963',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Highmark Member Service',
+    alertCard: {
+      impact: 'Medical claim submissions in My Highmark hang ~7s and end in a timeout; members see no claim confirmation and no claim number is issued.',
+    },
+    disclaimer: 'NOT ACTUALLY A HIGHMARK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Highmark product.',
+  },
 };
 
 function getOncallSkin(slug) {
