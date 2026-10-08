@@ -52,6 +52,9 @@ describe("M&M'S cart (mms)", () => {
     await expect(applyPromo({ items: ITEMS, code: 'NOPE' })).rejects.toMatchObject({ statusCode: 400 });
     await expect(checkout({ items: [] })).rejects.toMatchObject({ code: 'EMPTY_CART' });
     await expect(checkout({ items: [{ sku: '701130-90450', qty: 22 }] })).rejects.toMatchObject({ code: 'INVALID_QUANTITY' });
+    await expect(checkout({ items: ITEMS, zip: '99999' })).rejects.toMatchObject({ code: 'UNSUPPORTED_ZIP' });
+    await expect(checkout({ items: ITEMS, shippingMethod: 'drone' })).rejects.toMatchObject({ code: 'SHIPPING_METHOD_REQUIRED' });
+    await expect(checkout({ items: ITEMS, promoCode: 'NOPE' })).rejects.toMatchObject({ code: 'PROMO_INVALID' });
     expect(createSessionAndAlert).not.toHaveBeenCalled();
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });

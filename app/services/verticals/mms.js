@@ -349,6 +349,11 @@ async function checkout(data, now = new Date()) {
   const orderId = uuidv4();
   const lineItems = buildLineItems(data.items);
   const designIds = [...new Set(lineItems.map((li) => li.designId))].join(',');
+  const zip = data.zip ? String(data.zip).trim() : '';
+  const state = zip ? stateForZip(zip) : null;
+  const method = SHIPPING_METHODS[data.shippingMethod || 'standard'];
+  if (!method) throw validationError('Please select a shipping method.', 'SHIPPING_METHOD_REQUIRED');
+  const promo = data.promoCode ? findPromotion(data.promoCode) : null;
 
   logger.info("Processing M&M'S cart checkout", {
     orderId, service: CHECKOUT_SERVICE, route: CHECKOUT_ROUTE, designIds,
@@ -358,11 +363,6 @@ async function checkout(data, now = new Date()) {
     await new Promise((resolve) => { setTimeout(resolve, 60 + Math.random() * 120); });
 
     const printJob = buildPrintJob(lineItems);
-    const zip = data.zip ? String(data.zip).trim() : '';
-    const state = zip ? stateForZip(zip) : null;
-    const method = SHIPPING_METHODS[data.shippingMethod || 'standard'];
-    if (!method) throw validationError('Please select a shipping method.', 'SHIPPING_METHOD_REQUIRED');
-    const promo = data.promoCode ? findPromotion(data.promoCode) : null;
 
     const subtotal = subtotalOf(lineItems);
     const discount = promo ? computeDiscount(promo, lineItems) : 0;
