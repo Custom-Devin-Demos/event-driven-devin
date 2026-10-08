@@ -148,6 +148,7 @@ class ClaimError extends Error {
 const claimState = new Map();
 
 function resetState() {
+  inFlight.clear();
   claimState.clear();
   SEED_CLAIMS.forEach((claim) => {
     claimState.set(claim.accountId, {
@@ -320,6 +321,15 @@ function getClaim(accountId) {
   return claim;
 }
 
+const inFlight = new Set();
+
+function acquireClaim(claim) {
+  if (inFlight.has(claim.accountId)) {
+    throw new ClaimError(`Account ${claim.accountId} already has a payer-rules run or carrier submission in progress.`, 'OPERATION_IN_PROGRESS', 409);
+  }
+  inFlight.add(claim.accountId);
+}
+
 async function runPayerRules(data) {
   const startTime = Date.now();
   const requestId = `E360-${uuidv4().slice(0, 8).toUpperCase()}`;
@@ -327,6 +337,7 @@ async function runPayerRules(data) {
   if (claim.status === 'submitted') {
     throw new ClaimError(`Account ${claim.accountId} has already been submitted to ${claim.payer}.`, 'ALREADY_SUBMITTED', 409);
   }
+  acquireClaim(claim);
   const completed = [];
 
   logger.info('e360 payer rules run started', {
@@ -433,6 +444,8 @@ async function runPayerRules(data) {
     });
 
     throw error;
+  } finally {
+    inFlight.delete(claim.accountId);
   }
 }
 
@@ -444,6 +457,15 @@ async function submitToCarrier(data) {
   if (claim.status !== 'rules_complete') {
     throw new ClaimError(`Run payer rules on ${claim.accountId} before submitting to ${claim.payer}.`, 'RULES_INCOMPLETE', 409);
   }
+  acquireClaim(claim);
+  try {
+    return await finalizeSubmission(claim);
+  } finally {
+    inFlight.delete(claim.accountId);
+  }
+}
+
+async function finalizeSubmission(claim) {
   await new Promise((resolve) => setTimeout(resolve, 150 + Math.random() * 200));
   const submittedAt = new Date().toISOString();
   const carrierCode = claim.payer.replace(/[^A-Z]/g, '').slice(0, 3) || 'CAR';

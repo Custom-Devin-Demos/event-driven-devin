@@ -621,12 +621,22 @@
       var body = Object.assign({ accountId: claim.accountId }, identity());
       var payload = null;
       var ok = false;
+      var transportError = null;
       try {
         var response = await fetch(API + '/payer-rules/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         payload = await response.json();
         ok = response.ok && payload.success;
       } catch (error) {
-        payload = { success: false, error: error.message, errorClass: error.name, code: 'NETWORK_ERROR' };
+        transportError = error;
+      }
+
+      if (transportError) {
+        await reconcileClaim(claim);
+        state.busy = false;
+        renderDrawer(claim);
+        renderRows();
+        showToast('error', 'Connection problem', 'The payer-rules response for ' + claim.accountId + ' was lost. The worklist was re-synced with the server; no rule was marked as failed.', transportError.name + ': ' + transportError.message);
+        return;
       }
 
       var completed = ok ? payload.rules : (payload.rulesCompleted || []);
@@ -646,6 +656,7 @@
         state.busy = false;
         renderFooter(claim);
         renderRows();
+        refreshKpis();
         showToast('success', 'Payer rules complete', claim.accountId + ' passed all ' + payload.rules.length + ' rules. Projected reimbursement ' + money(payload.projectedReimbursement) + '.', 'requestId ' + payload.requestId);
       } else {
         var failingRule = RULE_PLAN[completed.length] || { label: 'Payer rules' };
@@ -662,9 +673,22 @@
         showToast('error', 'Payer rules failed — ' + claim.accountId + ' stalled',
           'The ' + failingRule.label.toLowerCase() + ' rule could not be evaluated for this ' + claim.categoryLabel + ' claim. The account stays on the worklist with no projected reimbursement.',
           (payload.errorClass || 'Error') + ': ' + payload.error + '\n' + (payload.code || 'PAYER_RULES_FAILED') + (payload.requestId ? ' · requestId ' + payload.requestId : ''));
-        fetch(API + '/claims').then(function (r) { return r.json(); }).then(function (data) { state.kpis = data.kpis; renderKpis(); }).catch(function () {});
+        refreshKpis();
       }
     });
+
+    function refreshKpis() {
+      return fetch(API + '/claims').then(function (r) { return r.json(); }).then(function (data) { state.kpis = data.kpis; renderKpis(); }).catch(function () {});
+    }
+
+    async function reconcileClaim(claim) {
+      try {
+        var response = await fetch(API + '/claims/' + encodeURIComponent(claim.accountId));
+        var data = await response.json();
+        if (response.ok && data.success) Object.assign(claim, data.claim);
+      } catch (_ignored) { /* keep local state when the server is unreachable */ }
+      return refreshKpis();
+    }
 
     /* Submit to carrier */
     document.getElementById('submit-carrier').addEventListener('click', async function () {
