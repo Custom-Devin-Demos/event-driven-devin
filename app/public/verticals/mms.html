@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart | M&amp;M'S</title>
+  <link rel="icon" type="image/svg+xml" href="/verticals/assets/mms/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Fraunces:opsz,wght,SOFT@9..144,800,100;9..144,900,100&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brown: #3d1a0b;
+      --brown-logo: #592411;
+      --muted: #6f625c;
+      --line: #d9d4d1;
+      --bg: #f4f5f9;
+      --yellow: #f8d548;
+      --yellow-dark: #efc72a;
+      --green: #3aa348;
+      --red: #d42a1e;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Figtree', 'Helvetica Neue', Arial, sans-serif; color: var(--brown); background: var(--bg); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; color: inherit; }
+    .display { font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'WONK' 0; }
+
+    /* header */
+    header.site { background: #fff; height: 82px; display: flex; align-items: center; padding: 0 24px; position: relative; z-index: 2; }
+    .logo img { display: block; width: 86px; height: auto; }
+    nav.main { display: flex; gap: 6px; margin-left: 22px; }
+    nav.main a { width: 82px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 800; font-size: 12.5px; letter-spacing: .1px; }
+    nav.main svg { width: 34px; height: 34px; stroke: var(--brown); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+    .personalize { display: flex; align-items: center; gap: 8px; border: 2px solid var(--brown); border-radius: 22px; padding: 7px 20px 7px 9px; font-weight: 800; font-size: 13px; }
+    .m-ring { width: 21px; height: 21px; border-radius: 50%; background: conic-gradient(#e2231a, #f8d548, #3aa348, #0a7bc1, #e2231a); display: grid; place-items: center; }
+    .m-ring span { width: 16px; height: 16px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-family: 'Fraunces', serif; font-weight: 900; font-size: 11px; line-height: 1; }
+    .icon-btn { width: 24px; height: 24px; display: grid; place-items: center; position: relative; }
+    .icon-btn svg { width: 22px; height: 22px; stroke: var(--brown); fill: none; stroke-width: 2; }
+    .flag { width: 19px; height: 19px; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--brown); background: repeating-linear-gradient(#b22234 0 2px, #fff 2px 4px); position: relative; }
+    .flag::after { content: ''; position: absolute; left: 0; top: 0; width: 9px; height: 9px; background: #3c3b6e; }
+    .bag-count { position: absolute; top: 8px; left: 0; right: 0; text-align: center; font-size: 7.5px; font-weight: 800; }
+
+    /* promo strip */
+    .strip { background: var(--brown); color: #fff; text-align: center; font-size: 13px; font-weight: 600; padding: 8px 12px; }
+    .strip b { color: var(--yellow); letter-spacing: .4px; }
+
+    /* layout */
+    .wrap { max-width: 1026px; margin: 0 auto; padding: 30px 0 80px; }
+    h1.cart-title { font-size: 34px; font-weight: 900; line-height: 1; margin-bottom: 18px; display: flex; align-items: baseline; gap: 6px; }
+    h1.cart-title small { font-family: 'Figtree', sans-serif; font-size: 16px; font-weight: 800; }
+    .grid { display: grid; grid-template-columns: 575px 328px; justify-content: space-between; align-items: start; }
+    @media (max-width: 1060px) { .wrap { padding: 24px 16px 60px; } .grid { grid-template-columns: 1fr; gap: 20px; } }
+    .card { background: #fff; border-radius: 8px; }
+
+    /* line item */
+    .item { padding: 22px 20px 20px 26px; display: grid; grid-template-columns: 74px 1fr; gap: 26px; }
+    .thumb { width: 50px; height: 44px; margin-top: 4px; }
+    .item-head { display: flex; justify-content: space-between; align-items: flex-start; }
+    .item-name { font-weight: 800; font-size: 14.5px; letter-spacing: .1px; }
+    .sku { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .item-actions { display: flex; gap: 16px; }
+    .item-actions button { border: none; background: none; cursor: pointer; padding: 0; }
+    .item-actions svg { width: 20px; height: 20px; }
+    .qty { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+    .qty button { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--brown); background: #fff; display: grid; place-items: center; cursor: pointer; font-size: 15px; line-height: 1; font-weight: 600; }
+    .qty button:disabled { border-color: #b9b3b0; color: #b9b3b0; cursor: default; }
+    .qty .count { font-size: 22px; font-weight: 700; min-width: 28px; text-align: center; }
+    .qty-note { font-size: 12px; margin-top: 8px; }
+    .item-sep { border: none; border-top: 1px solid var(--line); margin: 13px 0 20px; }
+    .design { width: 35px; height: 35px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0, #ececec 45%, #cfcfcf 100%); box-shadow: inset 0 -2px 3px rgba(0,0,0,.12); display: grid; place-items: center; font-family: 'Fraunces', serif; font-weight: 900; color: #fff; font-size: 17px; text-shadow: 0 0 1px #aaa, 0 1px 1px #bbb; }
+    .design-toggle { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 12px; font-weight: 500; cursor: pointer; background: none; border: none; }
+    .design-toggle svg { width: 12px; height: 12px; stroke: var(--brown); fill: none; stroke-width: 2; transition: transform .15s; }
+    .design-toggle.open svg { transform: rotate(180deg); }
+    .design-detail { display: none; font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+    .design-detail.open { display: block; }
+    .line-price { text-align: right; font-weight: 800; font-size: 14.5px; margin-top: 4px; }
+    .empty { padding: 48px 26px; text-align: center; display: none; }
+    .empty p { margin: 10px 0 20px; color: var(--muted); }
+
+    /* summary */
+    .summary { padding: 22px 20px 0; }
+    .free-ship { display: flex; gap: 8px; align-items: flex-start; font-weight: 800; font-size: 13.5px; line-height: 1.15; }
+    .free-ship svg { width: 20px; height: 18px; flex: 0 0 20px; margin-top: 2px; stroke: var(--brown); fill: none; stroke-width: 1.4; }
+    .bar { height: 4px; border-radius: 2px; background: #c9c9cf; margin-top: 7px; overflow: hidden; }
+    .bar span { display: block; height: 100%; background: var(--green); transition: width .25s; }
+    h3.sec { font-size: 14.5px; font-weight: 800; margin-top: 36px; }
+    .sec-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+    .promo-row { display: flex; gap: 13px; align-items: flex-end; margin-top: 20px; }
+    .field { flex: 1; }
+    .field label { display: block; font-size: 11.5px; color: var(--brown-logo); margin-bottom: 6px; }
+    .field input { width: 100%; border: none; border-bottom: 1.5px solid #b5aca8; padding: 6px 0 8px; font-family: inherit; font-size: 15px; color: var(--brown); background: transparent; outline: none; }
+    .field input::placeholder { color: #8a7f7a; }
+    .field input:focus { border-bottom-color: var(--brown); }
+    .btn-outline, .btn-yellow { font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-weight: 900; font-size: 12.5px; border-radius: 20px; height: 37px; width: 101px; cursor: pointer; }
+    .btn-outline { border: 2px solid var(--brown); background: #fff; }
+    .btn-yellow { border: none; background: var(--yellow); }
+    .btn-yellow:hover { background: var(--yellow-dark); }
+    button:disabled { opacity: .6; cursor: wait; }
+    .hint { font-size: 11.5px; color: var(--muted); margin-top: 10px; }
+    .msg { font-size: 12px; margin-top: 8px; min-height: 0; }
+    .msg.err { color: var(--red); }
+    .msg.ok { color: var(--green); font-weight: 700; }
+    .ship-opts { margin-top: 18px; display: none; }
+    .ship-opt { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 18px; cursor: pointer; }
+    .ship-opt input { appearance: none; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #8a7f7a; margin-top: 2px; flex: 0 0 17px; cursor: pointer; }
+    .ship-opt input:checked { border: 5px solid var(--brown); }
+    .ship-opt strong { font-weight: 800; font-size: 14px; display: block; }
+    .ship-opt span { font-size: 11.5px; }
+    .totals { margin-top: 30px; font-size: 13.5px; }
+    .totals .row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .totals .row span:last-child { font-size: 14.5px; }
+    .totals .discount span:last-child { color: var(--green); }
+    .totals .total { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 4px; font-weight: 800; }
+    .gift { display: flex; align-items: center; gap: 13px; font-weight: 800; font-size: 13.5px; margin: 40px 0 34px; }
+    .gift svg { width: 22px; height: 22px; }
+    .btn-checkout { width: 100%; height: 50px; border: none; border-radius: 25px; background: var(--yellow); font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-weight: 900; font-size: 15.5px; cursor: pointer; }
+    .btn-checkout:hover { background: var(--yellow-dark); }
+    .checkout-msg { margin-top: 12px; border-radius: 8px; padding: 12px 14px; font-size: 12.5px; line-height: 1.45; display: none; }
+    .checkout-msg.err { display: block; background: #fdecea; color: #8a1c13; }
+    .checkout-msg.ok { display: block; background: #eaf6ec; color: #1f5e28; }
+    .checkout-msg b { display: block; font-size: 13.5px; margin-bottom: 2px; }
+    .express { display: flex; align-items: center; gap: 18px; margin: 22px 0 14px; font-family: 'Fraunces', serif; font-weight: 900; font-size: 14px; }
+    .express::before, .express::after { content: ''; flex: 1; border-top: 1px solid var(--line); }
+    .pay-btns { display: grid; gap: 10px; padding-bottom: 24px; }
+    .pay-btns button { height: 42px; border-radius: 6px; border: none; cursor: pointer; font-weight: 800; font-size: 15px; }
+    .pp { background: #ffc439; color: #003087 !important; font-style: italic; }
+    .pp i { color: #009cde; }
+    .ap { background: #000; color: #fff !important; }
+    .gp { background: #fff; border: 1px solid #c8c8c8 !important; color: #3c4043 !important; }
+
+    footer.site { background: var(--brown); color: #ead9cf; padding: 40px 24px 30px; font-size: 13px; }
+    footer .cols { max-width: 1026px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 48px; }
+    footer h4 { font-family: 'Fraunces', serif; font-weight: 900; color: #fff; font-size: 15px; margin-bottom: 10px; }
+    footer li { list-style: none; margin-bottom: 7px; }
+    footer .legal { max-width: 1026px; margin: 28px auto 0; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.18); font-size: 11.5px; opacity: .8; }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <a class="logo" href="#" aria-label="M&amp;M'S home"><img src="/verticals/assets/mms/logo.svg" alt="M&amp;M'S"></a>
+    <nav class="main">
+      <a href="#"><svg viewBox="0 0 34 34"><path d="M9 11h16l1.5 19h-19z"/><path d="M13 11V8a4 4 0 0 1 8 0v3"/><circle cx="17" cy="20.5" r="4.2"/><path d="M15.4 22v-3l1.6 1.8 1.6-1.8v3"/></svg>shop</a>
+      <a href="#"><svg viewBox="0 0 34 34"><path d="M12 30l7-17 9 13z"/><path d="M15 22.5l6 4.5M17 18l5 5"/><path d="M8 6l1 3M5 11l3 1M12 4l.5 3M22 6l-2 3M26 10l-3 1"/><path d="M6 18q3-2 4 1t4-1"/></svg>celebrate</a>
+      <a href="#"><svg viewBox="0 0 34 34"><path d="M20 6c4-2 8-2 8-2s0 4-2 8l-9 9-6-6z"/><circle cx="21.5" cy="12.5" r="2"/><path d="M11 15l-4 1-2 4 5-1M19 23l-1 4-4 2 1-5M8 26l3-3"/></svg>explore</a>
+      <a href="#"><svg viewBox="0 0 34 34"><path d="M6 28c-2-6 1-14 7-19s14-5 15-3 1 10-5 16-15 8-17 6z"/><path d="M12 22l10-10M14 17l3 3M16.5 14.5l3 3M19 12l3 3"/></svg>NFL</a>
+      <a href="#"><svg viewBox="0 0 34 34"><rect x="5" y="11" width="24" height="17" rx="1.5"/><path d="M13 11V7h8v4M5 18h24"/><circle cx="17" cy="19" r="2"/></svg>business</a>
+    </nav>
+    <div class="header-right">
+      <a class="personalize" href="#"><span class="m-ring"><span>m</span></span>personalize your M&amp;M'S</a>
+      <a class="icon-btn" href="#" aria-label="search"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="M15.5 15.5L22 22"/></svg></a>
+      <a class="icon-btn" href="#" aria-label="United States"><span class="flag"></span></a>
+      <a class="icon-btn" href="#" aria-label="account"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9.5" r="3.5"/><path d="M5.5 19c1.6-2.6 3.8-3.8 6.5-3.8s4.9 1.2 6.5 3.8"/></svg></a>
+      <a class="icon-btn" href="#" aria-label="cart"><svg viewBox="0 0 24 24"><path d="M4 8h16l-1 14H5z"/><path d="M8.5 8V6a3.5 3.5 0 0 1 7 0v2"/></svg><span class="bag-count" id="bagCount">20</span></a>
+    </div>
+  </header>
+  <div class="strip">free standard shipping on orders $75+ &nbsp;|&nbsp; use code <b>SWEET15</b> for 15% off orders $40+</div>
+
+  <main class="wrap">
+    <h1 class="cart-title display">cart <small id="titleCount">(20)</small></h1>
+    <div class="grid">
+      <section class="card">
+        <div class="item" id="lineItem">
+          <svg class="thumb" viewBox="0 0 50 44" aria-label="personalized clear party favors">
+            <path d="M8 6h34l-2 36H10z" fill="#eef5f7" stroke="#cfdde2"/>
+            <rect x="7" y="3" width="36" height="5" rx="1" fill="#dfe8ec"/>
+            <g>
+              <circle cx="15" cy="14" r="4" fill="#4aa6b3"/><circle cx="24" cy="12" r="4" fill="#fff" stroke="#dcdcdc"/><circle cx="33" cy="14" r="4" fill="#2f8f9d"/>
+              <circle cx="19" cy="21" r="4" fill="#fff" stroke="#dcdcdc"/><circle cx="28" cy="20" r="4" fill="#5ab7c2"/><circle cx="36" cy="23" r="3.6" fill="#fff" stroke="#dcdcdc"/>
+              <circle cx="14" cy="28" r="4" fill="#3c9aa8"/><circle cx="23" cy="29" r="4" fill="#2f8f9d"/><circle cx="32" cy="30" r="4" fill="#fff" stroke="#dcdcdc"/>
+              <circle cx="18" cy="36" r="3.6" fill="#fff" stroke="#dcdcdc"/><circle cx="27" cy="37" r="3.6" fill="#4aa6b3"/>
+            </g>
+          </svg>
+          <div>
+            <div class="item-head">
+              <div>
+                <div class="item-name">personalized clear party favors</div>
+                <div class="sku">sku: 701130-90450</div>
+              </div>
+              <div class="item-actions">
+                <button type="button" aria-label="edit design"><svg viewBox="0 0 24 24" fill="#3d1a0b"><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"/></svg></button>
+                <button type="button" id="removeBtn" aria-label="remove item"><svg viewBox="0 0 24 24" fill="#d42a1e"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM8 9h2v10H8zm6 0h2v10h-2zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+              </div>
+            </div>
+            <div class="qty">
+              <button type="button" id="qtyMinus" aria-label="decrease quantity">&minus;</button>
+              <span class="count" id="qty">20</span>
+              <button type="button" id="qtyPlus" aria-label="increase quantity">+</button>
+            </div>
+            <div class="qty-note">Minimum of 20 required. Available in increments of 5.</div>
+            <hr class="item-sep">
+            <div class="design">m</div>
+            <button type="button" class="design-toggle" id="designToggle">see design detail <svg viewBox="0 0 12 12"><path d="M1.5 4l4.5 4.5L10.5 4"/></svg></button>
+            <div class="design-detail" id="designDetail">candy colors: aqua blue, white<br>print: classic &ldquo;m&rdquo; on white candies<br>packaging: clear favor bag with ribbon, 1.5 oz</div>
+            <div class="line-price" id="linePrice">$55.00</div>
+          </div>
+        </div>
+        <div class="empty" id="emptyCart">
+          <h2 class="display" style="font-size:24px;font-weight:900">your cart is empty</h2>
+          <p>Looks like you haven't added anything yet.</p>
+          <button type="button" class="btn-yellow" id="restoreBtn" style="width:180px">continue shopping</button>
+        </div>
+      </section>
+
+      <aside class="card summary">
+        <div class="free-ship">
+          <svg viewBox="0 0 22 18"><path d="M1 3h12v10H1zM13 6h4l3 3.5V13h-7"/><circle cx="5" cy="14.5" r="1.8" fill="#fff"/><circle cx="16" cy="14.5" r="1.8" fill="#fff"/><path d="M0 6h3M0 9h2"/></svg>
+          <span id="freeShipText">$20.00 away from free standard shipping</span>
+        </div>
+        <div class="bar"><span id="freeShipBar" style="width:73%"></span></div>
+
+        <h3 class="sec" style="margin-top:40px">apply promo</h3>
+        <div class="promo-row">
+          <div class="field"><input id="promoCode" placeholder="promo code" autocomplete="off" aria-label="promo code"></div>
+          <button type="button" class="btn-outline" id="applyBtn">apply</button>
+        </div>
+        <div class="msg" id="promoMsg"></div>
+
+        <h3 class="sec">shipping estimator</h3>
+        <div class="sec-sub">enter postal code and select desired shipping method</div>
+        <div class="promo-row" style="margin-top:18px">
+          <div class="field"><label for="zip">zip code</label><input id="zip" value="11249" inputmode="numeric" maxlength="5" autocomplete="postal-code"></div>
+          <button type="button" class="btn-yellow" id="submitZip">submit</button>
+        </div>
+        <div class="hint" id="zipHint">please input 5 digits</div>
+        <div class="ship-opts" id="shipOpts"></div>
+
+        <div class="totals">
+          <div class="row"><span>Subtotal</span><span id="sumSubtotal">$55.00</span></div>
+          <div class="row discount" id="discountRow" style="display:none"><span id="discountLabel">Promo</span><span id="sumDiscount">-$0.00</span></div>
+          <div class="row"><span>Shipping &amp; handling</span><span id="sumShipping">TBD</span></div>
+          <div class="row"><span>Sales Tax</span><span id="sumTax">TBD</span></div>
+          <div class="row total"><span>Total</span><span id="sumTotal">$55.00</span></div>
+        </div>
+
+        <div class="gift"><svg viewBox="0 0 24 24" fill="#592411"><path d="M20 7h-2.2A3 3 0 0 0 12 4.4 3 3 0 0 0 6.2 7H4a1 1 0 0 0-1 1v3h8V7h2v4h8V8a1 1 0 0 0-1-1zM9 7a1 1 0 1 1 1-1v1zm5 0V6a1 1 0 1 1 1 1zM4 13v7a1 1 0 0 0 1 1h6v-8zm9 8h6a1 1 0 0 0 1-1v-7h-7z"/></svg>Add a gift note at checkout</div>
+
+        <button type="button" class="btn-checkout" id="checkoutBtn">check out</button>
+        <div class="checkout-msg" id="checkoutMsg"></div>
+
+        <div class="express">express payment</div>
+        <div class="pay-btns">
+          <button type="button" class="pp">Pay<i>Pal</i></button>
+          <button type="button" class="ap">&#63743; Pay</button>
+          <button type="button" class="gp"><span style="color:#4285f4">G</span> Pay</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="cols">
+      <div><h4>shop</h4><ul><li>personalized M&amp;M'S</li><li>gifts</li><li>bulk candy</li><li>party favors</li></ul></div>
+      <div><h4>help</h4><ul><li>order status</li><li>shipping &amp; returns</li><li>FAQs</li><li>contact us</li></ul></div>
+      <div><h4>about</h4><ul><li>our story</li><li>M&amp;M'S World stores</li><li>careers</li></ul></div>
+    </div>
+    <div class="legal">&copy; 2026 Mars, Incorporated and its Affiliates. All Rights Reserved. &nbsp; Privacy Statement &nbsp;&middot;&nbsp; Terms of Use &nbsp;&middot;&nbsp; Accessibility</div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var SKU = '701130-90450';
+      var UNIT = 2.75;
+      var MIN = 20;
+      var STEP = 5;
+      var FREE_SHIP = 75;
+      var state = { qty: 20, zip: '', options: null, method: '', promo: null, removed: false };
+
+      function $(id) { return document.getElementById(id); }
+      function money(n) { return '$' + n.toFixed(2); }
+      function subtotal() { return Math.round(UNIT * state.qty * 100) / 100; }
+      function items() { return [{ sku: SKU, qty: state.qty }]; }
+      function identity() {
+        return {
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        };
+      }
+      function post(url, body) {
+        return fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({ items: items() }, body, identity())),
+        }).then(function (res) {
+          return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+        });
+      }
+      function setMsg(el, type, text) { el.className = (el.id === 'checkoutMsg' ? 'checkout-msg ' : 'msg ') + type; el.textContent = text; }
+      function setCheckoutMsg(type, title, detail) {
+        var el = $('checkoutMsg');
+        el.className = 'checkout-msg ' + type;
+        el.textContent = '';
+        var b = document.createElement('b'); b.textContent = title; el.appendChild(b);
+        el.appendChild(document.createTextNode(detail));
+      }
+
+      function shippingPrice() {
+        if (!state.options || !state.method) return null;
+        var opt = state.options.filter(function (o) { return o.id === state.method; })[0];
+        if (!opt) return null;
+        return opt.id === 'standard' && subtotal() >= FREE_SHIP ? 0 : opt.price;
+      }
+
+      function renderOptions() {
+        var box = $('shipOpts');
+        box.textContent = '';
+        if (!state.options) { box.style.display = 'none'; return; }
+        state.options.forEach(function (o) {
+          var price = o.id === 'standard' && subtotal() >= FREE_SHIP ? 0 : o.price;
+          var label = document.createElement('label');
+          label.className = 'ship-opt';
+          var input = document.createElement('input');
+          input.type = 'radio'; input.name = 'ship'; input.value = o.id; input.checked = state.method === o.id;
+          input.addEventListener('change', function () { state.method = o.id; render(); });
+          var text = document.createElement('div');
+          var strong = document.createElement('strong');
+          strong.textContent = o.label + ' - ' + (price === 0 ? 'FREE' : money(price));
+          var span = document.createElement('span');
+          span.textContent = 'estimated delivery date: ' + o.estimatedDelivery;
+          text.appendChild(strong); text.appendChild(span);
+          label.appendChild(input); label.appendChild(text);
+          box.appendChild(label);
+        });
+        box.style.display = 'block';
+      }
+
+      function render() {
+        var sub = subtotal();
+        $('qty').textContent = state.qty;
+        $('qtyMinus').disabled = state.qty <= MIN;
+        $('linePrice').textContent = money(sub);
+        $('titleCount').textContent = '(' + (state.removed ? 0 : state.qty) + ')';
+        $('bagCount').textContent = state.removed ? 0 : state.qty;
+        $('lineItem').style.display = state.removed ? 'none' : '';
+        $('emptyCart').style.display = state.removed ? 'block' : 'none';
+        var away = Math.max(0, FREE_SHIP - sub);
+        $('freeShipText').textContent = away > 0 ? money(away) + ' away from free standard shipping' : "you've earned free standard shipping!";
+        $('freeShipBar').style.width = Math.min(100, (sub / FREE_SHIP) * 100) + '%';
+        $('sumSubtotal').textContent = money(sub);
+        var discount = state.promo ? state.promo.discount : 0;
+        $('discountRow').style.display = state.promo ? 'flex' : 'none';
+        if (state.promo) { $('discountLabel').textContent = 'Promo (' + state.promo.code + ')'; $('sumDiscount').textContent = '-' + money(discount); }
+        var ship = shippingPrice();
+        $('sumShipping').textContent = ship === null ? 'TBD' : (ship === 0 ? 'FREE' : money(ship));
+        $('sumTax').textContent = 'TBD';
+        $('sumTotal').textContent = money(sub - discount + (ship || 0));
+        renderOptions();
+      }
+
+      function quantityChanged() {
+        if (state.promo) { state.promo = null; setMsg($('promoMsg'), '', ''); }
+        $('checkoutMsg').className = 'checkout-msg';
+        render();
+      }
+      $('qtyPlus').addEventListener('click', function () { state.qty += STEP; quantityChanged(); });
+      $('qtyMinus').addEventListener('click', function () { if (state.qty > MIN) { state.qty -= STEP; quantityChanged(); } });
+      $('removeBtn').addEventListener('click', function () { state.removed = true; render(); });
+      $('restoreBtn').addEventListener('click', function () { state.removed = false; state.qty = MIN; quantityChanged(); });
+      $('designToggle').addEventListener('click', function () {
+        $('designToggle').classList.toggle('open');
+        $('designDetail').classList.toggle('open');
+      });
+
+      $('zip').addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 5); });
+      $('submitZip').addEventListener('click', function () {
+        var zip = $('zip').value.trim();
+        var hint = $('zipHint');
+        if (!/^\d{5}$/.test(zip)) { hint.style.color = 'var(--red)'; hint.textContent = 'please input 5 digits'; return; }
+        var btn = this; btn.disabled = true;
+        post('/api/mms/shipping-estimate', { zip: zip }).then(function (r) {
+          if (!r.ok) { hint.style.color = 'var(--red)'; hint.textContent = r.data.error; state.options = null; state.method = ''; render(); return; }
+          hint.style.color = ''; hint.textContent = 'please input 5 digits';
+          state.zip = zip; state.options = r.data.options;
+          if (!state.options.some(function (o) { return o.id === state.method; })) state.method = '';
+          render();
+        }).catch(function () {
+          hint.style.color = 'var(--red)'; hint.textContent = 'Something went wrong. Please try again.';
+        }).then(function () { btn.disabled = false; });
+      });
+
+      $('applyBtn').addEventListener('click', function () {
+        var code = $('promoCode').value.trim();
+        var msg = $('promoMsg');
+        if (!code) { setMsg(msg, 'err', 'Please enter a promo code.'); return; }
+        var btn = this; btn.disabled = true; btn.textContent = 'applying';
+        post('/api/mms/promo', { code: code }).then(function (r) {
+          if (r.ok) {
+            state.promo = { code: r.data.code, discount: r.data.discount };
+            setMsg(msg, 'ok', r.data.code + ' applied: ' + r.data.label);
+          } else if (r.data.code && r.data.code.indexOf('PROMO_') === 0) {
+            setMsg(msg, 'err', r.data.error);
+          } else {
+            setMsg(msg, 'err', "We couldn't apply your promo code right now. " + r.data.errorClass + ': ' + r.data.error);
+          }
+          render();
+        }).catch(function () {
+          setMsg(msg, 'err', 'Something went wrong. Please try again.');
+        }).then(function () { btn.disabled = false; btn.textContent = 'apply'; });
+      });
+
+      $('checkoutBtn').addEventListener('click', function () {
+        if (!state.zip || !state.options) { setCheckoutMsg('err', 'shipping required', 'Enter your zip code in the shipping estimator and press submit.'); return; }
+        if (!state.method) { setCheckoutMsg('err', 'shipping required', 'Please select a shipping method.'); return; }
+        var btn = this; btn.disabled = true; btn.textContent = 'processing\u2026';
+        post('/api/mms/checkout', { zip: state.zip, shippingMethod: state.method, promoCode: state.promo ? state.promo.code : '' }).then(function (r) {
+          if (r.ok) {
+            $('sumTax').textContent = money(r.data.salesTax);
+            $('sumTotal').textContent = money(r.data.total);
+            setCheckoutMsg('ok', 'order placed!', 'Order ' + r.data.orderNumber + ' \u2022 total ' + money(r.data.total) + ' \u2022 arrives ' + r.data.estimatedDelivery);
+          } else if (r.data.errorClass === 'ValidationError') {
+            setCheckoutMsg('err', 'please review your cart', r.data.error);
+          } else {
+            setCheckoutMsg('err', "we couldn't complete your checkout", r.data.errorClass + ': ' + r.data.error);
+          }
+        }).catch(function (err) {
+          setCheckoutMsg('err', 'network error', err.message);
+        }).then(function () { btn.disabled = false; btn.textContent = 'check out'; });
+      });
+
+      render();
+      if (/^\d{5}$/.test($('zip').value)) $('submitZip').click();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
