@@ -80,7 +80,9 @@ class UnknownPassCodeError extends Error {
  * and separators.
  */
 function normalisePassCode(code) {
-  return typeof code === 'string' ? code.trim().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+  if (typeof code !== 'string') return '';
+  const normalised = code.trim().toLowerCase().replace(/[\s_-]+/g, '');
+  return /^[a-z0-9]+$/.test(normalised) ? normalised : '';
 }
 
 const PASS_INDEX = new Map(

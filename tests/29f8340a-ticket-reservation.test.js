@@ -161,7 +161,7 @@ describe('GovTech Singapore STACK Conference ticket reservation', () => {
   });
 
   test('missing or non-string pass codes raise UnknownPassCodeError instead of a TypeError', () => {
-    for (const code of [undefined, null, '', '   ', 42, { code: 'stack26-standard' }, 'stack27-early-bird']) {
+    for (const code of [undefined, null, '', '   ', 42, { code: 'stack26-standard' }, 'stack27-early-bird', 'stack26-\u{1F4A5}standard', 'stack26.standard', 'stack26/standard']) {
       expect(() => resolvePass(code)).toThrow(UnknownPassCodeError);
     }
   });
