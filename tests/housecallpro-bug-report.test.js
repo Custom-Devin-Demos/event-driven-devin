@@ -112,5 +112,6 @@ describe('Housecall Pro bug report intake', () => {
     const msg = buildIntakeMessage(normalizeReport({ ...REPORT, summary: '<!channel> boom @here @Everyone' }), 'HCP-BUG-0001');
     expect(msg).not.toContain('<!channel>');
     expect(msg).not.toMatch(/@(channel|here|everyone)/i);
+    expect(normalizeReport({ ...REPORT, reporter: 'tech@here.com' }).reporter).toBe('tech@here.com');
   });
 });

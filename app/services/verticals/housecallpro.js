@@ -31,7 +31,7 @@ function slackToken() {
 
 function clean(value, max = MAX_FIELD) {
   if (value === undefined || value === null) return '';
-  return String(value).replace(/[<>]/g, '').replace(/@(channel|here|everyone)\b/gi, '$1').trim().slice(0, max);
+  return String(value).replace(/[<>]/g, '').replace(/(^|[^\w.+-])@(channel|here|everyone)\b/gi, '$1$2').trim().slice(0, max);
 }
 
 function isBugReport(body) {
