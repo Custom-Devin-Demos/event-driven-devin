@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const path = require('path');
 const { confirmCheckout, getTenant } = require('../../services/verticals/c45a2e16');
 
@@ -33,11 +34,21 @@ async function handleCheckout(req, res) {
 // Every demo owner gets their own unlisted URL: /c45a2e16/<tenant>. The bare
 // slug is served by the vertical registry but carries no tenant, so its form
 // refuses to submit rather than running against someone else's demo state.
+// Each tenant's order is written into its own page so a second owner never
+// sees (or submits) another owner's basket.
+function renderPage(tenant) {
+  const { orderRef, merchant, item, amount, currency } = tenant.order;
+  const order = JSON.stringify({ orderRef, merchant, item, amount, currency }).replace(/</g, '\\u003c');
+  return fs.readFileSync(PAGE, 'utf8').replace('/*__TENANT_ORDER__*/null', order);
+}
+
 router.get('/c45a2e16/:tenant', (req, res, next) => {
-  if (!getTenant(req.params.tenant)) return next();
-  res.sendFile(PAGE);
+  const tenant = getTenant(req.params.tenant);
+  if (!tenant) return next();
+  res.set('Cache-Control', 'no-store').type('html').send(renderPage(tenant));
 });
 
 router.post('/api/c45a2e16/:tenant/checkout', handleCheckout);
 
 module.exports = router;
+module.exports.renderPage = renderPage;

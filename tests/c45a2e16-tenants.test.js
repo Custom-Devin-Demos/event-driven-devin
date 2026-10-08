@@ -69,3 +69,21 @@ describe('checkout plan tenants', () => {
     expect(alert.tags).toContainEqual({ key: 'route', value: '/api/c45a2e16/nouf/checkout' });
   });
 });
+
+describe('checkout plan page', () => {
+  const { renderPage } = require('../app/routes/verticals/c45a2e16');
+
+  it('writes each tenant\'s own order into its page', () => {
+    const sara = {
+      order: { orderRef: 'TMR-ORD-1111-00001', merchant: 'Jeddah <Gadgets>', item: 'AirPods Pro, White', amount: 999, currency: 'SAR' },
+    };
+    const noufPage = renderPage(TENANTS.nouf);
+    const saraPage = renderPage(sara);
+    expect(noufPage).toContain(`"orderRef":"${TENANTS.nouf.order.orderRef}"`);
+    expect(saraPage).toContain('"orderRef":"TMR-ORD-1111-00001"');
+    expect(saraPage).toContain('"amount":999');
+    expect(saraPage).not.toContain(TENANTS.nouf.order.orderRef);
+    expect(saraPage).not.toContain('Jeddah <Gadgets>');
+    expect(saraPage).not.toContain('__TENANT_ORDER__');
+  });
+});
