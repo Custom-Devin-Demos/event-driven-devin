@@ -83,13 +83,23 @@ describe('Housecall Pro bug report intake', () => {
     expect(axios.post).not.toHaveBeenCalled();
   });
 
-  test('accepts without posting when Slack is not configured', async () => {
+  test('fails instead of acknowledging when Slack is not configured', async () => {
     delete process.env.SLACK_ONCALL_BOT_TOKEN;
     delete process.env.SLACK_BOT_TOKEN;
     const res = await request(server, REPORT);
-    expect(res.status).toBe(202);
-    expect(res.body.status).toBe('accepted');
+    expect(res.status).toBe(502);
+    expect(res.body.received).toBe(false);
     expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  test('failed deliveries do not consume the report cap', async () => {
+    axios.post.mockResolvedValue({ data: { ok: false, error: 'channel_not_found' } });
+    for (let i = 0; i < 12; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      expect((await request(server, REPORT)).status).toBe(502);
+    }
+    axios.post.mockResolvedValue({ data: { ok: true, ts: '1.2', channel: 'C123' } });
+    expect((await request(server, REPORT)).status).toBe(202);
   });
 
   test('returns 502 when Slack rejects the post', async () => {
@@ -99,7 +109,8 @@ describe('Housecall Pro bug report intake', () => {
   });
 
   test('strips Slack control characters from user text', () => {
-    const msg = buildIntakeMessage(normalizeReport({ ...REPORT, summary: '<!channel> boom' }), 'HCP-BUG-0001');
+    const msg = buildIntakeMessage(normalizeReport({ ...REPORT, summary: '<!channel> boom @here @Everyone' }), 'HCP-BUG-0001');
     expect(msg).not.toContain('<!channel>');
+    expect(msg).not.toMatch(/@(channel|here|everyone)/i);
   });
 });

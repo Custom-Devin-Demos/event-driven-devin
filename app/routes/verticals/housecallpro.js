@@ -21,12 +21,17 @@ const parsedWindow = parseInt(process.env.REPORT_CAP_HCP_IOS_WINDOW_MINUTES, 10)
 const REPORT_WINDOW_MS = (Number.isNaN(parsedWindow) ? 10 : parsedWindow) * 60 * 1000;
 const acceptedAt = [];
 
+function releaseReportSlot(at) {
+  const index = acceptedAt.indexOf(at);
+  if (index !== -1) acceptedAt.splice(index, 1);
+}
+
 function reserveReportSlot(now = Date.now()) {
   const cutoff = now - REPORT_WINDOW_MS;
   while (acceptedAt.length > 0 && acceptedAt[0] < cutoff) acceptedAt.shift();
   if (acceptedAt.length >= REPORT_MAX) return false;
   acceptedAt.push(now);
-  return true;
+  return now;
 }
 
 router.options(BUG_REPORT_PATH, allowCrossOrigin);
@@ -36,21 +41,22 @@ router.post(BUG_REPORT_PATH, allowCrossOrigin, async (req, res) => {
   if (!isBugReport(body)) {
     return res.status(400).json({ received: false, status: 'rejected', error: `Expected source ${APP_SOURCE} with a summary` });
   }
-  if (!reserveReportSlot()) {
+  const slot = reserveReportSlot();
+  if (!slot) {
     res.set('Retry-After', String(Math.ceil(REPORT_WINDOW_MS / 1000)));
     return res.status(429).json({ received: false, status: 'throttled', error: 'Bug report cap reached; retry later' });
   }
   try {
     const result = await postBugReport(body);
-    const channel = intakeChannel().startsWith('#') ? intakeChannel() : '#hcp-bug-intake';
     return res.status(202).json({
       received: true,
-      status: result.posted ? 'posted' : 'accepted',
+      status: 'posted',
       reference: result.reference,
-      channel,
+      channel: intakeChannel(),
       receivedAt: new Date().toISOString(),
     });
   } catch (err) {
+    releaseReportSlot(slot);
     logger.error('housecallpro: failed to post bug report', { error: err.message });
     return res.status(502).json({ received: false, status: 'error', error: 'Could not reach the intake channel' });
   }

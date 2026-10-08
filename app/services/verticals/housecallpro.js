@@ -31,7 +31,7 @@ function slackToken() {
 
 function clean(value, max = MAX_FIELD) {
   if (value === undefined || value === null) return '';
-  return String(value).replace(/[<>]/g, '').trim().slice(0, max);
+  return String(value).replace(/[<>]/g, '').replace(/@(channel|here|everyone)\b/gi, '$1').trim().slice(0, max);
 }
 
 function isBugReport(body) {
@@ -97,8 +97,7 @@ async function postBugReport(body, { post = axios.post } = {}) {
   const channel = intakeChannel();
   const token = slackToken();
   if (!token) {
-    logger.warn('housecallpro: Slack token not configured — skipping intake post', { reference });
-    return { posted: false, reference, channel, reason: 'slack_not_configured' };
+    throw new Error('Slack token not configured for the Housecall Pro intake channel');
   }
   const text = buildIntakeMessage(report, reference);
   const response = await post(
