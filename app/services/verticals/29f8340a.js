@@ -65,12 +65,32 @@ const REMEDIATION_DIRECTIVE = [
   'and add a regression test under tests/ that locks the fix in. Open a pull request against main.',
 ].join(' ');
 
-function normalisePassCode(code) {
-  return typeof code === 'string' ? code.trim().toLowerCase() : '';
+class UnknownPassCodeError extends Error {
+  constructor(passCode) {
+    super(`Unknown STACK Conference pass code: ${String(passCode)}`);
+    this.name = 'UnknownPassCodeError';
+    this.code = 'UNKNOWN_PASS_CODE';
+    this.statusCode = 422;
+  }
 }
 
+/**
+ * Pass codes arrive in several spellings (STACK26-EARLYBIRD on the ticketing
+ * links, stack26-early-bird in the catalogue), so compare them ignoring case
+ * and separators.
+ */
+function normalisePassCode(code) {
+  return typeof code === 'string' ? code.trim().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+}
+
+const PASS_INDEX = new Map(
+  Object.values(PASS_CATALOGUE).map((pass) => [normalisePassCode(pass.code), pass]),
+);
+
 function resolvePass(code) {
-  return PASS_CATALOGUE[normalisePassCode(code)];
+  const pass = PASS_INDEX.get(normalisePassCode(code));
+  if (!pass) throw new UnknownPassCodeError(code);
+  return pass;
 }
 
 function resolveAttendeeType(type) {
@@ -232,6 +252,8 @@ async function reserveTickets(data) {
 module.exports = {
   reserveTickets,
   resolvePass,
+  normalisePassCode,
+  UnknownPassCodeError,
   resolveAttendeeType,
   buildReservation,
   PASS_CATALOGUE,

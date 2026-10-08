@@ -23,6 +23,8 @@ const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const ticketRoutes = require('../app/routes/verticals/29f8340a');
 const {
   reserveTickets,
+  resolvePass,
+  UnknownPassCodeError,
   buildReservation,
   PASS_CATALOGUE,
   ATTENDEE_TYPES,
@@ -86,13 +88,26 @@ describe('GovTech Singapore STACK Conference ticket reservation', () => {
     expect(reservation.fulfilment.transferable).toBe(true);
   });
 
-  test('the homepage CTA fails with a TypeError and raises exactly one alert', async () => {
+  test('the homepage CTA reserves the default early bird pass without alerting', async () => {
     const response = await postReservation({ action: 'Get your tickets', quantity: 1, ...IDENTITY });
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.reservation.passCode).toBe('stack26-early-bird');
+    expect(response.body.reservation.passLabel).toBe('Early bird pass');
+    expect(response.body.reservation.pricing.totalAmountCents).toBe(24900);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test('an uncatalogued pass code fails with UnknownPassCodeError and raises exactly one alert', async () => {
+    const response = await postReservation({ action: 'Get your tickets', passCode: 'STACK26-VIP', quantity: 1, ...IDENTITY });
+
+    expect(response.status).toBe(422);
     expect(response.body.success).toBe(false);
-    expect(response.body.errorClass).toBe('TypeError');
-    expect(response.body.error).toMatch(/reading 'pricing'|reading 'code'|reading 'access'/);
+    expect(response.body.errorClass).toBe('UnknownPassCodeError');
+    expect(response.body.code).toBe('UNKNOWN_PASS_CODE');
+    expect(response.body.error).toMatch(/STACK26-VIP/);
 
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
@@ -101,31 +116,54 @@ describe('GovTech Singapore STACK Conference ticket reservation', () => {
     expect(alert.slackMemberId).toBe('U08S7AVJ478');
     expect(alert.devinUserId).toBe(OWNER.devinUserId);
     expect(alert.devinOrgId).toBe('org-ed3f47f7577c4ec0bbb3c29f2148bb3c');
-    expect(alert.errorType).toBe('TypeError');
+    expect(alert.errorType).toBe('UnknownPassCodeError');
   });
 
   test('client-supplied Devin IDs cannot override the pinned owner', async () => {
     const response = await postReservation({
       action: 'Get your tickets',
+      passCode: 'STACK26-VIP',
       devinUserId: 'clerk-user_attacker',
       devinOrgId: 'org-attacker',
     });
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(422);
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.devinUserId).toBe(OWNER.devinUserId);
     expect(alert.devinOrgId).toBe(OWNER.devinOrgId);
   });
 
-  test('every click lands on the same failing reservation regardless of label', async () => {
+  test('every click reserves successfully regardless of label', async () => {
     const labels = ['About us', 'Explore our products', 'Who we are', 'Privacy Statement'];
     for (const action of labels) {
       const response = await postReservation({ action, ...IDENTITY });
-      expect(response.status).toBe(500);
-      expect(response.body.errorClass).toBe('TypeError');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.reservation.passCode).toBe('stack26-early-bird');
     }
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(labels.length);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('regression: STACK26-EARLYBIRD from the ticketing links resolves to the early bird pass', async () => {
+    expect(resolvePass('STACK26-EARLYBIRD')).toBe(PASS_CATALOGUE['stack26-early-bird']);
+    const result = await reserveTickets({ action: 'Get your tickets', passCode: 'STACK26-EARLYBIRD', quantity: 1 });
+    expect(result.success).toBe(true);
+    expect(result.reservation.passCode).toBe('stack26-early-bird');
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('pass codes resolve regardless of case, whitespace and separators', () => {
+    for (const code of ['stack26-early-bird', ' STACK26_EARLY_BIRD ', 'Stack26 Early Bird', 'stack26earlybird']) {
+      expect(resolvePass(code).code).toBe('stack26-early-bird');
+    }
+    expect(resolvePass('STACK26-WORKSHOPADDON').code).toBe('stack26-workshop-addon');
+  });
+
+  test('missing or non-string pass codes raise UnknownPassCodeError instead of a TypeError', () => {
+    for (const code of [undefined, null, '', '   ', 42, { code: 'stack26-standard' }, 'stack27-early-bird']) {
+      expect(() => resolvePass(code)).toThrow(UnknownPassCodeError);
+    }
   });
 
   test('a catalogued pass code reserves successfully', async () => {
@@ -166,7 +204,7 @@ describe('GovTech Singapore STACK Conference ticket reservation', () => {
   });
 
   test('the Sentry capture carries the instant-path tag so the webhook skips it', async () => {
-    await postReservation({ action: 'Get your tickets', ...IDENTITY });
+    await postReservation({ action: 'Get your tickets', passCode: 'STACK26-VIP', ...IDENTITY });
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     const [, context] = Sentry.captureException.mock.calls[0];
