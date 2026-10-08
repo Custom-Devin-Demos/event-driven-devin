@@ -134,25 +134,29 @@ const FUND_ADMIN_FEED = {
 
 /**
  * Earlier quarters are rolled back from the current administrator feed so every
- * period offered in the portal has an allocation on file. Blocks the
- * administrator omitted (e.g. the co-invest's fee-free managementFee) stay absent.
+ * period offered in the portal has an allocation on file. Each prior quarter closes
+ * at the following quarter's opening balance and its flows are scaled, so adjacent
+ * statements reconcile. Blocks the administrator omitted (e.g. the co-invest's
+ * fee-free managementFee) stay absent.
  */
-function rollBack(record, factor) {
-  const scaled = {};
-  for (const [key, value] of Object.entries(record)) {
-    if (typeof value === 'number') scaled[key] = Math.round(value * factor * 100) / 100;
-    else if (value && typeof value === 'object') scaled[key] = rollBack(value, factor);
-    else scaled[key] = value;
-  }
-  if (record.managementFee) scaled.managementFee.rateBps = record.managementFee.rateBps;
-  if (record.carriedInterest) scaled.carriedInterest.hurdleBps = record.carriedInterest.hurdleBps;
-  return scaled;
+const FLOW_KEYS = ['contributions', 'distributions', 'netInvestmentIncome', 'realizedGain', 'unrealizedGain'];
+
+function rollBack(next, factor) {
+  const prior = {};
+  for (const key of FLOW_KEYS) prior[key] = Math.round(next[key] * factor);
+  if (next.managementFee) prior.managementFee = { ...next.managementFee, accrued: Math.round(next.managementFee.accrued * factor * 100) / 100 };
+  if (next.carriedInterest) prior.carriedInterest = { ...next.carriedInterest, accrued: Math.round(next.carriedInterest.accrued * factor * 100) / 100 };
+  prior.endingBalance = next.beginningBalance;
+  const fees = (prior.managementFee ? prior.managementFee.accrued : 0) + (prior.carriedInterest ? prior.carriedInterest.accrued : 0);
+  prior.beginningBalance = Math.round((prior.endingBalance - prior.contributions + prior.distributions
+    - prior.netInvestmentIncome - prior.realizedGain - prior.unrealizedGain + fees) * 100) / 100;
+  return prior;
 }
 
-const PRIOR_PERIOD_FACTORS = { '2026Q2': 0.94, '2026Q1': 0.88 };
-for (const [periodId, factor] of Object.entries(PRIOR_PERIOD_FACTORS)) {
+const PRIOR_PERIODS = [['2026Q2', '2026Q3', 0.94], ['2026Q1', '2026Q2', 0.92]];
+for (const [periodId, nextPeriodId, factor] of PRIOR_PERIODS) {
   FUND_ADMIN_FEED[periodId] = Object.fromEntries(
-    Object.entries(FUND_ADMIN_FEED['2026Q3']).map(([vehicleId, record]) => [vehicleId, rollBack(record, factor)]),
+    Object.entries(FUND_ADMIN_FEED[nextPeriodId]).map(([vehicleId, record]) => [vehicleId, rollBack(record, factor)]),
   );
 }
 
@@ -162,6 +166,11 @@ const STATEMENTS = [
 ];
 
 const inFlight = new Set();
+
+function nextStatementId(periodId) {
+  const maxSuffix = STATEMENTS.reduce((max, s) => Math.max(max, Number(s.id.split('-').pop()) || 0), 400);
+  return `STMT-${periodId}-${String(maxSuffix + 1).padStart(4, '0')}`;
+}
 
 function periodLabel(periodId) {
   const p = PERIODS.find((x) => x.id === periodId);
@@ -335,7 +344,7 @@ async function generateStatement(data) {
     }
 
     const stmt = {
-      id: `STMT-${request.periodId}-${String(400 + STATEMENTS.length + 1).padStart(4, '0')}`,
+      id: nextStatementId(request.periodId),
       periodId: request.periodId,
       vehicleIds: request.vehicleIds,
       format: request.format,
@@ -510,4 +519,5 @@ module.exports = {
   getStatementDocument,
   VEHICLES,
   PERIODS,
+  FUND_ADMIN_FEED,
 };

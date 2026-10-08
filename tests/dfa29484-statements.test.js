@@ -13,7 +13,7 @@ const http = require('http');
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const routes = require('../app/routes/verticals/dfa29484');
-const { VEHICLES, PERIODS } = require('../app/services/verticals/dfa29484');
+const { VEHICLES, PERIODS, FUND_ADMIN_FEED } = require('../app/services/verticals/dfa29484');
 
 const COMMINGLED = ['OCDL-IV', 'GPSC-V', 'NLRE-II'];
 const CO_INVEST = 'ORTI-CI';
@@ -86,6 +86,33 @@ describe('Blue Owl Investor Portal (dfa29484) — capital account statements', (
     }
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
+
+  test('quarterly allocations reconcile: each quarter closes at the next quarter\'s opening balance', () => {
+    const ordered = [...PERIODS].reverse().map((p) => p.id);
+    for (const vehicle of VEHICLES) {
+      for (let i = 0; i < ordered.length; i += 1) {
+        const rec = FUND_ADMIN_FEED[ordered[i]][vehicle.id];
+        const fees = (rec.managementFee ? rec.managementFee.accrued : 0) + (rec.carriedInterest ? rec.carriedInterest.accrued : 0);
+        const rollForward = rec.beginningBalance + rec.contributions - rec.distributions + rec.netInvestmentIncome + rec.realizedGain + rec.unrealizedGain - fees;
+        expect(Math.round(rollForward * 100) / 100).toBe(rec.endingBalance);
+        if (i + 1 < ordered.length) expect(rec.endingBalance).toBe(FUND_ADMIN_FEED[ordered[i + 1]][vehicle.id].beginningBalance);
+      }
+      expect(Object.keys(FUND_ADMIN_FEED['2026Q1'][vehicle.id]).includes('managementFee')).toBe(vehicle.id !== CO_INVEST);
+    }
+  });
+
+  test('statement IDs never collide with archived statements and every download URL resolves', async () => {
+    const app = makeApp();
+    const seen = new Set();
+    for (let i = 0; i < 16; i += 1) {
+      const res = await request(app, 'POST', '/api/dfa29484/statements', { periodId: '2026Q2', vehicleIds: ['OCDL-IV'], format: 'csv' });
+      expect(res.status).toBe(200);
+      expect(seen.has(res.body.statement.id)).toBe(false);
+      seen.add(res.body.statement.id);
+      const dl = await request(app, 'GET', res.body.statement.downloadUrl);
+      expect(dl.status).toBe(200);
+    }
+  }, 30000);
 
   test('PDF statements return a downloadable PDF document', async () => {
     const app = makeApp();
