@@ -130,6 +130,7 @@
     .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
     .field select, .field input { width: 100%; height: 42px; border: 1px solid var(--line-strong); border-radius: 8px; background: #fff; padding: 0 12px; outline: none; }
     .field select:focus, .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus); }
+    .field input[readonly] { background: var(--surface); color: var(--muted); }
     .field small { display: block; margin-top: 5px; font-size: 12px; color: var(--muted); }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 18px; }
@@ -395,18 +396,16 @@
           </div>
           <div class="field">
             <label for="sendOn">Send on</label>
-            <select id="sendOn">
-              <option value="today">Today &mdash; Aug 21</option>
-              <option value="due">Due date &mdash; Aug 28</option>
-            </select>
+            <input type="text" id="sendOn" value="Today &mdash; Aug 21" readonly aria-describedby="sendOnHint">
+            <small id="sendOnHint">Payments send the day they're submitted.</small>
           </div>
         </div>
         <div class="field">
           <label for="accountTier">Payment method</label>
           <select id="accountTier">
-            <option value="standard">ACH &mdash; standard (1&ndash;3 business days, $2.50)</option>
+            <option value="standard">ACH &mdash; standard (1&ndash;3 business days, $2.50 min)</option>
             <option value="premium">Same-day ACH &mdash; verified payee (free)</option>
-            <option value="basic">Mailed check ($4.99)</option>
+            <option value="basic">ACH &mdash; economy (3&ndash;5 business days, $4.99 min)</option>
           </select>
           <small>Ambrook sends the payment to your bank; the bank confirms before it's posted to the Ledger.</small>
         </div>
@@ -472,7 +471,9 @@
     const amountInput = document.getElementById('amount');
     const tierInput = document.getElementById('accountTier');
     const usd = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const FEES = { standard: 2.5, premium: 0, basic: 4.99 };
+    const FEE_TIERS = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.5 }, basic: { rate: 0.002, flat: 4.99 } };
+    const feeFor = (tier, amount) => { const t = FEE_TIERS[tier] || FEE_TIERS.standard; return Math.max(t.rate * amount, t.flat); };
+    const validAmount = (n) => n >= 1 && Math.abs(n * 100 - Math.round(n * 100)) < 1e-6;
 
     function openPanel() {
       panel.classList.add('open');
@@ -486,9 +487,10 @@
       panel.setAttribute('aria-hidden', 'true');
       payBillBtn.focus();
     }
+    let paid = false;
     function refreshSummary() {
       const amount = parseFloat(amountInput.value) || 0;
-      const fee = FEES[tierInput.value] || 0;
+      const fee = feeFor(tierInput.value, amount);
       document.getElementById('sumAmount').textContent = usd(amount);
       document.getElementById('sumFee').textContent = usd(fee);
       document.getElementById('sumTotal').textContent = usd(amount + fee);
@@ -512,9 +514,9 @@
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       const amount = parseFloat(amountInput.value);
-      if (!(amount > 0)) {
+      if (!validAmount(amount)) {
         result.className = 'result-box notice';
-        result.textContent = 'Enter an amount greater than $0.00.';
+        result.textContent = 'Enter an amount of at least $1.00, in whole cents.';
         return;
       }
       button.disabled = true;
@@ -541,13 +543,12 @@
         const data = await response.json();
         if (!response.ok || !data.receipt) throw new Error('Payment could not be sent.');
         const from = document.getElementById('fromAccount').selectedOptions[0].textContent.split(' \u2014 ')[0];
-        const when = document.getElementById('sendOn').value === 'due' ? 'Aug 28' : 'today';
         result.className = 'result-box success';
         result.innerHTML = '';
         const head = document.createElement('strong');
         head.textContent = 'Payment scheduled';
         const body = document.createElement('span');
-        body.textContent = usd(data.receipt.amount) + ' to Buchanan Farm & Ranch Supply from ' + from + ', sending ' + when + '. Bank confirmed in ' + payElapsed.textContent + ' (ref ' + data.receipt.receiptId + ').';
+        body.textContent = usd(data.receipt.amount) + ' to Buchanan Farm & Ranch Supply from ' + from + ', sending today. Bank confirmed in ' + payElapsed.textContent + ' (ref ' + data.receipt.receiptId + ').';
         result.append(head, body);
         payStatus.textContent = 'Bank confirmed.';
         const status = document.getElementById('buchananStatus');
@@ -555,15 +556,19 @@
         status.className = '';
         payBillBtn.disabled = true;
         payBillBtn.textContent = 'Scheduled';
+        paid = true;
+        submitLabel.textContent = 'Paid';
       } catch (_error) {
         result.className = 'result-box notice';
         result.textContent = 'The bank did not confirm this payment. Nothing was sent — please try again.';
         payStatus.textContent = 'Not sent.';
       } finally {
         stopTicker();
-        button.disabled = false;
         button.classList.remove('busy');
-        refreshSummary();
+        if (!paid) {
+          button.disabled = false;
+          refreshSummary();
+        }
       }
     });
   </script>
