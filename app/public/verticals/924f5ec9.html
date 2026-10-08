@@ -162,7 +162,7 @@
     .foot .brand img { height: 36px; margin-bottom: 30px; }
     .legal { display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,.7); margin-top: 30px; padding-top: 18px; font-size: 12px; }
     @media (max-width: 1100px) { .c-search { margin-left: 20px; } .c-fields { grid-template-columns: repeat(2, 160px); } .hero-actions { margin-right: 0; } }
-    @media (max-width: 860px) { .wrap { padding: 0 18px; } nav.primary { display: none; } .stats, .cards, .switch, .otg { grid-template-columns: 1fr; } .switch { padding: 60px 0; } .hero-inner { flex-direction: column; align-items: flex-start; } .console { overflow-x: auto; } .c-bar, .c-body { min-width: 980px; } .tour { padding: 36px 14px; } .tour-tabs button { width: auto; gap: 16px; font-size: 15px; } }
+    @media (max-width: 860px) { .wrap { padding: 0 18px; } nav.primary { display: none; } .stats, .cards, .switch, .otg { grid-template-columns: 1fr; } .switch { padding: 60px 0; } .hero-inner { flex-direction: column; align-items: flex-start; } .console { overflow-x: auto; } .c-bar, .c-body { min-width: 980px; } .tour { padding: 36px 14px; } .tour-tabs button { width: auto; gap: 16px; font-size: 15px; } .foot { grid-template-columns: repeat(2, minmax(0, 1fr)); } .foot .brand { grid-column: 1 / -1; } }
   </style>
 </head>
 <body>
@@ -326,6 +326,14 @@
       let state = null;
       let activeTab = 'accounts';
 
+      const identityReady = fetch('/api/config')
+        .then((response) => response.json())
+        .then((config) => {
+          if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+          if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+        })
+        .catch(() => {});
+
       document.querySelectorAll('.tour-tabs button').forEach((btn) => btn.addEventListener('click', () => {
         document.querySelectorAll('.tour-tabs button').forEach((b) => b.classList.toggle('on', b === btn));
         const otg = btn.dataset.tour === 'otg';
@@ -442,6 +450,9 @@
         const names = ['Share ledger', 'Certificates', 'IRA custodian', 'Loan servicing', 'Card processor', 'Relationships', 'Transfers', 'ACH / Payroll', 'Notes', 'eAlerts', 'YTD totals', 'Safe deposit', 'Fee engine', 'Fraud history'];
         go.disabled = true;
         $('banner').classList.remove('on');
+        state = null;
+        $('member-view').hidden = true;
+        $('empty').hidden = false;
         $('loading').classList.add('on');
         const timer = setInterval(() => {
           const secs = (Date.now() - started) / 1000;
@@ -449,10 +460,17 @@
           $('ticker').textContent = `Querying Velocity core — ${names[Math.floor(secs * 2) % names.length]}`;
         }, 100);
         try {
+          await identityReady;
           const res = await fetch(`${API}/member-lookup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ memberNumber: $('memberNumber').value, scope: $('scope').value }),
+            body: JSON.stringify({
+              memberNumber: $('memberNumber').value,
+              scope: $('scope').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok || !data.success) {
