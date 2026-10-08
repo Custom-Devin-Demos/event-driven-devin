@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayID - CommBank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;800&display=swap" rel="stylesheet">
+  <script>function fb(i){i.style.display='none';if(i.parentNode&&i.parentNode.classList)i.parentNode.classList.add('img-missing')}</script>
+  <style>
+    :root {
+      --yellow: #ffcc00;
+      --ink: #1e1e1e;
+      --ink-2: #231f20;
+      --muted: #706d6e;
+      --link: #1175b5;
+      --line: #e9e9e9;
+      --page: #f4f4f4;
+      --font: 'CBABeaconSans', 'Figtree', helvetica, arial, sans-serif;
+      --container: 1328px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font: 400 16px/24px var(--font); color: var(--ink); background: var(--page); overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    ul, ol { list-style: none; }
+    sup { font-size: 12px; line-height: 0; }
+    h1 sup, h2 sup { font-size: 24px; }
+    .lnk { color: var(--link); border-bottom: 1px solid var(--link); }
+    .app { padding: 0 32px; overflow-x: clip; }
+    .container { position: relative; max-width: var(--container); margin: 0 auto; }
+
+    /* Header */
+    .site-header { position: relative; z-index: 20; height: 80px; background: #fff; box-shadow: rgba(35,31,32,.2) 0 1px 1px 0; display: flex; align-items: stretch; }
+    .burger { display: none; }
+    .logo { display: flex; align-items: center; padding: 0 32px; }
+    .logo svg { width: 40px; height: 40px; display: block; }
+    .main-nav { display: flex; align-items: stretch; }
+    .mobile-menu { position: absolute; top: 100%; left: 0; width: 100%; background: #fff; box-shadow: rgba(35,31,32,.2) 0 1px 1px 0; }
+    .mobile-menu[hidden] { display: none; }
+    @media (min-width: 1024px) { .mobile-menu { display: none; } }
+    .mobile-menu a { display: flex; align-items: center; min-height: 48px; padding: 12px 24px; border-top: 1px solid var(--line); font: 800 16px/24px var(--font); color: var(--ink-2); }
+    .main-nav li { display: flex; padding-left: 32px; }
+    .main-nav li:first-child { padding-left: 0; }
+    .main-nav a { display: flex; align-items: center; font: 800 16px/10px var(--font); color: var(--ink-2); }
+    .header-right { margin-left: auto; display: flex; }
+    .search { display: flex; align-items: center; justify-content: center; width: 85px; border-left: 1px solid var(--line); background: #fff; }
+    .login { display: flex; align-items: center; width: 114px; padding: 0 16px; background: var(--yellow); font: 800 16px/10px var(--font); color: var(--ink-2); }
+    .login span { padding-left: 8px; }
+
+    /* Hero */
+    .hero { background: #fff; }
+    .hero-module { position: relative; background: var(--page); padding-top: 80px; }
+    .breadcrumb { position: absolute; top: 0; left: 80px; padding: 28px 32px 28px 0; font-size: 14px; line-height: 24px; color: var(--ink); }
+    .breadcrumb a { border-bottom: 1px solid var(--ink); }
+    .hero-image { position: absolute; top: 0; left: 544px; width: 864px; height: 576px; overflow: hidden; }
+    .hero-image img { position: absolute; left: -43px; top: 0; width: 950px; height: 999px; max-width: none; object-fit: cover; }
+    .hero-image.img-missing { background: linear-gradient(135deg, #e7b23a, #7a4a2a); }
+    .hero-panel { position: relative; width: 664px; padding: 64px 0; background: #fff; }
+    .hero-content { border-left: 16px solid var(--yellow); padding: 0 48px; }
+    .hero h1 { font: 800 40px/48px var(--font); margin-bottom: 24px; }
+    .hero h3 { font: 800 20px/28px var(--font); margin-bottom: 24px; }
+    .hero p { margin-bottom: 16px; }
+
+    /* PayID payment form (hero CTA slot) */
+    .pay-form { margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--line); }
+    .pay-form h4 { font: 800 20px/28px var(--font); margin-bottom: 16px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; margin-bottom: 8px; font: 800 16px/24px var(--font); color: var(--ink); }
+    .field select, .field input { width: 100%; height: 48px; padding: 0 16px; border: 1px solid var(--muted); border-radius: 4px; background: #fff; font: 400 16px/24px var(--font); color: var(--ink); -webkit-appearance: none; appearance: none; }
+    .field select { padding-right: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' fill='none'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23231f20' stroke-width='1.6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+    .field select:focus, .field input:focus { outline: 3px solid var(--link); outline-offset: 0; }
+    .btn-primary { display: inline-block; height: 48px; padding: 0 32px; border: 1px solid var(--yellow); border-radius: 24px; background: var(--yellow); font: 400 16px/46px var(--font); color: var(--ink-2); cursor: pointer; }
+    .btn-primary:disabled { opacity: .7; cursor: progress; }
+    .form-note { margin-top: 16px; font-size: 14px; line-height: 21px; color: var(--muted); }
+    .result-box { display: none; margin-top: 16px; padding: 16px; border-left: 4px solid; font-size: 16px; line-height: 24px; }
+    .result-box.success { display: block; background: #eef7ee; border-color: #2e7d32; }
+    .result-box.error { display: block; background: #fdeeee; border-color: #c62828; }
+    .result-box .error-title { font-weight: 800; }
+
+    /* Content */
+    .content { position: relative; z-index: 2; background: #fff; }
+    .anchor-nav { background: #fff; box-shadow: rgba(0,0,0,.2) 0 0 3px 0; }
+    .anchor-nav ul { display: flex; margin: 0 48px; }
+    .anchor-nav li { position: relative; margin: 0 20px; }
+    .anchor-nav a { display: block; padding: 32px 0; font: 800 16px/24px var(--font); color: var(--ink-2); }
+    .anchor-nav li.active::after { content: ' '; position: absolute; left: 0; top: 84px; width: 100%; height: 4px; background: var(--yellow); }
+    .drop-down { display: none; }
+    .module { position: relative; display: flex; padding: 64px; }
+    .module.divider::after { content: ' '; position: absolute; left: 64px; bottom: 0; width: calc(100% - 128px); height: 1px; background: var(--line); }
+    .module h2 { font: 800 32px/40px var(--font); margin-bottom: 24px; }
+    .module h3, .module .h3 { display: block; font: 800 20px/28px var(--font); margin-bottom: 24px; }
+    .module p { margin-bottom: 16px; }
+    .module ul.bul { padding-left: 20px; }
+    .module ul.bul li { list-style: disc; margin-bottom: 8px; }
+    .head-col { width: 400px; flex: none; }
+    .body-col { width: 800px; padding-left: 32px; }
+    .item-line { padding-bottom: 16px; margin-bottom: 32px; border-bottom: 1px solid var(--line); }
+    .split-2 { display: flex; gap: 48px; }
+    .split-2 > div { width: 352px; }
+    .split-2.vline > div:first-child { position: relative; }
+    .split-2.vline > div:first-child::after { content: ''; position: absolute; top: 0; right: -48px; width: 1px; height: 496px; background: var(--line); }
+    .why { padding-left: 728px; }
+    .why .body-col { width: 536px; padding-left: 0; }
+    .steps { counter-reset: step; margin-bottom: 16px; }
+    .steps li { position: relative; counter-increment: step; padding-left: 64px; margin-bottom: 24px; }
+    .steps li::before { content: counter(step); position: absolute; left: 0; top: -4px; width: 32px; height: 32px; border-radius: 100%; background: var(--ink-2); color: #fff; font: 400 16px/32px var(--font); text-align: center; }
+    .badges { display: flex; gap: 20px; margin-top: 32px; }
+    .badge { display: flex; align-items: center; gap: 8px; width: 164px; height: 48px; padding: 0 12px; border-radius: 8px; background: #000; border: 1px solid #a6a6a6; color: #fff; }
+    .badge small { display: block; font-size: 10px; line-height: 12px; }
+    .badge strong { display: block; font-size: 20px; line-height: 22px; font-weight: 400; letter-spacing: -.3px; }
+    .howto { display: block; }
+    .howto .full { width: 1200px; }
+    .howto b { font-weight: 800; }
+    .howto .gap { height: 40px; }
+    .cols-4 { display: flex; gap: 24px; margin-top: 64px; }
+    .cols-4 > div { width: 276px; }
+    .cols-4 .shot { width: 276px; height: 401px; margin-top: 24px; object-fit: cover; }
+    .cols-4 .img-missing { height: 401px; margin-top: 24px; background: #f4f4f4; border: 1px solid #ddd; }
+    .split50 { display: flex; align-items: flex-start; padding: 64px 64px 64px 0; }
+    .split50 .media { width: 728px; margin-left: -64px; flex: none; overflow: hidden; }
+    .split50 .media, .split50 .media.img-missing { height: 272px; }
+    .split50 .media img { width: 100%; height: 100%; object-fit: cover; }
+    .split50 .media.img-missing { background: linear-gradient(120deg, #ffe800 0 30%, #ececec 30% 70%, #ffe800 70%); }
+    .split50 .text { width: 536px; margin-left: 64px; padding-top: 64px; }
+    .split50 h2 { margin-bottom: 40px; }
+    .btn-secondary { display: inline-block; height: 48px; padding: 0 24px; min-width: 180px; text-align: center; border: 1px solid var(--muted); border-radius: 24px; font: 400 16px/46px var(--font); color: var(--ink-2); }
+
+    /* Lower section (grey) */
+    .lower .module { background: transparent; }
+    .help { display: block; }
+    .help ul { display: flex; }
+    .help li { display: flex; width: 400px; min-height: 148px; border-right: 1px solid var(--line); }
+    .help li + li { padding-left: 24px; }
+    .help li:last-child { border-right: 0; }
+    .help img { width: 64px; height: 64px; flex: none; }
+    .help .c { padding: 8px 16px 8px 24px; }
+    .help h3 { font: 800 20px/28px var(--font); color: var(--ink-2); margin-bottom: 16px; }
+
+    /* Footer */
+    .footer { position: relative; background: #fff; }
+    .footer .container { background: #fff; padding: 24px 64px; }
+    .footer-nav::after { content: ' '; position: absolute; left: 0; bottom: 0; width: 100%; height: 1px; background: var(--line); }
+    .footer-row { display: flex; }
+    .footer-col { width: 300px; padding: 0 16px; }
+    .footer-col h4 { font: 800 16px/28px var(--font); text-transform: uppercase; margin-bottom: 8px; }
+    .footer-col ul { margin-bottom: 16px; }
+    .footer-col li { margin-bottom: 8px; }
+    .to-top { position: absolute; right: 64px; top: -36px; display: flex; align-items: center; justify-content: center; width: 72px; height: 72px; background: var(--yellow); border: 1px solid var(--yellow); }
+    .copyright { padding: 0 16px; font-size: 14px; line-height: 21px; color: var(--muted); }
+    .copyright p { margin-bottom: 21px; }
+    .copyright p:last-child { margin-bottom: 0; }
+    .copyright a { border-bottom: 1px solid var(--muted); }
+
+    @media (max-width: 1023px) {
+      .main-nav { display: none; }
+      .burger { display: flex; align-items: center; justify-content: center; width: 48px; margin-left: 16px; background: none; border: 0; cursor: pointer; }
+      .logo { padding-left: 8px; }
+    }
+    @media (max-width: 767px) {
+      .app { padding: 0 8px; }
+      .site-header { height: 64px; }
+      .burger { display: flex; align-items: center; justify-content: center; width: 48px; margin-left: 0; background: none; border: 0; }
+      .logo { padding: 0 0 0 8px; }
+      .search { width: 77px; border-left: 1px solid var(--line); }
+      .login { width: 114px; }
+      .hero-module { padding-top: 80px; }
+      .breadcrumb { display: none; }
+      .hero-image { left: -19px; width: 411px; height: 264px; }
+      .hero-image img { left: 0; width: 411px; height: 432px; }
+      .hero-panel { width: auto; margin-top: 96px; padding: 32px 0; border-top: 6px solid var(--yellow); }
+      .hero-content { border-left: 0; padding: 0 24px; }
+      .hero h1 { font-size: 32px; line-height: 40px; }
+      .field-row { grid-template-columns: 1fr; gap: 0; }
+      .btn-primary { width: 100%; }
+      .anchor-nav { display: none; }
+      .drop-down { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 72px; padding: 24px; margin-bottom: 1px; border: 0; background: var(--ink-2); color: #fff; font: 400 16px/24px var(--font); text-align: left; cursor: pointer; }
+      .drop-down svg { transition: transform .2s; }
+      .drop-down[aria-expanded="true"] svg { transform: rotate(180deg); }
+      .acc-body { display: none; }
+      .acc-body.open { display: block; }
+      .module, .howto, .help { display: block; padding: 48px 24px; }
+      .module.divider::after { left: 24px; width: calc(100% - 48px); }
+      .module h2 { font-size: 24px; line-height: 32px; }
+      .head-col, .body-col, .why .body-col, .split-2 > div, .howto .full, .cols-4 > div, .split50 .text { width: auto; }
+      .body-col { padding-left: 0; }
+      .why { padding-left: 24px; }
+      .split-2, .cols-4 { display: block; }
+      .split-2 > div + div { margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--line); }
+      .split-2.vline > div:first-child::after { display: none; }
+      .cols-4 .shot { width: 100%; height: auto; }
+      .split50 { display: block; padding: 39px 24px 48px; }
+      .split50 .media, .split50 .media.img-missing { width: 100%; height: 193px; margin: 0 0 32px; }
+      .split50 .text { margin-left: 0; padding-top: 0; }
+      .split50 h2 { margin-bottom: 40px; }
+      .help ul { display: block; }
+      .help li { width: auto; min-height: 0; border-right: 0; padding: 24px 0 32px; border-bottom: 1px solid var(--line); }
+      .help li + li { padding-left: 0; }
+      .help li:last-child { border-bottom: 0; }
+      .footer .container { padding: 24px 24px; }
+      .footer-row { display: block; }
+      .footer-col { width: auto; }
+      .to-top { right: 16px; top: -36px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mobileMenu"><svg width="18" height="14" viewBox="0 0 18 14" fill="none"><path d="M0 1h18M0 7h18M0 13h18" stroke="#231f20" stroke-width="1.6"/></svg></button>
+    <a href="#" class="logo" aria-label="CommBank home">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 1.5 38.5 20 20 38.5 1.5 20z" fill="#ffcc00"/><path d="M38.5 20 20 38.5l-3.2-3.2L35.3 16.8z" fill="#231f20" opacity=".85"/><path d="M20 1.5 38.5 20l-3.2 3.2L16.8 4.7z" fill="#fff36b" opacity=".6"/></svg>
+    </a>
+    <ul class="main-nav">
+      <li><a href="#">Banking</a></li>
+      <li><a href="#">Home loans</a></li>
+      <li><a href="#">Insurance</a></li>
+      <li><a href="#">Investing &amp; Super</a></li>
+      <li><a href="#">Business</a></li>
+      <li><a href="#">Institutional</a></li>
+      <li><a href="#">CommBank Yello</a></li>
+    </ul>
+    <ul class="mobile-menu" id="mobileMenu" hidden>
+      <li><a href="#">Banking</a></li>
+      <li><a href="#">Home loans</a></li>
+      <li><a href="#">Insurance</a></li>
+      <li><a href="#">Investing &amp; Super</a></li>
+      <li><a href="#">Business</a></li>
+      <li><a href="#">Institutional</a></li>
+      <li><a href="#">CommBank Yello</a></li>
+    </ul>
+    <div class="header-right">
+      <a href="#" class="search" aria-label="Search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="9.5" cy="9.5" r="8" stroke="#231f20" stroke-width="1.6"/><path d="M15.5 15.5 23 23" stroke="#231f20" stroke-width="1.6"/></svg></a>
+      <a href="#" class="login"><svg width="16" height="20" viewBox="0 0 16 20" fill="none"><rect x="1" y="8.5" width="14" height="10.5" rx="1" stroke="#231f20" stroke-width="1.6"/><path d="M4 8.5V5a4 4 0 0 1 8 0v3.5" stroke="#231f20" stroke-width="1.6"/></svg><span>Log on</span></a>
+    </div>
+  </header>
+
+  <div class="app">
+    <div class="container hero">
+      <div class="hero-module">
+        <p class="breadcrumb"><a href="#">Digital Banking</a> / <span>PayID</span></p>
+        <div class="hero-image"><img src="https://www.commbank.com.au/content/dam/commbank-assets/banking/online/2017-10/pay-id_lghero.jpg" alt="" onerror="fb(this)"></div>
+        <div class="hero-panel">
+          <div class="hero-content">
+            <h1>PayID<sup>&reg;</sup></h1>
+            <h3>Enjoy fast, secure payments anytime with PayID.</h3>
+            <p>Set up your mobile number or email address as your PayID in a few taps, search &lsquo;PayID&rsquo; in the CommBank app.</p>
+
+            <div class="pay-form">
+              <h4>Pay someone with PayID</h4>
+              <form id="transferForm">
+                <div class="field-row">
+                  <div class="field"><label for="fromAccount">From</label><select id="fromAccount"><option value="ACCT-1001">Smart Access &mdash; 06 2000 1234 5678</option><option value="ACCT-1002">NetBank Saver &mdash; 06 2000 8765 4321</option></select></div>
+                  <div class="field"><label for="toAccount">To</label><select id="toAccount"><option value="ACCT-EXT-001">PayID &mdash; 0412 345 678 (Tom Ford)</option><option value="ACCT-1002">My NetBank Saver</option><option value="ACCT-1001">My Smart Access</option></select></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label for="amount">Amount ($)</label><input type="number" id="amount" value="250" min="1" step="0.01" inputmode="decimal"></div>
+                  <div class="field"><label for="accountTier">Customer type</label><select id="accountTier"><option value="standard">Everyday banking</option><option value="premium">CommBank Private Bank</option><option value="basic">Youthsaver</option></select></div>
+                </div>
+                <button type="submit" class="btn-primary" id="submitBtn">Pay now</button>
+              </form>
+              <div id="result" class="result-box"></div>
+              <p class="form-note">First time payments to a new payee may be held for up to 24 hours as a security measure.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container content">
+      <nav class="anchor-nav" aria-label="On this page">
+        <ul>
+          <li class="active"><a href="#what-is-payid">What is PayID?</a></li>
+          <li><a href="#what-is-osko">What is Osko&reg;?</a></li>
+          <li><a href="#why-use-payid">Why use PayID?</a></li>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#get-started">Get started</a></li>
+        </ul>
+      </nav>
+
+      <button class="drop-down" aria-expanded="false" data-acc="acc1">What is PayID?<svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1l6 6 6-6" stroke="#fff" stroke-width="1.6"/></svg></button>
+      <div class="acc-body" id="acc1">
+        <div class="module divider" id="what-is-payid">
+          <div class="head-col"><h2>What is PayID?</h2></div>
+          <div class="body-col">
+            <div class="item-line">
+              <h3>Send quick and easy payments in real time<sup>1</sup></h3>
+              <ul class="bul">
+                <li>PayID is a memorable piece of information such as your mobile number or email address, that you can link to your bank account to receive payments</li>
+                <li>Once linked, you can simply provide your PayID for payments instead of handing out your BSB and account number</li>
+                <li>If you need to pay someone who has registered for PayID, you&rsquo;ll only need their PayID to transfer money directly into their bank account</li>
+              </ul>
+            </div>
+            <p><b>Are you a business owner?</b> Learn how you can quickly, easily and securely receive payments from customers with PayID. <a href="#" class="lnk">Explore PayID for small business</a>.</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="drop-down" aria-expanded="false" data-acc="acc2">What is Osko&reg;?<svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1l6 6 6-6" stroke="#fff" stroke-width="1.6"/></svg></button>
+      <div class="acc-body" id="acc2">
+        <div class="module" id="what-is-osko">
+          <div class="head-col"><h2>What is an Osko<sup>&reg;</sup> payment?</h2></div>
+          <div class="body-col">
+            <ul class="bul">
+              <li>Osko by BPAY<sup>&reg;</sup> is a secure payment service which enables you to send and receive near real-time payments on the New Payments Platform</li>
+              <li>The service is available within the CommBank app</li>
+              <li>You won&rsquo;t need to look for Osko<sup>&reg;</sup>, as you&rsquo;ll automatically be using the service when it is available</li>
+              <li>When you send or receive a payment you may see the Osko<sup>&reg;</sup> logo in your payment confirmation or account transaction history. This indicates that the payment was sent via the New Payments Platform (NPP) infrastructure using Osko<sup>&reg;</sup>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <button class="drop-down" aria-expanded="false" data-acc="acc3">Why use PayID?<svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1l6 6 6-6" stroke="#fff" stroke-width="1.6"/></svg></button>
+      <div class="acc-body" id="acc3">
+        <div class="module why" id="why-use-payid">
+          <div class="body-col">
+            <h2>Why use PayID?</h2>
+            <p>Transfer money to friends and family using their PayID as quickly and easily as you transfer money between your CommBank accounts.</p>
+            <ul class="bul">
+              <li>Fast: Near real-time<sup><a href="#" style="color:var(--link)">1</a></sup> payments across participating banks</li>
+              <li>Easy: Easier to remember than your BSB and account number</li>
+              <li>Mobile: Available through the CommBank app</li>
+              <li>Simple registration: A few clicks and you&rsquo;re ready</li>
+            </ul>
+            <p style="margin-top:16px">First time payments to a new payee may be held for up to 24 hours as a security measure.</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="drop-down" aria-expanded="false" data-acc="acc4">How it works<svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1l6 6 6-6" stroke="#fff" stroke-width="1.6"/></svg></button>
+      <div class="acc-body" id="acc4">
+        <div class="module divider" id="how-it-works" style="padding-top:64px">
+          <div class="head-col"><h2>How it works</h2></div>
+          <div class="body-col">
+            <div class="split-2">
+              <div>
+                <a href="#" class="h3">Use PayID to receive money</a>
+                <p>To receive payments you&rsquo;ll need to register your mobile number or email address as a PayID using the CommBank app or NetBank. It only takes a couple of minutes.</p>
+                <p>Friends and family will then be able to pay you through their own bank&rsquo;s mobile or internet banking using your PayID.</p>
+                <p style="margin-top:32px"><a href="#" class="lnk">Tell me more</a></p>
+              </div>
+              <div>
+                <a href="#" class="h3">Use PayID to send money</a>
+                <p>To send payments to someone else, they just need to provide you with their PayID.</p>
+                <p>This may be their mobile number however other <a href="#" class="lnk">PayID types</a> may include email, ABN, ACN and landline phone number, depending on their bank.</p>
+                <p style="margin-top:32px"><a href="#" class="lnk">Tell me more</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="drop-down" aria-expanded="false" data-acc="acc5">Get started<svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1l6 6 6-6" stroke="#fff" stroke-width="1.6"/></svg></button>
+      <div class="acc-body" id="acc5">
+        <div class="module divider" id="get-started">
+          <div class="head-col"><h2>Get started</h2></div>
+          <div class="body-col">
+            <b class="h3">What you need first:</b>
+            <ol class="steps">
+              <li>If you don't bank with us, open an <a href="#" class="lnk">eligible CommBank account</a> e.g. an <a href="#" class="lnk">everyday bank account</a></li>
+              <li>Download the <a href="#" class="lnk">CommBank app</a> and search &lsquo;PayID&rsquo; (or <a href="#" class="lnk">register for NetBank</a> and visit &lsquo;Settings&rsquo;)</li>
+            </ol>
+            <p>Joint personal account holders can link their own mobile number as a PayID to an eligible joint account.</p>
+            <div class="badges">
+              <a href="#" class="badge" aria-label="Download on the App Store"><svg width="20" height="24" viewBox="0 0 20 24" fill="#fff"><path d="M16.4 12.7c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.4-.8s2 .8 3.4.8c1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.8-1.1-2.8-4.1zM13.9 5.1c.7-.9 1.2-2 1-3.2-1 0-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.1 1.2.1 2.3-.6 3.1-1.5z"/></svg><span><small>Download on the</small><strong>App Store</strong></span></a>
+              <a href="#" class="badge" aria-label="Get it on Google Play"><svg width="22" height="24" viewBox="0 0 22 24"><path d="M1 1l11 11L1 23c-.4-.2-.6-.6-.6-1.1V2.1c0-.5.2-.9.6-1.1z" fill="#2196f3"/><path d="M16 8l-4 4-11-11c.3-.2.8-.2 1.2 0z" fill="#4caf50"/><path d="M16 16 2.2 23c-.4.2-.9.2-1.2 0l11-11z" fill="#f44336"/><path d="M21 10.5c.8.5.8 2.5 0 3L16 16l-4-4 4-4z" fill="#ffc107"/></svg><span><small>GET IT ON</small><strong>Google Play</strong></span></a>
+            </div>
+          </div>
+        </div>
+
+        <div class="module divider howto">
+          <div class="full">
+            <h2>How to register your PayID</h2>
+            <p>You can register your Australian mobile phone number<sup><a href="#" style="color:var(--link)">2</a></sup> or your email address as a PayID in the CommBank app or NetBank.</p>
+            <p><b>Are you a business owner?</b> You can register your ABN/ACN as a PayID to receive payments to your eligible CommBank business transaction accounts.&nbsp; <a href="#" class="lnk">Tell me more</a></p>
+            <p>A PayID can only be registered with a single bank, to one account, but an account may have multiple unique PayIDs. An alternative PayID e.g. email address or ABN, can be registered with another financial institution, or to another account.</p>
+            <div class="gap"></div>
+            <p><b>To register in NetBank:</b></p>
+            <p><b>1.&nbsp;&nbsp;&nbsp; Log onto NetBank select &lsquo;Settings&rsquo; from the menu</b></p>
+            <p><b>2.&nbsp;&nbsp;&nbsp; Under Payment Settings select &lsquo;PayID&rsquo;</b></p>
+            <p><b>3.&nbsp;&nbsp;&nbsp; Follow the prompts</b></p>
+            <p>You&rsquo;ll be asked to confirm your new PayID details and verify your mobile number or email address by entering the NetCode we&rsquo;ll send you. Once completed you&rsquo;ll receive an email confirming that your registration has been successful.</p>
+            <div class="gap"></div>
+            <p><b>To register in the CommBank app:</b></p>
+          </div>
+          <div class="cols-4">
+            <div><p><b>1. Log on to the app and select your 'Profile', then PayID' from the settings options</b></p><div><img class="shot" src="https://www.commbank.com.au/content/dam/commbank-assets/digital-banking/2024/manage-payID.jpg" alt="" loading="lazy" onerror="fb(this)"></div></div>
+            <div><p><b>2. Choose which type of PayID you&rsquo;d like to register. Then follow the prompts.</b></p><div><img class="shot" src="https://www.commbank.com.au/content/dam/commbank-assets/digital-banking/2018-11/PayID-register-2.jpg" alt="" loading="lazy" onerror="fb(this)"></div></div>
+            <div><p><b>3. Choose an account to link to your PayID</b></p><div><img class="shot" src="https://www.commbank.com.au/content/dam/commbank-assets/digital-banking/2017-02/PayID-register-3.png" alt="" loading="lazy" onerror="fb(this)"></div></div>
+            <div><p><b>4. Confirm the name others will see</b></p><p>You&rsquo;ll be asked to confirm your new PayID details and verify your mobile number or email address by entering the NetCode we&rsquo;ll send you. Once completed you&rsquo;ll receive an email confirming that your registration has been successful.</p><div><img class="shot" src="https://www.commbank.com.au/content/dam/commbank-assets/digital-banking/2017-02/PayID-register-4.png" alt="" loading="lazy" onerror="fb(this)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="module divider" id="safe-secure">
+        <div class="head-col"><h2>Safe &amp; secure</h2></div>
+        <div class="body-col">
+          <div class="split-2 vline">
+            <div>
+              <h3>Security features<sup style="font-size:15px">3</sup></h3>
+              <p>PayID is a key feature of the <a href="#" class="lnk">New Payments Platform</a> infrastructure designed to enable fast, safe payments between participating financial institutions. We&rsquo;ve been working with the other Australian banks to ensure that payments are just as secure as the payments you make today.&nbsp; In addition, CommBank customers benefit from a number of security features including:</p>
+              <ul class="bul">
+                <li>NetCode SMS or NetCode email notification for email address verification</li>
+                <li>Real-time fraud checks and holds to new payees</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Email safety</h3>
+              <p>You'll only be able to register a PayID for a CommBank account by first logging into the CommBank app or NetBank.</p>
+              <p>We will never send you emails asking you to confirm, update or disclose personal or banking information. If you receive an email that looks like it&rsquo;s from us that you believe may be a <a href="#" class="lnk">hoax</a>, please forward it as an attachment to <a href="#" class="lnk">hoax@cba.com.au</a></p>
+              <p><a href="#" class="lnk">Learn how to stay safe online</a></p>
+              <b class="h3" style="margin-top:0">How private is my PayID?</b>
+              <p>We won&rsquo;t disclose your mobile number or email address. The PayID name you choose may be displayed to someone when they make a payment to your PayID.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="split50 module divider">
+        <div class="media"><img src="https://www.commbank.com.au/content/dam/commbank-assets/support/2024/messaging-promo_50split.jpg" alt="" loading="lazy" onerror="fb(this)"></div>
+        <div class="text">
+          <h2>Message us 24/7</h2>
+          <p>Get instant help from Ceba in the CommBank app or connect with a specialist who can message you back. You&rsquo;ll need <a href="#" class="lnk">CommBank app</a> notifications turned on so you know when you&rsquo;ve received a reply.</p>
+          <a href="#" class="btn-secondary" style="margin-top:8px">Message us</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container lower">
+      <div class="module divider help">
+        <h2>We're here to help</h2>
+        <ul>
+          <li><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/questions_feedback_pictograms.svg" alt="" loading="lazy" onerror="fb(this)"><div class="c"><h3>Message us</h3><p>Ceba can help you lock your card or securely connect you to a specialist in the CommBank app.</p></div></li>
+          <li><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/mobile_call_us_pictograms.svg" alt="" loading="lazy" onerror="fb(this)"><div class="c"><h3>Contact us</h3><p>Fast-track your call, see expected wait times and connect with a specialist in the CommBank app.</p></div></li>
+          <li><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/email_pictograms.svg" alt="" loading="lazy" onerror="fb(this)"><div class="c"><h3>Report an email or SMS</h3><p>Send us a copy or screenshot if you receive a hoax email or SMS.</p></div></li>
+        </ul>
+      </div>
+      <div class="module">
+        <div class="head-col"><h2>Things you should know</h2></div>
+        <div class="body-col">
+          <p>There are four types of PayID: phone number, email address, ABN/ACN and organisational ID. We offer mobile number and email address as PayID via NetBank and the CommBank app. Our business customers can register an <a href="#" class="lnk">ABN/ACN PayID</a> by contacting us.</p>
+          <p><sup>1</sup> For security reasons, a hold may apply on first time payments. The delay allows fraud security checks to take place and gives you time to alert us to unauthorised or suspicious activity on your account. Subsequent payments should be received in under a minute.</p>
+          <p><sup>2</sup> To prevent fraud we can only allow you to register the primary mobile number already linked to your CommBank customer profile. If you&rsquo;d like to use a different mobile number or need to update your details please call 13 2221.</p>
+          <p><sup>3</sup> Protecting you is our priority and for security reasons, we may block certain payments.</p>
+          <p>&reg; Registered to BPAY Pty Ltd. ABN 69 079 137 518</p>
+          <p>PayID<sup>&reg;</sup> is a registered trademark of NPP Australia Limited.</p>
+          <p>View our full terms and conditions here: <a href="#" class="lnk">www.commbank.com.au/digital-banking/pay-id/terms-and-conditions</a>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-nav">
+      <a href="#" class="to-top" aria-label="Back to top"><svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 7l6-6 6 6" stroke="#231f20" stroke-width="1.6"/></svg></a>
+      <div class="footer-row">
+        <div class="footer-col"><h4>Quick links</h4><ul><li><a href="#">Security &amp; scams</a></li><li><a href="#">Help &amp; support</a></li><li><a href="#">Financial assistance</a></li><li><a href="#">Complaints &amp; compliments</a></li><li><a href="#">Accessibility</a></li></ul></div>
+        <div class="footer-col"><h4>About us</h4><ul><li><a href="#">About CommBank</a></li><li><a href="#">Careers at CommBank</a></li><li><a href="#">Sustainability</a></li><li><a href="#">Newsroom</a></li><li><a href="#">Investor centre</a></li></ul></div>
+        <div class="footer-col"><h4>Important information</h4><ul><li><a href="#">Important documents</a></li><li><a href="#">Banking Code of Practice</a></li><li><a href="#">Cookies policy</a></li><li><a href="#">Privacy statement</a></li><li><a href="#">Modern Slavery Statement</a></li></ul></div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="copyright">
+        <p>CommBank acknowledges the <a href="#">Traditional Owners</a> of the lands across Australia as the continuing custodians of Country and Culture. We pay our respect to First Nations peoples and their Elders, past and present.</p>
+        <p>&copy;2026 Commonwealth Bank of Australia ABN 48 123 123 124 AFSL and Australian credit licence 234945</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var burger = document.querySelector('.burger');
+      var menu = document.getElementById('mobileMenu');
+      burger.addEventListener('click', function () {
+        var open = menu.hidden;
+        menu.hidden = !open;
+        burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      window.matchMedia('(min-width: 1024px)').addEventListener('change', function (mq) {
+        if (mq.matches) { menu.hidden = true; burger.setAttribute('aria-expanded', 'false'); }
+      });
+    })();
+    document.querySelectorAll('.drop-down').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var body = document.getElementById(b.dataset.acc);
+        var open = body.classList.toggle('open');
+        b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    });
+    function esc(v) { return String(v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function money(v) { return '$' + Number(v).toFixed(2); }
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const from = document.getElementById('fromAccount');
+      btn.disabled = true; btn.textContent = 'Processing payment...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: from.value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">We couldn't complete this payment</div><div class="error-detail">${esc(data.errorClass)}: ${esc(data.error)}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Payment sent</div><div class="error-detail">${money(data.debitAmount)} debited from ${esc(from.options[from.selectedIndex].text.split(' \u2014 ')[0])}.</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Connection error</div><div class="error-detail">${esc(err.message)}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Pay now'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

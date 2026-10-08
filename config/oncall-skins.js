@@ -3073,6 +3073,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A ITAÚ SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Itaú product.',
   },
+  '2bd11ef7': {
+    slug: '2bd11ef7',
+    company: 'Commonwealth Bank Australia',
+    vertical: 'banking',
+    page: {
+      file: '2bd11ef7.html',
+      title: 'PayID - CommBank',
+    },
+    disclaimer: 'NOT ACTUALLY A COMMONWEALTH BANK AUSTRALIA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Commonwealth Bank Australia product.',
+  },
 };
 
 function getOncallSkin(slug) {
