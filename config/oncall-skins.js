@@ -3032,6 +3032,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A CIGNA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cigna Healthcare product.',
   },
+  '7630d5fd': {
+    slug: '7630d5fd',
+    company: 'Itaú',
+    vertical: 'banking',
+    page: {
+      file: '7630d5fd.html',
+      title: 'Pix Itaú: transfira e receba dinheiro qualquer dia da semana',
+    },
+    disclaimer: 'NOT ACTUALLY A ITAÚ SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Itaú product.',
+  },
 };
 
 function getOncallSkin(slug) {
