@@ -437,7 +437,24 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
  * scenario's monitor-shaped facts — the same signal a human responder gets —
  * so no code locations, and no request-derived text, reach the session.
  */
-function buildOncallSessionPrompt(scenario, skin, runRef) {
+const SLACK_MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
+const SLACK_CHANNEL_ID_RE = /^[A-Z0-9]{1,32}$/i;
+const SLACK_TS_RE = /^\d{1,16}\.\d{1,9}$/;
+
+function notifySlackMemberParagraph(memberId, channel, threadTs) {
+  const mention = `<@${memberId}>`;
+  return [
+    'Progress updates for the on-call engineer: reply in the Slack alert thread above twice — '
+      + `(1) as soon as the root cause is confirmed, post ${mention} + the root cause in ≤3 lines; `
+      + `(2) as soon as the fix PR is open, post ${mention} + the PR link + one line on how you verified. `
+      + 'Post with `curl -s -X POST https://slack.com/api/chat.postMessage -H "Authorization: Bearer $SLACK_ONCALL_BOT_TOKEN" '
+      + `-H 'Content-Type: application/json' -d '{"channel":"${channel}","thread_ts":"${threadTs}","text":"..."}'\` `
+      + '(fall back to `$COG_GTM_DEMO_SLACK_BOT_TOKEN`; both are org secrets available as env vars in the triage session — never print them). '
+      + 'If neither token is set, use the Devin `slack` tool with `thread_ts`.',
+  ].join('');
+}
+
+function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs } = {}) {
   const lines = [
     `A Datadog monitor is firing on ${scenario.service}. Investigate it and open a PR with the fix.`,
     '',
@@ -460,6 +477,18 @@ function buildOncallSessionPrompt(scenario, skin, runRef) {
   ) {
     lines.push('');
     lines.push(skin.devinSession.promptAppendix);
+  }
+
+  const hasThread = SLACK_CHANNEL_ID_RE.test(channel || '') && SLACK_TS_RE.test(threadTs || '');
+  if (hasThread) {
+    lines.push('');
+    lines.push(`*Slack Thread:* channel=${channel} thread_ts=${threadTs}`);
+  }
+
+  const notifyId = skin.devinSession && skin.devinSession.notifySlackMemberId;
+  if (hasThread && typeof notifyId === 'string' && SLACK_MEMBER_ID_RE.test(notifyId)) {
+    lines.push('');
+    lines.push(notifySlackMemberParagraph(notifyId, channel, threadTs));
   }
 
   return lines.join('\n');
@@ -526,7 +555,7 @@ async function triggerSkinDevinSession(
   const release = reserveSession();
   let session = null;
   try {
-    session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef), {
+    session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs }), {
       ...resolveSessionIdentity(requester, config),
       apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
       title: `[On-Call] ${scenario.monitor}`,
