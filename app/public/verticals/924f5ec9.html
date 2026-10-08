@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sharetec | Credit Union Core &amp; Digital Banking Platform</title>
+  <link rel="icon" href="https://cdn.prod.website-files.com/6a6cd1be72f3058b12660c33/6a903eaa3877864d78761efe_Favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Unbounded:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --navy: #06175f; --navy-2: #0b2a7a; --mint: #00c899; --mint-flood: #13dab1; --mint-soft: #e6faf5; --tangerine: #ff7b3e; --ink: #1d2433; --muted: #5d6c7b; --line: #dfe3ea; --st-blue: #2f8fca; --st-head: #e8f1f8; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', Arial, sans-serif; color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.5; }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    .wrap { max-width: 1290px; margin: 0 auto; padding: 0 56px; }
+    .display { font-family: 'Unbounded', Impact, sans-serif; letter-spacing: -.02em; }
+
+    /* util bar + header */
+    .util { background: var(--navy); color: #fff; font-size: 14px; font-weight: 600; }
+    .util .wrap { display: flex; justify-content: flex-end; align-items: center; gap: 24px; height: 40px; }
+    .util svg { width: 16px; height: 16px; }
+    header.main { background: #fff; position: sticky; top: 0; z-index: 30; }
+    header.main .wrap { display: flex; align-items: center; height: 82px; }
+    .logo { height: 30px; width: auto; }
+    .logo-fallback { display: none; font-size: 26px; font-weight: 600; color: var(--navy); }
+    nav.primary { margin-left: auto; display: flex; align-items: center; gap: 36px; font-size: 14px; font-weight: 600; color: var(--navy); }
+    nav.primary a { display: flex; align-items: center; gap: 8px; }
+    nav.primary a svg { width: 10px; height: 10px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: var(--tangerine); color: #fff; border: 0; border-radius: 999px; padding: 11px 18px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: background .15s, transform .15s; }
+    .pill:hover { background: #f2691f; }
+    .pill:disabled { opacity: .7; cursor: progress; }
+    .link-arrow { display: inline-flex; align-items: center; gap: 12px; color: #fff; font-weight: 600; font-size: 16px; }
+
+    /* hero */
+    .hero { position: relative; border-radius: 12px; overflow: hidden; min-height: 520px; color: #fff; background: #0a1b4d url('https://cdn.prod.website-files.com/6a6cd1be72f3058b12660c33/6a7b28c7fa59a4fc25d8fc90_HeroBG.avif') center / cover no-repeat; display: flex; align-items: center; }
+    .hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(6,23,95,.88) 0%, rgba(6,23,95,.55) 30%, rgba(6,23,95,0) 52%); }
+    .hero-inner { position: relative; z-index: 1; padding: 64px 44px; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; }
+    .hero-copy { max-width: 380px; }
+    .hero h1 { font-size: 46px; line-height: 1.16; font-weight: 300; margin-bottom: 26px; }
+    .hero h1 b { font-weight: 800; }
+    .hero p { font-size: 16px; line-height: 1.5; font-weight: 500; }
+    .hero-actions { display: flex; align-items: center; gap: 26px; margin-right: 170px; }
+
+    /* stats */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 44px 16px 60px; }
+    .stat-card { border: 2px solid #c9f3e7; border-radius: 6px; padding: 30px 36px 40px; box-shadow: 0 4px 0 #9fe9d3; }
+    .stat-card b { display: block; font-family: 'Unbounded', sans-serif; font-weight: 800; color: var(--navy); font-size: 28px; line-height: 1.15; margin-bottom: 20px; letter-spacing: -.02em; }
+    .stat-card p { font-size: 13px; color: var(--navy); }
+    .stat-card p strong { font-weight: 700; }
+
+    /* tour / member console */
+    .tour { border-radius: 12px; padding: 52px 44px 44px; background: linear-gradient(180deg, #071a63 0%, #04446e 35%, #00a08b 75%, #00c899 100%); position: relative; overflow: hidden; }
+    .tour::after { content: ""; position: absolute; inset: 0; background: url('https://cdn.prod.website-files.com/6a6cd1be72f3058b12660c33/6a7b19b149d7fc9b2d014516_BG-lines.avif') center / cover no-repeat; opacity: .35; pointer-events: none; }
+    .tour > * { position: relative; z-index: 1; }
+    .tour h2 { text-align: center; color: #fff; font-size: 24px; font-weight: 600; margin-bottom: 34px; }
+    .tour-tabs { display: flex; }
+    .tour-tabs button { width: 308px; display: flex; align-items: center; gap: 56px; padding: 16px 26px; border: 0; border-radius: 10px 10px 0 0; font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 20px; cursor: pointer; background: var(--navy); color: #fff; }
+    .tour-tabs button.on { background: #fff; color: var(--navy); }
+    .tour-tabs svg { width: 22px; height: 22px; }
+    .tour-panel { background: #fff; border-radius: 0 10px 10px 10px; padding: 32px; }
+    .console { border: 1px solid #cfd6ea; border-radius: 10px; overflow: hidden; box-shadow: 0 6px 24px rgba(6,23,95,.08); font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #222; background: #fff; position: relative; }
+    .c-bar { display: flex; align-items: center; gap: 12px; height: 54px; padding: 0 18px; border-bottom: 3px solid #d7dbe1; }
+    .c-bar .burger { width: 18px; color: #777; }
+    .c-bar .c-logo { height: 22px; }
+    .c-search { display: flex; align-items: center; gap: 8px; margin-left: 60px; }
+    .c-search .box { display: flex; align-items: center; border: 1px solid #cfd3d8; border-radius: 4px; height: 32px; padding: 0 8px; gap: 6px; width: 200px; }
+    .c-search input { border: 0; outline: 0; font: inherit; font-size: 12px; flex: 1; }
+    .c-search select { height: 32px; border: 1px solid #cfd3d8; border-radius: 4px; font: inherit; font-size: 12px; padding: 0 6px; color: #333; background: #fff; }
+    .c-search .go { height: 32px; border: 0; border-radius: 4px; background: var(--st-blue); color: #fff; font: inherit; font-size: 12px; font-weight: 700; padding: 0 14px; cursor: pointer; }
+    .c-search .go:disabled { opacity: .65; cursor: progress; }
+    .c-bar .add { color: var(--st-blue); margin-left: 6px; white-space: nowrap; }
+    .c-bar .right { margin-left: auto; display: flex; align-items: center; gap: 12px; color: #2f5d8a; white-space: nowrap; flex-shrink: 0; }
+    .c-bar .right svg { width: 18px; height: 18px; }
+    .c-body { background: #f4f5f7; padding: 16px 22px 22px; min-height: 420px; }
+    .c-member { display: flex; gap: 24px; padding: 6px 0 14px; }
+    .c-member > div:nth-child(2) { flex: 1; min-width: 0; }
+    .avatar { width: 74px; height: 74px; border-radius: 4px; background: linear-gradient(135deg, #3d4a5c, #8a97a8); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; }
+    .avatar-links { text-align: center; color: var(--st-blue); font-size: 11px; line-height: 2; margin-top: 4px; }
+    .c-member h3 { color: var(--st-blue); font-size: 18px; font-weight: 400; margin-bottom: 6px; }
+    .c-member .addr { font-size: 11px; line-height: 1.4; margin-bottom: 10px; }
+    .c-fields { display: grid; grid-template-columns: repeat(4, 160px); gap: 4px 0; font-size: 11px; }
+    .c-fields b { font-weight: 700; display: block; margin-bottom: 8px; }
+    .c-summary { margin-left: auto; display: grid; grid-template-columns: repeat(2, 128px); gap: 8px; align-self: flex-start; flex-shrink: 0; }
+    .c-summary div { background: #fff; border: 1px solid #e1e4e8; border-radius: 4px; padding: 8px 12px; }
+    .c-summary small { display: block; color: #6b7480; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
+    .c-summary span { font-size: 15px; font-weight: 700; color: #1e3550; }
+    .c-tabs { display: flex; align-items: center; background: #fff; border: 1px solid #e1e4e8; padding: 0 16px; }
+    .c-tabs button { border: 0; background: none; font: inherit; font-size: 12px; font-weight: 700; color: #222; padding: 14px 13px 12px; border-bottom: 3px solid transparent; cursor: pointer; }
+    .c-tabs button.on { color: var(--st-blue); border-color: var(--st-blue); }
+    .c-tabs button .count { display: inline-block; min-width: 16px; margin-left: 4px; padding: 0 4px; border-radius: 8px; background: #e8eef4; color: #46607a; font-size: 10px; }
+    .c-tabs .tx { margin-left: auto; background: var(--st-blue); color: #fff; border-radius: 2px; padding: 8px 16px; font-weight: 700; }
+    .sec { background: #fff; border: 1px solid #e1e4e8; border-top: 0; }
+    .sec-head { display: flex; align-items: center; gap: 14px; background: var(--st-head); padding: 7px 16px; font-weight: 700; font-size: 12px; }
+    .sec-head .caret { color: #6c7a89; font-size: 9px; }
+    .sec-head .cfg { margin-left: auto; display: flex; gap: 8px; }
+    .sec-head .cfg span { background: #fff; border: 1px solid #cfd3d8; border-radius: 3px; padding: 4px 26px 4px 6px; font-weight: 400; font-size: 11px; position: relative; }
+    .sec-head .cfg span::after { content: "\25BE"; position: absolute; right: 7px; top: 3px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-weight: 400; font-size: 11px; padding: 9px 8px; border-bottom: 1px solid #e1e4e8; border-right: 1px solid #f0f1f3; color: #222; }
+    th::after { content: " \25BE"; font-size: 9px; color: #666; }
+    th.nosort::after { content: ""; }
+    td { padding: 8px; border-bottom: 1px solid #eef0f2; font-size: 11px; }
+    td.num { text-align: right; }
+    td a, td .lnk { color: var(--st-blue); }
+    td .inp { height: 26px; border: 1px solid #cfd3d8; border-radius: 3px; background: #fff; }
+    td .inp.off { background: #f3f4f6; }
+    td.dots { color: #666; text-align: center; letter-spacing: 1px; font-weight: 700; }
+    tr.rel td { color: var(--st-blue); padding-left: 44px; background: #fff; border-top: 1px solid #e1e4e8; }
+    tr.rel td span { color: #6c7a89; font-size: 9px; margin-right: 18px; }
+    .muted-row td { color: #8a94a0; font-style: italic; text-align: center; padding: 16px; }
+    .generic { padding: 14px 16px; }
+    .generic li { list-style: none; display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid #eef0f2; }
+    .generic li:last-child { border-bottom: 0; }
+    .generic li b { color: #1e3550; }
+    .generic li small { color: #6b7480; display: block; }
+    .empty { padding: 70px 20px; text-align: center; color: #5b6672; }
+    .empty b { display: block; font-size: 15px; color: #1e3550; margin-bottom: 6px; }
+    .loading { position: absolute; inset: 57px 0 0 0; background: rgba(244,245,247,.86); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; z-index: 5; color: #1e3550; font-size: 13px; }
+    .loading.on { display: flex; }
+    .spinner { width: 38px; height: 38px; border-radius: 50%; border: 4px solid #cfe2f1; border-top-color: var(--st-blue); animation: spin .8s linear infinite; }
+    .loading .ledger-ticker { font-size: 11px; color: #5b6672; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .banner { display: none; align-items: center; gap: 10px; margin: 0 0 12px; padding: 10px 14px; border-radius: 4px; background: #e7f7ef; border: 1px solid #a7e2c6; color: #145c3c; font-size: 12px; }
+    .banner.on { display: flex; }
+    .banner code { font-family: inherit; font-weight: 700; }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 60; max-width: 380px; background: #fff; border-left: 4px solid #d93a3a; box-shadow: 0 10px 30px rgba(0,0,0,.18); border-radius: 6px; padding: 14px 18px; font-size: 14px; transform: translateY(140%); opacity: 0; visibility: hidden; transition: transform .25s, opacity .25s, visibility .25s; }
+    .toast.on { transform: none; opacity: 1; visibility: visible; }
+    .toast b { display: block; color: #a32020; margin-bottom: 2px; }
+    .otg { display: none; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; padding: 30px 40px; }
+    .otg.on { display: grid; }
+    .otg h3 { font-family: 'Unbounded', sans-serif; color: var(--navy); font-size: 26px; font-weight: 700; margin-bottom: 14px; }
+    .otg p { color: var(--muted); margin-bottom: 18px; }
+
+    /* built for */
+    .built { margin-top: 90px; background: var(--mint-soft); border-radius: 12px; padding: 70px 44px 44px; text-align: center; }
+    .built h2 { font-size: 40px; font-weight: 700; color: var(--navy); max-width: 620px; margin: 0 auto 18px; line-height: 1.2; }
+    .built > p { max-width: 650px; margin: 0 auto 46px; font-size: 15px; color: #3f4756; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 44px; text-align: left; }
+    .card { border-radius: 12px; min-height: 360px; padding: 70px 40px; color: #fff; background: url('https://cdn.prod.website-files.com/6a6cd1be72f3058b12660c33/6a7c9f7af750192b49b48459_circles.svg') right top / 120% no-repeat, linear-gradient(160deg, #13dab1 0%, #04608a 45%, #06175f 100%); }
+    .card:nth-child(2) { background: url('https://cdn.prod.website-files.com/6a6cd1be72f3058b12660c33/6a7c9f7af750192b49b48459_circles.svg') left top / 120% no-repeat, linear-gradient(200deg, #13dab1 0%, #04608a 40%, #06175f 100%); }
+    .card h4 { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 21px; line-height: 1.3; margin-bottom: 12px; }
+    .card p { font-size: 16px; line-height: 1.5; }
+
+    /* switch */
+    .switch { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; padding: 90px 110px; }
+    .switch h2 { font-size: 34px; font-weight: 700; color: var(--navy); line-height: 1.2; margin-bottom: 26px; }
+    .switch p { color: #4b5563; font-size: 16px; margin-bottom: 22px; }
+
+    /* cta */
+    .cta { border-radius: 12px; overflow: hidden; position: relative; color: #fff; padding: 56px 44px; min-height: 340px; background: #2a2f3a url('https://cdn.prod.website-files.com/6a6cd1be72f3058b12660c33/6a7cac953a710d8a5594338c_HomeCTABG.avif') center / cover no-repeat; }
+    .cta::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,20,40,.55), rgba(10,20,40,0) 60%); }
+    .cta > * { position: relative; }
+    .cta h2 { font-size: 40px; font-weight: 700; line-height: 1.15; max-width: 470px; margin-bottom: 14px; }
+    .cta p { max-width: 520px; font-size: 16px; margin-bottom: 26px; }
+
+    footer { background: var(--navy); color: #fff; margin-top: 44px; padding: 52px 0 20px; font-size: 13px; }
+    .foot { display: grid; grid-template-columns: 1.6fr repeat(4, auto); gap: 40px; }
+    .foot h5 { color: var(--mint); font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+    .foot li { list-style: none; margin-bottom: 12px; }
+    .foot .support { color: var(--tangerine); font-weight: 600; }
+    .foot .brand img { height: 36px; margin-bottom: 30px; }
+    .legal { display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,.7); margin-top: 30px; padding-top: 18px; font-size: 12px; }
+    @media (max-width: 1100px) { .c-search { margin-left: 20px; } .c-fields { grid-template-columns: repeat(2, 160px); } .hero-actions { margin-right: 0; } }
+    @media (max-width: 860px) { .wrap { padding: 0 18px; } nav.primary { display: none; } .stats, .cards, .switch, .otg { grid-template-columns: 1fr; } .switch { padding: 60px 0; } .hero-inner { flex-direction: column; align-items: flex-start; } .console { overflow-x: auto; } .c-bar, .c-body { min-width: 980px; } .tour { padding: 36px 14px; } .tour-tabs button { width: auto; gap: 16px; font-size: 15px; } }
+  </style>
+</head>
+<body>
+  <div class="util"><div class="wrap"><a href="#">Conference</a><a href="#">Resources</a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div></div>
+  <header class="main"><div class="wrap">
+    <a href="#top"><img class="logo" src="https://cdn.prod.website-files.com/6a6cd1be72f3058b12660c33/6a7b1d9010b4acbaf76fa0c7_Sharetec%20Logo.svg" alt="Sharetec" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="logo-fallback">sharetec</span></a>
+    <nav class="primary">
+      <a href="#velocity">What We Offer <svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></a>
+      <a href="#built">Why Sharetec <svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></a>
+      <a href="#switch">Insights <svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></a>
+      <a class="pill" href="#contact">Customer Support</a>
+    </nav>
+  </div></header>
+
+  <main class="wrap" id="top">
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <h1 class="display">Technology at the <b>heart of your credit union.</b></h1>
+          <p>For more than 30 years, Sharetec has united everything a credit union runs on into one connected core—with the digital experience members expect, built by people who know this industry.</p>
+        </div>
+        <div class="hero-actions">
+          <a class="pill" href="#contact">Talk to Us</a>
+          <a class="link-arrow" href="#velocity">Request a Demo <svg width="14" height="14" viewBox="0 0 14 14"><path d="M1 7h11M8 3l4 4-4 4" stroke="#fff" stroke-width="1.8" fill="none"/></svg></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="stat-card"><b>72%</b><p><strong>of new customers</strong> switched to Sharetec from legacy core providers</p></div>
+      <div class="stat-card"><b>Growing Market Share</b><p>against incumbent platforms</p></div>
+      <div class="stat-card"><b>30+</b><p><strong>years</strong> dedicated exclusively to credit unions</p></div>
+    </section>
+
+    <section class="tour" id="velocity">
+      <h2 class="display">Take an interactive tour of each solution below.</h2>
+      <div class="tour-tabs">
+        <button class="on" data-tour="velocity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg>Velocity</button>
+        <button data-tour="otg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>On-the-Go</button>
+      </div>
+      <div class="tour-panel">
+        <div class="console" id="console">
+          <form class="c-bar" id="lookup-form" autocomplete="off">
+            <svg class="burger" viewBox="0 0 18 14"><path d="M0 1h18M0 7h18M0 13h18" stroke="currentColor" stroke-width="1.6"/></svg>
+            <img class="c-logo" src="https://cdn.prod.website-files.com/6a6cd1be72f3058b12660c33/6a7b1d9010b4acbaf76fa0c7_Sharetec%20Logo.svg" alt="sharetec" onerror="this.outerHTML='<b style=&quot;color:#06175f;font-size:18px&quot;>sharetec</b>'">
+            <div class="c-search">
+              <div class="box">
+                <input id="memberNumber" name="memberNumber" value="41000" aria-label="Member number" inputmode="numeric">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              </div>
+              <select id="scope" name="scope" aria-label="Account scope"><option value="all">All accounts &amp; relationships</option></select>
+              <button class="go" id="go" type="submit">Search</button>
+            </div>
+            <span class="add">Add Member</span>
+            <div class="right">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 18c1-3 9-3 10 0"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>
+              <span style="color:#333">Mandy Mae &#9662;</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4zM10 21h4"/></svg>
+            </div>
+          </form>
+          <div class="loading" id="loading"><div class="spinner"></div><div><b>Loading member ledgers…</b> <span id="elapsed">0.0s</span></div><div class="ledger-ticker" id="ticker">Querying Velocity core</div></div>
+          <div class="c-body" id="c-body">
+            <div class="banner" id="banner"></div>
+            <div class="empty" id="empty"><b>Search for a member to open their account summary</b>Enter a member number (try 41000, 41022 or 41057) and press Search.</div>
+            <div id="member-view" hidden>
+              <div class="c-member">
+                <div><div class="avatar" id="avatar">SD</div><div class="avatar-links">Scan ID<br>Upload ID</div></div>
+                <div>
+                  <h3 id="m-name">—</h3>
+                  <div class="addr" id="m-addr"></div>
+                  <div class="c-fields">
+                    <div><b>Social Security Number</b><span id="m-ssn"></span></div>
+                    <div><b>Date of Birth</b><span id="m-dob"></span></div>
+                    <div><b>Email Address</b><span id="m-email"></span></div>
+                    <div><b>Identification</b><span id="m-id"></span></div>
+                  </div>
+                </div>
+                <div class="c-summary" id="m-summary"></div>
+              </div>
+              <div class="c-tabs" id="c-tabs"></div>
+              <div id="c-content"></div>
+            </div>
+          </div>
+        </div>
+        <div class="otg" id="otg">
+          <div>
+            <h3>On-the-Go</h3>
+            <p>Mobile and online banking that runs on the same connected core as Velocity, so members see the same balances, holds and transfers whether they walk into a branch or log in from home.</p>
+            <a class="pill" href="#contact">Request a Demo</a>
+          </div>
+          <img src="https://cdn.prod.website-files.com/6a6cd1be72f3058b12660c33/6a7cb0a375497f55ff29affb_GirlOnPhone-p-800.avif" alt="Member using Sharetec mobile banking" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </section>
+
+    <section class="built" id="built">
+      <h2 class="display">Built for the people who keep a credit union running</h2>
+      <p>Whether you're leading the institution, serving members or managing operations, the day goes smoother when your systems talk to each other instead of working around one another.</p>
+      <div class="cards">
+        <div class="card"><h4>Lead with confidence</h4><p>Drive growth, strengthen member relationships and make decisions with confidence using a platform built exclusively for credit unions.</p></div>
+        <div class="card"><h4>Keep everything moving</h4><p>Spend less time managing disconnected systems and more time supporting your credit union.</p></div>
+        <div class="card"><h4>Focus on the member, not the software</h4><p>Get up to speed quickly with intuitive tools that keep the focus where it belongs: on members.</p></div>
+      </div>
+      <a class="pill" href="#switch">See Why We’re Built for Credit Unions</a>
+    </section>
+
+    <section class="switch" id="switch">
+      <div>
+        <h2 class="display">What happens after the switch?</h2>
+        <p>Almost every Sharetec customer came from another provider.</p>
+        <p>Some were looking for a better member experience. Others needed a simpler way to operate, a more modern platform or a partner that understood where they wanted to go next.</p>
+        <a class="pill" href="#contact">Explore Switching to Sharetec</a>
+      </div>
+      <img src="https://cdn.prod.website-files.com/6a6cd1be72f3058b12660c33/6a7cb0a33a710d8a5596bf87_PeopleUsingLaptop-p-800.avif" alt="Credit union team reviewing Sharetec" onerror="this.style.display='none'">
+    </section>
+
+    <section class="cta" id="contact">
+      <h2 class="display">Ready for a closer look?</h2>
+      <p>Whether you're evaluating a new core, modernizing your digital experience or planning for future growth, we'd love to learn more about your credit union and your goals.</p>
+      <a class="pill" href="#velocity">Request a Demo</a>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="brand"><img src="https://cdn.prod.website-files.com/6a6cd1be72f3058b12660c33/6a7cb369bbce61d903d4f1a1_Group%201867.svg" alt="Sharetec" onerror="this.style.display='none'"><ul><li>800-430-5120</li><li>Contact Us</li></ul></div>
+        <div><h5>What We Offer</h5><ul><li>Core Platform</li><li>Digital</li><li>Lending</li><li>Accounting and Back Office</li><li>Integrations</li></ul></div>
+        <div><h5>Why Sharetec</h5><ul><li>Built for Credit Unions</li><li>Switching to Sharetec</li><li>Leadership</li><li>Careers</li></ul></div>
+        <div><h5>Insights</h5><ul><li>Blog</li><li>Events</li><li>Announcements</li></ul></div>
+        <div><h5>Resources</h5><ul><li>Conference</li><li>Partners</li><li class="support">Customer Support</li></ul></div>
+      </div>
+      <div class="legal"><span>©2026 Sharetec Systems Inc., All Rights Reserved.</span><span>Privacy Policy</span></div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="alert"><b id="toast-title">Lookup failed</b><span id="toast-msg"></span></div>
+
+  <script>
+    (function () {
+      const API = '/api/924f5ec9';
+      const TABS = [
+        { key: 'accounts', label: 'Accounts', ledgers: ['shares', 'certificates', 'ira', 'loans', 'credit_cards'] },
+        { key: 'products', label: 'Products', ledgers: ['shares', 'certificates', 'ira', 'loans', 'credit_cards'] },
+        { key: 'relationships', label: 'Relations', ledgers: ['relationships'] },
+        { key: 'transfers', label: 'Transfers', ledgers: ['transfers'] },
+        { key: 'ach_payroll', label: 'ACH / Payroll', ledgers: ['ach_payroll'] },
+        { key: 'notes', label: 'Notes', ledgers: ['notes'] },
+        { key: 'ealerts', label: 'eAlerts', ledgers: ['ealerts'] },
+        { key: 'ytd', label: 'YTD', ledgers: ['ytd'] },
+        { key: 'safe_deposit', label: 'Safe Deposit', ledgers: ['safe_deposit'] },
+        { key: 'fees', label: 'Fees', ledgers: ['fees'] },
+        { key: 'fraud_history', label: 'Fraud History', ledgers: ['fraud_history'] },
+      ];
+      const $ = (id) => document.getElementById(id);
+      const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const money = (cents) => (cents == null ? '' : (cents < 0 ? '-' : '') + '$' + (Math.abs(cents) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+      const fmtDate = (iso) => { if (!iso) return ''; const [y, m, d] = String(iso).split('-').map(Number); return (m && d) ? `${m}/${d}/${y}` : esc(iso); };
+      let state = null;
+      let activeTab = 'accounts';
+
+      document.querySelectorAll('.tour-tabs button').forEach((btn) => btn.addEventListener('click', () => {
+        document.querySelectorAll('.tour-tabs button').forEach((b) => b.classList.toggle('on', b === btn));
+        const otg = btn.dataset.tour === 'otg';
+        $('console').style.display = otg ? 'none' : '';
+        $('otg').classList.toggle('on', otg);
+      }));
+
+      fetch(`${API}/ledgers`).then((r) => r.json()).then((meta) => {
+        const sel = $('scope');
+        sel.innerHTML = (meta.scopeOptions || []).map((o) => `<option value="${esc(o.key)}">${esc(o.key === 'all' ? o.label : o.label + ' only')}</option>`).join('');
+        sel.value = 'all';
+      }).catch(() => {});
+
+      function toast(title, msg) {
+        $('toast-title').textContent = title;
+        $('toast-msg').textContent = msg;
+        $('toast').classList.add('on');
+        clearTimeout(toast.t);
+        toast.t = setTimeout(() => $('toast').classList.remove('on'), 6000);
+      }
+
+      function ledger(key) { return state && state.ledgers.find((l) => l.key === key); }
+
+      function shareRows(items) {
+        return items.map((s) => `<tr><td><a href="#">${esc(s.description)}</a></td><td>${esc(s.type)}</td><td>${esc(s.certificate)}</td><td class="num"><a href="#">${money(s.balanceCents)}</a></td><td class="num"><a href="#">${money(s.availableCents)}</a></td><td>${esc(s.status)}</td><td><div class="inp"></div></td><td><div class="inp"></div></td><td class="dots">···</td></tr>`).join('');
+      }
+      function loanRows(items) {
+        return items.map((l) => `<tr><td><a href="#">${esc(l.collateral)}</a></td><td>${esc(l.id)}</td><td class="num"><a href="#">${money(l.currentBalanceCents)}</a></td><td class="num">${money(l.scheduledPaymentCents)}</td><td class="num">${money(l.delinquentCents)}</td><td class="num">${money(l.payoffCents)}</td><td class="num">${fmtDate(l.dueDate)}</td><td><div class="inp"></div></td><td><div class="inp off"></div></td><td class="dots">···</td></tr>`).join('');
+      }
+      const relRow = (r, cols) => `<tr class="rel"><td colspan="${cols}"><span>&#9650;</span>${esc(r.name)} - ${esc(r.memberNumber)}</td></tr>`;
+      const notLoaded = (cols, label) => `<tr class="muted-row"><td colspan="${cols}">${esc(label)} not loaded in this lookup — search with "All accounts &amp; relationships"</td></tr>`;
+      const none = (cols, label) => `<tr class="muted-row"><td colspan="${cols}">No ${esc(label.toLowerCase())} on file</td></tr>`;
+      const head = (title) => `<div class="sec-head"><span class="caret">&#9650;</span>${esc(title)}<div class="cfg"><span>Base Configuration</span><span>Active</span></div></div>`;
+
+      function renderAccounts() {
+        const rels = ledger('relationships');
+        const shareLedgers = ['shares', 'certificates', 'ira'].map(ledger).filter(Boolean);
+        let shareBody = '';
+        if (!shareLedgers.length && !rels) shareBody = notLoaded(9, 'Shares');
+        else {
+          const own = shareLedgers.flatMap((l) => l.items);
+          shareBody = own.length ? shareRows(own) : (shareLedgers.length ? none(9, 'Shares') : '');
+          (rels ? rels.items : []).filter((r) => r.shares && r.shares.length).forEach((r) => { shareBody += relRow(r, 9) + shareRows(r.shares); });
+        }
+        const loans = ledger('loans');
+        let loanBody = loans ? (loans.items.length ? loanRows(loans.items) : none(10, 'Loans')) : (rels ? '' : notLoaded(10, 'Loans'));
+        (rels ? rels.items : []).filter((r) => r.loans && r.loans.length).forEach((r) => { loanBody += relRow(r, 10) + loanRows(r.loans); });
+        if (!loanBody) loanBody = notLoaded(10, 'Loans');
+        const cards = ledger('credit_cards');
+        const cardBody = cards ? (cards.items.length ? cards.items.map((c) => `<tr><td><a href="#">${esc(c.description)} ••${esc(c.id)}</a></td><td>${esc(c.blockCode || '—')}</td><td class="num"><a href="#">${money(c.balanceCents)}</a></td><td class="num">${money(c.paymentCents)}</td><td class="num">${money(c.delinquentCents)}</td><td class="num">${money(c.payoffCents)}</td><td class="num">${fmtDate(c.dueDate)}</td><td class="num">${money(c.creditLimitCents)}</td><td class="dots">···</td></tr>`).join('') : none(9, 'Credit cards')) : notLoaded(9, 'Credit cards');
+        return `<div class="sec">${head('Shares')}<table><thead><tr><th>Description</th><th>Type</th><th>Certificate #</th><th>Balance</th><th>Available Balance</th><th>Status</th><th class="nosort">Deposit</th><th class="nosort">Withdrawal</th><th class="nosort"></th></tr></thead><tbody>${shareBody}</tbody></table></div>
+          <div class="sec">${head('Loans')}<table><thead><tr><th>Collateral Description</th><th>Loan</th><th>Current Balance</th><th>Scheduled Payment</th><th>Delinquent Amount</th><th>Payoff Amount</th><th>Due Date</th><th class="nosort">Payment</th><th class="nosort">Advance</th><th class="nosort"></th></tr></thead><tbody>${loanBody}</tbody></table></div>
+          <div class="sec">${head('Credit Cards')}<table><thead><tr><th>Description</th><th>Block Code</th><th>Balance</th><th>Payment</th><th>Delinquent</th><th>Payoff</th><th>Due Date</th><th>Credit Limit</th><th class="nosort"></th></tr></thead><tbody>${cardBody}</tbody></table></div>`;
+      }
+
+      function renderRelations() {
+        const rels = ledger('relationships');
+        if (!rels) return `<div class="sec"><table><tbody>${notLoaded(1, 'Relations')}</tbody></table></div>`;
+        if (!rels.items.length) return `<div class="sec"><table><tbody>${none(1, 'Relations')}</tbody></table></div>`;
+        return `<div class="sec">${head('Relations')}<ul class="generic">${rels.items.map((r) => `<li><div><b>${esc(r.name)} - ${esc(r.memberNumber)}</b><small>${esc(r.relation)}</small></div><div>${(r.shares || []).length} share(s) · ${(r.loans || []).length} loan(s)</div></li>`).join('')}</ul></div>`;
+      }
+
+      function renderGeneric(tab) {
+        const l = ledger(tab.ledgers[0]);
+        if (!l) return `<div class="sec"><table><tbody>${notLoaded(1, tab.label)}</tbody></table></div>`;
+        if (!l.items.length) return `<div class="sec"><table><tbody>${none(1, tab.label)}</tbody></table></div>`;
+        return `<div class="sec">${head(tab.label)}<ul class="generic">${l.items.map((i) => `<li><div><b>${esc(i.title)}</b><small>${esc(i.detail)}</small></div><div style="text-align:right">${i.amountCents == null ? '' : `<b>${money(i.amountCents)}</b>`}<small>${fmtDate(i.date)}</small></div></li>`).join('')}</ul></div>`;
+      }
+
+      function renderTabs() {
+        $('c-tabs').innerHTML = TABS.map((t) => {
+          const loaded = t.ledgers.map(ledger).filter(Boolean);
+          const count = t.key === 'accounts' || t.key === 'products' ? '' : (loaded.length ? `<span class="count">${loaded.reduce((n, l) => n + l.itemCount, 0)}</span>` : '');
+          return `<button type="button" data-tab="${t.key}" class="${t.key === activeTab ? 'on' : ''}">${esc(t.label)}${count}</button>`;
+        }).join('') + '<button type="button" class="tx">&#9662;&nbsp; Transactions</button>';
+        $('c-tabs').querySelectorAll('button[data-tab]').forEach((b) => b.addEventListener('click', () => { activeTab = b.dataset.tab; renderTabs(); renderContent(); }));
+      }
+
+      function renderContent() {
+        const tab = TABS.find((t) => t.key === activeTab);
+        let html;
+        if (tab.key === 'accounts' || tab.key === 'products') html = renderAccounts();
+        else if (tab.key === 'relationships') html = renderRelations();
+        else html = renderGeneric(tab);
+        $('c-content').innerHTML = html;
+      }
+
+      function render(result) {
+        state = result;
+        const m = result.member;
+        $('empty').hidden = true;
+        $('member-view').hidden = false;
+        $('avatar').textContent = m.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase();
+        $('m-name').textContent = `${m.name} - ${m.memberNumber}`;
+        $('m-addr').innerHTML = `${esc(m.address.line1)}<br>${esc(m.address.city)} ${esc(m.address.state)} ${esc(m.address.zip)}`;
+        $('m-ssn').textContent = `*${m.ssnLast4}`;
+        $('m-dob').textContent = fmtDate(m.dob);
+        $('m-email').textContent = m.email || '';
+        $('m-id').textContent = `*${m.idLast4}`;
+        const s = result.summary || {};
+        $('m-summary').innerHTML = `<div><small>Total shares</small><span>${money(s.totalSharesCents || 0)}</span></div><div><small>Loan balances</small><span>${money(s.totalLoansCents || 0)}</span></div><div><small>Card balances</small><span>${money(s.totalCardsCents || 0)}</span></div><div><small>Ledgers loaded</small><span>${s.ledgersLoaded || result.ledgersLoaded}/14</span></div>`;
+        const b = $('banner');
+        b.innerHTML = `&#10003; Member <code>${esc(m.memberNumber)}</code> loaded · ${esc(result.scope.label)} · ${result.ledgersLoaded} ledger(s) in ${(result.durationMs / 1000).toFixed(2)}s · lookup <code>${esc(result.lookupId)}</code>`;
+        b.classList.add('on');
+        if (!TABS.find((t) => t.key === activeTab).ledgers.some((k) => ledger(k))) activeTab = TABS.find((t) => t.ledgers.some((k) => ledger(k))).key;
+        renderTabs();
+        renderContent();
+      }
+
+      $('lookup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const go = $('go');
+        const started = Date.now();
+        const names = ['Share ledger', 'Certificates', 'IRA custodian', 'Loan servicing', 'Card processor', 'Relationships', 'Transfers', 'ACH / Payroll', 'Notes', 'eAlerts', 'YTD totals', 'Safe deposit', 'Fee engine', 'Fraud history'];
+        go.disabled = true;
+        $('banner').classList.remove('on');
+        $('loading').classList.add('on');
+        const timer = setInterval(() => {
+          const secs = (Date.now() - started) / 1000;
+          $('elapsed').textContent = `${secs.toFixed(1)}s`;
+          $('ticker').textContent = `Querying Velocity core — ${names[Math.floor(secs * 2) % names.length]}`;
+        }, 100);
+        try {
+          const res = await fetch(`${API}/member-lookup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ memberNumber: $('memberNumber').value, scope: $('scope').value }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.success) {
+            toast(res.status === 404 ? 'Member not found' : 'Lookup failed', `${data.error || `HTTP ${res.status}`}${data.requestId ? ` (ref ${data.requestId})` : ''}`);
+            return;
+          }
+          render(data);
+        } catch (err) {
+          toast('Lookup failed', 'Velocity core is unreachable. Please try again.');
+        } finally {
+          clearInterval(timer);
+          $('loading').classList.remove('on');
+          go.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
