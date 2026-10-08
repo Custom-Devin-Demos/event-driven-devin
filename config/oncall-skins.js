@@ -33,6 +33,9 @@
  * hub, or from skins without this key, stay alert-only. orgId defaults to
  * DEVIN_ORG_ID and the credential to DEVIN_ONCALL_SERVICE_KEY /
  * DEVIN_SERVICE_KEY / DEVIN_API_KEY; never put a credential in this file.
+ * devinSession.notifySlackMemberId (a Slack member id) makes the session's
+ * prompt ask Devin to @-mention that person in the alert thread when the root
+ * cause is confirmed and again when the fix PR is open.
  *
  * A skin may set sonarPR: { auto: true, customer } to have each of its alerts
  * also open the SonarCloud remediation demo PR (app/services/sonar-pr-trigger.js)
@@ -2522,6 +2525,7 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     oncallOnly: true,
     page: { file: 'd51a1791.html', title: 'Pay Bill | Ambrook' },
+    devinSession: { auto: true, notifySlackMemberId: 'U0B7F46NVA4' },
     alertCard: {
       title: 'p95 latency — bill payment submissions',
       service: 'ambrook-payments-api',
