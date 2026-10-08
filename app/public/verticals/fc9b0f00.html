@@ -154,9 +154,9 @@
       footer { padding: 36px 20px 24px; }
       .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; }
       .cols .lang { grid-column: 1 / -1; }
-      .cols a, .legal nav a { display: flex; align-items: center; min-height: 44px; padding: 0; }
+      .cols a, .legal nav a { display: flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0; }
       .legal nav { gap: 0 18px; }
-      .crumbs a { display: inline-flex; align-items: center; min-height: 44px; }
+      .crumbs a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
       .crumbs { align-items: center; }
     }
   </style>
@@ -368,8 +368,9 @@
         timer.className = 'stopwatch on done';
       }
       function step(delta) {
-        var n = seatCount();
-        seats.value = String(Math.min(Math.max((Number.isFinite(n) ? n : 0) + delta, 1), 250));
+        var n = parseInt(seats.value, 10);
+        var base = Number.isFinite(n) ? Math.min(Math.max(n, 0), 251) : 0;
+        seats.value = String(Math.min(Math.max(base + delta, 1), 250));
         renderSummary();
       }
 
