@@ -83,7 +83,7 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
       `:rotating_light: *[Triggered] ${scenario.monitor}*`,
       '',
       `*Service:* ${scenario.service} (${skin.company})`,
-      `*Demo page:* https://devindemos.com/oncall/c/${skin.slug} — reproduce the symptom on this branded page`,
+      `*Affected page:* https://devindemos.com/oncall/c/${skin.slug}`,
       `*Endpoint:* ${scenario.endpoint}`,
       `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
       `*Monitor query:* \`${scenario.metricQuery}\``,
