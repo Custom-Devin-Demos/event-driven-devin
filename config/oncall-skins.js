@@ -3036,6 +3036,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A CAREVISO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real careviso product.',
   },
+  'f637b844': {
+    slug: 'f637b844',
+    company: 'VNS Health',
+    vertical: 'insurance',
+    page: { file: 'f637b844.html', title: 'Health Plans | VNS Health | New York' },
+    disclaimer: 'NOT ACTUALLY A VNS HEALTH SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real VNS Health product.',
+  },
   '919e7cf2': {
     slug: '919e7cf2',
     company: 'Cigna Healthcare',
