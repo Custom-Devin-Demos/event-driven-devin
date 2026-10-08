@@ -13,6 +13,7 @@ const APP_PROJECT = 'ios-event-demos';
 const SHARED_APP_REPO = 'COG-GTM/event-driven-demos-ios';
 const APP_REPO = `github.com/${SHARED_APP_REPO}`;
 const PER_CUSTOMER_REPO_PATTERN = /^COG-GTM\/[A-Za-z0-9._-]+-ios-event-driven$/;
+const MONOREPO_APP_REPOS = new Set(['COG-GTM/ios-demos']);
 const APP_REPO_CACHE_TTL_MS = 10 * 60 * 1000;
 const appRepoCache = new Map();
 const SLUG_PATTERN = /^[0-9a-f]{8}$/;
@@ -63,7 +64,8 @@ where \`<slug>\` is the \`demo_slug\` tag. Follow that folder's \`DEMO.md\` and 
 reports off, fix the root cause with a regression test, and open a draft \`[DEMO — DO NOT MERGE]\` PR that is never
 merged.`;
 
-// Per-customer demo repos (COG-GTM/<name>-ios-event-driven) send `appRepo`; anything else stays on the shared repo.
+// Per-customer demo repos (COG-GTM/<name>-ios-event-driven) and the COG-GTM/ios-demos monorepo send `appRepo`;
+// anything else stays on the shared repo.
 function perCustomerAppRepo(value) {
   if (typeof value !== 'string') return '';
   const name = value.trim()
@@ -71,7 +73,7 @@ function perCustomerAppRepo(value) {
     .replace(/^github\.com\//i, '')
     .replace(/\/+$/, '')
     .replace(/\.git$/i, '');
-  return PER_CUSTOMER_REPO_PATTERN.test(name) ? name : '';
+  return PER_CUSTOMER_REPO_PATTERN.test(name) || MONOREPO_APP_REPOS.has(name) ? name : '';
 }
 
 function githubToken() {
