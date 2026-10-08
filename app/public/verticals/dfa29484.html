@@ -234,6 +234,13 @@
         <span id="coverage">Thomas Reyes · Managing Director, Investor Relations</span><br>
         <a href="#contact" style="font-size:12.5px">Message your coverage team</a>
       </div>
+      <div class="card" style="margin-top:14px" id="alert-routing">
+        <div class="hd"><h2>Alert routing</h2><div class="right" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)">Demo</div></div>
+        <div class="row" style="padding:14px 20px">
+          <div id="alertDestPicker"></div>
+          <div id="alert-dest-note" style="font-size:12.5px;color:var(--muted);margin-top:8px"></div>
+        </div>
+      </div>
     </aside>
   </div>
 </main>
@@ -295,6 +302,7 @@
 
 <div class="toast" id="toast"><div class="t" id="toast-t"></div><div class="d" id="toast-d"></div></div>
 
+<script src="/alert-destination.js"></script>
 <script>
 (function () {
   var state = { account: null, busy: false, lastResult: null };
@@ -315,6 +323,28 @@
     t.classList.toggle('good', !!good); t.classList.add('show');
     clearTimeout(toast._h); toast._h = setTimeout(function () { t.classList.remove('show'); }, good ? 4500 : 10000);
   }
+
+  (function setupAlertRouting() {
+    if (!window.AlertDestination) return;
+    if (!localStorage.getItem('dfa29484.alertRoutingDefaulted')) {
+      window.AlertDestination.set('teams');
+      localStorage.setItem('dfa29484.alertRoutingDefaulted', '1');
+    }
+    var picker = window.AlertDestination.mount(el('alertDestPicker'));
+    var teamsAlerts = false;
+    function renderDest(dest) {
+      el('alert-dest-note').innerHTML = dest === 'teams' && teamsAlerts
+        ? 'Statement failures post an alert card to <b>Microsoft Teams</b>; the Devin Teams responder investigates and replies in the thread.'
+        : 'Statement failures post an alert card to <b>#automated-alerts</b> in Slack and start a Devin session.';
+    }
+    window.AlertDestination.onChange(renderDest);
+    renderDest(window.AlertDestination.get());
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      teamsAlerts = Boolean(cfg.teamsAlerts);
+      picker.setTeamsAvailable(teamsAlerts);
+      renderDest(window.AlertDestination.get());
+    }).catch(function () {});
+  })();
 
   function identity() {
     return {
