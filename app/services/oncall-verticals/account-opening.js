@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const logger = require('../../telemetry/logger');
 const { Sentry } = require('../../telemetry/sentry');
 const { incrementMetric } = require('../../telemetry/datadog');
-const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail } = require('../slack');
+const { postMessage, postThreadReply, lookupSlackUserByEmail } = require('../slack');
 const { createDevinSession } = require('../devin-api');
 const { canCreateSession, reserveSession } = require('../session-rate-limiter');
 
@@ -239,7 +239,7 @@ function buildAlertMessage(report, { reference, triggeredBy, now }) {
     `*Document:* ${documentLine(report)}`,
     `*Applicant:* ${applicantLine(report)}`,
     `*Release:* ${report.release} (${report.platformLabel})`,
-    `*Owner:* ${ACCOUNT_OPENING.brand} onboarding-oncall — ${OWNER_DISCLAIMER}`,
+    `*Owner:* ${ACCOUNT_OPENING.brand} onboarding-oncall`,
     triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
     `Reported: ${now.toISOString()}`,
@@ -262,7 +262,7 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
       ['Document', documentLine(report)],
       ['Applicant', applicantLine(report)],
       ['Release', `${report.release} (${report.platformLabel})`],
-      ['Owner', `${ACCOUNT_OPENING.brand} onboarding-oncall — ${OWNER_DISCLAIMER}`],
+      ['Owner', `${ACCOUNT_OPENING.brand} onboarding-oncall`],
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
     {

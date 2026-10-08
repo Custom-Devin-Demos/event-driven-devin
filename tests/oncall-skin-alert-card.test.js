@@ -1,7 +1,7 @@
 /* global afterEach, beforeEach, describe, expect, jest, test */
 
 jest.mock('../app/services/slack', () => ({
-  OWNER_DISCLAIMER: 'fictional on-call persona',
+  ownerRotation: jest.requireActual('../app/services/slack').ownerRotation,
   postMessage: jest.fn().mockResolvedValue('1700000000.000100'),
   postThreadReply: jest.fn().mockResolvedValue('1700000000.000200'),
   lookupSlackUserByEmail: jest.fn().mockResolvedValue(null),
@@ -54,7 +54,7 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
     expect(text).toContain(':rotating_light: *[Triggered] Vaccine order submissions failing (504)*');
     expect(text).toContain('*Service:* vaccine-ordering-api (GSK)');
     expect(text).toContain('*Endpoint:* POST /api/oncall/vaccines/order');
-    expect(text).toContain('*Owner:* Jordan Patel (hcp-ordering-oncall) — fictional on-call persona');
+    expect(text).toContain('*Owner:* hcp-ordering-oncall');
     expect(text).toContain('Release: hcp-ordering-web@1.0.4');
     expect(text).toContain('/oncall/c/fe4f39ba');
     expect(blocks).toContain('[Triggered] Vaccine order submissions failing (504)');
@@ -87,7 +87,7 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
       `*Endpoint:* ${scenario.endpoint}`,
       `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
       `*Monitor query:* \`${scenario.metricQuery}\``,
-      `*Owner:* ${scenario.owner} — fictional on-call persona`,
+      '*Owner:* payments-oncall',
       '*Incident Ref:* run-test',
       '',
       `Env: production | Release: ${scenario.release}`,
@@ -108,7 +108,7 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
     const { text } = await postCard({ ...base, alertCard: { service: 'custom-api', team: 'custom-oncall' } });
 
     expect(text).toContain('*Service:* custom-api (RBC Royal Bank)');
-    expect(text).toContain('*Owner:* Jordan Patel (custom-oncall)');
+    expect(text).toContain('*Owner:* custom-oncall');
     expect(text).toContain(`*[Triggered] ${scenario.monitor}*`);
     expect(text).toContain(`*Endpoint:* ${scenario.endpoint}`);
     expect(text).toContain(`Release: ${scenario.release}`);

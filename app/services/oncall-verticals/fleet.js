@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const logger = require('../../telemetry/logger');
 const { Sentry } = require('../../telemetry/sentry');
 const { incrementMetric } = require('../../telemetry/datadog');
-const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail } = require('../slack');
+const { ownerRotation, postMessage, postThreadReply, lookupSlackUserByEmail } = require('../slack');
 const { createDevinSession } = require('../devin-api');
 const { canCreateSession, reserveSession } = require('../session-rate-limiter');
 
@@ -263,7 +263,7 @@ function buildAlertMessage(report, { reference, triggeredBy, now }) {
     `*Where:* ${report.screen} → ${report.action}`,
     `*Trip:* ${routeLine(report)}`,
     `*ETA:* ${etaLine(report)}`,
-    `*Owner:* ${FLEET.owner} — ${OWNER_DISCLAIMER}`,
+    `*Owner:* ${ownerRotation(FLEET.owner)}`,
     `*Incident Ref:* ${reference}`,
     triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
@@ -286,7 +286,7 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
       ['Trip', routeLine(report)],
       ['ETA', etaLine(report)],
       ['Release', `${report.release} (${report.platformLabel})`],
-      ['Owner', `${FLEET.owner} — ${OWNER_DISCLAIMER}`],
+      ['Owner', `${ownerRotation(FLEET.owner)}`],
       ['Incident Ref', reference],
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),

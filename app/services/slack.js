@@ -17,12 +17,12 @@ const DEMO_ONCALL_MEMBER_ID = () => {
   return MEMBER_ID_RE.test(configured) ? configured : '';
 };
 
-// Appended wherever an on-call demo (/oncall) scenario renders its fictional
-// owner. Without the second half, responders that correctly skip the persona
-// fall back to git blame or CODEOWNERS and @-mention whoever last touched the
-// file.
-const OWNER_DISCLAIMER = 'demo persona — do not resolve to a real Slack user, and do not '
-  + '@-mention anyone else in their place (no git blame, commit author, or CODEOWNERS fallback)';
+// On-call cards show only the rotation, e.g. 'Jordan Patel (payments-oncall)'
+// renders as 'payments-oncall', so responders have no person to look up.
+function ownerRotation(owner) {
+  const match = /\(([^)]+)\)\s*$/.exec(owner || '');
+  return match ? match[1] : owner;
+}
 
 function onCallText(slackMemberId) {
   const memberId = MEMBER_ID_RE.test(slackMemberId || '') ? slackMemberId : DEMO_ONCALL_MEMBER_ID();
@@ -756,7 +756,7 @@ async function deleteMessage(token, channel, ts) {
 
 module.exports = {
   ONCALL_UNASSIGNED_TEXT,
-  OWNER_DISCLAIMER,
+  ownerRotation,
   buildAlertBlocks,
   onCallText,
   resolveOnCallMember,
