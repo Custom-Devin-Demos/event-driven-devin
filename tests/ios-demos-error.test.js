@@ -469,6 +469,9 @@ describe('shared iOS demo failure report endpoint', () => {
     expect(perCustomerAppRepo('https://github.com/COG-GTM/demo-mars-ios-event-driven.git/'))
       .toBe('COG-GTM/demo-mars-ios-event-driven');
     expect(perCustomerAppRepo('github.com/COG-GTM/demo-mars-ios-event-driven')).toBe('COG-GTM/demo-mars-ios-event-driven');
+    expect(perCustomerAppRepo('COG-GTM/ios-demos')).toBe('COG-GTM/ios-demos');
+    expect(perCustomerAppRepo('github.com/COG-GTM/ios-demos.git')).toBe('COG-GTM/ios-demos');
+    expect(perCustomerAppRepo('COG-GTM/ios-demos-extra')).toBe('');
     expect(perCustomerAppRepo('COG-GTM/event-driven-demos-ios')).toBe('');
     expect(perCustomerAppRepo('COG-GTM/event-driven-devin')).toBe('');
     expect(perCustomerAppRepo('someone/demo-mars-ios-event-driven')).toBe('');
