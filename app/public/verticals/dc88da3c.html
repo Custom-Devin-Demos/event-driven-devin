@@ -474,11 +474,20 @@
 
     document.querySelectorAll('input[name="careKind"]').forEach(function (radio) {
       radio.addEventListener('change', function () {
+        claimTypeEl.value = radio.value;
         amountEl.value = radio.dataset.amount;
         descEl.value = radio.dataset.desc;
       });
     });
+    var submission = 0;
+    var inflight = null;
     form.addEventListener('reset', function () {
+      submission++;
+      if (inflight) inflight.abort();
+      inflight = null;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit claim';
+      setTimeout(function () { claimTypeEl.value = 'medical'; }, 0);
       clearInterval(timerHandle);
       timerHandle = null;
       timer.className = 'stopwatch';
@@ -529,10 +538,14 @@
       submitBtn.textContent = 'Submitting\u2026';
       showResult('pending', 'Submitting your claim', 'Please stay on this page while we send the claim for ' + memberLabel + '.');
       var started = startTimer();
+      var mine = ++submission;
+      var controller = new AbortController();
+      inflight = controller;
 
       try {
         var res = await fetch('/api/insurance/claim', {
           method: 'POST',
+          signal: controller.signal,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             policyId: document.getElementById('policyId').value,
@@ -546,6 +559,7 @@
         });
         var data = {};
         try { data = await res.json(); } catch (_) { data = {}; }
+        if (mine !== submission) return;
         var secs = stopTimer(started);
         if (res.ok && data.success) {
           var ref = data.claimId ? String(data.claimId).slice(0, 8).toUpperCase() : '';
@@ -557,8 +571,12 @@
             'Waited ' + secs + ' s' + (data.requestId ? ' \u00b7 reference ' + String(data.requestId).slice(0, 8).toUpperCase() : ''));
         }
       } catch (err) {
+        if (mine !== submission) return;
         showResult('error', FAIL_TITLE, FAIL_BODY, 'Waited ' + stopTimer(started) + ' s');
       } finally {
+        if (mine === submission) inflight = null;
+      }
+      if (mine === submission) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit claim';
       }
