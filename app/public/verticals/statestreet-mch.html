@@ -405,6 +405,8 @@
       function load(keepSelection) {
         return fetch(API + '/cycle').then(function (r) { return r.json(); }).then(function (data) {
           cycle = data;
+          failed = {};
+          data.funds.forEach(function (f) { if (f.status === 'FAILED') failed[f.fundId] = true; });
           if (!keepSelection || !selected) selected = data.defaultFund;
           renderStatic();
           renderAll();
@@ -442,7 +444,7 @@
                 showResult(s.withinTolerance ? 'ok' : 'warn',
                   (s.withinTolerance ? 'NAV struck — ' : 'NAV struck outside tolerance — ') + s.strikeId,
                   fundId + ' NAV/share ' + fmt(s.navPerShare, 4) + ' (' + (s.dayMoveBps > 0 ? '+' : '') + s.dayMoveBps + ' bps, tolerance ±' + s.toleranceBps + ')',
-                  s.withinTolerance ? 'Ready for release to the transfer agent.' : 'Route to pricing for four-eyes review before release.');
+                  s.withinTolerance ? 'Ready for release to the transfer agent.' : 'Held for pricing four-eyes review — release is blocked from this console.');
               });
             }
             if (res.status >= 500) {

@@ -12,21 +12,22 @@ jest.mock('../app/telemetry/datadog', () => ({
   recordTiming: jest.fn(),
 }));
 
-const { createSessionAndAlert } = require('../app/services/devin-session');
-const { Sentry } = require('../app/telemetry/sentry');
-const {
-  strikeNav,
-  releaseNav,
-  resetCycle,
-  getCycle,
-  DEFAULT_FUND,
-} = require('../app/services/verticals/statestreet-mch');
+let createSessionAndAlert;
+let Sentry;
+let strikeNav;
+let releaseNav;
+let resetCycle;
+let getCycle;
+let DEFAULT_FUND;
 
 describe('State Street MCH NAV Oversight (statestreet-mch)', () => {
   beforeEach(() => {
-    resetCycle();
-    createSessionAndAlert.mockClear();
-    Sentry.captureException.mockClear();
+    jest.resetModules();
+    ({ createSessionAndAlert } = require('../app/services/devin-session'));
+    ({ Sentry } = require('../app/telemetry/sentry'));
+    ({
+      strikeNav, releaseNav, resetCycle, getCycle, DEFAULT_FUND,
+    } = require('../app/services/verticals/statestreet-mch'));
   });
 
   test('striking the default emerging-markets fund fails with a TypeError and raises an alert', async () => {
@@ -76,5 +77,39 @@ describe('State Street MCH NAV Oversight (statestreet-mch)', () => {
     const released = cycle.funds.filter((f) => f.status === 'RELEASED');
     expect(released.length).toBeGreaterThan(0);
     released.forEach((f) => expect(f.strike.navPerShare).toBeGreaterThan(0));
+  });
+
+  test('a failed strike stays FAILED in the cycle until re-struck or reset', async () => {
+    await expect(strikeNav({ fundId: DEFAULT_FUND })).rejects.toThrow(TypeError);
+    const fund = getCycle().funds.find((f) => f.fundId === DEFAULT_FUND);
+    expect(fund.status).toBe('FAILED');
+    expect(() => releaseNav({ fundId: DEFAULT_FUND })).toThrow(expect.objectContaining({ code: 'NAV_NOT_RELEASABLE' }));
+  });
+
+  test('SOD reset reopens every fund, including the seeded RELEASED sample', async () => {
+    await expect(strikeNav({ fundId: DEFAULT_FUND })).rejects.toThrow(TypeError);
+    resetCycle();
+    const cycle = getCycle();
+    cycle.funds.forEach((f) => expect(f.status).toBe('PRICED'));
+    const result = await strikeNav({ fundId: 'SSGA-FI-0118' });
+    expect(result.status).toBe('STRUCK');
+  });
+
+  test('a strike in flight during SOD reset is discarded', async () => {
+    const pending = strikeNav({ fundId: 'SSGA-EQ-0042' });
+    resetCycle();
+    await expect(pending).rejects.toMatchObject({ code: 'CYCLE_RESET', statusCode: 409 });
+    expect(getCycle().funds.find((f) => f.fundId === 'SSGA-EQ-0042').status).toBe('PRICED');
+  });
+
+  test('inherited object keys are not accepted as fund IDs', async () => {
+    await expect(strikeNav({ fundId: 'toString' })).rejects.toMatchObject({ code: 'FUND_NOT_IN_CYCLE' });
+    expect(() => releaseNav({ fundId: '__proto__' })).toThrow(expect.objectContaining({ code: 'FUND_NOT_IN_CYCLE' }));
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('tagless Sentry issue webhooks for this vertical are skipped (instant path already alerted)', () => {
+    const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
+    expect(isInstantPathEvent({ culprit: 'app/services/verticals/statestreet-mch.js — valuePosition', tags: [] })).toBe(true);
   });
 });

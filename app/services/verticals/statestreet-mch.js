@@ -166,6 +166,9 @@ const ON_CALL = [
 
 const strikes = {};
 const statuses = {};
+// `reset` drops the seeded RELEASED sample after SOD reset; `generation`
+// invalidates strikes that were in flight when the cycle rolled or reset.
+const cycleState = { date: null, generation: 0, reset: false };
 
 class ValidationError extends Error {
   constructor(message, code, statusCode = 400) {
@@ -185,6 +188,23 @@ function valuationDate(now = new Date()) {
   const d = new Date(now.getTime());
   while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d.setUTCDate(d.getUTCDate() - 1);
   return d.toISOString().slice(0, 10);
+}
+
+function clearCycle() {
+  for (const key of Object.keys(strikes)) delete strikes[key];
+  for (const key of Object.keys(statuses)) delete statuses[key];
+  cycleState.generation += 1;
+}
+
+/** Roll the in-memory cycle when the valuation date advances. */
+function ensureCycle() {
+  const date = valuationDate();
+  if (cycleState.date !== date) {
+    clearCycle();
+    cycleState.date = date;
+    cycleState.reset = false;
+  }
+  return cycleState;
 }
 
 /**
@@ -233,7 +253,7 @@ function computeNav(fund, snapshot = FX_SNAPSHOT) {
 }
 
 function resolveFund(fundId) {
-  const fund = FUNDS[fundId];
+  const fund = Object.prototype.hasOwnProperty.call(FUNDS, fundId) ? FUNDS[fundId] : null;
   if (!fund) {
     throw new ValidationError(`Fund ${fundId} is not in today's NAV cycle`, 'FUND_NOT_IN_CYCLE', 404);
   }
@@ -241,10 +261,12 @@ function resolveFund(fundId) {
 }
 
 function statusOf(fundId) {
-  return statuses[fundId] || FUNDS[fundId].initialStatus;
+  if (statuses[fundId]) return statuses[fundId];
+  return cycleState.reset ? 'PRICED' : FUNDS[fundId].initialStatus;
 }
 
 function seedReleasedStrikes() {
+  if (cycleState.reset) return;
   for (const fund of Object.values(FUNDS)) {
     if (fund.initialStatus === 'RELEASED' && !strikes[fund.fundId]) {
       const date = valuationDate();
@@ -261,6 +283,7 @@ function seedReleasedStrikes() {
 
 /** Fund list + reference data the NAV Oversight screen renders. */
 function getCycle() {
+  ensureCycle();
   seedReleasedStrikes();
   return {
     valuationDate: valuationDate(),
@@ -306,10 +329,14 @@ async function strikeNav(data) {
     requestId, fundId, service: SERVICE, route: ROUTE,
   });
 
+  const generation = ensureCycle().generation;
   try {
     await new Promise((resolve) => setTimeout(resolve, 600 + Math.random() * 400));
 
     const fund = resolveFund(fundId);
+    if (ensureCycle().generation !== generation) {
+      throw new ValidationError(`NAV cycle was reset while ${fundId} was striking — strike discarded`, 'CYCLE_RESET', 409);
+    }
     if (statusOf(fundId) === 'RELEASED') {
       throw new ValidationError(`NAV for ${fundId} is already released to the transfer agent`, 'NAV_ALREADY_RELEASED', 409);
     }
@@ -318,7 +345,7 @@ async function strikeNav(data) {
     const strike = {
       ...nav,
       strikeId: `NAV-${fundId.slice(5)}-${requestId.slice(0, 6).toUpperCase()}`,
-      valuationDate: valuationDate(),
+      valuationDate: cycleState.date,
       struckAt: new Date().toISOString(),
       struckBy: data.user || 'hrabbani',
     };
@@ -351,6 +378,11 @@ async function strikeNav(data) {
       });
       error.requestId = requestId;
       throw error;
+    }
+
+    if (cycleState.generation === generation && Object.prototype.hasOwnProperty.call(FUNDS, fundId)) {
+      delete strikes[fundId];
+      statuses[fundId] = 'FAILED';
     }
 
     incrementMetric('nav_strike.failure', { route: ROUTE, errorClass: error.name });
@@ -418,9 +450,10 @@ async function strikeNav(data) {
 /** Release a struck NAV to the transfer agent. */
 function releaseNav(data) {
   const fundId = data.fundId || DEFAULT_FUND;
+  const { date } = ensureCycle();
   resolveFund(fundId);
   const status = statusOf(fundId);
-  if (status !== 'STRUCK') {
+  if (status !== 'STRUCK' || !strikes[fundId] || strikes[fundId].valuationDate !== date) {
     throw new ValidationError(
       status === 'RELEASED'
         ? `NAV for ${fundId} is already released`
@@ -436,8 +469,9 @@ function releaseNav(data) {
 
 /** Start-of-day reset: clear today's strikes and statuses. */
 function resetCycle() {
-  for (const key of Object.keys(strikes)) delete strikes[key];
-  for (const key of Object.keys(statuses)) delete statuses[key];
+  clearCycle();
+  cycleState.date = valuationDate();
+  cycleState.reset = true;
 }
 
 module.exports = {
