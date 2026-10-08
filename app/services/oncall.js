@@ -438,6 +438,8 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
  * so no code locations, and no request-derived text, reach the session.
  */
 const SLACK_MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
+const SLACK_CHANNEL_ID_RE = /^[A-Z0-9]{1,32}$/i;
+const SLACK_TS_RE = /^\d{1,16}\.\d{1,9}$/;
 
 function notifySlackMemberParagraph(memberId, channel, threadTs) {
   const mention = `<@${memberId}>`;
@@ -477,7 +479,7 @@ function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs } 
     lines.push(skin.devinSession.promptAppendix);
   }
 
-  const hasThread = Boolean(channel && threadTs);
+  const hasThread = SLACK_CHANNEL_ID_RE.test(channel || '') && SLACK_TS_RE.test(threadTs || '');
   if (hasThread) {
     lines.push('');
     lines.push(`*Slack Thread:* channel=${channel} thread_ts=${threadTs}`);
