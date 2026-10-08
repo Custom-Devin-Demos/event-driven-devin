@@ -361,7 +361,7 @@
             <label class="check"><input type="checkbox" id="attest" checked><span>I certify this information is correct and these services have not been submitted to another health plan.</span></label>
             <div class="actions">
               <button type="submit" id="submitBtn" class="btn btn-primary">Submit claim</button>
-              <button type="reset" class="btn btn-ghost">Cancel</button>
+              <button type="reset" id="cancelBtn" class="btn btn-ghost">Cancel</button>
             </div>
             <div class="stopwatch" id="claimTimer" role="timer" aria-live="off"><span class="sw-label">Time to submit</span><span class="sw-value" id="claimTimerValue">0.0s</span></div>
           </form>
@@ -479,14 +479,9 @@
         descEl.value = radio.dataset.desc;
       });
     });
-    var submission = 0;
-    var inflight = null;
-    form.addEventListener('reset', function () {
-      submission++;
-      if (inflight) inflight.abort();
-      inflight = null;
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit claim';
+    var cancelBtn = document.getElementById('cancelBtn');
+    form.addEventListener('reset', function (e) {
+      if (submitBtn.disabled) { e.preventDefault(); return; }
       setTimeout(function () { claimTypeEl.value = 'medical'; }, 0);
       clearInterval(timerHandle);
       timerHandle = null;
@@ -535,17 +530,14 @@
       }
       var memberLabel = document.getElementById('policyId').selectedOptions[0].textContent.replace(/\s*\(.*\)$/, '');
       submitBtn.disabled = true;
+      cancelBtn.disabled = true;
       submitBtn.textContent = 'Submitting\u2026';
       showResult('pending', 'Submitting your claim', 'Please stay on this page while we send the claim for ' + memberLabel + '.');
       var started = startTimer();
-      var mine = ++submission;
-      var controller = new AbortController();
-      inflight = controller;
 
       try {
         var res = await fetch('/api/insurance/claim', {
           method: 'POST',
-          signal: controller.signal,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             policyId: document.getElementById('policyId').value,
@@ -559,7 +551,6 @@
         });
         var data = {};
         try { data = await res.json(); } catch (_) { data = {}; }
-        if (mine !== submission) return;
         var secs = stopTimer(started);
         if (res.ok && data.success) {
           var ref = data.claimId ? String(data.claimId).slice(0, 8).toUpperCase() : '';
@@ -571,13 +562,10 @@
             'Waited ' + secs + ' s' + (data.requestId ? ' \u00b7 reference ' + String(data.requestId).slice(0, 8).toUpperCase() : ''));
         }
       } catch (err) {
-        if (mine !== submission) return;
         showResult('error', FAIL_TITLE, FAIL_BODY, 'Waited ' + stopTimer(started) + ' s');
       } finally {
-        if (mine === submission) inflight = null;
-      }
-      if (mine === submission) {
         submitBtn.disabled = false;
+        cancelBtn.disabled = false;
         submitBtn.textContent = 'Submit claim';
       }
     });
