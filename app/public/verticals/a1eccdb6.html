@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home | Peacock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000000;
+      --panel: #121314;
+      --chip: rgba(50, 53, 56, 0.64);
+      --text: #ffffff;
+      --muted: #a6a8ab;
+      --gold: linear-gradient(rgb(255, 224, 0) 0%, rgb(252, 204, 18) 50%, rgb(255, 168, 0) 100%);
+      --gold-solid: #fccc12;
+      --link: #069de0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); }
+    [hidden] { display: none !important; }
+    body { font-family: Outfit, Helvetica, Arial, sans-serif; font-size: 16px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    a { color: inherit; }
+
+    .disclaimer {
+      background: #1b1c1e; color: #d6d7d9; font-size: 11px; letter-spacing: .04em; text-align: center;
+      padding: 7px 16px; line-height: 1.4; border-bottom: 1px solid #2a2c2f;
+    }
+    .disclaimer strong { color: #fff; font-weight: 600; }
+
+    .topbar { display: flex; align-items: center; gap: 28px; height: 72px; padding: 0 clamp(16px, 6vw, 112px); }
+    .wordmark { display: flex; align-items: center; gap: 4px; font-size: 26px; font-weight: 600; letter-spacing: -.02em; text-decoration: none; }
+    .wordmark .dots { display: grid; gap: 2px; margin-top: 2px; }
+    .wordmark .dots i { width: 4px; height: 4px; border-radius: 50%; display: block; }
+    .nav { display: flex; gap: 22px; font-size: 14px; color: var(--muted); }
+    .nav a { text-decoration: none; }
+    .nav a.active { color: #fff; font-weight: 600; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .pill {
+      display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 18px;
+      border: 0; border-radius: 100px; font-size: 11px; letter-spacing: .8px; text-transform: uppercase;
+    }
+    .pill-dark { background: var(--chip); color: #fff; }
+    .pill-gold { background: var(--gold); color: #000; font-weight: 700; }
+    .avatar-sm { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 15px; color: #000; }
+
+    /* Who's watching */
+    .picker { min-height: calc(100vh - 110px); display: grid; place-content: center; text-align: center; padding: 40px 16px; }
+    .picker h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 600; margin: 0 0 36px; }
+    .profiles { display: flex; gap: clamp(20px, 5vw, 48px); justify-content: center; flex-wrap: wrap; }
+    .profile { background: none; border: 0; padding: 0; display: grid; justify-items: center; gap: 12px; }
+    .profile .face {
+      width: clamp(104px, 22vw, 148px); height: clamp(104px, 22vw, 148px); border-radius: 50%;
+      display: grid; place-items: center; font-size: 48px; font-weight: 700; color: #000;
+      outline: 3px solid transparent; outline-offset: 4px; transition: outline-color .15s, transform .15s;
+    }
+    .profile:hover .face, .profile:focus-visible .face { outline-color: #fff; transform: scale(1.03); }
+    .profile .name { font-size: 18px; font-weight: 500; }
+    .profile .note { font-size: 12px; color: var(--muted); max-width: 160px; }
+    .profile[disabled] { opacity: .6; cursor: progress; }
+    .manage { margin-top: 40px; }
+
+    /* Home */
+    .home { display: none; }
+    .home.show { display: block; }
+    .hero { position: relative; height: clamp(260px, 42vw, 460px); overflow: hidden; }
+    .hero img { width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 40%, #000 100%), linear-gradient(90deg, rgba(0,0,0,.75) 0%, rgba(0,0,0,0) 60%); }
+    .hero-copy { position: absolute; left: clamp(16px, 6vw, 112px); bottom: 36px; z-index: 1; max-width: 520px; }
+    .hero-copy .eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-solid); font-weight: 600; }
+    .hero-copy h2 { font-size: clamp(26px, 4vw, 44px); margin: 6px 0 14px; font-weight: 700; line-height: 1.05; }
+    .rail { padding: 18px clamp(16px, 6vw, 112px) 48px; }
+    .rail h3 { font-size: 20px; font-weight: 600; margin: 0 0 14px; display: flex; align-items: baseline; gap: 12px; }
+    .rail h3 span { font-size: 13px; font-weight: 400; color: var(--muted); }
+    .tiles { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 280px); gap: 14px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
+    .tile { background: var(--panel); border-radius: 8px; overflow: hidden; }
+    .art { aspect-ratio: 16 / 9; position: relative; display: flex; align-items: flex-end; padding: 12px; font-weight: 700; font-size: 20px; line-height: 1.05; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+    .art .badge { position: absolute; top: 10px; left: 10px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; background: rgba(0,0,0,.55); padding: 3px 7px; border-radius: 4px; font-weight: 600; }
+    .bar { height: 4px; background: rgba(255,255,255,.18); }
+    .bar i { display: block; height: 100%; background: var(--gold); }
+    .meta { padding: 10px 12px 12px; }
+    .meta .t { font-weight: 600; font-size: 15px; }
+    .meta .s { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .meta .r { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .skeleton .art { background: #1c1d1f; }
+    .art-harbor { background: linear-gradient(135deg, #0b3d5c, #1f8aa8 60%, #f2c14e); }
+    .art-dunes { background: linear-gradient(135deg, #5a2a0c, #c46a2b 55%, #f5d08a); }
+    .art-desk { background: linear-gradient(135deg, #111827, #374151 55%, #6366f1); }
+    .art-live { background: linear-gradient(135deg, #3b0764, #a21caf 55%, #f472b6); }
+    .art-kitchen { background: linear-gradient(135deg, #7f1d1d, #dc2626 55%, #fbbf24); }
+    .art-orbit { background: linear-gradient(135deg, #020617, #1e3a8a 55%, #38bdf8); }
+    .art-county { background: linear-gradient(135deg, #14532d, #4d7c0f 55%, #d9f99d); }
+
+    footer { padding: 28px clamp(16px, 6vw, 112px) 40px; color: var(--muted); font-size: 12px; border-top: 1px solid #1d1e20; display: flex; gap: 18px; flex-wrap: wrap; }
+
+    /* Error */
+    .error-screen { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; background: rgba(0,0,0,.92); padding: 24px; }
+    .error-screen.show { display: grid; }
+    .error-card { max-width: 520px; width: 100%; text-align: center; }
+    .error-card .icon { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 20px; display: grid; place-items: center; border: 2px solid var(--gold-solid); color: var(--gold-solid); font-size: 32px; font-weight: 700; }
+    .error-card h2 { font-size: 28px; margin: 0 0 10px; font-weight: 600; }
+    .error-card p { color: #d6d7d9; margin: 0 0 8px; line-height: 1.45; }
+    .error-card .code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; color: var(--muted); margin: 14px 0 0; word-break: break-word; }
+    .ticket { margin: 22px auto 0; background: #16171a; border: 1px solid #2a2c2f; border-radius: 12px; padding: 14px 16px; text-align: left; font-size: 14px; display: grid; gap: 6px; }
+    .ticket a { color: var(--link); font-weight: 600; }
+    .ticket .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .error-actions { margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    @media (max-width: 720px) {
+      .nav { display: none; }
+      .topbar { gap: 12px; }
+      .tiles { grid-auto-columns: 78%; }
+      .topbar-right .pill-dark { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="disclaimer"><strong>NOT ACTUALLY A PEACOCK SITE</strong> — INTERNAL DEMO ONLY, NOT AFFILIATED WITH, ENDORSED BY, OR A REAL PEACOCK PRODUCT.</div>
+
+  <header class="topbar">
+    <a class="wordmark" href="#" aria-label="Home">peacock<span class="dots" aria-hidden="true"><i style="background:#fccc12"></i><i style="background:#ff6a3d"></i><i style="background:#e5246f"></i><i style="background:#6e55dc"></i><i style="background:#069de0"></i><i style="background:#05ac3f"></i></span></a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#" class="active">Home</a><a href="#">TV Shows</a><a href="#">Movies</a><a href="#">Sports</a><a href="#">News</a><a href="#">Channels</a>
+    </nav>
+    <div class="topbar-right">
+      <button class="pill pill-dark" type="button">Search</button>
+      <div id="who" class="avatar-sm" hidden></div>
+    </div>
+  </header>
+
+  <section id="picker" class="picker">
+    <h1>Who's watching?</h1>
+    <div id="profiles" class="profiles" aria-label="Profiles"></div>
+    <div class="manage"><button class="pill pill-dark" type="button">Manage Profiles</button></div>
+  </section>
+
+  <section id="home" class="home">
+    <div class="hero">
+      <img src="https://www.peacocktv.com/dam/growth/assets/Home/tilewall/100226-hero1.jpg?downsize=1600:*&output-format=webp&output-quality=70"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1600&q=70';" alt="">
+      <div class="hero-copy">
+        <div class="eyebrow">Peacock Originals</div>
+        <h2>Hit Movies, Must-See TV, and Live Sports</h2>
+        <button class="pill pill-gold" type="button">Watch Now</button>
+      </div>
+    </div>
+    <div class="rail">
+      <h3>Continue Watching <span id="rail-note"></span></h3>
+      <div id="tiles" class="tiles" role="list"></div>
+    </div>
+    <footer><span>Privacy</span><span>Terms of Use</span><span>Help Center</span><span>Peacock Support</span><button id="switch" class="pill pill-dark" type="button">Switch Profile</button></footer>
+  </section>
+
+  <div id="error" class="error-screen" role="alertdialog" aria-modal="true" aria-labelledby="error-title">
+    <div class="error-card">
+      <div class="icon" aria-hidden="true">!</div>
+      <h2 id="error-title">Continue Watching couldn't load</h2>
+      <p>We're having trouble loading what you were watching. Our team has been notified.</p>
+      <div id="error-code" class="code"></div>
+      <div id="ticket" class="ticket" hidden></div>
+      <div class="error-actions">
+        <button id="error-back" class="pill pill-gold" type="button">Back to Profiles</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    var $ = function (id) { return document.getElementById(id); };
+    var esc = function (s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; };
+
+    function ago(iso) {
+      var m = Math.max(1, Math.round((Date.now() - Date.parse(iso)) / 60000));
+      if (m < 60) return m + ' min ago';
+      var h = Math.round(m / 60);
+      return h < 48 ? h + ' hr ago' : Math.round(h / 24) + ' days ago';
+    }
+    function left(t) {
+      var mins = Math.max(1, Math.round((t.durationSeconds - t.progressSeconds) / 60));
+      return mins + ' min left';
+    }
+
+    function showPicker() {
+      $('home').className = 'home';
+      $('picker').style.display = '';
+      $('error').className = 'error-screen';
+      $('who').hidden = true;
+      Array.prototype.forEach.call(document.querySelectorAll('.profile'), function (b) { b.disabled = false; });
+    }
+
+    function renderRail(body) {
+      $('picker').style.display = 'none';
+      $('home').className = 'home show';
+      $('who').hidden = false;
+      $('who').textContent = body.profile.name.charAt(0);
+      $('who').style.background = body.profile.color;
+      $('rail-note').textContent = body.items.length + ' titles';
+      $('tiles').innerHTML = body.items.map(function (t) {
+        return '<article class="tile" role="listitem" data-content-id="' + esc(t.contentId) + '">' +
+          '<div class="art art-' + esc(t.art) + '"><span class="badge">' + esc(t.type) + '</span>' + esc(t.title) + '</div>' +
+          '<div class="bar"><i style="width:' + Math.min(100, t.percentComplete) + '%"></i></div>' +
+          '<div class="meta"><div class="t">' + esc(t.title) + '</div><div class="s">' + esc(t.subtitle) + '</div>' +
+          '<div class="r">' + left(t) + ' · ' + ago(t.watchedAt) + '</div></div></article>';
+      }).join('');
+    }
+
+    function showError(body) {
+      $('error-code').textContent = 'Error ' + (body.code || 'CW_RAIL_FAILED') + (body.requestId ? ' · ' + body.requestId : '') +
+        ' — ' + (body.errorClass || 'Error') + ': ' + (body.error || 'Unknown error');
+      if (body.jira) {
+        $('ticket').innerHTML = '<span class="k">Jira ticket</span>' +
+          '<a id="jira-link" href="' + esc(body.jira.url) + '" target="_blank" rel="noopener">' + esc(body.jira.key) + '</a>' +
+          '<span>Devin has been assigned and is investigating.</span>';
+        $('ticket').hidden = false;
+      } else {
+        $('ticket').hidden = true;
+      }
+      $('error').className = 'error-screen show';
+      $('error-back').focus();
+    }
+
+    function choose(profileId) {
+      Array.prototype.forEach.call(document.querySelectorAll('.profile'), function (b) { b.disabled = true; });
+      identityReady.then(function () {
+        return fetch('/api/a1eccdb6/continue-watching', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            profileId: profileId,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (body) { if (body.success) renderRail(body); else showError(body); })
+        .catch(function (err) { showError({ errorClass: 'NetworkError', error: err.message }); });
+    }
+
+    $('error-back').addEventListener('click', showPicker);
+    $('switch').addEventListener('click', showPicker);
+
+    fetch('/api/a1eccdb6/profiles')
+      .then(function (r) { return r.json(); })
+      .then(function (body) {
+        $('profiles').innerHTML = body.profiles.map(function (p) {
+          return '<button class="profile" type="button" data-profile="' + esc(p.id) + '">' +
+            '<span class="face" style="background:' + esc(p.color) + '">' + esc(p.name.charAt(0)) + '</span>' +
+            '<span class="name">' + esc(p.name) + '</span>' +
+            (p.note ? '<span class="note">' + esc(p.note) + '</span>' : '') + '</button>';
+        }).join('');
+        Array.prototype.forEach.call(document.querySelectorAll('.profile'), function (b) {
+          b.addEventListener('click', function () { choose(b.getAttribute('data-profile')); });
+        });
+      });
+  </script>
+</body>
+</html>

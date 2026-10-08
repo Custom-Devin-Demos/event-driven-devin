@@ -3031,6 +3031,26 @@ const ONCALL_SKINS = {
     page: { file: 'f637b844.html', title: 'Health Plans | VNS Health | New York' },
     disclaimer: 'NOT ACTUALLY A VNS HEALTH SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real VNS Health product.',
   },
+  '919e7cf2': {
+    slug: '919e7cf2',
+    company: 'Cigna Healthcare',
+    brandMark: 'C',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: '919e7cf2.html', title: 'File a claim | myCigna' },
+    theme: {
+      '--accent': '#0033FF',
+      '--ink': '#333333',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#110081',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Cigna Healthcare Member Services',
+    alertCard: {
+      impact: 'Medical claim submissions in myCigna hang ~7s and end in a timeout; members see no claim confirmation and no claim reference is issued.',
+    },
+    disclaimer: 'NOT ACTUALLY A CIGNA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cigna Healthcare product.',
+  },
 };
 
 function getOncallSkin(slug) {
