@@ -477,11 +477,9 @@ describe('shared iOS demo failure report endpoint', () => {
     expect(perCustomerAppRepo({ repo: 'COG-GTM/demo-mars-ios-event-driven' })).toBe('');
   });
 
-  test('verifies the per-customer app folder on GitHub and falls back only when it is missing', async () => {
+  test('uses a per-customer repo only after GitHub confirms its demo.json names the slug', async () => {
     const repo = 'COG-GTM/demo-mars-ios-event-driven';
-    const found = { get: jest.fn().mockResolvedValue({ status: 200 }) };
-    const missing = { get: jest.fn().mockRejectedValue({ response: { status: 404 } }) };
-    const flaky = { get: jest.fn().mockRejectedValue(new Error('socket hang up')) };
+    const found = { get: jest.fn().mockResolvedValue({ data: '{"slug":"d8bf7f8a","appName":"Mars"}' }) };
 
     clearAppRepoCache();
     expect(await resolveAppRepo('d8bf7f8a', repo, { request: found, token: 't' })).toBe(repo);
@@ -491,23 +489,39 @@ describe('shared iOS demo failure report endpoint', () => {
     );
     expect(await resolveAppRepo('d8bf7f8a', repo, { request: found, token: 't' })).toBe(repo);
     expect(found.get).toHaveBeenCalledTimes(1);
+    clearAppRepoCache();
 
+    const unverified = [
+      { get: jest.fn().mockRejectedValue({ response: { status: 404 } }) },
+      { get: jest.fn().mockRejectedValue(new Error('socket hang up')) },
+      { get: jest.fn().mockResolvedValue({ data: '{"slug":"00000000"}' }) },
+      { get: jest.fn().mockResolvedValue({ data: 'not json' }) },
+    ];
+    for (const request of unverified) {
+      expect(await resolveAppRepo('d8bf7f8a', repo, { request, token: 't' })).toBe(SHARED_APP_REPO);
+    }
+    const flakyThenFound = { get: jest.fn()
+      .mockRejectedValueOnce(new Error('timeout'))
+      .mockResolvedValueOnce({ data: { slug: 'd8bf7f8a' } }) };
+    expect(await resolveAppRepo('d8bf7f8a', repo, { request: flakyThenFound, token: 't' })).toBe(SHARED_APP_REPO);
+    expect(await resolveAppRepo('d8bf7f8a', repo, { request: flakyThenFound, token: 't' })).toBe(repo);
     clearAppRepoCache();
-    expect(await resolveAppRepo('d8bf7f8a', repo, { request: missing, token: 't' })).toBe(SHARED_APP_REPO);
-    clearAppRepoCache();
-    expect(await resolveAppRepo('d8bf7f8a', repo, { request: flaky, token: 't' })).toBe(repo);
+
     const unused = { get: jest.fn() };
-    expect(await resolveAppRepo('d8bf7f8a', repo, { request: unused, token: '' })).toBe(repo);
+    expect(await resolveAppRepo('d8bf7f8a', repo, { request: unused, token: '' })).toBe(SHARED_APP_REPO);
     expect(await resolveAppRepo('d8bf7f8a', 'COG-GTM/event-driven-devin', { request: unused, token: 't' }))
       .toBe(SHARED_APP_REPO);
     expect(await resolveAppRepo('NOTASLUG', repo, { request: unused, token: 't' })).toBe(SHARED_APP_REPO);
     expect(unused.get).not.toHaveBeenCalled();
-    clearAppRepoCache();
   });
 
-  test('routes the remediation session to a per-customer appRepo', async () => {
+  test('routes the remediation session to a verified per-customer appRepo', async () => {
+    const axios = require('axios');
     const saved = ['GITHUB_PAT', 'github_mcp_pat', 'GITHUB_TOKEN'].map((name) => [name, process.env[name]]);
     saved.forEach(([name]) => delete process.env[name]);
+    process.env.GITHUB_PAT = 'test-token';
+    const get = jest.spyOn(axios, 'get').mockResolvedValue({ data: { slug: 'abcd1234' } });
+    clearAppRepoCache();
     try {
       await reportAppFailure('abcd1234', {
         ...appReport(),
@@ -522,7 +536,18 @@ describe('shared iOS demo failure report endpoint', () => {
       createSessionAndAlert.mockClear();
       await reportAppFailure('abcd1234', { ...appReport(), appRepo: 'COG-GTM/event-driven-devin' }).sessionPromise;
       expect(createSessionAndAlert.mock.calls[0][0].promptAppendix).toBe(buildRemediationDirective('abcd1234'));
+
+      createSessionAndAlert.mockClear();
+      clearAppRepoCache();
+      delete process.env.GITHUB_PAT;
+      await reportAppFailure('abcd1234', {
+        ...appReport(),
+        appRepo: 'COG-GTM/other-ios-event-driven',
+      }).sessionPromise;
+      expect(createSessionAndAlert.mock.calls[0][0].promptAppendix).toBe(buildRemediationDirective('abcd1234'));
     } finally {
+      get.mockRestore();
+      clearAppRepoCache();
       saved.forEach(([name, value]) => {
         if (value === undefined) delete process.env[name];
         else process.env[name] = value;

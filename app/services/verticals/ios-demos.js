@@ -78,35 +78,39 @@ function githubToken() {
   return process.env.GITHUB_PAT || process.env.github_mcp_pat || process.env.GITHUB_TOKEN || '';
 }
 
-// Confirms apps/<slug>/demo.json exists in the per-customer repo. Falls back to the shared repo only when GitHub
-// says the app folder is missing; without a token or on transient errors the pattern match is trusted.
+// A per-customer repo is used only after GitHub confirms apps/<slug>/demo.json exists there and names the same slug.
+// Anything unverified (no token, 404, inaccessible repo, malformed file, network error) stays on the shared repo.
+// Only confirmed repos are cached, so a transient failure never pins the fallback.
 async function resolveAppRepo(slug, appRepo, { request = axios, token = githubToken(), now = Date.now() } = {}) {
   const repo = perCustomerAppRepo(appRepo);
   if (!repo || !SLUG_PATTERN.test(slug)) return SHARED_APP_REPO;
-  if (!token) return repo;
 
   const key = `${repo}#${slug}`;
   const cached = appRepoCache.get(key);
-  if (cached && cached.expiresAt > now) return cached.repo;
+  if (cached && cached.expiresAt > now) return repo;
+  if (!token) {
+    logger.warn('iOS demo appRepo not verified (no GitHub token); using shared repo', { appRepo: repo, demoSlug: slug });
+    return SHARED_APP_REPO;
+  }
 
-  let resolved = repo;
   try {
-    await request.get(`https://api.github.com/repos/${repo}/contents/apps/${slug}/demo.json`, {
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' },
+    const { data } = await request.get(`https://api.github.com/repos/${repo}/contents/apps/${slug}/demo.json`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.raw+json' },
       timeout: 5000,
     });
+    const demo = typeof data === 'string' ? JSON.parse(data) : data;
+    if (!demo || demo.slug !== slug) {
+      logger.warn('iOS demo appRepo demo.json does not match slug; using shared repo', { appRepo: repo, demoSlug: slug });
+      return SHARED_APP_REPO;
+    }
   } catch (error) {
     const status = error && error.response && error.response.status;
-    if (status === 404) {
-      resolved = SHARED_APP_REPO;
-      logger.warn('iOS demo appRepo has no matching app folder; using shared repo', { appRepo: repo, demoSlug: slug });
-    } else {
-      logger.warn('iOS demo appRepo check failed; trusting repo pattern', { appRepo: repo, demoSlug: slug, status });
-      return repo;
-    }
+    logger.warn('iOS demo appRepo not verified; using shared repo', { appRepo: repo, demoSlug: slug, status });
+    return SHARED_APP_REPO;
   }
-  appRepoCache.set(key, { repo: resolved, expiresAt: now + APP_REPO_CACHE_TTL_MS });
-  return resolved;
+
+  appRepoCache.set(key, { expiresAt: now + APP_REPO_CACHE_TTL_MS });
+  return repo;
 }
 
 function clearAppRepoCache() {
