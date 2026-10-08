@@ -561,25 +561,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A WISPR FLOW SITE — internal demo only, not affiliated with, endorsed by, or a real Wispr Flow product.',
   },
-  '3aea27ba': {
-    slug: '3aea27ba',
+  '9a51c8ce': {
+    slug: '9a51c8ce',
     company: 'Happen Bank',
-    brandMark: 'H',
     vertical: 'banking',
     page: {
-      // Natively branded custom page: served instead of the vertical's stock
-      // page; the brand shim skips the title/logo rewrite for it.
-      file: '3aea27ba.html',
-      title: 'Happen Bank — Move Money',
-    },
-    accent: '#2626FF',
-    accentDark: '#1E1FCA',
-    theme: {
-      '--accent': '#2626FF',
-      '--ink': '#232222',
-      '--surface': '#fffdfb',
-      '--chrome-bg': '#232222',
-      '--chrome-text': '#F7F1ED',
+      file: '9a51c8ce.html',
+      title: 'Personal Banking | Bank Online with Happen Bank, formerly LendingClub',
     },
     disclaimer: 'NOT ACTUALLY A HAPPEN BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Happen Bank product.',
   },
