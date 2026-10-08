@@ -53,6 +53,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **BNY NEXEN — Digital Asset Custody** (Vite/React app, unlisted — direct URL only) | `/bny`, `/nexen`, `/9bfabd45` (all redirect), `/9bfabd45/app` (app) | `app/public/verticals/9bfabd45-app/` | `POST /api/9bfabd45/error` | `app/services/verticals/9bfabd45.js` |
 | **S&P Capital IQ Pro — Market Monitor** (Vite/React app, unlisted — direct URL only) | `/capitaliq`, `/capital-iq`, `/c28a3fe9` (all redirect), `/c28a3fe9/app` (app) | `app/public/verticals/c28a3fe9-app/` | `POST /api/c28a3fe9/index-detail` | `app/services/verticals/c28a3fe9.js`, `app/services/verticals/c28a3fe9-listings.js` |
 | **State Street — Client Banking Portal** (unlisted — direct URL only) | `/statestreet`, `/4da81799` | `app/public/verticals/4da81799.html` | `POST /api/4da81799/transfer` | `app/services/verticals/4da81799.js` |
+| **State Street MCH — eHorizon NAV Oversight** (internal fund-accounting NAV strike console, unlisted — direct URL only) | `/statestreet-mch` | `app/public/verticals/statestreet-mch.html` | `GET /api/statestreet-mch/cycle`, `POST /api/statestreet-mch/nav/strike`, `POST /api/statestreet-mch/nav/release`, `POST /api/statestreet-mch/sod-reset` | `app/services/verticals/statestreet-mch.js` |
 | **BAC Credomatic — Banca en Línea** (unlisted — direct URL only) | `/bac`, `/baccredomatic` | `app/public/verticals/bac.html` | `POST /api/bac/transferencia` | `app/services/verticals/bac.js` |
 | **Banamex — Banca en Línea** (unlisted — direct URL only) | `/banamex`, `/citibanamex` | `app/public/verticals/banamex.html` | `POST /api/banamex/traspaso` | `app/services/verticals/banamex.js` |
 | **PNC Online Banking — Virtual Wallet Transfer** (unlisted — direct URL only; on-call + Devin session resolve from the page's devindemos.com email, no hard-coded `slackMemberId`) | `/pnc` | `app/public/verticals/pnc.html` | `GET /api/pnc/accounts`, `POST /api/pnc/transfer` | `app/services/verticals/pnc.js` |
@@ -71,8 +72,10 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Vanta — Trust Center document access request** (unlisted — direct URL only; org/user/on-call resolve from the hub's `devinUserId`/`devinOrgId`/`devinEmail`, no hard-coded `slackMemberId`) | `/vanta`, `/dc2379a5` | `app/public/verticals/dc2379a5.html` | `POST /api/dc2379a5/trust-center/access-requests` | `app/services/verticals/dc2379a5.js` |
 | **Amplitude Analytics — Chart query** (unlisted — direct URL only) | `/amplitude`, `/5826f4f2` | `app/public/verticals/5826f4f2.html` | `GET /api/5826f4f2/metadata`, `POST /api/5826f4f2/chart-query` | `app/services/verticals/5826f4f2.js` |
 | **Restaurant365 — Daily Sales Summary GL post** (unlisted — direct URL only; failure files a Jira Bug in `MBA` assigned to Shahmir, then starts Devin with the Jira key) | `/restaurant365`, `/r365`, `/b19cd3b6` | `app/public/verticals/b19cd3b6.html` | `GET /api/b19cd3b6/locations`, `GET /api/b19cd3b6/dss`, `POST /api/b19cd3b6/dss/post` | `app/services/verticals/b19cd3b6.js` |
+| **Streaming — Continue Watching rail** (unlisted — direct URL only; failure files a Jira Bug in `JOAN`, then starts Devin with the Jira key) | `/a1eccdb6` | `app/public/verticals/a1eccdb6.html` | `GET /api/a1eccdb6/profiles`, `POST /api/a1eccdb6/continue-watching` | `app/services/verticals/a1eccdb6.js` |
 | **UKG Pro — Payroll Gateway pay run** (unlisted — direct URL only) | `/ukg`, `/ukgpro`, `/e33c0578` | `app/public/verticals/e33c0578.html` | `GET /api/e33c0578/pay-run`, `POST /api/e33c0578/pay-run` | `app/services/verticals/e33c0578.js` |
 | **Warner Bros. Discovery — Brand Directory** (unlisted — direct URL only) | `/wbd`, `/warnerbros`, `/e57f4315` | `app/public/verticals/e57f4315.html` | `POST /api/e57f4315/brand-directory` | `app/services/verticals/e57f4315.js` |
+| **Pluto TV — Watch Now playback session** (unlisted — direct URL only; org/user/on-call resolve from the hub's `devinUserId`/`devinOrgId`/`devinEmail`, no hard-coded `slackMemberId`; the default Trending Now channel fails on the missing `editorial` ad policy, every other lineup channel succeeds) | `/pluto`, `/plutotv`, `/pluto-tv`, `/f2f7c956` | `app/public/verticals/f2f7c956.html` | `GET /api/f2f7c956/lineup`, `POST /api/f2f7c956/playback-session` | `app/services/verticals/f2f7c956.js` |
 | **Stock & Inventory Control Tower — replenishment run** (unlisted — direct URL only) | `/d67c33e4` | `app/public/verticals/d67c33e4.html` | `GET /api/d67c33e4/network`, `POST /api/d67c33e4/replenishment` | `app/services/verticals/d67c33e4.js`, `app/services/verticals/d67c33e4-network.js` |
 | **Talon Power Systems — Plant 07 Historian → MES Ingest** (fictional brand, unlisted — direct URL only; org/user/on-call resolve from the hub's `devinUserId`/`devinOrgId`/`devinEmail`, no hard-coded `slackMemberId`) | `/plant-ops`, `/talon-plant`, `/1182181f` | `app/public/verticals/1182181f.html` | `GET /api/1182181f/plant`, `GET /api/1182181f/lines/:code`, `GET /api/1182181f/runs`, `POST /api/1182181f/runs`, `POST /api/1182181f/alarms/:id/ack` | `app/services/verticals/1182181f.js`, `app/services/verticals/1182181f-line-manifests.js` |
 | **Talon Power Systems — Talon Connect J1939 Telematics Ingest** (fictional brand, unlisted — direct URL only; org/user/on-call resolve from the hub's `devinUserId`/`devinOrgId`/`devinEmail`, no hard-coded `slackMemberId`) | `/talon-connect`, `/fleet-telematics`, `/26af2083` | `app/public/verticals/26af2083.html` | `GET /api/26af2083/fleet`, `GET /api/26af2083/assets/:id`, `GET /api/26af2083/runs`, `POST /api/26af2083/runs`, `POST /api/26af2083/events/:id/ack` | `app/services/verticals/26af2083.js`, `app/services/verticals/26af2083-gateway-manifests.js` |
@@ -88,6 +91,11 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Verizon — Wireless Checkout** (unlisted — direct URL only) | `/verizon`, `/4e150e99` | `app/public/verticals/4e150e99.html` | `GET /api/4e150e99/catalog`, `POST /api/4e150e99/checkout` | `app/services/verticals/4e150e99.js` |
 | **Elevance Health — Anthem Individual & Family enrollment** (unlisted — direct URL only) | `/elevance`, `/anthem`, `/9fdcf315` | `app/public/verticals/9fdcf315.html` | `GET /api/9fdcf315/plans`, `POST /api/9fdcf315/enroll` | `app/services/verticals/9fdcf315.js` |
 | **Vertex Inc — Vertex Cloud platform tax determination** (unlisted — direct URL only) | `/vertex`, `/513ad458` | `app/public/verticals/513ad458.html`, `/vertex/dashboard/billing` | `GET /api/513ad458/jurisdictions`, `GET /api/513ad458/product-classes`, `GET /api/513ad458/invoices`, `POST /api/513ad458/calculate` | `app/services/verticals/513ad458.js`, `app/services/verticals/513ad458-invoices.js` |
+| **Ralph Lauren — Digital Flagship Checkout** (unlisted — direct URL only; bare `/f63013c0` serves nothing; Meridian Pay API `2026-10` field-rename incident, three intentional defects; broken by default — `demo/reset` stays on `2026-10`, `demo/unflip` is the healthy baseline) | `/f63013c0/rb/retail` | `app/public/verticals/f63013c0/rb/` | `GET /api/f63013c0/catalog`, `POST /api/f63013c0/checkout`, `GET /api/f63013c0/metrics`, `GET /api/f63013c0/orders/:id`, `POST /api/f63013c0/orders/:id/complete`, `/api/f63013c0/psp/*` (Meridian Pay sim), `POST /api/f63013c0/demo/{reset,start,stop,flip,unflip}` | `app/services/verticals/f63013c0.js`, `app/services/verticals/f63013c0-meridian.js`, `app/services/verticals/f63013c0-meridian-psp.js`, `app/services/verticals/f63013c0-orders.js` |
+| **Epic Games — Player Support contact form** (unlisted — direct URL only; clone of the public epicgames.com/help Support site) | `/50a88f70` | `app/public/verticals/50a88f70.html` | `POST /api/50a88f70/support-ticket` | `app/services/verticals/50a88f70.js` |
+| **Open Government Products — FormSG landing page** (unlisted — direct URL only; clone of the public form.gov.sg landing page; every link/button except All Demos fails on the unregistered `storage` response mode) | `/ceb3f931` | `app/public/verticals/ceb3f931.html` | `POST /api/ceb3f931/launch` | `app/services/verticals/ceb3f931.js` |
+| **GovTech Singapore — tech.gov.sg homepage** (unlisted — direct URL only; clone of the public tech.gov.sg homepage; every link/button except All Demos submits a STACK Conference ticket reservation that fails on a pass code missing from `PASS_CATALOGUE`) | `/29f8340a`, `/govtech` | `app/public/verticals/29f8340a.html` | `POST /api/29f8340a/tickets` | `app/services/verticals/29f8340a.js` |
+| **Travelers — Auto Quote & Purchase** (unlisted — direct URL only) | `/travelers`, `/aa46c0f9` | `app/public/verticals/aa46c0f9.html` | `GET /api/aa46c0f9/quote-options`, `POST /api/aa46c0f9/quote/purchase` | `app/services/verticals/aa46c0f9.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
@@ -99,7 +107,7 @@ A static showcase recreating the home pages of the Power Corporation group of co
 
 ### On-call vertical slice (Flows 1–2)
 
-Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves the same branded pages in on-call mode with their primary action rerouted (via an injected fetch shim in `app/routes/oncall.js`) to a parallel set of endpoints backed by copied services carrying performance-degradation bugs instead of TypeErrors:
+Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves the same branded pages in on-call mode with their primary action rerouted (via an injected fetch shim in `app/routes/oncall.js`) to a parallel set of endpoints backed by copied services with scenario-specific performance degradations or TypeErrors:
 
 | Vertical | On-call API Endpoint | Service File |
 |----------|---------------------|--------------|
@@ -109,16 +117,18 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 | Insurance | `POST /api/oncall/insurance/claim` | `app/services/oncall-verticals/insurance.js` |
 | Industrials | `POST /api/oncall/industrials/quote` | `app/services/oncall-verticals/industrials.js` |
 | Marketplace | `POST /api/oncall/marketplace/cart` | `app/services/oncall-verticals/marketplace.js` |
+| Apparel | `POST /api/oncall/apparel/bag` | `app/services/oncall-verticals/apparel.js` |
 | Grocery | `POST /api/oncall/grocery/checkout` | `app/services/oncall-verticals/grocery.js` |
+| Vaccines (GSK skin `fe4f39ba`) | `POST /api/oncall/vaccines/order` | `app/services/oncall-verticals/vaccines.js` |
 | Voice | `POST /api/oncall/voice/transcribe` | `app/services/oncall-verticals/voice.js` |
 | Samsara Fleet (native iOS/macOS app) | `POST /api/oncall/26a3d261/eta-failure` | `app/services/oncall-verticals/fleet.js` |
 | Partiful RSVP (native iOS/macOS app + `/partiful` web replica) | `POST /api/oncall/205bc15f/rsvp-page-failure` | `app/services/oncall-verticals/partiful.js` |
 
-Routes are mounted from `app/routes/oncall-verticals.js`, except the two native-app report endpoints, which live in `app/routes/oncall.js`. The degradations are deliberately not described here — the on-call demo's premise is that the responder diagnoses them from telemetry. The legacy `/api/<vertical>/...` endpoints and their planted TypeErrors are untouched.
+Routes are mounted from `app/routes/oncall-verticals.js`, except the three native-app report endpoints (Fleet, Partiful, account-opening), which live in `app/routes/oncall.js`. The degradations are deliberately not described here — the on-call demo's premise is that the responder diagnoses them from telemetry. The legacy `/api/<vertical>/...` endpoints and their planted TypeErrors are untouched.
 
 **Voice fixes require real-audio verification.** Any fix touching the voice transcribe path (`app/services/oncall-verticals/voice.js` or `POST /api/oncall/voice/transcribe`) must be verified with real audio, not typed input: follow the "Voice (dictation) specifics" section of `.agents/skills/testing-oncall-skins/SKILL.md` — piper TTS speaks the utterance, ffplay plays it in a visible terminal, whisper.cpp transcribes it live, and the transcript finalizes on the page with the latency stopwatch on screen. Record 2–3 finalizes before and after the fix to show the climbing latency and the flat fast profile.
 
-Customer skins receive the alerts surface by default. Optional `bugPortal` and `incident` skin config entries opt into `/oncall/c/:slug/report` and `/oncall/c/:slug/incident` respectively.
+Customer skins receive the alerts surface by default. Major incidents are not simulated per skin: the `/oncall` hub links to the fixed Slack incident channel, and the long-form incident demo is the Incident Lab (`/oncall/incident-lab`).
 
 **On-call (`/oncall`) cards never route to a real person.** Their *Owner* field is a scenario persona (`OWNER_DISCLAIMER` in `app/services/slack.js`) and the only real mention on an on-call card is *Triggered by*, resolved from the `devinEmail` the run supplied. A responder that cannot resolve the persona must @-mention nobody in its place — do not fall back to `git blame`, commit authors, or CODEOWNERS to find someone to cc, since every file here was last touched by whoever built the demo, not by whoever is on call.
 
@@ -230,7 +240,7 @@ The Nordstrom app vertical (slug `5b7227b4`, aliases `/nordstromapp`, `/nordstro
 
 The app plants a registry mismatch: the product catalog carries a `New Markdown` price status, but the Nordy Club earning-rules registry never registers it, so adding a New Markdown item to the bag null-asserts while pricing rewards and the product screen shows its error message plus the incident toast. The client then `POST`s to `/api/5b7227b4/mobile/error` with `source: nordstrom-shop/<platform>` and `service: customer-5b7227b4-mobile`, plus `platform`, `screen`, `action`, `product`, `priceStatus` tags. `reportAppFailure` in `app/services/verticals/5b7227b4.js` raises the Slack alert and Devin session directly (Sentry capture + `add_to_bag.failure` metric); successful adds sync on `POST /api/5b7227b4/bag` (`add_to_bag.success`, no alert).
 
-Identity is dynamic, exactly as for Citi Mobile: the Flutter client forwards `devinEmail` / `devinUserId` / `devinOrgId` from the hub's `localStorage` (or the native sign-in email), the service passes them through untouched, resolves an email to a Nordstrom org member with `DEVIN_SERVICE_KEY_5B7227B4` when no user id was sent, and `DEVIN_USER_ID_5B7227B4` / `DEVIN_ORG_ID_5B7227B4` only fill in when the client sent nothing. `CUSTOMER_ALERT_IDENTITY` maps `customer-5b7227b4-mobile` to the Nordstrom `APP_REMEDIATION_DIRECTIVE` (fix the registry, tolerate unknown statuses, add a completeness test, verify one commit on web, Android and iOS, refresh the hosted build). Regression coverage lives in `tests/5b7227b4-mobile-error.test.js`.
+Identity is dynamic, exactly as for Citi Mobile: the Flutter client forwards `devinEmail` / `devinUserId` / `devinOrgId` from the hub's `localStorage` (or the native sign-in email), the service passes them through untouched, resolves an email to a Nordstrom org member with `DEVIN_SERVICE_KEY_5B7227B4` when no user id was sent, and `DEVIN_USER_ID_5B7227B4` / `DEVIN_ORG_ID_5B7227B4` only fill in when the client sent nothing. `DEVIN_SERVICE_KEY_5B7227B4` only works inside the Nordstrom org, so a report whose hub-selected org is anything else (e.g. Devin GTM) is raised under the `default` customer config, the same key and Slack channel as every other skin. The hosted build's `aLh` sends the hub's `devinOrgId` and falls back to the Nordstrom org only when the hub stored none. `CUSTOMER_ALERT_IDENTITY` maps `customer-5b7227b4-mobile` to the Nordstrom `APP_REMEDIATION_DIRECTIVE` (fix the registry, tolerate unknown statuses, add a completeness test, verify one commit on web, Android and iOS, refresh the hosted build). Regression coverage lives in `tests/5b7227b4-mobile-error.test.js`.
 
 Refresh the hosted build the same way as Citi: `flutter build web --release --base-href /5b7227b4/app/`, copy `build/web/` into `app/public/verticals/5b7227b4-app/`, drop `canvaskit/`.
 
@@ -320,6 +330,10 @@ The Fleet vertical is the native SwiftUI Samsara Fleet replica in `COG-GTM/ios-d
 
 The Partiful vertical is the native SwiftUI Partiful replica in `COG-GTM/ios-demos` (`apps/205bc15f`, iOS + macOS, no telemetry SDK), plus a browser replica of the same screens at `/partiful` (`/205bc15f`) for demoing without Xcode. Its planted defect is a blank page — an event whose host picked a text-only theme has no cover photo, so the RSVP page model cannot be built and the guest sees nothing (`pasta-night-mine`, `board-game-night`; photo events render normally). The app reports it itself, `POST`ing bounded facts (`source: partiful-rsvp/<ios|macos|web>`, `service: partiful-rsvp`, event id/title, host, theme, screen/action, `reason`, guest counts, invite link, optional `devinEmail`) to `/api/oncall/205bc15f/rsvp-page-failure`. `reportRsvpPageFailure` in `app/services/oncall-verticals/partiful.js` mirrors the Fleet slice: it allocates the `PTF-xxxxxx` Incident Ref, emits the `partiful_rsvp.page_failure` metric and a Sentry message tagged with the on-call route (so `isOncallSliceEvent` never raises a second session), posts one alert card to `SLACK_ONCALL_ALERTS_CHANNEL_ID`, creates one Devin session on `platform: macos` (`DEVIN_ONCALL_PARTIFUL_PLATFORM` to override) against `COG-GTM/ios-demos`, and links the session in the alert thread. `reason` must be a key of `REASONS` — the prompt never carries a client string the server cannot explain — and the invite link is only kept when it is an `https://partiful.com` URL. The route answers `202` with `reference` + `statusToken`; `GET /api/oncall/205bc15f/rsvp-page-failure/:reference` needs that token in the `X-Status-Token` header, and the app polls it to show "Devin is investigating" under the blank page. Like Fleet, the `#oncall-alerts` responder automation must skip messages containing `partiful-rsvp` so only the macOS session investigates. Regression coverage lives in `tests/oncall-partiful-rsvp-failure.test.js`. `app/public/verticals/205bc15f.html` is the browser replica: the same feed, RSVP page, and blank page rendered in a phone frame, carrying the same defect in `buildPage()` and reporting with `source: partiful-rsvp/web`, so a demo needs only the URL.
 
+### CommBank account-opening online ID check (6c2cc636, SwiftUI, external repo)
+
+The account-opening vertical is the native SwiftUI CommBank replica in `COG-GTM/ios-demos` (`apps/6c2cc636`, iOS + macOS, no telemetry SDK): a new customer opens an Everyday Smart Access account and reaches "We'll need to check your ID", where Agree & Continue runs the online ID check. When the selected document is rejected, the app POSTs bounded facts (`source: account-opening/<ios|macos>`, `service: account-opening`, `reason` in `document_expired`/`visa_missing`/`visa_not_eligible`/`visa_expired`, document kind, `issuingCountry` as a 3-letter code, `hasLinkedVisa` + `visaSubclass`, screen/action, applicant age, customer type, product, release, optional client `reference` and `devinEmail`) to `/api/oncall/6c2cc636/id-check-failure`. `reportIdCheckFailure` in `app/services/oncall-verticals/account-opening.js` keeps a valid `CBA-xxxxxx` client reference (allocating one otherwise), dedupes on it in-memory (≤200 entries, 6h), emits the `account_opening.id_check_failure` metric and a Sentry message tagged with the on-call route (so `isOncallSliceEvent` never raises a second session), posts ONE alert card to `SLACK_ONCALL_ALERTS_CHANNEL_ID`, and creates ONE Devin session on `DEVIN_ONCALL_ACCOUNT_OPENING_PLATFORM` (default `macos`, identity resolved like Fleet's) linked in the alert's thread. A reference is complete once the alert, the session and the thread link all exist; a retry re-attempts only the missing piece — the link reply always goes to the channel and ts the alert was posted to — never creates a second session and never re-emits telemetry. A retry of an incomplete reference bypasses the hourly trigger cap so a saturated window cannot strand an in-flight incident. The `#oncall-alerts` responder automation must skip messages containing `account-opening`, like `fleet-mobile`, which the card's fallback text carries verbatim. The card never shows name, passport number or DOB. One failure, one session: remediation sessions must reproduce with `-onboarding.disableFailureReports YES` / `ONBOARDING_DISABLE_FAILURE_REPORTS=1` so the app never reports while being investigated. The session's prompt carries the alert's `*Slack Thread:* channel/ts` so it replies once in that thread with its findings, and it opens its fix PR as a `[DEMO — DO NOT MERGE]` draft. The route answers `202` with `reference` and `sessionRequested: true`; there is no GET status route. Regression coverage lives in `tests/oncall-account-opening-id-check-failure.test.js`.
+
 ### Bank of America Zelle field-migration scenario (6f43e66c, /bofa-snow)
 
 The Bank of America Zelle vertical (`/6f43e66c`, `/bofa-snow`) plants one field-migration gap with two consumers:
@@ -394,6 +408,10 @@ The FOX One on-call skin carries two **frontend** defects aimed at a web team. B
 - Both defects are deliberately left in place. `APP_REMEDIATION_DIRECTIVE` and `AUDIT_REMEDIATION_DIRECTIVE` require `recording_start` **before** any code change, annotated before/after passes, and — for the audit flow — a before/after scoreboard of the Lighthouse accessibility score, CLS, LCP and axe violation count. Neither session merges.
 - Run sheet: `docs/DEMO-FOX-WEB.md`. Coverage: `tests/a75ccde9-error.test.js`, `tests/a75ccde9-quality.test.js`.
 
+### Ralph Lauren checkout incident scenario
+
+The Ralph Lauren vertical (slug `f63013c0`, storefront at `/f63013c0/rb/retail`) models a payment-provider breaking change rather than a planted TypeError: fictional PSP "Meridian Pay" ships API `2026-10`, which renames `paymentId` to `pspReference` in authorization responses. The vertical is broken by default — boot and `demo/reset` both leave the provider on `2026-10`; `demo/unflip` (or `demo/start`, which reverts to `2025-06` and arms the flip) is the way to a healthy baseline. `app/services/verticals/f63013c0-meridian.js` (the client adapter) still reads `paymentId` only, so `checkout-service` throws `Missing payment id in PSP response` after a successful authorization and leaves the order `pending`; retries re-authorize because no `Idempotency-Key` header is sent; and the only parser test is a happy-path fixture pinned to `2025-06`. **The three defects are intentional — leave them in place** so Devin performs the fix live per `docs/f63013c0/ENGINEERING_STANDARDS.md` and `docs/f63013c0/RUNBOOK.md`. `paymentMethod: 'paypal'` is the alternate success path and always confirms, even on `2026-10`. Demo controls (`POST /api/f63013c0/demo/{reset,start,stop,flip,unflip}` or `npm run demo:rl -- …`) drive a synthetic traffic generator and an armed version flip; after the fix, `scripts/f63013c0-reconcile-authorizations.js` completes stranded orders and voids duplicate authorizations. See `docs/f63013c0/DEMO.md` for the run sheet.
+
 ### Incident Lab (evolving-incident demo)
 
 The Incident Lab (`/oncall/incident-lab`, unlisted) runs a long-form incident where the data develops over time and Devin investigates an external subject repo (the n8n fork at `ananthv26-cog-demo-repos/n8n`) rather than this app. Scenarios are JSON documents in `config/incident-lab/`; the run engine is `app/services/incident-lab/engine.js` with three sinks:
@@ -414,9 +432,8 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   ├── incidentModes.js           # Scenario state management (healthy, checkout-regression, etc.)
 │   ├── public/
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
+│   │   ├── cognition-brand.css    # Cognition editorial shell (paper, hairlines, nav, steps, card grid) shared by hub.html and oncall.html
 │   │   ├── index.html             # Retail eCommerce storefront UI
-│   │   ├── oncall-report.html     # Shared customer-skinned support portal
-│   │   ├── oncall-incident.html   # Shared customer-skinned SEV-1 incident console
 │   │   └── verticals/
 │   │       ├── banking.html       # Apex Bank — Online Banking
 │   │       ├── financial-services.html  # Meridian Capital — Trading Platform
@@ -444,7 +461,7 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   │   │   ├── healthcare.js      # Healthcare: providers + appointments
 │   │   │   ├── telco.js           # Telco: plans + upgrades
 │   │   │   └── payer.js           # Payer: ID cards + pharmacy claims
-│   │   ├── oncall.js              # On-Call demo pages, alert/bug triggers, skinned routes
+│   │   ├── oncall.js              # On-Call demo pages, alert triggers, skinned routes
 │   │   ├── oncall-verticals.js    # On-call vertical slice endpoints (/api/oncall/<vertical>/...)
 │   │   ├── internal-jobs.js       # Slow-query patrol jobs (container-network-only; nginx returns 404)
 │   │   ├── checkout.js            # Legacy checkout endpoint
@@ -651,11 +668,7 @@ Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of wha
 | `SENTRY_DSN` | Sentry project DSN | Yes |
 | `DD_API_KEY` | Datadog API key | Yes (for Docker) |
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes (for Docker) |
-| `DD_INCIDENT_APP_KEY` | Datadog application key for Incident Management (SEV-1 declare/resolve). Owner needs an Incident Management seat. Falls back to `DD_APPLICATION_KEY` | For SEV-1 incidents |
-| `ONCALL_SEV1_WINDOW_MS` | SEV-1 degradation window in ms (default 30 min) | No |
-| `ONCALL_SEV1_AUTO_RESOLVE` | Set to `false` to leave the Datadog incident open when the window ends — synthetic probe traffic still stops, but responders resolve the incident themselves and Slack auto-archives the channel on its own schedule (default `true`) | No |
-| `ONCALL_SEV1_PROBE_INTERVAL_MS` | Base delay between synthetic probe requests against the affected endpoint while a SEV-1 is open, measured from when the previous request completes. The effective delay is this base multiplied per evidence phase (6x/3x/1.5x/1x across the window), so at the default 10s base and 30-min window probes run every ~60s early on and every ~10s in the final phase | No |
-| `ONCALL_SEV1_PROBE_MAX` | Max concurrent SEV-1 probe loops (default 25) | No |
+| `DD_INCIDENT_APP_KEY` | Datadog application key for Incident Management (declare/resolve for the Incident Lab and the vertical SEV-2s). Owner needs an Incident Management seat. Falls back to `DD_APPLICATION_KEY` | For Datadog incidents |
 | `ONCALL_CONFIG_OVERRIDE_TTL_MS` | Lifetime of a per-run config override (`POST /api/oncall/config`; the shipped baseline comes from `SCREENING_WINDOW_DAYS`/`SCREENING_CONCURRENCY`) when its run has no live incident window to inherit (default 45 min) | No |
 | `ONCALL_CONFIG_OVERRIDE_MAX` | Cap on concurrently registered per-run config overrides; at capacity the oldest override without a live incident is evicted first (default 50) | No |
 | `SCREENING_WINDOW_DAYS` | Compliance-screening lookback window for the on-call banking transfer path (default 90) | No |
@@ -669,9 +682,8 @@ Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of wha
 | `SLACK_TRIAGE_CHANNEL_ID` | Channel ID for the report-only bug-report mirror (default `#automated-devin-triage`). Never triggers a Devin session. Bot must be invited to the channel | No |
 | `SLACK_TRIAGE_BOT_TOKEN` | Bot token for the triage mirror post (defaults to `SLACK_BOT_TOKEN`) | No |
 | `SLACK_ONCALL_ALERTS_CHANNEL_ID` | Channel ID for on-call (`/oncall`) alert + incident posts | For on-call alerts |
-| `SLACK_ONCALL_BUGS_CHANNEL_ID` | Channel ID for on-call bug-report posts | For on-call bug reports |
+| `SLACK_ONCALL_BUGS_CHANNEL_ID` | Channel ID for Gusto (`/gusto`) support-ticket posts | For Gusto support tickets |
 | `SLACK_ONCALL_ALERTS_CHANNEL_NAME` | Display label the on-call page ribbon shows after an alert posts ("Alert posted to …"). Label only — routing is decided by `SLACK_ONCALL_ALERTS_CHANNEL_ID` (default `#oncall-alerts`) | No |
-| `SLACK_ONCALL_BUGS_CHANNEL_NAME` | Display label the on-call ribbon shows after a bug report posts. Label only — routing is decided by `SLACK_ONCALL_BUGS_CHANNEL_ID` (default `#oncall-bugs`) | No |
 | `SLACK_ONCALL_BOT_TOKEN` | Bot token for on-call posts (defaults to `SLACK_BOT_TOKEN`) | No |
 | `DEVIN_TRIGGER_MODE` | `slack` (default) or `api` — how Devin is triggered | No |
 | `DEVIN_API_KEY` | Devin API key | For api mode |
@@ -745,15 +757,16 @@ After the initial setup, certificate renewal is fully automatic (certbot checks 
 
 ### EC2 Redeploy Steps
 
-Deployments are automated: the `Deploy to EC2` workflow (`.github/workflows/deploy.yml`) runs on every push to `main` in **both** source repos (COG-GTM and Custom-Devin-Demos), uploads the tree to `/home/ubuntu/incoming/<sha>` and hands it to `scripts/deploy-ec2.sh` on the host. Never `tar xzf` over `/home/ubuntu` by hand — that is how stale files and unregistered verticals used to pile up. For a manual redeploy use the same script:
+Deployments are automated: the `Deploy to EC2` workflow (`.github/workflows/deploy.yml`) runs on every push to `main` in **both** source repos (COG-GTM and Custom-Devin-Demos), uploads the tree to `/var/tmp/devindemos-deploy/<sha>` (outside `/home/ubuntu`, which is the Docker build context of whatever deploy is running) and hands it to `scripts/deploy-ec2.sh` on the host. Never `tar xzf` over `/home/ubuntu` by hand — that is how stale files and unregistered verticals used to pile up. For a manual redeploy use the same script:
 
 ```bash
 tar czf /tmp/release.tar.gz --exclude=node_modules --exclude=.git --exclude=.env --exclude=certbot -C . .
-scp /tmp/release.tar.gz ubuntu@<EC2_IP>:/home/ubuntu/release-manual.tar.gz
+ssh ubuntu@<EC2_IP> 'install -d -m 700 /var/tmp/devindemos-deploy'
+scp /tmp/release.tar.gz ubuntu@<EC2_IP>:/var/tmp/devindemos-deploy/release-manual.tar.gz
 ssh ubuntu@<EC2_IP> bash -s <<'EOF'
 set -euo pipefail
-S=/home/ubuntu/incoming/manual; rm -rf "$S"; mkdir -p "$S"
-tar xzf /home/ubuntu/release-manual.tar.gz -C "$S"; rm -f /home/ubuntu/release-manual.tar.gz
+S=/var/tmp/devindemos-deploy/manual; rm -rf "$S"; mkdir -p "$S"
+tar xzf /var/tmp/devindemos-deploy/release-manual.tar.gz -C "$S"; rm -f /var/tmp/devindemos-deploy/release-manual.tar.gz
 trap 'rm -rf "$S"' EXIT
 bash "$S/scripts/deploy-ec2.sh" "$S" manual
 EOF
@@ -771,6 +784,7 @@ EOF
 
 ### Important Notes
 
+- **Teams webhooks:** `ONCALL_TEAMS_WEBHOOK_URL` (On-Call alerts) and `AUTOMATIONS_TEAMS_WEBHOOK_URL` (hub demo alerts from `createSessionAndAlert`) are the only `.env` values the deploy workflow writes: when the `MAIN_ONCALL_TEAMS_WEBHOOK_URL` / `MAIN_AUTOMATIONS_TEAMS_WEBHOOK_URL` Actions secrets are set, `deploy.yml` stages them on the host and `deploy-ec2.sh` writes them into `/home/ubuntu/.env` under the deploy lock, after the `.env` backup (so rollback restores the previous value). Where each presenter's alerts go (Slack or Teams, never both) is a per-browser choice shared by `/` and `/oncall`, saved in localStorage and the `alert_destination` cookie (`app/services/alert-destination.js`); it never changes server config. Hub alerts routed to Teams post one Slack-style card and create no app-side Devin session: the Devin Teams responder on that channel investigates and replies in the alert's thread. Only allowlisted keys (`ENV_SYNC_KEYS`) with single-line https values are applied.
 - **`.env` location:** The production `.env` file lives at `/home/ubuntu/.env` on EC2. It contains all secrets (`SENTRY_DSN`, `DD_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN`, `DOMAIN_NAME`, `CERT_EMAIL`, etc.) and must never be overwritten or deleted.
 - **SSL certificates:** Stored in `./certbot/conf/` on EC2. These persist across deploys — the tarball and deploy workflow explicitly exclude this directory. Never delete this directory or you'll need to re-run `scripts/init-ssl.sh`.
 - **Backup before deploy:** Always back up `.env` before extracting the tarball. If the `.env` is accidentally removed, Slack alerts, Sentry, and Datadog will silently stop working.

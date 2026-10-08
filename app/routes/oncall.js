@@ -4,25 +4,16 @@ const fs = require('fs');
 const logger = require('../telemetry/logger');
 const {
   ALERT_SCENARIOS,
-  BUG_REPORTS,
-  BUG_CATALOG,
   postOncallAlert,
-  postOncallBugReport,
   INFRA_INCIDENTS,
   postOncallInfraIncident,
   getInfraState,
-  postOncallIncident,
-  SEV1_INCIDENTS,
-  getSev1ChatterVocabulary,
-  getSev1IncidentKinds,
   isPlainObject,
-  isValidChatterVocabulary,
-  isValidIncidentCopy,
-  getSev1State,
   setOncallConfigOverride,
   getOncallConfigView,
 } = require('../services/oncall');
 const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
+const { normalizeAlertDestination } = require('../services/alert-destination');
 const {
   FLEET,
   isFleetReport,
@@ -37,6 +28,14 @@ const {
   reportRsvpPageFailure,
   getRsvpPageFailureStatus,
 } = require('../services/oncall-verticals/partiful');
+const {
+  ACCOUNT_OPENING,
+  isAccountOpeningReport,
+  isKnownReference: isKnownAccountOpeningReference,
+  hasReference: hasAccountOpeningReference,
+  normalizeReport: normalizeAccountOpeningReport,
+  reportIdCheckFailure,
+} = require('../services/oncall-verticals/account-opening');
 
 const router = express.Router();
 
@@ -50,10 +49,8 @@ const router = express.Router();
  * or infra kind) are rejected before consuming quota.
  */
 const ONCALL_HOURLY_CAPS = {
-  incident: 10,
   trigger: 50,
   alert: 50,
-  bug: 50,
   infra: 50,
   config: 120,
 };
@@ -132,67 +129,16 @@ function setRunCookie(res, runRef, windowMinutes) {
   });
 }
 
-// Startup check: every skin template id must resolve in the shared BUG_CATALOG,
-// otherwise its backend-symptom repro mapping silently does nothing.
 const ALERT_CARD_KEYS = new Set([
-  'title', 'service', 'endpointLabel', 'release', 'team', 'metricQuery', 'symptom', 'impact',
+  'title', 'service', 'endpointLabel', 'release', 'team', 'metricQuery', 'metricValue', 'threshold',
+  'baseline', 'symptom', 'impact',
 ]);
-const KNOWN_TEMPLATE_IDS = new Set(
-  Object.values(BUG_CATALOG).flatMap((entries) => entries.map((t) => t.id))
-);
 for (const skin of Object.values(ONCALL_SKINS)) {
   if (!ALERT_SCENARIOS[skin.vertical]) {
     logger.warn('On-Call skin references unknown vertical', {
       skin: skin.slug,
       vertical: skin.vertical,
     });
-  }
-  if (skin.incident) {
-    const incidentStory = Object.prototype.hasOwnProperty.call(
-      SEV1_INCIDENTS,
-      skin.incident.kind,
-    )
-      ? SEV1_INCIDENTS[skin.incident.kind]
-      : null;
-    if (!incidentStory) {
-      logger.warn('On-Call skin references unknown incident kind', {
-        skin: skin.slug,
-        incidentKind: skin.incident.kind,
-      });
-    } else if (incidentStory.vertical !== skin.vertical) {
-      logger.warn('On-Call skin incident vertical mismatch', {
-        skin: skin.slug,
-        incidentKind: skin.incident.kind,
-        skinVertical: skin.vertical,
-        incidentVertical: incidentStory.vertical,
-      });
-    }
-    const chatter = skin.incident.chatter;
-    const vocabulary = isPlainObject(chatter) && chatter.vocabulary;
-    const invalidVocabulary = chatter != null && (
-      !isPlainObject(chatter) ||
-      (vocabulary != null && !isValidChatterVocabulary(vocabulary))
-    );
-    if (invalidVocabulary) {
-      logger.warn('On-Call skin incident chatter vocabulary is invalid', {
-        skin: skin.slug,
-      });
-    }
-    if (skin.incident.copy != null && !isValidIncidentCopy(skin.incident.copy)) {
-      logger.warn('On-Call skin incident copy is invalid', { skin: skin.slug });
-    }
-    if (
-      (incidentStory == null || incidentStory.vertical !== skin.vertical) &&
-      skin.incident.chatter &&
-      skin.incident.chatter.vocabulary != null
-    ) {
-      logger.warn('On-Call skin incident chatter vocabulary cannot apply', {
-        skin: skin.slug,
-        incidentKind: skin.incident.kind,
-        skinVertical: skin.vertical,
-        incidentVertical: incidentStory && incidentStory.vertical,
-      });
-    }
   }
   const pageFile = skin.page && skin.page.file;
   if (
@@ -215,29 +161,6 @@ for (const skin of Object.values(ONCALL_SKINS)) {
         skin: skin.slug,
         fields: invalidAlertCardKeys,
       });
-    }
-  }
-  if (skin.trigger && skin.trigger.kind !== 'bug') {
-    logger.warn('On-Call skin trigger has unrecognized kind', {
-      skin: skin.slug,
-      kind: skin.trigger.kind,
-    });
-  }
-  if (skin.trigger && skin.trigger.kind === 'bug' && !KNOWN_TEMPLATE_IDS.has(skin.trigger.templateId)) {
-    logger.warn('On-Call skin bug trigger references unknown template id', {
-      skin: skin.slug,
-      templateId: skin.trigger.templateId,
-    });
-  }
-  const products = (skin.bugPortal && skin.bugPortal.products) || [];
-  for (const product of products) {
-    for (const template of product.templates || []) {
-      if (!KNOWN_TEMPLATE_IDS.has(template.id)) {
-        logger.warn('On-Call skin references unknown bug template id', {
-          skin: skin.slug,
-          templateId: template.id,
-        });
-      }
     }
   }
 }
@@ -322,7 +245,7 @@ function serveSkinPage(skin, res, next) {
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
     res.type('html').send(
-      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.trigger, skin.hideRibbon)}\n${buildSkinBrandShim(skin)}\n</body>`)
+      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.hideRibbon)}\n${buildSkinBrandShim(skin)}\n</body>`)
     );
   });
 }
@@ -345,56 +268,11 @@ for (const skin of Object.values(ONCALL_SKINS)) {
 }
 
 /**
- * GET /oncall/c/:slug/report — customer-skinned support portal.
- */
-router.get('/oncall/c/:slug/report', (req, res, next) => {
-  const skin = getOncallSkin(req.params.slug);
-  if (!skin || !skin.bugPortal) return next();
-  sendSkinnedPage(res, next, 'oncall-report.html', skin);
-});
-
-/**
- * GET /oncall/c/:slug/incident — customer-skinned SEV-1 incident console.
- */
-router.get('/oncall/c/:slug/incident', (req, res, next) => {
-  const skin = getOncallSkin(req.params.slug);
-  const incidentKind = skin && skin.incident && skin.incident.kind;
-  const incidentStory = incidentKind && SEV1_INCIDENTS[incidentKind];
-  const validIncident = skin &&
-    skin.incident &&
-    Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, incidentKind) &&
-    incidentStory.vertical === skin.vertical;
-  if (!validIncident) {
-    if (skin && skin.incident) {
-      logger.warn('On-Call incident route rejected invalid skin configuration', {
-        skin: req.params.slug,
-        incidentKind,
-        skinVertical: skin.vertical,
-        incidentVertical: incidentStory && incidentStory.vertical,
-      });
-    }
-    return next();
-  }
-  sendSkinnedPage(res, next, 'oncall-incident.html', {
-    ...skin,
-    incidentKind: skin.incident.kind,
-  });
-});
-
-/**
  * GET /oncall — On-Call demo control page.
  */
 const ONCALL_HUB_PAGE = path.join(__dirname, '..', 'public', 'oncall.html');
 router.get('/oncall', (_req, res) => {
   res.sendFile(ONCALL_HUB_PAGE);
-});
-
-/**
- * GET /oncall/report — standalone customer-facing bug report page.
- * Registered before /oncall/:vertical so "report" is never treated as a vertical.
- */
-router.get('/oncall/report', (_req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'oncall-report.html'));
 });
 
 /**
@@ -404,15 +282,11 @@ router.get('/oncall/report', (_req, res) => {
  * posts the alert card, so the presenter uses the genuine product UI and
  * sees the genuine symptom while the alert lands in #oncall-alerts. The
  * legacy vertical endpoints and their automated-alert pipeline are never
- * touched. A skin trigger of kind 'bug' swaps the alert card for a
- * human-style support ticket posted to #oncall-bugs via /api/oncall/bug;
- * the degradation rerouting is identical either way.
+ * touched.
  */
 const ALERTS_CHANNEL_LABEL = process.env.SLACK_ONCALL_ALERTS_CHANNEL_NAME || '#oncall-alerts';
-const BUGS_CHANNEL_LABEL = process.env.SLACK_ONCALL_BUGS_CHANNEL_NAME || '#oncall-bugs';
 
-function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
-  const bugTrigger = skinTrigger && skinTrigger.kind === 'bug' ? skinTrigger : null;
+function buildOncallShim(scenario, skinSlug, hideRibbon) {
   return `
   <div id="oncall-dot" title="Devin On-Call demo" style="display:none;position:fixed;bottom:16px;right:16px;z-index:9999;width:14px;height:14px;border-radius:50%;background:#3fb950;border:2px solid #0d1117;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>
   <div id="oncall-ribbon" style="${hideRibbon ? 'display:none;' : ''}position:fixed;bottom:16px;right:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
@@ -429,7 +303,6 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
       const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
-      const bugTrigger = ${jsLiteral(bugTrigger || null)};
       // Only climbing-latency scenarios keep a retry window: repeat submits
       // demonstrate the per-request growth, so they join the open incident.
       // Every other scenario posts a fresh incident on every submit.
@@ -481,7 +354,7 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
           // alongside. Legacy endpoints are untouched.
           if (retryWindowEnabled && alertPostedAt && Date.now() - alertPostedAt < RETRY_WINDOW_MS) {
             var statusEl = document.getElementById('oncall-status');
-            var retryMsg = bugTrigger ? 'Retry joined the open ticket (60s window)' : 'Retry joined the open incident (60s window)';
+            var retryMsg = 'Retry joined the open incident (60s window)';
             if (statusEl) {
               statusEl.style.color = '#c9d1d9';
               statusEl.textContent = retryMsg;
@@ -494,19 +367,19 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
           alertPostedAt = postedAt;
           if (ribbonCollapsed) expandRibbon();
           const unique = document.getElementById('oncall-unique').checked;
-          var triggerUrl = bugTrigger ? '/api/oncall/bug' : '/api/oncall/trigger/' + vertical;
-          var triggerBody = bugTrigger
-            ? { scenario: vertical, templateId: bugTrigger.templateId, reporter: bugTrigger.persona, severity: bugTrigger.severity, productArea: bugTrigger.productArea, skin: skinSlug, devinEmail: localStorage.getItem('devinEmail') || '' }
-            : {
-                unique: unique,
-                skin: skinSlug,
-                devinEmail: localStorage.getItem('devinEmail') || '',
-                devinUserId: localStorage.getItem('devinUserId') || '',
-                devinOrgId: localStorage.getItem('devinOrgId') || '',
-              };
-          var postedMsg = bugTrigger ? 'Support ticket filed to ' + ${JSON.stringify(BUGS_CHANNEL_LABEL)} : 'Alert posted to ' + ${JSON.stringify(ALERTS_CHANNEL_LABEL)};
-          var skippedMsg = bugTrigger ? 'Ticket skipped — no report reached Slack' : 'Alert post skipped — no alert reached Slack';
-          var failedMsg = bugTrigger ? 'Ticket post failed' : 'Alert post failed';
+          var alertDestination = localStorage.getItem('alertDestination') === 'teams' ? 'teams' : 'slack';
+          var triggerUrl = '/api/oncall/trigger/' + vertical;
+          var triggerBody = {
+              unique: unique,
+              skin: skinSlug,
+              devinEmail: localStorage.getItem('devinEmail') || '',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              alertDestination: alertDestination,
+          };
+          var postedMsg = 'Alert posted to ' + ${JSON.stringify(ALERTS_CHANNEL_LABEL)};
+          var skippedMsg = 'Alert post skipped — no alert reached Slack';
+          var failedMsg = 'Alert post failed';
           origFetch(triggerUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -525,8 +398,10 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
             if (ribbonCollapsed) expandRibbon();
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             var deliveredMsg = !d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams');
+            if (d.teamsFailed) deliveredMsg += ' (Teams is not set up on this server, so it went to Slack)';
             el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
-            if (d.ok) scheduleCollapse();
+            if (d.ok && !d.teamsFailed) scheduleCollapse();
+            else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }
           }).catch(function () {
             if (alertPostedAt === postedAt) alertPostedAt = 0;
             if (ribbonCollapsed) expandRibbon();
@@ -570,7 +445,9 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
   next();
 }, oncallCap('trigger'), async (req, res) => {
   try {
-    const { unique, devinEmail, devinUserId, devinOrgId, skin } = req.body || {};
+    const {
+      unique, devinEmail, devinUserId, devinOrgId, skin, alertDestination,
+    } = req.body || {};
     const skinConfig = getOncallSkin(skin);
     const skinMatches = Boolean(skinConfig && skinConfig.vertical === req.params.vertical);
     if (skinConfig && !skinMatches) {
@@ -586,6 +463,7 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
       devinUserId,
       devinOrgId,
       skin: skinMatches ? skinConfig : null,
+      destination: normalizeAlertDestination(alertDestination),
     });
     res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {
@@ -703,8 +581,66 @@ router.get(`${PARTIFUL_FAILURE_PATH}/:reference`, (req, res) => {
   return res.json(status);
 });
 
+const ACCOUNT_OPENING_FAILURE_PATH = `/api/oncall/${ACCOUNT_OPENING.slug}/id-check-failure`;
+const accountOpeningTriggerCap = oncallCap('trigger');
+
 /**
- * GET /api/oncall/scenarios — available alert scenarios + canned bug reports
+ * POST /api/oncall/6c2cc636/id-check-failure — online ID check rejection
+ * reported by the native CommBank account-opening app when Agree & Continue
+ * cannot accept the selected document. Acknowledged at once with the
+ * incident reference; exactly one alert card and one macOS Devin session
+ * follow asynchronously, the session linked in the alert's thread.
+ */
+router.post(ACCOUNT_OPENING_FAILURE_PATH, (req, res, next) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  if (!isAccountOpeningReport(body)) {
+    return res.status(400).json({
+      received: false,
+      error: `Expected an account-opening/<ios|macos> source with service ${ACCOUNT_OPENING.service}`,
+    });
+  }
+  const report = normalizeAccountOpeningReport(body);
+  if (!report) {
+    return res.status(400).json({
+      received: false,
+      error: 'Expected a known reason code plus bounded document and applicant facts',
+    });
+  }
+  // A retried report with a reference the pipeline already knows is
+  // acknowledged here, before the shared trigger cap, so duplicates
+  // never burn quota. Unknown references continue into the cap.
+  if (report.reference && isKnownAccountOpeningReference(report.reference)) {
+    return res.status(202).json({
+      received: true,
+      reference: report.reference,
+      service: ACCOUNT_OPENING.service,
+      sessionRequested: true,
+      receivedAt: new Date().toISOString(),
+    });
+  }
+  // A cached but incomplete reference is a retry of the same incident:
+  // it bypasses the trigger cap entirely rather than consuming it.
+  if (report.reference && hasAccountOpeningReference(report.reference)) {
+    req.accountOpeningRetry = true;
+  }
+  req.accountOpeningReport = report;
+  next();
+}, (req, res, next) => (req.accountOpeningRetry ? next() : accountOpeningTriggerCap(req, res, next)), (req, res) => {
+  const result = reportIdCheckFailure(req.accountOpeningReport);
+  if (!result) {
+    return res.status(400).json({ received: false, error: 'Invalid report' });
+  }
+  return res.status(202).json({
+    received: true,
+    reference: result.reference,
+    service: ACCOUNT_OPENING.service,
+    sessionRequested: true,
+    receivedAt: new Date().toISOString(),
+  });
+});
+
+/**
+ * GET /api/oncall/scenarios — available alert scenarios
  */
 router.get('/api/oncall/scenarios', (_req, res) => {
   const scenarios = Object.entries(ALERT_SCENARIOS)
@@ -717,18 +653,7 @@ router.get('/api/oncall/scenarios', (_req, res) => {
       symptom: s.symptom,
       retryWindow: Boolean(s.retryWindow),
     }));
-  const bugReports = Object.entries(BUG_REPORTS).map(([id, text]) => ({ id, text }));
-  const bugCatalog = Object.entries(BUG_CATALOG).map(([product, entries]) => ({
-    product,
-    templates: entries.map((t) => ({
-      id: t.id,
-      label: t.label,
-      sev: t.sev,
-      text: t.text,
-      backend: Boolean(t.infraKind),
-    })),
-  }));
-  res.json({ scenarios, bugReports, bugCatalog });
+  res.json({ scenarios, teamsDefaultWebhook: Boolean(process.env.ONCALL_TEAMS_WEBHOOK_URL) });
 });
 
 /**
@@ -742,35 +667,6 @@ router.post('/api/oncall/alert', oncallCap('alert'), async (req, res) => {
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call alert post failed', { error: error.message });
-    res.status(500).json({ ok: false, error: error.message });
-  }
-});
-
-/**
- * POST /api/oncall/bug — post a human-style bug report to #oncall-bugs
- * Body: { scenario?: string, templateId?: string, text?: string, reporter?: { name, email }, severity?: string, productArea?: string }
- * Backend-symptom templates (resolved server-side) also activate the matching
- * infra degradation for the standard auto-revert window so repro is genuine.
- */
-router.post('/api/oncall/bug', oncallCap('bug'), async (req, res) => {
-  try {
-    const { scenario, templateId, text, reporter, severity, productArea, devinEmail, skin } = req.body || {};
-    const skinConfig = getOncallSkin(skin);
-    const result = await postOncallBugReport({
-      scenarioId: scenario,
-      templateId,
-      text,
-      reporter,
-      severity,
-      productArea,
-      devinEmail,
-      supportCenter: skinConfig ? skinConfig.supportCenter : undefined,
-      skinSlug: skinConfig ? skinConfig.slug : undefined,
-    });
-    if (result.activated) setRunCookie(res, result.runRef, result.windowMinutes);
-    res.status(result.ok || result.skipped ? 200 : 400).json(result);
-  } catch (error) {
-    logger.error('On-Call bug report post failed', { error: error.message });
     res.status(500).json({ ok: false, error: error.message });
   }
 });
@@ -819,75 +715,6 @@ router.post('/api/oncall/latency', oncallCap('infra'), async (req, res) => {
 });
 
 /**
- * POST /api/oncall/incident — declare a SEV-1 incident.
- * Body: { kind?: 'banking-transfers'|'insurance-claims'|'licensing-latency'|'telco-upgrades', devinEmail?: string }
- * Declares a Datadog incident backed by the matching vertical's real
- * degradation (Datadog creates the Slack incident channel), starts a
- * synthetic probe loop against the affected endpoint so telemetry records
- * the failure, and auto-resolves when the incident window ends.
- */
-router.post('/api/oncall/incident', oncallCap('incident'), async (req, res) => {
-  try {
-    const { kind, devinEmail, skin } = req.body || {};
-    const skinConfig = getOncallSkin(skin);
-    const knownKind = !kind ||
-      Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, kind);
-    const storyKind = knownKind && kind
-      ? kind
-      : 'banking-transfers';
-    const incidentStory = SEV1_INCIDENTS[storyKind];
-    const configuredVocabulary = skinConfig &&
-      skinConfig.incident &&
-      skinConfig.incident.chatter &&
-      skinConfig.incident.chatter.vocabulary;
-    const vocabulary = knownKind
-      ? getSev1ChatterVocabulary(incidentStory, skinConfig, storyKind)
-      : null;
-    const skinMatches = Boolean(
-      skinConfig &&
-      incidentStory &&
-      skinConfig.vertical === incidentStory.vertical,
-    );
-    const kindMatches = Boolean(
-      skinConfig &&
-      skinConfig.incident &&
-      skinConfig.incident.kind === storyKind,
-    );
-    if (
-      skinConfig &&
-      incidentStory &&
-      configuredVocabulary != null &&
-      (!skinMatches || !kindMatches)
-    ) {
-      logger.warn('On-Call incident skin/vertical mismatch — using generic chatter', {
-        skin: skinConfig.slug,
-        reason: !skinMatches ? 'vertical_mismatch' : 'incident_kind_mismatch',
-        configuredKind: skinConfig.incident && skinConfig.incident.kind,
-        requestedKind: kind,
-        skinVertical: skinConfig.vertical,
-        incidentVertical: incidentStory.vertical,
-      });
-    }
-    const result = await postOncallIncident({
-      kind,
-      devinEmail,
-      vocabulary,
-      vocabularyConfigured: Boolean(
-        knownKind &&
-        configuredVocabulary != null &&
-        skinMatches &&
-        kindMatches,
-      ),
-    });
-    if (result.ok) setRunCookie(res, result.runRef, result.windowMinutes);
-    res.status(result.ok ? 200 : 400).json(result);
-  } catch (error) {
-    logger.error('On-Call incident post failed', { error: error.message });
-    res.status(500).json({ ok: false, error: error.message });
-  }
-});
-
-/**
  * GET /api/oncall/config — effective runtime config for the caller's run
  * (oncall_run cookie / x-synthetic-monitor header), or for ?runRef=.
  * Shows the shipped defaults, any live per-run override, and its expiry.
@@ -917,20 +744,6 @@ router.post('/api/oncall/config', oncallCap('config'), (req, res) => {
   const result = setOncallConfigOverride(runRef, patch);
   if (!result.ok) return res.status(400).json(result);
   res.json(result);
-});
-
-/**
- * GET /api/oncall/incident/kinds — available SEV-1 incident stories.
- */
-router.get('/api/oncall/incident/kinds', (req, res) => {
-  res.json(getSev1IncidentKinds(getOncallSkin(req.query.skin)));
-});
-
-/**
- * GET /api/oncall/incident/state — live status of declared SEV-1 incidents.
- */
-router.get('/api/oncall/incident/state', (_req, res) => {
-  res.json(getSev1State());
 });
 
 module.exports = router;

@@ -28769,7 +28769,7 @@ oz(a){return A.bz(a,B.jJ,t.w).w.a.a>=960?B.bP:B.DL},
 Ov:function Ov(a,b){this.a=a
 this.b=b},
 aLh(a){var s="org-b92933e8dd00477eb9e0b1222b9ab4f9",r=A.aOm("devinEmail"),q=A.aOm("devinOrgId"),p=A.aOm("devinUserId"),o=B.c.dt(a==null?"":a),n=B.c.v(o,"@")?o.toLowerCase():"",m=(r==null?"":r).length!==0?r.toLowerCase():n
-return new A.wN(m,p!=null&&q===s?p:"",s)},
+return new A.wN(m,p!=null?p:"",q!=null&&q.length!==0?q:s)},
 wN:function wN(a,b,c){this.a=a
 this.b=b
 this.c=c},

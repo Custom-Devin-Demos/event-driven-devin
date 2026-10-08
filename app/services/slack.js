@@ -17,12 +17,12 @@ const DEMO_ONCALL_MEMBER_ID = () => {
   return MEMBER_ID_RE.test(configured) ? configured : '';
 };
 
-// Appended wherever an on-call demo (/oncall) scenario renders its fictional
-// owner. Without the second half, responders that correctly skip the persona
-// fall back to git blame or CODEOWNERS and @-mention whoever last touched the
-// file.
-const OWNER_DISCLAIMER = 'demo persona — do not resolve to a real Slack user, and do not '
-  + '@-mention anyone else in their place (no git blame, commit author, or CODEOWNERS fallback)';
+// On-call cards show only the rotation, e.g. 'Jordan Patel (payments-oncall)'
+// renders as 'payments-oncall', so responders have no person to look up.
+function ownerRotation(owner) {
+  const match = /\(([^)]+)\)\s*$/.exec(owner || '');
+  return match ? match[1] : owner;
+}
 
 function onCallText(slackMemberId) {
   const memberId = MEMBER_ID_RE.test(slackMemberId || '') ? slackMemberId : DEMO_ONCALL_MEMBER_ID();
@@ -520,6 +520,49 @@ async function postIncidentLink(threadTs, incident, assignmentGroup, channelOver
 }
 
 /**
+ * Post a thread reply with a link to a Linear issue.
+ * Uses the bot token — no user token needed.
+ */
+async function postLinearIssueLink(threadTs, issue, channelOverride) {
+  const token = process.env.SLACK_BOT_TOKEN;
+  const channel = channelOverride || process.env.SLACK_CHANNEL_ID;
+
+  if (!token || !channel) {
+    logger.warn('Slack not configured — skipping Linear issue link post');
+    return null;
+  }
+
+  try {
+    const text = `:ticket: Linear ticket <${issue.url}|${issue.identifier}> opened and set to In Progress — Devin will link the PR here and move it to In Review.`;
+    const blocks = [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text,
+        },
+      },
+    ];
+    const replyTs = await postThreadReply(token, channel, threadTs, text, blocks);
+
+    logger.info('Linear issue link posted to Slack thread', {
+      channel,
+      threadTs,
+      replyTs,
+      identifier: issue.identifier,
+    });
+    return replyTs;
+  } catch (error) {
+    logger.error('Failed to post Linear issue link', {
+      error: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    return null;
+  }
+}
+
+/**
  * Find a public channel whose name contains the given fragment.
  * Returns { id, name } or null. Requires the `channels:read` scope.
  */
@@ -713,7 +756,7 @@ async function deleteMessage(token, channel, ts) {
 
 module.exports = {
   ONCALL_UNASSIGNED_TEXT,
-  OWNER_DISCLAIMER,
+  ownerRotation,
   buildAlertBlocks,
   onCallText,
   resolveOnCallMember,
@@ -725,6 +768,7 @@ module.exports = {
   postBugReportToTriage,
   postDevinSessionLink,
   postIncidentLink,
+  postLinearIssueLink,
   postThreadReply,
   lookupSlackUserByEmail,
   inviteToChannel,

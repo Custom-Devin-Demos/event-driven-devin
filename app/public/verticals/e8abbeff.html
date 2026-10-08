@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activate Tubi on Your Device</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Outfit:wght@800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --yellow: #FFFF13;
+      --night: #0B0019;
+      --violet: #53008B;
+      --footer: #15121F;
+      --text: #FFFFFF;
+      --text-2: rgba(255, 255, 255, 0.75);
+      --text-3: rgba(255, 255, 255, 0.5);
+      --line: rgba(255, 255, 255, 0.2);
+      --field: rgba(149, 152, 163, 0.16);
+      --danger: #FF6B8B;
+      --sans: Inter, 'Helvetica Neue', Arial, sans-serif;
+      --display: Outfit, 'Helvetica Neue', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--night); }
+    body { font-family: var(--sans); color: var(--text); background: var(--night); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+
+    .page { background: linear-gradient(rgb(83, 0, 139), rgb(11, 0, 25) 100vh); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* header */
+    .top { display: flex; align-items: center; gap: 28px; padding: 0 60px; height: 72px; }
+    .wordmark { font-family: var(--display); font-weight: 900; font-size: 30px; line-height: 1; letter-spacing: -0.04em; color: var(--yellow); display: inline-flex; align-items: center; min-height: 44px; }
+    .nav { display: flex; gap: 22px; }
+    .nav a { font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; }
+    .nav a:hover { color: var(--yellow); }
+    .top-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .icon-btn { width: 44px; height: 44px; border-radius: 999px; border: 0; background: transparent; color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.1); }
+    .avatar { width: 36px; height: 36px; border-radius: 999px; background: rgb(201, 194, 255); color: var(--night); font-weight: 700; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; }
+    .account { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 999px; }
+
+    /* activation */
+    main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 120px 24px 72px; text-align: center; }
+    .device-icon { width: 56px; height: 56px; border-radius: 999px; border: 1px solid var(--line); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+    h1 { font-family: var(--display); font-weight: 900; font-size: 36px; line-height: 1.1; letter-spacing: -0.03em; }
+    .lede { font-size: 16px; font-weight: 500; margin-top: 10px; }
+    form { width: 312px; max-width: 100%; margin-top: 34px; }
+    .field { position: relative; display: block; height: 56px; border: 1px solid var(--line); border-radius: 6px; background: var(--field); text-align: left; transition: border-color 0.15s; }
+    .field:focus-within { border-color: var(--text); }
+    .field.invalid { border-color: var(--danger); }
+    .field label { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 16px; font-weight: 500; color: var(--text-2); pointer-events: none; transition: all 0.15s; }
+    .field input { position: absolute; inset: 0; width: 100%; height: 100%; padding: 22px 16px 6px; border: 0; background: transparent; color: var(--text); font-size: 16px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; outline: none; }
+    .field input:focus + label, .field input:not(:placeholder-shown) + label { top: 15px; font-size: 11px; transform: none; }
+    .hint { min-height: 18px; margin-top: 6px; font-size: 12px; color: var(--text-3); text-align: left; }
+    .hint.error { color: var(--danger); }
+    .btn { width: 100%; height: 48px; margin-top: 6px; border: 0; border-radius: 999px; background: rgba(255, 255, 255, 0.2); color: var(--text); font-size: 16px; font-weight: 500; cursor: not-allowed; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: background 0.15s; }
+    .btn:enabled { background: var(--yellow); color: var(--night); cursor: pointer; }
+    .btn:enabled:hover { background: #F2F200; }
+    .btn:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+    .btn.busy { background: var(--yellow); color: var(--night); cursor: progress; }
+    .spinner { width: 16px; height: 16px; border-radius: 999px; border: 2px solid rgba(11, 0, 25, 0.25); border-top-color: var(--night); animation: spin 0.8s linear infinite; display: none; }
+    .btn.busy .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .help { margin-top: 24px; font-size: 11px; font-weight: 500; color: var(--line); }
+    .help a { color: var(--text); font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; }
+
+    .result-box { display: none; width: 312px; max-width: 100%; margin-top: 18px; border-radius: 8px; padding: 14px 16px; text-align: left; font-size: 14px; }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.success { background: rgba(255, 255, 19, 0.12); border: 1px solid rgba(255, 255, 19, 0.45); }
+    .result-box.error { background: rgba(255, 107, 139, 0.12); border: 1px solid rgba(255, 107, 139, 0.5); }
+    .result-box .r-head { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+    .result-box .r-detail { color: var(--text-2); }
+
+    /* rail */
+    .rail { padding: 0 60px 56px; }
+    .rail h2 { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: -0.01em; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+    .tile { aspect-ratio: 408 / 583; border-radius: 6px; overflow: hidden; background: rgba(255, 255, 255, 0.08); position: relative; }
+    .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tile .fallback { position: absolute; inset: 0; display: none; align-items: flex-end; padding: 10px; font-weight: 700; font-size: 13px; text-align: left; }
+    .tile.no-img .fallback { display: flex; }
+
+    /* footer */
+    footer { background: var(--footer); padding: 40px 60px 28px; }
+    .foot-top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 22px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    .foot-top .wordmark { font-size: 22px; }
+    .social { display: flex; gap: 4px; }
+    .cols { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 24px; padding: 28px 0 36px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    .cols h3 { font-size: 11px; font-weight: 700; letter-spacing: 0.7px; color: var(--text-2); margin-bottom: 14px; }
+    .cols a { display: block; font-size: 11px; padding: 2px 0; }
+    .cols a:hover { color: var(--yellow); }
+    .legal { text-align: center; font-size: 11px; color: var(--text-2); padding-top: 40px; line-height: 1.8; }
+
+    @media (max-width: 900px) {
+      .nav { display: none; }
+      .top { padding: 0 20px; height: 64px; }
+      main { padding: 64px 20px 56px; }
+      .rail { padding: 0 20px 44px; }
+      .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .tiles .tile:nth-child(n+4) { display: none; }
+      footer { padding: 32px 20px 24px; }
+      .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .cols a { display: flex; align-items: center; min-height: 44px; padding: 0; font-size: 13px; }
+    }
+    @media (max-width: 420px) {
+      h1 { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page" id="top">
+    <header class="top">
+      <a class="wordmark" href="#top" aria-label="Tubi home">tubi</a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#top">Browse</a>
+        <a href="#top">Movies</a>
+        <a href="#top">TV Shows</a>
+        <a href="#top">Live TV</a>
+        <a href="#top">Español</a>
+        <a href="#top">Tubi Kids</a>
+      </nav>
+      <div class="top-right">
+        <button type="button" class="icon-btn" aria-label="Search">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+        <a class="account" href="#top" aria-label="Account"><span class="avatar" aria-hidden="true">J</span></a>
+      </div>
+    </header>
+
+    <main>
+      <span class="device-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8"/></svg>
+      </span>
+      <h1>Activate your device</h1>
+      <p class="lede">Enter the code from your TV</p>
+
+      <form id="provisionForm" novalidate>
+        <input type="hidden" id="product" value="tv_app">
+        <input type="hidden" id="seats" value="1">
+        <input type="hidden" id="planTier" value="starter">
+        <input type="hidden" id="region" value="us-east">
+        <div class="field" id="codeField">
+          <input type="text" id="activationCode" name="activationCode" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder=" " aria-describedby="codeHint">
+          <label for="activationCode">Activation Code</label>
+        </div>
+        <p class="hint" id="codeHint">The 6-character code is shown on your TV screen.</p>
+        <button type="submit" class="btn" id="submitBtn" disabled><span class="spinner" aria-hidden="true"></span><span class="label">Activate</span></button>
+      </form>
+      <div id="result" class="result-box" role="status" aria-live="polite"></div>
+
+      <p class="help">Need Help? <a href="#top">Visit Help Center</a></p>
+    </main>
+
+    <section class="rail" aria-label="Popular on Tubi">
+      <h2>Start watching on your TV
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </h2>
+      <div class="tiles">
+        <div class="tile"><img src="https://canvas-lb.tubitv.com/opts/Tbq2dyXO-8Trfw==/e10458b6-9405-4ff8-b4d5-1f646f6a3327/CJgDEMcEOgUxLjEuOQ==" alt="The Green Mile" loading="lazy" onerror="this.parentNode.classList.add('no-img');this.remove()"><span class="fallback">The Green Mile</span></div>
+        <div class="tile"><img src="https://canvas-lb.tubitv.com/opts/ZcW0CBJ3DpNJyQ==/a1ae1678-72eb-4430-98c0-bfac300dd10a/CJgDEMcEOgUxLjEuOQ==" alt="District 9" loading="lazy" onerror="this.parentNode.classList.add('no-img');this.remove()"><span class="fallback">District 9</span></div>
+        <div class="tile"><img src="https://canvas-lb.tubitv.com/opts/1VmIMaL6evfW8A==/4ccd6bfa-ec25-4f2b-aee5-fd728fb1754f/CJgDEMcEOgUxLjEuOQ==" alt="I, Robot" loading="lazy" onerror="this.parentNode.classList.add('no-img');this.remove()"><span class="fallback">I, Robot</span></div>
+        <div class="tile"><img src="https://canvas-lb.tubitv.com/opts/oY9PO_qEAAa_Gg==/2411faab-8724-4170-ab08-761b6fbe07cf/CJgDEMcEOgUxLjEuOQ==" alt="Monster House" loading="lazy" onerror="this.parentNode.classList.add('no-img');this.remove()"><span class="fallback">Monster House</span></div>
+        <div class="tile"><img src="https://canvas-lb.tubitv.com/opts/eXoE2M1h8zOupg==/03a3da83-7a84-4c81-afa2-ea5cb682ded4/CJgDEMcEOgUxLjEuOQ==" alt="Tombstone" loading="lazy" onerror="this.parentNode.classList.add('no-img');this.remove()"><span class="fallback">Tombstone</span></div>
+        <div class="tile"><img src="https://canvas-lb.tubitv.com/opts/n_y3m7WN0Iq_og==/dd13979f-af86-46d6-8ef1-ed0801e84ad4/CJgDEMcEOgUxLjEuOQ==" alt="Holes" loading="lazy" onerror="this.parentNode.classList.add('no-img');this.remove()"><span class="fallback">Holes</span></div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="foot-top">
+        <a class="wordmark" href="#top" aria-label="Tubi home">tubi</a>
+        <div class="social">
+          <a class="icon-btn" href="#top" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 8V6.5c0-.8.2-1.3 1.4-1.3H17V2.2C16.6 2.1 15.6 2 14.5 2 12.1 2 10.6 3.4 10.6 6v2H8v3.2h2.6V22H14V11.2h2.6L17 8z"/></svg></a>
+          <a class="icon-btn" href="#top" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></a>
+          <a class="icon-btn" href="#top" aria-label="X"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 4l16 16M20 4 4 20"/></svg></a>
+          <a class="icon-btn" href="#top" aria-label="LinkedIn"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm2.5 7v8h2.6v-8zm1.3-4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 10v8h2.6v-4.2c0-1.2.5-2 1.6-2s1.4.9 1.4 2V18h2.6v-4.8c0-2.4-1.2-3.4-3-3.4-1.3 0-2 .6-2.6 1.3V10z"/></svg></a>
+        </div>
+      </div>
+      <div class="cols">
+        <div><h3>COMPANY</h3><a href="#top">About Us</a><a href="#top">Careers</a><a href="#top">Contact</a></div>
+        <div><h3>SUPPORT</h3><a href="#top">Contact Support</a><a href="#top">Help Center</a><a href="#top">Supported Devices</a><a href="#top">Activate Your Device</a><a href="#top">Accessibility</a></div>
+        <div><h3>PARTNERS</h3><a href="#top">Advertise with Us</a><a href="#top">Partner with Us</a></div>
+        <div><h3>GET THE APPS</h3><a href="#top">iOS</a><a href="#top">Android</a><a href="#top">Roku</a><a href="#top">Amazon Fire</a></div>
+        <div><h3>PRESS</h3><a href="#top">Press Releases</a><a href="#top">Tubi in the News</a></div>
+        <div><h3>LEGAL</h3><a href="#top">Privacy Policy</a><a href="#top">Terms of Use</a><a href="#top">Your Privacy Choices</a><a href="#top">Cookies</a></div>
+      </div>
+      <div class="legal">
+        <div>Copyright &copy; 2026 Tubi, Inc.</div>
+        <div>Tubi is a registered trademark of Tubi, Inc. All rights reserved.</div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('provisionForm');
+      var code = document.getElementById('activationCode');
+      var field = document.getElementById('codeField');
+      var hint = document.getElementById('codeHint');
+      var btn = document.getElementById('submitBtn');
+      var btnLabel = btn.querySelector('.label');
+      var result = document.getElementById('result');
+      var HINT = 'The 6-character code is shown on your TV screen.';
+      var inFlight = false;
+
+      function showResult(kind, head, detail) {
+        result.className = 'result-box ' + kind;
+        result.replaceChildren();
+        var h = document.createElement('div'); h.className = 'r-head'; h.textContent = head;
+        var d = document.createElement('div'); d.className = 'r-detail'; d.textContent = detail;
+        result.append(h, d);
+      }
+      function clearResult() {
+        result.className = 'result-box';
+        result.replaceChildren();
+      }
+      function sync() {
+        if (inFlight) return;
+        btn.disabled = code.value.length !== 6;
+      }
+      code.addEventListener('input', function () {
+        var clean = code.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+        if (clean !== code.value) code.value = clean;
+        field.classList.remove('invalid');
+        hint.className = 'hint';
+        hint.textContent = HINT;
+        if (result.className.indexOf('error') !== -1) clearResult();
+        sync();
+      });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (inFlight) return;
+        if (code.value.length !== 6) {
+          field.classList.add('invalid');
+          hint.className = 'hint error';
+          hint.textContent = 'Enter the full 6-character code from your TV.';
+          return;
+        }
+        inFlight = true;
+        btn.disabled = true;
+        btn.classList.add('busy');
+        btnLabel.textContent = 'Activating…';
+        code.readOnly = true;
+        form.setAttribute('aria-busy', 'true');
+        clearResult();
+        try {
+          var res = await fetch('/api/licenses/provision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: document.getElementById('product').value,
+              planName: document.getElementById('planTier').value,
+              seats: parseInt(document.getElementById('seats').value, 10),
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          if (!res.ok) throw new Error('activation failed');
+          await res.json();
+          showResult('success', 'Your device is activated', 'Tubi on your TV will refresh in a few seconds. Pick something to watch and enjoy.');
+          form.reset();
+        } catch (err) {
+          showResult('error', 'We couldn\u2019t activate your device', 'Check the code on your TV screen and try again. If the code has expired, get a new one from Tubi on your TV.');
+        } finally {
+          inFlight = false;
+          code.readOnly = false;
+          form.removeAttribute('aria-busy');
+          btn.classList.remove('busy');
+          btnLabel.textContent = 'Activate';
+          sync();
+        }
+      });
+      form.addEventListener('reset', function () {
+        setTimeout(function () { field.classList.remove('invalid'); hint.className = 'hint'; hint.textContent = HINT; sync(); }, 0);
+      });
+      sync();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

@@ -282,10 +282,12 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | The Home Depot (a69bcc34) | `/a69bcc34`, `/homedepot` | "Checkout" (cart with the `HDCC25` promo code applied) | `Cannot read properties of undefined (reading 'freeThreshold')` |
 | Permira Advisors LLC (0fb68d91) | `/0fb68d91`, `/permira` | Strategy filter → "Energy Transition" (the filter sends `energy transition`, which has no entry in `STRATEGY_PROFILES`; Flagship/Ascent/PGO1 and every other filter/sort succeed; unknown filter values → 400 ValidationError, no alert) | `Cannot read properties of undefined (reading 'label')` |
 | Vanta Trust Center (dc2379a5) | `/dc2379a5`, `/vanta` | "Request access" → "Submit request" (default selection includes the ISO 42001 Certificate, whose `iso42001` framework has no entry in `FRAMEWORK_ACCESS_POLICIES` — the policy is keyed `iso-42001`; requesting only SOC 2/ISO 27001 docs → green "Access approved" panel, HIPAA/pentest → amber "pending review" panel; free-webmail email or unchecked NDA → 400 ValidationError panel, no alert) | `Cannot read properties of undefined (reading 'ndaTemplate')` |
+| Epic Games — Player Support (50a88f70) | `/50a88f70` | "Submit request" (Fortnite → "Item Shop purchase not received (Fortnitemares)" is pre-filled; `TOPIC_ROUTING` sends it to `fortnite-fortnitemares-commerce`, which has no entry in `SUPPORT_QUEUES`; any other topic, or Rocket League/Fall Guys/Epic Games Store → green "Request submitted" toast with an `EPIC-PS-` case number; bad email or short description → 400 ValidationError, no alert) | `Cannot read properties of undefined (reading 'slaHours')` |
 | QBE North America Claims (qbe) | `/qbe` | "Submit Claim" (QBE-PA-4417293 collision claim) | `Cannot read properties of undefined (reading 'collisionDeductible')` |
 | NAB Internet Banking (nab) | `/nab` | "Pay now" (082-001 40817266 Pay Anyone payment) | `Cannot read properties of undefined (reading 'dailyLimit')` |
 | Elevance Health — Anthem Enrollment (9fdcf315) | `/elevance`, `/anthem`, `/9fdcf315` | "Enroll" (default household includes an 8-year-old child → embedded pediatric dental rider missing from the plan catalog; adults-only household or swapping in Anthem Dental Family Prime → success; no medical plan or unsupported state → 400 ValidationError, no alert) | `Cannot read properties of undefined (reading 'planName')` |
 | T1 Pagos — Crear link de pago | `/t1`, `/t1pagos`, `/t1tienda` | Click "Crear enlace" with "Tarjetas de crédito o débito" and "Transferencia bancaria" checked → TypeError; uncheck "Transferencia bancaria" → success | `Cannot read properties of undefined (reading 'clabePrefix')`; invalid inputs return 400 ValidationError responses without an alert |
+| Ralph Lauren — Digital Flagship Checkout (f63013c0) | `/f63013c0/rb/retail` | "Place order" (Meridian Pay is on API `2026-10` by default → card authorization succeeds but the order stays pending; Try again adds a duplicate authorization — no `Idempotency-Key`; `paymentMethod: 'paypal'` → 200 confirmed; `demo/unflip` back to `2025-06` → card succeeds; `demo/reset` clears state but stays broken on `2026-10`) | `502 PAYMENT_FAILED` — "Your payment couldn't be processed. Please try again." (internal error `Missing payment id in PSP response`); 400 `VALIDATION_ERROR` for bad input, no alert |
 
 ### API Testing (curl)
 
@@ -344,6 +346,9 @@ curl -s -X POST http://localhost:3000/api/4f9ede2a/pay -H 'Content-Type: applica
 # Custom — The Home Depot (a69bcc34)
 curl -s -X POST http://localhost:3000/api/a69bcc34/checkout -H 'Content-Type: application/json' -d '{"items":[{"sku":"1005643790","qty":1,"fulfillment":"delivery"}],"promoCode":"HDCC25","storeNumber":"6177","zipCode":"10010","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
 
+# Custom — Epic Games Player Support (50a88f70) — Fortnite item-shop-missing-purchase triggers TypeError; rocket-league or topic vbucks-missing succeeds
+curl -s -X POST http://localhost:3000/api/50a88f70/support-ticket -H 'Content-Type: application/json' -d '{"product":"fortnite","platform":"pc","topic":"item-shop-missing-purchase","email":"mike.schmidt@example.com","description":"Bundle bought but outfits missing from Locker."}'
+
 # Custom — QBE North America Claims (qbe)
 curl -s -X POST http://localhost:3000/api/qbe/claim -H 'Content-Type: application/json' -d '{"policyNumber":"QBE-PA-4417293","incidentType":"collision","incidentDate":"2026-08-21","damageDescription":"Front-end damage after a collision","vin":"1HGCV1F34LA015872"}'
 
@@ -377,6 +382,18 @@ curl -s -X POST http://localhost:3000/api/9fdcf315/enroll -H 'Content-Type: appl
 # Custom — T1 Pagos — checked card + SPEI triggers the migrated provider TypeError; card-only succeeds; invalid input returns 400
 curl -s -X POST http://localhost:3000/api/t1/payment-links -H 'Content-Type: application/json' -d '{"amount":1250,"concept":"Mensualidad Yoga Flow","methods":{"card":true,"msi":false,"spei":true}}'
 curl -s -X POST http://localhost:3000/api/t1/payment-links -H 'Content-Type: application/json' -d '{"amount":1250,"concept":"Mensualidad Yoga Flow","methods":{"card":true,"msi":false,"spei":false}}'
+
+# Custom — Ralph Lauren checkout (f63013c0) — card fails by default on Meridian Pay API 2026-10 (502
+# PAYMENT_FAILED, order stays pending, retry adds a duplicate authorization); paypal succeeds; demo controls
+# drive the incident; demo/reset stays broken, demo/unflip is the healthy baseline.
+curl -s -X POST http://localhost:3000/api/f63013c0/checkout -H 'Content-Type: application/json' -d '{"customerId":"cus_claire","cartId":"bsk_claire","addressId":"addr_claire_home","lines":[{"sku":"RL-KN-001","qty":1},{"sku":"RL-AC-014","qty":1,"giftBox":true}],"paymentMethod":"card","cardToken":"tok_claire_visa_4242"}'
+curl -s -X POST http://localhost:3000/api/f63013c0/checkout -H 'Content-Type: application/json' -d '{"customerId":"cus_claire","cartId":"bsk_claire","lines":[{"sku":"RL-KN-001","qty":1}],"paymentMethod":"paypal"}'
+curl -s http://localhost:3000/api/f63013c0/metrics
+curl -s "http://localhost:3000/api/f63013c0/psp/v1/authorizations?cardToken=tok_claire_visa_4242"
+curl -s -X POST http://localhost:3000/api/f63013c0/demo/reset
+curl -s -X POST http://localhost:3000/api/f63013c0/demo/start -H 'Content-Type: application/json' -d '{"rate":9,"retryPct":0.7,"flipAfterSeconds":120}'
+curl -s -X POST http://localhost:3000/api/f63013c0/demo/unflip
+node scripts/f63013c0-reconcile-authorizations.js --base-url http://localhost:3000
 curl -s -X POST http://localhost:3000/api/t1/payment-links -H 'Content-Type: application/json' -d '{"amount":1250,"concept":"","methods":{"card":true,"msi":false,"spei":false}}'
 ```
 

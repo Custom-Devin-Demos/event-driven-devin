@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en-au">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pet Insurance</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1e1e1e;
+      --page: #f6f6f6;
+      --panel: #f4f4f4;
+      --yellow: #ffcc00;
+      --grey: #b5b5b5;
+      --muted: #706d6e;
+      --foot: #333333;
+      --link: #1175b5;
+      --font: 'CBABeaconSans', 'Figtree', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--font); font-size: 16px; font-weight: 400; color: var(--ink); background: var(--page); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    h1, h2, h3, p, ul, fieldset { margin: 0; padding: 0; }
+    fieldset { border: 0; min-width: 0; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* Header */
+    .mainHeader { background: #fff; height: 80px; padding: 10px; box-shadow: rgba(35, 31, 32, 0.2) 0 1px 1px 0; position: relative; z-index: 2; }
+    .mainHeader header { max-width: 1160px; height: 60px; margin: 0 auto; padding-left: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .mainHeader .logo a { display: flex; align-items: flex-start; padding: 10px 0 10px; text-decoration: none; color: #000; }
+    .logoMark { width: 40px; height: 40px; margin-right: 16px; flex: none; display: block; }
+    .logo-text { text-align: left; }
+    .logo-text-title { font-size: 21px; font-weight: 800; line-height: 16px; margin: 4px 0 10px; color: #000; }
+    .logo-text-description { display: block; font-size: 16px; line-height: 16px; color: #000; }
+    .logo-text-description-mobile { display: none; font-size: 16px; line-height: 16px; color: #000; }
+    .contactDetails { display: flex; align-items: center; height: 40px; margin-top: 10px; }
+    .contactDetails a { display: flex; flex-direction: column; text-decoration: none; color: var(--ink); font-size: 16px; line-height: 20px; text-align: left; }
+    .contactDetails a span:last-child { font-weight: 800; }
+    .phoneIcon { width: 41px; height: 40px; display: block; flex: none; }
+
+    /* Layout */
+    .quoteToolContainer { max-width: 1140px; margin: 0 auto; padding: 50px 0 20px; display: flex; align-items: flex-start; }
+    .petSureForm { background: #fff; padding: 32px; width: 863px; flex: none; }
+    .campaigns { width: 257px; margin-left: 20px; padding-top: 21px; flex: none; }
+    .campaign { margin-bottom: 20px; }
+    .campaign img { display: block; width: 257px; height: 222px; object-fit: cover; }
+    .campaign .tileFallback { display: none; width: 257px; height: 222px; padding: 18px; background: var(--panel); font-size: 22px; font-weight: 800; line-height: 1.1; }
+
+    /* Steps banner */
+    .stepsBanner { list-style: none; display: flex; align-items: center; height: 100px; background: var(--panel); border-radius: 2px; }
+    .stepsBanner li { position: relative; flex: 1 1 0; display: flex; flex-direction: column; align-items: center; height: 50px; z-index: 1; }
+    .stepsBanner li + li::before { content: ""; position: absolute; top: 15px; left: -35%; width: 70%; border-top: 1px dashed var(--grey); z-index: -1; }
+    .stepIndex { width: 30px; height: 30px; border-radius: 100%; display: flex; align-items: center; justify-content: center; background: var(--grey); color: #fff; box-shadow: var(--panel) 0 0 0 1px; }
+    .stepIndex em { font-style: normal; font-weight: 400; line-height: 20px; margin-top: -3px; }
+    .stepsBanner .labelText { margin-top: 4px; font-size: 16px; line-height: 17px; text-align: center; }
+    .stepsBanner li.active .stepIndex { background: var(--yellow); color: var(--ink); }
+    .stepsBanner li.active .stepIndex em, .stepsBanner li.active .labelText { font-weight: 800; }
+
+    /* Headings + sections */
+    .stepContent { margin-top: 64px; }
+    .quoteToolHeading { padding: 20px 0 10px; text-align: center; }
+    .quoteToolHeading h1 { font-size: 30px; font-weight: 700; line-height: 36.5px; margin: 15px 0; }
+    .quoteToolHeading p { font-style: italic; line-height: 20px; margin: 0 0 16px; }
+    .quoteToolHeading p::before { content: "*"; margin-right: 5px; font-style: normal; }
+    .accordionSectionHeader { padding: 32px; border-bottom: 1px solid var(--grey); text-align: center; }
+    .accordionSectionHeader h3 { font-size: 24px; font-weight: 800; line-height: 29.5px; }
+    .accordionSectionContent { padding: 32px; }
+    .formField { display: flex; flex-direction: column; max-width: 470px; margin: 0 auto; padding-bottom: 32px; }
+    .labelText.field { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; line-height: 30px; margin: 5px 0; padding: 0 2px; }
+    .labelText.mandatory::before { content: "*"; }
+    .labelDecoration .txt { border-bottom: 2px dotted var(--ink); line-height: 22px; }
+    .iconInfo { width: 22px; height: 22px; border: 2px solid var(--ink); border-radius: 100%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; line-height: 1; font-family: Georgia, serif; }
+    .radiosGroupHeading { font-weight: 800; line-height: 30px; margin: 0 0 5px; padding: 0 2px; }
+    .radioInputs { display: flex; gap: 6px; }
+    .radioInput { flex: 1 1 0; position: relative; }
+    .radioInput input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+    .radioLabel { display: flex; align-items: center; justify-content: center; height: 48px; padding: 0 24px; border: 1px solid var(--ink); border-radius: 24px; background: #fff; line-height: 16px; }
+    .radioInput input:checked + .radioLabel { background: var(--yellow); border-color: var(--yellow); font-weight: 700; }
+    .inputContainer { position: relative; }
+    .petSureForm input[type=text], .petSureForm input[type=number], .petSureForm input[type=date], .petSureForm input[type=search], .petSureForm input[type=email], .petSureForm select {
+      display: block; width: 100%; height: 58px; padding: 0 14px; border: 1px solid var(--ink); border-radius: 0; background: #fff;
+      font-family: inherit; font-size: 16px; color: var(--ink); line-height: 58px; -webkit-appearance: none; appearance: none; outline: none;
+    }
+    .petSureForm select { padding-right: 44px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%231e1e1e' stroke-width='2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 18px center; cursor: pointer; }
+    .petSureForm input[type=date] { padding: 0 5px 0 14px; }
+    .petSureForm input[type=date]::-webkit-calendar-picker-indicator { opacity: 0; }
+    .petSureForm input:focus, .petSureForm select:focus { box-shadow: 0 0 0 2px var(--yellow); }
+    .calendarBtn { position: absolute; right: 5px; top: 5px; width: 48px; height: 48px; border: 0; border-radius: 22px; background: var(--yellow); display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .petSureForm input[type=search] { padding-left: 38px; }
+    .petSureForm input[type=search]::placeholder { color: var(--muted); }
+    .petSureForm input[readonly] { background: var(--panel); color: var(--grey); border-color: #000; }
+    .searchIcon { position: absolute; left: 14px; top: 22px; width: 14px; height: 14px; display: block; pointer-events: none; }
+    .addPetRow { display: flex; justify-content: center; }
+    .addPet { display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; margin: 0 5px; padding: 0 24px; border: 0; border-radius: 24px; background: #fff; color: #0072cb; font-family: inherit; font-size: 16px; line-height: 16px; cursor: pointer; }
+    .addPet .plus { font-size: 24px; font-weight: 300; line-height: 16px; color: var(--ink); }
+    .removeAction { text-align: center; }
+    .removeAction button { position: relative; display: inline-flex; padding: 0 10px; border: 0; background: none; color: var(--link); font-family: inherit; font-size: 16px; line-height: 22px; text-decoration: underline; cursor: pointer; }
+    .removeAction button::before { content: ""; position: absolute; left: 0; right: 0; top: -11px; bottom: -11px; }
+    .secondaryText { font-size: 12px; line-height: 18px; color: var(--muted); margin: 12px 0; }
+
+    /* Notice box (live page's dashed promo box) */
+    .detailContainer { max-width: 470px; margin: 0 auto 32px; padding: 30px; border: 1px dashed var(--ink); }
+    .detailContainer h2 { font-size: 24px; font-weight: 500; line-height: 29.5px; margin: 10px 0; }
+    .detailContainer p { line-height: 20px; margin: 0 0 16px; }
+    .detailContainer p:last-child { margin-bottom: 10px; }
+
+    /* Action */
+    .actionButtons { display: flex; flex-direction: column; align-items: center; gap: 15px; margin: 20px 0; }
+    #submitBtn { display: flex; align-items: center; justify-content: center; width: 280px; height: 48px; padding: 0 24px; border: 1px solid var(--yellow); border-radius: 24px; background: var(--yellow); color: var(--ink); font-family: inherit; font-size: 16px; line-height: 16px; cursor: pointer; }
+    #submitBtn:hover { background: #f2c200; }
+    #submitBtn:disabled { opacity: 0.6; cursor: progress; }
+    .result-box { display: none; max-width: 470px; margin: 0 auto; padding: 20px 24px; border: 1px dashed var(--ink); text-align: left; }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.success { border: 1px solid #2e7d32; background: #f1f8f1; }
+    .result-box.error { border: 1px solid #c62828; background: #fdf2f2; }
+    .result-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+    .result-detail { font-size: 14px; line-height: 20px; }
+
+    /* Contact statement */
+    .contactStatement .psLogo { display: block; width: 120px; height: 60px; position: relative; color: #000; }
+    .psLogo small { position: absolute; left: 0; top: 13px; font-size: 9px; line-height: 9px; }
+    .psLogo strong { position: absolute; left: 0; top: 22px; font-size: 25px; line-height: 25px; font-weight: 800; letter-spacing: -0.8px; }
+    .psLogo svg { position: absolute; left: 100px; top: 22px; width: 22px; height: 20px; }
+    .contactStatement p { font-size: 12px; font-weight: 300; line-height: 14.5px; margin: 12px 0; }
+
+    /* Footer */
+    .mainFooter { max-width: 1140px; margin: 0 auto; padding: 20px; background: var(--panel); color: var(--foot); font-size: 11px; }
+    .customFooterContent { display: flex; justify-content: space-between; padding-right: 325px; margin-bottom: 32px; min-height: 40px; }
+    .customFooterContent .policy { line-height: 26px; }
+    .customFooterContent .policy a, .mainFooter p a { text-decoration: underline; }
+    .footerContact { display: flex; }
+    .footerContact a { display: flex; flex-direction: column; font-size: 15px; line-height: 18.5px; text-decoration: underline; color: var(--foot); }
+    .footerContact a span:last-child { font-weight: 800; }
+    .mainFooter p { line-height: 17px; margin: 11px 0; text-align: justify; padding-right: 325px; }
+
+    @media (min-width: 768px) and (max-width: 1159px) {
+      .quoteToolContainer { padding-left: 10px; padding-right: 10px; }
+      .petSureForm { width: auto; flex: 1 1 auto; min-width: 0; }
+      .mainFooter p { padding-right: 0; }
+    }
+
+    @media (max-width: 767px) {
+      .mainHeader header { padding-left: 0; align-items: center; }
+      .mainHeader .logo a { padding: 5px 0 0; }
+      .logo-text-title { font-size: 18px; }
+      .logo-text-description { display: none; }
+      .logo-text-description-mobile { display: block; }
+      .contactDetails { display: none; }
+      .quoteToolContainer { flex-direction: column; align-items: center; padding: 0 0 20px; }
+      .petSureForm { width: auto; align-self: stretch; margin: 0 10px; padding: 20px 10px 0; }
+      .campaigns { margin: 20px 0 0; padding-top: 0; }
+      .stepsBanner .labelText { font-size: 12px; line-height: 15px; }
+      .stepsBanner li { flex: 0 0 70px; }
+      .mainFooter { margin: 0; max-width: none; }
+      .customFooterContent { padding-right: 0; }
+      .mainFooter p { padding-right: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mainHeader">
+    <header>
+      <div class="logo">
+        <a href="#" title="Home page">
+          <svg class="logoMark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3.2 36.8 20 26.6 30.2 9.8 13.4Z" fill="#ffcc00"/><path d="M9.8 13.4 26.6 30.2 20 36.8 3.2 20Z" fill="#ffe14d"/><path d="M26.6 30.2 36.8 20l1 1-10.2 10.2Z" fill="#1e1e1e"/></svg>
+          <span class="sr-only">Return to Home page</span>
+          <div class="logo-text">
+            <h3 class="logo-text-title">Get a pet insurance quote</h3>
+            <span class="logo-text-description">Provided by PetSure - Australia's leading Pet Insurance provider</span>
+            <span class="logo-text-description-mobile">Provided by PetSure</span>
+          </div>
+        </a>
+      </div>
+      <aside class="contactDetails">
+        <svg class="phoneIcon" viewBox="0 0 41 40" aria-hidden="true"><rect x="12.2" y="5" width="16.6" height="30" rx="2.7" fill="#fff" stroke="#1e1e1e"/><path d="M12.2 30.7h16.6v1.6a2.7 2.7 0 0 1-2.7 2.7h-11.2a2.7 2.7 0 0 1-2.7-2.7Z" fill="#faec20" stroke="#1e1e1e"/><path d="M18.3 7.1h5.1" stroke="#1e1e1e" stroke-linecap="round"/></svg>
+        <a href="#"><span>Need help?</span><span class="sr-only">Call us on </span><span>1300 913 575</span></a>
+      </aside>
+    </header>
+  </div>
+
+  <div class="quoteToolContainer">
+    <form id="claimForm" class="petSureForm" autocomplete="off">
+      <main>
+        <ul class="stepsBanner">
+          <li class="active"><span class="stepIndex"><em>1</em></span><span class="labelText">Your pet and you</span></li>
+          <li><span class="stepIndex"><em>2</em></span><span class="labelText">Cover options</span></li>
+          <li><span class="stepIndex"><em>3</em></span><span class="labelText">Your details</span></li>
+          <li><span class="stepIndex"><em>4</em></span><span class="labelText">Summary</span></li>
+          <li><span class="stepIndex"><em>5</em></span><span class="labelText">Payment</span></li>
+        </ul>
+        <div class="stepContent">
+          <div class="quoteToolHeading">
+            <h1>Your pet's details</h1>
+            <p>Mandatory fields</p>
+          </div>
+
+          <input type="hidden" id="policyId" value="POL-5001">
+          <input type="hidden" id="claimType" value="collision">
+          <input type="hidden" id="amount" value="1000">
+          <input type="hidden" id="description" value="">
+
+          <section class="accordionSection">
+            <header class="accordionSectionHeader"><h3>Your pet</h3></header>
+            <section class="accordionSectionContent">
+              <fieldset class="formField">
+                <legend class="radiosGroupHeading labelText mandatory">I have a...</legend>
+                <div class="radioInputs">
+                  <label class="radioInput"><input type="radio" name="species" value="Dog" required checked><span class="radioLabel">Dog</span></label>
+                  <label class="radioInput"><input type="radio" name="species" value="Cat"><span class="radioLabel">Cat</span></label>
+                </div>
+              </fieldset>
+              <div class="formField">
+                <label for="petName">
+                  <span class="labelText field mandatory labelDecoration"><span class="txt">My pet's name is...</span><span class="iconInfo" title="If you would like to get a quote for more than one pet, you can apply to insure another pet using the &quot;Insure another pet&quot; button below.">i</span></span>
+                  <div class="inputContainer"><input type="text" id="petName" maxlength="30" autocomplete="off" value="Max" required></div>
+                </label>
+              </div>
+              <div class="formField">
+                <label for="breed">
+                  <span class="labelText field mandatory labelDecoration"><span class="txt">My pet's breed is...</span><span class="iconInfo" title="If you cannot find your pet's dominant breed or cross-breed, please enter small, medium or large unknown breed based on expected size when fully grown.">i</span></span>
+                  <div class="inputContainer">
+                    <span class="searchIcon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="5.8" cy="5.8" r="4.6" fill="none" stroke="#1e1e1e" stroke-width="1.6"/><path d="M9.2 9.2 13 13" stroke="#1e1e1e" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+                    <input type="search" id="breed" placeholder="Start typing breed" autocomplete="off" value="Labrador Retriever" required>
+                  </div>
+                </label>
+              </div>
+              <div class="formField">
+                <label for="petDob">
+                  <span class="labelText field mandatory">My pet was born on...</span>
+                  <div class="inputContainer">
+                    <input type="date" id="petDob" required>
+                    <span class="calendarBtn" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="2.5" width="14" height="12.5" rx="1" fill="none" stroke="#1e1e1e" stroke-width="1.6"/><path d="M1 6h14M4.5 1v3M11.5 1v3" stroke="#1e1e1e" stroke-width="1.6"/><path d="M4 8.5h2v2H4zM7 8.5h2v2H7zM10 8.5h2v2h-2zM4 11.5h2v2H4zM7 11.5h2v2H7z" fill="#1e1e1e"/></svg></span>
+                  </div>
+                </label>
+              </div>
+              <fieldset class="formField">
+                <legend class="radiosGroupHeading labelText mandatory">My pet is a...</legend>
+                <div class="radioInputs">
+                  <label class="radioInput"><input type="radio" name="gender" value="Male" required checked><span class="radioLabel">Male</span></label>
+                  <label class="radioInput"><input type="radio" name="gender" value="Female"><span class="radioLabel">Female</span></label>
+                </div>
+              </fieldset>
+              <div class="addPetRow"><button type="button" class="addPet"><span class="plus" aria-hidden="true">+</span><span class="labelText">Insure another pet</span></button></div>
+            </section>
+          </section>
+
+          <section class="accordionSection">
+            <header class="accordionSectionHeader"><h3>Your personal information</h3></header>
+            <section class="accordionSectionContent">
+              <div class="formField">
+                <label for="ownerDob">
+                  <span class="labelText field mandatory">Date of birth</span>
+                  <div class="inputContainer">
+                    <input type="date" id="ownerDob" autocomplete="bday" value="1988-04-12" required>
+                    <span class="calendarBtn" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="2.5" width="14" height="12.5" rx="1" fill="none" stroke="#1e1e1e" stroke-width="1.6"/><path d="M1 6h14M4.5 1v3M11.5 1v3" stroke="#1e1e1e" stroke-width="1.6"/><path d="M4 8.5h2v2H4zM7 8.5h2v2H7zM10 8.5h2v2h-2zM4 11.5h2v2H4zM7 11.5h2v2H7z" fill="#1e1e1e"/></svg></span>
+                  </div>
+                </label>
+              </div>
+              <div class="formField">
+                <label for="postcode">
+                  <span class="labelText field mandatory labelDecoration"><span class="txt">Postcode</span><span class="iconInfo" title="This should be your residential postcode.">i</span></span>
+                  <div class="inputContainer"><input type="text" id="postcode" autocomplete="postal-code" value="2000" required></div>
+                </label>
+              </div>
+              <div class="formField">
+                <label for="email">
+                  <span class="labelText field">Email</span>
+                  <div class="inputContainer"><input type="email" id="email" autocomplete="email"></div>
+                  <p class="secondaryText">By providing your email address you consent to receiving marketing communication about this quote. Opt out anytime.</p>
+                </label>
+              </div>
+              <div class="formField">
+                <label for="promotionCode">
+                  <span class="labelText field labelDecoration"><span class="txt">Promo code</span><span class="iconInfo" title="This code may have been provided to you via email or appear on an advert">i</span></span>
+                  <div class="inputContainer"><input type="text" id="promotionCode" value="CBA2MONTH" readonly></div>
+                </label>
+              </div>
+              <div class="detailContainer">
+                <h2><strong>Promo code added!</strong></h2>
+                <p>The Offer provides with 2 months free in your first year policy. For fortnightly or monthly instalment payers, the first premium will be charged on the first premium instalment of the third month of your policy. NOTE: If you elect to pay annually, two months worth of premium will be deducted from your annual premium. This Offer applies to new Pet Insurance policies distributed by the Commonwealth Bank of Australia (CBA) only, purchased between 1 December 2025 and 30 June 2027 at 11.59pm AET. Offer will cease if you change your level of cover. Offer cannot be used in conjunction with any other offer. Terms, conditions and eligibility criteria applies (refer to the PDS). CBA reserves the right to amend this Offer at any time, without notice.</p>
+                <div class="removeAction"><button type="button"><strong>Remove promo</strong></button></div>
+              </div>
+            </section>
+          </section>
+
+          <div class="actionButtons">
+            <button type="submit" id="submitBtn">Get quote</button>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+
+          <div class="contactStatement">
+            <span class="psLogo" aria-label="provided by PetSure"><small>provided by</small><strong>PetSure</strong><svg viewBox="0 0 22 20" aria-hidden="true"><ellipse cx="11" cy="13.5" rx="5" ry="4.5" fill="#000"/><ellipse cx="4" cy="8.5" rx="2.4" ry="3" fill="#000"/><ellipse cx="8.5" cy="4" rx="2.4" ry="3" fill="#000"/><ellipse cx="13.5" cy="4" rx="2.4" ry="3" fill="#000"/><ellipse cx="18" cy="8.5" rx="2.4" ry="3" fill="#000"/></svg></span>
+            <p>By clicking &rsquo;Continue to cover options&rsquo;  you acknowledge PetSure (Australia) Pty Ltd (PetSure) collects the personal information you have entered for the purpose of providing you with a pet insurance quote.</p>
+            <p>If you choose to proceed to obtain pet insurance, the personal information you have provided will also be used to administer your application and the continued use of your policy, and to provide you with and offer you products and services. Without this personal information, PetSure will not be able to administer your application and provide you with a policy or products and services. This information will be shared between CBA and PetSure, stored in Australia &amp; Overseas, and handled in accordance with PetSure&rsquo;s Privacy Policy. Information about how you interact with this website will also be shared with CBA for conversion media measurement purposes.</p>
+            <p>The Privacy Policy also contains information about how you can access and correct personal information we hold as well as how you can complain about a breach of the Australian Privacy Principles and how we deal with complaints.</p>
+            <p>Contact us for more information: (02) 9842 4800.</p>
+          </div>
+        </div>
+      </main>
+    </form>
+    <aside class="campaigns">
+      <section class="campaign">
+        <img src="https://petcdnstore.blob.core.windows.net/qt-assets/Prod/Common/MyPetPass_QT_tile_464x400.png" alt="myPetPass logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="tileFallback">YOUR TICKET TO EXTRA PET PERKS</div>
+      </section>
+      <section class="campaign">
+        <img src="https://petcdnstore.blob.core.windows.net/qt-assets/Prod/Common/GapOnly_tile_232x200.png" alt="GapOnly ready Pet Insurance" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="tileFallback">GapOnly ready</div>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="mainFooter">
+    <div class="customFooterContent">
+      <section class="policy"><a href="#">Privacy Policy</a> | View the <a href="#">PDS and TMD</a></section>
+      <section class="footerContact">
+        <svg class="phoneIcon" viewBox="0 0 41 40" aria-hidden="true"><rect x="12.2" y="5" width="16.6" height="30" rx="2.7" fill="#fff" stroke="#1e1e1e"/><path d="M12.2 30.7h16.6v1.6a2.7 2.7 0 0 1-2.7 2.7h-11.2a2.7 2.7 0 0 1-2.7-2.7Z" fill="#faec20" stroke="#1e1e1e"/><path d="M18.3 7.1h5.1" stroke="#1e1e1e" stroke-linecap="round"/></svg>
+        <a href="#"><span>Need help?</span><span>1300 913 575</span></a>
+      </section>
+    </div>
+    <section>
+      <p>This policy is issued by PetSure (Australia) Pty Ltd ABN 95 075 949 923, AFSL 420183 (PetSure) and promoted and distributed by Commonwealth Bank of Australia ABN 48 123 123 124, AFSL 234945 (CBA). Any advice provided is general only and does not take into account your individual objectives, financial situation or needs. Please consider the Product Disclosure Statement (PDS) to ensure this product meets your needs before purchasing. PDS and Target Market Determination available at <a href="#">www.commbank.com.au/insurance/brochures-forms.html</a>.</p>
+      <p>* MyPetPass&reg; is a rewards programme provided by PetSure (Australia) Pty Ltd ABN 95 075 949 923 (PetSure). Available only to holders of active Pet Insurance policies distributed by CBA. MyPetPass&reg; perks are provided by PetSure and third-party suppliers and also subject to these third-party suppliers&rsquo; terms and conditions. MyPetPass&reg; perks may be amended or withdrawn any time without notice. PetSure does not guarantee that any particular third-party providers will continue to participate in MyPetPass&reg; through the offer or provision of perks, or that the MyPetPass&reg; rewards programme or any MyPetPass&reg; perks or features of MyPetPass&reg; will continue to be available. Full Terms &amp; Conditions available at <a href="#">mypetpass.com.au/terms</a>.</p>
+      <p>^ Live Vet support is a service provided by PetSure that gives you 24/7 access to general veterinary telehealth advice for your insured pet(s) via online video or chat, via the Customer Portals owned and operated by PetSure. Access to Live Vet Support consultations subject to the Customer Portal <a href="#">terms of use</a>.</p>
+      <p>~ The gap is defined as the difference between the eligible vet&rsquo;s invoice and the claim benefit under your policy. Policy terms and conditions apply. GapOnly&reg; is only available at participating Vets. Please visit <a href="#">gaponly.com.au/find-a-gaponly-vet</a> to search for GapOnly enabled vets. GapOnly&reg; is a trademark owned by PetSure (Australia) Pty Ltd ABN 95 075 949 923, AFSL 420183 (PetSure).</p>
+    </section>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      const yearsAgo = (n, extraDays) => { const d = new Date(); d.setFullYear(d.getFullYear() - n); d.setDate(d.getDate() - (extraDays || 0)); return d; };
+      const petDob = document.getElementById('petDob');
+      const ownerDob = document.getElementById('ownerDob');
+      petDob.min = iso(yearsAgo(9)); petDob.max = iso(yearsAgo(0, 56));
+      if (!petDob.value) petDob.value = iso(yearsAgo(3));
+      ownerDob.min = iso(yearsAgo(112)); ownerDob.max = iso(yearsAgo(18, 1));
+    })();
+    document.getElementById('claimForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const species = (document.querySelector('input[name=species]:checked') || {}).value || '';
+      const breed = document.getElementById('breed').value;
+      const gender = (document.querySelector('input[name=gender]:checked') || {}).value || '';
+      document.getElementById('description').value = ['Quote', document.getElementById('petName').value, species, breed, gender, 'born ' + document.getElementById('petDob').value, 'postcode ' + document.getElementById('postcode').value].filter(Boolean).join(' - ');
+      btn.disabled = true; btn.textContent = 'Getting your quote...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/insurance/claim', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount: parseFloat(document.getElementById('amount').value), description: document.getElementById('description').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="result-title">We couldn\u2019t get your quote</div><div class="result-detail">Something went wrong on our side and your quote could not be calculated. Please try again shortly or call us on 1300 913 575.</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="result-title">Your quote is ready</div><div class="result-detail">Quote reference ${data.claimId}. Continue to cover options to choose your level of cover.</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">We couldn\u2019t get your quote</div><div class="result-detail">Please check your connection and try again.</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Get quote'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

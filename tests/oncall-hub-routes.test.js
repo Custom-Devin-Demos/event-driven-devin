@@ -33,6 +33,25 @@ describe('on-call hub routes', () => {
     expect(branded.status).toBe(404);
   });
 
+  test('toy SEV-1 incident routes are gone', async () => {
+    const [consolePage, declare, kinds, state] = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/a2088cb4/incident`),
+      fetch(`${baseUrl}/api/oncall/incident`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'licensing-latency', skin: 'a2088cb4' }),
+      }),
+      fetch(`${baseUrl}/api/oncall/incident/kinds`),
+      fetch(`${baseUrl}/api/oncall/incident/state`),
+    ]);
+    expect([consolePage.status, declare.status, kinds.status, state.status]).toEqual([404, 404, 404, 404]);
+  });
+
+  test('skinned pages no longer declare SEV-1 incidents from the browser', () => {
+    const page = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'verticals', 'a2088cb4.html'), 'utf8');
+    expect(page).not.toContain('/api/oncall/incident');
+  });
+
   test('an oncallOnly native page is served shimmed at its direct slug too', async () => {
     const [direct, skinned] = await Promise.all([
       fetch(`${baseUrl}/63dbb52f`),
@@ -43,14 +62,52 @@ describe('on-call hub routes', () => {
     expect(directHtml).toEqual(await skinned.text());
     expect(directHtml).toContain('/api/oncall/marketplace/cart');
   });
+
+  test('the Nordstrom sweater uses the apparel endpoint without changing the shoe skin', async () => {
+    const [direct, skinned, shoe] = await Promise.all([
+      fetch(`${baseUrl}/0d1ff688`),
+      fetch(`${baseUrl}/oncall/c/0d1ff688`),
+      fetch(`${baseUrl}/oncall/c/4b663efb`),
+    ]);
+    expect(direct.status).toBe(200);
+    expect(shoe.status).toBe(200);
+    const directHtml = await direct.text();
+    expect(directHtml).toEqual(await skinned.text());
+    expect(directHtml).toContain('/api/oncall/apparel/bag');
+    expect(await shoe.text()).toContain('/api/oncall/marketplace/cart');
+  });
+
+  test('the GSK vaccine page uses the vaccines endpoint without changing the banking skins', async () => {
+    const [direct, skinned, bank] = await Promise.all([
+      fetch(`${baseUrl}/fe4f39ba`),
+      fetch(`${baseUrl}/oncall/c/fe4f39ba`),
+      fetch(`${baseUrl}/oncall/c/cb84fd21`),
+    ]);
+    expect(direct.status).toBe(200);
+    expect(bank.status).toBe(200);
+    const directHtml = await direct.text();
+    expect(directHtml).toEqual(await skinned.text());
+    expect(directHtml).toContain('/api/oncall/vaccines/order');
+    expect(directHtml).not.toContain('/api/oncall/banking/transfer');
+    expect(await bank.text()).toContain('/api/oncall/banking/transfer');
+  });
+
+  test('the shim sends the per-user alert destination and keeps a Teams fallback notice open', async () => {
+    const html = await (await fetch(`${baseUrl}/oncall/c/63dbb52f`)).text();
+    expect(html).toContain("localStorage.getItem('alertDestination')");
+    expect(html).toContain("alertDestination: alertDestination,");
+    expect(html).not.toContain('teamsWebhookUrl');
+    expect(html).toMatch(/if \(d\.teamsFailed\)[^\n]*went to Slack/);
+    expect(html).toContain("if (d.ok && !d.teamsFailed) scheduleCollapse();");
+    expect(html).toContain("else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }");
+  });
 });
 
 describe('on-call hub page contract', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'oncall.html'), 'utf8');
 
   test('hub keeps the shared on-call mechanics', () => {
-    for (const marker of ['href="https://coggtm.slack.com/archives/C0BVC5WS88G"', 'href="/oncall/report"']) {
-      expect(html).toContain(marker);
-    }
+    expect(html).toContain('href="https://coggtm.slack.com/archives/C0BVC5WS88G"');
+    expect(html).not.toContain('/oncall/report');
   });
 });

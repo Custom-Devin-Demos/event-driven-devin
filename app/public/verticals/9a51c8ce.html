@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Banking | Bank Online with Happen Bank, formerly LendingClub</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #2626FF;
+      --blue-dark: #1E1FCA;
+      --orange: #FD4621;
+      --warm: #F7F1ED;
+      --ink: #333333;
+      --ink-2: #232222;
+      --body: #565656;
+      --muted: #6B6B6B;
+      --quote: #837E7C;
+      --grad: linear-gradient(90deg, #2626FF 21.15%, #AD11E3 47.6%, #FD4621 67%, #FD8224 84.13%);
+      --grad-text: linear-gradient(90deg, #2626FF 0%, #AD11E3 40%, #FD4621 80%);
+      --sans: 'rethinkSansFont', 'Rethink Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      --cdn: https://images.ctfassets.net/orqped9h4wgz;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--sans); font-size: 16px; line-height: 24px; letter-spacing: 0.16px; color: var(--body); background: #fff; -webkit-font-smoothing: antialiased; }
+    h1, h2, h3, p, ul { margin: 0; padding: 0; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+
+    /* Header */
+    .top-grad { height: 12px; background: var(--grad); }
+    .site-header { background: var(--warm); height: 78px; }
+    .site-header .inner { height: 100%; padding: 0 80px; display: flex; align-items: center; }
+    .logo { display: flex; align-items: center; width: 274px; height: 35px; }
+    .logo svg { width: 274px; height: 35px; display: block; }
+    .main-nav { margin-left: 39px; }
+    .main-nav ul { list-style: none; display: flex; gap: 30px; }
+    .main-nav a { font-size: 18px; font-weight: 500; line-height: 21.6px; letter-spacing: 0.18px; color: var(--ink-2); display: flex; }
+    .sign-in { margin-left: auto; height: 44px; padding: 12px 18px; border: 1px solid var(--ink-2); border-radius: 8px; background: var(--warm); color: var(--ink-2); font: 700 16px/17.6px var(--sans); letter-spacing: 0.16px; cursor: pointer; }
+    .hamburger { display: none; }
+
+    /* Hero */
+    .hero { position: relative; max-width: 1528px; margin: 0 auto; min-height: 544px; background: #fff url('https://images.ctfassets.net/orqped9h4wgz/2Jv3NPXJ7QnYpWHjVxb0jd/503a797978f76e97bd52295ad414b2f1/banking_hero_dsk.jpg') right center / cover no-repeat; }
+    .hero .copy { width: 574px; padding: 48px 0 48px 140px; box-sizing: content-box; }
+    .eyebrow { font-size: 16px; font-weight: 800; line-height: 24px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+    .hero h2 { margin-top: 8px; font-size: 48px; font-weight: 900; line-height: 52px; letter-spacing: 0.48px; color: var(--ink); }
+    .gradient-text { background: var(--grad-text); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero .lede { margin-top: 25px; width: 400px; font-size: 18px; line-height: 24px; color: var(--ink); }
+    .fdic { margin-top: 32px; width: 211px; height: 29px; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 18px; border-radius: 8px; border: 0; font: 700 16px/24px 'Rethink-Sans', var(--sans); letter-spacing: 0.64px; cursor: pointer; text-align: center; }
+    .btn-blue { background: var(--blue); color: #fff; }
+    .btn-blue:hover { background: var(--blue-dark); }
+    .btn-blue:disabled { opacity: .7; cursor: progress; }
+    .btn-white { background: #fff; color: var(--blue); width: 172px; }
+    .btn-outline { border: 1px solid var(--blue-dark); color: var(--blue-dark); background: transparent; width: 240px; min-height: 46px; }
+
+    /* Transfer form (sits where "Open an Account" is) */
+    .move-money { margin-top: 32px; width: 420px; }
+    .move-money .form-title { font-size: 18px; font-weight: 800; line-height: 24px; color: var(--ink); margin-bottom: 12px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+    .form-group label { font-size: 14px; font-weight: 700; line-height: 18px; color: var(--ink); }
+    .form-group select, .form-group input { height: 44px; padding: 0 12px; border: 1px solid #C6C0BC; border-radius: 8px; background: #fff; font: 400 16px/24px var(--sans); color: var(--ink); width: 100%; }
+    .form-group select:focus, .form-group input:focus { outline: 2px solid var(--blue); outline-offset: -1px; border-color: var(--blue); }
+    #submitBtn { width: 240px; margin-top: 4px; }
+    .result-box { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: 14px; line-height: 20px; }
+    .result-box.success { display: block; background: #E7F7EF; color: #0B5F3B; border: 1px solid #A9DFC4; }
+    .result-box.error { display: block; background: #FFEDE8; color: #9A2A12; border: 1px solid #F7B9A9; }
+    .result-box .error-title { font-weight: 800; }
+
+    /* Benefits */
+    .benefits { background: var(--warm); padding: 48px 80px 94px; color: var(--ink); text-align: center; }
+    .benefits h2 { font-size: 36px; font-weight: 800; line-height: 40px; letter-spacing: 0.36px; color: var(--ink); }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); max-width: 1280px; margin: 0 auto; }
+    .benefits .grid-3 { margin-top: 40px; }
+    .benefit { display: flex; flex-direction: column; align-items: center; padding: 0 23px; }
+    .benefit img { width: 80px; height: 80px; }
+    .benefit .title { margin-top: 22px; font-size: 24px; font-weight: 900; line-height: 28px; letter-spacing: 0.24px; color: var(--orange); }
+    .benefit .desc { margin-top: 7px; padding-bottom: 8px; font-size: 18px; line-height: 28px; max-width: 379px; }
+
+    /* CTA banner */
+    .cta { background: var(--orange); color: #fff; padding: 48px 20px; text-align: center; }
+    .cta h2 { font-size: 36px; font-weight: 900; line-height: 40px; letter-spacing: 0.36px; }
+    .cta p { margin-top: 24px; font-size: 18px; line-height: 28px; }
+    .cta .btn { margin-top: 32px; }
+
+    /* App */
+    .app { background: var(--warm); padding: 48px 80px; color: var(--ink); }
+    .app section { max-width: 1280px; margin: 0 auto; height: 304px; display: flex; align-items: center; }
+    .app .text { width: 420px; margin-left: 80px; }
+    .app h2 { max-width: 380px; font-size: 36px; font-weight: 900; line-height: 40px; letter-spacing: 0.36px; }
+    .app p { max-width: 400px; margin-top: 24px; font-size: 18px; line-height: 28px; }
+    .badges { margin-top: 16px; display: flex; gap: 16px; }
+    .badges img { height: 40px; width: auto; }
+    .app .phone { width: 280px; height: 280px; margin-left: 240px; }
+
+    /* Social proof */
+    .proof { padding: 48px 80px 0; }
+    .proof h2 { text-align: center; font-size: 36px; font-weight: 900; line-height: 40px; letter-spacing: 0.36px; color: var(--ink); }
+    .proof .row { max-width: 1280px; margin: 48px auto 0; display: flex; justify-content: space-between; }
+    .proof .left { width: 575px; }
+    .stars { display: flex; gap: 5px; }
+    .stars svg { width: 19px; height: 20px; }
+    .quote { margin-top: 16px; font-size: 18px; line-height: 28px; color: var(--ink); }
+    .author { display: block; margin-top: 20px; font-size: 16px; font-weight: 700; line-height: 28px; color: var(--quote); }
+    .proof .btn-outline { margin-top: 13px; }
+    .awards { margin-top: 60px; display: flex; align-items: center; }
+    .awards img { width: 96px; height: 96px; }
+    .awards .sep { width: 1px; height: 80px; background: #C6C0BC; margin: 0 24px; }
+    .proof .portrait { width: 460px; height: 436px; margin: 0 37px 0 0; align-self: flex-end; }
+
+    /* Trust */
+    .trust { background: var(--blue); color: #fff; padding: 80px 20px 96px; text-align: center; }
+    .trust .grid-3 { max-width: 1143px; }
+    .trust .item { display: flex; flex-direction: column; align-items: center; padding: 0 28px; }
+    .trust img { width: 80px; height: 80px; }
+    .trust .title { margin-top: 24px; font-size: 24px; font-weight: 900; line-height: 28px; letter-spacing: 0.24px; }
+    .trust .desc { margin-top: 8px; padding-bottom: 8px; font-size: 18px; line-height: 28px; }
+
+    /* Footer */
+    .footer { background: var(--warm); padding: 100px 16px 16px; color: var(--ink); }
+    .footer-card { max-width: 1640px; margin: 0 auto; background: #fff; border-radius: 30px; padding: 48px; display: grid; grid-template-columns: repeat(6, minmax(0, 192px)); column-gap: 32px; row-gap: 48px; justify-content: center; }
+    .rating { grid-column: 1 / span 2; grid-row: 1 / span 2; position: relative; height: 550px; border-radius: 30px; overflow: hidden; background: var(--blue); color: #fff; }
+    .rating .phone-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .rating .score { position: absolute; left: 48px; top: 16px; font-size: 99.84px; font-weight: 800; line-height: 94.85px; letter-spacing: 1px; }
+    .rating .rstars { position: absolute; left: 48px; top: 115px; width: 150px; height: 24px; }
+    .rating .qr { position: absolute; left: 253px; top: 28px; width: 75px; height: 75px; }
+    .rating .count { position: absolute; left: 214px; top: 115px; width: 154px; text-align: center; font-size: 14.56px; font-weight: 500; line-height: 17.47px; }
+    .rating .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 93px; background: linear-gradient(rgba(0,0,0,0) 0%, var(--blue) 100%); }
+    .fnav h3 { font-size: 18px; font-weight: 700; line-height: 31.5px; color: var(--blue); }
+    .fnav ul { list-style: none; }
+    .fnav li { font-size: 18px; font-weight: 500; line-height: 31.5px; color: var(--ink-2); }
+    .fcol .fnav + .fnav { margin-top: 16px; }
+    .footer-bottom { grid-column: 3 / span 4; grid-row: 2; display: flex; align-items: flex-end; }
+    .footer-bottom .flogo { width: 182px; height: 48px; }
+    .footer-bottom address { margin-left: 42px; font-style: normal; font-size: 16px; line-height: 17px; color: var(--ink); }
+    .socials { margin-left: auto; display: flex; gap: 10px; }
+    .socials img { width: 50px; height: 50px; }
+    .acc-head { display: none; }
+
+    .legal { background: var(--warm); padding: 48px 64px 20px; color: var(--ink); font-size: 16px; line-height: 24px; }
+    .legal ul { list-style: none; margin-top: 17px; line-height: 22.86px; }
+    .legal li { padding-bottom: 5px; }
+    .legal li p { padding-bottom: 14px; }
+    .legal > p { padding-bottom: 17px; }
+    .legal sup { font-size: 12px; }
+    .legal a { text-decoration: none; }
+    .legal .marks { display: flex; justify-content: flex-end; gap: 31px; margin-top: -40px; }
+    .legal .marks img { height: 32px; width: auto; }
+
+    @media (max-width: 1200px) {
+      .site-header .inner { padding: 0 40px; }
+      .main-nav ul { gap: 18px; }
+      .footer-card { grid-template-columns: repeat(3, 1fr); }
+      .rating { grid-column: 1 / span 3; grid-row: auto; }
+      .footer-bottom { grid-column: 1 / span 3; grid-row: auto; }
+      .app .phone { margin-left: auto; }
+    }
+    @media (max-width: 1023px) {
+      .main-nav { display: none; }
+      .hamburger { display: block; margin-left: 24px; }
+    }
+    @media (max-width: 900px) {
+      .site-header { height: 53px; }
+      .site-header .inner { padding: 0 20px; }
+      .logo, .logo svg { width: 165px; height: 21px; }
+      .sign-in { height: 31px; padding: 8px 12px; font-size: 12px; line-height: 13.2px; position: relative; }
+      .sign-in::before { content: ''; position: absolute; inset: -7px -4px; }
+      .hamburger { display: block; margin-left: 24px; width: 32px; height: 44px; background: none; border: 0; padding: 0; position: relative; }
+      .hamburger span { position: absolute; left: 0; width: 32px; height: 3px; border-radius: 2px; background: #000; }
+      .hamburger span:nth-child(1) { top: 11px; } .hamburger span:nth-child(2) { top: 21px; } .hamburger span:nth-child(3) { top: 31px; }
+
+      .hero { min-height: 0; background: #fff; }
+      .hero::before { content: ''; display: block; height: 180px; background: url('https://images.ctfassets.net/orqped9h4wgz/3WVwLdPHz3PG6DCGWovqo5/c0222e30b6b194f8050c0cf60ae237f0/banking_hero2_mbl.jpg') center / cover no-repeat; }
+      .hero .copy { width: auto; padding: 32px 16px 24px; }
+      .eyebrow { font-size: 12px; line-height: 16px; }
+      .hero h2 { font-size: 32px; line-height: 36px; letter-spacing: 0.32px; }
+      .hero .lede { width: auto; max-width: 343px; margin-top: 11px; font-size: 16px; }
+      .move-money { width: 100%; margin-top: 24px; }
+      #submitBtn { width: 100%; }
+      .fdic { margin-top: 24px; }
+
+      .benefits { padding: 24px 20px 40px; }
+      .benefits h2 { font-size: 24px; line-height: 28px; letter-spacing: 0.24px; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .benefits .grid-3 { margin-top: 56px; gap: 56px; }
+      .benefit { padding: 0; }
+      .benefit .title { font-size: 18px; line-height: 22px; letter-spacing: 0.18px; }
+      .benefit .desc { font-size: 16px; line-height: 24px; }
+
+      .cta { padding: 24px 20px; }
+      .cta h2 { font-size: 24px; line-height: 28px; letter-spacing: 0.24px; }
+      .cta p { margin-top: 24px; font-size: 16px; line-height: 24px; }
+
+      .app { padding: 24px 20px; }
+      .app section { height: auto; flex-direction: column; align-items: stretch; padding-top: 15px; }
+      .app .text { width: auto; margin: 0; }
+      .app h2 { font-size: 24px; line-height: 28px; letter-spacing: 0.24px; }
+      .app p { margin-top: 20px; font-size: 16px; line-height: 24px; }
+      .badges { justify-content: center; margin-top: 28px; }
+      .app .phone { margin: 48px auto 0; }
+
+      .proof { padding: 24px 20px 0; }
+      .proof h2 { text-align: left; font-size: 24px; line-height: 28px; letter-spacing: 0.24px; }
+      .proof .row { flex-direction: column; margin-top: 22px; }
+      .proof .left { width: auto; }
+      .quote { font-size: 16px; line-height: 24px; }
+      .author { margin-top: 14px; font-size: 14px; line-height: 24px; }
+      .proof .btn-outline { width: 100%; margin-top: 15px; }
+      .awards { margin-top: 30px; justify-content: space-between; padding: 0 12px; }
+      .awards .sep { display: none; }
+      .proof .portrait { width: 100%; height: auto; margin: 24px 0 0; }
+
+      .trust { padding: 72px 40px; }
+      .trust .grid-3 { gap: 56px; }
+      .trust .item { padding: 0; }
+      .trust .title { font-size: 18px; line-height: 22px; letter-spacing: 0.18px; }
+      .trust .desc { font-size: 16px; line-height: 24px; }
+
+      .footer { padding: 40px 0 0; }
+      .footer-card { display: flex; flex-direction: column; gap: 25px; border-radius: 50px 50px 0 0; padding: 24px 20px; }
+      .fnav ul { display: none; }
+      .fcol .fnav + .fnav { margin-top: 0; }
+      .fnav h3 { display: flex; align-items: center; min-height: 48px; }
+      .fnav h3::after { content: ''; width: 8px; height: 8px; margin-left: 8px; border-right: 2px solid var(--body); border-bottom: 2px solid var(--body); transform: rotate(45deg) translateY(-3px); }
+      .navs { display: flex; flex-direction: column; order: 1; gap: 0; }
+      .socials { order: 2; margin-left: 0; gap: 8px; }
+      .socials img { width: 36px; height: 36px; }
+      .rating { order: 3; height: 463px; border-radius: 15px; }
+      .rating .score { left: 41px; top: 8px; font-size: 84px; line-height: 79.8px; }
+      .rating .rstars { left: 184px; top: 22px; width: 131px; height: 20px; }
+      .rating .qr { display: none; }
+      .rating .count { left: 184px; top: 54px; width: 131px; font-size: 12.25px; line-height: 14.7px; }
+      .footer-bottom { order: 4; align-items: center; justify-content: space-between; }
+      .footer-bottom .flogo { width: 114px; height: 30px; }
+      .footer-bottom address { margin-left: 0; text-align: right; font-size: 14px; line-height: 15.4px; }
+      .legal { background: #fff; padding: 24px 32px 20px; font-size: 12px; line-height: 18px; border-top: 1px solid transparent; }
+      .legal::before { content: ''; display: block; height: 1px; margin: -24px -12px 24px; background: linear-gradient(90deg, #2626FF, #AD11E3, #FD4621); opacity: .5; }
+      .legal ul { line-height: 16px; }
+      .legal .marks { margin-top: 0; justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-grad"></div>
+  <header class="site-header">
+    <div class="inner">
+      <a class="logo" href="#" aria-label="Happen Bank, formerly LendingClub">
+        <svg viewBox="0 0 274 35" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <text x="0" y="27" font-family="rethinkSansFont, 'Rethink Sans', sans-serif" font-size="33" font-weight="800" font-style="italic" fill="#FD4621" letter-spacing="-1.4">Happen</text>
+          <text x="99" y="34" font-family="rethinkSansFont, 'Rethink Sans', sans-serif" font-size="8" font-weight="800" fill="#FD4621" letter-spacing="0.8">BANK</text>
+          <text x="128" y="7" font-family="rethinkSansFont, 'Rethink Sans', sans-serif" font-size="5" font-weight="700" fill="#FD4621">TM</text>
+          <text x="147" y="13" font-family="rethinkSansFont, 'Rethink Sans', sans-serif" font-size="14.5" font-weight="500" font-style="italic" fill="#14365D">Formerly</text>
+          <g fill="#FD4621"><rect x="147" y="20" width="3" height="3"/><rect x="151" y="20" width="3" height="3"/><rect x="155" y="20" width="3" height="3"/><rect x="147" y="24" width="3" height="3"/><rect x="151" y="24" width="3" height="3"/><rect x="155" y="24" width="3" height="3"/><rect x="147" y="28" width="3" height="3"/><rect x="151" y="28" width="3" height="3"/><rect x="155" y="28" width="3" height="3"/></g>
+          <text x="161" y="31" font-family="rethinkSansFont, 'Rethink Sans', sans-serif" font-size="19" font-weight="700" fill="#14365D" letter-spacing="-0.5">LendingClub</text>
+        </svg>
+      </a>
+      <nav class="main-nav" aria-label="Main">
+        <ul>
+          <li><a href="#">Borrowing</a></li>
+          <li><a href="#">Banking</a></li>
+          <li><a href="#">Business</a></li>
+          <li><a href="#">Investing</a></li>
+          <li><a href="#">Resources</a></li>
+          <li><a href="#">Help</a></li>
+        </ul>
+      </nav>
+      <button class="sign-in" type="button">Sign In</button>
+      <button class="hamburger" type="button" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="copy">
+        <h1 class="eyebrow">Personal Banking</h1>
+        <h2><span class="gradient-text">Award-winning</span> banking at your fingertips</h2>
+        <p class="lede">Our LevelUp Checking account, LevelUp Savings account, and CDs are built to reward you and help you reach your goals.</p>
+
+        <div class="move-money">
+          <div class="form-title">Move money between your accounts</div>
+          <form id="transferForm">
+            <div class="form-row">
+              <div class="form-group"><label for="fromAccount">From</label><select id="fromAccount"><option value="ACCT-1001">LevelUp Checking ...1001</option><option value="ACCT-1002">LevelUp Savings ...1002</option></select></div>
+              <div class="form-group"><label for="toAccount">To</label><select id="toAccount"><option value="ACCT-1002">LevelUp Savings ...1002</option><option value="ACCT-1001">LevelUp Checking ...1001</option><option value="ACCT-EXT-001">External account ...4921</option></select></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="amount">Amount</label><input type="number" id="amount" value="500" min="1" step="0.01" placeholder="$0.00"></div>
+              <div class="form-group"><label for="accountTier">Savings rate</label><select id="accountTier"><option value="standard">Standard Rate</option><option value="premium">LevelUp Rate</option><option value="basic">Basic</option></select></div>
+            </div>
+            <button type="submit" class="btn btn-blue" id="submitBtn">Transfer</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+
+        <img class="fdic" src="https://images.ctfassets.net/orqped9h4wgz/7bm6hp1bT99Qv41AtiYmhM/4925068aedc073717f2b4641d5d28a8a/FDIC_1.svg" alt="Member FDIC. Your deposits are FDIC-insured up to $250,000." onerror="this.style.display='none'">
+      </div>
+    </section>
+
+    <div class="benefits">
+      <h2>Get more from your money with a Happen Bank account</h2>
+      <div class="grid-3">
+        <div class="benefit"><img src="https://images.ctfassets.net/orqped9h4wgz/2lFJX4fdRpLHhfKUSK9V42/a9b11aec4b1960ac8d0434993ef584af/icon_save_2x.webp" alt="" onerror="this.style.visibility='hidden'"><span class="title">LevelUp Savings</span><div class="desc">Get 4.20% APY when you deposit $250+ a month.&sup2;</div></div>
+        <div class="benefit"><img src="https://images.ctfassets.net/orqped9h4wgz/3QAfIIR3O2upOIBNhnAzZn/5d0610955655570e5587fa48c24a6a01/icon_cashback_2x.webp" alt="" onerror="this.style.visibility='hidden'"><span class="title">LevelUp Checking</span><div class="desc">Earn 2% cash back and get paid early.&sup3;<sup>,4</sup></div></div>
+        <div class="benefit"><img src="https://images.ctfassets.net/orqped9h4wgz/5Z6Zc6JsdoOSiS9464bZc8/0261a7daf554d9587258919796aef380/icon_lock_2x.webp" alt="" onerror="this.style.visibility='hidden'"><span class="title">Certificate of Deposit</span><div class="desc">Earn a competitive, guaranteed rate.<sup>5</sup></div></div>
+      </div>
+    </div>
+
+    <div class="cta">
+      <h2>Open a LevelUp account in minutes</h2>
+      <p>Start earning more today.</p>
+      <a class="btn btn-white" href="#">Open an Account</a>
+    </div>
+
+    <div class="app">
+      <section>
+        <div class="text">
+          <h2>Make it happen in the app</h2>
+          <p>Get the Happen Bank app and never miss a beat.<sup>6</sup></p>
+          <div class="badges">
+            <a href="#"><img src="https://images.ctfassets.net/orqped9h4wgz/7Hwvsg30yVjcfTiY2ABJdP/dcb6ed484a4ffb146e5705635015a5e3/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store" onerror="this.style.display='none'"></a>
+            <a href="#"><img src="https://images.ctfassets.net/orqped9h4wgz/13w2Wt5wiT596O9V3Z3ZZo/1596694c340a3876d2cf07237748fc6d/Google_Play_Store_badge_EN__5_.svg" alt="Get it on Google Play" onerror="this.style.display='none'"></a>
+          </div>
+        </div>
+        <img class="phone" src="https://images.ctfassets.net/orqped9h4wgz/at7zITNhxppbeg1KSaeoS/37cd8adc861865082a4d444b000432e6/app_right.svg" alt="" onerror="this.style.visibility='hidden'">
+      </section>
+    </div>
+
+    <div class="proof">
+      <h2>See what our members are saying</h2>
+      <div class="row">
+        <div class="left">
+          <div class="stars" aria-label="5 stars">
+            <svg viewBox="0 0 20 20"><path fill="#3BA776" d="M10 1l2.6 6 6.4.6-4.9 4.3 1.5 6.3L10 15l-5.6 3.2 1.5-6.3L1 7.6 7.4 7z"/></svg>
+            <svg viewBox="0 0 20 20"><path fill="#3BA776" d="M10 1l2.6 6 6.4.6-4.9 4.3 1.5 6.3L10 15l-5.6 3.2 1.5-6.3L1 7.6 7.4 7z"/></svg>
+            <svg viewBox="0 0 20 20"><path fill="#3BA776" d="M10 1l2.6 6 6.4.6-4.9 4.3 1.5 6.3L10 15l-5.6 3.2 1.5-6.3L1 7.6 7.4 7z"/></svg>
+            <svg viewBox="0 0 20 20"><path fill="#3BA776" d="M10 1l2.6 6 6.4.6-4.9 4.3 1.5 6.3L10 15l-5.6 3.2 1.5-6.3L1 7.6 7.4 7z"/></svg>
+            <svg viewBox="0 0 20 20"><path fill="#3BA776" d="M10 1l2.6 6 6.4.6-4.9 4.3 1.5 6.3L10 15l-5.6 3.2 1.5-6.3L1 7.6 7.4 7z"/></svg>
+          </div>
+          <p class="quote">&rdquo;I use the banking side. They offer one of the highest APY for savings accounts as long as you make a very modest $250 deposit each month. If you are looking for a high rate savings accounts and are willing to do all banking with them online (no physical branches), this could be a great place to have a savings account.&rdquo;<sup>7</sup></p>
+          <b class="author">&mdash;Travis M.</b>
+          <a class="btn btn-outline" href="#">Read More Reviews</a>
+          <div class="awards">
+            <img src="https://images.ctfassets.net/orqped9h4wgz/3BRatFEESA5HtwM8bppqbN/012a255d4eaf18011b30a4c82ce23939/Bankrate_5.0__1_.png" alt="Bankrate 5.0" onerror="this.style.visibility='hidden'">
+            <span class="sep"></span>
+            <img src="https://images.ctfassets.net/orqped9h4wgz/5t0wDG4RuHF3ffDGGukf1I/1c0dd0e0a78b3f4f58019c6cdf2bebfe/financebuzz2026.png" alt="Best of FinanceBuzz 2026" onerror="this.style.visibility='hidden'">
+            <span class="sep"></span>
+            <img src="https://images.ctfassets.net/orqped9h4wgz/5YNVMmX9tCHbxnQDXEgoAB/d9f664c827acfdee48e856404bb9494d/motleyfool_2026.png" alt="Motley Fool Money best high-yield savings accounts 2026" onerror="this.style.visibility='hidden'">
+          </div>
+        </div>
+        <img class="portrait" src="https://images.ctfassets.net/orqped9h4wgz/KahQMdkgFOC0HPcAfFl2Q/bae676cb144e753c5d0b4e6685863ef1/testimonial-travis.svg" alt="" onerror="this.style.visibility='hidden'">
+      </div>
+    </div>
+
+    <div class="trust">
+      <div class="grid-3">
+        <div class="item"><img src="https://images.ctfassets.net/orqped9h4wgz/6VmWw6l8CZUYXclXt1K1A2/0afa34b5ea16a2a9ef4be7859b99b039/Illustrations_065.svg" alt="" onerror="this.style.visibility='hidden'"><p class="title">Security</p><div class="desc">Keeping your financial info private and secure is our priority.</div></div>
+        <div class="item"><img src="https://images.ctfassets.net/orqped9h4wgz/3azmaS9TfX71RSukYGyLid/64c20a1c4505c81b6b70b3ef30c9a7c4/Illustrations_065.svg" alt="" onerror="this.style.visibility='hidden'"><p class="title">FDIC Insurance</p><div class="desc">Deposits are FDIC-insured up to the maximum amount allowed&mdash;$250,000.</div></div>
+        <div class="item"><img src="https://images.ctfassets.net/orqped9h4wgz/3ZyvZOPjLuTIYNUcjGCMin/6ee553f1b31a3a9129bba8365ca56835/Illustrations_065.svg" alt="" onerror="this.style.visibility='hidden'"><p class="title">Customer support</p><div class="desc">Have a question? Need a hand? We can help. Chat with us online, or reach us by phone or email.</div></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-card">
+      <div class="rating">
+        <img class="phone-art" src="https://images.ctfassets.net/orqped9h4wgz/7KHbU2nENryzVAAi4SP00w/ee80f9a0bd62b289c129438255eb67bb/phone-gradient.png" alt="" onerror="this.style.display='none'">
+        <span class="score">4.8</span>
+        <svg class="rstars" viewBox="0 0 150 24" aria-hidden="true"><g fill="#fff"><path d="M12 1l3.1 7.2 7.7.7-5.9 5.1 1.8 7.6L12 17.8l-6.7 3.8 1.8-7.6L1.2 8.9l7.7-.7z"/><path transform="translate(31.5 0)" d="M12 1l3.1 7.2 7.7.7-5.9 5.1 1.8 7.6L12 17.8l-6.7 3.8 1.8-7.6L1.2 8.9l7.7-.7z"/><path transform="translate(63 0)" d="M12 1l3.1 7.2 7.7.7-5.9 5.1 1.8 7.6L12 17.8l-6.7 3.8 1.8-7.6L1.2 8.9l7.7-.7z"/><path transform="translate(94.5 0)" d="M12 1l3.1 7.2 7.7.7-5.9 5.1 1.8 7.6L12 17.8l-6.7 3.8 1.8-7.6L1.2 8.9l7.7-.7z"/><path transform="translate(126 0)" d="M12 1l3.1 7.2 7.7.7-5.9 5.1 1.8 7.6L12 17.8l-6.7 3.8 1.8-7.6L1.2 8.9l7.7-.7z"/></g></svg>
+        <img class="qr" src="https://images.ctfassets.net/orqped9h4wgz/5HHIq8oiUiXkHfwwcAOUne/412b6de9572f3ee1ff66b3efc96d576a/qrCode.png" alt="" onerror="this.style.display='none'">
+        <span class="count">7K+ App Store Reviews</span>
+        <div class="fade"></div>
+      </div>
+      <div class="navs" style="display:contents">
+        <nav class="fnav"><h3>What We Offer</h3><ul><li>Personal Loans</li><li>Personal Banking</li><li>Auto Refinancing</li><li>Financing Solutions</li><li>Business Loans</li><li>Institutional Investing</li><li>Other Types of Loans</li></ul></nav>
+        <nav class="fnav"><h3>Legal</h3><ul><li>Terms of Use</li><li>Privacy Policy</li><li>CA Notice of Collection</li><li>Data Collection and Use</li><li>Accessibility</li><li>SEC Filing</li><li>Disclosures and Agreements</li><li>Legal Requests</li><li>Licenses</li></ul></nav>
+        <nav class="fnav"><h3>Company</h3><ul><li>CRA Public File</li><li>About us</li><li>Leadership</li><li>Careers</li><li>Media Center</li><li>Corporate Governance</li><li>Investor Relations</li><li>Contact</li></ul></nav>
+        <div class="fcol">
+          <nav class="fnav"><h3>Resources</h3><ul><li>Resource Center</li><li>Personal Loan Rates &amp; Fees</li><li>Member Benefits</li><li>Customer Reviews</li><li>Glossary</li></ul></nav>
+          <nav class="fnav"><h3>Account</h3><ul><li>Sign In</li><li>Mobile App</li><li>Help</li><li>Your Privacy Choices</li></ul></nav>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <svg class="flogo" viewBox="0 0 182 48" xmlns="http://www.w3.org/2000/svg" aria-label="Happen Bank"><text x="0" y="34" font-family="rethinkSansFont, 'Rethink Sans', sans-serif" font-size="44" font-weight="800" font-style="italic" fill="#FD4621" letter-spacing="-1.8">Happen</text><text x="132" y="46" font-family="rethinkSansFont, 'Rethink Sans', sans-serif" font-size="10.5" font-weight="800" fill="#FD4621" letter-spacing="1">BANK</text><text x="172" y="9" font-family="rethinkSansFont, 'Rethink Sans', sans-serif" font-size="6" font-weight="700" fill="#FD4621">TM</text></svg>
+        <address>88 Kearny Street, Suite 600<br>San Francisco, CA 94108</address>
+        <div class="socials">
+          <a href="#"><img src="https://images.ctfassets.net/orqped9h4wgz/4FfwvEDkUpeKArW6LmDzwT/8eec137693ac127575a0443e8aaade34/facebook-footer.svg" alt="Facebook"></a>
+          <a href="#"><img src="https://images.ctfassets.net/orqped9h4wgz/3aEXIPSjmzx1Fr5hjAdfov/1ac24f6be2cb187f83f0ed0175c96f1a/x-footer.svg" alt="X"></a>
+          <a href="#"><img src="https://images.ctfassets.net/orqped9h4wgz/wrPiddXIlcaQTxaprWays/31d42aab965913528e2780c267d4a4d3/instagram-footer.svg" alt="Instagram"></a>
+          <a href="#"><img src="https://images.ctfassets.net/orqped9h4wgz/656SRBw1BxTuTCFlkKz0YN/53f4355ad58c5a38f756c2e547377e4e/linkedin-footer.svg" alt="LinkedIn"></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <div class="legal">
+    <p>Accounts subject to approval, which may include credit approval. No minimum opening deposit required for LevelUp Checking or LevelUp Savings. $500 minimum opening deposit required for CDs. Please see <a href="#">Product Terms &amp; Conditions</a> for additional product details. Visit our <a href="#">Help Center</a> for additional information.</p><ul><li><p><sup>1</sup>FDIC-insured up to $250,000 per depositor&nbsp;for each ownership category.</p><p></p></li><li><p><sup>2</sup><b>LevelUp Rate</b> of 4.20% Annual Percentage Yield (“APY”) is accurate as of 10/07/2026. <b>Standard Rate</b> of 3.00% APY accurate as of 10/07/2026. Rates are variable and subject to change at any time without notice, at the sole discretion of the bank.&nbsp; </p><p><b>LevelUp Rate</b> is applied to the full balance of LevelUp Savings accounts that receive a total of at least $250 in deposits during the Evaluation Period. Otherwise, accounts will earn the <b>Standard Rate</b>. Interest payments, account bonuses, account credits and reversals or refunds from the bank are not considered deposits for rate evaluation purposes. All LevelUp Savings accounts earn the LevelUp Rate at account opening and continue to earn the LevelUp Rate until the First Evaluation Period, to provide an opportunity to set up deposits.&nbsp;While accounts will not move from the LevelUp Rate prior to the First Evaluation Period, the LevelUp Rate is variable and subject to change at any time, including prior to the First Evaluation Period.</p><p>An <b>Evaluation Period</b> is a statement cycle. The <b>First Evaluation Period</b> will be the third statement cycle after you open your account, with any rate change becoming effective the next statement cycle. For example, if you open in August, the first Evaluation Period would be October with any rate change effective in November.&nbsp;Any rate changes will take place at the end of the first business day of the month and will be based on deposits in the previous statement cycle.&nbsp;<br>&nbsp;<br>Fees may reduce earnings. $0 minimum opening deposit. Additional information can be found in the <a href="#">Product Terms &amp; Conditions</a> and <a href="#">FAQs</a>. &nbsp;</p><p></p></li><li><p><sup>3</sup><b>Loan Payment Cash Back</b> provides the opportunity to earn 2% cash back for Qualifying Payments made electronically from an Eligible Account. </p><p>Eligible Accounts are: LevelUp Checking accounts that:<br> (1) Receive a Direct Deposit into your LevelUp Checking account during the month in review (an “Eligible Account”); and<br> (2) Meet the qualifying requirements for the Debit Card Cash Back and/or Loan Payment Cash Back <br><br><b>Qualifying Payments</b> are: Payments made on-time from an Eligible Account in the amount of the monthly payment amount. Payments must be made electronically. Any payment received after the due date or amounts in excess of the monthly payment amount are not eligible for cash back. </p><p><b>Payments made to Happen Bank Auto Loans, revolving purchase finance loans and CleanSweep do not qualify for cash back. </b><br><br>Accounts are reviewed after the end of each month. Any earned cash back will be credited directly to your Eligible Account on or before the 5th business day of the next calendar month. The Eligible Account must be open and active at the time the cash back is credited. For more details, please review our <a href="#"><u>LevelUp Checking Terms &amp; Conditions</u></a>.</p></li><li><p><sup>4</sup>Any account features that enable you to receive direct deposits, or that enable direct deposit funds to be made available to you early, are contingent upon and subject to the payor’s support of such features.&nbsp;</p></li><li><p><sup>5</sup>Annual Percentage Yield (APY) accurate as of 10/07/2026. Minimum amount to open is $500.00. Maximum opening deposit amount of $500,000.00. Fees could reduce earnings on account. A penalty may be imposed for early withdrawal. At the end of the initial term, CDs will automatically review at the then-offered rate.</p><p></p><p></p></li><li><p><sup>6</sup>Standard data and message rates apply to Mobile Banking services. This includes the use of Happen Bank  Mobile, Happen Bank Commercial, and other services. Android is a trademark of Google LLC. iPhone and iPad are trademarks of Apple Inc., registered in the U.S. and other countries.</p><p></p></li><li><p><sup>7</sup>Based on reviews collected by Trustpilot. All such reviews can be accessed at <a href="#">trustpilot.com/review/happen.com</a>. This is one person's experience. Individual results may vary. </p></li></ul><p><br>For Personal Loans, APR ranges from 5.96% APR to 35.99% APR and origination/processing fee ranges from 0.00% to 8.00% of the loan amount.APRs and origination/processing fees are determined at the time of application. The lowest APR may be available to borrowers with excellent credit, subject to additional factors including, but not limited to, loan amount, loan term, and sufficient investor commitment. Advertised rates and fees are valid as of July 06, 2026, are subject to change without notice, and may not be available for all Personal Loan products and/or through all application channels or platforms.  <br><br>A representative example of payment terms for a Personal Loan is as follows: a borrower receives a loan of $15,262 for a term of 36 months, with an interest rate of 13.99% and a 6% origination fee of $916, for an APR of 18.40%. In this example, the borrower will receive $14,346 and will make 36 monthly payments of $522. Loan amounts range from $1,000 to $75,000 and loan term lengths range from 24 months to 84 months. Some amounts, rates, and term lengths may be unavailable in certain states, and may not be available for all Personal Loan products and/or through all application channels or platforms.  </p><p>Credit eligibility is not guaranteed. APR and other credit terms depend upon credit score and other key financing characteristics, including but not limited to the amount financed, loan term length, and credit usage and history.</p><p></p><p>Unless otherwise specified, all credit and deposit products are provided by Happen Bank, N.A., Member FDIC, Equal Housing Lender (“Happen Bank”), a&nbsp;wholly-owned&nbsp;subsidiary of Happen, Inc., NMLS ID 167439. Credit products are subject to credit approval and may be subject to sufficient investor commitment. Credit&nbsp;union membership may be required. Deposit products are subject to approval, which may include credit approval.&nbsp;</p><p>Our mailing address is: Happen Bank, N.A., 88 Kearny Street, Suite 600, San Francisco, CA 94108.&nbsp; <br>“Happen” and the “H” symbol are trademarks of Happen Bank.</p><p>© 2026 Happen Bank. All rights reserved.<br></p>
+    <div class="marks">
+      <img src="https://images.ctfassets.net/orqped9h4wgz/3YVvxXnhnoxowDJrdxDDGJ/750d4b1d2e395bbee95da83324776cd7/equal-housing-lender.svg" alt="Equal Housing Lender" onerror="this.style.display='none'">
+      <img src="https://images.ctfassets.net/orqped9h4wgz/7og9TNrHoyAvPZOA7adIx4/f61a57fedb30593fababb30f7682d891/member-fdic.svg" alt="Member FDIC" onerror="this.style.display='none'">
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Transfer failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Transfer complete</div><div class="error-detail">Debited $${data.debitAmount} (includes $${data.fee} fee)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Transfer'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

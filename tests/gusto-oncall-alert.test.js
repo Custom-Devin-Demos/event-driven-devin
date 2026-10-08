@@ -1,7 +1,7 @@
 /* global beforeEach, describe, expect, jest, test */
 
 jest.mock('../app/services/slack', () => ({
-  OWNER_DISCLAIMER: 'fictional on-call persona',
+  ownerRotation: jest.requireActual('../app/services/slack').ownerRotation,
   postMessage: jest.fn().mockResolvedValue('1700000000.000100'),
   postThreadReply: jest.fn().mockResolvedValue('1700000000.000200'),
   lookupSlackUserByEmail: jest.fn().mockResolvedValue(null),
@@ -45,7 +45,7 @@ describe('Gusto payroll release failure as an on-call alert (f8555891)', () => {
     expect(channel).toBe('C0TEST');
     expect(text).toContain('[Triggered] Error rate — payroll batch ACH release');
     expect(text).toContain('*Incident Ref:* PB-2026-09-15-A');
-    expect(text).toContain('/gusto — reproduce the symptom on this branded page');
+    expect(text).toContain('*Affected page:* https://devindemos.com/gusto\n');
     expect(text).not.toMatch(/\/oncall\/c\//);
     expect(JSON.stringify(blocks)).toContain('customer-f8555891-payroll (Gusto (Payroll Operations))');
   });

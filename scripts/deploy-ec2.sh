@@ -35,6 +35,11 @@ KEEP_RELEASES=${KEEP_RELEASES:-5}
 HEALTH_URL=${HEALTH_URL:-http://localhost:3000/health}
 BASE_URL=${BASE_URL:-http://localhost:3000}
 MIN_FREE_MB=${MIN_FREE_MB:-3072}
+# Docker build cache to keep across deploys (BuildKit evicts least-recently
+# used entries above this); one full rebuild of the stack is ~3.5G.
+BUILD_CACHE_KEEP=${BUILD_CACHE_KEEP:-1GB}
+PM2_LOG_DIR=${PM2_LOG_DIR:-$APP_DIR/.pm2/logs}
+PM2_LOG_MAX_MB=${PM2_LOG_MAX_MB:-50}
 
 # Vertical registries: never deleted on the host (see header).
 PROTECTED_APP=(routes/verticals public/verticals services/verticals)
@@ -73,15 +78,72 @@ if ! flock -w 900 8; then die "another deploy has held $APP_DIR/.deploy.lock for
 log "lock acquired"
 
 # ── 1. disk + backups ───────────────────────────────────────────────────────
+# Every deploy rebuilds images, so dangling images, build cache and pm2 logs
+# accumulate on the root volume; reclaim them before the free-space check.
 docker image prune -f >/dev/null || true
-# Every deploy rebuilds images, so stale build cache accumulates on the 19G root.
-docker builder prune -f --filter until=24h >/dev/null || true
+docker builder prune -f --keep-storage "$BUILD_CACHE_KEEP" >/dev/null || true
+if [ -d "$PM2_LOG_DIR" ]; then
+  find "$PM2_LOG_DIR" -maxdepth 1 -type f -name '*.log' -size +"${PM2_LOG_MAX_MB}M" \
+    -exec truncate -s 0 {} + 2>/dev/null || true
+fi
 AVAIL_MB=$(df -Pm / | awk 'NR==2 {print $4}')
-[ "$AVAIL_MB" -ge "$MIN_FREE_MB" ] || die "only ${AVAIL_MB}MB free on /, need ${MIN_FREE_MB}MB"
+if [ "$AVAIL_MB" -lt "$MIN_FREE_MB" ]; then
+  log "disk usage on /:"
+  df -h / | log_lines '   '
+  docker system df 2>/dev/null | log_lines '   ' || true
+  du -sh "$RELEASES_DIR" "$PM2_LOG_DIR" /var/log 2>/dev/null | log_lines '   ' || true
+  die "only ${AVAIL_MB}MB free on /, need ${MIN_FREE_MB}MB"
+fi
 
 mkdir -p "$RELEASES_DIR"
 cp "$APP_DIR/.env" "$RELEASES_DIR/env.$TS"
 cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
+
+# Optional .env sync from the deploy workflow (Actions secrets). Applied under
+# the lock and after the backup above, so rollback restores the previous .env.
+# The staged file holds one `KEY=value` line per allowlisted key, each with a
+# single-line https URL value. Invalid or duplicate lines are logged and
+# skipped; a file with more lines than allowlisted keys is ignored entirely
+# (deploy continues with the current .env).
+ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL AUTOMATIONS_TEAMS_WEBHOOK_URL)
+is_env_sync_key() {
+  local key
+  for key in "${ENV_SYNC_KEYS[@]}"; do [ "$key" = "$1" ] && return 0; done
+  return 1
+}
+if [ -n "${ENV_SYNC_FILE:-}" ] && [ -s "$ENV_SYNC_FILE" ]; then
+  if [ "$(wc -l < "$ENV_SYNC_FILE")" -gt "${#ENV_SYNC_KEYS[@]}" ]; then
+    log "env sync: WARNING staged file has more lines than allowlisted keys; leaving .env unchanged"
+  else
+    synced_keys=" "
+    while IFS= read -r sync_line || [ -n "$sync_line" ]; do
+      sync_key=${sync_line%%=*}; sync_val=${sync_line#*=}
+      if [[ "$sync_line" != *=* ]] || ! is_env_sync_key "$sync_key"; then
+        log "env sync: WARNING non-allowlisted key; line skipped"
+      elif [[ "$synced_keys" == *" $sync_key "* ]]; then
+        log "env sync: WARNING duplicate $sync_key; line skipped"
+      elif ! [[ "$sync_val" =~ ^https://[^[:space:]\"\'\$]+$ ]]; then
+        log "env sync: WARNING $sync_key is not a single-line https URL; line skipped"
+      else
+        synced_keys+="$sync_key "
+        if grep -qxF "$sync_key=$sync_val" "$APP_DIR/.env"; then
+          log "env sync: $sync_key unchanged"
+        else
+          tmp_env=$(mktemp "$APP_DIR/.env.sync.XXXXXX")
+          grep -v "^$sync_key=" "$APP_DIR/.env" > "$tmp_env" || true
+          printf '%s=%s\n' "$sync_key" "$sync_val" >> "$tmp_env"
+          cat "$tmp_env" > "$APP_DIR/.env"
+          rm -f "$tmp_env"
+          log "env sync: $sync_key updated"
+        fi
+      fi
+    done < "$ENV_SYNC_FILE"
+  fi
+  rm -f "$ENV_SYNC_FILE"
+fi
+# Staged files abandoned by interrupted runs (never applied) are pruned here,
+# under the lock, so a waiting run's freshly staged file is never touched.
+find "$(dirname "${ENV_SYNC_FILE:-/var/tmp/devindemos-deploy/x}")" -maxdepth 1 -name 'env-sync-*' -mmin +60 -delete 2>/dev/null || true
 
 # Back up exactly the top-level entries this deploy will touch.
 mapfile -t TOP_ENTRIES < <(cd "$STAGING" && ls -A)
@@ -228,8 +290,63 @@ bash "$APP_DIR/scripts/host-bootstrap.sh" 2>&1 | log_lines || fail "host bootstr
 compose config -q || fail "docker compose config is invalid"
 AVAIL_MEM_MB=$(awk '/^(MemAvailable|SwapFree):/ {s += $2} END {print int(s / 1024)}' /proc/meminfo)
 log "building with ${AVAIL_MEM_MB}MB available (RAM + swap)"
+# The build context is the live $APP_DIR, and files written there while the
+# context is sent (release uploads, pm2, guards) have produced images missing
+# whole directories that were on disk (src/, vendor/). Check that the image
+# holds every directory the release ships before starting it; one plain
+# rebuild has always recovered.
+dockerignored() {  # top-level name vs .dockerignore (nested paths/negations ignored)
+  local pat
+  while IFS= read -r pat; do
+    pat=${pat%%#*}; pat=${pat//[[:space:]]/}; pat=${pat%/}
+    [ -z "$pat" ] && continue
+    case $pat in */*|!*) continue;; esac
+    # shellcheck disable=SC2053  # $pat is a glob on purpose
+    [[ $1 == $pat ]] && return 0
+  done < "$APP_DIR/.dockerignore"
+  return 1
+}
+expected_image_dirs() {
+  local e
+  for e in "${TOP_ENTRIES[@]}"; do
+    [ -d "$STAGING/$e" ] && [ "$e" != node_modules ] && ! dockerignored "$e" && echo "$e"
+  done
+}
+checkout_image() {  # same rule compose applies: service image, else <project>-<service>
+  local img="" cfg
+  cfg=$(compose config --format json 2>/dev/null) || cfg=""
+  if [ -n "$cfg" ]; then
+    if command -v jq >/dev/null 2>&1; then
+      img=$(jq -r '.services["checkout-api"].image // (.name + "-checkout-api")' <<<"$cfg" 2>/dev/null) || img=""
+    elif command -v python3 >/dev/null 2>&1; then
+      img=$(python3 -c 'import json,sys; c=json.load(sys.stdin); print(c["services"]["checkout-api"].get("image") or c["name"]+"-checkout-api")' <<<"$cfg" 2>/dev/null) || img=""
+    fi
+  fi
+  [ -n "$img" ] && [ "$img" != null ] || img=$(compose config --images 2>/dev/null | grep -m1 -- '-checkout-api$' || true)
+  echo "$img"
+}
+verify_image() {
+  local img have d missing=()
+  img=$(checkout_image)
+  [ -n "$img" ] || { log "cannot resolve the checkout-api image name from compose config"; return 1; }
+  # non-empty top-level directories of /app in the image
+  have=$(docker run --rm --entrypoint sh "$img" -c \
+    'cd /app && for d in $(ls -A); do [ -d "$d" ] && [ "$(ls -A "$d")" ] && echo "$d"; done; true') \
+    || { log "cannot list /app in image $img"; return 1; }
+  for d in $(expected_image_dirs); do
+    grep -qxF "$d" <<<"$have" || missing+=("$d")
+  done
+  [ ${#missing[@]} = 0 ] && return 0
+  log "built image $img is missing or empty: ${missing[*]} (present in release and on disk)"
+  return 1
+}
 # One image at a time: parallel builds are what OOM-hung the host.
 compose build checkout-api >/dev/null || fail "checkout-api image build failed"
+if ! verify_image; then
+  log "rebuilding checkout-api once (incomplete build context)"
+  compose build checkout-api >/dev/null || fail "checkout-api image rebuild failed"
+  verify_image || fail "checkout-api image still incomplete after rebuild"
+fi
 compose build loadgen >/dev/null || fail "loadgen image build failed"
 compose up -d --no-deps checkout-api >/dev/null || fail "checkout-api failed to start"
 

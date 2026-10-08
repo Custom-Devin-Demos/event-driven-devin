@@ -1,7 +1,7 @@
 /* global describe, expect, jest, test */
 
 jest.mock('../app/services/slack', () => ({
-  OWNER_DISCLAIMER: 'fictional on-call persona',
+  ownerRotation: jest.requireActual('../app/services/slack').ownerRotation,
   postMessage: jest.fn().mockResolvedValue('1700000000.000100'),
   postThreadReply: jest.fn().mockResolvedValue('1700000000.000200'),
   lookupSlackUserByEmail: jest.fn().mockResolvedValue(null),

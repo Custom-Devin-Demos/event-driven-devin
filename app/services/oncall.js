@@ -1,20 +1,17 @@
 const crypto = require('crypto');
-const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { ownerRotation, postMessage, postThreadReply, lookupSlackUserByEmail } = require('./slack');
 const { buildTeamsAlertCard, postTeamsCard } = require('./teams');
 const { createDevinSession } = require('./devin-api');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
-const { declareDatadogIncident, resolveDatadogIncident } = require('./datadog-incidents');
 const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/banking');
-const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech');
 
 /**
  * On-Call demo service.
  *
- * Posts alert cards, human-style bug reports, and incident bursts to the
+ * Posts alert cards, support tickets, and incident bursts to the
  * dedicated On-Call Slack channels. Alert-only by default: the On-Call
  * responders listening to the channels pick the messages up on their own.
  * A skin may opt its own branded page into auto-triage with
@@ -30,6 +27,8 @@ const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech'
  *   SLACK_ONCALL_BOT_TOKEN         — bot token override (default: SLACK_BOT_TOKEN)
  *   ONCALL_TEAMS_WEBHOOK_URL       — optional Teams Workflows webhook; alert cards
  *     from skins with `teamsAlerts: true` are also posted there as Adaptive Cards
+ *   ONCALL_TEAMS_ALL_ALERTS=true   — post every alert card to that webhook, not
+ *     only `teamsAlerts` skins
  */
 
 const REPO_URL = process.env.ONCALL_REPO_URL || 'https://github.com/COG-GTM/event-driven-devin';
@@ -180,6 +179,26 @@ const ALERT_SCENARIOS = {
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },
+  apparel: {
+    vertical: 'apparel',
+    page: '0d1ff688.html',
+    apiPath: '/api/apparel/bag',
+    oncallApiPath: '/api/oncall/apparel/bag',
+    owner: 'Dana Whitfield (bag-checkout-oncall)',
+    brand: 'Department Store (Product Detail)',
+    service: 'bag-api',
+    endpoint: 'POST /api/oncall/apparel/bag',
+    monitor: '5xx rate — POST /api/oncall/apparel/bag',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/apparel/bag,http.status_code:500}',
+    metricValue: '500 on ~100% of add-to-bag requests',
+    threshold: '> 2% error rate',
+    baseline: '<0.2% (7-day)',
+    release: 'pdp-web@2.14.0',
+    symptom: 'Add to Bag fails immediately with HTTP 500 (TypeError in bag-api). Latency is normal. Onset coincides with the pdp-web 2.14.0 size-picker release.',
+    impact: 'Shoppers cannot add apparel to their Bag; every Add to Bag errors right after a size is picked.',
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   grocery: {
     vertical: 'grocery',
     page: 'e2d82a44.html',
@@ -218,6 +237,25 @@ const ALERT_SCENARIOS = {
     symptom: 'Requests routed through the F3 edge site hang ~14s before completing. F2/F4 are normal and error rate is normal.',
     impact: 'Factory teams wait through a long instant-quote spinner for F3 work while other sites return normally.',
   },
+  vaccines: {
+    vertical: 'vaccines',
+    page: 'fe4f39ba.html',
+    apiPath: '/api/vaccines/order',
+    oncallApiPath: '/api/oncall/vaccines/order',
+    owner: 'Jordan Patel (hcp-ordering-oncall)',
+    brand: 'Vaccine Ordering (HCP Portal)',
+    service: 'vaccine-ordering-api',
+    endpoint: 'POST /api/oncall/vaccines/order',
+    monitor: '5xx rate — POST /api/oncall/vaccines/order',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/vaccines/order,http.status_code:504}',
+    metricValue: '504 on ~100% of order submissions',
+    threshold: '> 5% error rate',
+    baseline: '<0.3% (7-day)',
+    release: 'hcp-ordering-web@1.0.4',
+    symptom: 'Vaccine order submissions hang ~8s and then fail with 504 Gateway Timeout. Allocation-hold latency against the cold-chain distribution partner is elevated.',
+    impact: 'Practices cannot place vaccine orders; every submission sits on a spinner and then errors. The Vaccine Service Center is reporting rising call volume.',
+    unlisted: true,
+  },
   f8555891: {
     vertical: 'f8555891',
     page: 'f8555891.html',
@@ -241,132 +279,13 @@ const ALERT_SCENARIOS = {
   },
 };
 
-/**
- * Canned human-style bug reports for the Bug Triage Responder demo.
- * Deliberately fuzzy: they describe symptoms, not stack traces, so the
- * responder has to reproduce and dig.
- */
-const BUG_CATALOG = {
-  banking: [
-    {
-      id: 'banking-transfer-slow',
-      label: 'Transfers extremely slow',
-      sev: 'High',
-      text: 'Hey team — customers are saying fund transfers in online banking take forever now. The spinner sits there for a good ten seconds on every single transfer before it finally goes through. Any amount, both accounts, every time. Support ticket volume on this is climbing today.',
-    },
-    {
-      id: 'banking-payroll-cutoff',
-      label: 'Payroll batch missing cutoff',
-      sev: 'Critical',
-      text: "Escalating from treasury ops: our payroll batch runs transfers one after another and each one now takes ~10 seconds, so the batch is going to miss the 2pm wire cutoff. Nothing errors — it's just painfully slow, and it was fine on Friday. Please treat as urgent.",
-    },
-  ],
-  insurance: [
-    {
-      id: 'insurance-claim-timeout',
-      label: 'Claim submissions timing out',
-      sev: 'High',
-      text: "Support escalation: policyholders can't file claims through the portal. The claim form hangs for close to ten seconds and then fails with a gateway timeout. One customer tried 4 times with different claim types — same hang, same timeout.",
-    },
-    {
-      id: 'insurance-storm-claims',
-      label: 'Storm-damage claims blocked',
-      sev: 'Critical',
-      text: 'We have a wave of storm-damage claims coming in after last night and NONE of them are going through the portal — every submission spins and then dies with a timeout error. Adjusters are telling customers to fax paperwork like it is 1995.',
-    },
-  ],
-  hightech: [
-    {
-      id: 'hightech-provision-slowdown',
-      label: 'Provisioning noticeably slow',
-      sev: 'Medium',
-      text: "Sales flagged that provisioning trial licenses is painfully slow — every request sits for seven or eight seconds before completing. Not failing, just slow, and it seems to get a little worse with every license we add.",
-    },
-    {
-      id: 'hightech-renewal-slow',
-      label: 'Renewal seat expansion crawling',
-      sev: 'High',
-      text: 'Customer success here — our biggest renewal of the quarter is trying to add 200 seats and every provisioning call in the admin console sits there for ages before completing. They renew Friday and their admin is convinced our platform is falling over.',
-    },
-  ],
-  voice: [
-    {
-      id: 'voice-transcript-slow',
-      label: 'Transcripts slow to finalize',
-      sev: 'Medium',
-      text: "Users are saying dictation feels broken — you finish speaking and the polished transcript takes seven or eight seconds to show up. It does arrive and it's correct, just slow, and a few people swear it gets a little worse the more they dictate.",
-    },
-    {
-      id: 'voice-meeting-notes-lag',
-      label: 'Meeting notes lagging behind',
-      sev: 'High',
-      text: 'Customer success escalation: a large workspace dictates all their meeting follow-ups and every utterance now sits on "Finalizing…" for ages before the text lands. They dictate hundreds of notes a day and are threatening to switch back to typing.',
-    },
-  ],
-  telco: [
-    {
-      id: 'telco-upgrade-slow',
-      label: 'Plan upgrades very slow',
-      sev: 'Medium',
-      text: 'Getting complaints in the app store reviews that plan changes take forever now — "hit upgrade to Ultra and stared at a spinner for ten seconds". People assume it failed and hit it again. This seems to have started after the plan lineup was refreshed.',
-    },
-    {
-      id: 'telco-family-plan',
-      label: 'Family plan upgrade crawling',
-      sev: 'High',
-      text: "My whole family is on the Plus plan and I upgraded us to Ultra last night. Every line I upgraded sat on the confirm screen for close to ten seconds — I honestly thought it was frozen. It did go through eventually, but something is clearly wrong.",
-    },
-  ],
-  marketplace: [
-    {
-      id: 'marketplace-cart-timeout',
-      label: 'Add to cart fails with a timeout',
-      sev: 'High',
-      text: 'Shoppers cannot put marketplace items in the basket. You press add to cart, the button spins for about eight seconds and then an error comes back saying it could not be reserved. Same product, same seller, every attempt.',
-    },
-    {
-      id: 'marketplace-campaign-conversion',
-      label: 'Campaign traffic converting at zero',
-      sev: 'Critical',
-      text: 'Escalating from trading: the weekend kitchen-appliance campaign is live, traffic is fine and product pages load, but basket adds have collapsed to almost nothing. Every add we try ourselves spins for ages and then errors out. We are burning media spend on a storefront that cannot take an order.',
-    },
-  ],
-  industrials: [
-    {
-      id: 'industrials-quote-timeout',
-      label: 'Instant quote spins before completing',
-      sev: 'High',
-      text: 'Buyer at a defense prime here — our instant quote spins on "Running DFM analysis" for about 15 seconds and then finally returns. Same part, same quantity, every time — started recently.',
-    },
-    {
-      id: 'industrials-program-quotes-blocked',
-      label: 'Program quotes crawling',
-      sev: 'Critical',
-      text: 'Program manager escalation: every quote for one program crawls while quotes on other programs come back in about a second. We need the affected program quotes for today\'s sourcing review.',
-    },
-  ],
-};
-
-function findBugTemplate(templateId) {
-  if (!templateId) return null;
-  for (const entries of Object.values(BUG_CATALOG)) {
-    const match = entries.find((t) => t.id === templateId);
-    if (match) return match;
-  }
-  return null;
-}
-
-// Back-compat: legacy scenarioId (product area) → first template's text.
-const BUG_REPORTS = Object.fromEntries(
-  Object.entries(BUG_CATALOG).map(([area, entries]) => [area, entries[0].text]),
-);
-
 function resolveOncallEnv() {
   return {
     token: process.env.SLACK_ONCALL_BOT_TOKEN || process.env.SLACK_BOT_TOKEN,
     alertsChannel: process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID,
     bugsChannel: process.env.SLACK_ONCALL_BUGS_CHANNEL_ID,
     teamsWebhookUrl: process.env.ONCALL_TEAMS_WEBHOOK_URL,
+    teamsAllAlerts: process.env.ONCALL_TEAMS_ALL_ALERTS === 'true',
   };
 }
 
@@ -459,7 +378,7 @@ function demoPagePath(scenario, skin) {
 
 function demoPageLine(scenario, skin) {
   const path = demoPagePath(scenario, skin);
-  return path ? `*Demo page:* ${DEMO_BASE_URL()}${path} — reproduce the symptom on this branded page` : null;
+  return path ? `*Affected page:* ${DEMO_BASE_URL()}${path}` : null;
 }
 
 /**
@@ -480,6 +399,9 @@ function resolveAlertCard(scenario, skin) {
     release: pick('release', scenario.release),
     owner: team ? `${scenario.owner.replace(/\s*\([^)]*\)$/, '')} (${team})` : scenario.owner,
     metricQuery: pick('metricQuery', scenario.metricQuery),
+    metricValue: pick('metricValue', scenario.metricValue),
+    threshold: pick('threshold', scenario.threshold),
+    baseline: pick('baseline', scenario.baseline),
     symptom: pick('symptom', scenario.symptom),
     impact: pick('impact', scenario.impact),
   };
@@ -495,17 +417,15 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     `*Service:* ${card.service} (${brand})`,
     demoPageLine(scenario, skin),
     `*Endpoint:* ${card.endpoint}`,
-    `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
+    `*Metric value:* ${card.metricValue} | *Threshold:* ${card.threshold} | *Baseline:* ${card.baseline}`,
     `*Monitor query:* \`${card.metricQuery}\``,
-    `*Owner:* ${card.owner} — ${OWNER_DISCLAIMER}`,
+    `*Owner:* ${ownerRotation(card.owner)}`,
     runRef ? `*Incident Ref:* ${runRef}` : null,
     triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
     `Env: production | Release: ${card.release}`,
     `Events: ${events} | First: ${firstSeen.toISOString()} | Last: ${now.toISOString()}`,
     '',
-    `*Symptom:* ${card.symptom}`,
-    `*Impact:* ${card.impact}`,
     `Repo: ${REPO_URL}`,
   ];
 
@@ -585,8 +505,8 @@ function resolveSessionIdentity(requester, config) {
 
 /**
  * Create the auto-triage Devin session for a skin that opted in, and reply
- * with its link in the alert thread. Never throws: a failed session must not
- * fail the alert that triggered it.
+ * with its link in the Slack alert thread. Never throws: a failed session must
+ * not fail the alert that triggered it.
  */
 async function triggerSkinDevinSession(
   scenario,
@@ -626,7 +546,6 @@ async function triggerSkinDevinSession(
     sessionId: session.sessionId,
   });
 
-  if (!channel || !threadTs) return session;
   try {
     await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [
       mrkdwnSection(`:mag: *Devin is investigating this alert* — <${session.url}|View session>`),
@@ -668,26 +587,29 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
     facts: [
       ['Service', `${card.service} (${brand})`],
       ['Endpoint', card.endpoint],
-      ['Metric value', scenario.metricValue],
-      ['Threshold', scenario.threshold],
-      ['Baseline', scenario.baseline],
+      ['Metric value', card.metricValue],
+      ['Threshold', card.threshold],
+      ['Baseline', card.baseline],
       ['Release', card.release],
       ['Events', `${events} | First: ${firstSeen.toISOString()}`],
-      ['Owner', `${card.owner} — ${OWNER_DISCLAIMER}`],
-      ['Incident Ref', runRef],
       ['Triggered by', triggeredByEmail],
     ],
     monitorQuery: card.metricQuery,
+    // Top-level TextBlocks: the Teams responder drops FactSet rows.
     body: [
-      `**Symptom:** ${card.symptom}`,
-      `**Impact:** ${card.impact}`,
-      demoPath ? `**Demo page:** ${DEMO_BASE_URL()}${demoPath} — reproduce the symptom on this branded page` : null,
+      `**Owner:** ${ownerRotation(card.owner)}`,
+      demoPath ? `**Affected page:** ${DEMO_BASE_URL()}${demoPath}` : null,
       `Repo: ${REPO_URL}`,
     ],
     actions: [
       { title: 'View in Datadog', url: DD_URL() },
-      demoPath ? { title: 'Open demo page', url: `${DEMO_BASE_URL()}${demoPath}` } : null,
+      demoPath ? { title: 'Open affected page', url: `${DEMO_BASE_URL()}${demoPath}` } : null,
     ],
+    footer: [
+      runRef ? `Incident Ref: ${runRef}` : null,
+      `Service: ${card.service}`,
+      `Endpoint: ${card.endpoint}`,
+    ].filter(Boolean).join(' | '),
   });
   try {
     await postTeamsCard(webhookUrl, teamsCard);
@@ -708,8 +630,19 @@ async function postOncallAlert(scenarioId, options = {}) {
   const skin = options.skin || null;
   const env = resolveOncallEnv();
   const { token, alertsChannel } = env;
-  const teamsWebhookUrl = skin && skin.teamsAlerts ? env.teamsWebhookUrl : null;
-  const slackReady = Boolean(token && alertsChannel);
+  // destination: 'slack' | 'teams' from the presenter's hub choice. Teams skips
+  // Slack so one demo is never investigated by both the Slack and the Teams
+  // responder; with no Teams webhook configured it falls back to Slack.
+  const destination = options.destination === 'slack' || options.destination === 'teams' ? options.destination : null;
+  const teamsWanted = destination === 'teams';
+  const teamsOnly = teamsWanted && Boolean(env.teamsWebhookUrl);
+  if (teamsWanted && !teamsOnly) {
+    logger.warn('Teams On-Call alert requested but ONCALL_TEAMS_WEBHOOK_URL is not set — posting to Slack');
+  }
+  // Server-managed Teams routing only applies to callers that made no choice.
+  const serverTeamsRouting = !destination && (env.teamsAllAlerts || Boolean(skin && skin.teamsAlerts));
+  const teamsWebhookUrl = teamsOnly || serverTeamsRouting ? env.teamsWebhookUrl : null;
+  const slackReady = Boolean(token && alertsChannel) && !teamsOnly;
   if (!slackReady && !teamsWebhookUrl) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');
     return { ok: false, skipped: true, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
@@ -728,18 +661,17 @@ async function postOncallAlert(scenarioId, options = {}) {
     ...fieldPairs([
       ['Service', `${card.service} (${brand})`],
       ['Endpoint', card.endpoint],
-      ['Metric value', scenario.metricValue],
-      ['Threshold', scenario.threshold],
-      ['Baseline', scenario.baseline],
+      ['Metric value', card.metricValue],
+      ['Threshold', card.threshold],
+      ['Baseline', card.baseline],
       ['Release', card.release],
       ['Events', `${events} | First: ${firstSeen.toISOString()}`],
-      ['Owner', `${card.owner} — ${OWNER_DISCLAIMER}`],
+      ['Owner', ownerRotation(card.owner)],
       runRef ? ['Incident Ref', runRef] : null,
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
     mrkdwnSection(`*Monitor query:*\n\`\`\`${card.metricQuery}\`\`\``),
     mrkdwnSection(
-      `*Symptom:* ${card.symptom}\n*Impact:* ${card.impact}\n` +
       (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
@@ -766,13 +698,11 @@ async function postOncallAlert(scenarioId, options = {}) {
     return { ok: false, error: 'Teams alert post failed' };
   }
   const requester = resolveRequesterIdentity(options);
-  const session = skin
+  // Teams-only alerts skip the skin's session: the Teams channel responder
+  // already investigates the alert, and a second session would duplicate it.
+  const session = skin && ts
     ? await triggerSkinDevinSession(scenario, skin, {
-      token,
-      channel: ts ? alertsChannel : null,
-      threadTs: ts,
-      runRef,
-      requester,
+      token, channel: alertsChannel, threadTs: ts, runRef, requester,
     })
     : null;
   const sonarPR = triggerSkinSonarPR(skin, requester);
@@ -780,6 +710,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     ok: true,
     ...(ts ? { ts, channel: alertsChannel } : {}),
     ...(teams ? { teams: true } : {}),
+    ...(teamsWanted && !teamsOnly ? { teamsFailed: true } : {}),
     ...(session ? { sessionUrl: session.url } : {}),
     ...(sonarPR ? { sonarPR: true } : {}),
   };
@@ -791,43 +722,24 @@ async function postOncallAlert(scenarioId, options = {}) {
  * ticket is filed as a sub-ticket in that parent ticket's thread; `ticketId`
  * is shown in the header the way a support tool labels a case.
  */
-async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter, skinSlug, submittedFrom: submittedFromUrl, threadTs, ticketId, parentTicketId }) {
+async function postOncallBugReport({ text, reporter, severity, productArea, devinEmail, supportCenter, submittedFrom, threadTs, ticketId, parentTicketId }) {
   const { token, bugsChannel } = resolveOncallEnv();
 
-  const template = findBugTemplate(templateId);
-  const body = text || (template && template.text) || BUG_REPORTS[scenarioId];
+  const body = text;
   if (!body) {
-    return { ok: false, error: `No bug report text and unknown scenario: ${scenarioId}` };
-  }
-
-  // Backend-symptom templates activate the matching infra degradation so the
-  // Bug Triage Responder's repro steps genuinely reproduce. The template id is
-  // resolved server-side against the catalog — only known kinds can activate.
-  let activated = null;
-  const runRef = makeRunRef();
-  if (template && template.infraKind && INFRA_INCIDENTS[template.infraKind]) {
-    supersedePriorRun(runRef);
-    if (activateInfraIncident(template.infraKind, INFRA_WINDOW_MS, runRef)) {
-      activated = template.infraKind;
-    }
+    return { ok: false, error: 'No bug report text' };
   }
 
   if (!token || !bugsChannel) {
-    logger.warn('On-Call bugs channel not configured — skipping bug report post', { activated });
+    logger.warn('On-Call bugs channel not configured — skipping bug report post');
     return {
       ok: false,
       skipped: true,
       error: 'SLACK_ONCALL_BUGS_CHANNEL_ID or bot token not configured',
-      activated,
-      runRef: activated ? runRef : null,
-      windowMinutes: activated ? Math.round(INFRA_WINDOW_MS / 60000) : null,
     };
   }
 
   const triggeredBy = await resolveTriggeredBy(token, devinEmail);
-  // The page a skinned ticket came from is stamped on the ticket itself, the way
-  // a support tool records the originating URL — no separate demo-page message.
-  const submittedFrom = submittedFromUrl || (skinSlug ? `${DEMO_BASE_URL()}/oncall/c/${skinSlug}` : null);
   let message = [
     body,
     triggeredBy ? `Triggered by: ${triggeredBy}` : null,
@@ -868,21 +780,10 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     ];
   }
 
-  let ts;
-  try {
-    ts = threadTs
-      ? await postThreadReply(token, bugsChannel, threadTs, message, blocks)
-      : await postMessage(token, bugsChannel, message, blocks);
-  } catch (error) {
-    // Keep observable state consistent with what was announced: if the ticket
-    // never posted, don't leave the app silently degraded for the full window.
-    if (activated) revertScopedInfra(runRef, 'bug report post failed');
-    throw error;
-  }
+  const ts = threadTs
+    ? await postThreadReply(token, bugsChannel, threadTs, message, blocks)
+    : await postMessage(token, bugsChannel, message, blocks);
   logger.info('On-Call bug report posted', {
-    scenario: scenarioId || 'custom',
-    template: templateId || null,
-    activated,
     channel: bugsChannel,
     ts,
     threadTs: threadTs || null,
@@ -892,9 +793,6 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     ok: true,
     ts,
     channel: bugsChannel,
-    activated,
-    runRef: activated ? runRef : null,
-    windowMinutes: activated ? Math.round(INFRA_WINDOW_MS / 60000) : null,
   };
 }
 
@@ -914,11 +812,6 @@ const INFRA_WINDOW_MS = envNumber(
   process.env.ONCALL_INFRA_WINDOW_MS || process.env.ONCALL_LATENCY_WINDOW_MS,
   10 * 60 * 1000,
 );
-const SEV1_WINDOW_MS = envNumber(process.env.ONCALL_SEV1_WINDOW_MS, 30 * 60 * 1000);
-// When disabled, synthetic probe traffic still stops at window end, but the
-// Datadog incident stays open — Slack's auto-archive (24h) then owns the
-// channel lifecycle and responders close the incident themselves.
-const SEV1_AUTO_RESOLVE = process.env.ONCALL_SEV1_AUTO_RESOLVE !== 'false';
 
 /**
  * Per-run degradation registry: each activation is scoped to its run ref, so
@@ -970,8 +863,6 @@ function supersedePriorRun(newRunRef) {
   const prior = getOncallRunRef();
   if (prior && prior !== newRunRef) {
     revertScopedInfra(prior, 'superseded by a new run from the same browser');
-    stopSev1Probe(prior, 'superseded by a new run from the same browser');
-    stopSev1Chatter(prior, 'superseded by a new run from the same browser');
     clearOncallConfigOverride(prior, 'superseded by a new run from the same browser');
   }
 }
@@ -1133,7 +1024,7 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
   const card = incident.build(now);
-  const ownerLine = `${incident.owner} — ${OWNER_DISCLAIMER}`;
+  const ownerLine = ownerRotation(incident.owner);
   const text = [
     `${card.title}`,
     `Monitor: ${card.monitor}`,
@@ -1252,16 +1143,12 @@ function setOncallConfigOverride(runRef, patch) {
     return { ok: false, error: `No recognized config fields. Supported: ${Object.keys(CONFIG_OVERRIDE_FIELDS).join(', ')}` };
   }
 
-  // The override lives as long as the run it belongs to: an open SEV-1's
-  // remaining window, an active infra incident's remaining window, or the
-  // standard TTL for runs with no live incident.
-  const sev1 = activeSev1.get(runRef);
+  // The override lives as long as the run it belongs to: an active infra
+  // incident's remaining window, or the standard TTL otherwise.
   const infra = scopedInfra.get(runRef);
-  const ttlMs = sev1 && sev1.status === 'declared'
-    ? Math.max(60000, sev1.resolveAt - Date.now())
-    : infra
-      ? Math.max(60000, infra.revertAt - Date.now())
-      : CONFIG_OVERRIDE_TTL_MS;
+  const ttlMs = infra
+    ? Math.max(60000, infra.revertAt - Date.now())
+    : CONFIG_OVERRIDE_TTL_MS;
 
   const prior = configOverrides.get(runRef);
   if (prior && prior.timer) clearTimeout(prior.timer);
@@ -1269,11 +1156,7 @@ function setOncallConfigOverride(runRef, patch) {
     const keys = Array.from(configOverrides.keys());
     // Prefer evicting overrides whose run has no live incident so an open
     // run's mitigation is only dropped as a last resort.
-    const evict =
-      keys.find((k) => {
-        const live = activeSev1.get(k);
-        return !(live && live.status === 'declared') && !scopedInfra.has(k);
-      }) || keys[0];
+    const evict = keys.find((k) => !scopedInfra.has(k)) || keys[0];
     clearOncallConfigOverride(evict, 'override registry at capacity');
   }
   setScopedConfig(runRef, applied);
@@ -1313,207 +1196,6 @@ function getOncallConfigView(explicitRunRef) {
   };
 }
 
-/**
- * SEV-1 incident stories. Each is backed by one of the on-call vertical
- * services' real, always-present performance defects — the same code paths
- * the alert demos exercise — so the investigation lands on genuine
- * root-causable code. While the incident is open, a synthetic probe loop
- * drives real traffic through the affected endpoint so logs, traces, and
- * metrics record the failure as it happens.
- */
-const SEV1_INCIDENTS = {
-  'banking-transfers': {
-    vertical: 'banking',
-    label: 'Fund transfers degraded — banking-api p95 10x baseline',
-    title: 'Fund transfers degraded — p95 latency 10x baseline on banking-api',
-    summary: 'POST /api/oncall/banking/transfer p95 at ~9.6s against a ~280ms baseline. Transfers eventually succeed but every submission hangs ~10s; support reports rising complaint volume.',
-    probeBody: { amount: 250, accountTier: 'standard' },
-    // Probe traffic starts all standard-tier — the "instant for some
-    // customers" reports stay anecdotal early on — then mixes in premium
-    // transfers so the tier-dependent split only becomes statistically
-    // visible in telemetry mid-incident.
-    probeBodyForPhase: (phase, seq) => ({
-      amount: 250,
-      accountTier: (phase === 1 && seq % 6 === 1)
-        || (phase >= 2 && seq % 4 === 1)
-        ? 'premium'
-        : 'standard',
-    }),
-  },
-  'insurance-claims': {
-    vertical: 'insurance',
-    label: 'Claim submissions failing — insurance-api 504s',
-    title: 'Claim submissions failing — 504 Gateway Timeout on insurance-api',
-    summary: 'POST /api/oncall/insurance/claim hangs ~8s then fails with 504 on ~100% of submissions. Policyholders cannot file claims through the portal.',
-    probeBody: { claimType: 'collision', amount: 4200 },
-  },
-  'licensing-latency': {
-    vertical: 'hightech',
-    label: 'License provisioning slowdown — licensing-api latency + RSS climbing',
-    title: 'License provisioning slowdown — latency and memory climbing on licensing-api',
-    summary: 'POST /api/oncall/licenses/provision p95 at ~6.8s and climbing under sustained traffic; process RSS trends up alongside it. Every provisioning call is slow and getting slower.',
-    probeBody: { seats: 25 },
-    onProbeStop: releaseAccumulatedEntitlements,
-  },
-  'telco-upgrades': {
-    vertical: 'telco',
-    label: 'Plan upgrades degraded — telco-api latency scaling with catalog',
-    title: 'Plan upgrades degraded — p95 latency scaling with catalog size on telco-api',
-    summary: 'POST /api/oncall/telco/upgrade p95 at ~7.9s against a ~300ms baseline since the plan-catalog refresh. Subscribers wait ~8s on every plan change; upgrade completion rate is dropping.',
-    probeBody: {},
-  },
-};
-
-/**
- * Synthetic probe traffic for open SEV-1 incidents. Requests run
- * sequentially per incident (a tick is only scheduled after the previous
- * request completes), so slow endpoints never pile up, and the number of
- * concurrent probe loops is bounded. Failures are the point: the probe's
- * requests hit the degraded endpoint for real, so telemetry shows genuine
- * evidence during the window.
- */
-const SEV1_PROBE_INTERVAL_MS = envNumber(process.env.ONCALL_SEV1_PROBE_INTERVAL_MS, 10000);
-const SEV1_PROBE_MAX = envNumber(process.env.ONCALL_SEV1_PROBE_MAX, 25);
-const activeSev1Probes = new Map();
-
-/**
- * Phased evidence: probe volume ramps through the incident window instead of
- * arriving at full rate from minute zero, so the telemetry picture develops
- * over time — early on only sparse, ambiguous failures exist; the failure
- * signature only becomes statistically visible mid-incident. An investigator
- * writing an RCA as evidence lands revises it across the phases rather than
- * concluding everything from the opening snapshot.
- *
- * Phase boundaries are fractions of the incident window (at the default
- * 30-minute window: 0–1.5, 1.5–2.7, 2.7–4, 4–30 minutes); each phase
- * multiplies the base probe interval. The whole evidence arc plays out in
- * the first few minutes so it lands before a fast responder converges.
- */
-const SEV1_PROBE_PHASE_BOUNDS = [0.05, 0.09, 0.135];
-const SEV1_PROBE_PHASE_MULTIPLIERS = [6, 3, 1.5, 1];
-
-function sev1ProbePhase(elapsedMs, windowMs) {
-  for (let i = 0; i < SEV1_PROBE_PHASE_BOUNDS.length; i++) {
-    if (elapsedMs < windowMs * SEV1_PROBE_PHASE_BOUNDS[i]) return i;
-  }
-  return SEV1_PROBE_PHASE_BOUNDS.length;
-}
-
-function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
-  stopSev1Probe(runRef, 'restarted');
-  if (activeSev1Probes.size >= SEV1_PROBE_MAX) {
-    logger.warn('SEV-1 probe cap reached — incident declared without synthetic traffic', {
-      runRef,
-      cap: SEV1_PROBE_MAX,
-    });
-    return false;
-  }
-  const scenario = ALERT_SCENARIOS[story.vertical];
-  const url = `http://127.0.0.1:${process.env.PORT || 3000}${scenario.oncallApiPath}`;
-  const probe = { stopped: false, timer: null, story, phase: 0, seq: 0 };
-  const startedAt = Date.now();
-  const stopAt = startedAt + windowMs;
-
-  const tick = async () => {
-    if (probe.stopped) return;
-    const started = Date.now();
-    const currentPhase = sev1ProbePhase(started - startedAt, windowMs);
-    const seq = probe.seq++;
-    const body = story.probeBodyForPhase
-      ? story.probeBodyForPhase(currentPhase, seq)
-      : (story.probeBody || {});
-    let status;
-    try {
-      const response = await axios.post(url, body, {
-        timeout: 30000,
-        validateStatus: () => true,
-        // Marked like real synthetic-monitoring traffic so downstream services
-        // can distinguish probe requests from user requests.
-        headers: {
-          'x-synthetic-monitor': runRef,
-          // From the final probe phase on, request per-step
-          // diagnostic timings — the richer log line a responder would enable
-          // once the incident is clearly not a blip. The discriminating
-          // evidence (which step eats the latency) only exists in telemetry
-          // from this point forward, just after the chatter announces it.
-          ...(currentPhase >= 3 ? { 'x-debug-timings': '1' } : {}),
-        },
-      });
-      status = response.status;
-    } catch (error) {
-      status = error.code || 'error';
-    }
-    logger.info('SEV-1 synthetic probe', {
-      runRef,
-      endpoint: scenario.endpoint,
-      status,
-      ms: Date.now() - started,
-    });
-    if (probe.stopped) return;
-    if (Date.now() >= stopAt) {
-      stopSev1Probe(runRef, 'window elapsed');
-      return;
-    }
-    const phase = sev1ProbePhase(Date.now() - startedAt, windowMs);
-    if (phase !== probe.phase) {
-      probe.phase = phase;
-      logger.info('SEV-1 synthetic probe phase change', {
-        runRef,
-        phase: phase + 1,
-        intervalMs: SEV1_PROBE_INTERVAL_MS * SEV1_PROBE_PHASE_MULTIPLIERS[phase],
-      });
-    }
-    probe.timer = setTimeout(tick, SEV1_PROBE_INTERVAL_MS * SEV1_PROBE_PHASE_MULTIPLIERS[phase]);
-    if (probe.timer.unref) probe.timer.unref();
-  };
-
-  activeSev1Probes.set(runRef, probe);
-  probe.timer = setTimeout(tick, 1000);
-  if (probe.timer.unref) probe.timer.unref();
-  logger.info('SEV-1 synthetic probe started', {
-    runRef,
-    endpoint: scenario.endpoint,
-    baseIntervalMs: SEV1_PROBE_INTERVAL_MS,
-    phases: SEV1_PROBE_PHASE_MULTIPLIERS.length,
-  });
-  return true;
-}
-
-function stopSev1Probe(runRef, reason) {
-  const probe = activeSev1Probes.get(runRef);
-  if (!probe) return;
-  probe.stopped = true;
-  if (probe.timer) clearTimeout(probe.timer);
-  activeSev1Probes.delete(runRef);
-  logger.info('SEV-1 synthetic probe stopped', { runRef, reason });
-  // Release state the probe traffic accumulated (e.g. hightech entitlement
-  // snapshots), but only once no other live probe is still driving the same
-  // vertical.
-  const story = probe.story;
-  if (story && story.onProbeStop) {
-    const stillActive = Array.from(activeSev1Probes.values()).some(
-      (p) => p.story && p.story.vertical === story.vertical,
-    );
-    if (!stillActive) story.onProbeStop();
-  }
-}
-
-/**
- * Persona chatter for SEV-1 incident channels. Once Datadog creates the
- * incident channel, the bot joins it and drips a short, scenario-consistent
- * responder conversation (detection → confirmation → paging → impact) under
- * persona display names, so the channel reads like a live response.
- * Requires bot scopes: channels:read, channels:join, chat:write.customize
- * (plus users:read.email and channels:write.invites for participant invites).
- */
-const SEV1_CHATTER_LOOKUP_INTERVAL_MS = 15000;
-const SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS = 12;
-// A line more overdue than this at channel discovery is dropped instead of
-// posted late, so a slow Datadog Slack integration never dumps most of the
-// scripted conversation as one burst.
-const SEV1_CHATTER_LATE_GRACE_MS = 90000;
-const activeSev1Chatter = new Map();
-
 function isPlainObject(value) {
   return value !== null &&
     typeof value === 'object' &&
@@ -1522,638 +1204,14 @@ function isPlainObject(value) {
       Object.getPrototypeOf(value) === null);
 }
 
-function isValidChatterVocabulary(vocabulary) {
-  return isPlainObject(vocabulary) &&
-    Object.entries(vocabulary).every(([source, replacement]) =>
-      source.trim() &&
-      typeof replacement === 'string' &&
-      replacement.trim());
-}
-
-/**
- * incident.copy on a skin localizes the shared SEV-1 console's own UI
- * strings (headings, button, status labels). Only flat string values are
- * accepted; the page falls back to its English default for any other key.
- */
-function isValidLocaleTag(tag) {
-  try {
-    return Intl.getCanonicalLocales(tag).length === 1;
-  } catch (_err) {
-    return false;
-  }
-}
-
-function isValidIncidentCopy(copy) {
-  return isPlainObject(copy) &&
-    Object.values(copy).every((value) => typeof value === 'string') &&
-    (copy.lang === undefined || isValidLocaleTag(copy.lang));
-}
-
-function replaceChatterVocabulary(text, vocabulary) {
-  if (!isPlainObject(vocabulary)) return String(text);
-  const replacements = Object.entries(vocabulary)
-    .filter(([source, replacement]) =>
-      source.trim() &&
-      typeof replacement === 'string' &&
-      replacement.trim())
-    .sort(([left], [right]) => right.length - left.length);
-  const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const replacementBySource = new Map(replacements);
-  const matcher = replacements.length
-    ? new RegExp(replacements.map(([source]) => {
-      const prefix = /^[A-Za-z0-9]/.test(source)
-        ? '(?<![A-Za-z0-9])'
-        : '';
-      const suffix = /[A-Za-z0-9]$/.test(source)
-        ? '(?![A-Za-z0-9])'
-        : '';
-      return `${prefix}${escapeRegExp(source)}${suffix}`;
-    }).join('|'), 'g')
-    : null;
-  if (!matcher) return String(text);
-  return String(text).split(/(<@[^>]+>|`[^`]*`)/g).map((part, index) => {
-    if (index % 2 === 1) return part;
-    return part.replace(matcher, (match) => replacementBySource.get(match));
-  }).join('');
-}
-
-function buildSev1IncidentCopy(story, vocabulary = null) {
-  const endpoint = ALERT_SCENARIOS[story.vertical] &&
-    ALERT_SCENARIOS[story.vertical].endpoint;
-  const replaceCopyText = (text) => {
-    if (!endpoint) return replaceChatterVocabulary(text, vocabulary);
-    const escapedEndpoint = endpoint.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return String(text).split(new RegExp(`(${escapedEndpoint})`, 'g'))
-      .map((part) => part === endpoint
-        ? part
-        : replaceChatterVocabulary(part, vocabulary))
-      .join('');
-  };
-  return {
-    title: replaceCopyText(story.title),
-    summary: replaceCopyText(story.summary),
-    label: replaceCopyText(story.label),
-  };
-}
-
-function getSev1ChatterVocabulary(story, skin, kind) {
-  if (
-    !story ||
-    !skin ||
-    skin.vertical !== story.vertical ||
-    !skin.incident ||
-    skin.incident.kind !== kind
-  ) return null;
-  const vocabulary = skin.incident && skin.incident.chatter &&
-    skin.incident.chatter.vocabulary;
-  if (!isPlainObject(vocabulary)) return null;
-  const validEntries = Object.entries(vocabulary).filter(
-    ([source, replacement]) =>
-      source.trim() &&
-      typeof replacement === 'string' &&
-      replacement.trim(),
-  );
-  return validEntries.length ? Object.fromEntries(validEntries) : null;
-}
-
-function buildSev1Chatter(story, vocabulary = null) {
-  const scenario = ALERT_SCENARIOS[story.vertical];
-  const sre = { username: 'Alex Kim (SRE)', icon: ':technologist:' };
-  const owner = { username: scenario.owner, icon: ':computer:' };
-  const support = { username: 'Priya Nair (Support Lead)', icon: ':headphones:' };
-  // The mid-incident red-herring hypothesis @-mentions Devin (when its Slack
-  // user is configured) so the responder gets a direct ask to confirm or rule
-  // it out — mirroring how humans loop an investigator into a theory.
-  const devinAsk = process.env.DEVIN_SLACK_USER_ID
-    ? ` <@${process.env.DEVIN_SLACK_USER_ID}> can you dig in and confirm or rule that out?`
-    : '';
-  // Second ask, placed late in the script once Devin has had time to dig —
-  // as soon as the cause is pinned, validate a candidate fix locally and
-  // open a PR.
-  const devinFixAsk = process.env.DEVIN_SLACK_USER_ID
-    ? `<@${process.env.DEVIN_SLACK_USER_ID}> also — as soon as you've pinned the cause, can you validate a candidate fix locally against the transfer path and put up a PR once it checks out? Want remediation moving in parallel.`
-    : '';
-  // Mention-bearing lines are exempt from the late-drop rule: losing one
-  // silently removes a scripted Devin ask.
-  const mustPost = Boolean(process.env.DEVIN_SLACK_USER_ID);
-  // Timed against the phased probe schedule: the conversation develops with
-  // the telemetry — early messages are ambiguous, a plausible-but-wrong
-  // hypothesis lands mid-incident and is later disconfirmed, and the closing
-  // observations describe the pattern the sustained probe volume has made
-  // visible. Each drop gives an investigator maintaining a live RCA a
-  // concrete reason to revise it. Symptoms and observations only — never the
-  // root cause. `at` is the fraction of the incident window at which the
-  // message posts, so timings track the probe phases at any window length.
-  const byVertical = {
-    banking: [
-      { ...support, at: 0.003, text: 'Three enterprise customers on the phone already — transfers eventually go through, but they sit ~10 seconds on a spinner first. No errors, just slow.' },
-      { ...sre, at: 0.025, text: `Checked the obvious: no deploy on banking-api in the last 24h and organic traffic on \`${scenario.endpoint}\` is flat vs. this time last week. This isn’t a release or a load spike.` },
-      { ...owner, at: 0.04, mustPost, text: `First guess: the payments gateway is slow again — they had an incident last month with the same smell. Reaching out to their on-call.${devinAsk}` },
-      { ...support, at: 0.055, text: 'Odd wrinkle: a couple of customers say transfers are instant for them. So maybe not everyone is affected — intermittent, or something account-specific?' },
-      { ...sre, at: 0.085, text: 'Cranked up synthetic monitoring on the endpoint for more datapoints — most requests are ~9-10s but a minority still complete in a few hundred ms. Mixed picture.' },
-      { ...support, at: 0.10, text: 'Also ruled out fraud: risk team confirms no new velocity rules or screening-policy rollouts on their side this week. Whatever changed, it wasn’t them.' },
-      { ...owner, at: 0.13, text: 'Enabled per-step diagnostic timings on the transfer path — new “Transfer completed” log lines should break down where the time goes per request from here on.' },
-      { ...owner, at: 0.15, text: 'Gateway team came back: they do see an uptick in transient settlement timeouts and retries from us since the incident started, but every call settles in under a second. They don’t think that explains 9s — keeping them looped in though.' },
-      { ...sre, at: 0.17, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
-      ...(devinFixAsk ? [{ ...owner, at: 0.19, mustPost, text: devinFixAsk }] : []),
-      { ...sre, at: 0.21, text: 'Found the pattern in the fast requests: they’re all premium-tier accounts. Standard and basic are uniformly ~9-10s. This is tier-dependent, not load-dependent.' },
-    ],
-    insurance: [
-      { ...sre, at: 0.003, text: `5xx monitor firing on \`${scenario.endpoint}\` — a few 504s after an ~8s hang. Sample size is small, watching.` },
-      { ...support, at: 0.033, text: 'Two policyholders so far reporting claim submissions spinning then erroring. Might be isolated.' },
-      { ...owner, at: 0.1, mustPost, text: `Betting this is the adjudication vendor — their status page showed elevated latency earlier this week. Asking them to check.${devinAsk}` },
-      { ...sre, at: 0.2, text: 'Volume picking up and it’s not isolated — essentially 100% of submissions now failing 504 after ~8s. Declaring hard outage on the claims path.' },
-      { ...support, at: 0.267, text: 'Complaint volume spiking. Quotes and policy reads are fine — only claim submission is broken.' },
-      { ...owner, at: 0.367, text: 'Vendor came back clean — their API is answering fast and error-free from their side. So the 504s are being manufactured somewhere between us and them.' },
-      { ...sre, at: 0.467, text: 'Interesting: every failure takes almost exactly the same ~7.5s before the 504. That uniformity doesn’t look like a flaky dependency.' },
-      { ...owner, at: 0.567, text: 'Log timelines show each failed request making several similar dependency attempts back-to-back before giving up. Pulling the full request timeline for one claim.' },
-    ],
-    hightech: [
-      { ...sre, at: 0.003, text: `p95 on \`${scenario.endpoint}\` at ~6.8s. Only sparse traffic so far — hard to tell if it’s trending or noise.` },
-      { ...support, at: 0.033, text: 'One enterprise customer flagging slow seat provisioning — activation that used to be instant now takes ~7 seconds per license.' },
-      { ...owner, at: 0.1, mustPost, text: `Could be the license DB — we’ve seen slow provisioning before when its connection pool saturates. Checking DB metrics.${devinAsk}` },
-      { ...sre, at: 0.2, text: 'With sustained traffic it’s unambiguous: each request is a bit slower than the last, and process RSS is climbing in step with latency.' },
-      { ...support, at: 0.267, text: 'More orgs reporting it now. Symptom is consistent — provisioning works, just slower every time.' },
-      { ...owner, at: 0.367, text: 'DB is exonerated — query times flat, pool healthy. The slowdown is inside the licensing service itself.' },
-      { ...sre, at: 0.467, text: 'Memory trend is monotonic — no plateau, no GC recovery. If this keeps going we’re headed for an OOM restart.' },
-      { ...owner, at: 0.567, text: 'Someone grab a heap snapshot before and after a few provisioning calls — want to see what’s growing before we restart anything and lose the evidence.' },
-    ],
-    telco: [
-      { ...sre, at: 0.003, text: `p95 on \`${scenario.endpoint}\` at ~7.9s vs ~300ms baseline. Few datapoints yet — flagging early.` },
-      { ...support, at: 0.033, text: 'Seeing a dip in upgrade completions on the dashboard — a few subscribers abandoning plan changes mid-flow.' },
-      { ...owner, at: 0.1, mustPost, text: `The billing provider deployed yesterday — suspicious timing. Asking them if plan-change calls got slower on their end.${devinAsk}` },
-      { ...sre, at: 0.2, text: 'Traffic is up and the picture is consistent: every upgrade pays the same ~8s cost, uniform across subscribers and regions. Not a hot shard.' },
-      { ...support, at: 0.267, text: 'Upgrade completion rate still dropping. Plan browsing and billing views are snappy — only the upgrade action is slow.' },
-      { ...owner, at: 0.367, text: 'Billing provider is clean — their call latencies are unchanged pre/post deploy. Also worth noting the plan-catalog refresh landed around when this started.' },
-      { ...sre, at: 0.467, text: 'The catalog refresh roughly tripled the number of active plans. If upgrade cost scales with catalog size, that would fit both the timing and the uniformity.' },
-      { ...owner, at: 0.567, text: 'Pulling a profile of one upgrade request — want to see whether the time is in rating, rescoring, or persistence before we touch the catalog.' },
-    ],
-  };
-  return (byVertical[story.vertical] || []).map((line) => ({
-    ...line,
-    username: replaceChatterVocabulary(line.username, vocabulary),
-    text: replaceChatterVocabulary(line.text, vocabulary),
-  }));
-}
-
-function getSev1IncidentKinds(skin = null) {
-  return Object.entries(SEV1_INCIDENTS).map(([id, story]) => {
-    const vocabulary = getSev1ChatterVocabulary(story, skin, id);
-    const copy = buildSev1IncidentCopy(story, vocabulary);
-    return { id, label: copy.label, summary: copy.summary };
-  });
-}
-
-function stopSev1Chatter(runRef, reason) {
-  const chatter = activeSev1Chatter.get(runRef);
-  if (!chatter) return;
-  chatter.stopped = true;
-  for (const timer of chatter.timers) clearTimeout(timer);
-  activeSev1Chatter.delete(runRef);
-  logger.info('SEV-1 persona chatter stopped', { runRef, reason });
-}
-
-/**
- * Best-effort invite of the incident participants (the human who triggered
- * the run and the Devin responder via DEVIN_SLACK_USER_ID) into the incident
- * channel. Every lookup or invite failure is swallowed so the chatter flow
- * is never affected.
- */
-async function inviteIncidentParticipants(token, channelId, devinEmail) {
-  let triggererId = null;
-  if (devinEmail && EMAIL_RE.test(devinEmail)) {
-    triggererId = await lookupSlackUserByEmail(token, devinEmail);
-  }
-  const candidates = [triggererId, process.env.DEVIN_SLACK_USER_ID].filter(Boolean);
-  if (!candidates.length) return;
-  const invited = await inviteToChannel(token, channelId, candidates);
-  if (!invited) {
-    logger.warn('No incident participants could be invited', {
-      channel: channelId,
-      hint: 'see the per-user invite warnings for the Slack error codes',
-    });
-  }
-}
-
-function startSev1Chatter(
-  runRef,
-  story,
-  publicId,
-  windowMs = SEV1_WINDOW_MS,
-  devinEmail = null,
-  vocabulary = null,
-) {
-  stopSev1Chatter(runRef, 'restarted');
-  const { token } = resolveOncallEnv();
-  if (!token || !publicId) {
-    logger.warn('SEV-1 persona chatter skipped', {
-      runRef,
-      reason: !token ? 'Slack token not configured' : 'incident has no public id',
-    });
-    return false;
-  }
-  const script = buildSev1Chatter(story, vocabulary);
-  if (!script.length) return false;
-
-  // Message timings are anchored here (declaration time), not at channel
-  // discovery, so however long the channel takes to appear the conversation
-  // stays in step with the probe phases; already-due messages post promptly.
-  const declaredAt = Date.now();
-  const chatter = { stopped: false, timers: [] };
-  activeSev1Chatter.set(runRef, chatter);
-  // Datadog names incident channels from a template that includes
-  // `incident-<publicId>-` (e.g. `sev-1-incident-25-<slugified title>`).
-  // Matching on the severity-agnostic marker survives template tweaks.
-  const marker = `incident-${publicId}-`;
-
-  // Keep looking for the channel for up to half the window (at least the
-  // base 12 attempts) — a slow Datadog Slack integration should delay the
-  // mention-bearing lines, not silently cancel them.
-  const maxAttempts = Math.max(
-    SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS,
-    Math.floor(windowMs / 2 / SEV1_CHATTER_LOOKUP_INTERVAL_MS),
-  );
-  let attempts = 0;
-  const locate = async () => {
-    if (chatter.stopped) return;
-    attempts++;
-    let channel = null;
-    try {
-      channel = await findChannelByNameFragment(token, marker);
-    } catch (error) {
-      logger.warn('SEV-1 chatter channel lookup failed', { runRef, error: error.message });
-    }
-    if (chatter.stopped) return;
-    if (!channel) {
-      if (attempts >= maxAttempts) {
-        logger.warn('SEV-1 incident channel never appeared — skipping persona chatter', { runRef, marker });
-        chatter.stopped = true;
-        activeSev1Chatter.delete(runRef);
-        return;
-      }
-      const timer = setTimeout(locate, SEV1_CHATTER_LOOKUP_INTERVAL_MS);
-      if (timer.unref) timer.unref();
-      chatter.timers.push(timer);
-      return;
-    }
-
-    try {
-      await joinChannel(token, channel.id);
-    } catch (error) {
-      // Only Slack API errors that cannot succeed on retry (missing scope,
-      // archived/missing channel, private channel) are permanent; everything
-      // else (ratelimited, internal_error, transport failures, timeouts,
-      // 429s/5xx) retries on the same bounded schedule.
-      const permanent =
-        /Slack API error: (missing_scope|invalid_auth|account_inactive|token_revoked|is_archived|channel_not_found|method_not_supported_for_channel_type)/.test(
-          error.message,
-        );
-      logger.warn('SEV-1 chatter could not join incident channel', {
-        runRef,
-        channel: channel.name,
-        error: error.message,
-        ...(error.message.includes('missing_scope')
-          ? { hint: 'bot needs the channels:join scope' }
-          : {}),
-      });
-      if (chatter.stopped) return;
-      if (permanent || attempts >= maxAttempts) {
-        chatter.stopped = true;
-        activeSev1Chatter.delete(runRef);
-        return;
-      }
-      const timer = setTimeout(locate, SEV1_CHATTER_LOOKUP_INTERVAL_MS);
-      if (timer.unref) timer.unref();
-      chatter.timers.push(timer);
-      return;
-    }
-    if (chatter.stopped) return;
-
-    // Fire-and-forget: the invite must not delay chatter scheduling — a slow
-    // lookup would eat into the elapsed budget and drop borderline lines.
-    inviteIncidentParticipants(token, channel.id, devinEmail).catch(() => {});
-
-    // Lines whose scheduled moment is already well past (slow channel
-    // discovery) are dropped rather than dumped as a burst — the conversation
-    // picks up wherever the incident actually is, in step with the telemetry.
-    const elapsed = Date.now() - declaredAt;
-    const live = script.filter(
-      (line) => line.mustPost
-        || Math.round(line.at * windowMs) >= elapsed - SEV1_CHATTER_LATE_GRACE_MS,
-    );
-    logger.info('SEV-1 persona chatter scheduled', {
-      runRef,
-      channel: channel.name,
-      messages: live.length,
-      ...(live.length < script.length ? { skippedOverdue: script.length - live.length } : {}),
-    });
-    // The per-index floor keeps slightly-overdue messages (within the grace
-    // period) posting a few seconds apart, in script order, not as one burst.
-    live.forEach((line, index) => {
-      const timer = setTimeout(async () => {
-        if (chatter.stopped) return;
-        try {
-          await postPersonaMessage(token, channel.id, line.text, line.username, line.icon);
-        } catch (error) {
-          logger.warn('SEV-1 persona message failed', { runRef, error: error.message });
-        }
-      }, Math.max(index * 3000, Math.round(line.at * windowMs) - (Date.now() - declaredAt)));
-      if (timer.unref) timer.unref();
-      chatter.timers.push(timer);
-    });
-  };
-
-  const firstTimer = setTimeout(locate, SEV1_CHATTER_LOOKUP_INTERVAL_MS);
-  if (firstTimer.unref) firstTimer.unref();
-  chatter.timers.push(firstTimer);
-  return true;
-}
-
-/**
- * Live registry of declared SEV-1 incidents, keyed by runRef, powering the
- * /oncall page status and the auto-resolve timers. Each demo click is an
- * independent incident with its own channel and lifecycle.
- */
-const activeSev1 = new Map();
-const SEV1_HISTORY_MAX = 20;
-
-function pruneSev1() {
-  while (activeSev1.size > SEV1_HISTORY_MAX) {
-    const keys = Array.from(activeSev1.keys());
-    const evict =
-      keys.find((k) =>
-        ['resolved', 'window_elapsed', 'resolve_failed'].includes(activeSev1.get(k).status),
-      ) ||
-      keys[0];
-    activeSev1.delete(evict);
-  }
-}
-
-const SEV1_RESOLVE_MAX_ATTEMPTS = 4;
-const SEV1_RESOLVE_RETRY_MS = 30000;
-
-/**
- * Trigger a SEV-1 incident. Preferred path: activate the matching real
- * degradation and declare a real Datadog incident. Datadog's Slack
- * integration creates the incident channel and Devin's native incident
- * auto-join picks it up from the channel-name prefix — the app never touches
- * the channel itself. The incident auto-resolves when the degradation window
- * ends. Fallback (Datadog keys not configured): post a SEV-1 style message
- * to the alerts channel.
- */
-async function postOncallIncident(options = {}) {
-  const runRef = makeRunRef();
-  const { token, alertsChannel } = resolveOncallEnv();
-  const hasKind = Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, options.kind);
-  if (options.kind != null && options.kind !== '' && !hasKind) {
-    return { ok: false, error: `Unknown incident kind: ${options.kind}` };
-  }
-  const kind = hasKind ? options.kind : 'banking-transfers';
-  const story = SEV1_INCIDENTS[kind];
-  const vocabulary = options.vocabulary;
-  if (options.vocabularyConfigured && !vocabulary) {
-    logger.warn('On-Call incident chatter vocabulary has no usable entries', {
-      runRef,
-    });
-  }
-  const copy = buildSev1IncidentCopy(story, vocabulary);
-
-  let incident = null;
-  try {
-    incident = await declareDatadogIncident({
-      title: copy.title,
-      summary: copy.summary,
-      runRef,
-      triggeredBy: options.devinEmail && EMAIL_RE.test(options.devinEmail) ? options.devinEmail : null,
-      repoUrl: REPO_URL,
-    });
-  } catch (error) {
-    logger.error('Datadog incident declaration failed — falling back to Slack post', {
-      error: error.message,
-    });
-  }
-
-  if (incident) {
-    supersedePriorRun(runRef);
-    const probing = startSev1Probe(runRef, story);
-    // Without probe traffic the scripted conversation would describe
-    // telemetry that doesn't exist, so chatter only runs alongside a probe.
-    if (probing) {
-      startSev1Chatter(
-        runRef,
-        story,
-        incident.publicId,
-        SEV1_WINDOW_MS,
-        options.devinEmail,
-        vocabulary,
-      );
-    } else {
-      logger.warn('SEV-1 persona chatter skipped — probe did not start', { runRef });
-    }
-    const entry = {
-      runRef,
-      kind,
-      label: copy.label,
-      summary: copy.summary,
-      id: incident.id,
-      publicId: incident.publicId,
-      declaredAt: Date.now(),
-      resolveAt: Date.now() + SEV1_WINDOW_MS,
-      status: 'declared',
-    };
-    activeSev1.set(runRef, entry);
-    pruneSev1();
-
-    const scheduleResolve = (delayMs, attempt) => {
-      const timer = setTimeout(async () => {
-        stopSev1Probe(runRef, 'incident window elapsed');
-        stopSev1Chatter(runRef, 'incident window elapsed');
-        clearOncallConfigOverride(runRef, 'incident window elapsed');
-        if (!SEV1_AUTO_RESOLVE) {
-          entry.status = 'window_elapsed';
-          logger.info('SEV-1 window elapsed — leaving Datadog incident open (auto-resolve disabled)', {
-            runRef,
-            publicId: entry.publicId,
-          });
-          return;
-        }
-        try {
-          const resolved = await resolveDatadogIncident(entry.id);
-          if (!resolved) {
-            logger.error('SEV-1 auto-resolve impossible — Datadog incident env not configured', { runRef });
-            entry.status = 'resolve_failed';
-            return;
-          }
-          entry.status = 'resolved';
-          logger.info('SEV-1 incident auto-resolved', { runRef, publicId: entry.publicId });
-        } catch (error) {
-          logger.error('SEV-1 auto-resolve failed', { runRef, attempt, error: error.message });
-          if (attempt < SEV1_RESOLVE_MAX_ATTEMPTS) {
-            scheduleResolve(SEV1_RESOLVE_RETRY_MS * attempt, attempt + 1);
-          } else {
-            entry.status = 'resolve_failed';
-          }
-        }
-      }, delayMs);
-      if (timer.unref) timer.unref();
-    };
-    scheduleResolve(SEV1_WINDOW_MS, 1);
-
-    logger.info('On-Call Datadog incident declared', { runRef, kind, ...incident });
-    return {
-      ok: true,
-      provider: 'datadog',
-      runRef,
-      kind,
-      label: copy.label,
-      windowMinutes: Math.round(SEV1_WINDOW_MS / 60000),
-      ...incident,
-    };
-  }
-
-  if (!token || !alertsChannel) {
-    logger.warn('On-Call alerts channel not configured — skipping incident post');
-    return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
-  }
-
-  // Fallback path (Datadog not configured): the degradation is real code on
-  // the vertical endpoint; start the probe loop so telemetry records it.
-  supersedePriorRun(runRef);
-  startSev1Probe(runRef, story);
-
-  const scenario = ALERT_SCENARIOS[story.vertical];
-  const text = [
-    `:fire: *SEV-1 — ${copy.label}*`,
-    '',
-    `*Incident Ref:* ${runRef}`,
-    `*Summary:* ${copy.summary}`,
-    `*Env:* production | *Service:* ${scenario.service}`,
-    `*Endpoint:* ${scenario.endpoint}`,
-    '',
-    `Repo: ${REPO_URL}`,
-  ].join('\n');
-  const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
-  const fullText = triggeredBy ? `${text}\nTriggered by: ${triggeredBy}` : text;
-
-  let ts;
-  try {
-    ts = await postMessage(token, alertsChannel, fullText);
-  } catch (error) {
-    // Keep observable state consistent with what was announced: if the SEV-1
-    // never posted, don't keep driving probe traffic for the full window.
-    stopSev1Probe(runRef, 'SEV-1 fallback post failed');
-    throw error;
-  }
-  logger.info('On-Call incident posted', { channel: alertsChannel, ts, runRef });
-
-  // Register in the live SEV-1 list too; no Datadog incident to resolve, so
-  // the entry simply flips to resolved when the degradation window ends.
-  const entry = {
-    runRef,
-    kind,
-    label: copy.label,
-    summary: copy.summary,
-    id: null,
-    publicId: null,
-    declaredAt: Date.now(),
-    resolveAt: Date.now() + SEV1_WINDOW_MS,
-    status: 'declared',
-  };
-  activeSev1.set(runRef, entry);
-  pruneSev1();
-  const resolveTimer = setTimeout(() => {
-    entry.status = 'resolved';
-    stopSev1Probe(runRef, 'incident window elapsed');
-  }, SEV1_WINDOW_MS);
-  if (resolveTimer.unref) resolveTimer.unref();
-
-  return {
-    ok: true,
-    ts,
-    channel: alertsChannel,
-    runRef,
-    kind,
-    label: copy.label,
-    windowMinutes: Math.round(SEV1_WINDOW_MS / 60000),
-  };
-}
-
-/**
- * Live state of declared SEV-1 incidents for the /oncall page.
- */
-function getSev1State() {
-  // Scoped to the caller, like getInfraState(): only the incident belonging
-  // to the request's oncall_run cookie is listed, never someone else's.
-  const runRef = getOncallRunRef();
-  const entry = runRef ? activeSev1.get(runRef) : null;
-  return (entry ? [entry] : []).map((e) => ({
-    runRef: e.runRef,
-    kind: e.kind,
-    label: e.label,
-    publicId: e.publicId,
-    status: e.status,
-    declaredAt: e.declaredAt,
-    msRemaining: e.status === 'resolved' ? 0 : Math.max(0, e.resolveAt - Date.now()),
-  }));
-}
-
-function isActiveSev1ProbeRef(ref) {
-  return Boolean(ref) && activeSev1Probes.has(ref);
-}
-
-/**
- * Per-step diagnostic timings are an operational flag responders enable
- * mid-incident (the chatter announces it). While the caller's declared SEV-1
- * for the vertical is still in its early phases, the x-debug-timings header
- * is a no-op, so the step-level discriminator only exists in telemetry once
- * that incident reaches its final phase. Scoped to the requesting run — the
- * probe's runRef header or the oncall_run cookie context — so concurrent
- * runs never gate each other.
- */
-function isSev1DebugTimingsUnlocked(vertical, runRef) {
-  // Only a ref naming a known run counts as scoped; anything else (no
-  // cookie, no probe header, or an unrecognized/expired tag) falls back to
-  // being gated by every open incident for the vertical, so an unscoped
-  // caller can't sidestep a gate a scoped caller would face.
-  const candidate = runRef || getOncallRunRef();
-  const ref = candidate && activeSev1.has(candidate) ? candidate : null;
-  const entries = ref
-    ? [activeSev1.get(ref)]
-    : Array.from(activeSev1.values());
-  for (const entry of entries) {
-    if (entry.status !== 'declared') continue;
-    const story = SEV1_INCIDENTS[entry.kind];
-    if (!story || story.vertical !== vertical) continue;
-    const windowMs = entry.resolveAt - entry.declaredAt;
-    if (sev1ProbePhase(Date.now() - entry.declaredAt, windowMs) < SEV1_PROBE_PHASE_BOUNDS.length) {
-      return false;
-    }
-  }
-  return true;
-}
-
 module.exports = {
   ALERT_SCENARIOS,
-  BUG_REPORTS,
-  BUG_CATALOG,
   postOncallAlert,
   postOncallBugReport,
   INFRA_INCIDENTS,
   postOncallInfraIncident,
   getInfraState,
-  postOncallIncident,
-  buildSev1Chatter,
-  buildSev1IncidentCopy,
-  getSev1IncidentKinds,
-  replaceChatterVocabulary,
   isPlainObject,
-  isValidChatterVocabulary,
-  isValidIncidentCopy,
-  getSev1ChatterVocabulary,
-  SEV1_INCIDENTS,
-  getSev1State,
-  isActiveSev1ProbeRef,
-  isSev1DebugTimingsUnlocked,
   buildOncallSessionPrompt,
   setOncallConfigOverride,
   getOncallConfigView,
