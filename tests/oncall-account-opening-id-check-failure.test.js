@@ -1,5 +1,5 @@
 jest.mock('../app/services/slack', () => ({
-  OWNER_DISCLAIMER: 'fictional on-call persona',
+  ownerRotation: jest.requireActual('../app/services/slack').ownerRotation,
   postMessage: jest.fn().mockResolvedValue('1700000000.000100'),
   postThreadReply: jest.fn().mockResolvedValue('1700000000.000200'),
   lookupSlackUserByEmail: jest.fn().mockResolvedValue('U0ONBRD'),
@@ -133,6 +133,9 @@ describe('Account-opening ID check failure report (6c2cc636)', () => {
     expect(text).toContain('visa_not_eligible');
     expect(text).toContain('choose_id → agree_continue');
     expect(text).toContain('Triggered by:* <@U0ONBRD>');
+    expect(text).toContain('*Owner:* onboarding-oncall');
+    expect(JSON.stringify(blocks)).toContain('onboarding-oncall');
+    expect(JSON.stringify(blocks)).not.toMatch(/\w onboarding-oncall/);
     expect(blocks[0].type).toBe('header');
     expect(blocks[0].text.text).toContain('account-opening');
 
