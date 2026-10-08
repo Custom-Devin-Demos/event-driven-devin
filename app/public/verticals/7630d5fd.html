@@ -337,6 +337,7 @@
     })();
   </script>
   <script>
+    function esc(v) { return String(v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function brl(v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
     document.getElementById('transferForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -352,18 +353,18 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Não foi possível concluir o Pix</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          result.innerHTML = `<div class="error-title">Não foi possível concluir o Pix</div><div class="error-detail">${esc(data.errorClass)}: ${esc(data.error)}</div>`;
         } else {
           result.className = 'result-box success';
           result.innerHTML = `<div class="error-title">Pix enviado</div><div class="error-detail">Valor debitado: ${brl(data.debitAmount)}</div>`;
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Erro de conexão</div><div class="error-detail">${err.message}</div>`;
+        result.innerHTML = `<div class="error-title">Erro de conexão</div><div class="error-detail">${esc(err.message)}</div>`;
       } finally { btn.disabled = false; btn.textContent = 'Continuar'; }
     });
   </script>
-  <script>if (window.matchMedia('(max-width: 767px)').matches) document.querySelectorAll('.ft-acc').forEach(function (d) { d.open = false; });</script>
+  <script>(function () { var mq = window.matchMedia('(max-width: 767px)'); function sync() { document.querySelectorAll('.ft-acc').forEach(function (d) { d.open = !mq.matches; }); } sync(); mq.addEventListener('change', sync); })();</script>
   <script src="/session-cap-banner.js"></script>
 </body>
 </html>
