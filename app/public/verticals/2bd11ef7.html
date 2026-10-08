@@ -38,6 +38,9 @@
     .logo { display: flex; align-items: center; padding: 0 32px; }
     .logo svg { width: 40px; height: 40px; display: block; }
     .main-nav { display: flex; align-items: stretch; }
+    .mobile-menu { position: absolute; top: 100%; left: 0; width: 100%; background: #fff; box-shadow: rgba(35,31,32,.2) 0 1px 1px 0; }
+    .mobile-menu[hidden] { display: none; }
+    .mobile-menu a { display: flex; align-items: center; min-height: 48px; padding: 12px 24px; border-top: 1px solid var(--line); font: 800 16px/24px var(--font); color: var(--ink-2); }
     .main-nav li { display: flex; padding-left: 32px; }
     .main-nav li:first-child { padding-left: 0; }
     .main-nav a { display: flex; align-items: center; font: 800 16px/10px var(--font); color: var(--ink-2); }
@@ -205,11 +208,20 @@
 </head>
 <body>
   <header class="site-header">
-    <button class="burger" aria-label="Menu"><svg width="18" height="14" viewBox="0 0 18 14" fill="none"><path d="M0 1h18M0 7h18M0 13h18" stroke="#231f20" stroke-width="1.6"/></svg></button>
+    <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mobileMenu"><svg width="18" height="14" viewBox="0 0 18 14" fill="none"><path d="M0 1h18M0 7h18M0 13h18" stroke="#231f20" stroke-width="1.6"/></svg></button>
     <a href="#" class="logo" aria-label="CommBank home">
       <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 1.5 38.5 20 20 38.5 1.5 20z" fill="#ffcc00"/><path d="M38.5 20 20 38.5l-3.2-3.2L35.3 16.8z" fill="#231f20" opacity=".85"/><path d="M20 1.5 38.5 20l-3.2 3.2L16.8 4.7z" fill="#fff36b" opacity=".6"/></svg>
     </a>
     <ul class="main-nav">
+      <li><a href="#">Banking</a></li>
+      <li><a href="#">Home loans</a></li>
+      <li><a href="#">Insurance</a></li>
+      <li><a href="#">Investing &amp; Super</a></li>
+      <li><a href="#">Business</a></li>
+      <li><a href="#">Institutional</a></li>
+      <li><a href="#">CommBank Yello</a></li>
+    </ul>
+    <ul class="mobile-menu" id="mobileMenu" hidden>
       <li><a href="#">Banking</a></li>
       <li><a href="#">Home loans</a></li>
       <li><a href="#">Insurance</a></li>
@@ -468,6 +480,15 @@
     })();
   </script>
   <script>
+    (function () {
+      var burger = document.querySelector('.burger');
+      var menu = document.getElementById('mobileMenu');
+      burger.addEventListener('click', function () {
+        var open = menu.hidden;
+        menu.hidden = !open;
+        burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    })();
     document.querySelectorAll('.drop-down').forEach(function (b) {
       b.addEventListener('click', function () {
         var body = document.getElementById(b.dataset.acc);
