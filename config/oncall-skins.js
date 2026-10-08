@@ -3169,6 +3169,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A HIGHMARK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Highmark product.',
   },
+  '65adbade': {
+    slug: '65adbade',
+    company: 'Cognition AI',
+    vertical: 'inference',
+    page: { file: '65adbade.html', title: 'vllm-project/vllm | DeepWiki' },
+    disclaimer: 'NOT ACTUALLY A COGNITION AI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cognition AI product.',
+  },
 };
 
 function getOncallSkin(slug) {
