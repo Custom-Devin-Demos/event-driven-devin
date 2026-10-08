@@ -480,6 +480,22 @@ describe('shared iOS demo failure report endpoint', () => {
     expect(perCustomerAppRepo({ repo: 'COG-GTM/demo-mars-ios-event-driven' })).toBe('');
   });
 
+  test('routes to the COG-GTM/ios-demos monorepo only when apps/<slug>/demo.json names the slug', async () => {
+    const repo = 'COG-GTM/ios-demos';
+    const found = { get: jest.fn().mockResolvedValue({ data: '{"slug":"75d39326","appName":"FOX News"}' }) };
+    const otherSlug = { get: jest.fn().mockResolvedValue({ data: '{"slug":"0000aaaa"}' }) };
+
+    clearAppRepoCache();
+    expect(await resolveAppRepo('75d39326', repo, { request: found, token: 't' })).toBe(repo);
+    expect(found.get).toHaveBeenCalledWith(
+      `https://api.github.com/repos/${repo}/contents/apps/75d39326/demo.json`,
+      expect.anything(),
+    );
+    clearAppRepoCache();
+    expect(await resolveAppRepo('75d39326', repo, { request: otherSlug, token: 't' })).toBe(SHARED_APP_REPO);
+    clearAppRepoCache();
+  });
+
   test('uses a per-customer repo only after GitHub confirms its demo.json names the slug', async () => {
     const repo = 'COG-GTM/demo-mars-ios-event-driven';
     const found = { get: jest.fn().mockResolvedValue({ data: '{"slug":"d8bf7f8a","appName":"Mars"}' }) };
