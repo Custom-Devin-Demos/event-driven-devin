@@ -304,10 +304,10 @@
 
 <script>
   // First visit in this browser: default the shared alert destination to Microsoft Teams.
-  // Runs before alert-destination.js (which persists 'slack' when nothing is saved) and never
-  // overrides a destination the presenter already chose on / or /oncall.
+  // Runs before alert-destination.js and only when the presenter has never clicked the picker
+  // (alertDestinationExplicit) — the value the shared script persists on its own doesn't count.
   if (!localStorage.getItem('dfa29484.alertRoutingDefaulted')) {
-    if (!localStorage.getItem('alertDestination')) localStorage.setItem('alertDestination', 'teams');
+    if (!localStorage.getItem('alertDestinationExplicit')) localStorage.setItem('alertDestination', 'teams');
     localStorage.setItem('dfa29484.alertRoutingDefaulted', '1');
   }
 </script>
@@ -341,7 +341,7 @@
       var note = el('alert-dest-note');
       if (teamsAlerts === null) { note.textContent = 'Checking alert routing…'; return; }
       if (teamsAlerts === 'unknown') {
-        note.innerHTML = 'Could not confirm server alert configuration — statement failures follow the destination selected above.';
+        note.innerHTML = 'Could not confirm server alert configuration. If Microsoft Teams is not configured on this server, alerts fall back to <b>#automated-alerts</b> in Slack.';
         return;
       }
       note.innerHTML = dest === 'teams' && teamsAlerts
