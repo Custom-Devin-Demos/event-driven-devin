@@ -64,6 +64,8 @@
 
     /* Main */
     .main { display: flex; flex-direction: column; min-width: 0; }
+    .alert-dest { margin-left: auto; }
+    .alert-dest .adp-summary { display: none; }
     .topbar { height: 56px; background: var(--surface); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 16px; padding: 0 24px; }
     .crumbs { color: var(--slate); font-weight: 500; }
     .crumbs b { color: var(--blue); font-weight: 600; }
@@ -238,6 +240,7 @@
       <header class="topbar">
         <div class="crumbs">Complex Claims &nbsp;/&nbsp; <b>Worklist</b></div>
         <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="search" type="search" placeholder="Search account, patient initials, payer…" aria-label="Search claims"></label>
+        <div id="alertDest" class="alert-dest" title="Where this browser's incident alerts post"></div>
         <a class="top-link" href="#" onclick="return false;">Accident Summary Form</a>
         <div class="user"><div class="avatar">JR</div><div><div style="font-weight:600;color:var(--navy-2)">Julia R.</div><div style="font-size:11px;color:var(--slate)">Complex Claims Lead</div></div></div>
       </header>
@@ -333,6 +336,7 @@
     <code id="toast-tech"></code>
   </div>
 
+  <script src="/alert-destination.js"></script>
   <script>
     var API = '/api/f6f40dd7';
     var CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
@@ -353,9 +357,19 @@
       memberState: 'Member state', memberId: 'Medicaid member ID', enrollmentStatus: 'Enrollment', providerEnrollment: 'Provider enrollment'
     };
 
+    var destPicker = window.AlertDestination.mount(document.getElementById('alertDest'));
+    var teamsAlerts = false;
+    function alertDestinationNote() {
+      return window.AlertDestination.get() === 'teams' && teamsAlerts
+        ? 'The incident alert was posted to Microsoft Teams.'
+        : 'The incident alert was posted to Slack.';
+    }
+
     var identityReady = fetch('/api/config')
       .then(function (response) { return response.json(); })
       .then(function (config) {
+        teamsAlerts = Boolean(config.teamsAlerts);
+        destPicker.setTeamsAvailable(teamsAlerts);
         if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
         if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
       })
@@ -678,7 +692,7 @@
         renderFooter(claim);
         renderRows();
         showToast('error', 'Payer rules failed — ' + claim.accountId + ' stalled',
-          'The ' + failingRule.label.toLowerCase() + ' rule could not be evaluated for this ' + claim.categoryLabel + ' claim. The account stays on the worklist with no projected reimbursement.',
+          'The ' + failingRule.label.toLowerCase() + ' rule could not be evaluated for this ' + claim.categoryLabel + ' claim. The account stays on the worklist with no projected reimbursement. ' + alertDestinationNote(),
           (payload.errorClass || 'Error') + ': ' + payload.error + '\n' + (payload.code || 'PAYER_RULES_FAILED') + (payload.requestId ? ' · requestId ' + payload.requestId : ''));
         refreshKpis();
       }
