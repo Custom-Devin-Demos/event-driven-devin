@@ -33,6 +33,9 @@
  * hub, or from skins without this key, stay alert-only. orgId defaults to
  * DEVIN_ORG_ID and the credential to DEVIN_ONCALL_SERVICE_KEY /
  * DEVIN_SERVICE_KEY / DEVIN_API_KEY; never put a credential in this file.
+ * devinSession.notifySlackMemberId (a Slack member id) makes the session's
+ * prompt ask Devin to @-mention that person in the alert thread when the root
+ * cause is confirmed and again when the fix PR is open.
  *
  * A skin may set sonarPR: { auto: true, customer } to have each of its alerts
  * also open the SonarCloud remediation demo PR (app/services/sonar-pr-trigger.js)
@@ -2514,6 +2517,34 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     disclaimer: 'NOT A REAL WORLD BANK SYSTEM — internal demo only, fictional LoanTrack product, not affiliated with or endorsed by the World Bank Group.',
+  },
+  'd51a1791': {
+    slug: 'd51a1791',
+    company: 'Ambrook',
+    brandMark: 'a',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'd51a1791.html', title: 'Pay Bill | Ambrook' },
+    devinSession: { auto: true, notifySlackMemberId: 'U0B7F46NVA4' },
+    alertCard: {
+      title: 'p95 latency — bill payment submissions',
+      service: 'ambrook-payments-api',
+      release: 'ambrook@2026.10.2',
+      team: 'payments-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      symptom: 'Bill payments from the Ledger hang ~10s before the bank confirms. Error rate is normal — payments eventually go through.',
+      impact: 'Every farm bookkeeper paying a vendor bill waits on a spinner for ~10 seconds; month-end close is underway and the Ag Payments cut-off is 17:00 CT.',
+    },
+    theme: {
+      '--accent': '#2F4A2E',
+      '--ink': '#1E231C',
+      '--surface': '#F6F3EC',
+      '--chrome-bg': '#1C1F1A',
+      '--chrome-text': '#F6F3EC',
+    },
+    supportCenter: 'Ambrook Support',
+    supportCenterSub: 'Customer Support & Incident Intake',
+    disclaimer: 'Internal demo only — fictional Ambrook scenario, not affiliated with or endorsed by Ambrook.',
   },
   '2d624bce': {
     slug: '2d624bce',
