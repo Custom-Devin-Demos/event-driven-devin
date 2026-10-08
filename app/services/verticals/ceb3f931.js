@@ -70,8 +70,22 @@ const REMEDIATION_DIRECTIVE = [
   'and add a regression test under tests/ that locks the fix in. Open a pull request against main.',
 ].join(' ');
 
+/**
+ * Builder-facing names that map onto a persisted response mode identifier.
+ * The create-form dialog calls the encrypt mode "Storage mode".
+ */
+const RESPONSE_MODE_ALIASES = Object.freeze({
+  storage: 'encrypt',
+});
+
 function resolveResponseMode(mode) {
-  const key = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
+  const raw = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
+  const key = Object.prototype.hasOwnProperty.call(RESPONSE_MODE_ALIASES, raw) ? RESPONSE_MODE_ALIASES[raw] : raw;
+  if (!Object.prototype.hasOwnProperty.call(RESPONSE_MODES, key)) {
+    const error = new Error(`Unknown response mode: ${String(mode)}`);
+    error.code = 'UNKNOWN_RESPONSE_MODE';
+    throw error;
+  }
   return RESPONSE_MODES[key];
 }
 
@@ -222,6 +236,7 @@ module.exports = {
   resolveResponseMode,
   buildLaunchManifest,
   RESPONSE_MODES,
+  RESPONSE_MODE_ALIASES,
   STARTER_FIELDS,
   OWNER,
   REMEDIATION_DIRECTIVE,

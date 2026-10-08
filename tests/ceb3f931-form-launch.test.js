@@ -23,6 +23,7 @@ const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const launchRoutes = require('../app/routes/verticals/ceb3f931');
 const {
   launchForm,
+  resolveResponseMode,
   buildLaunchManifest,
   RESPONSE_MODES,
   OWNER,
@@ -80,17 +81,60 @@ describe('Open Government Products form launch', () => {
     expect(manifest.fields).toHaveLength(5);
   });
 
-  test('the landing page launch fails with a TypeError and raises exactly one alert', async () => {
+  test('the landing page launch (default storage mode) succeeds without raising an alert', async () => {
     const response = await postLaunch({
       action: 'Start building your form now',
       formTitle: 'Build secure government forms in minutes.',
       ...IDENTITY,
     });
 
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.referenceNumber).toMatch(/^FRM-/);
+    expect(response.body.manifest.responseMode).toBe('encrypt');
+    expect(response.body.manifest.modeLabel).toBe('Storage mode');
+    expect(response.body.manifest.encryption.secretKeyRequired).toBe(true);
+    expect(response.body.manifest.encryption.secretKeyFingerprint).toMatch(/^[0-9A-F]{16}$/);
+    expect(response.body.manifest.retention.days).toBe(30);
+    expect(response.body.manifest.title).toBe('Build secure government forms in minutes.');
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test('the route default response mode resolves to a registered profile', () => {
+    expect(launchRoutes.DEFAULT_RESPONSE_MODE).toBe('storage');
+    expect(resolveResponseMode(launchRoutes.DEFAULT_RESPONSE_MODE)).toBe(RESPONSE_MODES.encrypt);
+  });
+
+  test('response modes resolve case- and whitespace-insensitively', () => {
+    expect(resolveResponseMode('  Storage ')).toBe(RESPONSE_MODES.encrypt);
+    expect(resolveResponseMode('EMAIL')).toBe(RESPONSE_MODES.email);
+    expect(resolveResponseMode('multirespondent')).toBe(RESPONSE_MODES.multirespondent);
+  });
+
+  test.each([undefined, null, '', 'bogus', 42, 'toString', '__proto__'])(
+    'unknown response mode %p throws a coded error instead of a TypeError',
+    (mode) => {
+      let caught;
+      try { resolveResponseMode(mode); } catch (error) { caught = error; }
+      expect(caught).toBeInstanceOf(Error);
+      expect(caught).not.toBeInstanceOf(TypeError);
+      expect(caught.code).toBe('UNKNOWN_RESPONSE_MODE');
+    },
+  );
+
+  test('an unknown response mode fails with a coded error and raises exactly one alert', async () => {
+    const response = await postLaunch({
+      action: 'Start building your form now',
+      formTitle: 'Build secure government forms in minutes.',
+      responseMode: 'bogus',
+      ...IDENTITY,
+    });
+
     expect(response.status).toBe(500);
     expect(response.body.success).toBe(false);
-    expect(response.body.errorClass).toBe('TypeError');
-    expect(response.body.error).toMatch(/reading 'encryption'|reading 'retention'|reading 'code'/);
+    expect(response.body.code).toBe('UNKNOWN_RESPONSE_MODE');
+    expect(response.body.error).toBe('Unknown response mode: bogus');
 
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
@@ -99,13 +143,14 @@ describe('Open Government Products form launch', () => {
     expect(alert.slackMemberId).toBe('U08S7AVJ478');
     expect(alert.devinUserId).toBe(OWNER.devinUserId);
     expect(alert.devinOrgId).toBe(OWNER.devinOrgId);
-    expect(alert.errorType).toBe('TypeError');
+    expect(alert.errorType).toBe('Error');
   });
 
   test('client-supplied Devin IDs cannot override the pinned owner', async () => {
     const response = await postLaunch({
       action: 'Start building your form now',
       formTitle: 'Build secure government forms in minutes.',
+      responseMode: 'bogus',
       devinUserId: 'clerk-user_attacker',
       devinOrgId: 'org-attacker',
     });
@@ -117,15 +162,16 @@ describe('Open Government Products form launch', () => {
     expect(alert.devinOrgId).toBe(OWNER.devinOrgId);
   });
 
-  test('every click lands on the same failing launch regardless of label', async () => {
-    const labels = ['Log in', 'Help', 'Get started', 'How to identify'];
+  test('every click launches successfully regardless of label', async () => {
+    const labels = ['Log in', 'Help', 'Get started', 'Expand masthead to find out how to identify an official government website'];
     for (const action of labels) {
       // eslint-disable-next-line no-await-in-loop
       const response = await postLaunch({ action, ...IDENTITY });
-      expect(response.status).toBe(500);
-      expect(response.body.errorClass).toBe('TypeError');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.manifest.responseMode).toBe('encrypt');
     }
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(labels.length);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
   test('a registered response mode launches successfully', async () => {
@@ -136,7 +182,7 @@ describe('Open Government Products form launch', () => {
   });
 
   test('the Sentry capture carries the instant-path tag so the webhook skips it', async () => {
-    await postLaunch({ action: 'Start building your form now', ...IDENTITY });
+    await postLaunch({ action: 'Start building your form now', responseMode: 'bogus', ...IDENTITY });
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     const [, context] = Sentry.captureException.mock.calls[0];
     expect(context.tags.alert_path).toBe('instant');
