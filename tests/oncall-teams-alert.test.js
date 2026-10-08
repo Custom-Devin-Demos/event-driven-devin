@@ -98,7 +98,7 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     const plain = axios.post.mock.calls[0][1].text;
     expect(plain).toContain('<b>[Triggered] p95 latency — payment release submissions</b>'.replace('<b>', '<b>\u{1F6A8} '));
     expect(plain).toContain('<b>Service:</b> loantrack-disbursement-api (LoanTrack)');
-    expect(plain).toContain('<b>Symptom:</b>');
+    expect(plain).not.toMatch(/<b>(Symptom|Impact):<\/b>/);
     expect(plain).toContain('>View in Datadog</a>');
     expect(JSON.stringify(postMessage.mock.calls[0][3])).toContain('loantrack-disbursement-api (LoanTrack)');
   });
