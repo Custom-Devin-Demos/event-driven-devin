@@ -252,7 +252,7 @@ function etaLine(report) {
 
 /**
  * Alert card. Every number on it came from the device that failed; the
- * only synthetic element is the on-call persona, labelled as such.
+ * only synthetic element is the owner, shown as an on-call rotation.
  */
 function buildAlertMessage(report, { reference, triggeredBy, now }) {
   const lines = [

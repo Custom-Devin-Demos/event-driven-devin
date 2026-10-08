@@ -239,7 +239,7 @@ function buildAlertMessage(report, { reference, triggeredBy, now }) {
     `*Document:* ${documentLine(report)}`,
     `*Applicant:* ${applicantLine(report)}`,
     `*Release:* ${report.release} (${report.platformLabel})`,
-    `*Owner:* ${ACCOUNT_OPENING.brand} onboarding-oncall`,
+    '*Owner:* onboarding-oncall',
     triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
     `Reported: ${now.toISOString()}`,
@@ -262,7 +262,7 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
       ['Document', documentLine(report)],
       ['Applicant', applicantLine(report)],
       ['Release', `${report.release} (${report.platformLabel})`],
-      ['Owner', `${ACCOUNT_OPENING.brand} onboarding-oncall`],
+      ['Owner', 'onboarding-oncall'],
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
     {
