@@ -153,6 +153,8 @@
 
     @media (max-width: 1023px) {
       .main-nav { display: none; }
+      .burger { display: flex; align-items: center; justify-content: center; width: 48px; margin-left: 16px; background: none; border: 0; cursor: pointer; }
+      .logo { padding-left: 8px; }
     }
     @media (max-width: 767px) {
       .app { padding: 0 8px; }
@@ -474,7 +476,7 @@
       });
     });
     function esc(v) { return String(v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function aud(v) { return Number(v).toLocaleString('en-AU', { style: 'currency', currency: 'AUD' }); }
+    function money(v) { return '$' + Number(v).toFixed(2); }
     document.getElementById('transferForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -493,7 +495,7 @@
           result.innerHTML = `<div class="error-title">We couldn't complete this payment</div><div class="error-detail">${esc(data.errorClass)}: ${esc(data.error)}</div>`;
         } else {
           result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Payment sent</div><div class="error-detail">${aud(data.debitAmount)} debited from ${esc(from.options[from.selectedIndex].text.split(' \u2014 ')[0])}.</div>`;
+          result.innerHTML = `<div class="error-title">Payment sent</div><div class="error-detail">${money(data.debitAmount)} debited from ${esc(from.options[from.selectedIndex].text.split(' \u2014 ')[0])}.</div>`;
         }
       } catch (err) {
         result.className = 'result-box error';
