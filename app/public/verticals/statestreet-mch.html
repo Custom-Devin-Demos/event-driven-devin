@@ -32,7 +32,7 @@
     .muted { color: var(--muted); font-size: 12px; }
     .num { text-align: right; font-variant-numeric: tabular-nums; }
 
-    .topbar { display: flex; align-items: center; gap: 20px; background: var(--navy); color: #fff; padding: 0 18px; height: 52px; box-shadow: 0 2px 6px rgba(0,0,0,.2); position: sticky; top: 0; z-index: 5; }
+    .topbar { display: flex; align-items: center; gap: 20px; background: var(--navy); color: #fff; padding: 8px 18px; min-height: 52px; flex-wrap: wrap; row-gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.2); position: sticky; top: 0; z-index: 5; }
     .brand { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
     .brand-mark { background: var(--teal); color: #fff; font-weight: 700; padding: 3px 7px; border-radius: 4px; font-size: 12px; }
     .brand-name { font-size: 19px; font-weight: 600; letter-spacing: .3px; }
@@ -73,6 +73,8 @@
     .panel-head h2 { margin: 0; font-size: 14px; font-weight: 600; color: var(--navy); }
     .panel.degraded .panel-head h2 { color: var(--err); }
 
+    .layout > *, .grid > *, .stack > * { min-width: 0; }
+    .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .tbl { width: 100%; border-collapse: collapse; }
     .tbl th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); border-bottom: 1px solid var(--line); padding: 6px 8px; font-weight: 600; }
     .tbl th.num { text-align: right; }
@@ -138,10 +140,15 @@
     .demo-escape:hover { color: var(--navy); }
 
     @media (max-width: 1560px) { #region-pill { display: none; } }
+    @media (max-width: 1400px) { .brand-sub { display: none; } }
     @media (max-width: 1180px) { .grid { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 820px) {
       .layout { grid-template-columns: 1fr; } .side { display: none; }
       .brand-sub, .env .pill-muted, .user span:last-child { display: none; }
+      .env { margin-left: 0; width: 100%; justify-content: flex-start; }
+      main { padding: 12px 12px 32px; }
+      .tbl { min-width: 560px; }
+      .panel-head { flex-wrap: wrap; }
       .kpis { grid-template-columns: repeat(2, 1fr); } .facts { grid-template-columns: repeat(2, 1fr); }
       .ticker li { grid-template-columns: 60px 1fr; } .ticker li .src, .ticker li .lvl { display: none; }
     }
@@ -202,12 +209,12 @@
               <h2>Funds — today's NAV cycle</h2>
               <span class="muted">Base USD · FX policy WMR 16:00 LDN</span>
             </div>
-            <table class="tbl" data-testid="funds-table">
+            <div class="tbl-wrap"><table class="tbl" data-testid="funds-table">
               <thead>
                 <tr><th>Fund</th><th class="num">Prior NAV</th><th class="num">Today NAV</th><th class="num">Δ bps</th><th class="num">Tol.</th><th>Status</th></tr>
               </thead>
               <tbody id="funds-body"><tr><td colspan="6" class="muted">Loading NAV cycle…</td></tr></tbody>
-            </table>
+            </table></div>
           </section>
 
           <section class="panel" id="detail-panel" data-testid="detail-panel">
@@ -224,10 +231,10 @@
               <div class="fact"><div class="k">Accrued income</div><div class="v" id="d-accrued">—</div></div>
               <div class="fact"><div class="k">Liabilities</div><div class="v" id="d-liab">—</div></div>
             </div>
-            <table class="tbl" data-testid="positions-table">
+            <div class="tbl-wrap"><table class="tbl" data-testid="positions-table">
               <thead><tr><th>CCY</th><th class="num">Lines</th><th class="num">Local market value</th><th class="num">FX (per USD)</th><th class="num">Base MV (USD)</th></tr></thead>
               <tbody id="pos-body"></tbody>
-            </table>
+            </table></div>
             <div class="nav-summary hidden" id="nav-summary" data-testid="nav-summary"></div>
             <div class="toolbar">
               <button class="btn teal" id="btn-strike" data-testid="btn-strike">Strike NAV</button>
@@ -247,10 +254,10 @@
 
           <section class="panel" data-testid="fx-panel">
             <div class="panel-head"><h2>FX snapshot</h2><span class="muted" id="fx-label">—</span></div>
-            <table class="tbl">
+            <div class="tbl-wrap"><table class="tbl">
               <thead><tr><th>CCY</th><th class="num">Bid</th><th class="num">Mid</th><th class="num">Ask</th></tr></thead>
               <tbody id="fx-body"></tbody>
-            </table>
+            </table></div>
           </section>
 
           <section class="panel" data-testid="events-panel">
