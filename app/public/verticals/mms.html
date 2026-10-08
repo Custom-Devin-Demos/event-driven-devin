@@ -274,12 +274,13 @@
       var MIN = 20;
       var STEP = 5;
       var FREE_SHIP = 75;
-      var state = { qty: 20, zip: '', options: null, method: '', promo: null, removed: false };
+      var state = { qty: 20, zip: '', options: null, method: '', promo: null, removed: false, rev: 0 };
 
       function $(id) { return document.getElementById(id); }
       function money(n) { return '$' + n.toFixed(2); }
-      function subtotal() { return Math.round(UNIT * state.qty * 100) / 100; }
-      function items() { return [{ sku: SKU, qty: state.qty }]; }
+      function cartQty() { return state.removed ? 0 : state.qty; }
+      function subtotal() { return Math.round(UNIT * cartQty() * 100) / 100; }
+      function items() { return state.removed ? [] : [{ sku: SKU, qty: state.qty }]; }
       function identity() {
         return {
           devinUserId: localStorage.getItem('devinUserId') || '',
@@ -351,7 +352,8 @@
         var discount = state.promo ? state.promo.discount : 0;
         $('discountRow').style.display = state.promo ? 'flex' : 'none';
         if (state.promo) { $('discountLabel').textContent = 'Promo (' + state.promo.code + ')'; $('sumDiscount').textContent = '-' + money(discount); }
-        var ship = shippingPrice();
+        var ship = state.removed ? null : shippingPrice();
+        ['checkoutBtn', 'applyBtn', 'submitZip'].forEach(function (id) { $(id).disabled = state.removed; });
         $('sumShipping').textContent = ship === null ? 'TBD' : (ship === 0 ? 'FREE' : money(ship));
         $('sumTax').textContent = 'TBD';
         $('sumTotal').textContent = money(sub - discount + (ship || 0));
@@ -359,26 +361,31 @@
       }
 
       function quantityChanged() {
+        state.rev += 1;
         if (state.promo) { state.promo = null; setMsg($('promoMsg'), '', ''); }
         $('checkoutMsg').className = 'checkout-msg';
         render();
       }
       $('qtyPlus').addEventListener('click', function () { state.qty += STEP; quantityChanged(); });
       $('qtyMinus').addEventListener('click', function () { if (state.qty > MIN) { state.qty -= STEP; quantityChanged(); } });
-      $('removeBtn').addEventListener('click', function () { state.removed = true; render(); });
+      $('removeBtn').addEventListener('click', function () { state.removed = true; quantityChanged(); });
       $('restoreBtn').addEventListener('click', function () { state.removed = false; state.qty = MIN; quantityChanged(); });
       $('designToggle').addEventListener('click', function () {
         $('designToggle').classList.toggle('open');
         $('designDetail').classList.toggle('open');
       });
 
-      $('zip').addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 5); });
+      $('zip').addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 5);
+        if (state.zip && this.value !== state.zip) { state.zip = ''; state.options = null; state.method = ''; render(); }
+      });
       $('submitZip').addEventListener('click', function () {
         var zip = $('zip').value.trim();
         var hint = $('zipHint');
         if (!/^\d{5}$/.test(zip)) { hint.style.color = 'var(--red)'; hint.textContent = 'please input 5 digits'; return; }
         var btn = this; btn.disabled = true;
         post('/api/mms/shipping-estimate', { zip: zip }).then(function (r) {
+          if ($('zip').value !== zip) return;
           if (!r.ok) { hint.style.color = 'var(--red)'; hint.textContent = r.data.error; state.options = null; state.method = ''; render(); return; }
           hint.style.color = ''; hint.textContent = 'please input 5 digits';
           state.zip = zip; state.options = r.data.options;
@@ -394,11 +401,13 @@
         var msg = $('promoMsg');
         if (!code) { setMsg(msg, 'err', 'Please enter a promo code.'); return; }
         var btn = this; btn.disabled = true; btn.textContent = 'applying';
+        var rev = state.rev;
         post('/api/mms/promo', { code: code }).then(function (r) {
+          if (rev !== state.rev) return;
           if (r.ok) {
             state.promo = { code: r.data.code, discount: r.data.discount };
             setMsg(msg, 'ok', r.data.code + ' applied: ' + r.data.label);
-          } else if (r.data.code && r.data.code.indexOf('PROMO_') === 0) {
+          } else if (r.data.errorClass === 'ValidationError') {
             setMsg(msg, 'err', r.data.error);
           } else {
             setMsg(msg, 'err', "We couldn't apply your promo code right now. " + r.data.errorClass + ': ' + r.data.error);
@@ -410,6 +419,7 @@
       });
 
       $('checkoutBtn').addEventListener('click', function () {
+        if (state.removed) { setCheckoutMsg('err', 'your cart is empty', 'Add an item before checking out.'); return; }
         if (!state.zip || !state.options) { setCheckoutMsg('err', 'shipping required', 'Enter your zip code in the shipping estimator and press submit.'); return; }
         if (!state.method) { setCheckoutMsg('err', 'shipping required', 'Please select a shipping method.'); return; }
         var btn = this; btn.disabled = true; btn.textContent = 'processing\u2026';
