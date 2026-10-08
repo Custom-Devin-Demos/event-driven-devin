@@ -130,7 +130,9 @@
     .blog-intro h2 { font-family: var(--display); font-size: 72px; font-weight: 600; line-height: 67.68px; letter-spacing: -1.2px; color: var(--nu-ink); }
     .blog-intro .nu-pill { margin-top: 40px; height: 56px; padding: 0 32px; font-size: 20px; gap: 12px; }
     .blog-intro .nu-pill svg { width: 20px; height: 20px; }
-    .blog-track { display: flex; gap: 16px; overflow: hidden; }
+    .blog-track { display: flex; gap: 16px; overflow-x: auto; scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-width: none; }
+    .blog-track::-webkit-scrollbar { display: none; }
+    .blog-card { scroll-snap-align: start; }
     .blog-card { position: relative; flex: 0 0 400px; height: 520px; border-radius: 12px; overflow: hidden; color: var(--nu-white); background: #2a0a3d; }
     .blog-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .blog-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 20%, rgba(0,0,0,.82) 80%); }
@@ -414,8 +416,8 @@
         <article class="blog-card"><img src="https://backend.blog.nubank.com.br/wp-content/uploads/2021/11/pix-mais-seguro-novas-medidas-seguranc%CC%A7a-header.png?quality=60" alt="" onerror="this.remove()"><div class="bc-body"><p class="bc-tag">Pix</p><h3>Pix ainda mais seguro: conheça as novas medidas de segurança</h3><a class="nu-pill" href="#">Leia aqui<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div></article>
       </div>
       <div class="blog-arrows">
-        <button type="button" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 6-6 6 6 6"/></svg></button>
-        <button type="button" aria-label="Próximo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></button>
+        <button type="button" aria-label="Anterior" data-dir="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 6-6 6 6 6"/></svg></button>
+        <button type="button" aria-label="Próximo" data-dir="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></button>
       </div>
     </section>
 
@@ -495,26 +497,44 @@
       const result = document.getElementById('result');
       btn.disabled = true; label.textContent = 'Processando...';
       result.className = 'result-box';
+      const amount = parseFloat(document.getElementById('amount').value);
+      const toSelect = document.getElementById('toAccount');
+      const toLabel = toSelect.options[toSelect.selectedIndex].text;
+      const showResult = (kind, title, detail) => {
+        result.className = 'result-box ' + kind;
+        result.replaceChildren();
+        const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
       try {
         const res = await fetch('/api/banking/transfer', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount, accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
         });
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Não foi possível concluir o Pix</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          showResult('error', 'Não foi possível concluir o Pix', `${data.errorClass}: ${data.error}`);
         } else {
           result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Pix enviado</div><div class="error-detail">Total debitado da conta: R$ ${data.debitAmount}</div>`;
+          showResult('success', 'Pix enviado', `R$ ${amount.toFixed(2)} enviado para ${toLabel}`);
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Erro de conexão</div><div class="error-detail">${err.message}</div>`;
+        showResult('error', 'Erro de conexão', err.message);
       } finally { btn.disabled = false; label.textContent = 'Transferir com Pix'; }
     });
   </script>
   <script>
+    document.querySelectorAll('.blog-arrows button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var track = document.querySelector('.blog-track');
+        var card = track.querySelector('.blog-card');
+        var gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+        track.scrollBy({ left: Number(btn.dataset.dir) * (card.offsetWidth + gap) });
+      });
+    });
     if (window.matchMedia('(max-width: 767px)').matches) {
       document.querySelectorAll('.ft-group details').forEach(function (d) { d.removeAttribute('open'); });
     }
