@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DC 41 Wave Release | Dollar General Distribution Center Operations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --dg-yellow: #fff200;
+      --dg-black: #000;
+      --dg-blue: #2a77bd;
+      --dg-grey: #f2f2f2;
+      --dg-border: #d9d9d9;
+      --dg-muted: #595959;
+      --dg-green: #336619;
+      --dg-green-bg: #e0f5d6;
+      --dg-red: #c8102e;
+      --dg-red-bg: #fbe7ea;
+      --dg-amber: #8a5a00;
+      --dg-amber-bg: #fff4d6;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Montserrat, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #000; background: var(--dg-grey); }
+    button { font-family: inherit; cursor: pointer; }
+    .mono { font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 12px; }
+    .repro-banner { background: #000; color: var(--dg-yellow); font-size: 12px; font-weight: 700; text-align: center; padding: 4px; display: none; }
+
+    /* Header */
+    .topbar { background: #000; color: #fff; height: 60px; padding: 0 24px; display: flex; align-items: center; gap: 20px; }
+    .topbar__logo img { height: 28px; display: block; }
+    .topbar__logo .wordmark { display: none; background: var(--dg-yellow); color: #000; font-weight: 800; padding: 2px 8px; border-radius: 4px; }
+    .topbar__title { font-weight: 700; font-size: 16px; border-left: 1px solid #444; padding-left: 20px; }
+    .topbar__title small { display: block; font-weight: 500; font-size: 11px; color: #bbb; line-height: 14px; }
+    .topbar__nav { display: flex; gap: 4px; margin-left: 12px; flex: 1; }
+    .topbar__nav a { color: #ddd; text-decoration: none; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 104px; }
+    .topbar__nav a.is-active { background: var(--dg-yellow); color: #000; }
+    .topbar__meta { display: flex; gap: 18px; align-items: center; font-size: 12px; color: #ddd; white-space: nowrap; }
+    .topbar__meta strong { color: #fff; }
+    .dc-pill { background: var(--dg-yellow); color: #000; font-weight: 800; border-radius: 104px; padding: 3px 12px; font-size: 12px; }
+    .subbar { background: #fff; border-bottom: 1px solid var(--dg-border); padding: 0 24px; height: 44px; display: flex; align-items: center; gap: 24px; font-size: 12px; color: var(--dg-muted); }
+    .subbar b { color: #000; }
+    .feed-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #3fa34d; margin-right: 6px; }
+
+    main { max-width: 1360px; margin: 0 auto; padding: 20px 24px 64px; }
+
+    /* KPIs */
+    .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; }
+    .kpi { background: #fff; border-radius: 8px; padding: 12px 16px; border: 1px solid var(--dg-border); }
+    .kpi__label { font-size: 11px; font-weight: 700; color: var(--dg-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .kpi__value { font-size: 24px; font-weight: 800; line-height: 30px; margin-top: 2px; }
+    .kpi__sub { font-size: 11px; color: var(--dg-muted); }
+    .kpi--alert { border-color: var(--dg-red); background: var(--dg-red-bg); }
+    .kpi--alert .kpi__value, .kpi--alert .kpi__label { color: var(--dg-red); }
+
+    .layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; align-items: start; }
+    .card { background: #fff; border-radius: 8px; border: 1px solid var(--dg-border); }
+    .card__head { padding: 12px 16px; border-bottom: 1px solid var(--dg-border); display: flex; justify-content: space-between; align-items: center; }
+    .card__head h2 { margin: 0; font-size: 15px; font-weight: 700; }
+    .card__head span { font-size: 12px; color: var(--dg-muted); }
+    .card__body { padding: 12px 16px; }
+
+    /* Waves list */
+    .wave { width: 100%; text-align: left; background: #fff; border: 2px solid var(--dg-border); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; display: block; }
+    .wave.is-selected { border-color: #000; box-shadow: inset 4px 0 0 var(--dg-yellow); }
+    .wave__top { display: flex; justify-content: space-between; align-items: center; }
+    .wave__id { font-weight: 800; }
+    .wave__route { font-size: 12px; color: var(--dg-muted); margin-top: 2px; }
+    .wave__stats { display: flex; gap: 12px; font-size: 12px; margin-top: 6px; }
+    .status { font-size: 10px; font-weight: 800; letter-spacing: .05em; padding: 2px 8px; border-radius: 104px; background: var(--dg-grey); }
+    .status--PLANNED { background: var(--dg-grey); }
+    .status--PREVIEWED { background: var(--dg-amber-bg); color: var(--dg-amber); }
+    .status--RELEASED { background: var(--dg-green-bg); color: var(--dg-green); }
+    .status--HALTED { background: var(--dg-red); color: #fff; }
+
+    /* Stepper */
+    .steps { display: flex; gap: 0; margin-bottom: 14px; }
+    .step { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--dg-muted); }
+    .step__n { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--dg-border); display: flex; align-items: center; justify-content: center; font-weight: 800; background: #fff; }
+    .step.is-done .step__n { background: #000; color: var(--dg-yellow); border-color: #000; }
+    .step.is-current { color: #000; }
+    .step.is-current .step__n { border-color: #000; background: var(--dg-yellow); }
+    .step::after { content: ""; flex: 1; height: 2px; background: var(--dg-border); margin: 0 8px; }
+    .step:last-child::after { display: none; }
+
+    .wave-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .wave-head h3 { margin: 0; font-size: 20px; font-weight: 800; }
+    .wave-head p { margin: 4px 0 0; color: var(--dg-muted); font-size: 13px; }
+    .facts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 14px 0; }
+    .fact { background: var(--dg-grey); border-radius: 6px; padding: 8px 10px; }
+    .fact span { display: block; font-size: 10px; font-weight: 700; color: var(--dg-muted); text-transform: uppercase; }
+    .fact b { font-size: 15px; }
+
+    .btn { border: 0; border-radius: 104px; padding: 10px 22px; font-size: 14px; font-weight: 700; }
+    .btn--primary { background: var(--dg-yellow); color: #000; border: 2px solid #000; }
+    .btn--dark { background: #000; color: #fff; }
+    .btn--ghost { background: #fff; color: #000; border: 2px solid var(--dg-border); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: var(--dg-muted); padding: 8px; border-bottom: 2px solid #000; }
+    td { padding: 8px; border-bottom: 1px solid var(--dg-border); }
+    td.num, th.num { text-align: right; }
+    .cov { font-size: 11px; font-weight: 700; }
+    .cov--FULL { color: var(--dg-green); }
+    .cov--PRIMARY_PLUS_RESERVE { color: var(--dg-amber); }
+    .note { font-size: 12px; color: var(--dg-muted); margin-top: 8px; }
+    .empty { color: var(--dg-muted); text-align: center; padding: 28px; }
+
+    /* Halt + result panels */
+    .halt { display: none; border: 2px solid var(--dg-red); background: var(--dg-red-bg); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+    .halt.is-visible { display: block; }
+    .halt__row { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .halt h4 { margin: 0; color: var(--dg-red); font-size: 16px; font-weight: 800; }
+    .halt p { margin: 4px 0 0; font-size: 13px; }
+    .halt__timer { text-align: right; }
+    .halt__timer span { display: block; font-size: 10px; font-weight: 700; color: var(--dg-red); text-transform: uppercase; }
+    .halt__timer b { font-size: 26px; font-variant-numeric: tabular-nums; color: var(--dg-red); }
+    .halt__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+    .halt__grid div { background: #fff; border-radius: 6px; padding: 8px 10px; }
+    .halt__grid span { display: block; font-size: 10px; font-weight: 700; color: var(--dg-muted); text-transform: uppercase; }
+    .halt__grid b { font-size: 16px; }
+    .released { display: none; border: 2px solid var(--dg-green); background: var(--dg-green-bg); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+    .released.is-visible { display: block; }
+    .released h4 { margin: 0; color: var(--dg-green); font-size: 16px; font-weight: 800; }
+    .exceptions { margin-top: 12px; background: #fff; border-radius: 6px; padding: 10px 12px; border-left: 4px solid var(--dg-amber); }
+    .exceptions h5 { margin: 0 0 6px; font-size: 13px; }
+
+    /* Floor board */
+    .floor { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-top: 16px; }
+    .doors { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+    .door { border-radius: 6px; border: 1px solid var(--dg-border); padding: 8px; min-height: 92px; background: #fff; }
+    .door__n { font-size: 11px; font-weight: 800; color: var(--dg-muted); }
+    .door__trailer { font-weight: 800; font-size: 13px; margin: 2px 0; }
+    .door__detail { font-size: 11px; color: var(--dg-muted); line-height: 14px; }
+    .door--LOADING { border-color: var(--dg-green); background: var(--dg-green-bg); }
+    .door--DEPARTED, .door--OPEN { background: var(--dg-grey); }
+    .door--WAITING { border: 2px solid var(--dg-red); background: var(--dg-red-bg); }
+    .door--WAITING .door__detail { color: var(--dg-red); font-weight: 700; }
+    .door--PICKING { border-color: var(--dg-green); background: var(--dg-green-bg); }
+    .module { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--dg-border); }
+    .module:last-child { border-bottom: 0; }
+    .module__name { font-weight: 700; }
+    .module__type { font-size: 11px; color: var(--dg-muted); }
+    .module__state { font-size: 12px; font-weight: 700; text-align: right; }
+    .module__state.is-idle { color: var(--dg-red); }
+    .module__state.is-active { color: var(--dg-green); }
+
+    /* Confirm modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 50; }
+    .modal-backdrop.is-open { display: flex; }
+    .modal { background: #fff; border-radius: 12px; width: 520px; padding: 22px 24px; }
+    .modal h3 { margin: 0 0 6px; font-size: 18px; font-weight: 800; }
+    .modal p { margin: 0 0 12px; color: var(--dg-muted); font-size: 13px; }
+    .check { display: flex; gap: 8px; align-items: flex-start; margin: 8px 0; font-size: 13px; }
+
+    /* Toast */
+    .toast { position: fixed; right: 24px; bottom: 24px; width: 380px; background: #fff; border-left: 6px solid var(--dg-red); border-radius: 8px; box-shadow: 0 8px 28px rgba(0,0,0,.25); padding: 14px 16px; transform: translateY(140%); transition: transform .25s ease; z-index: 60; }
+    .toast.is-visible { transform: translateY(0); }
+    .toast strong { display: block; color: var(--dg-red); font-size: 14px; }
+    .toast p { margin: 4px 0 0; font-size: 12px; }
+    .toast code { font-size: 11px; word-break: break-all; }
+    .toast__close { position: absolute; top: 8px; right: 10px; border: 0; background: none; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div class="repro-banner" id="repro-banner">Reproduction mode · alerting disabled for this browser session</div>
+  <header>
+    <div class="topbar">
+      <a class="topbar__logo" href="#" aria-label="Dollar General">
+        <img src="https://www.dollargeneral.com/content/dam/dg/assets/header-navigation/desktoplogo.png" alt="Dollar General"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
+        <span class="wordmark">DOLLAR GENERAL</span>
+      </a>
+      <div class="topbar__title">Distribution Center Operations<small>Outbound · Wave Planning &amp; Release</small></div>
+      <nav class="topbar__nav" aria-label="Primary">
+        <a href="#" class="is-active">Wave Release</a>
+        <a href="#">Dock Schedule</a>
+        <a href="#">Inventory Control</a>
+        <a href="#">Labor</a>
+        <a href="#">Reports</a>
+      </nav>
+      <div class="topbar__meta">
+        <span class="dc-pill" id="dc-id">DC 41</span>
+        <span id="shift">2nd shift</span>
+        <span><strong id="clock">--:--</strong></span>
+        <span>Shift lead: <strong>T. Ramsey</strong></span>
+      </div>
+    </div>
+    <div class="subbar">
+      <span><b id="dc-name">Marlow Junction Distribution Center</b></span>
+      <span><span class="feed-dot"></span>Location state: <b id="feed-name">WMS LOCSTATE v3</b> · live</span>
+      <span>Slot inventory: <b id="snapshot">05:00 cycle snapshot</b></span>
+      <span>Outbound today: <b>Routes 109–121</b></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="kpis">
+      <div class="kpi"><div class="kpi__label">Cases picked (shift)</div><div class="kpi__value" id="kpi-picked">4,812</div><div class="kpi__sub">Plan 9,600 by 22:30</div></div>
+      <div class="kpi" id="kpi-throughput-card"><div class="kpi__label">Throughput</div><div class="kpi__value" id="kpi-throughput">1,184</div><div class="kpi__sub" id="kpi-throughput-sub">cases / hr · target 1,150</div></div>
+      <div class="kpi"><div class="kpi__label">Waves open</div><div class="kpi__value" id="kpi-waves">3</div><div class="kpi__sub">Awaiting release</div></div>
+      <div class="kpi"><div class="kpi__label">Doors active</div><div class="kpi__value" id="kpi-doors">5 / 7</div><div class="kpi__sub">Outbound 10–15 · Inbound 16</div></div>
+      <div class="kpi" id="kpi-stores-card"><div class="kpi__label">Stores on today's routes</div><div class="kpi__value" id="kpi-stores">—</div><div class="kpi__sub" id="kpi-stores-sub">Replenishment on schedule</div></div>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <div class="card__head"><h2>Outbound waves</h2><span>By route / trailer</span></div>
+        <div class="card__body" id="wave-list"><div class="empty">Loading waves…</div></div>
+      </section>
+
+      <section class="card">
+        <div class="card__body">
+          <div class="steps" id="steps">
+            <div class="step" data-step="1"><span class="step__n">1</span>Select wave</div>
+            <div class="step" data-step="2"><span class="step__n">2</span>Preview allocation</div>
+            <div class="step" data-step="3"><span class="step__n">3</span>Confirm</div>
+            <div class="step" data-step="4"><span class="step__n">4</span>Release</div>
+          </div>
+
+          <div class="halt" id="halt" role="status">
+            <div class="halt__row">
+              <div>
+                <h4 id="halt-title">Wave halted — pick tasks were not built</h4>
+                <p id="halt-copy"></p>
+              </div>
+              <div class="halt__timer"><span>Throughput halted</span><b id="halt-timer">00:00:00</b></div>
+            </div>
+            <div class="halt__grid">
+              <div><span>Stores at risk</span><b id="halt-stores">—</b></div>
+              <div><span>Cases not released</span><b id="halt-cases">—</b></div>
+              <div><span>Trailer waiting</span><b id="halt-trailer">—</b></div>
+              <div><span>Scheduled departure</span><b id="halt-departure">—</b></div>
+            </div>
+          </div>
+
+          <div class="released" id="released" role="status">
+            <h4 id="released-title">Wave released to the floor</h4>
+            <div class="note" id="released-copy" style="color:#000"></div>
+            <div class="exceptions" id="exceptions" hidden>
+              <h5>Inventory exceptions — warehouse follow-up</h5>
+              <table><thead><tr><th>Location</th><th>Item</th><th>System shows</th><th>Floor reports</th><th>Action</th></tr></thead><tbody id="exceptions-body"></tbody></table>
+            </div>
+          </div>
+
+          <div class="wave-head">
+            <div>
+              <h3 id="wave-title">—</h3>
+              <p id="wave-sub"></p>
+            </div>
+            <span class="status" id="wave-status">PLANNED</span>
+          </div>
+          <div class="facts">
+            <div class="fact"><span>Stores</span><b id="fact-stores">—</b></div>
+            <div class="fact"><span>Order lines</span><b id="fact-lines">—</b></div>
+            <div class="fact"><span>Cases</span><b id="fact-cases">—</b></div>
+            <div class="fact"><span>Door</span><b id="fact-door">—</b></div>
+            <div class="fact"><span>Trailer</span><b id="fact-trailer">—</b></div>
+            <div class="fact"><span>Departs</span><b id="fact-departure">—</b></div>
+          </div>
+
+          <div id="preview">
+            <div class="empty" id="preview-empty">Preview the allocation to see store order lines planned against slot inventory.</div>
+            <table id="preview-table" hidden>
+              <thead><tr><th>SKU</th><th>Item</th><th>Pack</th><th class="num">Stores</th><th class="num">Cases</th><th>Pick slot</th><th>Module</th><th class="num">On hand</th><th>Coverage</th></tr></thead>
+              <tbody id="preview-body"></tbody>
+            </table>
+            <div class="note" id="preview-note" hidden></div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn--ghost" id="btn-preview">Preview allocation</button>
+            <button class="btn btn--primary" id="btn-confirm" disabled>Confirm &amp; release…</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="floor">
+      <section class="card">
+        <div class="card__head"><h2>Dock door board</h2><span>Shipping · doors 10–16</span></div>
+        <div class="card__body"><div class="doors" id="doors"></div></div>
+      </section>
+      <section class="card">
+        <div class="card__head"><h2>Pick modules</h2><span>Task queue</span></div>
+        <div class="card__body" id="modules"></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="modal-backdrop" id="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <h3 id="modal-title">Release wave</h3>
+      <p id="modal-copy"></p>
+      <label class="check"><input type="checkbox" id="chk-trailer" checked> Trailer checked in and door assigned</label>
+      <label class="check"><input type="checkbox" id="chk-labels" checked> Case labels queued to print at pick modules</label>
+      <label class="check"><input type="checkbox" id="chk-labor" checked> Labor assigned for the wave (PM1–PM3)</label>
+      <div class="actions">
+        <button class="btn btn--ghost" id="btn-cancel">Cancel</button>
+        <button class="btn btn--dark" id="btn-release">Release wave</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="alert">
+    <button class="toast__close" id="toast-close" aria-label="Dismiss">&times;</button>
+    <strong id="toast-title">Wave release failed</strong>
+    <p id="toast-msg"></p>
+    <p>Reference ID: <code id="toast-ref"></code></p>
+  </div>
+
+  <script>
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+    // ?repro=1 fails identically but raises no Sentry event, Slack alert or Devin session.
+    var REPRO_MODE = new URLSearchParams(window.location.search).has('repro');
+
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+
+    var state = { board: null, waves: {}, selected: 'W41-1009-03', step: 1, preview: null, haltedAt: null, haltTimer: null, toastTimer: null, haltBodies: {}, releasedBodies: {}, doorOverrides: {}, moduleState: {} };
+
+    function $(id) { return document.getElementById(id); }
+    function fmt(n) { return Number(n).toLocaleString('en-US'); }
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function tickClock() {
+      var d = new Date();
+      $('clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
+    function renderWaves() {
+      $('wave-list').innerHTML = Object.values(state.waves).map(function (w) {
+        return '<button class="wave' + (w.waveId === state.selected ? ' is-selected' : '') + '" data-wave="' + esc(w.waveId) + '">' +
+          '<div class="wave__top"><span class="wave__id">' + esc(w.waveId) + '</span><span class="status status--' + esc(w.status) + '">' + esc(w.status) + '</span></div>' +
+          '<div class="wave__route">' + esc(w.route) + ' · Door ' + esc(w.door) + ' · ' + esc(w.trailer) + '</div>' +
+          '<div class="wave__stats"><span><b>' + w.stores + '</b> stores</span><span><b>' + fmt(w.cases) + '</b> cases</span><span>Departs <b>' + esc(w.departure) + '</b></span></div>' +
+          '</button>';
+      }).join('');
+      Array.prototype.forEach.call(document.querySelectorAll('.wave'), function (el) {
+        el.addEventListener('click', function () { selectWave(el.getAttribute('data-wave')); });
+      });
+    }
+
+    function renderSteps() {
+      Array.prototype.forEach.call(document.querySelectorAll('.step'), function (el) {
+        var n = Number(el.getAttribute('data-step'));
+        el.classList.toggle('is-done', n < state.step);
+        el.classList.toggle('is-current', n === state.step);
+      });
+    }
+
+    function renderDetail() {
+      var w = state.waves[state.selected];
+      if (!w) return;
+      $('wave-title').textContent = 'Wave ' + w.waveId;
+      $('wave-sub').textContent = w.route + ' · store replenishment for ' + w.deliveryDay + ' delivery';
+      $('wave-status').textContent = w.status;
+      $('wave-status').className = 'status status--' + w.status;
+      $('fact-stores').textContent = w.stores;
+      $('fact-lines').textContent = fmt(w.lines);
+      $('fact-cases').textContent = fmt(w.cases);
+      $('fact-door').textContent = w.door;
+      $('fact-trailer').textContent = w.trailer;
+      $('fact-departure').textContent = w.departure;
+      $('halt').classList.toggle('is-visible', w.status === 'HALTED' && !!state.haltBodies[w.waveId]);
+      $('released').classList.toggle('is-visible', w.status === 'RELEASED' && !!state.releasedBodies[w.waveId]);
+      if (state.haltBodies[w.waveId]) fillHalt(w, state.haltBodies[w.waveId]);
+      if (state.releasedBodies[w.waveId]) fillReleased(w, state.releasedBodies[w.waveId]);
+      var locked = w.status === 'RELEASED' || w.status === 'HALTED';
+      $('btn-preview').disabled = locked;
+      $('btn-confirm').disabled = locked || !(state.preview && state.preview.wave.waveId === w.waveId);
+    }
+
+    function renderPreview() {
+      var p = state.preview;
+      var show = p && p.wave.waveId === state.selected;
+      $('preview-empty').hidden = !!show;
+      $('preview-table').hidden = !show;
+      $('preview-note').hidden = !show;
+      if (!show) return;
+      $('preview-body').innerHTML = p.rows.map(function (r) {
+        return '<tr><td class="mono">' + esc(r.sku) + '</td><td>' + esc(r.description) + '</td><td>' + esc(r.pack) + '</td>' +
+          '<td class="num">' + r.stores + '</td><td class="num"><b>' + fmt(r.cases) + '</b></td><td class="mono">' + esc(r.location) + '</td>' +
+          '<td>' + esc(r.module) + '</td><td class="num">' + fmt(r.onHandCases) + '</td>' +
+          '<td><span class="cov cov--' + esc(r.coverage) + '">' + (r.coverage === 'FULL' ? 'Pick slot' : 'Pick slot + reserve') + '</span></td></tr>';
+      }).join('');
+      $('preview-note').textContent = 'Planned against slot inventory from the ' + p.snapshotAsOf + '. Live location state is checked when the wave is released.';
+    }
+
+    function doorView(d) {
+      var o = state.doorOverrides[d.door];
+      return o ? { door: d.door, trailer: d.trailer, status: o.status, detail: o.detail } : d;
+    }
+
+    function renderFloor() {
+      if (!state.board) return;
+      $('doors').innerHTML = state.board.doors.map(function (raw) {
+        var d = doorView(raw);
+        return '<div class="door door--' + esc(d.status) + '"><div class="door__n">DOOR ' + esc(d.door) + '</div>' +
+          '<div class="door__trailer">' + esc(d.trailer || '—') + '</div><div class="door__detail">' + esc(d.detail) + '</div></div>';
+      }).join('');
+      $('modules').innerHTML = state.board.pickModules.map(function (m) {
+        var s = state.moduleState[m.id] || { text: 'Picking W41-1009-01/02 · queue draining', cls: '' };
+        return '<div class="module"><div><div class="module__name">' + esc(m.name) + '</div><div class="module__type">' + esc(m.type) + '</div></div>' +
+          '<div class="module__state ' + s.cls + '">' + esc(s.text) + '</div></div>';
+      }).join('');
+    }
+
+    function renderKpis() {
+      var stores = Object.values(state.waves).reduce(function (sum, w) { return sum + w.stores; }, 0);
+      $('kpi-stores').textContent = stores;
+      var open = Object.values(state.waves).filter(function (w) { return w.status === 'PLANNED' || w.status === 'PREVIEWED'; }).length;
+      $('kpi-waves').textContent = open;
+    }
+
+    function renderAll() { renderWaves(); renderSteps(); renderDetail(); renderPreview(); renderFloor(); renderKpis(); }
+
+    function selectWave(id) {
+      state.selected = id;
+      var w = state.waves[id];
+      state.step = w.status === 'RELEASED' ? 5 : (state.preview && state.preview.wave.waveId === id ? 3 : 2);
+      renderAll();
+    }
+
+    function showToast(title, msg, ref) {
+      $('toast-title').textContent = title;
+      $('toast-msg').textContent = msg;
+      $('toast-ref').textContent = ref || 'unavailable';
+      $('toast').classList.add('is-visible');
+      clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(function () { $('toast').classList.remove('is-visible'); }, 6000);
+    }
+
+    function startHaltTimer() {
+      state.haltedAt = Date.now();
+      clearInterval(state.haltTimer);
+      state.haltTimer = setInterval(function () {
+        var s = Math.floor((Date.now() - state.haltedAt) / 1000);
+        $('halt-timer').textContent = pad(Math.floor(s / 3600)) + ':' + pad(Math.floor(s / 60) % 60) + ':' + pad(s % 60);
+        $('kpi-throughput').textContent = fmt(Math.max(0, 1184 - Math.round(s * 0.9)));
+      }, 1000);
+    }
+
+    function fillHalt(w, body) {
+      var impact = body.impact || {};
+      $('halt-copy').textContent = 'Release of ' + w.waveId + ' stopped while building pick tasks. Door ' + w.door + ' trailer ' + w.trailer +
+        ' is checked in with nothing to load, and ' + (impact.pickModulesIdle || []).length + ' pick modules have no tasks for this wave.';
+      $('halt-stores').textContent = (impact.storesAtRisk || w.stores) + ' stores';
+      $('halt-cases').textContent = fmt(impact.casesUnreleased || w.cases);
+      $('halt-trailer').textContent = 'Door ' + w.door + ' · ' + w.trailer;
+      $('halt-departure').textContent = w.departure + ' · at risk';
+    }
+
+    function showHalt(waveId, body) {
+      var w = state.waves[waveId];
+      var impact = body.impact || {};
+      w.status = 'HALTED';
+      state.haltBodies[w.waveId] = body;
+      state.doorOverrides[w.door] = { status: 'WAITING', detail: 'Waiting on picks · ' + w.waveId + ' halted' };
+      (impact.pickModulesIdle || ['PM1', 'PM2', 'PM3']).forEach(function (m) { state.moduleState[m] = { text: 'Idle · no tasks for ' + w.waveId, cls: 'is-idle' }; });
+      $('kpi-throughput-card').classList.add('kpi--alert');
+      $('kpi-throughput-sub').textContent = 'cases / hr · falling, wave halted';
+      $('kpi-stores-card').classList.add('kpi--alert');
+      $('kpi-stores-sub').textContent = (impact.storesAtRisk || w.stores) + ' stores at risk for ' + w.deliveryDay + ' delivery';
+      startHaltTimer();
+      if (state.selected === waveId) state.step = 4;
+      renderAll();
+    }
+
+    function fillReleased(w, body) {
+      $('released-title').textContent = 'Wave ' + w.waveId + ' released to the floor';
+      var m = body.byModule || {};
+      $('released-copy').textContent = fmt(body.pickTasks) + ' pick tasks · ' + fmt(body.casesReleased) + ' cases · ' +
+        Object.keys(m).map(function (k) { return k + ' ' + m[k].tasks + ' tasks'; }).join(' · ') +
+        (body.shorts && body.shorts.length ? ' · ' + body.shorts.length + ' short lines' : ' · no shorts');
+      var ex = body.inventoryExceptions || [];
+      $('exceptions').hidden = ex.length === 0;
+      $('exceptions-body').innerHTML = ex.map(function (e) {
+        return '<tr><td class="mono">' + esc(e.location) + '</td><td>' + esc(e.sku) + ' · ' + esc(e.description) + '</td><td>' + esc(e.systemState) +
+          '</td><td>' + esc(e.physicalState) + '</td><td>' + esc(e.action) + '</td></tr>';
+      }).join('');
+    }
+
+    function showReleased(waveId, body) {
+      var w = state.waves[waveId];
+      var m = body.byModule || {};
+      w.status = 'RELEASED';
+      delete state.haltBodies[waveId];
+      state.releasedBodies[w.waveId] = body;
+      state.doorOverrides[w.door] = { status: 'PICKING', detail: 'Picking ' + w.waveId + ' · load starts at first pallet' };
+      Object.keys(m).forEach(function (k) { if (m[k].tasks) state.moduleState[k] = { text: m[k].tasks + ' tasks · ' + w.waveId, cls: 'is-active' }; });
+      if (state.selected === waveId) state.step = 5;
+      if (!Object.values(state.waves).some(function (wave) { return wave.status === 'HALTED'; })) {
+        clearInterval(state.haltTimer);
+        state.haltTimer = null;
+        state.haltedAt = null;
+        $('halt-timer').textContent = '00:00:00';
+        $('kpi-throughput-card').classList.remove('kpi--alert');
+        $('kpi-throughput').textContent = fmt(1184);
+        $('kpi-throughput-sub').textContent = 'cases / hr · target 1,150';
+        $('kpi-stores-card').classList.remove('kpi--alert');
+        $('kpi-stores-sub').textContent = 'Replenishment on schedule';
+      }
+      renderAll();
+    }
+
+    $('btn-preview').addEventListener('click', function () {
+      var btn = $('btn-preview');
+      var waveId = state.selected;
+      btn.disabled = true;
+      btn.textContent = 'Building preview…';
+      fetch('/api/fb76423f/waves/' + encodeURIComponent(waveId) + '/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+        .then(function (r) { return r.json(); })
+        .then(function (p) {
+          state.waves[waveId].status = 'PREVIEWED';
+          if (state.selected === waveId) {
+            state.preview = p;
+            state.step = 3;
+          }
+        })
+        .catch(function (err) { showToast('Preview failed', err.message); })
+        .then(function () { btn.textContent = 'Preview allocation'; renderAll(); });
+    });
+
+    $('btn-confirm').addEventListener('click', function () {
+      var w = state.waves[state.selected];
+      $('modal-title').textContent = 'Release wave ' + w.waveId + '?';
+      $('modal-copy').textContent = w.stores + ' stores · ' + fmt(w.lines) + ' order lines · ' + fmt(w.cases) + ' cases. Pick tasks will be built for Pick Modules 1–3 and sent to the floor for Door ' + w.door + ' (' + w.trailer + ', departs ' + w.departure + ').';
+      $('modal').classList.add('is-open');
+    });
+    $('btn-cancel').addEventListener('click', function () { $('modal').classList.remove('is-open'); });
+    $('toast-close').addEventListener('click', function () { $('toast').classList.remove('is-visible'); });
+
+    $('btn-release').addEventListener('click', function () {
+      var btn = $('btn-release');
+      btn.disabled = true;
+      btn.textContent = 'Releasing…';
+      var waveId = state.selected;
+      identityReady.then(function () {
+        return fetch('/api/fb76423f/waves/' + encodeURIComponent(waveId) + '/release', {
+          method: 'POST',
+          headers: REPRO_MODE ? { 'Content-Type': 'application/json', 'x-synthetic': '1' } : { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            confirmed: true,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+      }).then(function (r) {
+        return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+      }).then(function (res) {
+        $('modal').classList.remove('is-open');
+        if (!res.ok || !res.body.success) {
+          showToast('Wave release failed', (res.body.errorClass ? res.body.errorClass + ': ' : '') + (res.body.error || 'Unknown error'), res.body.requestId);
+          if (res.body.impact) showHalt(waveId, res.body);
+          return;
+        }
+        showReleased(waveId, res.body);
+      }).catch(function (err) {
+        $('modal').classList.remove('is-open');
+        showToast('Wave release failed', err.message);
+      }).then(function () {
+        btn.disabled = false;
+        btn.textContent = 'Release wave';
+      });
+    });
+
+    if (REPRO_MODE) $('repro-banner').style.display = 'block';
+    tickClock();
+    setInterval(tickClock, 15000);
+
+    fetch('/api/fb76423f/board')
+      .then(function (r) { return r.json(); })
+      .then(function (board) {
+        state.board = board;
+        $('dc-id').textContent = board.dc.id;
+        $('dc-name').textContent = board.dc.name;
+        $('shift').textContent = board.dc.shift;
+        $('feed-name').textContent = board.dc.wmsFeed;
+        $('snapshot').textContent = board.dc.snapshotAsOf;
+        board.waves.forEach(function (w) { state.waves[w.waveId] = w; });
+        state.step = 2;
+        renderAll();
+      });
+  </script>
+</body>
+</html>
