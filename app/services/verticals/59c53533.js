@@ -42,8 +42,9 @@ const STORES = {
 const DELIVERY_FEE_SCHEDULES = {
   'TN-NASH-01': { baseFee: 6.95, myDgFreeDeliveryEligible: true },
   'TN-NASH-03': { baseFee: 6.95, myDgFreeDeliveryEligible: true },
-  'TN-NASH-07': { baseFee: 6.95, myDgFreeDeliveryEligible: true },
   'TN-MEM-02': { baseFee: 7.95, myDgFreeDeliveryEligible: true },
+  // TN-NASH-07 — wave 7 Same Day Delivery rollout (stores went live 2026-10-05);
+  // fee schedule to follow from pricing ops
 };
 
 const TAX_RATE = 0.0925;
@@ -71,16 +72,6 @@ function validationError(message, code = 'INVALID_ORDER') {
   error.name = 'ValidationError';
   error.code = code;
   error.statusCode = 400;
-  return error;
-}
-
-function deliveryUnavailableError(store) {
-  const error = new Error("Same Day Delivery isn't available for this store yet");
-  error.name = 'DeliveryUnavailableError';
-  error.code = 'DELIVERY_UNAVAILABLE';
-  error.statusCode = 409;
-  error.storeNumber = store.storeNumber;
-  error.deliveryZone = store.deliveryZone;
   return error;
 }
 
@@ -112,10 +103,7 @@ function applyMyDgFreeDelivery(schedule, member) {
 }
 
 function quoteDelivery(store, member) {
-  const schedule = Object.hasOwn(DELIVERY_FEE_SCHEDULES, store.deliveryZone)
-    ? DELIVERY_FEE_SCHEDULES[store.deliveryZone]
-    : undefined;
-  if (!schedule) throw deliveryUnavailableError(store);
+  const schedule = DELIVERY_FEE_SCHEDULES[store.deliveryZone];
   return applyMyDgFreeDelivery(schedule, member);
 }
 
@@ -182,25 +170,6 @@ async function placeOrder(data) {
     };
   } catch (error) {
     const duration = Date.now() - startTime;
-
-    if (error.name === 'DeliveryUnavailableError') {
-      incrementMetric('dollar_general_checkout.delivery_unavailable', {
-        route: ROUTE,
-        storeNumber: store.storeNumber,
-        deliveryZone: store.deliveryZone,
-      });
-      recordTiming('dollar_general_checkout.latency', duration, { route: ROUTE, outcome: 'delivery_unavailable' });
-      logger.warn('Same Day Delivery unavailable for store — no fee schedule for its zone', {
-        requestId,
-        orderNumber,
-        storeNumber: store.storeNumber,
-        deliveryZone: store.deliveryZone,
-        service: SERVICE,
-        route: ROUTE,
-      });
-      error.requestId = requestId;
-      throw error;
-    }
 
     incrementMetric('dollar_general_checkout.failure', {
       route: ROUTE,
@@ -294,7 +263,6 @@ module.exports = {
   priceOrder,
   quoteDelivery,
   applyMyDgFreeDelivery,
-  deliveryUnavailableError,
   CATALOG,
   STORES,
   DELIVERY_FEE_SCHEDULES,
