@@ -64,8 +64,8 @@ describe('Dollar General Same Day Delivery checkout (59c53533)', () => {
     Sentry.captureException.mockClear();
   });
 
-  test('customer config exposes /dollar-general and /dg', () => {
-    expect(dgCustomer.aliases).toEqual(['dollar-general', 'dg']);
+  test('customer config exposes only /dollar-general', () => {
+    expect(dgCustomer.aliases).toEqual(['dollar-general']);
     expect(dgCustomer.triggerMode).toBe('api');
   });
 

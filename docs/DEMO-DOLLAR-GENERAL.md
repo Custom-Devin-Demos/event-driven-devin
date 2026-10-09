@@ -5,7 +5,7 @@ track is: *a store rollout ships with a config gap, a real shopper hits it, and
 Devin picks up the alert, reproduces it, and comes back with a reviewed-ready PR —
 nobody steers each step.*
 
-- Page: `/dollar-general` (aliases `/dg`, `/59c53533`) — unlisted, not on the hub
+- Page: `/dollar-general` (alias `/59c53533`) — unlisted, not on the hub
 - Endpoint: `POST /api/dollar-general/checkout` (catalog: `GET /api/dollar-general/catalog`)
 - Service: `app/services/verticals/59c53533.js`
 - Customer slug: `59c53533` (`DEVIN_SERVICE_KEY_59C53533`, `DEVIN_USER_ID_59C53533`,
