@@ -3177,6 +3177,31 @@ const ONCALL_SKINS = {
     page: { file: '65adbade.html', title: 'vllm-project/vllm | DeepWiki' },
     disclaimer: 'NOT ACTUALLY A COGNITION AI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cognition AI product.',
   },
+  '7d9fc58b': {
+    slug: '7d9fc58b',
+    company: 'Heidi Health',
+    brandMark: 'H',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: '7d9fc58b.html', title: 'Scribe | Heidi Health' },
+    theme: {
+      '--accent': '#472B34',
+      '--ink': '#28030F',
+      '--surface': '#FCFAF8',
+      '--chrome-bg': '#28030F',
+      '--chrome-text': '#F9F4F1',
+    },
+    supportCenter: 'Heidi Health Support',
+    alertCard: {
+      title: 'Note generation requests hanging, then timing out (504)',
+      service: 'scribe-note-api',
+      release: 'scribe-note-api@2026.10.1',
+      team: 'scribe-oncall',
+      symptom: 'Generate note requests hang ~7–10s, then fail with 504 Gateway Timeout. p95 latency is far above baseline.',
+      impact: 'Clinicians finish a session and get no note; they retry or write it up by hand.',
+    },
+    disclaimer: 'NOT ACTUALLY A HEIDI HEALTH SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Heidi Health product.',
+  },
 };
 
 function getOncallSkin(slug) {
