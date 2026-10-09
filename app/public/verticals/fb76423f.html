@@ -465,8 +465,8 @@
       $('halt-departure').textContent = w.departure + ' · at risk';
     }
 
-    function showHalt(body) {
-      var w = state.waves[state.selected];
+    function showHalt(waveId, body) {
+      var w = state.waves[waveId];
       var impact = body.impact || {};
       w.status = 'HALTED';
       state.haltBodies[w.waveId] = body;
@@ -477,7 +477,7 @@
       $('kpi-stores-card').classList.add('kpi--alert');
       $('kpi-stores-sub').textContent = (impact.storesAtRisk || w.stores) + ' stores at risk for ' + w.deliveryDay + ' delivery';
       startHaltTimer();
-      state.step = 4;
+      if (state.selected === waveId) state.step = 4;
       renderAll();
     }
 
@@ -495,27 +495,42 @@
       }).join('');
     }
 
-    function showReleased(body) {
-      var w = state.waves[state.selected];
+    function showReleased(waveId, body) {
+      var w = state.waves[waveId];
       var m = body.byModule || {};
       w.status = 'RELEASED';
+      delete state.haltBodies[waveId];
       state.releasedBodies[w.waveId] = body;
       state.doorOverrides[w.door] = { status: 'PICKING', detail: 'Picking ' + w.waveId + ' · load starts at first pallet' };
       Object.keys(m).forEach(function (k) { if (m[k].tasks) state.moduleState[k] = { text: m[k].tasks + ' tasks · ' + w.waveId, cls: 'is-active' }; });
-      state.step = 5;
+      if (state.selected === waveId) state.step = 5;
+      if (!Object.values(state.waves).some(function (wave) { return wave.status === 'HALTED'; })) {
+        clearInterval(state.haltTimer);
+        state.haltTimer = null;
+        state.haltedAt = null;
+        $('halt-timer').textContent = '00:00:00';
+        $('kpi-throughput-card').classList.remove('kpi--alert');
+        $('kpi-throughput').textContent = fmt(1184);
+        $('kpi-throughput-sub').textContent = 'cases / hr · target 1,150';
+        $('kpi-stores-card').classList.remove('kpi--alert');
+        $('kpi-stores-sub').textContent = 'Replenishment on schedule';
+      }
       renderAll();
     }
 
     $('btn-preview').addEventListener('click', function () {
       var btn = $('btn-preview');
+      var waveId = state.selected;
       btn.disabled = true;
       btn.textContent = 'Building preview…';
-      fetch('/api/fb76423f/waves/' + encodeURIComponent(state.selected) + '/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+      fetch('/api/fb76423f/waves/' + encodeURIComponent(waveId) + '/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
         .then(function (r) { return r.json(); })
         .then(function (p) {
-          state.preview = p;
-          state.waves[state.selected].status = 'PREVIEWED';
-          state.step = 3;
+          state.waves[waveId].status = 'PREVIEWED';
+          if (state.selected === waveId) {
+            state.preview = p;
+            state.step = 3;
+          }
         })
         .catch(function (err) { showToast('Preview failed', err.message); })
         .then(function () { btn.textContent = 'Preview allocation'; renderAll(); });
@@ -552,10 +567,10 @@
         $('modal').classList.remove('is-open');
         if (!res.ok || !res.body.success) {
           showToast('Wave release failed', (res.body.errorClass ? res.body.errorClass + ': ' : '') + (res.body.error || 'Unknown error'), res.body.requestId);
-          if (res.body.impact) showHalt(res.body);
+          if (res.body.impact) showHalt(waveId, res.body);
           return;
         }
-        showReleased(res.body);
+        showReleased(waveId, res.body);
       }).catch(function (err) {
         $('modal').classList.remove('is-open');
         showToast('Wave release failed', err.message);
