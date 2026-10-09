@@ -1,4 +1,4 @@
-/* global describe, expect, test, jest, beforeEach, afterEach */
+/* global describe, expect, test, jest, beforeEach */
 
 jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
@@ -18,10 +18,7 @@ const express = require('express');
 const http = require('http');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
-const { recordTiming } = require('../app/telemetry/datadog');
-const {
-  placeOrder, quoteDelivery, STORES, DELIVERY_FEE_SCHEDULES, MYDG_MEMBER,
-} = require('../app/services/verticals/59c53533');
+const { placeOrder, STORES, DELIVERY_FEE_SCHEDULES } = require('../app/services/verticals/59c53533');
 const dgRoutes = require('../app/routes/verticals/59c53533');
 const dgCustomer = require('../config/customers/59c53533');
 
@@ -72,19 +69,13 @@ describe('Dollar General Same Day Delivery checkout (59c53533)', () => {
     expect(dgCustomer.triggerMode).toBe('api');
   });
 
-  test('every Same Day Delivery store zone has a fee schedule', () => {
+  test('the new wave 7 store has no delivery fee schedule (planted bug)', () => {
     expect(STORES['13942'].deliveryZone).toBe('TN-NASH-07');
-    for (const store of Object.values(STORES)) {
-      expect(DELIVERY_FEE_SCHEDULES[store.deliveryZone]).toBeDefined();
-    }
+    expect(DELIVERY_FEE_SCHEDULES['TN-NASH-07']).toBeUndefined();
+    expect(DELIVERY_FEE_SCHEDULES[STORES['08715'].deliveryZone]).toBeDefined();
   });
 
-  test('TN-NASH-07 uses the same fee schedule as the other Nashville zones', () => {
-    expect(DELIVERY_FEE_SCHEDULES['TN-NASH-07']).toEqual(DELIVERY_FEE_SCHEDULES['TN-NASH-01']);
-    expect(DELIVERY_FEE_SCHEDULES['TN-NASH-07']).toEqual(DELIVERY_FEE_SCHEDULES['TN-NASH-03']);
-  });
-
-  test('delivery from wave 7 store 13942 places the order with the myDG free delivery', async () => {
+  test('delivery from store 13942 fails with a TypeError and alerts for this customer', async () => {
     const res = await request('POST', '/api/dollar-general/checkout', {
       items: PREFILLED_CART,
       fulfillment: 'delivery',
@@ -93,138 +84,41 @@ describe('Dollar General Same Day Delivery checkout (59c53533)', () => {
       devinOrgId: 'org-test',
     });
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(500);
     expect(res.body).toMatchObject({
-      success: true,
-      fulfillment: 'delivery',
-      store: { storeNumber: '13942' },
-      subtotal: 21.75,
-      baseFee: 6.95,
-      myDgDiscount: 6.95,
-      deliveryFee: 0,
-      usedFreeDelivery: true,
-      tax: 2.01,
-      total: 23.76,
+      success: false,
+      errorClass: 'TypeError',
+      code: 'CHECKOUT_FAILED',
+      error: "Cannot read properties of undefined (reading 'baseFee')",
     });
-    expect(res.body.orderNumber).toMatch(/^DG\d{9}$/);
-    expect(Sentry.captureException).not.toHaveBeenCalled();
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(res.body.requestId).toEqual(expect.any(String));
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert).toMatchObject({
+      customer: '59c53533',
+      service: 'customer-dollar-general-checkout',
+      devinUserId: 'user-test',
+      devinOrgId: 'org-test',
+      culprit: 'app/services/verticals/59c53533.js — applyMyDgFreeDelivery',
+    });
+    expect(alert.extra).toMatchObject({ storeNumber: '13942', deliveryZone: 'TN-NASH-07', fulfillment: 'delivery' });
+    expect(alert.tags).toEqual(expect.arrayContaining([{ key: 'route', value: '/api/dollar-general/checkout' }]));
+    expect(alert.promptAppendix).toContain('POST /api/dollar-general/checkout');
+    expect(alert.promptAppendix).toContain('/dollar-general?repro=1');
   });
 
-  test('reproduction requests for store 13942 delivery also succeed', async () => {
+  test('reproduction requests fail identically without Sentry or a Devin session', async () => {
     const res = await request('POST', '/api/dollar-general/checkout', {
       items: PREFILLED_CART,
       fulfillment: 'delivery',
       storeId: '13942',
     }, { 'x-synthetic': '1' });
 
-    expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ success: true, deliveryFee: 0 });
-  });
-
-  describe('store whose delivery zone has no fee schedule', () => {
-    const TEST_STORE = '99001';
-
-    beforeEach(() => {
-      STORES[TEST_STORE] = {
-        storeNumber: TEST_STORE,
-        address: '1 Test Way, Knoxville, TN 37902',
-        deliveryZone: 'TN-KNOX-99',
-        sameDayDeliverySince: '2026-10-09',
-      };
-    });
-
-    afterEach(() => {
-      delete STORES[TEST_STORE];
-    });
-
-    test('delivery returns a handled 409 without Sentry or a Devin session', async () => {
-      const res = await request('POST', '/api/dollar-general/checkout', {
-        items: PREFILLED_CART,
-        fulfillment: 'delivery',
-        storeId: TEST_STORE,
-      });
-
-      expect(res.status).toBe(409);
-      expect(res.body).toMatchObject({
-        success: false,
-        errorClass: 'DeliveryUnavailableError',
-        code: 'DELIVERY_UNAVAILABLE',
-        error: "Same Day Delivery isn't available for this store yet",
-      });
-      expect(res.body.requestId).toEqual(expect.any(String));
-      expect(res.body.error).not.toMatch(/TypeError|baseFee/);
-      expect(recordTiming).toHaveBeenCalledWith(
-        'dollar_general_checkout.latency',
-        expect.any(Number),
-        expect.objectContaining({ outcome: 'delivery_unavailable' }),
-      );
-      expect(Sentry.captureException).not.toHaveBeenCalled();
-      expect(createSessionAndAlert).not.toHaveBeenCalled();
-    });
-
-    test('store pickup at that store still succeeds', async () => {
-      const res = await request('POST', '/api/dollar-general/checkout', {
-        items: PREFILLED_CART,
-        fulfillment: 'pickup',
-        storeId: TEST_STORE,
-      });
-
-      expect(res.status).toBe(200);
-      expect(res.body).toMatchObject({ success: true, deliveryFee: 0 });
-    });
-  });
-
-  test.each([undefined, null, '', 'TN-KNOX-99', '__proto__', 'constructor', 'toString'])(
-    'quoteDelivery throws DeliveryUnavailableError for zone %p instead of a TypeError',
-    (deliveryZone) => {
-      const store = { storeNumber: '00000', deliveryZone };
-      expect(() => quoteDelivery(store, MYDG_MEMBER)).toThrow(expect.objectContaining({
-        name: 'DeliveryUnavailableError',
-        code: 'DELIVERY_UNAVAILABLE',
-        statusCode: 409,
-      }));
-    },
-  );
-
-  test('quoteDelivery charges the base fee when the member has no free deliveries left', () => {
-    expect(quoteDelivery(STORES['13942'], { ...MYDG_MEMBER, freeDeliveriesRemaining: 0 })).toEqual({
-      baseFee: 6.95,
-      myDgDiscount: 0,
-      deliveryFee: 6.95,
-      usedFreeDelivery: false,
-    });
-  });
-
-  test('a genuine checkout crash still alerts with the remediation directive', async () => {
-    const schedule = DELIVERY_FEE_SCHEDULES['TN-NASH-07'];
-    Object.defineProperty(DELIVERY_FEE_SCHEDULES, 'TN-NASH-07', {
-      configurable: true,
-      enumerable: true,
-      get() { throw new TypeError('simulated pricing failure'); },
-    });
-    try {
-      const res = await request('POST', '/api/dollar-general/checkout', {
-        items: PREFILLED_CART,
-        fulfillment: 'delivery',
-        storeId: '13942',
-        devinUserId: 'user-test',
-        devinOrgId: 'org-test',
-      });
-
-      expect(res.status).toBe(500);
-      expect(res.body).toMatchObject({ success: false, errorClass: 'TypeError', code: 'CHECKOUT_FAILED' });
-      expect(Sentry.captureException).toHaveBeenCalledTimes(1);
-      expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-      const alert = createSessionAndAlert.mock.calls[0][0];
-      expect(alert).toMatchObject({ customer: '59c53533', devinUserId: 'user-test', devinOrgId: 'org-test' });
-      expect(alert.extra).toMatchObject({ storeNumber: '13942', deliveryZone: 'TN-NASH-07', fulfillment: 'delivery' });
-      expect(alert.promptAppendix).toContain('/dollar-general?repro=1');
-    } finally {
-      Object.defineProperty(DELIVERY_FEE_SCHEDULES, 'TN-NASH-07', {
-        configurable: true, enumerable: true, writable: true, value: schedule,
-      });
-    }
+    expect(res.status).toBe(500);
+    expect(res.body.errorClass).toBe('TypeError');
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
   test('store pickup from store 13942 succeeds', async () => {
