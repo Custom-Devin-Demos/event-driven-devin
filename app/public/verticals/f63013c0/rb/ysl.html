@@ -391,14 +391,24 @@
   var API = '/api/f63013c0';
   var FALLBACK_IMG = 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80';
   var IMAGES = {
-    'RL-KN-001': 'https://images.unsplash.com/photo-1580331451062-99ff652288d7?w=900&q=80',
-    'RL-AC-014': 'https://images.unsplash.com/photo-1609803384069-19f3e5a70e75?w=900&q=80',
-    'RL-SH-102': 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=900&q=80',
-    'RL-OW-220': 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=900&q=80',
-    'RL-AC-031': 'https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=900&q=80',
-    'RL-KN-044': 'https://images.unsplash.com/photo-1631541909061-71e349d1f203?w=900&q=80',
-    'RL-HM-301': 'https://images.unsplash.com/photo-1616627561839-074385245ff6?w=900&q=80',
+    'RL-KN-001': 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=900&q=80',
+    'RL-AC-014': 'https://images.unsplash.com/photo-1596703263926-eb0762ee17e4?w=900&q=80',
+    'RL-SH-102': 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=900&q=80',
+    'RL-OW-220': 'https://images.unsplash.com/photo-1521223890158-f9f7c3d5d504?w=900&q=80',
+    'RL-AC-031': 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=900&q=80',
+    'RL-KN-044': 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=900&q=80',
+    'RL-HM-301': 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=900&q=80',
     'RL-WM-118': 'https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=900&q=80'
+  };
+  var NAMES = {
+    'RL-KN-001': 'Pearl Necklace in Gold-Tone Metal',
+    'RL-AC-014': 'Pointed Pumps in Patent Leather',
+    'RL-SH-102': 'Bifold Wallet in Grained Leather',
+    'RL-OW-220': 'Biker Jacket in Lambskin',
+    'RL-AC-031': 'Ankle Boots in Smooth Leather',
+    'RL-KN-044': 'Round Sunglasses in Metal',
+    'RL-HM-301': 'Top Handle Bag in Patent Leather',
+    'RL-WM-118': 'Tuxedo Jacket in Grain de Poudre'
   };
   var BRAND = {
     'RL-KN-001': 'Saint Laurent', 'RL-AC-014': 'Saint Laurent', 'RL-SH-102': 'Saint Laurent',
@@ -410,7 +420,7 @@
     women: { eyebrow: 'Women', title: 'Women\u2019s Winter 26', sub: 'Tailoring, cashmere and finishing touches.', skus: ['RL-WM-118', 'RL-KN-001', 'RL-AC-014'] },
     kids: { eyebrow: 'Kids & Baby', title: 'Kids & Baby', sub: '', skus: [] },
     home: { eyebrow: 'Saint Laurent Rive Droite', title: 'Objects', sub: 'Objects and textiles for the home.', skus: ['RL-HM-301'] },
-    gifts: { eyebrow: 'Gifts', title: 'Holiday Gifts', sub: 'Cashmere, wool and leather, presented in the signature Saint Laurent box.', skus: null },
+    gifts: { eyebrow: 'Gifts', title: 'Holiday Gifts', sub: 'Leather goods, jewellery and ready-to-wear, presented in the signature Saint Laurent box.', skus: null },
     sale: { eyebrow: 'Sale', title: 'Maison', sub: '', skus: [] }
   };
 
@@ -638,7 +648,7 @@
 
   fetch(API + '/catalog').then(function (r) { return r.json(); }).then(function (d) {
     catalog = d;
-    (d.products || []).forEach(function (p) { products[p.sku] = p; });
+    (d.products || []).forEach(function (p) { if (NAMES[p.sku]) p.name = NAMES[p.sku]; products[p.sku] = p; });
     bag = ((d.basket && d.basket.lines) || []).map(function (l) { return { sku: l.sku, qty: l.qty, giftBox: !!l.giftBox }; });
     if (d.pspApiVersion) $('pspVer').textContent = 'PSP API ' + d.pspApiVersion;
     renderGrid('gifts');
