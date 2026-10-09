@@ -310,11 +310,16 @@
         $('canvasTitle').textContent = 'Review your session';
         $('canvasSub').textContent = 'Transcript captured. Your note will show here after you generate it.';
       }
+      const drafts = {};
+      function saveDraft() {
+        drafts[$('policyId').value] = { transcript: $('description').value, minutes: $('amount').value };
+      }
       function loadSession() {
         const id = $('policyId').value;
         const s = SESSIONS[id];
-        $('description').value = s.transcript;
-        $('amount').value = s.minutes;
+        const d = drafts[id] || { transcript: s.transcript, minutes: s.minutes };
+        $('description').value = d.transcript;
+        $('amount').value = d.minutes;
         $('tabPatient').textContent = patientName(id);
         $('sessionWhen').textContent = s.time === 'Yesterday' ? 'Yesterday 4:15 PM' : 'Today ' + s.time.replace('am', ' AM').replace('pm', ' PM');
         clearResult();
@@ -322,10 +327,10 @@
         updateHint();
       }
       $('policyId').addEventListener('change', loadSession);
-      $('description').addEventListener('input', () => { updateHint(); clearResult(); });
-      $('amount').addEventListener('input', () => { updateHint(); clearResult(); });
+      $('description').addEventListener('input', () => { saveDraft(); updateHint(); clearResult(); });
+      $('amount').addEventListener('input', () => { saveDraft(); updateHint(); clearResult(); });
       $('claimType').addEventListener('change', clearResult);
-      $('resetBtn').addEventListener('click', loadSession);
+      $('resetBtn').addEventListener('click', () => { delete drafts[$('policyId').value]; loadSession(); });
       $('resumeBtn').addEventListener('click', () => $('description').focus());
       loadSession();
 

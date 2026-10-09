@@ -3182,6 +3182,7 @@ const ONCALL_SKINS = {
     company: 'Heidi Health',
     brandMark: 'H',
     vertical: 'insurance',
+    oncallOnly: true,
     page: { file: '7d9fc58b.html', title: 'Scribe | Heidi Health' },
     theme: {
       '--accent': '#472B34',
@@ -3193,6 +3194,9 @@ const ONCALL_SKINS = {
     supportCenter: 'Heidi Health Support',
     alertCard: {
       title: 'Note generation requests hanging, then timing out (504)',
+      service: 'scribe-note-api',
+      release: 'scribe-note-api@2026.10.1',
+      team: 'scribe-oncall',
       symptom: 'Generate note requests hang ~7–10s, then fail with 504 Gateway Timeout. p95 latency is far above baseline.',
       impact: 'Clinicians finish a session and get no note; they retry or write it up by hand.',
     },
