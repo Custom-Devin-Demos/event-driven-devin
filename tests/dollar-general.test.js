@@ -18,7 +18,6 @@ const express = require('express');
 const http = require('http');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
-const { recordTiming } = require('../app/telemetry/datadog');
 const {
   placeOrder, quoteDelivery, STORES, DELIVERY_FEE_SCHEDULES, MYDG_MEMBER,
 } = require('../app/services/verticals/59c53533');
@@ -154,11 +153,6 @@ describe('Dollar General Same Day Delivery checkout (59c53533)', () => {
       });
       expect(res.body.requestId).toEqual(expect.any(String));
       expect(res.body.error).not.toMatch(/TypeError|baseFee/);
-      expect(recordTiming).toHaveBeenCalledWith(
-        'dollar_general_checkout.latency',
-        expect.any(Number),
-        expect.objectContaining({ outcome: 'delivery_unavailable' }),
-      );
       expect(Sentry.captureException).not.toHaveBeenCalled();
       expect(createSessionAndAlert).not.toHaveBeenCalled();
     });

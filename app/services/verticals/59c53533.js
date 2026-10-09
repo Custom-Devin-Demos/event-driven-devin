@@ -189,7 +189,6 @@ async function placeOrder(data) {
         storeNumber: store.storeNumber,
         deliveryZone: store.deliveryZone,
       });
-      recordTiming('dollar_general_checkout.latency', duration, { route: ROUTE, outcome: 'delivery_unavailable' });
       logger.warn('Same Day Delivery unavailable for store — no fee schedule for its zone', {
         requestId,
         orderNumber,
