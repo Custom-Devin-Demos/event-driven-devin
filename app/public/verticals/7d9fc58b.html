@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scribe | Heidi Health</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #472B34;
+      --ink: #28030F;
+      --surface: #FCFAF8;
+      --chrome-bg: #28030F;
+      --chrome-text: #F9F4F1;
+      --canvas: #F8F4F1;
+      --paper: #FFFFFF;
+      --muted: #705860;
+      --faint: #B4A6A8;
+      --line: color-mix(in srgb, var(--ink) 10%, transparent);
+      --selected: #F2E7DE;
+      --active: #E8D8C8;
+      --record: #4D754C;
+      --trial: #958AE4;
+      --sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --serif: 'Newsreader', Georgia, serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--canvas); }
+    body { font-family: var(--sans); color: var(--ink); font-size: 14.5px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    button, select, input, textarea { font: inherit; color: inherit; }
+    svg.i { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+    .app { display: grid; grid-template-columns: 74px 400px 1fr; min-height: calc(100vh - 34px); }
+
+    /* Icon rail */
+    .rail { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 0 18px; color: var(--muted); }
+    .mark { width: 38px; height: 38px; color: var(--ink); margin-bottom: 14px; }
+    .rail-new { width: 38px; height: 38px; border-radius: 10px; background: var(--accent); color: #fff; border: none; display: grid; place-items: center; margin-bottom: 14px; cursor: pointer; }
+    .rail-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11.5px; color: var(--muted); text-decoration: none; padding: 2px 0 8px; }
+    .rail-item .pad { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; }
+    .rail-item.on .pad { background: var(--active); color: var(--ink); }
+    .rail-icon { width: 38px; height: 38px; display: grid; place-items: center; }
+    .rail-gap { flex: 1; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: #CCDCCB; color: var(--ink); display: grid; place-items: center; font-size: 13px; font-weight: 500; margin-top: 6px; }
+
+    /* Sessions column */
+    .sessions { padding: 14px 14px 18px 16px; }
+    .crumbs { display: flex; align-items: center; gap: 12px; height: 34px; font-size: 15.5px; font-weight: 500; }
+    .crumbs .sep { color: var(--faint); font-weight: 400; }
+    .crumbs .pick { display: inline-flex; align-items: center; gap: 6px; }
+    .crumbs .tog { margin-left: auto; color: var(--muted); }
+    .sess-tools { display: flex; align-items: center; gap: 8px; margin: 20px 0 22px; }
+    .btn-newsession { display: inline-flex; align-items: stretch; background: var(--accent); color: #fff; border-radius: 10px; overflow: hidden; height: 38px; border: none; }
+    .btn-newsession span { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px 0 14px; font-weight: 500; font-size: 15px; }
+    .btn-newsession i { display: inline-flex; align-items: center; padding: 0 10px; border-left: 1px solid rgba(255,255,255,0.18); font-style: normal; }
+    .sess-tools .ghost { margin-left: auto; width: 38px; height: 38px; display: grid; place-items: center; color: var(--muted); }
+    .day { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 500; margin: 0 0 8px 12px; }
+    .sess { display: flex; align-items: center; gap: 12px; padding: 11px 10px 11px 14px; border-radius: 10px; cursor: pointer; border: none; background: none; width: 100%; text-align: left; min-height: 56px; }
+    .sess:hover { background: color-mix(in srgb, var(--selected) 55%, transparent); }
+    .sess.on { background: var(--selected); }
+    .sess .ring { width: 26px; height: 26px; border-radius: 50%; border: 1.5px dashed var(--faint); display: grid; place-items: center; color: var(--muted); font-size: 11px; font-weight: 600; flex: none; }
+    .sess.on .ring { border-style: solid; border-color: var(--accent); color: var(--accent); }
+    .sess .who { flex: 1; min-width: 0; }
+    .sess .who b { display: block; font-weight: 500; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sess .who small { display: block; color: var(--muted); font-size: 13px; }
+    .sess .when { text-align: right; font-size: 13px; color: var(--muted); }
+    .sess .when b { display: block; color: var(--ink); font-weight: 500; font-size: 14px; }
+
+    /* Workspace */
+    .work { display: flex; flex-direction: column; min-width: 0; padding: 12px 12px 12px 0; }
+    .topbar { display: flex; align-items: center; gap: 6px; height: 38px; margin-bottom: 8px; }
+    .tab { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px; border-radius: 8px; color: var(--muted); font-size: 15px; background: none; border: none; cursor: pointer; }
+    .tab.on { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px rgba(40,3,15,0.06); }
+    .tab .dash { width: 20px; height: 20px; border-radius: 50%; border: 1.5px dashed var(--faint); }
+    .top-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .trial { display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 12px; border-radius: 8px; background: var(--trial); color: #fff; font-size: 13px; font-weight: 500; }
+    .presence { display: inline-flex; align-items: center; gap: 6px; color: var(--record); padding: 0 4px; }
+    .presence i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; display: inline-block; }
+    .btn-record { display: inline-flex; align-items: stretch; height: 34px; border-radius: 8px; overflow: hidden; background: var(--record); color: #fff; border: none; cursor: pointer; }
+    .btn-record span { display: inline-flex; align-items: center; gap: 7px; padding: 0 14px 0 12px; font-weight: 600; font-size: 15px; }
+    .btn-record i { display: inline-flex; align-items: center; padding: 0 8px; border-left: 1px solid rgba(255,255,255,0.22); font-style: normal; }
+
+    .panes { display: grid; grid-template-columns: 1fr 296px; gap: 8px; flex: 1; min-height: 0; }
+    .canvas { background: var(--paper); border-radius: 12px; display: flex; flex-direction: column; padding: 30px 30px 10px; min-width: 0; }
+    .canvas-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+    .canvas-head h1 { font-family: var(--serif); font-weight: 400; font-size: 29px; letter-spacing: -0.01em; line-height: 1.15; }
+    .canvas-head p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .captured { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--record); background: color-mix(in srgb, var(--record) 10%, transparent); border-radius: 999px; padding: 5px 11px; font-weight: 500; }
+    .captured::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    textarea#description { width: 100%; flex: 1; min-height: 300px; resize: vertical; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 16px 18px; font-size: 14.5px; line-height: 1.6; color: var(--ink); }
+    textarea#description:focus, select:focus, input:focus { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+    .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 16px 0 8px; }
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 10px; background: var(--accent); color: #fff; border: none; font-weight: 600; font-size: 15.5px; cursor: pointer; }
+    .btn-primary:disabled { opacity: 0.75; cursor: progress; }
+    .btn-primary .spin { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; animation: spin 0.8s linear infinite; display: none; }
+    .btn-primary:disabled .spin { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-soft { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 10px; background: var(--paper); border: 1px solid var(--line); font-weight: 500; font-size: 15px; cursor: pointer; }
+    .hint { color: var(--muted); font-size: 13px; }
+
+    .result-box { display: none; margin: 8px 0 6px; border-radius: 12px; padding: 14px 16px; font-size: 14px; }
+    .result-box strong { display: block; font-weight: 600; margin-bottom: 3px; }
+    .result-box.success { display: block; background: color-mix(in srgb, var(--record) 9%, #fff); border: 1px solid color-mix(in srgb, var(--record) 30%, transparent); }
+    .result-box.error { display: block; background: #FBF1EF; border: 1px solid #EBCFC8; color: #6B1F22; }
+    .result-box .note-lines { margin-top: 8px; color: var(--ink); }
+    .result-box .note-lines div { padding: 2px 0; }
+
+    .ask { margin-top: auto; padding-top: 14px; }
+    .ask-tabs { display: flex; align-items: center; gap: 22px; border: 1px solid var(--line); border-bottom: none; border-radius: 12px 12px 0 0; padding: 10px 24px; font-size: 13.5px; font-weight: 500; margin: 0 12px; background: color-mix(in srgb, var(--canvas) 45%, #fff); }
+    .ask-tabs span { display: inline-flex; align-items: center; gap: 6px; }
+    .ask-tabs span::before { content: ''; width: 11px; height: 11px; border: 1.5px solid var(--trial); border-radius: 3px; }
+    .ask-tabs em { margin-left: auto; color: var(--faint); font-style: normal; }
+    .ask-box { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 12px 22px; box-shadow: 0 2px 8px rgba(40,3,15,0.04); color: var(--faint); font-size: 16.5px; background: #fff; }
+    .ask-box .grow { flex: 1; }
+    .sources { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; color: var(--ink); font-size: 13.5px; font-weight: 600; }
+    .sources i { width: 20px; height: 20px; border-radius: 50%; display: inline-block; margin-right: -10px; border: 2px solid #fff; }
+    .legal { text-align: center; color: var(--muted); font-size: 11.5px; padding: 10px 0 2px; }
+
+    /* Right panel */
+    .side { display: flex; flex-direction: column; gap: 8px; }
+    .card { background: var(--paper); border-radius: 12px; padding: 14px 14px 10px; }
+    .card h2 { display: flex; align-items: center; justify-content: space-between; font-size: 15.5px; font-weight: 500; margin-bottom: 8px; }
+    .row { display: flex; align-items: center; gap: 10px; min-height: 34px; color: var(--muted); font-size: 15px; }
+    .row svg.i { color: var(--muted); width: 18px; height: 18px; }
+    .row select, .row input { flex: 1; min-width: 0; border: none; background: transparent; color: var(--muted); font-size: 15px; padding: 6px 4px; border-radius: 8px; cursor: pointer; appearance: none; -webkit-appearance: none; }
+    .row select:hover, .row input:hover { background: var(--canvas); }
+    .row input[type=number] { cursor: text; width: 3.2em; flex: none; -moz-appearance: textfield; }
+    .row input[type=number]::-webkit-inner-spin-button, .row input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .row .unit { color: var(--muted); }
+    .row .ring { width: 18px; height: 18px; border-radius: 50%; border: 1.5px dashed var(--faint); flex: none; }
+    .card.link h2 { margin: 2px 0; }
+    label.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+    @media (max-width: 1360px) { .app { grid-template-columns: 74px 1fr; } .sessions { display: none; } .work { padding-left: 0; } }
+    @media (max-width: 1060px) { .panes { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) {
+      .app { grid-template-columns: 1fr; }
+      .rail { display: none; }
+      .work { padding: 10px; }
+      .topbar { flex-wrap: wrap; height: auto; gap: 6px; }
+      .topbar .tab:not(.on) { display: none; }
+      .topbar .tab { height: 44px; }
+      .trial, .presence { display: none; }
+      .btn-record { height: 44px; }
+      .canvas { padding: 20px 16px 10px; }
+      .canvas-head h1 { font-size: 25px; }
+      .actions .btn-primary, .actions .btn-soft { flex: 1 1 100%; }
+      .ask-tabs { margin: 0 6px; padding: 10px 14px; }
+      .ask-box { padding-left: 14px; font-size: 15px; }
+      .sources { display: none; }
+      .row { min-height: 44px; }
+      .row select, .row input { min-height: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="rail" aria-label="Primary">
+      <svg class="mark" viewBox="0 0 40 40" aria-label="Heidi Health" role="img">
+        <g fill="none" stroke="currentColor" stroke-width="2.6">
+          <circle cx="14" cy="14" r="8"/><circle cx="26" cy="14" r="8"/><circle cx="14" cy="26" r="8"/><circle cx="26" cy="26" r="8"/>
+        </g>
+      </svg>
+      <button class="rail-new" type="button" aria-label="New session"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <a class="rail-item on" href="#"><span class="pad"><svg class="i" viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg></span>Scribe</a>
+      <a class="rail-item" href="#"><span class="pad"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5"/></svg></span>Evidence</a>
+      <a class="rail-item" href="#"><span class="pad"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>Tasks</a>
+      <a class="rail-item" href="#"><span class="pad"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c2.4.2 4 1.8 4.5 4.8"/></svg></span>Patients</a>
+      <span class="rail-icon"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="11" width="9" height="9" rx="2"/><rect x="11" y="4" width="9" height="9" rx="2"/></svg></span>
+      <span class="rail-icon"><svg class="i" viewBox="0 0 24 24"><path d="M6 4h3l1.5 4-2 1.5a10 10 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4 6a2 2 0 0 1 2-2z"/></svg></span>
+      <span class="rail-icon"><svg class="i" viewBox="0 0 24 24"><path d="M9 3v4M15 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4"/></svg></span>
+      <span class="rail-icon"><svg class="i" viewBox="0 0 24 24"><path d="M4 12l8-8 8 8-8 8z"/><circle cx="12" cy="12" r="2"/></svg></span>
+      <span class="rail-icon"><svg class="i" viewBox="0 0 24 24"><path d="M7 19c-2-1-3-3.5-3-7a7 7 0 0 1 14 0M10 19v-7a2 2 0 0 1 4 0v3"/></svg></span>
+      <span class="rail-gap"></span>
+      <span class="rail-icon"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.8 1c0 1.7-2.4 2-2.4 3.5M12 17h.01"/></svg></span>
+      <span class="rail-icon"><svg class="i" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20h4"/></svg></span>
+      <span class="rail-icon"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3 9h18M12 9v11M12 9c-2-4-6-4-6-1.5S10 9 12 9c2 0 6 .5 6-1.5S14 5 12 9"/></svg></span>
+      <span class="avatar">Y</span>
+    </nav>
+
+    <aside class="sessions" aria-label="Sessions">
+      <div class="crumbs">Sessions <span class="sep">/</span> <span class="pick">My sessions <svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M6 9l6 6 6-6"/></svg></span>
+        <svg class="i tog" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14"/></svg></div>
+      <div class="sess-tools">
+        <button class="btn-newsession" type="button"><span><svg class="i" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M12 5v14M5 12h14"/></svg>New session</span><i><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M6 9l6 6 6-6"/></svg></i></button>
+        <span class="ghost"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg></span>
+        <span class="ghost" style="margin-left:0"><svg class="i" viewBox="0 0 24 24"><path d="M4 8h10M18 8h2M4 16h3M11 16h9"/><circle cx="16" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></svg></span>
+      </div>
+      <div class="day"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M6 9l6 6 6-6"/></svg>Today</div>
+      <div id="sessionList"></div>
+    </aside>
+
+    <form class="work" id="claimForm" novalidate>
+      <div class="topbar">
+        <button type="button" class="tab"><span class="dash"></span><span id="tabPatient">Add patient</span></button>
+        <button type="button" class="tab"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 7h16M4 12h10M4 17h13"/></svg>Context</button>
+        <button type="button" class="tab on"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Note</button>
+        <button type="button" class="tab" aria-label="Add tab"><svg class="i" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M12 5v14M5 12h14"/></svg></button>
+        <div class="top-right">
+          <span class="trial"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;stroke:none"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>14 days</span>
+          <span class="presence"><i></i><i></i><i></i><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px;color:var(--ink)"><path d="M6 9l6 6 6-6"/></svg></span>
+          <button type="button" class="btn-record" id="resumeBtn"><span><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg>Resume</span><i><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M6 9l6 6 6-6"/></svg></i></button>
+        </div>
+      </div>
+
+      <div class="panes">
+        <section class="canvas" aria-labelledby="canvasTitle">
+          <div class="canvas-head">
+            <div>
+              <h1 id="canvasTitle">Review your session</h1>
+              <p id="canvasSub">Transcript captured. Your note will show here after you generate it.</p>
+            </div>
+            <span class="captured" id="capturedPill">Transcript captured</span>
+          </div>
+          <label class="sr" for="description">Session transcript</label>
+          <textarea id="description" spellcheck="false"></textarea>
+          <div class="actions">
+            <button type="submit" class="btn-primary" id="submitBtn"><span class="spin" aria-hidden="true"></span><span class="lbl">Generate note</span></button>
+            <button type="button" class="btn-soft" id="resetBtn"><svg class="i" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4"/></svg>Reset transcript</button>
+            <span class="hint" id="wordHint"></span>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+
+          <div class="ask" aria-hidden="true">
+            <div class="ask-tabs"><span>Prep</span><span>Questions</span><em><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/></svg></em></div>
+            <div class="ask-box"><svg class="i" viewBox="0 0 24 24" style="width:17px;height:17px;color:var(--ink)"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 15l6-6"/></svg><span class="grow">Type / for shortcuts</span><span class="sources"><i style="background:#2B3A67"></i><i style="background:#111"></i><i style="background:#C9D8F2;margin-right:4px"></i>+7k</span><svg class="i" viewBox="0 0 24 24" style="color:var(--ink)"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></div>
+            <div class="legal">Medical knowledge only. Not for autonomous decision making. Check sources and use your clinical judgement.</div>
+          </div>
+        </section>
+
+        <aside class="side" aria-label="Session details">
+          <div class="card">
+            <h2>Session <svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M6 9l6 6 6-6"/></svg></h2>
+            <div class="row"><span class="ring"></span><label class="sr" for="policyId">Patient</label>
+              <select id="policyId">
+                <option value="POL-5001">Tan Wei Ling</option>
+                <option value="POL-5002">Priya Nair</option>
+                <option value="POL-5003">Ahmad Rahman</option>
+                <option value="POL-5004">Chloe Lim</option>
+              </select></div>
+            <div class="row"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span id="sessionWhen">Today 08:04 AM</span></div>
+            <div class="row"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><label class="sr" for="amount">Session length in minutes</label><input type="number" id="amount" min="1" max="120" step="1" value="12"><span class="unit">min recorded</span></div>
+            <div class="row"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h9M8.5 3v2M6 5c.5 3 2.5 5.5 6 7M11 5c-.5 3-3 6-7 7.5M12.5 20l4-9 4 9M14 17h5"/></svg>English</div>
+            <div class="row"><svg class="i" viewBox="0 0 24 24"><path d="M12 15V4M8 8l4-4 4 4M5 14v5h14v-5"/></svg>Share</div>
+            <div class="row"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h.01M12 12h.01M18 12h.01"/></svg>More options</div>
+          </div>
+          <div class="card">
+            <h2>Note <svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M6 9l6 6 6-6"/></svg></h2>
+            <div class="row"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="11" width="9" height="9" rx="2"/><rect x="11" y="4" width="9" height="9" rx="2"/></svg><label class="sr" for="claimType">Note template</label>
+              <select id="claimType">
+                <option value="medical">SOAP note</option>
+                <option value="medical">GP consult</option>
+                <option value="medical">Referral letter</option>
+                <option value="medical">Progress note</option>
+              </select></div>
+            <div class="row"><svg class="i" viewBox="0 0 24 24"><path d="M7 19c-2-1-3-3.5-3-7a7 7 0 0 1 14 0M10 19v-7a2 2 0 0 1 4 0v3"/></svg>Goldilocks</div>
+            <div class="row"><svg class="i" viewBox="0 0 24 24"><path d="M6 12h.01M12 12h.01M18 12h.01"/></svg>More options</div>
+          </div>
+          <div class="card link"><h2>Tools <svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 6l6 6-6 6"/></svg></h2></div>
+        </aside>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const SESSIONS = {
+        'POL-5001': { time: '8:04am', minutes: 12, reason: 'Hypertension review',
+          transcript: "Clinician: Morning, Wei Ling. How have the blood pressure readings been at home?\nPatient: Mostly around 145 over 90 in the mornings. Better in the evenings.\nClinician: Any headaches, chest pain, or shortness of breath?\nPatient: A few headaches last week, nothing else.\nClinician: Are you taking the amlodipine 5 mg every day?\nPatient: Yes, every morning with breakfast.\nClinician: Clinic reading today is 148 over 92. I'd like to increase amlodipine to 10 mg daily, repeat kidney function and electrolytes, and see you in four weeks with your home readings.\nPatient: Okay, that sounds fine." },
+        'POL-5002': { time: '7:42am', minutes: 9, reason: 'Type 2 diabetes follow-up',
+          transcript: "Clinician: Hi Priya, we have your HbA1c back. It's 7.8 percent, up from 7.1 in March.\nPatient: I've been travelling a lot for work and eating out.\nClinician: Any low sugars, dizziness, or changes in your feet?\nPatient: No lows. Feet are fine.\nClinician: You're on metformin 1 g twice daily. I'd suggest adding empagliflozin 10 mg each morning, a dietitian referral, and a repeat HbA1c in three months.\nPatient: Will the new tablet upset my stomach?\nClinician: It's usually well tolerated. Keep well hydrated and let me know if you notice urinary symptoms." },
+        'POL-5003': { time: '7:20am', minutes: 14, reason: 'Lower back pain',
+          transcript: "Clinician: Ahmad, tell me about the back pain.\nPatient: Started three days ago after moving furniture. Right lower back, doesn't go down the leg.\nClinician: Any numbness, weakness, or trouble passing urine?\nPatient: No, none of that.\nClinician: Tenderness over the right paraspinal muscles, straight leg raise negative, normal power and reflexes. This looks like a mechanical strain.\nClinician: Keep moving as tolerated, paracetamol regularly and ibuprofen 400 mg with food for up to five days. Come back if it isn't improving in two weeks, or straight away if you notice any red flag symptoms we discussed." },
+        'POL-5004': { time: 'Yesterday', minutes: 7, reason: 'Sore throat',
+          transcript: "Clinician: Chloe, how long has the sore throat been going on?\nPatient: Four days. Some fever on the first two nights.\nClinician: Any cough?\nPatient: A little, mostly at night.\nClinician: Temperature today is 37.4. Tonsils are mildly enlarged without exudate, no tender neck glands. This is most likely viral.\nClinician: Warm fluids, lozenges, and paracetamol as needed. No antibiotics needed today. Return if you have trouble swallowing, a high fever, or it lasts beyond a week." },
+      };
+      const patientName = (id) => { const o = Array.from($('policyId').options).find((x) => x.value === id); return o ? o.textContent : ''; };
+      const initials = (n) => n.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+
+      function renderList() {
+        const current = $('policyId').value;
+        $('sessionList').innerHTML = Object.keys(SESSIONS).map((id) => {
+          const s = SESSIONS[id];
+          const name = patientName(id);
+          const when = s.time === 'Yesterday' ? `<b>Yesterday</b>8 Oct` : `<b>${esc(s.time)}</b>9 Oct`;
+          return `<button type="button" class="sess${id === current ? ' on' : ''}" data-id="${esc(id)}"><span class="ring">${esc(initials(name))}</span><span class="who"><b>${esc(name)}</b><small>${esc(s.reason)}</small></span><span class="when">${when}</span></button>`;
+        }).join('');
+        $('sessionList').querySelectorAll('.sess').forEach((b) => b.addEventListener('click', () => { $('policyId').value = b.dataset.id; loadSession(); }));
+      }
+      function updateHint() {
+        const words = $('description').value.trim() ? $('description').value.trim().split(/\s+/).length : 0;
+        $('wordHint').textContent = `${words} words \u00b7 ${$('amount').value || 0} min`;
+      }
+      function clearResult() {
+        $('result').className = 'result-box';
+        $('result').innerHTML = '';
+        $('canvasTitle').textContent = 'Review your session';
+        $('canvasSub').textContent = 'Transcript captured. Your note will show here after you generate it.';
+      }
+      function loadSession() {
+        const id = $('policyId').value;
+        const s = SESSIONS[id];
+        $('description').value = s.transcript;
+        $('amount').value = s.minutes;
+        $('tabPatient').textContent = patientName(id);
+        $('sessionWhen').textContent = s.time === 'Yesterday' ? 'Yesterday 4:15 PM' : 'Today ' + s.time.replace('am', ' AM').replace('pm', ' PM');
+        clearResult();
+        renderList();
+        updateHint();
+      }
+      $('policyId').addEventListener('change', loadSession);
+      $('description').addEventListener('input', () => { updateHint(); clearResult(); });
+      $('amount').addEventListener('input', () => { updateHint(); clearResult(); });
+      $('claimType').addEventListener('change', clearResult);
+      $('resetBtn').addEventListener('click', loadSession);
+      $('resumeBtn').addEventListener('click', () => $('description').focus());
+      loadSession();
+
+      $('claimForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = $('submitBtn');
+        const lbl = btn.querySelector('.lbl');
+        const r = $('result');
+        const amount = parseFloat($('amount').value);
+        const template = $('claimType').options[$('claimType').selectedIndex].textContent;
+        const patient = patientName($('policyId').value);
+        if (!$('description').value.trim()) {
+          r.className = 'result-box error';
+          r.innerHTML = '<strong>Nothing to write up yet</strong>Add a transcript before generating a note.';
+          return;
+        }
+        if (!(amount > 0)) {
+          r.className = 'result-box error';
+          r.innerHTML = '<strong>Check the session length</strong>Enter the recorded minutes before generating a note.';
+          return;
+        }
+        btn.disabled = true;
+        lbl.textContent = 'Generating note\u2026';
+        r.className = 'result-box';
+        r.innerHTML = '';
+        $('canvasTitle').textContent = 'Writing your note';
+        $('canvasSub').textContent = `${template} for ${patient}`;
+        const fail = () => {
+          r.className = 'result-box error';
+          r.innerHTML = '<strong>Your note didn\u2019t generate</strong>Note generation is taking longer than usual. Your transcript is saved to this session \u2014 try again in a few minutes.';
+          $('canvasTitle').textContent = 'Review your session';
+          $('canvasSub').textContent = 'Transcript captured. Your note has not been generated yet.';
+        };
+        try {
+          const res = await fetch('/api/insurance/claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              policyId: $('policyId').value,
+              claimType: $('claimType').value,
+              amount,
+              description: $('description').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          let d = {};
+          try { d = await res.json(); } catch (_) {}
+          if (!res.ok) return fail();
+          const ref = String(d.claimId || '').slice(0, 8).toUpperCase();
+          const lines = $('description').value.split('\n').filter((l) => /^Clinician:/.test(l)).slice(-2).map((l) => l.replace(/^Clinician:\s*/, ''));
+          r.className = 'result-box success';
+          r.innerHTML = `<strong>${esc(template)} ready</strong>${esc(patient)} \u00b7 ${esc(amount)} min session${ref ? ' \u00b7 ' + esc(ref) : ''}<div class="note-lines">${lines.map((l) => '<div>' + esc(l) + '</div>').join('')}</div>`;
+          $('canvasTitle').textContent = 'Your note is ready';
+          $('canvasSub').textContent = `${template} for ${patient}`;
+        } catch (_) {
+          fail();
+        } finally {
+          btn.disabled = false;
+          lbl.textContent = 'Generate note';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
