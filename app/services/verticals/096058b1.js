@@ -7,6 +7,7 @@ const { createSessionAndAlert } = require('../devin-session');
 const ROUTE = '/api/096058b1/free-trial';
 const SERVICE = 'customer-096058b1-free-trial';
 const SLACK_MEMBER_ID_FALLBACK = process.env.DIRECTV_SLACK_MEMBER_ID || '';
+const INTENTS = ['genre', 'sports', 'plans'];
 
 const GENRE_PACKS = [
   {
@@ -92,10 +93,11 @@ function listOffers() {
 }
 
 function resolveOfferItems(preConfigItems) {
-  const codes = String(preConfigItems || '')
+  const normalizedCodes = String(preConfigItems || '')
     .split(',')
     .map((code) => code.trim().toUpperCase())
     .filter(Boolean);
+  const codes = [...new Set(normalizedCodes)];
 
   if (codes.length === 0) {
     const error = new Error('Choose at least one offer to start a trial.');
@@ -138,9 +140,9 @@ function buildTrialSchedule(items, trialDays) {
   return items.map((item) => {
     const duration = Math.min(Number(trialDays || item.promo.trialDays), item.promo.trialDays);
     const trialEndsAt = new Date(startedAt.getTime() + duration * 24 * 60 * 60 * 1000);
-    const firstBillAt = new Date(trialEndsAt);
-    firstBillAt.setUTCMonth(firstBillAt.getUTCMonth() + item.promo.introMonths);
-    return { item, promo: item.promo, trialEndsAt, firstBillAt };
+    const introEndsAt = new Date(trialEndsAt);
+    introEndsAt.setUTCMonth(introEndsAt.getUTCMonth() + item.promo.introMonths);
+    return { item, promo: item.promo, trialEndsAt, introEndsAt };
   });
 }
 
@@ -156,16 +158,34 @@ async function startFreeTrial(data) {
   const requestData = data || {};
   const startTime = Date.now();
   const requestId = `DTV-${uuidv4().slice(0, 8).toUpperCase()}`;
-
-  logger.info('Starting DIRECTV free trial', {
-    requestId,
-    preConfigItems: requestData.preConfigItems,
-    service: SERVICE,
-    route: ROUTE,
-  });
+  const intent = INTENTS.includes(requestData.intent) ? requestData.intent : 'genre';
+  let normalizedPreConfigItems = '';
 
   try {
+    const trialDays = requestData.trialDays;
+    if (
+      trialDays !== undefined
+      && trialDays !== null
+      && trialDays !== ''
+      && (!Number.isFinite(Number(trialDays)) || Number(trialDays) <= 0)
+    ) {
+      const error = new Error('Trial days must be a positive number.');
+      error.name = 'ValidationError';
+      error.code = 'INVALID_TRIAL_DAYS';
+      error.statusCode = 400;
+      throw error;
+    }
+
     const items = resolveOfferItems(requestData.preConfigItems);
+    normalizedPreConfigItems = items.map((item) => item.code).join(',');
+    logger.info('Starting DIRECTV free trial', {
+      requestId,
+      preConfigItems: normalizedPreConfigItems,
+      intent,
+      service: SERVICE,
+      route: ROUTE,
+    });
+
     const schedule = buildTrialSchedule(items, requestData.trialDays);
     const firstBill = summarizeFirstBill(schedule);
     const duration = Date.now() - startTime;
@@ -180,7 +200,8 @@ async function startFreeTrial(data) {
       trialEndsAt,
       firstBill: {
         ...firstBill,
-        dueAt: schedule[0].firstBillAt.toISOString(),
+        dueAt: schedule[0].trialEndsAt.toISOString(),
+        introEndsAt: schedule[0].introEndsAt.toISOString(),
       },
       items: items.map((item) => ({
         code: item.code,
@@ -212,7 +233,8 @@ async function startFreeTrial(data) {
       error: error.message,
       errorClass: error.name,
       durationMs: duration,
-      preConfigItems: requestData.preConfigItems,
+      preConfigItems: normalizedPreConfigItems,
+      intent,
       service: SERVICE,
     });
 
@@ -224,8 +246,8 @@ async function startFreeTrial(data) {
       },
       extra: {
         requestId,
-        preConfigItems: requestData.preConfigItems,
-        intent: requestData.intent,
+        preConfigItems: normalizedPreConfigItems,
+        intent,
       },
     });
 
@@ -246,12 +268,12 @@ async function startFreeTrial(data) {
       tags: [
         { key: 'route', value: ROUTE },
         { key: 'service', value: SERVICE },
-        { key: 'intent', value: requestData.intent || 'genre' },
+        { key: 'intent', value: intent },
       ],
       extra: {
         requestId,
-        preConfigItems: requestData.preConfigItems,
-        intent: requestData.intent,
+        preConfigItems: normalizedPreConfigItems,
+        intent,
       },
       level: 'error',
       platform: 'node',
