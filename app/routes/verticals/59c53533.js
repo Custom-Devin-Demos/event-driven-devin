@@ -48,16 +48,6 @@ router.post('/api/dollar-general/checkout', async (req, res) => {
       });
     }
 
-    if (error.statusCode === 409) {
-      return res.status(409).json({
-        success: false,
-        error: error.message,
-        errorClass: error.name,
-        code: error.code,
-        requestId: error.requestId || req.requestId,
-      });
-    }
-
     return res.status(500).json({
       success: false,
       error: error.message,
