@@ -21,6 +21,7 @@ router.get('/api/config', (_req, res) => {
     lockOrg,
     lockUser,
     appTitle: process.env.APP_TITLE || 'Event-Driven Devin',
+    teamsAlerts: Boolean(process.env.AUTOMATIONS_TEAMS_WEBHOOK_URL),
   });
 });
 

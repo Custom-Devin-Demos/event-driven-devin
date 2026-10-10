@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vanta Trust Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple: #5e05c4;
+      --purple-dark: #260048;
+      --ink: #240642;
+      --muted: #5d5470;
+      --line: #e9e2f2;
+      --tint: #fbf6ff;
+      --tint-2: #f1e6ff;
+      --lilac: #d6aaff;
+      --green: #09c639;
+      --green-ink: #067a24;
+      --amber: #a15c00;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: var(--purple); }
+    button { font: inherit; }
+    .wrap { width: min(1160px, calc(100% - 48px)); margin: 0 auto; }
+
+    header.top { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.96); border-bottom: 1px solid var(--line); backdrop-filter: blur(6px); }
+    .top-inner { display: flex; align-items: center; gap: 28px; height: 68px; }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); }
+    .brand img { height: 26px; width: auto; display: block; }
+    .brand .wordmark { display: none; font-weight: 700; font-size: 24px; letter-spacing: -.02em; }
+    .brand .divider { width: 1px; height: 22px; background: var(--line); }
+    .brand .tc { font-size: 15px; font-weight: 600; color: var(--muted); }
+    nav.sections { display: flex; gap: 22px; margin-left: 8px; }
+    nav.sections a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; padding: 6px 0; border-bottom: 2px solid transparent; }
+    nav.sections a:hover, nav.sections a.active { color: var(--ink); border-bottom-color: var(--purple); }
+    .top-actions { margin-left: auto; display: flex; gap: 10px; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 8px; border: 1px solid transparent; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; }
+    .btn-primary { background: var(--purple); color: #fff; }
+    .btn-primary:hover { background: #4b039e; }
+    .btn-primary:disabled { opacity: .65; cursor: progress; }
+    .btn-ghost { background: #fff; color: var(--ink); border-color: var(--line); }
+    .btn-ghost:hover { border-color: var(--lilac); background: var(--tint); }
+    .btn-sm { min-height: 36px; padding: 0 14px; font-size: 14px; }
+
+    .hero { background: var(--purple-dark); color: #fff; padding: 56px 0 64px; position: relative; overflow: hidden; }
+    .hero::after { content: ""; position: absolute; right: -120px; top: -160px; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle, rgba(214,170,255,.35), rgba(94,5,196,0) 70%); }
+    .hero-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.4fr 1fr; gap: 48px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--lilac); }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(9,198,57,.2); }
+    .hero h1 { margin: 14px 0 16px; font-size: 48px; line-height: 1.08; letter-spacing: -.03em; }
+    .hero p { margin: 0 0 28px; max-width: 600px; font-size: 18px; line-height: 1.55; color: #e6d6fb; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .hero .btn-ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.35); }
+    .hero .btn-ghost:hover { background: rgba(255,255,255,.08); }
+    .status-card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); border-radius: 14px; padding: 22px; }
+    .status-card h2 { margin: 0 0 4px; font-size: 15px; font-weight: 600; }
+    .status-card .sub { margin: 0 0 18px; font-size: 13px; color: #cdb8ec; }
+    .status-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-top: 1px solid rgba(255,255,255,.12); font-size: 14px; }
+    .status-row strong { color: #7ff09b; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+
+    section.block { padding: 64px 0 0; }
+    .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+    .section-head h2 { margin: 0; font-size: 30px; letter-spacing: -.02em; }
+    .section-head p { margin: 6px 0 0; color: var(--muted); font-size: 16px; }
+
+    .badges { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+    .badge { border: 1px solid var(--line); border-radius: 12px; padding: 20px 16px; text-align: center; background: #fff; }
+    .badge img { height: 72px; width: auto; display: block; margin: 0 auto 12px; }
+    .badge .fallback { display: none; width: 72px; height: 72px; margin: 0 auto 12px; border-radius: 50%; background: var(--tint-2); color: var(--purple); font-weight: 700; font-size: 14px; align-items: center; justify-content: center; }
+    .badge .name { font-weight: 600; font-size: 15px; }
+    .badge .meta { margin-top: 4px; font-size: 13px; color: var(--muted); }
+
+    .resources { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .resource { display: grid; grid-template-columns: 40px 1fr auto auto; gap: 16px; align-items: center; padding: 16px 20px; border-top: 1px solid var(--line); }
+    .resource:first-child { border-top: 0; }
+    .resource .icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--tint-2); color: var(--purple); }
+    .resource .icon.open { background: #e7f9ec; color: var(--green-ink); }
+    .resource .title { font-weight: 600; font-size: 15px; }
+    .resource .desc { margin-top: 2px; font-size: 13px; color: var(--muted); }
+    .resource .doc-body { grid-column: 2 / -1; margin: 0; padding: 14px 16px; border-radius: 10px; background: var(--tint); font-size: 14px; line-height: 1.55; color: var(--ink); }
+    .resource .doc-body[hidden] { display: none; }
+    .tag { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--tint); color: var(--purple); border: 1px solid var(--tint-2); }
+    .tag.public { background: #effbf2; color: var(--green-ink); border-color: #cdeed6; }
+
+    .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .control-card { border: 1px solid var(--line); border-radius: 14px; padding: 22px; background: var(--tint); }
+    .control-card h3 { margin: 0 0 4px; font-size: 17px; }
+    .control-card .count { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .control-card ul { list-style: none; margin: 0; padding: 0; }
+    .control-card li { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; font-size: 14px; line-height: 1.4; }
+    .check { flex: 0 0 18px; height: 18px; border-radius: 50%; background: var(--green); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; margin-top: 1px; }
+
+    table.subs { width: 100%; border-collapse: collapse; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 14px; }
+    table.subs th { text-align: left; padding: 12px 18px; background: var(--tint); color: var(--muted); font-weight: 600; font-size: 13px; }
+    table.subs td { padding: 14px 18px; border-top: 1px solid var(--line); }
+
+    .cta-band { margin: 72px 0 0; background: var(--tint-2); border-radius: 18px; padding: 36px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .cta-band h2 { margin: 0 0 6px; font-size: 24px; }
+    .cta-band p { margin: 0; color: var(--muted); }
+
+    footer { margin-top: 72px; border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: 13px; }
+    .foot { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .foot a { color: var(--muted); text-decoration: none; margin-left: 18px; }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(36,6,66,.55); display: none; align-items: flex-start; justify-content: center; padding: 48px 16px; overflow-y: auto; }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(620px, 100%); background: #fff; border-radius: 16px; box-shadow: 0 24px 60px rgba(36,6,66,.35); }
+    .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 24px 28px 0; }
+    .modal-head h2 { margin: 0 0 4px; font-size: 22px; letter-spacing: -.01em; }
+    .modal-head p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .icon-btn { border: 0; background: none; font-size: 26px; line-height: 1; cursor: pointer; color: var(--muted); width: 44px; height: 44px; margin: -8px -12px 0 0; }
+    form.request { padding: 20px 28px 28px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field { margin-bottom: 14px; }
+    .field label, fieldset legend { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .field input, .field textarea { width: 100%; min-height: 44px; border: 1px solid #d8cde6; border-radius: 8px; padding: 10px 12px; font: inherit; font-size: 15px; color: var(--ink); }
+    .field textarea { min-height: 72px; resize: vertical; }
+    .field input:focus, .field textarea:focus { outline: 2px solid var(--lilac); border-color: var(--purple); }
+    fieldset { border: 0; padding: 0; margin: 0 0 14px; }
+    .doc-options { border: 1px solid var(--line); border-radius: 10px; }
+    .doc-option { display: flex; gap: 12px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); cursor: pointer; font-size: 14px; }
+    .doc-option:first-child { border-top: 0; }
+    .doc-option input { width: 18px; height: 18px; accent-color: var(--purple); }
+    .doc-option .fw { margin-left: auto; font-size: 12px; color: var(--muted); }
+    .nda { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.45; color: var(--muted); margin: 4px 0 18px; }
+    .nda input { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--purple); }
+    .form-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .form-foot small { color: var(--muted); font-size: 12px; }
+    .result { display: none; margin-top: 18px; border-radius: 10px; padding: 16px 18px; font-size: 14px; line-height: 1.45; }
+    .result.show { display: block; }
+    .result.ok { background: #effbf2; border: 1px solid #bfe9cb; color: #0b3d1a; }
+    .result.warn { background: #fff7ec; border: 1px solid #f3d6ac; color: #4d2c00; }
+    .result.err { background: #fdf0f2; border: 1px solid #f2c3cb; color: #6b0f1e; }
+    .result strong { display: block; margin-bottom: 6px; font-size: 15px; }
+    .result ul { margin: 8px 0 0; padding-left: 18px; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 60; display: none; width: min(440px, calc(100vw - 48px)); padding: 18px 44px 18px 20px; border-left: 4px solid #c0392b; border-radius: 8px; background: #fff; box-shadow: 0 12px 34px rgba(36,6,66,.28); }
+    .toast.show { display: block; }
+    .toast strong { display: block; margin-bottom: 6px; font-size: 15px; }
+    .toast p { margin: 0 0 8px; font-size: 14px; line-height: 1.4; }
+    .toast code { display: block; white-space: pre-wrap; word-break: break-word; color: #8a1f14; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .toast-close { position: absolute; top: 8px; right: 8px; border: 0; background: none; cursor: pointer; font-size: 22px; line-height: 1; width: 32px; height: 32px; color: var(--ink); }
+
+    @media (max-width: 1000px) {
+      nav.sections { display: none; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .badges { grid-template-columns: repeat(3, 1fr); }
+      .controls { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .wrap { width: calc(100% - 32px); }
+      .brand .divider, .brand .tc, .top-actions .btn-ghost { display: none; }
+      .hero { padding: 40px 0 44px; }
+      .hero h1 { font-size: 34px; }
+      .hero p { font-size: 16px; }
+      .badges { grid-template-columns: 1fr 1fr; }
+      .controls { grid-template-columns: 1fr; }
+      .section-head { flex-direction: column; align-items: flex-start; }
+      .resource { grid-template-columns: 40px 1fr; }
+      .resource .tag { grid-column: 2; justify-self: start; }
+      .btn-sm { min-height: 44px; }
+      .resource .btn { grid-column: 1 / -1; width: 100%; }
+      .resource .doc-body { grid-column: 1 / -1; }
+      table.subs th:nth-child(3), table.subs td:nth-child(3) { display: none; }
+      .cta-band { flex-direction: column; align-items: flex-start; padding: 26px; }
+      .field-row { grid-template-columns: 1fr; }
+      .modal-backdrop { padding: 16px 10px; }
+      .modal-head, form.request { padding-left: 18px; padding-right: 18px; }
+      .form-foot { flex-direction: column-reverse; align-items: stretch; }
+      .form-foot .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="brand" href="#overview" aria-label="Vanta Trust Center">
+        <img src="https://cdn.prod.website-files.com/64009032676f24f376f002fc/6400ac82429afb0f7b31fa6c_vanta-logo.svg" alt="Vanta"
+             onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='block';">
+        <span class="wordmark">Vanta</span>
+        <span class="divider" aria-hidden="true"></span>
+        <span class="tc">Trust Center</span>
+      </a>
+      <nav class="sections" aria-label="Trust Center sections">
+        <a class="active" href="#overview">Overview</a>
+        <a href="#compliance">Compliance</a>
+        <a href="#resources">Resources</a>
+        <a href="#controls">Controls</a>
+        <a href="#subprocessors">Subprocessors</a>
+      </nav>
+      <div class="top-actions">
+        <a class="btn btn-ghost btn-sm" href="#subscribe">Subscribe</a>
+        <button class="btn btn-primary btn-sm" type="button" data-request="">Request access</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="overview">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Continuously monitored by Vanta</span>
+          <h1>Vanta Trust Center</h1>
+          <p>Security is foundational to everything we build. Explore our certifications, request our audit reports and see the controls we monitor around the clock to keep customer data safe.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" type="button" data-request="">Request access to documents</button>
+            <a class="btn btn-ghost" href="#controls">View controls</a>
+          </div>
+        </div>
+        <aside class="status-card" aria-label="Control status">
+          <h2>Control status</h2>
+          <p class="sub">Updated 4 minutes ago</p>
+          <div class="status-row"><span>Infrastructure security</span><strong><span class="check">&#10003;</span>Passing</strong></div>
+          <div class="status-row"><span>Organizational security</span><strong><span class="check">&#10003;</span>Passing</strong></div>
+          <div class="status-row"><span>Product security</span><strong><span class="check">&#10003;</span>Passing</strong></div>
+          <div class="status-row"><span>Data &amp; privacy</span><strong><span class="check">&#10003;</span>Passing</strong></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="block" id="compliance">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Compliance</h2>
+            <p>Independently audited frameworks and certifications.</p>
+          </div>
+        </div>
+        <div class="badges">
+          <div class="badge">
+            <img src="https://cdn.prod.website-files.com/64009032676f24f376f002fc/6425f2e4adc9666cd40ba331_Vanta_Compliance_SOC2_TypeII.svg" alt="SOC 2 Type II"
+                 onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <span class="fallback">SOC 2</span>
+            <div class="name">SOC 2 Type II</div>
+            <div class="meta">Audited annually</div>
+          </div>
+          <div class="badge">
+            <img src="https://cdn.prod.website-files.com/64009032676f24f376f002fc/6425b32ee0f5260fc9180ff5_Vanta_Compliance_ISO%2027001.svg" alt="ISO 27001"
+                 onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <span class="fallback">ISO</span>
+            <div class="name">ISO 27001</div>
+            <div class="meta">Certified</div>
+          </div>
+          <div class="badge">
+            <img src="https://cdn.prod.website-files.com/64009032676f24f376f002fc/685d528355aa8e9ae4d33193_Vanta_Compliance_ISO%2042001.svg" alt="ISO 42001"
+                 onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <span class="fallback">ISO</span>
+            <div class="name">ISO 42001</div>
+            <div class="meta">AI management system</div>
+          </div>
+          <div class="badge">
+            <img src="https://cdn.prod.website-files.com/64009032676f24f376f002fc/6425b32e242b0982b7a54c53_Vanta_Compliance_GDPR.svg" alt="GDPR"
+                 onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <span class="fallback">GDPR</span>
+            <div class="name">GDPR</div>
+            <div class="meta">Compliant</div>
+          </div>
+          <div class="badge">
+            <span class="fallback" style="display:flex">HIPAA</span>
+            <div class="name">HIPAA</div>
+            <div class="meta">Third-party attested</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="resources">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Resources</h2>
+            <p>Restricted documents are shared under our mutual NDA.</p>
+          </div>
+          <button class="btn btn-ghost" type="button" data-request="all">Request all documents</button>
+        </div>
+        <div class="resources" id="resource-list"></div>
+      </div>
+    </section>
+
+    <section class="block" id="controls">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Controls</h2>
+            <p>Tested continuously with automated evidence collection.</p>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="control-card">
+            <h3>Infrastructure security</h3>
+            <div class="count">14 controls</div>
+            <ul>
+              <li><span class="check">&#10003;</span>Production data encrypted at rest with AES-256</li>
+              <li><span class="check">&#10003;</span>Unique production database authentication enforced</li>
+              <li><span class="check">&#10003;</span>Intrusion detection system utilized</li>
+            </ul>
+          </div>
+          <div class="control-card">
+            <h3>Organizational security</h3>
+            <div class="count">11 controls</div>
+            <ul>
+              <li><span class="check">&#10003;</span>Security awareness training completed annually</li>
+              <li><span class="check">&#10003;</span>Background checks performed for new hires</li>
+              <li><span class="check">&#10003;</span>MDM installed on all company laptops</li>
+            </ul>
+          </div>
+          <div class="control-card">
+            <h3>Product security</h3>
+            <div class="count">9 controls</div>
+            <ul>
+              <li><span class="check">&#10003;</span>Annual third-party penetration testing</li>
+              <li><span class="check">&#10003;</span>Vulnerabilities remediated within SLA</li>
+              <li><span class="check">&#10003;</span>Data transmitted over TLS 1.2+</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="subprocessors">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Subprocessors</h2>
+            <p>Third parties that process customer data on our behalf.</p>
+          </div>
+        </div>
+        <table class="subs">
+          <thead><tr><th>Subprocessor</th><th>Purpose</th><th>Location</th></tr></thead>
+          <tbody>
+            <tr><td>Amazon Web Services</td><td>Cloud infrastructure</td><td>United States</td></tr>
+            <tr><td>Google Workspace</td><td>Productivity &amp; email</td><td>United States</td></tr>
+            <tr><td>Snowflake</td><td>Data warehousing</td><td>United States</td></tr>
+            <tr><td>Zendesk</td><td>Customer support</td><td>United States</td></tr>
+          </tbody>
+        </table>
+
+        <div class="cta-band" id="subscribe">
+          <div>
+            <h2>Need something specific for your security review?</h2>
+            <p>Request our audit reports and get access in minutes once you accept the NDA.</p>
+          </div>
+          <button class="btn btn-primary" type="button" data-request="">Request access</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span>&copy; 2026 Vanta Inc. Trust Center powered by Vanta.</span>
+      <span><a href="#overview">Privacy</a><a href="#overview">Terms</a><a href="#subprocessors">Subprocessors</a></span>
+    </div>
+  </footer>
+
+  <div class="modal-backdrop" id="modal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-head">
+        <div>
+          <h2 id="modal-title">Request access</h2>
+          <p>Tell us who you are and which documents you need. Approved documents are sent to your work email.</p>
+        </div>
+        <button class="icon-btn" type="button" id="modal-close" aria-label="Close">&times;</button>
+      </div>
+      <form class="request" id="request-form" novalidate>
+        <div class="field-row">
+          <div class="field">
+            <label for="fullName">Full name</label>
+            <input id="fullName" name="fullName" autocomplete="name" value="Jordan Lee" required>
+          </div>
+          <div class="field">
+            <label for="company">Company</label>
+            <input id="company" name="company" autocomplete="organization" value="Northwind Health" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="workEmail">Work email</label>
+          <input id="workEmail" name="workEmail" type="email" autocomplete="email" value="jordan.lee@northwindhealth.com" required>
+        </div>
+        <fieldset>
+          <legend>Documents</legend>
+          <div class="doc-options" id="doc-options"></div>
+        </fieldset>
+        <div class="field">
+          <label for="reason">Reason for request <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <textarea id="reason" name="reason">Vendor security review for our 2026 renewal.</textarea>
+        </div>
+        <label class="nda"><input type="checkbox" id="ndaAccepted" checked> I agree to Vanta's mutual non-disclosure agreement on behalf of my company.</label>
+        <div class="form-foot">
+          <small>Documents are watermarked to your email.</small>
+          <button class="btn btn-primary" type="submit" id="submit-btn">Submit request</button>
+        </div>
+        <div class="result" id="result" role="status" aria-live="polite"></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="alert">
+    <button class="toast-close" id="toast-close" type="button" aria-label="Dismiss">&times;</button>
+    <strong>We couldn't submit your request</strong>
+    <p>Something went wrong on our end. Please try again in a few minutes.</p>
+    <code id="toast-tech"></code>
+  </div>
+
+  <script>
+    var RESTRICTED = [
+      { id: 'soc2-type2-report', title: 'SOC 2 Type II Report', desc: 'Audit period Jan 1 – Dec 31, 2025', framework: 'SOC 2' },
+      { id: 'soc2-bridge-letter', title: 'SOC 2 Bridge Letter', desc: 'Covers Jan 1, 2026 – present', framework: 'SOC 2' },
+      { id: 'iso27001-certificate', title: 'ISO 27001 Certificate', desc: 'ISO/IEC 27001:2022 certificate of registration', framework: 'ISO 27001' },
+      { id: 'iso27001-soa', title: 'ISO 27001 Statement of Applicability', desc: 'Annex A control applicability', framework: 'ISO 27001' },
+      { id: 'iso42001-certificate', title: 'ISO 42001 Certificate', desc: 'ISO/IEC 42001:2023 AI management system', framework: 'ISO 42001' },
+      { id: 'hipaa-attestation', title: 'HIPAA Attestation Report', desc: 'Independent HIPAA Security Rule assessment', framework: 'HIPAA' },
+      { id: 'pentest-summary', title: 'Penetration Test Summary', desc: 'Executive summary, Q2 2026', framework: 'Pentest' },
+    ];
+    var PUBLIC_DOCS = [
+      { title: 'Security Overview', desc: 'How we protect customer data', body: 'Customer data is encrypted in transit with TLS 1.2+ and at rest with AES-256. Production access requires SSO with hardware-backed MFA, is granted just-in-time and is logged and reviewed quarterly. Infrastructure runs in isolated AWS accounts with continuous vulnerability scanning and annual third-party penetration tests.' },
+      { title: 'GDPR Commitment', desc: 'Data protection and DPA overview', body: 'We act as a processor for customer data and offer a Data Processing Addendum incorporating the EU Standard Contractual Clauses. Data subject requests are fulfilled within 30 days, subprocessors are listed on this page with 30 days notice of changes, and personal data is deleted within 90 days of contract termination.' },
+    ];
+    var DEFAULT_SELECTION = ['soc2-type2-report', 'iso27001-certificate', 'iso42001-certificate'];
+
+    var LOCK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+    var FILE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>';
+
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    function el(tag, className, text) {
+      var node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    var list = document.getElementById('resource-list');
+    RESTRICTED.forEach(function (doc) {
+      var row = el('div', 'resource');
+      var icon = el('div', 'icon');
+      icon.innerHTML = LOCK;
+      var info = el('div');
+      info.appendChild(el('div', 'title', doc.title));
+      info.appendChild(el('div', 'desc', doc.desc));
+      var button = el('button', 'btn btn-ghost btn-sm', 'Request access');
+      button.type = 'button';
+      button.setAttribute('data-request', doc.id);
+      row.appendChild(icon);
+      row.appendChild(info);
+      row.appendChild(el('span', 'tag', doc.framework));
+      row.appendChild(button);
+      list.appendChild(row);
+    });
+    PUBLIC_DOCS.forEach(function (doc) {
+      var row = el('div', 'resource');
+      var icon = el('div', 'icon open');
+      icon.innerHTML = FILE;
+      var info = el('div');
+      info.appendChild(el('div', 'title', doc.title));
+      info.appendChild(el('div', 'desc', doc.desc));
+      var panel = el('div', 'doc-body', doc.body);
+      panel.id = 'doc-' + doc.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      panel.hidden = true;
+      var view = el('button', 'btn btn-ghost btn-sm', 'View');
+      view.type = 'button';
+      view.setAttribute('aria-expanded', 'false');
+      view.setAttribute('aria-controls', panel.id);
+      view.addEventListener('click', function () {
+        panel.hidden = !panel.hidden;
+        view.setAttribute('aria-expanded', String(!panel.hidden));
+        view.textContent = panel.hidden ? 'View' : 'Hide';
+      });
+      row.appendChild(icon);
+      row.appendChild(info);
+      row.appendChild(el('span', 'tag public', 'Public'));
+      row.appendChild(view);
+      row.appendChild(panel);
+      list.appendChild(row);
+    });
+
+    var options = document.getElementById('doc-options');
+    RESTRICTED.forEach(function (doc) {
+      var label = el('label', 'doc-option');
+      var input = el('input');
+      input.type = 'checkbox';
+      input.name = 'documents';
+      input.value = doc.id;
+      label.appendChild(input);
+      label.appendChild(el('span', '', doc.title));
+      label.appendChild(el('span', 'fw', doc.framework));
+      options.appendChild(label);
+    });
+
+    var modal = document.getElementById('modal');
+    var result = document.getElementById('result');
+    var submitBtn = document.getElementById('submit-btn');
+    var toast = document.getElementById('toast');
+    var toastTimer = null;
+    var lastTrigger = null;
+
+    function openModal(documentId, trigger) {
+      var selected = DEFAULT_SELECTION;
+      if (documentId === 'all') selected = RESTRICTED.map(function (doc) { return doc.id; });
+      else if (documentId) selected = [documentId];
+      options.querySelectorAll('input').forEach(function (input) {
+        input.checked = selected.indexOf(input.value) !== -1;
+      });
+      result.className = 'result';
+      result.textContent = '';
+      lastTrigger = trigger;
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.getElementById('fullName').focus();
+    }
+    function closeModal() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      if (lastTrigger) lastTrigger.focus();
+    }
+    document.addEventListener('click', function (event) {
+      var trigger = event.target.closest('[data-request]');
+      if (trigger) openModal(trigger.getAttribute('data-request'), trigger);
+    });
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    modal.addEventListener('click', function (event) { if (event.target === modal) closeModal(); });
+    document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && modal.classList.contains('open')) closeModal(); });
+
+    function showToast(body) {
+      document.getElementById('toast-tech').textContent =
+        (body.errorClass || 'Error') + ': ' + (body.error || 'Unknown error') + '\n' +
+        (body.code || 'ACCESS_REQUEST_FAILED') + ' · Reference ID: ' + (body.requestId || 'unavailable');
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+    }
+    document.getElementById('toast-close').addEventListener('click', function () {
+      clearTimeout(toastTimer);
+      toast.classList.remove('show');
+    });
+
+    function showResult(kind, title, lines) {
+      result.className = 'result show ' + kind;
+      result.textContent = '';
+      result.appendChild(el('strong', '', title));
+      if (lines && lines.length) {
+        var ul = el('ul');
+        lines.forEach(function (line) { ul.appendChild(el('li', '', line)); });
+        result.appendChild(ul);
+      }
+    }
+
+    document.getElementById('request-form').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+      result.className = 'result';
+
+      await identityReady;
+
+      var documents = Array.prototype.map.call(
+        options.querySelectorAll('input:checked'),
+        function (input) { return input.value; }
+      );
+      var payload = {
+        fullName: document.getElementById('fullName').value,
+        workEmail: document.getElementById('workEmail').value,
+        company: document.getElementById('company').value,
+        reason: document.getElementById('reason').value,
+        documents: documents,
+        ndaAccepted: document.getElementById('ndaAccepted').checked,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      };
+
+      try {
+        var response = await fetch('/api/dc2379a5/trust-center/access-requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        var body = await response.json();
+        if (response.status === 400) {
+          showResult('err', body.error || 'Please check your request.');
+        } else if (!response.ok || body.error) {
+          showToast(body);
+        } else {
+          var lines = body.grants.map(function (grant) {
+            return grant.title + ' — ' + (grant.status === 'approved'
+              ? 'available until ' + new Date(grant.expiresAt).toLocaleDateString()
+              : 'pending security team review');
+          });
+          if (body.status === 'approved') {
+            showResult('ok', 'Access approved · ' + body.requestId, lines.concat(['Sent to ' + body.deliveredTo]));
+          } else {
+            showResult('warn', 'Request received · ' + body.requestId, lines.concat(["We'll email " + body.deliveredTo + ' once reviewed']));
+          }
+        }
+      } catch (error) {
+        showToast({ errorClass: 'NetworkError', error: error.message });
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit request';
+      }
+    });
+  </script>
+</body>
+</html>

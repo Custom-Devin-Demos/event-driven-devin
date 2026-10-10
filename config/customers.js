@@ -114,6 +114,7 @@ function getCustomerConfig(customerSlug) {
       || entry.sonarWorkflowCustomer || slug,
     itsm: entry.itsm || null,
     itsmAssignmentGroup: entry.itsmAssignmentGroup || '',
+    slackChannelId: suffix ? (process.env[`SLACK_CHANNEL_ID${suffix}`] || entry.slackChannelId || '') : '',
   };
 
   if (slug !== 'default') {

@@ -89,6 +89,20 @@ describe('Verizon checkout', () => {
     expect(receipt[1].term).toBe('myPlan · Month-to-month');
   });
 
+  test('formatReceipt resolves the iPhone 18 Pro + Simplicity Plan storefront cart', () => {
+    const receipt = formatReceipt([
+      { sku: 'VZ-DEV-IP18P-256', qty: 1, price: 33.33 },
+      { sku: 'VZ-PLN-SIMPLICITY', qty: 1, price: 30.00 },
+      { sku: 'VZ-ADD-VMP', qty: 1, price: 18.00 },
+    ]);
+
+    expect(receipt.map((line) => line.name)).toEqual([
+      'iPhone 18 Pro 256 GB',
+      'Simplicity Plan',
+      'Verizon Mobile Protect',
+    ]);
+  });
+
   test('formatReceipt throws once the promo item is merged in', () => {
     expect(() => formatReceipt(applyPromotions(DEFAULT_ORDER.items)))
       .toThrow(TypeError);

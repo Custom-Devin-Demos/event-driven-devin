@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Carbon removal &amp; costs | Reduction Plan – Watershed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #265CFF;
+      --ink: #0D2467;
+      --surface: #FFFFFF;
+      --chrome-bg: #041330;
+      --chrome-text: #FFFFFF;
+      --line: #C2D2F0;
+      --band: #F6FAFF;
+      --muted: #5C6B94;
+      --canvas: #F8F9FD;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: hidden; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font: 15px/1.5 'Instrument Sans', 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    button, select { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .shell { display: grid; grid-template-columns: 72px minmax(0, 1fr); min-height: 100vh; background: linear-gradient(90deg, var(--chrome-bg) 72px, var(--surface) 72px); }
+    .rail { position: sticky; top: 0; height: 100vh; background: var(--chrome-bg); color: var(--chrome-text); display: flex; flex-direction: column; align-items: center; padding: 16px 0; gap: 6px; }
+    .rail-mark { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 18px; }
+    .rail-nav { display: flex; flex-direction: column; gap: 6px; }
+    .rail-nav a { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 6px; color: color-mix(in srgb, var(--chrome-text) 62%, var(--chrome-bg)); }
+    .rail-nav a:hover { background: color-mix(in srgb, var(--chrome-text) 10%, var(--chrome-bg)); color: var(--chrome-text); }
+    .rail-nav a[aria-current="page"] { background: color-mix(in srgb, var(--accent) 34%, var(--chrome-bg)); color: var(--chrome-text); }
+    .rail-nav svg { width: 20px; height: 20px; }
+    .rail-nav .tip { position: absolute; left: 54px; top: 50%; transform: translateY(-50%); white-space: nowrap; background: var(--chrome-bg); color: var(--chrome-text); font-size: 12px; padding: 4px 8px; border-radius: 4px; opacity: 0; pointer-events: none; transition: opacity .12s; z-index: 5; }
+    .rail-nav a:hover .tip, .rail-nav a:focus-visible .tip { opacity: 1; }
+    .rail-foot { margin-top: auto; }
+    .avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 60%, var(--chrome-bg)); color: var(--chrome-text); font-size: 13px; font-weight: 600; }
+    .main { min-width: 0; background: var(--surface); }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 40px; min-height: 56px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+    .crumbs { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .crumbs a { display: inline-flex; align-items: center; min-height: 44px; }
+    .crumbs a:hover { color: var(--ink); }
+    .crumbs .sep { color: var(--line); }
+    .crumbs .here { color: var(--ink); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .org { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 2px; color: var(--ink); background: var(--surface); white-space: nowrap; }
+    .page-head { padding: 36px 40px 0; }
+    h1 { margin: 0 0 24px; font-size: 34px; line-height: 1.2; font-weight: 500; letter-spacing: -.01em; }
+    .tabs { display: flex; gap: 32px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tabs a { display: inline-flex; align-items: center; min-height: 44px; padding-bottom: 4px; color: color-mix(in srgb, var(--ink) 72%, var(--surface)); white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tabs a:hover { color: var(--ink); }
+    .tabs a[aria-current="page"] { color: var(--ink); font-weight: 500; border-bottom-color: var(--accent); }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+    .stat { padding: 26px 40px; border-right: 1px solid var(--line); }
+    .stat:last-child { border-right: 0; }
+    .stat b { display: block; font-size: 28px; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; }
+    .stat b sub { font-size: 60%; }
+    .stat span { color: var(--accent); font-size: 14px; }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 380px; border-bottom: 1px solid var(--line); }
+    .panel { padding: 30px 40px 36px; min-width: 0; }
+    .panel + .panel { border-left: 1px solid var(--line); background: var(--band); }
+    h2 { margin: 0 0 6px; font-size: 19px; font-weight: 500; }
+    .panel-sub { margin: 0 0 22px; color: var(--muted); font-size: 14px; }
+    .chart { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 10px; margin-bottom: 30px; }
+    .axis { display: flex; flex-direction: column; justify-content: space-between; height: 170px; font-size: 12px; color: var(--muted); text-align: right; }
+    .bars { position: relative; height: 170px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; align-items: end; border-bottom: 1px solid var(--line); }
+    .bars .target { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--muted); }
+    .bar { position: relative; display: flex; flex-direction: column-reverse; height: 100%; }
+    .bar i { display: block; }
+    .bar .done { background: var(--ink); }
+    .bar .plan { background: #93B1F9; }
+    .bar em { position: absolute; bottom: -22px; left: 0; right: 0; text-align: center; font-size: 12px; font-style: normal; color: var(--muted); }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 30px 0 0; padding: 0; list-style: none; font-size: 13px; }
+    .legend li { display: inline-flex; align-items: center; gap: 8px; }
+    .legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .legend .dash { width: 16px; border-top: 1px dashed var(--muted); }
+    .find-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 30px; }
+    .find-head a { color: var(--accent); font-size: 14px; display: inline-flex; align-items: center; min-height: 44px; }
+    .projects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .project { display: flex; flex-direction: column; text-align: left; padding: 0; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); overflow: hidden; min-height: 44px; }
+    .project:disabled { cursor: default; opacity: .6; }
+    .project:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+    .project[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .art { height: 92px; }
+    .art-dac { background: repeating-linear-gradient(90deg, #CFDAFB 0 10px, #B8C9F8 10px 12px), linear-gradient(#E9EFFE, #CFDAFB); background-blend-mode: multiply; }
+    .art-ew { background: radial-gradient(circle at 30% 120%, #7C93C9 0 38%, transparent 39%), radial-gradient(circle at 75% 110%, #5F79B8 0 42%, transparent 43%), linear-gradient(#E6EDFD, #B9C9F2); }
+    .art-beccs { background: radial-gradient(circle at 50% 70%, #0D2467 0 18%, transparent 19%), radial-gradient(circle at 35% 60%, #3E8E6B 0 28%, transparent 29%), radial-gradient(circle at 68% 58%, #F08A5D 0 16%, transparent 17%), linear-gradient(#EAF2FF, #CFE3D8); }
+    .project-body { padding: 12px 14px 14px; }
+    .project-body strong { display: block; font-weight: 500; font-size: 14px; line-height: 1.35; }
+    .project-body small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
+    .field input, .field select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); font-size: 15px; }
+    .field input:focus, .field select:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 1px var(--accent); }
+    .field small { display: block; margin-top: 5px; font-size: 12px; color: var(--muted); }
+    .summary { margin: 6px 0 18px; padding: 0; border-top: 1px solid var(--line); }
+    .summary div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+    .submit-btn { width: 100%; min-height: 46px; padding: 12px 20px; border: 0; border-radius: 2px; background: var(--accent); color: #fff; font-weight: 500; font-size: 15px; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 85%, var(--chrome-bg)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .status { min-height: 20px; margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+    .result-box { display: none; margin-top: 12px; padding: 12px 14px; font-size: 14px; border: 1px solid var(--line); border-left: 3px solid var(--ink); background: var(--surface); border-radius: 2px; }
+    .result-box.success { display: block; border-left-color: #1F8A5B; }
+    .result-box.notice { display: block; border-left-color: #E3653B; }
+    .table-wrap { padding: 30px 40px 40px; }
+    .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 2px; }
+    table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-weight: 500; background: var(--band); padding: 12px 16px; border-bottom: 1px solid var(--line); }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+    tr:last-child td { border-bottom: 0; }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 13px; font-weight: 500; }
+    .pill.delivered { background: #DDF1E6; color: #1F6B47; }
+    .pill.contracted { background: #FDEBB8; color: #8A5A12; }
+    .pill.review { background: #FDE8E1; color: #A2401D; }
+    .app-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding: 18px 40px 28px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); }
+    .app-foot nav { display: flex; gap: 20px; }
+    .app-foot a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+    .app-foot a:hover { color: var(--ink); }
+    @media (max-width: 1100px) {
+      .workspace { grid-template-columns: 1fr; }
+      .panel + .panel { border-left: 0; border-top: 1px solid var(--line); }
+    }
+    @media (max-width: 720px) {
+      .shell { grid-template-columns: 1fr; background: var(--surface); }
+      .rail { position: static; height: auto; flex-direction: row; padding: 6px 12px; gap: 4px; }
+      .rail-mark { margin: 0 8px 0 0; }
+      .rail-nav { flex-direction: row; gap: 2px; }
+      .rail-nav .tip, .rail-nav .opt { display: none; }
+      .rail-foot { margin: 0 0 0 auto; }
+      .topbar { padding: 0 16px; }
+      .topbar .org span { display: none; }
+      .crumbs .lead { display: none; }
+      .page-head { padding: 24px 16px 0; }
+      h1 { font-size: 28px; margin-bottom: 14px; }
+      .tabs { gap: 22px; }
+      .stats { grid-template-columns: 1fr; }
+      .stat { padding: 16px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .stat:last-child { border-bottom: 0; }
+      .panel, .table-wrap { padding: 24px 16px 28px; }
+      .projects { grid-template-columns: 1fr; }
+      .project { flex-direction: row; align-items: stretch; }
+      .art { width: 88px; height: auto; flex: none; }
+      .bars { gap: 6px; }
+      .app-foot { padding: 14px 16px 72px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="rail" aria-label="Primary">
+      <a class="rail-mark" href="#top" aria-label="Watershed home">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15.5" fill="none" stroke="#6F93FF" stroke-width="2"/><text x="17" y="22.5" text-anchor="middle" font-family="Instrument Sans, Arial, sans-serif" font-size="16" font-weight="600" fill="#FFFFFF">W</text></svg>
+      </a>
+      <nav class="rail-nav" aria-label="App">
+        <a aria-label="Home" href="#top"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 9l7-6 7 6v8H3z"/></svg><span class="tip">Home</span></a>
+        <a aria-label="Footprint" href="#top" class="opt"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 3v7h7"/></svg><span class="tip">Footprint</span></a>
+        <a aria-label="Reduction Plan" href="#plan" aria-current="page"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 16h14M5 13V8M10 13V5M15 13v-3"/></svg><span class="tip">Reduction Plan</span></a>
+        <a aria-label="Suppliers" href="#top" class="opt"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="7" width="6" height="9"/><rect x="11" y="4" width="6" height="12"/></svg><span class="tip">Suppliers</span></a>
+        <a aria-label="Reporting" href="#top" class="opt"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 3h7l3 3v11H5z"/><path d="M8 10h5M8 13h5"/></svg><span class="tip">Reporting</span></a>
+        <a aria-label="Marketplace" href="#marketplace"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 7h14l-1 10H4z"/><path d="M7 7a3 3 0 016 0"/></svg><span class="tip">Marketplace</span></a>
+      </nav>
+      <div class="rail-foot"><span class="avatar" aria-label="Signed in as Priya Raman">PR</span></div>
+    </aside>
+
+    <div class="main" id="top">
+      <div class="topbar">
+        <div class="crumbs"><a class="lead" href="#plan">Reduction Plan</a><span class="sep lead" aria-hidden="true">/</span><span class="here">Carbon removal &amp; costs</span></div>
+        <span class="org">Northwind Goods<span> · FY2026</span></span>
+      </div>
+
+      <main id="plan">
+        <div class="page-head">
+          <h1>Reduction Plan</h1>
+          <nav class="tabs" aria-label="Reduction Plan">
+            <a href="#plan">Overview</a>
+            <a href="#plan">Business-as-usual</a>
+            <a href="#plan">Targets</a>
+            <a href="#plan">Initiatives</a>
+            <a href="#plan" aria-current="page">Carbon removal &amp; costs</a>
+          </nav>
+        </div>
+
+        <section class="stats" aria-label="Carbon removal summary">
+          <div class="stat"><b>12,000 tCO<sub>2</sub>e</b><span>2030 removal target</span></div>
+          <div class="stat"><b>3,000 tCO<sub>2</sub>e</b><span>Contracted to date</span></div>
+          <div class="stat"><b>$1,320,000</b><span>Committed spend</span></div>
+        </section>
+
+        <div class="workspace">
+          <section class="panel" aria-labelledby="removal-heading">
+            <h2 id="removal-heading">Carbon removal per year</h2>
+            <p class="panel-sub">Contracted and planned removals against the residual emissions target.</p>
+            <div class="chart" aria-hidden="true">
+              <div class="axis"><span>3K</span><span>2K</span><span>1K</span><span>0</span></div>
+              <div class="bars">
+                <span class="target" style="bottom: 70%"></span>
+                <div class="bar"><i class="done" style="height: 12%"></i><em>2024</em></div>
+                <div class="bar"><i class="done" style="height: 20%"></i><em>2025</em></div>
+                <div class="bar"><i class="done" style="height: 18%"></i><i class="plan" style="height: 10%"></i><em>2026</em></div>
+                <div class="bar"><i class="done" style="height: 16%"></i><i class="plan" style="height: 22%"></i><em>2027</em></div>
+                <div class="bar"><i class="done" style="height: 12%"></i><i class="plan" style="height: 34%"></i><em>2028</em></div>
+                <div class="bar"><i class="done" style="height: 8%"></i><i class="plan" style="height: 48%"></i><em>2029</em></div>
+                <div class="bar"><i class="done" style="height: 6%"></i><i class="plan" style="height: 62%"></i><em>2030</em></div>
+              </div>
+            </div>
+            <ul class="legend">
+              <li><span class="dot" style="background: var(--ink)"></span>Contracted removals</li>
+              <li><span class="dot" style="background: #93B1F9"></span>Planned removals</li>
+              <li><span class="dash"></span>Residual emissions target</li>
+            </ul>
+
+            <div class="find-head" id="marketplace"><h2>Find a project</h2><a href="#marketplace">Browse Marketplace</a></div>
+            <p class="panel-sub">Vetted carbon removal projects available through Marketplace.</p>
+            <div class="projects" role="group" aria-label="Marketplace projects">
+              <button type="button" class="project" data-account="ACCT-1002" aria-pressed="true"><span class="art art-dac"></span><span class="project-body"><strong>Direct air capture</strong><small>Geologic storage · $600/t</small></span></button>
+              <button type="button" class="project" data-account="ACCT-1003" aria-pressed="false"><span class="art art-ew"></span><span class="project-body"><strong>Enhanced Weathering</strong><small>Mineralization · $350/t</small></span></button>
+              <button type="button" class="project" data-account="ACCT-1001" aria-pressed="false"><span class="art art-beccs"></span><span class="project-body"><strong>Biomass with Carbon Removal and Storage</strong><small>BiCRS · $420/t</small></span></button>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="purchase-heading">
+            <h2 id="purchase-heading">Purchase carbon removal</h2>
+            <p class="panel-sub">Example organization and projects. No purchase is placed from this page.</p>
+            <form id="transferForm">
+              <div class="field"><label for="toAccount">Project</label><select id="toAccount">
+                <option value="ACCT-1002" data-price="600" data-delivery="2027–2030">Direct air capture</option>
+                <option value="ACCT-1003" data-price="350" data-delivery="2026–2028">Enhanced Weathering</option>
+                <option value="ACCT-1001" data-price="420" data-delivery="2026–2029">Biomass with Carbon Removal and Storage</option>
+              </select></div>
+              <div class="field"><label for="fromAccount">Budget</label><select id="fromAccount">
+                <option value="ACCT-1004">Climate program · FY2026</option>
+              </select></div>
+              <div class="field"><label for="amount">Amount (USD)</label><input type="number" id="amount" min="1" step="0.01" value="60000" required></div>
+              <div class="field"><label for="accountTier">Purchase type</label><select id="accountTier">
+                <option value="standard">Spot purchase</option>
+                <option value="basic">Forward contract</option>
+              </select><small>Set by your organization's procurement policy.</small></div>
+              <dl class="summary">
+                <div><dt>Price per tonne</dt><dd id="summaryPrice">—</dd></div>
+                <div><dt>Estimated removal</dt><dd id="summaryVolume">—</dd></div>
+                <div><dt>Expected delivery</dt><dd id="summaryDelivery">—</dd></div>
+              </dl>
+              <button type="submit" id="submitBtn" class="submit-btn">Confirm purchase</button>
+              <p class="status" id="purchaseStatus">Example purchase only.</p>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            </form>
+          </section>
+        </div>
+
+        <section class="table-wrap" aria-labelledby="contracts-heading">
+          <h2 id="contracts-heading">Carbon removal contracts</h2>
+          <p class="panel-sub">Purchases made through Marketplace for this Reduction Plan.</p>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th scope="col">Project</th><th scope="col">Method</th><th scope="col">Vintage</th><th scope="col">Volume</th><th scope="col">Cost</th><th scope="col">Status</th></tr></thead>
+              <tbody>
+                <tr><td>Enhanced Weathering</td><td>Mineralization</td><td>2025</td><td>1,200 tCO<sub>2</sub>e</td><td>$420,000</td><td><span class="pill delivered">Delivered</span></td></tr>
+                <tr><td>Direct air capture</td><td>Geologic storage</td><td>2027</td><td>800 tCO<sub>2</sub>e</td><td>$480,000</td><td><span class="pill contracted">Contracted</span></td></tr>
+                <tr><td>Biomass with Carbon Removal and Storage</td><td>BiCRS</td><td>2026</td><td>1,000 tCO<sub>2</sub>e</td><td>$420,000</td><td><span class="pill contracted">Contracted</span></td></tr>
+                <tr><td>Reforestation</td><td>Nature-based</td><td>2028</td><td>480 tCO<sub>2</sub>e</td><td>$100,000</td><td><span class="pill review">In review</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="app-foot">
+        <span>Watershed Support · Reduction Plan &amp; Marketplace</span>
+        <nav aria-label="Legal"><a href="https://watershed.com/privacy" target="_blank" rel="noopener noreferrer">Privacy</a><a href="https://watershed.com/terms" target="_blank" rel="noopener noreferrer">Terms &amp; Conditions</a><a href="https://watershed.com/security" target="_blank" rel="noopener noreferrer">Security</a></nav>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('purchaseStatus');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const projectCards = Array.from(document.querySelectorAll('.project'));
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const usd0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    const tonnes = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
+    function selectedProject() { return toAccount.options[toAccount.selectedIndex]; }
+    function renderSummary() {
+      const option = selectedProject();
+      const price = Number(option.dataset.price);
+      const amount = parseFloat(amountInput.value);
+      document.getElementById('summaryPrice').textContent = `${usd0.format(price)} / tCO₂e`;
+      document.getElementById('summaryVolume').textContent = Number.isFinite(amount) && amount > 0 ? `${tonnes.format(amount / price)} tCO₂e` : '—';
+      document.getElementById('summaryDelivery').textContent = option.dataset.delivery;
+      projectCards.forEach((card) => card.setAttribute('aria-pressed', String(card.dataset.account === toAccount.value)));
+    }
+    projectCards.forEach((card) => card.addEventListener('click', () => {
+      toAccount.value = card.dataset.account;
+      renderSummary();
+      toAccount.focus({ preventScroll: true });
+    }));
+    toAccount.addEventListener('change', renderSummary);
+    amountInput.addEventListener('input', renderSummary);
+    renderSummary();
+    function setBusy(busy) {
+      [button, toAccount, amountInput, document.getElementById('accountTier'), ...projectCards].forEach((el) => { el.disabled = busy; });
+    }
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const selected = selectedProject();
+      const project = selected.text;
+      const price = Number(selected.dataset.price);
+      setBusy(true);
+      button.textContent = 'Confirming purchase…';
+      status.textContent = 'Submitting purchase to Marketplace…';
+      result.className = 'result-box';
+      result.textContent = '';
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('Purchase could not be confirmed.');
+        const amount = Number(data.receipt.amount);
+        result.className = 'result-box success';
+        result.textContent = `Purchase ${data.receipt.receiptId} confirmed: ${usd.format(amount)} for ${tonnes.format(amount / price)} tCO₂e of ${project}. Total charged ${usd.format(Number(data.debitAmount))}, including a ${usd.format(Number(data.fee))} Marketplace fee.`;
+        status.textContent = 'Purchase confirmed.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'This purchase could not be confirmed. Try again, or contact Watershed Support.';
+        status.textContent = 'Purchase not confirmed.';
+      } finally {
+        setBusy(false);
+        button.textContent = 'Confirm purchase';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

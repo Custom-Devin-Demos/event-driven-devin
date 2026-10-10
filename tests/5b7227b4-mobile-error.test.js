@@ -174,6 +174,29 @@ describe('Nordstrom app failure report (5b7227b4)', () => {
     expect(listEnterpriseAdmins).toHaveBeenCalledWith(auth);
   });
 
+  test('a hub-selected non-Nordstrom org raises the alert under the default customer config', async () => {
+    const gtm = { ...APP_REPORT, devinOrgId: 'org_gtm_example', devinUserId: 'email|gtm-user' };
+    await reportAppFailure(gtm).sessionPromise;
+    const alertData = createSessionAndAlert.mock.calls[0][0];
+    expect(alertData.customer).toBe('default');
+    expect(alertData.devinOrgId).toBe('org_gtm_example');
+    expect(alertData.devinUserId).toBe('email|gtm-user');
+    expect(alertData.promptAppendix).toBe(APP_REMEDIATION_DIRECTIVE);
+  });
+
+  test('looks members of a non-Nordstrom org up without the Nordstrom service key', async () => {
+    process.env.DEVIN_SERVICE_KEY_5B7227B4 = 'cog_nordstrom_test_key';
+    try {
+      await reportAppFailure({
+        ...APP_REPORT, devinOrgId: 'org_gtm_example', devinUserId: '', devinEmail: 'member@nordstrom.example',
+      }).sessionPromise;
+    } finally {
+      delete process.env.DEVIN_SERVICE_KEY_5B7227B4;
+    }
+    expect(listOrgUsers).toHaveBeenCalledWith('org_gtm_example', {});
+    expect(createSessionAndAlert.mock.calls[0][0].customer).toBe('default');
+  });
+
   test('falls back to enterprise admins, then to the customer config, for unknown emails', async () => {
     await reportAppFailure({ ...APP_REPORT, devinUserId: '', devinEmail: 'admin@enterprise.example' }).sessionPromise;
     expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('ent-admin-1');

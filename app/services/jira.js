@@ -88,6 +88,28 @@ async function transitionTo(key, statusName) {
   return true;
 }
 
+/**
+ * Create an issue. `description` may be plain text (wrapped via adf()) or a
+ * prebuilt ADF doc. Returns { id, key, url }.
+ */
+async function createIssue({
+  projectKey, issueType = 'Bug', summary, description, labels, priority, assigneeAccountId,
+}) {
+  const fields = {
+    project: { key: projectKey },
+    issuetype: { name: issueType },
+    summary: String(summary).slice(0, 254),
+  };
+  if (description) {
+    fields.description = typeof description === 'string' ? adf(description) : description;
+  }
+  if (Array.isArray(labels) && labels.length) fields.labels = labels;
+  if (priority) fields.priority = { name: priority };
+  if (assigneeAccountId) fields.assignee = { accountId: assigneeAccountId };
+  const { data } = await client().post('/issue', { fields });
+  return { id: data.id, key: data.key, url: issueUrl(data.key) };
+}
+
 async function assign(key, accountId) {
   await client().put(`/issue/${key}/assignee`, { accountId: accountId || null });
   return true;
@@ -101,5 +123,6 @@ module.exports = {
   getIssue,
   addComment,
   transitionTo,
+  createIssue,
   assign,
 };

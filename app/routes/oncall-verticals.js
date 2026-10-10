@@ -7,8 +7,9 @@ const { finalizeTranscript } = require('../services/oncall-verticals/voice');
 const { runCompletion } = require('../services/oncall-verticals/inference');
 const { processQuote } = require('../services/oncall-verticals/industrials');
 const { addToCart } = require('../services/oncall-verticals/marketplace');
+const { submitOrder } = require('../services/oncall-verticals/vaccines');
+const { addToBag } = require('../services/oncall-verticals/apparel');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
-const { isActiveSev1ProbeRef, isSev1DebugTimingsUnlocked } = require('../services/oncall');
 
 const router = express.Router();
 
@@ -23,11 +24,7 @@ router.post('/api/oncall/banking/transfer', async (req, res) => {
       amount: req.body.amount || 500,
       accountTier: req.body.accountTier || 'standard',
       userId: req.body.userId || 'usr_banking_1',
-    }, {
-      synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')),
-      debugTimings: req.get('x-debug-timings') === '1'
-        && isSev1DebugTimingsUnlocked('banking', req.get('x-synthetic-monitor')),
-    });
+    }, { debugTimings: req.get('x-debug-timings') === '1' });
     res.json(result);
   } catch (error) {
     const statusCode = error.code === 'INSUFFICIENT_FUNDS' ? 422 : 500;
@@ -51,7 +48,7 @@ router.post('/api/oncall/telco/upgrade', async (req, res) => {
       currentPlanCode: String(req.body.currentPlanCode || 'BASIC-12').toUpperCase(),
       targetPlanCode: String(req.body.targetPlanCode || 'FAMILY-PLUS-12').toUpperCase(),
       billingDay: req.body.billingDay || 15,
-    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
+    });
     res.json(result);
   } catch (error) {
     res.status(500).json({
@@ -75,7 +72,7 @@ router.post('/api/oncall/licenses/provision', async (req, res) => {
       planName,
       seats: Math.min(parseInt(req.body.seats, 10) || 10, 250),
       billingCycle: req.body.billingCycle || 'monthly',
-    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
+    });
     res.json(result);
   } catch (error) {
     res.status(500).json({
@@ -97,7 +94,7 @@ router.post('/api/oncall/voice/transcribe', async (req, res) => {
       workspace: req.body.workspace || 'Brightmail',
       dictionary: String(req.body.dictionary || 'general').toLowerCase(),
       utterance: String(req.body.utterance || '').slice(0, 4000),
-    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
+    });
     res.json(result);
   } catch (error) {
     res.status(500).json({
@@ -123,7 +120,7 @@ router.post('/api/oncall/inference/completions', async (req, res) => {
     prompt: String(req.body.prompt || '').slice(0, 8000),
     maxTokens: req.body.maxTokens,
   };
-  const options = { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) };
+  const options = {};
 
   if (req.body.stream !== true) {
     try {
@@ -184,7 +181,7 @@ router.post('/api/oncall/insurance/claim', async (req, res) => {
       claimType: req.body.claimType || 'collision',
       amount: req.body.amount || 5000,
       description: req.body.description || 'Vehicle damage from collision',
-    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
+    });
     res.json(result);
   } catch (error) {
     const isTimeout = error.code === 'ADJUDICATION_TIMEOUT';
@@ -212,11 +209,7 @@ router.post('/api/oncall/industrials/quote', async (req, res) => {
       quantity: req.body.quantity || 25,
       itarControlled: req.body.itarControlled === true,
       site: req.body.site || 'f3-mesa',
-    }, {
-      synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')),
-      debugTimings: req.get('x-debug-timings') === '1'
-        && isSev1DebugTimingsUnlocked('industrials', req.get('x-synthetic-monitor')),
-    });
+    }, { debugTimings: req.get('x-debug-timings') === '1' });
     res.json(result);
   } catch (error) {
     res.status(500).json({
@@ -239,7 +232,7 @@ router.post('/api/oncall/marketplace/cart', async (req, res) => {
       sellerId: req.body.sellerId || 'SELLER-PHILIPS-HHG',
       listingId: req.body.listingId || '408492471',
       quantity: req.body.quantity || 1,
-    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
+    });
     res.json(result);
   } catch (error) {
     const isTimeout = error.code === 'RESERVATION_TIMEOUT';
@@ -256,6 +249,57 @@ router.post('/api/oncall/marketplace/cart', async (req, res) => {
 });
 
 /**
+ * POST /api/oncall/vaccines/order — submit a practice's vaccine order
+ */
+router.post('/api/oncall/vaccines/order', async (req, res) => {
+  try {
+    const result = await submitOrder({
+      ndc: req.body.ndc || '5816084952',
+      quantity: req.body.quantity || 1,
+      practiceAccount: req.body.practiceAccount || 'ACCT-1004',
+      shipTo: req.body.shipTo || 'ACCT-2101',
+      accountTier: req.body.accountTier || 'standard',
+      delivery: req.body.delivery === 'nextday' ? 'nextday' : 'standard',
+    });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'ALLOCATION_TIMEOUT';
+    res.status(isTimeout ? 504 : 500).json({
+      success: false,
+      error: isTimeout
+        ? 'Your order timed out while confirming vaccine allocation. Please try again in a few minutes.'
+        : error.message,
+      errorClass: error.name,
+      code: error.code || 'ORDER_SUBMIT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/apparel/bag — add an apparel style to the bag
+ */
+router.post('/api/oncall/apparel/bag', async (req, res) => {
+  try {
+    const result = await addToBag({
+      styleId: req.body.styleId || '8688977',
+      size: req.body.size,
+      color: req.body.color,
+      quantity: req.body.quantity || 1,
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(error.code === 'STYLE_NOT_FOUND' ? 404 : 500).json({
+      success: false,
+      error: 'We couldn\u2019t add this item to your Bag.',
+      errorClass: error.name,
+      code: error.code || 'BAG_ADD_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
  * POST /api/oncall/grocery/checkout — place a PC Express pickup order
  */
 router.post('/api/oncall/grocery/checkout', async (req, res) => {
@@ -266,7 +310,7 @@ router.post('/api/oncall/grocery/checkout', async (req, res) => {
         ? req.body.lines
         : GROCERY_CART_ITEMS.map((i) => ({ sku: i.sku, quantity: i.quantity })),
       pickupSlot: req.body.pickupSlot || defaultGroceryPickupSlot(),
-    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
+    });
     res.json(result);
   } catch (error) {
     const statusCode = error.code === 'ITEM_NOT_FOUND' ? 422 : 500;

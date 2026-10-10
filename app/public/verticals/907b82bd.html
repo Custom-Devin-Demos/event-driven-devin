@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CVS Health | Aetna Member Coverage &amp; Cost Estimates</title>
+  <link rel="icon" type="image/png" href="https://www.cvs.com/favicon.ico">
+  <style>
+    :root {
+      --cvs-red: #CC0000;
+      --cvs-dark-red: #A30000;
+      --cvs-black: #1A1A1A;
+      --cvs-dark: #333333;
+      --cvs-gray: #666666;
+      --cvs-light-gray: #F4F4F4;
+      --cvs-border: #D4D4D4;
+      --cvs-white: #FFFFFF;
+      --cvs-bg-warm: #FFF5F5;
+      --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', monospace;
+      --danger: #DC2626;
+      --danger-bg: #FEF2F2;
+      --danger-border: #FECACA;
+      --success: #059669;
+      --success-bg: #ECFDF5;
+      --success-border: #A7F3D0;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-primary);
+      color: var(--cvs-black);
+      font-size: 14px;
+      line-height: 1.5;
+      background: var(--cvs-white);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+
+
+    /* Top Banner */
+    .top-banner {
+      background: var(--cvs-red);
+      color: var(--cvs-white);
+      text-align: center;
+      padding: 8px 20px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+    .top-banner a { color: var(--cvs-white); text-decoration: underline; font-weight: 600; }
+
+    /* Header */
+    .site-header {
+      background: var(--cvs-white);
+      border-bottom: 1px solid var(--cvs-border);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .cvs-logo {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .cvs-logo .heart {
+      color: var(--cvs-red);
+      font-size: 22px;
+      line-height: 1;
+    }
+    .cvs-logo .logo-text {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--cvs-red);
+      letter-spacing: -1px;
+    }
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .header-nav a {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--cvs-dark);
+      transition: color 0.2s;
+    }
+    .header-nav a:hover { color: var(--cvs-red); }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .header-right .search-box {
+      display: flex;
+      align-items: center;
+      background: var(--cvs-light-gray);
+      border: 1px solid var(--cvs-border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      gap: 6px;
+      min-width: 220px;
+    }
+    .header-right .search-box input {
+      border: none;
+      background: none;
+      font-size: 13px;
+      color: var(--cvs-dark);
+      outline: none;
+      width: 100%;
+      font-family: var(--font-primary);
+    }
+    .header-right .search-box input::placeholder { color: #999; }
+    .header-right .search-box svg { flex-shrink: 0; }
+    .header-right .sign-in {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--cvs-red);
+      cursor: pointer;
+    }
+    .header-right .cart-icon {
+      position: relative;
+      cursor: pointer;
+    }
+    .header-right .cart-icon svg { width: 22px; height: 22px; }
+    .cart-badge {
+      position: absolute;
+      top: -6px;
+      right: -8px;
+      background: var(--cvs-red);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Sub-nav */
+    .sub-nav {
+      background: var(--cvs-white);
+      border-bottom: 1px solid var(--cvs-border);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      height: 44px;
+      overflow-x: auto;
+    }
+    .sub-nav a {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--cvs-gray);
+      white-space: nowrap;
+      padding: 10px 0;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .sub-nav a:hover, .sub-nav a.active {
+      color: var(--cvs-red);
+      border-bottom-color: var(--cvs-red);
+    }
+
+    /* Hero Section */
+    .hero-section {
+      position: relative;
+      width: 100%;
+      min-height: 440px;
+      background: linear-gradient(135deg, #FFF5F5 0%, #FFFFFF 50%, #F0F7FF 100%);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    .hero-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      width: 100%;
+    }
+    .hero-text h1 {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.15;
+      color: var(--cvs-black);
+      margin-bottom: 16px;
+    }
+    .hero-text h1 span { color: var(--cvs-red); }
+    .hero-text p {
+      font-size: 16px;
+      color: var(--cvs-gray);
+      line-height: 1.6;
+      margin-bottom: 24px;
+      max-width: 440px;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: var(--cvs-red);
+      color: var(--cvs-white);
+      border: none;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font-primary);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hero-cta:hover { background: var(--cvs-dark-red); }
+    .hero-image {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .hero-image img {
+      width: 100%;
+      max-width: 480px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      background: var(--cvs-black);
+      padding: 24px 40px;
+    }
+    .stats-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .stat-item {
+      text-align: center;
+      color: var(--cvs-white);
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: var(--cvs-white);
+    }
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* Coverage Checker Form */
+    .coverage-section {
+      background: var(--cvs-light-gray);
+      padding: 60px 40px;
+      display: flex;
+      justify-content: center;
+    }
+    .coverage-card {
+      max-width: 560px;
+      width: 100%;
+      background: var(--cvs-white);
+      border-radius: 12px;
+      padding: 36px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .coverage-card h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--cvs-black);
+      margin-bottom: 6px;
+    }
+    .coverage-card .coverage-desc {
+      font-size: 13px;
+      color: var(--cvs-gray);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--cvs-dark);
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      height: 44px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-family: var(--font-primary);
+      color: var(--cvs-dark);
+      border: 1px solid var(--cvs-border);
+      border-radius: 8px;
+      background: var(--cvs-white);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--cvs-red);
+      box-shadow: 0 0 0 2px rgba(204,0,0,0.1);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .btn-submit {
+      width: 100%;
+      height: 44px;
+      background: var(--cvs-red);
+      color: var(--cvs-white);
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font-primary);
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--cvs-dark-red); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result-box {
+      margin-top: 16px;
+      padding: 14px 18px;
+      font-size: 13px;
+      border-radius: 8px;
+      display: none;
+    }
+    .result-box.error {
+      display: block;
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: var(--danger);
+    }
+    .result-box.success {
+      display: block;
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: var(--success);
+    }
+    .result-box .error-title { font-weight: 700; margin-bottom: 4px; }
+    .result-box .error-detail { font-family: var(--font-mono); font-size: 11px; opacity: 0.85; word-break: break-all; }
+
+    /* Services Grid */
+    .services-section {
+      padding: 60px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .services-section h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--cvs-black);
+      margin-bottom: 8px;
+    }
+    .services-section .section-desc {
+      font-size: 14px;
+      color: var(--cvs-gray);
+      margin-bottom: 32px;
+    }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .service-card {
+      background: var(--cvs-white);
+      border: 1px solid var(--cvs-border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .service-card:hover {
+      border-color: var(--cvs-red);
+      box-shadow: 0 4px 16px rgba(204,0,0,0.08);
+    }
+    .service-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--cvs-bg-warm);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+    .service-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--cvs-black);
+      margin-bottom: 8px;
+    }
+    .service-card p {
+      font-size: 13px;
+      color: var(--cvs-gray);
+      line-height: 1.5;
+    }
+    .service-card .learn-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--cvs-red);
+    }
+
+    /* Footer */
+    .site-footer {
+      background: var(--cvs-light-gray);
+      padding: 48px 40px 24px;
+      border-top: 1px solid var(--cvs-border);
+    }
+    .footer-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 36px;
+    }
+    .footer-col h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cvs-black);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 8px; }
+    .footer-col ul li a {
+      color: var(--cvs-gray);
+      font-size: 12px;
+      transition: color 0.2s;
+    }
+    .footer-col ul li a:hover { color: var(--cvs-red); }
+    .footer-brand-desc {
+      font-size: 12px;
+      color: var(--cvs-gray);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      border-top: 1px solid var(--cvs-border);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-bottom-links {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .footer-bottom-links a {
+      font-size: 11px;
+      color: var(--cvs-gray);
+    }
+    .footer-bottom-links a:hover { color: var(--cvs-red); }
+    .footer-copyright {
+      font-size: 11px;
+      color: #999;
+    }
+
+    /* Coverage section — two column */
+    .coverage-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+      max-width: 1200px;
+      margin: 0 auto;
+      background: transparent;
+      padding: 60px 40px;
+    }
+    .coverage-wrap { background: var(--cvs-light-gray); }
+    .coverage-copy .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--cvs-red);
+      margin-bottom: 10px;
+    }
+    .coverage-copy h2 {
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--cvs-black);
+      margin-bottom: 12px;
+    }
+    .coverage-copy p {
+      font-size: 14px;
+      color: var(--cvs-gray);
+      line-height: 1.6;
+      margin-bottom: 24px;
+      max-width: 520px;
+    }
+    .claims-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--cvs-white);
+      border: 1px solid var(--cvs-border);
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 13px;
+    }
+    .claims-table th, .claims-table td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--cvs-border);
+      white-space: nowrap;
+    }
+    .claims-table th {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--cvs-gray);
+      background: #FAFAFA;
+    }
+    .claims-table tr:last-child td { border-bottom: none; }
+    .claims-table .status {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--success-bg);
+      color: var(--success);
+    }
+    .claims-scroll { overflow-x: auto; }
+
+    /* Card tabs */
+    .coverage-card { max-width: none; padding: 0; overflow: hidden; }
+    .card-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--cvs-border);
+      background: #FAFAFA;
+    }
+    .card-tabs [role="tab"] {
+      flex: 1;
+      min-height: 48px;
+      padding: 14px 16px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-family: var(--font-primary);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--cvs-gray);
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .card-tabs [role="tab"][aria-selected="true"] {
+      color: var(--cvs-red);
+      border-bottom-color: var(--cvs-red);
+      background: var(--cvs-white);
+    }
+    .card-panel { padding: 32px 36px 36px; }
+    .card-panel h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--cvs-black);
+      margin-bottom: 6px;
+    }
+    .card-panel[hidden] { display: none; }
+    .quote-total {
+      font-size: 22px;
+      font-weight: 800;
+      margin: 8px 0 10px;
+      color: var(--cvs-black);
+    }
+    .quote-grid {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 4px 14px;
+      font-size: 12px;
+      color: var(--cvs-dark);
+      margin-top: 8px;
+    }
+    .quote-grid dt { font-weight: 600; color: var(--cvs-gray); }
+    .quote-grid dd { word-break: break-word; }
+    .result-box.success { color: var(--cvs-dark); }
+    .result-box.success .error-title { color: var(--success); }
+
+    /* Header controls need a real tap target */
+    .header-right .sign-in, .header-right .cart-icon { min-height: 44px; display: inline-flex; align-items: center; }
+    .header-nav a, .sub-nav a { min-height: 44px; display: inline-flex; align-items: center; }
+    .hero-cta { min-height: 44px; }
+
+    @media (max-width: 980px) {
+      .site-header { padding: 0 20px; }
+      .header-nav { display: none; }
+      .header-right .search-box { display: none; }
+      .sub-nav { padding: 0 20px; gap: 20px; }
+      .hero-content { grid-template-columns: 1fr; padding: 40px 20px; gap: 28px; }
+      .hero-text h1 { font-size: 32px; }
+      .stats-bar { padding: 20px; }
+      .stats-container { grid-template-columns: repeat(2, 1fr); }
+      .coverage-section { grid-template-columns: 1fr; padding: 40px 20px; gap: 28px; }
+      .card-panel { padding: 24px 20px 28px; }
+      .services-section { padding: 40px 20px; }
+      .services-grid { grid-template-columns: 1fr; }
+      .site-footer { padding: 36px 20px 20px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+    }
+    @media (max-width: 480px) {
+      .hero-text h1 { font-size: 28px; }
+      .stats-container { grid-template-columns: 1fr 1fr; gap: 16px; }
+      .stat-value { font-size: 22px; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .coverage-copy h2 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Banner -->
+  <div class="top-banner">
+    Your Aetna plan and CVS Pharmacy work together. <a href="#">See how your benefits connect</a> across pharmacy, MinuteClinic, and your health plan.
+  </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-left">
+      <a href="#" class="cvs-logo">
+        <span class="heart">&#x2764;&#xFE0F;</span>
+        <span class="logo-text">CVS</span>
+      </a>
+      <nav class="header-nav">
+        <a href="#">Pharmacy</a>
+        <a href="#" class="active">Health Insurance</a>
+        <a href="#">MinuteClinic</a>
+        <a href="#">Wellness</a>
+        <a href="#">Shop</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search CVS or ask a question">
+      </div>
+      <span class="sign-in">Sign in</span>
+      <div class="cart-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span class="cart-badge">0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sub Navigation -->
+  <nav class="sub-nav">
+    <a href="#">Aetna Member Home</a>
+    <a href="#" class="active">Coverage &amp; Benefits</a>
+    <a href="#">Claims &amp; EOBs</a>
+    <a href="#">Cost Estimator</a>
+    <a href="#">Find Care</a>
+    <a href="#">Pharmacy Benefits</a>
+    <a href="#">Digital ID Card</a>
+    <a href="#">Medicare</a>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1>Know what your plan covers <span>before you go</span></h1>
+        <p>Check coverage status, deductible progress, and what you will owe for an in-network visit &mdash; connected across your Aetna plan, CVS Pharmacy, and MinuteClinic.</p>
+        <button class="hero-cta" onclick="scrollToCoverage()">
+          Check My Coverage
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=400&fit=crop&q=80" alt="Care team consultation" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stats-container">
+      <div class="stat-item">
+        <div class="stat-value">9,000+</div>
+        <div class="stat-label">CVS Pharmacy Locations</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">1,100+</div>
+        <div class="stat-label">MinuteClinic Locations</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">36M+</div>
+        <div class="stat-label">Aetna Medical Members</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">$0</div>
+        <div class="stat-label">Preventive Care Cost Share</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coverage lookup -->
+  <div class="coverage-wrap">
+  <section class="coverage-section">
+    <div class="coverage-copy">
+      <div class="eyebrow">Aetna Member Services</div>
+      <h2>Coverage, deductible, and claims in one view.</h2>
+      <p>Members and Aetna Concierge advocates look up live coverage status, remaining deductible, and recent claim activity across Aetna plans, CVS Pharmacy fills, and MinuteClinic visits.</p>
+      <div class="claims-scroll">
+        <table class="claims-table">
+          <thead>
+            <tr><th>Date</th><th>Provider</th><th>Service</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>2026-04-18</td><td>MinuteClinic &ndash; Woonsocket</td><td>Annual Wellness Exam</td><td><span class="status">Covered</span></td></tr>
+            <tr><td>2026-04-02</td><td>CVS Pharmacy #2201</td><td>Atorvastatin 20mg</td><td><span class="status">Processed</span></td></tr>
+            <tr><td>2026-03-15</td><td>Aetna Network Primary Care</td><td>Primary Care Visit</td><td><span class="status">Processed</span></td></tr>
+            <tr><td>2026-02-28</td><td>CVS Caremark Mail Service</td><td>Metformin 500mg (90-day)</td><td><span class="status">Processed</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="coverage-card">
+      <div class="card-tabs" role="tablist">
+        <button type="button" role="tab" id="tabCoverage" aria-selected="true" aria-controls="panelCoverage">Coverage Status</button>
+        <button type="button" role="tab" id="tabEstimate" aria-selected="false" aria-controls="panelEstimate">Estimate a Visit</button>
+      </div>
+
+      <div class="card-panel" id="panelCoverage" role="tabpanel">
+        <h3>Coverage Status Lookup</h3>
+        <p class="coverage-desc">Enter member details to check current coverage status, benefits summary, and remaining deductible balance for the plan on file.</p>
+        <form id="coverageForm">
+          <div class="form-group">
+            <label for="memberEmail">Member Email</label>
+            <input type="email" id="memberEmail" placeholder="Enter member email address" value="sarah.johnson@example.com" required>
+          </div>
+          <div class="form-group">
+            <label for="memberId">Aetna Member ID</label>
+            <input type="text" id="memberId" placeholder="W000000000" value="W204819730" required>
+          </div>
+          <button type="submit" class="btn-submit" id="submitBtn">Check Coverage Status</button>
+        </form>
+        <div id="result" class="result-box"></div>
+      </div>
+
+      <div class="card-panel" id="panelEstimate" role="tabpanel" hidden>
+        <h3>Estimate a Visit</h3>
+        <p class="coverage-desc">See what a member will owe for an in-network service before the visit, based on the plan on file and what has already been applied to the deductible.</p>
+        <form id="estimateForm">
+          <div class="form-group">
+            <label for="estimateMember">Member</label>
+            <select id="estimateMember">
+              <option value="W204875629">James Wilson &mdash; W204875629</option>
+              <option value="W205598412">David Kim &mdash; W205598412</option>
+              <option value="W206123085">Maria Garcia &mdash; W206123085</option>
+              <option value="W204819730">Sarah Johnson &mdash; W204819730</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="estimateService">In-Network Service</label>
+            <select id="estimateService">
+              <option value="specialist">Specialist office visit</option>
+              <option value="primary-care">Primary care office visit</option>
+              <option value="minuteclinic">MinuteClinic walk-in visit</option>
+              <option value="mri">MRI (outpatient imaging)</option>
+              <option value="preventive-visit">Annual wellness exam</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-submit" id="estimateBtn">Get Cost Estimate</button>
+        </form>
+        <div id="estimateResult" class="result-box"></div>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- Services -->
+  <section class="services-section">
+    <h2>Connected care, one plan</h2>
+    <p class="section-desc">Your Aetna benefits follow you across pharmacy, clinic, and care management.</p>
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-icon">&#x1F48A;</div>
+        <h3>Pharmacy Benefits</h3>
+        <p>Fill prescriptions at CVS Pharmacy or through CVS Caremark Mail Service with your plan's formulary applied at the counter.</p>
+        <a href="#" class="learn-more">Learn more &rarr;</a>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">&#x1F3E5;</div>
+        <h3>MinuteClinic Visits</h3>
+        <p>Walk-in and virtual care at 1,100+ locations. Most Aetna plans cover MinuteClinic visits at in-network rates.</p>
+        <a href="#" class="learn-more">Learn more &rarr;</a>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">&#x1F4CB;</div>
+        <h3>Preventive Care</h3>
+        <p>Annual wellness exams, immunizations, and screenings covered at no cost share on in-network plans.</p>
+        <a href="#" class="learn-more">Learn more &rarr;</a>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">&#x1F4F1;</div>
+        <h3>Aetna Health App</h3>
+        <p>Digital ID card, claims and EOBs, cost estimates, and care search in one place.</p>
+        <a href="#" class="learn-more">Learn more &rarr;</a>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">&#x1F9E0;</div>
+        <h3>Behavioral Health</h3>
+        <p>Therapy, counseling, and substance use programs covered under your medical plan.</p>
+        <a href="#" class="learn-more">Learn more &rarr;</a>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">&#x2764;&#xFE0F;</div>
+        <h3>Care Management</h3>
+        <p>Support for diabetes, heart health, and other chronic conditions with pharmacy adherence built in.</p>
+        <a href="#" class="learn-more">Learn more &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3>CVS Health</h3>
+        <p class="footer-brand-desc">CVS Health is a leading health solutions company, bringing together Aetna health plans, CVS Pharmacy, CVS Caremark, and MinuteClinic to help people on their path to better health.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Members</h3>
+        <ul>
+          <li><a href="#">Coverage &amp; Benefits</a></li>
+          <li><a href="#">Claims &amp; EOBs</a></li>
+          <li><a href="#">Digital ID Card</a></li>
+          <li><a href="#">Find Care</a></li>
+          <li><a href="#">Pharmacy Benefits</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Plans &amp; Coverage</h3>
+        <ul>
+          <li><a href="#">Employer Plans</a></li>
+          <li><a href="#">Individual &amp; Family</a></li>
+          <li><a href="#">Medicare Advantage</a></li>
+          <li><a href="#">Medicaid</a></li>
+          <li><a href="#">Dental &amp; Vision</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Resources</h3>
+        <ul>
+          <li><a href="#">Health &amp; Wellness</a></li>
+          <li><a href="#">Open Enrollment</a></li>
+          <li><a href="#">Provider Directory</a></li>
+          <li><a href="#">Formulary</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-bottom-links">
+        <a href="#">Terms of Use</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Accessibility</a>
+        <a href="#">Non-Discrimination Notice</a>
+        <a href="#">Language Assistance</a>
+      </div>
+      <span class="footer-copyright">&copy; 2026 CVS Health. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var tabs = { tabCoverage: 'panelCoverage', tabEstimate: 'panelEstimate' };
+      Object.keys(tabs).forEach(function (tabId) {
+        document.getElementById(tabId).addEventListener('click', function () {
+          Object.keys(tabs).forEach(function (id) {
+            var selected = id === tabId;
+            document.getElementById(id).setAttribute('aria-selected', selected ? 'true' : 'false');
+            document.getElementById(tabs[id]).hidden = !selected;
+          });
+        });
+      });
+    })();
+
+    function scrollToCoverage() {
+      var card = document.querySelector('.coverage-card');
+      window.scrollTo({ top: card.getBoundingClientRect().top + window.pageYOffset - 24, behavior: 'smooth' });
+    }
+
+    function money(n) { return '$' + Number(n).toFixed(2); }
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+    document.getElementById('coverageForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Checking...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/907b82bd/coverage', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: document.getElementById('memberEmail').value, memberId: document.getElementById('memberId').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Coverage Lookup Failed</div><div class="error-detail">' + esc(data.errorClass) + ': ' + esc(data.error) + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Coverage Active &mdash; ' + esc(data.member) + '</div>'
+            + '<dl class="quote-grid">'
+            + '<dt>Plan</dt><dd>' + esc(data.planName) + '</dd>'
+            + '<dt>Group</dt><dd>' + esc(data.groupNumber) + '</dd>'
+            + '<dt>Deductible met</dt><dd>' + money(data.deductibleMet) + ' of ' + money(data.deductible) + ' (' + data.deductiblePct + '%)</dd>'
+            + '<dt>Deductible remaining</dt><dd>' + money(data.deductibleRemaining) + '</dd>'
+            + '<dt>Out-of-pocket remaining</dt><dd>' + money(data.oopRemaining) + ' of ' + money(data.oopMax) + '</dd>'
+            + '<dt>Office visit copay</dt><dd>' + money(data.copay) + ' &bull; ' + esc(data.coinsurance) + ' coinsurance</dd>'
+            + '</dl>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Network Error</div><div class="error-detail">' + esc(err.message) + '</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Check Coverage Status'; }
+    });
+
+    document.getElementById('estimateForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('estimateBtn');
+      const result = document.getElementById('estimateResult');
+      btn.disabled = true; btn.textContent = 'Estimating...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/907b82bd/cost-estimate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memberId: document.getElementById('estimateMember').value, serviceId: document.getElementById('estimateService').value }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Estimate Unavailable</div><div class="error-detail">' + esc(data.errorClass) + ': ' + esc(data.error) + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">' + esc(data.service) + ' &mdash; ' + esc(data.member) + '</div>'
+            + '<div class="quote-total">You pay ' + money(data.memberPays) + '</div>'
+            + '<dl class="quote-grid">'
+            + '<dt>Plan</dt><dd>' + esc(data.planName) + '</dd>'
+            + '<dt>Basis</dt><dd>' + esc(data.basis) + '</dd>'
+            + '<dt>Allowed amount</dt><dd>' + money(data.allowedAmount) + '</dd>'
+            + '<dt>Plan pays</dt><dd>' + money(data.planPays) + '</dd>'
+            + '<dt>Deductible remaining</dt><dd>' + (data.deductibleMet ? 'Met' : money(data.deductibleRemaining)) + '</dd>'
+            + '</dl>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Network Error</div><div class="error-detail">' + esc(err.message) + '</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Get Cost Estimate'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

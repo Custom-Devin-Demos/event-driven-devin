@@ -24,6 +24,17 @@ const APP_SOURCE_PREFIX = 'nordstrom-shop/';
 const APP_REPO = 'github.com/Custom-Devin-Demos/nordstrom-shopping-demo-app';
 const APP_WEB_PATH = '/5b7227b4/app';
 const SCENARIO = 'add-to-bag-rewards';
+const NORDSTROM_ORG_ID = 'org-b92933e8dd00477eb9e0b1222b9ab4f9';
+
+/**
+ * Customer config to raise the alert under. The Nordstrom service key only
+ * works inside the Nordstrom org, so a report carrying any other hub-selected
+ * org (e.g. Devin GTM) uses the default config like every other skin.
+ */
+function customerForOrg(orgId) {
+  const nordstromOrg = process.env.DEVIN_ORG_ID_5B7227B4 || NORDSTROM_ORG_ID;
+  return !orgId || orgId === nordstromOrg ? CUSTOMER : 'default';
+}
 
 /**
  * Scenario directive appended to the Devin investigation prompt. The alert
@@ -105,18 +116,18 @@ function isAppReport(body) {
 }
 
 /**
- * Resolve the reporting user inside the Nordstrom org from the email the hub
+ * Resolve the reporting user inside the reporting org from the email the hub
  * (or the native sign-in) supplied, when the client could not supply a user id
  * itself. Returns '' when nobody matches so the caller falls back to the
- * customer config. The lookup authenticates with the Nordstrom service key:
- * the default enterprise key is not a member of the Nordstrom org and the
- * members endpoint rejects it.
+ * customer config. The lookup authenticates with the key of the customer the
+ * org maps to: the default enterprise key is not a member of the Nordstrom org
+ * and the members endpoint rejects it.
  */
 async function resolveUserIdByEmail(email, orgId) {
   const normalized = String(email || '').trim().toLowerCase();
   if (!normalized || !orgId) return '';
   try {
-    const { apiKey } = getCustomerConfig(CUSTOMER);
+    const { apiKey } = getCustomerConfig(customerForOrg(orgId));
     const auth = apiKey ? { apiKey } : {};
     const members = await listOrgUsers(orgId, auth);
     const member = members.find((u) => (u.email || '').toLowerCase() === normalized);
@@ -204,7 +215,7 @@ function reportAppFailure(report) {
     service: APP_SERVICE,
     verticalLabel: 'Nordstrom',
     promptAppendix: APP_REMEDIATION_DIRECTIVE,
-    customer: CUSTOMER,
+    customer: customerForOrg(report.devinOrgId),
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
     extra: {
       reference,

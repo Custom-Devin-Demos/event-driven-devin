@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payments | CashPro</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body { margin: 0; color: #252a31; background: #f5f6f8; font: 13px Arial, Helvetica, sans-serif; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .5; }
+    a { color: #0053c2; }
+    .masthead { background: #fff; border-bottom: 1px solid #d5d9df; }
+    .masthead-inner { max-width: 1500px; margin: auto; padding: 14px 30px 0; }
+    .brand-row, .toolbar, .quick-actions, .utility-actions { display: flex; align-items: center; }
+    .brand-row { justify-content: space-between; min-height: 42px; }
+    .brand { color: #012169; display: flex; align-items: center; text-decoration: none; gap: 10px; }
+    .bank-wordmark { font-weight: 700; letter-spacing: 2.1px; font-size: 17px; white-space: nowrap; }
+    .flag { width: 37px; height: 25px; flex: 0 0 auto; }
+    .cashpro { font-size: 20px; color: #163a73; font-weight: 400; white-space: nowrap; }
+    .cashpro sup { font-size: 9px; vertical-align: top; }
+    .sign-in-meta { color: #68717d; text-align: right; display: flex; flex-direction: column; gap: 4px; font-size: 10px; }
+    .sign-in-meta strong { color: #414b58; font-weight: 500; }
+    .toolbar { border-bottom: 1px solid #e3e6ea; justify-content: space-between; min-height: 42px; }
+    .quick-actions { gap: 25px; }
+    .quick-actions a { color: #0053c2; text-decoration: none; display: flex; align-items: center; gap: 6px; font-size: 12px; }
+    .quick-icon { display: inline-block; min-width: 16px; text-align: center; font-size: 16px; line-height: 1; }
+    .quick-actions a:nth-child(2) .quick-icon { color: #e7aa20; }
+    .utility-actions { gap: 14px; }
+    .utility-actions button { position: relative; border: 0; background: transparent; padding: 4px; color: #0053c2; width: 24px; height: 24px; font-size: 15px; }
+    .utility-actions .message-count { position: absolute; right: -2px; top: -3px; background: #e31837; color: #fff; border-radius: 9px; font-size: 9px; font-style: normal; padding: 2px 4px; }
+    .section-nav { display: flex; gap: 30px; height: 41px; align-items: stretch; }
+    .section-nav a { display: flex; align-items: center; color: #435675; font-size: 12px; text-decoration: none; border-bottom: 3px solid transparent; padding: 0 3px; white-space: nowrap; }
+    .section-nav a.active { color: #012169; border-color: #012169; font-weight: 700; }
+    .page-shell { max-width: 1500px; margin: 0 auto; padding: 22px 30px 42px; }
+    .breadcrumbs { color: #758090; font-size: 11px; margin-bottom: 14px; }
+    .breadcrumbs span { color: #0053c2; }
+    .breadcrumbs b { color: #a3aab3; font-weight: 400; padding: 0 7px; }
+    .page-title { display: flex; justify-content: space-between; align-items: center; margin: 0 0 19px; }
+    .page-title h1 { font-size: 23px; font-weight: 400; color: #243b62; margin: 0; }
+    .page-title p { margin: 5px 0 0; color: #66717d; font-size: 12px; }
+    .company-meta { display: flex; align-items: center; gap: 9px; color: #435675; font-size: 11px; }
+    .company-meta strong { font-size: 12px; }
+    .company-code { padding: 4px 7px; background: #eaf0f8; border-radius: 2px; color: #304a72; font-size: 10px; }
+    .payment-tabs { display: flex; gap: 28px; border-bottom: 1px solid #d8dde4; margin-bottom: 17px; }
+    .payment-tabs button { border: 0; background: none; color: #586879; padding: 0 2px 10px; font-size: 12px; border-bottom: 3px solid transparent; }
+    .payment-tabs button.active { color: #012169; border-color: #012169; font-weight: 700; }
+    .payment-tabs .count { margin-left: 5px; color: #56667a; background: #e9edf2; border-radius: 10px; padding: 2px 6px; font-size: 9px; }
+    .summary-strip { display: flex; align-items: center; gap: 15px; padding: 13px 16px; margin: 0 0 16px; border: 1px solid #d8dfe8; border-left: 4px solid #e4a326; background: #fff; }
+    .summary-mark { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; color: #8a5a00; background: #fff3d7; font-size: 16px; font-weight: 700; }
+    .summary-copy { flex: 1; }
+    .summary-copy strong { display: block; color: #243b62; font-size: 12px; margin-bottom: 3px; }
+    .summary-copy span { color: #66717d; font-size: 11px; }
+    .summary-count { text-align: right; color: #68717d; font-size: 10px; }
+    .summary-count strong { display: block; color: #243b62; font-size: 17px; font-weight: 600; margin-bottom: 2px; }
+    .panel { background: #fff; border: 1px solid #d9dde3; border-radius: 2px; }
+    .panel-heading { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e8ec; padding: 14px 16px; }
+    .panel-heading h2 { color: #243b62; font-size: 15px; font-weight: 600; margin: 0; }
+    .panel-heading p { color: #6a7582; font-size: 11px; margin: 4px 0 0; }
+    .panel-meta { color: #758090; font-size: 10px; white-space: nowrap; }
+    .filter-bar { display: flex; align-items: end; gap: 14px; padding: 12px 16px; border-bottom: 1px solid #e4e7eb; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label, .field-label { color: #586372; font-size: 10px; }
+    .field input, .field select { min-width: 150px; border: 1px solid #bdc5cf; border-radius: 2px; background: #fff; color: #27313e; padding: 8px; height: 33px; }
+    .field.search-field input { width: 280px; }
+    .refresh-button { margin-left: auto; border: 1px solid #aab4c1; color: #26466f; background: #fff; padding: 8px 12px; border-radius: 2px; font-size: 11px; }
+    .refresh-button:hover, .secondary-button:hover { background: #f7f9fb; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: #fff; font-size: 12px; }
+    th { text-align: left; font-weight: 600; color: #435675; background: #f4f6f8; white-space: nowrap; }
+    th, td { padding: 11px 10px; border-bottom: 1px solid #e4e7eb; }
+    tbody tr:nth-child(even) { background: #fafbfc; }
+    tbody tr[data-payment-id] { cursor: pointer; transition: background .12s ease; }
+    tbody tr[data-payment-id]:hover, tbody tr[data-payment-id]:focus { background: #edf4fc; outline: none; }
+    tbody tr.selected { background: #eaf2fc; }
+    .payments-table { min-width: 930px; }
+    .payments-table td { vertical-align: middle; }
+    .reference-link { color: #0053c2; text-decoration: none; font-weight: 600; }
+    .reference-link:hover { text-decoration: underline; }
+    .type-main { color: #2e4058; font-weight: 600; white-space: nowrap; }
+    .type-sub { display: block; color: #788392; font-size: 10px; margin-top: 3px; }
+    .receiver-name { color: #303a46; font-weight: 500; }
+    .creator-cell { color: #536174; white-space: nowrap; }
+    .amount-cell { color: #293c5c; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .status-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 2px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+    .status-chip.pending, .status-chip.approved { color: #875400; background: #fff2d5; }
+    .status-chip.submitted { color: #1451a3; background: #e6f0ff; }
+    .status-chip.rejected { color: #9e1e31; background: #fde8eb; }
+    .status-chip.accepted, .status-chip.settled { color: #1a6a43; background: #e4f4eb; }
+    .status-symbol { font-size: 11px; }
+    .empty-row { text-align: center; color: #687586; padding: 30px; }
+    .queue-foot { display: flex; justify-content: space-between; align-items: center; padding: 11px 16px; color: #697583; font-size: 10px; }
+    .queue-foot a { text-decoration: none; }
+    .drawer-backdrop { display: none; position: fixed; z-index: 40; inset: 0; background: #0c1b31a8; justify-content: flex-end; }
+    .drawer-backdrop.open { display: flex; }
+    .review-panel { width: min(480px, 100%); height: 100%; overflow-y: auto; background: #fff; box-shadow: -10px 0 30px #07172e33; animation: slide-in .18s ease-out; }
+    @keyframes slide-in { from { transform: translateX(25px); opacity: .75; } to { transform: translateX(0); opacity: 1; } }
+    .drawer-heading { display: flex; justify-content: space-between; align-items: flex-start; padding: 18px 20px; border-bottom: 1px solid #e1e5ea; }
+    .drawer-heading span { color: #718093; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
+    .drawer-heading h2 { color: #1e365d; font-size: 16px; margin: 6px 0 0; }
+    .close-button { border: 0; color: #596879; background: none; font-size: 25px; line-height: 1; padding: 0 3px; }
+    .review-status { padding: 14px 20px; border-bottom: 1px solid #e1e5ea; }
+    .review-status p { color: #687586; font-size: 11px; line-height: 1.5; margin: 8px 0 0; }
+    .review-amount { padding: 19px 20px; border-bottom: 1px solid #e1e5ea; }
+    .review-amount strong { color: #243b62; display: block; font-size: 24px; font-weight: 600; }
+    .review-amount span { display: block; color: #536071; font-size: 12px; margin-top: 5px; }
+    .detail-section { padding: 17px 20px; border-bottom: 1px solid #e1e5ea; }
+    .detail-section h3 { color: #304a72; font-size: 12px; margin: 0 0 13px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+    .detail-item label { display: block; color: #778291; font-size: 10px; margin-bottom: 4px; }
+    .detail-item strong { color: #303b49; font-size: 11px; font-weight: 500; overflow-wrap: anywhere; }
+    .action-footer { display: flex; justify-content: flex-end; gap: 9px; padding: 17px 20px 22px; }
+    .primary-button, .secondary-button { border-radius: 2px; padding: 9px 16px; font-weight: 600; font-size: 12px; }
+    .primary-button { background: #0053c2; color: #fff; border: 1px solid #0053c2; }
+    .primary-button:hover:not(:disabled) { background: #003f99; }
+    .secondary-button { background: #fff; border: 1px solid #aab4c1; color: #26466f; }
+    .reject-button { color: #a21d35; }
+    .drawer-note { color: #697583; font-size: 10px; line-height: 1.5; padding: 0 20px 20px; }
+    .modal-backdrop { display: none; position: fixed; z-index: 60; inset: 0; background: #0c1b31a8; align-items: center; justify-content: center; padding: 20px; }
+    .modal-backdrop.open { display: flex; }
+    .confirm-modal { position: relative; width: min(510px, 100%); background: #fff; border-radius: 3px; box-shadow: 0 12px 45px #06142a44; padding: 24px 26px 21px; }
+    .confirm-modal h2 { color: #243b62; font-size: 19px; font-weight: 500; margin: 0 36px 7px 0; }
+    .confirm-modal .modal-intro { color: #697583; font-size: 11px; line-height: 1.5; margin: 0 0 16px; }
+    .modal-close { position: absolute; right: 16px; top: 14px; }
+    .approval-summary { border: 1px solid #dfe4ea; background: #f7f9fb; padding: 12px 14px; margin-bottom: 17px; }
+    .approval-summary .summary-reference { color: #0053c2; font-weight: 600; font-size: 11px; }
+    .approval-summary .summary-receiver { color: #33445e; font-weight: 600; margin-top: 6px; }
+    .approval-summary .summary-line { display: flex; justify-content: space-between; gap: 12px; color: #6a7582; font-size: 10px; margin-top: 6px; }
+    .approval-summary .summary-line strong { color: #30435f; font-size: 11px; font-weight: 600; }
+    .token-field { display: flex; flex-direction: column; gap: 6px; }
+    .token-field label { color: #364b68; font-size: 11px; font-weight: 600; }
+    .token-field input { width: 100%; border: 1px solid #aab5c1; border-radius: 2px; color: #293747; padding: 10px 11px; height: 39px; letter-spacing: 2px; }
+    .token-field input:focus { border-color: #0053c2; outline: 2px solid #d6e6fa; }
+    .token-hint { color: #788392; font-size: 10px; margin: 1px 0 0; }
+    .modal-error { display: none; color: #a21d35; font-size: 11px; margin: 9px 0 0; }
+    .modal-error.visible { display: block; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 19px; padding-top: 14px; border-top: 1px solid #e4e7eb; }
+    .loading-note { display: none; color: #536071; font-size: 10px; text-align: right; margin-top: 10px; }
+    .loading-note.visible { display: block; }
+    .spinner { display: inline-block; width: 11px; height: 11px; border: 2px solid #c9d3df; border-top-color: #0053c2; border-radius: 50%; margin-right: 5px; vertical-align: -2px; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast { display: none; position: fixed; right: 20px; bottom: 20px; width: 420px; max-width: calc(100vw - 32px); background: #fff5df; border: 1px solid #ead39e; border-left: 5px solid #d89c21; border-radius: 3px; padding: 14px 38px 14px 16px; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+    .toast.visible { display: block; }
+    .toast.success { background: #eaf6ef; border-color: #b5ddc3; border-left-color: #32945e; }
+    .toast-title { display: block; color: #795100; font-weight: 700; font-size: 12px; margin-bottom: 5px; overflow-wrap: anywhere; }
+    .toast.success .toast-title { color: #17643d; }
+    .toast-detail { color: #604f2c; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; margin: 0; }
+    .toast.success .toast-detail { color: #315f46; }
+    .toast-close { position: absolute; top: 8px; right: 10px; background: none; border: none; color: #795100; font-size: 17px; opacity: .65; }
+    .toast-close:hover { opacity: 1; }
+    .page-error { padding: 26px; text-align: center; color: #6a7582; font-size: 12px; }
+    @media (max-width: 720px) {
+      .masthead-inner { padding: 12px 14px 0; }
+      .bank-wordmark { font-size: 12px; letter-spacing: 1px; }
+      .cashpro { font-size: 16px; }
+      .flag { width: 29px; }
+      .sign-in-meta { font-size: 9px; }
+      .quick-actions { gap: 12px; }
+      .quick-actions a { font-size: 10px; }
+      .quick-icon { min-width: 13px; }
+      .utility-actions { gap: 7px; }
+      .section-nav { gap: 14px; overflow-x: auto; }
+      .section-nav a { font-size: 11px; }
+      .page-shell { padding: 17px 14px 30px; }
+      .page-title { align-items: flex-start; gap: 12px; }
+      .page-title h1 { font-size: 20px; }
+      .company-meta { display: none; }
+      .summary-count { display: none; }
+      .filter-bar { align-items: stretch; flex-direction: column; }
+      .field.search-field input, .field input, .field select { width: 100%; }
+      .refresh-button { margin-left: 0; }
+      .panel-meta { display: none; }
+      .detail-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brand-row">
+        <a class="brand" href="#" aria-label="Bank of America CashPro home">
+          <span class="bank-wordmark">BANK OF AMERICA</span>
+          <svg class="flag" viewBox="0 0 42 28" aria-hidden="true">
+            <path d="M2 4h26l-3 4H0zM8 12h26l-3 4H6zM14 20h26l-3 4H12z" fill="#e31837"></path>
+            <path d="M2 4h13l-3 4H0zM8 12h13l-3 4H6zM14 20h13l-3 4H12z" fill="#012169"></path>
+          </svg>
+          <span class="cashpro">CashPro<sup>®</sup></span>
+        </a>
+        <div class="sign-in-meta">
+          <span>Last sign in: Oct 02, 2026 9:02 AM ET</span>
+          <strong>APatel&nbsp; • &nbsp;TALLGR01</strong>
+        </div>
+      </div>
+      <div class="toolbar">
+        <nav class="quick-actions" aria-label="Quick actions">
+          <a href="#" onclick="return false"><span class="quick-icon" aria-hidden="true">☰</span>Menu</a>
+          <a href="#" onclick="return false"><span class="quick-icon" aria-hidden="true">★</span>Favorites</a>
+          <a href="#" onclick="return false"><span class="quick-icon" aria-hidden="true">⌕</span>Find transaction</a>
+        </nav>
+        <div class="utility-actions" aria-label="Account tools">
+          <button type="button" aria-label="Help">?</button>
+          <button type="button" aria-label="Chat">▱</button>
+          <button type="button" aria-label="Messages">✉<i class="message-count">3</i></button>
+          <button type="button" aria-label="Sign out">⇥</button>
+        </div>
+      </div>
+      <nav class="section-nav" aria-label="Main navigation">
+        <a href="#" onclick="return false">Dashboard</a>
+        <a href="#" class="active" aria-current="page">Payments</a>
+        <a href="#" onclick="return false">Find Transaction</a>
+        <a href="#" onclick="return false">Statements</a>
+        <a href="#" onclick="return false">Reports</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <div class="breadcrumbs"><span>Payments</span><b>/</b><strong>Approvals</strong></div>
+    <div class="page-title">
+      <div><h1>Payments</h1><p>Manage ACH payments and approval activity</p></div>
+      <div class="company-meta"><strong>Tallgrass Fabrication Group</strong><span class="company-code">TALLGR01</span></div>
+    </div>
+
+    <nav class="payment-tabs" aria-label="Payment sections">
+      <button type="button">Payment activity</button>
+      <button type="button" class="active" aria-current="page">Approvals <span class="count" id="tabCount">0</span></button>
+    </nav>
+
+    <section class="summary-strip" aria-label="Approval summary">
+      <div class="summary-mark" aria-hidden="true">!</div>
+      <div class="summary-copy">
+        <strong>Payments awaiting your review</strong>
+        <span>Confirm payment details before authorizing release from Tallgrass Fabrication Group.</span>
+      </div>
+      <div class="summary-count"><strong id="pendingCount">0</strong>pending approval</div>
+    </section>
+
+    <section class="panel" aria-labelledby="queue-title">
+      <div class="panel-heading">
+        <div><h2 id="queue-title">Approvals queue</h2><p>Review ACH and wire payment instructions.</p></div>
+        <span class="panel-meta" id="updatedAt">Loading payment activity…</span>
+      </div>
+      <div class="filter-bar">
+        <label class="field search-field" for="searchApprovals"><span>Search approvals</span><input id="searchApprovals" type="search" placeholder="Reference or receiver"></label>
+        <label class="field" for="statusFilter"><span>Status</span>
+          <select id="statusFilter">
+            <option value="">All statuses</option>
+            <option value="PENDING_APPROVAL">Pending approval</option>
+            <option value="APPROVED">Approved — awaiting submission</option>
+            <option value="SUBMITTED">Submitted</option>
+          </select>
+        </label>
+        <button id="refreshButton" class="refresh-button" type="button">Refresh list</button>
+      </div>
+      <div class="table-wrap">
+        <table class="payments-table">
+          <thead><tr><th>Reference</th><th>Payment type</th><th>Receiver</th><th>Created by</th><th>Effective date</th><th style="text-align:right">Amount</th><th>Status</th></tr></thead>
+          <tbody id="paymentsBody"><tr><td colspan="7" class="empty-row">Loading payment approvals…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="queue-foot"><span id="queueCount">Loading approvals…</span><a href="#" onclick="return false">Payment approval guidelines</a></div>
+    </section>
+  </main>
+
+  <div class="drawer-backdrop" id="reviewBackdrop" aria-hidden="true">
+    <aside class="review-panel" role="dialog" aria-modal="true" aria-labelledby="reviewTitle">
+      <div class="drawer-heading">
+        <div><span>Payment review</span><h2 id="reviewTitle">Payment details</h2></div>
+        <button class="close-button" id="closeReview" type="button" aria-label="Close review">×</button>
+      </div>
+      <div class="review-status"><div id="reviewStatus"></div><p id="reviewStatusMessage"></p></div>
+      <div class="review-amount"><strong id="reviewAmount"></strong><span id="reviewReceiver"></span></div>
+      <section class="detail-section">
+        <h3>Payment details</h3>
+        <div class="detail-grid">
+          <div class="detail-item"><label>Reference</label><strong id="detailReference"></strong></div>
+          <div class="detail-item"><label>Payment type</label><strong id="detailType"></strong></div>
+          <div class="detail-item"><label>Effective date</label><strong id="detailEffectiveDate"></strong></div>
+          <div class="detail-item"><label>SEC code</label><strong id="detailSecCode"></strong></div>
+          <div class="detail-item"><label>Receiver routing number</label><strong id="detailRouting"></strong></div>
+          <div class="detail-item"><label>Receiver account</label><strong id="detailAccount"></strong></div>
+        </div>
+      </section>
+      <section class="detail-section">
+        <h3>Originator and creator</h3>
+        <div class="detail-grid">
+          <div class="detail-item"><label>Originator account</label><strong id="detailOriginator"></strong></div>
+          <div class="detail-item"><label>Created by</label><strong id="detailCreatedBy"></strong></div>
+          <div class="detail-item"><label>Created date</label><strong id="detailCreatedAt"></strong></div>
+        </div>
+      </section>
+      <div class="action-footer">
+        <button class="secondary-button reject-button" id="rejectButton" type="button" disabled title="Rejection is unavailable in this approvals view">Reject</button>
+        <button class="primary-button" id="approveButton" type="button">Approve</button>
+      </div>
+      <p class="drawer-note">Approvals are recorded against the signed-in user and payment reference.</p>
+    </aside>
+  </div>
+
+  <div class="modal-backdrop" id="confirmBackdrop" aria-hidden="true">
+    <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <button class="close-button modal-close" id="closeConfirm" type="button" aria-label="Close confirmation">×</button>
+      <h2 id="confirmTitle">Confirm approval</h2>
+      <p class="modal-intro">Review the payment summary and enter your RSA SecurID token code to confirm this approval.</p>
+      <div class="approval-summary">
+        <div class="summary-reference" id="confirmReference"></div>
+        <div class="summary-receiver" id="confirmReceiver"></div>
+        <div class="summary-line"><span>Amount</span><strong id="confirmAmount"></strong></div>
+        <div class="summary-line"><span>Effective date</span><strong id="confirmEffectiveDate"></strong></div>
+      </div>
+      <div class="token-field">
+        <label for="securIdToken">RSA SecurID token code</label>
+        <input id="securIdToken" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="8" pattern="[0-9]{6,8}" placeholder="Enter 6–8 digit code">
+        <p class="token-hint">Enter the current code from your RSA SecurID token.</p>
+      </div>
+      <p class="modal-error" id="modalError" role="alert"></p>
+      <div class="modal-actions">
+        <button class="secondary-button" id="cancelConfirm" type="button">Cancel</button>
+        <button class="primary-button" id="confirmApproval" type="button">Confirm approval</button>
+      </div>
+      <div class="loading-note" id="loadingNote"><span class="spinner" aria-hidden="true"></span>Submitting approval…</div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <button class="toast-close" id="closeToast" type="button" aria-label="Dismiss notification">×</button>
+    <strong class="toast-title" id="toastTitle"></strong>
+    <p class="toast-detail" id="toastDetail"></p>
+  </div>
+
+  <script>
+    (function () {
+      var API_BASE = '/api/09bd61b4';
+      var state = { payments: [], selectedId: '', loading: true, search: '', status: '', busy: false, toastTimer: null };
+      var byId = function (id) { return document.getElementById(id); };
+
+      function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (character) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
+        });
+      }
+
+      function formatAmount(payment) {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: payment.currency || 'USD' }).format(payment.amount);
+      }
+
+      function formatDate(value) {
+        if (!value) return '—';
+        var date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(value + 'T00:00:00Z') : new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric', timeZone: 'UTC' });
+      }
+
+      function formatDateTime(value) {
+        if (!value) return '—';
+        var date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      }
+
+      function statusChip(payment) {
+        var values = {
+          PENDING_APPROVAL: { label: 'Pending approval', className: 'pending', symbol: '⚠' },
+          APPROVED: { label: 'Approved — awaiting submission', className: 'approved', symbol: '●' },
+          SUBMITTED: { label: 'Submitted', className: 'submitted', symbol: '●' },
+          ACCEPTED: { label: 'Accepted', className: 'accepted', symbol: '✓' },
+          SETTLED: { label: 'Settled', className: 'settled', symbol: '✓' },
+          REJECTED: { label: 'Rejected', className: 'rejected', symbol: '×' },
+        };
+        var value = values[payment.status] || { label: payment.status || 'Unknown', className: 'pending', symbol: '•' };
+        return '<span class="status-chip ' + value.className + '"><span class="status-symbol">' + value.symbol + '</span>' + escapeHtml(value.label) + '</span>';
+      }
+
+      function paymentType(payment) {
+        return payment.type === 'WIRE' ? 'Wire transfer' : 'ACH';
+      }
+
+      function paymentSubtype(payment) {
+        return payment.type === 'WIRE' ? 'Domestic wire' : payment.secCode || 'ACH';
+      }
+
+      function visiblePayments() {
+        var term = state.search.trim().toLowerCase();
+        return state.payments.filter(function (payment) {
+          var matchesText = !term || payment.reference.toLowerCase().includes(term) || payment.receiverName.toLowerCase().includes(term);
+          var matchesStatus = !state.status || payment.status === state.status;
+          return matchesText && matchesStatus;
+        });
+      }
+
+      function renderPayments() {
+        var body = byId('paymentsBody');
+        var pending = state.payments.filter(function (payment) { return payment.status === 'PENDING_APPROVAL'; }).length;
+        byId('tabCount').textContent = String(pending);
+        byId('pendingCount').textContent = String(pending);
+        var payments = visiblePayments();
+
+        if (state.loading && state.payments.length === 0) {
+          body.innerHTML = '<tr><td colspan="7" class="empty-row">Loading payment approvals…</td></tr>';
+          byId('queueCount').textContent = 'Loading approvals…';
+          return;
+        }
+        if (state.loadError) {
+          body.innerHTML = '<tr><td colspan="7" class="page-error">' + escapeHtml(state.loadError) + '</td></tr>';
+          byId('queueCount').textContent = 'Approvals could not be loaded';
+          return;
+        }
+        if (payments.length === 0) {
+          body.innerHTML = '<tr><td colspan="7" class="empty-row">No payments match your filters.</td></tr>';
+          byId('queueCount').textContent = 'No matching payments';
+          return;
+        }
+
+        body.innerHTML = payments.map(function (payment) {
+          var selected = state.selectedId === payment.id ? ' selected' : '';
+          return '<tr class="' + selected.trim() + '" data-payment-id="' + escapeHtml(payment.id) + '" tabindex="0" role="button" aria-label="Review payment ' + escapeHtml(payment.reference) + '">' +
+            '<td><a class="reference-link" href="#" data-reference="' + escapeHtml(payment.id) + '">' + escapeHtml(payment.reference) + '</a></td>' +
+            '<td><span class="type-main">' + paymentType(payment) + '</span><span class="type-sub">' + escapeHtml(paymentSubtype(payment)) + '</span></td>' +
+            '<td><span class="receiver-name">' + escapeHtml(payment.receiverName) + '</span></td>' +
+            '<td class="creator-cell">' + escapeHtml(payment.createdBy) + '</td>' +
+            '<td>' + escapeHtml(formatDate(payment.effectiveDate)) + '</td>' +
+            '<td class="amount-cell">' + escapeHtml(formatAmount(payment)) + '</td>' +
+            '<td>' + statusChip(payment) + '</td>' +
+            '</tr>';
+        }).join('');
+        byId('queueCount').textContent = 'Showing ' + payments.length + ' of ' + state.payments.length + ' payments';
+      }
+
+      function selectedPayment() {
+        return state.payments.find(function (payment) { return payment.id === state.selectedId; }) || null;
+      }
+
+      function renderReview() {
+        var payment = selectedPayment();
+        if (!payment) return;
+        byId('reviewTitle').textContent = payment.reference;
+        byId('reviewStatus').innerHTML = statusChip(payment);
+        byId('reviewStatusMessage').textContent = payment.status === 'APPROVED'
+          ? 'This payment was approved but has not been released to the ACH network.'
+          : payment.status === 'PENDING_APPROVAL'
+            ? 'Review the beneficiary and payment details before authorizing this instruction.'
+            : 'The payment has moved to the next processing stage.';
+        byId('reviewAmount').textContent = formatAmount(payment);
+        byId('reviewReceiver').textContent = payment.receiverName;
+        byId('detailReference').textContent = payment.reference;
+        byId('detailType').textContent = paymentType(payment) + (payment.secCode ? ' · ' + payment.secCode : '');
+        byId('detailEffectiveDate').textContent = formatDate(payment.effectiveDate);
+        byId('detailSecCode').textContent = payment.secCode || 'Not applicable';
+        byId('detailRouting').textContent = payment.receiverRoutingNumber;
+        byId('detailAccount').textContent = payment.receiverAccountMasked;
+        byId('detailOriginator').textContent = payment.originatorAccount;
+        byId('detailCreatedBy').textContent = payment.createdBy;
+        byId('detailCreatedAt').textContent = formatDateTime(payment.createdAt);
+        byId('approveButton').disabled = payment.status !== 'PENDING_APPROVAL';
+        byId('rejectButton').disabled = true;
+      }
+
+      function openReview(paymentId) {
+        state.selectedId = paymentId;
+        renderPayments();
+        renderReview();
+        byId('reviewBackdrop').classList.add('open');
+        byId('reviewBackdrop').setAttribute('aria-hidden', 'false');
+      }
+
+      function closeReview() {
+        byId('reviewBackdrop').classList.remove('open');
+        byId('reviewBackdrop').setAttribute('aria-hidden', 'true');
+        state.selectedId = '';
+        renderPayments();
+      }
+
+      function openConfirm() {
+        var payment = selectedPayment();
+        if (!payment || payment.status !== 'PENDING_APPROVAL') return;
+        byId('confirmReference').textContent = payment.reference;
+        byId('confirmReceiver').textContent = payment.receiverName;
+        byId('confirmAmount').textContent = formatAmount(payment);
+        byId('confirmEffectiveDate').textContent = formatDate(payment.effectiveDate);
+        byId('securIdToken').value = '';
+        byId('modalError').textContent = '';
+        byId('modalError').classList.remove('visible');
+        byId('confirmBackdrop').classList.add('open');
+        byId('confirmBackdrop').setAttribute('aria-hidden', 'false');
+        byId('securIdToken').focus();
+      }
+
+      function closeConfirm() {
+        if (state.busy) return;
+        byId('confirmBackdrop').classList.remove('open');
+        byId('confirmBackdrop').setAttribute('aria-hidden', 'true');
+      }
+
+      function showToast(title, detail, success) {
+        var toast = byId('toast');
+        byId('toastTitle').textContent = title;
+        byId('toastDetail').textContent = detail;
+        toast.classList.toggle('success', Boolean(success));
+        toast.classList.add('visible');
+        clearTimeout(state.toastTimer);
+        state.toastTimer = setTimeout(function () { toast.classList.remove('visible'); }, 6000);
+      }
+
+      function showModalError(message) {
+        byId('modalError').textContent = message;
+        byId('modalError').classList.add('visible');
+      }
+
+      async function submitApproval() {
+        var payment = selectedPayment();
+        var token = byId('securIdToken').value.trim();
+        if (!payment || !/^\d{6,8}$/.test(token)) {
+          showModalError('Enter a valid 6–8 digit RSA SecurID token code.');
+          return;
+        }
+        state.busy = true;
+        byId('confirmApproval').disabled = true;
+        byId('cancelConfirm').disabled = true;
+        byId('loadingNote').classList.add('visible');
+        byId('modalError').classList.remove('visible');
+
+        try {
+          await identityReady;
+          var response = await fetch(API_BASE + '/payments/' + encodeURIComponent(payment.id) + '/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              securIdToken: token,
+              approverId: 'APatel',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          var data = await response.json();
+          if (response.ok && data.success) {
+            payment.status = 'SUBMITTED';
+            byId('confirmBackdrop').classList.remove('open');
+            byId('confirmBackdrop').setAttribute('aria-hidden', 'true');
+            renderPayments();
+            renderReview();
+            showToast('Payment submitted', 'Reference ' + payment.reference + ' was approved and submitted.', true);
+          } else if (data.paymentStatus === 'APPROVED') {
+            payment.status = 'APPROVED';
+            byId('confirmBackdrop').classList.remove('open');
+            byId('confirmBackdrop').setAttribute('aria-hidden', 'true');
+            renderPayments();
+            renderReview();
+            showToast(
+              'Payment submission failed',
+              'Reference ' + payment.reference + ' was approved but not released to the ACH network. Request ID ' + (data.requestId || 'n/a') + '.',
+              false
+            );
+          } else {
+            showModalError(data.error || 'The approval could not be completed.');
+            byId('confirmApproval').disabled = false;
+            byId('cancelConfirm').disabled = false;
+          }
+        } catch (error) {
+          showModalError('The approval could not be completed. Please try again.');
+          byId('confirmApproval').disabled = false;
+          byId('cancelConfirm').disabled = false;
+        } finally {
+          state.busy = false;
+          byId('loadingNote').classList.remove('visible');
+          byId('confirmApproval').disabled = false;
+          byId('cancelConfirm').disabled = false;
+        }
+      }
+
+      async function loadApprovals() {
+        state.loading = true;
+        state.loadError = '';
+        renderPayments();
+        try {
+          var response = await fetch(API_BASE + '/approvals');
+          var data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'Payment approvals could not be loaded.');
+          state.payments = Array.isArray(data.payments) ? data.payments : [];
+          byId('updatedAt').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        } catch (error) {
+          state.loadError = 'Payment approvals could not be loaded. Refresh the page to try again.';
+        } finally {
+          state.loading = false;
+          renderPayments();
+        }
+      }
+
+      var identityReady = (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return Promise.resolve();
+        return fetch('/api/config').then(function (response) { return response.json(); }).then(function (config) {
+          if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+          if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+        }).catch(function () {});
+      })();
+
+      byId('paymentsBody').addEventListener('click', function (event) {
+        var row = event.target.closest('tr[data-payment-id]');
+        if (!row) return;
+        event.preventDefault();
+        openReview(row.getAttribute('data-payment-id'));
+      });
+      byId('paymentsBody').addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        var row = event.target.closest('tr[data-payment-id]');
+        if (!row) return;
+        event.preventDefault();
+        openReview(row.getAttribute('data-payment-id'));
+      });
+      byId('searchApprovals').addEventListener('input', function (event) {
+        state.search = event.target.value;
+        renderPayments();
+      });
+      byId('statusFilter').addEventListener('change', function (event) {
+        state.status = event.target.value;
+        renderPayments();
+      });
+      byId('refreshButton').addEventListener('click', loadApprovals);
+      byId('closeReview').addEventListener('click', closeReview);
+      byId('reviewBackdrop').addEventListener('click', function (event) {
+        if (event.target === byId('reviewBackdrop')) closeReview();
+      });
+      byId('approveButton').addEventListener('click', openConfirm);
+      byId('closeConfirm').addEventListener('click', closeConfirm);
+      byId('cancelConfirm').addEventListener('click', closeConfirm);
+      byId('confirmBackdrop').addEventListener('click', function (event) {
+        if (event.target === byId('confirmBackdrop')) closeConfirm();
+      });
+      byId('confirmApproval').addEventListener('click', submitApproval);
+      byId('closeToast').addEventListener('click', function () { byId('toast').classList.remove('visible'); });
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+          if (state.busy) return;
+          if (byId('confirmBackdrop').classList.contains('open')) closeConfirm();
+          else closeReview();
+        }
+      });
+
+      loadApprovals();
+    })();
+  </script>
+</body>
+</html>

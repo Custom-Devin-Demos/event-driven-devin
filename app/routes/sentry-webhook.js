@@ -17,6 +17,10 @@ const {
   SCENARIO: PLAN_PRICING_SCENARIO,
 } = require('../services/verticals/a75ccde9');
 const { APP_REMEDIATION_DIRECTIVE: NVIDIA_REMEDIATION_DIRECTIVE } = require('../services/verticals/315f52fe');
+const { APP_REMEDIATION_DIRECTIVE: WESTPAC_IOS_REMEDIATION_DIRECTIVE, APP_SCENARIO: WESTPAC_IOS_SCENARIO } = require('../services/verticals/westpac');
+const { APP_REMEDIATION_DIRECTIVE: CBA_IOS_REMEDIATION_DIRECTIVE, APP_SCENARIO: CBA_IOS_SCENARIO } = require('../services/verticals/cba-ios');
+const { APP_REMEDIATION_DIRECTIVE: VERIZON_IOS_REMEDIATION_DIRECTIVE, APP_SCENARIO: VERIZON_IOS_SCENARIO } = require('../services/verticals/verizon-ios');
+const { WEBHOOK_REMEDIATION_DIRECTIVE: IOS_DEMOS_REMEDIATION_DIRECTIVE } = require('../services/verticals/ios-demos');
 
 const router = express.Router();
 
@@ -81,7 +85,7 @@ function extractAlertData(payload) {
       count: issue.count || '',
       shortId: issue.shortId || '',
       project: issue.project?.slug || issue.project?.name || '',
-      release: event.release?.version || '',
+      release: event.release?.version || (typeof event.release === 'string' ? event.release : ''),
       environment: event.environment || '',
       triggeredRule: '',
     };
@@ -153,7 +157,9 @@ function isSyntheticProbeEvent(alertData) {
  * fallback does not raise a second alert or Devin session.
  */
 // Verticals whose instant path already alerts; issue webhooks carry no event tags, so match on the culprit's module path.
-const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'a75ccde9', 'b4c3a7fc', '0eda990f', '2eb494c7', 'a1066f3a', 'fe0957f8', '6f38d771', '64e85fcf', 'cb48a22d', 'eda0e2e5', 'e33c0578', '2589dca4', '1d7f8961', '50753c43', '7c6a6ef9/coverage', 'buildcoveragesummary', 'verticals/bac', 'verticals/banamex', 'verticals/d7c4a1b9', 'verticals.d7c4a1b9', '4157609f', 'e57f4315', 'bd631c20', '1182181f', '26af2083', '246706c4', '8c0320af', '0a6f5e56', 'a70e8270', 'adbe35bc', '4e150e99', '8d3527ab', '0b0875b5', '631ad31e', 'b2085c10', 'ef51d258', 'f887d0be', 'd3e3804d', 'b6f570dc', 'd708940c', 'b66a0397'];
+const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', 'westpac/ios', 'cba/ios', 'commbankcore', 'commbankapp/', 'nppaddressingregistry', 'verizon/ios', 'ios-demos/', '35c30158', '4da81799', 'statestreet-mch', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'c28a3fe9', 'a75ccde9', 'b4c3a7fc', '0eda990f', '2eb494c7', '77560b41', 'a1066f3a', 'fe0957f8', '6f38d771', '64e85fcf', 'cb48a22d', 'eda0e2e5', 'e33c0578', '2589dca4', '1d7f8961', '50753c43', '7c6a6ef9/coverage', 'buildcoveragesummary', 'verticals/bac', 'verticals/banamex', 'verticals/d7c4a1b9', 'verticals.d7c4a1b9', '4157609f', 'e57f4315', 'bd631c20', '1182181f', '26af2083', '246706c4', '8c0320af', '0a6f5e56', 'a70e8270', 'adbe35bc', '4e150e99', '9fdcf315', '513ad458', '8d3527ab', '0b0875b5', '631ad31e', 'b2085c10', 'ef51d258', 'f887d0be', 'd3e3804d', 'b6f570dc', 'd708940c', '04525b56', '918bb443', 'b19cd3b6', 'fd043af6', 'fe97a788', '37b90289', 'verticals/t1.js', '311c628f', 'cd608144', 'ed1d21a0', '95d1a7d1', 'dc2379a5', 'f687d492', '2cd6eb18', 'd3827a8c', '7d5b6457', 'a5bf9cf3', '4875267e', 'd11df5bf', '50a88f70', '059b9215', 'f2f7c956', '096058b1', '8f970d35', '924f5ec9', 'ceb3f931', '2ecabf0c', 'aa46c0f9', 'a1eccdb6', '29f8340a', 'ebde8c43', 'b1e1bd35', 'c45a2e16', '485ddc93', 'verticals/mms', '/api/mms/', 'b66a0397'];
+// Verticals where only one code path alerts directly: every term must appear in the culprit.
+const INSTANT_PATH_CULPRIT_SIGNATURES = [['86a0a4f9', 'buildactivation'], ['/api/86a0a4f9/savings-card']];
 
 // Alert paths where the service already alerts directly (instant errors and
 // latency-budget breaches); the webhook must not raise a second alert.
@@ -161,7 +167,7 @@ const DIRECT_ALERT_PATHS = ['instant', 'latency'];
 
 // Latency-budget breaches alert directly; their issue webhooks carry no event
 // tags, so match the LatencyBudgetExceeded title/type against these routes.
-const LATENCY_DIRECT_ALERT_ROUTES = ['/api/ef51d258/', '/api/f887d0be/', '/api/d708940c/'];
+const LATENCY_DIRECT_ALERT_ROUTES = ['/api/ef51d258/', '/api/f887d0be/', '/api/d708940c/', '/api/04525b56/', '/api/fd043af6/', '/api/fe97a788/', '/api/37b90289/', '/api/8f970d35/', '/api/924f5ec9/', '/api/2ecabf0c/', '/api/b1e1bd35/', '/api/485ddc93/'];
 
 function isInstantPathEvent(alertData) {
   const isDirectAlertError = typeof alertData.issueTitle === 'string'
@@ -179,10 +185,11 @@ function isInstantPathEvent(alertData) {
     return false;
   });
 
-  return hasInstantTag || (
-    typeof alertData.culprit === 'string'
-    && INSTANT_PATH_SLUGS.some((slug) => alertData.culprit.toLowerCase().includes(slug))
-  );
+  if (hasInstantTag) return true;
+  if (typeof alertData.culprit !== 'string') return false;
+  const culprit = alertData.culprit.toLowerCase();
+  return INSTANT_PATH_SLUGS.some((slug) => culprit.includes(slug))
+    || INSTANT_PATH_CULPRIT_SIGNATURES.some((terms) => terms.every((term) => culprit.includes(term)));
 }
 
 /**
@@ -428,6 +435,72 @@ const CUSTOMER_ALERT_IDENTITY = {
       scenario: 'play-ultimate-rig-profile',
     },
   },
+  // Westpac Mobile native SwiftUI app (github.com/COG-GTM/event-driven-ios),
+  // iOS only. Reports arrive via /api/westpac/ios/error; remediation lands in
+  // the Swift repo and is verified on the iOS simulator from a macOS session.
+  'westpac-ios': {
+    customer: 'westpac',
+    verticalLabel: 'Westpac Mobile',
+    service: 'customer-westpac-ios',
+    project: 'westpac-mobile-ios',
+    release: 'westpac-mobile-ios@1.0.0',
+    promptAppendix: WESTPAC_IOS_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-westpac-ios',
+      service: 'customer-westpac-ios',
+      scenario: WESTPAC_IOS_SCENARIO,
+    },
+  },
+  // CommBank app clients (github.com/COG-GTM/event-driven-ios): the Flutter app
+  // (hosted at /commbankapp, also iOS) and the native SwiftUI app. Reports
+  // arrive via /api/cba/ios/error; remediation lands in that repo and is
+  // verified on the iOS simulator from a macOS session. Routed as customer cba
+  // like the NetBank web vertical, with its own service identity.
+  'cba-ios': {
+    customer: 'cba',
+    verticalLabel: 'CommBank app (Flutter web/iOS + native iOS)',
+    service: 'customer-cba-ios',
+    project: 'commbank-mobile-ios',
+    release: 'commbank-mobile-ios@1.0.0',
+    // The event's own release tells Flutter (commbank-app-flutter@*) from native
+    // Swift apart; only fall back to the native release when Sentry sent none.
+    keepEventRelease: true,
+    promptAppendix: CBA_IOS_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-cba-ios',
+      service: 'customer-cba-ios',
+      scenario: CBA_IOS_SCENARIO,
+    },
+  },
+  // My Verizon native SwiftUI app (github.com/COG-GTM/demo-verizon-ios), iOS
+  // only. Reports arrive via /api/verizon/ios/error; remediation lands in the
+  // Swift repo. Routed as customer 4e150e99 (Verizon) like the web vertical.
+  'verizon-ios': {
+    customer: '4e150e99',
+    verticalLabel: 'My Verizon — iPhone 18 Preorder (iOS)',
+    service: 'customer-verizon-ios',
+    project: 'my-verizon-ios',
+    release: 'my-verizon-ios@12.4.1',
+    promptAppendix: VERIZON_IOS_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-verizon-ios',
+      service: 'customer-verizon-ios',
+      scenario: VERIZON_IOS_SCENARIO,
+    },
+  },
+  'ios-demos': {
+    customer: 'ios-demos',
+    verticalLabel: 'iOS event-driven demos',
+    service: 'customer-ios-demo',
+    project: 'ios-event-demos',
+    release: 'ios-demo@1.0.0',
+    keepEventRelease: true,
+    promptAppendix: IOS_DEMOS_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-ios-demo',
+      service: 'customer-ios-demo',
+    },
+  },
 };
 
 function tagKey(tag) {
@@ -448,7 +521,8 @@ function applyCustomerIdentity(alertData) {
 
   if (!slug) return alertData;
 
-  const { tagOverrides, ...fields } = CUSTOMER_ALERT_IDENTITY[slug];
+  const { tagOverrides, keepEventRelease, ...fields } = CUSTOMER_ALERT_IDENTITY[slug];
+  if (keepEventRelease && alertData.release) fields.release = alertData.release;
   const overridden = new Set(Object.keys(tagOverrides));
   // Sentry issue-alert webhooks deliver tags as [key, value] arrays while the
   // instant path uses { key, value } objects; normalize so overridden tags are

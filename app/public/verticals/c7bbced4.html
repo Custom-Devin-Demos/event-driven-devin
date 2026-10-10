@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reserve GPU cluster | Nebius AI Cloud</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --accent: #052b42;
+        --ink: #052b42;
+        --chrome-bg: #052b42;
+        --chrome-text: #ffffff;
+        --lime: #e0ff4f;
+        --muted: rgba(5, 43, 66, 0.72);
+        --line: rgba(5, 43, 66, 0.12);
+        --tint: rgba(5, 43, 66, 0.05);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: #fff;
+        font:
+          17px/1.5 Inter,
+          "Helvetica Neue",
+          Arial,
+          sans-serif;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: Manrope, Inter, "Helvetica Neue", Arial, sans-serif;
+        letter-spacing: -0.01em;
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .announce {
+        height: 36px;
+        background: #e6e7fb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 0 16px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .head {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        padding: 0 5vw;
+        background: #fff;
+      }
+      .wordmark {
+        display: inline-flex;
+        align-items: center;
+        height: 34px;
+        padding: 0 12px;
+        border-radius: 6px;
+        background: var(--lime);
+        font: 800 20px/1 Manrope, Inter, sans-serif;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--ink);
+      }
+      .nav {
+        display: flex;
+        gap: 24px;
+        flex: 1;
+        font-size: 15px;
+        font-weight: 500;
+      }
+      .nav a {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+      }
+      .head-actions {
+        display: flex;
+        gap: 10px;
+      }
+      .pill {
+        height: 36px;
+        padding: 0 16px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        display: inline-flex;
+        align-items: center;
+        font-size: 15px;
+        font-weight: 500;
+        background: #fff;
+      }
+      .pill.dark {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+      }
+      .hero {
+        margin: 0 5vw;
+        border-radius: 24px;
+        padding: 72px 56px;
+        color: var(--ink);
+        background:
+          radial-gradient(60% 90% at 88% 20%, #f6ff9d 0%, transparent 60%),
+          radial-gradient(50% 80% at 8% 80%, #d5ff3a 0%, transparent 60%),
+          linear-gradient(120deg, #c7d3f2 0%, #e9ffb0 45%, #d6ff40 100%);
+      }
+      .chip {
+        display: inline-block;
+        background: #fff;
+        border-radius: 10px;
+        padding: 8px 14px;
+        font-size: 15px;
+        font-weight: 500;
+        margin-bottom: 26px;
+      }
+      .hero h1 {
+        font-size: clamp(36px, 5vw, 62px);
+        font-weight: 700;
+        line-height: 1.05;
+      }
+      .hero p {
+        font-size: 20px;
+        max-width: 760px;
+        margin: 18px 0 0;
+      }
+      .wrap {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 56px 5vw;
+      }
+      .features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 32px;
+        margin-bottom: 56px;
+      }
+      .feature svg {
+        width: 32px;
+        height: 32px;
+        display: block;
+        margin-bottom: 14px;
+      }
+      .feature h3 {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .feature p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 32px;
+        align-items: start;
+      }
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 32px;
+        background: #fff;
+      }
+      .panel h2 {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .lede {
+        color: var(--muted);
+        margin: 0 0 24px;
+        font-size: 16px;
+      }
+      .field {
+        margin-bottom: 18px;
+      }
+      .field label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .field select,
+      .field input {
+        width: 100%;
+        height: 48px;
+        border: 1px solid rgba(5, 43, 66, 0.28);
+        border-radius: 12px;
+        padding: 0 14px;
+        font: inherit;
+        font-size: 16px;
+        color: var(--ink);
+        background: #fff;
+      }
+      .field select:focus,
+      .field input:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      .field .hint {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .btn {
+        width: 100%;
+        height: 48px;
+        border: 0;
+        border-radius: 12px;
+        background: var(--accent);
+        color: #fff;
+        font: inherit;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-top: 6px;
+      }
+      .btn:hover {
+        background: #0a3c5a;
+      }
+      #submitBtn:disabled {
+        opacity: 0.6;
+        cursor: progress;
+      }
+      .result-box {
+        margin-top: 16px;
+        border-radius: 12px;
+      }
+      .result-box.success,
+      .result-box.error {
+        padding: 16px 18px;
+        font-size: 15px;
+      }
+      .success {
+        background: #eefad0;
+        color: var(--ink);
+        border: 1px solid #b9dd3a;
+      }
+      .error {
+        background: #fdeeee;
+        color: #8a1f1f;
+        border: 1px solid #f0b8b8;
+      }
+      .summary {
+        background: var(--tint);
+        border-radius: 24px;
+        padding: 32px;
+      }
+      .summary h2 {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 18px;
+      }
+      .summary dl {
+        margin: 0;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        row-gap: 12px;
+        column-gap: 16px;
+        font-size: 15px;
+      }
+      .summary dt {
+        color: var(--muted);
+      }
+      .summary dd {
+        margin: 0;
+        font-weight: 600;
+        text-align: right;
+      }
+      .summary .total {
+        border-top: 1px solid var(--line);
+        margin-top: 18px;
+        padding-top: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+      .summary .total strong {
+        font-family: Manrope, Inter, sans-serif;
+        font-size: 30px;
+        font-weight: 700;
+      }
+      .summary img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 16px;
+        margin-top: 24px;
+        display: block;
+      }
+      .summary .note {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 14px 0 0;
+      }
+      .footer {
+        background: var(--chrome-bg);
+        color: var(--chrome-text);
+        padding: 56px 5vw 40px;
+      }
+      .footer-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+        padding-bottom: 40px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+      }
+      .footer-top h2 {
+        font-size: 30px;
+        font-weight: 700;
+        max-width: 520px;
+      }
+      .footer .pill {
+        background: var(--lime);
+        color: var(--ink);
+        border-color: var(--lime);
+        height: 44px;
+        padding: 0 24px;
+      }
+      .footer-cols {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        padding: 40px 0 24px;
+        font-size: 15px;
+      }
+      .footer-cols strong {
+        display: block;
+        margin-bottom: 12px;
+      }
+      .footer-cols a {
+        display: block;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 8px;
+      }
+      .footer-legal {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      @media (max-width: 900px) {
+        .features {
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .footer-cols {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 640px) {
+        .nav,
+        .head-actions .pill:not(.dark) {
+          display: none;
+        }
+        .head {
+          justify-content: space-between;
+        }
+        .hero {
+          padding: 44px 24px;
+          border-radius: 18px;
+        }
+        .hero p {
+          font-size: 17px;
+        }
+        .panel,
+        .summary {
+          padding: 22px;
+        }
+        .two {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .footer-top h2 {
+          font-size: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="announce">Nebius Rated Platinum in SemiAnalysis ClusterMAX™ 3.0</div>
+    <header class="head">
+      <a class="wordmark" href="#" aria-label="Nebius">Nebius</a>
+      <nav class="nav">
+        <a href="#">Products</a><a href="#">Solutions</a><a href="#">Why Nebius</a
+        ><a href="#">Resources</a><a href="#">Pricing</a>
+      </nav>
+      <div class="head-actions">
+        <a class="pill" href="#">Contact sales</a>
+        <a class="pill dark" href="#">Console</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <span class="chip">Compute</span>
+      <h1>Reserve a GPU cluster</h1>
+      <p>
+        Choose a GPU platform, cluster size and region. Capacity is allocated to
+        your project and appears in the console when the reservation completes.
+      </p>
+    </section>
+
+    <main class="wrap">
+      <div class="features">
+        <div class="feature">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M18 3 6 19h9l-1 10 12-16h-9z" />
+          </svg>
+          <h3>Bare-metal level performance</h3>
+          <p>Virtual instances don't virtualize GPUs and network interfaces, delivering performance on par with the best industry benchmarks.</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M9 24a6 6 0 0 1-.6-12A8 8 0 0 1 24 13a5.5 5.5 0 0 1-1 11z" />
+            <path d="m12 19 3 3 6-6" />
+          </svg>
+          <h3>Cloud flexibility</h3>
+          <p>Spin up a single VM or scale to a multi-node cluster. Launch on-demand and preemptible VMs, scale clusters up or down, or replace a spare node.</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M4 12l6 5 6-10 6 10 6-5-3 15H7z" />
+          </svg>
+          <h3>NVIDIA Exemplar Cloud Partner</h3>
+          <p>Compute built and validated according to NVIDIA reference architecture, with non-blocking NVIDIA Quantum-2 InfiniBand fabric.</p>
+        </div>
+      </div>
+
+      <div class="layout">
+        <section class="panel">
+          <h2>Cluster reservation</h2>
+          <p class="lede">Project: ml-research-prod · Billing account: default</p>
+          <form id="provisionForm">
+            <div class="field">
+              <label for="product">GPU platform</label>
+              <select id="product">
+                <option value="enterprise_suite">NVIDIA HGX H200</option>
+                <option value="devops_platform">NVIDIA HGX B200</option>
+                <option value="analytics_cloud">NVIDIA HGX B300</option>
+                <option value="security_gateway">NVIDIA GB300 NVL72</option>
+              </select>
+            </div>
+            <div class="two">
+              <div class="field">
+                <label for="seats">GPUs</label>
+                <input id="seats" type="number" value="64" min="8" max="248" step="8" required />
+                <div class="hint">8 GPUs per node</div>
+              </div>
+              <div class="field">
+                <label for="planTier">Commitment</label>
+                <select id="planTier">
+                  <option value="enterprise">Reserved — 12 months</option>
+                  <option value="business">Reserved — 3 months</option>
+                  <option value="starter">On-demand</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="region">Region</label>
+              <select id="region">
+                <option value="us-central">us-central1 — Kansas City</option>
+                <option value="eu-north">eu-north1 — Finland</option>
+                <option value="eu-west">eu-west1 — Paris</option>
+                <option value="eu-north2">eu-north2 — Iceland</option>
+              </select>
+            </div>
+            <button class="btn" id="submitBtn" type="submit">Reserve cluster</button>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <aside class="summary">
+          <h2>Reservation summary</h2>
+          <dl>
+            <dt>Platform</dt>
+            <dd id="sumPlatform"></dd>
+            <dt>Nodes</dt>
+            <dd id="sumNodes"></dd>
+            <dt>Interconnect</dt>
+            <dd>NVIDIA Quantum-2 InfiniBand</dd>
+            <dt>Commitment</dt>
+            <dd id="sumCommit"></dd>
+            <dt>Region</dt>
+            <dd id="sumRegion"></dd>
+          </dl>
+          <div class="total">
+            <span>GPUs</span>
+            <strong id="sumGpus"></strong>
+          </div>
+          <img
+            src="https://assets.nebius.com/assets/287ef9a3-b574-4421-ad59-056b81a8ba2b/Compute.jpg"
+            alt=""
+            onerror="this.remove()"
+          />
+          <p class="note">
+            Pricing is applied per GPU-hour at the rate for the selected
+            commitment. Reservations can be scaled up or down from the console.
+          </p>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-top">
+        <h2>Start your journey with the ultimate AI cloud</h2>
+        <a class="pill" href="#">Start building now</a>
+      </div>
+      <div class="footer-cols">
+        <div>
+          <strong>Products</strong>
+          <a href="#">Compute</a><a href="#">Networking</a><a href="#">AI Storage</a
+          ><a href="#">Managed Inference</a>
+        </div>
+        <div>
+          <strong>Solutions</strong>
+          <a href="#">Pre-training</a><a href="#">Post-training</a><a href="#">Inference</a
+          ><a href="#">Simulation</a>
+        </div>
+        <div>
+          <strong>Resources</strong>
+          <a href="#">Tech docs</a><a href="#">Service status</a><a href="#">Customer stories</a
+          ><a href="#">Nebius Academy</a>
+        </div>
+        <div>
+          <strong>Company</strong>
+          <a href="#">About</a><a href="#">Newsroom</a><a href="#">Careers</a><a href="#">Contacts</a>
+        </div>
+      </div>
+      <div class="footer-legal">© Nebius · Legal documents · Terms of use · Manage cookies</div>
+    </footer>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+      const form = document.getElementById("provisionForm"),
+        product = document.getElementById("product"),
+        planTier = document.getElementById("planTier"),
+        seats = document.getElementById("seats"),
+        region = document.getElementById("region");
+      const label = (sel) => sel.options[sel.selectedIndex].textContent;
+      function sync() {
+        const gpus = Math.max(parseInt(seats.value, 10) || 0, 0);
+        document.getElementById("sumPlatform").textContent = label(product);
+        document.getElementById("sumNodes").textContent = String(Math.ceil(gpus / 8));
+        document.getElementById("sumCommit").textContent = label(planTier);
+        document.getElementById("sumRegion").textContent = label(region).split(" — ")[0];
+        document.getElementById("sumGpus").textContent = String(gpus);
+      }
+      [product, planTier, seats, region].forEach((el) => el.addEventListener("input", sync));
+      form.addEventListener("reset", () => setTimeout(sync, 0));
+      sync();
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("submitBtn"),
+          result = document.getElementById("result");
+        const idle = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Reserving…";
+        result.className = "result-box";
+        result.textContent = "";
+        const chosen = {
+          platform: label(product),
+          commitment: label(planTier),
+          region: label(region).split(" — ")[0],
+        };
+        try {
+          const res = await fetch("/api/licenses/provision", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              orgName: product.value,
+              planName: planTier.value,
+              seats: parseInt(seats.value, 10),
+              billingCycle: planTier.value === "enterprise" ? "annual" : "monthly",
+              devinUserId: localStorage.getItem("devinUserId") || "",
+              devinOrgId: localStorage.getItem("devinOrgId") || "",
+              devinEmail: localStorage.getItem("devinEmail") || "",
+            }),
+          });
+          let d = {};
+          try {
+            d = await res.json();
+          } catch (_) {}
+          if (!res.ok || !d.success) {
+            result.className = "result-box error";
+            result.textContent =
+              "The reservation could not be completed right now. No capacity was allocated and nothing was billed.";
+          } else {
+            result.className = "result-box success";
+            result.textContent = `Cluster reserved — ${d.seats} × ${chosen.platform}, ${chosen.commitment}, ${chosen.region}. Capacity is available in the console.`;
+          }
+        } catch (_) {
+          result.className = "result-box error";
+          result.textContent =
+            "The reservation could not be completed right now. No capacity was allocated and nothing was billed.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = idle;
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>

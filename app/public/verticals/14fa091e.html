@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Site members | Grant Thornton Interactive</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #4F2D7F;
+      --ink: #44423F;
+      --surface: #FFFFFF;
+      --chrome-bg: #2B144D;
+      --chrome-text: #FFFFFF;
+      --violet: #A06DFF;
+      --heading: #000000;
+      --sand: color-mix(in srgb, #E0DCD7 40%, var(--surface));
+      --paper: color-mix(in srgb, var(--ink) 4%, var(--surface));
+      --line: color-mix(in srgb, var(--ink) 16%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 78%, var(--surface));
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 16px/1.66 'DM Sans', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    input:focus, select:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 30px; }
+    .global-header { background: var(--accent); color: var(--chrome-text); }
+    .header-row { display: flex; align-items: center; gap: 24px; min-height: 70px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 23px; font-weight: 500; letter-spacing: -.01em; white-space: nowrap; }
+    .brand svg { flex: none; }
+    .brand .product { padding-left: 12px; margin-left: 2px; border-left: 1px solid color-mix(in srgb, var(--chrome-text) 45%, var(--accent)); font-size: 17px; font-weight: 400; }
+    .primary-nav { display: flex; gap: 8px; margin: 0 auto; font-size: 18px; }
+    .primary-nav a { display: inline-flex; align-items: center; min-height: 70px; padding: 0 12px; color: color-mix(in srgb, var(--chrome-text) 88%, var(--accent)); }
+    .primary-nav a.current { color: var(--chrome-text); box-shadow: inset 0 -4px 0 var(--violet); }
+    .header-tools { display: flex; align-items: center; gap: 16px; font-size: 16px; }
+    .header-tools .region { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding-right: 16px; border-right: 1px solid color-mix(in srgb, var(--chrome-text) 45%, var(--accent)); }
+    .avatar { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--violet); color: var(--chrome-text); font-weight: 700; font-size: 15px; }
+    .hero { position: relative; color: var(--chrome-text); background: linear-gradient(120deg, var(--chrome-bg), var(--accent) 55%, var(--violet)); overflow: hidden; }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 70%; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--chrome-bg) 82%, transparent), color-mix(in srgb, var(--accent) 35%, transparent)); }
+    .hero-inner { position: relative; z-index: 1; padding: 56px 0 64px; }
+    .hero .eyebrow { margin: 0 0 10px; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .hero h1 { margin: 0 0 12px; font-size: clamp(36px, 5vw, 60px); font-weight: 500; line-height: 1.12; }
+    .hero p { margin: 0; max-width: 640px; font-size: 20px; }
+    .crumbs { display: flex; flex-wrap: wrap; align-items: center; padding: 6px 0; font-size: 15px; }
+    .crumbs a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; color: var(--accent); }
+    .crumbs span { margin: 0 10px; color: var(--muted); }
+    .engagement { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; padding: 20px 0 24px; border-bottom: 1px solid var(--line); }
+    .engagement h2 { margin: 0; font-size: 36px; font-weight: 500; line-height: 1.2; color: var(--heading); }
+    .engagement .meta { margin: 6px 0 0; color: var(--muted); }
+    .tabs { display: inline-flex; flex-wrap: wrap; gap: 8px; padding: 6px; border-radius: 10px; background: var(--paper); }
+    .tabs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 22px; border-radius: 8px; background: var(--surface); color: var(--heading); font-size: 15px; }
+    .tabs a.current { background: var(--violet); color: var(--chrome-text); }
+    .content { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .9fr); gap: 32px; align-items: start; padding: 36px 0 64px; }
+    .card { border-radius: 12px; background: var(--surface); box-shadow: 0 4px 16px color-mix(in srgb, var(--heading) 18%, transparent); padding: 32px 36px 36px; }
+    .card h3 { margin: 0; font-size: 26px; font-weight: 500; line-height: 1.25; color: var(--accent); }
+    .card-intro { margin: 8px 0 26px; font-size: 15px; color: var(--muted); }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 22px; }
+    .field { min-width: 0; margin-bottom: 22px; }
+    .field.wide { grid-column: 1 / -1; }
+    .field label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 700; color: var(--heading); }
+    .field input, .field select { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid color-mix(in srgb, var(--ink) 40%, var(--surface)); border-radius: 8px; background: var(--surface); color: var(--heading); }
+    .field small { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); }
+    .summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; margin: 2px 0 26px; padding: 18px 22px; border-radius: 10px; background: var(--sand); }
+    .summary dt { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .summary dd { margin: 2px 0 0; font-size: 15px; font-weight: 500; color: var(--heading); overflow-wrap: anywhere; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .submit-btn { flex: 1 1 220px; min-height: 52px; padding: 0 30px; border: 0; border-radius: 8px; background: var(--accent); color: var(--chrome-text); font-size: 17px; font-weight: 700; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 80%, var(--chrome-bg)); }
+    .submit-btn:disabled { cursor: wait; opacity: .85; }
+    .reset-btn { flex: 0 1 auto; min-height: 52px; padding: 0 26px; border: 1px solid var(--accent); border-radius: 8px; background: var(--surface); color: var(--accent); font-size: 17px; font-weight: 500; }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--heading); }
+    .stopwatch.done .sw-value { color: var(--accent); }
+    .status { min-height: 22px; margin: 12px 0 0; font-size: 14px; text-align: center; color: var(--muted); }
+    .result-box { display: none; margin-top: 16px; padding: 16px 20px; border-radius: 8px; border-left: 4px solid var(--muted); background: var(--paper); font-size: 15px; color: var(--heading); }
+    .result-box.success { display: block; border-left-color: var(--violet); }
+    .result-box.notice { display: block; }
+    aside { display: grid; gap: 24px; }
+    .panel { border-radius: 12px; background: var(--paper); padding: 24px 26px; }
+    .panel h4 { margin: 0 0 4px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .panel .big { margin: 0 0 14px; font-size: 22px; font-weight: 500; color: var(--heading); }
+    .members { margin: 0; padding: 0; list-style: none; }
+    .members li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+    .members li:first-child { border-top: 0; }
+    .members .initials { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--chrome-text); font-size: 13px; font-weight: 700; }
+    .members .who { min-width: 0; }
+    .members .who strong { display: block; font-weight: 500; color: var(--heading); }
+    .members .who span { font-size: 13px; color: var(--muted); }
+    .team { border-radius: 12px; background: var(--accent); color: var(--chrome-text); padding: 26px; }
+    .team h4 { margin: 0 0 6px; font-size: 22px; font-weight: 500; }
+    .team p { margin: 0 0 18px; font-size: 15px; color: color-mix(in srgb, var(--chrome-text) 88%, var(--accent)); }
+    .pill { display: inline-flex; align-items: center; min-height: 48px; padding: 0 28px; border-radius: 8px; background: var(--surface); color: var(--heading); font-size: 16px; }
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); padding: 56px 0 40px; }
+    .footer-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) 1.2fr; gap: 32px; }
+    .footer-cols h5 { margin: 0 0 8px; font-size: 18px; font-weight: 700; }
+    .footer-cols a { display: flex; align-items: center; min-height: 44px; font-size: 15px; color: color-mix(in srgb, var(--chrome-text) 88%, var(--chrome-bg)); }
+    .footer-cols p { margin: 0; font-size: 14px; color: color-mix(in srgb, var(--chrome-text) 80%, var(--chrome-bg)); }
+    .legal { margin-top: 40px; padding-top: 24px; border-top: 1px solid color-mix(in srgb, var(--chrome-text) 22%, var(--chrome-bg)); font-size: 13px; color: color-mix(in srgb, var(--chrome-text) 75%, var(--chrome-bg)); }
+    @media (max-width: 1100px) { .primary-nav { font-size: 16px; } .header-tools .region { display: none; } }
+    @media (max-width: 900px) {
+      .primary-nav { display: none; }
+      .header-tools { margin-left: auto; }
+      .content { grid-template-columns: 1fr; }
+      .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .wrap { padding: 0 16px; }
+      .brand { font-size: 19px; }
+      .brand .product { font-size: 15px; padding-left: 10px; }
+      .hero-inner { padding: 36px 0 44px; }
+      .hero p { font-size: 17px; }
+      .engagement h2 { font-size: 28px; }
+      .tabs { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+      .tabs a { justify-content: center; padding: 0 10px; }
+      .card { padding: 24px 18px 28px; }
+      .form-grid, .summary { grid-template-columns: 1fr; }
+      .reset-btn { flex: 1 1 100%; }
+      .footer-cols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="global-header">
+    <div class="wrap header-row">
+      <a class="brand" href="#top" aria-label="Grant Thornton Interactive">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M23.5 11.2A8.6 8.6 0 1 0 25.6 17h-8.1" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <span>Grant Thornton</span><span class="product">Interactive</span>
+      </a>
+      <nav class="primary-nav" aria-label="Main navigation">
+        <a href="#top">Home</a><a class="current" href="#top">My engagements</a><a href="#top">Document library</a><a href="#top">PBC requests</a>
+      </nav>
+      <div class="header-tools">
+        <span class="region"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 19s6.5-6.2 6.5-11A6.5 6.5 0 0 0 1.5 8C1.5 12.8 8 19 8 19Z"/><circle cx="8" cy="8" r="2.4"/></svg>United States - EN</span>
+        <span class="avatar" aria-label="Signed in as Jordan Reyes">JR</span>
+      </div>
+    </div>
+  </header>
+  <main id="top">
+    <section class="hero" aria-labelledby="page-title">
+      <img src="https://www.grantthornton.com/content/dam/grantthornton/website/assets/content-page-files/advisory/ai-lp/homepage/cityscape-view-1440x800-2.jpg" alt="" onerror="this.remove()">
+      <div class="wrap hero-inner">
+        <p class="eyebrow">Grant Thornton Interactive</p>
+        <h1 id="page-title">Your engagements, in one place</h1>
+        <p>Open an engagement to reach its ClientSpace site: deliverables, PBC requests, the document library, and the people working on it with you.</p>
+      </div>
+    </section>
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#top">Home</a><span>›</span><a href="#top">My engagements</a><span>›</span><a href="#top">FY2026 Financial Statement Audit</a><span>›</span>Site members</nav>
+      <div class="engagement">
+        <div>
+          <h2>FY2026 Financial Statement Audit</h2>
+          <p class="meta">Northwind Holdings, Inc. · ClientSpace · Phase: Evaluate client data</p>
+        </div>
+        <nav class="tabs" aria-label="Engagement sections"><a href="#top">Deliverables</a><a href="#top">PBC Request</a><a href="#top">Document Library</a><a class="current" href="#add-users" aria-current="page">Site members</a></nav>
+      </div>
+      <div class="content">
+        <section class="card" id="add-users" aria-labelledby="add-heading">
+          <h3 id="add-heading">Add users to a collaboration site</h3>
+          <p class="card-intro">Invited users get access to the site's documents and tasks after they sign in.</p>
+          <form id="provisionForm">
+            <div class="form-grid">
+              <div class="field wide"><label for="product">Collaboration site</label><select id="product"><option value="enterprise_suite">ClientSpace · FY2026 Financial Statement Audit</option><option value="devops_platform">ClientSpace · Tax Symphony 2026 Returns</option><option value="analytics_cloud">Convene · Audit Committee Meetings</option><option value="security_gateway">Engage · SOC 1 Type 2 Examination</option></select></div>
+              <div class="field"><label for="seats">Users to add</label><input type="number" id="seats" value="12" min="1" max="250" required><small>From your organization's directory.</small></div>
+              <div class="field"><label for="planTier">Access level</label><select id="planTier"><option value="enterprise">Contributor</option><option value="business">Reviewer</option><option value="starter">Read only</option></select></div>
+              <div class="field wide"><label for="region">Data hosting</label><select id="region"><option value="us-east">United States</option><option value="us-west">United States (secondary)</option><option value="eu-west">European Union</option><option value="ap-south">Asia Pacific</option></select></div>
+            </div>
+            <dl class="summary" aria-label="Invitation summary"><div><dt>Site</dt><dd id="summarySite">—</dd></div><div><dt>Users</dt><dd id="summaryUsers">—</dd></div><div><dt>Access level</dt><dd id="summaryAccess">—</dd></div><div><dt>Data hosting</dt><dd id="summaryHosting">—</dd></div></dl>
+            <div class="actions"><button type="submit" id="submitBtn" class="submit-btn">Add users</button><button type="reset" class="reset-btn">Cancel</button></div>
+            <div class="stopwatch" id="submitTimer" role="timer" aria-live="off"><span class="sw-label">Provisioning time</span><span class="sw-value" id="submitTimerValue">0.0s</span></div>
+            <p class="status" id="provisionStatus" role="status" aria-live="polite">Review the invitation before you add users.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="panel">
+            <h4>Site members</h4>
+            <p class="big">18 people on this site</p>
+            <ul class="members">
+              <li><span class="initials" aria-hidden="true">JR</span><span class="who"><strong>Jordan Reyes</strong><span>Controller · Site owner</span></span></li>
+              <li><span class="initials" aria-hidden="true">AP</span><span class="who"><strong>Aisha Patel</strong><span>Assistant Controller · Contributor</span></span></li>
+              <li><span class="initials" aria-hidden="true">MK</span><span class="who"><strong>Marcus Kim</strong><span>Engagement Partner · Grant Thornton</span></span></li>
+              <li><span class="initials" aria-hidden="true">LS</span><span class="who"><strong>Lena Schultz</strong><span>Audit Senior Manager · Grant Thornton</span></span></li>
+            </ul>
+          </div>
+          <div class="team">
+            <h4>Questions about access?</h4>
+            <p>Your engagement team can change site roles or remove users at any time.</p>
+            <a class="pill" href="#top">Contact your engagement team</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-cols">
+        <div><h5>CONNECT</h5><a href="#top">Request a meeting</a><a href="#top">Contact us</a><a href="#top">Events and webcasts</a></div>
+        <div><h5>ABOUT</h5><a href="#top">About us</a><a href="#top">Newsroom</a><a href="#top">Ethics Hotline</a></div>
+        <div><h5>LEGAL</h5><a href="#top">Privacy</a><a href="#top">Cookie policy</a><a href="#top">Terms of use</a></div>
+        <div><h5>GRANT THORNTON INTERACTIVE</h5><p>Collaboration sites, including ClientSpace, Engage and Convene, for clients and business partners.</p></div>
+      </div>
+      <p class="legal">Example client portal experience. Engagement names, people and counts are illustrative only.</p>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('provisionForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('provisionStatus');
+    const product = document.getElementById('product');
+    const seats = document.getElementById('seats');
+    const planTier = document.getElementById('planTier');
+    const region = document.getElementById('region');
+    const idleStatus = 'Review the invitation before you add users.';
+    const submitLabel = 'Add users';
+    function optionLabel(select) { return select.options[select.selectedIndex].text; }
+    function siteName() { return optionLabel(product).replace(/^.*·\s*/, ''); }
+    function renderSummary() {
+      document.getElementById('summarySite').textContent = optionLabel(product);
+      const n = seats.valueAsNumber;
+      document.getElementById('summaryUsers').textContent = Number.isInteger(n) && n > 0 ? `${n} ${n === 1 ? 'user' : 'users'}` : '—';
+      document.getElementById('summaryAccess').textContent = optionLabel(planTier);
+      document.getElementById('summaryHosting').textContent = optionLabel(region);
+    }
+    [product, planTier, region].forEach((el) => el.addEventListener('change', renderSummary));
+    seats.addEventListener('input', renderSummary);
+    const timer = document.getElementById('submitTimer');
+    const timerValue = document.getElementById('submitTimerValue');
+    let timerHandle = null;
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      timer.className = 'stopwatch on done';
+    }
+    form.addEventListener('reset', () => {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timer.className = 'stopwatch';
+      timerValue.textContent = '0.0s';
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = idleStatus;
+      setTimeout(renderSummary, 0);
+    });
+    renderSummary();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const site = siteName();
+      const access = optionLabel(planTier);
+      button.disabled = true;
+      const started = startTimer();
+      button.textContent = 'Adding users…';
+      status.textContent = 'Adding users to the site…';
+      result.className = 'result-box';
+      result.textContent = '';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: document.getElementById('product').value,
+            planName: document.getElementById('planTier').value,
+            seats: Number(document.getElementById('seats').value),
+            billingCycle: 'annual',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error('provision failed');
+        const ref = String(data.licenseId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
+        const added = Number(data.seatsAdded);
+        result.className = 'result-box success';
+        result.textContent = `${added} ${added === 1 ? 'user' : 'users'} added to ${site} as ${access}. Invitations go out by email. Reference ${ref}.`;
+        status.textContent = 'Users added.';
+      } catch (_err) {
+        result.className = 'result-box notice';
+        result.textContent = 'We couldn’t add users to this site right now. Try again later, or contact your engagement team.';
+        status.textContent = 'Adding users is unavailable right now.';
+      } finally {
+        stopTimer(started);
+        button.disabled = false;
+        button.textContent = submitLabel;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

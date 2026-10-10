@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doppel &mdash; Simulation</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #1b141b;
+      --bg-2: #231c23;
+      --card: #2d272d;
+      --line: #3a333a;
+      --line-soft: rgba(245,245,245,0.1);
+      --text: #f5f5f5;
+      --text-2: #d1d0d1;
+      --muted: #a4a1a4;
+      --dim: #767276;
+      --lime: #e7ff92;
+      --lime-dim: rgba(231,255,146,0.14);
+      --blue: #1c84fc;
+      --orange: #f08a4b;
+      --orange-dim: rgba(240,138,75,0.16);
+      --danger: #ff7a6b;
+      --sans: suisseIntl, 'Inter Tight', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+      --serif: ttLivret, 'Newsreader', Georgia, 'Times New Roman', serif;
+      --mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; font-weight: 400; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+
+    /* ---------- shell ---------- */
+    .shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar { border-right: 1px solid var(--line); background: var(--bg); position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; padding: 20px 14px 16px; min-width: 0; }
+    .brand { display: flex; align-items: center; gap: 9px; text-decoration: none; padding: 2px 8px 20px; color: var(--lime); }
+    .brand svg { width: 24px; height: 24px; flex: none; }
+    .brand span { font-size: 1.32rem; font-weight: 400; letter-spacing: -0.02em; }
+
+    .tenant { display: flex; align-items: center; gap: 10px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; margin-bottom: 20px; }
+    .tenant .t-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--card); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 600; color: var(--text-2); flex: none; }
+    .tenant .t-label { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
+    .tenant .t-name { font-size: 0.86rem; font-weight: 500; }
+    .tenant .chev { margin-left: auto; color: var(--dim); font-size: 0.7rem; }
+
+    .nav-group { margin-bottom: 18px; }
+    .nav-group h4 { font-size: 0.62rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); padding: 0 10px 8px; }
+    .nav-item { display: flex; align-items: center; gap: 11px; padding: 8px 10px; border-radius: 8px; color: var(--muted); text-decoration: none; font-size: 0.88rem; margin-bottom: 2px; }
+    .nav-item svg { width: 17px; height: 17px; flex: none; }
+    .nav-item:hover { background: var(--bg-2); color: var(--text); }
+    .nav-item.active { background: var(--card); color: var(--text); }
+    .nav-item.active svg { color: var(--lime); }
+    .nav-item .count { margin-left: auto; font-family: var(--mono); font-size: 0.68rem; background: var(--orange-dim); color: var(--orange); border-radius: 6px; padding: 1px 6px; }
+
+    .sidebar-foot { margin-top: auto; border-top: 1px solid var(--line); padding-top: 12px; display: flex; align-items: center; gap: 10px; padding-left: 8px; }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--lime); color: var(--bg); font-size: 0.74rem; font-weight: 600; display: flex; align-items: center; justify-content: center; flex: none; }
+    .u-name { font-size: 0.84rem; font-weight: 500; }
+    .u-sub { font-size: 0.72rem; color: var(--dim); }
+
+    /* ---------- workspace ---------- */
+    .workspace { min-width: 0; display: flex; flex-direction: column; }
+    .topbar { border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 16px; padding: 12px 28px; background: rgba(27,20,27,0.95); position: sticky; top: 0; z-index: 5; }
+    .crumbs { font-size: 0.86rem; color: var(--muted); white-space: nowrap; }
+    .crumbs strong { color: var(--text); font-weight: 500; }
+    .search { flex: 1; max-width: 360px; height: 38px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-2); display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 0.84rem; color: var(--dim); }
+    .top-actions { margin-left: auto; display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 8px 14px; border-radius: 8px; font-family: var(--sans); font-size: 0.78rem; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; cursor: pointer; border: 1px solid transparent; white-space: nowrap; }
+    .btn-outline { color: var(--text); border-color: var(--text); background: transparent; }
+    .btn-outline:hover { background: rgba(245,245,245,0.06); }
+    .btn-lime { background: var(--lime); border-color: var(--lime); color: var(--bg); }
+    .btn-lime:hover { background: #dcf57f; }
+
+    main { padding: 28px 28px 56px; max-width: 1240px; width: 100%; }
+
+    .page-head { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+    .tag { display: inline-block; border: 1px solid var(--text-2); border-radius: 8px; padding: 4px 11px; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-2); margin-bottom: 12px; }
+    .page-head h1 { font-size: 2.6rem; font-weight: 400; letter-spacing: -0.035em; line-height: 1.05; }
+    .page-head .ph-sub { font-family: var(--serif); font-weight: 300; font-size: 1.08rem; color: var(--text-2); margin-top: 10px; max-width: 640px; }
+    .live-pill { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; font-size: 0.78rem; color: var(--text-2); }
+    .live-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 8px var(--lime); }
+
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat { background: var(--card); border-radius: 16px; padding: 18px 20px; }
+    .stat-label { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+    .stat-val { font-size: 2.2rem; font-weight: 300; letter-spacing: -0.03em; margin-top: 6px; line-height: 1.1; }
+    .stat-val small { font-size: 0.95rem; color: var(--muted); letter-spacing: 0; }
+    .stat-sub { font-family: var(--serif); font-weight: 300; font-size: 0.86rem; color: var(--muted); margin-top: 4px; }
+
+    .panel { background: var(--card); border-radius: 20px; margin-bottom: 16px; overflow: hidden; }
+    .panel-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+    .panel-head h2 { font-size: 1.12rem; font-weight: 400; letter-spacing: -0.01em; }
+    .panel-head .sub { font-size: 0.82rem; color: var(--muted); }
+    .panel-head .link { margin-left: auto; font-size: 0.82rem; color: var(--lime); text-decoration: none; }
+
+    .rows { display: flex; flex-direction: column; }
+    .row { display: grid; grid-template-columns: 82px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 13px 22px; border-bottom: 1px solid var(--line-soft); }
+    .row:last-child { border-bottom: 0; }
+    .r-id { font-family: var(--mono); font-size: 0.74rem; color: var(--orange); letter-spacing: 0.04em; }
+    .r-title { font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .r-title span { display: block; font-size: 0.76rem; color: var(--muted); }
+    .r-meta { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .chip { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; color: var(--text-2); white-space: nowrap; }
+    .chip-live { border-color: rgba(231,255,146,0.4); color: var(--lime); background: var(--lime-dim); }
+    .chip-sched { border-color: rgba(28,132,252,0.45); color: #7db8ff; }
+
+    .enroll-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+    .enroll-body { padding: 22px; }
+    .enroll-body h2 { font-size: 1.12rem; font-weight: 400; }
+    .enroll-body .sub { font-family: var(--serif); font-weight: 300; font-size: 0.95rem; color: var(--text-2); margin: 4px 0 18px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; height: 46px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 0.92rem; outline: none; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--lime); box-shadow: 0 0 0 3px var(--lime-dim); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn-submit { width: 100%; min-height: 48px; margin-top: 4px; border-radius: 12px; background: var(--lime); border: 1px solid var(--lime); color: var(--bg); font-family: var(--sans); font-size: 0.86rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
+    .btn-submit:hover { background: #dcf57f; }
+    .btn-submit:disabled { opacity: 0.6; cursor: progress; }
+
+    .result-box { display: none; margin-top: 14px; border-radius: 12px; padding: 13px 15px; font-size: 0.88rem; }
+    .result-box.success { display: block; background: var(--lime-dim); border: 1px solid rgba(231,255,146,0.4); }
+    .result-box.error { display: block; background: rgba(255,122,107,0.12); border: 1px solid rgba(255,122,107,0.45); }
+    .result-box .r-head { font-weight: 500; margin-bottom: 2px; }
+    .result-box.success .r-head { color: var(--lime); }
+    .result-box.error .r-head { color: var(--danger); }
+    .result-box .r-detail { color: var(--text-2); font-size: 0.82rem; word-break: break-word; }
+
+    .side-rail { border-left: 1px solid var(--line); padding: 22px; background: var(--bg-2); }
+    .side-rail h3 { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 400; margin-bottom: 14px; }
+    .step { display: flex; gap: 12px; padding-bottom: 14px; }
+    .mark { width: 20px; height: 20px; border-radius: 6px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin-top: 2px; }
+    .mark-done { background: var(--lime); color: var(--bg); }
+    .mark-wait { border: 1px solid var(--orange); color: var(--orange); }
+    .mark-todo { border: 1px solid var(--line); }
+    .s-title { font-size: 0.88rem; }
+    .s-sub { font-size: 0.78rem; color: var(--muted); }
+    .graph { margin-top: 8px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--bg); }
+    .graph img { display: block; width: 100%; height: auto; }
+    .graph .g-cap { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; border-top: 1px solid var(--line); }
+
+    footer { margin-top: auto; border-top: 1px solid var(--line); padding: 18px 28px; font-family: var(--serif); font-weight: 300; font-size: 0.84rem; color: var(--dim); }
+
+    @media (max-width: 1080px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .enroll-grid { grid-template-columns: 1fr; }
+      .side-rail { border-left: 0; border-top: 1px solid var(--line); }
+    }
+    @media (max-width: 860px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; flex-direction: row; align-items: center; padding: 12px 16px; border-right: 0; border-bottom: 1px solid var(--line); overflow: visible; }
+      .brand { padding: 0; }
+      .tenant, .nav-group, .sidebar-foot { display: none; }
+      .topbar { padding: 10px 16px; position: static; }
+      .search { display: none; }
+      .crumbs { overflow: hidden; text-overflow: ellipsis; }
+      main { padding: 20px 16px 44px; }
+      .page-head h1 { font-size: 2rem; }
+      .live-pill { margin-left: 0; }
+      .row { grid-template-columns: 64px minmax(0, 1fr); padding: 12px 16px; }
+      .r-meta { grid-column: 2; justify-content: flex-start; }
+      .enroll-body, .side-rail { padding: 18px 16px; }
+      .panel-head { padding: 16px; }
+      footer { padding: 16px; }
+      .brand, .btn { min-height: 44px; }
+      .brand { padding-bottom: 8px; }
+      .panel-head .link { display: inline-flex; align-items: center; min-height: 44px; }
+    }
+    @media (max-width: 520px) {
+      .top-actions .btn-outline { display: none; }
+      .form-row { grid-template-columns: 1fr; }
+      .stat-val { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="Doppel">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="2.5" y="2.5" width="19" height="19" rx="6" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+        <span>Doppel</span>
+      </a>
+
+      <div class="tenant">
+        <div class="t-mark">NF</div>
+        <div>
+          <div class="t-label">Workspace</div>
+          <div class="t-name">Northwind Financial</div>
+        </div>
+        <span class="chev">&#9660;</span>
+      </div>
+
+      <div class="nav-group">
+        <a class="nav-item" href="#">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>
+          Overview
+        </a>
+        <a class="nav-item" href="#">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="7" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7.6 7.2 10.8 16M16.6 8.5 13.2 16.3M8 6.2l8 .6"/></svg>
+          Threat Graph
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <h4>Digital Risk Protection</h4>
+        <a class="nav-item" href="#">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/></svg>
+          Brand Protection
+          <span class="count">14</span>
+        </a>
+        <a class="nav-item" href="#">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg>
+          Executive Protection
+        </a>
+        <a class="nav-item" href="#">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          Takedowns
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <h4>Human Risk Management</h4>
+        <a class="nav-item active" href="#">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 17.5h2"/></svg>
+          Simulation
+        </a>
+        <a class="nav-item" href="#">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 8l9-4 9 4-9 4z"/><path d="M7 10v5c2.5 2 7.5 2 10 0v-5"/></svg>
+          Security Awareness Training
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <h4>Email Security</h4>
+        <a class="nav-item" href="#">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          Email Security
+        </a>
+        <a class="nav-item" href="#">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></svg>
+          Phishing Triage
+          <span class="count">6</span>
+        </a>
+      </div>
+
+      <div class="sidebar-foot">
+        <div class="avatar">PS</div>
+        <div>
+          <div class="u-name">Priya Shah</div>
+          <div class="u-sub">Security Awareness Lead</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <div class="topbar">
+        <div class="crumbs">Human Risk Management &nbsp;/&nbsp; <strong>Simulation</strong></div>
+        <div class="search">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>
+          Search campaigns, users, DOP IDs
+        </div>
+        <div class="top-actions">
+          <a class="btn btn-outline" href="#campaigns">View reports</a>
+          <a class="btn btn-lime" href="#enroll">Create campaign</a>
+        </div>
+      </div>
+
+      <main>
+        <div class="page-head">
+          <div>
+            <div class="tag">Simulation</div>
+            <h1>Multi-Channel Campaigns</h1>
+            <div class="ph-sub">Attack simulations and security awareness training derived from live campaigns mapped via the Threat Graph.</div>
+          </div>
+          <div class="live-pill"><span class="dot"></span> Directory sync healthy &middot; Okta</div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Enrolled users</div><div class="stat-val">1,842<small> / 2,400 seats</small></div><div class="stat-sub">Across 9 directory groups</div></div>
+          <div class="stat"><div class="stat-label">Active campaigns</div><div class="stat-val">4</div><div class="stat-sub">Voice, SMS, email, messaging</div></div>
+          <div class="stat"><div class="stat-label">Report rate</div><div class="stat-val">38<small>%</small></div><div class="stat-sub">Up 11 pts this quarter</div></div>
+          <div class="stat"><div class="stat-label">Compromise rate</div><div class="stat-val">7.4<small>%</small></div><div class="stat-sub">Credential or callback submitted</div></div>
+        </div>
+
+        <div class="panel" id="campaigns">
+          <div class="panel-head">
+            <h2>Campaigns</h2>
+            <span class="sub">Built from live attacker playbooks targeting your brand</span>
+            <a class="link" href="#">All campaigns &rarr;</a>
+          </div>
+          <div class="rows">
+            <div class="row">
+              <span class="r-id">DOP-42</span>
+              <span class="r-title">CFO voice deepfake &mdash; urgent wire approval<span>Finance &amp; Treasury &middot; 214 users</span></span>
+              <span class="r-meta"><span class="chip">Voice</span><span class="chip chip-live">Live</span></span>
+            </div>
+            <div class="row">
+              <span class="r-id">DOP-23</span>
+              <span class="r-title">Helpdesk MFA reset over messaging<span>IT Service Desk &middot; 58 users</span></span>
+              <span class="r-meta"><span class="chip">Messenger</span><span class="chip chip-live">Live</span></span>
+            </div>
+            <div class="row">
+              <span class="r-id">DOP-82</span>
+              <span class="r-title">Payroll portal lookalike URL via SMS<span>All employees &middot; 1,842 users</span></span>
+              <span class="r-meta"><span class="chip">SMS</span><span class="chip chip-live">Live</span></span>
+            </div>
+            <div class="row">
+              <span class="r-id">DOP-25</span>
+              <span class="r-title">Vendor invoice change request<span>Accounts Payable &middot; 41 users</span></span>
+              <span class="r-meta"><span class="chip">Email</span><span class="chip chip-sched">Scheduled</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="enroll">
+          <div class="enroll-grid">
+            <div class="enroll-body">
+              <h2>Add users to a program</h2>
+              <div class="sub">Assign seats from your directory so new users are included in the next simulation wave and their training path.</div>
+              <form id="provisionForm">
+                <div class="form-group">
+                  <label for="product">Program</label>
+                  <select id="product">
+                    <option value="Simulation - Voice and Deepfake">Simulation &mdash; Voice &amp; Deepfake</option>
+                    <option value="Simulation - SMS and Messaging">Simulation &mdash; SMS &amp; Messaging</option>
+                    <option value="Simulation - Email">Simulation &mdash; Email</option>
+                    <option value="Security Awareness Training">Security Awareness Training</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label for="seats">Users to add</label><input type="number" id="seats" value="25" min="1" max="250"></div>
+                  <div class="form-group">
+                    <label for="planTier">Seat tier</label>
+                    <select id="planTier">
+                      <option value="enterprise">Enterprise</option>
+                      <option value="business">Business</option>
+                      <option value="starter">Starter</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="region">Data residency</label>
+                  <select id="region">
+                    <option value="us-east">United States</option>
+                    <option value="eu-west">European Union</option>
+                    <option value="ap-south">Asia-Pacific</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn-submit" id="submitBtn">Add users</button>
+              </form>
+              <div id="result" class="result-box"></div>
+            </div>
+            <div class="side-rail">
+              <h3>Enrollment checks</h3>
+              <div class="step">
+                <span class="mark mark-done">&#10003;</span>
+                <div><div class="s-title">Directory connected</div><div class="s-sub">Okta &middot; synced 6 minutes ago</div></div>
+              </div>
+              <div class="step">
+                <span class="mark mark-done">&#10003;</span>
+                <div><div class="s-title">Seat allocation</div><div class="s-sub">558 of 2,400 seats available</div></div>
+              </div>
+              <div class="step">
+                <span class="mark mark-wait">&#8226;</span>
+                <div><div class="s-title">Training path</div><div class="s-sub">Assigned on first simulation result</div></div>
+              </div>
+              <div class="step">
+                <span class="mark mark-todo"></span>
+                <div><div class="s-title">Next wave</div><div class="s-sub">DOP-25 &middot; Monday, 9:00 AM local</div></div>
+              </div>
+              <div class="graph">
+                <img src="https://prod-cms.doppel.com/sites/default/files/2026-08/homepage-threat-graph-image.png" alt="" loading="lazy" onerror="this.parentNode.style.display='none'">
+                <div class="g-cap">Threat Graph &middot; campaign source</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        Users added to a program are included in the next scheduled simulation wave. Seat counts reflect your current subscription. &copy; 2026 Doppel Inc.
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function showResult(kind, head, detail) {
+      const result = document.getElementById('result');
+      result.className = 'result-box ' + kind;
+      result.replaceChildren();
+      const h = document.createElement('div'); h.className = 'r-head'; h.textContent = head;
+      const d = document.createElement('div'); d.className = 'r-detail'; d.textContent = detail;
+      result.append(h, d);
+    }
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Adding users...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: document.getElementById('product').value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showResult('error', 'Enrollment failed', `${data.errorClass}: ${data.error}`);
+        } else {
+          const program = document.getElementById('product').selectedOptions[0].textContent;
+          showResult('success', 'Users added', `${data.seatsAdded} users added to ${program} \u2014 ${data.licenseId}`);
+        }
+      } catch (err) {
+        showResult('error', 'Network error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Add users'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

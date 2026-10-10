@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoices · Evercore Client Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#0b1f3a; --navy2:#163470; --blue:#1d4289; --gold:#a88a4e; --ink:#1a2233; --mut:#5b6577; --line:#e3e7ee; --bg:#f5f6f9; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:Inter, system-ui, sans-serif; color:var(--ink); background:var(--bg); font-size:14px; }
+  h1,h2,h3 { font-family:'Source Serif 4', Georgia, serif; font-weight:600; margin:0; }
+  header { background:var(--navy); color:#fff; }
+  .bar { max-width:1180px; margin:0 auto; padding:0 28px; height:64px; display:flex; align-items:center; gap:36px; }
+  .mark { font-family:'Source Serif 4', serif; font-size:22px; letter-spacing:.14em; font-weight:600; }
+  .mark small { display:block; font-family:Inter; font-size:10px; letter-spacing:.22em; color:var(--gold); font-weight:600; margin-top:-2px; }
+  nav a { color:#c9d3e6; text-decoration:none; margin-right:26px; font-weight:500; padding:22px 0; border-bottom:2px solid transparent; }
+  nav a.on { color:#fff; border-color:var(--gold); }
+  .acct { margin-left:auto; display:flex; align-items:center; gap:12px; font-size:13px; }
+  .acct .who { text-align:right; line-height:1.3; } .acct .who span { color:#9fb0cc; font-size:12px; }
+  .av { width:34px; height:34px; border-radius:50%; background:var(--gold); display:grid; place-items:center; font-weight:600; }
+  .strip { background:var(--navy2); color:#dbe3f3; font-size:12.5px; }
+  .strip div { max-width:1180px; margin:0 auto; padding:8px 28px; display:flex; gap:10px; align-items:center; }
+  .strip b { color:#fff; }
+  main { max-width:1180px; margin:0 auto; padding:28px; }
+  .crumb { color:var(--mut); font-size:12.5px; margin-bottom:6px; }
+  .head { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:22px; }
+  .head p { color:var(--mut); margin:6px 0 0; }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:6px; }
+  .stat { padding:16px 18px; } .stat .k { color:var(--mut); font-size:12px; text-transform:uppercase; letter-spacing:.06em; } .stat .v { font-family:'Source Serif 4',serif; font-size:24px; margin-top:6px; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut); font-weight:600; padding:12px 18px; border-bottom:1px solid var(--line); background:#fafbfc; }
+  td { padding:14px 18px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  tr:last-child td { border-bottom:0; }
+  .num { text-align:right; font-variant-numeric:tabular-nums; }
+  .id { font-weight:600; color:var(--blue); } .sub { color:var(--mut); font-size:12.5px; }
+  .chip { display:inline-block; padding:3px 9px; border-radius:999px; font-size:12px; font-weight:600; }
+  .chip.Due { background:#fff3e0; color:#9a5b00; } .chip.Open { background:#e8effb; color:var(--blue); } .chip.Paid { background:#e7f5ee; color:#1c7a4a; }
+  .btn { border:1px solid var(--blue); color:var(--blue); background:#fff; padding:7px 12px; border-radius:4px; font:inherit; font-weight:600; font-size:12.5px; cursor:pointer; }
+  .btn:hover { background:#f0f4fb; }
+  .btn.pri { background:var(--blue); color:#fff; } .btn.pri:hover { background:var(--navy2); }
+  .btn:disabled { opacity:.6; cursor:default; }
+  .sec-title { display:flex; justify-content:space-between; align-items:center; padding:16px 18px; border-bottom:1px solid var(--line); }
+  .sec-title h2 { font-size:18px; }
+  .note { margin-top:18px; padding:14px 18px; border-left:3px solid var(--gold); background:#fff; color:var(--mut); font-size:13px; }
+  .scrim { position:fixed; inset:0; background:rgba(11,31,58,.45); display:none; z-index:20; }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:460px; max-width:100%; background:#fff; z-index:30; transform:translateX(100%); transition:transform .25s ease; display:flex; flex-direction:column; box-shadow:-12px 0 32px rgba(0,0,0,.18); }
+  .open .scrim { display:block; } .open .drawer { transform:none; }
+  .dh { padding:22px 24px; border-bottom:1px solid var(--line); } .dh h3 { font-size:20px; } .dh .sub { margin-top:4px; }
+  .db { padding:22px 24px; flex:1; overflow:auto; }
+  .warn { background:#fff8e6; border:1px solid #f0d58a; color:#6b4e00; padding:12px 14px; border-radius:4px; font-size:12.5px; margin-bottom:18px; }
+  .mfa label { display:block; font-weight:600; margin-bottom:6px; } .mfa .sub { margin-bottom:14px; }
+  .code { font-size:22px; letter-spacing:.4em; padding:10px 12px; width:100%; border:1px solid #c9d0dc; border-radius:4px; font-family:ui-monospace,monospace; }
+  .err { color:#b42318; font-size:12.5px; margin-top:8px; min-height:16px; }
+  dl { display:grid; grid-template-columns:140px 1fr; gap:10px 14px; margin:0; } dt { color:var(--mut); } dd { margin:0; font-weight:600; font-family:ui-monospace,monospace; font-size:13px; }
+  .df { padding:16px 24px; border-top:1px solid var(--line); display:flex; gap:10px; justify-content:flex-end; }
+  .spin { display:inline-block; width:14px; height:14px; border:2px solid #fff; border-right-color:transparent; border-radius:50%; animation:s .8s linear infinite; vertical-align:-2px; margin-right:6px; } @keyframes s { to { transform:rotate(360deg); } }
+  .toast { position:fixed; right:24px; bottom:24px; max-width:420px; background:#1B1B1B; color:#fff; padding:14px 16px; border-radius:8px; box-shadow:0 12px 32px rgba(0,0,0,.28); transform:translateY(calc(100% + 40px)); transition:transform .25s ease; z-index:50; }
+  .toast.show { transform:none; }
+  .toast .t { font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+  .toast .t::before { content:''; width:8px; height:8px; border-radius:50%; background:#F05A44; }
+  .toast.good .t::before { background:#3CCB7F; }
+  .toast .d { color:#CFCFCF; font-size:12.5px; word-break:break-word; }
+  footer { max-width:1180px; margin:0 auto; padding:10px 28px 40px; color:var(--mut); font-size:12px; }
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="mark">EVERCORE<small>CLIENT PORTAL</small></div>
+  <nav><a href="#">Deals</a><a href="#" class="on">Invoices</a><a href="#">Documents</a><a href="#">Requests</a></nav>
+  <div class="acct"><div class="who" id="who"></div><div class="av" id="av"></div></div>
+</div></header>
+<div class="strip"><div>&#128274; <b>Secure session</b> · Evercore will never send or change wire instructions by email. Always confirm payment details here.</div></div>
+<main>
+  <div class="crumb" id="crumb">Financial Sponsors</div>
+  <div class="head"><div><h1>Invoices</h1><p>Fees and expenses billed across your engagements with Evercore.</p></div></div>
+  <div class="stats" id="stats"></div>
+  <div class="card">
+    <div class="sec-title"><h2>All invoices</h2><span class="sub" id="cov"></span></div>
+    <table><thead><tr><th>Invoice</th><th>Engagement</th><th>Issued</th><th>Due</th><th class="num">Amount (USD)</th><th>Status</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+  </div>
+  <div class="note">Payment details are shown only after step-up verification and every view is recorded in your firm’s activity log. Questions about an invoice? Use <b>Requests</b> to reach your coverage team.</div>
+</main>
+<footer>© 2026 Evercore. Fictional demo environment — all clients, deals and account details are illustrative.</footer>
+
+<div id="wrap"><div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dh"><h3 id="d-title">Wire instructions</h3><div class="sub" id="d-sub"></div></div>
+  <div class="db" id="d-body"></div>
+  <div class="df" id="d-foot"></div>
+</aside></div>
+<div class="toast" id="toast"><div class="t" id="toast-t"></div><div class="d" id="toast-d"></div></div>
+
+<script>
+(function () {
+  var el = function (id) { return document.getElementById(id); };
+  var state = { portal: null, invoice: null, gen: 0 };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function money(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function day(s) { return new Date(s + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  function toast(title, detail, good) {
+    var t = el('toast'); el('toast-t').textContent = title; el('toast-d').textContent = detail || '';
+    t.classList.toggle('good', !!good); t.classList.add('show');
+    clearTimeout(toast._h); toast._h = setTimeout(function () { t.classList.remove('show'); }, good ? 4500 : 9000);
+  }
+
+  function render() {
+    var p = state.portal;
+    el('who').innerHTML = esc(p.client.user.name) + '<br><span>' + esc(p.client.name) + '</span>';
+    el('av').textContent = p.client.user.initials;
+    el('crumb').textContent = p.client.tenant + ' · ' + p.client.name;
+    el('cov').textContent = 'Coverage: ' + p.client.coverage.banker + ', ' + p.client.coverage.title;
+    var open = p.invoices.filter(function (i) { return i.status !== 'Paid'; });
+    var due = open.reduce(function (n, i) { return n + i.amount; }, 0);
+    var paid = p.invoices.filter(function (i) { return i.status === 'Paid'; }).reduce(function (n, i) { return n + i.amount; }, 0);
+    el('stats').innerHTML = [
+      ['Outstanding', '$' + money(due)], ['Open invoices', open.length], ['Paid YTD', '$' + money(paid)], ['Active engagements', p.deals.filter(function (d) { return d.status !== 'Closed'; }).length]
+    ].map(function (s) { return '<div class="card stat"><div class="k">' + s[0] + '</div><div class="v">' + s[1] + '</div></div>'; }).join('');
+    el('rows').innerHTML = p.invoices.map(function (i) {
+      return '<tr><td><div class="id">' + esc(i.id) + '</div><div class="sub">' + esc(i.description) + '</div></td>' +
+        '<td>' + esc(i.dealName) + '</td><td>' + day(i.issued) + '</td><td>' + day(i.due) + '</td>' +
+        '<td class="num">' + money(i.amount) + '</td><td><span class="chip ' + i.status + '">' + i.status + '</span></td>' +
+        '<td class="num">' + (i.status === 'Paid' ? '' : '<button class="btn" data-inv="' + esc(i.id) + '">View wire instructions</button>') + '</td></tr>';
+    }).join('');
+  }
+
+  function openDrawer(inv) {
+    state.gen++;
+    state.invoice = inv;
+    el('d-title').textContent = 'Wire instructions';
+    el('d-sub').textContent = inv.id + ' · ' + inv.dealName + ' · $' + money(inv.amount);
+    el('d-body').innerHTML = '<div class="warn"><b>Verify it’s you.</b> Payment details are protected by step-up verification. Enter the 6-digit code from your ' + esc(state.portal.mfa.method.toLowerCase()) + '.</div>' +
+      '<div class="mfa"><label for="code">Verification code</label><div class="sub">Demo code: <b>' + esc(state.portal.mfa.hint) + '</b></div>' +
+      '<input id="code" class="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="______"><div class="err" id="code-err"></div></div>';
+    el('d-foot').innerHTML = '<button class="btn" id="cancel">Cancel</button><button class="btn pri" id="verify">Verify &amp; show details</button>';
+    el('wrap').classList.add('open');
+    setTimeout(function () { el('code').focus(); }, 250);
+    el('cancel').onclick = close;
+    el('verify').onclick = verify;
+    el('code').onkeydown = function (e) { if (e.key === 'Enter') verify(); };
+  }
+  function close() { state.gen++; el('wrap').classList.remove('open'); }
+
+  function verify() {
+    var gen = state.gen;
+    var current = function () { return gen === state.gen; };
+    var btn = el('verify'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Verifying…'; el('code-err').textContent = '';
+    fetch('/api/ed1d21a0/invoices/' + encodeURIComponent(state.invoice.id) + '/wire', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mfaCode: el('code').value,
+        devinUserId: localStorage.getItem('devinUserId') || 'okta|Cognition|00u23apa1taDNwWlr1d8',
+        devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+        devinEmail: localStorage.getItem('devinEmail') || 'julia.rhee@cognition.ai',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (r) { if (!current()) return; if (!r.ok || !r.body.success) return fail(r.body); show(r.body.wire); })
+      .catch(function (err) { if (current()) fail({ error: err.message, errorClass: 'NetworkError' }); });
+  }
+
+  function show(w) {
+    el('d-body').innerHTML = '<div class="warn">Pay only to the account below. If anyone asks you to use different details, contact your coverage team through the portal before sending funds.</div>' +
+      '<dl><dt>Beneficiary</dt><dd>' + esc(w.beneficiary) + '</dd><dt>Bank</dt><dd>' + esc(w.bank) + '</dd><dt>City</dt><dd>' + esc(w.bankCity) + '</dd>' +
+      '<dt>ABA routing</dt><dd>' + esc(w.aba) + '</dd><dt>SWIFT</dt><dd>' + esc(w.swift) + '</dd><dt>Account</dt><dd>' + esc(w.account) + '</dd>' +
+      '<dt>Amount</dt><dd>USD ' + money(w.amount) + '</dd><dt>Reference</dt><dd>' + esc(w.reference) + '</dd></dl>';
+    el('d-foot').innerHTML = '<button class="btn pri" id="done">Done</button>';
+    el('done').onclick = close;
+    toast('Wire instructions verified', 'Reveal audited as wire.revealed', true);
+  }
+
+  function fail(body) {
+    var btn = el('verify');
+    if (btn) { btn.disabled = false; btn.textContent = 'Verify & show details'; }
+    if (body.errorClass === 'ValidationError') { el('code-err').textContent = body.error; return; }
+    el('d-body').innerHTML = '<div class="warn" style="background:#fdecea;border-color:#f5b5ae;color:#8a1c12"><b>We couldn’t load the wire instructions for this invoice.</b><br>Your coverage team has been notified. Please don’t pay from emailed details in the meantime.</div>';
+    el('d-foot').innerHTML = '<button class="btn" id="done">Close</button>';
+    el('done').onclick = close;
+    toast('Couldn’t load wire instructions', (body.errorClass || 'Error') + ': ' + (body.error || 'Unknown error') + (body.requestId ? ' \u00b7 ' + body.requestId : ''));
+  }
+
+  el('rows').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-inv]'); if (!b) return;
+    openDrawer(state.portal.invoices.find(function (i) { return i.id === b.getAttribute('data-inv'); }));
+  });
+  el('scrim').onclick = close;
+
+  fetch('/api/ed1d21a0/portal').then(function (r) { return r.json(); })
+    .then(function (p) { state.portal = p; render(); })
+    .catch(function () { toast('Couldn’t load invoices', 'Refresh to try again.'); });
+})();
+</script>
+</body>
+</html>
