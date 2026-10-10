@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const logger = require('../../telemetry/logger');
 const { Sentry } = require('../../telemetry/sentry');
 const { incrementMetric } = require('../../telemetry/datadog');
-const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail } = require('../slack');
+const { ownerRotation, postMessage, postThreadReply, lookupSlackUserByEmail } = require('../slack');
 const { createDevinSession } = require('../devin-api');
 const { canCreateSession, reserveSession } = require('../session-rate-limiter');
 
@@ -252,7 +252,7 @@ function etaLine(report) {
 
 /**
  * Alert card. Every number on it came from the device that failed; the
- * only synthetic element is the on-call persona, labelled as such.
+ * only synthetic element is the owner, shown as an on-call rotation.
  */
 function buildAlertMessage(report, { reference, triggeredBy, now }) {
   const lines = [
@@ -263,15 +263,13 @@ function buildAlertMessage(report, { reference, triggeredBy, now }) {
     `*Where:* ${report.screen} → ${report.action}`,
     `*Trip:* ${routeLine(report)}`,
     `*ETA:* ${etaLine(report)}`,
-    `*Owner:* ${FLEET.owner} — ${OWNER_DISCLAIMER}`,
+    `*Owner:* ${ownerRotation(FLEET.owner)}`,
     `*Incident Ref:* ${reference}`,
     triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
     `Env: production | Release: ${report.release} | Platform: ${report.platformLabel}${report.orgId ? ` | Org: ${report.orgId}` : ''}`,
     `Reported: ${now.toISOString()}`,
     '',
-    `*Symptom:* ${FLEET.symptom}`,
-    `*Impact:* ${FLEET.impact}`,
     `Repo: ${FLEET.repo} (${FLEET.appDir})`,
   ];
   return lines.filter((l) => l !== null).join('\n');
@@ -286,7 +284,7 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
       ['Trip', routeLine(report)],
       ['ETA', etaLine(report)],
       ['Release', `${report.release} (${report.platformLabel})`],
-      ['Owner', `${FLEET.owner} — ${OWNER_DISCLAIMER}`],
+      ['Owner', `${ownerRotation(FLEET.owner)}`],
       ['Incident Ref', reference],
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
@@ -295,7 +293,7 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `*Symptom:* ${FLEET.symptom}\n*Impact:* ${FLEET.impact}\nRepo: ${FLEET.repo} (${FLEET.appDir})`,
+        text: `Repo: ${FLEET.repo} (${FLEET.appDir})`,
       },
     },
     {

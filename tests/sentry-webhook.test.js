@@ -15,6 +15,21 @@ describe('Sentry customer identity mapping', () => {
     expect(isInstantPathEvent(alertData)).toBe(true);
   });
 
+  test('recognizes Misfits Market events tagged as instant-path alerts', () => {
+    expect(isInstantPathEvent({
+      tags: [['alert_path', 'instant'], ['service', 'customer-77560b41-checkout']],
+      culprit: 'app/services/verticals/77560b41.js — applySubstitutions',
+    })).toBe(true);
+  });
+
+  test('recognizes tagless Misfits Market issue webhooks by culprit module path', () => {
+    expect(isInstantPathEvent({
+      issueTitle: "TypeError: Cannot read properties of undefined (reading 'sku')",
+      culprit: 'app/services/verticals/77560b41.js — applySubstitutions',
+      tags: [],
+    })).toBe(true);
+  });
+
   test.each([
     { tags: [['alert_path', 'latency']] },
     { tags: [{ key: 'alert_path', value: 'latency' }] },
@@ -31,6 +46,15 @@ describe('Sentry customer identity mapping', () => {
     'reportLatencyBreach(app/services/verticals/ef51d258)',
     'reportLatencyBreach(app/services/verticals/f887d0be)',
     'reportLatencyBreach(app/services/verticals/d708940c)',
+    'reportLatencyBreach(app/services/verticals/04525b56)',
+    'reportLatencyBreach(app/services/verticals/fd043af6)',
+    'reportLatencyBreach(app/services/verticals/fe97a788)',
+    'reportLatencyBreach(app/services/verticals/37b90289)',
+    'reportLatencyBreach(app/services/verticals/8f970d35)',
+    'reportLatencyBreach(app/services/verticals/924f5ec9)',
+    'reportLatencyBreach(app/services/verticals/2ecabf0c)',
+    'reportLatencyBreach(app/services/verticals/485ddc93)',
+    'reportLatencyBreach(app/services/verticals/b1e1bd35)',
   ])('recognizes a tagless latency-breach issue webhook by culprit %p', (culprit) => {
     expect(isInstantPathEvent({ culprit, tags: [] })).toBe(true);
   });
@@ -46,6 +70,15 @@ describe('Sentry customer identity mapping', () => {
     'LatencyBudgetExceeded: POST /api/ef51d258/availability took 9039ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/f887d0be/enquiry took 9540ms (budget 3000ms)',
     'LatencyBudgetExceeded: POST /api/d708940c/order-preview took 9120ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/04525b56/inspection-scan took 7000ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/fd043af6/program-match took 7120ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/fe97a788/query took 7040ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/37b90289/case-search took 7040ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/8f970d35/compliance-check took 7010ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/924f5ec9/member-lookup took 7040ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/2ecabf0c/specialist-match took 7020ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/485ddc93/obituary-search took 7060ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/b1e1bd35/pay-run-preview took 7030ms (budget 3000ms)',
   ])('recognizes a latency-breach issue webhook by error type regardless of culprit %p', (title) => {
     const alertData = extractAlertData({
       action: 'created',

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radar for claims — Claims triage | WTW</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --violet: #35035a;
+      --violet-deep: #1e0034;
+      --purple: #7f35b2;
+      --purple-dark: #5c1f86;
+      --magenta: #d124b8;
+      --blue: #327fef;
+      --ink: #2a2a2b;
+      --ink-2: #414244;
+      --muted: #6b6c70;
+      --line: #dcd9df;
+      --wash: #f6f3f9;
+      --paper: #ffffff;
+      --ok: #1f8a5b;
+      --warn: #b45309;
+      --bad: #b3261e;
+      --display: "Lyon Display Web", "Lyon Display", "Source Serif 4", Georgia, "Times New Roman", serif;
+      --body: "Graphik LCG Web", "Graphik", Inter, "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: var(--body); font-size: 16px; line-height: 1.5; color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; }
+    .wrap { width: min(1180px, 100% - 48px); margin: 0 auto; }
+
+    .utility { height: 40px; border-bottom: 1px solid #e9e7ec; font-size: 13px; color: var(--ink-2); }
+    .utility .wrap { display: flex; align-items: center; justify-content: space-between; height: 100%; }
+    .utility .locale { display: flex; align-items: center; gap: 8px; }
+    .utility .locale .globe { width: 14px; height: 14px; border: 1.5px solid var(--purple); border-radius: 50%; position: relative; }
+    .utility .locale .globe::after { content: ""; position: absolute; inset: 1px 4px; border: 1px solid var(--purple); border-radius: 50%; }
+    .utility nav { display: flex; gap: 22px; }
+
+    .masthead { height: 84px; }
+    .masthead .wrap { display: flex; align-items: center; height: 100%; gap: 56px; }
+    .logo { font-family: var(--body); font-weight: 700; font-size: 34px; letter-spacing: -0.06em; color: var(--purple); line-height: 1; }
+    .logo .mark { display: inline-block; vertical-align: -3px; margin-right: 6px; }
+    .mainnav { display: flex; gap: 36px; font-size: 16px; font-weight: 500; color: var(--ink-2); }
+    .mainnav a { position: relative; padding: 6px 0; }
+    .mainnav a.current { color: var(--purple); }
+    .mainnav a.current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--purple); }
+    .masthead .actions { margin-left: auto; display: flex; align-items: center; gap: 22px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 22px; border-radius: 999px; border: 1.5px solid var(--magenta); color: var(--magenta); font-weight: 500; font-size: 15px; background: #fff; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--wash); color: var(--purple); display: grid; place-items: center; font-weight: 600; font-size: 13px; border: 1px solid var(--line); }
+
+    .hero { background: var(--violet-deep); background-image: radial-gradient(900px 420px at 85% 50%, #4a0d7c 0%, transparent 70%); color: #fff; }
+    .hero .wrap { display: grid; grid-template-columns: minmax(0, 560px) 1fr; align-items: center; gap: 48px; min-height: 420px; padding: 56px 0; }
+    .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .02em; color: #e3c6f5; margin: 0 0 18px; }
+    .hero h1 { font-family: var(--display); font-weight: 300; font-size: clamp(44px, 5.4vw, 72px); line-height: 1.02; letter-spacing: -0.01em; margin: 0 0 22px; }
+    .hero p { font-size: 17px; line-height: 1.6; color: #e9e2f0; max-width: 480px; margin: 0 0 30px; }
+    .hero .cta { background: var(--magenta); border-color: var(--magenta); color: #fff; }
+    .hero-art { justify-self: end; width: min(100%, 380px); aspect-ratio: 1; }
+    .hero-art svg { width: 100%; height: 100%; display: block; }
+
+    .stats { border-bottom: 1px solid var(--line); background: #fff; }
+    .stats .wrap { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .stat { padding: 22px 0; border-left: 1px solid var(--line); padding-left: 24px; }
+    .stat:first-child { border-left: 0; padding-left: 0; }
+    .stat .label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+    .stat .value { font-family: var(--display); font-weight: 300; font-size: 34px; line-height: 1.1; color: var(--purple); margin-top: 6px; }
+    .stat .value small { font-family: var(--body); font-size: 13px; color: var(--muted); margin-left: 6px; font-weight: 500; }
+
+    .section { padding: 56px 0 24px; }
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .section-head h2 { font-family: var(--display); font-weight: 300; font-size: 38px; line-height: 1.1; color: var(--violet); margin: 0; }
+    .section-head p { margin: 0; color: var(--muted); max-width: 440px; font-size: 15px; }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .85fr); gap: 32px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 4px; }
+    .card-head { padding: 22px 28px 0; }
+    .card-head h3 { font-family: var(--display); font-weight: 400; font-size: 26px; margin: 0 0 4px; color: var(--ink); }
+    .card-head p { margin: 0; font-size: 14px; color: var(--muted); }
+    form { padding: 22px 28px 28px; }
+    .form-group { margin-bottom: 18px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 7px; }
+    select, input[type="text"], input[type="number"] { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid #b8b3bd; border-radius: 3px; font: inherit; font-size: 15px; color: var(--ink); background: #fff; }
+    select:focus, input:focus { outline: 2px solid var(--purple); outline-offset: 1px; border-color: var(--purple); }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .submit { width: 100%; min-height: 52px; border: 0; border-radius: 999px; background: var(--magenta); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: background .15s; }
+    .submit:hover { background: #b51c9f; }
+    .submit:disabled { background: #c58fd9; cursor: wait; }
+    .submit .spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .submit.loading .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .meta { display: flex; gap: 20px; font-size: 12px; color: var(--muted); margin-top: 14px; flex-wrap: wrap; }
+    .meta span::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--purple); margin-right: 7px; vertical-align: 1px; }
+
+    #result { display: none; margin: 0 28px 28px; padding: 16px 18px; border-left: 4px solid var(--purple); background: var(--wash); border-radius: 3px; font-size: 14px; }
+    #result.success { display: block; border-color: var(--ok); background: #eef8f2; }
+    #result.error { display: block; border-color: var(--bad); background: #fdf1f0; }
+    #result .title { font-weight: 600; margin-bottom: 4px; }
+    #result .detail { color: var(--ink-2); }
+    #result .detail code { font-size: 12px; background: #fff; border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; }
+    #result .timing { margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+    .aside { display: grid; gap: 24px; }
+    .panel { padding: 24px 26px; }
+    .panel h4 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 0 0 14px; color: var(--ink); }
+    .panel ul { list-style: none; padding: 0; margin: 0; }
+    .panel li { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-top: 1px solid var(--line); font-size: 14px; }
+    .panel li:first-child { border-top: 0; padding-top: 0; }
+    .panel li span:last-child { color: var(--muted); text-align: right; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .04em; padding: 3px 9px; border-radius: 999px; background: #eaf6ef; color: var(--ok); }
+    .badge.purple { background: #f1e8f8; color: var(--purple-dark); }
+    .panel.dark { background: var(--violet); color: #fff; border-color: var(--violet); }
+    .panel.dark h4 { color: #fff; }
+    .panel.dark p { margin: 0; font-size: 14px; color: #e9e2f0; line-height: 1.6; }
+    .panel.dark a { color: #fff; font-weight: 500; border-bottom: 1px solid #a96be0; }
+
+    .table { margin-top: 32px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+    .table .thead, .table .row { display: grid; grid-template-columns: 1.1fr 1.4fr 1fr 1fr .8fr; gap: 16px; padding: 14px 24px; font-size: 14px; align-items: center; }
+    .table .thead { background: var(--wash); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+    .table .row { border-top: 1px solid var(--line); }
+    .table .row strong { font-weight: 600; }
+    .table .row .t { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+    footer { margin-top: 64px; background: var(--violet-deep); color: #d9d0e3; font-size: 14px; }
+    footer .wrap { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 40px; padding: 48px 0 36px; }
+    footer .brand { font-weight: 700; font-size: 30px; letter-spacing: -0.06em; color: #fff; line-height: 1; }
+    footer .brand small { display: block; font-weight: 400; letter-spacing: 0; font-size: 13px; margin-top: 10px; color: #b9a9cb; }
+    footer h5 { margin: 0 0 14px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: #fff; }
+    footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+    footer .legal { border-top: 1px solid #3f1663; padding: 18px 0; font-size: 12px; color: #b9a9cb; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    footer .legal .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0; }
+
+    @media (max-width: 900px) {
+      .mainnav { display: none; }
+      .hero .wrap { grid-template-columns: 1fr; padding: 44px 0; }
+      .hero-art { justify-self: start; width: 220px; }
+      .stats .wrap { grid-template-columns: 1fr 1fr; }
+      .stat:nth-child(3) { border-left: 0; padding-left: 0; }
+      .stat:nth-child(n+3) { border-top: 1px solid var(--line); }
+      .grid { grid-template-columns: 1fr; }
+      .table .thead { display: none; }
+      .table .row { grid-template-columns: 1fr 1fr; }
+      footer .wrap { grid-template-columns: 1fr 1fr; gap: 28px; }
+    }
+    @media (max-width: 480px) {
+      .wrap { width: min(1180px, 100% - 32px); }
+      .logo { display: inline-flex; align-items: center; min-height: 44px; }
+      .avatar { width: 44px; height: 44px; }
+      .panel.dark a { display: inline-block; padding: 12px 0; }
+      .utility nav { display: none; }
+      .masthead { height: 72px; }
+      .masthead .wrap { gap: 0; }
+      .logo { font-size: 30px; }
+      .section-head { flex-direction: column; gap: 10px; }
+      .section-head h2 { font-size: 32px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .card-head, form { padding-left: 20px; padding-right: 20px; }
+      #result { margin-left: 20px; margin-right: 20px; }
+      .stats .wrap { grid-template-columns: 1fr 1fr; }
+      .stat .value { font-size: 28px; }
+      footer .wrap { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility">
+    <div class="wrap">
+      <div class="locale"><span class="globe" aria-hidden="true"></span><span>US &nbsp;|&nbsp; EN</span></div>
+      <nav aria-label="Featured links"><a href="#">News</a><a href="#">Investor Relations</a><a href="#">Careers</a></nav>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="WTW — Radar for claims">
+        <svg class="mark" width="30" height="30" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="19" fill="none" stroke="#7f35b2" stroke-width="6" stroke-dasharray="86 34" stroke-dashoffset="-10" stroke-linecap="round"/>
+          <circle cx="24" cy="24" r="8" fill="none" stroke="#7f35b2" stroke-width="5" stroke-dasharray="36 14" stroke-linecap="round"/>
+          <path d="M26 22 40 8" stroke="#327fef" stroke-width="6" stroke-linecap="round"/>
+        </svg>wtw
+      </a>
+      <nav class="mainnav" aria-label="Main menu">
+        <a href="#" class="current">Claims triage</a>
+        <a href="#">Work queue</a>
+        <a href="#">Models</a>
+        <a href="#">Governance</a>
+        <a href="#">Insights</a>
+      </nav>
+      <div class="actions">
+        <a class="pill" href="#">Get in touch</a>
+        <span class="avatar" aria-label="Signed in as claims handler">CH</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Product &nbsp;·&nbsp; Radar for claims</p>
+        <h1>Radar for your claims operations</h1>
+        <p>Real-time, AI-driven decision support for better claims outcomes. Submit a first notice of loss and Radar returns validity, repairability, fraud indicators and the next best action for the claim.</p>
+        <a class="pill cta" href="#triage">Submit a claim for triage</a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 400 400" fill="none">
+          <circle cx="200" cy="200" r="168" stroke="#7f35b2" stroke-width="26" stroke-linecap="round" stroke-dasharray="820 240" stroke-dashoffset="-120"/>
+          <circle cx="200" cy="200" r="104" stroke="#7f35b2" stroke-width="26" stroke-linecap="round" stroke-dasharray="500 160" stroke-dashoffset="-70"/>
+          <circle cx="200" cy="200" r="40" stroke="#7f35b2" stroke-width="22" stroke-linecap="round" stroke-dasharray="190 70"/>
+          <path d="M215 185 L352 48" stroke="#327fef" stroke-width="28" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="Operations summary">
+    <div class="wrap">
+      <div class="stat"><div class="label">Claims triaged today</div><div class="value">18,204</div></div>
+      <div class="stat"><div class="label">Decision latency (p50)</div><div class="value">0.42<small>sec</small></div></div>
+      <div class="stat"><div class="label">Fraud referral rate</div><div class="value">3.1<small>%</small></div></div>
+      <div class="stat"><div class="label">Models in production</div><div class="value">12</div></div>
+    </div>
+  </section>
+
+  <main class="section" id="triage">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Claims triage</h2>
+        <p>Radar scores each claim against the models and rules deployed for the product line and returns a decision in real time.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card-head">
+            <h3>Submit a claim</h3>
+            <p>First notice of loss — personal lines</p>
+          </div>
+          <form id="claimForm">
+            <div class="form-group">
+              <label for="policyId">Policy</label>
+              <select id="policyId">
+                <option value="POL-5001">POL-5001 — Motor, personal lines (comprehensive)</option>
+                <option value="POL-5002">POL-5002 — Home, personal lines (buildings &amp; contents)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="claimType">Loss type</label>
+                <select id="claimType">
+                  <option value="collision">Collision</option>
+                  <option value="weather">Weather / storm damage</option>
+                  <option value="theft">Theft</option>
+                  <option value="liability">Third-party liability</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="amount">Reserve estimate (USD)</label>
+                <input type="number" id="amount" value="2500" min="1" step="0.01">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="description">Loss description</label>
+              <input type="text" id="description" value="Rear-end collision at low speed; vehicle drivable, no injuries reported" placeholder="Describe the loss">
+              <div class="hint">Structured and unstructured claim data are scored together.</div>
+            </div>
+            <button type="submit" class="submit" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span class="label">Run triage</span></button>
+            <div class="meta"><span>Real-time decision</span><span>Governed models</span><span>Audit trail retained</span></div>
+          </form>
+          <div id="result" role="status" aria-live="polite"></div>
+        </div>
+
+        <div class="aside">
+          <div class="card panel">
+            <h4>Decision outputs</h4>
+            <ul>
+              <li><span>Is this claim valid?</span><span class="badge purple">Validity score</span></li>
+              <li><span>Is the insured loss repairable?</span><span class="badge purple">Repair / total loss</span></li>
+              <li><span>Is there any potential fraud?</span><span class="badge purple">Fraud indicators</span></li>
+              <li><span>Which team or supplier is best suited?</span><span class="badge purple">Routing</span></li>
+              <li><span>What's the next action on this claim?</span><span class="badge purple">Next best action</span></li>
+            </ul>
+          </div>
+          <div class="card panel">
+            <h4>Deployment</h4>
+            <ul>
+              <li><span>Environment</span><span><span class="badge">Production</span></span></li>
+              <li><span>Product lines</span><span>Motor, Home</span></li>
+              <li><span>Scoring</span><span>Radar models + Python</span></li>
+              <li><span>Governance</span><span>Model versioning &amp; approvals</span></li>
+              <li><span>Integration</span><span>Existing claims system</span></li>
+            </ul>
+          </div>
+          <div class="card panel dark">
+            <h4>Radar for claims</h4>
+            <p>Cut costs, reduce fraud and enhance customer service with a flexible AI and predictive analytics solution for claims, designed by insurance specialists. <a href="#">Radar with Python →</a></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table" aria-label="Recent decisions">
+        <div class="thead"><span>Claim</span><span>Loss</span><span>Decision</span><span>Routing</span><span>Latency</span></div>
+        <div class="row"><strong>CLM-20931</strong><span>Motor · collision</span><span>Valid · repairable</span><span>Fast-track repair network</span><span class="t">0.39 s</span></div>
+        <div class="row"><strong>CLM-20930</strong><span>Home · storm damage</span><span>Valid · adjuster visit</span><span>Property claims team</span><span class="t">0.44 s</span></div>
+        <div class="row"><strong>CLM-20929</strong><span>Motor · theft</span><span>Review · fraud indicators</span><span>Special investigations</span><span class="t">0.51 s</span></div>
+        <div class="row"><strong>CLM-20928</strong><span>Motor · liability</span><span>Valid · third-party</span><span>Liability handling</span><span class="t">0.41 s</span></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="brand">wtw<small>Insurance Consulting and Technology</small></div>
+      <div><h5>Radar</h5><ul><li>Radar for personal lines insurers</li><li>Radar for commercial lines insurers</li><li>Radar for your claims operations</li><li>Radar with Python</li></ul></div>
+      <div><h5>Company</h5><ul><li>About Us</li><li>Solutions</li><li>Industries</li><li>Insights</li></ul></div>
+      <div><h5>Support</h5><ul><li>Contact Us</li><li>Office Locations</li><li>Accessibility Statement</li><li>Cookie Notice</li></ul></div>
+    </div>
+    <div class="legal"><div class="wrap"><span>Copyright © 2026 WTW. All rights reserved.</span><span>Global Website Privacy Notice · Terms of Use · WTW Trademarks</span></div></div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    document.getElementById('claimForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var label = btn.querySelector('.label');
+      var result = document.getElementById('result');
+      var started = Date.now();
+      btn.disabled = true;
+      btn.classList.add('loading');
+      label.textContent = 'Scoring claim…';
+      result.className = '';
+      result.innerHTML = '';
+      try {
+        var response = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: document.getElementById('policyId').value,
+            claimType: document.getElementById('claimType').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            description: document.getElementById('description').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await response.json();
+        var elapsed = ((Date.now() - started) / 1000).toFixed(1);
+        if (response.ok) {
+          result.className = 'success';
+          result.innerHTML = '<div class="title">Triage decision returned</div>'
+            + '<div class="detail">Claim <code>' + esc(data.claimId) + '</code> — valid, repairable. Indicated settlement $' + Number(data.payout).toLocaleString()
+            + (data.deductible != null ? ' after $' + Number(data.deductible).toLocaleString() + ' deductible' : '') + '.</div>'
+            + '<div class="timing">Decision latency ' + elapsed + ' s</div>';
+        } else {
+          result.className = 'error';
+          result.innerHTML = '<div class="title">Triage decision unavailable</div>'
+            + '<div class="detail">' + esc(data.error || 'The claim could not be scored.') + '</div>'
+            + '<div class="timing">' + (data.errorClass ? esc(data.errorClass) + ' · ' : '') + 'HTTP ' + response.status + (data.requestId ? ' · request ' + esc(data.requestId) : '') + ' · ' + elapsed + ' s</div>';
+        }
+      } catch (err) {
+        result.className = 'error';
+        result.innerHTML = '<div class="title">Network error</div><div class="detail">' + esc(err.message) + '</div>';
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        label.textContent = 'Run triage';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>eHorizon — MCH NAV Oversight</title>
+  <style>
+    :root {
+      --navy: #0b2a4a;
+      --navy-2: #123b66;
+      --navy-3: #1a3d63;
+      --teal: #0f8b8d;
+      --bg: #eef2f6;
+      --card: #ffffff;
+      --ink: #1b2733;
+      --muted: #6b7a8c;
+      --line: #d9e1ea;
+      --ok: #1f8a4c;
+      --warn: #c98a00;
+      --err: #c0392b;
+      --err-bg: #fdecea;
+      --warn-bg: #fff6e0;
+      --ok-bg: #e7f5ec;
+      --mono: "JetBrains Mono", Consolas, "SFMono-Regular", Menlo, monospace;
+      font-family: "Segoe UI", Inter, system-ui, -apple-system, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-size: 13px; }
+    code, .mono { font-family: var(--mono); font-size: 12px; }
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .topbar { display: flex; align-items: center; gap: 20px; background: var(--navy); color: #fff; padding: 8px 18px; min-height: 52px; flex-wrap: wrap; row-gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.2); position: sticky; top: 0; z-index: 5; }
+    .brand { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
+    .brand-mark { background: var(--teal); color: #fff; font-weight: 700; padding: 3px 7px; border-radius: 4px; font-size: 12px; }
+    .brand-name { font-size: 19px; font-weight: 600; letter-spacing: .3px; }
+    .brand-sub { font-size: 12px; opacity: .75; }
+    .env { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .pill { font-size: 11px; font-weight: 600; letter-spacing: .4px; padding: 4px 10px; border-radius: 999px; background: #1f4d7a; color: #fff; white-space: nowrap; }
+    .pill-muted { background: var(--navy-3); color: #b9cde3; font-weight: 500; }
+    .pill-ok { background: var(--ok); }
+    .pill-err { background: var(--err); animation: pulse 1.2s infinite; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(192,57,43,.6);} 50% { box-shadow: 0 0 0 6px rgba(192,57,43,0);} }
+    .user { display: flex; align-items: center; gap: 8px; padding-left: 10px; border-left: 1px solid rgba(255,255,255,.18); font-size: 12px; white-space: nowrap; }
+    .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--teal); display: grid; place-items: center; font-weight: 700; font-size: 11px; }
+
+    .layout { display: grid; grid-template-columns: 196px 1fr; min-height: calc(100vh - 52px); }
+    .side { background: #fff; border-right: 1px solid var(--line); padding: 14px 0; }
+    .side h4 { margin: 14px 16px 6px; font-size: 10px; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
+    .side a { display: flex; justify-content: space-between; padding: 8px 16px; color: var(--ink); text-decoration: none; border-left: 3px solid transparent; }
+    .side a:hover { background: #f4f7fa; }
+    .side a.active { background: #eaf4f4; border-left-color: var(--teal); font-weight: 600; color: var(--navy); }
+    .side .badge { font-size: 10px; background: #e6ecf3; border-radius: 8px; padding: 1px 6px; color: var(--muted); }
+
+    main { padding: 16px 20px 40px; max-width: 1480px; }
+    .crumbs { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .page-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+    .page-head h1 { margin: 0; font-size: 20px; color: var(--navy); font-weight: 600; }
+
+    .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; }
+    .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
+    .kpi .k { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+    .kpi .v { font-size: 22px; font-weight: 600; color: var(--navy); margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .kpi .v.err { color: var(--err); }
+
+    .grid { display: grid; grid-template-columns: 1.55fr 1fr; gap: 16px; }
+    .stack { display: grid; gap: 16px; align-content: start; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+    .panel.degraded { border-color: var(--err); box-shadow: 0 0 0 2px rgba(192,57,43,.15); }
+    .panel-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; gap: 10px; }
+    .panel-head h2 { margin: 0; font-size: 14px; font-weight: 600; color: var(--navy); }
+    .panel.degraded .panel-head h2 { color: var(--err); }
+
+    .layout > *, .grid > *, .stack > * { min-width: 0; }
+    .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tbl { width: 100%; border-collapse: collapse; }
+    .tbl th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); border-bottom: 1px solid var(--line); padding: 6px 8px; font-weight: 600; }
+    .tbl th.num { text-align: right; }
+    .tbl td { padding: 7px 8px; border-bottom: 1px solid #eef2f6; }
+    .tbl tbody tr.selectable { cursor: pointer; }
+    .tbl tbody tr.selectable:hover td { background: #f6f9fc; }
+    .tbl tbody tr.selected td { background: #eaf4f4; }
+    .tbl tbody tr.selected td:first-child { box-shadow: inset 3px 0 0 var(--teal); }
+    .fund-id { font-family: var(--mono); font-weight: 600; color: var(--navy); }
+    .fund-name { color: var(--muted); font-size: 11.5px; }
+
+    .st { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .4px; padding: 2px 8px; border-radius: 4px; }
+    .st-PRICED { background: #e6eef8; color: var(--navy-2); }
+    .st-STRUCK { background: #e3f3f3; color: var(--teal); }
+    .st-RELEASED { background: var(--ok-bg); color: var(--ok); }
+    .st-TOLERANCE_BREACH { background: var(--warn-bg); color: #8a5d00; }
+    .st-FAILED { background: var(--err-bg); color: var(--err); }
+
+    .fund-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+    .fund-head .title { font-size: 15px; font-weight: 600; color: var(--navy); }
+    .fund-head .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 14px; margin-bottom: 12px; }
+    .fact .k { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+    .fact .v { font-variant-numeric: tabular-nums; font-weight: 600; margin-top: 2px; }
+
+    .toolbar { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; flex-wrap: wrap; }
+    .btn { font: inherit; font-size: 13px; padding: 7px 14px; border-radius: 5px; border: 1px solid var(--navy); background: var(--navy); color: #fff; cursor: pointer; }
+    .btn:hover { background: var(--navy-2); }
+    .btn.ghost { background: #fff; color: var(--navy); }
+    .btn.ghost:hover { background: #f1f4f8; }
+    .btn.teal { background: var(--teal); border-color: var(--teal); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn.busy { cursor: progress; opacity: .7; }
+    .topbar-btn { padding: 4px 10px; font-size: 12px; background: transparent; border-color: rgba(255,255,255,.35); }
+    .topbar-btn:hover { background: rgba(255,255,255,.08); }
+
+    .alert { border-radius: 6px; padding: 10px 12px; margin-top: 12px; font-size: 12.5px; border: 1px solid; line-height: 1.45; }
+    .alert.err { background: var(--err-bg); border-color: #f1b8b2; color: #7a1f16; }
+    .alert.warn { background: var(--warn-bg); border-color: #f0d48a; color: #6b4a00; }
+    .alert.ok { background: var(--ok-bg); border-color: #b5dfc4; color: #14532d; }
+    .alert strong { display: block; margin-bottom: 2px; }
+    .alert code { display: block; margin-top: 4px; background: rgba(255,255,255,.55); padding: 4px 6px; border-radius: 3px; white-space: pre-wrap; word-break: break-word; }
+
+    .nav-summary { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 10px; }
+    .nav-summary .row { display: flex; justify-content: space-between; padding: 3px 0; font-variant-numeric: tabular-nums; }
+    .nav-summary .row.total { font-weight: 700; color: var(--navy); border-top: 1px solid var(--line); margin-top: 4px; padding-top: 6px; font-size: 14px; }
+
+    .oncall li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eef2f6; }
+    .oncall ul { list-style: none; padding: 0; margin: 0; }
+    .oncall .who { font-weight: 600; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); margin-right: 6px; }
+
+    .ticker { list-style: none; margin: 0; padding: 0; max-height: 220px; overflow: auto; font-family: var(--mono); font-size: 11.5px; }
+    .ticker li { padding: 4px 6px; border-bottom: 1px solid #f1f4f8; display: grid; grid-template-columns: 70px 50px 150px 1fr; gap: 10px; }
+    .ticker li .lvl { font-weight: 700; }
+    .ticker li.ERROR { background: var(--err-bg); } .ticker li.ERROR .lvl { color: var(--err); }
+    .ticker li.WARN { background: var(--warn-bg); } .ticker li.WARN .lvl { color: var(--warn); }
+    .ticker li.INFO .lvl { color: var(--teal); }
+    .ticker .src { color: var(--muted); }
+
+    .footer { margin-top: 24px; font-size: 11.5px; color: var(--muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .demo-escape { color: #9aa1af; text-decoration: none; }
+    .demo-escape:hover { color: var(--navy); }
+
+    @media (max-width: 1560px) { #region-pill { display: none; } }
+    @media (max-width: 1400px) { .brand-sub { display: none; } }
+    @media (max-width: 1180px) { .grid { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 820px) {
+      .layout { grid-template-columns: 1fr; } .side { display: none; }
+      .brand-sub, .env .pill-muted, .user span:last-child { display: none; }
+      .env { margin-left: 0; width: 100%; justify-content: flex-start; }
+      main { padding: 12px 12px 32px; }
+      .tbl { min-width: 560px; }
+      .panel-head { flex-wrap: wrap; }
+      .kpis { grid-template-columns: repeat(2, 1fr); } .facts { grid-template-columns: repeat(2, 1fr); }
+      .ticker li { grid-template-columns: 60px 1fr; } .ticker li .src, .ticker li .lvl { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">SS</span>
+      <span class="brand-name">eHorizon</span>
+      <span class="brand-sub">MCH · Multi-Currency Horizon · Fund Accounting</span>
+    </div>
+    <div class="env">
+      <span class="pill pill-muted" id="vd-pill">Valuation date —</span>
+      <span class="pill pill-ok" id="fx-pill" data-testid="fx-status">FX: WMR 16:00 LDN · LOADED</span>
+      <span class="pill" id="cycle-pill" data-testid="cycle-status">NAV CYCLE: OPEN</span>
+      <span class="pill pill-muted" id="region-pill">Region: MCHPROD1 · LPAR A</span>
+      <button class="btn topbar-btn" id="btn-sod" data-testid="btn-sod-reset" title="Start-of-day: clear today's strikes">SOD reset</button>
+      <div class="user"><span class="avatar">HR</span><span>hrabbani · L2 NAV Ops</span></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="side" aria-label="eHorizon modules">
+      <h4>Fund Accounting</h4>
+      <a href="#" class="active">NAV Oversight <span class="badge" id="nav-badge">5</span></a>
+      <a href="#" data-module="Pricing Exceptions">Pricing Exceptions <span class="badge">0</span></a>
+      <a href="#" data-module="FX Rates">FX Rates</a>
+      <a href="#" data-module="Income Accrual">Income Accrual</a>
+      <a href="#" data-module="Corporate Actions">Corporate Actions</a>
+      <h4>Trade Capture</h4>
+      <a href="#" data-module="ETD Trade Blotter">ETD Trade Blotter</a>
+      <a href="#" data-module="Cash Reconciliation">Cash Reconciliation</a>
+      <h4>Batch</h4>
+      <a href="#" data-module="Report Asyncs">Report Asyncs</a>
+      <a href="#" data-module="Job Scheduler">Job Scheduler (EIM)</a>
+    </nav>
+
+    <main>
+      <div class="crumbs">Fund Accounting › NAV Oversight › Daily strike</div>
+      <div class="page-head">
+        <h1>NAV Oversight — Daily Strike &amp; Release</h1>
+        <span class="muted">Release cutoff <strong id="cutoff">18:00 ET</strong> · Transfer agent feed <code>TA.NAV.OUT</code></span>
+      </div>
+
+      <section class="kpis" data-testid="kpis">
+        <div class="kpi"><div class="k">Funds in cycle</div><div class="v" id="kpi-total">—</div></div>
+        <div class="kpi"><div class="k">Ready to strike</div><div class="v" id="kpi-priced">—</div></div>
+        <div class="kpi"><div class="k">Struck</div><div class="v" id="kpi-struck">—</div></div>
+        <div class="kpi"><div class="k">Released to TA</div><div class="v" id="kpi-released">—</div></div>
+        <div class="kpi"><div class="k">Strike failures</div><div class="v" id="kpi-failed">0</div></div>
+      </section>
+
+      <div class="grid">
+        <div class="stack">
+          <section class="panel" data-testid="funds-panel">
+            <div class="panel-head">
+              <h2>Funds — today's NAV cycle</h2>
+              <span class="muted">Base USD · FX policy WMR 16:00 LDN</span>
+            </div>
+            <div class="tbl-wrap"><table class="tbl" data-testid="funds-table">
+              <thead>
+                <tr><th>Fund</th><th class="num">Prior NAV</th><th class="num">Today NAV</th><th class="num">Δ bps</th><th class="num">Tol.</th><th>Status</th></tr>
+              </thead>
+              <tbody id="funds-body"><tr><td colspan="6" class="muted">Loading NAV cycle…</td></tr></tbody>
+            </table></div>
+          </section>
+
+          <section class="panel" id="detail-panel" data-testid="detail-panel">
+            <div class="fund-head">
+              <div>
+                <div class="title" id="d-title">—</div>
+                <div class="sub" id="d-sub">—</div>
+              </div>
+              <span class="st" id="d-status">—</span>
+            </div>
+            <div class="facts">
+              <div class="fact"><div class="k">Shares outstanding</div><div class="v" id="d-shares">—</div></div>
+              <div class="fact"><div class="k">Prior NAV / share</div><div class="v" id="d-prior">—</div></div>
+              <div class="fact"><div class="k">Accrued income</div><div class="v" id="d-accrued">—</div></div>
+              <div class="fact"><div class="k">Liabilities</div><div class="v" id="d-liab">—</div></div>
+            </div>
+            <div class="tbl-wrap"><table class="tbl" data-testid="positions-table">
+              <thead><tr><th>CCY</th><th class="num">Lines</th><th class="num">Local market value</th><th class="num">FX (per USD)</th><th class="num">Base MV (USD)</th></tr></thead>
+              <tbody id="pos-body"></tbody>
+            </table></div>
+            <div class="nav-summary hidden" id="nav-summary" data-testid="nav-summary"></div>
+            <div class="toolbar">
+              <button class="btn teal" id="btn-strike" data-testid="btn-strike">Strike NAV</button>
+              <button class="btn" id="btn-release" data-testid="btn-release" disabled>Release to TA</button>
+              <button class="btn ghost" id="btn-exceptions" title="Open pricing exceptions for this fund">Pricing exceptions</button>
+              <span class="muted" id="d-meta"></span>
+            </div>
+            <div id="result" class="alert hidden" data-testid="strike-result"></div>
+          </section>
+        </div>
+
+        <div class="stack">
+          <section class="panel oncall" data-testid="oncall-panel">
+            <div class="panel-head"><h2>MCH NAV Ops — on call</h2><span class="muted">PagerDuty · MCH-NAV-L2</span></div>
+            <ul id="oncall-list"></ul>
+          </section>
+
+          <section class="panel" data-testid="fx-panel">
+            <div class="panel-head"><h2>FX snapshot</h2><span class="muted" id="fx-label">—</span></div>
+            <div class="tbl-wrap"><table class="tbl">
+              <thead><tr><th>CCY</th><th class="num">Bid</th><th class="num">Mid</th><th class="num">Ask</th></tr></thead>
+              <tbody id="fx-body"></tbody>
+            </table></div>
+          </section>
+
+          <section class="panel" data-testid="events-panel">
+            <div class="panel-head"><h2>Event log <span class="muted">→ Splunk index=mch</span></h2></div>
+            <ul class="ticker" id="ticker"></ul>
+          </section>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>For demonstration purposes only. Not affiliated with, endorsed by, or an actual system of State Street Corporation.</span>
+        <a class="demo-escape" href="/">&larr; All Demos</a>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var API = '/api/statestreet-mch';
+      var DEVIN_EMAIL = localStorage.getItem('devinEmail') || 'humza.rabbani@cognition.ai';
+      var DEVIN_USER_ID = localStorage.getItem('devinUserId') || undefined;
+      var DEVIN_ORG_ID = localStorage.getItem('devinOrgId') || undefined;
+
+      var cycle = null;
+      var selected = null;
+      var failed = {};
+      var inFlight = false;
+
+      function $(id) { return document.getElementById(id); }
+      function esc(v) {
+        return String(v).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function fmt(v, d) {
+        return Number(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+      }
+      function usd(v) { return '$' + fmt(v, 2); }
+      function now() { return new Date().toTimeString().slice(0, 8); }
+
+      function log(level, source, message) {
+        var li = document.createElement('li');
+        li.className = level;
+        li.innerHTML = '<span>' + now() + '</span><span class="lvl">' + level + '</span><span class="src">' + esc(source) + '</span><span>' + esc(message) + '</span>';
+        $('ticker').insertBefore(li, $('ticker').firstChild);
+      }
+
+      function fundById(id) {
+        return cycle.funds.filter(function (f) { return f.fundId === id; })[0];
+      }
+      function statusLabel(f) {
+        if (failed[f.fundId]) return 'FAILED';
+        return f.status;
+      }
+      function statusText(s) {
+        return { PRICED: 'READY', STRUCK: 'STRUCK', RELEASED: 'RELEASED', TOLERANCE_BREACH: 'TOLERANCE', FAILED: 'STRIKE FAILED' }[s] || s;
+      }
+
+      function renderKpis() {
+        var c = { PRICED: 0, STRUCK: 0, RELEASED: 0 };
+        cycle.funds.forEach(function (f) { if (!failed[f.fundId] && c[f.status] !== undefined) c[f.status] += 1; });
+        var nFailed = Object.keys(failed).length;
+        $('kpi-total').textContent = cycle.funds.length;
+        $('kpi-priced').textContent = c.PRICED + nFailed;
+        $('kpi-struck').textContent = c.STRUCK;
+        $('kpi-released').textContent = c.RELEASED;
+        $('kpi-failed').textContent = nFailed;
+        $('kpi-failed').className = 'v' + (nFailed ? ' err' : '');
+        $('nav-badge').textContent = cycle.funds.length;
+        var pill = $('cycle-pill');
+        pill.textContent = nFailed ? 'NAV CYCLE: STRIKE FAILED' : 'NAV CYCLE: OPEN';
+        pill.className = 'pill' + (nFailed ? ' pill-err' : '');
+      }
+
+      function renderFunds() {
+        $('funds-body').innerHTML = cycle.funds.map(function (f) {
+          var s = statusLabel(f);
+          var nav = f.strike ? fmt(f.strike.navPerShare, 4) : '—';
+          var bps = f.strike ? (f.strike.dayMoveBps > 0 ? '+' : '') + fmt(f.strike.dayMoveBps, 1) : '—';
+          return '<tr class="selectable' + (f.fundId === selected ? ' selected' : '') + '" data-fund="' + esc(f.fundId) + '">'
+            + '<td><div class="fund-id">' + esc(f.fundId) + '</div><div class="fund-name">' + esc(f.name) + '</div></td>'
+            + '<td class="num">' + fmt(f.priorNavPerShare, 4) + '</td>'
+            + '<td class="num">' + nav + '</td>'
+            + '<td class="num">' + bps + '</td>'
+            + '<td class="num">' + f.toleranceBps + '</td>'
+            + '<td><span class="st st-' + s + '">' + statusText(s) + '</span></td></tr>';
+        }).join('');
+      }
+
+      function renderDetail() {
+        var f = fundById(selected);
+        var s = statusLabel(f);
+        $('detail-panel').classList.toggle('degraded', s === 'FAILED');
+        $('d-title').textContent = f.fundId + ' — ' + f.name;
+        $('d-sub').textContent = 'Base ' + f.baseCcy + ' · FX policy ' + f.fxPolicy + ' · Valuation date ' + cycle.valuationDate;
+        $('d-status').className = 'st st-' + s;
+        $('d-status').textContent = statusText(s);
+        $('d-shares').textContent = fmt(f.sharesOutstanding, 3);
+        $('d-prior').textContent = fmt(f.priorNavPerShare, 4);
+        $('d-accrued').textContent = usd(f.accruedIncomeBase);
+        $('d-liab').textContent = usd(f.liabilitiesBase);
+
+        var byCcy = {};
+        if (f.strike) f.strike.currencies.forEach(function (c) { byCcy[c.ccy] = c; });
+        $('pos-body').innerHTML = f.positions.map(function (p) {
+          var v = byCcy[p.ccy];
+          return '<tr><td><code>' + esc(p.ccy) + '</code></td><td class="num">' + p.lines + '</td>'
+            + '<td class="num">' + fmt(p.localMv, 2) + '</td>'
+            + '<td class="num">' + (v ? fmt(v.fxRate, 4) : '—') + '</td>'
+            + '<td class="num">' + (v ? fmt(v.baseMv, 2) : '—') + '</td></tr>';
+        }).join('');
+
+        var sum = $('nav-summary');
+        if (f.strike) {
+          var st = f.strike;
+          sum.innerHTML = '<div class="row"><span>Investments at market (USD)</span><span>' + usd(st.investmentsBase) + '</span></div>'
+            + '<div class="row"><span>+ Accrued income</span><span>' + usd(st.accruedIncomeBase) + '</span></div>'
+            + '<div class="row"><span>− Liabilities</span><span>' + usd(st.liabilitiesBase) + '</span></div>'
+            + '<div class="row"><span>Net assets</span><span>' + usd(st.netAssetsBase) + '</span></div>'
+            + '<div class="row total"><span>NAV per share</span><span>' + fmt(st.navPerShare, 4) + ' (' + (st.dayMoveBps > 0 ? '+' : '') + fmt(st.dayMoveBps, 1) + ' bps vs prior)</span></div>';
+          sum.classList.remove('hidden');
+          $('d-meta').textContent = 'Strike ' + st.strikeId + ' · ' + st.positionsValued + ' lines · by ' + st.struckBy;
+        } else {
+          sum.classList.add('hidden');
+          $('d-meta').textContent = f.positions.reduce(function (n, p) { return n + p.lines; }, 0) + ' lines awaiting strike';
+        }
+        $('btn-strike').disabled = f.status === 'RELEASED';
+        $('btn-release').disabled = f.status !== 'STRUCK' || !!failed[f.fundId];
+      }
+
+      function renderStatic() {
+        $('vd-pill').textContent = 'Valuation date ' + cycle.valuationDate;
+        $('region-pill').textContent = 'Region: ' + cycle.region;
+        $('fx-label').textContent = cycle.fxSnapshot.label + ' · ' + cycle.fxSnapshot.baseCcy + ' base';
+        $('fx-body').innerHTML = cycle.fxSnapshot.rates.map(function (r) {
+          return '<tr><td><code>' + esc(r.ccy) + '</code></td><td class="num">' + fmt(r.bid, 4) + '</td><td class="num">' + fmt(r.mid, 4) + '</td><td class="num">' + fmt(r.ask, 4) + '</td></tr>';
+        }).join('');
+        $('oncall-list').innerHTML = cycle.onCall.map(function (m) {
+          return '<li><span><span class="dot"></span><span class="who">' + esc(m.name) + '</span></span><span class="muted">' + esc(m.role) + '</span></li>';
+        }).join('');
+      }
+
+      function renderAll() { renderKpis(); renderFunds(); renderDetail(); }
+
+      function showResult(kind, title, detail, ref) {
+        var el = $('result');
+        el.className = 'alert ' + kind;
+        el.innerHTML = '<strong>' + esc(title) + '</strong>' + (detail ? '<code>' + esc(detail) + '</code>' : '') + (ref ? '<div class="muted" style="margin-top:4px">' + esc(ref) + '</div>' : '');
+      }
+      function clearResult() { $('result').className = 'alert hidden'; }
+
+      function load(keepSelection) {
+        return fetch(API + '/cycle').then(function (r) { return r.json(); }).then(function (data) {
+          cycle = data;
+          failed = {};
+          data.funds.forEach(function (f) { if (f.status === 'FAILED') failed[f.fundId] = true; });
+          if (!keepSelection || !selected) selected = data.defaultFund;
+          renderStatic();
+          renderAll();
+        });
+      }
+
+      function post(path, body) {
+        return fetch(API + path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body || {})
+        }).then(function (r) {
+          return r.json().then(function (p) { return { ok: r.ok, status: r.status, payload: p }; });
+        });
+      }
+
+      function strike() {
+        if (inFlight) return;
+        inFlight = true;
+        var fundId = selected;
+        var btn = $('btn-strike');
+        btn.classList.add('busy');
+        btn.textContent = 'Striking…';
+        clearResult();
+        log('INFO', 'mch-nav-strike', 'Strike requested ' + fundId + ' fx=' + cycle.fxSnapshot.source);
+
+        post('/nav/strike', { fundId: fundId, devinEmail: DEVIN_EMAIL, devinUserId: DEVIN_USER_ID, devinOrgId: DEVIN_ORG_ID })
+          .then(function (res) {
+            var p = res.payload || {};
+            if (res.ok && p.success) {
+              delete failed[fundId];
+              var s = p.strike;
+              log('INFO', 'mch-nav-strike', fundId + ' struck nav=' + fmt(s.navPerShare, 4) + ' move=' + s.dayMoveBps + 'bps');
+              return load(true).then(function () {
+                showResult(s.withinTolerance ? 'ok' : 'warn',
+                  (s.withinTolerance ? 'NAV struck — ' : 'NAV struck outside tolerance — ') + s.strikeId,
+                  fundId + ' NAV/share ' + fmt(s.navPerShare, 4) + ' (' + (s.dayMoveBps > 0 ? '+' : '') + s.dayMoveBps + ' bps, tolerance ±' + s.toleranceBps + ')',
+                  s.withinTolerance ? 'Ready for release to the transfer agent.' : 'Held for pricing four-eyes review — release is blocked from this console.');
+              });
+            }
+            if (res.status >= 500) {
+              failed[fundId] = true;
+              log('ERROR', 'mch-nav-strike', fundId + ' strike aborted ' + (p.errorClass || 'Error') + ': ' + (p.error || 'unknown'));
+              log('WARN', 'eim-monitor', 'NAV strike async ABENDED for ' + fundId + ' — paging MCH-NAV-L2');
+              renderAll();
+              showResult('err', 'NAV strike failed — ' + fundId,
+                (p.errorClass || 'Error') + ': ' + (p.error || 'Unknown error'),
+                (p.code || 'NAV_STRIKE_FAILED') + (p.requestId ? ' · Request ' + p.requestId : '') + ' · Incident raised to MCH NAV Ops on-call');
+              return;
+            }
+            log('WARN', 'mch-nav-strike', fundId + ' ' + (p.code || 'rejected'));
+            showResult('warn', 'Strike not performed', p.error || 'Request rejected', p.code);
+          })
+          .catch(function (e) {
+            showResult('err', 'NAV strike failed', (e.name || 'Error') + ': ' + e.message, 'NETWORK_ERROR');
+          })
+          .then(function () {
+            inFlight = false;
+            btn.classList.remove('busy');
+            btn.textContent = 'Strike NAV';
+          });
+      }
+
+      function release() {
+        var fundId = selected;
+        post('/nav/release', { fundId: fundId }).then(function (res) {
+          var p = res.payload || {};
+          if (res.ok && p.success) {
+            log('INFO', 'ta-nav-feed', fundId + ' released to TA.NAV.OUT nav=' + fmt(p.strike.navPerShare, 4));
+            return load(true).then(function () {
+              showResult('ok', 'Released to transfer agent', fundId + ' NAV/share ' + fmt(p.strike.navPerShare, 4) + ' published on TA.NAV.OUT');
+            });
+          }
+          showResult('warn', 'Release not performed', p.error || 'Request rejected', p.code);
+        });
+      }
+
+      $('funds-body').addEventListener('click', function (e) {
+        var row = e.target.closest('[data-fund]');
+        if (!row) return;
+        selected = row.getAttribute('data-fund');
+        clearResult();
+        renderFunds();
+        renderDetail();
+      });
+      $('btn-strike').addEventListener('click', strike);
+      $('btn-release').addEventListener('click', release);
+      $('btn-exceptions').addEventListener('click', function () {
+        showResult('warn', 'No open pricing exceptions', 'Pricing exceptions for ' + selected + ' are clear for ' + cycle.valuationDate + '.');
+      });
+      $('btn-sod').addEventListener('click', function () {
+        post('/sod-reset').then(function () {
+          failed = {};
+          clearResult();
+          $('ticker').innerHTML = '';
+          log('INFO', 'mch-batch', 'SOD reset — NAV cycle reopened');
+          return load(false);
+        });
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('.side a[data-module]'), function (a) {
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          showResult('warn', a.getAttribute('data-module') + ' is read-only in this environment', 'Use NAV Oversight to strike and release today\u2019s NAVs.');
+        });
+      });
+
+      load(false).then(function () {
+        log('INFO', 'mch-fx-async', cycle.fxSnapshot.source + ' snapshot loaded (' + cycle.fxSnapshot.rates.length + ' ccys)');
+        log('INFO', 'mch-valuation', 'Valuation async complete — ' + cycle.funds.length + ' funds priced');
+      }).catch(function () {
+        showResult('err', 'Unable to load NAV cycle', 'Refresh the page to try again.');
+      });
+    })();
+  </script>
+</body>
+</html>

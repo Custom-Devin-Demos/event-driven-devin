@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AtoB &mdash; Prepay Fuel Checkout</title>
+  <link rel="icon" type="image/png" href="https://cdn.prod.website-files.com/62c496dceca674e60a6d1ecd/672a67882946236efcb62c84_Favi%20Iocn%20Atob.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #1c2436;
+      --navy-2: #252f45;
+      --lime: #d9f99d;
+      --lime-hover: #c8f07a;
+      --green: #3e9e68;
+      --green-bg: rgba(62,158,104,0.08);
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --border: #e2e4e9;
+      --text: #111827;
+      --muted: #6b7280;
+      --dim: #898f9f;
+      --danger: #dc2626;
+      --danger-bg: rgba(220,38,38,0.05);
+      --danger-border: rgba(220,38,38,0.2);
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+    .shell { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 232px; flex-shrink: 0; background: var(--navy); color: #fff;
+      display: flex; flex-direction: column; padding: 1.25rem 0.9rem;
+      position: sticky; top: 0; height: 100vh;
+    }
+    .brand { display: flex; align-items: center; padding: 0 0.5rem 1.5rem; }
+    .brand img { height: 30px; width: auto; }
+    .brand .brand-fallback { display: none; font-size: 1.4rem; font-weight: 600; letter-spacing: -0.01em; }
+    .side-nav a {
+      display: flex; align-items: center; gap: 0.7rem; padding: 0.62rem 0.7rem; border-radius: 8px;
+      color: #c5cad6; text-decoration: none; font-size: 0.875rem; font-weight: 500; margin-bottom: 2px;
+    }
+    .side-nav a:hover { background: var(--navy-2); color: #fff; }
+    .side-nav a.active { background: var(--navy-2); color: #fff; }
+    .side-nav svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .side-foot { margin-top: auto; padding: 0.9rem 0.7rem; border-top: 1px solid rgba(255,255,255,0.08); font-size: 0.78rem; color: #c5cad6; }
+    .side-foot strong { display: block; color: #fff; font-size: 0.85rem; margin-bottom: 0.15rem; }
+
+    /* Main */
+    .main { flex: 1; min-width: 0; }
+    .topbar {
+      height: 64px; background: #fff; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 2rem;
+    }
+    .crumbs { font-size: 0.85rem; color: var(--muted); }
+    .crumbs b { color: var(--text); font-weight: 600; }
+    .top-actions { display: flex; gap: 0.5rem; }
+    .chip-btn {
+      font: 500 0.78rem var(--sans); border: 1px solid var(--border); background: #fff; color: var(--text);
+      padding: 0.45rem 0.8rem; border-radius: 8px; cursor: pointer;
+    }
+    .chip-btn.dark { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .content { max-width: 1180px; margin: 0 auto; padding: 1.75rem 2rem 3rem; }
+    h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin: 0.3rem 0 1.5rem; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.25rem; }
+    .stat .v { font-size: 1.65rem; font-weight: 700; letter-spacing: -0.02em; }
+    .stat .v.green { color: var(--green); }
+    .stat .l { font-size: 0.75rem; color: var(--dim); margin-top: 0.25rem; display: flex; justify-content: space-between; }
+    .pill { background: var(--lime); color: var(--navy); font-size: 0.68rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 999px; }
+
+    .grid { display: grid; grid-template-columns: 1fr 380px; gap: 1.25rem; align-items: start; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .card + .card { margin-top: 1.25rem; }
+    .card-h { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .card-h h2 { font-size: 0.95rem; font-weight: 600; }
+    .card-h span { font-size: 0.75rem; color: var(--dim); }
+
+    .stations { padding: 1rem 1.25rem; display: grid; gap: 0.6rem; }
+    .station {
+      display: flex; align-items: center; gap: 0.9rem; padding: 0.85rem 1rem; border: 1px solid var(--border);
+      border-radius: 10px; cursor: pointer; transition: border-color .15s, box-shadow .15s;
+    }
+    .station:hover { border-color: #c5cad6; }
+    .station.selected { border-color: var(--navy); box-shadow: 0 0 0 1px var(--navy); }
+    .station input { accent-color: var(--navy); width: 16px; height: 16px; }
+    .station-logo {
+      width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border); background: #fff;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;
+    }
+    .station-logo img { max-width: 32px; max-height: 26px; }
+    .station-logo .ind { font-size: 0.7rem; font-weight: 700; color: var(--muted); }
+    .station-info { flex: 1; }
+    .station-name { font-weight: 600; font-size: 0.88rem; }
+    .station-addr { font-size: 0.75rem; color: var(--muted); }
+    .station-price { text-align: right; }
+    .station-price .retail { font-size: 0.72rem; color: var(--dim); text-decoration: line-through; }
+    .station-price .yours { font-weight: 700; font-size: 0.95rem; }
+    .disc { background: var(--lime); color: var(--navy); font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 999px; margin-left: 0.4rem; }
+    .disc.none { background: #f3f4f6; color: var(--muted); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { text-align: left; font-size: 0.68rem; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; padding: 0.7rem 1.25rem; border-bottom: 1px solid var(--border); background: #fcfcfd; }
+    td { padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .sku { font-family: var(--mono); font-size: 0.7rem; color: var(--dim); }
+    .qty-input { width: 72px; padding: 0.35rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font: 500 0.85rem var(--sans); text-align: right; }
+
+    .summary { padding: 1.1rem 1.25rem; }
+    .line { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); padding: 0.3rem 0; font-variant-numeric: tabular-nums; }
+    .line.save { color: var(--green); font-weight: 500; }
+    .line.total { color: var(--text); font-weight: 700; font-size: 1.05rem; border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.8rem; }
+    .pay-card {
+      display: flex; align-items: center; gap: 0.75rem; margin: 1rem 0; padding: 0.8rem; border: 1px solid var(--border); border-radius: 10px;
+    }
+    .mini-card { width: 46px; height: 30px; border-radius: 5px; background: linear-gradient(135deg, #2b2b2b, #0d0d0d); position: relative; }
+    .mini-card::after { content: ''; position: absolute; left: 7px; top: 10px; width: 9px; height: 7px; background: #d4b26a; border-radius: 2px; }
+    .pay-card .t { font-size: 0.84rem; font-weight: 600; }
+    .pay-card .s { font-size: 0.72rem; color: var(--muted); }
+    .field { margin-bottom: 0.75rem; }
+    .field label { display: block; font-size: 0.72rem; font-weight: 600; color: var(--muted); margin-bottom: 0.3rem; }
+    .field input, .field select { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; font: 0.85rem var(--sans); background: #fff; color: var(--text); }
+    .pay-btn {
+      width: 100%; padding: 0.9rem; border: none; border-radius: 999px; background: var(--lime); color: var(--navy);
+      font: 600 0.95rem var(--sans); cursor: pointer; transition: background .15s;
+    }
+    .pay-btn:hover { background: var(--lime-hover); }
+    .pay-btn:disabled { background: #eef0f3; color: var(--dim); cursor: not-allowed; }
+    .fine { font-size: 0.7rem; color: var(--dim); text-align: center; margin-top: 0.6rem; }
+
+    .processing { display: none; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.9rem; font-size: 0.85rem; color: var(--muted); }
+    .processing.visible { display: flex; }
+    .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--navy); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box { display: none; margin-top: 1rem; padding: 1rem 1.1rem; border-radius: 10px; font-size: 0.83rem; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .result-box.success { display: block; background: var(--green-bg); border: 1px solid rgba(62,158,104,0.25); }
+    .result-box h3 { font-size: 0.9rem; margin-bottom: 0.35rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--green); }
+    .result-box p { color: var(--muted); line-height: 1.55; }
+    .result-box code { font-family: var(--mono); font-size: 0.74rem; color: var(--danger); background: rgba(220,38,38,0.07); padding: 0.1rem 0.35rem; border-radius: 4px; word-break: break-word; }
+    .error-meta { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border); font: 0.7rem var(--mono); color: var(--dim); }
+    .error-meta span { display: block; }
+
+    @media (max-width: 960px) {
+      .sidebar { display: none; }
+      .grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="https://cdn.prod.website-files.com/62c496dceca674e60a6d1ecd/68ec0bad02fa4f6f0f722814_logos.svg" alt="AtoB"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <span class="brand-fallback">AtoB</span>
+    </div>
+    <nav class="side-nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Home</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Cards</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Transactions</a>
+      <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>Fuel Map</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg>Statements</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M15 15c3 0 6 1.5 6 4.5"/></svg>Drivers</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg>Vehicles</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5l7 7-7 7"/></svg>Payments</a>
+    </nav>
+    <div class="side-foot"><strong>Ridgeway Freight LLC</strong>Fleet FLT-48213 &middot; 38 trucks</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="crumbs">Fuel Map &nbsp;/&nbsp; I-80 corridor &nbsp;/&nbsp; <b>Prepay fuel</b></div>
+      <div class="top-actions">
+        <button class="chip-btn" type="button">+ Deposit</button>
+        <button class="chip-btn" type="button">&#x21E5; Withdraw</button>
+        <button class="chip-btn dark" type="button">&#x27A4; Pay</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1>Prepay fuel for Truck 214</h1>
+      <p class="sub">Lock in discounted diesel before Marcus Bell reaches the pump. Authorized on the fleet&rsquo;s AtoB credit line.</p>
+
+      <div class="stats">
+        <div class="stat"><div class="v green">$1,284.62</div><div class="l"><span>Fuel savings this month</span><span>View report</span></div></div>
+        <div class="stat"><div class="v">$18,157.83</div><div class="l"><span>Available credit</span><span class="pill">Next payment due Oct 9</span></div></div>
+        <div class="stat"><div class="v">6.4 mpg</div><div class="l"><span>Truck 214 &middot; last 30 days</span><span>Freightliner Cascadia</span></div></div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="card">
+            <div class="card-h"><h2>Choose a station</h2><span>Along route &middot; Chicago, IL &rarr; Toledo, OH</span></div>
+            <div class="stations" id="stations"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><h2>Fuel &amp; products</h2><span id="itemCount">3 items</span></div>
+            <table>
+              <thead><tr><th>Product</th><th class="num">Qty (gal)</th><th class="num">Pump price</th><th class="num">Amount</th></tr></thead>
+              <tbody id="cartBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><h2>Order summary</h2><span id="summaryStation">TA Petro Joliet</span></div>
+          <div class="summary">
+            <div class="line"><span>Fuel &amp; products</span><span id="sumGross">$0.00</span></div>
+            <div class="line save" id="saveLine"><span>AtoB Discount Network</span><span id="sumSave">&minus;$0.00</span></div>
+            <div class="line"><span>Est. tax</span><span id="sumTax">$0.00</span></div>
+            <div class="line total"><span>Total</span><span id="sumTotal">$0.00</span></div>
+
+            <div class="pay-card">
+              <div class="mini-card"></div>
+              <div><div class="t">AtoB Fuel Card &middot;&middot;&middot;&middot; 7652</div><div class="s">Marcus Bell &middot; Truck 214 &middot; Credit</div></div>
+            </div>
+
+            <form id="checkoutForm" onsubmit="submitCheckout(event)">
+              <div class="field">
+                <label for="odometer">Odometer</label>
+                <input id="odometer" type="text" value="412,388" readonly>
+              </div>
+              <div class="field">
+                <label for="driverPin">Driver prompt</label>
+                <input id="driverPin" type="text" value="Driver ID 0214 &middot; Trip RF-88213" readonly>
+              </div>
+              <button type="submit" class="pay-btn" id="payBtn">Authorize &amp; pay</button>
+              <p class="fine">Pump unlocks for 30 minutes after authorization.</p>
+            </form>
+            <div class="processing" id="processing"><div class="spinner"></div><span>Authorizing with station&hellip;</span></div>
+            <div class="result-box" id="resultBox"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+</script>
+<script>
+  var CDN = 'https://cdn.prod.website-files.com/62c496dceca674e60a6d1ecd/';
+  var STATIONS = [
+    { id: 'TA-JOLIET-IL', name: 'TA Petro Joliet', addr: 'I-80 Exit 132, Joliet, IL &middot; 4.2 mi ahead', logo: CDN + '685f308d21d79bdc654676e0_ta-petro.svg', discount: 0.42, taxRate: 0.0625 },
+    { id: 'CIRCLEK-GARY-IN', name: 'Circle K #2741', addr: 'I-94 Exit 15, Gary, IN &middot; 38 mi ahead', logo: CDN + '685f308d21d79bdc654676d6_circle-k.svg', discount: 0.31, taxRate: 0.07 },
+    { id: 'IND-MORRIS-IL', name: 'Rocky\u2019s Truck Plaza', addr: 'I-80 Exit 112, Morris, IL &middot; out of network', logo: '', discount: 0, taxRate: 0.0625 }
+  ];
+  var ITEMS = [
+    { sku: 'DSL-2-ULSD', name: 'Diesel #2 (ULSD)', qty: 150, price: 3.899 },
+    { sku: 'DSL-RFR', name: 'Reefer Diesel (off-road)', qty: 40, price: 3.649 },
+    { sku: 'DEF-BULK', name: 'Diesel Exhaust Fluid', qty: 5, price: 3.49 }
+  ];
+  var selected = STATIONS[0];
+
+  function money(n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+  function renderStations() {
+    var html = STATIONS.map(function (s) {
+      var retail = ITEMS[0].price;
+      var logo = s.logo
+        ? '<img src="' + s.logo + '" alt="" onerror="this.outerHTML=\'<span class=&quot;ind&quot;>' + s.name.slice(0, 2).toUpperCase() + '</span>\'">'
+        : '<span class="ind">IND</span>';
+      return '<label class="station' + (s.id === selected.id ? ' selected' : '') + '" data-id="' + s.id + '">' +
+        '<input type="radio" name="station" value="' + s.id + '"' + (s.id === selected.id ? ' checked' : '') + '>' +
+        '<div class="station-logo">' + logo + '</div>' +
+        '<div class="station-info"><div class="station-name">' + s.name +
+          (s.discount ? '<span class="disc">&minus;' + Math.round(s.discount * 100) + '&cent;/gal</span>' : '<span class="disc none">No discount</span>') +
+        '</div><div class="station-addr">' + s.addr + '</div></div>' +
+        '<div class="station-price">' + (s.discount ? '<div class="retail">$' + retail.toFixed(3) + '</div>' : '') +
+          '<div class="yours">$' + (retail - s.discount).toFixed(3) + '<span style="font-weight:500;color:#898f9f;font-size:.72rem">/gal</span></div></div>' +
+        '</label>';
+    }).join('');
+    var el = document.getElementById('stations');
+    el.innerHTML = html;
+    el.querySelectorAll('input[name=station]').forEach(function (input) {
+      input.addEventListener('change', function () {
+        selected = STATIONS.filter(function (s) { return s.id === input.value; })[0];
+        renderStations();
+        renderSummary();
+      });
+    });
+  }
+
+  function renderCart() {
+    document.getElementById('cartBody').innerHTML = ITEMS.map(function (it, i) {
+      return '<tr><td><div style="font-weight:600">' + it.name + '</div><div class="sku">' + it.sku + '</div></td>' +
+        '<td class="num"><input class="qty-input" type="number" min="1" step="1" value="' + it.qty + '" data-i="' + i + '"></td>' +
+        '<td class="num">$' + it.price.toFixed(3) + '</td>' +
+        '<td class="num" id="amt' + i + '">' + money(it.qty * it.price) + '</td></tr>';
+    }).join('');
+    document.querySelectorAll('.qty-input').forEach(function (input) {
+      input.addEventListener('input', function () {
+        var i = Number(input.getAttribute('data-i'));
+        ITEMS[i].qty = Math.max(0, Number(input.value) || 0);
+        document.getElementById('amt' + i).textContent = money(ITEMS[i].qty * ITEMS[i].price);
+        renderSummary();
+      });
+    });
+  }
+
+  function renderSummary() {
+    var gross = ITEMS.reduce(function (s, it) { return s + it.qty * it.price; }, 0);
+    var save = selected.discount * ITEMS[0].qty;
+    var tax = (gross - save) * selected.taxRate;
+    document.getElementById('summaryStation').textContent = selected.name;
+    document.getElementById('sumGross').textContent = money(gross);
+    document.getElementById('sumSave').innerHTML = '&minus;' + money(save);
+    document.getElementById('saveLine').style.display = save > 0 ? 'flex' : 'none';
+    document.getElementById('sumTax').textContent = money(tax);
+    document.getElementById('sumTotal').textContent = money(gross - save + tax);
+  }
+
+  function submitCheckout(e) {
+    e.preventDefault();
+    var btn = document.getElementById('payBtn');
+    var processing = document.getElementById('processing');
+    var resultBox = document.getElementById('resultBox');
+    resultBox.className = 'result-box';
+    resultBox.innerHTML = '';
+    btn.disabled = true;
+    btn.style.display = 'none';
+    processing.classList.add('visible');
+
+    fetch('/api/d3827a8c/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fleetId: 'FLT-48213',
+        stationId: selected.id,
+        items: ITEMS.filter(function (it) { return it.qty > 0; }).map(function (it) { return { sku: it.sku, qty: it.qty, price: it.price }; }),
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || ''
+      })
+    })
+    .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+    .then(function (result) {
+      processing.classList.remove('visible');
+      var d = result.data;
+      if (!result.ok || !d.success) {
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>' + (d.code === 'INSUFFICIENT_CREDIT' ? 'Over credit limit' : 'Payment failed') + '</h3>' +
+          '<p>We couldn&rsquo;t authorize this fuel purchase. Your card was not charged.<br><br><code>' + (d.error || 'Unknown error') + '</code></p>' +
+          '<div class="error-meta">' +
+          '<span>Error: ' + (d.errorClass || 'InternalError') + '</span>' +
+          '<span>Code: ' + (d.code || 'INTERNAL_ERROR') + '</span>' +
+          '<span>Request: ' + (d.requestId || 'N/A') + '</span>' +
+          '<span>Time: ' + new Date().toISOString() + '</span>' +
+          '</div>';
+      } else {
+        resultBox.className = 'result-box success';
+        resultBox.innerHTML =
+          '<h3>Pump authorized</h3>' +
+          '<p><strong>' + d.authorizationId + '</strong> at ' + d.station.name + ' on card ' + d.card + '.<br>' +
+          'Total ' + money(d.total) + (d.savings > 0 ? ' &middot; saved ' + money(d.savings) : '') +
+          ' &middot; ' + money(d.availableCreditAfter) + ' credit remaining.</p>';
+      }
+      btn.style.display = 'block';
+      btn.disabled = false;
+    })
+    .catch(function (err) {
+      processing.classList.remove('visible');
+      resultBox.className = 'result-box error';
+      resultBox.innerHTML = '<h3>Network error</h3><p>Unable to reach AtoB.<br><br><code>' + err.message + '</code></p>';
+      btn.style.display = 'block';
+      btn.disabled = false;
+    });
+  }
+
+  renderStations();
+  renderCart();
+  renderSummary();
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>

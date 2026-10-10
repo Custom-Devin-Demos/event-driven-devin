@@ -9,9 +9,11 @@ const { createSessionAndAlert } = require('../devin-session');
  * Price is the monthly USD amount (device financing / plan / add-on).
  */
 const CATALOG = [
+  { id: 'VZ-DEV-IP18P-256', name: 'iPhone 18 Pro 256 GB', price: 33.33, category: 'device', term: '36-mo Device Payment' },
   { id: 'VZ-DEV-IP17P-256', name: 'iPhone 17 Pro 256 GB', price: 45.83, category: 'device', term: '36-mo Device Payment' },
   { id: 'VZ-DEV-S26U-512', name: 'Samsung Galaxy S26 Ultra 512 GB', price: 41.66, category: 'device', term: '36-mo Device Payment' },
   { id: 'VZ-DEV-PX10P-128', name: 'Google Pixel 10 Pro 128 GB', price: 33.33, category: 'device', term: '36-mo Device Payment' },
+  { id: 'VZ-PLN-SIMPLICITY', name: 'Simplicity Plan', price: 30.00, category: 'plan', term: 'Simplicity Plan · Month-to-month' },
   { id: 'VZ-PLN-UNL-ULT', name: 'Unlimited Ultimate', price: 90.00, category: 'plan', term: 'myPlan · Month-to-month' },
   { id: 'VZ-PLN-UNL-PLUS', name: 'Unlimited Plus', price: 80.00, category: 'plan', term: 'myPlan · Month-to-month' },
   { id: 'VZ-PLN-UNL-WEL', name: 'Unlimited Welcome', price: 65.00, category: 'plan', term: 'myPlan · Month-to-month' },
@@ -36,7 +38,7 @@ const STATES = {
  * Active promotions — applied server-side for the fall 2026 launch campaign.
  */
 const ACTIVE_PROMOTIONS = [
-  { sku: 'PROMO-DISNEY-2026', name: 'Disney+, Hulu, ESPN+ Bundle — myPlan perk', price: 0, qty: 1 },
+  { sku: 'PROMO-IPHONE-EVERY-YEAR-2026', name: 'New iPhone every year — Simplicity Plan switcher perk', price: 0, qty: 1 },
 ];
 
 /**
@@ -79,7 +81,7 @@ function computeOrderTotal(subtotal, state) {
 
 /**
  * Formats a receipt for the order confirmation.
- * BUG: PROMO-DISNEY-2026 is not in CATALOG, so product.name crashes.
+ * BUG: PROMO-IPHONE-EVERY-YEAR-2026 is not in CATALOG, so product.name crashes.
  */
 function formatReceipt(allItems) {
   return allItems.map((item) => {

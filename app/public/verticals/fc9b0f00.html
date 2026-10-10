@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Licenses - Zoom</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #0B5CFF;
+      --blue-dark: #0040D6;
+      --navy: #00053D;
+      --ink: #00031F;
+      --text-2: #4A4F6A;
+      --text-3: #6E7491;
+      --line: #DFE3E8;
+      --tint: #F3F8FF;
+      --tint-2: #E6F0FF;
+      --page: #F7F9FA;
+      --success: #00873C;
+      --danger: #D92B2B;
+      --sans: Inter, Helvetica, Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); color: var(--ink); background: #fff; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+
+    /* header */
+    .top { display: flex; align-items: center; gap: 28px; height: 72px; padding: 0 20px 0 24px; background: #fff; border-bottom: 1px solid var(--line); }
+    .wordmark { display: inline-flex; align-items: center; min-height: 44px; font-weight: 800; font-size: 31px; letter-spacing: -0.05em; color: var(--blue); line-height: 1; }
+    .nav { display: flex; gap: 4px; }
+    .nav a { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 12px; border-radius: 10px; font-size: 15px; font-weight: 500; color: var(--navy); }
+    .nav a:hover { background: var(--tint); }
+    .nav svg { width: 12px; height: 12px; }
+    .top-right { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+    .top-right a.txt { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 12px; font-size: 15px; font-weight: 500; color: var(--navy); border-radius: 10px; }
+    .top-right a.txt:hover { background: var(--tint); }
+    .icon-btn { width: 44px; height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--navy); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .icon-btn:hover { background: var(--tint); }
+    .avatar { width: 34px; height: 34px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+    .account { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; margin-left: 4px; }
+
+    /* layout */
+    .shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); background: var(--page); min-height: calc(100vh - 72px); }
+    .side { background: #fff; border-right: 1px solid var(--line); padding: 20px 12px 40px; }
+    .side h4 { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; padding: 14px 12px 6px; }
+    .side a { display: flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 8px; font-size: 14px; color: var(--navy); }
+    .side a:hover { background: var(--tint); }
+    .side a.sub { padding-left: 28px; }
+    .side a.on { background: var(--tint-2); color: var(--blue); font-weight: 600; }
+
+    main { padding: 28px 40px 64px; min-width: 0; }
+    .crumbs { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; color: var(--text-3); }
+    .crumbs a { color: var(--blue); }
+    h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-top: 10px; }
+    .lede { color: var(--text-2); font-size: 15px; margin-top: 6px; max-width: 680px; }
+
+    .tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--line); margin-top: 22px; overflow-x: auto; }
+    .tabs a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 500; color: var(--text-2); border-bottom: 2px solid transparent; white-space: nowrap; }
+    .tabs a.on { color: var(--ink); border-bottom-color: var(--blue); font-weight: 600; }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; margin-top: 24px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+    .card h2 { font-size: 18px; font-weight: 600; }
+    .card .sub { color: var(--text-3); font-size: 13px; margin-top: 2px; }
+
+    .current { display: flex; align-items: center; gap: 14px; margin-top: 18px; padding: 14px 16px; background: var(--tint); border-radius: 10px; }
+    .chip { flex: none; width: 36px; height: 36px; border-radius: 8px; background: var(--blue); color: #fff; font-weight: 800; font-size: 11px; letter-spacing: -0.03em; display: inline-flex; align-items: center; justify-content: center; }
+    .current .c-name { font-weight: 600; }
+    .current .c-meta { color: var(--text-2); font-size: 13px; }
+
+    form { margin-top: 22px; display: grid; gap: 20px; }
+    .field label, .field .lbl { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .field .help { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+    select, input[type="number"] { width: 100%; height: 44px; border: 1px solid #BFC5D0; border-radius: 8px; background: #fff; padding: 0 12px; font-size: 15px; }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300053D' stroke-width='2.4' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m6 9 6 6 6-6'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    select:focus, input:focus { outline: 2px solid var(--blue); outline-offset: 1px; border-color: var(--blue); }
+    .stepper { display: flex; align-items: stretch; max-width: 220px; }
+    .stepper button { flex: none; width: 44px; height: 44px; border: 1px solid #BFC5D0; background: #fff; font-size: 20px; cursor: pointer; color: var(--navy); }
+    .stepper button:first-child { border-radius: 8px 0 0 8px; }
+    .stepper button:last-child { border-radius: 0 8px 8px 0; }
+    .stepper button:hover { background: var(--tint); }
+    .stepper input { border-radius: 0; border-left: 0; border-right: 0; text-align: center; -moz-appearance: textfield; }
+    .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .cycle { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border: 1px solid var(--blue); border-radius: 8px; background: var(--tint); font-weight: 500; }
+    .cycle .save { color: var(--success); font-weight: 500; }
+    .dot { width: 16px; height: 16px; border-radius: 999px; border: 5px solid var(--blue); background: #fff; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 48px; border: 0; border-radius: 12px; background: var(--blue); color: #fff; font-size: 16px; font-weight: 500; cursor: pointer; transition: background .15s; }
+    .btn:hover { background: var(--blue-dark); }
+    .btn:disabled { background: #7DA4F5; cursor: progress; }
+    .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 999px; animation: spin .8s linear infinite; }
+    .btn.busy .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 12px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--blue); }
+
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 10px; font-size: 14px; }
+    .result-box.success { display: block; background: #E8F6EE; border: 1px solid #A6DBBC; }
+    .result-box.error { display: block; background: #FDECEC; border: 1px solid #F3B5B5; }
+    .result-box .r-head { font-weight: 600; }
+    .result-box.success .r-head { color: var(--success); }
+    .result-box.error .r-head { color: var(--danger); }
+    .result-box .r-detail { color: var(--text-2); margin-top: 2px; }
+
+    .summary dl { margin-top: 16px; display: grid; gap: 12px; }
+    .summary .row { display: flex; justify-content: space-between; gap: 12px; }
+    .summary dt { color: var(--text-2); }
+    .summary dd { font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+    .summary .total { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 4px; }
+    .summary .total dt { color: var(--ink); font-weight: 600; }
+    .summary .total dd { font-size: 20px; font-weight: 700; }
+    .summary .fine { font-size: 12px; color: var(--text-3); margin-top: 14px; }
+    .includes { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .includes h3 { font-size: 13px; font-weight: 600; }
+    .includes ul { list-style: none; margin-top: 10px; display: grid; gap: 8px; }
+    .includes li { display: flex; gap: 8px; align-items: flex-start; color: var(--text-2); font-size: 13px; }
+    .includes svg { flex: none; margin-top: 2px; color: var(--blue); }
+
+    /* footer */
+    footer { background: var(--navy); color: #fff; padding: 48px 40px 28px; }
+    .cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) 220px; gap: 28px; }
+    .cols h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+    .cols a { display: block; font-size: 13px; color: rgba(255,255,255,.78); padding: 4px 0; }
+    .cols a:hover { color: #fff; text-decoration: underline; }
+    .lang .pill { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 8px; background: #E6F0FF; color: var(--navy); font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+    .legal { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; border-top: 1px solid rgba(255,255,255,.18); margin-top: 36px; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,.7); }
+    .legal nav { display: flex; flex-wrap: wrap; gap: 18px; }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: minmax(0, 1fr); }
+      .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: minmax(0, 1fr); }
+      .side { display: none; }
+      .nav { display: none; }
+      .top-right a.txt.hide-sm { display: none; }
+    }
+    @media (max-width: 560px) {
+      .top { padding: 0 8px 0 16px; gap: 8px; }
+      main { padding: 20px 16px 48px; }
+      h1 { font-size: 26px; }
+      .card { padding: 18px; }
+      .stepper { max-width: none; }
+      footer { padding: 36px 20px 24px; }
+      .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; }
+      .cols .lang { grid-column: 1 / -1; }
+      .cols a, .legal nav a { display: flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0; }
+      .legal nav { gap: 0 18px; }
+      .crumbs a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+      .crumbs { align-items: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top" id="top">
+    <a class="wordmark" href="#top" aria-label="Zoom home">zoom</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#top">Products <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+      <a href="#top">AI <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+      <a href="#top">Solutions <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+      <a href="#top">Pricing</a>
+    </nav>
+    <div class="top-right">
+      <button type="button" class="icon-btn" aria-label="Search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
+      <a class="txt hide-sm" href="#top">Meet</a>
+      <a class="txt hide-sm" href="#top">Support</a>
+      <a class="account" href="#top" aria-label="Profile"><span class="avatar" aria-hidden="true">AL</span></a>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="side" aria-label="Account navigation">
+      <h4>Personal</h4>
+      <a href="#top">Profile</a>
+      <a href="#top">Meetings</a>
+      <a href="#top">Webinars</a>
+      <a href="#top">Recordings &amp; Transcripts</a>
+      <a href="#top">Settings</a>
+      <h4>Admin</h4>
+      <a href="#top">Dashboard</a>
+      <a href="#top">User Management</a>
+      <a href="#top">Room Management</a>
+      <a href="#top">Account Management</a>
+      <a class="sub" href="#top">Account Profile</a>
+      <a class="sub on" href="#top" aria-current="page">Billing</a>
+      <a class="sub" href="#top">Reports</a>
+      <a href="#top">Advanced</a>
+    </aside>
+
+    <main>
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#top">Billing</a><span aria-hidden="true">/</span><a href="#top">Current Plans</a><span aria-hidden="true">/</span><span>Add licenses</span></nav>
+      <h1>Add licenses</h1>
+      <p class="lede">Buy more Zoom Workplace licenses for your account. New licenses are ready to assign in User Management as soon as your purchase is complete.</p>
+
+      <div class="tabs" role="presentation">
+        <a href="#top" class="on">Current Plans</a>
+        <a href="#top">Payment Method</a>
+        <a href="#top">Invoices</a>
+        <a href="#top">Billing Contacts</a>
+      </div>
+
+      <div class="grid">
+        <section class="card" aria-labelledby="buyHead">
+          <h2 id="buyHead">Zoom Workplace</h2>
+          <p class="sub">Account owner: Alex Lee &middot; Account no. 4821 0093 17</p>
+
+          <div class="current">
+            <span class="chip" aria-hidden="true">zoom</span>
+            <div>
+              <div class="c-name">Current plan: Zoom Workplace Business</div>
+              <div class="c-meta">42 licenses &middot; 39 assigned &middot; renews Mar 14, 2027</div>
+            </div>
+          </div>
+
+          <form id="provisionForm" novalidate>
+            <input type="hidden" id="product" value="zoom_workplace">
+            <div class="field">
+              <label for="planTier">Plan</label>
+              <select id="planTier">
+                <option value="business" data-label="Zoom Workplace Business" data-price="18.33" selected>Business &mdash; $18.33/user/month</option>
+                <option value="professional" data-label="Zoom Workplace Pro" data-price="14.16">Pro &mdash; $14.16/user/month</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="seats">Number of licenses to add</label>
+              <div class="stepper">
+                <button type="button" id="seatsDown" aria-label="Remove one license">&minus;</button>
+                <input type="number" id="seats" value="10" min="1" max="250" inputmode="numeric">
+                <button type="button" id="seatsUp" aria-label="Add one license">+</button>
+              </div>
+              <p class="help">Up to 250 licenses per purchase.</p>
+            </div>
+            <div class="field">
+              <span class="lbl">Billing cycle</span>
+              <span class="cycle"><span class="dot" aria-hidden="true"></span>Annually <span class="save">(Save up to 16%)</span></span>
+            </div>
+            <div class="field">
+              <label for="region">Data center region for meeting traffic</label>
+              <select id="region">
+                <option value="us-east">United States</option>
+                <option value="us-west">Canada</option>
+                <option value="eu-west">Europe</option>
+                <option value="ap-south">Australia</option>
+              </select>
+            </div>
+            <div>
+              <button type="submit" class="btn" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span class="label">Add licenses</span></button>
+              <div class="stopwatch" id="buyTimer" role="timer" aria-live="off"><span class="sw-label">Time to add licenses</span><span class="sw-value" id="buyTimerValue">0.0s</span></div>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            </div>
+          </form>
+        </section>
+
+        <aside class="card summary" aria-labelledby="sumHead">
+          <h2 id="sumHead">Order summary</h2>
+          <dl>
+            <div class="row"><dt>Plan</dt><dd id="sumPlan">&mdash;</dd></div>
+            <div class="row"><dt>Licenses</dt><dd id="sumSeats">&mdash;</dd></div>
+            <div class="row"><dt>Price</dt><dd id="sumPrice">&mdash;</dd></div>
+            <div class="row total"><dt>Due today</dt><dd id="sumTotal">&mdash;</dd></div>
+          </dl>
+          <p class="fine">Billed annually. Prices in US Dollars, before applicable taxes.</p>
+          <div class="includes">
+            <h3>Each license includes</h3>
+            <ul>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Meetings up to 30 hours, 300 participants on Business</li>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Team Chat, Mail, and Calendar</li>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Whiteboard, Clips, and Docs</li>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>ZoomMate and unlimited meeting summaries</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="cols">
+      <div><h3>About</h3><a href="#top">Zoom Blog</a><a href="#top">Customers</a><a href="#top">Our Team</a><a href="#top">Careers</a><a href="#top">Integrations</a><a href="#top">Partners</a><a href="#top">Investors</a></div>
+      <div><h3>Download</h3><a href="#top">Zoom Workplace App</a><a href="#top">Zoom Rooms App</a><a href="#top">Browser Extension</a><a href="#top">Outlook Plug-in</a><a href="#top">iPhone/iPad App</a><a href="#top">Android App</a></div>
+      <div><h3>Sales</h3><a href="#top">Contact Sales</a><a href="#top">Plans &amp; Pricing</a><a href="#top">Request a Demo</a><a href="#top">Webinars and Events</a><a href="#top">Zoom Experience Center</a></div>
+      <div><h3>Support</h3><a href="#top">Test Zoom</a><a href="#top">Account</a><a href="#top">Support Center</a><a href="#top">Learning Center</a><a href="#top">Contact Us</a><a href="#top">Accessibility</a></div>
+      <div class="lang"><h3>Language</h3><span class="pill">English</span><h3>Currency</h3><span class="pill">US Dollars $</span></div>
+    </div>
+    <div class="legal">
+      <div>Copyright &copy;2026 Zoom Communications, Inc. All rights reserved.</div>
+      <nav aria-label="Legal"><a href="#top">Terms</a><a href="#top">Privacy</a><a href="#top">Trust Center</a><a href="#top">Acceptable Use Guidelines</a><a href="#top">Cookie Preferences</a></nav>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('provisionForm');
+      var plan = document.getElementById('planTier');
+      var seats = document.getElementById('seats');
+      var btn = document.getElementById('submitBtn');
+      var btnLabel = btn.querySelector('.label');
+      var result = document.getElementById('result');
+      var timer = document.getElementById('buyTimer');
+      var timerValue = document.getElementById('buyTimerValue');
+      var sumPlan = document.getElementById('sumPlan');
+      var sumSeats = document.getElementById('sumSeats');
+      var sumPrice = document.getElementById('sumPrice');
+      var sumTotal = document.getElementById('sumTotal');
+      var usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      var timerHandle = null;
+      var inFlight = false;
+
+      function seatCount() {
+        var v = seats.value.trim();
+        if (!/^\d+$/.test(v)) return NaN;
+        var n = parseInt(v, 10);
+        return n >= 1 && n <= 250 ? n : NaN;
+      }
+      function selectedPlan() { return plan.options[plan.selectedIndex]; }
+      function renderSummary() {
+        var opt = selectedPlan();
+        var price = parseFloat(opt.dataset.price);
+        var n = seatCount();
+        sumPlan.textContent = opt.dataset.label;
+        sumPrice.textContent = usd.format(price) + '/user/month';
+        sumSeats.textContent = Number.isFinite(n) ? String(n) : '\u2014';
+        sumTotal.textContent = Number.isFinite(n) ? usd.format(price * n * 12) : '\u2014';
+      }
+      function showResult(kind, head, detail) {
+        result.className = 'result-box ' + kind;
+        result.replaceChildren();
+        var h = document.createElement('div'); h.className = 'r-head'; h.textContent = head;
+        var d = document.createElement('div'); d.className = 'r-detail'; d.textContent = detail;
+        result.append(h, d);
+      }
+      function clearResult() { result.className = 'result-box'; result.replaceChildren(); }
+      function startTimer() {
+        var started = performance.now();
+        timer.className = 'stopwatch on';
+        timerValue.textContent = '0.0s';
+        timerHandle = setInterval(function () {
+          timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+        return started;
+      }
+      function stopTimer(started) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        timer.className = 'stopwatch on done';
+      }
+      function step(delta) {
+        var v = seats.value.trim();
+        var n = v === '' ? NaN : Math.floor(Number(v));
+        var base = Number.isFinite(n) ? Math.min(Math.max(n, 0), 251) : 0;
+        seats.value = String(Math.min(Math.max(base + delta, 1), 250));
+        renderSummary();
+      }
+
+      document.getElementById('seatsDown').addEventListener('click', function () { step(-1); });
+      document.getElementById('seatsUp').addEventListener('click', function () { step(1); });
+      plan.addEventListener('change', renderSummary);
+      seats.addEventListener('input', renderSummary);
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (inFlight) return;
+        var n = seatCount();
+        if (!Number.isFinite(n)) {
+          showResult('error', 'Enter the number of licenses', 'Choose between 1 and 250 licenses to add.');
+          return;
+        }
+        seats.value = String(n);
+        var planLabel = selectedPlan().dataset.label;
+        inFlight = true;
+        btn.disabled = true;
+        btn.classList.add('busy');
+        btnLabel.textContent = 'Processing\u2026';
+        form.setAttribute('aria-busy', 'true');
+        clearResult();
+        var started = startTimer();
+        try {
+          var res = await fetch('/api/licenses/provision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: document.getElementById('product').value,
+              planName: document.getElementById('planTier').value,
+              seats: parseInt(document.getElementById('seats').value, 10),
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          if (!res.ok) throw new Error('purchase failed');
+          var data = await res.json();
+          stopTimer(started);
+          var added = Number.isFinite(data.seatsAdded) ? data.seatsAdded : n;
+          showResult('success', 'Licenses added',
+            added + ' ' + planLabel + (added === 1 ? ' license is' : ' licenses are') + ' now in your account. Assign them to users in User Management.');
+        } catch (err) {
+          stopTimer(started);
+          showResult('error', 'We couldn\u2019t complete your purchase', 'Your payment method was not charged. Try again in a few minutes, or contact Zoom Support.');
+        } finally {
+          inFlight = false;
+          form.removeAttribute('aria-busy');
+          btn.disabled = false;
+          btn.classList.remove('busy');
+          btnLabel.textContent = 'Add licenses';
+        }
+      });
+      form.addEventListener('reset', function () {
+        clearResult();
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timer.className = 'stopwatch';
+        timerValue.textContent = '0.0s';
+        setTimeout(renderSummary, 0);
+      });
+      renderSummary();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

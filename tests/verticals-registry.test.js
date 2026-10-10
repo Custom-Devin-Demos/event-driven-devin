@@ -123,6 +123,7 @@ describe('customer config discovery', () => {
       'itsm',
       'itsmAssignmentGroup',
       'sonarWorkflowCustomer',
+      'slackChannelId',
     ]);
     const problems = [];
     for (const [slug, entry] of Object.entries(CUSTOMERS)) {

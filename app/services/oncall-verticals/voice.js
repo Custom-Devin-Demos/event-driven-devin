@@ -266,13 +266,10 @@ async function finalizeTranscript(data, options = {}) {
   }
 }
 
-// Scaffolding for a future voice SEV-1 story. Nothing reaches this today:
-// SEV1_INCIDENTS (app/services/oncall.js) has no voice story, so no synthetic
-// probe ever calls /api/oncall/voice/transcribe with options.synthetic, and
-// releaseAccumulatedVocabulary is not wired to onProbeStop the way hightech's
-// releaseAccumulatedEntitlements is. Kept in place so a voice SEV-1 can be
-// added without re-deriving probe-cache hygiene (and because behavioral edits
-// here require real-audio verification — see AGENTS.md).
+// Probe-cache hygiene for synthetic traffic. Nothing sets options.synthetic
+// on /api/oncall/voice/transcribe today, so releaseAccumulatedVocabulary has
+// no caller. Kept because behavioral edits here require real-audio
+// verification — see AGENTS.md.
 
 /**
  * Keys of vocabulary snapshots created by synthetic probe traffic, so

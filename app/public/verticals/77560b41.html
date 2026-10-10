@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Misfits Market — Build your box</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Fraunces:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root { --cream:#FFF9EA; --sand:#F8F2ED; --green:#2E8540; --pale:#D7E1B8; --mint:#E5F2E0; --yellow:#F1C34A; --berry:#A13051; --ink:#2d2d2d; --muted:#6b6b6b; --line:#e7e2d6; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--cream); color:var(--ink); font-family:"Hanken Grotesk",sans-serif; font-size:16px; line-height:1.45; }
+    button,select { font:inherit; }
+    button { cursor:pointer; }
+    .promo { background:var(--pale); text-align:center; font-size:13px; font-weight:600; padding:8px 16px; }
+    .topbar { background:var(--cream); border-bottom:1px solid var(--line); padding:14px max(22px,calc((100vw - 1180px)/2)); display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .wordmark { color:var(--ink); text-decoration:none; font:700 26px Fraunces,serif; letter-spacing:-.4px; }
+    .ship { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:14px; }
+    .ship select { border:1px solid #cfcabd; background:white; color:var(--ink); padding:9px 32px 9px 12px; border-radius:6px; font-weight:600; }
+    main { max-width:1180px; margin:auto; padding:30px 22px 58px; }
+    .hero { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); align-items:center; gap:0; background:var(--sand); border-radius:12px; overflow:hidden; }
+    .hero-copy { padding:38px 42px; }
+    .eyebrow { font-size:12px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--green); }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { font-size:clamp(28px,3.6vw,42px); line-height:1.1; font-weight:700; letter-spacing:-.6px; margin:10px 0 12px; }
+    .hero p { margin:0 0 20px; color:#4a4a4a; max-width:480px; }
+    .hero-img { width:100%; height:100%; min-height:300px; object-fit:cover; display:block; }
+    .hero-cta { display:inline-block; background:var(--green); color:white; border:0; border-radius:6px; padding:12px 22px; font-weight:700; text-decoration:none; }
+    .layout { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:28px; margin-top:34px; align-items:start; }
+    .section-head { display:flex; align-items:end; justify-content:space-between; margin-bottom:14px; }
+    h2 { font-size:24px; font-weight:700; letter-spacing:-.3px; margin-bottom:4px; }
+    .subhead { color:var(--muted); margin:0; font-size:14px; }
+    .tabs { display:flex; gap:8px; margin:16px 0 18px; }
+    .tab { padding:8px 16px; border:1px solid var(--ink); border-radius:6px; background:transparent; color:var(--ink); font-weight:600; font-size:14px; }
+    .tab.active { background:var(--ink); color:white; }
+    .products { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+    .product { background:var(--mint); border-radius:12px; padding:12px 12px 14px; display:flex; flex-direction:column; position:relative; }
+    .product:nth-child(3n+2) { background:#FAEAC0; }
+    .product:nth-child(3n) { background:#F0D3E3; }
+    .product-img { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:8px; background:white; display:block; margin-bottom:12px; }
+    .product h3 { font-size:15px; font-weight:700; margin:0 0 2px; line-height:1.3; }
+    .unit { color:#5a5a5a; font-size:12px; margin-bottom:10px; }
+    .price-row { display:flex; justify-content:space-between; align-items:center; margin-top:auto; gap:8px; }
+    .price { font-weight:700; font-size:15px; }
+    .badge { position:absolute; top:18px; left:18px; border-radius:4px; padding:4px 7px; font-size:11px; font-weight:700; background:var(--yellow); color:var(--ink); box-shadow:0 1px 2px #0002; }
+    .badge.low { background:#F8E1A4; }
+    .badge.out { background:var(--berry); color:white; }
+    .add,.primary { background:var(--green); border:0; color:white; border-radius:6px; padding:10px 15px; font-weight:700; }
+    .add { padding:8px 14px; font-size:14px; }
+    .add:disabled { opacity:.45; cursor:not-allowed; }
+    .cart { background:white; border:1px solid var(--line); border-radius:12px; padding:20px; position:sticky; top:18px; }
+    .cart h2 { font-size:20px; display:flex; justify-content:space-between; align-items:center; }
+    .count { background:var(--yellow); border-radius:50%; width:26px; height:26px; display:grid; place-items:center; font-size:13px; font-weight:700; }
+    .cart-empty { background:var(--sand); border-radius:8px; padding:18px 12px; text-align:center; color:var(--muted); font-size:14px; }
+    .cart-line { display:grid; grid-template-columns:auto 1fr auto; gap:10px; padding:12px 0; border-bottom:1px solid var(--line); align-items:center; }
+    .cart-thumb { width:44px; height:44px; border-radius:6px; object-fit:cover; background:var(--sand); }
+    .cart-name { font-size:13px; font-weight:600; }
+    .cart-price { font-size:13px; font-weight:700; }
+    .quantity { display:flex; align-items:center; gap:9px; font-size:13px; color:var(--muted); margin-top:4px; }
+    .quantity button { border:1px solid #cfcabd; background:white; border-radius:4px; width:24px; height:24px; font-weight:700; color:var(--ink); line-height:1; }
+    .subtotal { display:flex; justify-content:space-between; font-weight:700; padding:16px 0; }
+    .cart .primary { width:100%; padding:13px; }
+    .cart-note { color:var(--muted); font-size:12px; text-align:center; margin:10px 0 0; }
+    .checkout-panel,.confirmation { margin-top:24px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:22px; }
+    .hidden { display:none !important; }
+    .window-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:18px 0; }
+    .window-day { border:1px solid var(--line); border-radius:8px; padding:14px; background:var(--cream); }
+    .window-day h3 { font-size:15px; font-weight:700; margin:0 0 8px; }
+    .window-card { display:flex; align-items:center; gap:8px; padding:9px 7px; border-top:1px solid var(--line); font-size:13px; cursor:pointer; }
+    .window-card input { accent-color:var(--green); }
+    .window-card span { display:block; }
+    .cutoff { color:var(--muted); font-size:11px; margin:3px 0 0 23px; }
+    .confirm-items { padding:14px 0; line-height:1.8; }
+    .confirm-items div { display:flex; align-items:center; gap:10px; }
+    .confirm-items img { width:36px; height:36px; border-radius:6px; object-fit:cover; }
+    .confirmation { border-color:#cddbaa; background:#F6FAEE; }
+    .confirmation h2 { color:var(--green); }
+    .toast { position:fixed; right:24px; bottom:24px; background:var(--ink); color:white; padding:16px 19px; border-radius:8px; box-shadow:0 12px 40px #0003; max-width:min(450px,calc(100vw - 32px)); z-index:5; }
+    .toast strong { display:block; margin-bottom:3px; }
+    .toast small { color:#ddd; display:block; margin-top:7px; }
+    footer { border-top:1px solid var(--line); color:var(--muted); text-align:center; padding:24px; font-size:13px; }
+    footer a { color:var(--ink); font-weight:700; }
+    @media(max-width:900px) { .layout { grid-template-columns:1fr; } .cart { position:static; grid-row:1; } .products { grid-template-columns:repeat(2,minmax(0,1fr)); } .hero { grid-template-columns:1fr; } .hero-img { min-height:200px; max-height:240px; } }
+    @media(max-width:600px) { .topbar { align-items:flex-start; flex-direction:column; } main { padding:22px 14px 38px; } .hero-copy { padding:22px; } .products { gap:9px; } .product { padding:9px; } .badge { top:14px; left:14px; } .window-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div class="promo">Up to 40% off grocery store prices · No commitment, ever</div>
+  <header class="topbar">
+    <a class="wordmark" href="/misfits" aria-label="Misfits Market home">Misfits Market</a>
+    <label class="ship" for="region-select"><span>Ship to</span>
+      <select id="region-select" data-testid="region-selector">
+        <option value="nj-pa-ny">NJ / PA / NY</option>
+        <option value="chicago">Chicago</option>
+        <option value="texas">Texas</option>
+      </select>
+    </label>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Good food, less waste</div>
+        <h1>Cut your weekly grocery bill.</h1>
+        <p>Organic produce, pasture-raised proteins and pantry staples for up to 40% less than the grocery store. Every box helps rescue delicious food.</p>
+        <a class="hero-cta" href="#products">Build your box</a>
+      </div>
+      <img class="hero-img" src="/verticals/77560b41/img/hero.jpg" alt="A basket of fresh vegetables">
+    </section>
+    <div class="layout">
+      <section>
+        <div class="section-head">
+          <div><h2>Build your box</h2><p class="subhead">Fresh finds picked for your table.</p></div>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Product category">
+          <button class="tab active" data-category="all" role="tab" aria-selected="true">Everything</button>
+          <button class="tab" data-category="produce" role="tab" aria-selected="false">Produce</button>
+          <button class="tab" data-category="protein" role="tab" aria-selected="false">Protein</button>
+        </div>
+        <div id="products" class="products" data-testid="product-grid"></div>
+      </section>
+      <aside class="cart" data-testid="cart">
+        <h2>Your box <span class="count" id="cart-count">0</span></h2>
+        <div id="cart-lines"></div>
+        <div class="subtotal"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+        <button id="continue-checkout" class="primary" data-testid="checkout-button">Choose a delivery window</button>
+        <p class="cart-note">Delivery is $5.99 · No commitment, ever</p>
+      </aside>
+    </div>
+    <section id="checkout-panel" class="checkout-panel hidden" data-testid="delivery-window-picker">
+      <div class="section-head"><div><h2>Choose your delivery window</h2><p class="subhead">Fresh from our warehouse to your door.</p></div></div>
+      <div id="window-grid" class="window-grid"></div>
+      <button id="place-order" class="primary" data-testid="place-order-button">Place order</button>
+    </section>
+    <section id="confirmation" class="confirmation hidden" data-testid="order-confirmation"></section>
+  </main>
+  <footer>© Misfits Market demo · Rescued produce, happy planet. <a href="/misfits/ops">Ops</a></footer>
+  <div id="toast" class="toast hidden" data-testid="checkout-error-toast" role="status" aria-live="polite"></div>
+  <script>
+    const regionSelect = document.querySelector('#region-select');
+    const cart = new Map([['honeycrisp-apples', 1], ['rainbow-carrots', 1]]);
+    let catalog = [];
+    let activeCategory = 'all';
+    let selectedWindow = '';
+    let windows = [];
+
+    const money = (cents) => `$${(cents / 100).toFixed(2)}`;
+    const currentRegion = () => regionSelect.value;
+    const badgeText = (status) => status === 'out_of_stock' ? "Out of stock — we'll substitute" : status === 'low' ? 'Limited stock' : 'In stock';
+    const badgeClass = (status) => status === 'out_of_stock' ? 'out' : status === 'low' ? 'low' : '';
+
+    function renderProducts() {
+      const visible = catalog.filter((item) => activeCategory === 'all' || item.category === activeCategory);
+      document.querySelector('#products').innerHTML = visible.map((item) => {
+        const status = item.stockStatus;
+        return `<article class="product" data-testid="product-card" data-sku="${item.sku}">
+          <img class="product-img" src="${item.image}" alt="${item.name}" loading="lazy">
+          <span class="badge ${badgeClass(status)}" data-testid="stock-badge">${badgeText(status)}</span>
+          <h3>${item.name}</h3><div class="unit">${item.unit}</div>
+          <div class="price-row"><span class="price">${money(item.priceCents)}</span>
+          <button class="add" data-add="${item.sku}" data-testid="add-item-${item.sku}">Add</button></div>
+        </article>`;
+      }).join('');
+    }
+
+    function renderCart() {
+      let quantity = 0;
+      let subtotal = 0;
+      const lines = [];
+      for (const [sku, qty] of cart) {
+        const item = catalog.find((entry) => entry.sku === sku);
+        if (!item) continue;
+        quantity += qty;
+        subtotal += item.priceCents * qty;
+        lines.push(`<div class="cart-line"><img class="cart-thumb" src="${item.image}" alt=""><div><div class="cart-name">${item.name}</div><div class="quantity">
+          <button data-qty="${sku}" data-delta="-1" aria-label="Remove one ${item.name}">−</button><span>${qty}</span>
+          <button data-qty="${sku}" data-delta="1" aria-label="Add one ${item.name}">+</button></div></div>
+          <span class="cart-price">${money(item.priceCents * qty)}</span></div>`);
+      }
+      document.querySelector('#cart-count').textContent = quantity;
+      document.querySelector('#cart-lines').innerHTML = lines.length ? lines.join('') : '<div class="cart-empty">Your box is waiting for a few good things.</div>';
+      document.querySelector('#subtotal').textContent = money(subtotal);
+    }
+
+    async function loadCatalog() {
+      const region = currentRegion();
+      const response = await fetch(`/api/77560b41/catalog?region=${encodeURIComponent(region)}`);
+      const data = await response.json();
+      if (region !== currentRegion()) return;
+      catalog = data.catalog;
+      renderProducts();
+      renderCart();
+    }
+
+    document.querySelector('.tabs').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-category]');
+      if (!button) return;
+      activeCategory = button.dataset.category;
+      document.querySelectorAll('.tab').forEach((tab) => {
+        const active = tab === button;
+        tab.classList.toggle('active', active);
+        tab.setAttribute('aria-selected', String(active));
+      });
+      renderProducts();
+    });
+
+    document.querySelector('#products').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-add]');
+      if (!button) return;
+      const sku = button.dataset.add;
+      cart.set(sku, Math.min(20, (cart.get(sku) || 0) + 1));
+      renderCart();
+    });
+
+    document.querySelector('#cart-lines').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-qty]');
+      if (!button) return;
+      const sku = button.dataset.qty;
+      const qty = (cart.get(sku) || 0) + Number(button.dataset.delta);
+      if (qty <= 0) cart.delete(sku);
+      else cart.set(sku, Math.min(20, qty));
+      renderCart();
+    });
+
+    regionSelect.addEventListener('change', async () => {
+      document.querySelector('#checkout-panel').classList.add('hidden');
+      await loadCatalog();
+    });
+
+    document.querySelector('#continue-checkout').addEventListener('click', async () => {
+      if (!cart.size) return showToast('Your box is empty', 'Add a few items before checkout.');
+      const response = await fetch(`/api/77560b41/delivery-windows?region=${encodeURIComponent(currentRegion())}`);
+      const data = await response.json();
+      windows = data.windows;
+      selectedWindow = windows[0] && windows[0].id;
+      const days = new Map();
+      windows.forEach((window) => {
+        if (!days.has(window.date)) days.set(window.date, []);
+        days.get(window.date).push(window);
+      });
+      document.querySelector('#window-grid').innerHTML = [...days.values()].map((dayWindows) => `
+        <div class="window-day"><h3>${dayWindows[0].dayLabel}</h3>
+          ${dayWindows.map((window) => `<label class="window-card">
+            <input type="radio" name="delivery-window" value="${window.id}" ${window.id === selectedWindow ? 'checked' : ''}>
+            <span>${window.label}<div class="cutoff">${window.cutoffLabel}</div></span>
+          </label>`).join('')}
+        </div>`).join('');
+      document.querySelector('#checkout-panel').classList.remove('hidden');
+      document.querySelector('#checkout-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    document.querySelector('#place-order').addEventListener('click', async () => {
+      const payload = {
+        region: currentRegion(),
+        items: [...cart].map(([sku, qty]) => ({ sku, qty })),
+        deliveryWindowId: document.querySelector('#window-grid input[name="delivery-window"]:checked')?.value || selectedWindow,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      };
+      const response = await fetch('/api/77560b41/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        showToast(result.error || 'We could not place your order.', `Request ID: ${result.requestId || 'unavailable'}`);
+        return;
+      }
+      document.querySelector('#toast').classList.add('hidden');
+      const lines = result.items.map((item) => `<div><img src="${item.image}" alt="">${item.qty} × ${item.name}${item.substitutedFrom ? ` <small>(substituted for ${catalog.find((entry) => entry.sku === item.substitutedFrom)?.name || item.substitutedFrom})</small>` : ''}</div>`).join('');
+      const window = result.deliveryWindow;
+      document.querySelector('#confirmation').innerHTML = `<h2>You're all set!</h2>
+        <p>Your box is confirmed for <strong>${window.dayLabel}, ${window.label}</strong>.</p>
+        <div class="confirm-items">${lines}</div><p><strong>Order ${result.orderId}</strong> · Total ${money(result.totals.totalCents)}</p>`;
+      document.querySelector('#confirmation').classList.remove('hidden');
+      document.querySelector('#checkout-panel').classList.add('hidden');
+      document.querySelector('#confirmation').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    function showToast(message, detail) {
+      const toast = document.querySelector('#toast');
+      toast.innerHTML = `<strong>${message}</strong><span>${detail}</span>`;
+      toast.classList.remove('hidden');
+    }
+
+    loadCatalog();
+  </script>
+</body>
+</html>

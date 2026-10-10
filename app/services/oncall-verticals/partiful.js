@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const logger = require('../../telemetry/logger');
 const { Sentry } = require('../../telemetry/sentry');
 const { incrementMetric } = require('../../telemetry/datadog');
-const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail } = require('../slack');
+const { ownerRotation, postMessage, postThreadReply, lookupSlackUserByEmail } = require('../slack');
 const { createDevinSession } = require('../devin-api');
 const { canCreateSession, reserveSession } = require('../session-rate-limiter');
 
@@ -231,7 +231,7 @@ function guestLine(report) {
 
 /**
  * Alert card. Every fact on it came from the device that failed; the
- * only synthetic element is the on-call persona, labelled as such.
+ * only synthetic element is the owner, shown as an on-call rotation.
  */
 function buildAlertMessage(report, { reference, triggeredBy, now }) {
   const lines = [
@@ -243,15 +243,13 @@ function buildAlertMessage(report, { reference, triggeredBy, now }) {
     `*Event:* ${eventLine(report)}`,
     guestLine(report) ? `*Guests:* ${guestLine(report)}` : null,
     report.shareLink ? `*Invite link:* ${report.shareLink}` : null,
-    `*Owner:* ${PARTIFUL.owner} — ${OWNER_DISCLAIMER}`,
+    `*Owner:* ${ownerRotation(PARTIFUL.owner)}`,
     `*Incident Ref:* ${reference}`,
     triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
     `Env: production | Release: ${report.release} | Platform: ${report.platformLabel}`,
     `Reported: ${now.toISOString()}`,
     '',
-    `*Symptom:* ${symptomOf(report)}`,
-    `*Impact:* ${PARTIFUL.impact}`,
     `Repo: ${PARTIFUL.repo} (${PARTIFUL.appDir})`,
   ];
   return lines.filter((l) => l !== null).join('\n');
@@ -267,7 +265,7 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
       ['Guests', guestLine(report)],
       ['Invite link', report.shareLink],
       ['Release', `${report.release} (${report.platformLabel})`],
-      ['Owner', `${PARTIFUL.owner} — ${OWNER_DISCLAIMER}`],
+      ['Owner', `${ownerRotation(PARTIFUL.owner)}`],
       ['Incident Ref', reference],
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
@@ -276,7 +274,7 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `*Symptom:* ${symptomOf(report)}\n*Impact:* ${PARTIFUL.impact}\nRepo: ${PARTIFUL.repo} (${PARTIFUL.appDir})`,
+        text: `Repo: ${PARTIFUL.repo} (${PARTIFUL.appDir})`,
       },
     },
     {

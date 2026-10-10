@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Misfits Ops — Today</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Fraunces:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root { --cream:#FFF9EA; --green:#B0C471; --pale:#D7E1B8; --yellow:#F1C34A; --ink:#2d2d2d; --muted:#6b6b6b; --line:#e7e5db; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--cream); color:var(--ink); font-family:"Hanken Grotesk",sans-serif; }
+    header { background:#fffdf6; border-bottom:1px solid var(--line); padding:17px max(22px,calc((100vw - 1180px)/2)); display:flex; justify-content:space-between; align-items:center; }
+    header a { color:var(--ink); text-decoration:none; font:700 22px Fraunces,serif; letter-spacing:-.3px; }
+    header span { color:var(--muted); font-size:13px; }
+    main { max-width:1180px; margin:auto; padding:35px 22px 60px; }
+    .title-row { display:flex; justify-content:space-between; align-items:end; margin-bottom:24px; gap:18px; }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { font:700 34px "Hanken Grotesk",sans-serif; letter-spacing:-1px; margin-bottom:4px; }
+    h2 { font:700 20px "Hanken Grotesk",sans-serif; margin-bottom:16px; }
+    .muted { color:var(--muted); font-size:13px; }
+    .live { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); }
+    .dot { width:8px; height:8px; background:#7fa344; border-radius:50%; }
+    .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; }
+    .card,.section { background:white; border:1px solid var(--line); border-radius:18px; }
+    .card { padding:20px; }
+    .card-label { color:var(--muted); font-size:13px; font-weight:700; }
+    .card-value { font:700 32px "Hanken Grotesk",sans-serif; margin-top:8px; }
+    .section { margin-top:20px; padding:21px; overflow:hidden; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; min-width:550px; }
+    th { text-align:left; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.7px; padding:10px 11px; border-bottom:1px solid var(--line); }
+    td { padding:13px 11px; border-bottom:1px solid #f0eee7; font-size:13px; }
+    tr:last-child td { border-bottom:0; }
+    .pill { display:inline-block; border-radius:999px; padding:5px 9px; font-size:11px; font-weight:800; background:#eaf1dc; color:#516637; }
+    .pill.failed { background:#f9e5dc; color:#90482f; }
+    .stock-list { display:grid; grid-template-columns:repeat(3,1fr); gap:13px; }
+    .warehouse { background:#fffdf7; border:1px solid var(--line); border-radius:14px; padding:15px; }
+    .warehouse h3 { font:700 14px "Hanken Grotesk",sans-serif; margin:0 0 9px; }
+    .stock-line { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-top:1px solid var(--line); font-size:12px; }
+    .stock-item { display:flex; align-items:center; gap:8px; }
+    .stock-item img { width:28px; height:28px; border-radius:4px; object-fit:cover; }
+    .stock-qty { font-weight:700; white-space:nowrap; }
+    .route-progress { display:flex; align-items:center; gap:8px; min-width:130px; }
+    .bar { height:7px; flex:1; background:#edf0e5; border-radius:9px; overflow:hidden; }
+    .bar span { display:block; height:100%; background:var(--green); border-radius:9px; }
+    @media(max-width:720px) { main { padding:25px 14px; } .kpis { gap:8px; } .card { padding:13px; } .card-value { font-size:25px; } .stock-list { grid-template-columns:1fr; } .title-row { align-items:start; flex-direction:column; } }
+  </style>
+</head>
+<body>
+  <header><a href="/misfits">Misfits Market</a><span>Operations console · <a href="/misfits" style="font:inherit">Storefront</a></span></header>
+  <main>
+    <div class="title-row"><div><h1>Misfits Ops — Today</h1><p class="muted" id="date-label">Live fulfillment overview</p></div><div class="live"><span class="dot"></span>Auto-refreshes every 15 seconds</div></div>
+    <section class="kpis" aria-label="Today at a glance">
+      <div class="card" data-testid="kpi-orders"><div class="card-label">Orders today</div><div class="card-value" id="orders-today">—</div></div>
+      <div class="card" data-testid="kpi-failed"><div class="card-label">Failed checkouts</div><div class="card-value" id="failed-checkouts">—</div></div>
+      <div class="card" data-testid="kpi-ontime"><div class="card-label">On-time delivery</div><div class="card-value" id="on-time">—</div></div>
+    </section>
+    <section class="section">
+      <h2>Orders by region</h2>
+      <div class="table-wrap"><table data-testid="orders-by-region"><thead><tr><th>Region</th><th>Confirmed</th><th>Failed</th><th>Orders today</th></tr></thead><tbody id="orders-region-body"></tbody></table></div>
+    </section>
+    <section class="section">
+      <h2>Low stock by warehouse</h2>
+      <div class="stock-list" id="low-stock" data-testid="low-stock"></div>
+    </section>
+    <section class="section">
+      <h2>Delivery routes</h2>
+      <div class="table-wrap"><table data-testid="routes-table"><thead><tr><th>Route</th><th>Region</th><th>Driver / van</th><th>Stops</th><th>On-time</th><th>Status</th></tr></thead><tbody id="routes-body"></tbody></table></div>
+    </section>
+  </main>
+  <script>
+    async function refresh() {
+      const response = await fetch('/api/77560b41/ops/summary');
+      const data = await response.json();
+      document.querySelector('#date-label').textContent = `Fulfillment overview · ${data.date}`;
+      document.querySelector('#orders-today').textContent = data.kpis.ordersToday;
+      document.querySelector('#failed-checkouts').textContent = data.kpis.failedCheckouts;
+      document.querySelector('#on-time').textContent = `${data.kpis.onTimePct}%`;
+      document.querySelector('#orders-region-body').innerHTML = data.ordersByRegion.map((region) => `
+        <tr><td><strong>${region.label}</strong></td><td><span class="pill">${region.confirmed}</span></td>
+        <td><span class="pill ${region.checkout_failed ? 'failed' : ''}">${region.checkout_failed}</span></td>
+        <td>${region.confirmed + region.checkout_failed}</td></tr>`).join('');
+      document.querySelector('#low-stock').innerHTML = data.lowStock.map((warehouse) => `
+        <article class="warehouse"><h3>${warehouse.warehouseId}</h3>
+        ${warehouse.items.map((item) => `<div class="stock-line"><span class="stock-item">${item.image ? `<img src="${item.image}" alt="">` : item.emoji} ${item.name}</span><span class="stock-qty">${item.onHand} · ${item.avgDailyUnits}/day</span></div>`).join('')}
+        </article>`).join('');
+      document.querySelector('#routes-body').innerHTML = data.routes.map((route) => `
+        <tr><td><strong>${route.id}</strong></td><td>${route.region}</td><td>${route.driver}</td><td>${route.stops}</td>
+        <td><div class="route-progress"><div class="bar"><span style="width:${route.onTimePct}%"></span></div><strong>${route.onTimePct}%</strong></div></td>
+        <td>${route.status}</td></tr>`).join('');
+    }
+    refresh();
+    setInterval(refresh, 15000);
+  </script>
+</body>
+</html>
