@@ -404,7 +404,6 @@
           <label class="field" for="toAccount">Expected document type
             <select id="toAccount">
               <option value="ACCT-1002">TOD Registration Request</option>
-              <option value="ACCT-1003">IRA Beneficiary Change</option>
             </select>
           </label>
           <label class="field" for="accountTier">Extraction lane
@@ -505,8 +504,9 @@
             </div>
             <div class="review-fields" id="reviewFields"></div>
             <div class="outcome-banner" id="outcome" role="status" aria-live="polite"></div>
+            <p class="muted" id="approveHint" style="margin:0 14px">Approve is available once every exception is resolved. Unsigned requests are rejected back to the sender.</p>
             <div class="decision-bar">
-              <button type="button" class="btn" id="approveBtn">Approve <kbd>a</kbd></button>
+              <button type="button" class="btn" id="approveBtn" aria-describedby="approveHint">Approve <kbd>a</kbd></button>
               <input type="text" id="rejectReason" placeholder="Reject reason" aria-label="Reject reason">
               <button type="button" class="btn danger" id="rejectBtn">Reject <kbd>r</kbd></button>
             </div>
@@ -612,13 +612,18 @@
       document.getElementById('humanDetail').textContent = 'Required \u2014 2 unresolved exception(s)';
       outcome.className = 'outcome-banner';
       outcome.textContent = '';
-      approveBtn.disabled = false;
+      approveBtn.disabled = unresolvedExceptions() > 0;
       rejectBtn.disabled = false;
       reviewBadge.hidden = false;
       renderFields();
     }
 
+    function unresolvedExceptions() {
+      return FIELDS.filter((field) => field.exception && !field.value).length;
+    }
+
     function decide(kind) {
+      if (kind === 'approved' && unresolvedExceptions() > 0) return;
       const reason = rejectReason.value.trim();
       if (kind === 'rejected' && !reason) {
         rejectReason.focus();
@@ -633,6 +638,8 @@
       approveBtn.disabled = true;
       rejectBtn.disabled = true;
       reviewBadge.hidden = true;
+      reviewPending = false;
+      uploadStatus.textContent = '';
     }
     approveBtn.addEventListener('click', () => decide('approved'));
     rejectBtn.addEventListener('click', () => decide('rejected'));
@@ -643,6 +650,7 @@
     });
 
     let ticker = null;
+    let reviewPending = false;
     function startTicker() {
       const started = Date.now();
       uploadElapsed.textContent = '0.0s';
@@ -652,6 +660,11 @@
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (reviewPending) {
+        result.className = 'result-box notice';
+        result.textContent = 'Finish the open review (approve or reject) before uploading the next document.';
+        return;
+      }
       const pages = parseFloat(pagesInput.value);
       if (!Number.isInteger(pages) || pages < 1 || pages > 200) {
         result.className = 'result-box notice';
@@ -704,6 +717,7 @@
         result.append(name, id, pagesText, state, open);
         uploadStatus.textContent = 'Extraction complete. 2 fields need review.';
         openReview({ id: docId, docType, sender });
+        reviewPending = true;
       } catch (_error) {
         result.className = 'result-box notice';
         result.textContent = 'Extraction did not finish. The document was not added to the review queue \u2014 please try again.';
