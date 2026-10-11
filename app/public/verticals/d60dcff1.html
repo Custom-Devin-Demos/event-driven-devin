@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review console | Intake Factory</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #2068A8;
+      --ink: #202733;
+      --surface: #F3F5F7;
+      --chrome-bg: #202733;
+      --chrome-text: #FFFFFF;
+      --panel: #FFFFFF;
+      --line: #DCE1E6;
+      --line-soft: #E0E4E8;
+      --muted: #687483;
+      --muted-2: #75808D;
+      --tint: #EDF5FC;
+      --ok: #236D58;
+      --ok-bg: #DFF3E9;
+      --warn: #965D00;
+      --warn-bg: #FFF0D4;
+      --bad: #9B2633;
+      --bad-bg: #F8E1E5;
+      --nav-badge: #B5202B;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--surface);
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    button, select, input { font: inherit; }
+
+    /* App chrome */
+    .app-header {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      padding: 0 34px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      display: flex;
+      min-height: 44px;
+      gap: 10px;
+      align-items: center;
+      color: var(--ink);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .mark {
+      display: inline-grid;
+      place-items: center;
+      min-width: 28px;
+      height: 31px;
+      padding: 0 6px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .app-nav { display: flex; gap: 22px; flex: 1; }
+    .app-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 44px;
+      color: #67717E;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .app-nav a.active { color: var(--accent); font-weight: 700; }
+    .nav-badge {
+      display: inline-block;
+      min-width: 18px;
+      padding: 1px 5px;
+      border-radius: 99px;
+      background: var(--nav-badge);
+      color: #fff;
+      text-align: center;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+    .account { display: flex; align-items: center; gap: 10px; }
+    select, input[type="text"], input[type="number"] {
+      min-height: 44px;
+      border: 1px solid #CFD6DD;
+      border-radius: 4px;
+      padding: 9px 10px;
+      background: #fff;
+      color: inherit;
+      font-size: 13px;
+    }
+    select:focus-visible, input:focus-visible, button:focus-visible, a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .badge {
+      display: inline-block;
+      width: fit-content;
+      padding: 3px 8px;
+      border-radius: 99px;
+      background: #E6EDF4;
+      color: #3B5E7A;
+      text-transform: uppercase;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+    .badge.warning, .badge.empty { background: var(--warn-bg); color: var(--warn); }
+    .badge.success, .badge.found { background: var(--ok-bg); color: var(--ok); }
+    .badge.review { background: var(--bad-bg); color: var(--bad); }
+
+    main { max-width: 1120px; margin: 0 auto; padding: 46px 28px 64px; }
+    .stack { display: flex; flex-direction: column; gap: 20px; }
+    .eyebrow {
+      margin: 0 0 5px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--muted-2);
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: 30px; letter-spacing: -0.03em; }
+    h2 { font-size: 18px; margin: 0; }
+    .muted { color: var(--muted); font-size: 12px; }
+
+    /* Upload */
+    .upload-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 300px));
+      gap: 16px 20px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .field small { color: var(--muted); font-weight: 400; font-size: 11px; }
+    .dropzone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 180px;
+      padding: 20px;
+      border: 1px dashed #9AA9B7;
+      border-radius: 7px;
+      background: #fff;
+      color: #596675;
+      gap: 8px;
+      text-align: center;
+    }
+    .dropzone strong { font-size: 16px; }
+    .staged-file {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 6px;
+      padding: 10px 14px;
+      border: 1px solid var(--line-soft);
+      border-radius: 5px;
+      background: var(--surface);
+      text-align: left;
+      max-width: 100%;
+    }
+    .file-icon {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 40px;
+      flex: 0 0 32px;
+      border: 1px solid #CFD6DD;
+      border-radius: 3px;
+      background: #fff;
+      color: var(--bad);
+      font-size: 9px;
+      font-weight: 800;
+    }
+    .staged-file b { display: block; color: var(--ink); font-size: 13px; overflow-wrap: anywhere; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 44px;
+      width: fit-content;
+      border: 0;
+      border-radius: 4px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn:disabled { opacity: 0.6; cursor: default; }
+    .btn.secondary { background: #EEF1F4; color: #3B5E7A; }
+    .btn.danger { background: var(--bad); }
+    .spinner {
+      display: none;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, .45);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    .btn.busy .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress { color: var(--muted); font-size: 13px; display: flex; gap: 10px; align-items: center; }
+    .progress .elapsed { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--ink); }
+    .result-box:empty { display: none; }
+    .result-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px 22px;
+      padding: 14px 16px;
+      background: #fff;
+      border: 1px solid var(--line-soft);
+      border-radius: 5px;
+      font-size: 13px;
+    }
+    .result-box.notice { background: #FFF8E8; border-color: #E7C477; color: #6F4A00; }
+    .result-box .file-name { flex: 1 1 220px; font-weight: 650; overflow-wrap: anywhere; }
+    .result-box code { color: var(--muted); font-size: 12px; }
+
+    /* Review console */
+    .review-shell {
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .review-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 18px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .review-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; color: var(--muted); font-size: 13px; }
+    .shortcut-hint { color: var(--accent); font-weight: 700; }
+    .review-split { display: grid; grid-template-columns: 3fr 2fr; min-height: 0; }
+    .review-viewer { min-width: 0; padding: 18px; background: var(--chrome-bg); }
+    .paper {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 28px 30px 22px;
+      background: #fff;
+      color: #111;
+      font-size: 10px;
+      box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+    }
+    .paper-title { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+    .paper-title b { font-size: 13px; }
+    .paper-title span { text-align: right; font-weight: 700; font-size: 11px; }
+    .paper p { margin: 0 0 8px; color: #333; }
+    .paper-section { display: flex; gap: 10px; align-items: baseline; margin: 12px 0 8px; padding-top: 6px; border-top: 2px solid #333; }
+    .paper-section em { font-style: normal; font-size: 22px; font-weight: 700; line-height: 1; }
+    .paper-section b { font-size: 11px; }
+    .paper-row { display: grid; gap: 8px; margin-bottom: 8px; }
+    .paper-row.c2 { grid-template-columns: 2fr 1fr; }
+    .paper-row.c3 { grid-template-columns: 2fr 1.2fr .6fr; }
+    .box { position: relative; min-height: 18px; padding: 2px 4px; border-bottom: 1px solid #555; }
+    .box.filled { border: 1px solid #D28A00; background: rgb(210 138 0 / 6%); }
+    .box.missing { border: 2px solid var(--accent); background: rgb(32 104 168 / 10%); }
+    .box label { display: block; position: absolute; top: 100%; left: 0; color: #666; font-size: 8px; padding-top: 1px; }
+    .review-panel { display: flex; flex-direction: column; min-width: 0; border-left: 1px solid var(--line); }
+    .pipeline-tracker {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 16px 20px;
+      background: #F8FAFB;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .pipeline-tracker::before {
+      content: "";
+      position: absolute;
+      top: 23px;
+      left: 11%;
+      right: 11%;
+      height: 2px;
+      background: var(--line);
+    }
+    .pipeline-step { position: relative; z-index: 1; display: flex; gap: 8px; align-items: flex-start; min-width: 0; }
+    .pipeline-step > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .pipeline-step b { font-size: 12px; }
+    .pipeline-step small { color: var(--muted-2); font-size: 9px; font-weight: 800; letter-spacing: .02em; }
+    .pipeline-dot { width: 14px; height: 14px; flex: 0 0 14px; margin-top: 1px; border: 3px solid #CFD6DD; border-radius: 50%; background: #fff; }
+    .pipeline-step.done .pipeline-dot { border-color: var(--ok); background: var(--ok); }
+    .pipeline-step.active .pipeline-dot { border-color: #D28A00; background: var(--warn-bg); box-shadow: 0 0 0 4px rgb(210 138 0 / 15%); }
+    .pipeline-step.active b { color: var(--warn); }
+    .review-panel-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 18px 20px; border-bottom: 1px solid var(--line-soft); }
+    .review-panel-heading h2 { font-size: 18px; margin-top: 4px; }
+    .review-fields { padding: 10px; max-height: 520px; overflow: auto; }
+    .review-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 13px;
+      background: #fff;
+      border: 1px solid var(--line-soft);
+      border-radius: 4px;
+    }
+    .review-field.focused { border-color: var(--accent); box-shadow: 0 0 0 2px #D9EAFA; }
+    .review-field-title, .review-field-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .review-field-title { font-weight: 650; font-size: 13px; }
+    .review-field-value { min-height: 22px; font-size: 15px; }
+    .review-field-meta { color: var(--muted); font-size: 12px; }
+    .review-field-meta progress { width: 70px; accent-color: var(--ok); }
+    .decision-bar { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px; border-top: 1px solid var(--line); }
+    .decision-bar input { flex: 1 1 140px; min-width: 0; }
+    kbd { padding: 1px 5px; border: 1px solid #B8C2CC; border-radius: 3px; background: var(--surface); color: #596675; font-size: 11px; }
+    .outcome-banner { margin: 0 14px 14px; padding: 12px 14px; border-radius: 5px; font-size: 13px; }
+    .outcome-banner:empty { display: none; }
+    .outcome-banner.approved { background: var(--ok-bg); color: var(--ok); }
+    .demo-disclaimer { background: #202733; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-align: center; padding: 6px 12px; }
+    .repro-banner { background: #FFF4D6; color: #6B4E00; font-size: 12px; font-weight: 700; text-align: center; padding: 4px; display: none; }
+    .outcome-banner.rejected { background: var(--bad-bg); color: var(--bad); }
+    .empty-state { padding: 40px 24px; text-align: center; color: var(--muted); font-size: 14px; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 860px) {
+      .app-header { flex-wrap: wrap; gap: 0 16px; padding: 10px 16px 0; }
+      .app-nav { order: 3; flex: 1 0 100%; gap: 18px; overflow-x: auto; scrollbar-width: none; }
+      .app-nav::-webkit-scrollbar { display: none; }
+      .account { margin-left: auto; }
+      .account select { display: none; }
+      main { padding: 28px 16px 48px; }
+      .upload-grid { grid-template-columns: 1fr; }
+      .review-split { grid-template-columns: 1fr; }
+      .review-panel { border-left: 0; border-top: 1px solid var(--line); }
+      .paper { padding: 18px 16px; }
+      .paper-row.c3 { grid-template-columns: 1fr 1fr; }
+      .pipeline-tracker { gap: 6px; padding-inline: 10px; }
+      .btn { flex: 1 1 auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-disclaimer" role="note">NOT ACTUALLY AN INTAKE FACTORY SITE — demo only, not a production Intake Factory deployment. All documents and data are fictional.</div>
+  <div class="repro-banner" id="repro-banner">Reproduction mode — approvals fail exactly as in production but raise no alert</div>
+  <header class="app-header">
+    <a class="brand" href="#upload" data-view="upload"><span class="mark">IF</span><span>INTAKE FACTORY</span></a>
+    <nav class="app-nav" aria-label="Primary">
+      <a href="#upload" data-view="upload" class="active" aria-current="page">Upload</a>
+      <a href="#upload" data-view="upload">Documents</a>
+      <a href="#upload" data-view="upload">Dashboard</a>
+      <a href="#review" data-view="review">Review <span class="nav-badge" id="reviewBadge" hidden>1</span></a>
+      <a href="#upload" data-view="upload">Outbox</a>
+      <a href="#upload" data-view="upload">Doc types</a>
+    </nav>
+    <div class="account">
+      <select aria-label="Sign in as">
+        <option>reviewer@demo</option>
+        <option>supervisor@demo</option>
+        <option selected>admin@demo</option>
+      </select>
+      <span class="badge">admin</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="stack" id="uploadView">
+      <div>
+        <p class="eyebrow">Ingestion</p>
+        <h1>Upload documents</h1>
+      </div>
+
+      <form id="uploadForm" class="stack" novalidate>
+        <div class="upload-grid">
+          <label class="field" for="senderName">Sender name
+            <input type="text" id="senderName" value="Shah Household Trust" placeholder="AcmeBank" autocomplete="off">
+          </label>
+          <label class="field" for="intakeChannel">Intake channel
+            <select id="intakeChannel">
+              <option value="console">Operator upload (console)</option>
+              <option value="mailroom">Inbox watcher (mailroom scan)</option>
+            </select>
+          </label>
+          <label class="field" for="docType">Expected document type
+            <select id="docType">
+              <option value="tod_registration">TOD Registration Request</option>
+            </select>
+          </label>
+          <label class="field" for="extractionLane">Extraction lane
+            <select id="extractionLane">
+              <option value="standard">Standard &mdash; OCR, classify, extract, AI review</option>
+              <option value="premium">Verified sender &mdash; pre-cleared template</option>
+              <option value="basic">Batch &mdash; overnight run</option>
+            </select>
+          </label>
+          <label class="field" for="pageCount">Pages
+            <input type="number" id="pageCount" value="4" min="1" max="200" step="1" required>
+            <small>Detected from the staged file; adjust for multi-part scans.</small>
+          </label>
+        </div>
+
+        <div class="dropzone" role="group" aria-label="Files">
+          <strong>Drop files here or browse</strong>
+          <span>PDF, TIFF, PNG or JPEG</span>
+          <div class="staged-file">
+            <span class="file-icon" aria-hidden="true">PDF</span>
+            <span><b id="stagedName">tod-registration-shah.pdf</b><span class="muted"><span id="stagedPages">4</span> pages &middot; 1.2 MB &middot; 1 selected</span></span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span id="submitLabel">Upload &amp; extract</span></button>
+          <div class="progress"><span id="uploadStatus" role="status" aria-live="polite"></span><span class="elapsed" id="uploadElapsed"></span></div>
+        </div>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section class="stack" id="reviewView" hidden>
+      <div>
+        <p class="eyebrow">Human review</p>
+        <h1>Review console</h1>
+      </div>
+      <div class="review-shell" id="reviewEmpty">
+        <div class="empty-state">The review queue is empty. Upload a document to extract its fields.</div>
+      </div>
+      <div class="review-shell" id="reviewConsole" hidden>
+        <div class="review-header">
+          <h2 id="reviewDocType">TOD Registration Request</h2>
+          <div class="review-meta">
+            <span id="reviewSender"></span>
+            <span id="reviewDocId"></span>
+            <span>Assigned to admin@demo</span>
+            <span class="shortcut-hint">Press ? for shortcuts</span>
+          </div>
+        </div>
+        <div class="review-split">
+          <div class="review-viewer" aria-label="Page 1 of 4">
+            <div class="paper">
+              <div class="paper-title"><b>Beneficiary Services</b><span>Transfer on Death (TOD)<br>Registration Request</span></div>
+              <p>This form can only be used for accounts that are established as either Individual or Joint Tenants With Rights of Survivorship.</p>
+              <div class="paper-section"><em>1</em><b>Account information and state of residence</b></div>
+              <div class="paper-row c2">
+                <div class="box filled">Priya N. Shah<label>Name of account owner</label></div>
+                <div class="box"><label>Name of account co-owner (if applicable)</label></div>
+              </div>
+              <div class="paper-row c3" style="margin-top:14px">
+                <div class="box filled">418 Maple Grove Ln<label>Address</label></div>
+                <div class="box filled">Carmel<label>City</label></div>
+                <div class="box filled">IN<label>State</label></div>
+              </div>
+              <div class="paper-row c2" style="margin-top:14px">
+                <div class="box filled">priya.shah@example.com<label>Email address</label></div>
+                <div class="box filled">50917-2214<label>Account number</label></div>
+              </div>
+              <div class="paper-section" style="margin-top:20px"><em>2</em><b>Beneficiary designation</b></div>
+              <div class="paper-row c3">
+                <div class="box filled">Arjun Shah<label>Primary beneficiary 1</label></div>
+                <div class="box filled">Child<label>Relationship</label></div>
+                <div class="box filled">60%<label>Whole %</label></div>
+              </div>
+              <div class="paper-row c3" style="margin-top:14px">
+                <div class="box filled">Meera Shah<label>Primary beneficiary 2</label></div>
+                <div class="box filled">Child<label>Relationship</label></div>
+                <div class="box filled">40%<label>Whole %</label></div>
+              </div>
+              <div class="paper-section" style="margin-top:20px"><em>3</em><b>Signature</b></div>
+              <div class="paper-row c2">
+                <div class="box filled" style="font-family:cursive">Priya N. Shah<label>Signature of account owner</label></div>
+                <div class="box filled">09/28/2026<label>Date (mm/dd/yyyy)</label></div>
+              </div>
+              <p style="margin-top:18px;text-align:right;color:#666">1 of 4</p>
+            </div>
+          </div>
+          <div class="review-panel">
+            <div class="pipeline-tracker" aria-label="Processing pipeline">
+              <div class="pipeline-step done"><span class="pipeline-dot" aria-hidden="true"></span><div><b>OCR complete</b><small>Complete</small></div></div>
+              <div class="pipeline-step done"><span class="pipeline-dot" aria-hidden="true"></span><div><b>AI review</b><small>No fields escalated</small></div></div>
+              <div class="pipeline-step active" id="humanStep"><span class="pipeline-dot" aria-hidden="true"></span><div><b>Human review</b><small id="humanDetail">Pending</small></div></div>
+            </div>
+            <div class="review-panel-heading">
+              <div><p class="eyebrow">Exceptions</p><h2 id="exceptionCount">No exceptions</h2></div>
+              <span class="badge">admin</span>
+            </div>
+            <div class="review-fields" id="reviewFields"></div>
+            <div class="outcome-banner" id="outcome" role="status" aria-live="polite"></div>
+            <p class="muted" id="approveHint" style="margin:0 14px">Approving releases the request to the outbox for the registration system.</p>
+            <div class="decision-bar">
+              <button type="button" class="btn" id="approveBtn" aria-describedby="approveHint">Approve <kbd>a</kbd></button>
+              <input type="text" id="rejectReason" placeholder="Reject reason" aria-label="Reject reason">
+              <button type="button" class="btn danger" id="rejectBtn">Reject <kbd>r</kbd></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('uploadForm');
+    const button = document.getElementById('submitBtn');
+    const submitLabel = document.getElementById('submitLabel');
+    const result = document.getElementById('result');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const uploadElapsed = document.getElementById('uploadElapsed');
+    const pagesInput = document.getElementById('pageCount');
+    const docTypeInput = document.getElementById('docType');
+    const senderInput = document.getElementById('senderName');
+    const reviewBadge = document.getElementById('reviewBadge');
+    const fieldsEl = document.getElementById('reviewFields');
+    const outcome = document.getElementById('outcome');
+    const approveBtn = document.getElementById('approveBtn');
+    const rejectBtn = document.getElementById('rejectBtn');
+    const rejectReason = document.getElementById('rejectReason');
+
+    // /d60dcff1?repro=1 fails identically but raises no Sentry event, Slack alert or
+    // Devin session, so a remediation session can reproduce without re-alerting.
+    const REPRO_MODE = new URLSearchParams(window.location.search).has('repro');
+    if (REPRO_MODE) document.getElementById('repro-banner').style.display = 'block';
+    const REVIEW_DOC = { documentId: 'doc-7f3a91c2', configVersion: 'tod_registration@v4' };
+
+    const FIELDS = [
+      { label: 'Signature of account owner', value: 'Present', status: 'found', confidence: 97, page: 4 },
+      { label: 'Signature of account owner Date (mm/dd/yyyy)', value: '09/28/2026', status: 'found', confidence: 96, page: 4 },
+      { label: 'Name of account owner', value: 'Priya N. Shah', status: 'found', confidence: 99, page: 1 },
+      { label: 'Account number', value: '50917-2214', status: 'found', confidence: 99, page: 1 },
+      { label: 'State of residence', value: 'IN', status: 'found', confidence: 98, page: 1 },
+      { label: 'Primary beneficiary 1', value: 'Arjun Shah', status: 'found', confidence: 97, page: 1 },
+      { label: 'Primary beneficiary 1 allocation %', value: '60', status: 'found', confidence: 96, page: 1 },
+      { label: 'Primary beneficiary 2', value: 'Meera Shah', status: 'found', confidence: 97, page: 1 },
+      { label: 'Primary beneficiary 2 allocation %', value: '40', status: 'found', confidence: 96, page: 1 },
+      { label: 'Primary allocation total', value: '100%', status: 'found', confidence: 99, page: 1 },
+    ];
+
+    function showView(view) {
+      document.getElementById('uploadView').hidden = view !== 'upload';
+      document.getElementById('reviewView').hidden = view !== 'review';
+      document.querySelectorAll('.app-nav a').forEach((link) => {
+        const active = link.dataset.view === view && (view === 'review' || link.textContent.trim() === 'Upload');
+        link.classList.toggle('active', active);
+        if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+      });
+      window.scrollTo(0, 0);
+    }
+    document.querySelectorAll('[data-view]').forEach((link) => {
+      link.addEventListener('click', (event) => { event.preventDefault(); showView(link.dataset.view); });
+    });
+
+    function renderFields() {
+      fieldsEl.innerHTML = '';
+      FIELDS.forEach((field, index) => {
+        const card = document.createElement('div');
+        card.className = 'review-field' + (index === 0 ? ' focused' : '');
+        const title = document.createElement('div');
+        title.className = 'review-field-title';
+        title.append(document.createTextNode(field.label));
+        if (field.exception) {
+          const b = document.createElement('span'); b.className = 'badge warning'; b.textContent = 'Exception'; title.append(b);
+        }
+        if (field.ai) {
+          const b = document.createElement('span'); b.className = 'badge warning'; b.textContent = 'AI escalated'; title.append(b);
+        }
+        const value = document.createElement('div');
+        value.className = 'review-field-value';
+        value.textContent = field.value || '\u2014';
+        const meta = document.createElement('div');
+        meta.className = 'review-field-meta';
+        const status = document.createElement('span');
+        status.className = 'badge ' + field.status;
+        status.textContent = field.status;
+        const bar = document.createElement('progress');
+        bar.max = 100; bar.value = field.confidence;
+        const pct = document.createElement('span');
+        pct.textContent = field.confidence + '%  Page ' + field.page;
+        meta.append(status, bar, pct);
+        card.append(title, value, meta);
+        fieldsEl.append(card);
+      });
+    }
+
+    function openReview(doc) {
+      document.getElementById('reviewEmpty').hidden = true;
+      document.getElementById('reviewConsole').hidden = false;
+      document.getElementById('reviewDocType').textContent = doc.docType;
+      document.getElementById('reviewSender').textContent = doc.sender;
+      document.getElementById('reviewDocId').textContent = 'Document ' + doc.id;
+      document.getElementById('humanStep').className = 'pipeline-step active';
+      document.getElementById('humanDetail').textContent = 'Required \u2014 ready for approval';
+      outcome.className = 'outcome-banner';
+      outcome.textContent = '';
+      approveBtn.disabled = unresolvedExceptions() > 0;
+      rejectBtn.disabled = false;
+      reviewBadge.hidden = false;
+      renderFields();
+    }
+
+    function unresolvedExceptions() {
+      return FIELDS.filter((field) => field.exception && !field.value).length;
+    }
+
+    function finishDecision(kind, text) {
+      outcome.className = 'outcome-banner ' + kind;
+      outcome.textContent = text;
+      document.getElementById('humanStep').className = 'pipeline-step done';
+      document.getElementById('humanDetail').textContent = kind === 'approved' ? 'Approved' : 'Rejected';
+      approveBtn.disabled = true;
+      rejectBtn.disabled = true;
+      reviewBadge.hidden = true;
+      reviewPending = false;
+      uploadStatus.textContent = '';
+      result.className = 'result-box';
+      result.textContent = '';
+    }
+
+    async function approve() {
+      approveBtn.disabled = true;
+      rejectBtn.disabled = true;
+      approveBtn.classList.add('busy');
+      outcome.className = 'outcome-banner';
+      outcome.textContent = '';
+      try {
+        const response = await fetch('/api/d60dcff1/review/approve', {
+          method: 'POST',
+          headers: REPRO_MODE
+            ? { 'Content-Type': 'application/json', 'x-synthetic': '1' }
+            : { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            documentId: REVIEW_DOC.documentId,
+            configVersion: REVIEW_DOC.configVersion,
+            reviewer: 'admin@demo',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+          outcome.className = 'outcome-banner rejected';
+          outcome.textContent = 'Approval didn\u2019t go through. The document is still in the review queue. Reference: ' + (data.requestId || 'unavailable');
+          outcome.scrollIntoView({ block: 'nearest' });
+          approveBtn.disabled = false;
+          rejectBtn.disabled = false;
+          return;
+        }
+        finishDecision('approved', 'Outcome: Approved by admin@demo. Released to the outbox.');
+      } catch (_error) {
+        outcome.className = 'outcome-banner rejected';
+        outcome.textContent = 'Approval didn\u2019t go through. Check your connection and try again.';
+        approveBtn.disabled = false;
+        rejectBtn.disabled = false;
+      } finally {
+        approveBtn.classList.remove('busy');
+      }
+    }
+
+    function decide(kind) {
+      if (kind === 'approved') {
+        if (unresolvedExceptions() > 0) return;
+        approve();
+        return;
+      }
+      const reason = rejectReason.value.trim();
+      if (!reason) {
+        rejectReason.focus();
+        return;
+      }
+      finishDecision('rejected', 'Outcome: Rejected by admin@demo \u2014 ' + reason);
+    }
+    approveBtn.addEventListener('click', () => decide('approved'));
+    rejectBtn.addEventListener('click', () => decide('rejected'));
+
+    pagesInput.addEventListener('input', () => {
+      const n = parseInt(pagesInput.value, 10);
+      document.getElementById('stagedPages').textContent = Number.isFinite(n) && n > 0 ? n : '\u2014';
+    });
+
+    let ticker = null;
+    let reviewPending = false;
+    function startTicker() {
+      const started = Date.now();
+      uploadElapsed.textContent = '0.0s';
+      ticker = setInterval(() => { uploadElapsed.textContent = ((Date.now() - started) / 1000).toFixed(1) + 's'; }, 100);
+    }
+    function stopTicker() { clearInterval(ticker); ticker = null; }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (reviewPending) {
+        result.className = 'result-box notice';
+        result.textContent = 'Finish the open review (approve or reject) before uploading the next document.';
+        return;
+      }
+      const pages = parseFloat(pagesInput.value);
+      if (!Number.isInteger(pages) || pages < 1 || pages > 200) {
+        result.className = 'result-box notice';
+        result.textContent = 'Enter a page count between 1 and 200.';
+        return;
+      }
+      button.disabled = true;
+      button.classList.add('busy');
+      submitLabel.textContent = 'Extracting\u2026';
+      uploadStatus.textContent = 'Uploading and extracting fields\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      startTicker();
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1400));
+        const docId = REVIEW_DOC.documentId.replace('doc-', '');
+        const docType = docTypeInput.selectedOptions[0].textContent;
+        const sender = senderInput.value.trim() || 'Unknown sender';
+        result.className = 'result-box';
+        result.innerHTML = '';
+        const name = document.createElement('span');
+        name.className = 'file-name';
+        name.textContent = document.getElementById('stagedName').textContent;
+        const id = document.createElement('code');
+        id.textContent = docId;
+        const pagesText = document.createElement('span');
+        pagesText.textContent = pages + (pages === 1 ? ' page' : ' pages') + ' \u00b7 extracted in ' + uploadElapsed.textContent;
+        const state = document.createElement('span');
+        state.className = 'badge review';
+        state.textContent = 'Needs review';
+        const open = document.createElement('a');
+        open.href = '#review';
+        open.className = 'btn secondary';
+        open.textContent = 'Open in review';
+        open.addEventListener('click', (e) => { e.preventDefault(); showView('review'); });
+        result.append(name, id, pagesText, state, open);
+        uploadStatus.textContent = 'Extraction complete. Ready for review.';
+        openReview({ id: docId, docType, sender });
+        reviewPending = true;
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'Extraction did not finish. The document was not added to the review queue \u2014 please try again.';
+        uploadStatus.textContent = 'Not ingested.';
+      } finally {
+        stopTicker();
+        button.classList.remove('busy');
+        button.disabled = false;
+        submitLabel.textContent = 'Upload & extract';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
