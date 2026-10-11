@@ -67,6 +67,35 @@
  */
 
 const ONCALL_SKINS = {
+  '8df370c5': {
+    slug: '8df370c5',
+    company: 'Intake Factory',
+    brandMark: 'IF',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '8df370c5.html', title: 'Upload documents | Intake Factory' },
+    alertCard: {
+      title: 'p95 latency — document upload & extract',
+      service: 'intake-api',
+      release: 'intake-api@2026.10.2',
+      team: 'document-intake-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      metricValue: '9.4s',
+      threshold: '> 1.5s',
+      baseline: '~300ms (7-day p95)',
+      symptom: 'Document upload & extract submissions hang ~9s before the document is accepted into the review queue. Error rate is normal — uploads eventually complete.',
+      impact: 'Every operator ingesting a beneficiary form waits on a spinner for ~9 seconds before extracted fields appear in the review console; the review backlog is growing.',
+    },
+    theme: {
+      '--accent': '#2068A8',
+      '--ink': '#202733',
+      '--surface': '#F3F5F7',
+      '--chrome-bg': '#202733',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Intake Factory Support',
+    disclaimer: 'NOT ACTUALLY AN INTAKE FACTORY SITE — demo only, not a production Intake Factory deployment. All documents and data are fictional.',
+  },
   'cb84fd21': {
     slug: 'cb84fd21',
     company: 'RBC Royal Bank',
