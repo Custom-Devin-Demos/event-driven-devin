@@ -154,7 +154,7 @@ async function approveDocument(data) {
       throw error;
     }
 
-    const tags = { route: ROUTE, service: SERVICE, docType: document.docType, configVersion: document.configVersion };
+    const tags = { route: ROUTE, service: SERVICE, docType: document.docType, configVersion: document.configVersion, alert_path: 'instant' };
 
     Sentry.captureException(error, { tags, extra: context });
 

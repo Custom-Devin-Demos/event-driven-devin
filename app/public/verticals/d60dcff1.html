@@ -378,12 +378,12 @@
       <a href="#upload" data-view="upload">Doc types</a>
     </nav>
     <div class="account">
-      <select aria-label="Sign in as">
-        <option>reviewer@demo</option>
-        <option>supervisor@demo</option>
-        <option selected>admin@demo</option>
+      <select id="signInAs" aria-label="Sign in as">
+        <option value="reviewer@demo">reviewer@demo</option>
+        <option value="supervisor@demo">supervisor@demo</option>
+        <option value="admin@demo" selected>admin@demo</option>
       </select>
-      <span class="badge">admin</span>
+      <span class="badge" data-role-badge>admin</span>
     </div>
   </header>
 
@@ -454,7 +454,7 @@
           <div class="review-meta">
             <span id="reviewSender"></span>
             <span id="reviewDocId"></span>
-            <span>Assigned to admin@demo</span>
+            <span id="assignedTo">Assigned to admin@demo</span>
             <span class="shortcut-hint">Press ? for shortcuts</span>
           </div>
         </div>
@@ -504,7 +504,7 @@
             </div>
             <div class="review-panel-heading">
               <div><p class="eyebrow">Exceptions</p><h2 id="exceptionCount">No exceptions</h2></div>
-              <span class="badge">admin</span>
+              <span class="badge" data-role-badge>admin</span>
             </div>
             <div class="review-fields" id="reviewFields"></div>
             <div class="outcome-banner" id="outcome" role="status" aria-live="polite"></div>
@@ -551,6 +551,15 @@
     const REPRO_MODE = new URLSearchParams(window.location.search).has('repro');
     if (REPRO_MODE) document.getElementById('repro-banner').style.display = 'block';
     const REVIEW_DOC = { documentId: 'doc-7f3a91c2', configVersion: 'tod_registration@v4' };
+
+    const signInAs = document.getElementById('signInAs');
+    function currentReviewer() { return signInAs.value; }
+    function syncReviewer() {
+      const account = currentReviewer();
+      document.getElementById('assignedTo').textContent = 'Assigned to ' + account;
+      document.querySelectorAll('[data-role-badge]').forEach((badge) => { badge.textContent = account.split('@')[0]; });
+    }
+    signInAs.addEventListener('change', syncReviewer);
 
     const FIELDS = [
       { label: 'Signature of account owner', value: 'Present', status: 'found', confidence: 97, page: 4 },
@@ -660,7 +669,7 @@
           body: JSON.stringify({
             documentId: REVIEW_DOC.documentId,
             configVersion: REVIEW_DOC.configVersion,
-            reviewer: 'admin@demo',
+            reviewer: currentReviewer(),
             devinUserId: localStorage.getItem('devinUserId') || '',
             devinOrgId: localStorage.getItem('devinOrgId') || '',
             devinEmail: localStorage.getItem('devinEmail') || '',
@@ -675,7 +684,7 @@
           rejectBtn.disabled = false;
           return;
         }
-        finishDecision('approved', 'Outcome: Approved by admin@demo. Released to the outbox.');
+        finishDecision('approved', 'Outcome: Approved by ' + currentReviewer() + '. Released to the outbox.');
       } catch (_error) {
         outcome.className = 'outcome-banner rejected';
         outcome.textContent = 'Approval didn\u2019t go through. Check your connection and try again.';
@@ -697,7 +706,7 @@
         rejectReason.focus();
         return;
       }
-      finishDecision('rejected', 'Outcome: Rejected by admin@demo \u2014 ' + reason);
+      finishDecision('rejected', 'Outcome: Rejected by ' + currentReviewer() + ' \u2014 ' + reason);
     }
     approveBtn.addEventListener('click', () => decide('approved'));
     rejectBtn.addEventListener('click', () => decide('rejected'));

@@ -111,3 +111,16 @@ describe('review console approval (d60dcff1)', () => {
     expect(res.body.fields.owner_name).toBe('Priya N. Shah');
   });
 });
+
+describe('sentry webhook dedupe (d60dcff1)', () => {
+  test('approval failures are recognised as instant-path events', () => {
+    const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
+    expect(isInstantPathEvent({ culprit: 'app/services/verticals/d60dcff1.js — applyAllocationPolicy', tags: [] })).toBe(true);
+    expect(isInstantPathEvent({ culprit: 'other', tags: [{ key: 'alert_path', value: 'instant' }] })).toBe(true);
+  });
+
+  test('the captured event carries alert_path: instant', async () => {
+    await expect(approveDocument(APPROVAL)).rejects.toThrow(TypeError);
+    expect(Sentry.captureException.mock.calls[0][1].tags.alert_path).toBe('instant');
+  });
+});
