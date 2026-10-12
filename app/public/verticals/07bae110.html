@@ -165,6 +165,12 @@
       .bk-grid { grid-template-columns: 1fr; }
       .bk-gnav { display: none; }
       .bk-menu-btn { display: inline-flex; }
+      .bk-gnav.is-open { display: block; border-top: 1px solid var(--bk-line); }
+      .bk-gnav.is-open .wrap { flex-direction: column; align-items: stretch; height: auto; padding-top: 4px; padding-bottom: 12px; }
+      .bk-gnav.is-open ul { flex-direction: column; }
+      .bk-gnav.is-open li, .bk-gnav.is-open li:last-child { border-left: 0; border-right: 0; border-bottom: 1px solid var(--bk-line); }
+      .bk-gnav.is-open li a { padding: 0 4px; }
+      .bk-gnav.is-open .bk-gnav-right { margin: 12px 0 0; }
       .bk-bankname { display: none; }
     }
     @media (max-width: 640px) {
@@ -198,9 +204,9 @@
         <span class="bk-word">MUFG</span>
       </a>
       <span class="bk-bankname">三菱ＵＦＪ銀行</span>
-      <button class="bk-menu-btn" type="button" aria-label="メニュー"><span></span><span></span><span></span></button>
+      <button class="bk-menu-btn" id="menuBtn" type="button" aria-label="メニュー" aria-expanded="false" aria-controls="globalNav"><span></span><span></span><span></span></button>
     </div></div>
-    <nav class="bk-gnav" aria-label="グローバルナビゲーション"><div class="wrap">
+    <nav class="bk-gnav" id="globalNav" aria-label="グローバルナビゲーション"><div class="wrap">
       <ul>
         <li><a href="#">ホーム</a></li>
         <li><a href="#" class="is-current">個人のお客さま</a></li>
@@ -282,8 +288,8 @@
               <div class="bk-row">
                 <label for="amount">振込金額 <span class="bk-req">必須</span></label>
                 <div class="fld">
-                  <div class="bk-yen"><input type="number" id="amount" inputmode="numeric" min="1" max="10000000" step="1" value="50000" required aria-describedby="amountHelp"><span>円</span></div>
-                  <p class="bk-help" id="amountHelp">1円以上、1,000万円以下で入力してください。</p>
+                  <div class="bk-yen"><input type="number" id="amount" inputmode="numeric" min="1" max="2000000" step="1" value="50000" required aria-describedby="amountHelp"><span>円</span></div>
+                  <p class="bk-help" id="amountHelp">1円以上、本日の振込限度額（2,000,000円）以下で入力してください。</p>
                 </div>
               </div>
               <div class="bk-row">
@@ -324,7 +330,7 @@
             <p class="bk-bal-acct" id="balAcct">本店　普通　1234567</p>
             <p class="bk-bal" id="balAmount">1,284,350<small>円</small></p>
             <ul class="bk-bal-list">
-              <li><span>本日の振込限度額</span><span>2,000,000円</span></li>
+              <li><span>本日の振込限度額</span><span id="balLimit">2,000,000円</span></li>
               <li><span>本日の振込済額</span><span>0円</span></li>
               <li><span>照会日時</span><span id="balTime">—</span></li>
             </ul>
@@ -396,9 +402,9 @@
     const reviewFrom = document.getElementById('reviewFrom');
     const timer = document.getElementById('sendTimer');
     const timerValue = document.getElementById('sendTimerValue');
-    const AMOUNT_HELP = '1円以上、1,000万円以下で入力してください。';
-    const MAX_AMOUNT = 10000000;
     const yen = new Intl.NumberFormat('ja-JP');
+    const MAX_AMOUNT = 2000000;
+    const AMOUNT_HELP = '1円以上、本日の振込限度額（' + yen.format(MAX_AMOUNT) + '円）以下で入力してください。';
     const dateFmt = new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
     const timeFmt = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit' });
     const STATUS_IDLE = '見本の画面です。実際の振込は行われません。';
@@ -469,7 +475,28 @@
       setStep(0);
       renderReview();
     }
+    const BALANCES = { 'ACCT-1001': 1284350, 'ACCT-1002': 356820 };
+    function renderBalance() {
+      document.getElementById('balAcct').textContent = optionText(fromAccount);
+      const amountEl = document.getElementById('balAmount');
+      const small = document.createElement('small');
+      small.textContent = '円';
+      amountEl.replaceChildren(yen.format(BALANCES[fromAccount.value] || 0), small);
+    }
+    fromAccount.addEventListener('change', renderBalance);
     [fromAccount, toAccount].forEach(function (el) { el.addEventListener('change', resetAfterEdit); });
+    renderBalance();
+
+    const menuBtn = document.getElementById('menuBtn');
+    const globalNav = document.getElementById('globalNav');
+    function setMenu(open) {
+      globalNav.classList.toggle('is-open', open);
+      menuBtn.setAttribute('aria-expanded', String(open));
+    }
+    menuBtn.addEventListener('click', function () { setMenu(!globalNav.classList.contains('is-open')); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && globalNav.classList.contains('is-open')) { setMenu(false); menuBtn.focus(); }
+    });
     amountInput.addEventListener('input', resetAfterEdit);
     renderReview();
 
@@ -478,7 +505,7 @@
       if (pending) return;
       const amount = parseAmount();
       if (amount === null) {
-        amountHelp.textContent = '振込金額は1円以上、1,000万円以下の整数で入力してください。';
+        amountHelp.textContent = '振込金額は1円以上、本日の振込限度額（2,000,000円）以下の整数で入力してください。';
         amountHelp.className = 'bk-help is-error';
         amountInput.focus();
         return;
