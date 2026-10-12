@@ -298,6 +298,13 @@
 
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
+        var amountEl = document.getElementById('amount');
+        var amount = parseFloat(amountEl.value);
+        if (!isFinite(amount) || amount <= 0) {
+          showResult('error', 'Enter a purchase amount', 'Purchase amount must be a positive dollar value.');
+          amountEl.focus();
+          return;
+        }
         btn.disabled = true;
         btn.textContent = 'Submitting\u2026';
         result.className = 'result-box';
@@ -308,7 +315,7 @@
             body: JSON.stringify({
               policyId: document.getElementById('policyId').value,
               claimType: document.getElementById('claimType').value,
-              amount: parseFloat(document.getElementById('amount').value),
+              amount: amount,
               description: document.getElementById('description').value,
               devinUserId: localStorage.getItem('devinUserId') || '',
               devinOrgId: localStorage.getItem('devinOrgId') || '',
@@ -320,7 +327,7 @@
             showResult('error', 'Claim not submitted', data.error || 'Something went wrong. Please try again.');
           } else {
             var ref = String(data.claimId || '').slice(0, 8).toUpperCase();
-            showResult('success', 'Claim approved', 'Claim ' + ref + ' \u2014 $' + data.payout + ' will be refunded to your original payment method.');
+            showResult('success', 'Claim approved', 'Claim ' + ref + ' approved for $' + data.payout + '. Our support team will confirm how it is issued (Gametime credit or your original payment method) based on the guarantee.');
           }
         } catch (err) {
           showResult('error', 'Network error', err.message);

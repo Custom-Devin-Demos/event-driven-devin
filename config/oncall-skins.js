@@ -3301,6 +3301,7 @@ const ONCALL_SKINS = {
     slug: 'fd5d1290',
     company: 'Gametime',
     vertical: 'insurance',
+    oncallOnly: true,
     page: {
       file: 'fd5d1290.html',
       title: 'Gametime Guarantee | Gametime - Sports, Shows, and Concert Tickets',
