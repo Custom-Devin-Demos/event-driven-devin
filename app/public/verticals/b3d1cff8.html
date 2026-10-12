@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payments Demo | Ripple</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: rgb(20, 26, 31);
+      --ink-2: rgb(69, 77, 84);
+      --ink-3: rgb(94, 103, 110);
+      --blue: rgb(0, 91, 204);
+      --blue-dark: rgb(0, 74, 166);
+      --line: rgb(229, 231, 232);
+      --gray: rgb(241, 242, 243);
+      --side: rgb(250, 250, 250);
+      --ok-ink: rgb(0, 102, 34);
+      --ok-bg: rgb(244, 255, 230);
+      --err-ink: rgb(179, 38, 30);
+      --err-bg: rgb(255, 241, 240);
+      --row-hl: rgb(229, 248, 255);
+      --radius: 8px;
+      --font: "TT Ripple", Roboto, -apple-system, "system-ui", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--font); font-size: 16px; line-height: 24px; color: var(--ink); background: var(--gray); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    h1, h2, h3, p { margin: 0; }
+    .ico { width: 24px; height: 24px; display: block; fill: currentColor; flex: none; }
+
+    /* top bar */
+    .top { position: sticky; top: 0; z-index: 20; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: #fff; box-shadow: rgba(0, 0, 0, 0.09) 0px 0px 4px 0px, rgba(0, 0, 0, 0.09) 0px 4px 8px 0px; }
+    .logo { display: flex; align-items: center; gap: 8px; height: 26px; }
+    .logo svg { height: 26px; width: auto; display: block; }
+    .logo .word { font-weight: 700; font-size: 25px; letter-spacing: -0.02em; line-height: 26px; color: var(--ink); }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; color: var(--blue); cursor: pointer; }
+    .icon-btn:hover { background: var(--gray); }
+    .menu-btn { display: none; }
+
+    /* layout */
+    .shell { display: flex; min-height: calc(100vh - 64px); }
+    .side { width: 224px; flex: none; background: var(--side); padding: 24px 8px 0; }
+    .side nav { display: flex; flex-direction: column; gap: 8px; padding: 0 8px; }
+    .side a { position: relative; display: flex; align-items: center; gap: 8px; height: 40px; width: 120px; padding: 0 10px; color: var(--ink-2); font-size: 16px; line-height: 24px; border-radius: 4px; }
+    .side a:hover { color: var(--ink); }
+    .side a.on { color: var(--blue); font-weight: 700; }
+    .side a.on::before { content: ""; position: absolute; left: -4px; top: 0; bottom: 0; width: 3px; background: var(--blue); border-radius: 2px; }
+    .main { flex: 1; min-width: 0; margin: 8px 0 0 -4px; background: #fff; border-radius: var(--radius); box-shadow: rgba(0, 0, 0, 0.09) 0px 12px 24px 0px, rgba(0, 0, 0, 0.09) 0px 0px 4px 0px; padding: 32px 40px; }
+    .head { display: flex; align-items: center; justify-content: space-between; height: 40px; margin-bottom: 48px; }
+    .head h1 { font-size: 30px; line-height: 40px; font-weight: 700; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border: 2px solid var(--blue); border-radius: 8px; background: var(--blue); color: #fff; font-size: 14px; line-height: 20px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .btn:hover { background: var(--blue-dark); border-color: var(--blue-dark); }
+    .btn:disabled { opacity: .6; cursor: progress; }
+    .btn .ico { margin-right: -6px; }
+    .btn-text { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: transparent; color: var(--blue); font-size: 14px; line-height: 20px; font-weight: 700; cursor: pointer; }
+    .btn-text:hover { background: var(--gray); }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 401px; gap: 42px; align-items: start; }
+    .col { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+    .card.tint { background: var(--gray); }
+    .card-head { display: flex; align-items: center; gap: 8px; }
+    .card-head h2 { font-size: 16px; line-height: 24px; font-weight: 700; }
+    .card-head.lg h2 { font-size: 19px; line-height: 28px; }
+    .help { color: var(--ink-3); }
+
+    .balances { display: flex; gap: 24px; }
+    .bal { flex: 1; position: relative; padding-bottom: 16px; }
+    .bal h3 { margin-top: 16px; font-size: 26px; line-height: 36px; font-weight: 700; }
+    .bal .cur { position: absolute; top: 24px; right: 24px; width: 32px; height: 32px; }
+    .bal .cur svg { width: 32px; height: 32px; display: block; }
+
+    /* create payment (primary action) */
+    .pay-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; margin-top: 24px; }
+    .field label { display: block; font-size: 14px; line-height: 20px; font-weight: 700; margin-bottom: 4px; }
+    .ctl { position: relative; }
+    .ctl input, .ctl select { width: 100%; height: 40px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font-size: 16px; line-height: 24px; outline: none; appearance: none; -webkit-appearance: none; }
+    .ctl input:focus, .ctl select:focus { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+    .ctl select { padding-right: 44px; }
+    .ctl .chev { position: absolute; right: 12px; top: 8px; pointer-events: none; color: var(--ink); }
+    .pay-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 24px; }
+    .pay-note { font-size: 14px; line-height: 20px; color: var(--ink-3); }
+    .result-box { display: none; margin-top: 16px; padding: 12px 16px; border-radius: 8px; font-size: 14px; line-height: 20px; }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.success { background: var(--ok-bg); color: var(--ok-ink); }
+    .result-box.error { background: var(--err-bg); color: var(--err-ink); }
+    .result-box .error-title { font-weight: 700; }
+
+    /* last payments */
+    .lp-head { display: flex; align-items: center; justify-content: space-between; height: 40px; margin-bottom: 8px; }
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 620px; }
+    th { padding: 16px; text-align: left; font-size: 14px; line-height: 20px; font-weight: 700; border-bottom: 1px solid var(--line); }
+    td { height: 52px; padding: 9.6px 16px; font-size: 14px; line-height: 20px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    tr:hover td { background: var(--row-hl); }
+    .pill { display: inline-flex; align-items: center; height: 32px; padding: 4px 16px; border-radius: 16px; background: var(--ok-bg); color: var(--ok-ink); font-size: 12px; line-height: 16px; font-weight: 700; }
+
+    /* right column */
+    .fx-inner { margin-top: 24px; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+    .fx-inner .big { font-size: 22px; line-height: 32px; font-weight: 700; }
+    .fx-row { display: flex; margin-top: 16px; }
+    .fx-row + .fx-row { margin-top: 8px; }
+    .fx-row .num { flex: 1; height: 40px; padding: 8px 16px; border: 1px solid var(--line); border-right: 0; border-radius: 8px 0 0 8px; text-align: right; background: #fff; }
+    .fx-row .sel { width: 120px; height: 40px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 0 8px 8px 0; display: flex; align-items: center; justify-content: space-between; background: #fff; }
+    .fx-time { margin-top: 12px; }
+    .fx-note { margin-top: 24px; font-size: 14px; line-height: 20px; color: var(--ink-3); }
+    .support .card-head svg { width: 36px; height: 36px; }
+    .support p { margin-top: 8px; }
+    .support .links { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .support .links a { display: inline-flex; align-items: center; gap: 8px; color: var(--blue); font-weight: 700; }
+    .support .links .ico { width: 24px; height: 24px; }
+
+    @media (max-width: 1279px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 767px) {
+      .side { display: none; }
+      .menu-btn { display: flex; }
+      .main { margin: 8px 0 0; border-radius: 0; padding: 24px 16px 48px; }
+      .head { height: auto; align-items: flex-start; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+      .head h1 { font-size: 26px; line-height: 36px; }
+      .grid { gap: 24px; }
+      .card { padding: 16px; }
+      .balances { flex-direction: column; }
+      .bal .cur { top: 16px; right: 16px; }
+      .pay-fields { grid-template-columns: 1fr; }
+      .ctl input, .ctl select { height: 48px; }
+      .ctl .chev { top: 12px; }
+      .pay-foot { flex-direction: column-reverse; align-items: stretch; }
+      .btn.primary-action { height: 48px; }
+      .icon-btn { width: 44px; height: 44px; }
+      .lp-head { height: auto; }
+      .fx-row .sel { width: 104px; }
+      table { table-layout: auto; min-width: 680px; }
+      td { overflow: visible; text-overflow: clip; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a class="logo" href="#" aria-label="Ripple"><svg viewBox="0 0 22 24" aria-hidden="true"><g fill="#006AFF"><circle cx="5" cy="12" r="5"/><circle cx="17" cy="5" r="5"/><circle cx="17" cy="19" r="5"/><path d="M5 9.2 15.2 3.4l2.6 4.4L9 12l8.8 4.2-2.6 4.4L5 14.8z"/></g></svg><span class="word">ripple</span></a>
+    <div class="top-actions">
+      <button class="icon-btn menu-btn" type="button" aria-label="Menu"><svg class="ico" viewBox="0 0 24 24"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg></button>
+      <button class="icon-btn" type="button" aria-label="Help"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></button>
+      <a class="icon-btn" href="#" aria-label="Settings"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M13.9 2.5h-3.8l-.5 2.6c-.6.2-1.2.6-1.7 1L5.4 5.2 3.5 8.5l2 1.7a7.6 7.6 0 0 0 0 1.9l-2 1.7 1.9 3.3 2.5-.9c.5.4 1.1.8 1.7 1l.5 2.6h3.8l.5-2.6c.6-.2 1.2-.6 1.7-1l2.5.9 1.9-3.3-2-1.7a7.6 7.6 0 0 0 0-1.9l2-1.7-1.9-3.3-2.5.9c-.5-.4-1.1-.8-1.7-1l-.5-2.6ZM12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/></svg></a>
+      <button class="icon-btn" type="button" aria-label="Account"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M6.48 19.1A8.96 8.96 0 0 0 12 21c2.08 0 4-.71 5.52-1.9A3.75 3.75 0 0 0 13.62 16h-3.25a3.75 3.75 0 0 0-3.9 3.1ZM12 23C5.92 23 1 18.08 1 12S5.92 1 12 1s11 4.92 11 11-4.92 11-11 11Zm0-20a9 9 0 0 0-7.1 14.54A5.75 5.75 0 0 1 10.38 14h3.25a5.75 5.75 0 0 1 5.48 3.54A9 9 0 0 0 12 3Zm0 9.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0-2a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg></button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="side">
+      <nav>
+        <a href="#" class="on"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M21 20a1 1 0 0 0 1-1V9.49a1.4 1.4 0 0 0-.76-1.23l-7.9-3.96a3 3 0 0 0-2.68 0L2.76 8.26A1.4 1.4 0 0 0 2 9.49V19a1 1 0 0 0 1 1h7v-2a2 2 0 1 1 4 0v2h7Zm-1-10.13-7.55-3.79a1 1 0 0 0-.9 0L4 9.87V18h4a4 4 0 0 1 8 0h4V9.87Z"/></svg>Home</a>
+        <a href="#"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M15 8H5a2 2 0 0 1-2 2v2a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2v-2a2 2 0 0 1-2-2Zm4 6V7a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-1ZM10 9a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm11-1h2v9a2 2 0 0 1-2 2H5v-2h16V8Z"/></svg>Payments</a>
+        <a href="#"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 12V5.07A7 7 0 0 0 5.06 12H12Zm1.5-8.61c-.3-.27-.65-.35-.93-.37-.21-.01-.45.02-.64.04A9 9 0 1 0 20.98 12.1c.01-.17.02-.35.01-.52a1.44 1.44 0 0 0-.4-.95L13.5 3.39ZM14 14h7a9 9 0 0 1-9 9v-7a2 2 0 0 0 2-2Zm-2.01 5.94A7 7 0 0 0 16.95 14H12v5.94ZM14 12V3.08A9 9 0 0 1 20.92 10H16a2 2 0 0 0-2 2Z"/></svg>Reports</a>
+        <a href="#"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M17 7v2a2 2 0 1 1-4 0V7a2 2 0 1 1 4 0Zm-5.93-.75A4 4 0 1 1 12.14 11.8 4 4 0 0 1 8 13H7a4 4 0 0 1-4-4V8a4 4 0 0 1 8.07-1.75ZM9 9V8a2 2 0 1 0-4 0v1a2 2 0 1 0 4 0Zm-6 9a4 4 0 0 1 4-4h2a4 4 0 0 1 2.65 1 5.98 5.98 0 0 0-1.55 2H3v1h8v2H2a1 1 0 0 1-1-1v-1a2 2 0 0 1 2-2Zm10 1a3 3 0 0 1 3-3h2a3 3 0 0 1 3 3v2a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-2Zm2 1h5v-1a1 1 0 0 0-1-1h-3a1 1 0 0 0-1 1v1Z"/></svg>Beneficiaries</a>
+      </nav>
+    </aside>
+
+    <section class="main">
+      <div class="head">
+        <h1>Welcome back, Jian!</h1>
+        <button class="btn" type="button" id="createPaymentTop"><span>Create Payment</span><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg></button>
+      </div>
+
+      <div class="grid">
+        <div class="col">
+          <div class="balances">
+            <div class="card bal">
+              <div class="card-head"><h2>Account balance</h2><svg class="ico help" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></div>
+              <h3>130,025.51 USD</h3>
+              <div class="cur" aria-hidden="true"><svg viewBox="0 0 32 32"><clipPath id="usc"><circle cx="16" cy="16" r="16"/></clipPath><g clip-path="url(#usc)"><rect width="32" height="32" fill="#fff"/><g fill="#D02F44"><rect y="0" width="32" height="2.46"/><rect y="4.92" width="32" height="2.46"/><rect y="9.85" width="32" height="2.46"/><rect y="14.77" width="32" height="2.46"/><rect y="19.69" width="32" height="2.46"/><rect y="24.62" width="32" height="2.46"/><rect y="29.54" width="32" height="2.46"/></g><rect width="14" height="17.23" fill="#46467F"/></g></svg></div>
+            </div>
+            <div class="card bal">
+              <div class="card-head"><h2>Account balance</h2><svg class="ico help" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></div>
+              <h3>82,405.36 RLUSD</h3>
+              <div class="cur" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#005BCC"/><g fill="#fff"><circle cx="11.5" cy="16" r="3.2"/><circle cx="20.5" cy="10.5" r="3.2"/><circle cx="20.5" cy="21.5" r="3.2"/><path d="M12.5 14.4 18.6 10.9l1.2 2-6.1 3.1 6.1 3.1-1.2 2-6.1-3.5z"/></g></svg></div>
+            </div>
+          </div>
+
+          <div class="card" id="createPayment">
+            <div class="card-head"><h2>Create Payment</h2><svg class="ico help" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></div>
+            <form id="transferForm" autocomplete="off">
+              <div class="pay-fields">
+                <div class="field">
+                  <label for="fromAccount">Pay from</label>
+                  <div class="ctl">
+                    <select id="fromAccount">
+                      <option value="ACCT-1001">USD account — 130,025.51 USD</option>
+                      <option value="ACCT-1002">RLUSD account — 82,405.36 RLUSD</option>
+                    </select>
+                    <svg class="ico chev" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="toAccount">Beneficiary</label>
+                  <div class="ctl">
+                    <select id="toAccount">
+                      <option value="ACCT-EXT-001">Strynex Corporation — MXN</option>
+                      <option value="ACCT-1002">Own account — RLUSD balance</option>
+                      <option value="ACCT-1001">Own account — USD balance</option>
+                    </select>
+                    <svg class="ico chev" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="amount">Send amount (USD)</label>
+                  <div class="ctl"><input type="number" id="amount" value="25000" min="0.01" step="0.01" placeholder="0.00" required></div>
+                </div>
+                <div class="field">
+                  <label for="accountTier">Pricing plan</label>
+                  <div class="ctl">
+                    <select id="accountTier">
+                      <option value="standard">Standard</option>
+                      <option value="premium">Enterprise</option>
+                      <option value="basic">Starter</option>
+                    </select>
+                    <svg class="ico chev" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg>
+                  </div>
+                </div>
+              </div>
+              <div class="pay-foot">
+                <p class="pay-note">Rate locked at submission. Beneficiary receives local currency.</p>
+                <button type="submit" class="btn primary-action" id="submitBtn">Create Payment</button>
+              </div>
+            </form>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </div>
+
+          <div class="card">
+            <div class="lp-head">
+              <div class="card-head"><h2>Last payments</h2><svg class="ico help" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></div>
+              <a href="#" class="btn-text">View All</a>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <colgroup><col style="width:23%"><col style="width:24.7%"><col style="width:17%"><col style="width:18.8%"><col style="width:16.5%"></colgroup>
+                <thead><tr><th>Created At</th><th>Beneficiary</th><th>Sent</th><th>Received</th><th>Status</th></tr></thead>
+                <tbody id="paymentsBody">
+                  <tr><td>May 25, 2025 11:57:02</td><td>Zephyra Global Ventures</td><td>32000.00 USD</td><td>23609.88 GBP</td><td><span class="pill">Completed</span></td></tr>
+                  <tr><td>May 25, 2025 10:54:56</td><td>Lunaris</td><td>210180.00 USD</td><td>270063.99 SGD</td><td><span class="pill">Completed</span></td></tr>
+                  <tr><td>May 25, 2025 10:48:47</td><td>Venturis Global Horizons</td><td>9516.00 USD</td><td>12227.28 SGD</td><td><span class="pill">Completed</span></td></tr>
+                  <tr><td>May 25, 2025 7:34:19</td><td>Strynex Corporation</td><td>210112.00 USD</td><td>4036540.02 MXN</td><td><span class="pill">Completed</span></td></tr>
+                  <tr><td>May 24, 2025 06:06:39</td><td>Liora Valenwood</td><td>9997.00 RLUSD</td><td>7376.93 GBP</td><td><span class="pill">Completed</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card tint">
+            <div class="card-head lg"><h2>Exchange Rate</h2><svg class="ico help" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></div>
+            <div class="fx-inner">
+              <p>1 USD equals</p>
+              <p class="big">19.2400 Mexican Peso</p>
+              <div class="fx-row"><div class="num">1</div><div class="sel"><span>USD</span><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg></div></div>
+              <div class="fx-row"><div class="num">19.24</div><div class="sel"><span>MXN</span><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg></div></div>
+              <p class="fx-time" id="fxTime">October 12, 21:53:05</p>
+            </div>
+            <p class="fx-note">This exchange rate is provided for informational purposes only. The actual rate applied to your transaction may vary depending on the exchange and time of payment.</p>
+          </div>
+
+          <div class="card support">
+            <div class="card-head lg">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M44 23v15a2 2 0 0 1-2 2h-3a2 2 0 0 0-2 2v2l-8.7-3.8a2 2 0 0 0-.8-.2H19a2 2 0 0 1-2-2V23a2 2 0 0 1 2-2h23a2 2 0 0 1 2 2Z" fill="#005BCC"/><rect x="23" y="28" width="16" height="2" fill="#F5FBFF"/><rect x="23" y="32" width="12" height="2" fill="#F5FBFF"/><path d="M4 9v15a2 2 0 0 0 2 2h3a2 2 0 0 1 2 2v2l8.7-3.8a2 2 0 0 1 .8-.2H29a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2Z" fill="#66A3FF"/><path d="M16 11a3 3 0 0 0-3 3h2a1 1 0 1 1 1.5.9c-.9.5-1.5 1.1-1.5 2.1h2c0-.5.4-.8 1-1.2A3 3 0 0 0 16 11Zm-1 8h2v2h-2z" fill="#fff"/></svg>
+              <h2>Get support</h2>
+            </div>
+            <p>Have a question? Get in touch with our support team or search the docs.</p>
+            <div class="links">
+              <a href="#">Contact support<svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M19.0008 12.0019L19.0008 6.44721L12.2314 13.2166L10.8175 11.8026L17.6171 5.00293L12.0019 5.00293L12.0019 3.00323L20.0006 3.00324C20.5528 3.00324 21.0005 3.45088 21.0005 4.00308L21.0005 12.0019H19.0008ZM6.00278 5.00285H8.00247V7.00254H6.00278V18.0009H17.0011V16.0012H19.0008V18.0009C19.0008 19.1053 18.1055 20.0005 17.0011 20.0005H6.00278C4.89838 20.0005 4.00308 19.1053 4.00308 18.0009V7.00254C4.00308 5.89814 4.89838 5.00285 6.00278 5.00285Z"/></svg></a>
+              <a href="#">Documentation<svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M19.0008 12.0019L19.0008 6.44721L12.2314 13.2166L10.8175 11.8026L17.6171 5.00293L12.0019 5.00293L12.0019 3.00323L20.0006 3.00324C20.5528 3.00324 21.0005 3.45088 21.0005 4.00308L21.0005 12.0019H19.0008ZM6.00278 5.00285H8.00247V7.00254H6.00278V18.0009H17.0011V16.0012H19.0008V18.0009C19.0008 19.1053 18.1055 20.0005 17.0011 20.0005H6.00278C4.89838 20.0005 4.00308 19.1053 4.00308 18.0009V7.00254C4.00308 5.89814 4.89838 5.00285 6.00278 5.00285Z"/></svg></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      function stamp(d) { return months[d.getMonth()] + ' ' + d.getDate() + ', ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }
+      var fx = document.getElementById('fxTime');
+      if (fx) fx.textContent = stamp(new Date());
+
+      document.getElementById('createPaymentTop').addEventListener('click', function () {
+        var card = document.getElementById('createPayment');
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(function () { document.getElementById('amount').focus(); }, 400);
+      });
+
+      function show(result, cls, title, detail) {
+        result.className = 'result-box ' + cls;
+        result.textContent = '';
+        var t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+        var d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+        result.appendChild(t); result.appendChild(d);
+      }
+      function addRow(beneficiaryLabel, amount) {
+        var body = document.getElementById('paymentsBody');
+        var parts = beneficiaryLabel.split(' \u2014 ');
+        var tr = document.createElement('tr');
+        var cells = [stamp(new Date()), parts[0], Number(amount).toFixed(2) + ' USD', '\u2014 ' + (parts[1] || ''), null];
+        cells.forEach(function (c) {
+          var td = document.createElement('td');
+          if (c === null) { var s = document.createElement('span'); s.className = 'pill'; s.textContent = 'Completed'; td.appendChild(s); }
+          else td.textContent = c;
+          tr.appendChild(td);
+        });
+        body.insertBefore(tr, body.firstChild);
+        if (body.children.length > 5) body.removeChild(body.lastElementChild);
+      }
+      document.getElementById('transferForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var btn = document.getElementById('submitBtn');
+        var result = document.getElementById('result');
+        var toSel = document.getElementById('toAccount');
+        var amount = parseFloat(document.getElementById('amount').value);
+        if (!isFinite(amount) || amount <= 0) { show(document.getElementById('result'), 'error', 'Payment failed', 'Enter a send amount greater than 0.'); return; }
+        btn.disabled = true; btn.textContent = 'Processing...';
+        result.className = 'result-box';
+        try {
+          var res = await fetch('/api/banking/transfer', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: toSel.value, amount: amount, accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          });
+          var data = await res.json();
+          if (!res.ok) {
+            show(result, 'error', 'Payment failed', (data.errorClass ? data.errorClass + ': ' : '') + (data.error || 'Request failed'));
+          } else {
+            show(result, 'success', 'Payment created', 'Debited ' + data.debitAmount + ' USD (includes ' + data.fee + ' USD fee)');
+            addRow(toSel.options[toSel.selectedIndex].text, amount);
+          }
+        } catch (err) {
+          show(result, 'error', 'Network error', err.message);
+        } finally { btn.disabled = false; btn.textContent = 'Create Payment'; }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
