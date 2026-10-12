@@ -100,7 +100,6 @@
     td { height: 52px; padding: 9.6px 16px; font-size: 14px; line-height: 20px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     tr:hover td { background: var(--row-hl); }
     .pill { display: inline-flex; align-items: center; height: 32px; padding: 4px 16px; border-radius: 16px; background: var(--ok-bg); color: var(--ok-ink); font-size: 12px; line-height: 16px; font-weight: 700; }
-    .pill.pending { background: rgb(255, 248, 225); color: rgb(122, 86, 0); }
 
     /* right column */
     .fx-inner { margin-top: 24px; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
@@ -187,7 +186,7 @@
 
           <div class="card" id="createPayment">
             <div class="card-head"><h2>Create Payment</h2><svg class="ico help" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></div>
-            <form id="transferForm" autocomplete="off" novalidate>
+            <form id="transferForm" autocomplete="off">
               <div class="pay-fields">
                 <div class="field">
                   <label for="fromAccount">Pay from</label>
@@ -204,15 +203,15 @@
                   <div class="ctl">
                     <select id="toAccount">
                       <option value="ACCT-EXT-001">Strynex Corporation — MXN</option>
-                      <option value="ACCT-1002">Zephyra Global Ventures — GBP</option>
-                      <option value="ACCT-1001">Venturis Global Horizons — SGD</option>
+                      <option value="ACCT-1002">Own account — RLUSD balance</option>
+                      <option value="ACCT-1001">Own account — USD balance</option>
                     </select>
                     <svg class="ico chev" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg>
                   </div>
                 </div>
                 <div class="field">
                   <label for="amount">Send amount (USD)</label>
-                  <div class="ctl"><input type="number" id="amount" value="25000" min="1" step="0.01" placeholder="0.00"></div>
+                  <div class="ctl"><input type="number" id="amount" value="25000" min="1" step="0.01" placeholder="0.00" required></div>
                 </div>
                 <div class="field">
                   <label for="accountTier">Pricing plan</label>
@@ -321,7 +320,7 @@
         var cells = [stamp(new Date()), parts[0], Number(amount).toFixed(2) + ' USD', '\u2014 ' + (parts[1] || ''), null];
         cells.forEach(function (c) {
           var td = document.createElement('td');
-          if (c === null) { var s = document.createElement('span'); s.className = 'pill pending'; s.textContent = 'Processing'; td.appendChild(s); }
+          if (c === null) { var s = document.createElement('span'); s.className = 'pill'; s.textContent = 'Completed'; td.appendChild(s); }
           else td.textContent = c;
           tr.appendChild(td);
         });
@@ -334,6 +333,7 @@
         var result = document.getElementById('result');
         var toSel = document.getElementById('toAccount');
         var amount = parseFloat(document.getElementById('amount').value);
+        if (!isFinite(amount) || amount <= 0) { show(document.getElementById('result'), 'error', 'Payment failed', 'Enter a send amount greater than 0.'); return; }
         btn.disabled = true; btn.textContent = 'Processing...';
         result.className = 'result-box';
         try {
