@@ -603,8 +603,9 @@
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
         var seatsEl = document.getElementById('seats');
-        var seats = parseInt(seatsEl.value, 10);
-        if (!Number.isInteger(Number(seatsEl.value)) || seats < 1 || seats > 250) {
+        var rawSeats = seatsEl.value.trim();
+        var seats = rawSeats === '' ? NaN : Number(rawSeats);
+        if (!Number.isInteger(seats) || seats < 1 || seats > 250) {
           showResult('error', 'Enter a ticket quantity', 'Choose between 1 and 250 tickets.');
           seatsEl.focus();
           return;
