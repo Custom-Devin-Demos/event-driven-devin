@@ -118,6 +118,7 @@
     .identity__email { font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .identity__role { font-size: 11px; color: var(--text-4); text-transform: capitalize; }
     .identity__chevron { color: var(--text-4); width: 14px; height: 14px; flex: none; }
+    .review-ws__bar-right .identity { width: auto; min-width: 180px; padding: 4px var(--s-2); }
     .identity__select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
     .main { display: flex; flex-direction: column; min-width: 0; min-height: 100vh; }
     .topbar {
@@ -397,8 +398,8 @@
           <a class="rail__link" href="#upload" data-view="upload"><svg class="rail__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18M7 15l4-5 4 3 5-7"/></svg><span class="rail__label">Dashboard</span></a>
         </div>
       </nav>
-      <div class="rail__footer">
-        <div class="identity">
+      <div class="rail__footer" id="railFooter">
+        <div class="identity" id="identitySwitcher">
           <span class="identity__avatar" id="identityAvatar" aria-hidden="true">A</span>
           <span class="identity__text"><span class="identity__email" id="identityEmail">admin@demo</span><span class="identity__role" data-role-badge>admin</span></span>
           <svg class="identity__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg>
@@ -533,7 +534,7 @@
                   <span>just now</span>
                 </div>
               </div>
-              <div class="review-ws__bar-right">
+              <div class="review-ws__bar-right" id="wsBarRight">
                 <span class="pill pill--nodot" data-role-badge>admin</span>
               </div>
             </div>
@@ -689,7 +690,10 @@
       const consoleOpen = !document.getElementById('reviewConsole').hidden;
       document.getElementById('uploadView').hidden = view !== 'upload';
       document.getElementById('reviewView').hidden = view !== 'review';
-      document.body.classList.toggle('ws-mode', view === 'review' && consoleOpen);
+      const workspace = view === 'review' && consoleOpen;
+      document.body.classList.toggle('ws-mode', workspace);
+      // The rail is hidden in the review workspace, so the identity switcher moves into its bar.
+      document.getElementById(workspace ? 'wsBarRight' : 'railFooter').append(document.getElementById('identitySwitcher'));
       document.getElementById('crumbCurrent').textContent = view === 'review' ? 'Review' : 'Upload';
       document.querySelectorAll('.rail__link').forEach((link) => {
         const active = link.dataset.nav === view;
