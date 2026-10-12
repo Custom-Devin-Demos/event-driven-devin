@@ -171,7 +171,7 @@
             <div class="field">
               <label for="amount">Amount (USD)</label>
               <input type="number" id="amount" min="1" step="0.01" value="5000" inputmode="decimal" required>
-              <small id="amountHelp">Up to $24,860.12 available.</small>
+              <small id="amountHelp">Up to $24,835.28 after fees.</small>
             </div>
             <div class="field">
               <label for="accountTier">Contract</label>
@@ -185,6 +185,7 @@
             <div><dt>From</dt><dd id="reviewFrom">—</dd></div>
             <div><dt>To</dt><dd id="reviewTo">—</dd></div>
             <div><dt>Amount</dt><dd id="reviewAmount">—</dd></div>
+            <div><dt>Transfer fee</dt><dd id="reviewFee">—</dd></div>
             <div><dt>Left in source</dt><dd id="reviewRemaining">—</dd></div>
           </dl>
           <button type="submit" id="submitBtn" class="submit-btn">Submit transfer</button>
@@ -244,6 +245,7 @@
     const reviewTo = document.getElementById('reviewTo');
     const reviewAmount = document.getElementById('reviewAmount');
     const reviewRemaining = document.getElementById('reviewRemaining');
+    const reviewFee = document.getElementById('reviewFee');
     const timer = document.getElementById('sendTimer');
     const timerValue = document.getElementById('sendTimerValue');
     const IDLE_STATUS = 'Sample account. No money moves on this page.';
@@ -253,6 +255,14 @@
     const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
     function optionName(select) { return select.options[select.selectedIndex].text.split(' · ')[0]; }
     function sourceBalance() { return Number(fromAccount.options[fromAccount.selectedIndex].dataset.balance); }
+    const FEE_RATE = 0.001;
+    const FEE_MIN = 2.5;
+    function transferFee(amount) { return Math.max(amount * FEE_RATE, FEE_MIN); }
+    function maxTransfer(balance) {
+      let max = Math.floor(Math.min(balance / (1 + FEE_RATE), balance - FEE_MIN) * 100) / 100;
+      while (max > 0 && max + transferFee(max) > balance) max = Math.round((max - 0.01) * 100) / 100;
+      return Math.max(max, 0);
+    }
     function parsedAmount() {
       const raw = amountInput.value.trim();
       if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
@@ -276,12 +286,14 @@
     function renderReview() {
       const balance = sourceBalance();
       const amount = parsedAmount();
-      const valid = Number.isFinite(amount) && amount > 0 && amount <= balance;
-      amountHelp.textContent = `Up to ${usd.format(balance)} available.`;
+      const max = maxTransfer(balance);
+      const valid = Number.isFinite(amount) && amount >= 1 && amount <= max;
+      amountHelp.textContent = `Up to ${usd.format(max)} after fees.`;
       reviewFrom.textContent = optionName(fromAccount);
       reviewTo.textContent = optionName(toAccount);
       reviewAmount.textContent = valid ? usd.format(amount) : '—';
-      reviewRemaining.textContent = valid ? usd.format(balance - amount) : '—';
+      reviewFee.textContent = valid ? usd.format(transferFee(amount)) : '—';
+      reviewRemaining.textContent = valid ? usd.format(balance - amount - transferFee(amount)) : '—';
     }
     fromAccount.addEventListener('change', renderReview);
     toAccount.addEventListener('change', renderReview);
@@ -291,10 +303,10 @@
       event.preventDefault();
       if (pending) return;
       const amount = parsedAmount();
-      const balance = sourceBalance();
-      if (!Number.isFinite(amount) || amount < 1 || amount > balance) {
+      const max = maxTransfer(sourceBalance());
+      if (!Number.isFinite(amount) || amount < 1 || amount > max) {
         result.className = 'result-box notice';
-        result.textContent = `Enter an amount between $1.00 and ${usd.format(balance)}, with no more than two decimal places.`;
+        result.textContent = `Enter an amount between $1.00 and ${usd.format(max)}, with no more than two decimal places.`;
         status.textContent = IDLE_STATUS;
         amountInput.focus();
         return;
