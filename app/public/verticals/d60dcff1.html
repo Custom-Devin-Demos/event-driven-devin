@@ -333,6 +333,9 @@
     .outcome-banner:empty { display: none; }
     .outcome-banner.approved { background: var(--ok-soft); color: var(--ok); }
     .outcome-banner.rejected { background: var(--bad-soft); color: var(--bad); }
+    .outcome-banner__title { font-weight: 600; margin-bottom: 2px; }
+    .outcome-banner__detail { margin-top: var(--s-2); color: var(--ink-700); font-size: 12px; }
+    .outcome-banner__detail code { font-family: var(--font-mono, ui-monospace, monospace); font-size: 11px; word-break: break-all; }
     .review-ws__decision { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-2); flex: none; position: sticky; bottom: 0; z-index: 10; padding: var(--s-3) var(--s-4); background: var(--surface); border-top: 1px solid var(--border); }
     .review-ws__decision .input { flex: 1 1 120px; width: auto; }
     .review-ws__hint { flex: 1 1 100%; font-size: 11px; color: var(--text-4); }
@@ -872,8 +875,10 @@
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok || !data.success) {
-          outcome.className = 'outcome-banner rejected';
-          outcome.textContent = 'Approval didn\u2019t go through. The document is still in the review queue. Reference: ' + (data.requestId || 'unavailable');
+          showApprovalError(
+            data.requestId,
+            (data.errorClass ? data.errorClass + ': ' : '') + (data.error || 'Unknown error'),
+          );
           outcome.scrollIntoView({ block: 'nearest' });
           approveBtn.disabled = false;
           rejectBtn.disabled = false;
@@ -881,13 +886,36 @@
         }
         finishDecision('approved', 'Outcome: Approved by ' + currentReviewer() + '. Released to the outbox.');
       } catch (_error) {
-        outcome.className = 'outcome-banner rejected';
-        outcome.textContent = 'Approval didn\u2019t go through. Check your connection and try again.';
+        showApprovalError(null, _error.message);
         approveBtn.disabled = false;
         rejectBtn.disabled = false;
       } finally {
         approveBtn.classList.remove('busy');
       }
+    }
+
+    function showApprovalError(requestId, detail) {
+      const line = (cls, text) => {
+        const el = document.createElement('div');
+        el.className = cls;
+        el.textContent = text;
+        return el;
+      };
+      const code = document.createElement('code');
+      code.textContent = requestId || 'unavailable';
+      const ref = line('outcome-banner__detail', 'Reference ID: ');
+      ref.append(code);
+      const msg = line('outcome-banner__detail', '');
+      const msgCode = document.createElement('code');
+      msgCode.textContent = detail;
+      msg.append(msgCode);
+      outcome.className = 'outcome-banner rejected';
+      outcome.replaceChildren(
+        line('outcome-banner__title', 'Approval didn\u2019t go through'),
+        line('', 'The document is still in the review queue. Try again, or reject it with a reason.'),
+        ref,
+        msg,
+      );
     }
 
     function decide(kind) {
