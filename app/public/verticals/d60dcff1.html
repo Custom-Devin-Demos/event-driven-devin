@@ -7,519 +7,615 @@
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --accent: #2068A8;
-      --ink: #202733;
-      --surface: #F3F5F7;
-      --chrome-bg: #202733;
-      --chrome-text: #FFFFFF;
-      --panel: #FFFFFF;
-      --line: #DCE1E6;
-      --line-soft: #E0E4E8;
-      --muted: #687483;
-      --muted-2: #75808D;
-      --tint: #EDF5FC;
-      --ok: #236D58;
-      --ok-bg: #DFF3E9;
-      --warn: #965D00;
-      --warn-bg: #FFF0D4;
-      --bad: #9B2633;
-      --bad-bg: #F8E1E5;
-      --nav-badge: #B5202B;
+      --ink-900: #141414;
+      --ink-800: #262626;
+      --ink-700: #3d3d3d;
+      --ink-500: #6b6b6b;
+      --ink-400: #8a8a8a;
+      --ink-300: #b5b1ab;
+      --ink-200: #d9d6d1;
+      --ink-150: #e7e4df;
+      --ink-100: #f1efeb;
+      --ink-50: #f8f7f5;
+      --white: #ffffff;
+      --accent: #2600ff;
+      --accent-ink: #1d00c7;
+      --accent-soft: #eceaff;
+      --accent-ring: rgba(38, 0, 255, 0.28);
+      --ok: #1d7a4f;
+      --ok-soft: #e7f5ec;
+      --warn: #9a6200;
+      --warn-soft: #fff4de;
+      --bad: #b3261e;
+      --bad-soft: #fcebea;
+      --hl-ok: rgba(29, 122, 79, 0.12);
+      --hl-accent: rgba(38, 0, 255, 0.10);
+      --canvas: var(--ink-50);
+      --surface: var(--white);
+      --surface-sunken: var(--ink-100);
+      --border: var(--ink-200);
+      --border-soft: var(--ink-150);
+      --text: var(--ink-900);
+      --text-2: var(--ink-700);
+      --text-3: var(--ink-500);
+      --text-4: var(--ink-400);
+      --scrim: rgba(20, 20, 20, 0.45);
+      --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+      --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+      --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px;
+      --r-1: 4px; --r-2: 8px; --r-pill: 999px;
+      --ring-selected: inset 0 0 0 1px var(--accent);
+      --ring-focus: 0 0 0 3px var(--accent-ring);
+      --shadow-modal: 0 24px 64px rgba(20, 20, 20, 0.22);
+      --rail-w: 232px;
+      --topbar-h: 52px;
+      --ease: cubic-bezier(0.2, 0, 0, 1);
     }
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; }
     body {
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-      color: var(--ink);
-      background: var(--surface);
-      line-height: 1.4;
-      -webkit-font-smoothing: antialiased;
-    }
-    a { color: var(--accent); text-decoration: none; }
-    button, select, input { font: inherit; }
-
-    /* App chrome */
-    .app-header {
-      min-height: 64px;
-      display: flex;
-      align-items: center;
-      gap: 40px;
-      padding: 0 34px;
-      background: #fff;
-      border-bottom: 1px solid var(--line);
-    }
-    .brand {
-      display: flex;
-      min-height: 44px;
-      gap: 10px;
-      align-items: center;
-      color: var(--ink);
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      font-size: 13px;
-      white-space: nowrap;
-    }
-    .mark {
-      display: inline-grid;
-      place-items: center;
-      min-width: 28px;
-      height: 31px;
-      padding: 0 6px;
-      background: var(--accent);
-      color: #fff;
-      border-radius: 4px;
-      font-size: 13px;
-    }
-    .app-nav { display: flex; gap: 22px; flex: 1; }
-    .app-nav a {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      min-height: 44px;
-      color: #67717E;
+      font-family: var(--font-sans);
       font-size: 14px;
-      white-space: nowrap;
+      line-height: 1.45;
+      color: var(--text);
+      background: var(--canvas);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "cv11", "ss01";
     }
-    .app-nav a.active { color: var(--accent); font-weight: 700; }
-    .nav-badge {
-      display: inline-block;
-      min-width: 18px;
-      padding: 1px 5px;
-      border-radius: 99px;
-      background: var(--nav-badge);
-      color: #fff;
-      text-align: center;
-      font-size: 10px;
-      line-height: 1.5;
-    }
-    .account { display: flex; align-items: center; gap: 10px; }
-    select, input[type="text"], input[type="number"] {
-      min-height: 44px;
-      border: 1px solid #CFD6DD;
-      border-radius: 4px;
-      padding: 9px 10px;
-      background: #fff;
-      color: inherit;
-      font-size: 13px;
-    }
-    select:focus-visible, input:focus-visible, button:focus-visible, a:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-    .badge {
-      display: inline-block;
-      width: fit-content;
-      padding: 3px 8px;
-      border-radius: 99px;
-      background: #E6EDF4;
-      color: #3B5E7A;
-      text-transform: uppercase;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      white-space: nowrap;
-    }
-    .badge.warning, .badge.empty { background: var(--warn-bg); color: var(--warn); }
-    .badge.success, .badge.found { background: var(--ok-bg); color: var(--ok); }
-    .badge.review { background: var(--bad-bg); color: var(--bad); }
+    h1, h2, h3, p, ul, ol { margin: 0; }
+    ul, ol { padding: 0; list-style: none; }
+    button, input, select { font: inherit; color: inherit; margin: 0; }
+    button { background: none; border: 0; padding: 0; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    svg { display: block; }
+    code, kbd { font-family: var(--font-mono); font-size: 0.92em; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-1); }
+    [hidden] { display: none !important; }
 
-    main { max-width: 1120px; margin: 0 auto; padding: 46px 28px 64px; }
-    .stack { display: flex; flex-direction: column; gap: 20px; }
-    .eyebrow {
-      margin: 0 0 5px;
-      font-size: 11px;
-      letter-spacing: 0.14em;
-      color: var(--muted-2);
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-    h1 { margin: 0; font-size: 30px; letter-spacing: -0.03em; }
-    h2 { font-size: 18px; margin: 0; }
-    .muted { color: var(--muted); font-size: 12px; }
+    .demo-disclaimer { background: var(--ink-900); color: var(--white); font-size: 11px; font-weight: 600; letter-spacing: .04em; text-align: center; padding: 6px 12px; }
+    .repro-banner { display: none; background: var(--warn-soft); color: var(--warn); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; text-align: center; padding: 5px 12px; }
 
-    /* Upload */
-    .upload-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 300px));
-      gap: 16px 20px;
+    /* ---------- Shell ---------- */
+    .shell { display: grid; grid-template-columns: var(--rail-w) minmax(0, 1fr); min-height: 100vh; }
+    .rail {
+      position: sticky; top: 0; height: 100vh;
+      display: flex; flex-direction: column;
+      background: var(--surface); border-right: 1px solid var(--border); z-index: 20;
     }
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-      font-size: 13px;
-      font-weight: 700;
+    .rail__brand {
+      display: flex; align-items: center; gap: var(--s-2);
+      height: var(--topbar-h); padding: 0 var(--s-5);
+      border-bottom: 1px solid var(--border-soft);
+      font-weight: 600; font-size: 14px; letter-spacing: -0.01em;
     }
-    .field small { color: var(--muted); font-weight: 400; font-size: 11px; }
-    .dropzone {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 180px;
-      padding: 20px;
-      border: 1px dashed #9AA9B7;
-      border-radius: 7px;
-      background: #fff;
-      color: #596675;
-      gap: 8px;
-      text-align: center;
+    .rail__mark { width: 20px; height: 20px; border-radius: 5px; background: var(--ink-900); color: var(--white); display: grid; place-items: center; font-size: 10px; font-weight: 700; }
+    .rail__nav { flex: 1; overflow: auto; padding: var(--s-3); display: flex; flex-direction: column; gap: var(--s-4); }
+    .rail__group { display: flex; flex-direction: column; gap: 2px; }
+    .rail__group-label { padding: 0 var(--s-2); margin-bottom: var(--s-1); font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-4); }
+    .rail__link {
+      display: flex; align-items: center; gap: var(--s-2);
+      height: 32px; padding: 0 var(--s-2); border-radius: var(--r-1);
+      color: var(--text-2); font-size: 13px; font-weight: 500;
+      transition: background 120ms var(--ease);
     }
-    .dropzone strong { font-size: 16px; }
-    .staged-file {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 6px;
-      padding: 10px 14px;
-      border: 1px solid var(--line-soft);
-      border-radius: 5px;
-      background: var(--surface);
-      text-align: left;
-      max-width: 100%;
+    .rail__link:hover, .rail__link.active { background: var(--ink-100); color: var(--text); }
+    .rail__icon { width: 16px; height: 16px; color: var(--text-4); flex: none; }
+    .rail__link.active .rail__icon { color: var(--accent); }
+    .rail__label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rail__footer { padding: var(--s-3); border-top: 1px solid var(--border-soft); }
+    .identity {
+      position: relative; display: flex; align-items: center; gap: var(--s-2);
+      width: 100%; padding: var(--s-2); border: 1px solid var(--border); border-radius: var(--r-2); background: var(--surface);
     }
-    .file-icon {
-      display: grid;
-      place-items: center;
-      width: 32px;
-      height: 40px;
-      flex: 0 0 32px;
-      border: 1px solid #CFD6DD;
-      border-radius: 3px;
-      background: #fff;
-      color: var(--bad);
-      font-size: 9px;
-      font-weight: 800;
+    .identity:hover { border-color: var(--ink-300); }
+    .identity:focus-within { border-color: var(--accent); box-shadow: var(--ring-focus); }
+    .identity__avatar { width: 24px; height: 24px; border-radius: 50%; background: var(--ink-900); color: var(--white); display: grid; place-items: center; font-size: 11px; font-weight: 600; flex: none; }
+    .identity__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .identity__email { font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .identity__role { font-size: 11px; color: var(--text-4); text-transform: capitalize; }
+    .identity__chevron { color: var(--text-4); width: 14px; height: 14px; flex: none; }
+    .review-ws__bar-right .identity { width: auto; min-width: 180px; min-height: 44px; padding: 4px var(--s-2); }
+    .review-ws__bar-right .identity__select { inset: -1px; width: calc(100% + 2px); }
+    .identity__select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+    .main { display: flex; flex-direction: column; min-width: 0; min-height: 100vh; }
+    .topbar {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; gap: var(--s-3);
+      height: var(--topbar-h); padding: 0 var(--s-8);
+      background: var(--surface); border-bottom: 1px solid var(--border);
     }
-    .staged-file b { display: block; color: var(--ink); font-size: 13px; overflow-wrap: anywhere; }
-    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+    .crumbs { display: flex; align-items: center; gap: var(--s-2); font-size: 13px; color: var(--text-3); min-width: 0; white-space: nowrap; }
+    .crumbs__sep { color: var(--ink-300); }
+    .crumbs__current { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+    .rail__toggle { display: none; }
+    .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 40; }
+
+    /* ---------- Primitives ---------- */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 44px;
-      width: fit-content;
-      border: 0;
-      border-radius: 4px;
-      padding: 10px 16px;
-      background: var(--accent);
-      color: #fff;
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
+      --btn-bg: var(--ink-900); --btn-fg: var(--white); --btn-bd: var(--ink-900);
+      display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+      height: 32px; padding: 0 var(--s-3); border-radius: var(--r-1);
+      border: 1px solid var(--btn-bd); background: var(--btn-bg); color: var(--btn-fg);
+      font-size: 13px; font-weight: 500; line-height: 1; white-space: nowrap;
+      transition: background 120ms var(--ease), border-color 120ms var(--ease), opacity 120ms var(--ease);
     }
-    .btn:disabled { opacity: 0.6; cursor: default; }
-    .btn.secondary { background: #EEF1F4; color: #3B5E7A; }
-    .btn.danger { background: var(--bad); }
-    .spinner {
-      display: none;
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255, 255, 255, .45);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
+    .btn:hover:not(:disabled) { --btn-bg: var(--ink-700); --btn-bd: var(--ink-700); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn svg { width: 14px; height: 14px; flex: none; }
+    .btn--secondary { --btn-bg: var(--surface); --btn-fg: var(--text); --btn-bd: var(--border); }
+    .btn--secondary:hover:not(:disabled) { --btn-bg: var(--ink-50); --btn-bd: var(--ink-300); }
+    .btn--ghost { --btn-bg: transparent; --btn-fg: var(--text-2); --btn-bd: transparent; }
+    .btn--ghost:hover:not(:disabled) { --btn-bg: var(--ink-100); --btn-bd: transparent; }
+    .btn--danger-secondary { --btn-bg: var(--surface); --btn-fg: var(--bad); --btn-bd: var(--border); }
+    .btn--danger-secondary:hover:not(:disabled) { --btn-bg: var(--bad-soft); --btn-bd: var(--bad); }
+    .btn--lg { height: 40px; padding: 0 var(--s-5); font-size: 14px; }
+    .btn--icon { width: 32px; padding: 0; }
+    .btn .kbd { margin-left: var(--s-1); background: rgba(255, 255, 255, .18); color: inherit; border-color: transparent; }
+    .btn--secondary .kbd, .btn--danger-secondary .kbd { background: var(--ink-100); color: var(--text-3); }
+    .spinner { display: none; width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, .45); border-top-color: var(--white); border-radius: 50%; animation: spin .8s linear infinite; }
     .btn.busy .spinner { display: inline-block; }
+    .btn.busy .btn__icon { display: none; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .progress { color: var(--muted); font-size: 13px; display: flex; gap: 10px; align-items: center; }
-    .progress .elapsed { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--ink); }
+    .kbd {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; padding: 0 5px;
+      border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px;
+      background: var(--surface); color: var(--text-3); font-size: 11px; line-height: 1;
+    }
+    .pill {
+      --pill-bg: var(--ink-100); --pill-fg: var(--text-2); --pill-dot: var(--ink-400);
+      display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 var(--s-2);
+      border-radius: var(--r-pill); background: var(--pill-bg); color: var(--pill-fg);
+      font-size: 12px; font-weight: 500; line-height: 1; white-space: nowrap;
+    }
+    .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--pill-dot); flex: none; }
+    .pill--nodot::before { display: none; }
+    .pill--ok { --pill-bg: var(--ok-soft); --pill-fg: var(--ok); --pill-dot: var(--ok); }
+    .pill--warn { --pill-bg: var(--warn-soft); --pill-fg: var(--warn); --pill-dot: var(--warn); }
+    .pill--bad { --pill-bg: var(--bad-soft); --pill-fg: var(--bad); --pill-dot: var(--bad); }
+    .pill--count { min-width: 20px; height: 18px; padding: 0 6px; justify-content: center; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .mono { font-family: var(--font-mono); font-size: .92em; color: var(--text-3); }
+    .eyebrow { display: block; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+    .muted { color: var(--text-3); }
+    .small { font-size: 12px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); }
+    .card__header { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) var(--s-5); min-height: 44px; border-bottom: 1px solid var(--border-soft); }
+    .card__title { font-size: 13px; font-weight: 600; }
+    .card__body { padding: var(--s-5); }
+    .card__footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3); padding: var(--s-3) var(--s-5); border-top: 1px solid var(--border-soft); background: var(--ink-50); border-radius: 0 0 var(--r-2) var(--r-2); }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .field__label { font-size: 12px; font-weight: 500; color: var(--text-2); }
+    .field__help { font-size: 12px; color: var(--text-4); }
+    .input, .select {
+      width: 100%; min-width: 0; height: 32px; padding: 0 var(--s-3);
+      border: 1px solid var(--border); border-radius: var(--r-1); background: var(--surface);
+      color: var(--text); font-size: 13px; transition: border-color 120ms var(--ease);
+    }
+    .input::placeholder { color: var(--text-4); }
+    .input:hover, .select:hover { border-color: var(--ink-300); }
+    .input:focus-visible, .select:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--ring-focus); }
+    .meter { display: inline-flex; align-items: center; gap: var(--s-2); min-width: 96px; }
+    .meter__track { display: block; flex: 1; height: 4px; min-width: 56px; border-radius: var(--r-pill); background: var(--ink-150); overflow: hidden; }
+    .meter__fill { display: block; height: 100%; border-radius: var(--r-pill); background: var(--ok); }
+    .meter__value { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-2); }
+
+    /* ---------- Page ---------- */
+    .page { display: flex; flex-direction: column; gap: var(--s-6); width: 100%; max-width: 1240px; padding: var(--s-6) var(--s-8) var(--s-10); }
+    .page-header { display: flex; flex-direction: column; gap: var(--s-1); }
+    .page-header__title { font-family: var(--font-serif); font-weight: 500; font-size: 28px; letter-spacing: -0.01em; line-height: 1.2; }
+    .page-header__desc { font-size: 13px; color: var(--text-3); max-width: 64ch; }
+    .upload-layout { display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: var(--s-4); align-items: start; }
+    .side-stack { display: flex; flex-direction: column; gap: var(--s-4); }
+    .upload-form { display: flex; flex-direction: column; gap: var(--s-4); }
+    .options-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); }
+    .dropzone {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-2);
+      padding: var(--s-8) var(--s-6); border: 1px dashed var(--ink-300); border-radius: var(--r-2);
+      background: var(--surface); text-align: center; color: var(--text-3);
+      transition: border-color 120ms var(--ease), background 120ms var(--ease);
+    }
+    .dropzone:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
+    .dropzone__title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .dropzone__hint { font-size: 12px; }
+    .table-wrap { border: 1px solid var(--border); border-radius: var(--r-2); overflow-x: auto; }
+    .table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .table th { text-align: left; padding: var(--s-2) var(--s-4); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-4); background: var(--ink-50); border-bottom: 1px solid var(--border-soft); white-space: nowrap; }
+    .table td { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+    .table tr:last-child td { border-bottom: 0; }
+    .table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .file-cell { display: flex; align-items: center; gap: var(--s-2); min-width: 0; font-weight: 500; overflow-wrap: anywhere; }
+    .file-cell svg { width: 16px; height: 16px; color: var(--text-4); flex: none; }
+    .footer-status { display: flex; align-items: center; gap: var(--s-2); font-size: 13px; color: var(--text-3); }
+    .footer-status .elapsed { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text); }
+    .steps { display: flex; flex-direction: column; gap: var(--s-4); }
+    .steps__item { display: grid; grid-template-columns: 24px 1fr; gap: var(--s-3); }
+    .steps__num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid var(--border); border-radius: 50%; background: var(--surface-sunken); color: var(--text-2); font-family: var(--font-mono); font-size: 11px; font-weight: 600; }
+    .steps__title { font-size: 13px; font-weight: 500; }
+    .steps__body { font-size: 12px; color: var(--text-3); }
+    .batch-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) var(--s-5); border-bottom: 1px solid var(--border-soft); }
+    .batch-list li:last-child { border-bottom: 0; }
+    .batch-list b { display: block; font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+    .batch-list .mono { font-size: 11px; }
+    .empty { display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding: var(--s-8) var(--s-6); text-align: center; }
+    .empty svg { width: 20px; height: 20px; color: var(--text-4); }
+    .empty__title { font-size: 14px; font-weight: 500; }
+    .empty__desc { font-size: 13px; color: var(--text-3); max-width: 44ch; }
+    .empty--compact { padding: var(--s-5); }
     .result-box:empty { display: none; }
     .result-box {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 12px 22px;
-      padding: 14px 16px;
-      background: #fff;
-      border: 1px solid var(--line-soft);
-      border-radius: 5px;
-      font-size: 13px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-5);
+      padding: var(--s-3) var(--s-4); background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--r-2); font-size: 13px;
     }
-    .result-box.notice { background: #FFF8E8; border-color: #E7C477; color: #6F4A00; }
-    .result-box .file-name { flex: 1 1 220px; font-weight: 650; overflow-wrap: anywhere; }
-    .result-box code { color: var(--muted); font-size: 12px; }
+    .result-box.notice { background: var(--warn-soft); border-color: var(--border-soft); color: var(--warn); }
+    .result-box .file-name { flex: 1 1 220px; font-weight: 500; overflow-wrap: anywhere; }
+    .result-box code { color: var(--text-3); font-size: 12px; }
 
-    /* Review console */
-    .review-shell {
-      display: flex;
-      flex-direction: column;
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      overflow: hidden;
+    /* ---------- Review workspace ---------- */
+    body.ws-mode { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    body.ws-mode .shell { grid-template-columns: minmax(0, 1fr); flex: 1; min-height: 0; }
+    body.ws-mode .rail, body.ws-mode .topbar { display: none; }
+    body.ws-mode .main { min-height: 0; }
+    body.ws-mode .content, body.ws-mode #reviewView { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .content { flex: 1; display: flex; flex-direction: column; }
+    .review-ws { display: flex; flex-direction: column; flex: 1; min-height: 0; background: var(--canvas); }
+    .review-ws__bar {
+      display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+      flex: none; height: var(--topbar-h); padding: 0 var(--s-4);
+      background: var(--surface); border-bottom: 1px solid var(--border);
     }
-    .review-header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px 18px;
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--line);
-    }
-    .review-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; color: var(--muted); font-size: 13px; }
-    .shortcut-hint { color: var(--accent); font-weight: 700; }
-    .review-split { display: grid; grid-template-columns: 3fr 2fr; min-height: 0; }
-    .review-viewer { min-width: 0; padding: 18px; background: var(--chrome-bg); }
-    .paper {
-      max-width: 560px;
-      margin: 0 auto;
-      padding: 28px 30px 22px;
-      background: #fff;
-      color: #111;
-      font-size: 10px;
-      box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
-    }
-    .paper-title { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+    .review-ws__bar-left, .review-ws__bar-right { display: flex; align-items: center; gap: var(--s-2); min-width: 0; }
+    .review-ws__bar-right { flex: none; }
+    .review-ws__title { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .review-ws__meta { display: flex; align-items: center; gap: var(--s-2); min-width: 0; font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; }
+    .review-ws__meta h2 { font-size: inherit; font-weight: inherit; }
+    .review-ws__sep { color: var(--ink-300); }
+    .review-ws__body { display: grid; grid-template-columns: 92px minmax(0, 1fr) 420px; flex: 1; min-height: 0; }
+    .review-ws__rail { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3) var(--s-2); overflow: auto; background: var(--surface); border-right: 1px solid var(--border); }
+    .thumb { display: flex; flex-direction: column; align-items: center; gap: var(--s-1); padding: var(--s-1); border: 1px solid var(--border); border-radius: var(--r-2); background: var(--surface); font-size: 11px; color: var(--text-3); flex: none; }
+    .thumb--active { border-color: var(--accent); box-shadow: var(--ring-selected); color: var(--text); }
+    .thumb__page { width: 56px; height: 72px; padding: 6px 5px; border: 1px solid var(--border-soft); background: var(--white); display: flex; flex-direction: column; gap: 3px; }
+    .thumb__page i { display: block; height: 2px; background: var(--ink-200); }
+    .thumb__page i:nth-child(1) { width: 60%; height: 3px; background: var(--ink-400); }
+    .thumb__page i:nth-child(3n) { width: 80%; }
+    .review-ws__canvas { display: flex; flex-direction: column; gap: var(--s-2); min-width: 0; min-height: 0; padding: var(--s-3) var(--s-4); overflow: hidden; }
+    .viewer-toolbar { display: flex; align-items: center; gap: var(--s-3); flex: none; font-size: 12px; color: var(--text-2); }
+    .viewer-toolbar .spacer { flex: 1; }
+    .viewer-toolbar label { display: inline-flex; align-items: center; gap: var(--s-2); color: var(--text-3); }
+    .viewer-scroll { flex: 1; min-height: 0; overflow: auto; padding: var(--s-4); background: var(--ink-100); border: 1px solid var(--border); border-radius: var(--r-2); }
+    .paper { max-width: 640px; margin: 0 auto; padding: 32px 36px 24px; background: var(--white); color: #111; font-size: 10.5px; border: 1px solid var(--border-soft); box-shadow: 0 1px 2px rgba(20, 20, 20, .08); }
+    .paper-title { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
     .paper-title b { font-size: 13px; }
-    .paper-title span { text-align: right; font-weight: 700; font-size: 11px; }
+    .paper-title span { text-align: right; font-weight: 700; font-size: 12px; }
     .paper p { margin: 0 0 8px; color: #333; }
-    .paper-section { display: flex; gap: 10px; align-items: baseline; margin: 12px 0 8px; padding-top: 6px; border-top: 2px solid #333; }
+    .paper-section { display: flex; gap: 10px; align-items: baseline; margin: 14px 0 8px; padding-top: 6px; border-top: 2px solid var(--ink-900); }
     .paper-section em { font-style: normal; font-size: 22px; font-weight: 700; line-height: 1; }
     .paper-section b { font-size: 11px; }
     .paper-row { display: grid; gap: 8px; margin-bottom: 8px; }
     .paper-row.c2 { grid-template-columns: 2fr 1fr; }
     .paper-row.c3 { grid-template-columns: 2fr 1.2fr .6fr; }
     .box { position: relative; min-height: 18px; padding: 2px 4px; border-bottom: 1px solid #555; }
-    .box.filled { border: 1px solid #D28A00; background: rgb(210 138 0 / 6%); }
-    .box.missing { border: 2px solid var(--accent); background: rgb(32 104 168 / 10%); }
+    .box.filled { background: var(--hl-ok); border-bottom-color: var(--ok); }
+    .box.focused { background: var(--hl-accent); outline: 1px solid var(--accent); }
     .box label { display: block; position: absolute; top: 100%; left: 0; color: #666; font-size: 8px; padding-top: 1px; }
-    .review-panel { display: flex; flex-direction: column; min-width: 0; border-left: 1px solid var(--line); }
-    .pipeline-tracker {
-      position: relative;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      padding: 16px 20px;
-      background: #F8FAFB;
-      border-bottom: 1px solid var(--line-soft);
-    }
-    .pipeline-tracker::before {
-      content: "";
-      position: absolute;
-      top: 23px;
-      left: 11%;
-      right: 11%;
-      height: 2px;
-      background: var(--line);
-    }
-    .pipeline-step { position: relative; z-index: 1; display: flex; gap: 8px; align-items: flex-start; min-width: 0; }
-    .pipeline-step > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-    .pipeline-step b { font-size: 12px; }
-    .pipeline-step small { color: var(--muted-2); font-size: 9px; font-weight: 800; letter-spacing: .02em; }
-    .pipeline-dot { width: 14px; height: 14px; flex: 0 0 14px; margin-top: 1px; border: 3px solid #CFD6DD; border-radius: 50%; background: #fff; }
-    .pipeline-step.done .pipeline-dot { border-color: var(--ok); background: var(--ok); }
-    .pipeline-step.active .pipeline-dot { border-color: #D28A00; background: var(--warn-bg); box-shadow: 0 0 0 4px rgb(210 138 0 / 15%); }
-    .pipeline-step.active b { color: var(--warn); }
-    .review-panel-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 18px 20px; border-bottom: 1px solid var(--line-soft); }
-    .review-panel-heading h2 { font-size: 18px; margin-top: 4px; }
-    .review-fields { padding: 10px; max-height: 520px; overflow: auto; }
-    .review-field {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 8px;
-      padding: 13px;
-      background: #fff;
-      border: 1px solid var(--line-soft);
-      border-radius: 4px;
-    }
-    .review-field.focused { border-color: var(--accent); box-shadow: 0 0 0 2px #D9EAFA; }
-    .review-field-title, .review-field-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-    .review-field-title { font-weight: 650; font-size: 13px; }
-    .review-field-value { min-height: 22px; font-size: 15px; }
-    .review-field-meta { color: var(--muted); font-size: 12px; }
-    .review-field-meta progress { width: 70px; accent-color: var(--ok); }
-    .decision-bar { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px; border-top: 1px solid var(--line); }
-    .decision-bar input { flex: 1 1 140px; min-width: 0; }
-    kbd { padding: 1px 5px; border: 1px solid #B8C2CC; border-radius: 3px; background: var(--surface); color: #596675; font-size: 11px; }
-    .outcome-banner { margin: 0 14px 14px; padding: 12px 14px; border-radius: 5px; font-size: 13px; }
+    .review-ws__panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--surface); border-left: 1px solid var(--border); }
+    .review-ws__pipeline { display: flex; flex: none; gap: var(--s-4); padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--border-soft); overflow-x: auto; }
+    .pipeline-step { display: flex; flex: 1 1 0; align-items: flex-start; gap: var(--s-2); min-width: 0; font-size: 12px; }
+    .pipeline-step > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .pipeline-step b { font-weight: 600; }
+    .pipeline-step small { font-size: 11px; color: var(--text-4); }
+    .pipeline-dot { flex: none; width: 8px; height: 8px; margin-top: 5px; border-radius: var(--r-pill); background: var(--ink-300); }
+    .pipeline-step.done .pipeline-dot { background: var(--ok); }
+    .pipeline-step.active .pipeline-dot { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .review-ws__panel-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); flex: none; padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--border-soft); }
+    .review-ws__panel-title { display: flex; align-items: center; gap: var(--s-2); font-size: 14px; font-weight: 600; }
+    .review-ws__assignee { font-size: 12px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .review-ws__progress { display: flex; flex-direction: column; gap: var(--s-1); flex: none; padding: var(--s-2) var(--s-4); font-size: 12px; color: var(--text-3); border-bottom: 1px solid var(--border-soft); }
+    .review-ws__progress-track { height: 4px; border-radius: var(--r-pill); background: var(--ink-150); overflow: hidden; }
+    .review-ws__progress-fill { display: block; height: 100%; width: 100%; background: var(--ok); border-radius: var(--r-pill); }
+    .review-ws__scroll { flex: 1; min-height: 0; overflow: auto; padding: var(--s-3) var(--s-4) var(--s-4); display: flex; flex-direction: column; gap: var(--s-4); }
+    .review-ws__done { padding: var(--s-3) var(--s-4); font-size: 13px; color: var(--ok); background: var(--ok-soft); border: 1px solid var(--border-soft); border-radius: var(--r-2); }
+    .review-ws__group { display: flex; flex-direction: column; gap: var(--s-2); }
+    .review-ws__group-label { display: flex; align-items: center; gap: var(--s-2); font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-4); }
+    .review-fields { display: flex; flex-direction: column; gap: var(--s-2); }
+    .review-field { display: flex; flex-direction: column; gap: var(--s-1); width: 100%; padding: var(--s-3); text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-2); transition: border-color 120ms var(--ease); }
+    .review-field:hover { border-color: var(--ink-300); }
+    .review-field.focused { border-color: var(--accent); box-shadow: var(--ring-selected); }
+    .review-field-label { font-size: 12px; font-weight: 500; color: var(--text-2); }
+    .review-field-label .req { color: var(--text-4); margin-left: 4px; }
+    .review-field-value { min-height: 20px; font-family: var(--font-mono); font-size: 13px; word-break: break-word; }
+    .review-field-meta { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; font-size: 12px; color: var(--text-4); }
+    .outcome-banner { padding: var(--s-3) var(--s-4); border: 1px solid var(--border-soft); border-radius: var(--r-2); font-size: 13px; }
     .outcome-banner:empty { display: none; }
-    .outcome-banner.approved { background: var(--ok-bg); color: var(--ok); }
-    .demo-disclaimer { background: #202733; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-align: center; padding: 6px 12px; }
-    .repro-banner { background: #FFF4D6; color: #6B4E00; font-size: 12px; font-weight: 700; text-align: center; padding: 4px; display: none; }
-    .outcome-banner.rejected { background: var(--bad-bg); color: var(--bad); }
-    .empty-state { padding: 40px 24px; text-align: center; color: var(--muted); font-size: 14px; }
-    [hidden] { display: none !important; }
+    .outcome-banner.approved { background: var(--ok-soft); color: var(--ok); }
+    .outcome-banner.rejected { background: var(--bad-soft); color: var(--bad); }
+    .review-ws__decision { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-2); flex: none; position: sticky; bottom: 0; z-index: 10; padding: var(--s-3) var(--s-4); background: var(--surface); border-top: 1px solid var(--border); }
+    .review-ws__decision .input { flex: 1 1 120px; width: auto; }
+    .review-ws__hint { flex: 1 1 100%; font-size: 11px; color: var(--text-4); }
 
+    @media (max-width: 1100px) {
+      .review-ws__body { grid-template-columns: 76px minmax(0, 1fr) 360px; }
+      .upload-layout { grid-template-columns: minmax(0, 1fr) 320px; }
+    }
+    @media (max-width: 960px) {
+      .shell { grid-template-columns: minmax(0, 1fr); }
+      .rail { position: fixed; inset: 0 auto 0 0; width: var(--rail-w); transform: translateX(-100%); transition: transform 200ms var(--ease); }
+      .rail--open { transform: none; z-index: 41; box-shadow: var(--shadow-modal); }
+      .rail__toggle { display: inline-flex; }
+      .topbar { padding: 0 var(--s-4); }
+      .upload-layout { grid-template-columns: minmax(0, 1fr); }
+    }
     @media (max-width: 860px) {
-      .app-header { flex-wrap: wrap; gap: 0 16px; padding: 10px 16px 0; }
-      .app-nav { order: 3; flex: 1 0 100%; gap: 18px; overflow-x: auto; scrollbar-width: none; }
-      .app-nav::-webkit-scrollbar { display: none; }
-      .account { margin-left: auto; }
-      .account select { display: none; }
-      main { padding: 28px 16px 48px; }
-      .upload-grid { grid-template-columns: 1fr; }
-      .review-split { grid-template-columns: 1fr; }
-      .review-panel { border-left: 0; border-top: 1px solid var(--line); }
+      body.ws-mode { height: auto; display: block; overflow: visible; }
+      body.ws-mode .shell { min-height: 100vh; }
+      .page { padding: var(--s-5) var(--s-4) var(--s-8); }
+      .options-grid { grid-template-columns: minmax(0, 1fr); }
+      .review-ws__bar { height: auto; min-height: var(--topbar-h); padding: var(--s-2) var(--s-3); flex-wrap: wrap; }
+      .review-ws__bar-left { flex: 1 1 100%; flex-wrap: wrap; }
+      .review-ws__meta { flex: 1 1 100%; flex-wrap: wrap; white-space: normal; }
+      .review-ws__bar-right { flex: 1 1 100%; }
+      .review-ws__body { grid-template-columns: minmax(0, 1fr); }
+      .review-ws__rail { flex-direction: row; padding: var(--s-2) var(--s-3); border-right: 0; border-bottom: 1px solid var(--border); }
+      .review-ws__canvas { height: 60vh; padding: var(--s-3); }
+      .review-ws__panel { border-left: 0; border-top: 1px solid var(--border); }
+      .review-ws__pipeline { flex-wrap: wrap; }
+      .review-ws__scroll { overflow: visible; }
       .paper { padding: 18px 16px; }
       .paper-row.c3 { grid-template-columns: 1fr 1fr; }
-      .pipeline-tracker { gap: 6px; padding-inline: 10px; }
-      .btn { flex: 1 1 auto; }
+      .btn, .input, .select, .rail__link { min-height: 44px; }
+      .btn--icon { min-width: 44px; }
+      .review-ws__decision .btn { flex: 1 1 auto; }
+      .card__footer .btn { flex: 1 1 100%; }
     }
   </style>
 </head>
 <body>
   <div class="demo-disclaimer" role="note">NOT ACTUALLY AN INTAKE FACTORY SITE — demo only, not a production Intake Factory deployment. All documents and data are fictional.</div>
   <div class="repro-banner" id="repro-banner">Reproduction mode — approvals fail exactly as in production but raise no alert</div>
-  <header class="app-header">
-    <a class="brand" href="#upload" data-view="upload"><span class="mark">IF</span><span>INTAKE FACTORY</span></a>
-    <nav class="app-nav" aria-label="Primary">
-      <a href="#upload" data-view="upload" class="active" aria-current="page">Upload</a>
-      <a href="#upload" data-view="upload">Documents</a>
-      <a href="#upload" data-view="upload">Dashboard</a>
-      <a href="#review" data-view="review">Review <span class="nav-badge" id="reviewBadge" hidden>1</span></a>
-      <a href="#upload" data-view="upload">Outbox</a>
-      <a href="#upload" data-view="upload">Doc types</a>
-    </nav>
-    <div class="account">
-      <select id="signInAs" aria-label="Sign in as">
-        <option value="reviewer@demo">reviewer@demo</option>
-        <option value="supervisor@demo">supervisor@demo</option>
-        <option value="admin@demo" selected>admin@demo</option>
-      </select>
-      <span class="badge" data-role-badge>admin</span>
+  <div class="shell">
+    <aside class="rail" id="rail" aria-label="Navigation">
+      <a class="rail__brand" href="#upload" data-view="upload"><span class="rail__mark" aria-hidden="true">IF</span>Intake Factory</a>
+      <nav class="rail__nav" aria-label="Primary">
+        <div class="rail__group">
+          <span class="rail__group-label">Operate</span>
+          <a class="rail__link active" href="#upload" data-view="upload" data-nav="upload" aria-current="page"><svg class="rail__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0 4 4m-4-4-4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><span class="rail__label">Upload</span></a>
+          <a class="rail__link" href="#upload" data-view="upload"><svg class="rail__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h6l5 5v12a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm6 0v5h5M4 7v13a1 1 0 0 0 1 1h11"/></svg><span class="rail__label">Documents</span></a>
+          <a class="rail__link" href="#review" data-view="review" data-nav="review"><svg class="rail__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="rail__label">Review</span><span class="pill pill--warn pill--count pill--nodot" id="reviewBadge" hidden>1</span></a>
+        </div>
+        <div class="rail__group">
+          <span class="rail__group-label">Deliver</span>
+          <a class="rail__link" href="#upload" data-view="upload"><svg class="rail__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.5 5h13l3.5 7v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-7l3.5-7Z"/></svg><span class="rail__label">Outbox</span></a>
+        </div>
+        <div class="rail__group">
+          <span class="rail__group-label">Configure</span>
+          <a class="rail__link" href="#upload" data-view="upload"><svg class="rail__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7.4-3a7.4 7.4 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7.6 7.6 0 0 0-1.7-1L14.8 3H9.2l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.5L4.7 11a7.4 7.4 0 0 0 0 2l-2 1.5 2 3.5 2.4-1c.5.4 1.1.7 1.7 1l.4 2.5h5.6l.4-2.5c.6-.3 1.2-.6 1.7-1l2.4 1 2-3.5-2-1.5c.1-.3.1-.7.1-1Z"/></svg><span class="rail__label">Document types</span></a>
+        </div>
+        <div class="rail__group">
+          <span class="rail__group-label">Insights</span>
+          <a class="rail__link" href="#upload" data-view="upload"><svg class="rail__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18M7 15l4-5 4 3 5-7"/></svg><span class="rail__label">Dashboard</span></a>
+        </div>
+      </nav>
+      <div class="rail__footer" id="railFooter">
+        <div class="identity" id="identitySwitcher">
+          <span class="identity__avatar" id="identityAvatar" aria-hidden="true">A</span>
+          <span class="identity__text"><span class="identity__email" id="identityEmail">admin@demo</span><span class="identity__role" data-role-badge>admin</span></span>
+          <svg class="identity__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg>
+          <select class="identity__select" id="signInAs" aria-label="Sign in as">
+            <option value="reviewer@demo">reviewer@demo</option>
+            <option value="supervisor@demo">supervisor@demo</option>
+            <option value="admin@demo" selected>admin@demo</option>
+          </select>
+        </div>
+      </div>
+    </aside>
+    <div class="scrim" id="scrim" hidden></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button type="button" class="btn btn--ghost btn--icon rail__toggle" id="railToggle" aria-label="Open navigation" aria-controls="rail" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <nav class="crumbs" aria-label="Breadcrumb"><span>Operate</span><span class="crumbs__sep" aria-hidden="true">/</span><span class="crumbs__current" id="crumbCurrent">Upload</span></nav>
+      </header>
+
+      <main class="content" id="main">
+        <section class="page" id="uploadView">
+          <header class="page-header">
+            <span class="eyebrow">Operate</span>
+            <h1 class="page-header__title">Upload</h1>
+            <p class="page-header__desc">Drop PDFs, scans or fillable forms. Each file is OCR'd, classified and extracted, then auto-approved or routed to review.</p>
+          </header>
+
+          <div class="upload-layout">
+            <div class="side-stack">
+              <form id="uploadForm" class="card" novalidate>
+                <div class="card__body upload-form">
+                  <label class="field" for="senderName"><span class="field__label">Sender</span>
+                    <input class="input" type="text" id="senderName" value="Shah Household Trust" placeholder="AcmeBank" autocomplete="off">
+                    <span class="field__help">Optional. Used to apply sender-specific defaults and reporting.</span>
+                  </label>
+                  <div class="options-grid">
+                    <label class="field" for="intakeChannel"><span class="field__label">Intake channel</span>
+                      <select class="select" id="intakeChannel">
+                        <option value="console">Operator upload (console)</option>
+                        <option value="mailroom">Inbox watcher (mailroom scan)</option>
+                      </select>
+                    </label>
+                    <label class="field" for="docType"><span class="field__label">Expected document type</span>
+                      <select class="select" id="docType">
+                        <option value="tod_registration">TOD Registration Request</option>
+                      </select>
+                    </label>
+                    <label class="field" for="extractionLane"><span class="field__label">Extraction lane</span>
+                      <select class="select" id="extractionLane">
+                        <option value="standard">Standard &mdash; OCR, classify, extract, AI review</option>
+                        <option value="premium">Verified sender &mdash; pre-cleared template</option>
+                        <option value="basic">Batch &mdash; overnight run</option>
+                      </select>
+                    </label>
+                    <label class="field" for="pageCount"><span class="field__label">Pages</span>
+                      <input class="input" type="number" id="pageCount" value="4" min="1" max="200" step="1" required>
+                      <span class="field__help">Detected from the staged file; adjust for multi-part scans.</span>
+                    </label>
+                  </div>
+                  <div class="dropzone" role="group" aria-label="Files">
+                    <span class="dropzone__title">Drop files here or browse</span>
+                    <span class="dropzone__hint">PDF, TIFF, PNG or JPEG</span>
+                  </div>
+                  <div class="table-wrap">
+                    <table class="table">
+                      <thead><tr><th scope="col">File</th><th scope="col" class="num">Pages</th><th scope="col" class="num">Size</th><th scope="col">Status</th></tr></thead>
+                      <tbody>
+                        <tr>
+                          <td><span class="file-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8l-4-5Zm0 0v5h4"/></svg><span id="stagedName">tod-registration-shah.pdf</span></span></td>
+                          <td class="num" id="stagedPages">4</td>
+                          <td class="num">1.2 MB</td>
+                          <td><span class="pill" id="stagedState">Ready</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="card__footer">
+                  <span class="footer-status"><span id="uploadStatus" role="status" aria-live="polite">1 file ready to ingest</span><span class="elapsed" id="uploadElapsed"></span></span>
+                  <button type="submit" class="btn" id="submitBtn"><span class="spinner" aria-hidden="true"></span><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0 4 4m-4-4-4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><span id="submitLabel">Ingest files</span></button>
+                </div>
+              </form>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            </div>
+
+            <div class="side-stack">
+              <section class="card" aria-labelledby="nextTitle">
+                <div class="card__header"><h2 class="card__title" id="nextTitle">What happens next</h2></div>
+                <ol class="card__body steps">
+                  <li class="steps__item"><span class="steps__num">1</span><div><div class="steps__title">OCR</div><div class="steps__body">Pages are rasterised and read; fillable forms are read from their fields directly.</div></div></li>
+                  <li class="steps__item"><span class="steps__num">2</span><div><div class="steps__title">Classify &amp; extract</div><div class="steps__body">The document type is detected and its fields are extracted with evidence.</div></div></li>
+                  <li class="steps__item"><span class="steps__num">3</span><div><div class="steps__title">Route</div><div class="steps__body">Clean documents are auto-approved; anything uncertain lands in the review queue.</div></div></li>
+                </ol>
+              </section>
+              <section class="card" aria-labelledby="batchesTitle">
+                <div class="card__header"><h2 class="card__title" id="batchesTitle">Recent batches</h2></div>
+                <ul class="batch-list" id="recentBatches"></ul>
+                <div class="empty empty--compact" id="batchesEmpty"><span class="empty__desc">No batches yet. Ingested files appear here.</span></div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <section id="reviewView" hidden>
+          <div class="page" id="reviewEmpty">
+            <header class="page-header">
+              <span class="eyebrow">Operate</span>
+              <h1 class="page-header__title">Review</h1>
+              <p class="page-header__desc">Documents with unresolved exceptions wait here for a reviewer decision.</p>
+            </header>
+            <div class="card empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              <span class="empty__title">The review queue is empty</span>
+              <span class="empty__desc">Upload a document to extract its fields.</span>
+              <a class="btn btn--secondary" href="#upload" data-view="upload">Go to Upload</a>
+            </div>
+          </div>
+
+          <div class="review-ws" id="reviewConsole" hidden>
+            <div class="review-ws__bar">
+              <div class="review-ws__bar-left">
+                <a class="btn btn--ghost btn--icon" href="#upload" data-view="upload" aria-label="Back to upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></a>
+                <span class="review-ws__title" id="reviewFile">tod-registration-shah.pdf</span>
+                <span class="pill pill--warn" id="reviewState">Needs review</span>
+                <div class="review-ws__meta">
+                  <h2 id="reviewDocType">TOD Registration Request</h2>
+                  <span class="review-ws__sep" aria-hidden="true">&middot;</span>
+                  <span class="mono" id="reviewDocId"></span>
+                  <span class="review-ws__sep" aria-hidden="true">&middot;</span>
+                  <span id="reviewSender"></span>
+                  <span class="review-ws__sep" aria-hidden="true">&middot;</span>
+                  <span>just now</span>
+                </div>
+              </div>
+              <div class="review-ws__bar-right" id="wsBarRight">
+                <span class="pill pill--nodot" data-role-badge>admin</span>
+              </div>
+            </div>
+            <div class="review-ws__body">
+              <div class="review-ws__rail" id="thumbRail" aria-label="Pages"></div>
+              <div class="review-ws__canvas">
+                <div class="viewer-toolbar"><span>Fit</span><span>100%</span><span class="spacer"></span><span class="muted" id="pageLabel">Page 1 of 4</span></div>
+                <div class="viewer-scroll">
+                  <div class="paper" aria-label="Page 1">
+                    <div class="paper-title"><b>Beneficiary Services</b><span>Transfer on Death (TOD)<br>Registration Request</span></div>
+                    <p>This form can only be used for accounts that are established as either Individual or Joint Tenants With Rights of Survivorship.</p>
+                    <div class="paper-section"><em>1</em><b>Account information and state of residence</b></div>
+                    <div class="paper-row c2">
+                      <div class="box filled focused">Priya N. Shah<label>Name of account owner</label></div>
+                      <div class="box"><label>Name of account co-owner (if applicable)</label></div>
+                    </div>
+                    <div class="paper-row c3" style="margin-top:14px">
+                      <div class="box filled">418 Maple Grove Ln<label>Address</label></div>
+                      <div class="box filled">Carmel<label>City</label></div>
+                      <div class="box filled">IN<label>State</label></div>
+                    </div>
+                    <div class="paper-row c2" style="margin-top:14px">
+                      <div class="box filled">priya.shah@example.com<label>Email address</label></div>
+                      <div class="box filled">50917-2214<label>Account number</label></div>
+                    </div>
+                    <div class="paper-section" style="margin-top:20px"><em>2</em><b>Beneficiary designation</b></div>
+                    <div class="paper-row c3">
+                      <div class="box filled">Arjun Shah<label>Primary beneficiary 1</label></div>
+                      <div class="box filled">Child<label>Relationship</label></div>
+                      <div class="box filled">60%<label>Whole %</label></div>
+                    </div>
+                    <div class="paper-row c3" style="margin-top:14px">
+                      <div class="box filled">Meera Shah<label>Primary beneficiary 2</label></div>
+                      <div class="box filled">Child<label>Relationship</label></div>
+                      <div class="box filled">40%<label>Whole %</label></div>
+                    </div>
+                    <div class="paper-section" style="margin-top:20px"><em>3</em><b>Signature</b></div>
+                    <div class="paper-row c2">
+                      <div class="box filled" style="font-family:cursive">Priya N. Shah<label>Signature of account owner</label></div>
+                      <div class="box filled">09/28/2026<label>Date (mm/dd/yyyy)</label></div>
+                    </div>
+                    <p style="margin-top:18px;text-align:right;color:#666" id="paperFooter">1 of 4</p>
+                  </div>
+                </div>
+              </div>
+              <div class="review-ws__panel">
+                <div class="review-ws__pipeline">
+                  <div class="pipeline-step done"><span class="pipeline-dot" aria-hidden="true"></span><div><b>OCR complete</b><small>Complete</small></div></div>
+                  <div class="pipeline-step done"><span class="pipeline-dot" aria-hidden="true"></span><div><b>AI review</b><small>Not needed &mdash; all fields clean</small></div></div>
+                  <div class="pipeline-step active" id="humanStep"><span class="pipeline-dot" aria-hidden="true"></span><div><b>Human review</b><small id="humanDetail">Pending</small></div></div>
+                </div>
+                <div class="review-ws__panel-head">
+                  <span class="review-ws__panel-title">Exceptions <span class="pill pill--ok pill--count pill--nodot" id="exceptionCount">0</span></span>
+                  <span class="review-ws__assignee" id="assignedTo">Assigned to admin@demo</span>
+                </div>
+                <div class="review-ws__progress">
+                  <span id="progressText">10 of 10 fields handled &middot; 0 need attention</span>
+                  <div class="review-ws__progress-track"><span class="review-ws__progress-fill"></span></div>
+                </div>
+                <div class="review-ws__scroll">
+                  <div class="outcome-banner" id="outcome" role="status" aria-live="polite"></div>
+                  <div class="review-ws__done" id="doneHint">All exceptions handled &mdash; ready to approve.</div>
+                  <div class="review-ws__group">
+                    <span class="review-ws__group-label">Accepted automatically <span class="pill pill--count pill--nodot" id="acceptedCount">10</span></span>
+                    <div class="review-fields" id="reviewFields"></div>
+                  </div>
+                </div>
+                <div class="review-ws__decision">
+                  <button type="button" class="btn" id="approveBtn" aria-describedby="approveHint"><span class="spinner" aria-hidden="true"></span><svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Approve <kbd class="kbd">a</kbd></button>
+                  <input class="input" type="text" id="rejectReason" placeholder="Reject reason" aria-label="Reject reason">
+                  <button type="button" class="btn btn--danger-secondary" id="rejectBtn">Reject <kbd class="kbd">r</kbd></button>
+                  <p class="review-ws__hint" id="approveHint">Approving releases the request to the outbox for the registration system.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
-  </header>
-
-  <main>
-    <section class="stack" id="uploadView">
-      <div>
-        <p class="eyebrow">Ingestion</p>
-        <h1>Upload documents</h1>
-      </div>
-
-      <form id="uploadForm" class="stack" novalidate>
-        <div class="upload-grid">
-          <label class="field" for="senderName">Sender name
-            <input type="text" id="senderName" value="Shah Household Trust" placeholder="AcmeBank" autocomplete="off">
-          </label>
-          <label class="field" for="intakeChannel">Intake channel
-            <select id="intakeChannel">
-              <option value="console">Operator upload (console)</option>
-              <option value="mailroom">Inbox watcher (mailroom scan)</option>
-            </select>
-          </label>
-          <label class="field" for="docType">Expected document type
-            <select id="docType">
-              <option value="tod_registration">TOD Registration Request</option>
-            </select>
-          </label>
-          <label class="field" for="extractionLane">Extraction lane
-            <select id="extractionLane">
-              <option value="standard">Standard &mdash; OCR, classify, extract, AI review</option>
-              <option value="premium">Verified sender &mdash; pre-cleared template</option>
-              <option value="basic">Batch &mdash; overnight run</option>
-            </select>
-          </label>
-          <label class="field" for="pageCount">Pages
-            <input type="number" id="pageCount" value="4" min="1" max="200" step="1" required>
-            <small>Detected from the staged file; adjust for multi-part scans.</small>
-          </label>
-        </div>
-
-        <div class="dropzone" role="group" aria-label="Files">
-          <strong>Drop files here or browse</strong>
-          <span>PDF, TIFF, PNG or JPEG</span>
-          <div class="staged-file">
-            <span class="file-icon" aria-hidden="true">PDF</span>
-            <span><b id="stagedName">tod-registration-shah.pdf</b><span class="muted"><span id="stagedPages">4</span> pages &middot; 1.2 MB &middot; 1 selected</span></span>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button type="submit" class="btn" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span id="submitLabel">Upload &amp; extract</span></button>
-          <div class="progress"><span id="uploadStatus" role="status" aria-live="polite"></span><span class="elapsed" id="uploadElapsed"></span></div>
-        </div>
-        <div id="result" class="result-box" role="status" aria-live="polite"></div>
-      </form>
-    </section>
-
-    <section class="stack" id="reviewView" hidden>
-      <div>
-        <p class="eyebrow">Human review</p>
-        <h1>Review console</h1>
-      </div>
-      <div class="review-shell" id="reviewEmpty">
-        <div class="empty-state">The review queue is empty. Upload a document to extract its fields.</div>
-      </div>
-      <div class="review-shell" id="reviewConsole" hidden>
-        <div class="review-header">
-          <h2 id="reviewDocType">TOD Registration Request</h2>
-          <div class="review-meta">
-            <span id="reviewSender"></span>
-            <span id="reviewDocId"></span>
-            <span id="assignedTo">Assigned to admin@demo</span>
-            <span class="shortcut-hint">Press ? for shortcuts</span>
-          </div>
-        </div>
-        <div class="review-split">
-          <div class="review-viewer" aria-label="Page 1 of 4">
-            <div class="paper">
-              <div class="paper-title"><b>Beneficiary Services</b><span>Transfer on Death (TOD)<br>Registration Request</span></div>
-              <p>This form can only be used for accounts that are established as either Individual or Joint Tenants With Rights of Survivorship.</p>
-              <div class="paper-section"><em>1</em><b>Account information and state of residence</b></div>
-              <div class="paper-row c2">
-                <div class="box filled">Priya N. Shah<label>Name of account owner</label></div>
-                <div class="box"><label>Name of account co-owner (if applicable)</label></div>
-              </div>
-              <div class="paper-row c3" style="margin-top:14px">
-                <div class="box filled">418 Maple Grove Ln<label>Address</label></div>
-                <div class="box filled">Carmel<label>City</label></div>
-                <div class="box filled">IN<label>State</label></div>
-              </div>
-              <div class="paper-row c2" style="margin-top:14px">
-                <div class="box filled">priya.shah@example.com<label>Email address</label></div>
-                <div class="box filled">50917-2214<label>Account number</label></div>
-              </div>
-              <div class="paper-section" style="margin-top:20px"><em>2</em><b>Beneficiary designation</b></div>
-              <div class="paper-row c3">
-                <div class="box filled">Arjun Shah<label>Primary beneficiary 1</label></div>
-                <div class="box filled">Child<label>Relationship</label></div>
-                <div class="box filled">60%<label>Whole %</label></div>
-              </div>
-              <div class="paper-row c3" style="margin-top:14px">
-                <div class="box filled">Meera Shah<label>Primary beneficiary 2</label></div>
-                <div class="box filled">Child<label>Relationship</label></div>
-                <div class="box filled">40%<label>Whole %</label></div>
-              </div>
-              <div class="paper-section" style="margin-top:20px"><em>3</em><b>Signature</b></div>
-              <div class="paper-row c2">
-                <div class="box filled" style="font-family:cursive">Priya N. Shah<label>Signature of account owner</label></div>
-                <div class="box filled">09/28/2026<label>Date (mm/dd/yyyy)</label></div>
-              </div>
-              <p style="margin-top:18px;text-align:right;color:#666">1 of 4</p>
-            </div>
-          </div>
-          <div class="review-panel">
-            <div class="pipeline-tracker" aria-label="Processing pipeline">
-              <div class="pipeline-step done"><span class="pipeline-dot" aria-hidden="true"></span><div><b>OCR complete</b><small>Complete</small></div></div>
-              <div class="pipeline-step done"><span class="pipeline-dot" aria-hidden="true"></span><div><b>AI review</b><small>No fields escalated</small></div></div>
-              <div class="pipeline-step active" id="humanStep"><span class="pipeline-dot" aria-hidden="true"></span><div><b>Human review</b><small id="humanDetail">Pending</small></div></div>
-            </div>
-            <div class="review-panel-heading">
-              <div><p class="eyebrow">Exceptions</p><h2 id="exceptionCount">No exceptions</h2></div>
-              <span class="badge" data-role-badge>admin</span>
-            </div>
-            <div class="review-fields" id="reviewFields"></div>
-            <div class="outcome-banner" id="outcome" role="status" aria-live="polite"></div>
-            <p class="muted" id="approveHint" style="margin:0 14px">Approving releases the request to the outbox for the registration system.</p>
-            <div class="decision-bar">
-              <button type="button" class="btn" id="approveBtn" aria-describedby="approveHint">Approve <kbd>a</kbd></button>
-              <input type="text" id="rejectReason" placeholder="Reject reason" aria-label="Reject reason">
-              <button type="button" class="btn danger" id="rejectBtn">Reject <kbd>r</kbd></button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
+  </div>
   <script>
     (function () {
       if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
@@ -545,6 +641,12 @@
     const approveBtn = document.getElementById('approveBtn');
     const rejectBtn = document.getElementById('rejectBtn');
     const rejectReason = document.getElementById('rejectReason');
+    const reviewState = document.getElementById('reviewState');
+    const stagedState = document.getElementById('stagedState');
+    const rail = document.getElementById('rail');
+    const scrim = document.getElementById('scrim');
+    const railToggle = document.getElementById('railToggle');
+    const READY_STATUS = '1 file ready to ingest';
 
     // /d60dcff1?repro=1 fails identically but raises no Sentry event, Slack alert or
     // Devin session, so a remediation session can reproduce without re-alerting.
@@ -557,6 +659,8 @@
     function syncReviewer() {
       const account = currentReviewer();
       document.getElementById('assignedTo').textContent = 'Assigned to ' + account;
+      document.getElementById('identityEmail').textContent = account;
+      document.getElementById('identityAvatar').textContent = account.charAt(0).toUpperCase();
       document.querySelectorAll('[data-role-badge]').forEach((badge) => { badge.textContent = account.split('@')[0]; });
     }
     signInAs.addEventListener('change', syncReviewer);
@@ -574,50 +678,110 @@
       { label: 'Primary allocation total', value: '100%', status: 'found', confidence: 99, page: 1 },
     ];
 
+    function setRail(open) {
+      rail.classList.toggle('rail--open', open);
+      scrim.hidden = !open;
+      railToggle.setAttribute('aria-expanded', String(open));
+    }
+    railToggle.addEventListener('click', () => setRail(true));
+    scrim.addEventListener('click', () => setRail(false));
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setRail(false); });
+
     function showView(view) {
+      const consoleOpen = !document.getElementById('reviewConsole').hidden;
       document.getElementById('uploadView').hidden = view !== 'upload';
       document.getElementById('reviewView').hidden = view !== 'review';
-      document.querySelectorAll('.app-nav a').forEach((link) => {
-        const active = link.dataset.view === view && (view === 'review' || link.textContent.trim() === 'Upload');
+      const workspace = view === 'review' && consoleOpen;
+      document.body.classList.toggle('ws-mode', workspace);
+      // The rail is hidden in the review workspace, so the identity switcher moves into its bar.
+      document.getElementById(workspace ? 'wsBarRight' : 'railFooter').append(document.getElementById('identitySwitcher'));
+      document.getElementById('crumbCurrent').textContent = view === 'review' ? 'Review' : 'Upload';
+      document.querySelectorAll('.rail__link').forEach((link) => {
+        const active = link.dataset.nav === view;
         link.classList.toggle('active', active);
         if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
       });
+      setRail(false);
       window.scrollTo(0, 0);
     }
     document.querySelectorAll('[data-view]').forEach((link) => {
       link.addEventListener('click', (event) => { event.preventDefault(); showView(link.dataset.view); });
     });
 
+    function renderThumbs(pages) {
+      const railEl = document.getElementById('thumbRail');
+      railEl.innerHTML = '';
+      const shown = Math.min(pages, 6);
+      for (let n = 1; n <= shown; n += 1) {
+        const thumb = document.createElement('div');
+        thumb.className = 'thumb' + (n === 1 ? ' thumb--active' : '');
+        const page = document.createElement('span');
+        page.className = 'thumb__page';
+        page.setAttribute('aria-hidden', 'true');
+        for (let i = 0; i < 9; i += 1) page.append(document.createElement('i'));
+        thumb.append(page, document.createTextNode(String(n)));
+        railEl.append(thumb);
+      }
+      document.getElementById('pageLabel').textContent = 'Page 1 of ' + pages;
+      document.getElementById('paperFooter').textContent = '1 of ' + pages;
+    }
+
     function renderFields() {
       fieldsEl.innerHTML = '';
       FIELDS.forEach((field, index) => {
         const card = document.createElement('div');
         card.className = 'review-field' + (index === 0 ? ' focused' : '');
-        const title = document.createElement('div');
-        title.className = 'review-field-title';
-        title.append(document.createTextNode(field.label));
-        if (field.exception) {
-          const b = document.createElement('span'); b.className = 'badge warning'; b.textContent = 'Exception'; title.append(b);
-        }
-        if (field.ai) {
-          const b = document.createElement('span'); b.className = 'badge warning'; b.textContent = 'AI escalated'; title.append(b);
-        }
+        const label = document.createElement('div');
+        label.className = 'review-field-label';
+        label.textContent = field.label;
+        const req = document.createElement('span');
+        req.className = 'req';
+        req.setAttribute('aria-hidden', 'true');
+        req.textContent = '*';
+        label.append(req);
         const value = document.createElement('div');
         value.className = 'review-field-value';
         value.textContent = field.value || '\u2014';
         const meta = document.createElement('div');
         meta.className = 'review-field-meta';
-        const status = document.createElement('span');
-        status.className = 'badge ' + field.status;
-        status.textContent = field.status;
-        const bar = document.createElement('progress');
-        bar.max = 100; bar.value = field.confidence;
+        const meter = document.createElement('span');
+        meter.className = 'meter';
+        meter.setAttribute('role', 'meter');
+        meter.setAttribute('aria-label', 'Confidence');
+        meter.setAttribute('aria-valuemin', '0');
+        meter.setAttribute('aria-valuemax', '100');
+        meter.setAttribute('aria-valuenow', String(field.confidence));
+        const track = document.createElement('span');
+        track.className = 'meter__track';
+        const fill = document.createElement('span');
+        fill.className = 'meter__fill';
+        fill.style.width = field.confidence + '%';
+        track.append(fill);
         const pct = document.createElement('span');
-        pct.textContent = field.confidence + '%  Page ' + field.page;
-        meta.append(status, bar, pct);
-        card.append(title, value, meta);
+        pct.className = 'meter__value';
+        pct.textContent = field.confidence + '%';
+        meter.append(track, pct);
+        const status = document.createElement('span');
+        status.textContent = field.status === 'found' ? 'Found' : field.status;
+        const page = document.createElement('span');
+        page.textContent = 'Page ' + field.page;
+        meta.append(meter, status, page);
+        card.append(label, value, meta);
         fieldsEl.append(card);
       });
+      document.getElementById('acceptedCount').textContent = FIELDS.length;
+      document.getElementById('progressText').textContent = FIELDS.length + ' of ' + FIELDS.length + ' fields handled \u00b7 ' + unresolvedExceptions() + ' need attention';
+      document.getElementById('exceptionCount').textContent = unresolvedExceptions();
+    }
+
+    function setState(kind) {
+      const states = {
+        review: ['pill pill--warn', 'Needs review'],
+        approved: ['pill pill--ok', 'Approved'],
+        rejected: ['pill pill--bad', 'Rejected'],
+      };
+      reviewState.className = states[kind][0];
+      reviewState.textContent = states[kind][1];
     }
 
     function openReview(doc) {
@@ -625,14 +789,18 @@
       document.getElementById('reviewConsole').hidden = false;
       document.getElementById('reviewDocType').textContent = doc.docType;
       document.getElementById('reviewSender').textContent = doc.sender;
-      document.getElementById('reviewDocId').textContent = 'Document ' + doc.id;
+      document.getElementById('reviewDocId').textContent = doc.id;
+      document.getElementById('reviewFile').textContent = doc.file;
       document.getElementById('humanStep').className = 'pipeline-step active';
       document.getElementById('humanDetail').textContent = 'Required \u2014 ready for approval';
+      document.getElementById('doneHint').hidden = false;
+      setState('review');
       outcome.className = 'outcome-banner';
       outcome.textContent = '';
       approveBtn.disabled = unresolvedExceptions() > 0;
       rejectBtn.disabled = false;
       reviewBadge.hidden = false;
+      renderThumbs(doc.pages);
       renderFields();
     }
 
@@ -640,16 +808,43 @@
       return FIELDS.filter((field) => field.exception && !field.value).length;
     }
 
+    function addBatch(name, id, kind) {
+      const item = document.createElement('li');
+      const text = document.createElement('div');
+      const title = document.createElement('b');
+      title.textContent = name;
+      const meta = document.createElement('span');
+      meta.className = 'mono';
+      meta.textContent = id + ' \u00b7 ' + new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      text.append(title, meta);
+      const pill = document.createElement('span');
+      pill.className = 'pill pill--warn';
+      pill.textContent = 'Needs review';
+      item.append(text, pill);
+      document.getElementById('recentBatches').prepend(item);
+      document.getElementById('batchesEmpty').hidden = true;
+      return pill;
+    }
+    let batchPill = null;
+
     function finishDecision(kind, text) {
       outcome.className = 'outcome-banner ' + kind;
       outcome.textContent = text;
       document.getElementById('humanStep').className = 'pipeline-step done';
       document.getElementById('humanDetail').textContent = kind === 'approved' ? 'Approved' : 'Rejected';
+      document.getElementById('doneHint').hidden = true;
+      setState(kind);
+      if (batchPill) {
+        batchPill.className = kind === 'approved' ? 'pill pill--ok' : 'pill pill--bad';
+        batchPill.textContent = kind === 'approved' ? 'Approved' : 'Rejected';
+      }
       approveBtn.disabled = true;
       rejectBtn.disabled = true;
       reviewBadge.hidden = true;
       reviewPending = false;
-      uploadStatus.textContent = '';
+      uploadStatus.textContent = READY_STATUS;
+      stagedState.className = 'pill';
+      stagedState.textContent = 'Ready';
       result.className = 'result-box';
       result.textContent = '';
     }
@@ -740,8 +935,10 @@
       }
       button.disabled = true;
       button.classList.add('busy');
-      submitLabel.textContent = 'Extracting\u2026';
+      submitLabel.textContent = 'Ingesting\u2026';
       uploadStatus.textContent = 'Uploading and extracting fields\u2026';
+      stagedState.className = 'pill';
+      stagedState.textContent = 'Ingesting';
       result.className = 'result-box';
       result.textContent = '';
       startTicker();
@@ -750,36 +947,42 @@
         const docId = REVIEW_DOC.documentId.replace('doc-', '');
         const docType = docTypeInput.selectedOptions[0].textContent;
         const sender = senderInput.value.trim() || 'Unknown sender';
+        const file = document.getElementById('stagedName').textContent;
         result.className = 'result-box';
         result.innerHTML = '';
         const name = document.createElement('span');
         name.className = 'file-name';
-        name.textContent = document.getElementById('stagedName').textContent;
+        name.textContent = file;
         const id = document.createElement('code');
         id.textContent = docId;
         const pagesText = document.createElement('span');
         pagesText.textContent = pages + (pages === 1 ? ' page' : ' pages') + ' \u00b7 extracted in ' + uploadElapsed.textContent;
         const state = document.createElement('span');
-        state.className = 'badge review';
+        state.className = 'pill pill--warn';
         state.textContent = 'Needs review';
         const open = document.createElement('a');
         open.href = '#review';
-        open.className = 'btn secondary';
+        open.className = 'btn btn--secondary';
         open.textContent = 'Open in review';
         open.addEventListener('click', (e) => { e.preventDefault(); showView('review'); });
         result.append(name, id, pagesText, state, open);
         uploadStatus.textContent = 'Extraction complete. Ready for review.';
-        openReview({ id: docId, docType, sender });
+        stagedState.className = 'pill pill--warn';
+        stagedState.textContent = 'Needs review';
+        batchPill = addBatch(file, docId);
+        openReview({ id: docId, docType, sender, file, pages });
         reviewPending = true;
       } catch (_error) {
         result.className = 'result-box notice';
         result.textContent = 'Extraction did not finish. The document was not added to the review queue \u2014 please try again.';
         uploadStatus.textContent = 'Not ingested.';
+        stagedState.className = 'pill';
+        stagedState.textContent = 'Ready';
       } finally {
         stopTicker();
         button.classList.remove('busy');
         button.disabled = false;
-        submitLabel.textContent = 'Upload & extract';
+        submitLabel.textContent = 'Ingest files';
       }
     });
   </script>
