@@ -11,6 +11,7 @@ const MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
 // hub email resolves. Opt-in per deployment with DEMO_ONCALL_SLACK_MEMBER_ID;
 // with nothing configured the field reads "Unassigned" and @-mentions nobody.
 // Never an invented persona, which the audience reads as a teammate.
+const { alertStrings } = require('./alert-locale');
 const ONCALL_UNASSIGNED_TEXT = '_Unassigned_';
 const DEMO_ONCALL_MEMBER_ID = () => {
   const configured = process.env.DEMO_ONCALL_SLACK_MEMBER_ID || '';
@@ -24,9 +25,9 @@ function ownerRotation(owner) {
   return match ? match[1] : owner;
 }
 
-function onCallText(slackMemberId) {
+function onCallText(slackMemberId, unassignedText = ONCALL_UNASSIGNED_TEXT) {
   const memberId = MEMBER_ID_RE.test(slackMemberId || '') ? slackMemberId : DEMO_ONCALL_MEMBER_ID();
-  return memberId ? `<@${memberId}>` : ONCALL_UNASSIGNED_TEXT;
+  return memberId ? `<@${memberId}>` : unassignedText;
 }
 
 /**
@@ -119,12 +120,13 @@ async function lookupSlackUserByEmail(token, email) {
  */
 function buildAlertBlocks(alertData, options = {}) {
   const { includeDevinOnCall = true } = options;
+  const t = alertStrings(alertData);
   const blocks = [
     {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: `:rotating_light: Sentry Alert — ${alertData.verticalLabel || 'Checkout'} Error`,
+        text: `:rotating_light: ${t.header(alertData.verticalLabel || t.defaultLabel)}`,
         emoji: true,
       },
     },
@@ -133,11 +135,11 @@ function buildAlertBlocks(alertData, options = {}) {
       fields: [
         {
           type: 'mrkdwn',
-          text: `*Error:*\n${alertData.issueTitle}`,
+          text: `*${t.error}:*\n${alertData.issueTitle}`,
         },
         {
           type: 'mrkdwn',
-          text: `*Severity:*\n${alertData.level || 'error'}`,
+          text: `*${t.severity}:*\n${alertData.level || 'error'}`,
         },
       ],
     },
@@ -149,11 +151,11 @@ function buildAlertBlocks(alertData, options = {}) {
       fields: [
         {
           type: 'mrkdwn',
-          text: `*Location:*\n\`${alertData.culprit || 'unknown'}\``,
+          text: `*${t.location}:*\n\`${alertData.culprit || t.unknown}\``,
         },
         {
           type: 'mrkdwn',
-          text: `*Type:*\n${alertData.errorType || 'unknown'}`,
+          text: `*${t.type}:*\n${alertData.errorType || t.unknown}`,
         },
       ],
     });
@@ -164,7 +166,7 @@ function buildAlertBlocks(alertData, options = {}) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `*Message:*\n\`\`\`${alertData.errorValue}\`\`\``,
+        text: `*${t.message}:*\n\`\`\`${alertData.errorValue}\`\`\``,
       },
     });
   }
@@ -174,11 +176,11 @@ function buildAlertBlocks(alertData, options = {}) {
     fields: [
       {
         type: 'mrkdwn',
-        text: `*Release:*\n${alertData.release || process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2'}`,
+        text: `*${t.release}:*\n${alertData.release || process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2'}`,
       },
       {
         type: 'mrkdwn',
-        text: `*Environment:*\n${alertData.environment || process.env.DD_ENV || 'prod'}`,
+        text: `*${t.environment}:*\n${alertData.environment || process.env.DD_ENV || 'prod'}`,
       },
     ],
   });
@@ -189,13 +191,13 @@ function buildAlertBlocks(alertData, options = {}) {
   if (includeDevinOnCall) {
     onCallFields.push({
       type: 'mrkdwn',
-      text: '*On-Call:*\n:robot_face: Devin AI (auto-investigating)',
+      text: `*${t.onCall}:*\n:robot_face: ${t.devinOnCall}`,
     });
   }
 
   onCallFields.push({
     type: 'mrkdwn',
-    text: `*On-Call:*\n${onCallText(alertData.slackMemberId)}`,
+    text: `*${t.onCall}:*\n${onCallText(alertData.slackMemberId, t.unassigned)}`,
   });
 
   if (onCallFields.length > 0) {
@@ -210,13 +212,13 @@ function buildAlertBlocks(alertData, options = {}) {
   if (alertData.issueUrl) {
     actions.push({
       type: 'button',
-      text: { type: 'plain_text', text: ':mag: View in Sentry', emoji: true },
+      text: { type: 'plain_text', text: `:mag: ${t.viewSentry}`, emoji: true },
       url: alertData.issueUrl,
     });
   }
   actions.push({
     type: 'button',
-    text: { type: 'plain_text', text: ':bar_chart: View in Datadog', emoji: true },
+    text: { type: 'plain_text', text: `:bar_chart: ${t.viewDatadog}`, emoji: true },
     url: process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com',
   });
   if (actions.length > 0) {
@@ -228,7 +230,7 @@ function buildAlertBlocks(alertData, options = {}) {
     elements: [
       {
         type: 'mrkdwn',
-        text: `Service: \`${alertData.service || 'checkout-api'}\` | ${new Date().toISOString()}`,
+        text: `${t.service}: \`${alertData.service || 'checkout-api'}\` | ${new Date().toISOString()}`,
       },
     ],
   });
@@ -240,13 +242,14 @@ function buildAlertBlocks(alertData, options = {}) {
  * Build a plain-text fallback for the alert message.
  */
 function buildAlertText(alertData) {
-  let text = `:rotating_light: *Sentry Alert — ${alertData.issueTitle}*\n`;
-  text += `Type: ${alertData.errorType || 'unknown'} | Level: ${alertData.level || 'error'}\n`;
+  const t = alertStrings(alertData);
+  let text = `:rotating_light: *${t.header(alertData.verticalLabel || t.defaultLabel)} — ${alertData.issueTitle}*\n`;
+  text += `${t.type}: ${alertData.errorType || t.unknown} | ${t.level}: ${alertData.level || 'error'}\n`;
   if (alertData.errorValue) {
-    text += `Message: ${alertData.errorValue}\n`;
+    text += `${t.message}: ${alertData.errorValue}\n`;
   }
   if (alertData.issueUrl) {
-    text += `Sentry Issue: ${alertData.issueUrl}`;
+    text += `${t.sentryIssue}: ${alertData.issueUrl}`;
   }
   return text;
 }
@@ -427,7 +430,7 @@ async function postDevinReply(threadTs, prompt, options = {}) {
  *
  * Used in "api" trigger mode (DEVIN_TRIGGER_MODE=api).
  */
-async function postDevinSessionLink(threadTs, sessionUrl, channelOverride) {
+async function postDevinSessionLink(threadTs, sessionUrl, channelOverride, locale) {
   const token = process.env.SLACK_BOT_TOKEN;
   const channel = channelOverride || process.env.SLACK_CHANNEL_ID;
 
@@ -436,13 +439,14 @@ async function postDevinSessionLink(threadTs, sessionUrl, channelOverride) {
     return null;
   }
 
+  const t = alertStrings(locale || 'en');
   try {
     const blocks = [
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: ':robot_face: *Devin is investigating this issue.*',
+          text: `:robot_face: *${t.devinInvestigating}*`,
         },
       },
       {
@@ -450,7 +454,7 @@ async function postDevinSessionLink(threadTs, sessionUrl, channelOverride) {
         elements: [
           {
             type: 'button',
-            text: { type: 'plain_text', text: ':computer: View in Devin', emoji: true },
+            text: { type: 'plain_text', text: `:computer: ${t.viewInDevin}`, emoji: true },
             url: sessionUrl,
             style: 'primary',
           },
@@ -458,7 +462,7 @@ async function postDevinSessionLink(threadTs, sessionUrl, channelOverride) {
       },
     ];
 
-    const text = `Devin is investigating: ${sessionUrl}`;
+    const text = `${t.devinInvestigatingShort}: ${sessionUrl}`;
     const replyTs = await postThreadReply(token, channel, threadTs, text, blocks);
 
     logger.info('Devin session link posted to Slack thread', { channel, threadTs, replyTs, sessionUrl });

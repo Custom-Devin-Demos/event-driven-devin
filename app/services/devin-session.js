@@ -13,6 +13,7 @@ const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { legacyAlertsSuppressed } = require('./oncall-suppression');
 const { currentAlertDestination } = require('./alert-destination');
 const { buildTeamsAlertCard, buildTeamsFieldCard, postTeamsCard } = require('./teams');
+const { alertStrings, alertLocale } = require('./alert-locale');
 
 let servicenowConfigWarningLogged = false;
 
@@ -42,38 +43,39 @@ function buildTeamsAlertCardForAlert(alertData) {
     ? alertData.devinEmail
     : null;
   const service = alertData.service || 'checkout-api';
+  const t = alertStrings(alertData);
   return buildTeamsFieldCard({
-    title: `\u{1F6A8} Sentry Alert — ${alertData.verticalLabel || 'Checkout'} Error`,
+    title: `\u{1F6A8} ${t.header(alertData.verticalLabel || t.defaultLabel)}`,
     sections: [
       {
         fields: [
-          ['Error', alertData.issueTitle],
-          ['Severity', alertData.level || 'error'],
-          ['Location', alertData.culprit, { mono: true }],
-          ['Type', alertData.errorType],
+          [t.error, alertData.issueTitle],
+          [t.severity, alertData.level || 'error'],
+          [t.location, alertData.culprit, { mono: true }],
+          [t.type, alertData.errorType],
         ],
       },
-      { code: { label: 'Message', text: alertData.errorValue } },
+      { code: { label: t.message, text: alertData.errorValue } },
       {
         fields: [
-          ['Release', alertData.release || process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2'],
-          ['Environment', alertData.environment || process.env.DD_ENV || 'prod'],
-          ['On-Call', 'Devin AI (auto-investigating)'],
-          ['Triggered by', owner],
+          [t.release, alertData.release || process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2'],
+          [t.environment, alertData.environment || process.env.DD_ENV || 'prod'],
+          [t.onCall, t.devinOnCall],
+          [t.triggeredBy, owner],
         ],
       },
     ],
     actions: [
-      { title: 'Watch Devin', url: process.env.AUTOMATIONS_TEAMS_AUTOMATION_URL || DEFAULT_TEAMS_AUTOMATION_URL },
-      { title: 'View in Sentry', url: alertData.issueUrl },
-      { title: 'View in Datadog', url: process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
+      { title: t.watchDevin, url: process.env.AUTOMATIONS_TEAMS_AUTOMATION_URL || DEFAULT_TEAMS_AUTOMATION_URL },
+      { title: t.viewSentry, url: alertData.issueUrl },
+      { title: t.viewDatadog, url: process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
     ],
     // Teams hands responders only top-level TextBlocks, not ColumnSet contents,
     // so the facts the investigation needs are repeated in the footer.
     footer: [
-      `Service: ${service}`,
-      alertData.culprit ? `Location: ${alertData.culprit}` : null,
-      alertData.errorType ? `Type: ${alertData.errorType}` : null,
+      `${t.service}: ${service}`,
+      alertData.culprit ? `${t.location}: ${alertData.culprit}` : null,
+      alertData.errorType ? `${t.type}: ${alertData.errorType}` : null,
       new Date().toISOString(),
     ].filter(Boolean).join(' | '),
   });
@@ -115,25 +117,26 @@ function buildPrompt(alertData) {
     tags, level, firstSeen, lastSeen,
     count, shortId, project, release, environment, triggeredRule,
   } = alertData;
+  const t = alertStrings(alertData);
 
   // Build a compact, scannable prompt.
   // Use null as skip sentinel so intentional blank-line separators ('') are preserved.
   const lines = [
     '!sentry_investigation',
     '',
-    `*Error:* ${issueTitle}`,
-    culprit ? `*Location:* \`${culprit}\`` : null,
-    errorType ? `*Type:* ${errorType}` : null,
-    errorValue ? `*Message:* ${errorValue}` : null,
-    alertData.service ? `*Service:* ${alertData.service}` : null,
+    `*${t.error}:* ${issueTitle}`,
+    culprit ? `*${t.location}:* \`${culprit}\`` : null,
+    errorType ? `*${t.type}:* ${errorType}` : null,
+    errorValue ? `*${t.message}:* ${errorValue}` : null,
+    alertData.service ? `*${t.service}:* ${alertData.service}` : null,
   ];
 
   // Compact metadata line — combine small fields with pipe separators
   const metaParts = [
-    `Level: ${level || 'error'}`,
-    project ? `Project: ${project}` : null,
-    environment ? `Env: ${environment}` : null,
-    release ? `Release: ${release}` : null,
+    `${t.level}: ${level || 'error'}`,
+    project ? `${t.project}: ${project}` : null,
+    environment ? `${t.env}: ${environment}` : null,
+    release ? `${t.release}: ${release}` : null,
   ].filter(Boolean);
   if (metaParts.length > 0) {
     lines.push('', metaParts.join(' | '));
@@ -141,9 +144,9 @@ function buildPrompt(alertData) {
 
   // Event history line
   const historyParts = [
-    count ? `Events: ${count}` : null,
-    firstSeen ? `First: ${firstSeen}` : null,
-    lastSeen ? `Last: ${lastSeen}` : null,
+    count ? `${t.events}: ${count}` : null,
+    firstSeen ? `${t.first}: ${firstSeen}` : null,
+    lastSeen ? `${t.last}: ${lastSeen}` : null,
   ].filter(Boolean);
   if (historyParts.length > 0) {
     lines.push(historyParts.join(' | '));
@@ -151,7 +154,7 @@ function buildPrompt(alertData) {
 
   // Extra identifiers
   if (shortId) lines.push(`Short ID: ${shortId}`);
-  if (triggeredRule) lines.push(`Rule: ${triggeredRule}`);
+  if (triggeredRule) lines.push(`${t.rule}: ${triggeredRule}`);
 
   // Sentry link
   if (issueUrl) lines.push('', issueUrl);
@@ -166,7 +169,7 @@ function buildPrompt(alertData) {
       })
       .filter(Boolean);
     if (tagPairs.length > 0) {
-      lines.push('', `*Tags:* ${tagPairs.join(', ')}`);
+      lines.push('', `*${t.tags}:* ${tagPairs.join(', ')}`);
     }
   }
 
@@ -174,6 +177,10 @@ function buildPrompt(alertData) {
   // constant here — never request-derived data, which would reach the prompt verbatim.
   if (alertData.promptAppendix) {
     lines.push('', alertData.promptAppendix);
+  }
+
+  if (t.promptLanguage) {
+    lines.push('', t.promptLanguage);
   }
 
   return lines
@@ -207,14 +214,16 @@ async function createSessionAndAlert(alertData) {
     return null;
   }
   try {
-    let prompt = buildPrompt(alertData);
-
     // Resolve per-customer Devin configuration
     const config = getCustomerConfig(alertData.customer);
 
     // Attach config to alertData so downstream functions (e.g. buildAlertBlocks)
     // can use it without additional parameters
     alertData.customerConfig = config;
+
+    let prompt = buildPrompt(alertData);
+    const locale = alertLocale(alertData);
+    const isLocalized = locale !== 'en';
 
     // Resolve user/org IDs: prefer alertData overrides, fall back to customer config
     const resolvedUserId = alertData.devinUserId || config.devinUserId || '';
@@ -367,7 +376,8 @@ async function createSessionAndAlert(alertData) {
           await postDevinSessionLink(
             threadTs,
             session.url,
-            ...(config.slackChannelId ? [config.slackChannelId] : []),
+            ...(config.slackChannelId || isLocalized ? [config.slackChannelId || undefined] : []),
+            ...(isLocalized ? [locale] : []),
           );
         }
         logger.info('Devin session created and linked', {

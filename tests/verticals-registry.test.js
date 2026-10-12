@@ -121,6 +121,7 @@ describe('customer config discovery', () => {
       'githubOrg',
       'aliases',
       'itsm',
+      'locale',
       'itsmAssignmentGroup',
       'sonarWorkflowCustomer',
       'slackChannelId',
