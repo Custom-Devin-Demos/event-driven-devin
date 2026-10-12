@@ -3297,6 +3297,17 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A ROCKET MORTGAGE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Rocket Mortgage or Rocket Companies product.',
   },
+  'fd5d1290': {
+    slug: 'fd5d1290',
+    company: 'Gametime',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: {
+      file: 'fd5d1290.html',
+      title: 'Cheap San Francisco 49ers Tickets from $77 | Gametime',
+    },
+    disclaimer: 'NOT ACTUALLY A GAMETIME SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Gametime product.',
+  },
   '5942af63': {
     slug: '5942af63',
     company: 'RPT Partners',
