@@ -48,7 +48,7 @@
     .mast-nav a:hover { background: var(--wash); }
     .mast-nav a.on { box-shadow: inset 0 -2px 0 var(--ink); border-radius: 0; }
     .mast-right { margin-left: auto; display: flex; align-items: center; gap: 20px; }
-    .mast-right a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; }
+    .mast-right a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; min-width: 44px; font-size: 16px; font-weight: 500; }
     .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--pink-wash); color: #441227; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
     .subnav { display: none; }
     @media (max-width: 1000px) {
@@ -174,7 +174,7 @@
     .foot .about { font-size: 14px; color: var(--muted); max-width: 300px; }
     .foot .about .brand { margin-bottom: 12px; }
     .fine { padding: 20px 0 40px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
-    @media (max-width: 900px) { .foot { grid-template-columns: 1fr 1fr; } .foot a { min-height: 44px; } }
+    @media (max-width: 900px) { .foot { grid-template-columns: 1fr 1fr; } .foot a { min-height: 44px; min-width: 44px; } }
     @media (max-width: 520px) { .foot { grid-template-columns: 1fr; gap: 20px; } }
   </style>
 </head>
@@ -425,7 +425,7 @@
       const FEES = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.5 }, basic: { rate: 0.002, flat: 4.99 } };
       const feeFor = (n) => {
         const t = FEES[tierSel.value] || FEES.standard;
-        return Math.round(Math.max(t.rate * n, t.flat) * 100) / 100;
+        return Math.max(t.rate * n, t.flat);
       };
       const chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
       const usd = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -442,8 +442,8 @@
         document.getElementById('sumExtra').textContent = usd(extra);
         const fee = total > 0 ? feeFor(total) : 0;
         document.getElementById('sumPayment').textContent = usd(total);
-        document.getElementById('sumFee').textContent = usd(fee);
-        document.getElementById('sumTotal').textContent = usd(total + fee);
+        document.getElementById('sumFee').textContent = usd(parseFloat(fee.toFixed(2)));
+        document.getElementById('sumTotal').textContent = usd(parseFloat((total + fee).toFixed(2)));
         chips.forEach((c) => c.setAttribute('aria-pressed', String(parseFloat(c.dataset.amount) === total)));
       }
 
@@ -523,7 +523,7 @@
             const ref = String(receiptId).replace(/\D/g, '').slice(-10);
             showResult('success', 'Your payment is scheduled',
               [usd(value) + ' from ' + fromLabel + ' to ' + loanLabel + ', posting today.',
-                'Total debit ' + usd(parseFloat(data.debitAmount) || value + feeFor(value)) + ' including processing fee.',
+                'Total debit ' + usd(parseFloat(data.debitAmount) || parseFloat((value + feeFor(value)).toFixed(2))) + ' including processing fee.',
                 'Confirmation number ' + ref]);
           }
         } catch (err) {
