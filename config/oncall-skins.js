@@ -3236,6 +3236,7 @@ const ONCALL_SKINS = {
     company: 'The Times',
     brandMark: 'T',
     vertical: 'telco',
+    oncallOnly: true,
     page: { file: '7c5709e7.html', title: 'Change your subscription | The Times' },
     theme: {
       '--accent': '#005C8A',
