@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redfin savings | Rocket Mortgage</title>
+  <style>
+    :root {
+      --rkt-red: #c8102e;
+      --rkt-ink: #111111;
+      --rkt-muted: #5f5f5f;
+      --rkt-line: #e6e6e6;
+      --rkt-soft: #f5f5f5;
+      --rkt-lavender: #d9dcf7;
+      --rkt-green: #0b7a3e;
+      --radius: 20px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "WNTL Text", "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; color: var(--rkt-ink); background: #fff; }
+    a { color: inherit; }
+    .demo-disclaimer { background: #fdf3c4; color: #8a4b0f; font-size: 13px; line-height: 18px; font-weight: 500; text-align: center; padding: 10px 16px; }
+    .repro-banner { background: var(--rkt-ink); color: #fff; font-size: 12px; font-weight: 700; text-align: center; padding: 4px; display: none; }
+
+    .nav { display: flex; align-items: center; gap: 40px; padding: 18px 48px; border-bottom: 1px solid var(--rkt-line); }
+    .nav__logo img { height: 40px; display: block; }
+    .nav__logo-text { display: none; color: var(--rkt-red); font-weight: 700; font-size: 22px; line-height: 22px; }
+    .nav__links { display: flex; gap: 40px; font-weight: 500; }
+    .nav__links a { text-decoration: none; }
+    .nav__right { margin-left: auto; display: flex; align-items: center; gap: 28px; font-weight: 500; }
+    .nav__user { display: flex; align-items: center; gap: 10px; }
+    .nav__avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--rkt-lavender); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+    .pill { white-space: nowrap; border: 0; border-radius: 999px; background: var(--rkt-ink); color: #fff; font: inherit; font-weight: 500; padding: 12px 24px; cursor: pointer; }
+    .pill:disabled { opacity: .55; cursor: progress; }
+    .pill--outline { background: #fff; color: var(--rkt-ink); border: 1px solid var(--rkt-ink); }
+
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 48px; }
+    .hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; padding: 40px 0 32px; }
+    .cobrand { display: flex; align-items: center; gap: 12px; color: var(--rkt-red); font-weight: 700; font-size: 17px; }
+    .cobrand span + span { border-left: 1px solid var(--rkt-line); padding-left: 12px; }
+    .hero h1 { font-size: 52px; line-height: 58px; font-weight: 500; margin: 16px 0 12px; letter-spacing: -0.5px; }
+    .hero p { color: #333; font-size: 18px; line-height: 28px; margin: 0 0 20px; max-width: 520px; }
+    .hero__img { width: 100%; height: 300px; object-fit: cover; border-radius: var(--radius); background: var(--rkt-soft); display: block; }
+    .viewing { display: inline-flex; align-items: center; gap: 10px; background: var(--rkt-soft); border-radius: 999px; padding: 6px 8px 6px 16px; font-size: 14px; }
+    .viewing select { font: inherit; font-weight: 600; border: 1px solid var(--rkt-line); border-radius: 999px; padding: 6px 12px; background: #fff; }
+
+    .grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 32px; padding: 8px 0 48px; }
+    .card { border: 1px solid var(--rkt-line); border-radius: var(--radius); padding: 28px; background: #fff; }
+    .card h2 { font-size: 24px; line-height: 30px; font-weight: 500; margin: 0 0 4px; }
+    .card__sub { color: var(--rkt-muted); font-size: 14px; margin: 0 0 20px; }
+    .move { display: grid; gap: 14px; }
+    .move__item { display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: center; padding: 16px; border-radius: 14px; background: var(--rkt-soft); }
+    .move__icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: #fff; font-size: 20px; }
+    .move__label { font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--rkt-muted); font-weight: 700; }
+    .move__value { font-weight: 600; }
+    .move__meta { color: var(--rkt-muted); font-size: 14px; }
+    .move__amt { font-weight: 600; text-align: right; white-space: nowrap; }
+    .badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: var(--rkt-lavender); }
+    .badge--red { background: #fde7ea; color: var(--rkt-red); }
+
+    .summary { display: grid; gap: 12px; margin: 8px 0 20px; }
+    .summary__row { display: flex; justify-content: space-between; gap: 16px; }
+    .summary__row small { display: block; color: var(--rkt-muted); font-size: 13px; line-height: 18px; }
+    .summary__total { border-top: 1px solid var(--rkt-line); padding-top: 14px; font-size: 22px; font-weight: 600; }
+    .summary__total span:last-child { color: var(--rkt-green); }
+    .meter { height: 8px; border-radius: 999px; background: var(--rkt-soft); overflow: hidden; margin: 6px 0 4px; }
+    .meter__fill { height: 100%; background: var(--rkt-red); width: 0; transition: width .4s; }
+    .meter__caption { font-size: 13px; color: var(--rkt-muted); }
+    .cta { width: 100%; padding: 16px 24px; font-size: 17px; margin-top: 8px; }
+    .error { display: none; margin-top: 16px; border-radius: 14px; border: 1px solid #f3b6bf; background: #fff4f5; padding: 16px; }
+    .error.is-visible { display: block; }
+    .error strong { color: var(--rkt-red); }
+    .error p { margin: 6px 0 0; font-size: 14px; line-height: 20px; }
+    .error code { font-size: 12px; color: #6b1020; word-break: break-word; }
+    .fine { color: var(--rkt-muted); font-size: 12px; line-height: 18px; margin-top: 16px; }
+
+    .tiers { background: var(--rkt-soft); padding: 48px 0 56px; }
+    .tiers h3 { text-align: center; font-size: 36px; line-height: 44px; font-weight: 500; margin: 0 0 28px; }
+    .tiers__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .tier { background: #fff; border-radius: var(--radius); padding: 28px; border: 2px solid transparent; }
+    .tier.is-current { border-color: var(--rkt-ink); }
+    .tier h4 { margin: 0 0 8px; font-size: 22px; font-weight: 500; }
+    .tier p { margin: 0; color: #333; font-size: 15px; }
+    .tier__amt { font-size: 15px; font-weight: 700; margin-top: 14px !important; }
+    footer { padding: 28px 48px 40px; color: var(--rkt-muted); font-size: 12px; line-height: 18px; border-top: 1px solid var(--rkt-line); }
+
+    .modal { position: fixed; inset: 0; background: rgba(17,17,17,.45); display: none; align-items: center; justify-content: center; padding: 24px; }
+    .modal.is-open { display: flex; }
+    .modal__card { background: #fff; border-radius: 24px; padding: 32px; width: 100%; max-width: 480px; }
+    .modal__check { width: 52px; height: 52px; border-radius: 50%; background: #e6f4ec; color: var(--rkt-green); display: grid; place-items: center; font-size: 26px; font-weight: 700; }
+    .modal h2 { font-size: 28px; line-height: 34px; font-weight: 500; margin: 16px 0 4px; }
+
+    @media (max-width: 900px) {
+      .nav { padding: 14px 20px; gap: 16px; }
+      .nav__links, .nav__phone, #nav-name { display: none; }
+      .wrap { padding: 0 20px; }
+      .hero, .grid, .tiers__grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 38px; line-height: 44px; }
+      .hero__img { height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-disclaimer" role="note">NOT ACTUALLY A ROCKET MORTGAGE SITE — internal demo only, not affiliated with, endorsed by, or a real Rocket Mortgage or Rocket Companies product.</div>
+  <div class="repro-banner" id="repro-banner">Reproduction mode — savings fail exactly as in production but raise no alert</div>
+
+  <nav class="nav">
+    <a class="nav__logo" href="#" aria-label="Rocket Mortgage">
+      <img src="https://prod.rockmedialibrary.com/api/public/content/R4M-RocketMortgageLogoStacked?v=81fe94e4" alt="Rocket Mortgage"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <span class="nav__logo-text">Rocket<br>Mortgage</span>
+    </a>
+    <div class="nav__links">
+      <a href="#">Buy</a><a href="#">Refinance</a><a href="#">Home equity</a><a href="#">Rates</a><a href="#">Loan options</a>
+    </div>
+    <div class="nav__right">
+      <span class="nav__phone">(888) 452-8179</span>
+      <span class="nav__user"><span class="nav__avatar" id="nav-initials">DW</span><span id="nav-name">Dana</span></span>
+      <button class="pill" type="button">My loan</button>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <section class="hero">
+      <div>
+        <div class="cobrand"><span>Redfin</span><span>Rocket Mortgage</span></div>
+        <h1 id="hero-title">Buy, sell, save more.</h1>
+        <p id="hero-copy">You bought and sold with a Redfin agent and you're financing with Rocket Mortgage. Your savings are ready to apply to your loan.</p>
+        <label class="viewing">Viewing as
+          <select id="client-select" aria-label="Viewing as"></select>
+        </label>
+      </div>
+      <img class="hero__img" alt="Redfin and Rocket Mortgage"
+           src="https://prod.rockmedialibrary.com/api/public/content/8e1b6873-downloadOriginal-Nonstock-RocketRedfin-MastheadPromo-20260507.webp?v=d68db72d"
+           onerror="this.style.visibility='hidden';">
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2>Your move</h2>
+        <p class="card__sub" id="move-sub">Loading your Redfin transactions…</p>
+        <div class="move" id="move"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <h2>Your savings</h2>
+          <span class="badge" id="tier-badge">—</span>
+        </div>
+        <p class="card__sub">Estimated from your final loan amount</p>
+        <div class="summary">
+          <div class="summary__row"><span>Loan amount</span><span id="sum-loan">—</span></div>
+          <div class="summary__row"><span>Rocket Mortgage lender credit<small>0.75% of your loan amount, up to $6,000</small></span><span id="sum-credit">—</span></div>
+          <div class="summary__row" id="row-commission"><span>Redfin commission discount<small>Matches your lender credit on your second Redfin transaction</small></span><span id="sum-commission">—</span></div>
+          <div class="summary__row summary__total"><span>Total savings</span><span id="sum-total">—</span></div>
+        </div>
+        <div class="meter"><div class="meter__fill" id="meter"></div></div>
+        <div class="meter__caption" id="meter-caption"></div>
+        <button class="pill cta" id="apply" type="button">Apply my savings</button>
+        <div class="error" id="apply-error" role="alert">
+          <strong>We couldn't apply your savings</strong>
+          <p>Something went wrong on our end. Your loan and your Redfin transactions aren't affected. Reference ID: <span id="error-ref"></span></p>
+          <p><code id="error-msg"></code></p>
+        </div>
+        <p class="fine">Savings and eligibility vary based on transaction details and program requirements. Not a commitment to lend.</p>
+      </div>
+    </section>
+  </main>
+
+  <section class="tiers">
+    <div class="wrap">
+      <h3>Explore 3 ways to buy with major benefits</h3>
+      <div class="tiers__grid">
+        <div class="tier" data-tier="finance"><h4>Finance &amp; save</h4><p>With a personalized home loan and award-winning service from Rocket Mortgage</p><p class="tier__amt">Closing cost credit of up to $5,000</p></div>
+        <div class="tier" data-tier="buy"><h4>Buy, finance, &amp; save more</h4><p>With a Redfin or Compass-affiliated agent and a home loan from Rocket Mortgage</p><p class="tier__amt">Closing cost credit of up to $6,000</p></div>
+        <div class="tier" data-tier="buy-sell"><h4>Buy, sell, &amp; save most</h4><p>With a Redfin agent and a home loan from Rocket Mortgage</p><p class="tier__amt">Closing cost credit of up to $12,000</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Demo environment for illustration only. Clients, loans and amounts are fictional; offer structure mirrors the public Rocket Mortgage &amp; Redfin offer at rocketmortgage.com/redfin. No real client data is used.
+  </footer>
+
+  <div class="modal" id="confirm" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="modal__card">
+      <div class="modal__check">&#10003;</div>
+      <h2 id="confirm-title">Your savings are applied</h2>
+      <p class="card__sub" id="confirm-sub"></p>
+      <div class="summary">
+        <div class="summary__row"><span>Confirmation</span><span id="confirm-number"></span></div>
+        <div class="summary__row"><span>Rocket Mortgage lender credit</span><span id="confirm-credit"></span></div>
+        <div class="summary__row" id="confirm-commission-row"><span>Redfin commission discount</span><span id="confirm-commission"></span></div>
+        <div class="summary__row" id="confirm-sale-row"><span style="white-space:nowrap">Linked sale</span><span id="confirm-sale" style="text-align:right"></span></div>
+        <div class="summary__row summary__total"><span>Total savings</span><span id="confirm-total"></span></div>
+      </div>
+      <button class="pill cta" id="confirm-close" type="button">Done</button>
+    </div>
+  </div>
+
+  <script>
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+    // /rocket-companies?repro=1 fails identically but raises no Sentry event, Slack alert or
+    // Devin session, so a remediation session can reproduce without re-alerting.
+    var REPRO_MODE = new URLSearchParams(window.location.search).has('repro');
+
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+
+    var state = { clients: [], tiers: {}, clientId: null };
+
+    function $(id) { return document.getElementById(id); }
+    function money(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function current() { return state.clients.find(function (c) { return c.clientId === state.clientId; }); }
+
+    function estimate(client) {
+      var credit = Math.round(Math.min(client.loanAmount * 0.0075, 6000) * 100) / 100;
+      var commission = client.tier === 'buy-sell' ? credit : 0;
+      return { credit: credit, commission: commission, total: credit + commission };
+    }
+
+    function hideError() { $('apply-error').classList.remove('is-visible'); }
+
+    function render() {
+      var c = current();
+      if (!c) return;
+      var tier = state.tiers[c.tier];
+      var est = estimate(c);
+      $('nav-initials').textContent = c.firstName[0] + c.lastName[0];
+      $('nav-name').textContent = c.firstName;
+      $('hero-title').textContent = c.tier === 'buy-sell' ? 'Buy, sell, save more.' : 'Buy, finance, save more.';
+      $('hero-copy').textContent = c.tier === 'buy-sell'
+        ? 'You bought and sold with a Redfin agent and you\'re financing with Rocket Mortgage. Your savings are ready to apply to your loan.'
+        : 'You bought with a Redfin agent and you\'re financing with Rocket Mortgage. Your closing cost credit is ready to apply to your loan.';
+      $('move-sub').textContent = c.firstName + ' ' + c.lastName + ' · Client ' + c.clientId + ' · Agent: ' + c.redfinAgent;
+
+      var html = '<div class="move__item"><div class="move__icon">&#8962;</div><div><div class="move__label">Buying with Redfin</div>' +
+        '<div class="move__value">' + esc(c.purchase.address) + '</div><div class="move__meta">' + money(c.purchase.downPayment) + ' down</div></div>' +
+        '<div class="move__amt">' + money(c.purchase.price) + '</div></div>';
+      if (c.sale) {
+        html += '<div class="move__item"><div class="move__icon">&#9873;</div><div><div class="move__label">Selling with Redfin</div>' +
+          '<div class="move__value">' + esc(c.sale.address) + '</div><div class="move__meta">Current loan serviced by Rocket Mortgage</div></div>' +
+          '<div class="move__amt">' + money(c.sale.listPrice) + '</div></div>';
+      }
+      html += '<div class="move__item"><div class="move__icon" style="color:var(--rkt-red)">&#9650;</div><div><div class="move__label">Financing with Rocket Mortgage</div>' +
+        '<div class="move__value">30-year fixed purchase loan</div><div class="move__meta">Approved · closing scheduled</div></div>' +
+        '<div class="move__amt">' + money(c.loanAmount) + '</div></div>';
+      $('move').innerHTML = html;
+
+      $('tier-badge').textContent = tier.label;
+      $('sum-loan').textContent = money(c.loanAmount);
+      $('sum-credit').textContent = money(est.credit);
+      $('row-commission').style.display = c.tier === 'buy-sell' ? 'flex' : 'none';
+      $('sum-commission').textContent = money(est.commission);
+      $('sum-total').textContent = money(est.total);
+      $('meter').style.width = Math.min(100, est.total / tier.maxSavings * 100) + '%';
+      $('meter-caption').textContent = money(est.total) + ' of up to ' + money(tier.maxSavings) + ' with ' + tier.label;
+      document.querySelectorAll('.tier').forEach(function (el) { el.classList.toggle('is-current', el.dataset.tier === c.tier); });
+    }
+
+    $('client-select').addEventListener('change', function (e) { state.clientId = e.target.value; hideError(); render(); });
+    $('confirm-close').addEventListener('click', function () { $('confirm').classList.remove('is-open'); });
+
+    $('apply').addEventListener('click', function () {
+      var btn = $('apply');
+      btn.disabled = true;
+      btn.textContent = 'Applying your savings…';
+      hideError();
+      identityReady.then(function () {
+        return fetch('/api/rocket-companies/savings/apply', {
+          method: 'POST',
+          headers: REPRO_MODE
+            ? { 'Content-Type': 'application/json', 'x-synthetic': '1' }
+            : { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientId: state.clientId,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+      }).then(function (r) {
+        return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+      }).then(function (res) {
+        if (!res.ok || !res.body.success) {
+          $('error-ref').textContent = res.body.requestId || 'unavailable';
+          $('error-msg').textContent = (res.body.errorClass ? res.body.errorClass + ': ' : '') + (res.body.error || 'Unknown error');
+          $('apply-error').classList.add('is-visible');
+          return;
+        }
+        showConfirmation(res.body);
+      }).catch(function (err) {
+        $('error-ref').textContent = 'unavailable';
+        $('error-msg').textContent = err.message;
+        $('apply-error').classList.add('is-visible');
+      }).then(function () {
+        btn.disabled = false;
+        btn.textContent = 'Apply my savings';
+      });
+    });
+
+    function showConfirmation(r) {
+      $('confirm-sub').textContent = r.tier.label + ' · ' + r.purchase.address;
+      $('confirm-number').textContent = r.confirmationNumber;
+      $('confirm-credit').textContent = money(r.lenderCredit);
+      $('confirm-commission-row').style.display = r.commissionDiscount ? 'flex' : 'none';
+      $('confirm-commission').textContent = money(r.commissionDiscount);
+      $('confirm-sale-row').style.display = r.saleLink ? 'flex' : 'none';
+      if (r.saleLink) {
+        $('confirm-sale').textContent = r.saleLink.address + ' · loan ending ' + String(r.saleLink.currentLoan.loanNumber).slice(-4);
+      }
+      $('confirm-total').textContent = money(r.totalSavings);
+      $('confirm').classList.add('is-open');
+    }
+
+    if (REPRO_MODE) $('repro-banner').style.display = 'block';
+
+    fetch('/api/rocket-companies/offer')
+      .then(function (r) { return r.json(); })
+      .then(function (offer) {
+        state.clients = offer.clients;
+        offer.tiers.forEach(function (t) { state.tiers[t.id] = t; });
+        state.clientId = offer.defaultClientId;
+        $('client-select').innerHTML = offer.clients.map(function (c) {
+          return '<option value="' + c.clientId + '">' + esc(c.firstName + ' ' + c.lastName + ' — ' + c.tierLabel) + '</option>';
+        }).join('');
+        $('client-select').value = state.clientId;
+        render();
+      })
+      .catch(function (err) { $('move-sub').textContent = 'Could not load your savings: ' + err.message; });
+  </script>
+</body>
+</html>
