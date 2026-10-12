@@ -3300,11 +3300,11 @@ const ONCALL_SKINS = {
   'fd5d1290': {
     slug: 'fd5d1290',
     company: 'Gametime',
-    vertical: 'insurance',
+    vertical: 'hightech',
     oncallOnly: true,
     page: {
       file: 'fd5d1290.html',
-      title: 'Gametime Guarantee | Gametime - Sports, Shows, and Concert Tickets',
+      title: 'Cheap San Francisco 49ers Tickets from $77 | Gametime',
     },
     disclaimer: 'NOT ACTUALLY A GAMETIME SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Gametime product.',
   },
