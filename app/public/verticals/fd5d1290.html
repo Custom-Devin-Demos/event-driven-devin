@@ -593,10 +593,18 @@
         result.className = 'result-box ' + kind;
       }
 
-      document.querySelectorAll('.game-row[data-event]').forEach(function (row) {
+      document.querySelectorAll('.game-row').forEach(function (row) {
         row.addEventListener('click', function () {
           var sel = document.getElementById('product');
-          if (sel.querySelector('option[value="' + row.dataset.event + '"]')) sel.value = row.dataset.event;
+          var ev = row.dataset.event;
+          if (ev && sel.querySelector('option[value="' + ev + '"]')) {
+            sel.value = ev;
+            result.className = 'result-box';
+          } else if (!row.closest('.game').querySelector('#provisionForm')) {
+            var name = row.querySelector('.name');
+            showResult('error', 'Event not available',
+              (name ? name.textContent : 'This game') + ' cannot be reserved here. Choose one of the events listed in the form.');
+          }
         });
       });
 
