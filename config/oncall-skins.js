@@ -3307,6 +3307,17 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A RIPPLE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ripple product.',
   },
+  'fd5d1290': {
+    slug: 'fd5d1290',
+    company: 'Gametime',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: {
+      file: 'fd5d1290.html',
+      title: 'Cheap San Francisco 49ers Tickets from $77 | Gametime',
+    },
+    disclaimer: 'NOT ACTUALLY A GAMETIME SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Gametime product.',
+  },
   '5942af63': {
     slug: '5942af63',
     company: 'RPT Partners',
@@ -3331,6 +3342,26 @@ const ONCALL_SKINS = {
       impact: 'Founders and board members requesting an engagement wait ~7 seconds on every submission; some leave before it completes.',
     },
     disclaimer: 'NOT ACTUALLY AN RPT PARTNERS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real RPT Partners product.',
+  },
+  '07bae110': {
+    slug: '07bae110',
+    company: 'MUFG',
+    brandMark: 'M',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '07bae110.html', title: '振込 | 三菱ＵＦＪダイレクト | 三菱ＵＦＪ銀行' },
+    theme: {
+      '--accent': '#E60000',
+      '--ink': '#333333',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#595959',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: '三菱ＵＦＪダイレクト ヘルプデスク',
+    alertCard: {
+      impact: 'Internet banking transfers take ~9s to complete instead of under a second; customers wait on the transfer button and retry.',
+    },
+    disclaimer: 'NOT ACTUALLY A MUFG SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real MUFG product.',
   },
 };
 
