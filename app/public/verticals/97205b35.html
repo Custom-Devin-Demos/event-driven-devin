@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transfer existing balances | TIAA</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #305AF3;
+      --ink: #041459;
+      --surface: #FFFFFF;
+      --chrome-bg: #041459;
+      --chrome-text: #FFFFFF;
+      --mint: #8AD5CB;
+      --paper: #F5F5F0;
+      --line: color-mix(in srgb, var(--ink) 18%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 70%, var(--surface));
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 18px/1.45 'Barlow Semi Condensed', 'Arial Narrow', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .display { font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; }
+    .utility { background: var(--paper); font-size: 15px; }
+    .utility-row { max-width: 1200px; margin: auto; padding: 0 24px; display: flex; justify-content: flex-end; gap: 28px; }
+    .utility a, .utility span { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; }
+    .utility strong { font-weight: 700; margin-left: 4px; }
+    .site-header { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .header-row { max-width: 1200px; margin: auto; padding: 0 24px; min-height: 64px; display: flex; align-items: center; gap: 30px; }
+    .wordmark { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; text-decoration: none; }
+    .wordmark svg { display: block; }
+    .wordmark-name { font-family: 'Barlow Semi Condensed', Arial, sans-serif; font-size: 30px; font-weight: 600; letter-spacing: .01em; line-height: 1; }
+    .primary-nav { display: flex; gap: 26px; font-size: 18px; font-weight: 600; }
+    .primary-nav a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; }
+    .primary-nav a.current { box-shadow: inset 0 -3px 0 var(--accent); }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 22px; font-size: 17px; font-weight: 600; }
+    .header-right a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; }
+    .btn-outline { padding: 0 16px; border: 2px solid var(--accent); border-radius: 8px; color: var(--accent); }
+    .band { background: var(--chrome-bg); color: var(--chrome-text); }
+    .band-inner { max-width: 1200px; margin: auto; padding: 40px 24px 92px; }
+    .eyebrow { margin: 0 0 10px; font-size: 16px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in srgb, var(--chrome-text) 62%, var(--chrome-bg)); }
+    .band h1 { margin: 0; font-size: clamp(40px, 5.4vw, 64px); font-weight: 800; line-height: 1; letter-spacing: -.01em; }
+    .band h1 em { font-style: normal; color: var(--mint); }
+    .band p.lede { margin: 16px 0 0; max-width: 640px; font-size: 19px; color: color-mix(in srgb, var(--chrome-text) 88%, var(--chrome-bg)); }
+    main { max-width: 1200px; margin: -60px auto 0; padding: 0 24px 72px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, .85fr); gap: 28px; align-items: start; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 32px; box-shadow: 0 2px 12px rgba(4, 20, 89, .08); }
+    .card h2 { margin: 0 0 4px; font-size: 32px; font-weight: 700; line-height: 1.1; }
+    .card .sub { margin: 0 0 26px; color: var(--muted); font-size: 17px; }
+    .step { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .step b { width: 26px; height: 26px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--ink); color: var(--surface); font-size: 14px; letter-spacing: 0; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; margin-bottom: 6px; font-size: 17px; font-weight: 700; }
+    .field input, .field select { width: 100%; min-height: 50px; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--ink) 45%, var(--surface)); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 18px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; font-size: 15px; color: var(--muted); }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; }
+    .review { margin: 6px 0 24px; padding: 18px 20px; background: var(--paper); border-left: 4px solid var(--mint); display: grid; gap: 8px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; font-size: 17px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .submit-btn { width: 100%; min-height: 52px; padding: 12px 24px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-size: 20px; font-weight: 700; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 82%, var(--chrome-bg)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-family: 'Barlow Condensed', Arial, sans-serif; font-size: 30px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--accent); }
+    .status { min-height: 22px; margin: 10px 0 0; font-size: 15px; color: var(--muted); text-align: center; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 4px; font-size: 17px; background: var(--paper); border-left: 4px solid var(--muted); }
+    .result-box.success { display: block; border-left-color: var(--accent); }
+    .result-box.notice { display: block; }
+    .acct-card { background: var(--chrome-bg); color: var(--chrome-text); border-color: var(--chrome-bg); }
+    .acct-card .eyebrow { margin: 0; font-size: 14px; }
+    .acct-card .total { margin: 6px 0 0; font-size: 44px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+    .acct-card .asof { margin: 6px 0 0; font-size: 15px; color: color-mix(in srgb, var(--chrome-text) 72%, var(--chrome-bg)); }
+    .acct-card ul { margin: 22px 0 0; padding: 0; list-style: none; font-size: 16px; }
+    .acct-card li { display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid color-mix(in srgb, var(--chrome-text) 22%, transparent); }
+    .acct-card li span:last-child { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .note { margin-top: 20px; padding: 24px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+    .note h3 { margin: 0 0 8px; font-size: 22px; font-weight: 700; }
+    .note p { margin: 0 0 14px; font-size: 16px; }
+    .note a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border: 2px solid var(--accent); border-radius: 8px; color: var(--accent); background: var(--surface); font-size: 17px; font-weight: 700; text-decoration: none; }
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); }
+    .footer-inner { max-width: 1200px; margin: auto; padding: 36px 24px 44px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 0 26px; font-size: 16px; font-weight: 600; }
+    .footer-links a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; }
+    .footer-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .footer-legal { margin: 16px 0 0; max-width: 900px; font-size: 14px; line-height: 1.6; color: color-mix(in srgb, var(--chrome-text) 76%, var(--chrome-bg)); }
+    @media (max-width: 960px) {
+      .primary-nav { display: none; }
+      .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .utility-row { padding: 0 16px; gap: 18px; }
+      .header-row { padding: 0 16px; gap: 12px; }
+      .header-right { gap: 12px; }
+      .header-right .hide-sm { display: none; }
+      .band-inner { padding: 28px 16px 80px; }
+      main { padding: 0 16px 56px; }
+      .card { padding: 22px 18px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .footer-inner { padding: 28px 16px 72px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility"><div class="utility-row">
+    <span>Current site:<strong>Individuals</strong></span>
+    <a href="https://www.tiaa.org/public/support">Get help</a>
+  </div></div>
+  <header class="site-header">
+    <div class="header-row">
+      <a class="wordmark" href="#transfer" aria-label="TIAA">
+        <svg width="30" height="30" viewBox="0 0 30 30" role="img" aria-hidden="true" focusable="false">
+          <rect x="1" y="1" width="28" height="28" rx="5" fill="#041459"></rect>
+          <path d="M8 9h14v4h-5v10h-4V13H8z" fill="#FFFFFF"></path>
+          <circle cx="23" cy="23" r="3" fill="#8AD5CB"></circle>
+        </svg>
+        <span class="wordmark-name">TIAA</span>
+      </a>
+      <nav class="primary-nav" aria-label="Main navigation">
+        <a href="#transfer" class="current">Accounts</a>
+        <a href="https://www.tiaa.org/public/retire">Plan &amp; learn</a>
+        <a href="https://www.tiaa.org/public/support">Statements &amp; documents</a>
+      </nav>
+      <div class="header-right">
+        <a class="hide-sm" href="https://www.tiaa.org/public/support">Profile</a>
+        <a class="btn-outline" href="https://www.tiaa.org/public">Log out</a>
+      </div>
+    </div>
+  </header>
+  <section class="band" aria-label="Page heading">
+    <div class="band-inner">
+      <p class="eyebrow">Accounts / Change investments</p>
+      <h1 class="display">Transfer existing <em>balances</em></h1>
+      <p class="lede">Move money you've already saved from one investment in your retirement plan to another. Your future contributions keep going where they go today.</p>
+    </div>
+  </section>
+  <main id="transfer">
+    <div class="layout">
+      <section class="card" aria-labelledby="form-title">
+        <h2 id="form-title" class="display">Transfer between investments</h2>
+        <p class="sub">University Retirement Plan · Retirement Annuity (RA)</p>
+        <form id="transferForm" novalidate>
+          <p class="step"><b>1</b> Choose your investments</p>
+          <div class="field">
+            <label for="fromAccount">Transfer from</label>
+            <select id="fromAccount">
+              <option value="ACCT-1001" data-balance="24860.12">CREF Stock Account · $24,860.12</option>
+              <option value="ACCT-1002" data-balance="18402.55">TIAA Real Estate Account · $18,402.55</option>
+              <option value="ACCT-1003" data-balance="9315.40">CREF Social Choice Account · $9,315.40</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="toAccount">Transfer to</label>
+            <select id="toAccount">
+              <option value="ACCT-2001">TIAA Traditional</option>
+              <option value="ACCT-2002">CREF Core Bond Account</option>
+              <option value="ACCT-2003">CREF Money Market Account</option>
+            </select>
+          </div>
+          <p class="step"><b>2</b> Enter an amount</p>
+          <div class="row">
+            <div class="field">
+              <label for="amount">Amount (USD)</label>
+              <input type="number" id="amount" min="1" step="0.01" value="5000" inputmode="decimal" required>
+              <small id="amountHelp">Up to $24,835.28 after fees.</small>
+            </div>
+            <div class="field">
+              <label for="accountTier">Contract</label>
+              <select id="accountTier">
+                <option value="standard">Retirement Annuity (RA)</option>
+              </select>
+              <small>Contract is set for this plan.</small>
+            </div>
+          </div>
+          <dl class="review" aria-label="Transfer review">
+            <div><dt>From</dt><dd id="reviewFrom">—</dd></div>
+            <div><dt>To</dt><dd id="reviewTo">—</dd></div>
+            <div><dt>Amount</dt><dd id="reviewAmount">—</dd></div>
+            <div><dt>Transfer fee</dt><dd id="reviewFee">—</dd></div>
+            <div><dt>Left in source</dt><dd id="reviewRemaining">—</dd></div>
+          </dl>
+          <button type="submit" id="submitBtn" class="submit-btn">Submit transfer</button>
+          <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to submit</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+          <p class="status" id="transferStatus" role="status" aria-live="polite">Sample account. No money moves on this page.</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+      <aside>
+        <div class="card acct-card">
+          <p class="eyebrow">Retirement plan balance</p>
+          <p class="total display">$76,412.37</p>
+          <p class="asof">University Retirement Plan · as of market close</p>
+          <ul>
+            <li><span>TIAA Traditional</span><span>$23,834.30</span></li>
+            <li><span>CREF Stock Account</span><span>$24,860.12</span></li>
+            <li><span>TIAA Real Estate Account</span><span>$18,402.55</span></li>
+            <li><span>CREF Social Choice Account</span><span>$9,315.40</span></li>
+          </ul>
+        </div>
+        <div class="note">
+          <h3 class="display">Before you transfer</h3>
+          <p>Transfers received before the market closes on a business day are generally processed at that day's closing values. Transfers out of TIAA Traditional may be limited by your contract.</p>
+          <a href="https://www.tiaa.org/public/support" target="_blank" rel="noopener noreferrer">Contact us</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="footer-inner">
+    <div class="footer-links">
+      <a href="https://www.tiaa.org/public/support">Contact us</a>
+      <a href="https://www.tiaa.org/public/about-tiaa">About TIAA</a>
+      <a href="https://www.tiaa.org/public/support/privacy">Privacy notice</a>
+      <a href="https://brokercheck.finra.org/">FINRA BrokerCheck</a>
+    </div>
+    <p class="footer-legal">Example participant account experience. Plan names, balances, and transfers shown here are sample data.</p>
+  </div></footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const amountHelp = document.getElementById('amountHelp');
+    const reviewFrom = document.getElementById('reviewFrom');
+    const reviewTo = document.getElementById('reviewTo');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewRemaining = document.getElementById('reviewRemaining');
+    const reviewFee = document.getElementById('reviewFee');
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    const IDLE_STATUS = 'Sample account. No money moves on this page.';
+    let timerHandle = null;
+    let pending = false;
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+    function optionName(select) { return select.options[select.selectedIndex].text.split(' · ')[0]; }
+    function sourceBalance() { return Number(fromAccount.options[fromAccount.selectedIndex].dataset.balance); }
+    const FEE_RATE = 0.001;
+    const FEE_MIN = 2.5;
+    function transferFee(amount) { return Math.max(amount * FEE_RATE, FEE_MIN); }
+    function maxTransfer(balance) {
+      let max = Math.floor(Math.min(balance / (1 + FEE_RATE), balance - FEE_MIN) * 100) / 100;
+      while (max > 0 && max + transferFee(max) > balance) max = Math.round((max - 0.01) * 100) / 100;
+      return Math.max(max, 0);
+    }
+    function parsedAmount() {
+      const raw = amountInput.value.trim();
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw);
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      timer.className = 'stopwatch on done';
+    }
+    function renderReview() {
+      const balance = sourceBalance();
+      const amount = parsedAmount();
+      const max = maxTransfer(balance);
+      const valid = Number.isFinite(amount) && amount >= 1 && amount <= max;
+      amountHelp.textContent = `Up to ${usd.format(max)} after fees.`;
+      reviewFrom.textContent = optionName(fromAccount);
+      reviewTo.textContent = optionName(toAccount);
+      reviewAmount.textContent = valid ? usd.format(amount) : '—';
+      reviewFee.textContent = valid ? usd.format(transferFee(amount)) : '—';
+      reviewRemaining.textContent = valid ? usd.format(balance - amount - transferFee(amount)) : '—';
+    }
+    fromAccount.addEventListener('change', renderReview);
+    toAccount.addEventListener('change', renderReview);
+    amountInput.addEventListener('input', renderReview);
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const amount = parsedAmount();
+      const max = maxTransfer(sourceBalance());
+      if (!Number.isFinite(amount) || amount < 1 || amount > max) {
+        result.className = 'result-box notice';
+        result.textContent = `Enter an amount between $1.00 and ${usd.format(max)}, with no more than two decimal places.`;
+        status.textContent = IDLE_STATUS;
+        amountInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      button.textContent = 'Submitting…';
+      status.textContent = 'Submitting your transfer…';
+      result.className = 'result-box';
+      result.textContent = '';
+      const fromName = optionName(fromAccount);
+      const toName = optionName(toAccount);
+      const started = startTimer();
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('Transfer not received.');
+        const receivedAt = new Date(data.receipt.timestamp);
+        result.className = 'result-box success';
+        result.textContent = `We received your transfer of ${usd.format(Number(data.receipt.amount))} from ${fromName} to ${toName} at ${timeFmt.format(receivedAt)}. Confirmation number ${data.receipt.receiptId}.`;
+        status.textContent = 'Transfer received.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = "We couldn't complete your transfer right now. Please try again in a few minutes or contact us.";
+        status.textContent = 'Transfer not submitted.';
+      } finally {
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        button.textContent = 'Submit transfer';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
