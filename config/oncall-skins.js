@@ -3276,6 +3276,27 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A TIAA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real TIAA product.',
   },
+  '096a7944': {
+    slug: '096a7944',
+    company: 'Rocket Mortgage',
+    brandMark: 'R',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '096a7944.html', title: 'Make a payment | Rocket Mortgage' },
+    theme: {
+      '--accent': '#111111',
+      '--ink': '#111111',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#590213',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Rocket Mortgage Client Support',
+    alertCard: {
+      release: 'servicing-payments@1.0.3',
+      impact: 'Mortgage payments in the servicing portal wait ~9 seconds before confirming; clients retry the payment or call in.',
+    },
+    disclaimer: 'NOT ACTUALLY A ROCKET MORTGAGE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Rocket Mortgage or Rocket Companies product.',
+  },
 };
 
 function getOncallSkin(slug) {
