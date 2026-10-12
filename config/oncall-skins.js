@@ -3297,6 +3297,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A ROCKET MORTGAGE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Rocket Mortgage or Rocket Companies product.',
   },
+  'b3d1cff8': {
+    slug: 'b3d1cff8',
+    company: 'Ripple',
+    vertical: 'banking',
+    page: {
+      file: 'b3d1cff8.html',
+      title: 'Payments Demo | Ripple',
+    },
+    disclaimer: 'NOT ACTUALLY A RIPPLE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ripple product.',
+  },
   'fd5d1290': {
     slug: 'fd5d1290',
     company: 'Gametime',
