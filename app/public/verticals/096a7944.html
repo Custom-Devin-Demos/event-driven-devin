@@ -232,7 +232,6 @@
                 <label for="toAccount">Loan</label>
                 <select id="toAccount">
                   <option value="ACCT-EXT-001" data-label="Loan ••••3418">Primary residence loan ••••3418 &mdash; 30-year fixed</option>
-                  <option value="ACCT-EXT-002" data-label="Loan ••••7702">Home Equity Loan ••••7702 &mdash; 15-year fixed</option>
                 </select>
               </div>
             </div>
@@ -252,8 +251,8 @@
                 <div class="fld">
                   <label for="accountTier">Payment method</label>
                   <select id="accountTier">
+                    <option value="standard" selected>Bank account (ACH)</option>
                     <option value="premium">Verified bank account</option>
-                    <option value="standard">Bank account (ACH)</option>
                     <option value="basic">New bank account</option>
                   </select>
                 </div>
@@ -282,7 +281,9 @@
                 <div class="row"><dt>Payment date</dt><dd>Today</dd></div>
                 <div class="row"><dt>Monthly payment</dt><dd id="sumMonthly"></dd></div>
                 <div class="row"><dt>Additional principal</dt><dd id="sumExtra"></dd></div>
-                <div class="row total"><dt>Total payment</dt><dd id="sumTotal"></dd></div>
+                <div class="row"><dt>Total payment</dt><dd id="sumPayment"></dd></div>
+                <div class="row"><dt>Processing fee</dt><dd id="sumFee"></dd></div>
+                <div class="row total"><dt>Total debit</dt><dd id="sumTotal"></dd></div>
               </dl>
             </div>
 
@@ -420,6 +421,12 @@
       const amount = document.getElementById('amount');
       const loanSel = document.getElementById('toAccount');
       const fromSel = document.getElementById('fromAccount');
+      const tierSel = document.getElementById('accountTier');
+      const FEES = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.5 }, basic: { rate: 0.002, flat: 4.99 } };
+      const feeFor = (n) => {
+        const t = FEES[tierSel.value] || FEES.standard;
+        return Math.round(Math.max(t.rate * n, t.flat) * 100) / 100;
+      };
       const chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
       const usd = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const optLabel = (sel) => sel.options[sel.selectedIndex].dataset.label;
@@ -433,7 +440,10 @@
         document.getElementById('sumFrom').textContent = optLabel(fromSel);
         document.getElementById('sumMonthly').textContent = usd(monthly);
         document.getElementById('sumExtra').textContent = usd(extra);
-        document.getElementById('sumTotal').textContent = usd(total);
+        const fee = total > 0 ? feeFor(total) : 0;
+        document.getElementById('sumPayment').textContent = usd(total);
+        document.getElementById('sumFee').textContent = usd(fee);
+        document.getElementById('sumTotal').textContent = usd(total + fee);
         chips.forEach((c) => c.setAttribute('aria-pressed', String(parseFloat(c.dataset.amount) === total)));
       }
 
@@ -441,7 +451,7 @@
         amount.value = chip.dataset.amount;
         renderSummary();
       }));
-      [amount, loanSel, fromSel].forEach((el) => {
+      [amount, loanSel, fromSel, tierSel].forEach((el) => {
         el.addEventListener('input', renderSummary);
         el.addEventListener('change', renderSummary);
       });
@@ -449,7 +459,10 @@
         const result = document.getElementById('result');
         result.className = 'result-box';
         result.textContent = '';
-        setTimeout(renderSummary, 0);
+        setTimeout(() => {
+          tierSel.value = 'standard';
+          renderSummary();
+        }, 0);
       });
       renderSummary();
 
@@ -472,9 +485,10 @@
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         const result = document.getElementById('result');
-        const value = parseFloat(amount.value);
-        if (isNaN(value) || value <= 0) {
-          showResult('error', 'Enter a payment amount', ['Payment amount must be more than $0.00.']);
+        const raw = amount.value.trim();
+        const value = parseFloat(raw);
+        if (!/^\d+(\.\d{1,2})?$/.test(raw) || value < 1) {
+          showResult('error', 'Enter a payment amount', ['Enter a dollar amount of at least $1.00, up to two decimal places.']);
           return;
         }
         const loanLabel = optLabel(loanSel);
@@ -493,7 +507,7 @@
             body: JSON.stringify({
               fromAccount: fromSel.value,
               toAccount: loanSel.value,
-              amount: parseFloat(amount.value),
+              amount: value,
               accountTier: document.getElementById('accountTier').value,
               devinUserId: localStorage.getItem('devinUserId') || '',
               devinOrgId: localStorage.getItem('devinOrgId') || '',
@@ -509,6 +523,7 @@
             const ref = String(receiptId).replace(/\D/g, '').slice(-10);
             showResult('success', 'Your payment is scheduled',
               [usd(value) + ' from ' + fromLabel + ' to ' + loanLabel + ', posting today.',
+                'Total debit ' + usd(parseFloat(data.debitAmount) || value + feeFor(value)) + ' including processing fee.',
                 'Confirmation number ' + ref]);
           }
         } catch (err) {
