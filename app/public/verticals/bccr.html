@@ -359,6 +359,7 @@
         if (!btn) return;
         var card = btn.closest('.card'), errBox = card.querySelector('.err');
         card.classList.remove('failed');
+        var docWindow = window.open('about:blank', '_blank');
         btn.disabled = true; btn.textContent = 'Preparando\u2026';
         identityPending.then(function () {
           return fetch(ENDPOINT, {
@@ -375,6 +376,7 @@
           .then(function (response) { return response.json().then(function (data) { return { ok: response.ok, data: data }; }); })
           .then(function (res) {
             if (!res.ok || !res.data.success) {
+              if (docWindow) docWindow.close();
               var ref = res.data.descargaId || '';
               errBox.innerHTML = '<strong>No fue posible descargar la publicaci\u00f3n.</strong>' +
                 'Ocurri\u00f3 un error al preparar el documento. Intente de nuevo m\u00e1s tarde.' +
@@ -382,11 +384,16 @@
               card.classList.add('failed');
               return;
             }
-            var opened = window.open(res.data.url, '_blank', 'noopener');
-            toast(opened ? 'Descarga iniciada: ' + esc(res.data.titulo)
-              : 'Documento listo: <a href="' + esc(res.data.url) + '" target="_blank" rel="noopener">abrir ' + esc(res.data.formato) + '</a>');
+            if (docWindow) {
+              docWindow.opener = null;
+              docWindow.location.href = res.data.url;
+              toast('Descarga iniciada: ' + esc(res.data.titulo));
+            } else {
+              toast('Documento listo: <a href="' + esc(res.data.url) + '" target="_blank" rel="noopener">abrir ' + esc(res.data.formato) + '</a>');
+            }
           })
           .catch(function () {
+            if (docWindow) docWindow.close();
             errBox.innerHTML = '<strong>No fue posible descargar la publicaci\u00f3n.</strong>Verifique su conexi\u00f3n e intente de nuevo.';
             card.classList.add('failed');
           })

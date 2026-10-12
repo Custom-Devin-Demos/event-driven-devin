@@ -13,7 +13,7 @@ const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { legacyAlertsSuppressed } = require('./oncall-suppression');
 const { currentAlertDestination } = require('./alert-destination');
 const { buildTeamsAlertCard, buildTeamsFieldCard, postTeamsCard } = require('./teams');
-const { alertStrings } = require('./alert-locale');
+const { alertStrings, alertLocale } = require('./alert-locale');
 
 let servicenowConfigWarningLogged = false;
 
@@ -222,7 +222,8 @@ async function createSessionAndAlert(alertData) {
     alertData.customerConfig = config;
 
     let prompt = buildPrompt(alertData);
-    const isLocalized = Boolean(config.locale && config.locale !== 'en');
+    const locale = alertLocale(alertData);
+    const isLocalized = locale !== 'en';
 
     // Resolve user/org IDs: prefer alertData overrides, fall back to customer config
     const resolvedUserId = alertData.devinUserId || config.devinUserId || '';
@@ -376,7 +377,7 @@ async function createSessionAndAlert(alertData) {
             threadTs,
             session.url,
             ...(config.slackChannelId || isLocalized ? [config.slackChannelId || undefined] : []),
-            ...(isLocalized ? [config.locale] : []),
+            ...(isLocalized ? [locale] : []),
           );
         }
         logger.info('Devin session created and linked', {
