@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sector Real | Banco Central de Costa Rica</title>
+  <link rel="icon" href="/verticals/assets/bccr/bccr-logo-transp.png">
+  <style>
+    :root {
+      --navy: #003764; --ink: #001221; --blue: #1D71B8; --line: #B3C3D1; --soft: #E8EEF4;
+      --orange: #E87722; --muted: #5B6B7A; --danger: #B42318; --success: #1E7B3C;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; color: var(--navy); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* header */
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 16px 10px; max-width: 1440px; margin: 0 auto; }
+    .topbar .logo img { height: 34px; display: block; }
+    .utils { display: flex; align-items: center; font-size: 14px; gap: 0; }
+    .utils .search { display: flex; align-items: center; gap: 6px; color: #8C99A5; margin-right: 18px; }
+    .utils .search svg { width: 20px; height: 20px; stroke: var(--navy); }
+    .utils a { padding: 0 8px; border-left: 1px solid #3FA34D; line-height: 16px; }
+    .utils a:first-of-type { border-left: none; }
+    .utils .dark { display: flex; align-items: center; gap: 6px; padding-left: 8px; border-left: 1px solid #3FA34D; font-size: 12px; }
+    .toggle { width: 36px; height: 20px; border-radius: 10px; background: var(--blue); position: relative; }
+    .toggle::after { content: ''; position: absolute; left: 3px; top: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+    nav.main { display: flex; justify-content: space-between; max-width: 1440px; margin: 0 auto; padding: 8px 6px 0; border-bottom: 3px solid #C9D6E2; }
+    nav.main a { flex: 1; text-align: center; font-size: 12px; font-weight: 700; padding: 10px 6px 12px; line-height: 1.2; display: flex; align-items: center; justify-content: center; }
+    nav.main a.active { color: var(--blue); }
+
+    /* hero */
+    .hero { position: relative; height: 146px; background: #0B3A68 url('/verticals/assets/bccr/hero-banner-los-campesinos.jpeg') right center / cover no-repeat; display: flex; align-items: center; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #003764 0%, rgba(0,55,100,0.92) 38%, rgba(0,55,100,0) 62%); }
+    .hero h1 { position: relative; color: #fff; font-size: 64px; font-weight: 700; padding: 0 16px; letter-spacing: -0.5px; }
+    .crumbs { display: flex; align-items: center; gap: 14px; font-size: 11px; padding: 14px 16px; max-width: 1440px; margin: 0 auto; }
+    .crumbs .sep { color: var(--orange); font-size: 13px; }
+    .crumbs .here { color: var(--blue); }
+
+    /* content */
+    main { max-width: 718px; margin: 0 auto; padding: 0 0 64px; }
+    @media (min-width: 900px) { main { max-width: 718px; } }
+    h2.title { font-size: 48px; font-weight: 700; text-align: center; margin: 26px 0 30px; color: var(--navy); }
+    .intro { font-size: 20px; line-height: 1.32; color: var(--ink); margin-bottom: 30px; }
+    .wrap { width: min(718px, calc(100vw - 32px)); margin: 0 auto; }
+    h3.filtre { font-size: 22px; font-weight: 700; margin-bottom: 18px; }
+    .field label { display: block; font-size: 14px; color: var(--ink); margin-bottom: 7px; }
+    .control { position: relative; }
+    .control input, .control select { width: 100%; height: 46px; border: 1px solid var(--line); border-radius: 4px; padding: 10px 36px 10px 12px; font-size: 14px; font-family: inherit; color: var(--ink); background: #fff; appearance: none; -webkit-appearance: none; outline: none; }
+    .control input::placeholder { color: #8C99A5; }
+    .control input:focus, .control select:focus { border-color: var(--blue); }
+    .control svg { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; pointer-events: none; stroke: var(--navy); fill: none; }
+    .control input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0; position: absolute; right: 0; width: 40px; height: 100%; cursor: pointer; }
+    .row-search { width: 240px; margin-bottom: 20px; }
+    .row-filters { display: grid; grid-template-columns: repeat(3, 180px); gap: 15px; margin-bottom: 16px; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .card { border: 1px solid #EEF1F4; border-radius: 4px; box-shadow: 0 1px 4px rgba(0, 18, 33, 0.08); padding: 12px 10px 10px; display: flex; flex-direction: column; min-height: 152px; background: #fff; }
+    .card .ico { width: 36px; height: 36px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; margin-bottom: 16px; }
+    .card .ico svg { width: 18px; height: 18px; stroke: var(--blue); fill: none; }
+    .card h4 { font-size: 13.5px; font-weight: 700; line-height: 1.17; color: var(--navy); margin-bottom: 5px; }
+    .card .date { font-size: 7.5px; font-weight: 700; color: var(--ink); }
+    .card .date span { font-weight: 700; }
+    .card .actions { margin-top: auto; padding-top: 14px; display: flex; justify-content: flex-end; }
+    .btn-dl { width: 144px; height: 28px; border: 1px solid var(--blue); border-radius: 4px; background: #fff; color: var(--blue); font-size: 11px; font-weight: 700; }
+    .btn-dl:hover { background: var(--blue); color: #fff; }
+    .btn-dl[disabled] { opacity: 0.6; cursor: wait; }
+    .card .err { display: none; margin-top: 10px; border-left: 3px solid var(--danger); background: #FDF2F1; padding: 8px 10px; font-size: 11px; line-height: 1.35; color: var(--ink); }
+    .card .err strong { color: var(--danger); display: block; margin-bottom: 2px; }
+    .card .err code { font-size: 10px; color: var(--muted); }
+    .card.failed .err { display: block; }
+    .empty { grid-column: 1 / -1; text-align: center; color: var(--muted); font-size: 15px; padding: 40px 0; }
+
+    .pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 18px; font-size: 9px; font-weight: 700; color: var(--ink); flex-wrap: wrap; }
+    .pager .pages { display: flex; align-items: center; gap: 4px; }
+    .pager .pg { min-width: 22px; height: 22px; border: none; background: none; font-size: 9px; color: var(--blue); font-weight: 400; }
+    .pager .pg.cur { color: var(--ink); font-weight: 700; }
+    .pager .arrow { border: none; background: none; width: 22px; height: 22px; display: grid; place-items: center; }
+    .pager .arrow svg { width: 14px; height: 14px; stroke: var(--navy); fill: none; }
+    .pager .arrow[disabled] svg { stroke: #B3C3D1; }
+    .pager input { width: 54px; height: 22px; border: 1px solid var(--line); border-radius: 3px; font-size: 10px; padding: 0 6px; }
+    .pager .go { height: 22px; padding: 0 8px; background: var(--blue); color: #fff; border: none; border-radius: 2px; font-size: 9px; font-weight: 700; }
+    .pager select { height: 22px; border: 1px solid var(--line); border-radius: 3px; font-size: 10px; padding: 0 4px; color: var(--ink); background: #fff; }
+
+    footer { border-top: 2px solid #C9D6E2; margin-top: 20px; }
+    .foot { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 0.8fr 1fr; gap: 24px; padding: 34px 26px 26px; font-size: 8px; color: var(--ink); }
+    .foot h5 { font-size: 11px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+    .foot p { line-height: 1.6; margin-bottom: 6px; }
+    .foot .links { border-left: 2px solid #C9D6E2; padding-left: 18px; display: flex; flex-direction: column; gap: 26px; justify-content: center; }
+    .foot .links a { color: var(--blue); font-weight: 700; text-decoration: underline; font-size: 10px; }
+    .gmo { display: flex; align-items: center; gap: 4px; font-size: 8px; font-weight: 700; color: var(--navy); }
+    .gmo span.ball { width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 0 3px, #111 4px); border: 2px solid var(--blue); }
+    .bottom { background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; font-size: 8px; }
+    .bottom .l { display: flex; align-items: center; gap: 14px; }
+    .bottom img { height: 18px; }
+    .bottom .soc { display: flex; gap: 30px; }
+    .bottom .soc svg { width: 18px; height: 18px; stroke: #fff; fill: none; }
+
+    /* identity bubble */
+    .fab { position: fixed; right: 22px; bottom: 22px; width: 52px; height: 52px; border-radius: 50%; background: var(--navy); border: none; box-shadow: 0 8px 20px rgba(0,55,100,0.3); display: grid; place-items: center; z-index: 50; }
+    .fab:hover { background: var(--blue); }
+    .drawer { position: fixed; right: 22px; bottom: 86px; width: min(340px, calc(100vw - 44px)); z-index: 50; padding: 18px; background: #fff; border: 1px solid #E1E8EF; border-radius: 6px; box-shadow: 0 12px 32px rgba(0,18,33,0.18); }
+    .drawer h4 { font-size: 16px; font-weight: 700; color: var(--navy); }
+    .drawer p.sub { font-size: 12px; line-height: 1.4; color: var(--muted); margin: 4px 0 12px; }
+    .drawer label { display: block; font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+    .drawer input { width: 100%; border: 1px solid var(--line); border-radius: 4px; padding: 9px 10px; font-size: 13px; font-family: inherit; margin-bottom: 10px; outline: none; }
+    .drawer input:focus { border-color: var(--blue); }
+    .drawer .btn-main { width: 100%; height: 38px; border: none; border-radius: 4px; background: var(--blue); color: #fff; font-weight: 700; font-size: 13px; }
+    .drawer .btn-main[disabled] { opacity: 0.6; }
+    .id-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); margin-bottom: 12px; flex-wrap: wrap; }
+    .id-status code { font-size: 11px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #A3A3A3; flex: none; }
+    .dot.ok { background: #22A45D; } .dot.warn { background: var(--orange); }
+    .id-msg { font-size: 12px; margin-top: 8px; }
+    .id-msg.err { color: var(--danger); } .id-msg.ok { color: var(--success); }
+    .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: var(--navy); color: #fff; font-size: 13px; padding: 10px 16px; border-radius: 4px; z-index: 60; box-shadow: 0 8px 20px rgba(0,18,33,0.25); }
+    .toast a { color: #fff; text-decoration: underline; font-weight: 700; }
+
+    @media (max-width: 760px) {
+      nav.main { overflow-x: auto; justify-content: flex-start; }
+      nav.main a { flex: none; min-width: 110px; }
+      .utils .search, .utils a, .utils .dark span { display: none; }
+    }
+    @media (max-width: 720px) {
+      .hero h1 { font-size: 40px; }
+      h2.title { font-size: 34px; }
+      .intro { font-size: 17px; }
+      .row-search { width: 100%; }
+      .row-filters, .grid { grid-template-columns: 1fr; }
+      .foot { grid-template-columns: 1fr; }
+      .foot .links { border-left: none; padding-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <a class="logo" href="#"><img src="/verticals/assets/bccr/bccr-logo-transp.png" alt="Banco Central de Costa Rica"></a>
+      <div class="utils">
+        <div class="search">Buscar <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="7"/><path d="M16 16l5 5"/></svg></div>
+        <a href="#">EN</a><a href="#">Suscripciones</a><a href="#">Preguntas Frecuentes</a>
+        <div class="dark"><div class="toggle"></div><span>Modo Oscuro</span></div>
+      </div>
+    </div>
+    <nav class="main">
+      <a href="#">Pol&iacute;tica Monetaria</a><a href="#">R&eacute;gimen<br>Cambiario</a><a href="#">Sistema de Pagos</a>
+      <a href="#">Billetes y<br>Monedas</a><a href="#">Noticias</a><a href="#">Indicadores<br>Econ&oacute;micos</a>
+      <a href="#" class="active">Publicaciones</a><a href="#">Investigaciones<br>Econ&oacute;micas</a>
+      <a href="#">Transparencia<br>Institucional</a><a href="#">Sobre Banco<br>Central</a>
+    </nav>
+  </header>
+
+  <section class="hero"><h1>Publicaciones</h1></section>
+  <div class="crumbs"><a href="#">Inicio</a><span class="sep">&rsaquo;</span><a href="#">Publicaciones</a><span class="sep">&rsaquo;</span><span class="here">Sector Real</span></div>
+
+  <main>
+    <div class="wrap">
+      <h2 class="title">Sector Real</h2>
+      <p class="intro">Esta secci&oacute;n re&uacute;ne publicaciones relacionadas con la evoluci&oacute;n del sector real de la econom&iacute;a costarricense, incluyendo el comportamiento del Producto Interno Bruto (PIB), la producci&oacute;n, la demanda y el sector externo. Los documentos disponibles presentan an&aacute;lisis peri&oacute;dicos que facilitan el seguimiento de la actividad econ&oacute;mica y sus principales tendencias.</p>
+
+      <h3 class="filtre">Filtre</h3>
+      <div class="field row-search">
+        <label for="q">Busca por palabra clave</label>
+        <div class="control"><input id="q" type="search" placeholder="B&uacute;squeda...." autocomplete="off"><svg viewBox="0 0 24 24" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="7"/><path d="M16 16l5 5"/></svg></div>
+      </div>
+      <div class="row-filters">
+        <div class="field">
+          <label for="fecha">Fecha</label>
+          <div class="control"><input id="fecha" type="text" placeholder="dd/mm/aa" aria-label="Fecha" autocomplete="off"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg></div>
+        </div>
+        <div class="field">
+          <label for="orden">Ordenar por</label>
+          <div class="control"><select id="orden"><option value="desc">M&aacute;s recientes</option><option value="asc">M&aacute;s antiguos</option><option value="az">T&iacute;tulo (A-Z)</option><option value="za">T&iacute;tulo (Z-A)</option></select><svg viewBox="0 0 24 24" stroke-width="1.6"><path d="M4 8l8 8 8-8"/></svg></div>
+        </div>
+        <div class="field">
+          <label for="tema">Tema</label>
+          <div class="control"><select id="tema"><option value="">Todos los temas</option></select><svg viewBox="0 0 24 24" stroke-width="1.6"><path d="M4 8l8 8 8-8"/></svg></div>
+        </div>
+      </div>
+
+      <div class="grid" id="grid" aria-live="polite"></div>
+
+      <div class="pager" id="pager">
+        <div class="pages">
+          <button class="arrow" id="prev" aria-label="P&aacute;gina anterior"><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M15 4l-8 8 8 8"/></svg></button>
+          <span id="pageNums" class="pages"></span>
+          <button class="arrow" id="next" aria-label="P&aacute;gina siguiente"><svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M9 4l8 8-8 8"/></svg></button>
+        </div>
+        <span>Ir a la P&aacute;gina</span><input id="goPage" type="number" min="1" aria-label="Ir a la p&aacute;gina"><button class="go" id="goBtn">Ir</button>
+        <span>Resultados por p&aacute;gina</span><select id="perPage"><option>10</option><option>25</option><option>50</option></select>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="foot">
+      <div><h5>Horario</h5><p>Atenci&oacute;n presencial<br>de lunes a viernes de 9 a. m. a 4 p. m.</p><p>Central telef&oacute;nica: +506 2243-3333<br>de lunes a viernes de 9 a. m. a 5 p. m.</p></div>
+      <div><h5>&iquest;D&oacute;nde encontrarnos?</h5><p>Direcci&oacute;n: avenidas central y 1, calles 2 y 4,<br>San Jos&eacute;.</p><p>Apartado postal: 10058-1000</p></div>
+      <div><div class="gmo"><span class="ball"></span>GMO GlobalSign<br>secure</div></div>
+      <div class="links"><a href="#">Enlaces de inter&eacute;s</a><a href="#">Mapa del sitio</a><a href="#">Pol&iacute;ticas del sitio web</a></div>
+    </div>
+    <div class="bottom">
+      <div class="l"><img src="/verticals/assets/bccr/logo-bccr.svg" alt="Banco Central de Costa Rica"><span>&reg; 2026</span></div>
+      <div class="soc">
+        <svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="12" r="9.5"/><path d="M13 20v-7h2.5l.4-2.8H13V8.6c0-.8.3-1.4 1.4-1.4H16V4.8c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.7v1.8H8V13h2.2v7"/></svg>
+        <svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7.5 10v7M7.5 7v.01M11 17v-7M11 13a3 3 0 0 1 6 0v4"/></svg>
+        <svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="12" r="9.5"/><path d="M10 9l5 3-5 3z"/></svg>
+        <svg viewBox="0 0 24 24" stroke-width="1.6"><path d="M4 4l16 16M20 4L4 20"/></svg>
+      </div>
+    </div>
+  </footer>
+
+  <button type="button" class="fab" id="fab" aria-label="Configuraci&oacute;n de identidad">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+  </button>
+  <div class="drawer" id="drawer" hidden>
+    <h4>Identidad de guardia</h4>
+    <p class="sub">El correo <strong>@devindemos.com</strong> define a qui&eacute;n se menciona como guardia en Slack y con qu&eacute; usuario se crea la sesi&oacute;n de Devin.</p>
+    <div class="id-status"><span class="dot" id="identityDot"></span><span id="identityText">Cargando&hellip;</span><code id="identityEmailOut"></code></div>
+    <label for="identityEmail">Correo</label>
+    <input type="email" id="identityEmail" placeholder="nombre@devindemos.com" autocomplete="off">
+    <label for="identityOrg">Organizaci&oacute;n en Devin</label>
+    <input type="text" id="identityOrg" placeholder="Nombre de la organizaci&oacute;n" autocomplete="off">
+    <button type="button" class="btn-main" id="identityBtn">Conectar identidad</button>
+    <div id="identityMsg" class="id-msg"></div>
+  </div>
+  <div class="toast" id="toast" hidden></div>
+
+  <script>
+    (function () {
+      var ENDPOINT = '/api/bccr/descargas';
+      function $(id) { return document.getElementById(id); }
+      function stored(key) { return localStorage.getItem(key) || ''; }
+      function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+      function fmtDate(iso) { var p = iso.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+      function norm(s) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
+      var all = [], page = 1;
+      var DOC_ICON = '<svg viewBox="0 0 24 24" stroke-width="1.6"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z"/><path d="M14 3v4.5h4.5M9 12.5h6M9 15.5h6"/></svg>';
+
+      function filtered() {
+        var q = norm($('q').value.trim()), fecha = $('fecha').value, tema = $('tema').value, orden = $('orden').value;
+        var list = all.filter(function (p) {
+          return (!q || norm(p.titulo).indexOf(q) !== -1) && (!fecha || p.fecha >= fecha) && (!tema || p.tema === tema);
+        });
+        list.sort(function (a, b) {
+          if (orden === 'asc') return a.fecha.localeCompare(b.fecha);
+          if (orden === 'az') return a.titulo.localeCompare(b.titulo, 'es');
+          if (orden === 'za') return b.titulo.localeCompare(a.titulo, 'es');
+          return b.fecha.localeCompare(a.fecha);
+        });
+        return list;
+      }
+
+      function render() {
+        var list = filtered(), per = Number($('perPage').value), pages = Math.max(1, Math.ceil(list.length / per));
+        if (page > pages) page = pages;
+        var slice = list.slice((page - 1) * per, page * per);
+        $('grid').innerHTML = slice.length ? slice.map(function (p) {
+          return '<article class="card" data-id="' + esc(p.id) + '">' +
+            '<div class="ico">' + DOC_ICON + '</div>' +
+            '<h4>' + esc(p.titulo) + '</h4>' +
+            '<p class="date">Fecha de publicaci\u00f3n: <span>' + fmtDate(p.fecha) + '</span></p>' +
+            '<div class="actions"><button type="button" class="btn-dl">Descargar</button></div>' +
+            '<div class="err" role="alert"></div></article>';
+        }).join('') : '<p class="empty">No se encontraron publicaciones con los filtros seleccionados.</p>';
+        var nums = '';
+        for (var i = 1; i <= pages; i++) nums += '<button class="pg' + (i === page ? ' cur' : '') + '" data-page="' + i + '">' + i + '</button>';
+        $('pageNums').innerHTML = nums;
+        $('prev').disabled = page <= 1; $('next').disabled = page >= pages;
+        $('goPage').max = pages;
+      }
+
+      var fechaInput = $('fecha');
+      fechaInput.addEventListener('focus', function () {
+        if (fechaInput.type !== 'date') { fechaInput.type = 'date'; try { fechaInput.showPicker(); } catch (e) { /* not supported */ } }
+      });
+      fechaInput.addEventListener('blur', function () { if (!fechaInput.value) fechaInput.type = 'text'; });
+
+      ['q', 'fecha', 'orden', 'tema', 'perPage'].forEach(function (id) {
+        $(id).addEventListener(id === 'q' ? 'input' : 'change', function () { page = 1; render(); });
+      });
+      $('pageNums').addEventListener('click', function (e) { var b = e.target.closest('[data-page]'); if (b) { page = Number(b.dataset.page); render(); } });
+      $('prev').addEventListener('click', function () { page--; render(); });
+      $('next').addEventListener('click', function () { page++; render(); });
+      $('goBtn').addEventListener('click', function () { var n = Number($('goPage').value); if (n >= 1) { page = n; render(); } });
+
+      function toast(html) {
+        var t = $('toast'); t.innerHTML = html; t.hidden = false;
+        clearTimeout(toast.timer); toast.timer = setTimeout(function () { t.hidden = true; }, 6000);
+      }
+
+      fetch('/api/bccr/publicaciones').then(function (r) { return r.json(); }).then(function (data) {
+        all = data.publicaciones || [];
+        $('tema').insertAdjacentHTML('beforeend', (data.temas || []).map(function (t) { return '<option value="' + esc(t.id) + '">' + esc(t.label) + '</option>'; }).join(''));
+        render();
+      }).catch(function () { $('grid').innerHTML = '<p class="empty">No fue posible cargar las publicaciones.</p>'; });
+
+      /* ---------- identity (same contract as the other demos) ---------- */
+      var config = {};
+      var identityPending = Promise.resolve();
+      var emailInput = $('identityEmail'), orgInput = $('identityOrg'), identityBtn = $('identityBtn'), identityMsg = $('identityMsg');
+      function renderIdentity() {
+        var email = stored('devinEmail'), userId = stored('devinUserId');
+        $('identityEmailOut').textContent = email;
+        if (email && userId) { $('identityDot').className = 'dot ok'; $('identityText').textContent = 'Guardia y sesi\u00f3n:'; }
+        else if (email) { $('identityDot').className = 'dot warn'; $('identityText').textContent = 'Correo guardado sin usuario de Devin:'; }
+        else { $('identityDot').className = 'dot warn'; $('identityText').textContent = 'Sin identidad configurada'; }
+      }
+      $('fab').addEventListener('click', function () { $('drawer').hidden = !$('drawer').hidden; });
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        config = cfg || {};
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.lockOrg) {
+          orgInput.value = cfg.defaultOrgName || stored('devinOrgName') || '';
+          orgInput.disabled = true;
+          orgInput.title = 'Organizaci\u00f3n fijada por la configuraci\u00f3n del servidor';
+        } else if (!orgInput.value) {
+          orgInput.value = stored('devinOrgName') || cfg.defaultOrgName || '';
+        }
+        renderIdentity();
+      }).catch(renderIdentity);
+      emailInput.value = stored('devinEmail');
+      orgInput.value = stored('devinOrgName');
+      renderIdentity();
+
+      identityBtn.addEventListener('click', function () {
+        var email = emailInput.value.trim(), orgName = orgInput.value.trim();
+        identityMsg.className = 'id-msg'; identityMsg.textContent = '';
+        if (!email) { identityMsg.className = 'id-msg err'; identityMsg.textContent = 'Ingresa el correo de la persona de guardia.'; return; }
+        var payload = { email: email };
+        if (config.lockOrg && config.defaultOrgId) payload.orgId = config.defaultOrgId;
+        else if (orgName) payload.orgName = orgName;
+        else if (config.defaultOrgId) payload.orgId = config.defaultOrgId;
+        identityBtn.disabled = true; identityBtn.textContent = 'Conectando\u2026';
+        identityPending = fetch('/api/resolve-identity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+          .then(function (response) { return response.json().then(function (data) { return { ok: response.ok, data: data }; }); })
+          .then(function (res) {
+            if (!res.ok) { identityMsg.className = 'id-msg err'; identityMsg.textContent = res.data.error || 'No fue posible resolver la identidad.'; return; }
+            if (config.lockUser && res.data.userId && res.data.userId !== stored('devinUserId')) {
+              identityMsg.className = 'id-msg err'; identityMsg.textContent = 'Este despliegue est\u00e1 fijado a otro usuario de Devin; usa el correo de esa persona.'; return;
+            }
+            localStorage.setItem('devinEmail', email);
+            if (orgName && !config.lockOrg) localStorage.setItem('devinOrgName', orgName);
+            if (res.data.orgId && !config.lockOrg) localStorage.setItem('devinOrgId', res.data.orgId);
+            if (res.data.userId && !config.lockUser) localStorage.setItem('devinUserId', res.data.userId);
+            identityMsg.className = 'id-msg ok'; identityMsg.textContent = 'Identidad conectada.';
+            renderIdentity();
+          })
+          .catch(function (err) { identityMsg.className = 'id-msg err'; identityMsg.textContent = err.message; })
+          .finally(function () { identityBtn.disabled = false; identityBtn.textContent = 'Conectar identidad'; });
+      });
+
+      /* ---------- download ---------- */
+      $('grid').addEventListener('click', function (event) {
+        var btn = event.target.closest('.btn-dl');
+        if (!btn) return;
+        var card = btn.closest('.card'), errBox = card.querySelector('.err');
+        card.classList.remove('failed');
+        btn.disabled = true; btn.textContent = 'Preparando\u2026';
+        identityPending.then(function () {
+          return fetch(ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              publicacionId: card.dataset.id,
+              devinUserId: stored('devinUserId'),
+              devinOrgId: stored('devinOrgId'),
+              devinEmail: stored('devinEmail')
+            })
+          });
+        })
+          .then(function (response) { return response.json().then(function (data) { return { ok: response.ok, data: data }; }); })
+          .then(function (res) {
+            if (!res.ok || !res.data.success) {
+              var ref = res.data.descargaId || '';
+              errBox.innerHTML = '<strong>No fue posible descargar la publicaci\u00f3n.</strong>' +
+                'Ocurri\u00f3 un error al preparar el documento. Intente de nuevo m\u00e1s tarde.' +
+                (ref ? '<br><code>Referencia: ' + esc(ref) + '</code>' : '');
+              card.classList.add('failed');
+              return;
+            }
+            var opened = window.open(res.data.url, '_blank', 'noopener');
+            toast(opened ? 'Descarga iniciada: ' + esc(res.data.titulo)
+              : 'Documento listo: <a href="' + esc(res.data.url) + '" target="_blank" rel="noopener">abrir ' + esc(res.data.formato) + '</a>');
+          })
+          .catch(function () {
+            errBox.innerHTML = '<strong>No fue posible descargar la publicaci\u00f3n.</strong>Verifique su conexi\u00f3n e intente de nuevo.';
+            card.classList.add('failed');
+          })
+          .finally(function () { btn.disabled = false; btn.textContent = 'Descargar'; });
+      });
+    })();
+  </script>
+</body>
+</html>
