@@ -11,6 +11,7 @@ const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
 const router = require('../app/routes/verticals/4e90bb44');
 const service = require('../app/services/verticals/4e90bb44');
+const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 
 let server;
 let baseUrl;
@@ -137,4 +138,11 @@ describe('Rocket Companies — Rocket Mortgage & Redfin savings', () => {
     expect(savings.lenderCredit).toBe(6000);
     expect(savings.totalSavings).toBe(12000);
   });
+});
+
+test('Sentry issue webhook skips Rocket events already alerted by the instant path', () => {
+  expect(isInstantPathEvent({
+    culprit: 'app/services/verticals/4e90bb44 in currentLoanForSale',
+    tags: [],
+  })).toBe(true);
 });
