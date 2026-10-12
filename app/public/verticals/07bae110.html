@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>振込 | 三菱ＵＦＪダイレクト | 三菱ＵＦＪ銀行</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bk-red: #E60000;
+      --bk-red-dark: #B80000;
+      --bk-ink: #333333;
+      --bk-black: #000000;
+      --bk-gray: #595959;
+      --bk-line: #D4D4D4;
+      --bk-pale: #F2F2F2;
+      --bk-muted: #666666;
+      --bk-link: #003399;
+      --bk-font: "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", Meiryo, "Noto Sans JP", "Yu Gothic", sans-serif;
+      --wrap: 1200px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--bk-font); color: var(--bk-ink); background: #fff; font-size: 16px; line-height: 26px; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 20px; }
+
+    /* Header */
+    .bk-banner { border-bottom: 4px solid var(--bk-red); }
+    .bk-banner .wrap { height: 91px; display: flex; align-items: center; justify-content: space-between; }
+    .bk-brand { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+    .bk-mark { width: 50px; height: 38px; display: block; }
+    .bk-word { font-size: 31px; font-weight: 700; letter-spacing: .02em; color: var(--bk-gray); line-height: 1; }
+    .bk-bankname { font-size: 21px; font-weight: 700; letter-spacing: .06em; color: var(--bk-black); }
+    .bk-menu-btn { display: none; min-width: 44px; height: 44px; border: 0; background: none; align-items: center; justify-content: center; flex-direction: column; gap: 5px; cursor: pointer; }
+    .bk-menu-btn span { display: block; width: 22px; height: 2px; background: var(--bk-ink); }
+    .bk-gnav .wrap { display: flex; align-items: center; height: 70px; }
+    .bk-gnav ul { display: flex; list-style: none; }
+    .bk-gnav li { border-left: 1px solid var(--bk-line); }
+    .bk-gnav li:last-child { border-right: 1px solid var(--bk-line); }
+    .bk-gnav li a { display: flex; align-items: center; height: 44px; padding: 0 28px; font-weight: 700; letter-spacing: .08em; color: var(--bk-ink); }
+    .bk-gnav li a.is-current { color: var(--bk-red); }
+    .bk-gnav li a:hover { color: var(--bk-red); }
+    .bk-gnav-right { margin-left: auto; display: flex; align-items: center; gap: 24px; font-size: 16px; }
+    .bk-gnav-right svg { width: 26px; height: 26px; color: var(--bk-ink); }
+    .bk-lang a { display: inline-flex; align-items: center; min-height: 44px; color: var(--bk-ink); }
+    .bk-lang a.is-current { color: var(--bk-red); }
+    .bk-lang span { color: var(--bk-line); margin: 0 8px; }
+
+    /* Breadcrumb + local header */
+    .bk-crumb { background: var(--bk-pale); }
+    .bk-crumb ol { list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 0; padding: 0; font-size: 13px; line-height: 20px; }
+    .bk-crumb li + li::before { content: '›'; margin: 0 10px; color: var(--bk-muted); }
+    .bk-crumb a { display: inline-flex; align-items: center; min-height: 44px; color: var(--bk-link); text-decoration: underline; }
+    .bk-local { border-bottom: 1px solid var(--bk-line); }
+    .bk-local .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 22px; padding-bottom: 22px; }
+    .bk-local-title { display: flex; align-items: baseline; gap: 14px; }
+    .bk-local-title .svc { font-size: 26px; font-weight: 700; letter-spacing: .04em; color: var(--bk-black); }
+    .bk-local-title .sub { font-size: 14px; color: var(--bk-muted); }
+    .bk-session { display: flex; align-items: center; gap: 16px; font-size: 14px; color: var(--bk-muted); }
+    .bk-session strong { color: var(--bk-ink); font-weight: 700; }
+    .bk-logout { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border: 1px solid var(--bk-line); border-radius: 3px; background: #fff; color: var(--bk-ink); font-size: 14px; white-space: nowrap; }
+    .bk-tabs { border-bottom: 1px solid var(--bk-line); }
+    .bk-tabs ul { list-style: none; display: flex; overflow-x: auto; scrollbar-width: none; }
+    .bk-tabs a { display: flex; align-items: center; height: 52px; padding: 0 22px; font-size: 15px; font-weight: 500; white-space: nowrap; color: var(--bk-ink); border-bottom: 3px solid transparent; }
+    .bk-tabs a.is-current { color: var(--bk-red); border-bottom-color: var(--bk-red); font-weight: 700; }
+
+    /* Notice */
+    .bk-notice { padding: 18px 0; }
+    .bk-notice p { display: flex; gap: 10px; align-items: flex-start; color: var(--bk-red); font-weight: 700; font-size: 15px; line-height: 24px; }
+    .bk-notice svg { flex: none; width: 24px; height: 22px; margin-top: 1px; }
+
+    /* Layout */
+    .bk-main { padding: 12px 0 72px; }
+    .bk-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 40px; align-items: start; }
+    .bk-h2 { font-size: 24px; font-weight: 700; line-height: 34px; letter-spacing: .04em; color: var(--bk-black); padding-left: 16px; border-left: 5px solid var(--bk-red); }
+    .bk-lead { margin-top: 12px; font-size: 15px; color: var(--bk-muted); }
+
+    .bk-steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 28px; counter-reset: step; }
+    .bk-steps li { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; height: 52px; background: var(--bk-pale); color: var(--bk-muted); font-size: 15px; font-weight: 700; clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%, 16px 50%); counter-increment: step; }
+    .bk-steps li:first-child { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%); }
+    .bk-steps li::before { content: counter(step); display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #fff; font-size: 13px; }
+    .bk-steps li.is-current { background: var(--bk-red); color: #fff; }
+    .bk-steps li.is-current::before { color: var(--bk-red); }
+    .bk-steps li.is-done { background: var(--bk-gray); color: #fff; }
+    .bk-steps li.is-done::before { color: var(--bk-gray); }
+
+    .bk-panel { margin-top: 28px; border: 1px solid var(--bk-line); }
+    .bk-panel-head { background: var(--bk-pale); padding: 14px 24px; font-size: 17px; font-weight: 700; border-bottom: 1px solid var(--bk-line); }
+    .bk-rows { display: grid; }
+    .bk-row { display: grid; grid-template-columns: 200px minmax(0, 1fr); border-bottom: 1px solid var(--bk-line); }
+    .bk-row:last-child { border-bottom: 0; }
+    .bk-row > label, .bk-row > .lbl { display: flex; align-items: center; gap: 8px; padding: 18px 20px; background: #FAFAFA; border-right: 1px solid var(--bk-line); font-size: 15px; font-weight: 700; }
+    .bk-req { display: inline-block; padding: 0 6px; background: var(--bk-red); color: #fff; font-size: 11px; line-height: 18px; border-radius: 2px; font-weight: 700; }
+    .bk-row .fld { padding: 14px 20px; }
+    .bk-row select, .bk-row input { width: 100%; max-width: 460px; height: 48px; border: 1px solid #999; border-radius: 3px; background: #fff; padding: 0 14px; font-size: 16px; color: var(--bk-ink); }
+    .bk-row select { appearance: none; -webkit-appearance: none; padding-right: 40px; background-image: linear-gradient(45deg, transparent 50%, var(--bk-ink) 50%), linear-gradient(135deg, var(--bk-ink) 50%, transparent 50%); background-position: calc(100% - 20px) 21px, calc(100% - 15px) 21px; background-size: 5px 5px; background-repeat: no-repeat; }
+    .bk-row select:disabled, .bk-row input:disabled { background-color: var(--bk-pale); color: var(--bk-muted); cursor: not-allowed; }
+    .bk-row select:focus, .bk-row input:focus { outline: 2px solid var(--bk-red); outline-offset: 1px; border-color: var(--bk-red); }
+    .bk-yen { display: flex; align-items: center; gap: 10px; max-width: 460px; }
+    .bk-yen input { text-align: right; font-size: 18px; font-weight: 700; letter-spacing: .02em; }
+    .bk-yen span { font-weight: 700; }
+    .bk-help { margin-top: 6px; font-size: 13px; line-height: 20px; color: var(--bk-muted); }
+    .bk-help.is-error { color: var(--bk-red); font-weight: 700; }
+    .bk-static { font-size: 16px; padding: 10px 0; }
+
+    .bk-review { margin-top: 28px; border: 2px solid var(--bk-ink); padding: 18px 24px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .bk-review dt { font-size: 13px; color: var(--bk-muted); }
+    .bk-review dd { font-size: 17px; font-weight: 700; line-height: 26px; color: var(--bk-black); word-break: break-word; }
+
+    .bk-actions { margin-top: 32px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .bk-submit { position: relative; width: 100%; max-width: 420px; min-height: 60px; border: 0; border-radius: 3px; background: var(--bk-red); color: #fff; font-size: 18px; font-weight: 700; letter-spacing: .1em; cursor: pointer; }
+    .bk-submit::after { content: ''; position: absolute; right: 22px; top: 50%; width: 8px; height: 8px; border-top: 2px solid #fff; border-right: 2px solid #fff; transform: translateY(-50%) rotate(45deg); }
+    .bk-submit:hover { background: var(--bk-red-dark); }
+    .bk-submit:disabled { opacity: .75; cursor: progress; }
+    .bk-submit:focus-visible { outline: 3px solid var(--bk-ink); outline-offset: 2px; }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 10px; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 13px; letter-spacing: .08em; color: var(--bk-muted); }
+    .stopwatch .sw-value { font-size: 26px; font-weight: 700; color: var(--bk-ink); }
+    .stopwatch.done .sw-value { color: var(--bk-red); }
+    .bk-status { font-size: 13px; color: var(--bk-muted); text-align: center; }
+    .result-box { display: none; width: 100%; margin-top: 8px; padding: 18px 22px; border: 1px solid var(--bk-line); font-size: 15px; line-height: 24px; }
+    .result-box.success, .result-box.notice { display: block; }
+    .result-box.success { border-color: #2E7D32; background: #F3FAF3; }
+    .result-box.notice { border-color: var(--bk-red); background: #FFF5F5; }
+    .result-box .rb-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .result-box.success .rb-title { color: #1B5E20; }
+    .result-box.notice .rb-title { color: var(--bk-red); }
+
+    /* Aside */
+    .bk-card { border: 1px solid var(--bk-line); }
+    .bk-card + .bk-card { margin-top: 24px; }
+    .bk-card-head { padding: 12px 20px; background: var(--bk-gray); color: #fff; font-size: 15px; font-weight: 700; letter-spacing: .06em; }
+    .bk-card-body { padding: 18px 20px; font-size: 14px; line-height: 23px; }
+    .bk-bal-acct { color: var(--bk-muted); font-size: 13px; }
+    .bk-bal { font-size: 30px; font-weight: 700; color: var(--bk-black); line-height: 40px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .bk-bal small { font-size: 16px; margin-left: 4px; }
+    .bk-bal-list { list-style: none; margin-top: 12px; border-top: 1px solid var(--bk-line); }
+    .bk-bal-list li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dotted var(--bk-line); }
+    .bk-links { list-style: none; }
+    .bk-links li a { display: flex; align-items: center; gap: 10px; min-height: 44px; border-bottom: 1px solid var(--bk-pale); color: var(--bk-ink); }
+    .bk-links li a::before { content: ''; flex: none; width: 6px; height: 6px; border-top: 1.5px solid var(--bk-ink); border-right: 1.5px solid var(--bk-ink); transform: rotate(45deg); }
+    .bk-links li:last-child a { border-bottom: 0; }
+
+    /* Footer */
+    .bk-group { background: var(--bk-pale); padding: 36px 0; }
+    .bk-group ul { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 32px; font-size: 14px; }
+    .bk-group li a { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; }
+    .bk-group li a::before { content: ''; width: 6px; height: 6px; border-top: 1.5px solid var(--bk-ink); border-right: 1.5px solid var(--bk-ink); transform: rotate(45deg); }
+    .bk-corp { text-align: center; padding: 30px 0; font-size: 14px; line-height: 24px; border-bottom: 4px solid var(--bk-red); }
+    .bk-corp .tag { display: inline-block; border: 1px solid var(--bk-ink); padding: 0 6px; margin-right: 10px; }
+    .bk-legal { padding: 28px 0 36px; text-align: center; }
+    .bk-legal ul { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 32px; font-size: 14px; }
+    .bk-legal li a { display: inline-flex; align-items: center; min-height: 44px; }
+    .bk-legal p { margin-top: 26px; font-size: 12px; color: var(--bk-muted); }
+
+    @media (max-width: 1080px) {
+      .bk-gnav li a { padding: 0 16px; }
+    }
+    @media (max-width: 900px) {
+      .bk-grid { grid-template-columns: 1fr; }
+      .bk-gnav { display: none; }
+      .bk-menu-btn { display: inline-flex; }
+      .bk-bankname { display: none; }
+    }
+    @media (max-width: 640px) {
+      .wrap { padding: 0 16px; }
+      .bk-banner .wrap { height: 64px; }
+      .bk-mark { width: 38px; height: 29px; }
+      .bk-word { font-size: 24px; }
+      .bk-local .wrap { flex-direction: column; align-items: flex-start; padding-top: 16px; padding-bottom: 16px; }
+      .bk-local-title { flex-direction: column; gap: 2px; }
+      .bk-local-title .svc { font-size: 21px; }
+      .bk-session { width: 100%; justify-content: space-between; }
+      .bk-h2 { font-size: 21px; line-height: 30px; }
+      .bk-steps li { font-size: 11px; gap: 4px; height: 48px; padding-left: 10px; white-space: nowrap; letter-spacing: -.02em; }
+      .bk-steps li::before { width: 20px; height: 20px; font-size: 11px; }
+      .bk-steps .lg { display: none; }
+      .bk-row { grid-template-columns: 1fr; }
+      .bk-row > label, .bk-row > .lbl { border-right: 0; border-bottom: 1px solid var(--bk-line); padding: 10px 16px; }
+      .bk-row .fld { padding: 12px 16px; }
+      .bk-panel-head { padding: 12px 16px; }
+      .bk-review { grid-template-columns: 1fr; gap: 10px; padding: 14px 16px; }
+      .bk-group ul { grid-template-columns: 1fr; }
+      .bk-corp .tag { display: inline-block; margin: 0 6px 4px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bk-banner"><div class="wrap">
+      <a class="bk-brand" href="#" aria-label="三菱ＵＦＪ銀行 ホーム">
+        <svg class="bk-mark" viewBox="0 0 50 38" aria-hidden="true"><rect x="0" y="0" width="50" height="38" rx="6" fill="#E60000"/><path d="M11 29V9h5.2L25 21.4 33.8 9H39v20h-4.6V16.6L25 29h0l-9.4-12.4V29z" fill="#fff"/></svg>
+        <span class="bk-word">MUFG</span>
+      </a>
+      <span class="bk-bankname">三菱ＵＦＪ銀行</span>
+      <button class="bk-menu-btn" type="button" aria-label="メニュー"><span></span><span></span><span></span></button>
+    </div></div>
+    <nav class="bk-gnav" aria-label="グローバルナビゲーション"><div class="wrap">
+      <ul>
+        <li><a href="#">ホーム</a></li>
+        <li><a href="#" class="is-current">個人のお客さま</a></li>
+        <li><a href="#">法人のお客さま</a></li>
+        <li><a href="#">企業情報</a></li>
+        <li><a href="#">サステナビリティ</a></li>
+        <li><a href="#">採用のご案内</a></li>
+      </ul>
+      <div class="bk-gnav-right">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-label="検索"><circle cx="10" cy="10" r="7"/><path d="M15.2 15.2 21 21"/></svg>
+        <span class="bk-lang"><a href="#" class="is-current">Japan</a><span>|</span><a href="#">Global</a></span>
+      </div>
+    </div></nav>
+  </header>
+
+  <div class="bk-crumb"><div class="wrap">
+    <ol aria-label="現在位置">
+      <li><a href="#">ホーム</a></li>
+      <li><a href="#">個人のお客さま</a></li>
+      <li><a href="#">三菱ＵＦＪダイレクト</a></li>
+      <li>振込</li>
+    </ol>
+  </div></div>
+
+  <div class="bk-local"><div class="wrap">
+    <div class="bk-local-title"><span class="svc">三菱ＵＦＪダイレクト</span><span class="sub">インターネットバンキング</span></div>
+    <div class="bk-session"><span><strong>ミツビシ ハナコ</strong> さま　前回ログイン 2026年10月9日 21:14</span><a class="bk-logout" href="#">ログアウト</a></div>
+  </div></div>
+  <nav class="bk-tabs" aria-label="三菱ＵＦＪダイレクト メニュー"><div class="wrap">
+    <ul>
+      <li><a href="#">トップ</a></li>
+      <li><a href="#">残高・入出金明細</a></li>
+      <li><a href="#" class="is-current">振込・振替</a></li>
+      <li><a href="#">定期預金</a></li>
+      <li><a href="#">外貨預金</a></li>
+      <li><a href="#">投資信託</a></li>
+      <li><a href="#">各種お手続き</a></li>
+    </ul>
+  </div></nav>
+
+  <div class="bk-notice"><div class="wrap">
+    <p><svg viewBox="0 0 24 22" aria-hidden="true"><path d="M12 1 23 21H1z" fill="#E60000"/><path d="M11 8h2v7h-2zm0 9h2v2h-2z" fill="#fff"/></svg>不審な電話・メールによる三菱ＵＦＪダイレクトの不正利用にご注意ください。当行から暗証番号やワンタイムパスワードをお尋ねすることはありません。</p>
+  </div></div>
+
+  <main class="bk-main"><div class="wrap">
+    <div class="bk-grid">
+      <section aria-labelledby="pageTitle">
+        <h1 class="bk-h2" id="pageTitle">振込</h1>
+        <p class="bk-lead">登録済みの振込先へ、本日付でお振込みします。内容をご確認のうえ「振込を実行する」を押してください。</p>
+        <ol class="bk-steps" aria-label="お手続きの流れ" id="steps">
+          <li class="is-current"><span class="lg">振込内容の</span>入力</li>
+          <li>受付中</li>
+          <li>受付完了</li>
+        </ol>
+
+        <form id="transferForm" novalidate>
+          <div class="bk-panel">
+            <div class="bk-panel-head">振込内容</div>
+            <div class="bk-rows">
+              <div class="bk-row">
+                <label for="fromAccount">支払口座 <span class="bk-req">必須</span></label>
+                <div class="fld">
+                  <select id="fromAccount">
+                    <option value="ACCT-1001">本店　普通　1234567</option>
+                    <option value="ACCT-1002">渋谷支店　普通　7654321</option>
+                  </select>
+                </div>
+              </div>
+              <div class="bk-row">
+                <label for="toAccount">振込先 <span class="bk-req">必須</span></label>
+                <div class="fld">
+                  <select id="toAccount">
+                    <option value="ACCT-2001">ヤマダ タロウ　新宿支店　普通　0012345</option>
+                    <option value="ACCT-2002">カ）サクラシヨウジ　大阪営業部　当座　0098765</option>
+                  </select>
+                  <p class="bk-help">登録済み振込先から選択してください。</p>
+                </div>
+              </div>
+              <div class="bk-row">
+                <label for="amount">振込金額 <span class="bk-req">必須</span></label>
+                <div class="fld">
+                  <div class="bk-yen"><input type="number" id="amount" inputmode="numeric" min="1" max="10000000" step="1" value="50000" required aria-describedby="amountHelp"><span>円</span></div>
+                  <p class="bk-help" id="amountHelp">1円以上、1,000万円以下で入力してください。</p>
+                </div>
+              </div>
+              <div class="bk-row">
+                <label for="accountTier">ご契約区分</label>
+                <div class="fld">
+                  <select id="accountTier">
+                    <option value="standard">個人口座（一般）</option>
+                  </select>
+                  <p class="bk-help">ご契約内容により自動で設定されます。</p>
+                </div>
+              </div>
+              <div class="bk-row">
+                <span class="lbl">振込指定日</span>
+                <div class="fld"><p class="bk-static" id="transferDate">本日</p></div>
+              </div>
+            </div>
+          </div>
+
+          <dl class="bk-review" aria-label="振込内容の確認">
+            <div><dt>振込先</dt><dd id="reviewRecipient">—</dd></div>
+            <div><dt>振込金額</dt><dd id="reviewAmount">—</dd></div>
+            <div><dt>支払口座</dt><dd id="reviewFrom">—</dd></div>
+          </dl>
+
+          <div class="bk-actions">
+            <button type="submit" id="submitBtn" class="bk-submit">振込を実行する</button>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">振込処理時間</span><span class="sw-value" id="sendTimerValue">0.0秒</span></div>
+            <p class="bk-status" id="transferStatus">見本の画面です。実際の振込は行われません。</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </div>
+        </form>
+      </section>
+
+      <aside>
+        <div class="bk-card">
+          <div class="bk-card-head">残高照会</div>
+          <div class="bk-card-body">
+            <p class="bk-bal-acct" id="balAcct">本店　普通　1234567</p>
+            <p class="bk-bal" id="balAmount">1,284,350<small>円</small></p>
+            <ul class="bk-bal-list">
+              <li><span>本日の振込限度額</span><span>2,000,000円</span></li>
+              <li><span>本日の振込済額</span><span>0円</span></li>
+              <li><span>照会日時</span><span id="balTime">—</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="bk-card">
+          <div class="bk-card-head">ご利用にあたって</div>
+          <div class="bk-card-body">
+            <p>当行本支店あての振込は、原則24時間365日リアルタイムで入金されます。システムメンテナンス中はご利用いただけません。</p>
+            <ul class="bk-links" style="margin-top:10px">
+              <li><a href="#">ご利用時間・サービス内容一覧</a></li>
+              <li><a href="#">手数料一覧</a></li>
+              <li><a href="#">ワンタイムパスワード</a></li>
+              <li><a href="#">Ｑ＆Ａ・お問い合わせ先</a></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div></main>
+
+  <footer>
+    <div class="bk-group"><div class="wrap">
+      <ul>
+        <li><a href="#">三菱ＵＦＪフィナンシャル・グループ</a></li>
+        <li><a href="#">三菱ＵＦＪ信託銀行</a></li>
+        <li><a href="#">三菱ＵＦＪモルガン・スタンレー証券</a></li>
+        <li><a href="#">三菱ＵＦＪアセットマネジメント</a></li>
+        <li><a href="#">三菱ＵＦＪニコス</a></li>
+        <li><a href="#">アユタヤ銀行（Krungsri）</a></li>
+      </ul>
+    </div></div>
+    <div class="bk-corp"><div class="wrap">
+      <p>株式会社 三菱ＵＦＪ銀行　金融機関コード（銀行コード）：0005</p>
+      <p><span class="tag">登録金融機関</span>関東財務局長（登金）第5号</p>
+    </div></div>
+    <div class="bk-legal"><div class="wrap">
+      <ul>
+        <li><a href="#">金融商品勧誘方針</a></li>
+        <li><a href="#">お客さまの個人情報保護について</a></li>
+        <li><a href="#">本サイトのご利用にあたって</a></li>
+        <li><a href="#">Cookieについて</a></li>
+      </ul>
+      <p>見本の画面です。残高・振込先・取引内容はすべてサンプルデータです。</p>
+    </div></div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const steps = document.getElementById('steps').children;
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const amountHelp = document.getElementById('amountHelp');
+    const reviewRecipient = document.getElementById('reviewRecipient');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewFrom = document.getElementById('reviewFrom');
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    const AMOUNT_HELP = '1円以上、1,000万円以下で入力してください。';
+    const MAX_AMOUNT = 10000000;
+    const yen = new Intl.NumberFormat('ja-JP');
+    const dateFmt = new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+    const timeFmt = new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit' });
+    const STATUS_IDLE = '見本の画面です。実際の振込は行われません。';
+    let timerHandle = null;
+    let pending = false;
+
+    document.getElementById('transferDate').textContent = '本日（' + dateFmt.format(new Date()) + '）';
+    document.getElementById('balTime').textContent = timeFmt.format(new Date());
+
+    function setStep(index) {
+      Array.prototype.forEach.call(steps, function (li, i) {
+        li.className = i < index ? 'is-done' : (i === index ? 'is-current' : '');
+      });
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0秒';
+      timerHandle = setInterval(function () {
+        timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + '秒';
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + '秒';
+      timer.className = 'stopwatch on done';
+    }
+    function optionText(select) { return select.options[select.selectedIndex].text; }
+    function recipientName() { return optionText(toAccount).split('　')[0]; }
+    function parseAmount() {
+      const raw = String(amountInput.value).trim();
+      if (!/^\d+$/.test(raw)) return null;
+      const n = Number(raw);
+      return n >= 1 && n <= MAX_AMOUNT ? n : null;
+    }
+    function renderReview() {
+      reviewRecipient.textContent = recipientName();
+      const amount = parseAmount();
+      reviewAmount.textContent = amount === null ? '—' : yen.format(amount) + '円';
+      reviewFrom.textContent = optionText(fromAccount);
+    }
+    function showResult(kind, title, detail) {
+      result.className = 'result-box ' + kind;
+      result.replaceChildren();
+      const t = document.createElement('div'); t.className = 'rb-title'; t.textContent = title;
+      const d = document.createElement('div'); d.textContent = detail;
+      result.append(t, d);
+    }
+    function clearResult() {
+      result.className = 'result-box';
+      result.replaceChildren();
+    }
+    function storedValue(key) {
+      try { return localStorage.getItem(key) || ''; } catch (_e) { return ''; }
+    }
+    function setControlsDisabled(disabled) {
+      [fromAccount, toAccount, amountInput].forEach(function (el) { el.disabled = disabled; });
+    }
+    function resetAfterEdit() {
+      if (pending) return;
+      amountHelp.textContent = AMOUNT_HELP;
+      amountHelp.className = 'bk-help';
+      clearResult();
+      status.textContent = STATUS_IDLE;
+      timer.className = 'stopwatch';
+      setStep(0);
+      renderReview();
+    }
+    [fromAccount, toAccount].forEach(function (el) { el.addEventListener('change', resetAfterEdit); });
+    amountInput.addEventListener('input', resetAfterEdit);
+    renderReview();
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      if (pending) return;
+      const amount = parseAmount();
+      if (amount === null) {
+        amountHelp.textContent = '振込金額は1円以上、1,000万円以下の整数で入力してください。';
+        amountHelp.className = 'bk-help is-error';
+        amountInput.focus();
+        return;
+      }
+      const recipient = recipientName();
+      const payload = {
+        fromAccount: fromAccount.value,
+        toAccount: toAccount.value,
+        amount: parseFloat(amountInput.value),
+        accountTier: document.getElementById('accountTier').value,
+        devinUserId: storedValue('devinUserId'),
+        devinOrgId: storedValue('devinOrgId'),
+        devinEmail: storedValue('devinEmail'),
+      };
+      pending = true;
+      setControlsDisabled(true);
+      button.disabled = true;
+      button.textContent = '処理中…';
+      status.textContent = '振込を受け付けています。画面を閉じずにお待ちください。';
+      clearResult();
+      setStep(1);
+      const started = startTimer();
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('transfer not accepted');
+        const sent = Number(data.receipt.amount);
+        const at = new Date(data.receipt.timestamp);
+        showResult('success', '振込を受け付けました',
+          recipient + ' さまあてに ' + yen.format(Number.isFinite(sent) ? sent : amount) + '円 の振込を ' + timeFmt.format(at) + ' に受け付けました。受付番号：' + data.receipt.receiptId);
+        status.textContent = '受付が完了しました。';
+        setStep(2);
+      } catch (_error) {
+        showResult('notice', '振込を完了できませんでした', 'お手数ですが、しばらく時間をおいて再度お試しください。振込が受け付けられたかどうかは「残高・入出金明細」でご確認いただけます。');
+        status.textContent = STATUS_IDLE;
+        setStep(0);
+      } finally {
+        stopTimer(started);
+        pending = false;
+        setControlsDisabled(false);
+        renderReview();
+        button.disabled = false;
+        button.textContent = '振込を実行する';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
