@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Change your subscription | The Times</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Tinos:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #005C8A;
+      --ink: #1D1D1B;
+      --surface: #FFFFFF;
+      --chrome-bg: #01000D;
+      --chrome-text: #FFFFFF;
+      --paper: #F5EFEB;
+      --rule: color-mix(in srgb, var(--ink) 14%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 66%, var(--surface));
+      --nav-bg: color-mix(in srgb, var(--chrome-bg) 88%, #333);
+      --foot-bg: color-mix(in srgb, var(--chrome-bg) 80%, #3a4652);
+      --serif: Tinos, "Times New Roman", Times, Georgia, serif;
+      --display: "Source Serif 4", Tinos, "Times New Roman", Georgia, serif;
+      --sans: Roboto, Arial, Helvetica, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { background: var(--paper); color: var(--ink); font: 16px/1.5 var(--serif); overflow-x: hidden; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; }
+
+    .masthead { background: var(--chrome-bg); color: var(--chrome-text); font-family: var(--sans); }
+    .masthead-inner { max-width: 1280px; margin: 0 auto; height: 60px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 16px; }
+    .mast-left, .mast-right { display: flex; align-items: center; gap: 4px; }
+    .mast-right { justify-content: flex-end; }
+    .icon-btn { background: transparent; border: 0; color: inherit; width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .icon-btn svg { width: 22px; height: 22px; }
+    .wordmark { color: inherit; text-decoration: none; display: inline-flex; min-height: 44px; align-items: center; gap: 10px; font-family: var(--serif); font-weight: 700; font-size: 28px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+    .wordmark .mark { width: 30px; height: 30px; border: 1.5px solid currentColor; display: inline-flex; align-items: center; justify-content: center; font-size: 19px; letter-spacing: 0; }
+    .mast-link { color: inherit; text-decoration: none; font-size: 14px; font-weight: 500; min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; }
+    .mast-cta { background: var(--accent); color: #fff; border-radius: 4px; min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 500; text-decoration: none; }
+    .sections { background: var(--nav-bg); font-family: var(--sans); }
+    .sections ul { max-width: 1280px; margin: 0 auto; padding: 0 16px; list-style: none; display: flex; justify-content: center; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+    .sections a { color: #fff; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; height: 48px; padding: 0 12px; white-space: nowrap; }
+
+    .crumbs { max-width: 1120px; margin: 0 auto; padding: 8px 24px 0; font: 13px var(--sans); color: var(--muted); }
+    .crumbs a { color: var(--muted); display: inline-flex; align-items: center; min-height: 44px; }
+    .page { max-width: 1120px; margin: 0 auto; padding: 12px 24px 64px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px; }
+    .acct-nav { font-family: var(--sans); font-size: 14px; }
+    .acct-nav h2 { font: 700 22px var(--display); margin: 8px 0 12px; }
+    .acct-nav a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; color: var(--ink); text-decoration: none; border-left: 3px solid transparent; }
+    .acct-nav a[aria-current="page"] { border-left-color: var(--accent); background: var(--surface); font-weight: 500; }
+
+    h1 { font: 700 clamp(30px, 4vw, 44px)/1.1 var(--display); margin: 8px 0 8px; }
+    .lede { font-size: 18px; color: var(--muted); margin: 0 0 24px; }
+    .card { background: var(--surface); border: 1px solid var(--rule); padding: 24px; }
+    .current { display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: center; margin-bottom: 28px; }
+    .eyebrow { font: 500 12px var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .current strong { font: 700 22px var(--display); display: block; margin-top: 4px; }
+    .current dl { display: grid; grid-template-columns: auto auto; gap: 4px 16px; margin: 0; font: 14px var(--sans); }
+    .current dt { color: var(--muted); }
+    .current dd { margin: 0; }
+
+    h2.sect { font: 700 26px var(--display); margin: 0 0 4px; }
+    .sect-sub { color: var(--muted); margin: 0 0 16px; }
+    .packs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .pack { position: relative; text-align: left; background: var(--surface); border: 1px solid var(--rule); padding: 20px; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 6px; min-height: 44px; }
+    .pack[aria-pressed="true"] { border: 2px solid var(--accent); padding: 19px; }
+    .pack:disabled { cursor: default; opacity: 0.72; }
+    .pack .tag { position: absolute; top: 0; right: 0; background: #FFA300; color: #000; font: 500 11px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 10px; }
+    .pack .tag:empty { display: none; }
+    .pack img { width: 100%; height: 120px; object-fit: contain; margin-bottom: 4px; }
+    .pack .name { font: 700 21px var(--display); }
+    .pack .desc { color: var(--muted); font-size: 15px; }
+    .pack .price { font: 500 15px var(--sans); }
+
+    .change { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 24px; align-items: start; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font: 500 14px var(--sans); margin-bottom: 6px; }
+    .field select { width: 100%; min-height: 48px; border: 1px solid color-mix(in srgb, var(--ink) 40%, var(--surface)); background: var(--surface); color: var(--ink); padding: 0 12px; border-radius: 0; }
+    .field select:focus, .pack:focus-visible, .btn-submit:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
+    .check { display: flex; gap: 10px; align-items: flex-start; font: 14px var(--sans); margin: 4px 0 20px; }
+    .check input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); flex: none; }
+    .btn-submit { width: 100%; min-height: 48px; background: var(--accent); color: #fff; border: 0; border-radius: 4px; font: 500 16px var(--sans); cursor: pointer; }
+    .btn-submit:disabled { background: color-mix(in srgb, var(--accent) 55%, var(--surface)); cursor: progress; }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; font: 14px/1.5 var(--sans); border-left: 4px solid transparent; }
+    .result-box.success { display: block; background: color-mix(in srgb, #1b7f3b 8%, var(--surface)); border-left-color: #1b7f3b; }
+    .result-box.error { display: block; background: color-mix(in srgb, #b3261e 8%, var(--surface)); border-left-color: #b3261e; }
+    .result-title { font-weight: 700; margin-bottom: 2px; }
+
+    .summary h3 { font: 700 20px var(--display); margin: 0 0 12px; }
+    .summary .row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); font: 14px var(--sans); }
+    .summary .row span:first-child { color: var(--muted); }
+    .summary .row.total { font-weight: 700; font-size: 16px; }
+    .summary .row.total span:first-child { color: var(--ink); }
+    .summary p { font-size: 14px; color: var(--muted); margin: 12px 0 0; }
+
+    .help { margin-top: 32px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .help .card h4 { font: 700 17px var(--display); margin: 0 0 6px; }
+    .help .card p { margin: 0; font-size: 14px; color: var(--muted); }
+
+    footer { background: var(--foot-bg); color: #D0CECE; font-family: var(--sans); font-size: 14px; }
+    .foot-top { border-bottom: 1px solid rgba(255,255,255,0.12); text-align: center; }
+    .foot-top a { color: #fff; text-decoration: none; display: inline-flex; align-items: center; min-height: 48px; font-weight: 500; letter-spacing: 0.06em; font-size: 12px; }
+    .foot-inner { max-width: 1120px; margin: 0 auto; padding: 32px 24px 40px; }
+    .foot-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+    .foot-cols h4 { color: #fff; font-size: 14px; font-weight: 500; margin: 0 0 8px; }
+    .foot-cols a { color: #D0CECE; text-decoration: none; display: flex; align-items: center; min-height: 44px; }
+    .foot-brand { margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.12); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 12px; }
+    .foot-brand .wordmark { font-size: 20px; color: #fff; }
+
+    @media (max-width: 900px) {
+      .page { grid-template-columns: 1fr; gap: 8px; }
+      .acct-nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+      .acct-nav h2 { display: none; }
+      .acct-nav a { white-space: nowrap; border-left: 0; border-bottom: 3px solid transparent; }
+      .acct-nav a[aria-current="page"] { border-bottom-color: var(--accent); }
+      .change { grid-template-columns: 1fr; }
+      .help { grid-template-columns: 1fr; }
+      .foot-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sections ul { justify-content: flex-start; }
+    }
+    @media (max-width: 560px) {
+      .masthead-inner { padding: 0 4px; }
+      .wordmark { font-size: 20px; gap: 6px; }
+      .wordmark .mark { width: 24px; height: 24px; font-size: 15px; }
+      .mast-link.hide-sm, .mast-cta { display: none; }
+      .crumbs, .page { padding-left: 16px; padding-right: 16px; }
+      .packs { grid-template-columns: 1fr; }
+      .current { grid-template-columns: 1fr; }
+      .card { padding: 18px; }
+      .pack[aria-pressed="true"] { padding: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="mast-left">
+        <button class="icon-btn" type="button" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <button class="icon-btn" type="button" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+      </div>
+      <a class="wordmark" href="#" aria-label="The Times home"><span class="mark" aria-hidden="true">T</span>The Times</a>
+      <div class="mast-right">
+        <a class="mast-link hide-sm" href="#">UK Edition</a>
+        <a class="mast-link" href="#">My account</a>
+      </div>
+    </div>
+  </header>
+  <nav class="sections" aria-label="Sections">
+    <ul>
+      <li><a href="#">Home</a></li><li><a href="#">UK</a></li><li><a href="#">World</a></li><li><a href="#">Comment</a></li><li><a href="#">Life &amp; Style</a></li><li><a href="#">Business</a></li><li><a href="#">Money</a></li><li><a href="#">Sport</a></li><li><a href="#">Culture</a></li><li><a href="#">Travel</a></li><li><a href="#">Puzzles</a></li><li><a href="#">Magazines</a></li>
+    </ul>
+  </nav>
+
+  <div class="crumbs"><a href="#">My account</a> &rsaquo; <a href="#">Subscription</a> &rsaquo; Change your subscription</div>
+
+  <div class="page">
+    <nav class="acct-nav" aria-label="My account">
+      <h2>My account</h2>
+      <a href="#">Overview</a>
+      <a href="#" aria-current="page">Subscription</a>
+      <a href="#">Personal details</a>
+      <a href="#">Bonus accounts</a>
+      <a href="#">Newsletters</a>
+      <a href="#">Times+ rewards</a>
+      <a href="#">Help</a>
+    </nav>
+
+    <main>
+      <h1>Change your subscription</h1>
+      <p class="lede">Move to a different pack. Your new pack starts from your next billing date.</p>
+
+      <section class="card current" aria-labelledby="currentHeading">
+        <div>
+          <div class="eyebrow" id="currentHeading">Your subscription</div>
+          <strong id="sumPack">Digital</strong>
+          <span id="sumPackDesc" class="sect-sub">Unlimited smartphone, web and tablet access</span>
+        </div>
+        <dl>
+          <dt>Subscriber</dt><dd id="sumHolder">Eleanor Hughes</dd>
+          <dt>Account number</dt><dd id="sumAccount">TNL-48213301</dd>
+          <dt>Next bill</dt><dd id="sumBill">15th of the month</dd>
+        </dl>
+      </section>
+
+      <h2 class="sect">Choose your pack</h2>
+      <p class="sect-sub">Every Print and Digital pack includes unlimited digital access.</p>
+      <div class="packs" id="packTiles">
+        <button type="button" class="pack" data-plan="BASIC-12">
+          <span class="tag"></span>
+          <span class="name">Basic</span>
+          <span class="desc">Smartphone-only access, on one device.</span>
+          <span class="price">Daily Briefing newsletter</span>
+        </button>
+        <button type="button" class="pack" data-plan="PLUS-24">
+          <span class="tag">Most popular</span>
+          <img src="https://www.thetimes.com/subscribe/wp-content/uploads/sites/9/2021/10/662x336_Digital_Global.png" alt="" loading="lazy" onerror="this.remove()">
+          <span class="name">Digital</span>
+          <span class="desc">Unlimited access across all devices, plus 3 bonus accounts to share.</span>
+          <span class="price">&pound;30 a month</span>
+        </button>
+        <button type="button" class="pack" data-plan="ULTRA-36">
+          <span class="tag"></span>
+          <span class="name">The Sunday Times</span>
+          <span class="desc">The Sunday Times newspaper with full digital access.</span>
+          <span class="price">&pound;7.50 a week &middot; billed &pound;32.50 a month</span>
+        </button>
+        <button type="button" class="pack" data-plan="UNLIMITED-24">
+          <span class="tag"></span>
+          <img src="https://www.thetimes.com/subscribe/wp-content/uploads/sites/9/2021/10/662x336_7-day-print-digi.png" alt="" loading="lazy" onerror="this.remove()">
+          <span class="name">Print and Digital</span>
+          <span class="desc">The Times and The Sunday Times newspaper (Mon &ndash; Sun) with full digital access.</span>
+          <span class="price">&pound;17 a week &middot; billed &pound;73.66 a month</span>
+        </button>
+      </div>
+
+      <div class="change">
+        <section class="card" aria-labelledby="formHeading">
+          <h2 class="sect" id="formHeading">Review your change</h2>
+          <p class="sect-sub">Check the details below, then confirm.</p>
+          <form id="upgradeForm">
+            <div class="field">
+              <label for="currentPlan">Current pack</label>
+              <select id="currentPlan">
+                <option value="BASIC-12" data-desc="Smartphone-only access, on one device">Basic</option>
+                <option value="PLUS-24" data-desc="Unlimited smartphone, web and tablet access" selected>Digital</option>
+                <option value="ULTRA-36" data-desc="The Sunday Times newspaper with full digital access">The Sunday Times</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="newPlan">New pack</label>
+              <select id="newPlan">
+                <option value="BASIC-12" data-price="">Basic</option>
+                <option value="PLUS-24" data-price="30.00">Digital &mdash; &pound;30 a month</option>
+                <option value="ULTRA-36" data-price="32.50">The Sunday Times &mdash; &pound;32.50 a month</option>
+                <option value="UNLIMITED-24" data-price="73.66" selected>Print and Digital &mdash; &pound;73.66 a month</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="addon">Newspaper delivery</label>
+              <select id="addon">
+                <option value="vouchers">Vouchers for your local newsagent</option>
+                <option value="home-delivery">Home delivery (selected London postcodes)</option>
+              </select>
+            </div>
+            <label class="check"><input type="checkbox" id="agree" required checked> I agree to the subscription terms. Print packs have a 3-month minimum contract, rolling quarterly thereafter.</label>
+            <button type="submit" class="btn-submit" id="submitBtn">Confirm change</button>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <aside class="card summary" aria-labelledby="summaryHeading">
+          <h3 id="summaryHeading">Your new pack</h3>
+          <div class="row"><span>Pack</span><span id="totPack">Print and Digital</span></div>
+          <div class="row"><span>Newspaper</span><span id="totDelivery">Vouchers</span></div>
+          <div class="row total"><span>Monthly price</span><span id="totPrice">&pound;73.66</span></div>
+          <p id="totNote">Starts from your next billing date. You won&rsquo;t be charged today.</p>
+        </aside>
+      </div>
+
+      <div class="help">
+        <div class="card"><h4>Can I cancel my subscription?</h4><p>Yes. You can manage or cancel your subscription in My account.</p></div>
+        <div class="card"><h4>What is a bonus account?</h4><p>Digital and Print and Digital packs include 3 bonus accounts to share.</p></div>
+        <div class="card"><h4>Need more help?</h4><p>Times Customer Services, Mon &ndash; Fri 8am &ndash; 7pm, weekends 8am &ndash; 4pm.</p></div>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="foot-top"><a href="#">BACK TO TOP</a></div>
+    <div class="foot-inner">
+      <div class="foot-cols">
+        <div><h4>Get in touch</h4><a href="#">About us</a><a href="#">Contact us</a><a href="#">Help</a></div>
+        <div><h4>Subscriptions</h4><a href="#">Digital</a><a href="#">Print and Digital</a><a href="#">Student</a><a href="#">Puzzles</a></div>
+        <div><h4>More from The Times</h4><a href="#">Times+</a><a href="#">Times Crossword</a><a href="#">Newsletters</a></div>
+        <div><h4>Legal</h4><a href="#">Terms and conditions</a><a href="#">Privacy policy</a><a href="#">Cookie settings</a></div>
+      </div>
+      <div class="foot-brand">
+        <span class="wordmark"><span class="mark" aria-hidden="true">T</span>The Times</span>
+        <span>The Times &amp; The Sunday Times</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (response) {
+        return response.json();
+      }).then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const form = document.getElementById('upgradeForm');
+      const currentSel = document.getElementById('currentPlan');
+      const planSel = document.getElementById('newPlan');
+      const deliverySel = document.getElementById('addon');
+      const tiles = Array.prototype.slice.call(document.querySelectorAll('#packTiles .pack'));
+      const isPrint = (code) => code === 'ULTRA-36' || code === 'UNLIMITED-24';
+      const label = (opt) => opt.textContent.split(' \u2014 ')[0];
+
+      function selectedOption(sel) { return sel.options[sel.selectedIndex]; }
+
+      function renderSummary() {
+        const current = selectedOption(currentSel);
+        document.getElementById('sumPack').textContent = label(current);
+        document.getElementById('sumPackDesc').textContent = current.dataset.desc;
+
+        Array.prototype.forEach.call(planSel.options, (o) => { o.disabled = o.value === currentSel.value; });
+        if (selectedOption(planSel).disabled) {
+          const options = Array.prototype.slice.call(planSel.options);
+          const next = options.slice(planSel.selectedIndex + 1).find((o) => !o.disabled);
+          planSel.value = (next || options.find((o) => !o.disabled)).value;
+        }
+        tiles.forEach((t) => {
+          const tag = t.querySelector('.tag');
+          const isCurrent = t.dataset.plan === currentSel.value;
+          t.disabled = isCurrent;
+          tag.textContent = isCurrent ? 'Your pack' : t.dataset.tag;
+          t.setAttribute('aria-pressed', String(t.dataset.plan === planSel.value));
+        });
+
+        const target = selectedOption(planSel);
+        const print = isPrint(target.value);
+        deliverySel.disabled = !print;
+        document.getElementById('totPack').textContent = label(target);
+        document.getElementById('totDelivery').textContent = print ? label(selectedOption(deliverySel)).replace(/ \(.*\)$/, '') : 'Digital only';
+        document.getElementById('totPrice').textContent = target.dataset.price ? '\u00a3' + target.dataset.price : 'See pack details';
+        document.getElementById('totNote').textContent = print && deliverySel.value === 'home-delivery'
+          ? 'Starts from your next billing date. A weekly delivery charge is added if your postcode is eligible.'
+          : 'Starts from your next billing date. You won\u2019t be charged today.';
+      }
+
+      tiles.forEach((t) => { t.dataset.tag = t.querySelector('.tag').textContent; });
+      tiles.forEach((t) => t.addEventListener('click', () => {
+        planSel.value = t.dataset.plan;
+        renderSummary();
+      }));
+      [currentSel, planSel, deliverySel].forEach((el) => el.addEventListener('change', renderSummary));
+      form.addEventListener('reset', () => setTimeout(renderSummary, 0));
+      renderSummary();
+
+      function showResult(kind, title, lines) {
+        const result = document.getElementById('result');
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        const head = document.createElement('div');
+        head.className = 'result-title';
+        head.textContent = title;
+        result.appendChild(head);
+        lines.forEach((text) => {
+          const line = document.createElement('div');
+          line.textContent = text;
+          result.appendChild(line);
+        });
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const result = document.getElementById('result');
+        const packLabel = label(selectedOption(planSel));
+        btn.disabled = true;
+        btn.textContent = 'Updating your subscription\u2026';
+        result.className = 'result-box';
+        result.textContent = '';
+        const controller = new AbortController();
+        const timeoutTimer = setTimeout(() => controller.abort(), 30000);
+        try {
+          const response = await fetch('/api/telco/upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              accountId: 'CUST-3002',
+              currentPlanCode: currentSel.value,
+              targetPlanCode: planSel.value,
+              billingDay: 15,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) {
+            showResult('error', 'We couldn\u2019t change your subscription',
+              ['Your current pack hasn\u2019t changed. Please try again in a few minutes.']);
+          } else {
+            const ref = String(data.upgradeId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
+            showResult('success', 'Your subscription has been changed',
+              ['You\u2019re moving to ' + packLabel + ' from your next billing date.', 'Reference ' + ref]);
+          }
+        } catch (err) {
+          showResult('error', 'We couldn\u2019t confirm your change',
+            ['Check My account before trying again, or contact Times Customer Services.']);
+        } finally {
+          clearTimeout(timeoutTimer);
+          btn.disabled = false;
+          btn.textContent = 'Confirm change';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

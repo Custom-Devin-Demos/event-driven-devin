@@ -3231,6 +3231,27 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A HEIDI HEALTH SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Heidi Health product.',
   },
+  '7c5709e7': {
+    slug: '7c5709e7',
+    company: 'The Times',
+    brandMark: 'T',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: { file: '7c5709e7.html', title: 'Change your subscription | The Times' },
+    theme: {
+      '--accent': '#005C8A',
+      '--ink': '#1D1D1B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#01000D',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Times Customer Services',
+    alertCard: {
+      release: 'subscriber-portal@1.0.3',
+      impact: 'Subscription changes in My Account wait ~9 seconds before confirming; subscribers retry or abandon the change.',
+    },
+    disclaimer: 'NOT ACTUALLY A TIMES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Times or News UK product.',
+  },
   '5942af63': {
     slug: '5942af63',
     company: 'RPT Partners',
