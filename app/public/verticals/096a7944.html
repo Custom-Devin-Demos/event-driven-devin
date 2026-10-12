@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make a payment | Rocket Mortgage</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #111111;
+      --ink: #111111;
+      --surface: #ffffff;
+      --chrome-bg: #590213;
+      --chrome-text: #ffffff;
+      --brand-red: #de3341;
+      --muted: #545454;
+      --line: #e3e3e3;
+      --line-strong: #c1c1c1;
+      --field: #f7f7f7;
+      --wash: #f7f7f7;
+      --pink-wash: #fbf0f6;
+      --green: #0b5e36;
+      --green-wash: #eff7f3;
+      --error: #b3261e;
+      --error-wash: #fdf1f0;
+      --sans: 'DM Sans', Helvetica, 'Helvetica Neue', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--sans); font-size: 16px; line-height: 1.5; color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    button, input, select { font: inherit; color: inherit; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 48px; }
+    @media (max-width: 720px) { .wrap { padding: 0 20px; } }
+
+    /* masthead */
+    .masthead { background: var(--surface); border-bottom: 1px solid #f0f0f0; }
+    .mast { display: flex; align-items: center; gap: 40px; height: 88px; }
+    .brand { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--brand-red); }
+    .brand-mark { width: 30px; height: 30px; flex: 0 0 30px; }
+    .brand-word { display: flex; flex-direction: column; font-size: 19px; font-weight: 600; line-height: 0.95; letter-spacing: -0.4px; }
+    .mast-nav { display: flex; align-items: center; gap: 8px; }
+    .mast-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; font-size: 16px; font-weight: 500; border-radius: 100px; }
+    .mast-nav a:hover { background: var(--wash); }
+    .mast-nav a.on { box-shadow: inset 0 -2px 0 var(--ink); border-radius: 0; }
+    .mast-right { margin-left: auto; display: flex; align-items: center; gap: 20px; }
+    .mast-right a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; min-width: 44px; font-size: 16px; font-weight: 500; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--pink-wash); color: #441227; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+    .subnav { display: none; }
+    @media (max-width: 1000px) {
+      .mast { height: 72px; gap: 16px; }
+      .mast-nav, .mast-right .msg { display: none; }
+      .subnav { display: block; border-bottom: 1px solid var(--line); }
+      .subnav ul { display: flex; overflow-x: auto; scrollbar-width: none; gap: 4px; }
+      .subnav ul::-webkit-scrollbar { display: none; }
+      .subnav a { display: inline-flex; align-items: center; min-height: 48px; padding: 0 12px; font-size: 15px; font-weight: 500; white-space: nowrap; }
+      .subnav a.on { box-shadow: inset 0 -2px 0 var(--ink); }
+    }
+
+    /* page head */
+    .crumb { display: flex; align-items: center; gap: 8px; padding-top: 32px; font-size: 14px; color: var(--muted); }
+    .crumb a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 3px; }
+    .page-head h1 { font-size: 48px; font-weight: 500; line-height: 56px; letter-spacing: -1px; }
+    .page-head p { margin-top: 12px; max-width: 640px; font-size: 18px; color: var(--muted); }
+    @media (max-width: 720px) { .crumb { padding-top: 16px; } .page-head h1 { font-size: 34px; line-height: 40px; letter-spacing: -0.6px; } .page-head p { font-size: 16px; } }
+
+    main { padding: 32px 0 64px; }
+    .cols { display: grid; grid-template-columns: minmax(0, 1fr) 384px; gap: 32px; align-items: start; }
+    @media (max-width: 1000px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; }
+    .card-pad { padding: 32px; }
+    @media (max-width: 720px) { .card-pad { padding: 20px; } }
+    .card h2 { font-size: 24px; font-weight: 500; letter-spacing: -0.3px; }
+    .card .sub { margin-top: 4px; font-size: 15px; color: var(--muted); }
+
+    /* form */
+    form { margin-top: 24px; display: grid; gap: 20px; }
+    .fld { position: relative; background: var(--field); border-radius: 12px; border: 1px solid transparent; }
+    .fld:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .fld label { position: absolute; top: 10px; left: 16px; font-size: 12px; font-weight: 500; pointer-events: none; }
+    .fld select, .fld input { display: block; width: 100%; height: 64px; padding: 26px 16px 8px; border: 0; border-radius: 12px; background: transparent; font-size: 16px; outline: none; }
+    .fld select { appearance: none; -webkit-appearance: none; padding-right: 44px; text-overflow: ellipsis;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' fill='none'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23111' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 18px center; }
+    .fld.money input { padding-left: 30px; }
+    .fld.money .cur { position: absolute; left: 16px; bottom: 9px; font-size: 16px; }
+    .hint { margin-top: 8px; font-size: 13px; color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip { min-height: 44px; padding: 0 18px; border: 1px solid var(--line-strong); border-radius: 100px; background: var(--surface); font-size: 15px; font-weight: 500; cursor: pointer; }
+    .chip:hover { border-color: var(--ink); }
+    .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 720px) { .two { grid-template-columns: 1fr; } }
+
+    .summary { border-radius: 16px; background: var(--wash); padding: 20px 24px; }
+    .summary h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .summary dl { display: grid; gap: 6px; }
+    .summary .row { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { font-weight: 500; text-align: right; }
+    .summary .total { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 18px; }
+    .summary .total dt { color: var(--ink); font-weight: 500; }
+    .summary .total dd { font-weight: 600; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; padding: 0 28px; border-radius: 100px; border: 1px solid transparent; font-size: 16px; font-weight: 500; cursor: pointer; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #333; }
+    .btn-primary:disabled { background: #6b6b6b; cursor: progress; }
+    .btn-ghost { background: transparent; border-color: var(--ink); color: var(--ink); }
+    .btn-ghost:hover { background: var(--wash); }
+    .legal { font-size: 13px; color: var(--muted); }
+    @media (max-width: 720px) { .actions .btn { flex: 1 1 100%; } }
+
+    .result-box { display: none; margin-top: 20px; padding: 16px 20px; border-radius: 12px; font-size: 15px; }
+    .result-box.success { display: block; background: var(--green-wash); color: var(--green); }
+    .result-box.error { display: block; background: var(--error-wash); color: var(--error); }
+    .result-box .result-title { font-weight: 600; font-size: 16px; margin-bottom: 2px; color: var(--ink); }
+
+    /* aside */
+    aside { display: grid; gap: 20px; }
+    .loan-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .pill { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 100px; background: var(--green-wash); color: var(--green); font-size: 13px; font-weight: 500; white-space: nowrap; }
+    .due { margin-top: 16px; font-size: 14px; color: var(--muted); }
+    .due strong { display: block; font-size: 36px; line-height: 44px; font-weight: 500; letter-spacing: -0.6px; color: var(--ink); }
+    .kv { margin-top: 16px; border-top: 1px solid var(--line); }
+    .kv li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+    .kv li:last-child { border-bottom: 0; padding-bottom: 0; }
+    .kv span { color: var(--muted); }
+    .kv b { font-weight: 500; text-align: right; }
+    .link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+    .promo { overflow: hidden; }
+    .promo-img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--pink-wash); }
+    .promo-fallback { display: none; aspect-ratio: 16 / 9; background: var(--pink-wash); }
+    .promo .card-pad { padding-top: 20px; }
+    .promo h3, .autopay h3 { font-size: 20px; font-weight: 500; }
+    .promo p, .autopay p { margin-top: 6px; font-size: 15px; color: var(--muted); }
+    .autopay { background: var(--pink-wash); border-color: transparent; }
+
+    /* activity */
+    .sect { margin-top: 48px; }
+    .sect-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+    .sect-head h2 { font-size: 32px; font-weight: 500; letter-spacing: -0.6px; }
+    .table-card { overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 14px 24px; background: var(--wash); font-size: 14px; font-weight: 500; color: var(--muted); text-align: left; }
+    td { padding: 16px 24px; border-top: 1px solid var(--line); font-size: 15px; }
+    td.num, th.num { text-align: right; }
+    td .ok { color: var(--green); font-weight: 500; }
+    @media (max-width: 720px) {
+      .sect-head h2 { font-size: 24px; }
+      th, td { padding: 12px 14px; font-size: 14px; }
+      th.hide-sm, td.hide-sm { display: none; }
+    }
+
+    /* help band + footer */
+    .band { margin-top: 64px; background: var(--chrome-bg); color: var(--chrome-text); border-radius: 24px; padding: 48px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .band h2 { font-size: 40px; line-height: 48px; font-weight: 500; letter-spacing: -0.8px; max-width: 560px; }
+    .band p { margin-top: 8px; font-size: 17px; opacity: 0.85; }
+    .btn-light { background: #fff; color: var(--ink); }
+    .btn-light:hover { background: #f2f2f2; }
+    @media (max-width: 720px) { .band { padding: 28px 24px; border-radius: 20px; } .band h2 { font-size: 28px; line-height: 34px; } .band .btn { width: 100%; } }
+
+    footer { margin-top: 64px; border-top: 1px solid var(--line); }
+    .foot { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; padding: 48px 0 32px; }
+    .foot h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .foot a { display: inline-flex; align-items: center; min-height: 36px; font-size: 15px; }
+    .foot a:hover { text-decoration: underline; }
+    .foot .about { font-size: 14px; color: var(--muted); max-width: 300px; }
+    .foot .about .brand { margin-bottom: 12px; }
+    .fine { padding: 20px 0 40px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+    @media (max-width: 900px) { .foot { grid-template-columns: 1fr 1fr; } .foot a { min-height: 44px; min-width: 44px; } }
+    @media (max-width: 520px) { .foot { grid-template-columns: 1fr; gap: 20px; } }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="wrap mast">
+      <a class="brand" href="#" aria-label="Rocket Mortgage home">
+        <svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true">
+          <rect width="30" height="30" rx="9" fill="#de3341"></rect>
+          <text x="15" y="21.5" text-anchor="middle" font-family="'DM Sans', Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#ffffff">R</text>
+        </svg>
+        <span class="brand-word"><span>Rocket</span><span>Mortgage</span></span>
+      </a>
+      <nav class="mast-nav" aria-label="Servicing">
+        <a href="#">Dashboard</a>
+        <a class="on" href="#payment" aria-current="page">Payments</a>
+        <a href="#">Loan details</a>
+        <a href="#">Documents</a>
+        <a href="#">Help</a>
+      </nav>
+      <div class="mast-right">
+        <a class="msg" href="#">Messages</a>
+        <a href="#" aria-label="Account"><span class="avatar" aria-hidden="true">DL</span></a>
+      </div>
+    </div>
+    <div class="subnav">
+      <div class="wrap">
+        <ul>
+          <li><a href="#">Dashboard</a></li>
+          <li><a class="on" href="#payment">Payments</a></li>
+          <li><a href="#">Loan details</a></li>
+          <li><a href="#">Documents</a></li>
+          <li><a href="#">Help</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap page-head">
+    <div class="crumb"><a href="#">Payments</a><span aria-hidden="true">/</span><span>Make a payment</span></div>
+    <h1>Make a payment</h1>
+    <p>Pay your monthly mortgage payment or add extra toward principal. Payments made before 9 PM ET post the same day.</p>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <div class="cols">
+        <section class="card card-pad" id="payment" aria-labelledby="payHead">
+          <h2 id="payHead">Payment details</h2>
+          <p class="sub">One-time payment</p>
+
+          <form id="transferForm" novalidate>
+            <div>
+              <div class="fld">
+                <label for="toAccount">Loan</label>
+                <select id="toAccount">
+                  <option value="ACCT-EXT-001" data-label="Loan ••••3418">Primary residence loan ••••3418 &mdash; 30-year fixed</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="two">
+              <div>
+                <div class="fld">
+                  <label for="fromAccount">Pay from</label>
+                  <select id="fromAccount">
+                    <option value="ACCT-1001" data-label="Checking ••••4821">Checking ••••4821</option>
+                    <option value="ACCT-1002" data-label="Savings ••••0937">Savings ••••0937</option>
+                    <option value="ACCT-1004" data-label="Checking ••••6150">Joint checking ••••6150</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <div class="fld">
+                  <label for="accountTier">Payment method</label>
+                  <select id="accountTier">
+                    <option value="standard" selected>Bank account (ACH)</option>
+                    <option value="premium">Verified bank account</option>
+                    <option value="basic">New bank account</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="fld money">
+                <label for="amount">Payment amount</label>
+                <span class="cur" aria-hidden="true">$</span>
+                <input type="number" id="amount" value="2148.37" min="1" step="0.01" inputmode="decimal" aria-describedby="amountHint">
+              </div>
+              <div class="chips" role="group" aria-label="Quick amounts">
+                <button type="button" class="chip" data-amount="2148.37" aria-pressed="true">Monthly payment</button>
+                <button type="button" class="chip" data-amount="2248.37" aria-pressed="false">+ $100 principal</button>
+                <button type="button" class="chip" data-amount="2648.37" aria-pressed="false">+ $500 principal</button>
+              </div>
+              <p class="hint" id="amountHint">Anything above your monthly payment goes toward principal.</p>
+            </div>
+
+            <div class="summary" aria-live="polite">
+              <h3>Review</h3>
+              <dl>
+                <div class="row"><dt>Loan</dt><dd id="sumLoan"></dd></div>
+                <div class="row"><dt>Pay from</dt><dd id="sumFrom"></dd></div>
+                <div class="row"><dt>Payment date</dt><dd>Today</dd></div>
+                <div class="row"><dt>Monthly payment</dt><dd id="sumMonthly"></dd></div>
+                <div class="row"><dt>Additional principal</dt><dd id="sumExtra"></dd></div>
+                <div class="row"><dt>Total payment</dt><dd id="sumPayment"></dd></div>
+                <div class="row"><dt>Processing fee</dt><dd id="sumFee"></dd></div>
+                <div class="row total"><dt>Total debit</dt><dd id="sumTotal"></dd></div>
+              </dl>
+            </div>
+
+            <div class="actions">
+              <button type="submit" class="btn btn-primary" id="submitBtn">Make payment</button>
+              <button type="reset" class="btn btn-ghost">Start over</button>
+            </div>
+            <p class="legal">By selecting Make payment, you authorize a one-time debit from the account above.</p>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </section>
+
+        <aside>
+          <div class="card card-pad">
+            <div class="loan-head">
+              <h2>Loan ••••3418</h2>
+              <span class="pill">Current</span>
+            </div>
+            <p class="due">Next payment due Nov 1, 2026<strong>$2,148.37</strong></p>
+            <ul class="kv">
+              <li><span>Principal &amp; interest</span><b>$1,712.04</b></li>
+              <li><span>Escrow (taxes &amp; insurance)</span><b>$436.33</b></li>
+              <li><span>Interest rate</span><b>6.125%</b></li>
+              <li><span>Unpaid principal balance</span><b>$312,846.19</b></li>
+            </ul>
+          </div>
+
+          <div class="card card-pad autopay">
+            <h3>Set up Autopay</h3>
+            <p>Your payment comes out on the same day every month, so you never miss a due date.</p>
+            <a class="link" href="#">Turn on Autopay <span aria-hidden="true">&rarr;</span></a>
+          </div>
+
+          <div class="card promo">
+            <img class="promo-img" src="https://prod.rockmedialibrary.com/api/public/content/91c29e16-downloadOriginal-D-SB-HPHero-8-20251211.webp?v=5e4e1fd4" alt="" loading="lazy"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <div class="promo-fallback" aria-hidden="true"></div>
+            <div class="card-pad">
+              <h3>Upgrade your mortgage</h3>
+              <p>If rates go lower, your payment can too. Get real-time rate updates and never miss a chance to save.</p>
+              <a class="link" href="#">Get rate alerts <span aria-hidden="true">&rarr;</span></a>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <section class="sect" aria-labelledby="actHead">
+        <div class="sect-head"><h2 id="actHead">Payment activity</h2><a class="link" href="#">See all</a></div>
+        <div class="card table-card">
+          <table>
+            <thead>
+              <tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col" class="hide-sm">Paid from</th><th scope="col" class="num">Amount</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Oct 1, 2026</td><td><span class="ok">Posted</span> &middot; Monthly payment</td><td class="hide-sm">Checking ••••4821</td><td class="num">$2,148.37</td></tr>
+              <tr><td>Sep 1, 2026</td><td><span class="ok">Posted</span> &middot; Monthly payment</td><td class="hide-sm">Checking ••••4821</td><td class="num">$2,148.37</td></tr>
+              <tr><td>Aug 14, 2026</td><td><span class="ok">Posted</span> &middot; Additional principal</td><td class="hide-sm">Savings ••••0937</td><td class="num">$1,000.00</td></tr>
+              <tr><td>Aug 1, 2026</td><td><span class="ok">Posted</span> &middot; Monthly payment</td><td class="hide-sm">Checking ••••4821</td><td class="num">$2,148.37</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="band" aria-labelledby="helpHead">
+        <div>
+          <h2 id="helpHead">Questions about your payment?</h2>
+          <p>Our team can walk you through payment options, escrow, and payoff quotes.</p>
+        </div>
+        <a class="btn btn-light" href="#">Talk to us</a>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="about">
+          <a class="brand" href="#" aria-label="Rocket Mortgage home">
+            <svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true">
+              <rect width="30" height="30" rx="9" fill="#de3341"></rect>
+              <text x="15" y="21.5" text-anchor="middle" font-family="'DM Sans', Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#ffffff">R</text>
+            </svg>
+            <span class="brand-word"><span>Rocket</span><span>Mortgage</span></span>
+          </a>
+          <p>Buy a home, refinance, or manage your mortgage online.</p>
+        </div>
+        <div>
+          <h4>Rocket Mortgage</h4>
+          <ul>
+            <li><a href="#">Buy a home</a></li>
+            <li><a href="#">Refinance</a></li>
+            <li><a href="#">Rates</a></li>
+            <li><a href="#payment">Make a payment</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Legal info</h4>
+          <ul>
+            <li><a href="#">Terms of use</a></li>
+            <li><a href="#">Disclosures and licenses</a></li>
+            <li><a href="#">Mortgage assistance</a></li>
+            <li><a href="#">Privacy policy</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Support</h4>
+          <ul>
+            <li><a href="#">Talk to us</a></li>
+            <li><a href="#">Share your screen</a></li>
+            <li><a href="#">Give us your feedback</a></li>
+            <li><a href="#">Site accessibility</a></li>
+          </ul>
+        </div>
+      </div>
+      <p class="fine">Payment amounts and balances shown are for illustration only.</p>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (response) {
+        return response.json();
+      }).then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const MONTHLY = 2148.37;
+      const form = document.getElementById('transferForm');
+      const amount = document.getElementById('amount');
+      const loanSel = document.getElementById('toAccount');
+      const fromSel = document.getElementById('fromAccount');
+      const tierSel = document.getElementById('accountTier');
+      const FEES = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.5 }, basic: { rate: 0.002, flat: 4.99 } };
+      const feeFor = (n) => {
+        const t = FEES[tierSel.value] || FEES.standard;
+        return Math.max(t.rate * n, t.flat);
+      };
+      const chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+      const usd = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const optLabel = (sel) => sel.options[sel.selectedIndex].dataset.label;
+
+      function renderSummary() {
+        const value = parseFloat(amount.value);
+        const total = isNaN(value) || value < 0 ? 0 : value;
+        const monthly = Math.min(total, MONTHLY);
+        const extra = Math.max(0, Math.round((total - MONTHLY) * 100) / 100);
+        document.getElementById('sumLoan').textContent = optLabel(loanSel);
+        document.getElementById('sumFrom').textContent = optLabel(fromSel);
+        document.getElementById('sumMonthly').textContent = usd(monthly);
+        document.getElementById('sumExtra').textContent = usd(extra);
+        const fee = total > 0 ? feeFor(total) : 0;
+        document.getElementById('sumPayment').textContent = usd(total);
+        document.getElementById('sumFee').textContent = usd(parseFloat(fee.toFixed(2)));
+        document.getElementById('sumTotal').textContent = usd(parseFloat((total + fee).toFixed(2)));
+        chips.forEach((c) => c.setAttribute('aria-pressed', String(parseFloat(c.dataset.amount) === total)));
+      }
+
+      chips.forEach((chip) => chip.addEventListener('click', () => {
+        amount.value = chip.dataset.amount;
+        renderSummary();
+      }));
+      [amount, loanSel, fromSel, tierSel].forEach((el) => {
+        el.addEventListener('input', renderSummary);
+        el.addEventListener('change', renderSummary);
+      });
+      form.addEventListener('reset', () => {
+        const result = document.getElementById('result');
+        result.className = 'result-box';
+        result.textContent = '';
+        setTimeout(() => {
+          tierSel.value = 'standard';
+          renderSummary();
+        }, 0);
+      });
+      renderSummary();
+
+      function showResult(kind, title, lines) {
+        const result = document.getElementById('result');
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        const head = document.createElement('div');
+        head.className = 'result-title';
+        head.textContent = title;
+        result.appendChild(head);
+        lines.forEach((text) => {
+          const line = document.createElement('div');
+          line.textContent = text;
+          result.appendChild(line);
+        });
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const result = document.getElementById('result');
+        const raw = amount.value.trim();
+        const value = parseFloat(raw);
+        if (!/^\d+(\.\d{1,2})?$/.test(raw) || value < 1) {
+          showResult('error', 'Enter a payment amount', ['Enter a dollar amount of at least $1.00, up to two decimal places.']);
+          return;
+        }
+        const loanLabel = optLabel(loanSel);
+        const fromLabel = optLabel(fromSel);
+        btn.disabled = true;
+        btn.textContent = 'Processing payment\u2026';
+        result.className = 'result-box';
+        result.textContent = '';
+        const controller = new AbortController();
+        const timeoutTimer = setTimeout(() => controller.abort(), 30000);
+        try {
+          const response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              fromAccount: fromSel.value,
+              toAccount: loanSel.value,
+              amount: value,
+              accountTier: document.getElementById('accountTier').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) {
+            showResult('error', 'We couldn\u2019t process your payment',
+              ['No money has left your account. Please try again in a few minutes.']);
+          } else {
+            const receiptId = (data.receipt && data.receipt.receiptId) || '';
+            const ref = String(receiptId).replace(/\D/g, '').slice(-10);
+            showResult('success', 'Your payment is scheduled',
+              [usd(value) + ' from ' + fromLabel + ' to ' + loanLabel + ', posting today.',
+                'Total debit ' + usd(parseFloat(data.debitAmount) || parseFloat((value + feeFor(value)).toFixed(2))) + ' including processing fee.',
+                'Confirmation number ' + ref]);
+          }
+        } catch (err) {
+          showResult('error', 'We couldn\u2019t confirm your payment',
+            ['Check your payment activity before trying again, or contact Rocket Mortgage Client Support.']);
+        } finally {
+          clearTimeout(timeoutTimer);
+          btn.disabled = false;
+          btn.textContent = 'Make payment';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
