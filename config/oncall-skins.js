@@ -3297,6 +3297,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A ROCKET MORTGAGE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Rocket Mortgage or Rocket Companies product.',
   },
+  'fd5d1290': {
+    slug: 'fd5d1290',
+    company: 'Gametime',
+    vertical: 'insurance',
+    page: {
+      file: 'fd5d1290.html',
+      title: 'Gametime Guarantee | Gametime - Sports, Shows, and Concert Tickets',
+    },
+    disclaimer: 'NOT ACTUALLY A GAMETIME SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Gametime product.',
+  },
 };
 
 function getOncallSkin(slug) {
