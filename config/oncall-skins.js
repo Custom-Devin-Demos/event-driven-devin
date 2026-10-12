@@ -3303,7 +3303,7 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     page: {
       file: 'b3d1cff8.html',
-      title: 'Cross-Border Payment Solution for Settlements | International Payment Platform | Ripple',
+      title: 'Payments Demo | Ripple',
     },
     disclaimer: 'NOT ACTUALLY A RIPPLE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ripple product.',
   },

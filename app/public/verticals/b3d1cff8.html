@@ -3,774 +3,286 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cross-Border Payment Solution for Settlements | International Payment Platform | Ripple</title>
-  <link rel="icon" type="image/png" href="/favicon.png">
+  <title>Payments Demo | Ripple</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300..700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --font: 'TT Ripple', 'Figtree', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      --gray-0: #ffffff;
-      --gray-2-5: #fafafa;
-      --gray-5: #f1f2f3;
-      --gray-40: #939a9f;
-      --gray-50: #777f86;
-      --gray-60: #5e676e;
-      --gray-70: #454d54;
-      --gray-80: #2e3439;
-      --gray-90: #141a1f;
-      --steel-2-5: #eef3f7;
-      --blue-10: #ccefff;
-      --blue-60: #005bcc;
-      --primary: #006aff;
-      --input-border: #d6d9db;
-      --rule: #c3c4c5;
-      --btn-bg: radial-gradient(circle, rgb(0, 91, 204), rgb(0, 140, 255) 80%);
-      --btn-shadow: rgba(0, 91, 204, 0.9) 0px 3px 12px 0px inset, rgba(0, 91, 204, 0.8) 0px -3px 4px 0px inset;
-      --text-gradient: linear-gradient(92deg, rgb(0, 82, 182) -2.09%, rgb(51, 163, 255) 66.48%, rgb(0, 103, 229) 97.37%);
+      --ink: rgb(20, 26, 31);
+      --ink-2: rgb(69, 77, 84);
+      --ink-3: rgb(94, 103, 110);
+      --blue: rgb(0, 91, 204);
+      --blue-dark: rgb(0, 74, 166);
+      --line: rgb(229, 231, 232);
+      --gray: rgb(241, 242, 243);
+      --side: rgb(250, 250, 250);
+      --ok-ink: rgb(0, 102, 34);
+      --ok-bg: rgb(244, 255, 230);
+      --err-ink: rgb(179, 38, 30);
+      --err-bg: rgb(255, 241, 240);
+      --row-hl: rgb(229, 248, 255);
+      --radius: 8px;
+      --font: "TT Ripple", Roboto, -apple-system, "system-ui", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { -webkit-text-size-adjust: 100%; }
-    body { font-family: var(--font); font-size: 16px; line-height: 24px; letter-spacing: 0.02em; color: var(--gray-90); background: var(--gray-0); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--font); font-size: 16px; line-height: 24px; color: var(--ink); background: var(--gray); -webkit-font-smoothing: antialiased; }
     a { color: inherit; text-decoration: none; }
-    img { display: block; max-width: 100%; }
-    ul { list-style: none; }
-    button { font-family: inherit; }
+    button, input, select { font: inherit; color: inherit; }
+    h1, h2, h3, p { margin: 0; }
+    .ico { width: 24px; height: 24px; display: block; fill: currentColor; flex: none; }
 
-    .wrap { max-width: 1152px; margin: 0 auto; }
-    @media (max-width: 1183px) { .wrap { margin: 0 16px; } }
-    .grid12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 48px; }
-    .bg-alt { background: var(--gray-2-5); }
-    .rule-top { border-top: 1px solid var(--rule); }
-
-    /* Typography */
-    .headline4 { font-size: 36px; line-height: 48px; font-weight: 500; letter-spacing: -0.5px; }
-    .heading4 { font-size: 30px; line-height: 40px; font-weight: 500; letter-spacing: -0.5px; }
-    .heading2 { font-size: 19px; line-height: 28px; font-weight: 500; }
-    .body2 { font-size: 19px; line-height: 28px; font-weight: 350; }
-    .body3 { font-size: 16px; line-height: 24px; font-weight: 350; }
-    .caption3 { font-size: 12px; line-height: 20px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
-    .caption2 { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
-
-    /* Buttons */
-    .btn { display: inline-flex; align-items: center; gap: 4px; height: 40px; padding: 8px 12px 8px 16px; border: 0; border-radius: 40px; background: var(--btn-bg); box-shadow: var(--btn-shadow); color: #f1f2f3; font-family: var(--font); font-size: 16px; line-height: 24px; font-weight: 500; cursor: pointer; white-space: nowrap; position: relative; }
-    .btn::after, .tlink::after { content: ''; display: inline-block; width: 16px; height: 16px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 3.5 10.5 8 6 12.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 3.5 10.5 8 6 12.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
-    .btn:disabled { opacity: .7; cursor: progress; }
-    .tlink { display: inline-flex; align-items: center; gap: 4px; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--gray-90); white-space: nowrap; position: relative; }
-    .tlink::after { color: var(--primary); }
-    .tlink::before, .hit::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
-
-    /* Header */
-    header.site { background: #fff; position: relative; z-index: 50; }
-    .hdr { height: 80px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; }
-    .logo { display: flex; align-items: center; gap: 4px; height: 24px; color: #000; font-weight: 600; font-size: 25px; letter-spacing: -0.6px; line-height: 24px; }
-    .logo svg { width: 22px; height: 24px; display: block; }
-    .logo .word { transform: translateY(-2px); }
-    .hdr-left { display: flex; align-items: center; }
-    .mainnav { display: flex; margin-left: 16px; }
-    .mainnav li { padding: 0 16px; }
-    .mainnav a { display: flex; align-items: center; height: 36px; font-size: 16px; line-height: 24px; color: #000; border-radius: 6px; }
-    .mainnav a.on { color: var(--primary); }
-    .mainnav a { justify-content: center; }
-    .mainnav li:nth-child(1) a { width: 70px; } .mainnav li:nth-child(2) a { width: 72px; } .mainnav li:nth-child(3) a { width: 84px; }
-    .mainnav li:nth-child(4) a { width: 87px; } .mainnav li:nth-child(5) a { width: 81px; } .mainnav li:nth-child(6) a { width: 73px; }
-    .hdr-right { display: flex; align-items: center; gap: 8px; height: 40px; }
-    .cta-sales { display: inline-flex; align-items: center; height: 40px; padding: 6px 18px; border-radius: 9999px; border: 2px solid transparent; background: linear-gradient(#f2f2f3, #f2f2f3) padding-box, linear-gradient(103deg, rgb(0, 75, 204) 2.44%, rgb(120, 190, 255) 20.72%, rgb(0, 106, 255) 47.97%, rgb(120, 190, 255) 71.01%, rgb(0, 75, 204) 93.86%) border-box; color: #000; font-size: 16px; line-height: 24px; white-space: nowrap; }
-    .icon-btn { width: 40px; height: 40px; border-radius: 9999px; background: #f2f2f3; border: 0; display: inline-flex; align-items: center; justify-content: center; color: #000; cursor: pointer; }
-    .icon-btn svg { width: 20px; height: 20px; }
+    /* top bar */
+    .top { position: sticky; top: 0; z-index: 20; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: #fff; box-shadow: rgba(0, 0, 0, 0.09) 0px 0px 4px 0px, rgba(0, 0, 0, 0.09) 0px 4px 8px 0px; }
+    .logo { display: flex; align-items: center; gap: 8px; height: 26px; }
+    .logo svg { height: 26px; width: auto; display: block; }
+    .logo .word { font-weight: 700; font-size: 25px; letter-spacing: -0.02em; line-height: 26px; color: var(--ink); }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; color: var(--blue); cursor: pointer; }
+    .icon-btn:hover { background: var(--gray); }
     .menu-btn { display: none; }
-    .logo-word-only { display: inline; }
 
-    /* Sub nav */
-    .subnav { height: 92px; display: flex; align-items: center; justify-content: space-between; }
-    .subnav h4 { padding: 16px; font-size: 19px; line-height: 28px; font-weight: 500; }
-    .subnav ul { display: flex; padding: 16px; }
-    .subnav ul a { margin-left: 48px; font-size: 16px; line-height: 24px; font-weight: 350; color: var(--gray-60); }
-    .subnav ul a.on { font-weight: 500; color: var(--gray-90); }
-    .subnav .mob { display: none; align-items: center; gap: 8px; padding: 16px; font-size: 16px; font-weight: 500; }
+    /* layout */
+    .shell { display: flex; min-height: calc(100vh - 64px); }
+    .side { width: 224px; flex: none; background: var(--side); padding: 24px 8px 0; }
+    .side nav { display: flex; flex-direction: column; gap: 8px; padding: 0 8px; }
+    .side a { position: relative; display: flex; align-items: center; gap: 8px; height: 40px; width: 120px; padding: 0 10px; color: var(--ink-2); font-size: 16px; line-height: 24px; border-radius: 4px; }
+    .side a:hover { color: var(--ink); }
+    .side a.on { color: var(--blue); font-weight: 700; }
+    .side a.on::before { content: ""; position: absolute; left: -4px; top: 0; bottom: 0; width: 3px; background: var(--blue); border-radius: 2px; }
+    .main { flex: 1; min-width: 0; margin: 8px 0 0 -4px; background: #fff; border-radius: var(--radius); box-shadow: rgba(0, 0, 0, 0.09) 0px 12px 24px 0px, rgba(0, 0, 0, 0.09) 0px 0px 4px 0px; padding: 32px 40px; }
+    .head { display: flex; align-items: center; justify-content: space-between; height: 40px; margin-bottom: 48px; }
+    .head h1 { font-size: 30px; line-height: 40px; font-weight: 700; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border: 2px solid var(--blue); border-radius: 8px; background: var(--blue); color: #fff; font-size: 14px; line-height: 20px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .btn:hover { background: var(--blue-dark); border-color: var(--blue-dark); }
+    .btn:disabled { opacity: .6; cursor: progress; }
+    .btn .ico { margin-right: -6px; }
+    .btn-text { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: transparent; color: var(--blue); font-size: 14px; line-height: 20px; font-weight: 700; cursor: pointer; }
+    .btn-text:hover { background: var(--gray); }
 
-    /* Hero */
-    .hero { padding: 96px 0; }
-    .hero-inner { padding: 16px; }
-    .hero h1 { font-size: 30px; line-height: 40px; font-weight: 500; letter-spacing: -0.5px; }
-    .hero h2 { margin: 16px 0 80px; font-size: 93px; line-height: 104px; font-weight: 500; letter-spacing: -0.2px; background: var(--text-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #0052b6; }
-    .hero p.lede { font-size: 22px; line-height: 32px; font-weight: 350; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 401px; gap: 42px; align-items: start; }
+    .col { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+    .card.tint { background: var(--gray); }
+    .card-head { display: flex; align-items: center; gap: 8px; }
+    .card-head h2 { font-size: 16px; line-height: 24px; font-weight: 700; }
+    .card-head.lg h2 { font-size: 19px; line-height: 28px; }
+    .help { color: var(--ink-3); }
 
-    /* Payment form (sits where the page's primary CTA is) */
-    #transferForm { margin-top: 64px; }
-    .pay-grid { display: grid; grid-template-columns: 1.25fr 1.5fr 1fr 1fr; gap: 16px; }
-    .field label { display: block; margin-bottom: 8px; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--gray-90); }
-    .field select, .field input { width: 100%; height: 56px; padding: 0 16px; border: 2px solid var(--input-border); border-radius: 8px; background: #fff; font-family: var(--font); font-size: 18px; line-height: 24px; font-weight: 400; color: var(--gray-90); outline: none; -webkit-appearance: none; appearance: none; }
-    .field select { padding-right: 40px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 6 8 10.5 12.5 6' fill='none' stroke='%23141a1f' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 16px center / 16px no-repeat; text-overflow: ellipsis; }
-    .field select:focus, .field input:focus { border-color: rgb(0, 140, 255); }
-    .pay-actions { display: flex; align-items: center; gap: 15px; margin-top: 24px; }
-    .pay-actions .btn { height: 48px; padding: 12px 16px 12px 20px; }
-    .result-box { display: none; margin-top: 24px; padding: 16px 20px; border-radius: 8px; background: var(--steel-2-5); max-width: 760px; }
+    .balances { display: flex; gap: 24px; }
+    .bal { flex: 1; position: relative; padding-bottom: 16px; }
+    .bal h3 { margin-top: 16px; font-size: 26px; line-height: 36px; font-weight: 700; }
+    .bal .cur { position: absolute; top: 24px; right: 24px; width: 32px; height: 32px; }
+    .bal .cur svg { width: 32px; height: 32px; display: block; }
+
+    /* create payment (primary action) */
+    .pay-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; margin-top: 24px; }
+    .field label { display: block; font-size: 14px; line-height: 20px; font-weight: 700; margin-bottom: 4px; }
+    .ctl { position: relative; }
+    .ctl input, .ctl select { width: 100%; height: 40px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font-size: 16px; line-height: 24px; outline: none; appearance: none; -webkit-appearance: none; }
+    .ctl input:focus, .ctl select:focus { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+    .ctl select { padding-right: 44px; }
+    .ctl .chev { position: absolute; right: 12px; top: 8px; pointer-events: none; color: var(--ink); }
+    .pay-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 24px; }
+    .pay-note { font-size: 14px; line-height: 20px; color: var(--ink-3); }
+    .result-box { display: none; margin-top: 16px; padding: 12px 16px; border-radius: 8px; font-size: 14px; line-height: 20px; }
     .result-box.success, .result-box.error { display: block; }
-    .result-box.error { background: #fdeeee; }
-    .result-box .error-title { font-size: 16px; line-height: 24px; font-weight: 500; }
-    .result-box .error-detail { margin-top: 4px; font-size: 16px; line-height: 24px; font-weight: 350; color: var(--gray-70); }
-    .result-box.success .error-title { color: var(--blue-60); }
-    .result-box.error .error-title { color: #b42318; }
+    .result-box.success { background: var(--ok-bg); color: var(--ok-ink); }
+    .result-box.error { background: var(--err-bg); color: var(--err-ink); }
+    .result-box .error-title { font-weight: 700; }
 
-    /* Generic sections */
-    .sec-112 { padding: 112px 0; }
-    .p4 { padding: 16px; }
-    .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 48px; }
-    .card3 { padding: 16px; max-width: 352px; }
-    .card3 img { width: 64px; height: 64px; }
-    .card3 h3 { margin-top: 16px; }
-    .card3 .body3 { margin-top: 16px; }
+    /* last payments */
+    .lp-head { display: flex; align-items: center; justify-content: space-between; height: 40px; margin-bottom: 8px; }
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 620px; }
+    th { padding: 16px; text-align: left; font-size: 14px; line-height: 20px; font-weight: 700; border-bottom: 1px solid var(--line); }
+    td { height: 52px; padding: 9.6px 16px; font-size: 14px; line-height: 20px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    tr:hover td { background: var(--row-hl); }
+    .pill { display: inline-flex; align-items: center; height: 32px; padding: 4px 16px; border-radius: 16px; background: var(--ok-bg); color: var(--ok-ink); font-size: 12px; line-height: 16px; font-weight: 700; }
+    .pill.pending { background: rgb(255, 248, 225); color: rgb(122, 86, 0); }
 
-    /* What you get */
-    .wyg { padding: 112px 0 144px; }
-    .wyg .head { padding: 16px; margin-bottom: 48px; }
+    /* right column */
+    .fx-inner { margin-top: 24px; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+    .fx-inner .big { font-size: 22px; line-height: 32px; font-weight: 700; }
+    .fx-row { display: flex; margin-top: 16px; }
+    .fx-row + .fx-row { margin-top: 8px; }
+    .fx-row .num { flex: 1; height: 40px; padding: 8px 16px; border: 1px solid var(--line); border-right: 0; border-radius: 8px 0 0 8px; text-align: right; background: #fff; }
+    .fx-row .sel { width: 120px; height: 40px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 0 8px 8px 0; display: flex; align-items: center; justify-content: space-between; background: #fff; }
+    .fx-time { margin-top: 12px; }
+    .fx-note { margin-top: 24px; font-size: 14px; line-height: 20px; color: var(--ink-3); }
+    .support .card-head svg { width: 36px; height: 36px; }
+    .support p { margin-top: 8px; }
+    .support .links { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .support .links a { display: inline-flex; align-items: center; gap: 8px; color: var(--blue); font-weight: 700; }
+    .support .links .ico { width: 24px; height: 24px; }
 
-    /* Stop stitching */
-    .stitch { padding: 80px 0; }
-    .stitch .inner { padding: 16px; }
-    .stitch .head { max-width: 540px; margin-bottom: 40px; }
-    .stitch .cols { display: grid; grid-template-columns: 520px 520px; justify-content: space-between; }
-    .stitch .copy p { font-size: 19px; line-height: 28px; font-weight: 350; margin-bottom: 19px; }
-    .stitch .copy p:last-child { margin-bottom: 0; }
-    .quote { background: var(--steel-2-5); border-radius: 8px; padding: 32px; align-self: start; }
-    .quote svg { width: 29px; height: 23px; fill: var(--primary); display: block; }
-    .quote p { margin: 32px 0; }
-    .quote .who { display: flex; align-items: center; gap: 16px; }
-    .quote .who img { width: 48px; height: 48px; border-radius: 9999px; object-fit: cover; background: #d5dde3; }
-
-    /* One place */
-    .oneplace { padding: 112px 0; overflow: hidden; }
-    .oneplace .head { text-align: center; padding: 16px; }
-    .oneplace .head p { margin-top: 16px; font-size: 19px; line-height: 28px; font-weight: 350; max-width: 1120px; margin-left: auto; margin-right: auto; }
-    .op-grid { display: grid; grid-template-columns: 352px 352px 1fr; column-gap: 48px; margin-top: 64px; }
-    .op-item { padding: 16px; }
-    .op-item .body3 { margin-top: 16px; }
-    .op-item .tlink { margin-top: 16px; }
-    .op-item .body3 a { color: var(--primary); }
-    .op-img { grid-column: 3; grid-row: 1 / span 2; padding: 16px 0; }
-    .op-img img { width: 704px; max-width: none; height: auto; border-radius: 8px; }
-    .op-cta { text-align: center; margin-top: 48px; }
-
-    /* Marquee */
-    .marquee { padding: 112px 0; overflow: hidden; display: flex; flex-direction: column; gap: 80px; }
-    .mq-row { display: flex; gap: 128px; width: max-content; }
-    .mq-row img { width: 173px; height: 69px; object-fit: contain; flex: none; }
-    .mq-row.r1 { transform: translateX(-1890px); margin-left: 153px; }
-    .mq-row.r2 { transform: translateX(-1890px); margin-left: 153px; }
-
-    /* Ripple Payments feature grid */
-    .rp { padding: 112px 0; }
-    .rp .head { padding: 16px; max-width: 652px; }
-    .rp .head .copy { margin-top: 32px; }
-    .rp .head .copy p.body2 { margin-bottom: 19px; }
-    .feat2 { display: grid; grid-template-columns: 1fr 1fr; column-gap: 48px; row-gap: 48px; margin-top: 64px; }
-    .feat2 .f { padding: 16px; max-width: 552px; }
-    .feat2 .f img { width: 64px; height: 64px; }
-    .feat2 .f h3 { margin-top: 16px; }
-    .feat2 .f .body3 { margin-top: 16px; }
-
-    /* Licenses */
-    .lic { padding: 112px 0; text-align: center; }
-    .lic h4 { margin-bottom: 60px; }
-    .lic-card { width: 552px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 32px; display: flex; flex-direction: column; gap: 32px; align-items: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1); }
-    .big85 { font-size: 49px; line-height: 64px; font-weight: 500; letter-spacing: -1px; background: linear-gradient(313deg, rgb(153, 216, 255) 7.93%, rgb(0, 103, 229) 87.3%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #0067e5; }
-    .flags { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
-    .flags img { width: 80px; height: 53px; object-fit: cover; }
-    .flags p { margin-top: 8px; color: var(--gray-70); }
-
-    /* Payout network */
-    .net { padding: 80px 0; }
-    .net .col { max-width: 852px; display: flex; flex-direction: column; gap: 56px; }
-    .net .body2 { color: var(--gray-70); }
-
-    /* Why */
-    .why { padding: 112px 0 128px; }
-    .why .head { padding: 16px; max-width: 652px; margin-bottom: 48px; }
-    .why .cta { padding: 16px; margin-top: 48px; }
-
-    /* Explore what's possible */
-    .ewp { padding: 112px 0; }
-    .ewp h3 { padding: 8px 16px; }
-    .ewp-grid { display: grid; grid-template-columns: 552px 552px; justify-content: space-between; margin-top: 80px; }
-    .hl { border-top: 1px solid var(--blue-60); border-bottom: 1px solid var(--blue-60); }
-    .hl .item { padding: 24px 16px; }
-    .hl .item + .item { border-top: 1px solid var(--blue-60); }
-    .hl .item.on { background: var(--blue-10); }
-    .hl h4 { color: var(--blue-60); }
-    .hl .body3 { padding: 24px 0; }
-    .hl .mob-img { display: none; }
-    .ewp-img img { width: 552px; height: 440px; object-fit: cover; border-radius: 8px; }
-
-    /* Certs */
-    .certs { padding: 96px 0; }
-    .certs .row { display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 48px; }
-    .certs .c { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
-    .certs img { width: 120px; height: 121px; }
-    .certs .c p.sub { font-size: 16px; line-height: 24px; font-weight: 350; }
-
-    /* Guide */
-    .guide { padding: 112px 0; }
-    .guide-card { display: grid; grid-template-columns: 652px 1fr; border-radius: 8px; overflow: hidden; }
-    .guide-copy { background: var(--gray-5); padding: 64px; }
-    .guide-copy h3 { color: var(--gray-70); margin-bottom: 16px; }
-    .guide-copy h2 { font-size: 22px; line-height: 32px; font-weight: 500; margin-bottom: 16px; }
-    .guide-copy p { color: var(--gray-80); margin-bottom: 32px; }
-    .guide-art { background: #0a1f5c url("https://cdn.sanity.io/images/ior4a5y3/production/b0ee83b4b6faa087d50362f46892ccd5825b7be6-1920x1080.png?w=1200&q=75&auto=format") center / cover no-repeat; min-height: 242px; }
-
-    /* Blog */
-    .blog { padding: 96px 0; overflow: hidden; }
-    .blog h3 { padding: 16px; margin-bottom: 96px; }
-    .posts { display: flex; gap: 32px; padding: 0 16px; }
-    .post { width: 324px; flex: none; }
-    .post img { width: 324px; height: 182px; object-fit: cover; border-radius: 8px; background: #d5dde3; }
-    .post article { padding: 8px 0; margin-top: 24px; }
-    .post .t { margin-bottom: 24px; }
-    .post .d { font-size: 16px; line-height: 24px; font-weight: 500; letter-spacing: 1px; color: var(--gray-50); text-transform: uppercase; }
-    .car-btns { display: flex; gap: 40px; padding: 0 16px; margin-top: 48px; }
-    .car-btns button { width: 56px; height: 56px; border-radius: 9999px; border: 1.5px solid var(--gray-90); background: transparent; display: inline-flex; align-items: center; justify-content: center; color: var(--gray-90); cursor: pointer; }
-    .car-btns button:first-child { opacity: .5; }
-    .car-btns svg { width: 20px; height: 20px; }
-
-    /* FAQ */
-    .faq .wrap > .grid12 { padding: 64px 0; }
-    .faq .left { grid-column: span 4; padding: 12px 16px; margin-top: 16px; }
-    .faq .left h2 { font-size: 30px; line-height: 36px; font-weight: 400; }
-    .faq .right { grid-column: 5 / span 8; }
-    .faq li { margin: 8px 0; }
-    .faq li button { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 32px; border: 0; border-radius: 8px; background: none; text-align: left; cursor: pointer; color: var(--gray-90); }
-    .faq li button:hover { background: #e9ebec; }
-    .faq li h3 { font-size: 22px; line-height: 32px; font-weight: 350; margin-right: 16px; }
-    .faq li svg { width: 24px; height: 24px; flex: none; }
-
-    /* Contact */
-    .contact { padding: 88px 0; }
-    .contact .inner { padding: 0; }
-    .contact p.lead { font-size: 18px; line-height: 21.6px; font-weight: 400; }
-    .contact p.sub { margin-top: 18px; font-size: 18px; line-height: 21.6px; font-weight: 400; max-width: 760px; }
-    .contact .btn { margin-top: 32px; }
-
-    /* Footer */
-    footer.site { background: var(--gray-90); color: var(--gray-2-5); padding: 112px 0; border-top: 1px solid #8a8d8f; }
-    .ft-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 48px; }
-    .ft-brand { grid-column: span 3; padding: 16px; }
-    .ft-brand .logo { color: #fff; margin-bottom: 40px; }
-    .to-top { display: inline-flex; align-items: center; gap: 12px; font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--gray-2-5); position: relative; }
-    .ft-cols { grid-column: 4 / span 9; display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 32px; }
-    .ft-col { padding: 16px; }
-    .ft-col h5 { font-size: 12px; line-height: 20px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--gray-40); margin-bottom: 16px; }
-    .ft-col h5.second { margin-top: 24px; }
-    .ft-col a { display: block; padding-bottom: 12px; font-size: 16px; line-height: 24px; font-weight: 350; color: var(--gray-2-5); }
-    .ft-row2 { margin-top: 64px; }
-    .ft-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 64px; }
-    .social { display: flex; gap: 24px; padding: 16px; }
-    .social a { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; color: #9aa0a5; position: relative; }
-    .social svg { width: 26px; height: 26px; }
-    .legal { padding: 16px; width: 760px; }
-    .legal .links { display: flex; flex-wrap: wrap; gap: 0 8px; font-size: 14px; line-height: 20px; font-weight: 350; letter-spacing: .5px; }
-    .legal .links span { color: var(--gray-40); }
-    .legal .copy { margin-top: 16px; font-size: 14px; line-height: 20px; font-weight: 350; letter-spacing: .5px; color: var(--gray-40); }
-
-    /* ---------- Tablet / mobile ---------- */
     @media (max-width: 1279px) {
-      .mainnav { display: none; }
-      .menu-btn { display: inline-flex; }
-      .op-img img { width: 100%; }
-    }
-    @media (max-width: 1023px) {
-      .stitch .cols, .ewp-grid, .guide-card { grid-template-columns: 1fr; }
-      .quote { margin-top: 48px; }
-      .ewp-img { display: none; }
-      .hl { border: 0; }
-      .hl .item, .hl .item + .item { border: 0; padding: 0; margin-bottom: 56px; background: none; }
-      .hl .item .txt { padding: 24px 16px; }
-      .hl .mob-img { display: block; margin-bottom: 24px; }
-      .hl .mob-img img { width: 100%; border-radius: 8px; }
-      .op-grid { grid-template-columns: 1fr; }
-      .op-img { grid-column: auto; grid-row: auto; }
-      .faq .grid12, .ft-grid { display: block; }
+      .grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 767px) {
-      .hdr { padding: 0 16px; }
-      .logo .word { display: none; }
-      .subnav ul { display: none; }
-      .subnav .mob { display: flex; }
-      .hero { padding: 48px 0; }
-      .hero h1 { font-size: 19px; line-height: 28px; }
-      .hero h2 { font-size: 49px; line-height: 64px; margin: 16px 0 36px; }
-      #transferForm { margin-top: 40px; }
-      .pay-grid { grid-template-columns: 1fr; }
-      .pay-actions { flex-wrap: wrap; gap: 16px 15px; }
-      .headline4 { font-size: 22px; line-height: 32px; letter-spacing: 0; }
-      .stitch .head.headline4, .ewp h3.headline4 { font-size: 30px; line-height: 40px; letter-spacing: -0.5px; }
-      .net .heading4 { font-size: 22px; line-height: 32px; letter-spacing: 0; }
-      .op-grid { display: flex; flex-direction: column; }
-      .op-img { order: 5; }
-      .hl .item.on { background: none; }
-      .posts { gap: 48px; }
-      .oneplace .head h2 { font-size: 22px; line-height: 32px; }
-      .oneplace .head p { font-size: 16px; line-height: 24px; }
-      .body2 { font-size: 16px; line-height: 24px; }
-      .stitch .copy p { font-size: 16px; line-height: 24px; margin-bottom: 16px; }
-      .sec-112, .wyg, .rp, .lic, .ewp, .guide { padding: 64px 0; }
-      .stitch { padding: 48px 0; }
-      .oneplace { padding: 64px 0; }
-      .cards3 { grid-template-columns: 1fr; row-gap: 40px; }
-      .card3 { max-width: none; }
-      .feat2 { grid-template-columns: 1fr; row-gap: 40px; margin-top: 40px; }
-      .op-grid { margin-top: 40px; }
-      .op-item { margin-bottom: 40px; }
-      .marquee { padding: 40px 0; gap: 44px; }
-      .mq-row { gap: 40px; }
-      .mq-row img { width: 130px; height: 52px; }
-      .mq-row.r1, .mq-row.r2 { transform: translateX(-60px); margin-left: 0; }
-      .lic h4.headline4 { font-size: 36px; line-height: 48px; letter-spacing: -0.5px; margin-bottom: 48px; padding: 0 8px; }
-      .lic-card { width: 100%; }
-      .net, .why, .ewp { border-top: 0; }
-      .net { padding: 48px 0; }
-      .net .col { gap: 40px; padding: 0; }
-      .why { padding: 64px 0; }
-      .ewp h3 { padding: 8px 16px; }
-      .ewp-grid { margin-top: 40px; }
-      .hl h4 { font-size: 22px; line-height: 32px; letter-spacing: 0; }
-      .certs { padding: 64px 0; }
-      .certs .row { grid-template-columns: 1fr; row-gap: 56px; }
-      .guide-copy { padding: 16px 16px 44px; }
-      .blog { padding: 40px 0; }
-      .blog h3 { font-size: 22px; line-height: 32px; letter-spacing: 0; margin-bottom: 24px; }
-      .post { width: 310px; }
-      .post img { width: 310px; height: 174px; }
-      .faq .left h2 { font-size: 24px; line-height: 32px; }
-      .faq li button { padding: 16px; }
-      .faq li h3 { font-size: 16px; line-height: 24px; }
-      .contact { padding: 32px 0; }
-      .ft-cols { grid-template-columns: 1fr; }
-      .ft-row2 { margin-top: 0; }
-      .ft-bottom { flex-direction: column; align-items: flex-start; }
-      .legal { width: auto; }
-      .legal .copy { font-size: 12px; line-height: 16px; }
+      .side { display: none; }
+      .menu-btn { display: flex; }
+      .main { margin: 8px 0 0; border-radius: 0; padding: 24px 16px 48px; }
+      .head { height: auto; align-items: flex-start; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+      .head h1 { font-size: 26px; line-height: 36px; }
+      .grid { gap: 24px; }
+      .card { padding: 16px; }
+      .balances { flex-direction: column; }
+      .bal .cur { top: 16px; right: 16px; }
+      .pay-fields { grid-template-columns: 1fr; }
+      .ctl input, .ctl select { height: 48px; }
+      .ctl .chev { top: 12px; }
+      .pay-foot { flex-direction: column-reverse; align-items: stretch; }
+      .btn.primary-action { height: 48px; }
+      .icon-btn { width: 44px; height: 44px; }
+      .lp-head { height: auto; }
+      .fx-row .sel { width: 104px; }
+      table { table-layout: auto; min-width: 680px; }
+      td { overflow: visible; text-overflow: clip; }
     }
   </style>
 </head>
 <body>
-  <header class="site">
-    <div class="hdr">
-      <div class="hdr-left">
-        <a href="#" class="logo" aria-label="Ripple home">
-          <svg viewBox="0 0 22 24" aria-hidden="true"><g fill="#006AFF"><circle cx="5" cy="12" r="5"/><circle cx="17" cy="5" r="5"/><circle cx="17" cy="19" r="5"/><path d="M5 9.2 15.2 3.4l2.6 4.4L9 12l8.8 4.2-2.6 4.4L5 14.8z"/></g></svg>
-          <span class="word">ripple</span>
-        </a>
-        <ul class="mainnav">
-          <li><a href="#" class="on">Products</a></li>
-          <li><a href="#">Solutions</a></li>
-          <li><a href="#">Customers</a></li>
-          <li><a href="#">Developers</a></li>
-          <li><a href="#">Resources</a></li>
-          <li><a href="#">Company</a></li>
-        </ul>
-      </div>
-      <div class="hdr-right">
-        <a href="#transferForm" class="cta-sales">Contact Sales</a>
-        <button class="icon-btn" type="button" aria-label="Search"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.6 3.6" stroke-linecap="round"/></svg></button>
-        <button class="icon-btn" type="button" aria-label="Language"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8.3" fill="currentColor"/><path d="M10 3.4c-1.6 1.7-2.4 4-2.4 6.6s.8 4.9 2.4 6.6M5 8h3.5l1.5 2.2v2.3M12.5 4.6v1.6l-1.4 1.4h-1.6M16.2 11h-3.3l-1 1.6v3.3" fill="none" stroke="#f2f2f3" stroke-width="1.4" stroke-linecap="round"/></svg></button>
-        <button class="icon-btn menu-btn" type="button" aria-label="Menu"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6.5h12M4 10h12M4 13.5h12"/></svg></button>
-      </div>
+  <header class="top">
+    <a class="logo" href="#" aria-label="Ripple"><svg viewBox="0 0 22 24" aria-hidden="true"><g fill="#006AFF"><circle cx="5" cy="12" r="5"/><circle cx="17" cy="5" r="5"/><circle cx="17" cy="19" r="5"/><path d="M5 9.2 15.2 3.4l2.6 4.4L9 12l8.8 4.2-2.6 4.4L5 14.8z"/></g></svg><span class="word">ripple</span></a>
+    <div class="top-actions">
+      <button class="icon-btn menu-btn" type="button" aria-label="Menu"><svg class="ico" viewBox="0 0 24 24"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg></button>
+      <button class="icon-btn" type="button" aria-label="Help"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></button>
+      <a class="icon-btn" href="#" aria-label="Settings"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M13.9 2.5h-3.8l-.5 2.6c-.6.2-1.2.6-1.7 1L5.4 5.2 3.5 8.5l2 1.7a7.6 7.6 0 0 0 0 1.9l-2 1.7 1.9 3.3 2.5-.9c.5.4 1.1.8 1.7 1l.5 2.6h3.8l.5-2.6c.6-.2 1.2-.6 1.7-1l2.5.9 1.9-3.3-2-1.7a7.6 7.6 0 0 0 0-1.9l2-1.7-1.9-3.3-2.5.9c-.5-.4-1.1-.8-1.7-1l-.5-2.6ZM12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/></svg></a>
+      <button class="icon-btn" type="button" aria-label="Account"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M6.48 19.1A8.96 8.96 0 0 0 12 21c2.08 0 4-.71 5.52-1.9A3.75 3.75 0 0 0 13.62 16h-3.25a3.75 3.75 0 0 0-3.9 3.1ZM12 23C5.92 23 1 18.08 1 12S5.92 1 12 1s11 4.92 11 11-4.92 11-11 11Zm0-20a9 9 0 0 0-7.1 14.54A5.75 5.75 0 0 1 10.38 14h3.25a5.75 5.75 0 0 1 5.48 3.54A9 9 0 0 0 12 3Zm0 9.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0-2a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg></button>
     </div>
   </header>
 
-  <div class="wrap">
-    <nav class="subnav" aria-label="Payments">
-      <h4>Payments</h4>
-      <ul>
-        <li><a href="#" class="on">Overview</a></li>
-        <li><a href="#">Global Payout Network</a></li>
-        <li><a href="#">Features</a></li>
-      </ul>
-      <div class="mob">Overview <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6 8 10.5 12.5 6"/></svg></div>
-    </nav>
-  </div>
+  <div class="shell">
+    <aside class="side">
+      <nav>
+        <a href="#" class="on"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M21 20a1 1 0 0 0 1-1V9.49a1.4 1.4 0 0 0-.76-1.23l-7.9-3.96a3 3 0 0 0-2.68 0L2.76 8.26A1.4 1.4 0 0 0 2 9.49V19a1 1 0 0 0 1 1h7v-2a2 2 0 1 1 4 0v2h7Zm-1-10.13-7.55-3.79a1 1 0 0 0-.9 0L4 9.87V18h4a4 4 0 0 1 8 0h4V9.87Z"/></svg>Home</a>
+        <a href="#"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M15 8H5a2 2 0 0 1-2 2v2a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2v-2a2 2 0 0 1-2-2Zm4 6V7a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-1ZM10 9a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm11-1h2v9a2 2 0 0 1-2 2H5v-2h16V8Z"/></svg>Payments</a>
+        <a href="#"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 12V5.07A7 7 0 0 0 5.06 12H12Zm1.5-8.61c-.3-.27-.65-.35-.93-.37-.21-.01-.45.02-.64.04A9 9 0 1 0 20.98 12.1c.01-.17.02-.35.01-.52a1.44 1.44 0 0 0-.4-.95L13.5 3.39ZM14 14h7a9 9 0 0 1-9 9v-7a2 2 0 0 0 2-2Zm-2.01 5.94A7 7 0 0 0 16.95 14H12v5.94ZM14 12V3.08A9 9 0 0 1 20.92 10H16a2 2 0 0 0-2 2Z"/></svg>Reports</a>
+        <a href="#"><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M17 7v2a2 2 0 1 1-4 0V7a2 2 0 1 1 4 0Zm-5.93-.75A4 4 0 1 1 12.14 11.8 4 4 0 0 1 8 13H7a4 4 0 0 1-4-4V8a4 4 0 0 1 8.07-1.75ZM9 9V8a2 2 0 1 0-4 0v1a2 2 0 1 0 4 0Zm-6 9a4 4 0 0 1 4-4h2a4 4 0 0 1 2.65 1 5.98 5.98 0 0 0-1.55 2H3v1h8v2H2a1 1 0 0 1-1-1v-1a2 2 0 0 1 2-2Zm10 1a3 3 0 0 1 3-3h2a3 3 0 0 1 3 3v2a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-2Zm2 1h5v-1a1 1 0 0 0-1-1h-3a1 1 0 0 0-1 1v1Z"/></svg>Beneficiaries</a>
+      </nav>
+    </aside>
 
-  <main>
-    <section class="hero">
-      <div class="wrap">
-        <div class="hero-inner">
-          <h1>Ripple Payments</h1>
-          <h2>Cross-Border Payments in Fiat and Stablecoins</h2>
-          <p class="lede">One provider for the full cross-border payments stack. Utilize our modular infrastructure to accept, hold, exchange, and pay out in fiat and stablecoin across 60+ markets through a single integration, backed by 13+ years of payments infrastructure.</p>
-
-          <form id="transferForm" autocomplete="off">
-            <div class="pay-grid">
-              <div class="field">
-                <label for="fromAccount">Pay from</label>
-                <select id="fromAccount">
-                  <option value="ACCT-1001">USD fiat balance</option>
-                  <option value="ACCT-1002">RLUSD stablecoin balance</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="toAccount">Beneficiary</label>
-                <select id="toAccount">
-                  <option value="ACCT-EXT-001">Zephyr Global Ltd &mdash; MXN bank account</option>
-                  <option value="ACCT-1002">Own wallet &mdash; RLUSD balance</option>
-                  <option value="ACCT-1001">Own account &mdash; USD balance</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="amount">Send amount (USD)</label>
-                <input type="number" id="amount" value="25000" min="1" step="0.01" placeholder="0.00">
-              </div>
-              <div class="field">
-                <label for="accountTier">Pricing plan</label>
-                <select id="accountTier">
-                  <option value="standard">Standard</option>
-                  <option value="premium">Enterprise</option>
-                  <option value="basic">Starter</option>
-                </select>
-              </div>
-            </div>
-            <div class="pay-actions">
-              <button type="submit" class="btn" id="submitBtn">Send payout</button>
-              <a href="#" class="tlink">Explore Product</a>
-            </div>
-          </form>
-          <div id="result" class="result-box" role="status" aria-live="polite"></div>
-        </div>
+    <section class="main">
+      <div class="head">
+        <h1>Welcome back, Jian!</h1>
+        <button class="btn" type="button" id="createPaymentTop"><span>Create Payment</span><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg></button>
       </div>
-    </section>
 
-    <section class="wyg bg-alt">
-      <div class="wrap">
-        <div class="head"><h2 class="headline4">What you get with Ripple</h2></div>
-        <div class="cards3">
-          <div class="card3">
-            <img src="https://cdn.sanity.io/images/ior4a5y3/production/4b13a50f7952e43424dbd2b8c83114fec2e9a227-64x64.svg" alt="Fast Onboarding" onerror="this.style.visibility='hidden'">
-            <h3 class="heading2">Fast Onboarding</h3>
-            <div class="body3"><p>Launch with one integration and start moving money in weeks.</p></div>
-          </div>
-          <div class="card3">
-            <img src="https://cdn.sanity.io/images/ior4a5y3/production/091b7b70c6f2686511cfbcc67799ec3f181bd66d-64x64.svg" alt="Industry-Leading Coverage" onerror="this.style.visibility='hidden'">
-            <h3 class="heading2">Industry-Leading Coverage</h3>
-            <div class="body3"><p>Reach 60+ markets and settle in 17+ fiat currencies plus major stablecoins, without a new banking relationship for every corridor.</p></div>
-          </div>
-          <div class="card3">
-            <img src="https://cdn.sanity.io/images/ior4a5y3/production/901b9c5e4a7f27ab7dc0b6bd4542b16207b77ba6-64x64.svg" alt="Your Call on Crypto" onerror="this.style.visibility='hidden'">
-            <h3 class="heading2">Your Call on Crypto</h3>
-            <div class="body3"><p>Send and receive in fiat while Ripple Payments handles stablecoin conversion behind the scenes.</p></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="stitch">
-      <div class="wrap">
-        <div class="inner">
-          <h2 class="head headline4">Stop stitching together your payments stack</h2>
-          <div class="cols">
-            <div class="copy">
-              <p>Traditional cross-border payment solutions force fintechs and banks to manage separate vendors for collections, FX conversion, compliance screening, and payouts.</p>
-              <p>Every additional provider adds another contract, another integration, and another point of failure.</p>
-              <p>Ripple Payments replaces that patchwork with a single solution for end-to-end b2b payments across fiat and stablecoins. Instead of stitching together four or five vendors, customers integrate once and access the full payment flow.</p>
+      <div class="grid">
+        <div class="col">
+          <div class="balances">
+            <div class="card bal">
+              <div class="card-head"><h2>Account balance</h2><svg class="ico help" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></div>
+              <h3>130,025.51 USD</h3>
+              <div class="cur" aria-hidden="true"><svg viewBox="0 0 32 32"><clipPath id="usc"><circle cx="16" cy="16" r="16"/></clipPath><g clip-path="url(#usc)"><rect width="32" height="32" fill="#fff"/><g fill="#D02F44"><rect y="0" width="32" height="2.46"/><rect y="4.92" width="32" height="2.46"/><rect y="9.85" width="32" height="2.46"/><rect y="14.77" width="32" height="2.46"/><rect y="19.69" width="32" height="2.46"/><rect y="24.62" width="32" height="2.46"/><rect y="29.54" width="32" height="2.46"/></g><rect width="14" height="17.23" fill="#46467F"/></g></svg></div>
             </div>
-            <div class="quote">
-              <svg viewBox="0 0 29 23" aria-hidden="true"><path d="M6.5 22.7c-1.6 0-3-.6-4.2-1.8C1.2 19.7.6 18.1.6 16.2c0-2.8.4-5.1 1.3-7 .9-1.9 1.9-3.5 3.1-4.8C6.2 3 7.7 1.8 9.3.9l1.6 2.1c-.7.6-1.4 1.3-2 2.1-.6.7-1.1 1.5-1.7 2.4-.5.9-.9 1.9-1.1 3.2 1.9 0 3.5.6 4.7 1.9 1.2 1.2 1.8 2.6 1.8 4.2s-.6 3-1.8 4.2c-1.2 1.1-2.6 1.7-4.3 1.7zm15.8 0c-1.6 0-3-.6-4.2-1.8-1.2-1.2-1.8-2.8-1.8-4.7 0-2.8.4-5.1 1.3-7 .9-1.9 1.9-3.5 3.1-4.8C22 3 23.5 1.8 25.1.9l1.6 2.1c-.7.6-1.4 1.3-2 2.1-.6.7-1.1 1.5-1.7 2.4-.5.9-.9 1.9-1.1 3.2 1.9 0 3.5.6 4.7 1.9 1.2 1.2 1.8 2.6 1.8 4.2s-.6 3-1.8 4.2c-1.2 1.1-2.6 1.7-4.3 1.7z"/></svg>
-              <p class="body3">With Ripple, we&rsquo;re able to scale global payout flows with greater flexibility and speed. The payments platform supports the critical currencies and corridors our customers need today, and into the future with stablecoin-powered payments.</p>
-              <div class="who">
-                <img src="https://cdn.sanity.io/images/ior4a5y3/production/699023de717a8bb913d7dfa384cff79b1db75e56-504x504.png?w=640&q=75&auto=format&fit=max" alt="Logan Lemberger" onerror="this.style.visibility='hidden'">
-                <div>
-                  <p class="caption3" style="margin:0">Logan Lemberger</p>
-                  <p class="caption3" style="margin:0">MassPay, Head of Global Financial Partnerships</p>
+            <div class="card bal">
+              <div class="card-head"><h2>Account balance</h2><svg class="ico help" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></div>
+              <h3>82,405.36 RLUSD</h3>
+              <div class="cur" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#005BCC"/><g fill="#fff"><circle cx="11.5" cy="16" r="3.2"/><circle cx="20.5" cy="10.5" r="3.2"/><circle cx="20.5" cy="21.5" r="3.2"/><path d="M12.5 14.4 18.6 10.9l1.2 2-6.1 3.1 6.1 3.1-1.2 2-6.1-3.5z"/></g></svg></div>
+            </div>
+          </div>
+
+          <div class="card" id="createPayment">
+            <div class="card-head"><h2>Create Payment</h2><svg class="ico help" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></div>
+            <form id="transferForm" autocomplete="off" novalidate>
+              <div class="pay-fields">
+                <div class="field">
+                  <label for="fromAccount">Pay from</label>
+                  <div class="ctl">
+                    <select id="fromAccount">
+                      <option value="ACCT-1001">USD account — 130,025.51 USD</option>
+                      <option value="ACCT-1002">RLUSD account — 82,405.36 RLUSD</option>
+                    </select>
+                    <svg class="ico chev" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="toAccount">Beneficiary</label>
+                  <div class="ctl">
+                    <select id="toAccount">
+                      <option value="ACCT-EXT-001">Strynex Corporation — MXN</option>
+                      <option value="ACCT-1002">Zephyra Global Ventures — GBP</option>
+                      <option value="ACCT-1001">Venturis Global Horizons — SGD</option>
+                    </select>
+                    <svg class="ico chev" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="amount">Send amount (USD)</label>
+                  <div class="ctl"><input type="number" id="amount" value="25000" min="1" step="0.01" placeholder="0.00"></div>
+                </div>
+                <div class="field">
+                  <label for="accountTier">Pricing plan</label>
+                  <div class="ctl">
+                    <select id="accountTier">
+                      <option value="standard">Standard</option>
+                      <option value="premium">Enterprise</option>
+                      <option value="basic">Starter</option>
+                    </select>
+                    <svg class="ico chev" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg>
+                  </div>
                 </div>
               </div>
+              <div class="pay-foot">
+                <p class="pay-note">Rate locked at submission. Beneficiary receives local currency.</p>
+                <button type="submit" class="btn primary-action" id="submitBtn">Create Payment</button>
+              </div>
+            </form>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </div>
+
+          <div class="card">
+            <div class="lp-head">
+              <div class="card-head"><h2>Last payments</h2><svg class="ico help" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></div>
+              <a href="#" class="btn-text">View All</a>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <colgroup><col style="width:23%"><col style="width:24.7%"><col style="width:17%"><col style="width:18.8%"><col style="width:16.5%"></colgroup>
+                <thead><tr><th>Created At</th><th>Beneficiary</th><th>Sent</th><th>Received</th><th>Status</th></tr></thead>
+                <tbody id="paymentsBody">
+                  <tr><td>May 25, 2025 11:57:02</td><td>Zephyra Global Ventures</td><td>32000.00 USD</td><td>23609.88 GBP</td><td><span class="pill">Completed</span></td></tr>
+                  <tr><td>May 25, 2025 10:54:56</td><td>Lunaris</td><td>210180.00 USD</td><td>270063.99 SGD</td><td><span class="pill">Completed</span></td></tr>
+                  <tr><td>May 25, 2025 10:48:47</td><td>Venturis Global Horizons</td><td>9516.00 USD</td><td>12227.28 SGD</td><td><span class="pill">Completed</span></td></tr>
+                  <tr><td>May 25, 2025 7:34:19</td><td>Strynex Corporation</td><td>210112.00 USD</td><td>4036540.02 MXN</td><td><span class="pill">Completed</span></td></tr>
+                  <tr><td>May 24, 2025 06:06:39</td><td>Liora Valenwood</td><td>9997.00 RLUSD</td><td>7376.93 GBP</td><td><span class="pill">Completed</span></td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-      </div>
-    </section>
 
-    <section class="oneplace bg-alt">
-      <div class="wrap">
-        <div class="head">
-          <h2 class="headline4">One place for all your fiat and stablecoin payment needs</h2>
-          <p>Ripple Payments offers a suite of composable components and complete end-to-end solutions for handling transactions in fiat and stablecoins.</p>
-        </div>
-        <div class="op-grid">
-          <div class="op-item">
-            <h3 class="heading2">Accept</h3>
-            <div class="body3"><p>Accept stablecoin and fiat payments globally. Instantly convert inflows to your preferred currency, whether fiat or stablecoin, with automated settlement to a single, unified account.</p></div>
-            <a href="#" class="tlink">Acceptance</a>
-          </div>
-          <div class="op-item">
-            <h3 class="heading2">Hold</h3>
-            <div class="body3"><p>Access and manage wallets while seeing balances in one unified view.</p></div>
-            <a href="#" class="tlink">Wallets</a>
-          </div>
-          <div class="op-img"><img src="https://cdn.sanity.io/images/ior4a5y3/production/9dda2bef3fd154df0e23598fbcd4019046d1f445-1660x1120.heif?w=1920&q=75&auto=format&fit=max" alt="Ripple Payments dashboard" onerror="this.style.display='none'"></div>
-          <div class="op-item">
-            <h3 class="heading2">Exchange</h3>
-            <div class="body3"><p>Convert between fiat and digital assets, 24/7/365. Access deep liquidity to exchange currencies instantly, eliminating banking hours and settlement delays via stablecoins and digital assets.</p></div>
-            <a href="#" class="tlink">On/Off Ramps</a>
-          </div>
-          <div class="op-item">
-            <h3 class="heading2">Payout</h3>
-            <div class="body3"><p>Send global payouts in minutes, not days. Execute real-time, bulk disbursements to suppliers, creators and employees in their preferred currency, whether fiat or stablecoin. <a href="#">Explore the payout network.</a></p></div>
-            <a href="#" class="tlink">Multi Asset Payouts</a>
-          </div>
-        </div>
-        <div class="op-cta"><a href="#" class="btn">Explore Product</a></div>
-      </div>
-    </section>
-
-    <section class="marquee" aria-label="Meet our customers">
-      <div class="mq-row r1">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/698ffd15ff46f55ffb7879f2b72c0d41cd0652e4-231x55.svg" alt="Ripple customer" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/bdb87e7937ad9952f23ccc0154abefb4d759a1b1-231x107.svg" alt="GMT logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/eb4c7e350b73381cd835b8cb885ce51779f2dc98-150x120.svg" alt="Archax logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/626675cdcd9d926066fe2b98a61b8f75cfc5f883-419x77.svg" alt="Novatti logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/9155c4b735f7f620ec28382ba0db968f4d436a69-231x72.svg" alt="nium" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/698ffd15ff46f55ffb7879f2b72c0d41cd0652e4-231x55.svg" alt="Ripple customer" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/bdb87e7937ad9952f23ccc0154abefb4d759a1b1-231x107.svg" alt="GMT logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/eb4c7e350b73381cd835b8cb885ce51779f2dc98-150x120.svg" alt="Archax logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/626675cdcd9d926066fe2b98a61b8f75cfc5f883-419x77.svg" alt="Novatti logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/9155c4b735f7f620ec28382ba0db968f4d436a69-231x72.svg" alt="nium" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/698ffd15ff46f55ffb7879f2b72c0d41cd0652e4-231x55.svg" alt="Ripple customer" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/bdb87e7937ad9952f23ccc0154abefb4d759a1b1-231x107.svg" alt="GMT logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/eb4c7e350b73381cd835b8cb885ce51779f2dc98-150x120.svg" alt="Archax logo" onerror="this.style.visibility='hidden'">
-      </div>
-      <div class="mq-row r2">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/e31ca625ceb3b7d3dba5220b8a75cfadf2326186-208x63.svg" alt="BBVA" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/67532e64290c73f8c635cb14312c1441d9ae1e48-499x101.svg" alt="masspay logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/de340f4ee3221c577da716b9545b618022846f33-232x72.svg" alt="onafriq logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/107df005c77cd2ac68ff842723c8c4addf1dea58-231x79.svg" alt="beetech logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/a7a0e3bb60b80566741f222a3443b066d5f2e44d-225x58.svg" alt="bitso" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/e31ca625ceb3b7d3dba5220b8a75cfadf2326186-208x63.svg" alt="BBVA" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/67532e64290c73f8c635cb14312c1441d9ae1e48-499x101.svg" alt="masspay logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/de340f4ee3221c577da716b9545b618022846f33-232x72.svg" alt="onafriq logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/107df005c77cd2ac68ff842723c8c4addf1dea58-231x79.svg" alt="beetech logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/a7a0e3bb60b80566741f222a3443b066d5f2e44d-225x58.svg" alt="bitso" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/e31ca625ceb3b7d3dba5220b8a75cfadf2326186-208x63.svg" alt="BBVA" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/67532e64290c73f8c635cb14312c1441d9ae1e48-499x101.svg" alt="masspay logo" onerror="this.style.visibility='hidden'">
-        <img src="https://cdn.sanity.io/images/ior4a5y3/production/de340f4ee3221c577da716b9545b618022846f33-232x72.svg" alt="onafriq logo" onerror="this.style.visibility='hidden'">
-      </div>
-    </section>
-
-    <section class="rp bg-alt">
-      <div class="wrap">
-        <div class="head">
-          <h2 class="headline4">Ripple Payments</h2>
-          <div class="copy">
-            <p class="body2">A fully managed, end-to-end payments solution. Ripple handles the infrastructure so you can launch and scale cross-border payment services without building from scratch, settling in fiat or stablecoins.</p>
-            <p class="caption3">*Availability of products can vary and may be provided by different Ripple entities</p>
-          </div>
-        </div>
-        <div class="feat2">
-          <div class="f">
-            <img src="https://cdn.sanity.io/images/ior4a5y3/production/aa8c001f7b6769c97add241f5451fe4fd5b7f731-64x64.svg" alt="Support for Multiple Stablecoins" onerror="this.style.visibility='hidden'">
-            <h3 class="heading2">Support for Multiple Stablecoins</h3>
-            <div class="body3"><p>Pay in, pay out, and settle in RLUSD and other stablecoins, or fiat &mdash; whichever asset your business requires. The settlement layer is decoupled from any single issuer&rsquo;s token, with new stablecoins added as market demand develops. No single-issuer dependency, no infrastructure rebuild necessary.</p></div>
-          </div>
-          <div class="f">
-            <img src="https://cdn.sanity.io/images/ior4a5y3/production/980ce5437eeb97a009da1ec383e6f7c63ab72e5d-128x129.png?w=128&q=75&auto=format&fit=max" alt="First- and Third-Party Payouts Across 60+ Markets" onerror="this.style.visibility='hidden'">
-            <h3 class="heading2">First- and Third-Party Payouts Across 60+ Markets</h3>
-            <div class="body3"><p>Access last-mile rails across 60+ markets, the same network that has processed over $100 billion in payments volume. Execute real-time first- and third-party payouts in fiat or stablecoin through a single integration, without stitching together multiple vendors or relying on external payout networks.</p></div>
-          </div>
-          <div class="f">
-            <img src="https://cdn.sanity.io/images/ior4a5y3/production/976c7f6d82cbbf176fcdd53cbe1ff80a239ed0b0-64x64.svg" alt="Licensed Infrastructure Built In" onerror="this.style.visibility='hidden'">
-            <h3 class="heading2">Licensed Infrastructure Built In</h3>
-            <div class="body3"><p>The Ripple Group holds 85+ global licenses, including a NYDFS Trust Company Charter, the regulatory foundation under which RLUSD is issued, and payments licenses that enable Ripple to move money on behalf of customers across regulated financial rails globally. Our customers have a single point of contact to manage their payment needs.</p></div>
-          </div>
-          <div class="f">
-            <img src="https://cdn.sanity.io/images/ior4a5y3/production/793c9e33f595077fb8e0a1e6368d96cbd675c0b5-64x64.svg" alt="Managed Stablecoin Acceptance" onerror="this.style.visibility='hidden'">
-            <h3 class="heading2">Managed Stablecoin Acceptance</h3>
-            <div class="body3"><p>Accept stablecoins and sweep funds into a single consolidated settlement account, automatically. No specialist infrastructure or new bank accounts required.</p></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="lic">
-      <div class="wrap">
-        <h4 class="headline4">A regulatory compliant global payments platform</h4>
-        <div class="lic-card">
-          <h2 class="heading2">Active Licenses and MTLs</h2>
-          <p class="big85">85+</p>
-          <div class="flags">
-            <div><img src="https://cdn.sanity.io/images/ior4a5y3/production/90668192ff3fee5539a54d78f265fe435757a685-513x343.svg" alt="US (MTL) flag" onerror="this.style.visibility='hidden'"><p class="body3">US (MTL)</p></div>
-            <div><img src="https://cdn.sanity.io/images/ior4a5y3/production/5cf237da9bd2af3b00fb22d879c48a4f02b22f59-513x342.svg" alt="UAE (DFSA) flag" onerror="this.style.visibility='hidden'"><p class="body3">UAE (DFSA)</p></div>
-            <div><img src="https://cdn.sanity.io/images/ior4a5y3/production/043f7924e9b4c39535ec6b305fbffcf2ae36d5f6-513x343.svg" alt="SG (MAS) flag" onerror="this.style.visibility='hidden'"><p class="body3">SG (MAS)</p></div>
-            <div><img src="https://cdn.sanity.io/images/ior4a5y3/production/aaff71b67ea12f44be9504c6ead5c26725928917-513x343.svg" alt="EU (EMI) flag" onerror="this.style.visibility='hidden'"><p class="body3">EU (EMI)</p></div>
-            <div><img src="https://cdn.sanity.io/images/ior4a5y3/production/d725371abdb27fcffd2c275ed0b709b64269dff7-513x343.svg" alt="UK (EMI) flag" onerror="this.style.visibility='hidden'"><p class="body3">UK (EMI)</p></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="net bg-alt rule-top">
-      <div class="wrap">
         <div class="col">
-          <h2 class="heading4">Explore our global payout network</h2>
-          <div class="body2"><p>Ripple&rsquo;s global infrastructure supports fiat and digital assets across a variety of use cases and industries. We offer global fiat and stablecoin payouts, with beneficiaries able to receive in fiat or stablecoin.</p></div>
-          <div><a href="#" class="btn">Explore the Network</a></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="why rule-top">
-      <div class="wrap">
-        <h2 class="head headline4">Why fintechs, banks and crypto businesses choose our cross-border payments solution</h2>
-        <div class="cards3">
-          <div class="card3">
-            <img src="https://cdn.sanity.io/images/ior4a5y3/production/0edd2b2c6013451da3c9842b17130661bbe5a6c8-64x64.svg" alt="End-to-end stablecoin payments solution" onerror="this.style.visibility='hidden'">
-            <h3 class="heading2">End-to-end stablecoin payments solution</h3>
-            <div class="body3"><p>Rapidly launch and scale stablecoin payment services without significant cost, or the complexity of building the underlying infrastructure yourself.</p></div>
-          </div>
-          <div class="card3">
-            <img src="https://cdn.sanity.io/images/ior4a5y3/production/9534d34f83dc82e7a3730be29c6537a70a1f3e22-64x64.svg" alt="Single Onboarding" onerror="this.style.visibility='hidden'">
-            <h3 class="heading2">Single Onboarding</h3>
-            <div class="body3"><p>Streamline operations by eliminating the partner patchwork. Manage one vendor for the entire stablecoin payment value chain to accept, hold, exchange, and payout.</p></div>
-          </div>
-          <div class="card3">
-            <img src="https://cdn.sanity.io/images/ior4a5y3/production/b84927983ced9928b504b3d7be3f63964cb5882c-64x64.svg" alt="Simplify Digital Asset Access" onerror="this.style.visibility='hidden'">
-            <h3 class="heading2">Simplify Digital Asset Access</h3>
-            <div class="body3"><p>Connect to digital assets effortlessly and decide if you want to hold crypto or not. Eliminate the headache of managing specialized infrastructure or opening new bank accounts.</p></div>
-          </div>
-        </div>
-        <div class="cta"><a href="#transferForm" class="btn">Talk To Our Team</a></div>
-      </div>
-    </section>
-
-    <section class="ewp bg-alt rule-top">
-      <div class="wrap">
-        <h3 class="headline4">Explore what&rsquo;s possible with Ripple Payments</h3>
-        <div class="ewp-grid">
-          <div class="hl">
-            <div class="item on">
-              <div class="mob-img"><img src="https://cdn.sanity.io/images/ior4a5y3/production/2678371e0f3b5cc5f46a3b12655e80b00f734c90-704x320.jpg?w=750&q=75&auto=format&fit=max" alt="" onerror="this.style.display='none'"></div>
-              <div class="txt">
-                <h4 class="heading4">Fintechs</h4>
-                <div class="body3"><p>Get a complete, enterprise-grade suite for your fintech that unifies institutional payouts, custody, acceptance, liquidity and compliance in a single API.</p></div>
-                <a href="#" class="tlink">Drive Innovation</a>
-              </div>
+          <div class="card tint">
+            <div class="card-head lg"><h2>Exchange Rate</h2><svg class="ico help" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10Zm.37-13.97a1.6 1.6 0 0 0-1.96 1.64l-2 .01a3.6 3.6 0 1 1 6.2 2.47c-.66.71-1.6 1.1-1.6 1.85v.5h-2v-.5c0-1.75 1.26-2.5 2.07-3.26.33-.31.52-.7.5-1.12a1.6 1.6 0 0 0-1.21-1.59ZM11 16h2v2h-2z"/></svg></div>
+            <div class="fx-inner">
+              <p>1 USD equals</p>
+              <p class="big">19.2400 Mexican Peso</p>
+              <div class="fx-row"><div class="num">1</div><div class="sel"><span>USD</span><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg></div></div>
+              <div class="fx-row"><div class="num">19.24</div><div class="sel"><span>MXN</span><svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.004 13.9497L7.05421 9L5.64 10.4142L11.2969 16.0711C11.6874 16.4616 12.3205 16.4616 12.7111 16.0711L18.3679 10.4142L16.9537 9L12.004 13.9497Z"/></svg></div></div>
+              <p class="fx-time" id="fxTime">October 12, 21:53:05</p>
             </div>
-            <div class="item">
-              <div class="mob-img"><img src="https://cdn.sanity.io/images/ior4a5y3/production/4779bf3f7c31ad61cd2e1b61897ad0b67686f71a-704x320.jpg?w=750&q=75&auto=format&fit=max" alt="" onerror="this.style.display='none'"></div>
-              <div class="txt">
-                <h4 class="heading4">Banks</h4>
-                <div class="body3"><p>Bypass correspondent banking to turn global payments into a revenue driver and deliver cost savings to your clients.</p></div>
-                <a href="#" class="tlink">Optimize Payments</a>
-              </div>
+            <p class="fx-note">This exchange rate is provided for informational purposes only. The actual rate applied to your transaction may vary depending on the exchange and time of payment.</p>
+          </div>
+
+          <div class="card support">
+            <div class="card-head lg">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M44 23v15a2 2 0 0 1-2 2h-3a2 2 0 0 0-2 2v2l-8.7-3.8a2 2 0 0 0-.8-.2H19a2 2 0 0 1-2-2V23a2 2 0 0 1 2-2h23a2 2 0 0 1 2 2Z" fill="#005BCC"/><rect x="23" y="28" width="16" height="2" fill="#F5FBFF"/><rect x="23" y="32" width="12" height="2" fill="#F5FBFF"/><path d="M4 9v15a2 2 0 0 0 2 2h3a2 2 0 0 1 2 2v2l8.7-3.8a2 2 0 0 1 .8-.2H29a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2Z" fill="#66A3FF"/><path d="M16 11a3 3 0 0 0-3 3h2a1 1 0 1 1 1.5.9c-.9.5-1.5 1.1-1.5 2.1h2c0-.5.4-.8 1-1.2A3 3 0 0 0 16 11Zm-1 8h2v2h-2z" fill="#fff"/></svg>
+              <h2>Get support</h2>
+            </div>
+            <p>Have a question? Get in touch with our support team or search the docs.</p>
+            <div class="links">
+              <a href="#">Contact support<svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M19.0008 12.0019L19.0008 6.44721L12.2314 13.2166L10.8175 11.8026L17.6171 5.00293L12.0019 5.00293L12.0019 3.00323L20.0006 3.00324C20.5528 3.00324 21.0005 3.45088 21.0005 4.00308L21.0005 12.0019H19.0008ZM6.00278 5.00285H8.00247V7.00254H6.00278V18.0009H17.0011V16.0012H19.0008V18.0009C19.0008 19.1053 18.1055 20.0005 17.0011 20.0005H6.00278C4.89838 20.0005 4.00308 19.1053 4.00308 18.0009V7.00254C4.00308 5.89814 4.89838 5.00285 6.00278 5.00285Z"/></svg></a>
+              <a href="#">Documentation<svg class="ico" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M19.0008 12.0019L19.0008 6.44721L12.2314 13.2166L10.8175 11.8026L17.6171 5.00293L12.0019 5.00293L12.0019 3.00323L20.0006 3.00324C20.5528 3.00324 21.0005 3.45088 21.0005 4.00308L21.0005 12.0019H19.0008ZM6.00278 5.00285H8.00247V7.00254H6.00278V18.0009H17.0011V16.0012H19.0008V18.0009C19.0008 19.1053 18.1055 20.0005 17.0011 20.0005H6.00278C4.89838 20.0005 4.00308 19.1053 4.00308 18.0009V7.00254C4.00308 5.89814 4.89838 5.00285 6.00278 5.00285Z"/></svg></a>
             </div>
           </div>
-          <div class="ewp-img"><img src="https://cdn.sanity.io/images/ior4a5y3/production/7b7049873f2895a4b09a0e9d9a6808a4564a8799-552x440.jpg?w=640&q=75&auto=format&fit=max" alt="" onerror="this.style.display='none'"></div>
         </div>
       </div>
     </section>
-
-    <section class="certs rule-top">
-      <div class="wrap">
-        <div class="row">
-          <div class="c"><img src="https://cdn.sanity.io/images/ior4a5y3/production/6531072d52ca1817b5b68dda179e2fe71833b518-120x121.png?w=128&q=75&auto=format&fit=max" alt="SOC 2 Type II" onerror="this.style.visibility='hidden'"><div><p class="heading2">SOC 2 Type II</p><p class="sub">Compliant</p></div></div>
-          <div class="c"><img src="https://cdn.sanity.io/images/ior4a5y3/production/fc1ad54894d43d15c7553b6cc407e7de3cb77064-120x121.png?w=128&q=75&auto=format&fit=max" alt="ISO 27001" onerror="this.style.visibility='hidden'"><div><p class="heading2">ISO 27001</p><p class="sub">Compliant</p></div></div>
-          <div class="c"><img src="https://cdn.sanity.io/images/ior4a5y3/production/21241fc04dec6c7df4ef803d929f01b04063a1b7-120x121.png?w=128&q=75&auto=format&fit=max" alt="Payments Association" onerror="this.style.visibility='hidden'"><div><p class="heading2">Payments Association</p><p class="sub">Member</p></div></div>
-          <div class="c"><img src="https://cdn.sanity.io/images/ior4a5y3/production/9851d50843a5fa980178805cc4268f43b11d4f46-120x121.png?w=128&q=75&auto=format&fit=max" alt="American Bankers Association" onerror="this.style.visibility='hidden'"><div><p class="heading2">American Bankers Association</p><p class="sub">Member</p></div></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="guide bg-alt rule-top">
-      <div class="wrap">
-        <div class="guide-card">
-          <div class="guide-copy">
-            <h3 class="caption2">Guide</h3>
-            <h2>The Fintech Guide to Stablecoin Acceptance</h2>
-            <p class="body3">Stablecoin volume reached $35 trillion in 2025, with the fastest wallet growth in Latin America, Africa and Southeast Asia. Get the guide to learn how fintechs accept pay-ins in those corridors without building crypto infrastructure.</p>
-            <a href="#" class="btn">Get the Guide</a>
-          </div>
-          <div class="guide-art" role="img" aria-label=""></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="blog">
-      <div class="wrap">
-        <h3 class="headline4">Read the latest on cross-border payments</h3>
-        <div class="posts">
-          <a href="#" class="post"><img src="https://cdn.sanity.io/images/ior4a5y3/production/177ebe3bfa7051a2a1886f6c7a766cf4a9812531-2400x1600.jpg?w=640&q=75&auto=format&fit=max" alt="Featured Blog Post" onerror="this.style.visibility='hidden'"><article><p class="heading2 t">From Pilot to Production: A Fintech&rsquo;s Checklist for Stablecoin Payments</p><span class="d">May 20, 2026</span></article></a>
-          <a href="#" class="post"><img src="https://cdn.sanity.io/images/ior4a5y3/production/3cfc7c76e9d5a4be7e4bbb8e504421ac985e1202-1280x853.jpg?w=640&q=75&auto=format&fit=max" alt="Featured Blog Post" onerror="this.style.visibility='hidden'"><article><p class="heading2 t">First Look at Ripple&rsquo;s 2026 Digital Asset Survey</p><span class="d">March 19, 2026</span></article></a>
-          <a href="#" class="post"><img src="https://cdn.sanity.io/images/ior4a5y3/production/24503d344b751207b3109a63b022a389c1010f6b-1280x720.jpg?w=640&q=75&auto=format&fit=max" alt="Featured Blog Post" onerror="this.style.visibility='hidden'"><article><p class="heading2 t">Revolutionizing Global Payments with Ripple&rsquo;s End-to-End Stablecoin Platform</p><span class="d">March 3, 2026</span></article></a>
-          <a href="#" class="post"><img src="https://cdn.sanity.io/images/ior4a5y3/production/1d4aaa2e2158b9d7a78fd6f03ca3efc55ee30a81-1920x1080.png?w=640&q=75&auto=format&fit=max" alt="Featured Blog Post" onerror="this.style.visibility='hidden'"><article><p class="heading2 t">Building the One-Stop Shop for Digital Asset Infrastructure</p><span class="d">December 4, 2025</span></article></a>
-        </div>
-        <div class="car-btns">
-          <button type="button" aria-label="Previous slide"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4 6.5 10l6 6"/></svg></button>
-          <button type="button" aria-label="Next slide"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4l6 6-6 6"/></svg></button>
-        </div>
-      </div>
-    </section>
-
-    <section class="faq bg-alt rule-top">
-      <div class="wrap">
-        <div class="grid12">
-          <div class="left"><h2>Payment FAQs</h2></div>
-          <ul class="right">
-            <li><button type="button"><h3>How do cross-border payments work on blockchain?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></li>
-            <li><button type="button"><h3>How do stablecoins power cross-border payments?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></li>
-            <li><button type="button"><h3>What is Ripple Payments? How does Ripple&rsquo;s cross-border payments solution work?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></li>
-            <li><button type="button"><h3>What use cases can Ripple Payments support?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></li>
-            <li><button type="button"><h3>What is Ripple&rsquo;s payments network?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></li>
-            <li><button type="button"><h3>What are real-time or instant payments?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></li>
-            <li><button type="button"><h3>What is a real-time payment network?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></li>
-            <li><button type="button"><h3>What are virtual accounts and crypto wallets?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></li>
-            <li><button type="button"><h3>What is the alternative payment system to Swift Global?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></li>
-            <li><button type="button"><h3>How can I use Ripple Payments to pay employees in stablecoins?</h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section class="contact rule-top" id="payments-product-form">
-      <div class="wrap">
-        <div class="inner">
-          <p class="lead">Ready to get started?</p>
-          <p class="sub">Learn more about how Ripple&rsquo;s enterprise digital asset infrastructure can help you offer new services and gain new revenue streams.</p>
-          <a href="#transferForm" class="btn">Talk to Our Team</a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="site">
-    <div class="wrap">
-      <div class="ft-grid">
-        <div class="ft-brand">
-          <a href="#" class="logo" aria-label="Ripple home">
-            <svg viewBox="0 0 22 24" aria-hidden="true"><g fill="#006AFF"><circle cx="5" cy="12" r="5"/><circle cx="17" cy="5" r="5"/><circle cx="17" cy="19" r="5"/><path d="M5 9.2 15.2 3.4l2.6 4.4L9 12l8.8 4.2-2.6 4.4L5 14.8z"/></g></svg>
-            <span class="word" style="display:inline">ripple</span>
-          </a>
-          <a href="#" class="to-top hit">Back to top <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10 8 5.5l4.5 4.5"/></svg></a>
-        </div>
-        <div class="ft-cols">
-          <div class="ft-col"><h5>Products</h5><a href="#">Payments</a><a href="#">Custody</a><a href="#">Stablecoin</a><a href="#">Prime Brokerage</a><a href="#">Treasury Management</a></div>
-          <div class="ft-col"><h5>Solutions by Use Case</h5><a href="#">Accept stablecoin payments</a><a href="#">Pay out in stablecoins or fiat</a><a href="#">Secure and govern digital assets</a><a href="#">Manage tokenized assets</a><h5 class="second">Solutions by Industry</h5><a href="#">Banking</a><a href="#">Fintech</a></div>
-          <div class="ft-col"><h5>Customers</h5><a href="#">Customers</a><a href="#">Case Studies</a><a href="#">Customer Login</a></div>
-          <div class="ft-col ft-row2"><h5>Developers</h5><a href="#">Technical Documentation</a><a href="#">XRP Ledger Documentation</a></div>
-          <div class="ft-col ft-row2"><h5>Resources</h5><a href="#">Content Library</a><a href="#">Blog</a><a href="#">Events</a><a href="#">FAQs</a><a href="#">Fraud Prevention</a><a href="#">Press Center</a><a href="#">Your Privacy Choices</a><a href="#">Do Not Sell My Information</a></div>
-          <div class="ft-col ft-row2"><h5>Company</h5><a href="#">About Ripple</a><a href="#">Contact Us</a><a href="#">Careers</a><a href="#">Public Policy</a><a href="#">Leadership</a><a href="#">Ripple Impact</a><a href="#">About XRP</a><a href="#">Investments</a></div>
-        </div>
-      </div>
-      <div class="ft-bottom">
-        <div class="social">
-          <a href="#" class="hit" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18h-5.6v-6.9h2.3l.4-2.7h-2.7V9.7c0-.8.2-1.3 1.4-1.3h1.4V6c-.3 0-1.1-.1-2.1-.1-2.1 0-3.5 1.3-3.5 3.6v1.9H10.3v2.7h2.3V21H3z"/></svg></a>
-          <a href="#" class="hit" aria-label="X"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l16 16M20 4 4 20" stroke-linecap="round"/></svg></a>
-          <a href="#" class="hit" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2c-.2-.9-.9-1.6-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4c-.9.2-1.6.9-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8c.2.9.9 1.6 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3z"/></svg></a>
-          <a href="#" class="hit" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3zm3.3 7.4V18h2.5v-7.6zm1.2-3.9a1.4 1.4 0 1 0 0 2.9 1.4 1.4 0 0 0 0-2.9zM10.6 10.4V18h2.4v-4c0-1.1.2-2.1 1.5-2.1s1.3 1.2 1.3 2.2V18h2.4v-4.4c0-2.2-.5-3.8-3-3.8-1.2 0-2 .6-2.3 1.2v-1z"/></svg></a>
-        </div>
-        <div class="legal">
-          <div class="links"><a href="#">Terms</a><span>|</span><a href="#">Privacy</a><span>|</span><a href="#">Licenses</a><span>|</span><a href="#">Additional Terms</a><span>|</span><a href="#">Ripple Prime Disclosures</a><span>|</span><a href="#">Ripple Prime NL Disclosures</a></div>
-          <div class="copy">&copy; 2013 - 2026 Ripple, All Rights Reserved.<br>NMLS #2314015</div>
-        </div>
-      </div>
-    </div>
-  </footer>
+  </div>
 
   <script>
     (function () {
@@ -783,6 +295,18 @@
   </script>
   <script>
     (function () {
+      var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      function stamp(d) { return months[d.getMonth()] + ' ' + d.getDate() + ', ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }
+      var fx = document.getElementById('fxTime');
+      if (fx) fx.textContent = stamp(new Date());
+
+      document.getElementById('createPaymentTop').addEventListener('click', function () {
+        var card = document.getElementById('createPayment');
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(function () { document.getElementById('amount').focus(); }, 400);
+      });
+
       function show(result, cls, title, detail) {
         result.className = 'result-box ' + cls;
         result.textContent = '';
@@ -790,26 +314,43 @@
         var d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
         result.appendChild(t); result.appendChild(d);
       }
+      function addRow(beneficiaryLabel, amount) {
+        var body = document.getElementById('paymentsBody');
+        var parts = beneficiaryLabel.split(' \u2014 ');
+        var tr = document.createElement('tr');
+        var cells = [stamp(new Date()), parts[0], Number(amount).toFixed(2) + ' USD', '\u2014 ' + (parts[1] || ''), null];
+        cells.forEach(function (c) {
+          var td = document.createElement('td');
+          if (c === null) { var s = document.createElement('span'); s.className = 'pill pending'; s.textContent = 'Processing'; td.appendChild(s); }
+          else td.textContent = c;
+          tr.appendChild(td);
+        });
+        body.insertBefore(tr, body.firstChild);
+        if (body.children.length > 5) body.removeChild(body.lastChild);
+      }
       document.getElementById('transferForm').addEventListener('submit', async function (e) {
         e.preventDefault();
         var btn = document.getElementById('submitBtn');
         var result = document.getElementById('result');
+        var toSel = document.getElementById('toAccount');
+        var amount = parseFloat(document.getElementById('amount').value);
         btn.disabled = true; btn.textContent = 'Processing...';
         result.className = 'result-box';
         try {
           var res = await fetch('/api/banking/transfer', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+            body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: toSel.value, amount: amount, accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
           });
           var data = await res.json();
           if (!res.ok) {
-            show(result, 'error', 'Payout failed', (data.errorClass ? data.errorClass + ': ' : '') + (data.error || 'Request failed'));
+            show(result, 'error', 'Payment failed', (data.errorClass ? data.errorClass + ': ' : '') + (data.error || 'Request failed'));
           } else {
-            show(result, 'success', 'Payout submitted', 'Debited $' + data.debitAmount + ' (includes $' + data.fee + ' fee)');
+            show(result, 'success', 'Payment created', 'Debited ' + data.debitAmount + ' USD (includes ' + data.fee + ' USD fee)');
+            addRow(toSel.options[toSel.selectedIndex].text, amount);
           }
         } catch (err) {
           show(result, 'error', 'Network error', err.message);
-        } finally { btn.disabled = false; btn.textContent = 'Send payout'; }
+        } finally { btn.disabled = false; btn.textContent = 'Create Payment'; }
       });
     })();
   </script>
