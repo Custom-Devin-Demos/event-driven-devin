@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Targeting and Audience Segments | Claritas LLC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #262f3b;
+      --orange: #ff6600;
+      --teal: #8ac4c3;
+      --teal-text: #a6c9cf;
+      --red: #b0282f;
+      --ink: #212121;
+      --grey-band: #a3a3a3;
+      --field: #f0f0f0;
+      --line: #d9d9d9;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Figtree', 'Proxima Nova', Arial, Helvetica, sans-serif; color: var(--ink); background: #fff; font-size: 18px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 1110px; margin: 0 auto; padding: 0 20px; }
+
+    /* Hero + header */
+    .hero { background: var(--navy) url('https://claritas.com/wp-content/uploads/2026/07/hp_banner_2000px-scaled-1.webp') right top / auto 100% no-repeat; color: #fff; }
+    header { max-width: 1290px; margin: 0 auto; padding: 32px 20px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+    .logo img { height: 62px; display: block; }
+    .logo .fallback { display: none; font-size: 44px; font-weight: 700; color: var(--orange); letter-spacing: -1px; }
+    .nav-right { text-align: right; }
+    .utility { display: flex; justify-content: flex-end; gap: 0; font-size: 13px; letter-spacing: .4px; text-transform: uppercase; color: #fff; }
+    .utility a { padding: 0 14px; border-left: 1px solid rgba(255,255,255,.7); line-height: 1.1; }
+    .utility a:first-child { border-left: 0; }
+    .utility a:last-child { padding-right: 0; }
+    .main-nav { display: flex; justify-content: flex-end; gap: 30px; margin-top: 30px; font-size: 18px; font-weight: 600; }
+    .main-nav a:hover, .utility a:hover { color: var(--orange); }
+    .main-nav .caret::after { content: '\2304'; font-size: 13px; margin-left: 5px; position: relative; top: -3px; }
+    .hero-body { max-width: 1110px; margin: 0 auto; padding: 70px 20px 70px; }
+    .hero-copy { max-width: 600px; }
+    .hero h1 { font-size: 48px; font-weight: 700; line-height: 1.1; letter-spacing: -.3px; }
+    .hero h1::after { content: ''; display: block; width: 78px; height: 6px; background: var(--orange); margin: 14px 0 34px; }
+    .hero p { font-size: 18px; color: #e9edf1; margin-bottom: 24px; }
+    .hero p a { color: var(--orange); }
+
+    /* Tagline + three columns */
+    .tagline { display: flex; align-items: center; gap: 26px; padding: 54px 0 34px; border-bottom: 2px solid var(--line); }
+    .tagline img { height: 100px; }
+    .tagline .words { font-size: 34px; font-weight: 700; line-height: 1.05; }
+    .tagline .words span { display: block; }
+    .tagline .w1 { color: var(--orange); } .tagline .w2 { color: var(--teal-text); } .tagline .w3 { color: var(--red); }
+    .tagline h2 { font-size: 27px; font-weight: 700; color: var(--ink); }
+    .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; padding: 18px 0 60px; }
+    .col h3 { font-size: 29px; font-weight: 700; line-height: 1.18; margin-bottom: 34px; }
+    .col h3 small { display: block; font-size: 29px; font-weight: 600; }
+    .col.o h3 { color: var(--orange); } .col.t h3 { color: var(--teal-text); } .col.r h3 { color: var(--red); }
+    .col { display: flex; flex-direction: column; align-items: flex-start; }
+    .col p { font-size: 18px; margin-bottom: 30px; flex: 1; }
+    .col p em { font-style: normal; color: var(--orange); }
+    .btn-block { display: inline-block; color: #fff; font-size: 14px; font-weight: 700; padding: 11px 40px; }
+    .col.o .btn-block { background: var(--orange); } .col.t .btn-block { background: var(--teal); } .col.r .btn-block { background: var(--red); }
+
+    /* Split panels */
+    .split { display: grid; grid-template-columns: 1fr 1fr; min-height: 500px; }
+    .split .text { padding: 74px 40px 60px max(20px, calc((100vw - 1110px) / 2 + 20px)); color: #fff; }
+    .split .text h2 { font-size: 30px; font-weight: 600; margin-bottom: 30px; line-height: 1.2; }
+    .split .text p { font-size: 18px; }
+    .split .text p em { font-style: normal; color: #fff; text-decoration: underline; text-decoration-color: rgba(255,255,255,.4); }
+    .split .text .more { display: inline-block; margin-top: 26px; font-size: 15px; font-weight: 700; letter-spacing: .3px; }
+    .split .media { background-size: cover; background-position: center; }
+    .ai .text { background: var(--teal); }
+    .ai .media { background-color: #1f2833; background-image: url('https://claritas.com/wp-content/uploads/2026/07/claritas-clair-logo-dark-bg-832x499-1.webp'); }
+    .method .text { background: var(--orange); }
+    .method .media { background-color: #6b5a4c; background-image: url('https://claritas.com/wp-content/uploads/2026/07/Methodology-image.webp'); }
+
+    /* Spectrum diagram */
+    .spectrum { background: #f2f2f2; padding: 70px 0 60px; text-align: center; }
+    .spectrum h2 { font-size: 30px; font-weight: 700; margin-bottom: 40px; }
+    .spectrum img { width: 100%; max-width: 1090px; display: block; margin: 0 auto; }
+
+    /* Logos */
+    .clients { padding: 70px 0 70px; text-align: center; }
+    .clients h2, .partners h2 { font-size: 30px; font-weight: 700; line-height: 1.35; max-width: 780px; margin: 0 auto 56px; }
+    .logo-row { display: flex; justify-content: space-between; align-items: center; gap: 30px; flex-wrap: wrap; }
+    .logo-row img { height: 61px; max-width: 190px; object-fit: contain; }
+    .partners { background: var(--grey-band); color: #fff; padding: 70px 0; text-align: center; }
+
+    /* Reach estimate form */
+    .contact { padding: 60px 0 80px; }
+    .contact .wrap { display: grid; grid-template-columns: 330px 1fr; gap: 50px; }
+    .contact h2 { font-size: 30px; font-weight: 700; line-height: 1.3; margin-bottom: 26px; }
+    .contact .side h4 { color: var(--orange); font-size: 17px; font-weight: 600; margin-top: 14px; }
+    .contact .side p { font-size: 15px; }
+    .contact .side .eyebrow { font-size: 15px; color: #555; margin-bottom: 18px; }
+    form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 26px; }
+    form .full { margin-bottom: 26px; }
+    form label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+    form input, form select { width: 100%; background: var(--field); border: 0; border-radius: 0; padding: 12px 20px; font: inherit; font-size: 15px; color: var(--ink); height: 44px; appearance: none; }
+    form select { background-image: linear-gradient(45deg, transparent 50%, #777 50%), linear-gradient(135deg, #777 50%, transparent 50%); background-position: calc(100% - 18px) 19px, calc(100% - 13px) 19px; background-size: 5px 5px; background-repeat: no-repeat; }
+    form input:focus, form select:focus { outline: 2px solid var(--teal); }
+    .hint { font-size: 13px; color: #777; margin-top: -16px; margin-bottom: 22px; }
+    .submit { background: var(--orange); color: #fff; border: 0; font: inherit; font-size: 15px; font-weight: 700; padding: 13px 38px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; }
+    .submit:disabled { opacity: .8; cursor: progress; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress { display: none; margin-top: 14px; font-size: 14px; color: #666; }
+    .progress.show { display: block; }
+
+    .results { display: none; margin-top: 34px; }
+    .results.show { display: block; }
+    .banner { background: #eef7f6; border-left: 6px solid var(--teal); padding: 16px 20px; font-size: 15px; margin-bottom: 22px; }
+    .banner strong { display: block; font-size: 17px; color: var(--navy); }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); margin-bottom: 22px; }
+    .stats div { background: #fff; padding: 16px 18px; }
+    .stats b { display: block; font-size: 26px; color: var(--orange); font-weight: 700; line-height: 1.2; }
+    .stats span { font-size: 13px; color: #666; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-weight: 700; color: #555; border-bottom: 2px solid var(--line); padding: 8px 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .3px; }
+    td { border-bottom: 1px solid #eee; padding: 9px 10px; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .pill { display: inline-block; font-size: 12px; background: #eef7f6; color: #2f6f6d; padding: 2px 9px; border-radius: 10px; }
+
+    footer { padding: 30px 0 40px; font-size: 14px; color: #333; }
+    footer .wrap { max-width: 1290px; display: flex; justify-content: space-between; align-items: center; }
+    footer .links a { padding: 0 8px; border-left: 1px solid #333; }
+    footer .links a:first-child { padding-left: 0; border-left: 0; }
+    .social { display: flex; gap: 14px; }
+    .social span { width: 25px; height: 25px; border-radius: 50%; background: #6d6d6d; color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 380px; background: #fff; border-left: 6px solid var(--red); box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 16px 20px; font-size: 14px; opacity: 0; visibility: hidden; transform: translateY(20px); transition: all .25s; z-index: 50; }
+    .toast.show { opacity: 1; visibility: visible; transform: none; }
+    .toast strong { display: block; color: var(--red); font-size: 15px; margin-bottom: 4px; }
+
+    @media (max-width: 900px) {
+      .cols, .split, .contact .wrap { grid-template-columns: 1fr; }
+      .split .media { min-height: 300px; }
+      .main-nav { display: none; }
+      .tagline { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <header>
+      <a class="logo" href="#"><img src="https://claritas.com/wp-content/uploads/2026/07/logo.webp" alt="Claritas" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="fallback">claritas</span></a>
+      <div class="nav-right">
+        <div class="utility">
+          <a href="#">&#9906; Search</a><a href="#">Client Login</a><a href="#">Partner With Us</a><a href="#reach">Contact Us</a><a href="#">866-ROI-TEAM</a>
+        </div>
+        <nav class="main-nav">
+          <a class="caret" href="#">Solutions</a><a class="caret" href="#">Data</a><a class="caret" href="#">Platforms</a><a class="caret" href="#">Insights</a><a href="#">News</a><a class="caret" href="#">About</a>
+        </nav>
+      </div>
+    </header>
+    <div class="hero-body">
+      <div class="hero-copy">
+        <h1>know more.</h1>
+        <p>All marketing is personal. So, the more marketers know about current customers and potential prospects, the better. With over 20,000 highly-predictive demographic and behavioral indicators and the most comprehensive multicultural data, our proprietary data assets give marketers the most complete understanding of the American consumer.</p>
+        <p>Our industry-leading <a href="#">Identity Graph</a> unifies data from multiple sources, connecting devices to online behavior in a privacy compliant manner and into the intelligence you need to execute seamless <a href="#">multichannel engagements</a>.</p>
+        <p>Our multichannel execution solutions coupled with powerful analytics and modeling capabilities will make your marketing more effective and increase the ROI on every dollar.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="tagline">
+      <img src="https://claritas.com/wp-content/uploads/2020/06/identify-deliver-optimization.png" alt="identify deliver optimize" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div class="words" style="display:none"><span class="w1">identify</span><span class="w2">deliver</span><span class="w3">optimize</span></div>
+      <h2>Meet better prospects. Market more precisely. Improve your ROI.</h2>
+    </div>
+    <div class="cols">
+      <div class="col o">
+        <h3>Know more <small>about who your best prospects and customers are</small></h3>
+        <p>Claritas offers over 6,500 Syndicated Audiences built from over 20,000 demographic and behavioral attributes including four of the industry&rsquo;s most widely used segmentations: <em>PRIZM&reg; Premier</em>, P$YCLE&reg; Premier, ConneXions&reg;, and CultureCode&reg;. With our innovative AudienceAnywhere&reg; platform, you can unleash the potential of your first-party data by appending our data and building custom and <em>look-alike audiences</em> based on your specific business goals.</p>
+        <a class="btn-block" href="#reach">Identify Solutions</a>
+      </div>
+      <div class="col t">
+        <h3>Know more <small>about how to engage each person online and offline</small></h3>
+        <p>The industry-leading Claritas <em>Identity Graph</em> creates high-definition, privacy-compliant portraits of over 255 million people, including the devices they use and their online behavior. With over 600 million linked devices and 125 million active email addresses, you&rsquo;re armed with the intelligence to reach the audience you want most- when, where, and how they can be reached most effectively.</p>
+        <a class="btn-block" href="#reach">Delivery Solutions</a>
+      </div>
+      <div class="col r">
+        <h3>Know more <small>about what&rsquo;s working and improve what isn&rsquo;t</small></h3>
+        <p>Our robust, near-real time analytics and advanced modeling capabilities can determine the true impact of media, measure lift by channel or audience, highlight how to refine marketing efforts, and <em>attribute conversions</em> across 8 distinct online and offline channels. The result is better sales and <em>improved ROI</em> on all your marketing.</p>
+        <a class="btn-block" href="#reach">Optimize Solutions</a>
+      </div>
+    </div>
+  </div>
+
+  <section class="split ai">
+    <div class="text">
+      <h2>Claritas + AI</h2>
+      <p>As a trailblazer in understanding the American consumer, Claritas is also leveraging the integration of patented and advanced AI into our infrastructure, machine learning methodologies and the Claritas <em>Identity Graph</em> to enhance the accuracy, speed, ease of use and scale of our full suite of solutions. We call our revolutionary AI engine Clair. She&rsquo;s our ever-evolving brain, tirelessly analyzing mountains of data to unveil the intricate tapestry of the American consumer.</p>
+      <a class="more" href="#">LEARN MORE</a>
+    </div>
+    <div class="media" role="img" aria-label="Clair"></div>
+  </section>
+
+  <section class="spectrum">
+    <div class="wrap">
+      <h2>With Claritas, you&rsquo;ll know more about your entire marketing spectrum.</h2>
+      <img src="https://claritas.com/wp-content/uploads/2026/07/updated_diagram_v2.png" alt="Powered by the Claritas Identity Graph" onerror="this.style.display='none'">
+    </div>
+  </section>
+
+  <section class="split method">
+    <div class="text">
+      <h2>Methodology: The Forefront of Innovation in Segmentation</h2>
+      <p>Our industry-leading segmentations are built from the household level up using a patented method of data science. This method culls over 20,000 variables to predict consumer behavior with greater precision. The unprecedented quality, depth and breadth of the data behind our segments comes from our own data collection, with links to leading surveys and panels. As the only company whose segmentation is coded into the Nielsen TV panel, Claritas can run TV ratings against our segmentation for optimized TV and radio buys.</p>
+    </div>
+    <div class="media" role="img" aria-label="Couple watching TV"></div>
+  </section>
+
+  <section class="clients">
+    <div class="wrap">
+      <h2>We&rsquo;re already helping some of the biggest companies in the world know more.</h2>
+      <div class="logo-row">
+        <img src="https://claritas.com/wp-content/uploads/2020/06/client-HRblock_61px.png" alt="H&amp;R Block" onerror="this.style.display='none'">
+        <img src="https://claritas.com/wp-content/uploads/2020/06/client-McDonalds.png" alt="McDonald's" onerror="this.style.display='none'">
+        <img src="https://claritas.com/wp-content/uploads/2020/06/client-Metro_T-Mobile_gray-61.png" alt="Metro by T-Mobile" onerror="this.style.display='none'">
+        <img src="https://claritas.com/wp-content/uploads/2020/06/client-Progressive.png" alt="Progressive" onerror="this.style.display='none'">
+        <img src="https://claritas.com/wp-content/uploads/2020/06/client-TheHomeDepot.png" alt="The Home Depot" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </section>
+
+  <section class="partners">
+    <div class="wrap">
+      <h2>Execute your campaign across our network of 450+ platform and channel partners in near-real time.</h2>
+      <div class="logo-row">
+        <img src="https://claritas.com/wp-content/uploads/2020/06/partners-google.png" alt="Google" onerror="this.style.display='none'">
+        <img src="https://claritas.com/wp-content/uploads/2020/06/partners-liveramp.png" alt="LiveRamp" onerror="this.style.display='none'">
+        <img src="https://claritas.com/wp-content/uploads/2020/06/partners-media_math.png" alt="MediaMath" onerror="this.style.display='none'">
+        <img src="https://claritas.com/wp-content/uploads/2020/06/partners-nielsen.png" alt="Nielsen" onerror="this.style.display='none'">
+        <img src="https://claritas.com/wp-content/uploads/2020/06/partners-oracle.png" alt="Oracle" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="reach">
+    <div class="wrap">
+      <div class="side">
+        <h2>Need help finding your next customer?</h2>
+        <p class="eyebrow">Size a PRIZM&reg; Premier audience across the Claritas activation network with an instant AudienceAnywhere&reg; reach estimate.</p>
+        <h4>Questions</h4>
+        <p>Please contact the Claritas Sales Team at<br><strong>866-ROI-TEAM (866-764-8326)</strong></p>
+        <h4>Current Clients</h4>
+        <p>Please contact the Solution Center at<br><strong>855-400-ASST (855-400-2778)</strong> for immediate assistance</p>
+      </div>
+      <div>
+        <form id="reach-form" novalidate>
+          <div class="row">
+            <div><label for="company">Company*</label><input id="company" name="company" placeholder="Company*" value="Acme Retail Co."></div>
+            <div><label for="email">Business Email*</label><input id="email" name="email" type="email" placeholder="Email Address*" value="jane.miller@acmeretail.com"></div>
+          </div>
+          <div class="row">
+            <div><label for="segment">PRIZM&reg; Premier Segment*</label>
+              <select id="segment" name="segment">
+                <option value="prizm_01">01 Upper Crust</option>
+                <option value="prizm_04" selected>04 Young Digerati</option>
+                <option value="prizm_07">07 Money &amp; Brains</option>
+                <option value="prizm_15">15 Pools &amp; Patios</option>
+                <option value="prizm_29">29 American Dreams</option>
+                <option value="prizm_35">35 Boomtown Singles</option>
+              </select></div>
+            <div><label for="market">Market*</label>
+              <select id="market" name="market">
+                <option value="national" selected>National (all U.S. DMAs)</option>
+                <option value="new_york">New York</option>
+                <option value="los_angeles">Los Angeles</option>
+                <option value="chicago">Chicago</option>
+                <option value="dallas">Dallas-Ft. Worth</option>
+                <option value="atlanta">Atlanta</option>
+              </select></div>
+          </div>
+          <div class="full"><label for="channels">Activation Partners*</label>
+            <select id="channels" name="channels">
+              <option value="all" selected>All activation partners (14)</option>
+              <option value="liveramp">LiveRamp only</option>
+              <option value="thetradedesk">The Trade Desk only</option>
+              <option value="claritas_email">Claritas Email only</option>
+            </select></div>
+          <p class="hint">Reach is matched household-by-household against the Claritas Identity Graph for each partner in scope.</p>
+          <button class="submit" id="submit" type="submit">Estimate Reach</button>
+          <div class="progress" id="progress">Matching your audience across the Claritas activation network&hellip;</div>
+        </form>
+
+        <div class="results" id="results">
+          <div class="banner" id="banner"></div>
+          <div class="stats" id="stats"></div>
+          <table>
+            <thead><tr><th>Partner</th><th>Channel</th><th class="num">Match rate</th><th class="num">Households</th><th class="num">Devices</th><th>Status</th></tr></thead>
+            <tbody id="partner-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div>
+        &copy; <span id="year"></span> Claritas, LLC. All rights reserved. &nbsp;|&nbsp; Call: 866-ROI-TEAM &nbsp;|&nbsp; Email: marketing@claritas.com<br>
+        <span class="links"><a href="#">Careers</a><a href="#">Terms of Use</a><a href="#">Privacy &amp; Legal</a><a href="#">Do Not Sell or Share My Personal Information</a></span>
+      </div>
+      <div class="social"><span>f</span><span>x</span><span>in</span></div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="alert"><strong>We couldn't complete your estimate</strong><span id="toast-copy"></span></div>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    var form = document.getElementById('reach-form');
+    var button = document.getElementById('submit');
+    var buttonHtml = button.innerHTML;
+    var progress = document.getElementById('progress');
+    var results = document.getElementById('results');
+    var toast = document.getElementById('toast');
+    var toastTimer;
+
+    function fmt(n) { return Number(n).toLocaleString('en-US'); }
+    function esc(value) {
+      return String(value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+    }
+    function showToast(message) {
+      document.getElementById('toast-copy').textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+    }
+    function setLoading(loading) {
+      button.disabled = loading;
+      button.innerHTML = loading ? '<span class="spinner"></span>Estimating&hellip;' : buttonHtml;
+      progress.classList.toggle('show', loading);
+    }
+
+    function render(data) {
+      document.getElementById('banner').innerHTML = '<strong>Your reach estimate is ready</strong>' +
+        esc(data.segment.code + ' ' + data.segment.label) + ' &middot; ' + esc(data.market.label) + ' &middot; ' +
+        esc(data.channels.label) + ' &middot; Ref ' + esc(data.requestId);
+      document.getElementById('stats').innerHTML =
+        '<div><b>' + fmt(data.segmentHouseholds) + '</b><span>Segment households</span></div>' +
+        '<div><b>' + fmt(data.uniqueReachableHouseholds) + '</b><span>Unique reachable households</span></div>' +
+        '<div><b>' + fmt(data.totalMatchedDevices) + '</b><span>Matched devices across ' + data.partnersQueried + ' partner' + (data.partnersQueried === 1 ? '' : 's') + '</span></div>';
+      document.getElementById('partner-rows').innerHTML = data.partners.map(function (p) {
+        return '<tr><td>' + esc(p.partner) + '</td><td>' + esc(p.channel) + '</td><td class="num">' + (p.matchRate * 100).toFixed(1) +
+          '%</td><td class="num">' + fmt(p.matchedHouseholds) + '</td><td class="num">' + fmt(p.matchedDevices) +
+          '</td><td><span class="pill">' + (p.status === 'ready' ? 'Ready to activate' : esc(p.status)) + '</span></td></tr>';
+      }).join('');
+      results.classList.add('show');
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      toast.classList.remove('show');
+      results.classList.remove('show');
+      setLoading(true);
+
+      identityReady.then(function () {
+        var body = {
+          company: form.company.value,
+          email: form.email.value,
+          segment: form.segment.value,
+          market: form.market.value,
+          channels: form.channels.value,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        };
+        return fetch('/api/f6f7a1d9/audience-reach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+      })
+        .then(function (response) {
+          return response.json().then(function (data) { return { ok: response.ok, data: data }; });
+        })
+        .then(function (result) {
+          if (!result.ok || !result.data.success) {
+            showToast((result.data && result.data.error) || 'Please try again.');
+            return;
+          }
+          render(result.data);
+        })
+        .catch(function () { showToast('The reach service is unavailable. Please try again.'); })
+        .finally(function () { setLoading(false); });
+    });
+  </script>
+</body>
+</html>
