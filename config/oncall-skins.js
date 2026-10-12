@@ -3308,6 +3308,31 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A GAMETIME SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Gametime product.',
   },
+  '5942af63': {
+    slug: '5942af63',
+    company: 'RPT Partners',
+    brandMark: 'R',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: { file: '5942af63.html', title: 'Work With Us | RPT Partners' },
+    theme: {
+      '--accent': '#B08A4A',
+      '--ink': '#0C0F14',
+      '--surface': '#FAF8F3',
+      '--chrome-bg': '#0C0F14',
+      '--chrome-text': '#FAF8F3',
+    },
+    supportCenter: 'RPT Partners Support',
+    alertCard: {
+      title: 'p95 latency \u2014 engagement request submission',
+      release: 'partner-site@1.0.3',
+      baseline: '~300ms (7-day p95, before partner-site@1.0.3)',
+      team: 'partner-site-oncall',
+      symptom: 'Engagement request submissions slowed sharply after the last release. p95 latency is far above the 7-day baseline.',
+      impact: 'Founders and board members requesting an engagement wait ~7 seconds on every submission; some leave before it completes.',
+    },
+    disclaimer: 'NOT ACTUALLY AN RPT PARTNERS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real RPT Partners product.',
+  },
 };
 
 function getOncallSkin(slug) {
