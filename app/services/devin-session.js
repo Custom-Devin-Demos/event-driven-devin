@@ -38,6 +38,9 @@ function resolveAlertRouting() {
   return { slack: false, teamsUrl };
 }
 
+const TEAMS_THREAD_NOTE = 'This alert was posted only to Microsoft Teams; there is no Slack alert thread. '
+  + 'Wherever these instructions say to post in the Slack alert thread, reply to this Teams message instead.';
+
 function buildTeamsAlertCardForAlert(alertData) {
   const owner = typeof alertData.devinEmail === 'string' && EMAIL_RE.test(alertData.devinEmail)
     ? alertData.devinEmail
@@ -56,6 +59,17 @@ function buildTeamsAlertCardForAlert(alertData) {
         ],
       },
       { code: { label: t.message, text: alertData.errorValue } },
+      // Teams-only alerts start no app-created session, so the responder reads the
+      // service-owned remediation directive from the card instead of a prompt.
+      // Directives written for Slack mention an alert thread that does not exist here.
+      alertData.promptAppendix
+        ? {
+          note: {
+            label: t.responderInstructions || 'Responder instructions',
+            text: `${TEAMS_THREAD_NOTE}\n\n${alertData.promptAppendix}`,
+          },
+        }
+        : null,
       {
         fields: [
           [t.release, alertData.release || process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2'],
