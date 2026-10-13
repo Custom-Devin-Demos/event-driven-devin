@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout | OpenSea</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #2081E2;
+      --ink: #121212;
+      --surface: #FFFFFF;
+      --chrome-bg: #121212;
+      --chrome-text: #FFFFFF;
+      --page: #F7F8FA;
+      --green: #12A150;
+      --line: color-mix(in srgb, var(--ink) 12%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 58%, var(--surface));
+      --accent-soft: color-mix(in srgb, var(--accent) 9%, var(--surface));
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.5 'Inter', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1240px; margin: auto; padding: 0 24px; }
+    .site-header { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+    .header-row { display: flex; align-items: center; gap: 24px; min-height: 72px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink); text-decoration: none; }
+    .brand svg { display: block; flex: none; }
+    .brand-name { font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+    .search { flex: 1; max-width: 460px; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--page); color: var(--muted); font-size: 14px; }
+    .search kbd { margin-left: auto; padding: 0 7px; border: 1px solid var(--line); border-radius: 6px; font: 12px/20px 'Inter', sans-serif; }
+    .site-nav { margin-left: auto; display: flex; align-items: center; gap: 22px; font-weight: 600; }
+    .site-nav a { min-height: 44px; display: inline-flex; align-items: center; color: var(--ink); text-decoration: none; }
+    .wallet-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: var(--page); border: 1px solid var(--line); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .wallet-pill i { width: 18px; height: 18px; border-radius: 50%; background: conic-gradient(#F6851B, #E2761B, #CD6116, #F6851B); }
+    .crumbs { margin: 24px 0 8px; font-size: 14px; color: var(--muted); }
+    .crumbs a { color: var(--muted); text-decoration: none; display: inline-block; padding: 13px 0; margin: -13px 0; }
+    h1 { margin: 0 0 20px; font-size: clamp(26px, 3.4vw, 34px); font-weight: 700; letter-spacing: -.01em; line-height: 1.2; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, .9fr); gap: 24px; align-items: start; padding-bottom: 64px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+    .item { display: flex; gap: 16px; align-items: center; padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
+    .item-art { flex: none; width: 96px; height: 96px; border-radius: 12px; position: relative; overflow: hidden; background: radial-gradient(circle at 50% 38%, #FFD66B 0 14%, #FF9F43 15% 22%, transparent 23%), linear-gradient(180deg, #0B1E3F 0%, #1B4B8F 58%, #2081E2 59%, #0E3A73 100%); }
+    .item-art::after { content: ''; position: absolute; left: 22%; right: 22%; bottom: 18%; height: 14%; border-radius: 0 0 40% 40%; background: #0B1E3F; }
+    .item .collection { margin: 0; display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-weight: 600; font-size: 14px; }
+    .item .collection svg { flex: none; }
+    .item h2 { margin: 2px 0 0; font-size: 22px; font-weight: 700; line-height: 1.25; }
+    .item .meta { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+    .step { display: flex; align-items: center; gap: 10px; margin: 6px 0 14px; font-size: 17px; font-weight: 700; }
+    .step span { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--surface); font-size: 13px; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+    .field input, .field select { width: 100%; min-height: 50px; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--ink) 22%, var(--surface)); border-radius: 12px; background: var(--surface); color: var(--ink); font-size: 15px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 50%, var(--surface)); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
+    .divider { height: 1px; margin: 6px 0 20px; background: var(--line); }
+    .submit-btn { width: 100%; min-height: 52px; padding: 12px 24px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font-size: 17px; font-weight: 700; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 86%, var(--ink)); }
+    .submit-btn:disabled { cursor: wait; opacity: .72; }
+    .terms { margin: 12px 0 0; color: var(--muted); font-size: 13px; text-align: center; }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-size: 22px; font-weight: 700; }
+    .status { margin: 10px 0 0; text-align: center; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 12px; border-left: 4px solid; }
+    .result-box.success { display: block; background: color-mix(in srgb, var(--green) 10%, var(--surface)); border-color: var(--green); }
+    .result-box.notice { display: block; background: var(--accent-soft); border-color: var(--accent); }
+    .again-btn { display: none; width: 100%; min-height: 48px; margin-top: 12px; border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--surface)); border-radius: 12px; background: var(--surface); color: var(--accent); font-weight: 600; }
+    .again-btn.on { display: block; }
+    aside { display: grid; gap: 16px; position: sticky; top: 88px; }
+    .summary h3, .traits h3 { margin: 0 0 14px; font-size: 17px; font-weight: 700; }
+    .summary dl { margin: 0; display: grid; gap: 10px; }
+    .summary dl div { display: flex; justify-content: space-between; gap: 16px; }
+    .summary dt { margin: 0; color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .summary .total { padding-top: 12px; margin-top: 4px; border-top: 1px solid var(--line); }
+    .summary .total dt, .summary .total dd { color: var(--ink); font-size: 18px; font-weight: 800; }
+    .summary .usd { display: block; color: var(--muted); font-size: 13px; font-weight: 500; }
+    .summary .fees { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+    .traits ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .traits li { padding: 10px 12px; border-radius: 10px; background: var(--page); border: 1px solid var(--line); }
+    .traits li span { display: block; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    .traits li strong { font-size: 14px; }
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); }
+    .footer-grid { display: grid; grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr)); gap: 24px; padding: 48px 24px 32px; }
+    .footer-brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; }
+    .footer-grid p { margin: 10px 0 0; color: color-mix(in srgb, var(--chrome-text) 70%, var(--chrome-bg)); font-size: 14px; max-width: 320px; }
+    .footer-grid h4 { margin: 0 0 10px; font-size: 14px; font-weight: 700; }
+    .footer-grid a { display: flex; align-items: center; min-height: 40px; color: color-mix(in srgb, var(--chrome-text) 78%, var(--chrome-bg)); font-size: 14px; text-decoration: none; }
+    .footer-legal { margin: 0 24px; padding: 20px 0 36px; border-top: 1px solid color-mix(in srgb, var(--chrome-text) 18%, var(--chrome-bg)); font-size: 13px; color: color-mix(in srgb, var(--chrome-text) 70%, var(--chrome-bg)); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    @media (max-width: 960px) {
+      .search, .site-nav .hide-md { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; }
+      .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .footer-grid > div:first-child { grid-column: 1 / -1; }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 0 16px; }
+      .header-row { min-height: 64px; gap: 12px; }
+      .site-nav { gap: 8px; }
+      .site-nav .hide-sm { display: none; }
+      .card { padding: 18px; }
+      .item-art { width: 72px; height: 72px; }
+      .item h2 { font-size: 19px; }
+      .footer-grid { padding: 36px 16px 20px; }
+      .footer-legal { margin: 0 16px; padding-bottom: 72px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="brand" href="#checkout" aria-label="OpenSea">
+        <svg width="34" height="34" viewBox="0 0 90 90" aria-hidden="true" focusable="false">
+          <circle cx="45" cy="45" r="45" fill="#2081E2"></circle>
+          <path d="M22.2 46.5l.2-.3 11.7-18.3c.2-.3.6-.2.7.1 2 4.4 3.6 9.8 2.9 13.2-.3 1.4-1.3 3.3-2.3 5-.1.3-.3.5-.4.7-.1.1-.2.2-.3.2H22.5c-.3 0-.5-.4-.3-.6z" fill="#FFFFFF"></path>
+          <path d="M74.3 49.9v2.9c0 .2-.1.3-.3.4-.9.4-4 1.8-5.3 3.6-3.3 4.6-5.8 11.2-11.4 11.2H33.8C25.5 68 18.8 61.2 18.8 52.9v-.3c0-.2.2-.4.4-.4h13c.3 0 .5.2.4.5-.1.8.1 1.7.4 2.5.8 1.6 2.4 2.6 4.1 2.6h6.4v-5h-6.3c-.3 0-.5-.4-.3-.7l.2-.3c.6-.9 1.5-2.2 2.4-3.8.6-1.1 1.2-2.3 1.7-3.4.1-.2.2-.4.2-.7.1-.4.3-.8.4-1.1.1-.3.2-.6.2-.9.2-1 .3-2 .3-3.1 0-.4 0-.9-.1-1.3 0-.5-.1-.9-.1-1.4 0-.4-.1-.8-.2-1.2-.1-.6-.2-1.2-.4-1.9l-.1-.2c-.1-.4-.2-.8-.4-1.2-.4-1.3-.8-2.6-1.3-3.8-.2-.5-.4-.9-.6-1.4-.3-.7-.6-1.3-.9-1.9-.1-.3-.3-.5-.4-.8-.2-.3-.3-.6-.4-.9l-.3-.6-.8-1.4c-.1-.2.1-.4.3-.4l5 1.4h.1l.7.2.7.2.3.1v-3c0-1.4 1.1-2.6 2.5-2.6.7 0 1.3.3 1.8.8.5.5.7 1.1.7 1.8v4.4l.5.2s.1 0 .1.1c.1.1.3.3.5.4.2.1.4.3.6.5.4.3.9.8 1.5 1.3.2.1.3.3.4.4.7.7 1.6 1.5 2.4 2.4.2.3.5.5.7.8.2.3.5.5.7.8.3.4.6.7.9 1.1.1.2.3.4.4.6.4.5.7 1.1 1.1 1.6.1.3.3.5.4.8.4.7.8 1.4 1 2.1.1.2.2.3.2.5v.1c.1.3.1.6.2.9.1.6.1 1.2 0 1.8-.1.3-.1.5-.2.8-.1.2-.2.5-.3.8-.2.5-.5 1-.8 1.5-.1.2-.2.4-.3.6l-.4.6c-.2.3-.4.6-.6.8-.2.3-.4.5-.6.8-.3.4-.6.7-.9 1-.2.2-.4.4-.6.7l-.6.6-.4.4-.3.2c-.1.1-.2.1-.3.1h-3.7v5h4.7c1 0 2-.4 2.8-1.1.3-.2 1.4-1.2 2.7-2.6.1-.1.1-.1.2-.1l12.8-3.7c.3-.1.5.1.5.4z" fill="#FFFFFF"></path>
+        </svg>
+        <span class="brand-name">OpenSea</span>
+      </a>
+      <div class="search" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+        Search OpenSea
+        <kbd>/</kbd>
+      </div>
+      <nav class="site-nav" aria-label="Main">
+        <a class="hide-md" href="https://opensea.io/">Discover</a>
+        <a class="hide-md" href="https://opensea.io/">Collections</a>
+        <a class="hide-md" href="https://opensea.io/">Tokens</a>
+        <a class="hide-sm" href="https://opensea.io/">Drops</a>
+        <span class="wallet-pill" aria-label="Connected wallet"><i aria-hidden="true"></i>3.42 ETH</span>
+      </nav>
+    </div>
+  </header>
+  <main id="checkout">
+    <div class="wrap">
+      <p class="crumbs"><a href="https://opensea.io/">Collections</a> / <a href="https://opensea.io/">Harbor Lanterns</a> / Lantern #4127</p>
+      <h1>Complete checkout</h1>
+      <div class="layout">
+        <section class="card" aria-labelledby="item-title">
+          <div class="item">
+            <div class="item-art" role="img" aria-label="Harbor Lanterns #4127 artwork"></div>
+            <div>
+              <p class="collection">Harbor Lanterns
+                <svg width="16" height="16" viewBox="0 0 24 24" aria-label="Verified"><path d="M12 1l2.6 2.2 3.4-.3.9 3.3 3 1.6-1.2 3.2 1.2 3.2-3 1.6-.9 3.3-3.4-.3L12 23l-2.6-2.2-3.4.3-.9-3.3-3-1.6 1.2-3.2L2.1 9.8l3-1.6.9-3.3 3.4.3z" fill="#2081E2"></path><path d="M7.5 12.3l3 3 6-6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </p>
+              <h2 id="item-title">Lantern #4127</h2>
+              <p class="meta">Ethereum &middot; ERC-721 &middot; Owned by 0x9c1e&hellip;a4f2</p>
+            </div>
+          </div>
+          <form id="transferForm" novalidate>
+            <p class="step"><span>1</span>Listing</p>
+            <div class="field">
+              <label for="toAccount">Buy from</label>
+              <select id="toAccount">
+                <option value="ACCT-EXT-101" data-name="Lantern #4127" data-eth="0.185" data-price="461.66">Lantern #4127 &middot; 0.185 ETH (floor)</option>
+              </select>
+              <small>Best listing for this item. Price is locked for 10 minutes.</small>
+            </div>
+            <div class="field">
+              <label for="accountTier">Transaction speed</label>
+              <select id="accountTier">
+                <option value="standard" selected>Standard &middot; ~30 sec</option>
+              </select>
+              <small>Network fee is paid by the buyer and estimated at checkout.</small>
+            </div>
+            <input type="number" id="amount" class="sr-only" tabindex="-1" aria-hidden="true" step="0.01" value="461.66">
+            <div class="divider"></div>
+            <p class="step"><span>2</span>Payment</p>
+            <div class="field">
+              <label for="fromAccount">Pay with</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001">ETH &middot; Wallet 0x7a3f&hellip;91c0</option>
+                <option value="ACCT-1002">Card &middot; Visa ending 4242</option>
+              </select>
+            </div>
+            <button type="submit" id="submitBtn" class="submit-btn">Complete purchase</button>
+            <p class="terms">By completing this purchase you agree to the OpenSea Terms of Service.</p>
+            <div class="stopwatch" id="orderTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="orderTimerValue">0.0s</span></div>
+            <p class="status" id="orderStatus" role="status" aria-live="polite">Sample checkout. No wallet is charged on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            <button type="reset" id="againBtn" class="again-btn">Buy another item</button>
+          </form>
+        </section>
+        <aside>
+          <div class="card summary" aria-labelledby="summary-title">
+            <h3 id="summary-title">Order summary</h3>
+            <dl>
+              <div><dt>Collection</dt><dd>Harbor Lanterns</dd></div>
+              <div><dt>Item</dt><dd id="sumItem">&mdash;</dd></div>
+              <div><dt>Price</dt><dd id="sumPrice">&mdash;</dd></div>
+              <div><dt>Marketplace fee</dt><dd id="sumFee">&mdash;</dd></div>
+              <div class="total"><dt>Total</dt><dd id="sumTotal">&mdash;</dd></div>
+            </dl>
+            <p class="fees">USD values are estimates at 1 ETH &asymp; $2,495.47.</p>
+          </div>
+          <div class="card traits" aria-labelledby="traits-title">
+            <h3 id="traits-title">Traits</h3>
+            <ul>
+              <li><span>Background</span><strong>Night Harbor</strong></li>
+              <li><span>Flame</span><strong>Amber</strong></li>
+              <li><span>Hull</span><strong>Midnight</strong></li>
+              <li><span>Rarity</span><strong>#2,114 / 8,888</strong></li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <div class="footer-brand">OpenSea</div>
+        <p>The world's first and largest digital marketplace for crypto collectibles and NFTs.</p>
+      </div>
+      <div><h4>Marketplace</h4><a href="https://opensea.io/">Discover</a><a href="https://opensea.io/">Collections</a><a href="https://opensea.io/">Drops</a></div>
+      <div><h4>Resources</h4><a href="https://opensea.io/">Learn</a><a href="https://opensea.io/">Help Center</a><a href="https://opensea.io/">Status</a></div>
+      <div><h4>Company</h4><a href="https://opensea.io/">About</a><a href="https://opensea.io/">Careers</a><a href="https://opensea.io/">Blog</a></div>
+    </div>
+    <p class="footer-legal">Example checkout. Collections, listings, prices and orders shown here are sample data.</p>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const againBtn = document.getElementById('againBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('orderStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const tierSelect = document.getElementById('accountTier');
+    const amountInput = document.getElementById('amount');
+    const sumItem = document.getElementById('sumItem');
+    const sumPrice = document.getElementById('sumPrice');
+    const sumFee = document.getElementById('sumFee');
+    const sumTotal = document.getElementById('sumTotal');
+    const orderFields = [fromAccount, toAccount, tierSelect];
+    const timer = document.getElementById('orderTimer');
+    const timerValue = document.getElementById('orderTimerValue');
+    const IDLE_STATUS = 'Sample checkout. No wallet is charged on this page.';
+    const IDLE_LABEL = 'Complete purchase';
+    const ETH_USD = 2495.47;
+    let timerHandle = null;
+    let pending = false;
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    function eth(value) { return `${Number(value).toFixed(4).replace(/0+$/, '').replace(/\.$/, '')} ETH`; }
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function priceUsd() { return Number(selected(toAccount).dataset.price); }
+    function marketplaceFee(subtotal) { return Math.max(subtotal * 0.001, 2.5); }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function renderSummary() {
+      const price = priceUsd();
+      const fee = marketplaceFee(price);
+      const total = Number((price + fee).toFixed(2));
+      amountInput.value = price.toFixed(2);
+      sumItem.textContent = selected(toAccount).dataset.name;
+      sumPrice.innerHTML = `${eth(selected(toAccount).dataset.eth)}<span class="usd">${usd.format(price)}</span>`;
+      sumFee.innerHTML = `${eth(fee / ETH_USD)}<span class="usd">${usd.format(fee)}</span>`;
+      sumTotal.innerHTML = `${eth(total / ETH_USD)}<span class="usd">${usd.format(total)}</span>`;
+    }
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        tierSelect.value = 'standard';
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        againBtn.className = 'again-btn';
+        renderSummary();
+      });
+    });
+    renderSummary();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      renderSummary();
+      pending = true;
+      button.disabled = true;
+      orderFields.forEach((el) => { el.disabled = true; });
+      againBtn.className = 'again-btn';
+      button.textContent = 'Confirming purchase\u2026';
+      status.textContent = 'Confirming your purchase\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const itemName = selected(toAccount).dataset.name;
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: tierSelect.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Purchase not completed.');
+        if (!data || !data.receipt) throw new Error('Purchase outcome unknown.');
+        const orderNo = String(data.receipt.receiptId).replace(/^RCP-/, '').slice(-9);
+        result.className = 'result-box success';
+        result.textContent = `Purchase complete. ${itemName} is on its way to your wallet. Total ${usd.format(Number(data.receipt.totalDebit))}. Order ${orderNo}.`;
+        status.textContent = 'Purchase complete.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = "Sorry, we couldn't complete your purchase right now. Nothing was charged. Please try again.";
+          status.textContent = 'Purchase not completed.';
+        } else {
+          result.textContent = "We couldn't confirm your purchase. Check your wallet activity before trying again, so you don't buy twice.";
+          status.textContent = 'Purchase not confirmed.';
+        }
+      } finally {
+        orderFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        button.textContent = IDLE_LABEL;
+        againBtn.className = 'again-btn on';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
