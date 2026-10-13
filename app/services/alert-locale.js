@@ -3,6 +3,7 @@
 const STRINGS = {
   en: {
     header: (label) => `Sentry Alert — ${label} Error`,
+    titleSeparator: ' — ',
     defaultLabel: 'Checkout',
     error: 'Error',
     severity: 'Severity',
@@ -36,6 +37,7 @@ const STRINGS = {
   },
   es: {
     header: (label) => `Alerta de Sentry — Error en ${label}`,
+    titleSeparator: ' — ',
     defaultLabel: 'Checkout',
     error: 'Error',
     severity: 'Severidad',
@@ -67,6 +69,13 @@ const STRINGS = {
     tags: 'Etiquetas',
     promptLanguage: '*Idioma:* responde en español — mensajes en el hilo de Slack, título y descripción del PR, y resumen final.',
   },
+};
+
+// English without typographic dashes, for customers whose cards must avoid em dashes.
+STRINGS['en-plain'] = {
+  ...STRINGS.en,
+  header: (label) => `Sentry Alert: ${label} error`,
+  titleSeparator: ' | ',
 };
 
 function alertLocale(alertData) {
