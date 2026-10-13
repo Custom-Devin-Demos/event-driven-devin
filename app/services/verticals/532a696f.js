@@ -103,7 +103,7 @@ async function checkCentreAvailability(centreKey, request, competency) {
     city: centre.city,
     specialistsAvailable,
     leadTimeBusinessDays,
-    earliestStart: addBusinessDays(new Date(), leadTimeBusinessDays),
+    earliestStart: addBusinessDays(request.asOf, leadTimeBusinessDays),
     status: 'available',
   };
 }
@@ -141,7 +141,7 @@ function normalizeRequest(data) {
   if (normalized.company.length < 2 || normalized.company.length > 80) {
     throw validationError('Enter your company name (2–80 characters).', 'COMPANY_INVALID');
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized.email)) {
+  if (normalized.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized.email)) {
     throw validationError('Enter a valid business email address.', 'EMAIL_INVALID');
   }
   if (!COMPETENCIES.some((entry) => entry.key === normalized.competency)
@@ -244,7 +244,7 @@ async function checkExpertAvailability(data = {}) {
     route: ROUTE,
   });
 
-  const centres = await collectRegionalAvailability(regionScope.centres, normalized, competency);
+  const centres = await collectRegionalAvailability(regionScope.centres, { ...normalized, asOf: new Date(startTime) }, competency);
   const durationMs = Date.now() - startTime;
   const totalSpecialists = centres.reduce((sum, centre) => sum + centre.specialistsAvailable, 0);
   const fastest = centres.reduce((best, centre) => (

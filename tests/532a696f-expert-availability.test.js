@@ -58,6 +58,36 @@ afterEach(() => {
   createSessionAndAlert.mockClear();
 });
 
+function expectedStart(fromIso, days) {
+  const date = new Date(fromIso);
+  let remaining = days;
+  while (remaining > 0) {
+    date.setUTCDate(date.getUTCDate() + 1);
+    if (date.getUTCDay() !== 0 && date.getUTCDay() !== 6) remaining -= 1;
+  }
+  return date.toISOString().slice(0, 10);
+}
+
+test('computes every start date from the request date even when the check crosses UTC midnight', async () => {
+  CENTRE_LOOKUP_POLICY.latencyMs = [2, 3];
+  jest.useFakeTimers({ now: new Date('2026-10-13T23:59:59.995Z'), advanceTimers: true });
+  try {
+    const result = await checkExpertAvailability(VALID);
+    expect(new Date().toISOString() >= '2026-10-14').toBe(true);
+    for (const centre of result.centres) {
+      expect(centre.earliestStart).toBe(expectedStart('2026-10-13T00:00:00Z', centre.leadTimeBusinessDays));
+    }
+  } finally {
+    jest.useRealTimers();
+    CENTRE_LOOKUP_POLICY.latencyMs = [...ORIGINAL_LATENCY];
+  }
+});
+
+test('rejects overlong email addresses', async () => {
+  await expect(checkExpertAvailability({ ...VALID, email: `${'a'.repeat(250)}@acme.com` }))
+    .rejects.toMatchObject({ code: 'EMAIL_INVALID' });
+});
+
 describe('Sword Group expert availability', () => {
   test('default scope checks every delivery centre in directory order with defaults', async () => {
     CENTRE_LOOKUP_POLICY.latencyMs = [1, 2];
