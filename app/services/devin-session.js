@@ -56,6 +56,11 @@ function buildTeamsAlertCardForAlert(alertData) {
         ],
       },
       { code: { label: t.message, text: alertData.errorValue } },
+      // Teams-only alerts start no app-created session, so the responder reads the
+      // service-owned remediation directive from the card instead of a prompt.
+      alertData.promptAppendix
+        ? { note: { label: t.responderInstructions || 'Responder instructions', text: alertData.promptAppendix } }
+        : null,
       {
         fields: [
           [t.release, alertData.release || process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2'],
