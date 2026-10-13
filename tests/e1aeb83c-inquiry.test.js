@@ -7,8 +7,16 @@ jest.mock('../app/telemetry/logger', () => ({
 jest.mock('../app/telemetry/datadog', () => ({
   incrementMetric: jest.fn(), recordTiming: jest.fn(),
 }));
+const mockCustomerScope = { setClient: jest.fn(), captureException: jest.fn() };
+const mockCustomerClient = { init: jest.fn() };
 jest.mock('../app/telemetry/sentry', () => ({
-  Sentry: { captureException: jest.fn() },
+  Sentry: {
+    captureException: jest.fn(),
+    NodeClient: jest.fn(() => mockCustomerClient),
+    Scope: jest.fn(() => mockCustomerScope),
+    makeNodeTransport: jest.fn(),
+    defaultStackParser: jest.fn(),
+  },
 }));
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
@@ -84,5 +92,41 @@ describe('Subscription offer inquiry (e1aeb83c) — alerting', () => {
   test('reportErrors=false suppresses alerting for reproduction runs', async () => {
     await processOfferInquiry({ offer: 'wsj-digital', billing: 'annual', reportErrors: false }).catch(() => {});
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+});
+
+describe('per-customer Sentry routing', () => {
+  const ORIGINAL_ENV = { ...process.env };
+  afterEach(() => { process.env = { ...ORIGINAL_ENV }; });
+
+  test('uses SENTRY_DSN_E1AEB83C when set and leaves the global client alone', async () => {
+    process.env.SENTRY_DSN_E1AEB83C = 'https://abc@o1.ingest.sentry.io/2';
+    process.env.SENTRY_ORG_SLUG_E1AEB83C = 'customer-org';
+    process.env.SENTRY_PROJECT_ID_E1AEB83C = '2';
+    Sentry.captureException.mockClear();
+    createSessionAndAlert.mockClear();
+    let run;
+    jest.isolateModules(() => { ({ processOfferInquiry: run } = require('../app/services/verticals/e1aeb83c')); });
+
+    await expect(run({ offer: 'wsj-digital', billing: 'annual' })).rejects.toThrow(TypeError);
+
+    expect(Sentry.NodeClient).toHaveBeenCalledWith(expect.objectContaining({ dsn: process.env.SENTRY_DSN_E1AEB83C, integrations: [] }));
+    expect(mockCustomerClient.init).toHaveBeenCalledTimes(1);
+    expect(mockCustomerScope.setClient).toHaveBeenCalledWith(mockCustomerClient);
+    expect(mockCustomerScope.captureException).toHaveBeenCalledTimes(1);
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(createSessionAndAlert.mock.calls[0][0].issueUrl).toBe('https://customer-org.sentry.io/issues/?project=2&query=is%3Aunresolved');
+  });
+
+  test('falls back to the global Sentry client when no customer DSN is set', async () => {
+    delete process.env.SENTRY_DSN_E1AEB83C;
+    Sentry.captureException.mockClear();
+    mockCustomerScope.captureException.mockClear();
+    let run;
+    jest.isolateModules(() => { ({ processOfferInquiry: run } = require('../app/services/verticals/e1aeb83c')); });
+    await expect(run({ offer: 'wsj-digital', billing: 'annual' })).rejects.toThrow(TypeError);
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+    expect(mockCustomerScope.captureException).not.toHaveBeenCalled();
   });
 });

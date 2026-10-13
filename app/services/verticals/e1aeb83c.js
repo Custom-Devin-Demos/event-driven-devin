@@ -10,6 +10,45 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
+
+const SENTRY_ENV_SUFFIX = 'E1AEB83C';
+
+let customerSentryScope;
+function getCustomerSentryScope() {
+  if (customerSentryScope !== undefined) return customerSentryScope;
+  const dsn = process.env[`SENTRY_DSN_${SENTRY_ENV_SUFFIX}`];
+  if (!dsn || typeof Sentry.NodeClient !== 'function') {
+    customerSentryScope = null;
+    return customerSentryScope;
+  }
+  const client = new Sentry.NodeClient({
+    dsn,
+    environment: process.env.SENTRY_ENVIRONMENT || 'prod',
+    release: process.env.SENTRY_RELEASE,
+    transport: Sentry.makeNodeTransport,
+    stackParser: Sentry.defaultStackParser,
+    integrations: [],
+  });
+  client.init();
+  customerSentryScope = new Sentry.Scope();
+  customerSentryScope.setClient(client);
+  return customerSentryScope;
+}
+
+function captureInquiryError(error, context) {
+  const scope = getCustomerSentryScope();
+  if (scope) {
+    scope.captureException(error, { captureContext: context });
+    return;
+  }
+  Sentry.captureException(error, context);
+}
+
+function sentryIssueUrl() {
+  const org = process.env[`SENTRY_ORG_SLUG_${SENTRY_ENV_SUFFIX}`] || process.env.SENTRY_ORG_SLUG || 'sentry-org';
+  const project = process.env[`SENTRY_PROJECT_ID_${SENTRY_ENV_SUFFIX}`] || process.env.SENTRY_PROJECT_ID || '';
+  return `https://${org}.sentry.io/issues/?project=${project}&query=is%3Aunresolved`;
+}
 const { createSessionAndAlert } = require('../devin-session');
 
 const CUSTOMER = 'e1aeb83c';
@@ -196,7 +235,7 @@ async function processOfferInquiry(data) {
       action,
     });
 
-    Sentry.captureException(error, {
+    captureInquiryError(error, {
       tags: {
         route: ROUTE,
         service: SERVICE,
@@ -211,7 +250,7 @@ async function processOfferInquiry(data) {
     if (data.reportErrors !== false) {
       createSessionAndAlert({
         issueTitle: `${error.name}: ${error.message}`,
-        issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+        issueUrl: sentryIssueUrl(),
         culprit: 'app/services/verticals/e1aeb83c.js \u2014 applyIntroTerms',
         errorType: error.name || 'Error',
         errorValue: error.message,
