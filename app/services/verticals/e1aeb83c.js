@@ -58,8 +58,8 @@ const ROUTE = '/api/e1aeb83c/inquiry';
 // Server-side owner for every alert and session raised by this vertical.
 // Client-supplied identity is kept as diagnostic context only.
 const OWNER = Object.freeze({
-  slackMemberId: 'U08S7AVJ478',
-  devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+  slackMemberId: 'U0AU1PXM12S',
+  devinUserId: 'okta|Cognition|00u22b98f2kFBX4Al1d8',
   devinOrgId: 'org-cba5887ae1534949b9696649e27367ad',
 });
 
