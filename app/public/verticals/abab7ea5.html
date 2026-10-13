@@ -279,6 +279,7 @@
               <dt>Payee</dt><dd id="sumPayee"></dd>
               <dt>Method</dt><dd id="sumMethod"></dd>
               <dt>Arrives</dt><dd id="sumArrives"></dd>
+              <dt>Fees</dt><dd>Shown on your receipt</dd>
               <dt class="total">Amount</dt><dd class="total" id="sumAmount"></dd>
             </dl>
           </div>
@@ -458,7 +459,7 @@
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
         var amount = parseAmount();
-        if (!isFinite(amount) || amount <= 0) { show('error', 'Payment not sent', 'Enter an amount greater than $0.00.'); amountEl.focus(); return; }
+        if (!isFinite(amount) || amount <= 0 || !amountEl.validity.valid) { show('error', 'Payment not sent', 'Enter an amount of at least $0.01 in whole cents.'); amountEl.focus(); return; }
         var payee = selText(toSel).split(' \u00b7 ')[0];
         var methodName = method === 'card' ? 'Card payment' : 'Real-time transfer';
         var methodSub = (method === 'card' ? 'Card ' : 'RTP ') + 'to ' + payee;
@@ -486,8 +487,9 @@
             show('error', 'Payment not completed', 'We could not complete this payment. Check Recent transactions before trying again.');
           } else {
             var ref = data.receipt && data.receipt.receiptId ? data.receipt.receiptId : '';
-            show('success', 'Payment sent', (money(amount) + ' ' + methodName.toLowerCase() + ' to ' + payee).replace(/\.$/, '') + '.' + (ref ? ' Reference ' + ref + '.' : ''));
-            body.insertBefore(row(new Date(), 'Supplier payment', methodSub, ref ? 'RCP-' + ref.slice(-6) : '\u2014', method === 'card' ? 'Card' : 'Real-time', -amount, method === 'card' ? 'Approved' : 'Completed', method === 'card' ? 'ok' : 'info', true), body.firstChild);
+            var debit = parseFloat(data.debitAmount), fee = parseFloat(data.fee);
+            show('success', 'Payment sent', (money(amount) + ' ' + methodName.toLowerCase() + ' to ' + payee).replace(/\.$/, '') + '.' + (isFinite(debit) ? ' Total debited ' + money(debit) + (isFinite(fee) && fee > 0 ? ', including ' + money(fee) + ' in fees.' : '.') : '') + (ref ? ' Reference ' + ref + '.' : ''));
+            body.insertBefore(row(new Date(), 'Supplier payment', methodSub, ref ? 'RCP-' + ref.slice(-6) : '\u2014', method === 'card' ? 'Card' : 'Real-time', -(isFinite(debit) ? debit : amount), method === 'card' ? 'Approved' : 'Completed', method === 'card' ? 'ok' : 'info', true), body.firstChild);
             if (body.children.length > 8) body.removeChild(body.lastElementChild);
           }
         } catch (err) {
