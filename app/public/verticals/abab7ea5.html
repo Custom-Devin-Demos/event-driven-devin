@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merchant Payments | ACI Worldwide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #031226;
+      --ink: #101014;
+      --surface: #FFFFFF;
+      --chrome-bg: #031226;
+      --chrome-text: #FFFFFF;
+      --ink-2: color-mix(in srgb, var(--ink) 72%, var(--surface));
+      --ink-3: color-mix(in srgb, var(--ink) 56%, var(--surface));
+      --line: color-mix(in srgb, var(--ink) 12%, var(--surface));
+      --line-strong: color-mix(in srgb, var(--ink) 24%, var(--surface));
+      --paper: #F5F5FA;
+      --link: #2726DD;
+      --ok-ink: #0B6B3A;
+      --ok-bg: #E7F7EE;
+      --warn-ink: #8A5300;
+      --warn-bg: #FFF4E0;
+      --err-ink: #B3261E;
+      --err-bg: #FFF1F0;
+      --radius: 8px;
+      --font: "proxima-nova", Figtree, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--font); font-size: 16px; line-height: 1.5; color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: var(--link); }
+    button, input, select { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+
+    .topbar { background: var(--chrome-bg); color: var(--chrome-text); border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .topbar-in { max-width: 1280px; margin: 0 auto; height: 80px; padding: 0 32px; display: flex; align-items: center; gap: 32px; }
+    .brand { display: flex; align-items: center; gap: 14px; color: var(--chrome-text); text-decoration: none; flex: none; min-height: 44px; }
+    .mark { display: inline-flex; flex-direction: column; line-height: 1; }
+    .mark-word { font-size: 28px; font-weight: 700; letter-spacing: 0.04em; }
+    .mark-bar { height: 3px; margin-top: 4px; border-radius: 2px; background: linear-gradient(90deg, #2AFFA2, #5757FF); }
+    .brand-sub { padding-left: 14px; border-left: 1px solid rgba(255,255,255,0.28); font-size: 15px; line-height: 1.2; }
+    .brand-sub small { display: block; font-size: 12px; opacity: 0.72; }
+    .nav { display: flex; gap: 4px; flex: 1; min-width: 0; }
+    .nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: var(--radius); color: var(--chrome-text); text-decoration: none; font-size: 16px; white-space: nowrap; }
+    .nav a:hover { background: rgba(255,255,255,0.08); }
+    .nav a[aria-current="page"] { box-shadow: inset 0 -2px 0 #2AFFA2; border-radius: 0; }
+    .top-actions { display: flex; align-items: center; gap: 12px; flex: none; }
+    .merchant-chip { text-align: right; font-size: 14px; line-height: 1.25; }
+    .merchant-chip small { display: block; opacity: 0.72; font-size: 12px; }
+    .btn-outline-light { min-height: 48px; padding: 0 20px; border-radius: var(--radius); border: 1px solid var(--chrome-text); background: rgba(3,18,38,0.4); color: var(--chrome-text); font-size: 16px; cursor: pointer; }
+    .btn-outline-light:hover { background: rgba(255,255,255,0.1); }
+
+    .hero { background: var(--chrome-bg); color: var(--chrome-text); }
+    .hero-in { max-width: 1280px; margin: 0 auto; padding: 40px 32px 48px; }
+    .eyebrow { font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; margin: 0 0 8px; }
+    .hero h1 { margin: 0; font-size: 44px; line-height: 1.1; font-weight: 400; }
+    .hero p.lede { margin: 12px 0 0; font-size: 18px; line-height: 1.4; opacity: 0.88; max-width: 720px; }
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 32px; }
+    .kpi { border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.05); border-radius: var(--radius); padding: 16px 18px; }
+    .kpi dt { font-size: 14px; opacity: 0.78; }
+    .kpi dd { margin: 4px 0 0; font-size: 28px; font-weight: 600; line-height: 1.2; }
+    .kpi .delta { font-size: 13px; opacity: 0.78; margin-top: 2px; }
+
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 32px; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; align-items: start; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+    .card-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 24px; border-bottom: 1px solid var(--line); }
+    .card-h h2 { margin: 0; font-size: 20px; font-weight: 600; }
+    .card-h .sub { font-size: 14px; color: var(--ink-3); }
+    .link-btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; color: var(--link); text-decoration: none; font-weight: 600; font-size: 15px; }
+
+    table.tx { width: 100%; border-collapse: collapse; font-size: 15px; }
+    table.tx th { text-align: left; font-weight: 600; font-size: 13px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.04em; padding: 12px 24px; border-bottom: 1px solid var(--line); }
+    table.tx td { padding: 14px 24px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    table.tx tr:last-child td { border-bottom: 0; }
+    table.tx .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    table.tx .ref { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+    table.tx .col-ch { white-space: nowrap; }
+    table.tx .muted { color: var(--ink-3); font-size: 13px; display: block; }
+    table.tx tr.new td { background: color-mix(in srgb, #2AFFA2 10%, var(--surface)); }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 100px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .pill.ok { background: var(--ok-bg); color: var(--ok-ink); }
+    .pill.pend { background: var(--warn-bg); color: var(--warn-ink); }
+    .pill.err { background: var(--err-bg); color: var(--err-ink); }
+    .pill.info { background: color-mix(in srgb, var(--link) 10%, var(--surface)); color: var(--link); }
+
+    .side { display: grid; gap: 24px; }
+    .pay { padding: 20px 24px 24px; }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--paper); border-radius: var(--radius); margin-bottom: 20px; }
+    .tab { min-height: 44px; border: 0; border-radius: 6px; background: transparent; font-size: 15px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+    .tab[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(16,16,20,0.12); }
+    .fld { margin-bottom: 16px; }
+    .fld label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .fld .hint { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+    .ctl { position: relative; }
+    .ctl select, .ctl input { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); font-size: 16px; appearance: none; -webkit-appearance: none; }
+    .ctl select { padding-right: 40px; }
+    .ctl .chev { position: absolute; right: 14px; top: 50%; width: 16px; height: 16px; margin-top: -8px; pointer-events: none; fill: var(--ink-2); }
+    .ctl input:focus, .ctl select:focus { outline: none; border-color: var(--link); box-shadow: 0 0 0 1px var(--link); }
+    .ctl .cur { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
+    .ctl input.money { padding-left: 32px; font-variant-numeric: tabular-nums; }
+    .summary { margin: 20px 0; padding: 16px; background: var(--paper); border-radius: var(--radius); font-size: 15px; }
+    .summary dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 0; }
+    .summary dt { color: var(--ink-3); }
+    .summary dd { margin: 0; padding-left: 16px; text-align: right; font-weight: 500; }
+    .summary .total { padding-top: 8px; border-top: 1px solid var(--line); font-weight: 700; color: var(--ink); }
+    .actions { display: flex; gap: 12px; }
+    .btn-solid { flex: 1; min-height: 48px; padding: 0 24px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 17px; font-weight: 600; cursor: pointer; }
+    .btn-solid:hover { background: color-mix(in srgb, var(--accent) 86%, #fff); }
+    .btn-solid:disabled { opacity: 0.72; cursor: progress; }
+    .btn-ghost { min-height: 48px; padding: 0 20px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); font-size: 16px; font-weight: 600; cursor: pointer; }
+    .secure { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-3); margin-top: 14px; }
+    .secure svg { width: 16px; height: 16px; flex: none; fill: var(--ink-3); }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: var(--radius); font-size: 15px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok-ink); }
+    .result-box.error { display: block; background: var(--err-bg); color: var(--err-ink); }
+    .result-box .r-title { font-weight: 700; }
+    .result-box .r-detail { margin-top: 2px; }
+
+    .settle { padding: 16px 24px 20px; }
+    .settle-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+    .settle-row:last-child { border-bottom: 0; }
+    .settle-row span:first-child { color: var(--ink-3); }
+    .settle-row span:last-child { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+
+    .foot { background: var(--chrome-bg); color: var(--chrome-text); margin-top: 16px; }
+    .foot-in { max-width: 1280px; margin: 0 auto; padding: 28px 32px; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; justify-content: space-between; font-size: 14px; }
+    .foot nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+    .foot a { display: inline-flex; align-items: center; min-height: 44px; color: var(--chrome-text); text-decoration: none; opacity: 0.86; }
+    .foot a:hover { opacity: 1; text-decoration: underline; }
+
+    @media (max-width: 1100px) {
+      .wrap { grid-template-columns: 1fr; }
+      .merchant-chip { display: none; }
+    }
+    @media (max-width: 860px) {
+      .topbar-in { height: auto; padding: 12px 16px 0; flex-wrap: wrap; gap: 8px 16px; }
+      .brand { flex: 1; }
+      .nav { order: 3; flex-basis: 100%; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 8px; }
+      .nav::-webkit-scrollbar { display: none; }
+      .hero-in { padding: 28px 16px 32px; }
+      .hero h1 { font-size: 32px; }
+      .hero p.lede { font-size: 16px; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 24px; }
+      .kpi dd { font-size: 22px; }
+      .wrap { padding: 16px; gap: 16px; }
+      .card-h { padding: 16px; }
+      .pay, .settle { padding-left: 16px; padding-right: 16px; }
+      table.tx th, table.tx td { padding-left: 16px; padding-right: 16px; }
+      table.tx .col-ref, table.tx .col-ch { display: none; }
+      .foot-in { padding: 20px 16px; }
+    }
+    @media (max-width: 420px) {
+      .brand-sub { display: none; }
+      .btn-outline-light { padding: 0 14px; }
+      table.tx .col-time { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-in">
+      <a class="brand" href="#" aria-label="ACI Worldwide Merchant Portal home">
+        <span class="mark" aria-hidden="true"><span class="mark-word">ACI</span><span class="mark-bar"></span></span>
+        <span class="brand-sub">Merchant Portal<small>Payments Orchestration Platform</small></span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#" aria-current="page">Dashboard</a>
+        <a href="#transactions">Transactions</a>
+        <a href="#createPayment">Payments</a>
+        <a href="#settlement">Settlements</a>
+        <a href="#">Disputes</a>
+        <a href="#">Reports</a>
+      </nav>
+      <div class="top-actions">
+        <div class="merchant-chip">Northwind Outfitters<small>MID 4417 0092 18</small></div>
+        <button type="button" class="btn-outline-light">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-in">
+      <p class="eyebrow">Merchant Payments</p>
+      <h1>Good morning, Northwind Outfitters</h1>
+      <p class="lede">Today&rsquo;s acceptance across in-store, online and mobile channels, with card and real-time payments in one place.</p>
+      <dl class="kpis">
+        <div class="kpi"><dt>Gross volume today</dt><dd>$184,320.55</dd><div class="delta">+6.2% vs. last Tuesday</div></div>
+        <div class="kpi"><dt>Transactions</dt><dd>2,418</dd><div class="delta">All channels</div></div>
+        <div class="kpi"><dt>Approval rate</dt><dd>97.4%</dd><div class="delta">Smart routing on</div></div>
+        <div class="kpi"><dt>Next settlement</dt><dd>$171,906.12</dd><div class="delta">Net, tomorrow 06:00</div></div>
+      </dl>
+    </div>
+  </section>
+
+  <main class="wrap">
+    <section class="card" id="transactions" aria-labelledby="txHeading">
+      <div class="card-h">
+        <div>
+          <h2 id="txHeading">Recent transactions</h2>
+          <div class="sub">Last 24 hours, all channels</div>
+        </div>
+        <a class="link-btn" href="#">View all</a>
+      </div>
+      <table class="tx">
+        <thead>
+          <tr>
+            <th class="col-time" scope="col">Time</th>
+            <th scope="col">Description</th>
+            <th class="col-ref" scope="col">Reference</th>
+            <th class="col-ch" scope="col">Channel</th>
+            <th class="num" scope="col">Amount</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody id="txBody"></tbody>
+      </table>
+    </section>
+
+    <div class="side">
+      <section class="card" id="createPayment" aria-labelledby="payHeading">
+        <div class="card-h">
+          <div>
+            <h2 id="payHeading">Make a payment</h2>
+            <div class="sub">Pay a supplier by card or real-time transfer</div>
+          </div>
+        </div>
+        <form id="transferForm" class="pay" autocomplete="off" novalidate>
+          <div class="tabs" role="group" aria-label="Payment method">
+            <button type="button" class="tab" id="tabCard" aria-pressed="true">Card payment</button>
+            <button type="button" class="tab" id="tabRtp" aria-pressed="false">Real-time transfer</button>
+          </div>
+
+          <div class="fld">
+            <label for="toAccount">Pay to</label>
+            <div class="ctl">
+              <select id="toAccount">
+                <option value="ACCT-2201">Harbor Freight Logistics &middot; ••7310</option>
+                <option value="ACCT-2202">Cascade Textiles Co. &middot; ••0954</option>
+                <option value="ACCT-2203">Summit Packaging Supply &middot; ••4128</option>
+                <option value="ACCT-2204">Bluewater Point-of-Sale Services &middot; ••6602</option>
+              </select>
+              <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.4 5.6 9l1.4-1.4 5 5 5-5L18.4 9z"/></svg>
+            </div>
+          </div>
+
+          <div class="fld">
+            <label for="fromAccount" id="fromLabel">Pay with</label>
+            <div class="ctl">
+              <select id="fromAccount"></select>
+              <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.4 5.6 9l1.4-1.4 5 5 5-5L18.4 9z"/></svg>
+            </div>
+            <div class="hint" id="fromHint"></div>
+          </div>
+
+          <div class="fld">
+            <label for="amount">Amount (USD)</label>
+            <div class="ctl">
+              <span class="cur" aria-hidden="true">$</span>
+              <input type="number" id="amount" class="money" inputmode="decimal" min="0.01" step="0.01" value="2450.00" required>
+            </div>
+          </div>
+
+          <div class="fld" hidden>
+            <label for="accountTier">Merchant plan</label>
+            <div class="ctl">
+              <select id="accountTier">
+                <option value="standard">Standard</option>
+                <option value="premium">Enterprise</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="summary" aria-label="Payment summary">
+            <dl>
+              <dt>Payee</dt><dd id="sumPayee"></dd>
+              <dt>Method</dt><dd id="sumMethod"></dd>
+              <dt>Arrives</dt><dd id="sumArrives"></dd>
+              <dt>Fees</dt><dd>Shown on your receipt</dd>
+              <dt class="total">Amount</dt><dd class="total" id="sumAmount"></dd>
+            </dl>
+          </div>
+
+          <div class="actions">
+            <button type="reset" class="btn-ghost" id="clearBtn">Clear</button>
+            <button type="submit" class="btn-solid" id="submitBtn">Pay</button>
+          </div>
+          <div class="secure">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3zm-1 14-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg>
+            <span>Protected by real-time fraud screening and tokenization.</span>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section class="card" id="settlement" aria-labelledby="settleHeading">
+        <div class="card-h">
+          <div>
+            <h2 id="settleHeading">Settlement</h2>
+            <div class="sub">Net settlement to operating account ••4410</div>
+          </div>
+        </div>
+        <div class="settle">
+          <div class="settle-row"><span>Card sales</span><span>$162,884.20</span></div>
+          <div class="settle-row"><span>Real-time payments received</span><span>$21,436.35</span></div>
+          <div class="settle-row"><span>Refunds and chargebacks</span><span>&minus;$3,912.08</span></div>
+          <div class="settle-row"><span>Interchange++ fees</span><span>&minus;$8,502.35</span></div>
+          <div class="settle-row"><span>Net payout</span><span>$171,906.12</span></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <div class="foot-in">
+      <span>&copy; 2026 ACI Worldwide, Inc. Merchant Portal</span>
+      <nav aria-label="Footer">
+        <a href="#">Privacy</a>
+        <a href="#">Terms of use</a>
+        <a href="#">Accessibility</a>
+        <a href="#">ACI Worldwide Support</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var METHODS = {
+        card: {
+          label: 'Pay with',
+          hint: 'Charged to your commercial card. Card scheme rules apply.',
+          arrives: 'Authorized now, settles next business day',
+          name: 'Card payment',
+          options: [
+            ['ACCT-1001', 'Commercial Visa \u2022\u20224417'],
+            ['ACCT-1003', 'Commercial Mastercard \u2022\u20225100']
+          ]
+        },
+        rtp: {
+          label: 'Pay from',
+          hint: 'Sent over the RTP network. Funds are final once sent.',
+          arrives: 'Within seconds, 24/7/365',
+          name: 'Real-time transfer',
+          options: [
+            ['ACCT-1002', 'Operating account \u2022\u20224410'],
+            ['ACCT-1004', 'Reserve account \u2022\u20228823']
+          ]
+        }
+      };
+      var method = 'card';
+      var form = document.getElementById('transferForm');
+      var fromSel = document.getElementById('fromAccount');
+      var toSel = document.getElementById('toAccount');
+      var amountEl = document.getElementById('amount');
+      var tierSel = document.getElementById('accountTier');
+      var btn = document.getElementById('submitBtn');
+      var clearBtn = document.getElementById('clearBtn');
+      var tabs = { card: document.getElementById('tabCard'), rtp: document.getElementById('tabRtp') };
+
+      function money(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      function clock(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+      function selText(sel) { return sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : ''; }
+
+      function setMethod(next) {
+        method = next;
+        var m = METHODS[method];
+        Object.keys(tabs).forEach(function (k) { tabs[k].setAttribute('aria-pressed', String(k === method)); });
+        fromSel.textContent = '';
+        m.options.forEach(function (o) {
+          var opt = document.createElement('option');
+          opt.value = o[0]; opt.textContent = o[1];
+          fromSel.appendChild(opt);
+        });
+        document.getElementById('fromLabel').textContent = m.label;
+        document.getElementById('fromHint').textContent = m.hint;
+        syncSummary();
+      }
+      function parseAmount() { return parseFloat(amountEl.value); }
+      function syncSummary() {
+        var v = parseAmount();
+        document.getElementById('sumPayee').textContent = selText(toSel).split(' \u00b7 ')[0];
+        document.getElementById('sumMethod').textContent = METHODS[method].name + ' \u00b7 ' + selText(fromSel);
+        document.getElementById('sumArrives').textContent = METHODS[method].arrives;
+        document.getElementById('sumAmount').textContent = isFinite(v) && v > 0 ? money(v) : '$0.00';
+      }
+      tabs.card.addEventListener('click', function () { setMethod('card'); });
+      tabs.rtp.addEventListener('click', function () { setMethod('rtp'); });
+      [fromSel, toSel].forEach(function (el) { el.addEventListener('change', syncSummary); });
+      amountEl.addEventListener('input', syncSummary);
+
+      var result = document.getElementById('result');
+      function show(cls, title, detail) {
+        result.className = 'result-box ' + cls;
+        result.textContent = '';
+        var t = document.createElement('div'); t.className = 'r-title'; t.textContent = title;
+        var d = document.createElement('div'); d.className = 'r-detail'; d.textContent = detail;
+        result.appendChild(t); result.appendChild(d);
+      }
+      form.addEventListener('reset', function () {
+        setTimeout(function () {
+          result.className = 'result-box';
+          result.textContent = '';
+          setMethod('card');
+        }, 0);
+      });
+
+      var SEED = [
+        [4, 'Online checkout', 'Visa \u2022\u20224242', 'TXN-8F31C2', 'E-commerce', 186.40, 'Approved', 'ok'],
+        [11, 'In-store purchase', 'Mastercard \u2022\u20225454', 'TXN-8F31B7', 'In-store', 72.15, 'Approved', 'ok'],
+        [26, 'Supplier payment', 'RTP to Cascade Textiles Co.', 'RTP-55A0E1', 'Real-time', -4820.00, 'Completed', 'info'],
+        [38, 'Mobile app order', 'Amex \u2022\u20221005', 'TXN-8F3170', 'Mobile', 349.99, 'Pending', 'pend'],
+        [52, 'Refund', 'Visa \u2022\u20221881', 'TXN-8F30D9', 'E-commerce', -64.00, 'Refunded', 'info'],
+        [67, 'Online checkout', 'Discover \u2022\u20226011', 'TXN-8F30A4', 'E-commerce', 129.00, 'Declined', 'err'],
+        [95, 'Payout received', 'FedNow from Contoso Market', 'FDN-19C7F2', 'Real-time', 12500.00, 'Settled', 'ok']
+      ];
+      var body = document.getElementById('txBody');
+      function row(when, desc, sub, ref, channel, amount, status, cls, isNew) {
+        var tr = document.createElement('tr');
+        if (isNew) tr.className = 'new';
+        var cells = [
+          ['col-time', clock(when)],
+          ['', null],
+          ['col-ref ref', ref],
+          ['col-ch', channel],
+          ['num', (amount < 0 ? '\u2212' : '') + money(Math.abs(amount))],
+          ['', null]
+        ];
+        cells.forEach(function (c, i) {
+          var td = document.createElement('td');
+          if (c[0]) td.className = c[0];
+          if (i === 1) {
+            td.appendChild(document.createTextNode(desc));
+            var s = document.createElement('span'); s.className = 'muted'; s.textContent = sub; td.appendChild(s);
+          } else if (i === 5) {
+            var p = document.createElement('span'); p.className = 'pill ' + cls; p.textContent = status; td.appendChild(p);
+          } else {
+            td.textContent = c[1];
+          }
+          tr.appendChild(td);
+        });
+        return tr;
+      }
+      var now = Date.now();
+      SEED.forEach(function (s) { body.appendChild(row(new Date(now - s[0] * 60000), s[1], s[2], s[3], s[4], s[5], s[6], s[7])); });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var amount = parseAmount();
+        if (!isFinite(amount) || amount <= 0 || !amountEl.validity.valid) { show('error', 'Payment not sent', 'Enter an amount of at least $0.01 in whole cents.'); amountEl.focus(); return; }
+        var payee = selText(toSel).split(' \u00b7 ')[0];
+        var methodName = method === 'card' ? 'Card payment' : 'Real-time transfer';
+        var methodSub = (method === 'card' ? 'Card ' : 'RTP ') + 'to ' + payee;
+        btn.disabled = true; btn.textContent = 'Processing\u2026'; btn.setAttribute('aria-busy', 'true');
+        clearBtn.disabled = true; fromSel.disabled = true; toSel.disabled = true; amountEl.readOnly = true;
+        tabs.card.disabled = true; tabs.rtp.disabled = true;
+        result.className = 'result-box';
+        result.textContent = '';
+        try {
+          var res = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromSel.value,
+              toAccount: toSel.value,
+              amount: parseFloat(amountEl.value),
+              accountTier: tierSel.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (!res.ok || !data.success) {
+            show('error', 'Payment not completed', 'We could not complete this payment. Check Recent transactions before trying again.');
+          } else {
+            var ref = data.receipt && data.receipt.receiptId ? data.receipt.receiptId : '';
+            var debit = parseFloat(data.debitAmount), fee = Math.round((debit - amount) * 100) / 100;
+            show('success', 'Payment sent', (money(amount) + ' ' + methodName.toLowerCase() + ' to ' + payee).replace(/\.$/, '') + '.' + (isFinite(debit) ? ' Total debited ' + money(debit) + (isFinite(fee) && fee > 0 ? ', including ' + money(fee) + ' in fees.' : '.') : '') + (ref ? ' Reference ' + ref + '.' : ''));
+            body.insertBefore(row(new Date(), 'Supplier payment', methodSub, ref ? 'RCP-' + ref.slice(-6) : '\u2014', method === 'card' ? 'Card' : 'Real-time', -(isFinite(debit) ? debit : amount), method === 'card' ? 'Approved' : 'Completed', method === 'card' ? 'ok' : 'info', true), body.firstChild);
+            if (body.children.length > 8) body.removeChild(body.lastElementChild);
+          }
+        } catch (err) {
+          show('error', 'Payment not completed', 'We could not reach the payments service. Check your connection and try again.');
+        } finally {
+          btn.disabled = false; btn.textContent = 'Pay'; btn.removeAttribute('aria-busy');
+          clearBtn.disabled = false; fromSel.disabled = false; toSel.disabled = false; amountEl.readOnly = false;
+          tabs.card.disabled = false; tabs.rtp.disabled = false;
+        }
+      });
+
+      setMethod('card');
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
