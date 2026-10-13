@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Banking | Webster Bank</title>
+  <link rel="icon" type="image/png" href="https://www.websterbank.com/wp-content/uploads/2022/02/cropped-favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Source+Sans+3:ital@1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --midnight: #050F48; --blue: #002D82; --blue-hover: #00246A; --teal: #008099; --teal-dark: #006E85;
+      --ice: #E6F8FC; --ink: #000000; --text: #333333; --muted: #6A6263; --line: #CECACB; --gray-bg: #F0F0F0;
+      --danger: #8E2227; --danger-bg: #FBF1F1; --success: #00738A; --success-bg: #E6F8FC;
+      --sans: Roboto, Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); font-size: 16px; color: var(--text); background: #fff; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: var(--blue); }
+    .wrap { max-width: 1340px; margin: 0 auto; padding: 0 50px; }
+
+    /* ---------- Top bar + header ---------- */
+    .topbar { background: var(--midnight); border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .topbar .wrap { display: flex; align-items: center; justify-content: space-between; height: 40px; }
+    .fdic { display: flex; align-items: center; gap: 8px; color: #fff; font-family: 'Source Sans 3', 'Source Sans Pro', Arial, sans-serif; font-style: italic; font-size: 12.8px; }
+    .fdic img { height: 16px; }
+    .topmenu { display: flex; gap: 48px; list-style: none; }
+    .topmenu a { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-size: 16px; }
+    .topmenu a:hover { text-decoration: underline; }
+    .topmenu img { width: 20px; height: 20px; }
+    .siteheader { background: var(--midnight); }
+    .siteheader .wrap { display: flex; align-items: center; height: 80px; gap: 40px; }
+    .logo img { display: block; width: 283px; height: auto; }
+    .mainnav { margin-left: auto; display: flex; gap: 40px; }
+    .mainnav a { color: #fff; text-decoration: none; font-size: 20px; font-weight: 500; }
+    .mainnav a:hover { text-decoration: underline; text-underline-offset: 6px; }
+    .header-actions { display: flex; align-items: center; gap: 16px; margin-left: 28px; }
+    .search-btn { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--teal); background: transparent; display: grid; place-items: center; cursor: pointer; }
+    .login-btn { height: 48px; padding: 0 24px; border-radius: 100px; background: var(--teal); color: #fff; border: none; font: 600 16px var(--sans); cursor: pointer; }
+    .login-btn:hover { background: var(--teal-dark); }
+
+    /* ---------- Hero ---------- */
+    .hero { position: relative; min-height: 340px; background: #0b2a6b url('https://www.websterbank.com/wp-content/uploads/2026/10/three-people-mountains-hero-1920x600-1-1536x480.jpg') right center / cover no-repeat; }
+    .hero-panel { position: relative; width: 50%; min-width: 520px; min-height: 340px; background: rgba(0, 32, 110, 0.86); display: flex; flex-direction: column; justify-content: center; padding: 48px 50px; color: #fff; }
+    .hero .eyebrow { font-size: 16px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 10px; }
+    .hero h1 { font-size: 44px; line-height: 1.12; font-weight: 700; letter-spacing: 0.01em; margin-bottom: 16px; }
+    .hero p { font-size: 17px; font-weight: 300; max-width: 560px; }
+
+    /* ---------- Content ---------- */
+    .sectionheading { text-align: center; font-size: 25px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text); margin: 64px 0 36px; }
+    .accounts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .acct { border: 1px solid var(--line); border-radius: 5px; padding: 28px 28px 24px; background: #fff; }
+    .acct h3 { font-size: 20px; font-weight: 600; color: var(--blue); margin-bottom: 4px; }
+    .acct .num { font-size: 14px; color: var(--muted); margin-bottom: 18px; }
+    .acct .bal-label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .acct .bal { font-size: 34px; font-weight: 700; color: var(--ink); }
+    .acct .link { display: inline-flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 16px; font-weight: 700; color: var(--blue); text-decoration: none; }
+
+    .band { background: var(--gray-bg); margin-top: 72px; padding: 64px 0 72px; }
+    .two-col { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+    .h2 { font-size: 34px; font-weight: 700; color: var(--ink); margin-bottom: 8px; letter-spacing: 0.01em; }
+    .lede { color: var(--text); margin-bottom: 24px; }
+    .card { background: #fff; border-radius: 5px; padding: 32px; box-shadow: 0 2px 10px rgba(5,15,72,0.06); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+    .field select, .field input { width: 100%; height: 48px; padding: 0 14px; border: 1px solid #8C8687; border-radius: 5px; font: 400 16px var(--sans); color: var(--ink); background: #fff; }
+    .field select:focus, .field input:focus { outline: 2px solid var(--teal); outline-offset: 1px; border-color: var(--teal); }
+    .field .hint { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-width: 220px; height: 56px; padding: 0 32px; background: var(--blue); color: #fff; border: none; border-radius: 5px; font: 400 18px var(--sans); cursor: pointer; }
+    .btn:hover { background: var(--blue-hover); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .result { display: none; margin-top: 22px; padding: 16px 18px; border-radius: 5px; border-left: 5px solid transparent; font-size: 15px; }
+    .result.error { display: block; background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+    .result.success { display: block; background: var(--success-bg); border-color: var(--success); color: #004A59; }
+    .result .title { font-weight: 700; margin-bottom: 2px; }
+    .result .detail { font-size: 14px; }
+    .result code { font-size: 12.5px; color: inherit; opacity: 0.85; word-break: break-word; }
+
+    .activity { background: #fff; border-radius: 5px; overflow: hidden; box-shadow: 0 2px 10px rgba(5,15,72,0.06); }
+    .activity h3 { font-size: 20px; font-weight: 600; color: var(--blue); padding: 22px 24px 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    td { padding: 14px 24px; border-top: 1px solid #E4E1E1; font-size: 15px; vertical-align: top; }
+    td.date { color: var(--muted); white-space: nowrap; width: 84px; }
+    td.amt { text-align: right; white-space: nowrap; font-weight: 500; color: var(--ink); }
+    td.amt.credit { color: var(--success); }
+    .secure { display: flex; gap: 14px; align-items: flex-start; margin-top: 24px; font-size: 14px; color: var(--text); }
+    .secure svg { flex: none; }
+
+    .prefooter { padding: 72px 0; text-align: center; }
+    .prefooter h3 { font-size: 30px; font-weight: 700; color: var(--ink); margin-bottom: 16px; }
+    .prefooter p { letter-spacing: 0.02em; margin-bottom: 26px; }
+    .prefooter .btn-outline { display: inline-flex; align-items: center; height: 50px; padding: 0 28px; border: 2px solid var(--blue); color: var(--blue); border-radius: 5px; font-size: 18px; text-decoration: none; }
+
+    .sitefooter { background: var(--blue); color: #fff; padding: 44px 0 48px; }
+    .sitefooter .wrap { display: grid; grid-template-columns: 256px 1fr; gap: 0; }
+    .sitefooter .badges img { height: 48px; }
+    .footlinks { font-size: 14px; font-weight: 300; margin-bottom: 14px; }
+    .footlinks a { color: #fff; }
+    .footlinks span { margin: 0 8px; }
+    .sitefooter p { font-size: 14px; font-weight: 300; margin-bottom: 10px; max-width: 440px; }
+
+    /* identity bubble */
+    .fab { position: fixed; right: 22px; bottom: 22px; width: 52px; height: 52px; border-radius: 50%; background: var(--blue); border: none; box-shadow: 0 8px 20px rgba(0,45,130,0.3); display: grid; place-items: center; z-index: 50; cursor: pointer; }
+    .fab:hover { background: var(--teal); }
+    .drawer { position: fixed; right: 22px; bottom: 86px; width: min(340px, calc(100vw - 44px)); z-index: 50; padding: 18px; background: #fff; border: 1px solid #E4E1E1; border-radius: 6px; box-shadow: 0 12px 32px rgba(5,15,72,0.18); }
+    .drawer h4 { font-size: 16px; font-weight: 700; color: var(--blue); }
+    .drawer p.sub { font-size: 12px; line-height: 1.4; color: var(--muted); margin: 4px 0 12px; }
+    .drawer label { display: block; font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+    .drawer input { width: 100%; border: 1px solid var(--line); border-radius: 4px; padding: 9px 10px; font: 13px var(--sans); margin-bottom: 10px; outline: none; }
+    .drawer input:focus { border-color: var(--teal); }
+    .drawer .btn-main { width: 100%; height: 38px; border: none; border-radius: 4px; background: var(--blue); color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .drawer .btn-main[disabled] { opacity: 0.6; }
+    .id-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); margin-bottom: 12px; flex-wrap: wrap; }
+    .id-status code { font-size: 11px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #A3A3A3; flex: none; }
+    .dot.ok { background: #22A45D; } .dot.warn { background: #E8A317; }
+    .id-msg { font-size: 12px; margin-top: 8px; }
+    .id-msg.err { color: var(--danger); } .id-msg.ok { color: var(--success); }
+
+    @media (max-width: 1180px) {
+      .mainnav { gap: 24px; } .mainnav a { font-size: 17px; } .topmenu { gap: 24px; }
+      .logo img { width: 220px; }
+    }
+    @media (max-width: 960px) {
+      .wrap { padding: 0 20px; }
+      .mainnav, .topmenu, .search-btn { display: none; }
+      .header-actions { margin-left: auto; }
+      .hero-panel { width: 100%; min-width: 0; padding: 40px 20px; }
+      .hero h1 { font-size: 34px; }
+      .accounts, .two-col, .form-row { grid-template-columns: 1fr; }
+      .sitefooter .wrap { grid-template-columns: 1fr; gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="wrap">
+      <div class="fdic"><img src="https://www.websterbank.com/wp-content/themes/snb/images/fdic-logo.svg" alt="FDIC">FDIC-Insured - Backed by the full faith and credit of the U.S. Government</div>
+      <ul class="topmenu">
+        <li><a href="#"><img src="https://www.websterbank.com/wp-content/uploads/2026/06/call.svg" alt="">Contact Us</a></li>
+        <li><a href="#"><img src="https://www.websterbank.com/wp-content/uploads/2026/06/bid_landscape.svg" alt="">Investor Relations</a></li>
+        <li><a href="#"><img src="https://www.websterbank.com/wp-content/uploads/2026/06/business_center.svg" alt="">Careers</a></li>
+        <li><a href="#"><img src="https://www.websterbank.com/wp-content/uploads/2026/06/be-location-white.svg" alt="">Locations</a></li>
+      </ul>
+    </div>
+  </div>
+  <header class="siteheader">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="Webster Bank"><img src="https://www.websterbank.com/wp-content/uploads/2025/11/commercial-logo.svg" alt="Webster Bank"></a>
+      <nav class="mainnav" aria-label="Main">
+        <a href="#">Personal</a><a href="#">Business</a><a href="#">Commercial</a><a href="#">Wealth</a><a href="#">About Us</a>
+      </nav>
+      <div class="header-actions">
+        <button type="button" class="search-btn" aria-label="Search">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#008099" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+        </button>
+        <button type="button" class="login-btn">Log Out</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-panel">
+      <div class="eyebrow">Personal Online Banking</div>
+      <h1>Good afternoon, Alice.</h1>
+      <p>Private Client relationship &middot; Webster customer since 2014. Your Relationship Manager is Daniel Ferreira, Waterbury Banking Center.</p>
+    </div>
+  </section>
+
+  <main>
+    <div class="wrap">
+      <h2 class="sectionheading">Your Accounts</h2>
+      <div class="accounts" id="accounts"></div>
+    </div>
+
+    <section class="band">
+      <div class="wrap two-col">
+        <div>
+          <h2 class="h2">Transfer Money</h2>
+          <p class="lede">Move money between your Webster accounts or to a linked account at another bank.</p>
+          <div class="card">
+            <form id="transferForm" novalidate>
+              <div class="form-row">
+                <div class="field">
+                  <label for="fromAccount">From</label>
+                  <select id="fromAccount"></select>
+                </div>
+                <div class="field">
+                  <label for="toAccount">To</label>
+                  <select id="toAccount"></select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label for="amount">Amount</label>
+                  <input type="number" id="amount" value="1500.00" min="0.01" step="0.01" inputmode="decimal">
+                </div>
+                <div class="field">
+                  <label for="sendOn">Send On</label>
+                  <select id="sendOn"><option>Today</option><option>Tomorrow</option><option>Choose a date&hellip;</option></select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="memo">Memo (optional)</label>
+                <input type="text" id="memo" maxlength="40" value="October savings">
+              </div>
+              <button type="submit" class="btn" id="submitBtn">Continue</button>
+            </form>
+            <div id="result" class="result" role="status" aria-live="polite"></div>
+            <div class="secure">
+              <svg width="28" height="32" viewBox="0 0 28 32" fill="none" stroke="#002D82" stroke-width="2.2"><rect x="2" y="13" width="24" height="17" rx="2"/><path d="M7 13V9a7 7 0 0 1 14 0v4"/><circle cx="14" cy="21" r="2" fill="#002D82"/></svg>
+              <span>Transfers made before 8:00 p.m. ET on a business day post the same day. Webster will never ask for your password or one-time passcode by phone, text or email.</span>
+            </div>
+          </div>
+        </div>
+        <div class="activity">
+          <h3>Recent Activity</h3>
+          <table><tbody id="activity"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <section class="prefooter">
+      <div class="wrap">
+        <h3>Fraud Awareness Starts Here</h3>
+        <p>From phishing to elder scams, our Fraud and Security Center offers the latest alerts, prevention tips, and tools.</p>
+        <a class="btn-outline" href="#">Visit the Fraud and Security Center</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="sitefooter">
+    <div class="wrap">
+      <div class="badges"><img src="https://www.websterbank.com/wp-content/themes/snb/images/member-fdic-white.png" alt="Member FDIC, Equal Housing Lender"></div>
+      <div>
+        <div class="footlinks"><a href="#">Security</a><span>|</span><a href="#">Legal</a><span>|</span><a href="#">Privacy</a><span>|</span><a href="#">Disclosures and Fees</a><span>|</span><a href="#">Accessibility Statement</a><span>|</span><a href="#">Sitemap</a></div>
+        <p>Webster Bank, a division of Santander Bank, N.A., Member FDIC</p>
+        <p>Webster, Webster Bank, Webster Investments, the Webster Bank logo and the W symbol are trademarks of Santander Holdings USA, Inc. and registered in the U.S. Patent and Trademark Office.<br>&copy; 2026 Santander Holdings USA, Inc. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <button type="button" class="fab" id="fab" aria-label="On-call identity">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+  </button>
+  <div class="drawer" id="drawer" hidden>
+    <h4>On-call identity</h4>
+    <p class="sub">The <strong>@devindemos.com</strong> email decides who is @mentioned as On-Call in Slack and which Devin user the session is created as.</p>
+    <div class="id-status"><span class="dot" id="identityDot"></span><span id="identityText">Loading&hellip;</span><code id="identityEmailOut"></code></div>
+    <label for="identityEmail">Email</label>
+    <input type="email" id="identityEmail" placeholder="name@devindemos.com" autocomplete="off">
+    <label for="identityOrg">Devin organization</label>
+    <input type="text" id="identityOrg" placeholder="Organization name" autocomplete="off">
+    <button type="button" class="btn-main" id="identityBtn">Connect identity</button>
+    <div id="identityMsg" class="id-msg"></div>
+  </div>
+
+  <script>
+    (function () {
+      function $(id) { return document.getElementById(id); }
+      function stored(key) { return localStorage.getItem(key) || ''; }
+      function esc(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function money(value) {
+        return '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function shortDate(iso) {
+        var d = new Date(iso + 'T12:00:00');
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+      function mask(id) { return '\u2022\u2022' + id.slice(-4); }
+
+      /* ---------- accounts ---------- */
+      var accounts = [];
+      fetch('/api/webster/accounts').then(function (r) { return r.json(); }).then(function (data) {
+        accounts = data.accounts || [];
+        $('accounts').innerHTML = accounts.map(function (a) {
+          return '<div class="acct"><h3>' + esc(a.name) + '</h3><div class="num">Account ' + esc(mask(a.id)) + '</div>'
+            + '<div class="bal-label">Available Balance</div><div class="bal">' + money(a.balance) + '</div>'
+            + '<a class="link" href="#">View Details <svg width="8" height="12" viewBox="0 0 8 12"><path d="M1.5 1 6 6l-4.5 5" stroke="#002D82" stroke-width="2" fill="none"/></svg></a></div>';
+        }).join('');
+        $('activity').innerHTML = (data.transactions || []).map(function (t) {
+          var credit = t.amount > 0;
+          return '<tr><td class="date">' + esc(shortDate(t.date)) + '</td><td>' + esc(t.description) + '</td>'
+            + '<td class="amt' + (credit ? ' credit' : '') + '">' + (credit ? '+' : '\u2212') + money(Math.abs(t.amount)) + '</td></tr>';
+        }).join('');
+        var own = accounts.map(function (a) {
+          return '<option value="' + esc(a.id) + '">' + esc(a.name) + ' ' + esc(mask(a.id)) + ' \u2014 ' + money(a.balance) + '</option>';
+        }).join('');
+        var external = (data.externalAccounts || []).map(function (a) {
+          return '<option value="' + esc(a.id) + '">' + esc(a.name) + '</option>';
+        }).join('');
+        $('fromAccount').innerHTML = own;
+        $('toAccount').innerHTML = own + external;
+        if (accounts.length > 1) $('toAccount').selectedIndex = 1;
+      }).catch(function () {
+        $('accounts').innerHTML = '<p>We&rsquo;re unable to display your accounts right now. Please try again later.</p>';
+      });
+
+      /* ---------- identity (same contract as the other demos) ---------- */
+      var config = {};
+      var identityPending = Promise.resolve();
+      var emailInput = $('identityEmail'), orgInput = $('identityOrg'), identityBtn = $('identityBtn'), identityMsg = $('identityMsg');
+      function renderIdentity() {
+        var email = stored('devinEmail'), userId = stored('devinUserId');
+        $('identityEmailOut').textContent = email;
+        if (email && userId) { $('identityDot').className = 'dot ok'; $('identityText').textContent = 'On-call and session:'; }
+        else if (email) { $('identityDot').className = 'dot warn'; $('identityText').textContent = 'Email saved without a Devin user:'; }
+        else { $('identityDot').className = 'dot warn'; $('identityText').textContent = 'No identity configured'; }
+      }
+      $('fab').addEventListener('click', function () { $('drawer').hidden = !$('drawer').hidden; });
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        config = cfg || {};
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.lockOrg) {
+          orgInput.value = cfg.defaultOrgName || stored('devinOrgName') || '';
+          orgInput.disabled = true;
+          orgInput.title = 'Organization pinned by server configuration';
+        } else if (!orgInput.value) {
+          orgInput.value = stored('devinOrgName') || cfg.defaultOrgName || '';
+        }
+        renderIdentity();
+      }).catch(renderIdentity);
+      emailInput.value = stored('devinEmail');
+      orgInput.value = stored('devinOrgName');
+      renderIdentity();
+
+      identityBtn.addEventListener('click', function () {
+        var email = emailInput.value.trim(), orgName = orgInput.value.trim();
+        identityMsg.className = 'id-msg'; identityMsg.textContent = '';
+        if (!email) { identityMsg.className = 'id-msg err'; identityMsg.textContent = 'Enter the on-call person\u2019s email.'; return; }
+        var payload = { email: email };
+        if (config.lockOrg && config.defaultOrgId) payload.orgId = config.defaultOrgId;
+        else if (orgName) payload.orgName = orgName;
+        else if (config.defaultOrgId) payload.orgId = config.defaultOrgId;
+        identityBtn.disabled = true; identityBtn.textContent = 'Connecting\u2026';
+        identityPending = fetch('/api/resolve-identity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+          .then(function (response) { return response.json().then(function (data) { return { ok: response.ok, data: data }; }); })
+          .then(function (res) {
+            if (!res.ok) { identityMsg.className = 'id-msg err'; identityMsg.textContent = res.data.error || 'Could not resolve this identity.'; return; }
+            if (config.lockUser && res.data.userId && res.data.userId !== stored('devinUserId')) {
+              identityMsg.className = 'id-msg err'; identityMsg.textContent = 'This deployment is pinned to another Devin user; use that person\u2019s email.'; return;
+            }
+            localStorage.setItem('devinEmail', email);
+            if (orgName && !config.lockOrg) localStorage.setItem('devinOrgName', orgName);
+            if (res.data.orgId && !config.lockOrg) localStorage.setItem('devinOrgId', res.data.orgId);
+            if (res.data.userId && !config.lockUser) localStorage.setItem('devinUserId', res.data.userId);
+            identityMsg.className = 'id-msg ok'; identityMsg.textContent = 'Identity connected.';
+            renderIdentity();
+          })
+          .catch(function (err) { identityMsg.className = 'id-msg err'; identityMsg.textContent = err.message; })
+          .finally(function () { identityBtn.disabled = false; identityBtn.textContent = 'Connect identity'; });
+      });
+
+      /* ---------- transfer ---------- */
+      $('transferForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var btn = $('submitBtn'), result = $('result');
+        btn.disabled = true; btn.textContent = 'Processing\u2026';
+        result.className = 'result'; result.innerHTML = '';
+        identityPending.catch(function () {}).then(function () {
+          return fetch('/api/webster/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: $('fromAccount').value,
+              toAccount: $('toAccount').value,
+              amount: parseFloat($('amount').value),
+              devinUserId: stored('devinUserId'),
+              devinOrgId: stored('devinOrgId'),
+              devinEmail: stored('devinEmail')
+            })
+          });
+        })
+          .then(function (r) { return r.json().then(function (p) { return { ok: r.ok, status: r.status, payload: p }; }); })
+          .then(function (res) {
+            var p = res.payload || {};
+            if (res.ok && p.receipt) {
+              result.className = 'result success';
+              result.innerHTML = '<div class="title">Your transfer is complete.</div>'
+                + '<div class="detail">' + money(p.receipt.amount) + ' sent &middot; fee ' + money(p.receipt.fee) + ' &middot; total ' + money(p.receipt.totalDebit)
+                + '<br>Confirmation number ' + esc(p.receipt.confirmationNumber) + '</div>';
+            } else if (res.status === 400) {
+              result.className = 'result error';
+              result.innerHTML = '<div class="title">Please review your transfer.</div><div class="detail">' + esc(p.error) + '</div>';
+            } else {
+              result.className = 'result error';
+              result.innerHTML = '<div class="title">We&rsquo;re unable to complete your transfer at this time.</div>'
+                + '<div class="detail">Please try again later or call 800.325.2424.<br><code>' + esc(p.errorClass) + ': ' + esc(p.error)
+                + (p.transferId ? ' &middot; Ref ' + esc(p.transferId) : '') + '</code></div>';
+            }
+          })
+          .catch(function (err) {
+            result.className = 'result error';
+            result.innerHTML = '<div class="title">Connection problem</div><div class="detail">' + esc(err.message) + '</div>';
+          })
+          .finally(function () { btn.disabled = false; btn.textContent = 'Continue'; });
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
