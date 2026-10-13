@@ -302,12 +302,16 @@
     document.getElementById('heroUnit').textContent = VARIANTS[v].unit;
     renderSummary();
   }
+  const TAX = { CA: [0.05, 'GST'], GB: [0.2, 'VAT'], DE: [0.19, 'VAT'], FR: [0.2, 'VAT'], JP: [0.1, 'JCT'], KR: [0.1, 'VAT'], AU: [0.1, 'GST'] };
   function renderSummary() {
     const seats = Math.max(0, parseInt(seatsEl.value, 10) || 0);
     const v = VARIANTS[variant];
-    const total = v.price * seats;
+    const tax = TAX[form.country.value];
+    const subtotal = v.price * seats;
+    const total = Math.round(subtotal * (1 + (tax ? tax[0] : 0)) * 100) / 100;
     document.getElementById('sSeats').textContent = seats;
     document.getElementById('sUnit').textContent = money(v.price) + v.short;
+    document.getElementById('sTax').textContent = tax ? tax[1] + ' ' + Math.round(tax[0] * 100) + '% · ' + money(total - subtotal) : 'Calculated on invoice';
     document.getElementById('sDue').textContent = money(total);
     document.getElementById('sNote').textContent = variant === 'unity-pro-1-year-monthly'
       ? 'Then ' + money(total) + '/mo for the remaining 11 months. Seats can be assigned in Unity Cloud once your order is complete.'
@@ -315,6 +319,7 @@
   }
   document.querySelectorAll('.toggle button').forEach(b => b.addEventListener('click', () => setVariant(b.dataset.variant)));
   document.querySelectorAll('.opt input').forEach(i => i.addEventListener('change', () => setVariant(i.value)));
+  form.country.addEventListener('change', renderSummary);
   document.getElementById('seatMinus').addEventListener('click', () => { seatsEl.value = Math.max(1, (parseInt(seatsEl.value, 10) || 1) - 1); renderSummary(); });
   document.getElementById('seatPlus').addEventListener('click', () => { seatsEl.value = (parseInt(seatsEl.value, 10) || 0) + 1; renderSummary(); });
   seatsEl.addEventListener('input', renderSummary);
