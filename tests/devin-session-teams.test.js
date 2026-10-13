@@ -131,6 +131,16 @@ describe('hub demo alert destination (Slack / Teams)', () => {
     expect(axios.post).not.toHaveBeenCalled();
   });
 
+  test('the Teams card carries the service-owned remediation directive for the responder', async () => {
+    const promptAppendix = 'Open a PR against main in COG-GTM/event-driven-devin.';
+    await runWithAlertDestination('teams', () => createSessionAndAlert({ ...alert(), promptAppendix }));
+    const [alertCard] = teamsCards();
+    expect(alertCard.body).toContainEqual(expect.objectContaining({ type: 'TextBlock', text: 'Responder instructions' }));
+    const note = alertCard.body.find((b) => b.type === 'TextBlock' && b.text.endsWith(promptAppendix));
+    expect(note.text).toMatch(/^This alert was posted only to Microsoft Teams; there is no Slack alert thread\./);
+    expect(axios.post.mock.calls[0][1].text).toContain(promptAppendix);
+  });
+
   test('a failed Teams-only post delivers nothing and starts no session', async () => {
     axios.post.mockRejectedValue(new Error('boom'));
     const result = await runWithAlertDestination('teams', () => createSessionAndAlert(alert()));

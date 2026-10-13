@@ -71,7 +71,14 @@ function buildTeamsFieldCard({
   const body = [{
     type: 'TextBlock', text: title, weight: 'Bolder', size: 'Medium', color, wrap: true,
   }];
-  sections.forEach((section) => {
+  sections.filter(Boolean).forEach((section) => {
+    if (section.note) {
+      body.push({ type: 'TextBlock', text: section.note.label, weight: 'Bolder', spacing: 'Medium' });
+      body.push({
+        type: 'TextBlock', text: section.note.text, wrap: true, spacing: 'Small',
+      });
+      return;
+    }
     if (section.code) {
       body.push({ type: 'TextBlock', text: section.code.label, weight: 'Bolder', spacing: 'Medium' });
       // Top-level, not in a Container: Teams passes responders only top-level TextBlocks.
