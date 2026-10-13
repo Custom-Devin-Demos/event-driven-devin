@@ -232,11 +232,20 @@ async function processInquiry(data = {}) {
   const requestId = uuidv4();
   const started = Date.now();
   const promotionId = data.promotionId || 'switch-iphone18pro';
-  const lines = Number.isInteger(data.lines) && data.lines > 0 && data.lines <= MAX_LINES ? data.lines : DEFAULT_LINES;
-  findPromotion(promotionId);
+  const knownPromotion = PROMOTIONS.some((p) => p.id === promotionId);
+  const promotionTag = knownPromotion ? promotionId : 'unknown';
 
-  logger.info('Switch offer inquiry received', { requestId, promotionId, lines, customer: CUSTOMER });
-  incrementMetric('switch.inquiry.attempt', [`customer:${CUSTOMER}`, `promotion:${promotionId}`]);
+  logger.info('Switch offer inquiry received', { requestId, promotion: promotionTag, customer: CUSTOMER });
+  incrementMetric('switch.inquiry.attempt', [`customer:${CUSTOMER}`, `promotion:${promotionTag}`]);
+
+  findPromotion(promotionId);
+  const lines = data.lines === undefined || data.lines === null ? DEFAULT_LINES : data.lines;
+  if (!Number.isInteger(lines) || lines < 1 || lines > MAX_LINES) {
+    const error = new Error(`lines must be an integer between 1 and ${MAX_LINES}`);
+    error.statusCode = 400;
+    error.code = 'INVALID_LINES';
+    throw error;
+  }
 
   try {
     const quote = buildSwitchQuote(promotionId, lines);
