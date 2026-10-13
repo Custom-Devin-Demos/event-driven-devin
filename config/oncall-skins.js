@@ -3445,6 +3445,30 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A VIVID SEATS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Vivid Seats product.',
   },
+  '898defe9': {
+    slug: '898defe9',
+    company: 'OpenSea',
+    brandMark: 'OS',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '898defe9.html', title: 'Checkout | OpenSea' },
+    theme: {
+      '--accent': '#2081E2',
+      '--ink': '#121212',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#121212',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'OpenSea Help Center',
+    alertCard: {
+      title: 'p95 latency \u2014 NFT checkout Complete purchase',
+      release: 'checkout-web@1.0.3',
+      baseline: '~300ms (7-day p95, before checkout-web@1.0.3)',
+      symptom: 'Complete purchase hangs ~9s before the order confirms. Error rate is normal \u2014 purchases eventually go through.',
+      impact: 'Collectors buying NFTs wait ~9 seconds on Complete purchase; some press it again or abandon checkout before the order confirms.',
+    },
+    disclaimer: 'NOT ACTUALLY AN OPENSEA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OpenSea product.',
+  },
 };
 
 function getOncallSkin(slug) {
