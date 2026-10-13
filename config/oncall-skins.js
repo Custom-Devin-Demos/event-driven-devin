@@ -3382,6 +3382,30 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN ACI WORLDWIDE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real ACI Worldwide product.',
   },
+  '7ec9d6c9': {
+    slug: '7ec9d6c9',
+    company: 'Barclays',
+    brandMark: 'B',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '7ec9d6c9.html', title: 'Make a payment | Barclays Online Banking' },
+    theme: {
+      '--accent': '#006DE3',
+      '--ink': '#272727',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000063',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Barclays Help and support',
+    alertCard: {
+      title: 'p95 latency \u2014 Online Banking payments',
+      release: 'online-banking-payments@1.0.3',
+      baseline: '~300ms (7-day p95, before online-banking-payments@1.0.3)',
+      symptom: 'Payments to existing payees hang ~9s before confirming. Error rate is normal \u2014 payments eventually go through.',
+      impact: 'Customers paying an existing payee in Online Banking wait ~9 seconds for confirmation; some press Make payment again and call in about duplicate payments.',
+    },
+    disclaimer: 'NOT ACTUALLY A BARCLAYS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Barclays product.',
+  },
 };
 
 function getOncallSkin(slug) {
