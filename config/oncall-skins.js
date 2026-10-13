@@ -3469,6 +3469,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN OPENSEA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OpenSea product.',
   },
+  '53715b85': {
+    slug: '53715b85',
+    company: 'Vertican Technologies',
+    vertical: 'insurance',
+    page: {
+      file: '53715b85.html',
+      title: 'Where Data, Validation, & Analytics Converge - vExchange Vertican Technologies',
+    },
+    disclaimer: 'NOT ACTUALLY A VERTICAN TECHNOLOGIES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Vertican Technologies product.',
+  },
 };
 
 function getOncallSkin(slug) {
