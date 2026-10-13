@@ -3421,6 +3421,30 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BARCLAYS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Barclays product.',
   },
+  'b7a95092': {
+    slug: 'b7a95092',
+    company: 'Vivid Seats',
+    brandMark: 'V',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'b7a95092.html', title: 'Checkout | Vivid Seats' },
+    theme: {
+      '--accent': '#CE3197',
+      '--ink': '#04092C',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#04092C',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Vivid Seats Customer Service',
+    alertCard: {
+      title: 'p95 latency \u2014 ticket checkout Place Order',
+      release: 'checkout-web@1.0.3',
+      baseline: '~300ms (7-day p95, before checkout-web@1.0.3)',
+      symptom: 'Place Order hangs ~9s before the order confirms. Error rate is normal \u2014 orders eventually go through.',
+      impact: 'Fans buying tickets wait ~9 seconds on Place Order; some press it again or leave checkout before the order confirms.',
+    },
+    disclaimer: 'NOT ACTUALLY A VIVID SEATS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Vivid Seats product.',
+  },
 };
 
 function getOncallSkin(slug) {
