@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Wall Street Journal</title>
+  <link rel="icon" href="/verticals/assets/e1aeb83c/favicon.ico">
+  <style>
+    @font-face { font-family: 'Retina'; font-weight: 300; src: url('/verticals/assets/e1aeb83c/fonts/Retina-Light.woff2') format('woff2'); font-display: swap; }
+    @font-face { font-family: 'Retina'; font-weight: 400; src: url('/verticals/assets/e1aeb83c/fonts/Retina-Regular.woff2') format('woff2'); font-display: swap; }
+    @font-face { font-family: 'Retina'; font-weight: 500; src: url('/verticals/assets/e1aeb83c/fonts/Retina-Medium.woff2') format('woff2'); font-display: swap; }
+    @font-face { font-family: 'Retina'; font-weight: 600; src: url('/verticals/assets/e1aeb83c/fonts/Retina-Semibold.woff2') format('woff2'); font-display: swap; }
+    @font-face { font-family: 'Retina'; font-weight: 700; src: url('/verticals/assets/e1aeb83c/fonts/Retina-Bold.woff') format('woff'); font-display: swap; }
+    @font-face { font-family: 'RetinaNarrow'; font-weight: 400; src: url('/verticals/assets/e1aeb83c/fonts/RetinaNarrow-Regular.woff') format('woff'); font-display: swap; }
+    @font-face { font-family: 'RetinaNarrow'; font-weight: 500; src: url('/verticals/assets/e1aeb83c/fonts/RetinaNarrow-Medium.woff') format('woff'); font-display: swap; }
+    @font-face { font-family: 'EscrowCondensed'; font-weight: 600; src: url('/verticals/assets/e1aeb83c/fonts/EscrowCondensed-Semibold.woff') format('woff'); font-display: swap; }
+    @font-face { font-family: 'EscrowCondensed'; font-weight: 700; src: url('/verticals/assets/e1aeb83c/fonts/EscrowCondensed-Bold.woff2') format('woff2'); font-display: swap; }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: #f0f0f0; font-family: Retina, Helvetica, Arial, sans-serif; color: #222; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+    p { margin: 0; }
+
+    .back-link { position: fixed; top: 8px; left: 12px; z-index: 50; font-size: 12px; color: #f4f4f4; opacity: .55; }
+    .back-link:hover { opacity: 1; }
+
+    .page { background: #fff; min-height: 100vh; }
+
+    .student-banner { height: 43px; background: #222; color: #f4f4f4; display: flex; align-items: center; justify-content: center; font-size: 13px; line-height: 20px; text-align: center; padding: 0 20px; }
+    .student-banner a { color: #f4f4f4; text-decoration: underline; font-size: 12px; }
+
+    .site-header { background: #fefefe; border: 1px solid #ccc; padding: 4.3px; display: flex; justify-content: center; align-items: center; }
+    .site-header .logo { display: block; width: 220px; height: 47px; display: flex; align-items: center; justify-content: center; }
+    .site-header .logo img { display: block; width: 220px; height: 19px; margin: 11px 0 16px; }
+
+    .hero { padding: 30px 5px 2px; text-align: center; }
+    .hero-headline { font-family: EscrowCondensed, Georgia, serif; font-size: 36px; font-weight: 600; line-height: 40px; color: #222; }
+    .hero-brand { margin-top: 24px; font-family: Retina, sans-serif; font-size: 24px; font-weight: 400; line-height: 28.8px; color: #222; }
+
+    .spacer-25 { height: 25px; } .spacer-30 { height: 30px; } .spacer-10 { height: 10px; }
+
+    .toggle { width: 400px; max-width: calc(100% - 40px); height: 48px; margin: 0 auto; border: 1px solid #ccc; border-radius: 10px; background: #fff; padding: 3px; display: flex; position: relative; }
+    .toggle-slider { position: absolute; top: 3px; left: 50%; width: 196px; height: 40px; background: #000; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: left .25s; }
+    .toggle-option { position: relative; z-index: 1; flex: 1; height: 39px; margin: 1px 2px 0; padding: 12px 3px; display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 17px; color: #222; background: none; border: 0; }
+    .toggle-option.active { color: #fff; font-weight: 700; }
+
+    .plans { width: 1000px; max-width: 100%; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; gap: 16px; }
+    .plan-col { flex: 1; display: flex; }
+    .plan { width: 100%; margin: 0 3px 27px; background: #fff; border: 1px solid #000; border-radius: 30px; box-shadow: rgba(0,0,0,.1) 0 1px 2px 1px; padding: 0 20px; }
+    .plan-inner { padding: 26px 0 32px; text-align: center; }
+    .plan-title { font-size: 16px; font-weight: 400; line-height: 28px; text-transform: uppercase; color: #222; }
+    .plan-logo { height: 84px; margin: 29px 0 37px; display: flex; align-items: center; justify-content: center; }
+    .plan-logo img { display: block; max-width: 100%; }
+    .plan-logo img.premier { width: 420px; height: 84px; }
+    .plan-logo img.digital { width: 420px; height: 46px; }
+    .plan-price { font-size: 24px; font-weight: 400; line-height: 30px; color: #222; }
+    .plan-then { margin-top: 3px; font-size: 14px; font-weight: 300; line-height: 20px; color: #0b1118; }
+    .plan-module { padding-top: 11px; }
+    .cta { display: block; width: 268px; max-width: 100%; height: 44px; margin: 10px auto 8px; padding: 10px 30px; background: #000; color: #fff; border: 1px solid #000; border-radius: 30px; font-size: 14px; font-weight: 500; line-height: 20px; }
+    .cta:hover { background: #333; }
+    .cancel { font-size: 13px; font-weight: 300; line-height: 16px; padding-bottom: 26px; color: #222; }
+    .plan hr { height: 2px; margin: 0; border: 0; background: #ccc; }
+    .enjoy { padding: 20px 0 6px; font-size: 14px; font-weight: 600; line-height: 20px; text-align: center; color: #222; }
+    .benefits { list-style: none; margin: 0; padding: 0 0 0 12px; text-align: left; }
+    .benefits li { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; line-height: 20px; color: #222; min-height: 24px; }
+    .benefits li:last-child { margin-bottom: 0; }
+    .benefits li span { flex: 1; padding-right: 16px; }
+    .benefits li i { flex: 0 0 24px; width: 24px; height: 20px; background: url('https://www.wsj.com/subscribe/assets/us/us/wsjcore27ns/images/check_v1.svg') no-repeat center / contain; filter: brightness(0); }
+
+    .pack { width: 1000px; max-width: 100%; margin: 0 auto 10px; }
+    .pack-box { margin: 0 20px; padding: 3px 20px; background: #f4f4f4; border-radius: 30px; box-shadow: rgba(0,0,0,.1) 0 1px 2px 1px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .pack-left { display: flex; width: 600px; max-width: 100%; }
+    .pack-left img { display: block; width: 220px; margin-top: 17px; }
+    .pack-text { width: 380px; padding: 28px 0 0 15px; }
+    .pack-heading { padding-top: 9px; font-family: RetinaNarrow, Retina, sans-serif; font-size: 20px; font-weight: 500; line-height: 24px; color: #222; }
+    .pack-desc { padding-top: 9px; font-size: 14px; font-weight: 300; line-height: 20px; color: #222; }
+    .pack-desc p { margin-bottom: 16px; }
+    .pack-cta-wrap { width: 258px; margin-top: 15px; padding-top: 32px; }
+    .pack-cta { display: block; width: 258px; height: 44px; padding: 12px; border: 1px solid #6f6f6f; border-radius: 30px; background: transparent; color: #222; font-size: 14px; font-weight: 600; line-height: 18px; text-align: center; }
+    .pack-cta:hover { background: #fff; }
+
+    .accordion { width: 1000px; max-width: 100%; margin: 0 auto; }
+    .accordion:first-of-type { margin-top: 10px; }
+    .accordion summary { list-style: none; margin: 0 20px; padding: 18px 55px 18px 20px; border-bottom: 1px solid #000; display: flex; justify-content: space-between; position: relative; cursor: pointer; background: #fff; }
+    .accordion summary::-webkit-details-marker { display: none; }
+    .accordion summary a { font-size: 14px; font-weight: 500; line-height: 20px; color: #222; }
+    .accordion summary::after { content: ''; position: absolute; right: 20px; top: 18px; width: 24px; height: 20px; background: url('https://www.wsj.com/subscribe/assets/us/us/wsjcore27ns/images/chevrondown_v1.svg') no-repeat center / contain; filter: brightness(0); transition: transform .25s; }
+    .accordion + .spacer-1 { height: 1px; }
+
+    .policy { padding: 42px 20px 50px; text-align: center; font-size: 12.8px; line-height: 22px; color: #222; }
+    .policy a { color: #0274b6; }
+
+    .site-footer { height: 122px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: Retina, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 300; line-height: 20px; color: #6f6f6f; }
+    .site-footer img { display: block; width: 187px; height: 14px; margin-bottom: 14px; }
+    .site-footer nav a { color: #6f6f6f; margin: 0 10px; }
+    .site-footer nav a:hover { text-decoration: underline; }
+    .site-footer .copy { color: #999; margin-top: 4px; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; max-width: 380px; padding: 14px 22px; background: rgba(17,17,17,.92); color: #fff; border-radius: 8px; font-size: 14px; line-height: 20px; box-shadow: 0 6px 24px rgba(0,0,0,.25); z-index: 10000; opacity: 0; transform: translateY(20px); transition: opacity .3s, transform .3s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 960px) {
+      .plans { flex-direction: column; }
+      .pack-box { flex-direction: column; align-items: center; }
+      .pack-left { flex-direction: column; align-items: center; text-align: center; }
+      .pack-text { padding-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-link" data-escape>&larr; All Demos</a>
+
+  <div class="page">
+    <div class="student-banner">
+      <span>Are you a student? <a href="https://subscribe.wsj.com/studentlinktest" data-action="student-rates">View special rates. Verification required.</a></span>
+    </div>
+
+    <header class="site-header">
+      <a class="logo" href="https://www.wsj.com/" aria-label="The Wall Street Journal" data-action="logo">
+        <img src="https://www.wsj.com/subscribe/assets/us/us/wsjcore27ns/images/logo-alternative.svg" alt="The Wall Street Journal" onerror="this.onerror=null;this.src='https://www.wsj.com/subscribe/assets/us/us/wsjcore27ns/images/wsj_logo.svg'">
+      </a>
+    </header>
+
+    <section class="hero">
+      <div class="hero-headline">Special Offer</div>
+      <div class="hero-brand">Choose Your Digital Subscription</div>
+    </section>
+
+    <div class="spacer-25"></div>
+
+    <div class="toggle" role="tablist" aria-label="Billing frequency">
+      <div class="toggle-slider" id="toggle-slider"></div>
+      <button class="toggle-option" id="tg-week" data-billing="weekly" data-action="toggle-weekly" role="tab" aria-selected="false">Weekly</button>
+      <button class="toggle-option active" id="tg-annual" data-billing="annual" data-action="toggle-annual" role="tab" aria-selected="true">Annual</button>
+    </div>
+
+    <div class="spacer-30"></div>
+
+    <section class="plans">
+      <div class="plan-col">
+        <div class="plan" data-offer="wsj-plus-premier">
+          <div class="plan-inner">
+            <div class="plan-title">WSJ+ Premier</div>
+            <div class="plan-logo">
+              <img class="premier" src="https://www.wsj.com/subscribe/assets/us/us/wsjcore27ns/images/WSJPlusPROD.svg" alt="WSJ+ with WSJ, MarketWatch, Barron's and IBD" onerror="this.onerror=null;this.style.display='none'">
+            </div>
+            <div class="plan-price"><p>$119 for 1 Year</p></div>
+            <div class="plan-then"><p>Then $54.99 every 4 weeks thereafter</p></div>
+            <div class="plan-module">
+              <button class="cta" data-action="subscribe" data-offer="wsj-plus-premier">Subscribe Now</button>
+              <div class="cancel">You can cancel anytime.</div>
+              <hr>
+              <p class="enjoy">What you&rsquo;ll enjoy:</p>
+              <ul class="benefits">
+                <li><span>Unlimited digital access to The Wall Street Journal, Barron&rsquo;s, MarketWatch, and Investor&rsquo;s Business Daily Digital</span><i></i></li>
+                <li><span>The Wall Street Journal: The news that matters to you</span><i></i></li>
+                <li><span>MarketWatch: Real-time markets data and their impact</span><i></i></li>
+                <li><span>Barron&rsquo;s: In-depth business and financial reporting</span><i></i></li>
+                <li><span>IBD Digital: Investing tools and technical analysis</span><i></i></li>
+                <li><span>Exclusive WSJ+ dashboard with content from all four titles</span><i></i></li>
+                <li><span>Exclusive Daily Discover newsletter with the stories that matter</span><i></i></li>
+                <li><span>Access WSJ+ Marketplace for curated products at exclusive prices</span><i></i></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-col">
+        <div class="plan" data-offer="wsj-digital">
+          <div class="plan-inner">
+            <div class="plan-title">WSJ Digital</div>
+            <div class="plan-logo">
+              <img class="digital" src="https://www.wsj.com/subscribe/assets/us/us/wsjcore27ns/images/The-Wall-Street-Journal_IYB-PROD.svg" alt="The Wall Street Journal. It's your business." onerror="this.onerror=null;this.src='https://www.wsj.com/subscribe/assets/us/us/wsjcore27ns/images/wsj_logo.svg'">
+            </div>
+            <div class="plan-price"><p>$79 for 1 Year</p></div>
+            <div class="plan-then"><p>Then $44.99 every 4 weeks thereafter</p></div>
+            <div class="plan-module">
+              <button class="cta" data-action="subscribe" data-offer="wsj-digital">Subscribe Now</button>
+              <div class="cancel">You can cancel anytime.</div>
+              <hr>
+              <p class="enjoy">What you&rsquo;ll enjoy:</p>
+              <ul class="benefits">
+                <li><span>Unlimited access to WSJ.com and the WSJ app, including audio articles</span><i></i></li>
+                <li><span>Subscriber only audio and video content</span><i></i></li>
+                <li><span>Daily puzzles and crosswords</span><i></i></li>
+                <li><span>The 10-Point, a subscriber-exclusive daily newsletter</span><i></i></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="spacer-30"></div>
+
+    <section class="pack">
+      <div class="pack-box">
+        <div class="pack-left">
+          <img src="https://www.wsj.com/subscribe/assets/us/us/wsjcore27ns/images/printanddigital.png" alt="Print and digital subscription" onerror="this.onerror=null;this.style.display='none'">
+          <div class="pack-text">
+            <div class="pack-heading"><p>Interested in print subscription options?</p></div>
+            <div class="pack-desc"><p>Get the full WSJ experience&mdash; subscribers receive the WSJ Digital subscription in addition to a home delivery service</p></div>
+          </div>
+        </div>
+        <div class="pack-cta-wrap">
+          <a class="pack-cta" href="https://subscribe.wsj.com/printoptions" data-action="print-options" data-offer="print-and-digital">See Print Options</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="spacer-10"></div>
+
+    <details class="accordion"><summary><a href="#/" data-action="more-options">More Subscription Options</a></summary></details>
+    <div class="spacer-1"></div>
+    <details class="accordion"><summary><a href="#/" data-action="faq">Frequently Asked Questions</a></summary></details>
+    <div class="spacer-1"></div>
+    <details class="accordion"><summary><a href="#/" data-action="terms">Terms &amp; Conditions</a></summary></details>
+
+    <p class="policy">We&rsquo;ll let you know in advance of any price changes. Learn more about our <a href="https://www.wsj.com/policy/subscriber-agreement?mod=CAJbuy" data-action="cancellation-policy">cancellation</a> and <a href="https://www.wsj.com/policy/subscriber-agreement" data-action="renewal-policy">renewal policies</a>.</p>
+
+    <footer class="site-footer">
+      <img src="https://www.wsj.com/subscribe/assets/us/us/wsjcore27ns/images/footer.svg" alt="Dow Jones" onerror="this.onerror=null;this.style.display='none'">
+      <nav>
+        <a href="https://customercenter.wsj.com/contact?mod=CAJ_footer_customer-service" data-action="customer-service">Customer Service</a>
+        <a href="https://dowjones.com/privacy-notice" data-action="privacy-notice">Privacy Notice</a>
+        <a href="https://dowjones.com/cookie-notice" data-action="cookie-notice">Cookie Notice</a>
+      </nav>
+      <div class="copy">&copy; 2026 Dow Jones &amp; Company, Inc. All Rights Reserved</div>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      var ENDPOINT = '/api/e1aeb83c/inquiry';
+      var VIEWER = {
+        devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+        devinOrgId: 'org-cba5887ae1534949b9696649e27367ad'
+      };
+      var state = { billing: 'annual' };
+
+      function showToast(message) {
+        var toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        requestAnimationFrame(function () { toast.classList.add('show'); });
+        setTimeout(function () {
+          toast.classList.remove('show');
+          setTimeout(function () { toast.remove(); }, 300);
+        }, 5500);
+      }
+
+      function offerFor(el) {
+        if (el.dataset.offer) return el.dataset.offer;
+        var plan = el.closest('[data-offer]');
+        return plan ? plan.dataset.offer : 'wsj-digital';
+      }
+
+      function submitInquiry(el) {
+        if (el._running) return;
+        el._running = true;
+        var action = el.dataset.action || (el.textContent || '').trim().toLowerCase().replace(/\s+/g, '-');
+        var billing = el.dataset.billing || state.billing;
+        el.style.pointerEvents = 'none';
+        el.setAttribute('aria-busy', 'true');
+        fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            offer: offerFor(el),
+            billing: billing,
+            action: action,
+            source: 'subscribe-page',
+            devinUserId: VIEWER.devinUserId,
+            devinOrgId: VIEWER.devinOrgId
+          })
+        })
+          .then(function (res) { return res.json().catch(function () { return { error: 'bad response' }; }); })
+          .then(function (data) {
+            if (data && data.error) {
+              showToast('We couldn\u2019t load this offer right now. Please try again in a moment.');
+            }
+          })
+          .catch(function () {
+            showToast('We couldn\u2019t load this offer right now. Please try again in a moment.');
+          })
+          .finally(function () {
+            el.style.pointerEvents = '';
+            el.removeAttribute('aria-busy');
+            el._running = false;
+          });
+      }
+
+      document.querySelectorAll('a, button').forEach(function (el) {
+        if (el.hasAttribute('data-escape')) return;
+        el.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          submitInquiry(el);
+        });
+      });
+
+      document.querySelectorAll('details.accordion summary').forEach(function (summary) {
+        summary.addEventListener('click', function (e) {
+          e.preventDefault();
+          var link = summary.querySelector('a');
+          if (link && e.target !== link) submitInquiry(link);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
