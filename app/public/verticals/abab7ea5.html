@@ -487,7 +487,7 @@
             show('error', 'Payment not completed', 'We could not complete this payment. Check Recent transactions before trying again.');
           } else {
             var ref = data.receipt && data.receipt.receiptId ? data.receipt.receiptId : '';
-            var debit = parseFloat(data.debitAmount), fee = parseFloat(data.fee);
+            var debit = parseFloat(data.debitAmount), fee = Math.round((debit - amount) * 100) / 100;
             show('success', 'Payment sent', (money(amount) + ' ' + methodName.toLowerCase() + ' to ' + payee).replace(/\.$/, '') + '.' + (isFinite(debit) ? ' Total debited ' + money(debit) + (isFinite(fee) && fee > 0 ? ', including ' + money(fee) + ' in fees.' : '.') : '') + (ref ? ' Reference ' + ref + '.' : ''));
             body.insertBefore(row(new Date(), 'Supplier payment', methodSub, ref ? 'RCP-' + ref.slice(-6) : '\u2014', method === 'card' ? 'Card' : 'Real-time', -(isFinite(debit) ? debit : amount), method === 'card' ? 'Approved' : 'Completed', method === 'card' ? 'ok' : 'info', true), body.firstChild);
             if (body.children.length > 8) body.removeChild(body.lastElementChild);
