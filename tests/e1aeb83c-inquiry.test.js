@@ -15,7 +15,8 @@ const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const {
-  processOfferInquiry, resolveOffer, buildQuote, resolvePromotion, summarizeInquiry, OFFERS, OWNER,
+  processOfferInquiry, resolveOffer, buildQuote, resolvePromotion, getEligibility, applyIntroTerms, summarizeInquiry,
+  OFFERS, OWNER,
 } = require('../app/services/verticals/e1aeb83c');
 
 describe('Subscription offer inquiry (e1aeb83c) — offers and quotes', () => {
@@ -49,6 +50,66 @@ describe('Subscription offer inquiry (e1aeb83c) — offers and quotes', () => {
   });
 });
 
+describe('Subscription offer inquiry (e1aeb83c) — promotion eligibility', () => {
+  beforeEach(() => {
+    createSessionAndAlert.mockClear();
+    Sentry.captureException.mockClear();
+  });
+
+  test('getEligibility reads region entries from the eligibility Map', () => {
+    const promotion = resolvePromotion(undefined, 'subscribe');
+    expect(getEligibility(promotion, 'us')).toMatchObject({ maxIntroCycles: 13, requiresVerification: false });
+    expect(getEligibility(promotion, 'EU')).toMatchObject({ maxIntroCycles: 6, requiresVerification: true });
+  });
+
+  test('missing or unknown regions fall back to the default market', () => {
+    const promotion = resolvePromotion(undefined, 'subscribe');
+    expect(getEligibility(promotion, undefined)).toMatchObject({ maxIntroCycles: 13 });
+    expect(getEligibility(promotion, null)).toMatchObject({ maxIntroCycles: 13 });
+    expect(getEligibility(promotion, 'jp')).toMatchObject({ maxIntroCycles: 13 });
+    expect(getEligibility(resolvePromotion(undefined, 'student-rates'), 'eu')).toMatchObject({ maxIntroCycles: 52 });
+  });
+
+  test('a promotion with no default-market entry raises a typed error instead of a TypeError', () => {
+    const promotion = { code: 'EU_ONLY', eligibility: new Map([['eu', { maxIntroCycles: 6 }]]) };
+    expect(() => getEligibility(promotion, 'ca')).toThrow(expect.objectContaining({
+      name: 'OfferInquiryError', code: 'PROMOTION_NOT_ELIGIBLE',
+    }));
+  });
+
+  test('applyIntroTerms caps intro cycles at 52', () => {
+    const quote = buildQuote(resolveOffer('wsj-digital'), 'annual');
+    const priced = applyIntroTerms(quote, { code: 'X', campaign: 'C' }, { maxIntroCycles: 104, requiresVerification: false, cancelAnytime: true });
+    expect(priced.introCycles).toBe(52);
+  });
+
+  test('the alerted wsj-digital annual subscribe inquiry now succeeds without alerting', async () => {
+    const result = await processOfferInquiry({ offer: 'wsj-digital', billing: 'annual', action: 'subscribe' });
+    expect(result).toMatchObject({
+      success: true,
+      offer: 'wsj-digital',
+      billing: 'annual',
+      headline: '$79 for 1 year',
+      promotion: '6441GOZMW28',
+      introCycles: 13,
+      requiresVerification: false,
+    });
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['wsj-plus-premier', 'annual', 'subscribe', undefined],
+    ['wsj-digital', 'weekly', 'subscribe', 'ca'],
+    ['print-and-digital', 'annual', 'subscribe', 'eu'],
+    ['wsj-digital', 'annual', 'student-rates', undefined],
+  ])('%s / %s / %s / region=%s succeeds', async (offer, billing, action, region) => {
+    const result = await processOfferInquiry({ offer, billing, action, region });
+    expect(result.success).toBe(true);
+    expect(typeof result.introCycles).toBe('number');
+  });
+});
+
 describe('Subscription offer inquiry (e1aeb83c) — alerting', () => {
   beforeEach(() => {
     createSessionAndAlert.mockClear();
@@ -57,8 +118,8 @@ describe('Subscription offer inquiry (e1aeb83c) — alerting', () => {
 
   test('a failed inquiry raises exactly one alert pinned to the server-side owner', async () => {
     await expect(processOfferInquiry({
-      offer: 'wsj-plus-premier', billing: 'annual', action: 'subscribe', viewerUserId: 'client-user', viewerOrgId: 'client-org',
-    })).rejects.toThrow(TypeError);
+      offer: 'unknown-offer', billing: 'annual', action: 'subscribe', viewerUserId: 'client-user', viewerOrgId: 'client-org',
+    })).rejects.toThrow('Unknown offer: unknown-offer');
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
@@ -68,21 +129,21 @@ describe('Subscription offer inquiry (e1aeb83c) — alerting', () => {
       slackMemberId: OWNER.slackMemberId,
       devinUserId: OWNER.devinUserId,
       devinOrgId: OWNER.devinOrgId,
-      errorType: 'TypeError',
+      errorType: 'OfferInquiryError',
     });
     expect(alert.devinUserId).not.toBe('client-user');
     expect(alert.extra.viewerUserId).toBe('client-user');
   });
 
   test('instant-path tags keep the Sentry webhook from double-alerting', async () => {
-    await processOfferInquiry({ offer: 'wsj-digital', billing: 'annual' }).catch(() => {});
+    await processOfferInquiry({ offer: 'unknown-offer', billing: 'annual' }).catch(() => {});
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(isInstantPathEvent({ issueTitle: alert.issueTitle, tags: alert.tags })).toBe(true);
     expect(isInstantPathEvent({ issueTitle: alert.issueTitle, culprit: alert.culprit, tags: [] })).toBe(true);
   });
 
   test('reportErrors=false suppresses alerting for reproduction runs', async () => {
-    await processOfferInquiry({ offer: 'wsj-digital', billing: 'annual', reportErrors: false }).catch(() => {});
+    await processOfferInquiry({ offer: 'unknown-offer', billing: 'annual', reportErrors: false }).catch(() => {});
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 });

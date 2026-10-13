@@ -119,7 +119,15 @@ function resolvePromotion(trackingCode, action) {
 function getEligibility(promotion, region) {
   const market = String(region || DEFAULT_REGION).toLowerCase();
   const byRegion = promotion.eligibility;
-  return byRegion[market] || byRegion[DEFAULT_REGION];
+  const eligibility = byRegion.get(market) || byRegion.get(DEFAULT_REGION);
+  if (!eligibility) {
+    throw new OfferInquiryError(
+      `Promotion ${promotion.code} is not available in region: ${market}`,
+      'PROMOTION_NOT_ELIGIBLE',
+      { promotion: promotion.code, region: market },
+    );
+  }
+  return eligibility;
 }
 
 function applyIntroTerms(quote, promotion, eligibility) {
