@@ -14,6 +14,7 @@ const {
   MONOGRAM_FEE,
 } = require('../app/services/verticals/ralphlauren');
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 
 const ICONIC_MESH = '401480-P';
 const CLASSIC_SOFT_COTTON = '545294';
@@ -69,11 +70,18 @@ describe('Ralph Lauren bag validation', () => {
       [{ items: [] }, 'EMPTY_BAG'],
       [{ items: [{ sku: ICONIC_MESH, size: 'M', qty: 1 }], shippingMethod: 'drone' }, 'UNKNOWN_SHIPPING_METHOD'],
       [{ items: [{ sku: ICONIC_MESH, size: 'M', qty: 1 }], state: 'ZZ' }, 'UNSUPPORTED_STATE'],
+      [{ items: [{ sku: ICONIC_MESH, size: 'M', qty: 1 }], shippingMethod: 'same-day', state: 'OR' }, 'SHIPPING_UNAVAILABLE'],
+      [{ items: Array.from({ length: 21 }, () => ({ sku: ICONIC_MESH, size: 'M', qty: 1 })) }, 'BAG_TOO_LARGE'],
     ];
     for (const [body, code] of cases) {
       await expect(placeOrder(body)).rejects.toMatchObject({ status: 400, code });
     }
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('same-day delivery confirms inside the tri-state area', async () => {
+    const order = await placeOrder({ items: [{ sku: ICONIC_MESH, size: 'M', qty: 1 }], shippingMethod: 'same-day', state: 'NJ' });
+    expect(order.shipping).toMatchObject({ method: 'Same Day', fee: 25, complimentary: false });
   });
 
   test('every catalogue fit is a known fit', () => {
@@ -103,5 +111,11 @@ describe('Ralph Lauren Tailored Fit polos (intentional demo defect)', () => {
       errorType: 'TypeError',
     });
     expect(createSessionAndAlert.mock.calls[0][0].extra.fits).toEqual(['classic', 'tailored']);
+  });
+
+  test('the Sentry webhook treats the checkout failure as already alerted (no duplicate session)', () => {
+    expect(isInstantPathEvent({ issueTitle: 'TypeError', culprit: 'validateSize', tags: [['alert_path', 'instant']] })).toBe(true);
+    expect(isInstantPathEvent({ issueTitle: 'TypeError', culprit: 'app/services/verticals/ralphlauren.js in validateSize', tags: [] })).toBe(true);
+    expect(isInstantPathEvent({ issueTitle: 'TypeError', culprit: 'POST /api/ralphlauren/checkout', tags: [] })).toBe(true);
   });
 });

@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const logger = require('../../telemetry/logger');
 const {
-  placeOrder, CATALOG, FITS, FIT_SIZE_RUNS, SHIPPING_METHODS, STATE_TAX,
+  placeOrder, CATALOG, FITS, FIT_SIZE_RUNS, SHIPPING_METHODS, STATE_TAX, MAX_BAG_LINES,
 } = require('../../services/verticals/ralphlauren');
 
 const router = express.Router();
@@ -55,6 +55,7 @@ router.get('/api/ralphlauren/catalog', (_req, res) => {
     sizeRuns: FIT_SIZE_RUNS,
     shipping: Object.values(SHIPPING_METHODS),
     states: Object.entries(STATE_TAX).map(([code, rule]) => ({ code, label: rule.label })),
+    maxBagLines: MAX_BAG_LINES,
   });
 });
 

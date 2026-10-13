@@ -179,6 +179,7 @@
   .opts { padding: 18px 0 6px; display: grid; gap: 14px; }
   .opts label { display: block; }
   .opts .lbl { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .9px; text-transform: uppercase; margin-bottom: 6px; color: var(--ink); }
+  .opts select:disabled, .switch:disabled { opacity: .5; cursor: default; }
   .opts select { width: 100%; height: 44px; border: 1px solid var(--navy); background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%23041e3a' stroke-width='1.2'/%3E%3C/svg%3E") no-repeat right 14px center/12px; padding: 0 36px 0 14px; font-family: var(--sans); font-size: 13px; color: var(--navy); appearance: none; -webkit-appearance: none; }
   .opts .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .account { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--line); padding: 12px 14px; font-size: 12px; line-height: 17px; }
@@ -400,9 +401,8 @@
 
 <script>
 (function () {
-  var DEVIN_USER_ID_FALLBACK = 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV';
-  var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
   var MAX_LINE_QTY = 10;
+  var MAX_BAG_LINES = 20;
   var MONOGRAM_FEE = 10;
   var DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
@@ -531,6 +531,7 @@
     var p = find(line.sku); if (!p) return;
     var key = lineKey(line), existing = null;
     for (var i = 0; i < bag.length; i++) if (lineKey(bag[i]) === key) existing = bag[i];
+    if (!existing && bag.length >= MAX_BAG_LINES) { showToast('Bag is full', 'Your bag can hold up to ' + MAX_BAG_LINES + ' different styles. Remove one to add another.', true); return; }
     if (existing) existing.qty = Math.min(MAX_LINE_QTY, existing.qty + line.qty); else bag.push(line);
     clearStatus(); renderBag();
     showToast('Added to your bag', p.name + ' · ' + line.colorName + ' · ' + line.size + (line.monogram ? ' · Monogram ' + line.monogram : ''), false);
@@ -580,6 +581,14 @@
     document.getElementById('t-tax').textContent = money(tax);
     document.getElementById('t-total').textContent = money(sub + shipFee + tax);
     checkoutBtn.disabled = !bag.length || checkoutInFlight;
+    shipSel.disabled = checkoutInFlight;
+    stateSel.disabled = checkoutInFlight;
+    document.getElementById('acct-switch').disabled = checkoutInFlight;
+    for (var k = 0; k < shipSel.options.length; k++) {
+      var opt = shipSel.options[k], states = opt.getAttribute('data-states');
+      opt.disabled = !!states && states.split(',').indexOf(stateSel.value) < 0;
+      if (opt.disabled && opt.selected) shipSel.value = 'standard';
+    }
   }
   function currentShipping() { for (var i = 0; i < catalog.shipping.length; i++) if (catalog.shipping[i].code === shipSel.value) return catalog.shipping[i]; return catalog.shipping[0] || null; }
   function currentTaxRate() { var m = /\(([\d.]+)%\)/.exec(stateSel.options[stateSel.selectedIndex] ? stateSel.options[stateSel.selectedIndex].text : ''); return m ? parseFloat(m[1]) / 100 : 0; }
@@ -612,9 +621,9 @@
         shippingMethod: shipSel.value,
         state: stateSel.value,
         rlAccount: rlAccount,
-        devinUserId: localStorage.getItem('devinUserId') || DEVIN_USER_ID_FALLBACK,
-        devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
-        devinEmail: localStorage.getItem('devinEmail') || ''
+        devinUserId: localStorage.getItem('devinUserId') || undefined,
+        devinOrgId: localStorage.getItem('devinOrgId') || undefined,
+        devinEmail: localStorage.getItem('devinEmail') || undefined
       })
     }).then(function (r) { return r.json().then(function (data) { return { ok: r.ok, status: r.status, data: data }; }); })
       .then(function (res) {
@@ -677,6 +686,7 @@
   shipSel.addEventListener('change', renderBag);
   stateSel.addEventListener('change', renderBag);
   document.getElementById('acct-switch').addEventListener('click', function () {
+    if (checkoutInFlight) return;
     rlAccount = !rlAccount;
     this.classList.toggle('on', rlAccount); this.setAttribute('aria-checked', String(rlAccount));
     document.getElementById('acct-name').textContent = rlAccount ? 'Signed in as Marcel T.' : 'Checking out as a guest';
@@ -695,7 +705,8 @@
 
   fetch('/api/ralphlauren/catalog').then(function (r) { return r.json(); }).then(function (data) {
     catalog = data;
-    shipSel.innerHTML = data.shipping.map(function (s) { return '<option value="' + s.code + '">' + esc(s.label) + ' · ' + esc(s.eta) + (s.fee ? ' · ' + money(s.fee) : '') + '</option>'; }).join('');
+    if (data.maxBagLines) MAX_BAG_LINES = data.maxBagLines;
+    shipSel.innerHTML = data.shipping.map(function (s) { return '<option value="' + s.code + '"' + (s.states ? ' data-states="' + s.states.join(',') + '"' : '') + '>' + esc(s.label) + ' · ' + esc(s.eta) + (s.states ? ' (' + s.states.join('/') + ')' : '') + (s.fee ? ' · ' + money(s.fee) : '') + '</option>'; }).join('');
     stateSel.innerHTML = data.states.map(function (s) { return '<option value="' + s.code + '"' + (s.code === 'NY' ? ' selected' : '') + '>' + s.code + ' — ' + esc(s.label) + '</option>'; }).join('');
     renderGrid(); renderBag();
   }).catch(function () {

@@ -207,10 +207,13 @@ const CATALOG = [
   },
 ];
 
+/** Same-day delivery runs from the New York flagship and covers the tri-state area only. */
+const SAME_DAY_STATES = ['NY', 'NJ', 'CT'];
+
 const SHIPPING_METHODS = {
   standard: { code: 'standard', label: 'Standard', fee: 10, freeWithAccount: true, eta: '3-5 business days' },
   express: { code: 'express', label: 'Express', fee: 20, freeWithAccount: false, eta: '2 business days' },
-  'same-day': { code: 'same-day', label: 'Same Day', fee: 25, freeWithAccount: false, eta: 'Today by 9pm (NYC)' },
+  'same-day': { code: 'same-day', label: 'Same Day', fee: 25, freeWithAccount: false, eta: 'Today by 9pm', states: SAME_DAY_STATES },
 };
 
 /** Combined state + local sales tax for the shipping destination. */
@@ -264,7 +267,14 @@ function resolveShipping(code) {
 
 function resolveState(state) {
   const normalized = String(state || 'NY').trim().toUpperCase();
-  return resolveOption(STATE_TAX, normalized, 'NY', 'UNSUPPORTED_STATE');
+  const rule = resolveOption(STATE_TAX, normalized, 'NY', 'UNSUPPORTED_STATE');
+  return { code: normalized, ...rule };
+}
+
+function assertShippingAvailable(shipping, stateCode) {
+  if (shipping.states && !shipping.states.includes(stateCode)) {
+    throw validationError(`${shipping.label} delivery is not available in ${stateCode}`, 'SHIPPING_UNAVAILABLE');
+  }
 }
 
 /**
@@ -378,6 +388,7 @@ async function placeOrder(data) {
   const orderId = uuidv4();
   const shipping = resolveShipping(data.shippingMethod);
   const taxRule = resolveState(data.state);
+  assertShippingAvailable(shipping, taxRule.code);
   const rlAccount = Boolean(data.rlAccount);
   const requestedFits = Array.isArray(data.items)
     ? data.items.map((item) => (findProduct(item && item.sku) || {}).fit).filter(Boolean)
@@ -447,6 +458,7 @@ async function placeOrder(data) {
         route: ROUTE,
         service: SERVICE,
         shipping: shipping.code,
+        alert_path: 'instant',
       },
       extra: {
         orderId,
@@ -499,7 +511,9 @@ module.exports = {
   FITS,
   FIT_SIZE_RUNS,
   SHIPPING_METHODS,
+  SAME_DAY_STATES,
   STATE_TAX,
+  MAX_BAG_LINES,
   MONOGRAM_FEE,
   buildBagLines,
   resolveSizeRun,
