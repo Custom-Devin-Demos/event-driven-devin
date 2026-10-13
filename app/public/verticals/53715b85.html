@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Where Data, Validation, &amp; Analytics Converge - vExchange Vertican Technologies</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #020452;
+      --ink: #151151;
+      --ink-2: #010452;
+      --sky: #72a6d9;
+      --aqua: #97d8e5;
+      --hero-h1: #8fcde4;
+      --lilac: #59569f;
+      --theme-img: 'https://vertican.com/wp-content/themes/vertican/images/';
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    html, body { width: 100%; font-size: 18px; line-height: 30px; color: #000; font-family: 'Montserrat', sans-serif; font-weight: 400; }
+    body { overflow-x: hidden; }
+    a { color: #278f9f; text-decoration: none; transition: all 350ms; }
+    ul { list-style: none; }
+    img { max-width: 100%; height: auto; display: block; }
+    figure { margin: 0; }
+    h1, h2, h3, h4 { margin: 0; color: #000; font-weight: 700; font-family: 'Montserrat', sans-serif; }
+    h3 { font-size: 30px; line-height: 1.2; }
+    p { padding: 0 0 0; }
+    .d-flex { display: flex; flex-wrap: wrap; }
+    .v-center { align-items: center; }
+    .h-center { justify-content: center; }
+    .wrapper { padding: 0 30px; margin: 0 auto; width: 100%; max-width: 1514px; position: relative; }
+
+    .button { padding: 23px 30px; font-size: 20px; line-height: 26px; color: #fff; font-weight: 600; display: inline-block; vertical-align: top; min-width: 310px; text-align: center; cursor: pointer; border: 0; border-radius: 10px; box-shadow: 1.841px 0.781px 3px rgba(0,0,0,0.48); background-image: linear-gradient(180deg, #7fb3ca 0%, #608ac0 27%, #53549a 57%, #130d4d 100%, #130d4d 100%); font-family: inherit; }
+    .button:hover { color: #fff; background-color: #157111; }
+    .button:disabled { cursor: progress; opacity: .85; }
+
+    /* header */
+    .site-top { position: relative; }
+    .header-cntr { padding: 54px 0; position: absolute; top: 0; left: 0; width: 100%; z-index: 99; }
+    .header-cntr .wrapper { max-width: 1684px; }
+    .header-inner { align-items: flex-start; }
+    .header-cntr .logo { width: 257px; display: block; color: #fff; }
+    .header-cntr .logo svg { width: 100%; height: auto; display: block; }
+    .header-cntr .right { margin: -2px -12px 0 auto; }
+    .header-cntr .text-link { font-size: 18px; line-height: 24px; color: #fff; font-weight: 500; }
+    .header-cntr .search-toggle { margin: 0 -4px 0 8px; font-size: 0; line-height: 0; width: 40px; height: 40px; background: url(https://vertican.com/wp-content/themes/vertican/images/search-icon.png) center center no-repeat; background-size: 18px auto; }
+    .menuToggle { margin: 0 0 0 auto; position: relative; width: 56px; height: 56px; background: none; border: 0; cursor: pointer; }
+    .menuToggle span, .menuToggle span::before, .menuToggle span::after { width: 28px; height: 3px; display: block; position: absolute; background: #fff; border-radius: 3px; transition: all .3s; }
+    .menuToggle span { right: 14px; top: 26px; }
+    .menuToggle span::after { content: ''; left: 0; top: -8px; }
+    .menuToggle span::before { content: ''; left: 0; bottom: -8px; }
+    .nav-open .menuToggle span { background: transparent; }
+    .nav-open .menuToggle span::after { transform: rotate(45deg); top: 0; }
+    .nav-open .menuToggle span::before { transform: rotate(-45deg); bottom: 0; }
+    .overlay-menu { position: fixed; inset: 0; z-index: 98; background: linear-gradient(to bottom, #130d4e 0%, #6f9dd4 100%); display: none; padding: 160px 30px 40px; overflow-y: auto; }
+    .nav-open .overlay-menu { display: block; }
+    .overlay-menu ul { max-width: 1684px; margin: 0 auto; }
+    .overlay-menu li { padding: 0 0 18px; }
+    .overlay-menu li a { color: #fff; font-size: 30px; line-height: 40px; font-weight: 700; }
+    .overlay-menu li ul { padding: 8px 0 0 20px; }
+    .overlay-menu li li a { font-size: 18px; line-height: 26px; font-weight: 500; color: var(--aqua); }
+    .nav-open .header-cntr { position: fixed; }
+
+    /* hero */
+    .page-vexchange-banner { padding: 147px 0 105px; background: #4e5aa8 url(https://vertican.com/wp-content/uploads/2023/12/vexchange-bg.png) top center / cover no-repeat; }
+    .logo-with-slider { width: 100%; align-items: center; }
+    .logo-with-slider .leftimg { width: 50%; }
+    .logo-with-slider .leftimg .alt-mark { display: none; color: #fff; font-size: 92px; line-height: 1; font-weight: 700; letter-spacing: -1px; }
+    .page-vexchange-banner .sliderbg { padding: 0 4px 0 0; width: 50%; display: flex; justify-content: flex-end; }
+    .page-vexchange-banner .slidermid { width: 100%; max-width: 645px; }
+    .page-vexchange-banner .text { padding: 25px 20px 0 15px; text-align: center; max-width: 1325px; margin: 0 auto; }
+    .page-vexchange-banner .text h1 { padding-bottom: 8px; color: var(--hero-h1); font-size: 36px; line-height: 45px; }
+    .page-vexchange-banner .text p { padding-bottom: 45px; color: #fff; font-size: 20px; line-height: 27px; font-weight: 600; }
+
+    /* claim placement form (in place of the hero CTA) */
+    .claim { max-width: 1100px; margin: 0 auto; text-align: left; }
+    .claim .fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+    .claim label { display: block; padding: 0 0 6px 2px; color: #fff; font-size: 14px; line-height: 18px; font-weight: 700; }
+    .claim select, .claim input { padding: 0 20px; width: 100%; height: 48px; display: block; border: #efefef solid 1px; border-radius: 7px; box-shadow: 0 2px 4px 2px rgba(0,0,0,0.2); background: linear-gradient(to bottom, #fefefe 0%, #efefef 47%, #dcdcdc 100%); color: #130d4e; font-size: 14px; font-weight: 700; font-family: inherit; -webkit-appearance: none; appearance: none; }
+    .claim select { padding-right: 46px; cursor: pointer; background: url(https://vertican.com/wp-content/themes/vertican/images/select-arrow.png) right 20px center / 16px 10px no-repeat, linear-gradient(to bottom, #fefefe 0%, #efefef 47%, #dcdcdc 100%); }
+    .claim input:focus, .claim select:focus { outline: 2px solid var(--aqua); outline-offset: 1px; }
+    .claim .actions { padding-top: 30px; text-align: center; }
+    .result-box { display: none; max-width: 640px; margin: 24px auto 0; padding: 16px 22px; border-radius: 10px; font-size: 16px; line-height: 23px; text-align: center; box-shadow: 0 0 10px 5px rgba(0,0,0,0.1); }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.success { background: #d7f0f5; color: var(--ink-2); }
+    .result-box.error { background: #fde8e8; color: #7a1010; }
+    .result-box .r-title { font-weight: 700; color: inherit; }
+
+    /* tabs */
+    .tablist-bar { padding: 128px 0 0; background: linear-gradient(to right, #e2f4f8 0%, #eef9fb 47%, #e2f4f8 100%); }
+    .tablist-bar .wrapper { max-width: 1245px; }
+    .tablist-bar .tablist { padding: 0 0 0 10px; }
+    .tablist-bar .tablist ul { padding: 0 20px 22px; display: flex; justify-content: space-between; border-bottom: #bec7c9 solid 1px; }
+    .tablist-bar .tablist li { padding: 0 8px; }
+    .tablist-bar .tablist li a { color: var(--sky); font-size: 18px; font-weight: 600; }
+    .tablist-bar .tablist li a:hover, .tablist-bar .tablist li a.is-active { color: var(--ink); }
+    .tablistdropdown { position: relative; display: none; }
+    .tablistdropdown::after { content: ''; position: absolute; right: 20px; top: 50%; margin-top: -5px; width: 16px; height: 10px; background: url(https://vertican.com/wp-content/themes/vertican/images/select-arrow.png) no-repeat; pointer-events: none; }
+    .tablistdropdown select { padding: 0 20px; cursor: pointer; width: 100%; height: 48px; display: block; border: #efefef solid 1px; border-radius: 7px; box-shadow: 0 2px 4px 2px rgba(0,0,0,0.2); background: linear-gradient(to bottom, #fefefe 0%, #efefef 47%, #dcdcdc 100%); color: #130d4e; font-size: 14px; font-weight: 700; font-family: inherit; -webkit-appearance: none; appearance: none; }
+    .tabcontent { padding: 131px 0 285px; display: none; width: 102%; margin: 0 -1%; }
+    .tabcontent.is-active { display: block; }
+    .tabmid { flex-direction: row-reverse; align-items: center; }
+    .tab_details figure { padding: 98px 30px; width: 51.4%; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 30px 40px 5px rgba(0,0,0,0.1); background: #fff; }
+    .tab_details .midcontent { padding: 18px 160px 0 30px; width: 48.6%; }
+    .tab_details span.subtitle { padding-bottom: 5px; display: block; font-size: 14px; color: var(--sky); font-weight: 700; line-height: 30px; }
+    .tab_details h3 { padding-bottom: 27px; color: var(--ink); font-size: 30px; line-height: 36px; text-transform: uppercase; }
+    .tab_details p { padding-bottom: 30px; }
+
+    /* interface */
+    .interface-bar { background: var(--navy); overflow: hidden; }
+    .interface-bar .wrapper1 { display: flex; flex-wrap: wrap; }
+    .interface-bar .leftimg { width: 35.7%; position: relative; }
+    .interface-bar .leftimg figure { height: 100%; }
+    .interface-bar .leftimg img { width: 100%; height: 100%; min-height: 100%; object-fit: cover; }
+    .interface-bar .leftimg h3 { position: absolute; right: 110px; top: 50%; transform: translateY(-50%); font-size: 90px; color: #fff; line-height: 1; max-width: 425px; }
+    .interface-bar .rightcontnt { width: 64.3%; position: relative; background: url(https://vertican.com/wp-content/themes/vertican/images/right-bg.png) bottom no-repeat; background-size: 100%; }
+    .interface-bar .rightmid { padding: 87px 0 108px 122px; max-width: 1090px; }
+    .interface-bar .rightcontnt .intro { padding: 0 0 70px 65px; }
+    .interface-bar .rightcontnt h3 { padding-bottom: 9px; color: var(--aqua); font-size: 36px; line-height: 43px; }
+    .interface-bar .rightcontnt p { color: #fff; }
+    .rightincons { position: relative; height: 530px; }
+    .rightincons .mainicon { position: absolute; left: 2px; top: 84px; }
+    .rightincons .mainicon::before { content: ''; position: absolute; left: 148px; top: 73px; width: 52px; height: 2px; background: #8ecadb; }
+    .rightincons .subicon { position: absolute; left: 181px; top: 37px; }
+    .rightincons .subicon img { width: 266px; max-width: none; }
+    .rightincons .mainicon img { width: 165px; max-width: none; }
+    .rightincons .line { display: block; position: absolute; left: 235px; top: 47px; width: 152px; height: 2px; background: #8ecadb; transform: rotate(-20deg); }
+    .rightincons .line2 { left: 245px; top: 93px; width: 452px; transform: rotate(-7deg); }
+    .rightincons .line3 { left: 245px; top: 167px; width: 352px; transform: rotate(7deg); }
+    .rightincons .line4 { left: 218px; top: 225px; width: 180px; transform: rotate(25deg); }
+    .rightincons .line5 { left: 160px; top: 297px; width: 280px; transform: rotate(32deg); }
+    .rightincons .line6 { left: 100px; top: 290px; width: 120px; transform: rotate(78deg); }
+    .rightincons ul { position: absolute; left: 260px; top: 0; width: 100%; }
+    .rightincons li { position: absolute; left: 270px; top: -20px; }
+    .rightincons li img { width: 167px; max-width: none; }
+    .rightincons li:nth-child(2) { left: 556px; top: 23px; }
+    .rightincons li:nth-child(3) { left: 440px; top: 165px; }
+    .rightincons li:nth-child(4) { left: 205px; top: 207px; }
+    .rightincons li:nth-child(5) { left: 288px; top: 363px; }
+    .rightincons li:nth-child(6) { left: 10px; top: 330px; }
+    .interface-bar .rightlogo { position: absolute; right: 55px; bottom: 55px; }
+    .interface-bar .rightlogo img { width: 226px; }
+
+    /* flow */
+    .flow-bar { padding: 131px 0 0; }
+    .flow-bar .wrapper { max-width: 1688px; padding: 0; }
+    .flowblocksbg { display: flex; flex-wrap: wrap; }
+    .flow-item { padding: 47px 20px 17px; margin: 0 29px; width: calc(33.33% - 58px); background: #fff; box-shadow: 0 0 30px 10px rgba(0,0,0,0.1); border-radius: 15px; text-align: center; }
+    .flow-item figure { display: flex; align-items: center; justify-content: center; height: 80px; margin-bottom: 22px; }
+    .flow-item h3 { padding-bottom: 24px; color: var(--ink-2); font-size: 30px; line-height: 36px; }
+    .flow-item .intro { padding: 0 40px 8px; }
+    .flow-item .intro p { line-height: 32px; }
+    .flow-item .sliderbg { position: relative; z-index: 1; overflow: hidden; }
+    .flow-item .sliderbg::before { content: ''; margin-top: -20px; width: 40px; height: 40px; opacity: 0.4; position: absolute; top: 50%; right: 2px; z-index: 10; background: url(https://vertican.com/wp-content/themes/vertican/images/arrow-next.png) center / 15px auto no-repeat; }
+    .flow-item .sliderbg .slideimg { width: 100%; overflow: hidden; }
+    .flow-item .sliderbg .slideimg img { width: 1388px; max-width: none; }
+    .blockcontent_1 { padding: 32px 12px 11px; max-width: 395px; margin: 0 auto; border-radius: 10px; background: #c9ddf1; box-shadow: 0 0 10px 5px rgba(0,0,0,0.1); }
+    .blockcontent_1 h4 { font-size: 16px; line-height: 23px; padding-bottom: 12px; }
+    .blockcontent_1 p { padding: 0 25px 10px; font-size: 16px; line-height: 21px; font-style: italic; }
+    .blockcontent_1 p img { margin: 0 auto; }
+    .blockcontent_2 { padding: 32px 23px 0; max-width: 396px; margin: 0 auto; border-radius: 10px; background: #d7f0f5; box-shadow: 0 0 10px 5px rgba(0,0,0,0.1); }
+    .blockcontent_2 h4 { font-size: 16px; color: #fff; text-align: center; line-height: 47px; border-radius: 30px; background: var(--lilac); margin-bottom: 15px; }
+    .blockcontent_2 p { padding-bottom: 17px; color: var(--lilac); font-weight: 700; line-height: 24px; }
+    .blockcontent_2 p strong { color: var(--ink-2); }
+    .aftercontent { padding: 40px 10px 0; }
+    .blockcontent_2 + .aftercontent { padding: 33px 60px 0; }
+    .aftercontent p { font-size: 14px; line-height: 21px; }
+
+    /* cta */
+    .cta-bar1 { padding: 120px 0 140px; text-align: center; }
+    .cta-bar1 h3 { font-size: 36px; line-height: 43px; }
+    .cta-bar1 p { padding-bottom: 40px; font-size: 20px; font-weight: 600; }
+
+    /* footer */
+    #footer { padding: 58px 0 0; width: 100%; background: linear-gradient(to bottom, #130d4e 0%, #6f9dd4 100%); }
+    #footer .wrapper { max-width: 1683px; }
+    .footer-top { padding: 0 0 58px; margin: 0 auto; max-width: 1175px; }
+    .footer-top .left { padding: 14px 0 0; width: calc(100% - 406px); }
+    .footer-top h3 { padding: 0 0 0 58px; margin: 0 0 9px; font-size: 42px; line-height: 48px; color: #fff; background: url(https://vertican.com/wp-content/themes/vertican/images/heading-bg.png) center left no-repeat; }
+    .footer-top .left p { font-size: 18px; line-height: 36px; color: #fff; font-weight: 500; }
+    .footer-top .right { margin-left: auto; width: 360px; position: relative; }
+    .footer-top .text { text-align: center; width: 100%; height: 300px; border-radius: 10px; box-shadow: -8.66px 5px 7px rgba(0,0,0,0.24); background-image: linear-gradient(0deg, rgba(153,199,221,1) 0%, rgba(153,199,221,0) 35%); background-color: #fff; }
+    .footer-top .text p { font-size: 22px; letter-spacing: 6px; line-height: 30px; color: #7fa4d4; font-weight: 700; text-align: center; }
+    .footer-top .text p a { padding: 30px; display: block; color: #7fa4d4; }
+    .footer-top .text p strong { padding-bottom: 22px; display: block; }
+    #footer h4 { padding: 0 0 24px; font-size: 20px; line-height: 26px; color: var(--aqua); }
+    .footer-middle-inner { padding: 55px 0 0; border-top: 1px solid var(--aqua); justify-content: space-between; }
+    .footer-middle ul { font-size: 18px; font-weight: 600; line-height: 24px; }
+    .footer-middle ul li { padding: 0 0 24px; }
+    .footer-middle ul li a, .footer-middle p a { color: #fff; }
+    .footer-middle p { padding: 5px 0 22px; font-size: 18px; line-height: 24px; color: #fff; font-weight: 600; }
+    .footer-middle p:last-of-type { padding-bottom: 0; }
+    .footer-middle p strong { font-weight: 600; color: var(--sky); }
+    .icons-wrap { padding: 16px 0 20px; }
+    .icons-wrap .img { margin-right: 15px; }
+    .copyright { padding: 28px 0 35px; background: #020352; }
+    .copyright .usa-label { padding: 6px 5px 6px 28px; margin-right: 35px; color: #000038; font-size: 18px; line-height: 1; letter-spacing: -0.5px; font-weight: 800; border-radius: 15px; background: #a0e9e2 url(https://vertican.com/wp-content/themes/vertican/images/usa-icon.png) center left 5px no-repeat; }
+    .copyright .right { margin-left: auto; }
+    .copyright p { font-size: 14px; line-height: 24px; color: var(--sky); font-weight: 600; }
+    .copyright p a { color: var(--sky); text-decoration: underline; }
+    .copyright ul { padding: 0 0 0 7px; display: flex; align-items: center; flex-wrap: wrap; font-size: 17px; line-height: 20px; font-weight: 600; }
+    .copyright ul li { padding-left: 20px; }
+    .copyright ul li a { color: #fff; }
+    .socials { padding: 0 0 0 7px; }
+    .socials a { margin-left: 24px; }
+
+    @media only screen and (max-width: 1699px) {
+      .header-cntr { padding: 25px 0; }
+      .interface-bar .leftimg h3 { right: 70px; }
+      .interface-bar .rightcontnt .intro { padding: 0 0 70px 30px; }
+      .interface-bar .rightmid { padding: 87px 0 108px 35px; }
+      .rightincons { transform: scale(0.88); }
+      .flow-item .intro { padding: 0 10px 8px; }
+    }
+    @media only screen and (max-width: 1499px) {
+      .header-cntr .logo { width: 220px; }
+      .header-cntr .text-link { font-size: 16px; }
+      .button { padding: 20px 25px; min-width: 270px; font-size: 18px; line-height: 22px; }
+      .logo-with-slider .leftimg { width: 580px; }
+      .page-vexchange-banner .sliderbg { margin-left: auto; width: 48%; }
+      .tablist-bar { padding: 100px 0 0; }
+      .tabcontent { padding: 80px 0 120px; }
+      .interface-bar .rightmid { padding: 50px 20px 30px; }
+      .rightincons { margin-left: -510px; transform-origin: top center; left: 50%; transform: scale(0.82); }
+      .interface-bar .leftimg h3 { right: 10px; font-size: 80px; }
+      .flow-bar { padding: 90px 0 0; }
+      .flow-item { margin: 0 15px; width: calc(33.33% - 30px); }
+      .cta-bar1 { padding: 100px 0 90px; }
+      .flow-item .sliderbg .slideimg img { width: 1200px; }
+    }
+    @media only screen and (max-width: 1299px) {
+      .wrapper { padding: 0 20px; }
+      .header-cntr { padding: 20px 0; }
+      .header-cntr .logo { width: 200px; }
+      .button { padding: 18px 25px; font-size: 18px; line-height: 22px; }
+      .page-vexchange-banner { padding: 120px 0 70px; }
+      .logo-with-slider .leftimg { width: 500px; }
+      .page-vexchange-banner .sliderbg { width: 45%; }
+      .page-vexchange-banner .text h1 { font-size: 32px; line-height: 40px; }
+      .page-vexchange-banner .text p { font-size: 19px; }
+      .tablist-bar { padding: 70px 0 0; }
+      .tablist-bar .tablist ul { padding: 0 0 15px; }
+      .tablist-bar .tablist li a { font-size: 16px; }
+      .copyright .usa-label { padding: 6px 8px 6px 28px; margin-right: 15px; font-size: 14px; }
+      .copyright ul { padding: 0; font-size: 14px; line-height: 18px; }
+      .copyright ul li { padding-left: 15px; }
+      .socials a { margin-left: 15px; }
+    }
+    @media only screen and (max-width: 1023px) {
+      .page-vexchange-banner { padding: 105px 0 55px; }
+      .logo-with-slider .leftimg { width: 370px; }
+      .page-vexchange-banner .text h1 { font-size: 26px; line-height: 36px; }
+      .page-vexchange-banner .text p { padding-bottom: 25px; font-size: 16px; }
+      .claim .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .tablist-bar { padding: 50px 0 0; }
+      .tablist-bar .tablist li { padding: 0 4px; }
+      .tablist-bar .tablist li a { font-size: 14px; }
+      .tab_details .midcontent { padding: 0 15px 0 0; }
+      .tabcontent { padding: 50px 0 64px; }
+      .tab_details h3 { padding-bottom: 12px; font-size: 27px; }
+      .tab_details p { padding-bottom: 20px; }
+      .tab_details figure { padding: 60px 20px; }
+      .interface-bar .leftimg { width: 100%; }
+      .interface-bar .leftimg h3 { padding: 0 20px; font-size: 55px; right: auto; left: 0; width: 100%; max-width: 100%; text-align: center; }
+      .interface-bar .rightcontnt { width: 100%; }
+      .rightincons { margin-left: -530px; transform: scale(0.74); }
+      .flow-item h3 { padding-bottom: 14px; font-size: 25px; line-height: 30px; }
+      .flow-item .intro p { line-height: 26px; }
+      .flow-item figure { height: 60px; }
+      .flow-item figure img { max-height: 60px; width: auto; }
+      .blockcontent_2 { padding: 25px 15px 0; }
+      .blockcontent_2 h4 { font-size: 15px; }
+      .cta-bar1 { padding: 10px 0 50px; }
+      .cta-bar1 h3 { font-size: 30px; line-height: 36px; }
+      .cta-bar1 p { padding-bottom: 20px; font-size: 16px; }
+      .cta-bar1 .button { min-width: 230px; }
+      .flow-item .sliderbg .slideimg img { width: 718px; }
+      #footer { padding: 40px 0 0; }
+      .footer-top { padding: 0 0 30px; }
+      .footer-top .left { width: calc(100% - 280px); }
+      .footer-top .right { width: 260px; }
+      .footer-top .text { height: 220px; }
+      .footer-top .text p { font-size: 16px; letter-spacing: 5px; }
+      .footer-top .text p a { padding: 22px; }
+      .footer-top .text p strong { padding-bottom: 10px; }
+      .footer-top h3 { font-size: 28px; line-height: 34px; }
+      .footer-top .left p { font-size: 16px; line-height: 30px; }
+      .footer-middle-inner { padding: 40px 0 0; }
+      .footer-middle-inner > div { width: 50%; }
+      .footer-middle-inner .three, .footer-middle-inner .four { padding-top: 5px; }
+      .icons-wrap { padding: 0 0 20px; margin: -40px 0 0; }
+      .copyright { padding: 26px 0; }
+      .copyright .left { padding-bottom: 15px; width: 100%; }
+      .copyright .right { margin: 0; width: 100%; }
+    }
+    @media only screen and (max-width: 767px) {
+      .header-cntr .logo { width: 180px; }
+      .header-cntr .text-link { display: none; }
+      .button { padding: 16px 20px; min-width: 236px; font-size: 16px; line-height: 20px; }
+      .logo-with-slider .leftimg { margin: 0 auto; width: 310px; }
+      .page-vexchange-banner .sliderbg { padding: 0 30px; margin: 35px 0 0; width: 100%; }
+      .page-vexchange-banner .text { padding: 35px 0 0; }
+      .page-vexchange-banner .text h1 { font-size: 24px; line-height: 32px; }
+      .claim .fields { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+      .claim .actions { padding-top: 24px; }
+      .tablist-bar .tablist { padding: 0; }
+      .tablist-bar .tablist ul { display: none; }
+      .tablistdropdown { display: block; }
+      .tabcontent { padding: 35px 0 64px; }
+      .tabmid { flex-direction: row; }
+      .tab_details .midcontent { padding: 0; width: 100%; order: -1; }
+      .tab_details span.subtitle { font-size: 12px; line-height: 18px; }
+      .tab_details figure { padding: 35px 30px; margin-top: 20px; width: 100%; box-shadow: 0 2px 10px 2px rgba(0,0,0,0.02); }
+      .tab_details figure img { margin: auto; width: 220px; }
+      .interface-bar .leftimg h3 { font-size: 40px; }
+      .interface-bar .rightcontnt .intro { padding: 0 0 25px; }
+      .interface-bar .rightcontnt h3 { font-size: 26px; line-height: 39px; }
+      .interface-bar .rightmid { padding: 50px 20px 80px; }
+      .rightincons { margin-left: -420px; transform: scale(0.37); height: 200px; }
+      .interface-bar .rightlogo { width: 160px; right: 20px; bottom: 25px; }
+      .flow-bar { padding: 60px 0 10px; }
+      .flow-bar .wrapper { padding: 0 20px; }
+      .flow-item { padding: 30px 20px 17px; margin: 0 0 30px; width: 100%; }
+      .flow-item .sliderbg { overflow: auto; }
+      .flow-item .sliderbg .slideimg img { width: 1300px; }
+      .cta-bar1 h3 { font-size: 24px; line-height: 32px; }
+      .cta-bar1 .button { min-width: 190px; }
+      .cta-bar1 p { font-size: 15px; }
+      #footer { padding: 25px 0 0; }
+      .footer-top { padding: 0 0 35px; text-align: center; }
+      .footer-top .left { width: 100%; }
+      .footer-top h3 { margin: 0 auto 12px; display: table; font-size: 25px; line-height: 32px; }
+      .footer-top .left p { font-size: 14px; line-height: 24px; }
+      .footer-top .right { margin: 10px auto 0; }
+      .footer-middle-inner > div { width: 49%; }
+      .footer-middle-inner .two, .footer-middle-inner .four { margin-left: auto; }
+      .footer-middle-inner .two { padding-top: 0; }
+      .footer-middle-inner .three, .footer-middle-inner .four { padding-top: 15px; }
+      #footer h4 { padding: 0 0 10px; font-size: 15px; line-height: 20px; }
+      .footer-middle ul { font-size: 13px; line-height: 16px; }
+      .footer-middle ul li { padding: 0 0 14px; }
+      .footer-middle p { padding: 0 0 12px; font-size: 13px; line-height: 19px; }
+      .footer-middle p a { word-break: break-all; }
+      .icons-wrap .img img { max-height: 45px; width: auto; }
+      .icons-wrap .img:nth-of-type(2) img { max-height: 25px; }
+      .icons-wrap { margin: 25px 0 0; }
+      .copyright .left .menu-copyright { padding: 8px 0 0; width: 100%; }
+      .copyright ul li { padding: 10px 0 0; width: 100%; }
+      .copyright .right { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="site-top">
+  <div class="site-header">
+    <header class="header-cntr">
+      <div class="wrapper">
+        <div class="header-inner d-flex">
+          <a class="logo" href="#" aria-label="Vertican Technologies">
+            <svg viewBox="0 0 257 75" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M30 6.5C15.6 9.4 4.8 22.1 4.8 37.3c0 17.3 14 31.4 31.4 31.4 4.3 0 8.5-.9 12.2-2.5" stroke="currentColor" stroke-width="6.5" stroke-linecap="round"/>
+              <path d="M44.2 7.3c9.6 2.6 17.3 9.7 20.6 18.9" stroke="currentColor" stroke-width="6.5" stroke-linecap="round"/>
+              <path d="M22 17.5h31.5L42.8 58.6c-.8 3-3.9 4.4-6.6 3l-4.8-2.5 9.5-31.3H28.7z" fill="currentColor"/>
+              <path d="M54.6 34.2c4 3.1 6.4 7.9 6.4 13.3 0 4.1-1.4 7.8-3.8 10.8" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"/>
+              <text x="81" y="39" fill="currentColor" font-family="Montserrat, sans-serif" font-weight="700" font-size="34" textLength="172" lengthAdjust="spacingAndGlyphs">VERTICAN</text>
+              <text x="82" y="58" fill="currentColor" font-family="Montserrat, sans-serif" font-weight="600" font-size="13.2" textLength="170" lengthAdjust="spacing">TECHNOLOGIES</text>
+            </svg>
+          </a>
+          <div class="right d-flex v-center">
+            <a class="text-link" href="#">vPortal Login</a>
+            <a class="search-toggle" href="#">Search</a>
+            <button type="button" class="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="overlayMenu"><span></span></button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <nav class="overlay-menu" id="overlayMenu" aria-label="Main">
+      <ul>
+        <li><a href="#">Products</a>
+          <ul><li><a href="#">Q-LawE</a></li><li><a href="#">Collection-Master</a></li><li><a href="#">vMedia</a></li></ul>
+        </li>
+        <li><a href="#">vExchange</a></li>
+        <li><a href="#">vConnect &amp; News</a>
+          <ul><li><a href="#">Current Edition</a></li><li><a href="#">Past Editions</a></li><li><a href="#">News</a></li></ul>
+        </li>
+        <li><a href="#">About</a>
+          <ul><li><a href="#">Our Core Values</a></li><li><a href="#">Meet Our Team</a></li><li><a href="#">Our History</a></li><li><a href="#">Trust Center</a></li></ul>
+        </li>
+        <li><a href="#">Education &amp; Events</a>
+          <ul><li><a href="#">Mastermind</a></li><li><a href="#">Video Library</a></li><li><a href="#">Register</a></li><li><a href="#">Upcoming Events</a></li></ul>
+        </li>
+        <li><a href="#">System Requirements</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+
+    <section class="page-vexchange-banner">
+      <div class="wrapper">
+        <div class="logo-with-slider d-flex">
+          <div class="leftimg">
+            <img width="707" height="350" src="https://vertican.com/wp-content/uploads/2023/12/vexchange-logo.png" alt="vExchange by Vertican Technologies" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <div class="alt-mark">vEXCHANGE</div>
+          </div>
+          <div class="sliderbg">
+            <div class="slidermid">
+              <img width="645" height="606" src="https://vertican.com/wp-content/uploads/2024/01/vexchange-slide2B.png" alt="vExchange Analytics dashboard" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+        <div class="text">
+          <h1>Where Data, Validation, &amp; Analytics Converge.</h1>
+          <p>vExchange unlocks the true potential of your business by seamlessly integrating it with your existing systems.</p>
+
+          <form id="claimForm" class="claim">
+            <div class="fields">
+              <div>
+                <label for="policyId">Sender portfolio</label>
+                <select id="policyId">
+                  <option value="POL-5001">Consumer credit card – 5001</option>
+                  <option value="POL-5002">Auto deficiency – 5002</option>
+                </select>
+              </div>
+              <div>
+                <label for="claimType">Placement type</label>
+                <select id="claimType">
+                  <option value="collision">New placement (pre-legal)</option>
+                  <option value="comprehensive">Legal referral (suit)</option>
+                  <option value="liability">Judgment / post-judgment</option>
+                  <option value="property_damage">Forwarded claim</option>
+                </select>
+              </div>
+              <div>
+                <label for="amount">Balance placed ($)</label>
+                <input type="number" id="amount" value="2500" min="0.01" step="0.01" inputmode="decimal">
+              </div>
+              <div>
+                <label for="description">Account reference</label>
+                <input type="text" id="description" value="Acct 4471-0092, statement attached">
+              </div>
+            </div>
+            <div class="actions">
+              <button type="submit" class="button" id="submitBtn">Place Claim</button>
+            </div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <main>
+    <section class="tablist-bar">
+      <div class="wrapper">
+        <div class="tablist">
+          <ul role="tablist">
+            <li><a class="is-active" href="#tab1" data-tab="tab1">More Data</a></li>
+            <li><a href="#tab2" data-tab="tab2">Universal</a></li>
+            <li><a href="#tab3" data-tab="tab3">Actionable</a></li>
+            <li><a href="#tab4" data-tab="tab4">Real-Time</a></li>
+            <li><a href="#tab5" data-tab="tab5">Scalable</a></li>
+            <li><a href="#tab6" data-tab="tab6">Unmatched Solutions</a></li>
+          </ul>
+          <div class="tablistdropdown">
+            <select aria-label="vExchange features">
+              <option value="tab1">More Data</option>
+              <option value="tab2">Universal</option>
+              <option value="tab3">Actionable</option>
+              <option value="tab4">Real-Time</option>
+              <option value="tab5">Scalable</option>
+              <option value="tab6">Unmatched Solutions</option>
+            </select>
+          </div>
+        </div>
+        <div class="tab_details">
+          <div class="tabcontent is-active" id="tab1">
+            <div class="tabmid d-flex">
+              <figure><img width="333" height="291" src="https://vertican.com/wp-content/uploads/2023/12/data-collection.png" alt="" onerror="this.style.display='none'"></figure>
+              <div class="midcontent">
+                <span class="subtitle">Collection</span>
+                <h3>More Data</h3>
+                <p>vExchange captures data that is reflective of the actual activity that has occurred on an account in a Receiver’s system of record all of which is available to you in both a summarized and detailed view and near real-time in the web portal of vExchange which we call Analytics.</p>
+              </div>
+            </div>
+          </div>
+          <div class="tabcontent" id="tab2">
+            <div class="tabmid d-flex">
+              <figure><img width="333" height="291" src="https://vertican.com/wp-content/uploads/2023/12/universalgates.png" alt="" onerror="this.style.display='none'"></figure>
+              <div class="midcontent">
+                <span class="subtitle">Gates</span>
+                <h3>Universal</h3>
+                <p>Universal Gates are business rules (filters) that exclude/flag data not meeting the Sender compliance requirements in real-time. They reduce or eliminate human errors, increase efficiency, and ensure the important transparent flow of accurate information.</p>
+              </div>
+            </div>
+          </div>
+          <div class="tabcontent" id="tab3">
+            <div class="tabmid d-flex">
+              <figure><img width="333" height="291" src="https://vertican.com/wp-content/uploads/2023/12/actionable.png" alt="" onerror="this.style.display='none'"></figure>
+              <div class="midcontent">
+                <span class="subtitle">Insights</span>
+                <h3>Actionable</h3>
+                <p>vExchange offers powerful, actionable insights using data visualizations, score cards, and exportable reports.</p>
+              </div>
+            </div>
+          </div>
+          <div class="tabcontent" id="tab4">
+            <div class="tabmid d-flex">
+              <figure><img width="333" height="291" src="https://vertican.com/wp-content/uploads/2023/12/realtime.png" alt="" onerror="this.style.display='none'"></figure>
+              <div class="midcontent">
+                <span class="subtitle">Analytics</span>
+                <h3>Real-Time</h3>
+                <p>vExchange’s advanced reporting is built on all claims data enabling clients to make intelligent business decisions to streamline operations. A web-based portal that displays operational insights based on data processed by Senders and Receivers.</p>
+              </div>
+            </div>
+          </div>
+          <div class="tabcontent" id="tab5">
+            <div class="tabmid d-flex">
+              <figure><img width="333" height="291" src="https://vertican.com/wp-content/uploads/2023/12/scalable.png" alt="" onerror="this.style.display='none'"></figure>
+              <div class="midcontent">
+                <span class="subtitle">More Robust and</span>
+                <h3>Scalable</h3>
+                <p>vExchange is the industry’s unmatched solution for centralizing data for streamlined processing with comprehensive proprietary data standard with 5,000+ unique fields and 130+ record types. It also has the infrastructure, security, and scalability for a complex world.</p>
+              </div>
+            </div>
+          </div>
+          <div class="tabcontent" id="tab6">
+            <div class="tabmid d-flex">
+              <figure><img width="333" height="291" src="https://vertican.com/wp-content/uploads/2023/12/unmatchedsolutions.png" alt="" onerror="this.style.display='none'"></figure>
+              <div class="midcontent">
+                <span class="subtitle">Centralizing Data</span>
+                <h3>Unmatched Solutions</h3>
+                <p>vExchange is the industry’s unmatched solution for centralizing data for streamlined processing. It unlocks the true potential of your business by seamlessly integrating it with your existing systems, transforming raw data into actionable insights.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="interface-bar">
+      <div class="wrapper1">
+        <div class="leftimg">
+          <figure><img width="686" height="899" src="https://vertican.com/wp-content/uploads/2023/12/interface-img.png" alt="" onerror="this.style.display='none'"></figure>
+          <h3>One interface for all.</h3>
+        </div>
+        <div class="rightcontnt">
+          <div class="rightmid">
+            <div class="intro">
+              <h3>One Interface. Unlimited Capabilities.</h3>
+              <p>Greater insight into your business, including data analytics on non-traditional EDI clients.</p>
+            </div>
+            <div class="rightincons">
+              <div class="mainicon"><img width="165" height="167" src="https://vertican.com/wp-content/uploads/2023/12/icon1.png" alt="" onerror="this.style.display='none'"></div>
+              <div class="subicon">
+                <img width="266" height="268" src="https://vertican.com/wp-content/uploads/2023/12/icon2.png" alt="" onerror="this.style.display='none'">
+                <span class="line line1"></span><span class="line line2"></span><span class="line line3"></span><span class="line line4"></span><span class="line line5"></span><span class="line line6"></span>
+              </div>
+              <ul>
+                <li><img width="157" height="161" src="https://vertican.com/wp-content/uploads/2023/12/icon3.png" alt="" onerror="this.style.display='none'"></li>
+                <li><img width="167" height="160" src="https://vertican.com/wp-content/uploads/2023/12/icon4.png" alt="" onerror="this.style.display='none'"></li>
+                <li><img width="167" height="167" src="https://vertican.com/wp-content/uploads/2023/12/icon5.png" alt="" onerror="this.style.display='none'"></li>
+                <li><img width="167" height="167" src="https://vertican.com/wp-content/uploads/2023/12/icon6.png" alt="" onerror="this.style.display='none'"></li>
+                <li><img width="167" height="167" src="https://vertican.com/wp-content/uploads/2023/12/icon7.png" alt="" onerror="this.style.display='none'"></li>
+                <li><img width="167" height="167" src="https://vertican.com/wp-content/uploads/2023/12/icon8.png" alt="" onerror="this.style.display='none'"></li>
+              </ul>
+            </div>
+          </div>
+          <figure class="rightlogo"><img width="226" height="25" src="https://vertican.com/wp-content/uploads/2023/12/vexchange-logo1.png" alt="vExchange" onerror="this.style.display='none'"></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="flow-bar">
+      <div class="wrapper">
+        <div class="flowblocksbg">
+          <div class="flow-item">
+            <div class="intro">
+              <figure><img width="97" height="41" src="https://vertican.com/wp-content/uploads/2023/12/flow-icon.png" alt="" onerror="this.style.display='none'"></figure>
+              <h3>DATA FLOW</h3>
+              <p>Secure round trip data file  transmission via VFTP processing.</p>
+            </div>
+            <div class="sliderbg">
+              <div class="slideimg"><img src="https://vertican.com/wp-content/uploads/2025/01/dataflow.jpg" alt="Data Flow" onerror="this.style.display='none'"></div>
+            </div>
+          </div>
+          <div class="flow-item">
+            <div class="intro">
+              <figure><img width="85" height="81" src="https://vertican.com/wp-content/uploads/2023/12/flow-icon2.png" alt="" onerror="this.style.display='none'"></figure>
+              <h3>UNIVERSAL GATES</h3>
+              <p>Business rules (filters) that exclude/flag data  not meeting the Sender compliance  requirements in real-time.</p>
+            </div>
+            <div class="blockcontent_1">
+              <h4>When receivers send files using vExchange, the Gates programmatically evaluate that several conditions are met and then either:</h4>
+              <p>Reject the data and send a notification to the Sender,</p>
+              <p><img width="222" height="47" src="https://vertican.com/wp-content/uploads/2023/12/wrong.png" alt="" onerror="this.style.display='none'"></p>
+              <p>Or allow the data to pass, populating a report with the exceptions</p>
+              <p><img width="222" height="47" src="https://vertican.com/wp-content/uploads/2023/12/right.png" alt="" onerror="this.style.display='none'"></p>
+            </div>
+            <div class="aftercontent">
+              <p>Reduce or eliminate human errors, increase efficiency, and ensure the important transparent flow of accurate information.</p>
+            </div>
+          </div>
+          <div class="flow-item">
+            <div class="intro">
+              <figure><img width="98" height="74" src="https://vertican.com/wp-content/uploads/2023/12/flow-icon3.png" alt="" onerror="this.style.display='none'"></figure>
+              <h3>ANALYTICS</h3>
+              <p>A web-based portal that displays  operational insights based on data  processed by Senders and Receivers.</p>
+            </div>
+            <div class="blockcontent_2">
+              <h4>THE NUMBERS: AT A GLANCE</h4>
+              <p><strong>Placements Per Month</strong><br>80k – 100k</p>
+              <p><strong>Dollars Placed Per Month</strong><br>$200 million – $300 million</p>
+              <p><strong>Analytics Website Users</strong><br>1,000+</p>
+              <p><strong>Claims Processed</strong><br>+$32 Million</p>
+            </div>
+            <div class="aftercontent">
+              <p>Where the advanced reporting is built on all claims data enabling clients to make intelligent business decisions to streamline operations.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-bar1">
+      <div class="wrapper">
+        <h3>Ready to experience vExchange?</h3>
+        <p>Unlocks the true potential of your business by integrating vExchange today!</p>
+        <a class="button" href="#">Request a Demo</a>
+      </div>
+    </section>
+  </main>
+
+  <footer id="footer">
+    <div class="wrapper">
+      <div class="footer-top d-flex v-center">
+        <div class="left">
+          <h3>Mastermind Series</h3>
+          <p>Improve your ability to use our platform(s) effectively and efficiently with this virtual high-level training series presented by Vertican’s Subject Matter Experts, including many of our visionary developers.</p>
+        </div>
+        <div class="right">
+          <div class="text d-flex v-center h-center">
+            <p><a href="#"><strong>VISIT THE</strong><img width="518" height="263" src="https://vertican.com/wp-content/uploads/2024/01/mastermind-logo.png" alt="Mastermind Series video library" onerror="this.style.display='none'"></a></p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-middle">
+        <div class="footer-middle-inner d-flex">
+          <div class="one">
+            <h4>Client Information</h4>
+            <ul><li><a href="#">Your vPortal Account</a></li><li><a href="#">Contact &amp; Support Services</a></li><li><a href="#">Book a Demo</a></li><li><a href="#">Product System Requirements</a></li></ul>
+          </div>
+          <div class="two">
+            <h4>Products</h4>
+            <ul><li><a href="#">Collection-Master</a></li><li><a href="#">Q-LawE</a></li><li><a href="#">vExchange</a></li><li><a href="#">vMedia</a></li></ul>
+          </div>
+          <div class="three">
+            <h4>About Vertican</h4>
+            <ul><li><a href="#">Leadership</a></li><li><a href="#">History</a></li><li><a href="#">Mastermind Series</a></li></ul>
+          </div>
+          <div class="four">
+            <h4>Speak to Us</h4>
+            <p><strong>Call Us</strong><br><a href="#">1-800-435-7257</a></p>
+            <p><strong>Mailing Address</strong><br>75 Lane Rd.<br>Suite 406<br>Fairfield, NJ 07004</p>
+            <p><strong>General Inquiries</strong><br><a href="#">info@vertican.com</a><br><a href="#">businessdevelopment@vertican.com</a><br><a href="#">vbilling@vertican.com</a></p>
+          </div>
+        </div>
+        <div class="icons-wrap d-flex v-center">
+          <div class="img"><img width="59" height="58" src="https://vertican.com/wp-content/uploads/2026/10/NCBA-industry-partner-2026.png" alt="" onerror="this.style.display='none'"></div>
+          <div class="img"><img width="112" height="34" src="https://vertican.com/wp-content/uploads/2023/11/footer-logo2.png" alt="" onerror="this.style.display='none'"></div>
+        </div>
+      </div>
+    </div>
+    <div class="copyright">
+      <div class="wrapper d-flex v-center">
+        <div class="left d-flex v-center">
+          <span class="usa-label">USA</span>
+          <p>© 2026 Vertican Technologies, Inc.</p>
+          <div class="menu-copyright"><ul><li><a href="#">Privacy Policy</a></li></ul></div>
+        </div>
+        <div class="right d-flex v-center">
+          <p>Site by <a href="#">AGGRO</a></p>
+          <div class="socials d-flex v-center">
+            <a href="#" aria-label="Facebook"><img src="https://vertican.com/wp-content/themes/vertican/images/fb-icon.png" alt="" onerror="this.style.display='none'"></a>
+            <a href="#" aria-label="LinkedIn"><img src="https://vertican.com/wp-content/themes/vertican/images/linkedin-icon.png" alt="" onerror="this.style.display='none'"></a>
+            <a href="#" aria-label="Vimeo"><img src="https://vertican.com/wp-content/themes/vertican/images/vimeo-icon.png" alt="" onerror="this.style.display='none'"></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('claimForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      if (btn.disabled) return;
+      const amountEl = document.getElementById('amount');
+      const amount = parseFloat(amountEl.value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="r-title">Enter the balance placed.</div><div>The balance must be greater than $0.</div>';
+        amountEl.focus();
+        return;
+      }
+      btn.disabled = true; btn.textContent = 'Placing…';
+      result.className = 'result-box';
+      result.innerHTML = '';
+      try {
+        const res = await fetch('/api/insurance/claim', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount, description: document.getElementById('description').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="r-title">We couldn’t place this claim right now.</div><div>Please try again later or call Vertican support at 1-800-435-7257.</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="r-title">Claim placed.</div><div>Claim number ' + String(data.claimId || '').slice(0, 8).toUpperCase() + '. It will appear in vExchange Analytics for the Receiver.</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="r-title">We couldn’t place this claim right now.</div><div>Please check your connection and try again.</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Place Claim'; }
+    });
+  </script>
+  <script>
+    (function () {
+      const tabs = document.querySelectorAll('.tablist ul a');
+      const dropdown = document.querySelector('.tablistdropdown select');
+      const show = (id) => {
+        document.querySelectorAll('.tabcontent').forEach((t) => t.classList.toggle('is-active', t.id === id));
+        tabs.forEach((a) => a.classList.toggle('is-active', a.dataset.tab === id));
+        dropdown.value = id;
+      };
+      tabs.forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); show(a.dataset.tab); }));
+      dropdown.addEventListener('change', () => show(dropdown.value));
+
+      const header = document.querySelector('.site-header');
+      const toggle = header.querySelector('.menuToggle');
+      const setOpen = (open) => {
+        header.classList.toggle('nav-open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      };
+      toggle.addEventListener('click', () => setOpen(!header.classList.contains('nav-open')));
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && header.classList.contains('nav-open')) { setOpen(false); toggle.focus(); }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
