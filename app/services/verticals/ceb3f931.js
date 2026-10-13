@@ -70,9 +70,26 @@ const REMEDIATION_DIRECTIVE = [
   'and add a regression test under tests/ that locks the fix in. Open a pull request against main.',
 ].join(' ');
 
+/**
+ * Builder-facing names for response modes, mapped to the persisted identifier.
+ * The create-form dialog labels `encrypt` as "Storage mode".
+ */
+const RESPONSE_MODE_ALIASES = {
+  storage: 'encrypt',
+  'multi-respondent': 'multirespondent',
+};
+
 function resolveResponseMode(mode) {
   const key = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
-  return RESPONSE_MODES[key];
+  const canonical = Object.hasOwn(RESPONSE_MODE_ALIASES, key) ? RESPONSE_MODE_ALIASES[key] : key;
+  return Object.hasOwn(RESPONSE_MODES, canonical) ? RESPONSE_MODES[canonical] : undefined;
+}
+
+function unknownResponseModeError(mode) {
+  const error = new Error(`Unknown response mode: ${String(mode)}`);
+  error.code = 'UNKNOWN_RESPONSE_MODE';
+  error.statusCode = 400;
+  return error;
 }
 
 function buildEncryptionPolicy(profile) {
@@ -135,8 +152,17 @@ async function launchForm(data) {
     service: SERVICE,
   });
 
+  const profile = resolveResponseMode(data.responseMode);
+  if (!profile) {
+    logger.warn('Form launch rejected: unknown response mode', {
+      referenceNumber,
+      responseMode: data.responseMode,
+      service: SERVICE,
+    });
+    throw unknownResponseModeError(data.responseMode);
+  }
+
   try {
-    const profile = resolveResponseMode(data.responseMode);
     const manifest = buildLaunchManifest(form, profile);
     const duration = Date.now() - start;
 
@@ -222,6 +248,7 @@ module.exports = {
   resolveResponseMode,
   buildLaunchManifest,
   RESPONSE_MODES,
+  RESPONSE_MODE_ALIASES,
   STARTER_FIELDS,
   OWNER,
   REMEDIATION_DIRECTIVE,
