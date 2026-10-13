@@ -103,6 +103,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Open Government Products — FormSG landing page** (unlisted — direct URL only; clone of the public form.gov.sg landing page; every link/button except All Demos fails on the unregistered `storage` response mode) | `/ceb3f931` | `app/public/verticals/ceb3f931.html` | `POST /api/ceb3f931/launch` | `app/services/verticals/ceb3f931.js` |
 | **GovTech Singapore — tech.gov.sg homepage** (unlisted — direct URL only; clone of the public tech.gov.sg homepage; every link/button except All Demos submits a STACK Conference ticket reservation that fails on a pass code missing from `PASS_CATALOGUE`) | `/29f8340a`, `/govtech` | `app/public/verticals/29f8340a.html` | `POST /api/29f8340a/tickets` | `app/services/verticals/29f8340a.js` |
 | **Travelers — Auto Quote & Purchase** (unlisted — direct URL only) | `/travelers`, `/aa46c0f9` | `app/public/verticals/aa46c0f9.html` | `GET /api/aa46c0f9/quote-options`, `POST /api/aa46c0f9/quote/purchase` | `app/services/verticals/aa46c0f9.js` |
+| **T-Mobile — Homepage switch offer** (unlisted — direct URL only; clone of the public homepage; the hero "Start your switch" CTA prices the switch offer) | `/4d820a2b` | `app/public/verticals/4d820a2b.html` | `GET /api/4d820a2b/offers`, `POST /api/4d820a2b/inquiry` | `app/services/verticals/4d820a2b.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
