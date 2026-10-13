@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout | Vivid Seats</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #CE3197;
+      --ink: #04092C;
+      --surface: #FFFFFF;
+      --chrome-bg: #04092C;
+      --chrome-text: #FFFFFF;
+      --teal: #12B5C1;
+      --blue: #1E4FC2;
+      --page: #F5F5F8;
+      --line: color-mix(in srgb, var(--ink) 16%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 66%, var(--surface));
+      --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--surface));
+      --display: 'Outfit', 'Poppins', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.5 'Poppins', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1200px; margin: auto; padding: 0 24px; }
+    .trust-bar { background: var(--chrome-bg); color: var(--chrome-text); font-size: 13px; text-align: center; padding: 12px 16px; }
+    .trust-bar strong { font-weight: 600; }
+    .trust-bar a { color: var(--chrome-text); text-decoration: none; }
+    .site-header { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .header-row { display: flex; align-items: center; gap: 28px; min-height: 80px; }
+    .brand { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--ink); text-decoration: none; }
+    .brand svg { display: block; flex: none; }
+    .brand-name { font-family: var(--display); font-size: 27px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+    .search { flex: 1; max-width: 344px; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 18px; border: 1px solid var(--line); border-radius: 99px; background: var(--page); color: var(--muted); font-size: 15px; }
+    .site-nav { margin-left: auto; display: flex; align-items: center; gap: 24px; font-family: var(--display); font-weight: 500; }
+    .site-nav a { min-height: 44px; display: inline-flex; align-items: center; color: var(--ink); text-decoration: none; }
+    .site-nav .account { width: 44px; justify-content: center; }
+    .crumbs { margin: 28px 0 8px; font-size: 14px; color: var(--muted); }
+    .crumbs a { color: var(--muted); text-decoration: none; }
+    .trust-bar a, .crumbs a { display: inline-block; padding: 13px 0; margin: -13px 0; }
+    h1 { margin: 0 0 24px; font-family: var(--display); font-size: clamp(30px, 4vw, 40px); font-weight: 800; line-height: 1.15; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, .9fr); gap: 24px; align-items: start; padding-bottom: 64px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 28px; }
+    .event { display: flex; gap: 16px; align-items: center; padding-bottom: 22px; margin-bottom: 22px; border-bottom: 1px solid var(--line); }
+    .event-img { flex: none; width: 96px; height: 96px; border-radius: 8px; object-fit: cover; background: linear-gradient(135deg, var(--accent), var(--blue) 55%, var(--teal)); }
+    .event h2 { margin: 0; font-family: var(--display); font-size: 24px; font-weight: 800; line-height: 1.2; }
+    .event .when { margin: 4px 0 0; color: var(--accent); font-weight: 500; }
+    .event .where { margin: 2px 0 0; color: var(--muted); }
+    .step { display: flex; align-items: center; gap: 10px; margin: 6px 0 14px; font-family: var(--display); font-size: 20px; font-weight: 700; }
+    .step span { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: var(--surface); font-size: 14px; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; }
+    .field input, .field select { width: 100%; min-height: 50px; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--ink) 30%, var(--surface)); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 16px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, var(--surface)); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 0 16px; }
+    .divider { height: 1px; margin: 6px 0 22px; background: var(--line); }
+    .submit-btn { width: 100%; min-height: 52px; padding: 12px 24px; border: 0; border-radius: 4px; background: var(--accent); color: #fff; font-family: var(--display); font-size: 18px; font-weight: 700; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 86%, var(--ink)); }
+    .submit-btn:disabled { cursor: wait; opacity: .72; }
+    .terms { margin: 12px 0 0; color: var(--muted); font-size: 13px; text-align: center; }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-family: var(--display); font-size: 22px; font-weight: 700; }
+    .status { margin: 10px 0 0; text-align: center; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 6px; border-left: 4px solid; }
+    .result-box.success { display: block; background: color-mix(in srgb, var(--teal) 12%, var(--surface)); border-color: var(--teal); }
+    .result-box.notice { display: block; background: var(--accent-soft); border-color: var(--accent); }
+    .again-btn { display: none; width: 100%; min-height: 48px; margin-top: 12px; border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--surface)); border-radius: 4px; background: var(--surface); color: var(--accent); font-weight: 500; }
+    .again-btn.on { display: block; }
+    aside { display: grid; gap: 16px; position: sticky; top: 16px; }
+    .summary h3, .guarantee h3 { margin: 0 0 14px; font-family: var(--display); font-size: 20px; font-weight: 700; }
+    .summary dl { margin: 0; display: grid; gap: 10px; }
+    .summary dl div { display: flex; justify-content: space-between; gap: 16px; }
+    .summary dt { margin: 0; color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .summary .total { padding-top: 12px; margin-top: 4px; border-top: 1px solid var(--line); }
+    .summary .total dt, .summary .total dd { color: var(--ink); font-family: var(--display); font-size: 20px; font-weight: 800; }
+    .summary .fees { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+    .guarantee { background: var(--chrome-bg); color: var(--chrome-text); border-color: var(--chrome-bg); }
+    .guarantee ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 14px; }
+    .guarantee li { display: flex; gap: 10px; align-items: flex-start; }
+    .guarantee li::before { content: ''; flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 2px; background: var(--teal); transform: rotate(45deg); }
+    .guarantee a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 6px; color: var(--chrome-text); font-weight: 500; }
+    .rewards { font-size: 14px; }
+    .rewards strong { color: var(--accent); }
+    .site-footer { position: relative; overflow: hidden; background: var(--chrome-bg); color: var(--chrome-text); }
+    .site-footer::after { content: ''; position: absolute; top: 0; right: 0; width: 160px; height: 270px; background: linear-gradient(160deg, var(--accent) 0 34%, var(--blue) 34% 50%, var(--teal) 50%); clip-path: polygon(0 0, 100% 0, 100% 100%); opacity: .95; }
+    .footer-grid { display: grid; grid-template-columns: 180px repeat(4, minmax(0, 1fr)); gap: 24px; padding: 56px 24px 40px; position: relative; z-index: 1; }
+    .footer-brand { font-family: var(--display); font-size: 27px; font-weight: 800; letter-spacing: -.02em; }
+    .footer-grid h4 { margin: 0 0 14px; font-size: 12px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; }
+    .footer-grid a { display: flex; align-items: center; min-height: 44px; color: var(--chrome-text); font-size: 14px; text-decoration: none; }
+    .footer-legal { position: relative; z-index: 1; margin: 0 24px; padding: 24px 0 40px; border-top: 1px solid color-mix(in srgb, var(--chrome-text) 22%, var(--chrome-bg)); font-size: 13px; color: color-mix(in srgb, var(--chrome-text) 82%, var(--chrome-bg)); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    @media (max-width: 960px) {
+      .search, .site-nav .hide-md { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; }
+      .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .footer-brand { grid-column: 1 / -1; }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 0 16px; }
+      .header-row { min-height: 64px; gap: 12px; }
+      .brand-name { font-size: 23px; }
+      .site-nav { gap: 4px; }
+      .site-nav .hide-sm { display: none; }
+      .card { padding: 20px; }
+      .event-img { width: 72px; height: 72px; }
+      .event h2 { font-size: 20px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .site-footer::after { width: 90px; height: 150px; }
+      .footer-grid { padding: 40px 16px 24px; }
+      .footer-legal { margin: 0 16px; padding-bottom: 72px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="trust-bar">Tickets you can trust: over 190 million sold, <strong>100% Buyer Guarantee</strong>. <a href="https://www.vividseats.com/buyer-guarantee">Learn More.</a></div>
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="brand" href="#checkout" aria-label="Vivid Seats">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false">
+          <rect width="30" height="30" rx="7" fill="#CE3197"></rect>
+          <path d="M8 8h4.2l2.8 9 2.8-9H22l-5 14h-4z" fill="#FFFFFF"></path>
+        </svg>
+        <span class="brand-name">vividseats</span>
+      </a>
+      <div class="search" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+        Search by artist, team, or venue
+      </div>
+      <nav class="site-nav" aria-label="Main">
+        <a class="hide-md" href="https://www.vividseats.com/">Explore</a>
+        <a class="hide-md" href="https://www.vividseats.com/">Trending</a>
+        <a class="hide-md" href="https://www.vividseats.com/sports">Sports</a>
+        <a class="hide-sm" href="https://www.vividseats.com/concerts">Concerts</a>
+        <a class="hide-md" href="https://www.vividseats.com/theater">Theater &amp; Comedy</a>
+        <a class="account" href="#checkout" aria-label="Account">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg>
+        </a>
+      </nav>
+    </div>
+  </header>
+  <main id="checkout">
+    <div class="wrap">
+      <p class="crumbs"><a href="https://www.vividseats.com/concerts">Concerts</a> / <a href="https://www.vividseats.com/concerts">Rock</a> / Rush at SAP Center</p>
+      <h1>Checkout</h1>
+      <div class="layout">
+        <section class="card" aria-labelledby="event-title">
+          <div class="event">
+            <img class="event-img" src="https://media.vsstatic.com/image/upload/f_auto,q_auto,w_240/hero/event/concerts/745-rush/rush-tickets-7.jpg" alt="" onerror="this.removeAttribute('src');this.onerror=null;">
+            <div>
+              <h2 id="event-title">Rush</h2>
+              <p class="when">Thu, Oct 15 &middot; 7:30pm</p>
+              <p class="where">SAP Center &middot; San Jose, CA</p>
+            </div>
+          </div>
+          <form id="transferForm" novalidate>
+            <p class="step"><span>1</span>Your tickets</p>
+            <div class="row">
+              <div class="field">
+                <label for="toAccount">Listing</label>
+                <select id="toAccount">
+                  <option value="ACCT-EXT-101" data-name="Upper Level 213, Row WCA" data-price="240">Upper Level 213 &middot; Row WCA &middot; $240 ea</option>
+                  <option value="ACCT-EXT-102" data-name="Upper Level 214, Row 6" data-price="292">Upper Level 214 &middot; Row 6 &middot; $292 ea</option>
+                  <option value="ACCT-EXT-103" data-name="Lower Level 115, Row 2" data-price="800">Lower Level 115 &middot; Row 2 &middot; $800 ea</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="ticketQty">Quantity</label>
+                <select id="ticketQty">
+                  <option value="1">1 ticket</option>
+                  <option value="2" selected>2 tickets</option>
+                  <option value="3">3 tickets</option>
+                  <option value="4">4 tickets</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="accountTier">Delivery</label>
+              <select id="accountTier">
+                <option value="standard" selected>Mobile transfer &middot; Free</option>
+              </select>
+              <small>Tickets are sent to your phone before the event.</small>
+            </div>
+            <input type="number" id="amount" class="sr-only" tabindex="-1" aria-hidden="true" step="0.01" value="480">
+            <div class="divider"></div>
+            <p class="step"><span>2</span>Contact</p>
+            <div class="field">
+              <label for="buyerEmail">Email address</label>
+              <input type="email" id="buyerEmail" value="jordan.lee@example.com" autocomplete="off" aria-describedby="emailHelp">
+              <small id="emailHelp">We send your order confirmation and ticket updates here.</small>
+            </div>
+            <div class="divider"></div>
+            <p class="step"><span>3</span>Payment</p>
+            <div class="field">
+              <label for="fromAccount">Pay with</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Visa ending 4242">Visa ending 4242</option>
+                <option value="ACCT-1002" data-name="Mastercard ending 8810">Mastercard ending 8810</option>
+              </select>
+            </div>
+            <button type="submit" id="submitBtn" class="submit-btn">Place Order</button>
+            <p class="terms">By placing your order you agree to the Vivid Seats Terms of Use.</p>
+            <div class="stopwatch" id="orderTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="orderTimerValue">0.0s</span></div>
+            <p class="status" id="orderStatus" role="status" aria-live="polite">Sample order. No card is charged on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            <button type="reset" id="againBtn" class="again-btn">Start a new order</button>
+          </form>
+        </section>
+        <aside>
+          <div class="card summary" aria-labelledby="summary-title">
+            <h3 id="summary-title">Order summary</h3>
+            <dl>
+              <div><dt>Event</dt><dd>Rush &middot; Oct 15</dd></div>
+              <div><dt>Seats</dt><dd id="sumSeats">&mdash;</dd></div>
+              <div><dt>Tickets</dt><dd id="sumQty">&mdash;</dd></div>
+              <div><dt>Delivery</dt><dd id="sumDelivery">&mdash;</dd></div>
+              <div><dt>Service fee</dt><dd id="sumFee">&mdash;</dd></div>
+              <div class="total"><dt>Total</dt><dd id="sumTotal">&mdash;</dd></div>
+            </dl>
+            <p class="fees">Prices shown in USD. The total is what you pay at checkout.</p>
+          </div>
+          <div class="card guarantee">
+            <h3>100% Buyer Guarantee</h3>
+            <ul>
+              <li>Safe, secure transactions</li>
+              <li>On-time ticket delivery</li>
+              <li>Valid, authentic and accurate tickets</li>
+              <li>Refunds for canceled events</li>
+            </ul>
+            <a href="https://www.vividseats.com/buyer-guarantee" target="_blank" rel="noopener noreferrer">Learn about the guarantee</a>
+          </div>
+          <div class="card rewards">
+            <strong>Vivid Seats Rewards</strong><br>
+            This order counts toward your Reward Credits.
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div class="footer-brand">vividseats</div>
+      <div><h4>Connect</h4><a href="https://www.vividseats.com/">Contact Us</a><a href="https://www.vividseats.com/">Event News</a></div>
+      <div><h4>Our Company</h4><a href="https://www.vividseats.com/">About Us</a><a href="https://www.vividseats.com/buyer-guarantee">Buyer Guarantee</a><a href="https://www.vividseats.com/">Reviews</a></div>
+      <div><h4>Our Services</h4><a href="https://www.vividseats.com/">Sell Tickets</a><a href="https://www.vividseats.com/">Partners</a></div>
+      <div><h4>Shop</h4><a href="https://www.vividseats.com/">Gift Cards</a><a href="https://www.vividseats.com/">Rewards</a><a href="https://www.vividseats.com/">Vivid Seats App</a></div>
+    </div>
+    <p class="footer-legal">Example checkout. Events, listings, prices and orders shown here are sample data.</p>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const againBtn = document.getElementById('againBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('orderStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const qtySelect = document.getElementById('ticketQty');
+    const tierSelect = document.getElementById('accountTier');
+    const amountInput = document.getElementById('amount');
+    const emailInput = document.getElementById('buyerEmail');
+    const sumSeats = document.getElementById('sumSeats');
+    const sumQty = document.getElementById('sumQty');
+    const sumDelivery = document.getElementById('sumDelivery');
+    const sumFee = document.getElementById('sumFee');
+    const sumTotal = document.getElementById('sumTotal');
+    const orderFields = [fromAccount, toAccount, qtySelect, tierSelect, emailInput];
+    const timer = document.getElementById('orderTimer');
+    const timerValue = document.getElementById('orderTimerValue');
+    const IDLE_STATUS = 'Sample order. No card is charged on this page.';
+    const IDLE_LABEL = 'Place Order';
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let timerHandle = null;
+    let pending = false;
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function quantity() { return Number(qtySelect.value); }
+    function orderTotal() { return Number(selected(toAccount).dataset.price) * quantity(); }
+    function serviceFee(subtotal) { return Math.max(subtotal * 0.001, 2.5); }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function renderSummary() {
+      const total = orderTotal();
+      amountInput.value = total.toFixed(2);
+      sumSeats.textContent = selected(toAccount).dataset.name;
+      sumQty.textContent = `${quantity()} \u00d7 ${usd.format(Number(selected(toAccount).dataset.price))}`;
+      sumDelivery.textContent = 'Mobile transfer';
+      sumFee.textContent = usd.format(serviceFee(total));
+      sumTotal.textContent = usd.format(Number((total + serviceFee(total)).toFixed(2)));
+    }
+    [toAccount, qtySelect].forEach((el) => el.addEventListener('change', renderSummary));
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        tierSelect.value = 'standard';
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        againBtn.className = 'again-btn';
+        renderSummary();
+      });
+    });
+    renderSummary();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      renderSummary();
+      const email = emailInput.value.trim();
+      if (!EMAIL_RE.test(email)) {
+        result.className = 'result-box notice';
+        result.textContent = 'Enter a valid email address so we can send your tickets.';
+        status.textContent = IDLE_STATUS;
+        emailInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      orderFields.forEach((el) => { el.disabled = true; });
+      againBtn.className = 'again-btn';
+      button.textContent = 'Placing order\u2026';
+      status.textContent = 'Placing your order\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const seats = selected(toAccount).dataset.name;
+      const qty = quantity();
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: tierSelect.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Order not placed.');
+        if (!data || !data.receipt) throw new Error('Order outcome unknown.');
+        const orderNo = String(data.receipt.receiptId).replace(/^RCP-/, '').slice(-9);
+        result.className = 'result-box success';
+        result.textContent = `Order confirmed. ${qty} ${qty === 1 ? 'ticket' : 'tickets'} to Rush, ${seats}, for ${usd.format(Number(data.receipt.totalDebit))}. Order number ${orderNo}. We sent your confirmation to ${email}.`;
+        status.textContent = 'Order confirmed.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = "Sorry, we couldn't place your order right now. Your card has not been charged. Please try again.";
+          status.textContent = 'Order not placed.';
+        } else {
+          result.textContent = "We couldn't confirm your order. Check your email for a confirmation before ordering again, so you don't buy twice.";
+          status.textContent = 'Order not confirmed.';
+        }
+      } finally {
+        orderFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        button.textContent = IDLE_LABEL;
+        againBtn.className = 'again-btn on';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
