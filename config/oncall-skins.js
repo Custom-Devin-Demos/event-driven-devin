@@ -3363,6 +3363,25 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A MUFG SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real MUFG product.',
   },
+  'abab7ea5': {
+    slug: 'abab7ea5',
+    company: 'ACI Worldwide',
+    brandMark: 'A',
+    vertical: 'banking',
+    page: { file: 'abab7ea5.html', title: 'Merchant Payments | ACI Worldwide' },
+    theme: {
+      '--accent': '#031226',
+      '--ink': '#101014',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#031226',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'ACI Worldwide Support',
+    alertCard: {
+      impact: 'Merchant portal payments take ~9s to complete instead of under a second; merchants wait on Pay and retry.',
+    },
+    disclaimer: 'NOT ACTUALLY AN ACI WORLDWIDE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real ACI Worldwide product.',
+  },
 };
 
 function getOncallSkin(slug) {
