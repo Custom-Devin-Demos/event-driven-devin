@@ -243,7 +243,7 @@ function buildAlertBlocks(alertData, options = {}) {
  */
 function buildAlertText(alertData) {
   const t = alertStrings(alertData);
-  let text = `:rotating_light: *${t.header(alertData.verticalLabel || t.defaultLabel)} — ${alertData.issueTitle}*\n`;
+  let text = `:rotating_light: *${t.header(alertData.verticalLabel || t.defaultLabel)}${t.titleSeparator}${alertData.issueTitle}*\n`;
   text += `${t.type}: ${alertData.errorType || t.unknown} | ${t.level}: ${alertData.level || 'error'}\n`;
   if (alertData.errorValue) {
     text += `${t.message}: ${alertData.errorValue}\n`;

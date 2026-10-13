@@ -1062,6 +1062,21 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A STELLANTIS SITE — internal demo only, not affiliated with, endorsed by, or a real Stellantis product.',
   },
+  '44169cd7': {
+    slug: '44169cd7',
+    company: "Moody's",
+    brandMark: 'M',
+    vertical: 'banking',
+    hideRibbon: true,
+    page: { file: '44169cd7.html', title: "Ratings Data Feed | Moody's" },
+    theme: {
+      '--accent': '#0b3bd1',
+      '--ink': '#14213d',
+      '--surface': '#f4f6fb',
+      '--chrome-bg': '#001a5c',
+      '--chrome-text': '#FFFFFF',
+    },
+  },
   '02238eb0': {
     slug: '02238eb0',
     company: 'Harborline FCU',

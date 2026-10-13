@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ratings Data Feed | Moody's</title>
+  <style>
+    :root {
+      --navy: #001a5c;
+      --blue: #0b3bd1;
+      --blue-2: #2f5ce6;
+      --ink: #14213d;
+      --muted: #5b6785;
+      --line: #dde3f0;
+      --surface: #f4f6fb;
+      --ok: #14804a;
+      --ok-bg: #e8f6ee;
+      --bad: #b42318;
+      --bad-bg: #fdecea;
+      --warn: #a15c07;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--surface); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
+    .disclaimer { background: #fff7e0; color: #5c4400; border-bottom: 1px solid #f0dfa8; font-size: 12px; text-align: center; padding: 6px 12px; }
+    header { background: var(--navy); color: #fff; }
+    .bar { max-width: 1180px; margin: 0 auto; padding: 0 28px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: baseline; gap: 16px; }
+    .wordmark { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; color: #fff; }
+    .product { font-size: 15px; color: #c9d6ff; border-left: 1px solid #3a4f8f; padding-left: 16px; }
+    nav { display: flex; gap: 26px; font-size: 14px; color: #c9d6ff; }
+    nav a { color: inherit; text-decoration: none; }
+    nav a.active { color: #fff; border-bottom: 2px solid var(--blue-2); padding-bottom: 22px; margin-bottom: -24px; }
+    .sub { background: var(--blue); color: #fff; }
+    .sub .bar { height: 44px; font-size: 13px; color: #dfe7ff; }
+    main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+    h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.5px; color: var(--navy); }
+    .lede { margin: 0 0 24px; color: var(--muted); }
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; }
+    .card .k { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+    .card .v { margin-top: 6px; font-size: 22px; font-weight: 700; color: var(--navy); }
+    .card .s { margin-top: 2px; font-size: 13px; color: var(--muted); }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .pill.ok { background: var(--ok-bg); color: var(--ok); }
+    .pill.bad { background: var(--bad-bg); color: var(--bad); }
+    .grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; align-items: start; }
+    .panel { background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+    .panel h2 { margin: 0; padding: 16px 20px; font-size: 17px; color: var(--navy); border-bottom: 1px solid var(--line); }
+    .panel .body { padding: 18px 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 600; padding: 10px 20px; border-bottom: 1px solid var(--line); }
+    td { padding: 11px 20px; border-bottom: 1px solid #eef1f7; }
+    tr:last-child td { border-bottom: 0; }
+    td.rating { font-weight: 700; color: var(--navy); }
+    .action-Upgraded { color: var(--ok); font-weight: 600; }
+    .action-Downgraded { color: var(--bad); font-weight: 600; }
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+    select { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 15px; color: var(--ink); background: #fff; }
+    .meta { margin: 12px 0 18px; font-size: 13px; color: var(--muted); }
+    button.primary { width: 100%; height: 48px; border: 0; border-radius: 6px; background: var(--blue); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; }
+    button.primary:hover { background: #0931b0; }
+    button.primary:disabled { background: #8ea3e6; cursor: progress; }
+    #result { display: none; margin-top: 18px; padding: 14px 16px; border-radius: 6px; font-size: 14px; }
+    #result.show { display: block; }
+    #result.ok { background: var(--ok-bg); color: var(--ok); border: 1px solid #b7e2c8; }
+    #result.bad { background: var(--bad-bg); color: var(--bad); border: 1px solid #f5c2bc; }
+    #result strong { display: block; font-size: 15px; margin-bottom: 4px; }
+    #result code { font-family: Menlo, Consolas, monospace; font-size: 12px; }
+    footer { max-width: 1180px; margin: 0 auto; padding: 8px 28px 32px; font-size: 12px; color: var(--muted); }
+    @media (max-width: 900px) {
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .grid { grid-template-columns: 1fr; }
+      nav { display: none; }
+      th:nth-child(3), td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="disclaimer">NOT ACTUALLY A MOODY'S SITE: internal demo only, not affiliated with, endorsed by, or a real Moody's product. Issuers and ratings are fictional.</div>
+  <header>
+    <div class="bar">
+      <div class="brand"><span class="wordmark">Moody's</span><span class="product">Ratings Data Feed</span></div>
+      <nav><a href="#">Feeds</a><a href="#" class="active">Snapshots</a><a href="#">Subscribers</a><a href="#">Audit log</a></nav>
+    </div>
+  </header>
+  <div class="sub"><div class="bar"><span>Operations console</span><span id="clock">Business timezone: New York (ET)</span></div></div>
+
+  <main>
+    <h1>Nightly ratings snapshot</h1>
+    <p class="lede">Each night the feed closes the day's rating actions and delivers one end-of-day snapshot to every subscriber.</p>
+
+    <section class="cards">
+      <div class="card"><div class="k">Feed status</div><div class="v" id="feed-status"><span class="pill ok">Healthy</span></div><div class="s" id="feed-status-note">All deliveries on schedule</div></div>
+      <div class="card"><div class="k">Last delivered snapshot</div><div class="v">9 Oct 2026</div><div class="s">Completed 18:03 ET</div></div>
+      <div class="card"><div class="k">Rating actions today</div><div class="v" id="action-count">8</div><div class="s">Business date 12 Oct 2026</div></div>
+      <div class="card"><div class="k">Subscribers</div><div class="v">1,240</div><div class="s">SFTP and API delivery</div></div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Rating actions, business date 12 Oct 2026</h2>
+        <table>
+          <thead><tr><th>Issuer</th><th>Sector</th><th>Rating</th><th>Outlook</th><th>Action</th></tr></thead>
+          <tbody id="actions"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Run end-of-day snapshot</h2>
+        <div class="body">
+          <form id="snapshotForm">
+            <label for="runId">Scheduled run</label>
+            <select id="runId" name="runId">
+              <option value="eod-2026-10-12" selected>Mon 12 Oct 2026, end of day</option>
+              <option value="eod-2026-10-09">Fri 9 Oct 2026, end of day</option>
+            </select>
+            <div class="meta" id="cutoff">Cut-off 23:30 ET. Delivers to 1,240 subscribers.</div>
+            <button type="submit" class="primary" id="submitBtn">Run snapshot</button>
+          </form>
+          <div id="result" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>Internal demo environment. Ratings shown are fictional sample data.</footer>
+
+  <script>
+    var LATEST_RUN = 'eod-2026-10-12';
+    var CUTOFFS = { 'eod-2026-10-12': '23:30 ET', 'eod-2026-10-09': '18:00 ET' };
+    var ACTIONS = [
+      ['Vantrell Utilities', 'Utilities', 'A2', 'Positive', 'Outlook changed'],
+      ['Corvane Energy Holdings', 'Energy', 'Baa2', 'Stable', 'Downgraded'],
+      ['Hollisford Transit Authority', 'Public Finance', 'Aa3', 'Stable', 'Affirmed'],
+      ['Marlowe Point Water District', 'Public Finance', 'Aa2', 'Stable', 'Affirmed'],
+      ['Quenridge Health System', 'Healthcare', 'A3', 'Negative', 'Outlook changed'],
+      ['Pellston Logistics Group', 'Transportation', 'Ba1', 'Stable', 'Affirmed'],
+      ['Abernath Telecom', 'Telecommunications', 'Baa3', 'Stable', 'New rating'],
+      ['Brackenmoor Municipal Power', 'Public Finance', 'A1', 'Stable', 'Upgraded'],
+    ];
+
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    var tbody = document.getElementById('actions');
+    ACTIONS.forEach(function (row) {
+      var tr = document.createElement('tr');
+      row.forEach(function (value, index) {
+        var td = document.createElement('td');
+        td.textContent = value;
+        if (index === 2) td.className = 'rating';
+        if (index === 4) td.className = 'action-' + value.replace(/\s+/g, '');
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
+    var select = document.getElementById('runId');
+    var cutoff = document.getElementById('cutoff');
+    select.addEventListener('change', function () {
+      cutoff.textContent = 'Cut-off ' + CUTOFFS[select.value] + '. Delivers to 1,240 subscribers.';
+    });
+
+    var form = document.getElementById('snapshotForm');
+    var submitBtn = document.getElementById('submitBtn');
+    var result = document.getElementById('result');
+
+    function show(kind, html) {
+      result.className = 'show ' + kind;
+      result.innerHTML = html;
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      if (submitBtn.disabled) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Running snapshot...';
+      result.className = '';
+      await identityReady;
+      try {
+        var response = await fetch('/api/44169cd7/snapshots', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            runId: select.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        var body = await response.json();
+        if (!response.ok || !body.success) {
+          document.getElementById('feed-status').innerHTML = '<span class="pill bad">Delivery failed</span>';
+          document.getElementById('feed-status-note').textContent = 'On-call engineer paged';
+          show('bad', '<strong>Snapshot failed (HTTP ' + response.status + ')</strong>'
+            + 'The snapshot was not delivered to subscribers. The on-call team has been alerted.'
+            + '<br><code>' + escapeHtml(body.errorClass) + ': ' + escapeHtml(body.error) + '</code>'
+            + (body.snapshotId ? '<br>Reference ' + escapeHtml(body.snapshotId) : ''));
+          return;
+        }
+        if (body.runId === LATEST_RUN) {
+          document.getElementById('feed-status').innerHTML = '<span class="pill ok">Healthy</span>';
+          document.getElementById('feed-status-note').textContent = 'Latest snapshot delivered';
+        }
+        show('ok', '<strong>Snapshot delivered</strong>'
+          + escapeHtml(body.issuerCount) + ' issuers, business date ' + escapeHtml(body.businessDate)
+          + '<br>Reference ' + escapeHtml(body.snapshotId) + ', checksum <code>' + escapeHtml(body.checksum) + '</code>');
+      } catch (error) {
+        show('bad', '<strong>Snapshot request failed</strong>' + escapeHtml(error.message));
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Run snapshot';
+      }
+    });
+  </script>
+</body>
+</html>
