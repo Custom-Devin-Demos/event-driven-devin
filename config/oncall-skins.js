@@ -3459,7 +3459,6 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#121212',
       '--chrome-text': '#FFFFFF',
     },
-    devinSession: { auto: true },
     supportCenter: 'OpenSea Help Center',
     alertCard: {
       title: 'p95 latency \u2014 NFT checkout Complete purchase',
