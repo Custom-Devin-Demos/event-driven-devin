@@ -125,7 +125,8 @@ function validateRequest(data) {
   if (!CHANNELS[data.channel]) throw new ValidationError('Please choose how you would like to meet.');
   const center = findCenter(data.centerId);
   if (!center) throw new ValidationError('Please choose a financial center.');
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data.date || '')) || !/^\d{2}:\d{2}$/.test(String(data.time || ''))) {
+  if (typeof data.date !== 'string' || typeof data.time !== 'string'
+    || !/^\d{4}-\d{2}-\d{2}$/.test(data.date) || !/^\d{2}:\d{2}$/.test(data.time)) {
     throw new ValidationError('Please choose a date and time.');
   }
   const start = new Date(`${data.date}T${data.time}:00`);
