@@ -136,7 +136,8 @@ describe('hub demo alert destination (Slack / Teams)', () => {
     await runWithAlertDestination('teams', () => createSessionAndAlert({ ...alert(), promptAppendix }));
     const [alertCard] = teamsCards();
     expect(alertCard.body).toContainEqual(expect.objectContaining({ type: 'TextBlock', text: 'Responder instructions' }));
-    expect(alertCard.body).toContainEqual(expect.objectContaining({ type: 'TextBlock', text: promptAppendix }));
+    const note = alertCard.body.find((b) => b.type === 'TextBlock' && b.text.endsWith(promptAppendix));
+    expect(note.text).toMatch(/^This alert was posted only to Microsoft Teams; there is no Slack alert thread\./);
     expect(axios.post.mock.calls[0][1].text).toContain(promptAppendix);
   });
 
