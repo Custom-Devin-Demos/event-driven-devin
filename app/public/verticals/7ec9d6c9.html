@@ -189,7 +189,6 @@
               <div><dt>From</dt><dd id="reviewFrom">—</dd></div>
               <div><dt>Amount</dt><dd id="reviewAmount">—</dd></div>
               <div><dt>Reference</dt><dd id="reviewRef">—</dd></div>
-              <div><dt>Balance after payment</dt><dd id="reviewRemaining">—</dd></div>
             </dl>
             <button type="submit" id="submitBtn" class="submit-btn">Make payment</button>
             <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
@@ -251,7 +250,7 @@
     const reviewFrom = document.getElementById('reviewFrom');
     const reviewAmount = document.getElementById('reviewAmount');
     const reviewRef = document.getElementById('reviewRef');
-    const reviewRemaining = document.getElementById('reviewRemaining');
+    const paymentFields = [fromAccount, toAccount, amountInput, referenceInput, document.getElementById('accountTier')];
     const timer = document.getElementById('sendTimer');
     const timerValue = document.getElementById('sendTimerValue');
     const IDLE_STATUS = 'Sample account. No money moves on this page.';
@@ -291,7 +290,6 @@
       reviewFrom.textContent = selected(fromAccount).dataset.name;
       reviewAmount.textContent = valid ? gbp.format(amount) : '—';
       reviewRef.textContent = ref || '—';
-      reviewRemaining.textContent = valid ? gbp.format(available - amount) : '—';
     }
     [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
     [amountInput, referenceInput].forEach((el) => el.addEventListener('input', renderReview));
@@ -326,6 +324,7 @@
       }
       pending = true;
       button.disabled = true;
+      paymentFields.forEach((el) => { el.disabled = true; });
       button.textContent = 'Sending payment…';
       status.textContent = 'Sending your payment…';
       result.className = 'result-box';
@@ -333,8 +332,9 @@
       const payee = selected(toAccount).dataset.name;
       const ref = referenceInput.value.trim();
       const started = startTimer();
+      let response;
       try {
-        const response = await fetch('/api/banking/transfer', {
+        response = await fetch('/api/banking/transfer', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -347,17 +347,24 @@
             devinEmail: localStorage.getItem('devinEmail') || '',
           }),
         });
-        const data = await response.json();
-        if (!response.ok || !data.receipt) throw new Error('Payment not sent.');
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Payment not sent.');
+        if (!data || !data.receipt) throw new Error('Payment outcome unknown.');
         const sentAt = new Date(data.receipt.timestamp);
         result.className = 'result-box success';
         result.textContent = `Payment sent. ${gbp.format(Number(data.receipt.amount))} to ${payee} with reference "${ref}" at ${timeFmt.format(sentAt)}. Confirmation number ${data.receipt.receiptId}.`;
         status.textContent = 'Payment sent.';
       } catch (_error) {
         result.className = 'result-box notice';
-        result.textContent = "Sorry, we couldn't make this payment right now. No money has left your account. Please try again later.";
-        status.textContent = 'Payment not sent.';
+        if (response && !response.ok) {
+          result.textContent = "Sorry, we couldn't make this payment right now. No money has left your account. Please try again later.";
+          status.textContent = 'Payment not sent.';
+        } else {
+          result.textContent = "We couldn't confirm this payment. Check your recent transactions before paying again, so you don't pay twice.";
+          status.textContent = 'Payment not confirmed.';
+        }
       } finally {
+        paymentFields.forEach((el) => { el.disabled = false; });
         stopTimer(started);
         pending = false;
         button.disabled = false;
