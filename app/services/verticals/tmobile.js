@@ -174,7 +174,6 @@ function resolveDevinIdentity(data) {
 
   if (requestedOrgId) {
     logger.warn('Ignoring caller-supplied Devin identity for T-Mobile upgrade checkout', {
-      requestedOrgId,
       service: SERVICE,
     });
   }

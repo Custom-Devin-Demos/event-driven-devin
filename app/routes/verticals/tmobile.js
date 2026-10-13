@@ -10,17 +10,18 @@ const router = express.Router();
  * web page for this vertical.
  */
 router.post('/api/tmobile/upgrade/checkout', async (req, res) => {
+  const body = req.body || {};
   try {
     const result = await checkoutUpgrade({
-      accountNumber: req.body.accountNumber,
-      lineNumber: req.body.lineNumber,
-      deviceSku: req.body.deviceSku,
-      tradeIn: req.body.tradeIn,
+      accountNumber: body.accountNumber,
+      lineNumber: body.lineNumber,
+      deviceSku: body.deviceSku,
+      tradeIn: body.tradeIn,
       client: req.get('X-TMobile-Client'),
       demoToken: req.get('X-TMobile-Demo-Token'),
-      devinUserId: req.body.devinUserId,
-      devinOrgId: req.body.devinOrgId,
-      devinEmail: req.body.devinEmail,
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
     });
     res.json(result);
   } catch (error) {
