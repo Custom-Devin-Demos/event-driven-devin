@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Make a payment | Barclays Online Banking</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #006DE3;
+      --ink: #272727;
+      --surface: #FFFFFF;
+      --chrome-bg: #000063;
+      --chrome-text: #FFFFFF;
+      --cyan: #00AEEF;
+      --page: #F6F6F6;
+      --teal: #006666;
+      --line: color-mix(in srgb, var(--ink) 16%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 72%, var(--surface));
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.5 'Hanken Grotesk', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1200px; margin: auto; padding: 0 24px; }
+    .site-header { background: var(--surface); }
+    .header-row { display: flex; align-items: center; gap: 16px; min-height: 72px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; color: var(--cyan); }
+    .brand svg { display: block; }
+    .brand-name { font-size: 24px; font-weight: 700; letter-spacing: .08em; line-height: 1; }
+    .brand-sub { padding-left: 12px; border-left: 1px solid var(--line); color: var(--ink); font-size: 16px; font-weight: 500; letter-spacing: 0; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 20px; font-weight: 500; }
+    .header-right a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; }
+    .last-login { color: var(--muted); font-size: 14px; font-weight: 400; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border: 2px solid var(--accent); border-radius: 99px; background: var(--surface); color: var(--accent); font-weight: 500; text-decoration: none; }
+    .primary-nav { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface); }
+    .primary-nav .wrap { display: flex; gap: 28px; }
+    .primary-nav a { min-height: 48px; display: inline-flex; align-items: center; color: var(--ink); font-weight: 500; text-decoration: none; }
+    .primary-nav a.current { color: var(--accent); box-shadow: inset 0 -3px 0 var(--accent); }
+    .band { background: var(--chrome-bg); color: var(--chrome-text); }
+    .band .wrap { padding-top: 36px; padding-bottom: 96px; }
+    .crumbs { margin: 0 0 10px; font-size: 14px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: color-mix(in srgb, var(--chrome-text) 72%, var(--chrome-bg)); }
+    .band h1 { margin: 0; font-size: clamp(34px, 4.4vw, 48px); font-weight: 700; line-height: 1.2; }
+    .band p { margin: 12px 0 0; max-width: 640px; font-size: 18px; color: color-mix(in srgb, var(--chrome-text) 90%, var(--chrome-bg)); }
+    main .wrap { margin-top: -64px; padding-bottom: 64px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .85fr); gap: 24px; align-items: start; }
+    .card { background: var(--surface); border-radius: 12px; padding: 32px; box-shadow: 0 2px 10px rgba(0, 0, 0, .08); }
+    .card h2 { margin: 0 0 4px; font-size: 32px; font-weight: 500; line-height: 1.2; }
+    .card .sub { margin: 0 0 24px; color: var(--muted); }
+    .step { margin: 8px 0 14px; font-size: 20px; font-weight: 500; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; margin-bottom: 6px; font-weight: 500; }
+    .field input, .field select { width: 100%; min-height: 52px; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--ink) 50%, var(--surface)); border-radius: 8px; background: var(--surface); color: var(--ink); font-size: 16px; }
+    .money { position: relative; }
+    .money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 500; }
+    .money input { padding-left: 30px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 14px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; }
+    .review { margin: 8px 0 24px; padding: 18px 20px; border-radius: 8px; background: var(--page); display: grid; gap: 8px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .submit-btn { width: 100%; min-height: 52px; padding: 12px 24px; border: 2px solid var(--accent); border-radius: 99px; background: var(--accent); color: #fff; font-size: 18px; font-weight: 500; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 84%, var(--chrome-bg)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-size: 22px; font-weight: 700; }
+    .status { margin: 12px 0 0; text-align: center; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 8px; border-left: 4px solid; }
+    .result-box.success { display: block; background: color-mix(in srgb, #008A00 8%, var(--surface)); border-color: #008A00; }
+    .result-box.notice { display: block; background: color-mix(in srgb, #C8102E 7%, var(--surface)); border-color: #C8102E; }
+    aside { display: grid; gap: 24px; }
+    .acct-card h3, .note h3 { margin: 0 0 12px; font-size: 20px; font-weight: 500; }
+    .acct-card ul { list-style: none; margin: 0; padding: 0; }
+    .acct-card li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+    .acct-card li:first-child { border-top: 0; padding-top: 0; }
+    .acct-card .acct-name { display: block; font-weight: 500; }
+    .acct-card .acct-no { display: block; color: var(--muted); font-size: 14px; }
+    .acct-card .acct-bal { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .note { background: var(--teal); color: #fff; border-radius: 12px; padding: 24px; }
+    .note p { margin: 0 0 16px; }
+    .note a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 99px; background: #AFFDFD; color: var(--ink); font-weight: 500; text-decoration: none; }
+    .site-footer { background: var(--page); border-top: 1px solid var(--line); }
+    .site-footer .wrap { padding-top: 32px; padding-bottom: 40px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 0 28px; }
+    .footer-links a { min-height: 44px; display: inline-flex; align-items: center; color: var(--ink); }
+    .footer-legal { margin: 16px 0 0; max-width: 900px; color: var(--muted); font-size: 14px; }
+    @media (max-width: 960px) {
+      .primary-nav, .last-login { display: none; }
+      .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .wrap { padding: 0 16px; }
+      .brand-sub, .header-right .hide-sm { display: none; }
+      .band .wrap { padding-top: 24px; padding-bottom: 84px; }
+      .card { padding: 22px 18px; }
+      .card h2 { font-size: 26px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .site-footer .wrap { padding-bottom: 72px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="brand" href="#payment" aria-label="Barclays Online Banking">
+        <svg width="34" height="34" viewBox="0 0 34 34" role="img" aria-hidden="true" focusable="false">
+          <rect x="1" y="1" width="32" height="32" rx="8" fill="#00AEEF"></rect>
+          <path d="M11 8h8.2c3.6 0 5.8 1.8 5.8 4.6 0 1.8-1 3.1-2.6 3.7 2.1.5 3.4 2 3.4 4.1 0 3.2-2.4 5.6-6.4 5.6H11zm4 7.3h3.6c1.6 0 2.5-.8 2.5-2s-.9-2-2.5-2H15zm0 7.4h4.1c1.8 0 2.8-.9 2.8-2.3s-1-2.3-2.8-2.3H15z" fill="#FFFFFF"></path>
+        </svg>
+        <span class="brand-name">BARCLAYS</span>
+        <span class="brand-sub">Online Banking</span>
+      </a>
+      <div class="header-right">
+        <span class="last-login">Last logged in today at 08:12</span>
+        <a class="hide-sm" href="https://www.barclays.co.uk/help/">Help</a>
+        <a class="pill" href="https://www.barclays.co.uk/">Log out</a>
+      </div>
+    </div>
+  </header>
+  <nav class="primary-nav" aria-label="Online Banking">
+    <div class="wrap">
+      <a href="#payment">Home</a>
+      <a href="#accounts">Accounts</a>
+      <a href="#payment" class="current" aria-current="page">Pay &amp; transfer</a>
+      <a href="https://www.barclays.co.uk/help/">Cards</a>
+      <a href="https://www.barclays.co.uk/help/">Help and support</a>
+    </div>
+  </nav>
+  <section class="band" aria-label="Page heading">
+    <div class="wrap">
+      <p class="crumbs">Pay &amp; transfer / Make a payment</p>
+      <h1>Make a payment</h1>
+      <p>Pay someone you've paid before from your Barclays account. Faster Payments to UK accounts usually arrive within 2 hours.</p>
+    </div>
+  </section>
+  <main id="payment">
+    <div class="wrap">
+      <div class="layout">
+        <section class="card" aria-labelledby="form-title">
+          <h2 id="form-title">Pay an existing payee</h2>
+          <p class="sub">Payments made today leave your account straight away.</p>
+          <form id="transferForm" novalidate>
+            <p class="step">Who are you paying?</p>
+            <div class="field">
+              <label for="toAccount">Payee</label>
+              <select id="toAccount">
+                <option value="ACCT-EXT-101" data-name="J Patel" data-detail="20-45-77 · 31094812">J Patel · 20-45-77 · 31094812</option>
+                <option value="ACCT-EXT-102" data-name="Northside Lettings" data-detail="40-11-62 · 70215548">Northside Lettings · 40-11-62 · 70215548</option>
+                <option value="ACCT-EXT-103" data-name="S Okafor" data-detail="09-01-28 · 58830127">S Okafor · 09-01-28 · 58830127</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fromAccount">Pay from</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Barclays Bank Account" data-balance="3214.56">Barclays Bank Account · £3,214.56</option>
+                <option value="ACCT-1002" data-name="Premier Current Account" data-balance="8902.18">Premier Current Account · £8,902.18</option>
+              </select>
+            </div>
+            <p class="step">How much?</p>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Amount</label>
+                <div class="money"><span aria-hidden="true">£</span><input type="number" id="amount" min="0.01" step="0.01" value="250" inputmode="decimal" required aria-describedby="amountHelp"></div>
+                <small id="amountHelp">Available: £3,214.56</small>
+              </div>
+              <div class="field">
+                <label for="reference">Reference</label>
+                <input type="text" id="reference" maxlength="18" value="October rent" autocomplete="off">
+                <small>Up to 18 characters. Shown on their statement.</small>
+              </div>
+            </div>
+            <div class="field">
+              <label for="accountTier">Payment type</label>
+              <select id="accountTier">
+                <option value="standard">Faster Payment · today</option>
+              </select>
+              <small>Arrives within 2 hours, usually much sooner.</small>
+            </div>
+            <dl class="review" aria-label="Payment summary">
+              <div><dt>Paying</dt><dd id="reviewTo">—</dd></div>
+              <div><dt>From</dt><dd id="reviewFrom">—</dd></div>
+              <div><dt>Amount</dt><dd id="reviewAmount">—</dd></div>
+              <div><dt>Reference</dt><dd id="reviewRef">—</dd></div>
+              <div><dt>Balance after payment</dt><dd id="reviewRemaining">—</dd></div>
+            </dl>
+            <button type="submit" id="submitBtn" class="submit-btn">Make payment</button>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <p class="status" id="paymentStatus" role="status" aria-live="polite">Sample account. No money moves on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="card acct-card" id="accounts">
+            <h3>Your accounts</h3>
+            <ul>
+              <li><span><span class="acct-name">Barclays Bank Account</span><span class="acct-no">20-32-06 · ··4471</span></span><span class="acct-bal">£3,214.56</span></li>
+              <li><span><span class="acct-name">Premier Current Account</span><span class="acct-no">20-32-06 · ··9035</span></span><span class="acct-bal">£8,902.18</span></li>
+              <li><span><span class="acct-name">Rainy Day Saver</span><span class="acct-no">20-32-06 · ··6620</span></span><span class="acct-bal">£4,150.00</span></li>
+            </ul>
+          </div>
+          <div class="note">
+            <h3>Could this be a scam?</h3>
+            <p>We'll never ask you to move money to a safe account. If someone has told you how to answer these questions, stop and call us.</p>
+            <a href="https://www.barclays.co.uk/help/" target="_blank" rel="noopener noreferrer">Report fraud or a scam</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-links">
+        <a href="https://www.barclays.co.uk/help/">Help &amp; FAQs</a>
+        <a href="https://www.barclays.co.uk/help/">Report fraud or a scam</a>
+        <a href="https://www.barclays.co.uk/">Accessibility</a>
+        <a href="https://www.barclays.co.uk/">Privacy policy</a>
+        <a href="https://www.barclays.co.uk/">Security</a>
+        <a href="https://www.barclays.co.uk/">Service status</a>
+      </div>
+      <p class="footer-legal">Example Online Banking experience. Accounts, payees, balances and payments shown here are sample data.</p>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('paymentStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const referenceInput = document.getElementById('reference');
+    const amountHelp = document.getElementById('amountHelp');
+    const reviewTo = document.getElementById('reviewTo');
+    const reviewFrom = document.getElementById('reviewFrom');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewRef = document.getElementById('reviewRef');
+    const reviewRemaining = document.getElementById('reviewRemaining');
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    const IDLE_STATUS = 'Sample account. No money moves on this page.';
+    const IDLE_LABEL = 'Make payment';
+    let timerHandle = null;
+    let pending = false;
+    const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
+    const timeFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function balance() { return Number(selected(fromAccount).dataset.balance); }
+    function parsedAmount() {
+      const raw = amountInput.value.trim();
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw);
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function renderReview() {
+      const available = balance();
+      const amount = parsedAmount();
+      const valid = Number.isFinite(amount) && amount >= 0.01 && amount <= available;
+      const ref = referenceInput.value.trim();
+      amountHelp.textContent = `Available: ${gbp.format(available)}`;
+      reviewTo.textContent = selected(toAccount).dataset.name;
+      reviewFrom.textContent = selected(fromAccount).dataset.name;
+      reviewAmount.textContent = valid ? gbp.format(amount) : '—';
+      reviewRef.textContent = ref || '—';
+      reviewRemaining.textContent = valid ? gbp.format(available - amount) : '—';
+    }
+    [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
+    [amountInput, referenceInput].forEach((el) => el.addEventListener('input', renderReview));
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        renderReview();
+      });
+    });
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const amount = parsedAmount();
+      const available = balance();
+      if (!Number.isFinite(amount) || amount < 0.01 || amount > available) {
+        result.className = 'result-box notice';
+        result.textContent = `Enter an amount between £0.01 and ${gbp.format(available)}, with no more than two decimal places.`;
+        status.textContent = IDLE_STATUS;
+        amountInput.focus();
+        return;
+      }
+      if (!referenceInput.value.trim()) {
+        result.className = 'result-box notice';
+        result.textContent = 'Enter a reference so your payee knows who the payment is from.';
+        status.textContent = IDLE_STATUS;
+        referenceInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      button.textContent = 'Sending payment…';
+      status.textContent = 'Sending your payment…';
+      result.className = 'result-box';
+      result.textContent = '';
+      const payee = selected(toAccount).dataset.name;
+      const ref = referenceInput.value.trim();
+      const started = startTimer();
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('Payment not sent.');
+        const sentAt = new Date(data.receipt.timestamp);
+        result.className = 'result-box success';
+        result.textContent = `Payment sent. ${gbp.format(Number(data.receipt.amount))} to ${payee} with reference "${ref}" at ${timeFmt.format(sentAt)}. Confirmation number ${data.receipt.receiptId}.`;
+        status.textContent = 'Payment sent.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = "Sorry, we couldn't make this payment right now. No money has left your account. Please try again later.";
+        status.textContent = 'Payment not sent.';
+      } finally {
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
