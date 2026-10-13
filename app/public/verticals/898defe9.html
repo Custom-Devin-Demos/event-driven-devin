@@ -161,8 +161,6 @@
               <label for="toAccount">Buy from</label>
               <select id="toAccount">
                 <option value="ACCT-EXT-101" data-name="Lantern #4127" data-eth="0.185" data-price="461.66">Lantern #4127 &middot; 0.185 ETH (floor)</option>
-                <option value="ACCT-EXT-102" data-name="Lantern #0388" data-eth="0.240" data-price="598.90">Lantern #0388 &middot; 0.240 ETH</option>
-                <option value="ACCT-EXT-103" data-name="Lantern #0007 (1/1 Gold)" data-eth="1.950" data-price="4866.06">Lantern #0007 (1/1 Gold) &middot; 1.950 ETH</option>
               </select>
               <small>Best listing for this item. Price is locked for 10 minutes.</small>
             </div>
@@ -175,14 +173,7 @@
             </div>
             <input type="number" id="amount" class="sr-only" tabindex="-1" aria-hidden="true" step="0.01" value="461.66">
             <div class="divider"></div>
-            <p class="step"><span>2</span>Receipt</p>
-            <div class="field">
-              <label for="buyerEmail">Email for receipt</label>
-              <input type="email" id="buyerEmail" value="sam.rivera@example.com" autocomplete="off" aria-describedby="emailHelp">
-              <small id="emailHelp">We'll email you when the item lands in your wallet.</small>
-            </div>
-            <div class="divider"></div>
-            <p class="step"><span>3</span>Payment</p>
+            <p class="step"><span>2</span>Payment</p>
             <div class="field">
               <label for="fromAccount">Pay with</label>
               <select id="fromAccount">
@@ -254,17 +245,15 @@
     const toAccount = document.getElementById('toAccount');
     const tierSelect = document.getElementById('accountTier');
     const amountInput = document.getElementById('amount');
-    const emailInput = document.getElementById('buyerEmail');
     const sumItem = document.getElementById('sumItem');
     const sumPrice = document.getElementById('sumPrice');
     const sumFee = document.getElementById('sumFee');
     const sumTotal = document.getElementById('sumTotal');
-    const orderFields = [fromAccount, toAccount, tierSelect, emailInput];
+    const orderFields = [fromAccount, toAccount, tierSelect];
     const timer = document.getElementById('orderTimer');
     const timerValue = document.getElementById('orderTimerValue');
     const IDLE_STATUS = 'Sample checkout. No wallet is charged on this page.';
     const IDLE_LABEL = 'Complete purchase';
-    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const ETH_USD = 2495.47;
     let timerHandle = null;
     let pending = false;
@@ -297,7 +286,6 @@
       sumFee.innerHTML = `${eth(fee / ETH_USD)}<span class="usd">${usd.format(fee)}</span>`;
       sumTotal.innerHTML = `${eth(total / ETH_USD)}<span class="usd">${usd.format(total)}</span>`;
     }
-    toAccount.addEventListener('change', renderSummary);
     form.addEventListener('reset', () => {
       setTimeout(() => {
         tierSelect.value = 'standard';
@@ -314,14 +302,6 @@
       event.preventDefault();
       if (pending) return;
       renderSummary();
-      const email = emailInput.value.trim();
-      if (!EMAIL_RE.test(email)) {
-        result.className = 'result-box notice';
-        result.textContent = 'Enter a valid email address so we can send your receipt.';
-        status.textContent = IDLE_STATUS;
-        emailInput.focus();
-        return;
-      }
       pending = true;
       button.disabled = true;
       orderFields.forEach((el) => { el.disabled = true; });
