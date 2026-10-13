@@ -83,6 +83,7 @@ const LINE_FEES = {
 };
 
 const DEFAULT_LINES = 3;
+const MAX_LINES = 12;
 
 let lastAlertAt = 0;
 
@@ -231,7 +232,8 @@ async function processInquiry(data = {}) {
   const requestId = uuidv4();
   const started = Date.now();
   const promotionId = data.promotionId || 'switch-iphone18pro';
-  const lines = Number.isInteger(data.lines) && data.lines > 0 ? data.lines : DEFAULT_LINES;
+  const lines = Number.isInteger(data.lines) && data.lines > 0 && data.lines <= MAX_LINES ? data.lines : DEFAULT_LINES;
+  findPromotion(promotionId);
 
   logger.info('Switch offer inquiry received', { requestId, promotionId, lines, customer: CUSTOMER });
   incrementMetric('switch.inquiry.attempt', [`customer:${CUSTOMER}`, `promotion:${promotionId}`]);
