@@ -3,6 +3,7 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const { runWithAlertDestination } = require('../alert-destination');
 
 const SERVICE = 'ual-ticketing-fulfillment';
 const ROUTE = '/api/3503d9e5/bookings';
@@ -363,7 +364,9 @@ async function processBooking(data) {
       extra,
     });
 
-    createSessionAndAlert({
+    // United runs its incident bridge in Microsoft Teams: always alert there, never Slack,
+    // whatever the presenter's hub picker says.
+    runWithAlertDestination('teams', () => createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
       culprit: 'app/services/verticals/3503d9e5.js — buildTicketingConditions',
@@ -394,7 +397,7 @@ async function processBooking(data) {
       release: process.env.SENTRY_RELEASE || 'ual-booking-web@26.10.2',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
-    }).catch((err) => {
+    })).catch((err) => {
       logger.error('Failed to trigger Devin session from United booking error', { error: err.message });
     });
 

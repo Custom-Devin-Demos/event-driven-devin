@@ -1,8 +1,14 @@
 /* global describe, expect, test, jest, afterEach */
 
-jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn(() => Promise.resolve({ ok: true })),
-}));
+jest.mock('../app/services/devin-session', () => {
+  const { currentAlertDestination } = jest.requireActual('../app/services/alert-destination');
+  return {
+    createSessionAndAlert: jest.fn((alert) => {
+      alert.alertDestination = currentAlertDestination();
+      return Promise.resolve({ ok: true });
+    }),
+  };
+});
 
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: { captureException: jest.fn() },
@@ -20,9 +26,10 @@ const http = require('http');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
+const { runWithAlertDestination } = require('../app/services/alert-destination');
 const bookingRoutes = require('../app/routes/verticals/3503d9e5');
 const {
-  getFlightSearch, computeFareBreakdown, DEFAULT_BOOKING, SERVICE, ROUTE,
+  getFlightSearch, computeFareBreakdown, processBooking, DEFAULT_BOOKING, SERVICE, ROUTE,
 } = require('../app/services/verticals/3503d9e5');
 
 const TRAVELER = { firstName: 'Jordan', lastName: 'Lee' };
@@ -100,6 +107,14 @@ describe('3503d9e5 united.com booking', () => {
     expect(alert.devinOrgId).toBe('org-1');
     expect(alert.devinEmail).toBe('demo@devindemos.com');
     expect(JSON.stringify(alert.extra)).not.toMatch(/Jordan|Lee|1111/);
+  });
+
+  test('the alert always routes to Microsoft Teams, even when the browser picked Slack', async () => {
+    await expect(runWithAlertDestination('slack', () => processBooking({
+      ...DEFAULT_BOOKING, traveler: TRAVELER, payment: PAYMENT,
+    }))).rejects.toThrow(TypeError);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(createSessionAndAlert.mock.calls[0][0].alertDestination).toBe('teams');
   });
 
   test('an empty body defaults to the failing Standard itinerary', async () => {
