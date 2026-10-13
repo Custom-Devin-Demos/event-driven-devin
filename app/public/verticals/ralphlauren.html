@@ -568,6 +568,11 @@
 
     var sub = 0, save = 0;
     bag.forEach(function (l) { var p = find(l.sku); sub += (unitPrice(p) + (l.monogram ? MONOGRAM_FEE : 0)) * l.qty; save += (p.price - unitPrice(p)) * l.qty; });
+    for (var k = 0; k < shipSel.options.length; k++) {
+      var opt = shipSel.options[k], states = opt.getAttribute('data-states');
+      opt.disabled = !!states && states.split(',').indexOf(stateSel.value) < 0;
+      if (opt.disabled && opt.selected) shipSel.value = 'standard';
+    }
     var ship = currentShipping(); var shipFee = ship ? (ship.freeWithAccount && rlAccount ? 0 : ship.fee) : 0;
     if (!bag.length) shipFee = 0;
     var rate = currentTaxRate();
@@ -584,11 +589,6 @@
     shipSel.disabled = checkoutInFlight;
     stateSel.disabled = checkoutInFlight;
     document.getElementById('acct-switch').disabled = checkoutInFlight;
-    for (var k = 0; k < shipSel.options.length; k++) {
-      var opt = shipSel.options[k], states = opt.getAttribute('data-states');
-      opt.disabled = !!states && states.split(',').indexOf(stateSel.value) < 0;
-      if (opt.disabled && opt.selected) shipSel.value = 'standard';
-    }
   }
   function currentShipping() { for (var i = 0; i < catalog.shipping.length; i++) if (catalog.shipping[i].code === shipSel.value) return catalog.shipping[i]; return catalog.shipping[0] || null; }
   function currentTaxRate() { var m = /\(([\d.]+)%\)/.exec(stateSel.options[stateSel.selectedIndex] ? stateSel.options[stateSel.selectedIndex].text : ''); return m ? parseFloat(m[1]) / 100 : 0; }
