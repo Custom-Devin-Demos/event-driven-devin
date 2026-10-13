@@ -129,7 +129,11 @@ function validateRequest(data) {
     throw new ValidationError('Please choose a date and time.');
   }
   const start = new Date(`${data.date}T${data.time}:00`);
-  if (Number.isNaN(start.getTime())) throw new ValidationError('Please choose a valid date and time.');
+  const [year, month, day] = data.date.split('-').map(Number);
+  if (Number.isNaN(start.getTime())
+    || start.getFullYear() !== year || start.getMonth() + 1 !== month || start.getDate() !== day) {
+    throw new ValidationError('Please choose a valid date and time.');
+  }
   if (!String(data.firstName || '').trim() || !String(data.lastName || '').trim()) {
     throw new ValidationError('Please enter your first and last name.');
   }
@@ -168,7 +172,7 @@ async function scheduleAppointment(data) {
       referenceId,
       status: 'confirmed',
       appointment: {
-        confirmationNumber: `${REFERENCE_PREFIX}-${Date.now().toString().slice(-8)}`,
+        confirmationNumber: `${REFERENCE_PREFIX}-${referenceId.replace(/-/g, '').slice(0, 10).toUpperCase()}`,
         topic: topic.label,
         specialist: line.title,
         channel: CHANNELS[data.channel],
