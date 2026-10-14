@@ -3529,6 +3529,30 @@ const ONCALL_SKINS = {
     supportCenter: '第一生命コンタクトセンター',
     disclaimer: 'NOT ACTUALLY A DAI-ICHI LIFE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dai-ichi Life product.',
   },
+  '8cf0f1b7': {
+    slug: '8cf0f1b7',
+    company: 'KDDIアイレット',
+    brandMark: 'i',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: '8cf0f1b7.html', title: 'クラウド導入、システム開発についてのお問い合わせ | KDDIアイレット株式会社' },
+    theme: {
+      '--accent': '#D93F07',
+      '--ink': '#00001A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#042B6C',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: '504 error rate \u2014 service inquiry form submissions',
+      release: 'inquiry-form-web@2.4.1',
+      team: 'web-inquiry-oncall',
+      symptom: 'Service inquiry form submissions hang ~8s and then return a 504. No inquiry is accepted.',
+      impact: 'Prospects sending a cloud or development inquiry wait ~8 seconds and the inquiry is not received; inquiries are being dropped.',
+    },
+    supportCenter: 'KDDIアイレット お問い合わせ窓口',
+    disclaimer: 'NOT ACTUALLY A KDDI IRET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real KDDI iret product.',
+  },
 };
 
 function getOncallSkin(slug) {
