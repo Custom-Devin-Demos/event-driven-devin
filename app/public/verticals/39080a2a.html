@@ -59,6 +59,10 @@
     .pill.outline { border: 2px solid #FFFFFF; }
     .pill.solid { background: var(--sky); padding: 8px 24px; }
     .burger { display: none; margin-left: auto; background: none; border: 0; color: #FFFFFF; min-width: 44px; min-height: 44px; }
+    .mobile-menu { display: none; }
+    .mobile-menu-links a { display: flex; align-items: center; min-height: 48px; border-bottom: 1px solid rgba(255,255,255,.12); color: #FFFFFF; font-size: 12px; letter-spacing: .4px; text-transform: uppercase; }
+    .mobile-menu-cta { display: flex; gap: 12px; padding: 16px 0; }
+    .mobile-menu-cta .pill { flex: 1; padding-left: 12px; padding-right: 12px; }
 
     /* Hero */
     .hero { position: relative; overflow: hidden; background: var(--chrome-bg); color: #FFFFFF; padding: 32px 0 120px; }
@@ -180,6 +184,7 @@
       .mainnav .container { height: 68px; gap: 8px; }
       .nav-cta { display: none; }
       .burger { display: inline-flex; align-items: center; justify-content: center; }
+      .mobile-menu:not([hidden]) { display: block; padding: 0 16px; background: var(--chrome-bg); }
       .hero { padding: 20px 0 104px; }
       .hero h1 { font-size: 30px; }
       .hero p.lead { font-size: 16px; }
@@ -220,7 +225,21 @@
           <a class="pill outline" href="https://sitiospublicos.bancochile.cl/personas/productos-y-cuentas" target="_blank" rel="noopener noreferrer">Hazte cliente</a>
           <a class="pill solid" href="#transferir">Banco en línea</a>
         </div>
-        <button type="button" class="burger" aria-label="Abrir menú"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <button type="button" class="burger" aria-label="Abrir menú" aria-controls="mobileMenu" aria-expanded="false"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+      <div id="mobileMenu" class="mobile-menu" hidden>
+        <div class="mobile-menu-links">
+          <a href="#transferir">Productos y servicios</a>
+          <a href="https://sitiospublicos.bancochile.cl/personas/seguros" target="_blank" rel="noopener noreferrer">Seguros</a>
+          <a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Inversiones</a>
+          <a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Automotriz</a>
+          <a href="https://sitiospublicos.bancochile.cl/personas/beneficios" target="_blank" rel="noopener noreferrer">Beneficios</a>
+          <a href="https://sitiospublicos.bancochile.cl/personas/centro-de-ayuda" target="_blank" rel="noopener noreferrer">Ayuda</a>
+        </div>
+        <div class="mobile-menu-cta">
+          <a class="pill outline" href="https://sitiospublicos.bancochile.cl/personas/productos-y-cuentas" target="_blank" rel="noopener noreferrer">Hazte cliente</a>
+          <a class="pill solid" href="#transferir">Banco en línea</a>
+        </div>
       </div>
     </nav>
   </header>
@@ -332,6 +351,22 @@
     </div>
   </footer>
   <script>
+    const burger = document.querySelector('.burger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    function setMobileMenuOpen(open) {
+      mobileMenu.hidden = !open;
+      burger.setAttribute('aria-expanded', String(open));
+      burger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    }
+    burger.addEventListener('click', () => setMobileMenuOpen(mobileMenu.hidden));
+    mobileMenu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMobileMenuOpen(false)));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !mobileMenu.hidden) {
+        setMobileMenuOpen(false);
+        burger.focus();
+      }
+    });
+
     (function () {
       if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
       fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
@@ -412,9 +447,7 @@
         const data = await response.json();
         if (!response.ok || !data.receipt) throw new Error('transfer-failed');
         result.className = 'result-box success';
-        const fee = Number(data.fee) || 0;
-        const charges = fee > 0 ? ` · Comisión: ${clp.format(fee)} · Total cargado: ${clp.format(Number(data.debitAmount))}` : '';
-        result.textContent = `Transferencia realizada a ${recipient}.\nMonto: ${clp.format(Number(data.receipt.amount))}${charges}\n${stamp.format(new Date(data.receipt.timestamp))} · N° de operación: ${data.receipt.receiptId}`;
+        result.textContent = `Transferencia realizada a ${recipient}.\nMonto: ${clp.format(Number(data.receipt.amount))}\n${stamp.format(new Date(data.receipt.timestamp))} · N° de operación: ${data.receipt.receiptId}`;
         status.textContent = 'Transferencia realizada.';
         setStep(3);
       } catch (_error) {

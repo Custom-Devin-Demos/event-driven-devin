@@ -94,12 +94,25 @@ describe('on-call hub routes', () => {
 
   test('the shim sends the per-user alert destination and keeps a Teams fallback notice open', async () => {
     const html = await (await fetch(`${baseUrl}/oncall/c/63dbb52f`)).text();
+    expect(html).toContain("localStorage.getItem('alertDestinationExplicit')");
     expect(html).toContain("localStorage.getItem('alertDestination')");
-    expect(html).toContain("alertDestination: alertDestination,");
+    expect(html).toContain('alertDestination: alertDestination,');
     expect(html).not.toContain('teamsWebhookUrl');
     expect(html).toMatch(/if \(d\.teamsFailed\)[^\n]*went to Slack/);
     expect(html).toContain("if (d.ok && !d.teamsFailed) scheduleCollapse();");
     expect(html).toContain("else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }");
+  });
+
+  test('skinned shim uses the skin Teams default only when no hub choice is saved', async () => {
+    const [chile, santander] = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/39080a2a`),
+      fetch(`${baseUrl}/oncall/c/80565c6b`),
+    ]);
+
+    expect(chile.status).toBe(200);
+    expect(santander.status).toBe(200);
+    expect(await chile.text()).toContain('var skinTeamsAlerts = true;');
+    expect(await santander.text()).toContain('var skinTeamsAlerts = false;');
   });
 });
 
