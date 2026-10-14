@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const logger = require('../telemetry/logger');
 const { ownerRotation, postMessage, postThreadReply, lookupSlackUserByEmail } = require('./slack');
-const { buildTeamsAlertCard, postTeamsCard } = require('./teams');
+const { buildTeamsAlertCard, isTeamsWebhookUrl, postTeamsCard } = require('./teams');
 const { createDevinSession } = require('./devin-api');
 const { declareDatadogIncident } = require('./datadog-incidents');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
@@ -28,6 +28,8 @@ const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/b
  *   SLACK_ONCALL_BOT_TOKEN         — bot token override (default: SLACK_BOT_TOKEN)
  *   ONCALL_TEAMS_WEBHOOK_URL       — optional Teams Workflows webhook; alert cards
  *     from skins with `teamsAlerts: true` are also posted there as Adaptive Cards
+ *   <skin.teamsWebhookEnv>         — optional per-skin Teams webhook env var name;
+ *     when set to a valid Teams webhook URL, that skin's cards post there instead
  *   ONCALL_TEAMS_ALL_ALERTS=true   — post every alert card to that webhook, not
  *     only `teamsAlerts` skins
  */
@@ -660,18 +662,20 @@ async function postOncallAlert(scenarioId, options = {}) {
   const skin = options.skin || null;
   const env = resolveOncallEnv();
   const { token, alertsChannel } = env;
+  const skinWebhookUrl = skin && skin.teamsWebhookEnv ? process.env[skin.teamsWebhookEnv] : null;
+  const teamsWebhook = (isTeamsWebhookUrl(skinWebhookUrl) && skinWebhookUrl) || env.teamsWebhookUrl;
   // destination: 'slack' | 'teams' from the presenter's hub choice. Teams skips
   // Slack so one demo is never investigated by both the Slack and the Teams
   // responder; with no Teams webhook configured it falls back to Slack.
   const destination = options.destination === 'slack' || options.destination === 'teams' ? options.destination : null;
   const teamsWanted = destination === 'teams';
-  const teamsOnly = teamsWanted && Boolean(env.teamsWebhookUrl);
+  const teamsOnly = teamsWanted && Boolean(teamsWebhook);
   if (teamsWanted && !teamsOnly) {
     logger.warn('Teams On-Call alert requested but ONCALL_TEAMS_WEBHOOK_URL is not set — posting to Slack');
   }
   // Server-managed Teams routing only applies to callers that made no choice.
   const serverTeamsRouting = !destination && (env.teamsAllAlerts || Boolean(skin && skin.teamsAlerts));
-  const teamsWebhookUrl = teamsOnly || serverTeamsRouting ? env.teamsWebhookUrl : null;
+  const teamsWebhookUrl = teamsOnly || serverTeamsRouting ? teamsWebhook : null;
   const slackReady = Boolean(token && alertsChannel) && !teamsOnly;
   if (!slackReady && !teamsWebhookUrl) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');
