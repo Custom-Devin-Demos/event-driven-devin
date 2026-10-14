@@ -303,7 +303,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
-      var skinAlertDestination = ${JSON.stringify(skin && skin.alertDestination === 'teams' ? 'teams' : null)};
+      var skinAlertDestination = ${JSON.stringify(skin && (skin.alertDestination === 'teams' || skin.alertDestination === 'slack') ? skin.alertDestination : null)};
       // Only climbing-latency scenarios keep a retry window: repeat submits
       // demonstrate the per-request growth, so they join the open incident.
       // Every other scenario posts a fresh incident on every submit.

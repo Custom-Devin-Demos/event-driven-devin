@@ -103,6 +103,16 @@ describe('on-call hub routes', () => {
   });
 });
 
+test('a skin alertDestination overrides the presenter\'s saved choice', async () => {
+  const [slack, teams] = await Promise.all([
+    fetch(`${baseUrl}/oncall/c/99defdc4`).then((r) => r.text()),
+    fetch(`${baseUrl}/oncall/c/39080a2a`).then((r) => r.text()),
+  ]);
+  expect(slack).toContain('var skinAlertDestination = "slack";');
+  expect(teams).toContain('var skinAlertDestination = "teams";');
+  expect(slack).toContain("var alertDestination = skinAlertDestination || (localStorage.getItem('alertDestination')");
+});
+
 describe('on-call hub page contract', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'oncall.html'), 'utf8');
 
