@@ -355,8 +355,14 @@
       var inFlight = false;
       var lookupSeq = 0;
 
+      function resetButton() {
+        inFlight = false;
+        button.disabled = false;
+        button.textContent = 'Check availability in nearby stores';
+      }
       function clearResult() {
         lookupSeq++;
+        if (inFlight) resetButton();
         result.className = 'result-box';
         result.textContent = '';
       }
@@ -441,9 +447,7 @@
           if (seq !== lookupSeq) return;
           setResult('error', 'We can\u2019t show store availability right now', 'Please try again in a few minutes. You can still add this item to your bag for free shipping and returns.');
         } finally {
-          inFlight = false;
-          button.disabled = false;
-          button.textContent = 'Check availability in nearby stores';
+          if (seq === lookupSeq) resetButton();
         }
       });
     })();
