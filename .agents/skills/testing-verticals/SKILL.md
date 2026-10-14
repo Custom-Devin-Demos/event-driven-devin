@@ -350,6 +350,9 @@ curl -s -X POST http://localhost:3000/api/a69bcc34/checkout -H 'Content-Type: ap
 # Custom — DICK'S Sporting Goods (1b17e823)
 curl -s -X POST http://localhost:3000/api/1b17e823/checkout -H 'Content-Type: application/json' -d '{"items":[{"sku":"24NIKMPGSS41RDXXXRNN","qty":1},{"sku":"20SPAUTF1000LGCYBSKB","qty":1}],"memberId":"SC-8841207733","fulfillment":"ship","storeNumber":"0212","zipCode":"15205","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
 
+# Custom — Little Caesars Pizza Portal checkout (3584cb79) — every order 500s with TypeError (LC Rewards PROMO-LCREWARDS-CRAZYBREAD perk missing from CATALOG)
+curl -s -X POST http://localhost:3000/api/3584cb79/checkout -H 'Content-Type: application/json' -d '{"items":[{"sku":"LC-HNR-PEP","qty":2,"price":7.49},{"sku":"LC-CRZ-BRD","qty":1,"price":4.49}],"region":"MI","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
+
 # Custom — Epic Games Player Support (50a88f70) — Fortnite item-shop-missing-purchase triggers TypeError; rocket-league or topic vbucks-missing succeeds
 curl -s -X POST http://localhost:3000/api/50a88f70/support-ticket -H 'Content-Type: application/json' -d '{"product":"fortnite","platform":"pc","topic":"item-shop-missing-purchase","email":"mike.schmidt@example.com","description":"Bundle bought but outfits missing from Locker."}'
 
