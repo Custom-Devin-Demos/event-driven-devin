@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>クラウド導入、システム開発についてのお問い合わせ | KDDIアイレット株式会社</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto:ital,wght@0,700;0,900;1,900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ir-navy: #042B6C;
+      --ir-navy-deep: #02225C;
+      --ir-indigo: #0E0D6A;
+      --ir-haze: #B3C1E0;
+      --ir-ink: #00001A;
+      --ir-orange: #D93F07;
+      --ir-orange-deep: #B83505;
+      --hs-ink: #33475B;
+      --hs-help: #7C98B6;
+      --hs-field: #F5F8FA;
+      --hs-line: #CBD6E2;
+      --hs-req: #FF0000;
+      --ok: #0B7A4B;
+      --err: #C8290B;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", Verdana, Meiryo, sans-serif;
+      --font-form: "Helvetica Neue", Helvetica, Arial, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      --font-en: Roboto, var(--font);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--font); color: var(--ir-ink); background: #fff; font-size: 16px; line-height: 1.63; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font-family: inherit; }
+    .skip { position: absolute; left: -9999px; }
+    .skip:focus { left: 16px; top: 16px; z-index: 50; display: inline-flex; align-items: center; min-height: 44px; background: #fff; padding: 0 14px; }
+
+    /* Header (floating card over the navy band) */
+    .site { position: relative; overflow-x: clip; }
+    .header { position: absolute; z-index: 10; top: 30px; left: 30px; right: 30px; height: 96px; background: #fff; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,.1); display: flex; align-items: center; padding: 0 50px; }
+    .wordmark { display: inline-flex; align-items: center; min-height: 44px; font-family: var(--font-en); font-style: italic; font-weight: 900; font-size: 40px; line-height: 1; letter-spacing: -.035em; color: var(--ir-indigo); }
+    .wordmark .sp { display: inline-block; width: .22em; }
+    .gnav { margin-left: auto; height: 100%; }
+    .gnav ul { list-style: none; display: flex; height: 100%; gap: 0; }
+    .gnav a { position: relative; display: flex; align-items: center; height: 100%; padding: 0 16px; font-size: 15px; font-weight: 700; letter-spacing: 2px; color: var(--ir-ink); }
+    .gnav li:last-child a { padding-right: 0; }
+    .gnav a:hover { color: var(--ir-navy); }
+    .gnav a.current::after { content: ""; position: absolute; left: 16px; right: 0; bottom: 28px; height: 2px; background: var(--ir-navy); }
+    .gnav .ext { display: inline-block; width: 9px; height: 7px; border: 1px solid currentColor; margin-left: 3px; position: relative; top: -4px; }
+    .menu-btn { display: none; margin-left: auto; width: 48px; height: 48px; border: 0; background: none; cursor: pointer; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+    .menu-btn i { display: block; width: 24px; height: 2px; background: var(--ir-ink); transition: transform .2s, opacity .2s; }
+    .menu-btn[aria-expanded="true"] i:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .menu-btn[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
+    .menu-btn[aria-expanded="true"] i:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+    /* Hero band */
+    .hero { position: relative; width: calc(100% - 101px); height: 340px; background: var(--ir-navy); }
+    .crumbs { position: absolute; z-index: 2; left: 80px; top: 140px; display: flex; align-items: center; flex-wrap: wrap; font-size: 12px; color: #fff; }
+    .crumbs a, .crumbs span { display: inline-flex; align-items: center; min-height: 32px; }
+    .crumbs a:hover { text-decoration: underline; }
+    .crumbs .sep { width: 7px; height: 7px; border-top: 1px solid #fff; border-right: 1px solid #fff; transform: rotate(45deg); margin: 0 18px 0 14px; min-height: 0; }
+    .hero-word { position: absolute; left: 92px; bottom: -26px; font-family: var(--font-en); font-weight: 900; font-size: 196px; line-height: .74; letter-spacing: -.01em; color: var(--ir-haze); white-space: nowrap; user-select: none; pointer-events: none; }
+    .hero-clip { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+    .hero-clip .hero-word { color: var(--ir-navy-deep); }
+
+    /* Form */
+    .content { max-width: 750px; margin: 0 auto; padding: 80px 0 90px; }
+    .title { font-size: 34px; font-weight: 500; line-height: 1.42; border-left: 2px solid var(--ir-ink); padding-left: 27px; margin-bottom: 40px; }
+    .lead { font-size: 16px; margin-bottom: 30px; }
+    .req-note { font-family: var(--font-form); font-size: 14px; color: var(--hs-ink); margin-bottom: 36px; }
+    .req-note b, .req { color: var(--hs-req); font-weight: 500; }
+    form { font-family: var(--font-form); color: var(--hs-ink); }
+    .field { margin-bottom: 22px; }
+    .field > label, .field > .label { display: block; font-size: 18px; font-weight: 500; line-height: 20px; margin-bottom: 4px; }
+    .help { font-size: 14px; color: var(--hs-help); line-height: 1.45; margin: 0 0 6px 2px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+    input[type=text], input[type=email], input[type=tel], select, textarea { width: 100%; min-height: 44px; font-size: 16px; color: var(--hs-ink); background: var(--hs-field); border: 1px solid var(--hs-line); border-radius: 3px; padding: 0 15px; outline: none; transition: border-color .15s, box-shadow .15s; }
+    select { appearance: none; -webkit-appearance: none; padding: 9px 36px 9px 15px; background-image: linear-gradient(45deg, transparent 50%, var(--hs-help) 50%), linear-gradient(135deg, var(--hs-help) 50%, transparent 50%); background-position: calc(100% - 17px) 19px, calc(100% - 12px) 19px; background-size: 5px 5px; background-repeat: no-repeat; }
+    select.empty { color: #BFBFBF; }
+    textarea { min-height: 66px; padding: 10px 15px; line-height: 1.5; resize: vertical; }
+    input::placeholder, textarea::placeholder { color: #BFBFBF; }
+    input:focus, select:focus, textarea:focus { border-color: rgba(217,63,7,.6); box-shadow: 0 0 4px 1px rgba(217,63,7,.35); }
+    .field.invalid input, .field.invalid select, .field.invalid textarea { border-color: #C87872; }
+    .field-err { display: none; font-size: 14px; color: #F2545B; margin-top: 4px; }
+    .field.invalid .field-err { display: block; }
+    .privacy-text { font-size: 14px; line-height: 1.6; margin: 30px 0 4px; }
+    .privacy-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; color: var(--ir-navy); text-decoration: underline; }
+    .agree { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; cursor: pointer; }
+    .agree input { width: 18px; height: 18px; accent-color: var(--ir-orange); flex: none; }
+    .actions { text-align: center; margin-top: 36px; }
+    .submit { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 120px; min-height: 44px; padding: 12px 24px; font-family: var(--font-form); font-size: 17px; font-weight: 700; line-height: 1; color: #fff; background: var(--ir-orange); border: 1px solid var(--ir-orange); border-radius: 3px; cursor: pointer; transition: background .15s; }
+    .submit:hover { background: var(--ir-orange-deep); border-color: var(--ir-orange-deep); }
+    .submit:focus-visible { outline: 3px solid rgba(217,63,7,.35); outline-offset: 2px; }
+    .submit[disabled] { cursor: progress; opacity: .85; }
+    .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .submit.loading .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .result-box { display: none; margin-top: 28px; padding: 18px 22px; border-radius: 3px; text-align: left; font-family: var(--font); color: var(--ir-ink); }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.success { background: #EEF7F2; border: 1px solid #9FD3B8; border-left: 4px solid var(--ok); }
+    .result-box.error { background: #FDF1EC; border: 1px solid #F0B9A3; border-left: 4px solid var(--err); }
+    .result-box .r-title { font-weight: 700; font-size: 17px; margin-bottom: 4px; }
+    .result-box.success .r-title { color: var(--ok); }
+    .result-box.error .r-title { color: var(--err); }
+    .result-box .r-detail { font-size: 15px; line-height: 1.7; }
+    .result-box .r-meta { font-size: 13px; color: #55607A; margin-top: 8px; }
+    .result-box code { font-family: var(--font-en); font-weight: 700; letter-spacing: .04em; }
+
+    /* Footer */
+    .footer { background: var(--ir-navy); color: #fff; }
+    .footer-in { max-width: 1100px; margin: 0 auto; padding: 56px 0 50px; }
+    .fcols { display: grid; grid-template-columns: 150px 130px 150px 120px 1fr; gap: 0 26px; }
+    .fcols h3, .fcols .fh { display: block; font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+    .fcols ul { list-style: none; }
+    .fcols li a { display: block; font-size: 13px; line-height: 1.5; padding: 5px 0; }
+    .fcols .dash li a::before { content: "- "; }
+    .fcols .strong a { font-size: 14px; font-weight: 700; padding: 6px 0; }
+    .fcols .policy a { font-size: 12px; color: #C8D2E6; padding: 4px 0; }
+    .fcols a:hover { text-decoration: underline; }
+    .fdesc { font-size: 12px; line-height: 1.7; color: #C8D2E6; margin: 36px 0 30px; }
+    .fbottom { display: flex; align-items: center; gap: 22px; }
+    .fbottom .wordmark { color: #fff; font-size: 30px; min-height: 44px; }
+    .fbottom .corp { font-size: 13px; }
+    .social { margin-left: auto; display: flex; gap: 6px; }
+    .social a { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; }
+    .social a:hover { background: rgba(255,255,255,.1); }
+    .copy { background: #fff; color: #55607A; font-size: 11px; text-align: right; padding: 18px 0 22px; }
+    .copy .in { max-width: 1100px; margin: 0 auto; }
+    .copy small { display: block; font-size: 11px; margin-top: 2px; }
+
+    @media (max-width: 1100px) {
+      .header { padding: 0 28px; }
+      .gnav a { padding: 0 10px; letter-spacing: 1px; font-size: 14px; }
+      .footer-in, .copy .in { padding-left: 32px; padding-right: 32px; }
+      .content { padding-left: 24px; padding-right: 24px; }
+    }
+    @media (max-width: 900px) {
+      .header { top: 12px; left: 12px; right: 12px; height: 64px; padding: 0 8px 0 18px; }
+      .wordmark { font-size: 28px; }
+      .menu-btn { display: inline-flex; }
+      .gnav { display: none; position: absolute; top: 72px; left: 0; right: 0; height: auto; background: #fff; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,.12); padding: 8px 0; }
+      .gnav.open { display: block; }
+      .gnav ul { flex-direction: column; }
+      .gnav a, .gnav li:last-child a { height: auto; min-height: 48px; padding: 0 22px; font-size: 15px; }
+      .gnav a.current::after { left: 22px; right: auto; width: 6em; bottom: 8px; }
+      .hero { width: calc(100% - 24px); height: 210px; }
+      .crumbs { left: 24px; top: 86px; }
+      .crumbs a, .crumbs span { min-height: 44px; }
+      .crumbs a { min-width: 44px; }
+      .crumbs .sep { margin: 0 12px 0 8px; }
+      .crumbs .sep:nth-of-type(2), .crumbs .here { display: none; }
+      .hero-word { left: 22px; bottom: -12px; font-size: 76px; }
+      .content { padding: 52px 20px 64px; }
+      .title { font-size: 24px; padding-left: 16px; margin-bottom: 28px; }
+      .row2 { grid-template-columns: 1fr; }
+      .fcols { grid-template-columns: 1fr 1fr; gap: 18px 20px; }
+      .fcols > div:last-child { grid-column: 1 / -1; }
+      .fcols li a, .fcols .strong a, .fcols .policy a { display: flex; align-items: center; min-height: 44px; padding: 0; }
+      .fbottom { flex-wrap: wrap; gap: 8px 16px; }
+      .social { margin-left: 0; width: 100%; }
+      .footer-in, .copy .in { padding-left: 20px; padding-right: 20px; }
+      .copy { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">メインコンテンツにスキップ</a>
+  <div class="site" id="top">
+    <header class="header">
+      <a class="wordmark" href="#top" aria-label="KDDIアイレット株式会社 トップ">KDDI<span class="sp"></span>iret</a>
+      <button type="button" class="menu-btn" id="menuBtn" aria-label="メニュー" aria-expanded="false" aria-controls="gnav"><i></i><i></i><i></i></button>
+      <nav class="gnav" id="gnav" aria-label="グローバルナビゲーション">
+        <ul>
+          <li><a href="#top">企業情報</a></li>
+          <li><a href="#top">事業紹介</a></li>
+          <li><a href="#top">サービス</a></li>
+          <li><a href="#top">導入事例</a></li>
+          <li><a href="#top">ニュース</a></li>
+          <li><a href="#top">採用情報</a></li>
+          <li><a href="#top">ブログ<span class="ext" aria-hidden="true"></span></a></li>
+          <li><a href="#top" class="current" aria-current="page">お問い合わせ</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="hero">
+      <nav class="crumbs" aria-label="パンくずリスト">
+        <a href="#top">HOME</a><span class="sep" aria-hidden="true"></span><a href="#top">お問い合わせ</a><span class="sep" aria-hidden="true"></span><span class="here" aria-current="page">クラウド導入、システム開発についてのお問い合わせ</span>
+      </nav>
+      <div class="hero-word" aria-hidden="true">CONTACT</div>
+      <div class="hero-clip" aria-hidden="true"><div class="hero-word">CONTACT</div></div>
+    </div>
+  </div>
+
+  <main id="main" class="content">
+    <h1 class="title">クラウド導入、システム開発についてのお問い合わせ</h1>
+    <p class="lead">営業目的のお問い合わせはご遠慮ください。</p>
+    <p class="req-note"><b>*</b>マークが付いている項目は必須入力です。</p>
+
+    <form id="claimForm" novalidate>
+      <input type="hidden" id="policyId" value="POL-5002">
+      <input type="hidden" id="claimType" value="liability">
+      <input type="hidden" id="amount" value="1">
+
+      <div class="field" data-required>
+        <label for="service">問い合わせ項目<span class="req">*</span></label>
+        <p class="help" id="serviceHelp">お問い合わせを希望するサービスを選択してください。不明な場合は「その他」で結構です（お問い合わせ内容欄に概要をご記入ください）。</p>
+        <select id="service" aria-describedby="serviceHelp">
+          <option value="">選択してください</option>
+          <option>請求代行</option>
+          <option>運用・保守</option>
+          <option>構築・導入</option>
+          <option>開発（システム・アプリなど）</option>
+          <option>マルチクラウド</option>
+          <option selected>生成AI</option>
+          <option>セキュリティ</option>
+          <option>UI・UXデザイン</option>
+          <option>その他</option>
+        </select>
+        <p class="field-err">必須項目に入力してください。</p>
+      </div>
+
+      <div class="field" data-required>
+        <label for="period">導入予定時期<span class="req">*</span></label>
+        <select id="period">
+          <option value="">選択してください</option>
+          <option>数週間以内</option>
+          <option>1ヶ月以内</option>
+          <option selected>3ヶ月以内</option>
+          <option>半年以内</option>
+          <option>スケジュール未定</option>
+        </select>
+        <p class="field-err">必須項目に入力してください。</p>
+      </div>
+
+      <div class="field">
+        <label for="description">お問い合わせ内容</label>
+        <p class="help">請求代行サービスをご利用中で、お客様情報やご請求先情報の変更に関するお問い合わせは、契約内容変更依頼書をご記入のうえお送りください。</p>
+        <textarea id="description" rows="3" placeholder="クラウド導入のご相談、サービスやソリューションについてのご質問やお見積りなどご記入ください。">社内問い合わせ対応への生成AI活用を検討しています。AWS上での構築・運用までご相談できればと思います。</textarea>
+      </div>
+
+      <div class="row2">
+        <div class="field" data-required>
+          <label for="lastname">姓<span class="req">*</span></label>
+          <input type="text" id="lastname" placeholder="例）田中" value="山田" autocomplete="family-name">
+          <p class="field-err">必須項目に入力してください。</p>
+        </div>
+        <div class="field" data-required>
+          <label for="firstname">名<span class="req">*</span></label>
+          <input type="text" id="firstname" placeholder="例）太郎" value="花子" autocomplete="given-name">
+          <p class="field-err">必須項目に入力してください。</p>
+        </div>
+      </div>
+
+      <div class="field" data-required>
+        <label for="company">会社名<span class="req">*</span></label>
+        <input type="text" id="company" placeholder="例）KDDIアイレット株式会社" value="株式会社サンプル商事" autocomplete="organization">
+        <p class="field-err">必須項目に入力してください。</p>
+      </div>
+
+      <div class="field" data-required>
+        <label for="industry">業種<span class="req">*</span></label>
+        <input type="text" id="industry" value="製造業">
+        <p class="field-err">必須項目に入力してください。</p>
+      </div>
+
+      <div class="field">
+        <label for="busyomei">所属部署</label>
+        <input type="text" id="busyomei" value="情報システム部">
+      </div>
+
+      <div class="field" data-required>
+        <label for="position">役職<span class="req">*</span></label>
+        <select id="position">
+          <option value="">選択してください</option>
+          <option>経営者・役員</option>
+          <option>部長</option>
+          <option selected>課長</option>
+          <option>係長・主任</option>
+          <option>一般社員</option>
+          <option>契約社員・派遣社員</option>
+          <option>その他</option>
+        </select>
+        <p class="field-err">必須項目に入力してください。</p>
+      </div>
+
+      <div class="field" data-required>
+        <label for="occupation">職種<span class="req">*</span></label>
+        <select id="occupation">
+          <option value="">選択してください</option>
+          <option>企業幹部</option>
+          <option>開発者・エンジニア・ディベロッパー</option>
+          <option>データサイエンティスト・データエンジニア</option>
+          <option>ソリューション・システムアーキテクト</option>
+          <option selected>IT専門家・技術管理職</option>
+          <option>システム管理者</option>
+          <option>アナリスト</option>
+          <option>セールス・マーケティング</option>
+          <option>アドバイザー・コンサルタント</option>
+          <option>その他</option>
+        </select>
+        <p class="field-err">必須項目に入力してください。</p>
+      </div>
+
+      <div class="field" data-required data-email>
+        <label for="email">メールアドレス<span class="req">*</span></label>
+        <p class="help">半角英数字・記号で入力してください。</p>
+        <input type="email" id="email" placeholder="例）hello@iret.co.jp" value="hanako.yamada@example.co.jp" autocomplete="email" inputmode="email">
+        <p class="field-err">メールアドレスを正しい形式で入力してください。</p>
+      </div>
+
+      <div class="field" data-tel>
+        <label for="phone">電話番号</label>
+        <p class="help">半角数字で入力してください。（半角ハイフンあり）</p>
+        <input type="tel" id="phone" placeholder="03-1234-5678" autocomplete="tel" inputmode="tel">
+        <p class="field-err">電話番号は半角数字とハイフンで入力してください。</p>
+      </div>
+
+      <p class="privacy-text">ご記入いただいた個人情報は、お問い合わせへの回答・連絡に利用するほか、当社Webサイトの閲覧履歴（Cookie情報等）と紐づけて分析し、営業活動に利用する場合がございます。また、広告配信の最適化を目的として、Google LLC、Meta Platforms,Inc.等の広告配信サービス事業者へ提供し、当該事業者のプラットフォーム上で当社サービスの広告を配信する場合がございます。詳細はプライバシーポリシーをご確認ください。</p>
+      <a class="privacy-link" href="#top">プライバシーポリシー</a>
+      <div class="field" id="agreeField">
+        <label class="agree"><input type="checkbox" id="agree">上記の利用目的、およびプライバシーポリシーに同意する<span class="req">*</span></label>
+        <p class="field-err">同意いただける場合はチェックを入れてください。</p>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="submit" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span class="label">送信する</span></button>
+      </div>
+      <div id="result" class="result-box" role="status" aria-live="polite"></div>
+    </form>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-in">
+      <div class="fcols">
+        <div><span class="fh">企業情報</span><ul class="dash"><li><a href="#top">理念体系</a></li><li><a href="#top">会社概要</a></li><li><a href="#top">沿革</a></li><li><a href="#top">組織図</a></li><li><a href="#top">アクセス</a></li><li><a href="#top">トップエンジニア</a></li><li><a href="#top">グループ会社一覧</a></li></ul></div>
+        <div><span class="fh">事業紹介</span><ul class="dash"><li><a href="#top">事業領域</a></li><li><a href="#top">基本事業</a></li><li><a href="#top">提携事業</a></li><li><a href="#top">私たちの特長</a></li></ul></div>
+        <div><span class="fh">採用情報</span><ul class="dash"><li><a href="#top">キャリア採用情報</a></li><li><a href="#top">新卒採用情報</a></li></ul></div>
+        <div><span class="fh">導入事例</span><ul class="strong"><li><a href="#top">ニュース</a></li><li><a href="#top">お問い合わせ</a></li><li><a href="#top">サイトマップ</a></li><li><a href="#top">English</a></li><li><a href="#top">cloudpack</a></li></ul></div>
+        <div><ul class="policy"><li><a href="#top">ISMS情報セキュリティ基本方針</a></li><li><a href="#top">クラウドサービスの提供における情報セキュリティ方針</a></li><li><a href="#top">ITSMS方針</a></li><li><a href="#top">品質方針</a></li><li><a href="#top">プライバシーポリシー</a></li><li><a href="#top">Cookieポリシー</a></li><li><a href="#top">AIポリシー</a></li><li><a href="#top">ウェブアクセシビリティの取り組みについて</a></li></ul></div>
+      </div>
+      <p class="fdesc">AI の導入、クラウドの活用とシステム開発・Web 開発なら AI の社会実装を加速する AI インテグレーター KDDIアイレットにお任せください。あらゆる側面からお客様の課題と向き合い、解決に向けたサービスをワンストップでご提供します。</p>
+      <div class="fbottom">
+        <a class="wordmark" href="#top" aria-label="KDDIアイレット株式会社 トップ">KDDI<span class="sp"></span>iret</a>
+        <span class="corp">KDDIアイレット株式会社</span>
+        <div class="social">
+          <a href="#top" aria-label="Facebook"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#fff"/><path d="M13.2 19v-6h2l.3-2.4h-2.3V9.2c0-.7.2-1.2 1.2-1.2h1.2V5.9c-.2 0-1-.1-1.8-.1-1.8 0-3 1.1-3 3.1v1.7H8.8V13h2v6z" fill="#042B6C"/></svg></a>
+          <a href="#top" aria-label="X"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h5l4.2 5.8L17.3 3H21l-7.1 8.1L21.5 21h-5l-4.6-6.3L6.3 21H2.6l7.6-8.6z" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></a>
+          <a href="#top" aria-label="YouTube"><svg width="24" height="18" viewBox="0 0 24 18" aria-hidden="true"><rect x="1" y="1" width="22" height="16" rx="4.5" fill="#fff"/><path d="M10 5.5v7l6-3.5z" fill="#042B6C"/></svg></a>
+        </div>
+      </div>
+    </div>
+    <div class="copy"><div class="in">Copyright&copy; KDDI iret, Inc. All Rights Reserved.<small>NOT ACTUALLY A KDDI IRET SITE — internal demo only. KDDIアイレットの公式サイトではありません。入力内容はどこにも送信されません。</small></div></div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    var menuBtn = document.getElementById('menuBtn');
+    var gnav = document.getElementById('gnav');
+    function setMenu(open) {
+      gnav.classList.toggle('open', open);
+      menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      menuBtn.setAttribute('aria-label', open ? 'メニューを閉じる' : 'メニュー');
+    }
+    menuBtn.addEventListener('click', function () { setMenu(!gnav.classList.contains('open')); });
+    gnav.addEventListener('click', function (e) { if (e.target.closest('a')) setMenu(false); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && gnav.classList.contains('open')) { setMenu(false); menuBtn.focus(); }
+    });
+
+    var form = document.getElementById('claimForm');
+    var EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    var TEL_RE = /^[0-9]{2,5}-?[0-9]{1,4}-?[0-9]{3,4}$/;
+
+    function syncSelectTone(sel) { sel.classList.toggle('empty', !sel.value); }
+    Array.prototype.forEach.call(form.querySelectorAll('select'), function (s) {
+      syncSelectTone(s);
+      s.addEventListener('change', function () { syncSelectTone(s); });
+    });
+
+    function fieldValid(field) {
+      var ctl = field.querySelector('input:not([type=checkbox]), select, textarea');
+      if (!ctl) return true;
+      var v = ctl.value.trim();
+      if (field.hasAttribute('data-required') && !v) return false;
+      if (field.hasAttribute('data-email') && v && !EMAIL_RE.test(v)) return false;
+      if (field.hasAttribute('data-tel') && v && !TEL_RE.test(v)) return false;
+      return true;
+    }
+    function validate() {
+      var first = null;
+      Array.prototype.forEach.call(form.querySelectorAll('.field'), function (field) {
+        var ok = field.id === 'agreeField' ? document.getElementById('agree').checked : fieldValid(field);
+        field.classList.toggle('invalid', !ok);
+        if (!ok && !first) first = field;
+      });
+      return first;
+    }
+    form.addEventListener('input', function (e) {
+      var field = e.target.closest('.field');
+      if (field && field.classList.contains('invalid')) {
+        var ok = field.id === 'agreeField' ? document.getElementById('agree').checked : fieldValid(field);
+        field.classList.toggle('invalid', !ok);
+      }
+    });
+    form.addEventListener('change', function (e) {
+      var field = e.target.closest('.field');
+      if (field && field.id === 'agreeField') field.classList.toggle('invalid', !e.target.checked);
+    });
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var label = btn.querySelector('.label');
+      var result = document.getElementById('result');
+      var invalid = validate();
+      if (invalid) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="r-title">入力内容をご確認ください</div><div class="r-detail">未入力または形式が正しくない項目があります。</div>';
+        var ctl = invalid.querySelector('input, select, textarea');
+        if (ctl) ctl.focus();
+        return;
+      }
+      var started = Date.now();
+      btn.disabled = true;
+      btn.classList.add('loading');
+      label.textContent = '送信中…';
+      result.className = 'result-box';
+      result.innerHTML = '';
+      var controller = new AbortController();
+      var abortTimer = setTimeout(function () { controller.abort(); }, 30000);
+      var serviceSel = document.getElementById('service');
+      var description = document.getElementById('description').value.trim()
+        || serviceSel.options[serviceSel.selectedIndex].text;
+      try {
+        var response = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            policyId: document.getElementById('policyId').value,
+            claimType: document.getElementById('claimType').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            description: description,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await response.json().catch(function () { return {}; });
+        var elapsed = ((Date.now() - started) / 1000).toFixed(1);
+        if (response.ok && data.success) {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="r-title">お問い合わせを受け付けました</div>'
+            + '<div class="r-detail">受付番号 <code>' + esc(String(data.claimId || '').slice(0, 8).toUpperCase()) + '</code><br>'
+            + 'ご入力いただいたメールアドレス宛に受付完了のお知らせをお送りしました。内容を確認のうえ、担当者よりご連絡いたします。</div>'
+            + '<div class="r-meta">送信時間 ' + elapsed + '秒</div>';
+        } else {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="r-title">送信できませんでした</div>'
+            + '<div class="r-detail">ただいま、お問い合わせの送信に時間がかかっています。お手数ですが、しばらくたってから再度お試しください。ご入力いただいた内容は保持されています。</div>'
+            + '<div class="r-meta">待機時間 ' + elapsed + '秒' + (data.requestId ? '　エラー番号 ' + esc(data.requestId) : '') + '</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="r-title">通信に失敗しました</div><div class="r-detail">通信環境をご確認のうえ、もう一度お試しください。</div>';
+      } finally {
+        clearTimeout(abortTimer);
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        label.textContent = '送信する';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
