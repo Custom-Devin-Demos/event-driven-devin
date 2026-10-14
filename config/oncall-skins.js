@@ -3032,17 +3032,6 @@ const ONCALL_SKINS = {
       symptom: 'Store availability lookups on product pages hang ~8s and then fail with 504 Gateway Timeout. Latency on calls to the store inventory service is elevated.',
       impact: 'Shoppers cannot check whether a size is in stock at nearby stores; every lookup sits on a spinner and then errors.',
     },
-    devinSession: {
-      auto: true,
-      promptAppendix: [
-        'Investigation requirements for this incident (evidence-based SRE triage):',
-        '1. Start from the telemetry, not the code. Use the Datadog integration available to you to pull the firing monitor, the APM traces and spans for the affected endpoint, and the service logs around the Incident Ref above. Record which inventory-service spans and log lines carry the added latency.',
-        '2. Only then inspect the inventory-service call path and the on-call runbook, and write an evidence-based investigation summary: signals reviewed (quote metric values, span names and durations, log lines), hypotheses considered and how each was confirmed or ruled out, the root cause, and the blast radius.',
-        '3. Implement the fix and open a PR whose description begins with that investigation summary, followed by the change and how you verified locally that the endpoint latency returned to its baseline.',
-        '4. Run the app locally, open /oncall/c/870835fe, go to the polo product page, pick a size, and record a screen recording of "Check availability in nearby stores" returning a result quickly after the fix. Attach the recording to the PR.',
-        '5. Post the investigation summary, the PR link, and the recording back in this alert thread. Do not merge; stop for human approval after Devin Review runs.',
-      ].join('\n'),
-    },
     supportCenter: 'Ralph Lauren Customer Service',
     disclaimer: 'NOT ACTUALLY A RALPH LAUREN SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ralph Lauren product.',
   },
