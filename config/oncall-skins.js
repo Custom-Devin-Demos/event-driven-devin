@@ -3553,6 +3553,32 @@ const ONCALL_SKINS = {
     supportCenter: 'KDDIアイレット お問い合わせ窓口',
     disclaimer: 'NOT ACTUALLY A KDDI IRET SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real KDDI iret product.',
   },
+  '39080a2a': {
+    slug: '39080a2a',
+    company: 'Banco de Chile',
+    brandMark: 'B',
+    vertical: 'banking',
+    oncallOnly: true,
+    teamsAlerts: true,
+    page: { file: '39080a2a.html', title: 'Transferencias a terceros | Banco de Chile' },
+    theme: {
+      '--accent': '#295EFF',
+      '--ink': '#2A333D',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#002884',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Centro de Ayuda Banco de Chile',
+    alertCard: {
+      title: 'p95 latency \u2014 Banco en L\u00ednea transferencias a terceros',
+      release: 'banco-en-linea-web@3.18.0',
+      team: 'pagos-digitales-oncall',
+      baseline: '~300ms (7-day p95, before banco-en-linea-web@3.18.0)',
+      symptom: 'Transferencias a terceros hang ~9s before the transfer confirms. Error rate is normal \u2014 transfers eventually go through.',
+      impact: 'Clientes sending money to third parties from Banco en L\u00ednea wait ~9 seconds on Transferir; some press it again or abandon the transfer before it confirms.',
+    },
+    disclaimer: 'NOT ACTUALLY A BANCO DE CHILE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Banco de Chile product.',
+  },
 };
 
 function getOncallSkin(slug) {
