@@ -189,6 +189,7 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 6000);
   }
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmtTime = (iso) => iso ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
   const money = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2 });
   const statusClass = (s) => s === 'Delivered' ? 'delivered' : s === 'Billed' ? 'billed' : 'transit';
@@ -197,11 +198,11 @@
   function renderLoads() {
     $('loads').innerHTML = state.loads.map((l) => `
       <tr class="load ${state.load && state.load.id === l.id ? 'sel' : ''}" data-id="${l.id}">
-        <td><div class="ld">${l.id}<small>${l.ref}</small></div></td>
-        <td><div class="lane">${l.origin} → ${l.destination}<small>${l.shipper} → ${l.consignee}</small></div></td>
-        <td>${l.driver}<br><small style="color:var(--muted)">${l.unit}</small></td>
-        <td><div class="docs">${l.documents.map((d) => `<span class="${d.type === 'POD' ? 'pod' : ''}">${d.type}</span>`).join('')}</div></td>
-        <td><span class="chip ${statusClass(l.status)}">${l.status}</span></td>
+        <td><div class="ld">${esc(l.id)}<small>${esc(l.ref)}</small></div></td>
+        <td><div class="lane">${esc(l.origin)} → ${esc(l.destination)}<small>${esc(l.shipper)} → ${esc(l.consignee)}</small></div></td>
+        <td>${esc(l.driver)}<br><small style="color:var(--muted)">${esc(l.unit)}</small></td>
+        <td><div class="docs">${l.documents.map((d) => `<span class="${d.type === 'POD' ? 'pod' : ''}">${esc(d.type)}</span>`).join('')}</div></td>
+        <td><span class="chip ${statusClass(l.status)}">${esc(l.status)}</span></td>
       </tr>`).join('');
     document.querySelectorAll('tr.load').forEach((tr) => tr.addEventListener('click', () => selectLoad(tr.dataset.id)));
     const awaiting = state.loads.filter((l) => l.status === 'Delivered').length;
@@ -223,22 +224,22 @@
     const d = state.doc;
     $('detail').innerHTML = `
       <div class="card-h">
-        <div><h2>${l.id}<small>${l.ref}</small></h2><p>${l.shipper} → ${l.consignee} · ${l.miles} mi</p></div>
-        <div class="filters"><span class="chip ${statusClass(l.status)}">${l.status}</span></div>
+        <div><h2>${esc(l.id)}<small>${esc(l.ref)}</small></h2><p>${esc(l.shipper)} → ${esc(l.consignee)} · ${esc(l.miles)} mi</p></div>
+        <div class="filters"><span class="chip ${statusClass(l.status)}">${esc(l.status)}</span></div>
       </div>
       <div class="meta">
-        <div>Driver<b>${l.driver} · ${l.unit}</b></div>
+        <div>Driver<b>${esc(l.driver)} · ${esc(l.unit)}</b></div>
         <div>Delivered<b>${fmtTime(l.delivered)}</b></div>
         <div>Line haul<b>${money(l.lineHaul)}</b></div>
         <div>Accessorials<b>${money(l.accessorials)}</b></div>
       </div>
       <div class="doclist">
         ${l.documents.map((doc) => `
-          <div class="doc ${d && d.id === doc.id ? 'sel' : ''}" data-id="${doc.id}">
+          <div class="doc ${d && d.id === doc.id ? 'sel' : ''}" data-id="${esc(doc.id)}">
             <div class="thumb ${doc.source === 'mobile_capture' ? 'scan' : ''}"><i></i>${doc.type === 'POD' || doc.type === 'BOL' ? '<em></em>' : ''}</div>
-            <div class="t">${doc.title} <span style="color:var(--muted);font-weight:500">· ${doc.id}</span>
-              <small>${doc.capturedBy} · ${fmtTime(doc.capturedAt)} · ${doc.pages} page${doc.pages > 1 ? 's' : ''}${doc.captureNote ? ' · ' + doc.captureNote : ''}</small></div>
-            <span class="src ${doc.source}">${sourceLabel[doc.source]}</span>
+            <div class="t">${esc(doc.title)} <span style="color:var(--muted);font-weight:500">· ${esc(doc.id)}</span>
+              <small>${esc(doc.capturedBy)} · ${fmtTime(doc.capturedAt)} · ${esc(doc.pages)} page${doc.pages > 1 ? 's' : ''}${doc.captureNote ? ' · ' + esc(doc.captureNote) : ''}</small></div>
+            <span class="src ${esc(doc.source)}">${esc(sourceLabel[doc.source] || doc.source)}</span>
           </div>`).join('')}
       </div>
       <div class="fields" id="fields"></div>
@@ -263,8 +264,8 @@
     $('fields').innerHTML = `<h4>Extracted fields ${review ? `<span class="pill" style="color:var(--amber)">${review} below confidence floor</span>` : '<span class="pill" style="color:var(--green)">all fields confident</span>'}</h4>` +
       res.fields.map((f, i) => `
         <div class="frow" style="animation-delay:${i * 70}ms">
-          <span class="k">${f.label}</span>
-          <span class="v">${typeof f.value === 'number' ? f.value.toLocaleString() : String(f.value)}</span>
+          <span class="k">${esc(f.label)}</span>
+          <span class="v">${typeof f.value === 'number' ? f.value.toLocaleString() : esc(f.value)}</span>
           <span class="conf ${f.review ? 'low' : ''}"><span class="bar"><b style="width:${Math.round(f.confidence * 100)}%"></b></span>${Math.round(f.confidence * 100)}%</span>
         </div>`).join('');
   }
@@ -280,18 +281,21 @@
   async function indexDocument() {
     if (!state.doc || state.busy) return;
     state.busy = true;
+    const load = state.load;
+    const doc = state.doc;
     const btn = $('btn-index');
     btn.innerHTML = '<span class="spin"></span>Reading document…';
     btn.disabled = true;
     try {
       const r = await fetch('/api/f4af1ebf/documents/index', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ loadId: state.load.id, documentId: state.doc.id }),
+        body: JSON.stringify({ loadId: load.id, documentId: doc.id }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || 'Indexing failed');
-      state.indexed = data;
       state.busy = false;
+      if (state.load !== load || state.doc !== doc) return;
+      state.indexed = data;
       renderDetail();
     } catch (e) {
       state.busy = false;
@@ -303,6 +307,8 @@
   async function submitToBilling() {
     if (!state.doc || state.busy) return;
     state.busy = true;
+    const load = state.load;
+    const doc = state.doc;
     const btn = $('btn-bill');
     btn.innerHTML = '<span class="spin"></span>Building invoice packet…';
     btn.disabled = true;
@@ -310,7 +316,7 @@
     try {
       const r = await fetch('/api/f4af1ebf/billing/submit', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ loadId: state.load.id, documentId: state.doc.id, ...identity() }),
+        body: JSON.stringify({ loadId: load.id, documentId: doc.id, ...identity() }),
       });
       const data = await r.json();
       if (!r.ok || !data.success) {
@@ -319,11 +325,12 @@
         throw err;
       }
       state.busy = false;
-      state.load.status = 'Billed';
+      load.status = 'Billed';
       renderLoads();
+      if (state.load !== load || state.doc !== doc) return;
       renderDetail();
-      $('result').innerHTML = `<div class="result"><b>Invoice ${data.invoice.number} created</b> · ${data.invoice.status}
-        <table><tr><td>Packet</td><td>${data.packet.packetId}</td></tr><tr><td>Received by</td><td>${data.packet.receivedBy} · ${fmtTime(data.packet.signedAt)}</td></tr><tr><td>Total</td><td><b style="color:var(--text)">${money(data.packet.total)}</b></td></tr></table></div>`;
+      $('result').innerHTML = `<div class="result"><b>Invoice ${esc(data.invoice.number)} created</b> · ${esc(data.invoice.status)}
+        <table><tr><td>Packet</td><td>${esc(data.packet.packetId)}</td></tr><tr><td>Received by</td><td>${esc(data.packet.receivedBy)} · ${fmtTime(data.packet.signedAt)}</td></tr><tr><td>Total</td><td><b style="color:var(--text)">${money(data.packet.total)}</b></td></tr></table></div>`;
       toast('Submitted to billing', `${data.invoice.number} · ${money(data.invoice.amount)} queued for TMS export`, true);
     } catch (e) {
       state.busy = false;

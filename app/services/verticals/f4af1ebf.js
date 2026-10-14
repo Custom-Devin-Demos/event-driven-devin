@@ -330,7 +330,7 @@ async function submitToBilling(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, docType: doc.type, source: doc.source },
+      tags: { route: ROUTE, service: SERVICE, docType: doc.type, source: doc.source, alert_path: 'instant' },
       extra: { runId, loadId: load.id, documentId: doc.id },
     });
 
@@ -353,6 +353,7 @@ async function submitToBilling(data) {
         { key: 'loadId', value: load.id },
         { key: 'documentId', value: doc.id },
         { key: 'source', value: doc.source },
+        { key: 'alert_path', value: 'instant' },
       ],
       extra: { runId, loadId: load.id, documentId: doc.id, capturedBy: doc.capturedBy },
       level: 'error',
