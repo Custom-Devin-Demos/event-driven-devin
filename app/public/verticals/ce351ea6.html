@@ -202,6 +202,11 @@
       .hdr-util { display: none; }
       .menu-btn { display: flex; }
       .gnav { display: none; }
+      .gnav.open { display: block; }
+      .gnav.open .wrap { padding: 0; }
+      .gnav.open ul { grid-template-columns: 1fr; }
+      .gnav.open li { border-left: 0; border-right: 0; border-top: 1px solid var(--dl-line); }
+      .gnav.open a { padding: 8px 16px; }
       .hdr { border-bottom: 2px solid var(--dl-blue); }
       .claim-grid { grid-template-columns: 1fr; }
       .side { position: static; }
@@ -264,10 +269,10 @@
           </div>
           <div class="util-links"><a href="#help">お問い合わせ先</a><a href="#help">よくあるご質問</a><a href="#top">採用情報</a><a href="#top">English</a></div>
         </div>
-        <button type="button" class="menu-btn" aria-label="メニュー"><i></i><i></i><i></i>メニュー</button>
+        <button type="button" class="menu-btn" id="menuBtn" aria-label="メニュー" aria-expanded="false" aria-controls="gnav"><i></i><i></i><i></i>メニュー</button>
       </div>
     </div>
-    <nav class="gnav" aria-label="グローバルナビゲーション">
+    <nav class="gnav" id="gnav" aria-label="グローバルナビゲーション">
       <div class="wrap">
         <ul>
           <li><a class="current" href="#procedure" aria-current="page"><span class="chev"></span>ご契約者さま</a></li>
@@ -365,8 +370,6 @@
                 <label for="policyId">ご請求の対象となるご契約<span class="req">必須</span></label>
                 <select id="policyId">
                   <option value="POL-5003">ジャスト（総合医療一時金保険）　証券番号 ****-5003</option>
-                  <option value="POL-5001">ジャスト（継続入院所得保障保険）　証券番号 ****-5001</option>
-                  <option value="POL-5002">ジャスト（3大疾病所得保障保険）　証券番号 ****-5002</option>
                 </select>
               </div>
               <div class="two">
@@ -460,7 +463,7 @@
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
       });
     }
-    function yen(n) { return isFinite(n) && n > 0 ? Math.round(n).toLocaleString('ja-JP') + '円' : '—'; }
+    function yen(n) { return Number.isSafeInteger(n) && n > 0 ? n.toLocaleString('ja-JP') + '円' : '—'; }
     function selText(id) { var s = document.getElementById(id); return s.options[s.selectedIndex] ? s.options[s.selectedIndex].text : ''; }
 
     var tabs = [document.getElementById('tab-freq'), document.getElementById('tab-scene')];
@@ -487,11 +490,17 @@
       setTimeout(function () { document.getElementById('policyId').focus({ preventScroll: true }); }, 450);
     });
 
+    var menuBtn = document.getElementById('menuBtn');
+    menuBtn.addEventListener('click', function () {
+      var open = document.getElementById('gnav').classList.toggle('open');
+      menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
     var form = document.getElementById('claimForm');
     function renderSummary() {
       document.getElementById('sumPolicy').textContent = selText('policyId').replace(/\s+証券番号.*$/, '');
       document.getElementById('sumType').textContent = selText('claimType');
-      document.getElementById('sumAmount').textContent = yen(parseFloat(document.getElementById('amount').value));
+      document.getElementById('sumAmount').textContent = yen(Number(document.getElementById('amount').value));
     }
     function setStep(n) {
       ['step1', 'step2', 'step3'].forEach(function (id, i) { document.getElementById(id).classList.toggle('on', i < n); });
@@ -503,6 +512,9 @@
         var r = document.getElementById('result');
         r.className = 'result-box';
         r.innerHTML = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('agree').checked = false;
         setStep(1);
         renderSummary();
       }, 0);
@@ -514,15 +526,15 @@
       var btn = document.getElementById('submitBtn');
       var label = btn.querySelector('.label');
       var result = document.getElementById('result');
-      var amount = parseFloat(document.getElementById('amount').value);
+      var amount = Number(document.getElementById('amount').value);
       if (!document.getElementById('agree').checked) {
         result.className = 'result-box error';
         result.innerHTML = '<div class="title">注意事項をご確認ください</div><div class="detail">「ご請求にあたっての注意事項を確認しました。」にチェックを入れてください。</div>';
         return;
       }
-      if (!(amount > 0) || !document.getElementById('description').value.trim()) {
+      if (!Number.isSafeInteger(amount) || amount <= 0 || !document.getElementById('description').value.trim()) {
         result.className = 'result-box error';
-        result.innerHTML = '<div class="title">入力内容をご確認ください</div><div class="detail">ご請求予定額と入院・手術の内容をご入力ください。</div>';
+        result.innerHTML = '<div class="title">入力内容をご確認ください</div><div class="detail">ご請求予定額（1円単位）と入院・手術の内容をご入力ください。</div>';
         return;
       }
       var started = Date.now();
