@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>入院・手術給付金、保険金などのご請求 | ご契約者さま | 第一生命</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --dl-blue: #1746FF;
+      --dl-blue-deep: #0000EF;
+      --dl-sky: #4EDAFF;
+      --dl-navy: #000064;
+      --dl-wash: #DFF1FF;
+      --dl-ink: #333333;
+      --dl-muted: #666666;
+      --dl-line: #D6D6D6;
+      --dl-tag: #F6F6F6;
+      --dl-paper: #FAF9F7;
+      --dl-orange: #FFA700;
+      --dl-orange-deep: #FF4A00;
+      --dl-ok: #00875A;
+      --dl-err: #D21E1E;
+      --dl-grad: linear-gradient(145.21deg, #4EDAFF 0.97%, #56A3FF 20.74%, #1746FF 67.84%, #0000EF 88.45%);
+      --font: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W3", "Noto Sans JP", "Yu Gothic Medium", YuGothicM, Meiryo, arial, helvetica, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--font); color: var(--dl-ink); background: #fff; font-size: 16px; line-height: 1.6; letter-spacing: .05em; font-weight: 300; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; letter-spacing: inherit; }
+    img { display: block; }
+    .wrap { max-width: 976px; margin: 0 auto; padding: 0 16px; }
+    .pc-only { display: inline; }
+    .sp-only { display: none; }
+
+    /* Header */
+    .stripe { height: 4px; background: linear-gradient(90deg, var(--dl-blue) 0%, var(--dl-blue) 45%, var(--dl-sky) 100%); }
+    .hdr { background: #fff; }
+    .hdr .wrap { display: flex; align-items: center; gap: 20px; min-height: 84px; }
+    .logo { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; }
+    .logo-mark { width: 34px; height: 34px; border-radius: 8px; background: var(--dl-grad); color: #fff; font-weight: 700; font-size: 19px; display: grid; place-items: center; letter-spacing: 0; }
+    .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
+    .logo-text b { font-size: 22px; font-weight: 700; letter-spacing: .12em; color: #111; }
+    .logo-text small { font-size: 11.5px; font-weight: 500; letter-spacing: 0; color: #111; margin-top: 3px; }
+    .hdr-cta { display: flex; gap: 12px; }
+    .hdr-cta a { display: inline-flex; align-items: center; gap: 6px; min-height: 54px; padding: 6px 12px; border-radius: 4px; color: #fff; font-size: 13px; font-weight: 700; line-height: 1.35; text-align: center; }
+    .hdr-cta .doc { background: linear-gradient(160deg, var(--dl-orange) 0%, var(--dl-orange-deep) 100%); }
+    .hdr-cta .mypage { background: var(--dl-grad); }
+    .hdr-cta svg { flex: none; }
+    .hdr-util { margin-left: auto; display: flex; flex-direction: column; gap: 6px; }
+    .util-row { display: flex; align-items: center; gap: 14px; font-size: 13px; }
+    .size-sel { display: inline-flex; align-items: center; gap: 8px; color: var(--dl-ink); }
+    .size-sel span.opts { display: inline-flex; border: 1px solid var(--dl-line); border-radius: 3px; overflow: hidden; }
+    .size-sel button { border: 0; background: #fff; padding: 4px 10px; font-size: 13px; font-weight: 500; color: var(--dl-ink); cursor: pointer; }
+    .size-sel button + button { border-left: 1px solid var(--dl-line); }
+    .size-sel button.on { background: var(--dl-blue); color: #fff; }
+    .search { display: flex; border: 1px solid var(--dl-line); border-radius: 3px; padding: 3px; }
+    .search input { border: 0; outline: 0; width: 170px; padding: 3px 8px; font-size: 13px; }
+    .search button { border: 0; background: var(--dl-blue); color: #fff; font-size: 13px; font-weight: 700; padding: 3px 12px; border-radius: 2px; }
+    .util-links { display: flex; gap: 14px; font-size: 12px; color: var(--dl-blue); }
+    .menu-btn { display: none; margin-left: auto; border: 0; background: none; color: var(--dl-navy); font-size: 10px; font-weight: 500; width: 48px; min-height: 48px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .menu-btn i { display: block; width: 26px; height: 2px; background: var(--dl-navy); border-radius: 1px; }
+    .gnav { border-bottom: 3px solid var(--dl-blue); background: #fff; }
+    .gnav ul { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); }
+    .gnav li { border-left: 1px solid var(--dl-line); }
+    .gnav li:last-child { border-right: 1px solid var(--dl-line); }
+    .gnav a { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 16px 8px; font-size: 16px; font-weight: 400; color: var(--dl-ink); }
+    .gnav a.current { color: var(--dl-blue); font-weight: 700; }
+    .chev { width: 18px; height: 18px; border-radius: 50%; background: var(--dl-blue); flex: none; position: relative; }
+    .chev::after { content: ""; position: absolute; left: 5px; top: 5px; width: 5px; height: 5px; border-right: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(45deg); }
+    .chev.right::after { left: 4px; top: 6px; transform: rotate(-45deg); }
+
+    .crumbs { font-size: 13px; color: var(--dl-muted); padding: 2px 0 0; }
+    .crumbs a { color: var(--dl-blue); text-decoration: underline; display: inline-flex; align-items: center; min-height: 44px; }
+    .crumbs span.sep { margin: 0 8px; color: #999; }
+
+    /* ご契約者さま */
+    .procedure-area { padding: 48px 0 40px; }
+    .procedure-title { text-align: center; font-size: 32px; font-weight: 700; letter-spacing: .05em; line-height: 1.25; margin-bottom: 32px; }
+    .mysite { display: grid; grid-template-columns: 1fr 1fr; gap: 32px 24px; max-width: 900px; margin: 0 auto; }
+    .mysite h3 { font-size: 20px; font-weight: 700; line-height: 1.25; margin-bottom: 6px; }
+    .mysite p { font-size: 16px; }
+    .login-btn { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; border-radius: 4px; background: var(--dl-grad); color: #fff; font-weight: 700; font-size: 16px; }
+    .support-btn { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 24px; background: #fff; border: 1px solid var(--dl-line); border-radius: 4px; box-shadow: 0 0 4px rgba(0,0,0,.04); color: var(--dl-navy); font-weight: 700; font-size: 16px; }
+    .arrow { width: 8px; height: 8px; border-right: 2px solid currentColor; border-top: 2px solid currentColor; transform: rotate(45deg); flex: none; }
+    .arrow.blue { color: var(--dl-blue); width: 7px; height: 7px; border-width: 1.5px; }
+
+    .tab-list { display: flex; gap: 8px; max-width: 944px; margin: 0 auto; padding: 0 0 0 0; align-items: flex-end; }
+    .tab-item { flex: 1; border: 2px solid var(--dl-navy); border-bottom: 0; border-radius: 12px 12px 0 0; background: #fff; color: var(--dl-navy); font-size: 16px; font-weight: 700; padding: 14px 4px; cursor: pointer; position: relative; min-height: 52px; }
+    .tab-item[aria-selected="true"] { background: var(--dl-navy); color: #fff; padding: 20px 4px; }
+    .tab-item[aria-selected="true"]::after { content: ""; position: absolute; left: 50%; bottom: -10px; margin-left: -10px; border: 10px solid transparent; border-bottom: 0; border-top-color: var(--dl-navy); z-index: 1; }
+    .tab-border { height: 2px; background: var(--dl-navy); }
+    .tab-panel { background: var(--dl-wash); padding: 28px 16px 40px; }
+    .tab-panel[hidden] { display: none; }
+    .tab-inner { max-width: 944px; margin: 0 auto; }
+    .proc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .proc-btn { display: flex; align-items: center; gap: 16px; background: #fff; border-radius: 8px; padding: 16px 24px; min-height: 82px; border: 2px solid transparent; transition: border-color .15s; cursor: pointer; text-align: left; width: 100%; color: inherit; font: inherit; }
+    .proc-btn:hover, .proc-btn:focus-visible { border-color: var(--dl-blue); outline: 0; }
+    .proc-btn.active { border-color: var(--dl-blue); box-shadow: 0 4px 14px rgba(23,70,255,.12); }
+    .proc-icon { width: 50px; height: 50px; flex: none; display: grid; place-items: center; }
+    .proc-icon img { width: 50px; height: 50px; object-fit: contain; }
+    .proc-icon .fb { display: none; width: 44px; height: 44px; border-radius: 50%; background: var(--dl-wash); color: var(--dl-blue); font-weight: 700; font-size: 18px; place-items: center; }
+    .proc-icon.broken img { display: none; }
+    .proc-icon.broken .fb { display: grid; }
+    .proc-text { flex: 1; min-width: 0; }
+    .proc-name { display: block; font-size: 16px; font-weight: 700; line-height: 1.3; }
+    .proc-note { display: block; font-size: 12px; color: var(--dl-ink); margin-top: 2px; }
+    .tags { display: inline-flex; flex-wrap: wrap; align-items: center; background: var(--dl-tag); border-radius: 2px; padding: 3px 8px; margin-top: 6px; font-size: 12px; color: var(--dl-muted); }
+    .tags span + span::before { content: ""; display: inline-block; width: 1px; height: 12px; background: var(--dl-line); margin: 0 8px; vertical-align: -1px; }
+    .tab-more { display: flex; justify-content: flex-end; margin-top: 16px; }
+    .link-more { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; }
+    .scene-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .scene { background: #fff; border-radius: 8px; padding: 16px 20px; }
+    .scene-head { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 700; padding-bottom: 10px; border-bottom: 1px solid var(--dl-line); }
+    .scene-head img { width: 40px; height: 40px; object-fit: contain; }
+    .scene ul { list-style: none; }
+    .scene li a { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; border-bottom: 1px dashed var(--dl-line); font-size: 15px; font-weight: 700; }
+    .scene li:last-child a { border-bottom: 0; }
+
+    /* Claim */
+    .claim { padding: 56px 0 64px; scroll-margin-top: 12px; }
+    .claim-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 16px; border-left: 6px solid var(--dl-blue); padding-left: 14px; margin-bottom: 8px; }
+    .claim-head h2 { font-size: 26px; font-weight: 700; line-height: 1.3; }
+    .claim-lead { font-size: 15px; margin: 0 0 24px 20px; }
+    .steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); margin-bottom: 28px; counter-reset: step; }
+    .steps li { position: relative; text-align: center; font-size: 13px; font-weight: 700; color: #999; padding-top: 38px; }
+    .steps li::before { counter-increment: step; content: counter(step); position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 30px; height: 30px; border-radius: 50%; background: #fff; border: 2px solid var(--dl-line); color: #999; display: grid; place-items: center; font-size: 14px; z-index: 1; }
+    .steps li::after { content: ""; position: absolute; top: 14px; left: -50%; width: 100%; height: 2px; background: var(--dl-line); }
+    .steps li:first-child::after { display: none; }
+    .steps li.on { color: var(--dl-navy); }
+    .steps li.on::before { background: var(--dl-blue); border-color: var(--dl-blue); color: #fff; }
+    .steps li.on::after { background: var(--dl-blue); }
+    .claim-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--dl-line); border-radius: 8px; box-shadow: 0 0 4px rgba(0,0,0,.04); }
+    .form-card { padding: 28px 28px 24px; }
+    .form-card h3 { font-size: 18px; font-weight: 700; color: var(--dl-navy); margin-bottom: 18px; }
+    .field { margin-bottom: 18px; }
+    .field label, .field .lbl { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .req { font-size: 11px; font-weight: 700; color: #fff; background: var(--dl-err); border-radius: 2px; padding: 1px 6px; letter-spacing: 0; }
+    .field select, .field input[type="number"], .field input[type="text"] { width: 100%; min-height: 48px; border: 1px solid #999; border-radius: 4px; padding: 10px 12px; font-size: 16px; color: var(--dl-ink); background: #fff; }
+    .field select:focus, .field input:focus { outline: 2px solid var(--dl-blue); outline-offset: 1px; border-color: var(--dl-blue); }
+    .hint { font-size: 12.5px; color: var(--dl-muted); margin-top: 4px; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .yen { position: relative; }
+    .yen input { padding-right: 36px !important; }
+    .yen::after { content: "円"; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--dl-muted); }
+    .static { min-height: 48px; display: flex; align-items: center; padding: 10px 12px; border-radius: 4px; background: var(--dl-tag); font-size: 15px; }
+    .agree { display: flex; align-items: flex-start; gap: 10px; background: var(--dl-paper); border: 1px solid var(--dl-line); border-radius: 4px; padding: 12px 14px; font-size: 14px; margin: 6px 0 20px; cursor: pointer; min-height: 48px; }
+    .agree input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--dl-blue); flex: none; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .submit { flex: 1 1 260px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; border: 0; border-radius: 4px; background-color: #1746FF; color: #fff; font-size: 17px; font-weight: 700; cursor: pointer; }
+    .submit:hover { background-color: #0000EF; }
+    .submit:disabled { cursor: progress; opacity: .85; }
+    .submit .spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .submit.loading .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .clear { min-height: 56px; padding: 0 22px; border: 1px solid var(--dl-line); border-radius: 4px; background: #fff; color: var(--dl-navy); font-size: 15px; font-weight: 700; cursor: pointer; }
+    #result { margin-top: 18px; }
+    #result:empty { display: none; }
+    #result { border-radius: 6px; padding: 16px 18px; font-size: 14.5px; }
+    #result.success { background: #E8F6F0; border: 1px solid #9FD8C1; }
+    #result.error { background: #FDEEEE; border: 1px solid #F0B4B4; }
+    #result .title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    #result.success .title { color: var(--dl-ok); }
+    #result.error .title { color: var(--dl-err); }
+    #result .timing { margin-top: 8px; font-size: 12.5px; color: var(--dl-muted); }
+    #result code { font-family: inherit; font-weight: 700; letter-spacing: .1em; }
+    .side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 16px; }
+    .summary { padding: 20px; }
+    .summary h3 { font-size: 16px; font-weight: 700; color: var(--dl-navy); padding-bottom: 10px; border-bottom: 2px solid var(--dl-navy); margin-bottom: 4px; }
+    .summary dl { display: grid; grid-template-columns: auto 1fr; font-size: 14px; }
+    .summary dt, .summary dd { padding: 10px 0; border-bottom: 1px solid #EEE; }
+    .summary dt { color: var(--dl-muted); padding-right: 12px; white-space: nowrap; }
+    .summary dd { text-align: right; font-weight: 500; overflow-wrap: anywhere; }
+    .summary dd.amt { font-size: 18px; font-weight: 700; color: var(--dl-navy); }
+    .help { padding: 18px 20px; background: var(--dl-paper); }
+    .help h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .help p { font-size: 13px; }
+    .notes { margin-top: 32px; padding: 20px 24px; border: 1px solid var(--dl-line); border-radius: 8px; }
+    .notes h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .notes ul { padding-left: 1.2em; font-size: 14px; }
+    .notes li + li { margin-top: 4px; }
+
+    /* Footer */
+    footer { background: var(--dl-paper); margin-top: 0; }
+    .ft-links { display: grid; grid-template-columns: 1.2fr 1.3fr .6fr; gap: 10px 32px; padding: 48px 0 32px; border-bottom: 1px solid var(--dl-line); font-size: 13px; }
+    .ft-links ul { list-style: none; }
+    .ft-links li { min-height: 30px; }
+    .ft-links a { color: var(--dl-blue); text-decoration: underline; }
+    .ft-group { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--dl-line); }
+    .ft-group .grp { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: 0; color: #111; }
+    .ft-group ul { list-style: none; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; margin-top: 28px; font-size: 13px; }
+    .ft-group ul a { color: var(--dl-blue); text-decoration: underline; }
+    .ft-mission { font-size: 13px; padding: 24px 0; }
+    .copyright { background: var(--dl-blue); color: #fff; text-align: center; font-size: 13px; padding: 14px 16px; letter-spacing: 0; }
+    .copyright small { display: block; opacity: .85; font-size: 11.5px; margin-top: 2px; }
+
+    @media (max-width: 960px) {
+      .hdr-util { display: none; }
+      .menu-btn { display: flex; }
+      .gnav { display: none; }
+      .hdr { border-bottom: 2px solid var(--dl-blue); }
+      .claim-grid { grid-template-columns: 1fr; }
+      .side { position: static; }
+    }
+    @media (max-width: 640px) {
+      .pc-only { display: none; }
+      .sp-only { display: inline; }
+      .hdr .wrap { min-height: 64px; gap: 8px; }
+      .logo-mark { width: 28px; height: 28px; font-size: 16px; }
+      .logo-text b { font-size: 19px; }
+      .logo-text small { font-size: 10.5px; }
+      .hdr-cta { gap: 6px; margin-left: auto; }
+      .hdr-cta a { min-height: 46px; padding: 4px 7px; font-size: 11px; gap: 4px; }
+      .hdr-cta svg { width: 14px; height: 14px; }
+      .menu-btn { margin-left: 0; width: 44px; }
+      .procedure-area { padding: 32px 0 28px; }
+      .procedure-title { font-size: 24px; margin-bottom: 20px; }
+      .mysite { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .mysite > div:first-child, .mysite .login-btn { grid-column: 1 / -1; }
+      .mysite h3 { font-size: 17px; }
+      .mysite p { font-size: 14px; }
+      .support-btn { padding: 0 12px; font-size: 14px; }
+      .tab-list { gap: 4px; }
+      .tab-item { font-size: 14px; line-height: 1.35; }
+      .tab-item[aria-selected="true"] { padding: 14px 4px; }
+      .tab-panel { padding: 24px 0 28px; }
+      .tab-inner { padding: 0 16px; }
+      .proc-grid, .scene-grid { grid-template-columns: 1fr; }
+      .proc-btn { padding: 14px 14px; gap: 12px; }
+      .proc-icon, .proc-icon img { width: 44px; height: 44px; }
+      .claim { padding: 40px 0 48px; }
+      .claim-head h2 { font-size: 21px; }
+      .claim-lead { margin-left: 0; font-size: 14px; }
+      .form-card { padding: 20px 16px; }
+      .two { grid-template-columns: 1fr; gap: 0; }
+      .ft-links { grid-template-columns: 1fr; padding-top: 32px; }
+      .ft-group ul { justify-content: flex-start; }
+      .ft-links li { min-height: 0; }
+      .ft-links a, .ft-group a { display: inline-flex; align-items: center; min-height: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="stripe"></div>
+    <div class="hdr">
+      <div class="wrap">
+        <a class="logo" href="#top" aria-label="第一生命 トップ">
+          <span class="logo-mark" aria-hidden="true">第</span>
+          <span class="logo-text"><b>第一生命</b><small>Daiichi Life Group</small></span>
+        </a>
+        <nav class="hdr-cta" aria-label="主要メニュー">
+          <a class="doc" href="#top"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="1.5" width="11" height="13" rx="1.5" fill="#fff"/><path d="M5 5h6M5 8h6M5 11h4" stroke="#FF7A00" stroke-width="1.4"/></svg><span>資料請求<br>（無料）</span></a>
+          <a class="mypage" href="#procedure"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5" r="3.2" fill="#fff"/><path d="M1.8 15c.6-3.4 3.2-5.2 6.2-5.2s5.6 1.8 6.2 5.2z" fill="#fff"/></svg><span>ご契約者<br>専用サイト</span></a>
+        </nav>
+        <div class="hdr-util">
+          <div class="util-row">
+            <span class="size-sel">文字の大きさ<span class="opts"><button type="button" class="on">標準</button><button type="button">大</button><button type="button">最大</button></span></span>
+            <form class="search" role="search" onsubmit="return false"><input type="text" placeholder="サイト内検索" aria-label="サイト内検索"><button type="submit">検索</button></form>
+          </div>
+          <div class="util-links"><a href="#help">お問い合わせ先</a><a href="#help">よくあるご質問</a><a href="#top">採用情報</a><a href="#top">English</a></div>
+        </div>
+        <button type="button" class="menu-btn" aria-label="メニュー"><i></i><i></i><i></i>メニュー</button>
+      </div>
+    </div>
+    <nav class="gnav" aria-label="グローバルナビゲーション">
+      <div class="wrap">
+        <ul>
+          <li><a class="current" href="#procedure" aria-current="page"><span class="chev"></span>ご契約者さま</a></li>
+          <li><a href="#top"><span class="chev"></span>保険をお考えの方</a></li>
+          <li><a href="#top"><span class="chev"></span>法人のお客さま</a></li>
+          <li><a href="#top"><span class="chev"></span>第一生命について</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <div class="wrap crumbs"><a href="#top">トップ</a><span class="sep">&gt;</span>ご契約者さま</div>
+
+    <section class="procedure" id="procedure" aria-labelledby="procedure-title">
+      <div class="procedure-area">
+        <div class="wrap">
+          <h2 class="procedure-title" id="procedure-title">ご契約者さま</h2>
+          <div class="mysite">
+            <div>
+              <h3>ご契約者さま専用サイト</h3>
+              <p>Webでご契約内容の確認や各種お手続きができます。</p>
+            </div>
+            <a class="login-btn" href="#claim"><svg width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5" r="3.2" fill="#fff"/><path d="M1.8 15c.6-3.4 3.2-5.2 6.2-5.2s5.6 1.8 6.2 5.2z" fill="#fff"/></svg>ログイン・新規登録</a>
+            <a class="support-btn" href="#help">お問い合わせ一覧<span class="arrow"></span></a>
+            <a class="support-btn" href="#help">よくあるご質問<span class="arrow"></span></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="wrap" style="padding-bottom:0">
+        <div class="tab-list" role="tablist" aria-label="お手続きの探し方">
+          <button type="button" class="tab-item" role="tab" id="tab-freq" aria-controls="panel-freq" aria-selected="true"><span class="pc-only">よく利用されるお手続き</span><span class="sp-only">よく利用される<br>お手続き</span></button>
+          <button type="button" class="tab-item" role="tab" id="tab-scene" aria-controls="panel-scene" aria-selected="false" tabindex="-1"><span class="pc-only">手続きシーンから探す</span><span class="sp-only">手続きシーンから<br>探す</span></button>
+        </div>
+      </div>
+      <div class="tab-border"></div>
+      <div class="tab-panel" role="tabpanel" id="panel-freq" aria-labelledby="tab-freq">
+        <div class="tab-inner">
+          <div class="proc-grid">
+            <button type="button" class="proc-btn" data-target="claim" id="procClaim">
+              <span class="proc-icon"><img src="https://www.dai-ichi-life.co.jp/common_v2/image/top_body/procedure_01.png" alt="" onerror="this.parentNode.classList.add('broken')"><span class="fb" aria-hidden="true">¥</span></span>
+              <span class="proc-text"><span class="proc-name">入院・手術給付金、保険金などのご請求</span><span class="tags"><span>ネット</span><span>郵送・訪問</span></span></span>
+              <span class="arrow blue"></span>
+            </button>
+            <button type="button" class="proc-btn">
+              <span class="proc-icon"><img src="https://www.dai-ichi-life.co.jp/common_v2/image/top_body/procedure_02.png" alt="" onerror="this.parentNode.classList.add('broken')"><span class="fb" aria-hidden="true">住</span></span>
+              <span class="proc-text"><span class="proc-name">住所・電話番号変更</span><span class="tags"><span>ネット</span><span>担当者</span><span>お電話</span><span>ご来店</span></span></span>
+              <span class="arrow blue"></span>
+            </button>
+            <button type="button" class="proc-btn">
+              <span class="proc-icon"><img src="https://www.dai-ichi-life.co.jp/common_v2/image/top_body/procedure_03.png" alt="" onerror="this.parentNode.classList.add('broken')"><span class="fb" aria-hidden="true">資</span></span>
+              <span class="proc-text"><span class="proc-name">資金のお借入れ・お引出し／ご入金・ご返済</span><span class="tags"><span>ネット</span></span></span>
+              <span class="arrow blue"></span>
+            </button>
+            <button type="button" class="proc-btn">
+              <span class="proc-icon"><img src="https://www.dai-ichi-life.co.jp/common_v2/image/top_body/procedure_04.png" alt="" onerror="this.parentNode.classList.add('broken')"><span class="fb" aria-hidden="true">払</span></span>
+              <span class="proc-text"><span class="proc-name">保険料のお払込方法の変更</span><span class="proc-note">（振替口座・クレジットカードの変更含む）</span><span class="tags"><span>ネット</span><span>担当者</span><span>お電話</span><span>ご来店</span></span></span>
+              <span class="arrow blue"></span>
+            </button>
+          </div>
+          <div class="tab-more"><a class="link-more" href="#procedure"><span class="chev right"></span>お手続き一覧を見る</a></div>
+        </div>
+      </div>
+      <div class="tab-panel" role="tabpanel" id="panel-scene" aria-labelledby="tab-scene" hidden>
+        <div class="tab-inner">
+          <div class="scene-grid">
+            <div class="scene"><div class="scene-head"><img src="https://www.dai-ichi-life.co.jp/common_v2/image/top_body/procedure_scene_01.png" alt="" onerror="this.style.visibility='hidden'">結婚</div>
+              <ul><li><a href="#procedure">改姓・改名<span class="arrow blue"></span></a></li><li><a href="#procedure">ご契約者の変更<span class="arrow blue"></span></a></li><li><a href="#procedure">お受取人の変更<span class="arrow blue"></span></a></li><li><a href="#procedure">送金指定口座の登録・変更<span class="arrow blue"></span></a></li><li><a href="#procedure">家族型特約の内容変更<span class="arrow blue"></span></a></li></ul></div>
+            <div class="scene"><div class="scene-head"><img src="https://www.dai-ichi-life.co.jp/common_v2/image/top_body/procedure_scene_02.png" alt="" onerror="this.style.visibility='hidden'">出産</div>
+              <ul><li><a href="#procedure">お受取人の変更<span class="arrow blue"></span></a></li><li><a href="#procedure">家族型特約の内容変更<span class="arrow blue"></span></a></li></ul></div>
+            <div class="scene"><div class="scene-head"><img src="https://www.dai-ichi-life.co.jp/common_v2/image/top_body/procedure_scene_03.png" alt="" onerror="this.style.visibility='hidden'">ご不幸</div>
+              <ul><li><a href="#procedure">ご契約者のご不幸による契約者変更<span class="arrow blue"></span></a></li><li><a href="#procedure">お受取人のご不幸による受取人変更<span class="arrow blue"></span></a></li></ul></div>
+            <div class="scene"><div class="scene-head"><img src="https://www.dai-ichi-life.co.jp/common_v2/image/top_body/procedure_scene_04.png" alt="" onerror="this.style.visibility='hidden'">引っ越し</div>
+              <ul><li><a href="#procedure">改姓・改名<span class="arrow blue"></span></a></li><li><a href="#procedure">生命保険料控除証明書の（再）発行<span class="arrow blue"></span></a></li><li><a href="#procedure">海外への渡航・海外からの帰国<span class="arrow blue"></span></a></li></ul></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="claim" id="claim" aria-labelledby="claim-title">
+      <div class="wrap">
+        <div class="claim-head"><h2 id="claim-title">入院・手術給付金、保険金などのご請求</h2><span class="tags" style="margin-top:0"><span>ネット</span></span></div>
+        <p class="claim-lead">ご契約者さま専用サイトから、入院・手術給付金などをWebでご請求いただけます。</p>
+        <ol class="steps" aria-label="お手続きの流れ">
+          <li class="on" id="step1">ご請求内容の入力</li>
+          <li id="step2">送信</li>
+          <li id="step3">受付完了</li>
+        </ol>
+        <div class="claim-grid">
+          <div class="card form-card">
+            <h3>ご請求内容</h3>
+            <form id="claimForm" novalidate>
+              <div class="field">
+                <label for="policyId">ご請求の対象となるご契約<span class="req">必須</span></label>
+                <select id="policyId">
+                  <option value="POL-5003">ジャスト（総合医療一時金保険）　証券番号 ****-5003</option>
+                  <option value="POL-5001">ジャスト（継続入院所得保障保険）　証券番号 ****-5001</option>
+                  <option value="POL-5002">ジャスト（3大疾病所得保障保険）　証券番号 ****-5002</option>
+                </select>
+              </div>
+              <div class="two">
+                <div class="field">
+                  <label for="claimType">ご請求の種類<span class="req">必須</span></label>
+                  <select id="claimType">
+                    <option value="hospitalization_surgery">入院・手術給付金</option>
+                    <option value="hospitalization">入院給付金</option>
+                    <option value="surgery">手術給付金</option>
+                    <option value="lump_sum">一時金</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="amount">ご請求予定額<span class="req">必須</span></label>
+                  <div class="yen"><input type="number" id="amount" value="100000" min="1" step="1" inputmode="numeric"></div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="description">入院・手術の内容<span class="req">必須</span></label>
+                <input type="text" id="description" value="急性虫垂炎による入院（5日間）および腹腔鏡下手術" placeholder="例：〇〇による入院（〇日間）">
+                <p class="hint">診断書・領収書に記載の傷病名をご入力ください。</p>
+              </div>
+              <div class="field">
+                <span class="lbl">お受取口座</span>
+                <div class="static">ご登録の送金指定口座へお支払いします</div>
+              </div>
+              <label class="agree"><input type="checkbox" id="agree" checked>ご請求にあたっての注意事項を確認しました。</label>
+              <div class="actions">
+                <button type="submit" class="submit" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span class="label">この内容で請求する</span></button>
+                <button type="reset" class="clear">入力内容をクリア</button>
+              </div>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            </form>
+          </div>
+          <aside class="side">
+            <div class="card summary" aria-live="polite">
+              <h3>ご入力内容の確認</h3>
+              <dl>
+                <dt>ご契約</dt><dd id="sumPolicy"></dd>
+                <dt>ご請求の種類</dt><dd id="sumType"></dd>
+                <dt>ご請求予定額</dt><dd id="sumAmount" class="amt"></dd>
+              </dl>
+            </div>
+            <div class="card help" id="help">
+              <h4>お問い合わせ</h4>
+              <p>第一生命コンタクトセンター</p>
+              <p>ご請求書類のお取り寄せやご不明な点は、お問い合わせ一覧からご確認いただけます。</p>
+            </div>
+          </aside>
+        </div>
+        <div class="notes">
+          <h3>ご請求にあたってのご注意</h3>
+          <ul>
+            <li>ご請求内容によっては、診断書などの書類のご提出をお願いする場合があります。</li>
+            <li>お支払いの可否・金額は、ご契約内容と所定の審査にもとづき決定します。</li>
+            <li>お手続きの状況は、ご契約者さま専用サイトでご確認いただけます。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="ft-links">
+        <ul><li><a href="#top">個人情報保護方針（個人情報の取扱いについて）</a></li><li><a href="#top">勧誘方針</a></li><li><a href="#top">取引時確認に関するお客さまへのお願い</a></li></ul>
+        <ul><li><a href="#top">FATCAに関するお客さまへのお願い</a></li><li><a href="#top">当社ホームページのご利用にあたって</a></li></ul>
+        <ul><li><a href="#top">利益相反管理方針</a></li><li><a href="#top">電子公告</a></li><li><a href="#top">サイトマップ</a></li></ul>
+      </div>
+      <div class="ft-group">
+        <span class="grp"><span class="logo-mark" aria-hidden="true">第</span>Daiichi Life Group</span>
+        <ul><li><a href="#top">第一ライフグループ</a></li><li><a href="#top">第一生命保険</a></li><li><a href="#top">第一フロンティア生命</a></li><li><a href="#top">第一ネオ生命</a></li><li><a href="#top">第一スマート少額短期保険</a></li></ul>
+      </div>
+      <p class="ft-mission">生命保険の社会的役割を自覚しつつ、社会との調和ある持続的発展を通じて、お客さまから最も支持される生命保険会社を目指します。</p>
+    </div>
+    <div class="copyright">NOT ACTUALLY A DAI-ICHI LIFE SITE — internal demo only.<small>第一生命の公式サイトではありません。架空のご契約・ご請求データを使用しています。</small></div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function yen(n) { return isFinite(n) && n > 0 ? Math.round(n).toLocaleString('ja-JP') + '円' : '—'; }
+    function selText(id) { var s = document.getElementById(id); return s.options[s.selectedIndex] ? s.options[s.selectedIndex].text : ''; }
+
+    var tabs = [document.getElementById('tab-freq'), document.getElementById('tab-scene')];
+    function selectTab(tab) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+      });
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener('click', function () { selectTab(t); });
+      t.addEventListener('keydown', function (e) {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        var next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+        selectTab(next); next.focus();
+      });
+    });
+
+    document.getElementById('procClaim').addEventListener('click', function () {
+      this.classList.add('active');
+      document.getElementById('claim').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(function () { document.getElementById('policyId').focus({ preventScroll: true }); }, 450);
+    });
+
+    var form = document.getElementById('claimForm');
+    function renderSummary() {
+      document.getElementById('sumPolicy').textContent = selText('policyId').replace(/\s+証券番号.*$/, '');
+      document.getElementById('sumType').textContent = selText('claimType');
+      document.getElementById('sumAmount').textContent = yen(parseFloat(document.getElementById('amount').value));
+    }
+    function setStep(n) {
+      ['step1', 'step2', 'step3'].forEach(function (id, i) { document.getElementById(id).classList.toggle('on', i < n); });
+    }
+    form.addEventListener('input', renderSummary);
+    form.addEventListener('change', renderSummary);
+    form.addEventListener('reset', function () {
+      setTimeout(function () {
+        var r = document.getElementById('result');
+        r.className = 'result-box';
+        r.innerHTML = '';
+        setStep(1);
+        renderSummary();
+      }, 0);
+    });
+    renderSummary();
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var label = btn.querySelector('.label');
+      var result = document.getElementById('result');
+      var amount = parseFloat(document.getElementById('amount').value);
+      if (!document.getElementById('agree').checked) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="title">注意事項をご確認ください</div><div class="detail">「ご請求にあたっての注意事項を確認しました。」にチェックを入れてください。</div>';
+        return;
+      }
+      if (!(amount > 0) || !document.getElementById('description').value.trim()) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="title">入力内容をご確認ください</div><div class="detail">ご請求予定額と入院・手術の内容をご入力ください。</div>';
+        return;
+      }
+      var started = Date.now();
+      var ticker = setInterval(function () {
+        label.textContent = '送信しています… ' + ((Date.now() - started) / 1000).toFixed(1) + '秒';
+      }, 100);
+      btn.disabled = true;
+      btn.classList.add('loading');
+      label.textContent = '送信しています…';
+      result.className = 'result-box';
+      result.innerHTML = '';
+      setStep(2);
+      try {
+        var response = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: document.getElementById('policyId').value,
+            claimType: document.getElementById('claimType').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            description: document.getElementById('description').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await response.json().catch(function () { return {}; });
+        var elapsed = ((Date.now() - started) / 1000).toFixed(1);
+        if (response.ok) {
+          setStep(3);
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="title">ご請求を受け付けました</div>'
+            + '<div class="detail">受付番号 <code>' + esc(String(data.claimId || '').slice(0, 8).toUpperCase()) + '</code>　ご請求予定額 ' + esc(yen(amount))
+            + '<br>審査完了後、ご登録の送金指定口座へお支払いします。お手続きの状況はご契約者さま専用サイトでご確認いただけます。</div>'
+            + '<div class="timing">送信時間 ' + elapsed + '秒</div>';
+        } else {
+          setStep(1);
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="title">ご請求を受け付けできませんでした</div>'
+            + '<div class="detail">ただいま、ご請求の受付に時間がかかっています。お手数ですが、しばらくたってから再度お手続きください。</div>'
+            + '<div class="timing">待機時間 ' + elapsed + '秒' + (data.requestId ? '　お問い合わせ番号 ' + esc(data.requestId) : '') + '</div>';
+        }
+      } catch (err) {
+        setStep(1);
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="title">通信に失敗しました</div><div class="detail">通信環境をご確認のうえ、もう一度お手続きください。</div>';
+      } finally {
+        clearInterval(ticker);
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        label.textContent = 'この内容で請求する';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
