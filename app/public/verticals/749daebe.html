@@ -84,6 +84,7 @@
     td { padding: 9px 10px; border-bottom: 1px solid #EEF0F2; }
     .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
     .pill.pending { background: #FFF1EA; color: #C44100; }
+    .pill.sent { background: #E6EEF8; color: #1F4E8C; }
     .pill.signed { background: #E8F5EC; color: #1D6B34; }
     @media (max-width: 900px) {
       .shell { grid-template-columns: 1fr; }
@@ -119,7 +120,7 @@
       <div class="crumbs">Deals / Project Aurora / Signature pages / Release</div>
       <div class="head">
         <div><h1>Release signature pages &middot; Credit Agreement</h1><div class="sub"><span class="mono">AUR-1.1</span> &middot; Execution version v4 &middot; 7 signature pages across 3 signers</div></div>
-        <span class="chip">Ready to release</span>
+        <span class="chip" id="packetChip">Ready to release</span>
       </div>
       <section class="card" aria-label="Packet summary">
         <div class="facts">
@@ -139,7 +140,7 @@
           <form id="transferForm">
             <div class="form-grid">
               <div class="field"><label for="fromAccount">Release from</label><select id="fromAccount"><option value="ACCT-1004">Credit Agreement &mdash; execution v4 (approved)</option><option value="ACCT-1001">Credit Agreement &mdash; execution v3 (superseded)</option></select></div>
-              <div class="field"><label for="toAccount">Signer group</label><select id="toAccount"><option value="ACCT-1003">All pending signers &mdash; Borrower, Guarantor, Agent (3)</option><option value="ACCT-1002">Borrower signatories only &mdash; Sable Terrace Holdings (1)</option></select></div>
+              <div class="field"><label for="toAccount">Signer group</label><select id="toAccount"><option value="ACCT-1003" data-signers="3">All pending signers &mdash; Borrower, Guarantor, Agent (3)</option><option value="ACCT-1002" data-signers="1">Borrower signatories only &mdash; Sable Terrace Holdings (1)</option></select></div>
               <div class="field"><label for="amount">Signature pages to release</label><input type="number" id="amount" min="1" step="1" value="7" required></div>
               <div class="field"><label for="accountTier">Pre-release checks</label><select id="accountTier"><option value="standard">Standard &mdash; metadata clean &amp; signature block validation</option><option value="premium">Pre-validated packet (already cleaned)</option><option value="basic">First release to this signer group</option></select><small>Transact validates every signature block against the execution version before packets go out.</small></div>
             </div>
@@ -153,9 +154,9 @@
           <table>
             <thead><tr><th>Signer</th><th>Party</th><th>Pages</th><th>Status</th></tr></thead>
             <tbody>
-              <tr><td>Daniel Okoro</td><td>Sable Terrace Holdings (Borrower)</td><td>2</td><td><span class="pill pending">Pending</span></td></tr>
-              <tr><td>Priya Natarajan</td><td>Sable Terrace Parent (Guarantor)</td><td>3</td><td><span class="pill pending">Pending</span></td></tr>
-              <tr><td>Marcus Feld</td><td>Northgate Capital (Agent)</td><td>2</td><td><span class="pill pending">Pending</span></td></tr>
+              <tr data-group="ACCT-1003 ACCT-1002"><td>Daniel Okoro</td><td>Sable Terrace Holdings (Borrower)</td><td>2</td><td><span class="pill pending">Pending</span></td></tr>
+              <tr data-group="ACCT-1003"><td>Priya Natarajan</td><td>Sable Terrace Parent (Guarantor)</td><td>3</td><td><span class="pill pending">Pending</span></td></tr>
+              <tr data-group="ACCT-1003"><td>Marcus Feld</td><td>Northgate Capital (Agent)</td><td>2</td><td><span class="pill pending">Pending</span></td></tr>
               <tr><td>Elena Voss</td><td>Northgate Capital (Lender)</td><td>1</td><td><span class="pill signed">Signed</span></td></tr>
             </tbody>
           </table>
@@ -202,8 +203,15 @@
         const data = await response.json();
         if (!response.ok) throw new Error('Signature pages could not be released.');
         result.className = 'result-box success';
-        result.textContent = `Signature pages released. ${pages} page${pages === 1 ? '' : 's'} sent to 3 signers via secure link (ref ${data.receipt.receiptId}).`;
+        const group = document.getElementById('toAccount');
+        const signers = parseInt(group.selectedOptions[0].dataset.signers, 10) || 1;
+        result.textContent = `Signature pages released. ${pages} page${pages === 1 ? '' : 's'} sent to ${signers} signer${signers === 1 ? '' : 's'} via secure link (ref ${data.receipt.receiptId}).`;
         status.textContent = 'Released \u2014 signers notified.';
+        document.querySelectorAll(`tr[data-group~="${group.value}"] .pill.pending`).forEach((pill) => {
+          pill.className = 'pill sent';
+          pill.textContent = 'Sent \u2014 awaiting signature';
+        });
+        document.getElementById('packetChip').textContent = 'Released';
       } catch (_error) {
         result.className = 'result-box notice';
         result.textContent = 'Signers could not be notified. Please try again before the signing call.';

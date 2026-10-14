@@ -3596,7 +3596,7 @@ const ONCALL_SKINS = {
       service: 'transact-release-api',
       release: 'transact-web@2026.10.2',
       team: 'transact-oncall',
-      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      metricQuery: 'p95:trace.express.request.duration{service:transact-release-api,resource:POST /api/oncall/banking/transfer}',
       symptom: 'Signature packet releases hang ~10s before signers are notified. Error rate is normal \u2014 packets eventually go out.',
       impact: 'Every closing coordinator releasing signature pages waits on a spinner for ~10 seconds per packet; deal teams with signings scheduled today are escalating ahead of their closing calls.',
     },
