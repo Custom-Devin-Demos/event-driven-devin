@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>917c583a · Platform Infrastructure Monitoring</title>
+  <link rel="icon" href="/verticals/assets/917c583a/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300..900;1,6..12,400&family=Nunito:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --v-navy: #012F6D;
+      --v-blue: #2E6CB4;
+      --v-green: #8EBC2A;
+      --v-green-2: #A1D630;
+      --v-gray-100: #F2F2F2;
+      --v-gray-300: #CED6DB;
+      --v-gray-400: #A3AAAF;
+      --v-taupe: #CDC3BB;
+      --v-ink: #112337;
+      --v-muted: #585e6a;
+      --v-red: #D64545;
+      --v-amber: #E2A31B;
+      --v-font: 'Nunito Sans', sans-serif;
+      --v-font-2: 'Nunito', sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--v-font); color: var(--v-ink); background: var(--v-gray-100); font-size: 14px; }
+    a { color: var(--v-blue); text-decoration: none; }
+    header.top { background: #fff; border-bottom: 1px solid var(--v-gray-300); }
+    .top-inner { max-width: 1320px; margin: 0 auto; height: 68px; padding: 0 28px; display: flex; align-items: center; gap: 22px; }
+    .brand { display: flex; align-items: center; gap: 16px; }
+    .brand img { height: 30px; width: auto; display: block; }
+    .brand .div { width: 1px; height: 28px; background: var(--v-gray-300); }
+    .brand .app { font-family: var(--v-font-2); font-weight: 700; color: var(--v-navy); font-size: 15px; letter-spacing: .01em; }
+    .brand .app span { color: var(--v-muted); font-family: var(--v-font); font-weight: 600; }
+    nav.tabs { display: flex; gap: 4px; margin-left: 10px; }
+    nav.tabs a { color: var(--v-ink); font-weight: 600; font-size: 14px; padding: 8px 12px; border-radius: 6px; }
+    nav.tabs a.active { color: var(--v-navy); background: var(--v-gray-100); box-shadow: inset 0 -2px 0 var(--v-green); }
+    .top-right { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--v-muted); }
+    .top-right .back { color: var(--v-gray-400); font-size: 12px; }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--v-navy); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+    .banner { background: var(--v-navy); color: #fff; }
+    .banner-inner { max-width: 1320px; margin: 0 auto; padding: 26px 28px 24px; display: flex; align-items: flex-end; gap: 24px; }
+    .crumbs { font-size: 12px; color: rgba(255,255,255,.7); letter-spacing: .02em; margin-bottom: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .banner h1 { margin: 0; font-family: var(--v-font-2); font-weight: 700; font-size: 30px; line-height: 1.15; }
+    .banner p { margin: 6px 0 0; color: rgba(255,255,255,.82); font-size: 14px; max-width: 760px; }
+    .banner .actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+    .btn { font-family: var(--v-font); font-weight: 800; font-size: 14px; border: 0; border-radius: 999px; padding: 12px 22px; cursor: pointer; transition: background .2s, transform .1s; }
+    .btn.primary { background: var(--v-green-2); color: var(--v-navy); }
+    .btn.primary:hover { background: var(--v-green); }
+    .btn.primary:active { transform: translateY(1px); }
+    .btn[disabled] { opacity: .65; cursor: wait; }
+    .btn.ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.45); font-weight: 700; }
+    main { max-width: 1320px; margin: 0 auto; padding: 22px 28px 40px; }
+    .status { display: grid; grid-template-columns: repeat(5, 1fr) auto; background: #fff; border: 1px solid var(--v-gray-300); border-radius: 10px; overflow: hidden; }
+    .status .cell { padding: 14px 18px; border-right: 1px solid var(--v-gray-100); }
+    .status .label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--v-muted); font-weight: 700; }
+    .status .value { margin-top: 4px; font-size: 18px; font-weight: 800; color: var(--v-ink); display: flex; align-items: center; gap: 8px; }
+    .status .sub { font-size: 12px; color: var(--v-muted); margin-top: 2px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--v-gray-400); display: inline-block; }
+    .dot.ok { background: var(--v-green); }
+    .dot.bad { background: var(--v-red); box-shadow: 0 0 0 4px rgba(214,69,69,.15); }
+    .status .reset-cell { display: flex; align-items: center; padding: 0 14px; }
+    .reset { display: none; font: 600 11px var(--v-font); color: var(--v-muted); background: transparent; border: 1px solid var(--v-gray-300); border-radius: 4px; padding: 3px 8px; cursor: pointer; }
+    .reset:hover { color: var(--v-navy); border-color: var(--v-navy); }
+    .status.degraded .reset { display: inline-block; }
+    .status.degraded { border-color: rgba(214,69,69,.45); }
+    .grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 18px; margin-top: 18px; }
+    .card { background: #fff; border: 1px solid var(--v-gray-300); border-radius: 10px; }
+    .card-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--v-gray-100); }
+    .card-head h2 { margin: 0; font-size: 15px; font-weight: 800; color: var(--v-navy); }
+    .card-head .meta { margin-left: auto; font-size: 12px; color: var(--v-muted); }
+    .card-body { padding: 16px 18px; }
+    .chart svg { width: 100%; height: 300px; display: block; }
+    .legend { display: flex; gap: 16px; font-size: 12px; color: var(--v-muted); margin-top: 8px; }
+    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+    .rule { font-size: 13px; line-height: 1.6; }
+    .rule dt { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--v-muted); font-weight: 700; margin-top: 10px; }
+    .rule dt:first-child { margin-top: 0; }
+    .rule dd { margin: 2px 0 0; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    .state { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 12px; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: .05em; }
+    .state.normal { background: rgba(142,188,42,.16); color: #4d6b0f; }
+    .state.firing { background: rgba(214,69,69,.12); color: var(--v-red); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--v-muted); font-weight: 700; padding: 10px 14px; background: #fafbfc; border-bottom: 1px solid var(--v-gray-300); }
+    td { padding: 11px 14px; border-bottom: 1px solid var(--v-gray-100); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    td.mono b { white-space: nowrap; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .pill { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; text-transform: lowercase; background: var(--v-gray-100); color: var(--v-muted); }
+    .pill.succeeded, .pill.complete { background: rgba(142,188,42,.18); color: #4d6b0f; }
+    .pill.failed { background: rgba(214,69,69,.12); color: var(--v-red); }
+    .pill.hot { background: rgba(46,108,180,.12); color: var(--v-blue); }
+    .pill.bulk { background: rgba(205,195,187,.4); color: #6b5d50; }
+    .table-scroll { overflow-x: auto; }
+    .section { margin-top: 18px; }
+    .deploys { list-style: none; margin: 0; padding: 0; }
+    .deploys li { padding: 12px 18px; border-bottom: 1px solid var(--v-gray-100); display: grid; grid-template-columns: 70px 1fr; gap: 10px; }
+    .deploys li:last-child { border-bottom: 0; }
+    .deploys .sha { color: var(--v-blue); font-weight: 700; }
+    .deploys .t { font-weight: 700; }
+    .deploys .m { font-size: 12px; color: var(--v-muted); margin-top: 2px; }
+    .empty { color: var(--v-muted); text-align: center; padding: 22px; font-size: 13px; }
+    footer { max-width: 1320px; margin: 0 auto; padding: 0 28px 30px; display: flex; justify-content: space-between; font-size: 12px; color: var(--v-gray-400); }
+    .toasts { position: fixed; right: 22px; bottom: 22px; z-index: 50; display: flex; flex-direction: column; gap: 10px; }
+    .toast { min-width: 340px; max-width: 460px; display: flex; gap: 10px; padding: 12px 14px 12px 11px; border-radius: 8px; background: rgba(0,0,0,.85); color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,.25); transform: translateX(120%); opacity: 0; transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s; font-size: 13px; }
+    .toast.in { transform: translateX(0); opacity: 1; }
+    .toast .bar { width: 4px; flex: none; border-radius: 3px; background: var(--v-green-2); }
+    .toast.error .bar { background: var(--v-red); }
+    .toast b { display: block; margin-bottom: 3px; }
+    .toast .msg { color: rgba(255,255,255,.82); line-height: 1.45; }
+    @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } .status { grid-template-columns: repeat(2, 1fr); } nav.tabs { display: none; } .banner-inner { flex-direction: column; align-items: flex-start; } .banner .actions { margin-left: 0; } }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <div class="brand">
+        <img src="https://www.bluerivertechnology.com/wp-content/uploads/2025/12/blue-river-logo.svg"
+             onerror="this.onerror=null;this.src='/verticals/assets/917c583a/logo.svg';" alt="Blue River Technology">
+        <span class="div"></span>
+        <span class="app">Mesa <span>· Platform Infrastructure</span></span>
+      </div>
+      <nav class="tabs">
+        <a href="#overview" class="active">Overview</a>
+        <a href="#jobs">Cache jobs</a>
+        <a href="#alerting">Alerting</a>
+        <a href="#deploys">Deploys</a>
+      </nav>
+      <div class="top-right">
+        <a class="back" href="/">← All Demos</a>
+        <span>infra on-call</span>
+        <span class="avatar">PI</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="banner" id="overview">
+    <div class="banner-inner">
+      <div>
+        <div class="crumbs">platform-infrastructure-monitoring › s3cp-cache › us-west-2</div>
+        <h1>S3CP Cache Jobs</h1>
+        <p>Each cycle runs all six S3CP cache jobs on the Mesa platform. If more than 20% of them fail, the platform-infrastructure alert fires to #demo-mesa-alerts.</p>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="run-btn" type="button">Run cache sync cycle</button>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="status" id="status">
+      <div class="cell"><div class="label">Service health</div><div class="value"><span class="dot" id="health-dot"></span><span id="health">Standby</span></div><div class="sub" id="health-sub">Waiting for the next cache sync cycle</div></div>
+      <div class="cell"><div class="label">Alert rule</div><div class="value"><span class="state normal" id="alert-state">Normal</span></div><div class="sub">failure ratio &gt; 20% for 2m</div></div>
+      <div class="cell"><div class="label">Job failure ratio</div><div class="value" id="ratio">0.0%</div><div class="sub" id="ratio-sub">last cycle</div></div>
+      <div class="cell"><div class="label">Cache jobs</div><div class="value" id="job-count">6</div><div class="sub" id="job-sub">in rotation</div></div>
+      <div class="cell"><div class="label">Contact point</div><div class="value mono" style="font-size:14px">#demo-mesa-alerts</div><div class="sub">Slack · Grafana alerting</div></div>
+      <div class="reset-cell"><button class="reset" id="reset-btn" type="button" title="Presenter control: clears cycle history and returns the console to its opening state. Does not change any code.">Reset</button></div>
+    </div>
+
+    <div class="grid" id="alerting">
+      <div class="card chart">
+        <div class="card-head"><h2>S3CP cache job failure ratio</h2><span class="meta">platform-infrastructure · hourly + on-demand cycles</span></div>
+        <div class="card-body">
+          <svg id="chart" viewBox="0 0 760 220" preserveAspectRatio="none" role="img" aria-label="Failure ratio chart"></svg>
+          <div class="legend"><span><i style="background:var(--v-blue)"></i>failure ratio</span><span><i style="background:var(--v-red)"></i>over threshold</span><span><i style="background:transparent;border-top:2px dashed var(--v-amber);height:0;border-radius:0"></i>threshold 20%</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Alert rule</h2><span class="meta">Grafana · platform-infrastructure</span></div>
+        <div class="card-body">
+          <dl class="rule">
+            <dt>Rule</dt><dd>S3CP cache job failure ratio &gt; 20% (platform-infrastructure)</dd>
+            <dt>Query</dt><dd class="mono">sum(s3cp_cache_jobs_total{status="failed"}) / sum(s3cp_cache_jobs_total)</dd>
+            <dt>Condition</dt><dd>IS ABOVE 0.2 · pending period 2m · evaluated every 1m</dd>
+            <dt>Labels</dt><dd class="mono">team=mesa-infra · service=platform-infrastructure-monitoring</dd>
+            <dt>Notifies</dt><dd>#demo-mesa-alerts · runbook <a href="#" onclick="return false">mesa/runbooks/s3cp-cache</a></dd>
+            <dt>State</dt><dd><span class="state normal" id="alert-state-2">Normal</span></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="card section" id="jobs">
+      <div class="card-head"><h2>Cache jobs</h2><span class="meta" id="jobs-meta">6 jobs · us-west-2</span></div>
+      <div class="table-scroll"><table><thead><tr><th>Job</th><th>Source</th><th>Cache target</th><th>Profile</th><th class="num">Objects</th><th class="num">Size</th><th class="num">Window</th><th>Owner</th><th>Last run</th></tr></thead><tbody id="job-rows"></tbody></table></div>
+    </div>
+
+    <div class="grid" id="deploys">
+      <div class="card">
+        <div class="card-head"><h2>Cycle history</h2><span class="meta">newest first</span></div>
+        <div class="table-scroll"><table><thead><tr><th>Cycle</th><th>Status</th><th class="num">Failed jobs</th><th class="num">Failure ratio</th><th>Alert</th><th>Completed</th></tr></thead><tbody id="history-rows"></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Recent deploys</h2><span class="meta">s3cp-cache service</span></div>
+        <ul class="deploys" id="deploy-list"></ul>
+      </div>
+    </div>
+  </main>
+  <footer><span>Mesa platform infrastructure · internal use only</span><span>Prometheus · Grafana · us-west-2</span></footer>
+  <div class="toasts" id="toasts"></div>
+
+  <script>
+    (function () {
+      var API = '/api/917c583a';
+      var state = { overview: null, running: false };
+
+      function esc(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function num(value) { return Number(value || 0).toLocaleString('en-US'); }
+      function pct(value) { return (Number(value || 0) * 100).toFixed(1) + '%'; }
+      function time(value) { return value ? new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'; }
+      function ago(value) {
+        var mins = Math.round((Date.now() - new Date(value).getTime()) / 60000);
+        if (mins < 60) return mins + 'm ago';
+        var hrs = Math.round(mins / 60);
+        return hrs < 48 ? hrs + 'h ago' : Math.round(hrs / 24) + 'd ago';
+      }
+      function windowText(sec) { return sec >= 3600 ? (sec / 3600) + 'h' : (sec / 60) + 'm'; }
+      function pill(value) { return '<span class="pill ' + esc(value) + '">' + esc(value) + '</span>'; }
+
+      function bootstrapIdentity() {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config').then(function (r) { return r.json(); }).then(function (config) {
+          if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+          if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+          if (config.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', config.defaultEmail);
+        }).catch(function () {});
+      }
+
+      function toast(kind, title, msg) {
+        var el = document.createElement('div');
+        el.className = 'toast ' + kind;
+        el.innerHTML = '<span class="bar"></span><div><b>' + esc(title) + '</b><div class="msg">' + esc(msg) + '</div></div>';
+        document.getElementById('toasts').appendChild(el);
+        requestAnimationFrame(function () { el.classList.add('in'); });
+        setTimeout(function () {
+          el.classList.remove('in');
+          setTimeout(function () { el.remove(); }, 400);
+        }, 5500);
+      }
+
+      function renderStatus(o) {
+        var latest = o.cycles[0];
+        var statusEl = document.getElementById('status');
+        var degraded = o.health === 'degraded';
+        statusEl.classList.toggle('degraded', degraded);
+        var healthText = { standby: 'Standby', healthy: 'Healthy', degraded: 'Degraded' }[o.health] || o.health;
+        document.getElementById('health').textContent = healthText;
+        document.getElementById('health-dot').className = 'dot ' + (o.health === 'healthy' ? 'ok' : degraded ? 'bad' : '');
+        document.getElementById('health-sub').textContent = !latest ? 'Waiting for the next cache sync cycle'
+          : degraded ? 'Cycle ' + latest.cycleId + ' failed · cache not refreshing' : 'Cycle ' + latest.cycleId + ' complete';
+        ['alert-state', 'alert-state-2'].forEach(function (id) {
+          var el = document.getElementById(id);
+          el.className = 'state ' + o.alertState;
+          el.textContent = o.alertState === 'firing' ? 'Firing' : 'Normal';
+        });
+        var ratio = latest ? latest.failureRatio : o.baseline[o.baseline.length - 1];
+        document.getElementById('ratio').textContent = pct(ratio);
+        document.getElementById('ratio').style.color = ratio > o.threshold ? 'var(--v-red)' : '';
+        document.getElementById('ratio-sub').textContent = latest ? 'cycle ' + latest.cycleId : 'last hourly cycle';
+        document.getElementById('job-count').textContent = latest ? (latest.jobCount - latest.failedJobs) + ' / ' + latest.jobCount : o.jobs.length;
+        document.getElementById('job-sub').textContent = latest ? 'succeeded last cycle' : 'in rotation';
+      }
+
+      function renderChart(o) {
+        var svg = document.getElementById('chart');
+        var history = o.cycles.slice().reverse().map(function (c) { return c.failureRatio; });
+        var points = o.baseline.concat(history).slice(-18);
+        var W = 760, H = 220, padL = 36, padB = 22, padT = 10;
+        var plotH = H - padB - padT, plotW = W - padL - 8;
+        var slot = plotW / 18, barW = slot * 0.62;
+        var y = function (v) { return padT + plotH - v * plotH; };
+        var parts = [];
+        [0, 0.25, 0.5, 0.75, 1].forEach(function (g) {
+          parts.push('<line x1="' + padL + '" x2="' + (W - 8) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="#E6EAED" stroke-width="1"/>');
+          parts.push('<text x="' + (padL - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end" font-size="10" fill="#7a818c" font-family="Nunito Sans">' + (g * 100) + '%</text>');
+        });
+        points.forEach(function (v, i) {
+          var h = Math.max(v * plotH, v > 0 ? 2 : 1);
+          var x = padL + i * slot + (slot - barW) / 2;
+          var color = v > o.threshold ? '#D64545' : '#2E6CB4';
+          var isLive = i >= points.length - history.length;
+          parts.push('<rect x="' + x.toFixed(1) + '" y="' + (padT + plotH - h).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2" fill="' + color + '" opacity="' + (isLive ? 1 : 0.75) + '"/>');
+        });
+        parts.push('<line x1="' + padL + '" x2="' + (W - 8) + '" y1="' + y(o.threshold) + '" y2="' + y(o.threshold) + '" stroke="#E2A31B" stroke-width="1.5" stroke-dasharray="6 4"/>');
+        parts.push('<text x="' + (padL + 4) + '" y="' + (H - 6) + '" font-size="10" fill="#7a818c" font-family="Nunito Sans">older</text>');
+        parts.push('<text x="' + (W - 10) + '" y="' + (H - 6) + '" text-anchor="end" font-size="10" fill="#7a818c" font-family="Nunito Sans">now</text>');
+        svg.innerHTML = parts.join('');
+      }
+
+      function renderJobs(o) {
+        var latest = o.cycles[0];
+        var byJob = {};
+        if (latest && latest.jobs) latest.jobs.forEach(function (r) { byJob[r.jobId] = r; });
+        document.getElementById('job-rows').innerHTML = o.jobs.map(function (job) {
+          var last = !latest ? '<span class="pill">scheduled</span>'
+            : latest.status === 'failed' ? pill('failed')
+            : pill((byJob[job.id] || {}).status || 'scheduled');
+          return '<tr><td class="mono"><b>' + esc(job.id) + '</b></td><td class="mono">' + esc(job.source) + '</td><td class="mono">' + esc(job.target) + '</td><td>' + pill(job.profile) + '</td><td class="num">' + num(job.objects) + '</td><td class="num">' + job.sizeGb.toFixed(1) + ' GB</td><td class="num">' + windowText(job.windowSec) + '</td><td>' + esc(job.owner) + '</td><td>' + last + '</td></tr>';
+        }).join('');
+      }
+
+      function renderHistory(o) {
+        var rows = o.cycles.map(function (c) {
+          return '<tr><td class="mono">' + esc(c.cycleId) + '</td><td>' + pill(c.status) + '</td><td class="num">' + c.failedJobs + ' / ' + c.jobCount + '</td><td class="num">' + pct(c.failureRatio) + '</td><td><span class="state ' + esc(c.alertState) + '">' + (c.alertState === 'firing' ? 'Firing' : 'Normal') + '</span></td><td>' + time(c.completedAt) + '</td></tr>';
+        });
+        document.getElementById('history-rows').innerHTML = rows.length ? rows.join('') : '<tr><td colspan="6" class="empty">No on-demand cycles yet. Hourly cycles are healthy.</td></tr>';
+      }
+
+      function renderDeploys(o) {
+        document.getElementById('deploy-list').innerHTML = o.deploys.map(function (d) {
+          return '<li><span class="mono sha">' + esc(d.sha) + '</span><div><div class="t">' + esc(d.title) + '</div><div class="m">' + esc(d.author) + ' · ' + esc(d.ticket) + ' · deployed ' + ago(d.deployedAt) + '</div></div></li>';
+        }).join('');
+      }
+
+      function render() {
+        var o = state.overview;
+        if (!o) return;
+        renderStatus(o);
+        renderChart(o);
+        renderJobs(o);
+        renderHistory(o);
+        renderDeploys(o);
+      }
+
+      function loadOverview() {
+        return fetch(API + '/overview').then(function (r) { return r.json(); }).then(function (o) {
+          state.overview = o;
+          render();
+        });
+      }
+
+      function runCycle() {
+        if (state.running) return;
+        state.running = true;
+        var btn = document.getElementById('run-btn');
+        btn.disabled = true;
+        document.getElementById('reset-btn').disabled = true;
+        btn.textContent = 'Running cycle…';
+        fetch(API + '/cache-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        }).then(function (r) {
+          return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+        }).then(function (res) {
+          if (res.ok) {
+            var c = res.body.cycle;
+            toast('ok', 'Cache sync cycle complete', c.jobCount - c.failedJobs + ' of ' + c.jobCount + ' S3CP jobs succeeded · failure ratio ' + pct(c.failureRatio) + '.');
+          } else {
+            toast('error', 'Cache sync cycle failed', 'All 6 S3CP jobs failed before copying. Alert “S3CP cache job failure ratio > 20%” is firing in #demo-mesa-alerts.');
+          }
+          return loadOverview();
+        }).catch(function () {
+          toast('error', 'Cache sync cycle failed', 'The s3cp-cache service did not respond.');
+        }).then(function () {
+          state.running = false;
+          btn.disabled = false;
+          document.getElementById('reset-btn').disabled = false;
+          btn.textContent = 'Run cache sync cycle';
+        });
+      }
+
+      function resetDemo() {
+        if (state.running) return;
+        fetch(API + '/cache-sync/reset', { method: 'POST' }).then(function (r) { return r.json(); }).then(function () {
+          return loadOverview();
+        }).then(function () {
+          toast('ok', 'Reset', 'Back to standby · alert rule Normal.');
+        }).catch(function () {});
+      }
+
+      document.getElementById('run-btn').addEventListener('click', runCycle);
+      document.getElementById('reset-btn').addEventListener('click', resetDemo);
+      bootstrapIdentity();
+      loadOverview();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
