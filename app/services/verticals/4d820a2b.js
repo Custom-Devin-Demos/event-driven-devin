@@ -21,7 +21,7 @@ const ALERT_COOLDOWN_MS = Number(process.env.ALERT_COOLDOWN_MS_4D820A2B) || 60 *
 const OWNER = Object.freeze({
   slackMemberId: 'U0AU1PXM12S',
   devinUserId: 'okta|Cognition|00u22b98f2kFBX4Al1d8',
-  devinOrgId: 'org-cba5887ae1534949b9696649e27367ad',
+  devinOrgId: 'org_69IXJFLrljx8zSAw',
 });
 
 const RATE_PLANS = [
