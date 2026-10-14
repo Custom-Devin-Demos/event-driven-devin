@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transferencias a terceros | Banco de Chile</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #295EFF;
+      --ink: #2A333D;
+      --surface: #FFFFFF;
+      --chrome-bg: #002884;
+      --chrome-text: #FFFFFF;
+      --navy: #011083;
+      --navy-deep: #001B4C;
+      --royal: #0C1FFF;
+      --sky: #5583FF;
+      --mist: #E1E6F5;
+      --paper: #F8F8FA;
+      --line: #DDE2EE;
+      --muted: #5B6573;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 16px/1.5 'Nunito Sans', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    input:focus, select:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 15px; }
+    .ico { width: 14px; height: 14px; flex: none; }
+
+    /* Segment bar */
+    .segbar { height: 40px; background: #FFFFFF; position: relative; z-index: 3; }
+    .segbar .container { display: flex; align-items: stretch; height: 40px; }
+    .segbar .seg a { display: inline-flex; align-items: center; padding: 8px 20px; font-size: 13px; line-height: 24px; color: var(--ink); height: 40px; }
+    .segbar .seg a.active { background: #F0F2F5; }
+    .segbar .seg { display: flex; }
+    .segbar .tools { margin-left: auto; display: flex; align-items: center; }
+    .segbar .tools button { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 8px 20px; font-size: 12px; line-height: 24px; text-transform: uppercase; }
+    .segbar .help { color: #DC2626; }
+    .segbar .a11y { color: #0038E1; border-left: 1px solid #C9CFDB !important; height: 16px; }
+
+    /* Main nav */
+    .mainnav { background: var(--chrome-bg); position: relative; z-index: 2; }
+    .mainnav .container { display: flex; align-items: center; height: 72px; gap: 24px; }
+    .logo { display: inline-flex; align-items: center; min-height: 44px; flex: none; }
+    .logo img { width: 148px; height: 24px; object-fit: contain; display: block; }
+    .logo .logo-text { display: none; font: 800 22px/1 Georgia, 'Times New Roman', serif; color: #FFFFFF; letter-spacing: -.01em; }
+    .menu { display: flex; align-items: center; gap: 24px; margin-left: 4px; }
+    .menu a { display: inline-flex; align-items: center; gap: 4px; color: #FFFFFF; font-size: 12px; line-height: 24px; letter-spacing: .4px; text-transform: uppercase; padding: 24px 0; white-space: nowrap; }
+    .menu .auto { padding: 2px 8px 2px 4px; border-radius: 9999px; background: #3D16F8; gap: 8px; }
+    .menu .auto .new { background: #FFFFFF; color: #3D16F8; border-radius: 9999px; font: 700 8px/10px 'Nunito Sans', sans-serif; letter-spacing: .4px; padding: 2px 6px; }
+    .nav-cta { margin-left: auto; display: flex; gap: 16px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 6px 24px; border-radius: 9999px; font: 700 12px/24px 'Nunito Sans', sans-serif; letter-spacing: .4px; text-transform: uppercase; color: #FFFFFF; white-space: nowrap; }
+    .pill.outline { border: 2px solid #FFFFFF; }
+    .pill.solid { background: var(--sky); padding: 8px 24px; }
+    .burger { display: none; margin-left: auto; background: none; border: 0; color: #FFFFFF; min-width: 44px; min-height: 44px; }
+    .mobile-menu { display: none; }
+    .mobile-menu-links a { display: flex; align-items: center; min-height: 48px; border-bottom: 1px solid rgba(255,255,255,.12); color: #FFFFFF; font-size: 12px; letter-spacing: .4px; text-transform: uppercase; }
+    .mobile-menu-cta { display: flex; gap: 12px; padding: 16px 0; }
+    .mobile-menu-cta .pill { flex: 1; padding-left: 12px; padding-right: 12px; }
+
+    /* Hero */
+    .hero { position: relative; overflow: hidden; background: var(--chrome-bg); color: #FFFFFF; padding: 32px 0 120px; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: url('https://assets.bancochile.cl/uploads/000/033/997/08b8503d-11b8-4a84-8410-bf936bdcae9b/original/trama_bg_1_.svg') left bottom / auto 100% no-repeat; opacity: .9; pointer-events: none; }
+    .hero .container { position: relative; }
+    .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: rgba(255,255,255,.75); }
+    .crumbs a { color: #FFFFFF; }
+    .crumbs span[aria-hidden] { opacity: .6; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 48px; align-items: center; margin-top: 28px; }
+    .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #50DFFF; margin: 0 0 12px; }
+    .hero h1 { font-size: 40px; line-height: 1.2; font-weight: 600; margin: 0 0 16px; letter-spacing: -.01em; }
+    .hero h1 b { font-weight: 800; }
+    .hero p.lead { font-size: 18px; line-height: 1.55; color: rgba(255,255,255,.88); margin: 0; max-width: 560px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .chips span { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 4px 14px; border-radius: 9999px; background: rgba(255,255,255,.1); font-size: 13px; }
+    .chips span::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #50DFFF; }
+    .hero-art { position: relative; height: 300px; border-radius: 24px; background: linear-gradient(140deg, #1B3BFF 0%, #0A1BB8 55%, #071A7A 100%); overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,.25); }
+    .hero-art img { position: absolute; right: -10px; bottom: -6px; width: 300px; }
+    .hero-art .bubble { position: absolute; left: 28px; top: 32px; width: 220px; padding: 16px 18px; border-radius: 16px; background: #FFFFFF; color: var(--navy); box-shadow: 0 12px 30px rgba(0,0,0,.18); }
+    .hero-art .bubble small { display: block; color: var(--muted); font-size: 12px; }
+    .hero-art .bubble strong { display: block; font-size: 22px; font-weight: 800; margin-top: 4px; }
+    .hero-art .bubble em { display: inline-flex; margin-top: 10px; font-style: normal; font-size: 12px; font-weight: 700; color: #0E8A4F; background: #E3F7EC; padding: 2px 10px; border-radius: 9999px; }
+
+    /* Transfer section */
+    .transfer { position: relative; margin-top: -88px; padding-bottom: 72px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+    .card { background: #FFFFFF; border-radius: 16px; box-shadow: 0 10px 40px rgba(1,16,131,.12); padding: 32px 36px 36px; }
+    .card h2 { margin: 0; font-size: 26px; line-height: 1.25; font-weight: 300; color: var(--navy); }
+    .card h2 b { font-weight: 800; }
+    .card-intro { margin: 6px 0 20px; color: var(--muted); font-size: 14px; }
+    .steps { display: flex; gap: 0; list-style: none; padding: 0; margin: 0 0 28px; counter-reset: s; }
+    .steps li { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: #8A93A3; }
+    .steps li b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 2px solid #C9CFDB; font-size: 13px; }
+    .steps li + li::before { content: ''; width: 48px; height: 2px; background: #DDE2EE; margin: 0 12px; }
+    .steps li.on { color: var(--navy); }
+    .steps li.on b { background: var(--accent); border-color: var(--accent); color: #FFFFFF; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 13px; font-weight: 700; color: var(--navy); }
+    .field select, .field input { width: 100%; min-height: 48px; border: 1px solid #C9CFDB; border-radius: 8px; background: #FFFFFF; padding: 0 14px; color: var(--ink); font-size: 15px; }
+    .field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23011083' stroke-width='2.4'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+    .field small { font-size: 12px; color: var(--muted); }
+    .money { position: relative; }
+    .money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--navy); }
+    .money input { padding-left: 30px; font-weight: 700; }
+    .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 28px 0 24px; padding: 18px 20px; border-radius: 12px; background: var(--paper); border: 1px solid var(--mist); }
+    .summary dt { font-size: 12px; color: var(--muted); }
+    .summary dd { margin: 2px 0 0; font-size: 14px; font-weight: 700; color: var(--navy); overflow-wrap: anywhere; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+    .submit-btn { min-height: 48px; padding: 0 36px; border: 0; border-radius: 9999px; background: var(--accent); color: #FFFFFF; font: 700 14px/1 'Nunito Sans', sans-serif; letter-spacing: .4px; text-transform: uppercase; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 86%, #000000); }
+    .submit-btn:disabled { opacity: .7; cursor: progress; }
+    .status { margin: 0; font-size: 14px; color: var(--muted); }
+    .result-box { display: none; margin-top: 20px; padding: 16px 18px; border-radius: 12px; font-size: 14px; white-space: pre-line; }
+    .result-box.success { display: block; background: #E3F7EC; color: #0B5A35; border: 1px solid #A9E2C4; }
+    .result-box.notice { display: block; background: #FDECEC; color: #8F1B1B; border: 1px solid #F3B9B9; }
+    .reset-link { display: none; margin-top: 14px; background: none; border: 0; padding: 0; min-height: 44px; color: var(--accent); font-weight: 700; font-size: 13px; letter-spacing: .4px; text-transform: uppercase; }
+    .reset-link.on { display: inline-flex; align-items: center; }
+    .side { display: flex; flex-direction: column; gap: 24px; }
+    .tile { border-radius: 16px; overflow: hidden; background: #FFFFFF; border: 1px solid var(--mist); box-shadow: 0 6px 24px rgba(1,16,131,.06); }
+    .tile.blue { background: #2F5BFF; color: #FFFFFF; border: 0; }
+    .tile-body { padding: 24px; }
+    .tile h3 { margin: 0 0 8px; font-size: 20px; line-height: 1.25; font-weight: 700; }
+    .tile p { margin: 0 0 14px; font-size: 14px; }
+    .tile ul { margin: 0 0 16px; padding-left: 18px; font-size: 14px; }
+    .tile .more { display: inline-flex; align-items: center; min-height: 36px; padding: 0 18px; border-radius: 9999px; border: 2px solid currentColor; font-size: 12px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
+    .tile .app-shot { display: block; width: 72px; height: 72px; object-fit: contain; margin-bottom: 14px; }
+
+    /* Help */
+    .help { padding: 8px 0 88px; }
+    .section-title { text-align: center; margin: 0; font-size: 32px; line-height: 1.25; font-weight: 300; color: var(--navy); }
+    .section-title b { font-weight: 800; }
+    .section-sub { text-align: center; margin: 6px 0 36px; font-size: 13px; color: var(--muted); }
+    .help-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; max-width: 1000px; margin: 0 auto; }
+    .help-card { display: flex; flex-direction: column; min-height: 300px; padding: 32px 28px 28px; border: 1px solid #ECEFF5; border-radius: 12px; background: #FFFFFF; }
+    .help-card img { width: 56px; height: 56px; object-fit: contain; margin-bottom: 28px; }
+    .help-card h3 { margin: 0 0 12px; font-size: 20px; line-height: 1.25; font-weight: 600; color: var(--navy); }
+    .help-card p { margin: 0; font-size: 13px; color: var(--muted); }
+    .help-card .go { margin-top: auto; padding-top: 24px; font-size: 12px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--accent); }
+
+    /* Footer */
+    footer { background: linear-gradient(to right, #002884, #001B4C); border-radius: 48px 48px 0 0; color: #FFFFFF; }
+    .foot-top { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) 1.05fr; gap: 24px; padding: 56px 0 40px; }
+    .foot-top h4 { margin: 0 0 24px; padding: 0 8px; font-size: 16px; line-height: 24px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+    .foot-top a { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 8px; font-size: 14px; color: #FFFFFF; }
+    .foot-top a:hover { text-decoration: underline; }
+    .stores a { font-weight: 700; }
+    .social { display: flex; gap: 14px; padding: 0 8px; }
+    .social a { padding: 0; min-width: 32px; justify-content: center; }
+    .foot-help { background: rgba(255,255,255,.06); border-radius: 8px; padding: 16px; align-self: start; }
+    .foot-help h4 { color: #FDC374; }
+    .foot-bottom { background: rgba(0,0,0,.12); border-radius: 48px 48px 0 0; padding: 28px 0 36px; }
+    .foot-mark { display: flex; justify-content: center; margin-bottom: 24px; }
+    .foot-mark img { width: 30px; height: 36px; }
+    .foot-legal { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px; align-items: center; }
+    .seals { display: flex; gap: 22px; align-items: center; }
+    .seals img { height: 36px; width: auto; max-width: 72px; object-fit: contain; }
+    .foot-legal p { margin: 0; font-size: 10px; line-height: 1.5; color: rgba(255,255,255,.85); }
+
+    @media (max-width: 1180px) {
+      .container { padding: 0 32px; }
+      .menu { gap: 16px; }
+      .menu .hide-md { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      .side { display: grid; grid-template-columns: 1fr 1fr; }
+      .foot-top { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 1023px) {
+      .segbar { display: none; }
+      .menu, .nav-cta .outline { display: none; }
+      .nav-cta { margin-left: auto; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-art { display: none; }
+      .transfer { margin-top: -72px; }
+    }
+    @media (max-width: 640px) {
+      .container { padding: 0 16px; }
+      .mainnav .container { height: 68px; gap: 8px; }
+      .nav-cta { display: none; }
+      .burger { display: inline-flex; align-items: center; justify-content: center; }
+      .mobile-menu:not([hidden]) { display: block; padding: 0 16px; background: var(--chrome-bg); }
+      .hero { padding: 20px 0 104px; }
+      .hero h1 { font-size: 30px; }
+      .hero p.lead { font-size: 16px; }
+      .card { padding: 24px 18px 28px; }
+      .form-grid, .summary, .side, .help-grid, .foot-top, .foot-legal { grid-template-columns: 1fr; }
+      .steps { flex-wrap: wrap; row-gap: 10px; }
+      .steps li + li::before { width: 14px; margin: 0 8px; }
+      .submit-btn { width: 100%; }
+      .section-title { font-size: 26px; }
+      footer, .foot-bottom { border-radius: 28px 28px 0 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="segbar" aria-label="Segmentos">
+      <div class="container">
+        <div class="seg"><a class="active" href="#top" aria-current="page">Personas</a><a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Privada</a><a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Empresas y Pyme</a><a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Nuestro Banco</a></div>
+        <div class="tools">
+          <button type="button" class="help"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16v12H8l-4 4z"/><path d="M12 8v3M12 13.5v.5"/></svg>Centro de ayuda<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+          <span class="a11y" aria-hidden="true"></span>
+          <button type="button" class="a11y" style="border:0;height:auto"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>Accesibilidad<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        </div>
+      </div>
+    </nav>
+    <nav class="mainnav" aria-label="Menú principal">
+      <div class="container">
+        <a class="logo" href="#top" aria-label="Banco de Chile - Inicio"><img src="https://assets.bancochile.cl/uploads/000/033/323/d9ed6331-33ac-42d7-946d-f526194fc5a3/original/bch-inverse.svg" alt="Banco de Chile" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span class="logo-text">Banco de Chile</span></a>
+        <div class="menu">
+          <a href="#transferir">Productos y servicios<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+          <a href="https://sitiospublicos.bancochile.cl/personas/seguros" target="_blank" rel="noopener noreferrer">Seguros</a>
+          <a class="hide-md" href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Inversiones<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+          <a class="auto hide-md" href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer"><span class="new">Nuevo</span>Automotriz</a>
+          <a href="https://sitiospublicos.bancochile.cl/personas/beneficios" target="_blank" rel="noopener noreferrer">Beneficios</a>
+          <a class="hide-md" href="https://sitiospublicos.bancochile.cl/personas/centro-de-ayuda" target="_blank" rel="noopener noreferrer">Ayuda<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+        </div>
+        <div class="nav-cta">
+          <a class="pill outline" href="https://sitiospublicos.bancochile.cl/personas/productos-y-cuentas" target="_blank" rel="noopener noreferrer">Hazte cliente</a>
+          <a class="pill solid" href="#transferir">Banco en línea</a>
+        </div>
+        <button type="button" class="burger" aria-label="Abrir menú" aria-controls="mobileMenu" aria-expanded="false"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+      <div id="mobileMenu" class="mobile-menu" hidden>
+        <div class="mobile-menu-links">
+          <a href="#transferir">Productos y servicios</a>
+          <a href="https://sitiospublicos.bancochile.cl/personas/seguros" target="_blank" rel="noopener noreferrer">Seguros</a>
+          <a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Inversiones</a>
+          <a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Automotriz</a>
+          <a href="https://sitiospublicos.bancochile.cl/personas/beneficios" target="_blank" rel="noopener noreferrer">Beneficios</a>
+          <a href="https://sitiospublicos.bancochile.cl/personas/centro-de-ayuda" target="_blank" rel="noopener noreferrer">Ayuda</a>
+        </div>
+        <div class="mobile-menu-cta">
+          <a class="pill outline" href="https://sitiospublicos.bancochile.cl/personas/productos-y-cuentas" target="_blank" rel="noopener noreferrer">Hazte cliente</a>
+          <a class="pill solid" href="#transferir">Banco en línea</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <main id="top">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="container">
+        <nav class="crumbs" aria-label="Estás en"><a href="#top">Inicio</a><span aria-hidden="true">›</span><a href="#top">Banco en Línea</a><span aria-hidden="true">›</span><span>Transferencias a terceros</span></nav>
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow">Banco en Línea</p>
+            <h1 id="page-title">Transfiere a <b>terceros</b> de forma rápida y segura</h1>
+            <p class="lead">Envía dinero a cualquier banco de Chile desde tu Cuenta Corriente o Cuenta Vista. Selecciona un destinatario frecuente, ingresa el monto y confirma.</p>
+            <div class="chips"><span>Transferencias 24/7</span><span>A cualquier banco</span><span>Comprobante al instante</span></div>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="bubble"><small>Transferencia enviada a</small>Camila Rojas<strong>$150.000</strong><em>Listo</em></div>
+            <img src="https://assets.bancochile.cl/uploads/000/033/545/8c29ca0b-4fd8-4522-aabd-8dd22ac08630/original/img_card_widget.png" alt="" onerror="this.style.display='none'">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="transfer" id="transferir" aria-labelledby="transfer-heading">
+      <div class="container">
+        <div class="layout">
+          <div class="card">
+            <h2 id="transfer-heading">Nueva <b>transferencia</b></h2>
+            <p class="card-intro">Cuentas y destinatarios de ejemplo. No se mueve dinero desde esta página.</p>
+            <ol class="steps" aria-label="Pasos"><li class="on"><b>1</b>Datos</li><li id="stepReview"><b>2</b>Confirmación</li><li id="stepDone"><b>3</b>Comprobante</li></ol>
+            <form id="transferForm">
+              <div class="form-grid">
+                <div class="field"><label for="fromAccount">Cuenta de origen</label><select id="fromAccount"><option value="ACCT-1001">Cuenta Corriente · 00-123-45678-09</option><option value="ACCT-1002">Cuenta Vista · 00-987-65432-10</option></select><small>Saldo disponible: $2.845.320</small></div>
+                <div class="field"><label for="toAccount">Destinatario</label><select id="toAccount"><option value="ACCT-2001" data-detail="BancoEstado · CuentaRUT · 16.482.***-5">Camila Rojas Muñoz</option><option value="ACCT-2002" data-detail="Banco de Chile · Cta. Corriente · 13.927.***-K">Felipe González Araya</option><option value="ACCT-2003" data-detail="Banco Santander · Cta. Corriente · 76.315.***-2">Ferretería Los Andes SpA</option><option value="ACCT-2004" data-detail="Banco BCI · Cta. Vista · 18.204.***-7">Valentina Soto Pérez</option></select><small id="toDetail">Destinatario frecuente.</small></div>
+                <div class="field"><label for="amount">Monto a transferir</label><div class="money"><span aria-hidden="true">$</span><input type="number" id="amount" min="1" step="1" value="150000" inputmode="numeric" required></div><small>Monto en pesos chilenos (CLP).</small></div>
+                <div class="field"><label for="accountTier">Plan</label><select id="accountTier"><option value="standard">Plan Cuenta Corriente</option><option value="premium">Banca Preferencial</option><option value="basic">Cuenta FAN</option></select><small>Según el plan asociado a tu cuenta.</small></div>
+              </div>
+              <dl class="summary" aria-label="Resumen de la transferencia"><div><dt>Destinatario</dt><dd id="summaryTo">—</dd></div><div><dt>Banco y cuenta</dt><dd id="summaryBank">—</dd></div><div><dt>Monto</dt><dd id="summaryAmount">—</dd></div><div><dt>Desde</dt><dd id="summaryFrom">—</dd></div></dl>
+              <div class="actions">
+                <button type="submit" id="submitBtn" class="submit-btn">Transferir</button>
+                <p class="status" id="transferStatus" role="status" aria-live="polite">Revisa los datos antes de confirmar.</p>
+              </div>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+              <button type="reset" id="newTransfer" class="reset-link">Hacer otra transferencia</button>
+            </form>
+          </div>
+          <aside class="side" aria-label="Más sobre transferencias">
+            <div class="tile blue">
+              <div class="tile-body">
+                <img class="app-shot" src="https://assets.bancochile.cl/uploads/000/033/529/154d4bee-56c0-447a-a3b5-9c0681ad884f/C200x200/mibanco_app.png" alt="" loading="lazy" onerror="this.style.display='none'">
+                <h3>Con Pagos a contactos ¡Envía y cobra dinero!</h3>
+                <p>Transfiere a tus amigos en segundos desde la App Mi Banco, solo con su número de celular.</p>
+                <a class="more" href="https://sitiospublicos.bancochile.cl/personas/aplicaciones/mi-banco" target="_blank" rel="noopener noreferrer">Descarga la app</a>
+              </div>
+            </div>
+            <div class="tile">
+              <div class="tile-body">
+                <h3 style="color:var(--navy)">Tus límites de transferencia</h3>
+                <p>Administra cuánto puedes transferir por día a terceros desde Banco en Línea.</p>
+                <ul><li>Los nuevos destinatarios se activan con tu Mi Pass</li><li>Puedes bajar tus límites cuando quieras</li><li>Transferencias sobre el límite requieren autorización</li></ul>
+                <a class="more" style="color:var(--accent)" href="https://sitiospublicos.bancochile.cl/personas/seguridad" target="_blank" rel="noopener noreferrer">Conoce más</a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="help" aria-labelledby="help-heading">
+      <div class="container">
+        <h2 class="section-title" id="help-heading">¿Ya eres cliente y <b>necesitas ayuda?</b></h2>
+        <p class="section-sub">Te ayudamos a encontrar lo que necesitas</p>
+        <div class="help-grid">
+          <a class="help-card" href="https://sitiospublicos.bancochile.cl/personas/normativas-legales-vigentes" target="_blank" rel="noopener noreferrer"><img src="https://assets.bancochile.cl/uploads/000/098/434/88d9b2ab-f124-4524-9411-7eea051ca096/original/icon_doc.webp" alt="" loading="lazy"><h3>Informe Normativo Ley 20.009</h3><p>Registro Semestral Ley de Fraudes.</p><span class="go">Ir al informe</span></a>
+          <a class="help-card" href="https://sitiospublicos.bancochile.cl/personas/seguridad" target="_blank" rel="noopener noreferrer"><img src="https://assets.bancochile.cl/uploads/000/098/435/12e3db96-2e7e-4aae-a1b2-100ef3a4df9c/original/seguridad.webp" alt="" loading="lazy"><h3>Ciberseguridad</h3><p>Protege tus claves y productos financieros y reconoce los diferentes tipos de fraude.</p><span class="go">Conocer tips</span></a>
+          <a class="help-card" href="https://sitiospublicos.bancochile.cl/personas/centro-de-ayuda/detalle/como-obtener-mi-certificado-de-liquidacion" target="_blank" rel="noopener noreferrer"><img src="https://assets.bancochile.cl/uploads/000/098/433/e8c193c1-63c2-4473-9c15-19279fb98e93/original/certificado.webp" alt="" loading="lazy"><h3>Certificado de Liquidación</h3><p>Contiene uno o más de tus productos con el detalle de tasas, comisiones aplicables y valor a desembolsar.</p><span class="go">Revisa cómo obtenerlo</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="container">
+      <div class="foot-top">
+        <section><h4>Sobre nosotros</h4><a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Nuestro Banco</a><a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Trabaja con nosotros</a><a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Investor Relations</a><a href="https://sitiospublicos.bancochile.cl/personas/international" target="_blank" rel="noopener noreferrer">Internacional</a><a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Junta accionistas</a></section>
+        <section><h4>Comunidad</h4><a href="https://sitiospublicos.bancochile.cl/personas/compromiso-azul" target="_blank" rel="noopener noreferrer">Compromiso azul</a><a href="https://sitiospublicos.bancochile.cl/personas" target="_blank" rel="noopener noreferrer">Proyecto 4270</a><a href="https://sitiospublicos.bancochile.cl/personas/mujeres-que-inspiran" target="_blank" rel="noopener noreferrer">Mujeres que inspiran</a></section>
+        <section><h4>Infórmate</h4><a href="https://sitiospublicos.bancochile.cl/personas/normativas-legales-vigentes" target="_blank" rel="noopener noreferrer">Normativas Legales Vigentes</a><a href="https://sitiospublicos.bancochile.cl/personas/politica-de-privacidad" target="_blank" rel="noopener noreferrer">Política de Privacidad</a></section>
+        <section>
+          <h4>Descarga la app</h4>
+          <div class="stores"><a href="https://sitiospublicos.bancochile.cl/personas/aplicaciones/mi-banco" target="_blank" rel="noopener noreferrer"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2.5 14 12 4 21.5c-.4-.2-.6-.6-.6-1.1V3.6c0-.5.2-.9.6-1.1z" fill="#34A853"/><path d="m17.3 8.8-3.3 3.2 3.3 3.2 3.4-2c.8-.5.8-1.9 0-2.4z" fill="#FBBC04"/><path d="M4 2.5c.3-.2.8-.2 1.2 0l12.1 6.3L14 12z" fill="#4285F4"/><path d="M14 12l3.3 3.2-12.1 6.3c-.4.2-.9.2-1.2 0z" fill="#EA4335"/></svg>Google Play</a><a href="https://apps.apple.com/cl/app/mi-banco-chile/id1516872542" target="_blank" rel="noopener noreferrer"><svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.4 2-3.5 2-3.6-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.8-3-.8C7 7.3 5.5 8.2 4.7 9.6c-1.7 2.9-.4 7.2 1.2 9.6.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8s1.9.8 3.1.8c1.3 0 2.1-1.2 2.9-2.3.9-1.3 1.3-2.6 1.3-2.7 0 0-2.9-1.1-2.9-4zM14.1 5.5c.7-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.5 2.8-1.3z"/></svg>App Store</a></div>
+          <h4 style="margin-top:28px">Síguenos</h4>
+          <div class="social">
+            <a href="https://www.facebook.com/bancodechile" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 3h18v18h-6.5v-7h2.3l.4-2.7h-2.7V9.6c0-.8.2-1.3 1.4-1.3h1.4V5.9c-.3 0-1.1-.1-2-.1-2 0-3.4 1.2-3.4 3.5v2h-2.3V14h2.3v7H3z"/></svg></a>
+            <a href="https://www.instagram.com/bancodechile" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+            <a href="https://x.com/bancodechile" target="_blank" rel="noopener noreferrer" aria-label="X"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L1.8 3h6.4l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.6z"/></svg></a>
+            <a href="https://www.youtube.com/bancodechile" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><svg width="22" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 7.2c-.3-1.1-1.1-1.9-2.2-2.2C18.9 4.5 12 4.5 12 4.5s-6.9 0-8.8.5C2.1 5.3 1.3 6.1 1 7.2.5 9.1.5 12 .5 12s0 2.9.5 4.8c.3 1.1 1.1 1.9 2.2 2.2 1.9.5 8.8.5 8.8.5s6.9 0 8.8-.5c1.1-.3 1.9-1.1 2.2-2.2.5-1.9.5-4.8.5-4.8s0-2.9-.5-4.8zM9.7 15.5v-7l6 3.5z"/></svg></a>
+            <a href="https://www.linkedin.com/company/banco-de-chile" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.2c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4z"/></svg></a>
+          </div>
+        </section>
+        <section class="foot-help"><h4>Ayuda 24/7</h4><a href="https://sitiospublicos.bancochile.cl/personas/centro-de-ayuda" target="_blank" rel="noopener noreferrer">Centro de Ayuda</a><a href="https://sitiospublicos.bancochile.cl/personas/centro-de-ayuda" target="_blank" rel="noopener noreferrer">Emergencias Bancarias</a><a href="https://sitiospublicos.bancochile.cl/personas/centro-de-ayuda/detalle/bloqueo-de-tarjetas-debito" target="_blank" rel="noopener noreferrer">Bloqueo de Tarjetas</a><a href="https://sitiospublicos.bancochile.cl/personas/centro-de-ayuda/detalle/bloqueo-de-tarjetas-credito" target="_blank" rel="noopener noreferrer">Bloqueo de Tarjeta de Crédito</a><a href="https://sitiospublicos.bancochile.cl/personas/centro-de-ayuda" target="_blank" rel="noopener noreferrer">Canales de Atención</a><a href="https://sitiospublicos.bancochile.cl/personas/centro-de-ayuda" target="_blank" rel="noopener noreferrer">Sucursales</a></section>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <div class="container">
+        <div class="foot-mark"><img src="https://assets.bancochile.cl/uploads/000/033/323/d9ed6331-33ac-42d7-946d-f526194fc5a3/original/bch-inverse.svg" alt="" style="width:26px;object-fit:cover;object-position:left" onerror="this.style.display='none'"></div>
+        <div class="foot-legal">
+          <div class="seals" aria-hidden="true"><img src="https://assets.bancochile.cl/uploads/000/103/382/096d9f88-f203-4654-86c0-1f9c86ef3fb8/original/logo-merco22.webp" alt="" onerror="this.remove()"><img src="https://assets.bancochile.cl/uploads/000/108/014/6a35bf5a-3a41-4063-bd64-caeba90fabb9/original/PXI_logo_2.webp" alt="" onerror="this.remove()"><img src="https://assets.bancochile.cl/uploads/000/103/383/bbf2f5b4-8996-49a8-b534-afb251130c61/original/logo-procalidad22.webp" alt="" onerror="this.remove()"></div>
+          <p>Experiencia de demostración de Banco en Línea. Nombres, RUT, cuentas y montos son ficticios y no corresponden a clientes reales. Banco de Chile no dispone de mediación, conciliación y/o arbitraje para la solución de controversias, quejas o reclamaciones de consumo. Infórmese sobre la garantía estatal de los depósitos en su banco o en www.cmfchile.cl. © 2026 Banco de Chile. Todos los Derechos Reservados.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const burger = document.querySelector('.burger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    function setMobileMenuOpen(open) {
+      mobileMenu.hidden = !open;
+      burger.setAttribute('aria-expanded', String(open));
+      burger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    }
+    const desktopMq = window.matchMedia('(min-width: 641px)');
+    const closeMobileMenuOnDesktop = (event) => {
+      if (event.matches) setMobileMenuOpen(false);
+    };
+    if (typeof desktopMq.addEventListener === 'function') {
+      desktopMq.addEventListener('change', closeMobileMenuOnDesktop);
+    } else {
+      desktopMq.addListener(closeMobileMenuOnDesktop);
+    }
+    burger.addEventListener('click', () => setMobileMenuOpen(mobileMenu.hidden));
+    mobileMenu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMobileMenuOpen(false)));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !mobileMenu.hidden) {
+        setMobileMenuOpen(false);
+        burger.focus();
+      }
+    });
+
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const newTransfer = document.getElementById('newTransfer');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const stepReview = document.getElementById('stepReview');
+    const stepDone = document.getElementById('stepDone');
+    const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
+    const stamp = new Intl.DateTimeFormat('es-CL', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Santiago' });
+    const idleStatus = 'Revisa los datos antes de confirmar.';
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function renderSummary() {
+      const to = selected(toAccount);
+      document.getElementById('summaryTo').textContent = to.text;
+      document.getElementById('summaryBank').textContent = to.dataset.detail.split(' · ').slice(0, 2).join(' · ');
+      document.getElementById('toDetail').textContent = to.dataset.detail;
+      document.getElementById('summaryFrom').textContent = selected(fromAccount).text.split(' · ')[0];
+      const amount = parseFloat(amountInput.value);
+      document.getElementById('summaryAmount').textContent = Number.isFinite(amount) && amount > 0 ? clp.format(amount) : '—';
+    }
+    function setStep(n) {
+      stepReview.className = n >= 2 ? 'on' : '';
+      stepDone.className = n >= 3 ? 'on' : '';
+    }
+    [fromAccount, toAccount, document.getElementById('accountTier')].forEach((el) => el.addEventListener('change', renderSummary));
+    amountInput.addEventListener('input', renderSummary);
+    form.addEventListener('reset', () => {
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = idleStatus;
+      newTransfer.className = 'reset-link';
+      setStep(1);
+      setTimeout(renderSummary, 0);
+    });
+    renderSummary();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const amount = parseFloat(amountInput.value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        result.className = 'result-box notice';
+        result.textContent = 'Ingresa un monto mayor a cero.';
+        return;
+      }
+      button.disabled = true;
+      button.textContent = 'Transfiriendo…';
+      status.textContent = 'Estamos procesando tu transferencia…';
+      result.className = 'result-box';
+      result.textContent = '';
+      newTransfer.className = 'reset-link';
+      setStep(2);
+      const recipient = selected(toAccount).text;
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount,
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('transfer-failed');
+        result.className = 'result-box success';
+        const fee = Number(data.fee) || 0;
+        const charges = fee > 0 ? ` · Comisión: ${clp.format(fee)} · Total cargado: ${clp.format(Number(data.debitAmount))}` : '';
+        result.textContent = `Transferencia realizada a ${recipient}.\nMonto: ${clp.format(Number(data.receipt.amount))}${charges}\n${stamp.format(new Date(data.receipt.timestamp))} · N° de operación: ${data.receipt.receiptId}`;
+        status.textContent = 'Transferencia realizada.';
+        setStep(3);
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'No pudimos completar tu transferencia en este momento. Inténtalo nuevamente en unos minutos o comunícate con nuestro Centro de Ayuda.';
+        status.textContent = 'Transferencia no realizada.';
+        setStep(1);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Transferir';
+        newTransfer.className = 'reset-link on';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

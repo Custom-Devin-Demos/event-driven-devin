@@ -245,7 +245,7 @@ function serveSkinPage(skin, res, next) {
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
     res.type('html').send(
-      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.hideRibbon)}\n${buildSkinBrandShim(skin)}\n</body>`)
+      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.hideRibbon, skin)}\n${buildSkinBrandShim(skin)}\n</body>`)
     );
   });
 }
@@ -286,7 +286,7 @@ router.get('/oncall', (_req, res) => {
  */
 const ALERTS_CHANNEL_LABEL = process.env.SLACK_ONCALL_ALERTS_CHANNEL_NAME || '#oncall-alerts';
 
-function buildOncallShim(scenario, skinSlug, hideRibbon) {
+function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
   return `
   <div id="oncall-dot" title="Devin On-Call demo" style="display:none;position:fixed;bottom:16px;right:16px;z-index:9999;width:14px;height:14px;border-radius:50%;background:#3fb950;border:2px solid #0d1117;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>
   <div id="oncall-ribbon" style="${hideRibbon ? 'display:none;' : ''}position:fixed;bottom:16px;right:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
@@ -303,6 +303,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon) {
       const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
+      var skinAlertDestination = ${JSON.stringify(skin && skin.alertDestination === 'teams' ? 'teams' : null)};
       // Only climbing-latency scenarios keep a retry window: repeat submits
       // demonstrate the per-request growth, so they join the open incident.
       // Every other scenario posts a fresh incident on every submit.
@@ -367,7 +368,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon) {
           alertPostedAt = postedAt;
           if (ribbonCollapsed) expandRibbon();
           const unique = document.getElementById('oncall-unique').checked;
-          var alertDestination = localStorage.getItem('alertDestination') === 'teams' ? 'teams' : 'slack';
+          var alertDestination = skinAlertDestination || (localStorage.getItem('alertDestination') === 'teams' ? 'teams' : 'slack');
           var triggerUrl = '/api/oncall/trigger/' + vertical;
           var triggerBody = {
               unique: unique,
