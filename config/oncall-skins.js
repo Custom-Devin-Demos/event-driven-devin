@@ -3562,6 +3562,7 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     teamsAlerts: true,
     alertDestination: 'teams',
+    hideRibbon: true,
     page: { file: '39080a2a.html', title: 'Transferencias a terceros | Banco de Chile' },
     theme: {
       '--accent': '#295EFF',
