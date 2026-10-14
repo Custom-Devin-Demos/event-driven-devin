@@ -39,7 +39,7 @@
 
     .promo { background: var(--chrome-bg); color: var(--chrome-text); min-height: 44px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 56px; font-size: 11px; letter-spacing: .5px; }
     .promo .msg { grid-column: 2; text-align: center; }
-    .promo .msg a { text-decoration: underline; text-underline-offset: 3px; }
+    .promo .msg a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 3px; }
     .promo .utils { grid-column: 3; display: flex; justify-content: flex-end; gap: 24px; }
     .promo .utils a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
     .promo svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; }
@@ -88,7 +88,7 @@
     .buy { padding: 56px 80px 64px 78px; }
     .buy-inner { position: sticky; top: 100px; max-width: 556px; }
     .crumbs { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; display: flex; gap: 8px; flex-wrap: wrap; }
-    .crumbs a { display: inline-flex; align-items: center; min-height: 32px; }
+    .crumbs a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
     h1.pname { font-family: var(--serif); font-weight: 500; font-size: 30px; line-height: 1.2; margin: 8px 0 2px; letter-spacing: 0; }
     .sub { font-size: 13px; }
     .price { font-size: 15px; margin: 16px 0 6px; }
@@ -134,7 +134,7 @@
     .signup input { width: min(360px, 60vw); min-height: 52px; border: 1px solid #c8c8c8; border-right: 0; padding: 0 14px; }
     .fcols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding: 40px 56px; }
     .fcols h3 { font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 10px; }
-    .fcols a { display: flex; align-items: center; min-height: 32px; font-size: 12px; }
+    .fcols a { display: flex; align-items: center; min-height: 44px; font-size: 12px; }
     .legal { padding: 18px 56px 30px; font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
     [hidden] { display: none !important; }
@@ -353,9 +353,10 @@
       var state = { fit: 'Classic', color: 'White/Navy', size: null };
       var inBag = 0;
       var inFlight = false;
+      var lookupSeq = 0;
 
       function clearResult() {
-        if (inFlight) return;
+        lookupSeq++;
         result.className = 'result-box';
         result.textContent = '';
       }
@@ -383,6 +384,7 @@
       bindGroup('colorSwatches', 'color', function () { document.getElementById('colorName').textContent = state.color; });
       bindGroup('sizeChips', 'size', function () { sizeHint.textContent = ''; });
       [quantitySelect, zipInput, radiusSelect].forEach(function (el) { el.addEventListener('change', clearResult); });
+      zipInput.addEventListener('input', clearResult);
 
       function requireSize() {
         if (state.size) return true;
@@ -410,10 +412,12 @@
         }
         var radius = radiusSelect.value;
         var quantity = parseInt(quantitySelect.value, 10) || 1;
+        var label = selection();
+        var seq = ++lookupSeq;
         inFlight = true;
         button.disabled = true;
         button.textContent = 'Checking availability\u2026';
-        setResult('pending', 'Checking stores within ' + radius + ' miles of ' + zip, selection() + ', qty ' + quantity + '.');
+        setResult('pending', 'Checking stores within ' + radius + ' miles of ' + zip, label + ', qty ' + quantity + '.');
         try {
           var response = await fetch('/api/marketplace/cart', {
             method: 'POST',
@@ -430,9 +434,11 @@
           });
           var data = await response.json().catch(function () { return {}; });
           if (!response.ok || data.success === false) throw new Error('availability lookup failed');
+          if (seq !== lookupSeq) return;
           var ref = data.reservationRef ? ' Hold reference ' + data.reservationRef + '.' : '';
-          setResult('success', 'Available in a store near ' + zip, selection() + ', qty ' + data.quantity + ' is in stock within ' + radius + ' miles.' + ref);
+          setResult('success', 'Available in a store near ' + zip, label + ', qty ' + quantity + ' is in stock within ' + radius + ' miles.' + ref);
         } catch (_error) {
+          if (seq !== lookupSeq) return;
           setResult('error', 'We can\u2019t show store availability right now', 'Please try again in a few minutes. You can still add this item to your bag for free shipping and returns.');
         } finally {
           inFlight = false;
