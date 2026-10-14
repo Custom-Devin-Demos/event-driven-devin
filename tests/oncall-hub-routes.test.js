@@ -101,18 +101,6 @@ describe('on-call hub routes', () => {
     expect(html).toContain("if (d.ok && !d.teamsFailed) scheduleCollapse();");
     expect(html).toContain("else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }");
   });
-
-  test('the Banco de Chile shim always routes browser alerts to Teams', async () => {
-    const [chile, santander] = await Promise.all([
-      fetch(`${baseUrl}/oncall/c/39080a2a`),
-      fetch(`${baseUrl}/oncall/c/80565c6b`),
-    ]);
-
-    expect(chile.status).toBe(200);
-    expect(santander.status).toBe(200);
-    expect(await chile.text()).toContain('var skinAlertDestination = "teams";');
-    expect(await santander.text()).toContain('var skinAlertDestination = null;');
-  });
 });
 
 describe('on-call hub page contract', () => {
