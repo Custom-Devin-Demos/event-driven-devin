@@ -501,7 +501,7 @@ describe('Nordstrom Gift Finder iOS final-reservation failure report', () => {
   test('a session creation failure is logged and does not reject the report', async () => {
     createSessionAndAlert.mockRejectedValueOnce(new Error('devin down'));
     const { reference, sessionPromise } = reportAppFailure(APP_REPORT);
-    await expect(sessionPromise).resolves.toBeUndefined();
+    await expect(sessionPromise).resolves.toBe(false);
     expect(reference).toMatch(/^[0-9a-f-]{36}$/);
   });
 
