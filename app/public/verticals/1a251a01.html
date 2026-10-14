@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session Replays | Amplitude</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1E2024;
+      --ink-2: #3E4047;
+      --muted: #565A64;
+      --subtle: #8A8E99;
+      --line: #E3E4E7;
+      --line-2: #E5E7EB;
+      --panel: #FAFAFB;
+      --hover: #F4F5F6;
+      --blue: #0052F2;
+      --blue-line: #89B2FF;
+      --blue-bg: #F5F9FF;
+      --thumb: #F3F4F6;
+      --bar: #D1D5DB;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { display: flex; flex-direction: column; background: #fff; color: var(--ink); font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif; font-size: 14px; line-height: 20px; -webkit-font-smoothing: antialiased; }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; background: none; border: 0; }
+    a { color: inherit; text-decoration: none; }
+    svg { display: block; flex: none; }
+    .ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .ico-sm { width: 16px; height: 16px; }
+
+    .app { flex: 1; min-height: 0; display: grid; grid-template-columns: 241px minmax(0, 1fr) 392px; column-gap: 8px; padding: 8px 4px 4px 0; }
+
+    /* sidebar */
+    .side { display: flex; flex-direction: column; min-height: 0; padding: 0 13px 0 12px; margin-top: -8px; }
+    .proj { display: flex; align-items: center; height: 39px; margin-top: 16px; padding: 0 8px; gap: 8px; font-weight: 600; color: var(--ink); }
+    .proj .mark { width: 22px; height: 20px; }
+    .proj .chev { margin-left: auto; color: var(--muted); }
+    .create { display: flex; align-items: center; gap: 8px; height: 32px; margin-top: 9px; padding: 0 8px; border-radius: 8px; background: var(--blue); color: #fff; font-size: 15px; font-weight: 500; width: 100%; }
+    .create .ico { width: 20px; height: 20px; stroke-width: 2; }
+    .nav { flex: 1; min-height: 0; overflow-y: auto; padding-top: 2px; scrollbar-width: none; }
+    .nav::-webkit-scrollbar { display: none; }
+    .item { display: flex; align-items: center; gap: 8px; height: 32px; margin-bottom: 2px; padding: 0 8px; border-radius: 8px; color: var(--muted); font-size: 15px; letter-spacing: 0.15px; white-space: nowrap; }
+    .item:hover { background: var(--hover); }
+    .item .chev { color: var(--muted); width: 14px; height: 14px; margin-left: 2px; }
+    .item.sub { padding-left: 8px; margin-left: 28px; margin-bottom: 0; }
+    .item.sub + .item:not(.sub) { margin-top: 2px; }
+    .item.active { background: var(--hover); color: var(--ink); }
+    .chat-ico { width: 20px; height: 20px; border-radius: 5px; background: linear-gradient(135deg, #3E7BFA, #5A8DFF); display: grid; place-items: center; }
+    .gap { height: 18px; }
+    .label { height: 42px; display: flex; align-items: center; padding: 8px 8px 0; color: var(--subtle); font-size: 13px; }
+    .pill { margin-left: auto; height: 22px; padding: 0 8px; border-radius: 11px; background: #DFF4F2; color: #01706B; font-size: 13px; line-height: 22px; font-weight: 500; }
+    .show { color: #70747F; }
+    .side-foot { padding: 12px 0 8px; }
+    .tools { display: flex; gap: 16px; padding: 0 10px; color: var(--muted); }
+    .tools .ico { width: 20px; height: 20px; }
+    .events { display: flex; align-items: center; gap: 8px; height: 33px; margin: 12px 8px 0; padding: 0 9px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font-size: 13px; }
+    .events .track { flex: 1; height: 4px; border-radius: 2px; background: #E5E7EB; }
+
+    /* main */
+    .main { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); overflow-y: auto; padding: 15px 27px 32px 21px; }
+    .head { display: flex; align-items: flex-start; gap: 16px; }
+    .head h1 { display: flex; align-items: center; gap: 8px; font-size: 24px; line-height: 32px; font-weight: 500; letter-spacing: -0.2px; color: var(--ink); }
+    .head h1 .ico { color: var(--muted); }
+    .head p { margin-top: 8px; color: var(--muted); }
+    .actions { margin-left: auto; display: flex; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font-size: 14px; white-space: nowrap; }
+    .btn .ico { width: 18px; height: 18px; }
+    .btn .ico-sm { width: 14px; height: 14px; }
+    .tabs { display: flex; gap: 32px; margin-top: 44px; border-bottom: 1px solid var(--line); }
+    .tab { position: relative; height: 39px; padding: 0 4px; display: flex; align-items: center; font-weight: 500; color: var(--ink); }
+    .tab.on { color: var(--blue); }
+    .tab.on::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--blue); }
+
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 24px; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 32px 24px 24px; min-width: 0; }
+    .grid .card { height: 368px; display: flex; flex-direction: column; }
+    .card-h { display: flex; align-items: center; gap: 8px; min-height: 24px; }
+    .card-h h2 { font-size: 18px; line-height: 24px; font-weight: 400; color: var(--ink); }
+    .card-h .ico { color: var(--muted); }
+    .card-h .right { margin-left: auto; }
+    .link { display: inline-flex; align-items: center; gap: 6px; color: var(--blue); font-size: 13px; }
+    .rows { margin-top: 11px; }
+    .row { display: flex; align-items: center; gap: 16px; height: 85px; padding: 0 16px; border-bottom: 1px solid #F1F2F4; }
+    .row:last-child { border-bottom: 0; }
+    .av { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); display: grid; place-items: center; font-size: 12px; color: var(--muted); }
+    .row .t { font-weight: 600; color: var(--ink); }
+    .row .m { margin-top: 6px; font-size: 13px; color: var(--muted); }
+    .row .go { margin-left: auto; color: var(--ink); }
+    .page-row { display: flex; align-items: center; padding: 0 16px; height: 85px; margin-top: 11px; }
+    .page-row .m span + span { margin-left: 32px; }
+
+    /* signals */
+    .range { margin-left: auto; appearance: none; -webkit-appearance: none; border: 0; background: transparent; font-size: 12px; color: var(--muted); text-align: right; cursor: pointer; padding: 0; }
+    .signals-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; padding-bottom: 8px; }
+    .signals-body[hidden], #result[hidden], #loading[hidden] { display: none; }
+    .sig-intro { color: var(--muted); }
+    .sig-fields { display: flex; gap: 8px; width: 100%; max-width: 360px; }
+    .field { flex: 1; min-width: 0; height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font-size: 14px; }
+    select.field { appearance: none; -webkit-appearance: none; padding-right: 28px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23565A64' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 9px center; }
+    .field:focus { outline: 2px solid var(--blue-line); outline-offset: 0; }
+    .primary { height: 32px; padding: 0 14px; border-radius: 8px; background: var(--blue); color: #fff; font-weight: 500; }
+    .primary:disabled { opacity: .7; cursor: progress; }
+    .spinner { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #D6E2FB; border-top-color: var(--blue); animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #result { color: var(--ink-2); }
+    #result .ico { margin: 0 auto 12px; color: var(--ink-2); width: 22px; height: 22px; }
+    .retry { margin-top: 12px; color: var(--blue); font-size: 13px; }
+    .sig-list { width: 100%; text-align: left; }
+    .sig-list .row { height: 64px; }
+
+    /* recent replays */
+    .recent { margin-top: 24px; height: 372px; padding-top: 35px; }
+    .recent .card-h { min-height: 24px; }
+    .thumbs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin-top: 16px; }
+    .thumb { position: relative; display: block; border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; background: #fff; }
+    .shot { position: relative; height: 213px; background: var(--thumb); border-bottom: 1px solid var(--line-2); overflow: hidden; }
+    .shot .bar { position: absolute; left: 0; right: 0; top: 0; height: 28px; border-bottom: 1px solid var(--line-2); }
+    .shot .bar i, .shot i { position: absolute; display: block; background: #E3E5E9; border-radius: 3px; }
+    .shot .bar .sq { left: 12px; top: 9px; width: 10px; height: 10px; border-radius: 2px; background: #D7DAE0; }
+    .shot .bar .t1 { left: 32px; top: 12px; width: 32px; height: 4px; }
+    .shot .bar .n1 { right: 92px; top: 12px; width: 20px; height: 4px; }
+    .shot .bar .n2 { right: 62px; top: 12px; width: 20px; height: 4px; }
+    .shot .bar .n3 { right: 34px; top: 12px; width: 20px; height: 4px; }
+    .shot .bar .dot { right: 10px; top: 8px; width: 12px; height: 12px; border-radius: 50%; }
+    .shot .dk { background: var(--bar); }
+    .shot .box { background: transparent; border: 1px solid #DADDE2; border-radius: 2px; }
+    .play { position: absolute; left: 50%; top: 107px; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: #fff; box-shadow: 0 4px 12px rgba(16, 24, 40, .12); display: grid; place-items: center; }
+    .play svg { width: 22px; height: 22px; margin-left: 3px; fill: var(--ink); }
+    .date { height: 61px; display: flex; align-items: center; padding: 0 8px; font-size: 13px; color: var(--ink); }
+
+    /* assistant panel */
+    .ai { display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--line); border-radius: 12px; background: #fff; padding: 0 16px 0; }
+    .ai-top { display: flex; align-items: center; height: 60px; margin-top: 0; padding: 0 0 0 0; color: var(--ink); }
+    .ai-top .l { margin-left: 8px; }
+    .ai-top .r { margin-left: auto; display: flex; gap: 16px; margin-right: 6px; }
+    .ai-hero { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 10px; }
+    .glow { position: absolute; left: 50%; top: calc(50% - 96px); width: 220px; height: 260px; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgba(118, 160, 245, .32), rgba(118, 160, 245, 0)); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); filter: blur(14px); }
+    .dots { position: relative; width: 30px; height: 30px; }
+    .dots i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--blue); }
+    .ai-hero h3 { position: relative; margin-top: 24px; font-size: 24px; line-height: 32px; font-weight: 400; color: var(--ink-2); }
+    .slack { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 12px 0 16px; border: 1px solid var(--blue-line); border-radius: 8px; background: var(--blue-bg); font-size: 13px; font-weight: 500; }
+    .slack .cs { margin-left: auto; height: 24px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; font-size: 13px; font-weight: 400; }
+    .slack .x { margin-left: 8px; }
+    .composer { margin-top: 8px; border: 1px solid #C7C9CE; border-radius: 12px; background: var(--panel); overflow: hidden; }
+    .tip { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 12px; font-size: 14px; color: var(--muted); }
+    .tip .s { color: var(--blue); }
+    .tip .tn { margin-left: auto; color: var(--blue); }
+    .tip .x { margin-left: 18px; color: var(--muted); }
+    .compose { background: #fff; border-radius: 12px 12px 0 0; padding: 12px 12px 16px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 8px; border-radius: 8px; background: var(--panel); color: var(--ink); }
+    .compose input { display: block; width: 100%; margin-top: 14px; height: 32px; border: 0; outline: 0; color: var(--ink); font-size: 14px; padding: 0 2px; }
+    .compose input::placeholder { color: #757575; }
+    .cbar { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+    .mic { position: relative; width: 32px; height: 32px; border: 1px solid var(--blue-line); border-radius: 6px; background: var(--blue-bg); color: var(--blue); display: grid; place-items: center; }
+    .mic:hover::after { content: 'Voice input'; position: absolute; bottom: calc(100% + 8px); right: -16px; padding: 4px 8px; border-radius: 4px; background: #0B0F1A; color: #fff; font-size: 13px; white-space: nowrap; }
+    .ai-foot { display: flex; align-items: center; justify-content: space-between; height: 28px; font-size: 12px; color: var(--ink); }
+    .ai-foot span:last-child { display: inline-flex; align-items: center; gap: 6px; }
+
+    .mtop { display: none; }
+
+    @media (max-width: 1500px) {
+      .app { grid-template-columns: 241px minmax(0, 1fr); padding-right: 8px; }
+      .ai { display: none; }
+    }
+    @media (max-width: 1180px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid .card:last-child { grid-column: 1 / -1; }
+      .thumbs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .recent { height: auto; }
+    }
+    @media (max-width: 760px) {
+      .app { display: block; padding: 0; }
+      .side { display: none; }
+      .mtop { display: flex; align-items: center; gap: 8px; height: 56px; padding: 0 16px; border-bottom: 1px solid var(--line); font-weight: 600; }
+      .mtop .menu { margin-left: auto; width: 44px; height: 44px; display: grid; place-items: center; margin-right: -10px; }
+      .main { border: 0; border-radius: 0; padding: 20px 16px 32px; overflow: visible; }
+      .head { flex-direction: column; }
+      .actions { margin-left: 0; justify-content: flex-start; gap: 8px; }
+      .btn { height: 44px; }
+      .tabs { margin-top: 24px; gap: 20px; overflow-x: auto; }
+      .tab { height: 44px; white-space: nowrap; }
+      .grid { grid-template-columns: 1fr; }
+      .grid .card { height: auto; min-height: 320px; }
+      .card { padding: 24px 16px 16px; }
+      .row { padding: 0 4px; }
+      .sig-fields { flex-direction: column; }
+      .sig-fields .field { flex: none; width: 100%; }
+      .field, .primary, .range { height: 44px; }
+      .primary { width: 100%; max-width: 360px; }
+      .retry { min-height: 44px; padding: 0 12px; }
+      .thumbs { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mtop">
+    <svg class="mark" width="22" height="20" viewBox="0 0 22 20" fill="none" stroke="#1E2024" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 11.5c3-.4 5.2-1.1 7.2-1.8M3.6 18.5 9.4 2.6c.3-.8 1.3-.8 1.6 0l5.6 15.4c.3.8 1.3.8 1.7.1l2.2-3.7"/></svg>
+    Default project
+    <button class="menu" aria-label="Open menu"><svg class="ico" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+  <div class="app">
+    <aside class="side">
+      <a href="#" class="proj">
+        <svg class="mark" viewBox="0 0 22 20" fill="none" stroke="#1E2024" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 11.5c3-.4 5.2-1.1 7.2-1.8M3.6 18.5 9.4 2.6c.3-.8 1.3-.8 1.6 0l5.6 15.4c.3.8 1.3.8 1.7.1l2.2-3.7"/></svg>
+        Default project
+        <svg class="ico ico-sm chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      </a>
+      <button class="create"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Create</button>
+      <nav class="nav">
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20 20"/></svg>Search</a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><path d="M14 4.5c2.5-1 4.5-1 5.5-.5.5 1 .5 3-.5 5.5L13.5 15l-4.5-4.5L14 4.5Z"/><path d="M9 10.5 5.5 10 3 12.5l4 1.5M13.5 15l.5 3.5-2.5 2.5-1.5-4M6 18l-2 2M8 19.5 6.5 21M4.5 16 3 17.5"/><circle cx="15.5" cy="8.5" r="1.3"/></svg>Onboarding</a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7M6 9.5V20h4.5v-5h3v5H18V9.5"/></svg>Home</a>
+        <a href="#" class="item"><span class="chat-ico"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M6 0c.4 2.9 1.4 4.6 6 6-4.6 1.4-5.6 3.1-6 6-.4-2.9-1.4-4.6-6-6 4.6-1.4 5.6-3.1 6-6Z" fill="#fff"/></svg></span>Chat &amp; Agents</a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5 16 10H8l4-6.5Z"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><circle cx="17" cy="16.8" r="3.3"/></svg>All Content</a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><path d="m11 10 9 3.5-4 1.3 3 3.2-1.8 1.7-3-3.2-1.6 3.8L11 10Z"/><path d="M8 3.5v2.5M3.5 8H6M4.8 4.8l1.7 1.7M11 4.8 9.6 6.4M4.8 11.2l1.7-1.6"/></svg>Live Events</a>
+        <div class="gap"></div>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4.5v4h-4M12 8v4.5l3 1.8"/></svg>Recent</a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><path d="m12 3.8 2.5 5.2 5.7.8-4.1 4 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4.1-4 5.7-.8L12 3.8Z"/></svg>Favorites</a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/></svg>Spaces</a>
+        <div class="label">Products</div>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M8.5 16v-4M12 16V8M15.5 16v-6"/></svg>Product Analytics<svg class="ico chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="12" rx="1.5"/><path d="M12 16.5V20M8 20h8"/></svg>Marketing Analytics<svg class="ico chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 19c.5-3.3 3-5 6-5s5.5 1.7 6 5M15.5 4.8a3.4 3.4 0 0 1 0 6.4M17.5 14.3c2 .6 3.2 2.2 3.5 4.7"/></svg>Users<svg class="ico chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><path d="M5 9v6M9 4v16M13 8v8M17 11v3M20 10v4"/><path d="M5 3.5l.6 1.4 1.4.6-1.4.6L5 7.5l-.6-1.4L3 5.5l1.4-.6L5 3.5Z" fill="currentColor" stroke="none"/></svg>Agent Analytics<svg class="ico chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg><span class="pill">New</span></a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" stroke-dasharray="3 2.2"/><path d="M10 8.8v6.4l5-3.2-5-3.2Z"/></svg>Sessions &amp; Zoning<svg class="ico chev" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></a>
+        <a href="#" class="item sub active">Session Replay</a>
+        <a href="#" class="item sub">Heatmaps</a>
+        <a href="#" class="item sub">Zoning Insights</a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><path d="M15.5 12.5a6 6 0 1 0-8 .6c.8.7 1.3 1.6 1.3 2.6v.8h4.4"/><path d="M9 20h3.5M17.5 13l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2Z"/></svg>AI Feedback</a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4h6M10 4v5.5L4.5 19c-.4.7.1 1.5.9 1.5h13.2c.8 0 1.3-.8.9-1.5L14 9.5V4M7 15h10"/></svg>Experiment<svg class="ico chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><path d="M10 20H5.5A1.5 1.5 0 0 1 4 18.5v-13A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5V12M8 8.5h8M8 12h3"/><path d="M16.5 13.5l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1 1-2.5Z"/></svg>AI Assistant<svg class="ico chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg>Guides and Surveys<svg class="ico chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M5 6v12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6M5 12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5"/></svg>Data</a>
+        <a href="#" class="item"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M5 13h3l2-4 3.5 7 2-3H19"/></svg>Metrics</a>
+        <a href="#" class="item show"><svg class="ico" viewBox="0 0 24 24"><path d="M6 12h.01M12 12h.01M18 12h.01" stroke-width="2.4"/></svg>Show</a>
+      </nav>
+      <div class="side-foot">
+        <div class="tools">
+          <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5l1.6 1.9 2.5-.6.7 2.4 2.4.7-.6 2.5 1.9 1.6-1.9 1.6.6 2.5-2.4.7-.7 2.4-2.5-.6-1.6 1.9-1.6-1.9-2.5.6-.7-2.4-2.4-.7.6-2.5L3.5 12l1.9-1.6-.6-2.5 2.4-.7.7-2.4 2.5.6L12 3.5Z"/></svg>
+          <svg class="ico" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16ZM10 20.5h4"/></svg>
+          <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2-2.4 3.6M12 17h.01"/></svg>
+          <svg class="ico" viewBox="0 0 24 24"><circle cx="14" cy="8" r="3.5"/><path d="M8 20c.4-3.6 2.8-5.5 6-5.5s5.6 1.9 6 5.5M3 11h5M5.5 8.5v5"/></svg>
+          <svg class="ico" viewBox="0 0 24 24"><circle cx="7.5" cy="16.5" r="3.5"/><path d="M10 14l7-7M14.5 9.5l2 2M17 7l1.5 1.5M17.5 2.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6.6-1.4Z"/></svg>
+        </div>
+        <div class="events">Events <span class="track"></span> 29 / 2M</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="head">
+        <div>
+          <h1>Session Replays <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg></h1>
+          <p>Unlock qualitative insights by finding the most relevant session replays to watch</p>
+        </div>
+        <div class="actions">
+          <button class="btn"><svg class="ico" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="3"/><path d="M12 8V5M10 5h4M9.5 12.5v.5M14.5 12.5v.5M3 12v2M21 12v2"/></svg>Monitor</button>
+          <button class="btn"><svg class="ico" viewBox="0 0 24 24"><path d="M6 19v-6M12 19V6M18 19v-9" stroke-width="2.2"/></svg>Quota &amp; Usage</button>
+          <button class="btn"><svg class="ico" viewBox="0 0 24 24"><path d="M4.5 5.5h15v10.5H9l-4.5 3.5V5.5ZM8 9.5h8M8 12.5h5"/></svg>Give feedback</button>
+          <button class="btn"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.8"/><path d="M12 3.5l1.6 1.9 2.5-.6.7 2.4 2.4.7-.6 2.5 1.9 1.6-1.9 1.6.6 2.5-2.4.7-.7 2.4-2.5-.6-1.6 1.9-1.6-1.9-2.5.6-.7-2.4-2.4-.7.6-2.5L3.5 12l1.9-1.6-.6-2.5 2.4-.7.7-2.4 2.5.6L12 3.5Z"/></svg>Manage<svg class="ico ico-sm" viewBox="0 0 24 24" style="margin-left:4px"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <a href="#" class="tab on" role="tab" aria-selected="true">Dashboard</a>
+        <a href="#" class="tab" role="tab">All Replays</a>
+        <a href="#" class="tab" role="tab">Insights</a>
+        <a href="#" class="tab" role="tab">Bookmarks</a>
+      </div>
+
+      <div class="grid">
+        <section class="card">
+          <div class="card-h"><h2>Filter Replays</h2></div>
+          <div class="rows">
+            <a href="#" class="row"><span class="av">A</span><div><div class="t">Bounced Sessions</div><div class="m">Created by Amplitude</div></div><svg class="ico ico-sm go" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke-width="2"/></svg></a>
+            <a href="#" class="row"><span class="av">A</span><div><div class="t">High Engagement Sessions</div><div class="m">Created by Amplitude</div></div><svg class="ico ico-sm go" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke-width="2"/></svg></a>
+            <a href="#" class="row"><span class="av">A</span><div><div class="t">Mobile Sessions</div><div class="m">Created by Amplitude</div></div><svg class="ico ico-sm go" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke-width="2"/></svg></a>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-h"><h2>Top Pages</h2><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg><a href="#" class="link right"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M19 13v5.5c0 .8-.7 1.5-1.5 1.5h-12c-.8 0-1.5-.7-1.5-1.5v-12C4 5.7 4.7 5 5.5 5H11M15 4h5v5M20 4l-9 9" stroke-width="2"/></svg>Open in chart</a></div>
+          <a href="#" class="page-row"><div><div class="t" style="font-weight:600">Northwind Coffee Roasters</div><div class="m" style="margin-top:6px;font-size:13px;color:var(--muted)"><span>3 unique users</span><span>100.0% of page views</span></div></div><svg class="ico ico-sm" style="margin-left:auto" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke-width="2"/></svg></a>
+        </section>
+
+        <section class="card">
+          <form id="claimForm" style="display:contents" novalidate>
+            <div class="card-h"><h2>Signals</h2>
+              <select id="amount" class="range" aria-label="Date range">
+                <option value="7">Last 7 days</option>
+                <option value="14" selected>Last 14 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+              </select>
+            </div>
+            <input type="hidden" id="policyId" value="POL-5001">
+            <div class="signals-body" id="signalsForm">
+              <div class="sig-intro">Surface friction across replays of a page.</div>
+              <div class="sig-fields">
+                <select id="claimType" class="field" aria-label="Signal type">
+                  <option value="collision">All signals</option>
+                  <option value="comprehensive">Rage clicks</option>
+                  <option value="liability">Dead clicks</option>
+                  <option value="property_damage">Error clicks</option>
+                </select>
+                <input id="description" class="field" aria-label="Page" value="Northwind Coffee Roasters">
+              </div>
+              <button type="submit" id="submitBtn" class="primary">Generate signals</button>
+            </div>
+            <div class="signals-body" id="loading" hidden><span class="spinner"></span><div class="sig-intro">Analyzing replays&hellip;</div></div>
+            <div class="signals-body" id="result" hidden></div>
+          </form>
+        </section>
+      </div>
+
+      <section class="card recent">
+        <div class="card-h"><h2>Recent Replays</h2><button class="btn right">View All</button></div>
+        <div class="thumbs">
+          <a href="#" class="thumb"><div class="shot"><div class="bar"><i class="sq"></i><i class="t1"></i><i class="n1"></i><i class="n2"></i><i class="n3"></i><i class="dot"></i></div>
+            <i class="dk" style="left:24%;right:24%;top:82px;height:8px;border-radius:4px"></i><i style="left:32%;right:32%;top:96px;height:6px"></i><i style="left:39%;right:39%;top:110px;height:6px"></i></div>
+            <span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5-12-7.5Z"/></svg></span><div class="date">Oct 12, 2026 8:22 PM</div></a>
+          <a href="#" class="thumb"><div class="shot"><div class="bar"><i class="sq"></i><i class="t1"></i><i class="n1"></i><i class="n2"></i><i class="n3"></i><i class="dot"></i></div>
+            <i class="box" style="left:27%;width:23%;top:54px;bottom:9px"></i><i class="box" style="right:3%;width:23%;top:54px;bottom:9px"></i>
+            <i style="left:6%;width:16%;bottom:22px;height:4px"></i><i style="left:9%;width:10%;bottom:14px;height:4px"></i><i style="left:30%;width:16%;bottom:22px;height:4px"></i><i style="left:33%;width:10%;bottom:14px;height:4px"></i><i style="left:54%;width:16%;bottom:22px;height:4px"></i><i style="left:57%;width:10%;bottom:14px;height:4px"></i><i style="right:6%;width:16%;bottom:22px;height:4px"></i><i style="right:9%;width:10%;bottom:14px;height:4px"></i></div>
+            <span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5-12-7.5Z"/></svg></span><div class="date">Oct 12, 2026 8:22 PM</div></a>
+          <a href="#" class="thumb"><div class="shot"><div class="bar"><i class="sq"></i><i class="t1"></i><i class="n1"></i><i class="n2"></i><i class="n3"></i><i class="dot"></i></div>
+            <i class="dk" style="left:42%;width:44%;top:50px;height:6px"></i><i style="left:42%;right:3%;top:62px;height:4px"></i><i style="left:42%;width:33%;top:70px;height:4px"></i>
+            <i style="left:3%;right:3%;top:94px;height:1px;background:#DADDE2"></i><i class="box" style="left:3%;width:38%;top:102px;height:40px"></i>
+            <i class="dk" style="left:52%;width:34%;top:111px;height:6px"></i><i style="left:52%;right:3%;top:122px;height:4px"></i><i style="left:52%;width:28%;top:130px;height:4px"></i></div>
+            <span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5-12-7.5Z"/></svg></span><div class="date">Oct 12, 2026 8:21 PM</div></a>
+          <a href="#" class="thumb"><div class="shot"><div class="bar"><i class="sq"></i><i class="t1"></i><i class="n1"></i><i class="n2"></i><i class="n3"></i><i class="dot"></i></div>
+            <i class="dk" style="left:17%;right:17%;top:41px;height:8px;border-radius:4px"></i><i style="left:28%;right:28%;top:56px;height:4px"></i>
+            <i style="left:6%;right:6%;top:103px;height:4px"></i><i style="left:6%;right:6%;top:111px;height:4px"></i><i style="left:6%;right:24%;top:119px;height:4px"></i><i style="left:6%;right:6%;top:127px;height:4px"></i><i style="left:6%;right:35%;top:135px;height:4px"></i></div>
+            <span class="play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5-12-7.5Z"/></svg></span><div class="date">Oct 12, 2026 8:19 PM</div></a>
+        </div>
+      </section>
+    </main>
+
+    <aside class="ai" aria-label="Assistant">
+      <div class="ai-top">
+        <svg class="ico l" viewBox="0 0 24 24"><path d="M11 5H6.5A1.5 1.5 0 0 0 5 6.5v11A1.5 1.5 0 0 0 6.5 19h11a1.5 1.5 0 0 0 1.5-1.5V13M17.5 4.5l2 2L12 14l-3 1 1-3 7.5-7.5Z"/></svg>
+        <div class="r">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4.5v4h-4M12 8v4.5l3 1.8"/></svg>
+          <svg class="ico" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M10 5v14M6.5 8.5h1.5M6.5 11h1.5"/></svg>
+          <svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </div>
+      </div>
+      <div class="ai-hero">
+        <div class="glow"></div>
+        <div class="dots"><i style="left:2px;top:12px"></i><i style="left:9px;top:10px"></i><i style="left:15px;top:6px"></i><i style="left:23px;top:3px"></i><i style="left:18px;top:14px"></i><i style="left:6px;top:23px"></i><i style="left:15px;top:24px"></i><i style="left:24px;top:21px"></i></div>
+        <h3>What do you want to know?</h3>
+      </div>
+      <div class="slack">
+        <svg width="16" height="16" viewBox="0 0 16 16"><rect x="6.5" y="1" width="3" height="6" rx="1.5" fill="#36C5F0" transform="rotate(-90 8 8)"/><rect x="1" y="6.5" width="3" height="6" rx="1.5" fill="#2EB67D"/><rect x="9" y="1" width="3" height="6" rx="1.5" fill="#ECB22E" transform="translate(3 3)"/><rect x="6.5" y="9" width="3" height="6" rx="1.5" fill="#E01E5A"/></svg>
+        Try in Slack!
+        <button class="cs">Connect Slack</button>
+        <svg class="ico x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </div>
+      <div class="composer">
+        <div class="tip"><svg width="16" height="16" viewBox="0 0 12 12"><path d="M6 0c.4 2.9 1.4 4.6 6 6-4.6 1.4-5.6 3.1-6 6-.4-2.9-1.4-4.6-6-6 4.6-1.4 5.6-3.1 6-6Z" fill="#0052F2"/></svg>Automate recurring workflo&hellip;<span class="tn">Try now</span><svg class="ico ico-sm x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></div>
+        <div class="compose">
+          <span class="chip"><svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" stroke-dasharray="3 2.2"/><path d="M10 8.8v6.4l5-3.2-5-3.2Z"/></svg>Session Replays</span>
+          <input type="text" placeholder="Analyze, build, or type / for commands" aria-label="Ask a question">
+          <div class="cbar"><svg class="ico" viewBox="0 0 24 24" style="margin-left:4px"><path d="M12 6v12M6 12h12" stroke-width="2"/></svg><button class="mic" aria-label="Voice input"><svg class="ico ico-sm" viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" stroke-width="2"/></svg></button></div>
+        </div>
+      </div>
+      <div class="ai-foot"><span>AI can make mistakes; always verify.</span><span>Send feedback <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M4.5 5.5h15v10.5H9l-4.5 3.5V5.5ZM8 9.5h8M8 12.5h5"/></svg></span></div>
+    </aside>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('claimForm');
+      var panel = document.getElementById('signalsForm');
+      var loading = document.getElementById('loading');
+      var result = document.getElementById('result');
+      var btn = document.getElementById('submitBtn');
+      var errorIcon = '<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01" stroke-width="2"/></svg>';
+      function show(el) { [panel, loading, result].forEach(function (n) { n.hidden = n !== el; }); }
+      result.addEventListener('click', function (e) {
+        if (e.target.closest('.retry')) { e.preventDefault(); show(panel); }
+      });
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (btn.disabled) return;
+        btn.disabled = true;
+        show(loading);
+        try {
+          var res = await fetch('/api/insurance/claim', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount: parseFloat(document.getElementById('amount').value), description: document.getElementById('description').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (!res.ok) {
+            result.innerHTML = errorIcon + '<div>There was an error. Please try again.</div><button type="button" class="retry">Try again</button>';
+          } else {
+            var type = document.getElementById('claimType');
+            result.innerHTML = '<div class="sig-list"><div class="row"><span class="av">S</span><div><div class="t">' + type.options[type.selectedIndex].text + '</div><div class="m">Signals updated &middot; ' + String(data.claimId || '').slice(0, 8) + '</div></div></div></div><button type="button" class="retry">Refine signals</button>';
+          }
+        } catch (err) {
+          result.innerHTML = errorIcon + '<div>There was an error. Please try again.</div><button type="button" class="retry">Try again</button>';
+        } finally {
+          show(result);
+          btn.disabled = false;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
