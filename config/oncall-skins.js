@@ -3582,6 +3582,35 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BANCO DE CHILE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Banco de Chile product.',
   },
+  '99defdc4': {
+    slug: '99defdc4',
+    company: 'Santander Consumer Finance',
+    brandMark: 'S',
+    vertical: 'banking',
+    oncallOnly: true,
+    teamsAlerts: true,
+    alertDestination: 'teams',
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    hideRibbon: true,
+    page: { file: '99defdc4.html', title: 'Pago de recibos pendientes | Santander Consumer' },
+    theme: {
+      '--accent': '#EC0000',
+      '--ink': '#222222',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#FFFFFF',
+      '--chrome-text': '#222222',
+    },
+    supportCenter: 'Atenci\u00f3n al Cliente Santander Consumer',
+    alertCard: {
+      title: 'p95 latency \u2014 \u00c1rea Clientes pago de recibos pendientes',
+      release: 'area-clientes-web@4.9.0',
+      team: 'cobros-digitales-oncall',
+      baseline: '~300ms (7-day p95, before area-clientes-web@4.9.0)',
+      symptom: 'Pago de recibos pendientes hangs ~9s before the payment confirms. Error rate is normal \u2014 payments eventually go through.',
+      impact: 'Clientes paying an overdue loan or card installment from \u00c1rea Clientes wait ~9 seconds on Pagar recibo; some press it again or abandon the payment before it confirms.',
+    },
+    disclaimer: 'NOT ACTUALLY A SANTANDER CONSUMER FINANCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Santander Consumer Finance product.',
+  },
 };
 
 function getOncallSkin(slug) {
