@@ -59,7 +59,7 @@ router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
     });
   }
 
-  const duplicate = findRecentReport(body.reference);
+  const duplicate = findRecentReport(body);
   if (duplicate) {
     return res.status(202).json({
       received: true,

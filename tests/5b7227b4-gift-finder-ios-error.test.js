@@ -280,6 +280,50 @@ describe('Nordstrom Gift Finder iOS final-reservation failure report', () => {
     expect(third.body.reference).not.toBe(first.body.reference);
     await flush();
     expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+
+    // Same reference but a different incident is a new report, not a retry.
+    const reused = await post(app, { ...APP_REPORT, recipient: 'mom', errorType: 'ReservationError.holdWindowUnavailable' });
+    expect(reused.body.status).toBe('accepted');
+    await flush();
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(3);
+  });
+
+  test('a report whose alert was not delivered can be resent and dispatches again', async () => {
+    createSessionAndAlert.mockResolvedValueOnce(null);
+    const app = makeApp();
+    const first = await post(app, APP_REPORT);
+    expect(first.body.status).toBe('accepted');
+    await flush();
+    const second = await post(app, APP_REPORT);
+    expect(second.body.status).toBe('accepted');
+    await flush();
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+
+    createSessionAndAlert.mockRejectedValueOnce(new Error('devin down'));
+    const third = await post(app, { ...APP_REPORT, reference: 'NORD-GF-00000F' });
+    expect(third.body.status).toBe('accepted');
+    await flush();
+    const fourth = await post(app, { ...APP_REPORT, reference: 'NORD-GF-00000F' });
+    expect(fourth.body.status).toBe('accepted');
+    await flush();
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(4);
+
+    const fifth = await post(app, { ...APP_REPORT, reference: 'NORD-GF-00000F' });
+    expect(fifth.body.status).toBe('duplicate');
+  });
+
+  test('the alert tags carry the brief so the prompt has reproduction inputs', async () => {
+    await post(makeApp(), APP_REPORT);
+    await flush();
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.tags).toEqual(expect.arrayContaining([
+      { key: 'interests', value: 'style,accessories' },
+      { key: 'budget', value: '150-300' },
+      { key: 'deadline', value: 'today' },
+      { key: 'bagItems', value: 'coach-pebbled-crossbody' },
+      { key: 'fulfillment', value: 'pickup' },
+    ]));
+    expect(buildPrompt(alert)).toContain('budget: 150-300, deadline: today, bagItems: coach-pebbled-crossbody');
   });
 
   test('errorType must look like a Swift error identity and recipient like a catalog id', () => {
@@ -307,6 +351,7 @@ describe('Nordstrom Gift Finder iOS final-reservation failure report', () => {
   test('the webhook treats only the bridge route as an instant path', () => {
     expect(isInstantPathEvent({ culprit: `POST ${IOS_ERROR_PATH}` })).toBe(true);
     expect(isInstantPathEvent({ culprit: 'POST /api/5b7227b4/gift-finder/ios/error', tags: [] })).toBe(true);
+    expect(isInstantPathEvent({ culprit: APP_CULPRIT, tags: [] })).toBe(true);
     expect(isInstantPathEvent({ culprit: 'apps/nordstrom-gift-finder/App/Store/GiftStore.swift — GiftStore.persist()' })).toBe(false);
     expect(isInstantPathEvent({ culprit: 'unrelated/module.js' })).toBe(false);
   });

@@ -103,8 +103,8 @@ const GENERIC_REMEDIATION_DIRECTIVE = `*Repository to investigate and fix:* \`${
 A gift reservation failed at final reservation in the Nordstrom Black Friday Gift Finder iOS app. The shopper built
 a brief, added a pick to the bag and tapped the primary reservation button ("Reserve for pickup" / "Place order" /
 "Reserve pickup & ship"); instead of the \`NORD-4028\` confirmation the app showed "We couldn't complete your
-reservation." with an incident reference, and the hold was not submitted. The error type, message, recipient and
-reproduction context are in this alert.
+reservation." with an incident reference, and the hold was not submitted. The error type and message are above; the brief
+(\`recipient\`, \`interests\`, \`budget\`, \`deadline\`, \`bagItems\`, \`fulfillment\`) is in this alert's tags.
 
 Investigate and fix \`${APP_REPO_NAME}\` only — not this Node repository. Work inside \`${APP_DIR}/\` and do not
 touch other apps. Read the repo's \`README.md\` and \`${APP_DIR}/DEMO.md\` first.
@@ -122,7 +122,8 @@ Steps:
    create one macOS child session for the simulator work.
 2. Reproduce on the iOS Simulator with \`make run APP=nordstrom-gift-finder\` and failure reports off
    (\`SIMCTL_CHILD_NORDSTROM_DISABLE_FAILURE_REPORTS=1\`, or launch with \`-disableFailureReports -resetState\`),
-   using the recipient, interests, budget and deadline from the alert's context, and confirm the reported error.
+   using the \`recipient\`, \`interests\`, \`budget\`, \`deadline\` and \`bagItems\` tags of this alert as the brief
+   (ids match \`GiftCatalog\`), and confirm the reported error.
 3. Find the root cause and fix it in the app's reservation configuration and/or logic. Do not swallow the error,
    skip the recipient or hide the failure state.
 4. Add or update XCTest coverage in \`${APP_DIR}/Tests/\` that fails before and passes after the fix, and run
@@ -191,19 +192,35 @@ function pruneRecentReports(now) {
   }
 }
 
-function findRecentReport(clientReference, now = Date.now()) {
-  const key = clip(clientReference, 64);
+// A resend is the same client reference for the same incident (recipient + error type); a reused
+// reference carrying a different incident is a new report.
+function recentReportKey(report) {
+  const reference = clip(report && report.reference, 64);
+  if (!reference) return '';
+  return `${reference}|${clip(report.recipient, 32)}|${clip(report.errorType, 128)}`;
+}
+
+function findRecentReport(report, now = Date.now()) {
+  const key = recentReportKey(report);
   if (!key) return null;
   pruneRecentReports(now);
   const entry = recentReports.get(key);
   return entry && entry.expiresAt > now ? entry : null;
 }
 
-function rememberReport(clientReference, reference, now = Date.now()) {
-  const key = clip(clientReference, 64);
-  if (!key) return;
+// Remembered while dispatch is in flight and kept only once the alert/session was delivered, so a
+// failed delivery leaves the reference free for the app to retry.
+function rememberReport(report, reference, now = Date.now()) {
+  const key = recentReportKey(report);
+  if (!key) return () => {};
   pruneRecentReports(now);
-  recentReports.set(key, { reference, expiresAt: now + RECENT_REPORT_TTL_MS });
+  recentReports.set(key, { reference, expiresAt: now + RECENT_REPORT_TTL_MS, delivered: false });
+  return (delivered) => {
+    const entry = recentReports.get(key);
+    if (!entry || entry.reference !== reference) return;
+    if (delivered) entry.delivered = true;
+    else recentReports.delete(key);
+  };
 }
 
 function clearRecentReports() {
@@ -249,6 +266,11 @@ function reportAppFailure(report) {
   const environment = clip(report.environment || process.env.DD_ENV || 'prod', 32);
   const sentryEventId = clip(report.sentryEventId, 128);
   const context = sanitizeContext(report.context);
+  const brief = {};
+  for (const field of ['interests', 'budget', 'deadline', 'bagItems', 'fulfillment']) {
+    const value = context && context[field];
+    if (typeof value === 'string' && value !== '') brief[field] = clip(value, 128);
+  }
   const tags = {
     route: IOS_ERROR_PATH,
     service: APP_SERVICE,
@@ -258,6 +280,7 @@ function reportAppFailure(report) {
     action,
     stage,
     recipient,
+    ...brief,
     scenario: APP_SCENARIO,
     alert_path: 'instant',
   };
@@ -349,20 +372,23 @@ function reportAppFailure(report) {
     triggeredRule: '',
   });
 
+  const settleRecentReport = rememberReport(report, reference);
   const lookupOrgId = report.devinOrgId || getCustomerConfig(customer).devinOrgId || process.env.DEVIN_ORG_ID || '';
   const needsLookup = !report.devinUserId && report.devinEmail && lookupOrgId;
   const sessionPromise = (needsLookup
     ? resolveUserIdByEmail(report.devinEmail, lookupOrgId)
       .then((userId) => raiseAlert(userId || undefined))
     : raiseAlert(report.devinUserId)
-  ).catch((alertError) => {
+  ).then((result) => {
+    settleRecentReport(Boolean(result));
+  }).catch((alertError) => {
+    settleRecentReport(false);
     logger.error('Failed to create Devin session for Nordstrom Gift Finder iOS failure report', {
       error: alertError.message,
       reference,
     });
   });
 
-  rememberReport(clientReference, reference);
   return { reference, sessionPromise };
 }
 
