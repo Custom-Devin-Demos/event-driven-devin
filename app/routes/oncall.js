@@ -303,7 +303,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
-      var skinTeamsAlerts = ${JSON.stringify(Boolean(skin && skin.teamsAlerts))};
+      var skinAlertDestination = ${JSON.stringify(skin && skin.alertDestination === 'teams' ? 'teams' : null)};
       // Only climbing-latency scenarios keep a retry window: repeat submits
       // demonstrate the per-request growth, so they join the open incident.
       // Every other scenario posts a fresh incident on every submit.
@@ -368,11 +368,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
           alertPostedAt = postedAt;
           if (ribbonCollapsed) expandRibbon();
           const unique = document.getElementById('oncall-unique').checked;
-          var explicit = localStorage.getItem('alertDestinationExplicit');
-          var saved = localStorage.getItem('alertDestination');
-          var alertDestination = (explicit && (saved === 'teams' || saved === 'slack'))
-            ? saved
-            : (skinTeamsAlerts ? 'teams' : (saved === 'teams' ? 'teams' : 'slack'));
+          var alertDestination = skinAlertDestination || (localStorage.getItem('alertDestination') === 'teams' ? 'teams' : 'slack');
           var triggerUrl = '/api/oncall/trigger/' + vertical;
           var triggerBody = {
               unique: unique,

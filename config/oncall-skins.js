@@ -54,6 +54,7 @@
  * Microsoft Teams channel behind ONCALL_TEAMS_WEBHOOK_URL. Other skins and
  * skinless alerts stay Slack-only even when that webhook is configured,
  * unless ONCALL_TEAMS_ALL_ALERTS=true.
+ * alertDestination: 'teams' — always route this skin's browser alerts to Teams, ignoring the hub picker
  *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
@@ -3560,6 +3561,7 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     oncallOnly: true,
     teamsAlerts: true,
+    alertDestination: 'teams',
     page: { file: '39080a2a.html', title: 'Transferencias a terceros | Banco de Chile' },
     theme: {
       '--accent': '#295EFF',
