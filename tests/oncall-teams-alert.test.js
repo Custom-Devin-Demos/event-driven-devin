@@ -26,7 +26,7 @@ const { getOncallSkin } = require('../config/oncall-skins');
 const LOANTRACK = getOncallSkin('9ecaa5d1');
 const TEAMS_URL = 'https://teams.example.test/workflows/hook';
 const USER_TEAMS_URL = 'https://default8019.65.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/abc/triggers/manual/paths/invoke?sig=x';
-const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL', 'ONCALL_TEAMS_ALL_ALERTS'];
+const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL', 'ONCALL_TEAMS_ALL_ALERTS', 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI'];
 const savedEnv = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
 
 function setEnv({ slack, teams }) {
@@ -163,6 +163,36 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(unskinned).toEqual({ ok: true, ts: '1700000000.000100', channel: 'C0TEST' });
     expect(skinned.teams).toBeUndefined();
     expect(axios.post).not.toHaveBeenCalled();
+  });
+
+  const channelSkin = () => ({ ...getOncallSkin('99defdc4'), teamsAlerts: true, teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI' });
+
+  test('a skin with teamsWebhookEnv posts to its own Teams channel', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI = USER_TEAMS_URL;
+    const skin = channelSkin();
+    const result = await postOncallAlert(skin.vertical, { skin, destination: 'teams' });
+    expect(result).toEqual({ ok: true, teams: true });
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(axios.post.mock.calls[0][0]).toBe(USER_TEAMS_URL);
+  });
+
+  test('a skin Teams channel works without the shared webhook', async () => {
+    setEnv({ slack: false, teams: false });
+    process.env.ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI = USER_TEAMS_URL;
+    const result = await postOncallAlert('banking', { skin: channelSkin(), destination: 'teams' });
+    expect(result).toEqual({ ok: true, teams: true });
+    expect(axios.post.mock.calls[0][0]).toBe(USER_TEAMS_URL);
+  });
+
+  test('an unset or non-Teams skin webhook falls back to the shared webhook', async () => {
+    setEnv({ slack: false, teams: true });
+    const skin = channelSkin();
+    await postOncallAlert(skin.vertical, { skin, destination: 'teams' });
+    process.env.ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI = 'https://attacker.example.com/hook';
+    await postOncallAlert(skin.vertical, { skin, destination: 'teams' });
+    expect(axios.post.mock.calls.map((c) => c[0])).toEqual([TEAMS_URL, TEAMS_URL]);
   });
 
   test('a Teams webhook alone does not deliver alerts for other skins', async () => {

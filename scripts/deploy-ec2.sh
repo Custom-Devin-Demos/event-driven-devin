@@ -105,7 +105,7 @@ cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 # single-line https URL value. Invalid or duplicate lines are logged and
 # skipped; a file with more lines than allowlisted keys is ignored entirely
 # (deploy continues with the current .env).
-ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL AUTOMATIONS_TEAMS_WEBHOOK_URL)
+ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL AUTOMATIONS_TEAMS_WEBHOOK_URL ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI)
 is_env_sync_key() {
   local key
   for key in "${ENV_SYNC_KEYS[@]}"; do [ "$key" = "$1" ] && return 0; done

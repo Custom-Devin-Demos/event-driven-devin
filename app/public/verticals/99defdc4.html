@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pago de recibos pendientes | Santander Consumer</title>
+  <link rel="icon" type="image/png" href="https://www.santanderconsumer.es/Portales/ESP/favicon-32x32.png">
+  <style>
+    :root {
+      --accent: #EC0000;
+      --ink: #222222;
+      --surface: #FFFFFF;
+      --chrome-bg: #FFFFFF;
+      --chrome-text: #222222;
+      --red-dark: #CC0000;
+      --charcoal: #444444;
+      --muted: #575757;
+      --line: #CCCCCC;
+      --paper: #F6F6F6;
+      --teal: #137E84;
+      --sky: #DEEDF2;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: "Santander Text", Arial, Helvetica, sans-serif; color: var(--ink); background: var(--surface); font-size: 16px; line-height: 1.45; }
+    a { color: inherit; }
+    img { max-width: 100%; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .skip { position: absolute; left: -9999px; }
+    .skip:focus { left: 12px; top: 12px; background: #fff; padding: 8px 12px; z-index: 50; }
+
+    .topbar { background: var(--paper); font-size: 13px; color: var(--muted); }
+    .topbar .container { display: flex; justify-content: space-between; align-items: center; min-height: 36px; gap: 12px; }
+    .segments { display: flex; gap: 20px; }
+    .segments a { text-decoration: none; padding: 8px 0; border-bottom: 2px solid transparent; }
+    .segments a.on { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+    .top-links { display: flex; gap: 18px; }
+    .top-links a { text-decoration: none; }
+    .top-links a:hover { color: var(--accent); }
+
+    header.site { background: #fff; border-bottom: 1px solid #E5E5E5; position: relative; }
+    header.site .container { display: flex; align-items: center; justify-content: space-between; min-height: 84px; gap: 24px; }
+    .logo { display: inline-flex; align-items: center; text-decoration: none; }
+    .logo img { height: 46px; width: auto; display: block; }
+    .logo .wordmark { display: none; color: var(--accent); font-weight: 700; font-size: 22px; line-height: 1; }
+    .logo .wordmark small { display: block; font-size: 15px; font-weight: 400; margin-top: 2px; }
+    nav.main { display: flex; gap: 6px; align-items: center; }
+    nav.main a { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; font-size: 14px; padding: 8px 12px; border-radius: 8px; color: var(--ink); }
+    nav.main a img { width: 26px; height: 26px; }
+    nav.main a:hover { color: var(--accent); background: #FFF3F3; }
+    .head-actions { display: flex; align-items: center; gap: 14px; }
+    .help-link { display: inline-flex; align-items: center; gap: 6px; color: var(--teal); text-decoration: none; font-size: 15px; font-weight: 700; }
+    .help-link img { width: 22px; height: 22px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 26px; border-radius: 999px; border: 0; background: var(--accent); color: #fff; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+    .pill:hover { background: var(--red-dark); }
+    .pill img { width: 18px; height: 18px; filter: brightness(0) invert(1); }
+    .burger { display: none; width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; padding: 10px; }
+    .burger span { display: block; height: 2px; background: var(--accent); margin: 6px 0; border-radius: 2px; }
+    #mobileMenu { border-top: 1px solid #E5E5E5; background: #fff; }
+    #mobileMenu a { display: block; padding: 14px 24px; text-decoration: none; border-bottom: 1px solid #F0F0F0; }
+
+    .announce { background: var(--charcoal); color: #fff; font-size: 14px; }
+    .announce .container { display: flex; align-items: center; justify-content: center; gap: 16px; min-height: 52px; text-align: center; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
+    .announce a { color: #fff; font-weight: 700; border: 1px solid #fff; border-radius: 999px; padding: 6px 16px; text-decoration: none; white-space: nowrap; }
+
+    .crumbs { font-size: 13px; color: var(--muted); padding: 18px 0 0; }
+    .crumbs a { text-decoration: none; }
+    .crumbs a:hover { color: var(--accent); }
+    .crumbs span { margin: 0 6px; color: #8F8F8F; }
+
+    main { background: var(--paper); padding-bottom: 56px; }
+    .portal { background: #fff; max-width: 1200px; margin: 0 auto; padding: 40px 0 48px; }
+    .portal-inner { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+    .welcome { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .welcome h1 { font-family: "Santander Headline", Arial, Helvetica, sans-serif; font-size: 30px; margin: 0; font-weight: 700; }
+    .welcome p { margin: 4px 0 0; color: var(--muted); }
+    .client-chip { font-size: 13px; color: var(--muted); background: var(--paper); border-radius: 999px; padding: 6px 14px; }
+    .hero { display: grid; grid-template-columns: 1fr 1fr; background: var(--paper); min-height: 240px; }
+    .hero-img { background: #ddd url('https://www.santanderconsumer.es/Portales/ESP/Content/assets/img/home/img-prestamos.webp') center/cover no-repeat; min-height: 240px; }
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; gap: 12px; padding: 24px; text-align: center; font-size: 14px; color: var(--ink); }
+    .features svg { width: 34px; height: 34px; stroke: var(--accent); fill: none; stroke-width: 1.6; display: block; margin: 0 auto 10px; }
+    .features strong { display: block; font-weight: 700; }
+    .features span { color: var(--muted); }
+
+    h2.section { font-family: "Santander Headline", Arial, Helvetica, sans-serif; font-size: 22px; margin: 36px 0 0; padding-bottom: 14px; border-bottom: 1px solid #9C9C9C; }
+    .lead { margin: 16px 0 24px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 32px; }
+    .field label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+    .field select, .field input { width: 100%; min-height: 50px; padding: 12px 16px; font: inherit; color: var(--ink); background: #F0F0F0; border: 0; border-bottom: 2px solid var(--charcoal); border-radius: 4px 4px 0 0; appearance: none; -webkit-appearance: none; }
+    .field select { background-image: linear-gradient(45deg, transparent 50%, var(--accent) 50%), linear-gradient(135deg, var(--accent) 50%, transparent 50%); background-position: calc(100% - 22px) 22px, calc(100% - 16px) 22px; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 40px; }
+    .field select:focus, .field input:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+    .field small { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); }
+    .money { position: relative; }
+    .money input { padding-right: 44px; }
+    .money input[readonly] { background: #F5F5F5; cursor: default; }
+    .money span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--muted); }
+    .detail { margin-top: 6px; font-size: 13px; color: var(--teal); }
+    .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 32px 0 8px; padding: 18px 20px; background: var(--sky); border-radius: 8px; }
+    .summary dt { font-size: 12px; color: var(--muted); }
+    .summary dd { margin: 2px 0 0; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+    .actions { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 32px; }
+    .submit-btn { min-width: 200px; font-size: 18px; }
+    .submit-btn:disabled { opacity: .7; cursor: progress; }
+    .status { margin: 0; font-size: 14px; color: var(--muted); }
+    .result-box { display: none; margin-top: 20px; padding: 16px 18px; border-radius: 8px; font-size: 14px; white-space: pre-line; }
+    .result-box.success { display: block; background: #E6F4EA; color: #1E5B32; border: 1px solid #A8D5B5; }
+    .result-box.notice { display: block; background: #FDECEC; color: #8F1B1B; border: 1px solid #F3B9B9; }
+    .reset-link { display: none; margin: 16px auto 0; background: none; border: 0; color: var(--teal); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; min-height: 44px; }
+    .reset-link.on { display: block; }
+    .doubts { text-align: center; margin: 28px 0 0; font-size: 15px; }
+    .doubts a { color: var(--teal); }
+
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1200px; margin: 40px auto 0; padding: 0 24px; }
+    .card { background: #fff; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+    .card .img { height: 150px; background: #ddd center/cover no-repeat; }
+    .card .body { padding: 18px 20px 22px; }
+    .card h3 { margin: 0 0 6px; font-size: 18px; }
+    .card p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+    .card a { color: var(--teal); font-weight: 700; text-decoration: none; font-size: 14px; }
+
+    footer.site { background: #222222; color: #fff; font-size: 14px; }
+    .foot-top { display: grid; grid-template-columns: 1.2fr repeat(4, 1fr); gap: 24px; padding: 48px 0 32px; }
+    .foot-top h4 { margin: 0 0 12px; font-size: 15px; }
+    .foot-top a { display: block; color: #DDD; text-decoration: none; padding: 4px 0; }
+    .foot-top a:hover { color: #fff; text-decoration: underline; }
+    .foot-logo img { height: 32px; width: auto; }
+    .foot-phone { margin-top: 18px; color: #DDD; }
+    .foot-phone strong { display: block; color: #fff; font-size: 20px; }
+    .foot-legal { border-top: 1px solid #444; padding: 20px 0 32px; color: #BBB; font-size: 12px; }
+    .foot-legal nav { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 12px; }
+    .foot-legal nav a { color: #DDD; text-decoration: none; }
+
+    @media (max-width: 1080px) {
+      nav.main { display: none; }
+      .burger { display: block; }
+      .help-link span { display: none; }
+    }
+    @media (max-width: 760px) {
+      .top-links { display: none; }
+      .hero, .form-grid, .cards { grid-template-columns: 1fr; }
+      .hero-img { min-height: 160px; }
+      .summary { grid-template-columns: 1fr 1fr; }
+      .foot-top { grid-template-columns: 1fr 1fr; }
+      .foot-logo { grid-column: 1 / -1; }
+    }
+    @media (max-width: 480px) {
+      .container, .portal-inner { padding: 0 16px; }
+      header.site .container { min-height: 68px; gap: 8px; }
+      .logo img { height: 36px; }
+      .head-actions { gap: 4px; }
+      .head-actions .pill { padding: 0 16px; }
+      .help-link { display: none; }
+      .features { grid-template-columns: 1fr 1fr 1fr; padding: 16px 8px; font-size: 12px; }
+      .welcome h1 { font-size: 24px; }
+      .summary { grid-template-columns: 1fr; }
+      .submit-btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#contenido">Saltar al contenido</a>
+  <div class="topbar">
+    <div class="container">
+      <div class="segments"><a class="on" href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Particulares</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Colaboradores</a></div>
+      <div class="top-links"><a href="#pago">Pago recibos pendientes</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Mi préstamo</a></div>
+    </div>
+  </div>
+  <header class="site">
+    <div class="container">
+      <a class="logo" href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer" aria-label="Santander Consumer Bank">
+        <img src="https://www.santanderconsumer.es/Content/assets/img/header/logo-santanderBank.svg" alt="Santander Consumer Bank" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <span class="wordmark">Santander<small>Consumer Bank</small></span>
+      </a>
+      <nav class="main" aria-label="Principal">
+        <a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer"><img src="https://www.santanderconsumer.es/Content/assets/img/header/ico-prestamos.svg" alt="" onerror="this.remove()">Préstamos</a>
+        <a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer"><img src="https://www.santanderconsumer.es/Content/assets/img/header/ico-coches.svg" alt="" onerror="this.remove()">Coches</a>
+        <a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer"><img src="https://www.santanderconsumer.es/Content/assets/img/header/ico-tarjetas.svg" alt="" onerror="this.remove()">Tarjetas</a>
+        <a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer"><img src="https://www.santanderconsumer.es/Content/assets/img/header/ico-educacion.svg" alt="" onerror="this.remove()">Educación Financiera</a>
+        <a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer"><img src="https://www.santanderconsumer.es/Content/assets/img/header/ico-conocenos.svg" alt="" onerror="this.remove()">Conócenos</a>
+      </nav>
+      <div class="head-actions">
+        <a class="help-link" href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer"><img src="https://www.santanderconsumer.es/Content/assets/img/header/ico-ayuda.svg" alt="" onerror="this.remove()"><span>Ayuda</span></a>
+        <a class="pill" href="#pago"><img src="https://www.santanderconsumer.es/Content/assets/img/header/ico-login.svg" alt="" onerror="this.remove()">Acceso</a>
+        <button class="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobileMenu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div id="mobileMenu" hidden>
+      <a href="#pago">Pago recibos pendientes</a>
+      <a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Préstamos</a>
+      <a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Coches</a>
+      <a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Tarjetas</a>
+      <a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Educación Financiera</a>
+      <a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Conócenos</a>
+      <a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Ayuda</a>
+    </div>
+  </header>
+  <div class="announce">
+    <div class="container">
+      <p style="margin:0">Paga tus recibos pendientes desde el Área Clientes en solo unos minutos, con cualquier dispositivo.</p>
+      <a href="#pago">Más información</a>
+    </div>
+  </div>
+
+  <main id="contenido">
+    <div class="container crumbs"><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Inicio</a><span>›</span><a href="#pago">Área Clientes</a><span>›</span>Pago de recibos pendientes</div>
+    <section class="portal" id="pago">
+      <div class="portal-inner">
+        <div class="welcome">
+          <div><h1>Área Clientes</h1><p>Hola, Lucía. Tienes recibos pendientes de pago.</p></div>
+          <span class="client-chip">Último acceso: hoy, 09:12</span>
+        </div>
+        <div class="hero">
+          <div class="hero-img" role="img" aria-label="Cliente pagando desde el móvil"></div>
+          <div class="features">
+            <div><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="17" r="12"/><path d="M16 9v8h6M13 3h6"/></svg><strong>Rápido</strong><span>En solo unos minutos</span></div>
+            <div><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="9" y="3" width="14" height="26" rx="2"/><path d="M14 6h4"/></svg><strong>Cómodo</strong><span>Con cualquier dispositivo</span></div>
+            <div><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="14" width="18" height="15" rx="2"/><path d="M11 14V9a5 5 0 0 1 10 0v5M16 20v4"/></svg><strong>Seguro</strong><span>Protege tus transacciones</span></div>
+          </div>
+        </div>
+
+        <h2 class="section">Pago de recibos pendientes</h2>
+        <p class="lead">Selecciona el recibo que quieres pagar y la cuenta desde la que se realizará el cargo.</p>
+        <form id="transferForm" novalidate>
+          <div class="form-grid">
+            <div class="field"><label for="toAccount">Recibo pendiente</label><select id="toAccount"><option value="ACCT-2001" data-amount="287.45" data-op="0004-7831-2256" data-detail="Financiación de Vehículos · Recibo 18 de 72 · Vencido el 05/10/2026">Préstamo coche · Seat Arona</option><option value="ACCT-2002" data-amount="152.30" data-op="0004-5520-9108" data-detail="Préstamo personal · Recibo 9 de 48 · Vencido el 01/10/2026">Préstamo personal · Reforma hogar</option><option value="ACCT-2003" data-amount="64.90" data-op="0009-1188-4410" data-detail="Tarjeta ECO · Liquidación septiembre · Vencido el 10/10/2026">Tarjeta ECO · Cuota mensual</option></select><div class="detail" id="toDetail"></div></div>
+            <div class="field"><label for="fromAccount">Cuenta de cargo</label><select id="fromAccount"><option value="ACCT-1001">Cuenta Santander · ES21 0049 •••• •••• 4821</option><option value="ACCT-1002">Openbank · ES76 0073 •••• •••• 1307</option></select><small>Titular: Lucía Fernández Ortega</small></div>
+            <div class="field"><label for="amount">Importe a pagar</label><div class="money"><input type="number" id="amount" min="0.01" step="0.01" value="287.45" inputmode="decimal" readonly required><span aria-hidden="true">€</span></div><small>Importe del recibo, intereses de demora incluidos.</small></div>
+            <div class="field"><label for="accountTier">Modalidad</label><select id="accountTier"><option value="standard">Pago con cargo en cuenta</option><option value="premium">Cliente Santander Select</option><option value="basic">Pago con tarjeta de débito</option></select><small>El cargo se refleja en tu cuenta en 24–48 h.</small></div>
+          </div>
+          <dl class="summary" aria-label="Resumen del pago"><div><dt>Número de operación</dt><dd id="summaryOp">—</dd></div><div><dt>Recibo</dt><dd id="summaryTo">—</dd></div><div><dt>Importe</dt><dd id="summaryAmount">—</dd></div><div><dt>Cuenta de cargo</dt><dd id="summaryFrom">—</dd></div></dl>
+          <div class="actions">
+            <button type="submit" id="submitBtn" class="pill submit-btn">Pagar recibo</button>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Revisa los datos antes de confirmar el pago.</p>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <button type="reset" id="newTransfer" class="reset-link">Pagar otro recibo</button>
+        </form>
+        <p class="doubts">¿Tienes dudas? Llámanos al <a href="tel:+34917993893">917 993 893</a>, estaremos encantados de ayudarte.</p>
+      </div>
+    </section>
+
+    <section class="cards" aria-label="Productos">
+      <article class="card"><div class="img" style="background-image:url('https://www.santanderconsumer.es/Portales/ESP/Content/assets/img/vehiculos/img-vehiculos.webp')"></div><div class="body"><h3>Financiación de Vehículos</h3><p>Estrena coche nuevo o de ocasión con una cuota a tu medida.</p><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Saber más →</a></div></article>
+      <article class="card"><div class="img" style="background-image:url('https://www.santanderconsumer.es/Portales/ESP/Content/assets/img/home/img-tarjetas.webp')"></div><div class="body"><h3>Tarjeta ECO</h3><p>Paga tus compras a plazos y elige cómo devolverlo cada mes.</p><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Saber más →</a></div></article>
+      <article class="card"><div class="img" style="background-image:url('https://www.santanderconsumer.es/Portales/ESP/Content/assets/img/home/img-financiera.webp')"></div><div class="body"><h3>Salud financiera</h3><p>Consejos y herramientas para organizar tus finanzas personales.</p><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Saber más →</a></div></article>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="container">
+      <div class="foot-top">
+        <div class="foot-logo"><img src="https://www.santanderconsumer.es/Content/assets/img/footer/logo-Santander-white.svg" alt="Santander" onerror="this.remove()"><div class="foot-phone">Atención al cliente<strong>917 993 893</strong>Lunes a viernes de 9:00 a 19:00</div></div>
+        <section><h4>Productos</h4><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Préstamos</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Coches</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Renting</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Tarjetas</a></section>
+        <section><h4>Clientes</h4><a href="#pago">Área Clientes</a><a href="#pago">Pago recibos pendientes</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Mi préstamo</a></section>
+        <section><h4>Conócenos</h4><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Quiénes somos</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Educación Financiera</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Trabaja con nosotros</a></section>
+        <section><h4>Ayuda</h4><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Preguntas frecuentes</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Contacto</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Atención al cliente</a></section>
+      </div>
+      <div class="foot-legal">
+        <nav aria-label="Legal"><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Aviso legal</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Privacidad</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Cookies</a><a href="https://www.santanderconsumer.es/" target="_blank" rel="noopener noreferrer">Accesibilidad</a></nav>
+        <p style="margin:0">Experiencia de demostración del Área Clientes. Nombres, contratos, cuentas e importes son ficticios y no corresponden a clientes reales; no se realiza ningún cargo. © 2026 Santander Consumer Finance.</p>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const burger = document.querySelector('.burger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    function setMobileMenuOpen(open) {
+      mobileMenu.hidden = !open;
+      burger.setAttribute('aria-expanded', String(open));
+      burger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    }
+    const desktopMq = window.matchMedia('(min-width: 1081px)');
+    const closeMobileMenuOnDesktop = (event) => {
+      if (event.matches) setMobileMenuOpen(false);
+    };
+    if (typeof desktopMq.addEventListener === 'function') {
+      desktopMq.addEventListener('change', closeMobileMenuOnDesktop);
+    } else {
+      desktopMq.addListener(closeMobileMenuOnDesktop);
+    }
+    burger.addEventListener('click', () => setMobileMenuOpen(mobileMenu.hidden));
+    mobileMenu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMobileMenuOpen(false)));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !mobileMenu.hidden) {
+        setMobileMenuOpen(false);
+        burger.focus();
+      }
+    });
+
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const newTransfer = document.getElementById('newTransfer');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const eur = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
+    const stamp = new Intl.DateTimeFormat('es-ES', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Madrid' });
+    const idleStatus = 'Revisa los datos antes de confirmar el pago.';
+    const buttonLabel = 'Pagar recibo';
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function renderSummary() {
+      const to = selected(toAccount);
+      document.getElementById('summaryOp').textContent = to.dataset.op;
+      document.getElementById('summaryTo').textContent = to.text;
+      document.getElementById('toDetail').textContent = to.dataset.detail;
+      document.getElementById('summaryFrom').textContent = selected(fromAccount).text;
+      const amount = parseFloat(amountInput.value);
+      document.getElementById('summaryAmount').textContent = Number.isFinite(amount) && amount > 0 ? eur.format(amount) : '—';
+    }
+    toAccount.addEventListener('change', () => {
+      amountInput.value = selected(toAccount).dataset.amount;
+      renderSummary();
+    });
+    [fromAccount, document.getElementById('accountTier')].forEach((el) => el.addEventListener('change', renderSummary));
+    amountInput.addEventListener('input', renderSummary);
+    form.addEventListener('reset', () => {
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = idleStatus;
+      newTransfer.className = 'reset-link';
+      setTimeout(renderSummary, 0);
+    });
+    renderSummary();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const amount = parseFloat(amountInput.value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        result.className = 'result-box notice';
+        result.textContent = 'Introduce un importe mayor que cero.';
+        return;
+      }
+      button.disabled = true;
+      button.textContent = 'Procesando pago…';
+      status.textContent = 'Estamos procesando el pago de tu recibo…';
+      result.className = 'result-box';
+      result.textContent = '';
+      newTransfer.className = 'reset-link';
+      const receipt = selected(toAccount);
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount,
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('payment-failed');
+        result.className = 'result-box success';
+        const fee = Number(data.fee) || 0;
+        const charges = fee > 0 ? ` · Comisión: ${eur.format(fee)} · Total cargado: ${eur.format(Number(data.debitAmount))}` : '';
+        result.textContent = `Recibo pagado: ${receipt.text} (operación ${receipt.dataset.op}).\nImporte: ${eur.format(Number(data.receipt.amount))}${charges}\n${stamp.format(new Date(data.receipt.timestamp))} · Justificante: ${data.receipt.receiptId}`;
+        status.textContent = 'Pago realizado.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'No hemos podido completar el pago de tu recibo en este momento. Inténtalo de nuevo en unos minutos o llámanos al 917 993 893.';
+        status.textContent = 'Pago no realizado.';
+      } finally {
+        button.disabled = false;
+        button.textContent = buttonLabel;
+        newTransfer.className = 'reset-link on';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
