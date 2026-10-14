@@ -57,6 +57,10 @@ describe('per-skin Datadog incident on the on-call alert', () => {
     expect(declareDatadogIncident.mock.calls[0][0].summary).toContain(scenario.symptom);
   });
 
+  test('the United MileagePlus skin opts in', () => {
+    expect(getOncallSkin('ddfc5af1').datadogIncident).toBe(true);
+  });
+
   test('skins without datadogIncident do not touch Datadog Incident Management', async () => {
     expect(BASE_SKIN.datadogIncident).toBeUndefined();
     await postOncallAlert(BASE_SKIN.vertical, { skin: BASE_SKIN, runRef: 'run-test' });
