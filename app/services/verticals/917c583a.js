@@ -83,8 +83,11 @@ const RECENT_DEPLOYS = [
 const BASELINE_RATIOS = [0, 0, 0.167, 0, 0, 0, 0.167, 0, 0, 0, 0, 0];
 
 const CYCLES = [];
+let historyEpoch = 0;
 
-function capCycles() {
+function recordCycle(epoch, cycle) {
+  if (epoch !== historyEpoch) return;
+  CYCLES.unshift(cycle);
   CYCLES.splice(24);
 }
 
@@ -164,6 +167,7 @@ async function runCacheSyncCycle(data) {
   const startTime = Date.now();
   const requestId = uuidv4();
   const cycleId = `S3CP-${requestId.slice(0, 8).toUpperCase()}`;
+  const epoch = historyEpoch;
 
   logger.info('Starting S3CP cache sync cycle', {
     requestId,
@@ -176,8 +180,7 @@ async function runCacheSyncCycle(data) {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
     const results = CACHE_JOBS.map((job) => executeJob(planJob(job)));
     const summary = summarizeCycle(cycleId, results);
-    CYCLES.unshift({ ...summary, status: 'complete' });
-    capCycles();
+    recordCycle(epoch, { ...summary, status: 'complete' });
     incrementMetric('s3cp.cycle.success', { route: ROUTE });
     recordTiming('s3cp.cycle.latency', Date.now() - startTime, { route: ROUTE });
     logger.info('S3CP cache sync cycle complete', {
@@ -200,7 +203,7 @@ async function runCacheSyncCycle(data) {
       durationMs: duration,
       service: SERVICE,
     });
-    CYCLES.unshift({
+    recordCycle(epoch, {
       cycleId,
       status: 'failed',
       completedAt: new Date().toISOString(),
@@ -210,7 +213,6 @@ async function runCacheSyncCycle(data) {
       alertState: 'firing',
       error: `${error.name}: ${error.message}`,
     });
-    capCycles();
     Sentry.captureException(error, {
       tags: { route: ROUTE, service: SERVICE, alert_path: 'instant' },
       extra: { requestId, cycleId },
@@ -261,6 +263,7 @@ async function runCacheSyncCycle(data) {
 function resetCacheSync() {
   const cleared = CYCLES.length;
   CYCLES.length = 0;
+  historyEpoch += 1;
   logger.info('S3CP cache sync demo state reset', { cleared, service: SERVICE });
   incrementMetric('s3cp.reset', { route: `${ROUTE}/reset` });
   return { success: true, cleared, health: serviceHealth(), alertState: alertState() };

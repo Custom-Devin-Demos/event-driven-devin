@@ -342,6 +342,7 @@
         state.running = true;
         var btn = document.getElementById('run-btn');
         btn.disabled = true;
+        document.getElementById('reset-btn').disabled = true;
         btn.textContent = 'Running cycle…';
         fetch(API + '/cache-sync', {
           method: 'POST',
@@ -366,13 +367,14 @@
         }).then(function () {
           state.running = false;
           btn.disabled = false;
+          document.getElementById('reset-btn').disabled = false;
           btn.textContent = 'Run cache sync cycle';
         });
       }
 
       function resetDemo() {
+        if (state.running) return;
         fetch(API + '/cache-sync/reset', { method: 'POST' }).then(function (r) { return r.json(); }).then(function () {
-          state.running = false;
           return loadOverview();
         }).then(function () {
           toast('ok', 'Reset', 'Back to standby · alert rule Normal.');
