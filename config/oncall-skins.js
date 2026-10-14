@@ -3505,6 +3505,30 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A UNITED AIRLINES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real United Airlines product.',
   },
+  'ce351ea6': {
+    slug: 'ce351ea6',
+    company: '第一生命',
+    brandMark: '第',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: 'ce351ea6.html', title: '入院・手術給付金、保険金などのご請求 | ご契約者さま | 第一生命' },
+    theme: {
+      '--accent': '#1746FF',
+      '--ink': '#333333',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000064',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: 'p95 latency \u2014 policyholder benefit claim submissions',
+      release: 'policyholder-claims-web@1.0.3',
+      team: 'policyholder-claims-oncall',
+      symptom: 'Online hospitalization and surgery benefit claims hang ~8s and then return a 504. No claim is accepted.',
+      impact: 'Policyholders filing benefit claims online wait ~8 seconds and the claim is not accepted; contact-center claim calls are rising.',
+    },
+    supportCenter: '第一生命コンタクトセンター',
+    disclaimer: 'NOT ACTUALLY A DAI-ICHI LIFE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dai-ichi Life product.',
+  },
 };
 
 function getOncallSkin(slug) {
