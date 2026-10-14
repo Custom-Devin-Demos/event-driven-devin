@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transflo Workflow AI — Document Indexing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0b1f3a; --navy-2: #122c52; --orange: #f26522; --orange-dark: #d9531a;
+    --teal: #1b9aaa; --bg: #f3f5f8; --card: #ffffff; --line: #dfe4ec; --text: #1b2433; --muted: #66728a;
+    --green: #1f9d55; --amber: #d98b0c; --red: #cf2e2e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, Segoe UI, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+  a { color: inherit; text-decoration: none; }
+  .shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+  .side { background: var(--navy); color: #fff; padding: 18px 14px; display: flex; flex-direction: column; }
+  .logo { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 14px; }
+  .logo .mark { width: 34px; height: 34px; border-radius: 8px; background: var(--orange); display: grid; place-items: center; font-weight: 800; color: #fff; font-size: 18px; letter-spacing: -1px; }
+  .logo .word { font-weight: 800; font-size: 19px; letter-spacing: -.3px; }
+  .logo .word span { color: var(--orange); }
+  .logo small { display: block; font-size: 10px; color: #9fb0cb; font-weight: 500; letter-spacing: .6px; text-transform: uppercase; margin-top: 1px; }
+  .nav a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; color: #c6d2e6; font-weight: 500; margin-bottom: 2px; }
+  .nav a svg { width: 17px; height: 17px; opacity: .8; }
+  .nav a.active { background: rgba(242,101,34,.16); color: #fff; border-left: 3px solid var(--orange); padding-left: 7px; }
+  .nav a .count { margin-left: auto; background: rgba(255,255,255,.12); font-size: 11px; padding: 1px 7px; border-radius: 10px; }
+  .nav h6 { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: #7e90ad; padding: 14px 10px 6px; }
+  .side .foot { margin-top: auto; font-size: 11px; color: #8fa1bf; padding: 10px; border-top: 1px solid rgba(255,255,255,.08); }
+  .side .foot b { color: #fff; display: block; font-size: 12px; }
+  main { display: flex; flex-direction: column; min-width: 0; }
+  .top { background: var(--card); border-bottom: 1px solid var(--line); height: 58px; display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+  .top .crumbs { color: var(--muted); font-size: 13px; }
+  .top .crumbs b { color: var(--text); font-weight: 600; }
+  .top .search { margin-left: auto; width: 320px; height: 36px; border: 1px solid var(--line); border-radius: 8px; display: flex; align-items: center; padding: 0 12px; gap: 8px; color: var(--muted); background: #fafbfd; }
+  .top .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--teal); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+  .content { padding: 22px 24px; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  .card-h { padding: 16px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 12px; }
+  .card-h h2 { font-size: 15px; font-weight: 700; }
+  .card-h p { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .card-h .filters { margin-left: auto; display: flex; gap: 6px; }
+  .pill { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--line); color: var(--muted); background: #fafbfd; }
+  .pill.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--line); font-weight: 600; }
+  td { padding: 12px 14px; border-bottom: 1px solid #edf0f5; vertical-align: middle; }
+  tr.load { cursor: pointer; }
+  tr.load:hover td { background: #f7f9fc; }
+  tr.load.sel td { background: #fff4ee; }
+  tr.load.sel td:first-child { box-shadow: inset 3px 0 0 var(--orange); }
+  .ld { font-weight: 700; }
+  .ld small { display: block; color: var(--muted); font-weight: 500; font-size: 11px; }
+  .lane { font-size: 13px; }
+  .lane small { display: block; color: var(--muted); font-size: 11px; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+  .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .chip.delivered { background: #e6f6ec; color: var(--green); }
+  .chip.billed { background: #e8f0fb; color: #2b63c7; }
+  .chip.transit { background: #fff6e5; color: var(--amber); }
+  .docs { display: flex; gap: 4px; }
+  .docs span { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #eef1f6; color: #3a4a66; }
+  .docs span.pod { background: #ffe9dc; color: var(--orange-dark); }
+  .detail .card-h { align-items: flex-start; }
+  .detail h2 small { color: var(--muted); font-weight: 500; font-size: 12px; margin-left: 8px; }
+  .meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .meta div { font-size: 12px; color: var(--muted); }
+  .meta b { display: block; color: var(--text); font-size: 13px; font-weight: 600; margin-top: 2px; }
+  .doclist { padding: 14px 18px; display: grid; gap: 10px; }
+  .doc { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; background: #fff; }
+  .doc:hover { border-color: #b9c4d6; }
+  .doc.sel { border-color: var(--orange); box-shadow: 0 0 0 2px rgba(242,101,34,.15); }
+  .thumb { width: 52px; height: 64px; border-radius: 4px; border: 1px solid #ccd3df; background: repeating-linear-gradient(#fff 0 7px, #e7ebf2 7px 8px); position: relative; overflow: hidden; }
+  .thumb.scan { filter: contrast(.9) brightness(.92); background: repeating-linear-gradient(-1deg, #f5f3ee 0 7px, #d9d6cf 7px 8px); }
+  .thumb i { position: absolute; left: 6px; right: 6px; top: 6px; height: 7px; background: var(--navy); opacity: .7; }
+  .thumb em { position: absolute; left: 8px; right: 14px; bottom: 9px; height: 10px; border-bottom: 2px solid #3a4a66; transform: rotate(-4deg); }
+  .doc .t { font-weight: 600; font-size: 13px; }
+  .doc .t small { display: block; color: var(--muted); font-weight: 500; font-size: 11px; margin-top: 2px; }
+  .src { font-size: 10px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; padding: 3px 7px; border-radius: 4px; background: #eef1f6; color: #3a4a66; }
+  .src.mobile_capture { background: #e5f5f7; color: #137482; }
+  .src.scanner { background: #eef1f6; }
+  .src.edi { background: #e8f0fb; color: #2b63c7; }
+  .fields { padding: 0 18px 16px; }
+  .fields h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 6px 0 10px; display: flex; align-items: center; gap: 8px; }
+  .fields h4 .pill { text-transform: none; letter-spacing: 0; }
+  .frow { display: grid; grid-template-columns: 150px 1fr 110px; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 6px; align-items: center; animation: slide .25s ease both; }
+  @keyframes slide { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: none;} }
+  .frow .k { color: var(--muted); font-size: 12px; }
+  .frow .v { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+  .conf { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; justify-content: flex-end; }
+  .conf .bar { width: 54px; height: 6px; border-radius: 3px; background: #e9edf3; overflow: hidden; }
+  .conf .bar b { display: block; height: 100%; background: var(--green); }
+  .conf.low { color: var(--amber); }
+  .conf.low .bar b { background: var(--amber); }
+  .actions { padding: 14px 18px; border-top: 1px solid var(--line); display: flex; gap: 10px; align-items: center; }
+  .btn { height: 38px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; color: var(--text); font-family: inherit; }
+  .btn.primary { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .btn.primary:hover { background: var(--orange-dark); }
+  .btn.navy { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn .spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: rot .8s linear infinite; }
+  @keyframes rot { to { transform: rotate(360deg);} }
+  .actions .hint { margin-left: auto; color: var(--muted); font-size: 12px; }
+  .empty { padding: 40px 18px; text-align: center; color: var(--muted); font-size: 13px; }
+  .result { margin: 0 18px 16px; border: 1px solid #c9ecd6; background: #f1fbf5; border-radius: 10px; padding: 12px 14px; font-size: 13px; }
+  .result b { color: var(--green); }
+  .result table td { padding: 4px 0; border: 0; font-size: 12.5px; }
+  .kpis { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .kpi { padding: 14px 16px; }
+  .kpi .l { color: var(--muted); font-size: 12px; }
+  .kpi .n { font-size: 24px; font-weight: 800; margin-top: 4px; letter-spacing: -.5px; }
+  .kpi .d { font-size: 11px; color: var(--green); margin-top: 2px; font-weight: 600; }
+  .kpi .d.neg { color: var(--red); }
+  @media (max-width: 1280px) { .content { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, 1fr); } }
+  .toast { position: fixed; right: 20px; bottom: 20px; width: 380px; background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--red); border-radius: 10px; padding: 14px 16px; box-shadow: 0 12px 30px rgba(11,31,58,.18); transform: translateY(20px); opacity: 0; pointer-events: none; transition: all .25s; z-index: 50; }
+  .toast.show { transform: none; opacity: 1; }
+  .toast.ok { border-left-color: var(--green); }
+  .toast .t { font-weight: 700; font-size: 13px; }
+  .toast .d { color: var(--muted); font-size: 12px; margin-top: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-word; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="logo">
+      <div class="mark">t</div>
+      <div><div class="word">trans<span>flo</span></div><small>Workflow AI</small></div>
+    </div>
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Document Indexing<span class="count" id="nav-count">5</span></a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Loads</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Billing &amp; Invoicing</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Detention &amp; Accessorials</a>
+      <h6>Mobile+</h6>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>Driver Captures</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Drivers</a>
+      <h6>Admin</h6>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v16"/></svg>TMS Integrations</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</a>
+    </nav>
+    <div class="foot"><b id="carrier-name">Saguaro Freight Lines</b>SCAC SGFL · Phoenix, AZ terminal</div>
+  </aside>
+  <main>
+    <div class="top">
+      <div class="crumbs">Back Office &nbsp;/&nbsp; <b>Document Indexing</b> &nbsp;/&nbsp; Delivered loads awaiting billing</div>
+      <div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>Search by load, BOL, driver…</div>
+      <div class="avatar">JR</div>
+    </div>
+    <div class="content">
+      <div class="kpis">
+        <div class="card kpi"><div class="l">Docs captured today</div><div class="n">1,284</div><div class="d">▲ 6.2% vs. yesterday</div></div>
+        <div class="card kpi"><div class="l">Auto-indexed</div><div class="n">96.1%</div><div class="d">▲ 0.4 pt</div></div>
+        <div class="card kpi"><div class="l">PODs awaiting billing</div><div class="n" id="kpi-awaiting">—</div><div class="d neg">▼ 3 since 6:00</div></div>
+        <div class="card kpi"><div class="l">Median capture → invoice</div><div class="n">41 min</div><div class="d">▲ 9 min faster</div></div>
+      </div>
+
+      <section class="card">
+        <div class="card-h">
+          <div><h2>Delivered loads</h2><p>Mobile+ captures land here as soon as the driver hits Send.</p></div>
+          <div class="filters"><span class="pill on">Today</span><span class="pill">Needs review</span><span class="pill">All</span></div>
+        </div>
+        <table>
+          <thead><tr><th>Load</th><th>Lane</th><th>Driver</th><th>Documents</th><th>Status</th></tr></thead>
+          <tbody id="loads"></tbody>
+        </table>
+      </section>
+
+      <section class="card detail" id="detail">
+        <div class="empty">Select a load to review its documents.</div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"><div class="t" id="toast-t"></div><div class="d" id="toast-d"></div></div>
+
+<script>
+  const state = { loads: [], load: null, doc: null, indexed: null, busy: false };
+  const $ = (id) => document.getElementById(id);
+  let toastTimer;
+  function toast(title, detail, good) {
+    const el = $('toast');
+    $('toast-t').textContent = title;
+    $('toast-d').textContent = detail || '';
+    el.classList.toggle('ok', !!good);
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 6000);
+  }
+  const fmtTime = (iso) => iso ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+  const money = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2 });
+  const statusClass = (s) => s === 'Delivered' ? 'delivered' : s === 'Billed' ? 'billed' : 'transit';
+  const sourceLabel = { mobile_capture: 'Mobile+', scanner: 'Truck stop scan', edi: 'EDI' };
+
+  function renderLoads() {
+    $('loads').innerHTML = state.loads.map((l) => `
+      <tr class="load ${state.load && state.load.id === l.id ? 'sel' : ''}" data-id="${l.id}">
+        <td><div class="ld">${l.id}<small>${l.ref}</small></div></td>
+        <td><div class="lane">${l.origin} → ${l.destination}<small>${l.shipper} → ${l.consignee}</small></div></td>
+        <td>${l.driver}<br><small style="color:var(--muted)">${l.unit}</small></td>
+        <td><div class="docs">${l.documents.map((d) => `<span class="${d.type === 'POD' ? 'pod' : ''}">${d.type}</span>`).join('')}</div></td>
+        <td><span class="chip ${statusClass(l.status)}">${l.status}</span></td>
+      </tr>`).join('');
+    document.querySelectorAll('tr.load').forEach((tr) => tr.addEventListener('click', () => selectLoad(tr.dataset.id)));
+    const awaiting = state.loads.filter((l) => l.status === 'Delivered').length;
+    $('kpi-awaiting').textContent = awaiting;
+    $('nav-count').textContent = state.loads.length;
+  }
+
+  function selectLoad(id) {
+    state.load = state.loads.find((l) => l.id === id);
+    state.doc = state.load.documents.find((d) => d.type === 'POD') || state.load.documents[0];
+    state.indexed = null;
+    renderLoads();
+    renderDetail();
+  }
+
+  function renderDetail() {
+    const l = state.load;
+    if (!l) return;
+    const d = state.doc;
+    $('detail').innerHTML = `
+      <div class="card-h">
+        <div><h2>${l.id}<small>${l.ref}</small></h2><p>${l.shipper} → ${l.consignee} · ${l.miles} mi</p></div>
+        <div class="filters"><span class="chip ${statusClass(l.status)}">${l.status}</span></div>
+      </div>
+      <div class="meta">
+        <div>Driver<b>${l.driver} · ${l.unit}</b></div>
+        <div>Delivered<b>${fmtTime(l.delivered)}</b></div>
+        <div>Line haul<b>${money(l.lineHaul)}</b></div>
+        <div>Accessorials<b>${money(l.accessorials)}</b></div>
+      </div>
+      <div class="doclist">
+        ${l.documents.map((doc) => `
+          <div class="doc ${d && d.id === doc.id ? 'sel' : ''}" data-id="${doc.id}">
+            <div class="thumb ${doc.source === 'mobile_capture' ? 'scan' : ''}"><i></i>${doc.type === 'POD' || doc.type === 'BOL' ? '<em></em>' : ''}</div>
+            <div class="t">${doc.title} <span style="color:var(--muted);font-weight:500">· ${doc.id}</span>
+              <small>${doc.capturedBy} · ${fmtTime(doc.capturedAt)} · ${doc.pages} page${doc.pages > 1 ? 's' : ''}${doc.captureNote ? ' · ' + doc.captureNote : ''}</small></div>
+            <span class="src ${doc.source}">${sourceLabel[doc.source]}</span>
+          </div>`).join('')}
+      </div>
+      <div class="fields" id="fields"></div>
+      <div id="result"></div>
+      <div class="actions">
+        <button class="btn navy" id="btn-index" ${state.busy ? 'disabled' : ''}>Index document</button>
+        <button class="btn primary" id="btn-bill" ${state.indexed && d && d.type === 'POD' && !state.busy ? '' : 'disabled'}>Submit to billing</button>
+        <span class="hint" id="hint">${d && d.type === 'POD' ? 'Index the POD, then submit to create the invoice packet.' : 'Select the Proof of Delivery to bill this load.'}</span>
+      </div>`;
+    document.querySelectorAll('.doc').forEach((el) => el.addEventListener('click', () => {
+      state.doc = l.documents.find((x) => x.id === el.dataset.id);
+      state.indexed = null;
+      renderDetail();
+    }));
+    $('btn-index').addEventListener('click', indexDocument);
+    $('btn-bill').addEventListener('click', submitToBilling);
+    if (state.indexed) renderFields(state.indexed);
+  }
+
+  function renderFields(res) {
+    const review = res.needsReview.length;
+    $('fields').innerHTML = `<h4>Extracted fields ${review ? `<span class="pill" style="color:var(--amber)">${review} below confidence floor</span>` : '<span class="pill" style="color:var(--green)">all fields confident</span>'}</h4>` +
+      res.fields.map((f, i) => `
+        <div class="frow" style="animation-delay:${i * 70}ms">
+          <span class="k">${f.label}</span>
+          <span class="v">${typeof f.value === 'number' ? f.value.toLocaleString() : String(f.value)}</span>
+          <span class="conf ${f.review ? 'low' : ''}"><span class="bar"><b style="width:${Math.round(f.confidence * 100)}%"></b></span>${Math.round(f.confidence * 100)}%</span>
+        </div>`).join('');
+  }
+
+  function identity() {
+    return {
+      devinUserId: localStorage.getItem('devinUserId') || 'okta|Cognition|00u23apa1taDNwWlr1d8',
+      devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+      devinEmail: localStorage.getItem('devinEmail') || 'julia.rhee@cognition.ai',
+    };
+  }
+
+  async function indexDocument() {
+    if (!state.doc || state.busy) return;
+    state.busy = true;
+    const btn = $('btn-index');
+    btn.innerHTML = '<span class="spin"></span>Reading document…';
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/f4af1ebf/documents/index', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ loadId: state.load.id, documentId: state.doc.id }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Indexing failed');
+      state.indexed = data;
+      state.busy = false;
+      renderDetail();
+    } catch (e) {
+      state.busy = false;
+      renderDetail();
+      toast('Indexing failed', e.message);
+    }
+  }
+
+  async function submitToBilling() {
+    if (!state.doc || state.busy) return;
+    state.busy = true;
+    const btn = $('btn-bill');
+    btn.innerHTML = '<span class="spin"></span>Building invoice packet…';
+    btn.disabled = true;
+    $('btn-index').disabled = true;
+    try {
+      const r = await fetch('/api/f4af1ebf/billing/submit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ loadId: state.load.id, documentId: state.doc.id, ...identity() }),
+      });
+      const data = await r.json();
+      if (!r.ok || !data.success) {
+        const err = new Error(data.error || 'Billing submit failed');
+        err.detail = data;
+        throw err;
+      }
+      state.busy = false;
+      state.load.status = 'Billed';
+      renderLoads();
+      renderDetail();
+      $('result').innerHTML = `<div class="result"><b>Invoice ${data.invoice.number} created</b> · ${data.invoice.status}
+        <table><tr><td>Packet</td><td>${data.packet.packetId}</td></tr><tr><td>Received by</td><td>${data.packet.receivedBy} · ${fmtTime(data.packet.signedAt)}</td></tr><tr><td>Total</td><td><b style="color:var(--text)">${money(data.packet.total)}</b></td></tr></table></div>`;
+      toast('Submitted to billing', `${data.invoice.number} · ${money(data.invoice.amount)} queued for TMS export`, true);
+    } catch (e) {
+      state.busy = false;
+      renderDetail();
+      const d = e.detail || {};
+      toast(`Submit to billing failed — ${d.errorClass || 'Error'}`, `${e.message}${d.requestId ? ' · request ' + d.requestId : ''}`);
+    }
+  }
+
+  fetch('/api/f4af1ebf/loads')
+    .then((r) => r.json())
+    .then((data) => {
+      state.loads = data.loads;
+      $('carrier-name').textContent = data.carrier.name;
+      renderLoads();
+    })
+    .catch(() => toast('Could not load queue', 'GET /api/f4af1ebf/loads failed'));
+</script>
+</body>
+</html>
