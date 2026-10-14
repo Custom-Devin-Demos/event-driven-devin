@@ -3506,6 +3506,20 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A UNITED AIRLINES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real United Airlines product.',
   },
+  '1a251a01': {
+    slug: '1a251a01',
+    company: 'Amplitude',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: '1a251a01.html', title: 'Session Replays | Amplitude' },
+    alertCard: {
+      title: 'Session Replay Signals requests failing (504)',
+      release: 'session-replay-web@1.0.3',
+      symptom: 'Generate signals requests hang ~8s and then fail with 504 Gateway Timeout.',
+      impact: 'Users on the Session Replays dashboard cannot load Signals; every request times out after a long hang and the card shows an error.',
+    },
+    disclaimer: 'NOT ACTUALLY AN AMPLITUDE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Amplitude product.',
+  },
   'ce351ea6': {
     slug: 'ce351ea6',
     company: '第一生命',
