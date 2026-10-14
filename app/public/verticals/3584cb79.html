@@ -384,9 +384,9 @@
       </div>
       <div class="order-totals">
         <div class="total-line"><span>Subtotal</span><span>$31.95</span></div>
-        <div class="total-line"><span>Tax</span><span>Calculated at checkout</span></div>
-        <div class="total-line"><span>Discount</span><span>10% (order &gt; $30)</span></div>
-        <div class="total-line grand"><span>Est. Total</span><span>$31.95+</span></div>
+        <div class="total-line"><span>Tax</span><span id="estTax">$1.92</span></div>
+        <div class="total-line"><span>Discount (10% off orders $30+)</span><span id="estDiscount">&minus;$3.39</span></div>
+        <div class="total-line grand"><span>Est. Total</span><span id="estTotal">$30.48</span></div>
         <div class="redtab-badge">&#x2B50; LC Rewards Member &mdash; Free Crazy Bread&reg; Added at Checkout</div>
       </div>
     </div>
@@ -464,6 +464,19 @@
       { sku: 'LC-PEP-2L', qty: 1, price: 3.49 }
     ];
     var SUBTOTAL = 31.95;
+    var STORE_TAX = { MI: { rate: 0.06, cur: '$' }, IL: { rate: 0.1025, cur: '$' }, TX: { rate: 0.0825, cur: '$' }, ON: { rate: 0.13, cur: 'CA$' } };
+
+    function updateEstimate() {
+      var store = STORE_TAX[document.getElementById('regionSelect').value];
+      var tax = SUBTOTAL * store.rate;
+      var discountRate = SUBTOTAL >= 50 ? 0.15 : SUBTOTAL >= 30 ? 0.10 : 0;
+      var discount = (SUBTOTAL + tax) * discountRate;
+      document.getElementById('estTax').textContent = store.cur + tax.toFixed(2);
+      document.getElementById('estDiscount').textContent = '\u2212' + store.cur + discount.toFixed(2);
+      document.getElementById('estTotal').textContent = store.cur + (SUBTOTAL + tax - discount).toFixed(2);
+    }
+    document.getElementById('regionSelect').addEventListener('change', updateEstimate);
+    updateEstimate();
 
     function submitOrder(e) {
       e.preventDefault();
