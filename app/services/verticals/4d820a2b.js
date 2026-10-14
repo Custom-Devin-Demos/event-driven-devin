@@ -21,7 +21,6 @@ const ALERT_COOLDOWN_MS = Number(process.env.ALERT_COOLDOWN_MS_4D820A2B) || 60 *
 const OWNER = Object.freeze({
   slackMemberId: 'U0AU1PXM12S',
   devinUserId: 'okta|Cognition|00u22b98f2kFBX4Al1d8',
-  devinOrgId: 'org_69IXJFLrljx8zSAw',
 });
 
 const RATE_PLANS = [
@@ -194,7 +193,7 @@ function raiseAlert(error, requestId, data) {
     errorType: error.name || 'Error',
     errorValue: error.message,
     devinUserId: data.devinUserId || OWNER.devinUserId,
-    devinOrgId: data.devinOrgId || OWNER.devinOrgId,
+    devinOrgId: data.devinOrgId,
     devinEmail: data.devinEmail,
     slackMemberId: OWNER.slackMemberId,
     service: SERVICE,
