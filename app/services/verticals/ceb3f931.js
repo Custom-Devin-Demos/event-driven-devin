@@ -70,9 +70,32 @@ const REMEDIATION_DIRECTIVE = [
   'and add a regression test under tests/ that locks the fix in. Open a pull request against main.',
 ].join(' ');
 
+/**
+ * Builder-facing names that map onto a persisted mode identifier. The create-form
+ * dialog labels `encrypt` as "Storage mode", so clients may send `storage`.
+ */
+const RESPONSE_MODE_ALIASES = Object.freeze({
+  storage: 'encrypt',
+  'multi-respondent': 'multirespondent',
+});
+
 function resolveResponseMode(mode) {
   const key = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
-  return RESPONSE_MODES[key];
+  const canonical = Object.prototype.hasOwnProperty.call(RESPONSE_MODE_ALIASES, key)
+    ? RESPONSE_MODE_ALIASES[key]
+    : key;
+  return Object.prototype.hasOwnProperty.call(RESPONSE_MODES, canonical)
+    ? RESPONSE_MODES[canonical]
+    : undefined;
+}
+
+class UnknownResponseModeError extends Error {
+  constructor(mode) {
+    super(`Unknown response mode: ${String(mode)}`);
+    this.name = 'UnknownResponseModeError';
+    this.code = 'UNKNOWN_RESPONSE_MODE';
+    this.statusCode = 400;
+  }
 }
 
 function buildEncryptionPolicy(profile) {
@@ -135,8 +158,19 @@ async function launchForm(data) {
     service: SERVICE,
   });
 
+  const profile = resolveResponseMode(data.responseMode);
+  if (!profile) {
+    incrementMetric('form_launch.rejected', { route: ROUTE, reason: 'unknown_response_mode' });
+    logger.warn('Form launch rejected: unknown response mode', {
+      referenceNumber,
+      action: data.action,
+      responseMode: data.responseMode,
+      service: SERVICE,
+    });
+    throw new UnknownResponseModeError(data.responseMode);
+  }
+
   try {
-    const profile = resolveResponseMode(data.responseMode);
     const manifest = buildLaunchManifest(form, profile);
     const duration = Date.now() - start;
 
@@ -222,6 +256,8 @@ module.exports = {
   resolveResponseMode,
   buildLaunchManifest,
   RESPONSE_MODES,
+  RESPONSE_MODE_ALIASES,
+  UnknownResponseModeError,
   STARTER_FIELDS,
   OWNER,
   REMEDIATION_DIRECTIVE,
