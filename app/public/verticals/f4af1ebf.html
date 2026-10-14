@@ -294,7 +294,7 @@
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || 'Indexing failed');
       state.busy = false;
-      if (state.load !== load || state.doc !== doc) return;
+      if (state.load !== load || state.doc !== doc) { renderDetail(); return; }
       state.indexed = data;
       renderDetail();
     } catch (e) {
@@ -327,7 +327,7 @@
       state.busy = false;
       load.status = 'Billed';
       renderLoads();
-      if (state.load !== load || state.doc !== doc) return;
+      if (state.load !== load || state.doc !== doc) { renderDetail(); return; }
       renderDetail();
       $('result').innerHTML = `<div class="result"><b>Invoice ${esc(data.invoice.number)} created</b> · ${esc(data.invoice.status)}
         <table><tr><td>Packet</td><td>${esc(data.packet.packetId)}</td></tr><tr><td>Received by</td><td>${esc(data.packet.receivedBy)} · ${fmtTime(data.packet.signedAt)}</td></tr><tr><td>Total</td><td><b style="color:var(--text)">${money(data.packet.total)}</b></td></tr></table></div>`;
