@@ -68,6 +68,14 @@ describe('per-skin Datadog incident on the on-call alert', () => {
     expect(declareDatadogIncident).not.toHaveBeenCalled();
   });
 
+  test('non-unique runs post the alert without opening an incident', async () => {
+    const skin = { ...BASE_SKIN, datadogIncident: true };
+    const result = await postOncallAlert(skin.vertical, { skin, unique: false });
+    expect(result.ok).toBe(true);
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(declareDatadogIncident).not.toHaveBeenCalled();
+  });
+
   test('a failed incident declaration does not fail the alert', async () => {
     declareDatadogIncident.mockRejectedValueOnce(new Error('403'));
     const skin = { ...BASE_SKIN, datadogIncident: true };

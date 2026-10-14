@@ -34,7 +34,7 @@ const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const { runWithAlertDestination } = require('../app/services/alert-destination');
 const bookingRoutes = require('../app/routes/verticals/3503d9e5');
 const {
-  getFlightSearch, computeFareBreakdown, processBooking, DEFAULT_BOOKING, SERVICE, ROUTE,
+  getFlightSearch, computeFareBreakdown, processBooking, DEFAULT_BOOKING, SERVICE, ROUTE, INCIDENT_COOLDOWN_MS,
 } = require('../app/services/verticals/3503d9e5');
 
 const TRAVELER = { firstName: 'Jordan', lastName: 'Lee' };
@@ -119,6 +119,19 @@ describe('3503d9e5 united.com booking', () => {
       severity: 'SEV-2',
       triggeredBy: 'demo@devindemos.com',
     });
+  });
+
+  test('repeat failures inside the cooldown open only one Datadog incident', async () => {
+    const later = Date.now() + INCIDENT_COOLDOWN_MS * 10;
+    jest.spyOn(Date, 'now').mockReturnValue(later);
+    await book();
+    await book();
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+    expect(declareDatadogIncident).toHaveBeenCalledTimes(1);
+    Date.now.mockReturnValue(later + INCIDENT_COOLDOWN_MS);
+    await book();
+    expect(declareDatadogIncident).toHaveBeenCalledTimes(2);
+    Date.now.mockRestore();
   });
 
   test('the alert always routes to Microsoft Teams, even when the browser picked Slack', async () => {

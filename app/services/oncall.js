@@ -727,11 +727,12 @@ async function postOncallAlert(scenarioId, options = {}) {
   if (!ts && !teams) {
     return { ok: false, error: 'Teams alert post failed' };
   }
-  if (skin && skin.datadogIncident) {
+  // Non-unique runs group into one alert thread, so only unique runs open an incident.
+  if (skin && skin.datadogIncident && runRef) {
     declareDatadogIncident({
       title: `${brand}: ${card.monitor}`,
       summary: [card.symptom, card.impact].filter(Boolean).join(' '),
-      runRef: runRef || makeRunRef(),
+      runRef,
       service: card.service,
       triggeredBy: validEmail(options.devinEmail) || `oncall/c/${skin.slug}`,
       repoUrl: REPO_URL,
