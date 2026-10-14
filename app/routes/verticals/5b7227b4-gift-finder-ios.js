@@ -29,23 +29,25 @@ const parsedWindow = parseInt(process.env.REPORT_CAP_GIFT_FINDER_IOS_WINDOW_MINU
 const REPORT_WINDOW_MS = (Number.isNaN(parsedWindow) ? 10 : parsedWindow) * 60 * 1000;
 const acceptedAt = [];
 
+// Each accepted report holds its own slot object (released by identity, never by timestamp).
 function reserveReportSlot(now = Date.now()) {
   const cutoff = now - REPORT_WINDOW_MS;
-  while (acceptedAt.length > 0 && acceptedAt[0] < cutoff) acceptedAt.shift();
+  while (acceptedAt.length > 0 && acceptedAt[0].at < cutoff) acceptedAt.shift();
   if (acceptedAt.length >= REPORT_MAX) return false;
-  acceptedAt.push(now);
-  return now;
+  const slot = { at: now };
+  acceptedAt.push(slot);
+  return slot;
 }
 
 // A report whose alert/session was not delivered gives its slot back so retries stay possible.
-function releaseReportSlot(at) {
-  const index = acceptedAt.indexOf(at);
+function releaseReportSlot(slot) {
+  const index = acceptedAt.indexOf(slot);
   if (index !== -1) acceptedAt.splice(index, 1);
 }
 
 // Seconds until the oldest accepted report leaves the window and a slot opens again.
 function retryAfterSeconds(now = Date.now()) {
-  const oldest = acceptedAt.length > 0 ? acceptedAt[0] : now;
+  const oldest = acceptedAt.length > 0 ? acceptedAt[0].at : now;
   return Math.max(1, Math.ceil((oldest + REPORT_WINDOW_MS - now) / 1000));
 }
 
@@ -103,4 +105,5 @@ router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
 module.exports = router;
 module.exports.reserveReportSlot = reserveReportSlot;
 module.exports.retryAfterSeconds = retryAfterSeconds;
+module.exports.releaseReportSlot = releaseReportSlot;
 module.exports._resetReportCap = () => { acceptedAt.length = 0; };

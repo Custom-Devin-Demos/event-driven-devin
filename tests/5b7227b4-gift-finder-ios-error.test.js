@@ -437,10 +437,23 @@ describe('Nordstrom Gift Finder iOS final-reservation failure report', () => {
   test('Retry-After counts down to the oldest accepted report leaving the window', () => {
     router._resetReportCap();
     const base = 1_000_000;
-    expect(router.reserveReportSlot(base)).toBe(base);
+    expect(router.reserveReportSlot(base)).toEqual({ at: base });
     expect(router.retryAfterSeconds(base)).toBe(600);
     expect(router.retryAfterSeconds(base + 599_000)).toBe(1);
     expect(router.retryAfterSeconds(base + 599_500)).toBe(1);
+  });
+
+  test('releasing a failed slot never frees a sibling reserved in the same millisecond', () => {
+    router._resetReportCap();
+    const base = 2_000_000;
+    const slots = Array.from({ length: 10 }, () => router.reserveReportSlot(base));
+    expect(router.reserveReportSlot(base)).toBe(false);
+    router.releaseReportSlot(slots[7]);
+    const replacement = router.reserveReportSlot(base + 1);
+    expect(replacement).toEqual({ at: base + 1 });
+    expect(router.reserveReportSlot(base + 1)).toBe(false);
+    router.releaseReportSlot(slots[7]);
+    expect(router.reserveReportSlot(base + 2)).toBe(false);
   });
 
   test('clips oversized strings before they reach Sentry and the alert', async () => {
