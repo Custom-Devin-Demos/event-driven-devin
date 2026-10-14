@@ -3544,7 +3544,7 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     alertCard: {
-      title: 'p95 latency \u2014 service inquiry form submissions',
+      title: '504 error rate \u2014 service inquiry form submissions',
       release: 'inquiry-form-web@2.4.1',
       team: 'web-inquiry-oncall',
       symptom: 'Service inquiry form submissions hang ~8s and then return a 504. No inquiry is accepted.',
