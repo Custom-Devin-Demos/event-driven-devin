@@ -164,6 +164,7 @@ function isAppSource(body) {
 // Swift error identity as the app reports it, e.g. `ReservationError.missingFulfillmentProfile`.
 const ERROR_TYPE_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$/;
 const RECIPIENT_PATTERN = /^[a-z][a-z0-9-]{0,31}$/;
+const BRIEF_TAG_PATTERN = /^[a-z0-9-]{1,40}(,[a-z0-9-]{1,40}){0,15}$/;
 const PARTNER_SCENARIO = { recipient: 'partner', errorType: 'ReservationError.missingFulfillmentProfile' };
 
 function isAppReport(body) {
@@ -266,10 +267,13 @@ function reportAppFailure(report) {
   const environment = clip(report.environment || process.env.DD_ENV || 'prod', 32);
   const sentryEventId = clip(report.sentryEventId, 128);
   const context = sanitizeContext(report.context);
+  // Brief fields are catalog ids (or comma-joined id lists); anything else stays in `extra.context`
+  // for Sentry but never reaches the prompt as a tag.
   const brief = {};
   for (const field of ['interests', 'budget', 'deadline', 'bagItems', 'fulfillment']) {
     const value = context && context[field];
-    if (typeof value === 'string' && value !== '') brief[field] = clip(value, 128);
+    const text = typeof value === 'number' ? String(value) : value;
+    if (typeof text === 'string' && BRIEF_TAG_PATTERN.test(text)) brief[field] = text;
   }
   const tags = {
     route: IOS_ERROR_PATH,
@@ -381,12 +385,14 @@ function reportAppFailure(report) {
     : raiseAlert(report.devinUserId)
   ).then((result) => {
     settleRecentReport(Boolean(result));
+    return Boolean(result);
   }).catch((alertError) => {
     settleRecentReport(false);
     logger.error('Failed to create Devin session for Nordstrom Gift Finder iOS failure report', {
       error: alertError.message,
       reference,
     });
+    return false;
   });
 
   return { reference, sessionPromise };
@@ -409,6 +415,7 @@ module.exports = {
   APP_REMEDIATION_DIRECTIVE,
   GENERIC_REMEDIATION_DIRECTIVE,
   ERROR_TYPE_PATTERN,
+  BRIEF_TAG_PATTERN,
   customerForOrg,
   directiveFor,
   isPartnerScenario,

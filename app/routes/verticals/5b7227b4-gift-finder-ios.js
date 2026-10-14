@@ -34,7 +34,13 @@ function reserveReportSlot(now = Date.now()) {
   while (acceptedAt.length > 0 && acceptedAt[0] < cutoff) acceptedAt.shift();
   if (acceptedAt.length >= REPORT_MAX) return false;
   acceptedAt.push(now);
-  return true;
+  return now;
+}
+
+// A report whose alert/session was not delivered gives its slot back so retries stay possible.
+function releaseReportSlot(at) {
+  const index = acceptedAt.indexOf(at);
+  if (index !== -1) acceptedAt.splice(index, 1);
 }
 
 // Seconds until the oldest accepted report leaves the window and a slot opens again.
@@ -71,7 +77,8 @@ router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
     });
   }
 
-  if (!reserveReportSlot()) {
+  const slot = reserveReportSlot();
+  if (slot === false) {
     res.set('Retry-After', String(retryAfterSeconds()));
     return res.status(429).json({
       received: false,
@@ -80,7 +87,8 @@ router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
     });
   }
 
-  const { reference } = reportAppFailure(body);
+  const { reference, sessionPromise } = reportAppFailure(body);
+  sessionPromise.then((delivered) => { if (!delivered) releaseReportSlot(slot); });
 
   return res.status(202).json({
     received: true,
