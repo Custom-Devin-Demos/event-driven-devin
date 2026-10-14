@@ -44,6 +44,10 @@ function parseSelection(select) {
   return { planCode, quantity: Number(quantity), interval };
 }
 
+function offersInterval(planCode, interval) {
+  return catalog.getPlan(planCode).offers.some((offer) => catalog.PERIODS[offer.period].label === interval);
+}
+
 function validateSelection(select) {
   if (typeof select !== 'string' || select.length > MAX_SELECTION_LENGTH || !SELECTION_PATTERN.test(select)) {
     throw badRequest('select must look like plan,quantity,interval', 'INVALID_SELECTION');
@@ -54,6 +58,9 @@ function validateSelection(select) {
   }
   if (selection.quantity < 1 || selection.quantity > MAX_STREAMS) {
     throw badRequest(`quantity must be between 1 and ${MAX_STREAMS}`, 'INVALID_QUANTITY');
+  }
+  if (!offersInterval(selection.planCode, selection.interval)) {
+    throw badRequest(`${selection.planCode} is not offered per ${selection.interval}`, 'INTERVAL_NOT_OFFERED');
   }
   return selection;
 }
