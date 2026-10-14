@@ -10,6 +10,10 @@ jest.mock('../app/services/devin-session', () => {
   };
 });
 
+jest.mock('../app/services/datadog-incidents', () => ({
+  declareDatadogIncident: jest.fn().mockResolvedValue(null),
+}));
+
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: { captureException: jest.fn() },
   initSentry: jest.fn(),
@@ -25,11 +29,12 @@ const http = require('http');
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
+const { declareDatadogIncident } = require('../app/services/datadog-incidents');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const { runWithAlertDestination } = require('../app/services/alert-destination');
 const bookingRoutes = require('../app/routes/verticals/3503d9e5');
 const {
-  getFlightSearch, computeFareBreakdown, processBooking, DEFAULT_BOOKING, SERVICE, ROUTE,
+  getFlightSearch, computeFareBreakdown, processBooking, DEFAULT_BOOKING, SERVICE, ROUTE, INCIDENT_COOLDOWN_MS,
 } = require('../app/services/verticals/3503d9e5');
 
 const TRAVELER = { firstName: 'Jordan', lastName: 'Lee' };
@@ -107,6 +112,26 @@ describe('3503d9e5 united.com booking', () => {
     expect(alert.devinOrgId).toBe('org-1');
     expect(alert.devinEmail).toBe('demo@devindemos.com');
     expect(JSON.stringify(alert.extra)).not.toMatch(/Jordan|Lee|1111/);
+    expect(declareDatadogIncident).toHaveBeenCalledTimes(1);
+    expect(declareDatadogIncident.mock.calls[0][0]).toMatchObject({
+      title: 'united.com booking purchase failing at ticketing',
+      service: SERVICE,
+      severity: 'SEV-2',
+      triggeredBy: 'demo@devindemos.com',
+    });
+  });
+
+  test('repeat failures inside the cooldown open only one Datadog incident', async () => {
+    const later = Date.now() + INCIDENT_COOLDOWN_MS * 10;
+    jest.spyOn(Date, 'now').mockReturnValue(later);
+    await book();
+    await book();
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+    expect(declareDatadogIncident).toHaveBeenCalledTimes(1);
+    Date.now.mockReturnValue(later + INCIDENT_COOLDOWN_MS);
+    await book();
+    expect(declareDatadogIncident).toHaveBeenCalledTimes(2);
+    Date.now.mockRestore();
   });
 
   test('the alert always routes to Microsoft Teams, even when the browser picked Slack', async () => {
@@ -131,6 +156,7 @@ describe('3503d9e5 united.com booking', () => {
     expect(response.body.booking.confirmationNumber).toMatch(/^[A-Z2-9]{6}$/);
     expect(response.body.booking.conditions.refundable).toBe(true);
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(declareDatadogIncident).not.toHaveBeenCalled();
   });
 
   test('Basic Economy requires the acknowledgement, then tickets', async () => {

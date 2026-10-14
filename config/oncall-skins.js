@@ -3486,6 +3486,7 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     oncallOnly: true,
     teamsAlerts: true,
+    datadogIncident: true,
     page: { file: 'ddfc5af1.html', title: 'Transfer miles | United Airlines' },
     theme: {
       '--accent': '#1414D2',
