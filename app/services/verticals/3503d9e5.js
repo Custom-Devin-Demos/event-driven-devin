@@ -3,6 +3,7 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const { declareDatadogIncident } = require('../datadog-incidents');
 const { runWithAlertDestination } = require('../alert-destination');
 
 const SERVICE = 'ual-ticketing-fulfillment';
@@ -363,6 +364,16 @@ async function processBooking(data) {
       },
       extra,
     });
+
+    declareDatadogIncident({
+      title: 'united.com booking purchase failing at ticketing',
+      summary: `${error.name}: ${error.message}. Booking ${bookingId} (${market}, ${option.code}) could not be ticketed; customers cannot complete the purchase.`,
+      runRef: bookingId,
+      service: SERVICE,
+      triggeredBy: data.devinEmail || 'united-booking',
+      repoUrl: 'https://github.com/COG-GTM/event-driven-devin',
+      severity: 'SEV-2',
+    }).catch((err) => logger.warn('Failed to declare Datadog incident for United booking', { error: err.message, bookingId }));
 
     // United runs its incident bridge in Microsoft Teams: always alert there, never Slack,
     // whatever the presenter's hub picker says.

@@ -3,6 +3,7 @@ const logger = require('../telemetry/logger');
 const { ownerRotation, postMessage, postThreadReply, lookupSlackUserByEmail } = require('./slack');
 const { buildTeamsAlertCard, postTeamsCard } = require('./teams');
 const { createDevinSession } = require('./devin-api');
+const { declareDatadogIncident } = require('./datadog-incidents');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
@@ -725,6 +726,17 @@ async function postOncallAlert(scenarioId, options = {}) {
   const teams = await teamsDelivery;
   if (!ts && !teams) {
     return { ok: false, error: 'Teams alert post failed' };
+  }
+  if (skin && skin.datadogIncident) {
+    declareDatadogIncident({
+      title: `${brand}: ${card.monitor}`,
+      summary: [card.symptom, card.impact].filter(Boolean).join(' '),
+      runRef: runRef || makeRunRef(),
+      service: card.service,
+      triggeredBy: validEmail(options.devinEmail) || `oncall/c/${skin.slug}`,
+      repoUrl: REPO_URL,
+      severity: 'SEV-2',
+    }).catch((error) => logger.warn('Failed to declare Datadog incident for On-Call skin', { skin: skin.slug, error: error.message }));
   }
   const requester = resolveRequesterIdentity(options);
   // Teams-only alerts skip the skin's session: the Teams channel responder
