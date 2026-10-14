@@ -358,6 +358,15 @@
       burger.setAttribute('aria-expanded', String(open));
       burger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
     }
+    const desktopMq = window.matchMedia('(min-width: 641px)');
+    const closeMobileMenuOnDesktop = (event) => {
+      if (event.matches) setMobileMenuOpen(false);
+    };
+    if (typeof desktopMq.addEventListener === 'function') {
+      desktopMq.addEventListener('change', closeMobileMenuOnDesktop);
+    } else {
+      desktopMq.addListener(closeMobileMenuOnDesktop);
+    }
     burger.addEventListener('click', () => setMobileMenuOpen(mobileMenu.hidden));
     mobileMenu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMobileMenuOpen(false)));
     document.addEventListener('keydown', (event) => {
@@ -447,7 +456,9 @@
         const data = await response.json();
         if (!response.ok || !data.receipt) throw new Error('transfer-failed');
         result.className = 'result-box success';
-        result.textContent = `Transferencia realizada a ${recipient}.\nMonto: ${clp.format(Number(data.receipt.amount))}\n${stamp.format(new Date(data.receipt.timestamp))} · N° de operación: ${data.receipt.receiptId}`;
+        const fee = Number(data.fee) || 0;
+        const charges = fee > 0 ? ` · Comisión: ${clp.format(fee)} · Total cargado: ${clp.format(Number(data.debitAmount))}` : '';
+        result.textContent = `Transferencia realizada a ${recipient}.\nMonto: ${clp.format(Number(data.receipt.amount))}${charges}\n${stamp.format(new Date(data.receipt.timestamp))} · N° de operación: ${data.receipt.receiptId}`;
         status.textContent = 'Transferencia realizada.';
         setStep(3);
       } catch (_error) {
