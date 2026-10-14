@@ -3588,9 +3588,6 @@ const ONCALL_SKINS = {
     brandMark: 'S',
     vertical: 'banking',
     oncallOnly: true,
-    teamsAlerts: true,
-    alertDestination: 'teams',
-    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
     hideRibbon: true,
     page: { file: '99defdc4.html', title: 'Pago de recibos pendientes | Santander Consumer' },
     theme: {
