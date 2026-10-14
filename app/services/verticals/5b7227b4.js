@@ -278,6 +278,8 @@ function registerBag(bag) {
 }
 
 module.exports = {
+  CUSTOMER,
+  NORDSTROM_ORG_ID,
   APP_SERVICE,
   APP_PROJECT,
   APP_RELEASE,
