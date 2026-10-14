@@ -3,6 +3,7 @@ const {
   APP_SERVICE,
   APP_SOURCE_PREFIX,
   IOS_ERROR_PATH,
+  findRecentReport,
   isAppReport,
   reportAppFailure,
 } = require('../../services/verticals/5b7227b4-gift-finder-ios');
@@ -36,6 +37,12 @@ function reserveReportSlot(now = Date.now()) {
   return true;
 }
 
+// Seconds until the oldest accepted report leaves the window and a slot opens again.
+function retryAfterSeconds(now = Date.now()) {
+  const oldest = acceptedAt.length > 0 ? acceptedAt[0] : now;
+  return Math.max(1, Math.ceil((oldest + REPORT_WINDOW_MS - now) / 1000));
+}
+
 /**
  * POST /api/5b7227b4/gift-finder/ios/error — a failed final reservation reported by the native
  * Nordstrom Gift Finder iOS app (COG-GTM/ios-demos, apps/nordstrom-gift-finder). Raises the Slack
@@ -52,8 +59,20 @@ router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
     });
   }
 
+  const duplicate = findRecentReport(body.reference);
+  if (duplicate) {
+    return res.status(202).json({
+      received: true,
+      status: 'duplicate',
+      reference: duplicate.reference,
+      service: APP_SERVICE,
+      sessionRequested: false,
+      receivedAt: new Date().toISOString(),
+    });
+  }
+
   if (!reserveReportSlot()) {
-    res.set('Retry-After', String(Math.ceil(REPORT_WINDOW_MS / 1000)));
+    res.set('Retry-After', String(retryAfterSeconds()));
     return res.status(429).json({
       received: false,
       status: 'throttled',
@@ -75,4 +94,5 @@ router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
 
 module.exports = router;
 module.exports.reserveReportSlot = reserveReportSlot;
+module.exports.retryAfterSeconds = retryAfterSeconds;
 module.exports._resetReportCap = () => { acceptedAt.length = 0; };

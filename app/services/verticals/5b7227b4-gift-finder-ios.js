@@ -96,6 +96,50 @@ Reproduction safety: every failure report from the app raises a real Slack alert
 the app with \`NORDSTROM_DISABLE_FAILURE_REPORTS=1\` (\`SIMCTL_CHILD_\` prefix under \`simctl launch\`) or the
 \`-disableFailureReports\` launch argument unless the alert chain is deliberately being exercised.`;
 
+// Used when the report describes a reservation failure other than the known Partner profile gap:
+// same repository, path and process, without asserting a diagnosis the report does not carry.
+const GENERIC_REMEDIATION_DIRECTIVE = `*Repository to investigate and fix:* \`${APP_REPO}\` (Swift / SwiftUI, native iOS), folder \`${APP_DIR}/\`
+
+A gift reservation failed at final reservation in the Nordstrom Black Friday Gift Finder iOS app. The shopper built
+a brief, added a pick to the bag and tapped the primary reservation button ("Reserve for pickup" / "Place order" /
+"Reserve pickup & ship"); instead of the \`NORD-4028\` confirmation the app showed "We couldn't complete your
+reservation." with an incident reference, and the hold was not submitted. The error type, message, recipient and
+reproduction context are in this alert.
+
+Investigate and fix \`${APP_REPO_NAME}\` only — not this Node repository. Work inside \`${APP_DIR}/\` and do not
+touch other apps. Read the repo's \`README.md\` and \`${APP_DIR}/DEMO.md\` first.
+
+Code path:
+- Final reservation: \`${APP_DIR}/App/Services/ReservationService.swift\` (\`ReservationService.reserve\`,
+  \`FulfillmentProfiles\`, \`ReservationError\`)
+- Store: \`${APP_DIR}/App/Store/GiftStore.swift\` — \`GiftStore.checkout()\` calls the reservation service and shows
+  the failure state on \`ReservationError\`
+- Client identity: \`${APP_SERVICE}\`, source \`${APP_SOURCE_PREFIX}ios\`, report endpoint \`POST ${IOS_ERROR_PATH}\`
+
+Steps:
+1. This session is requested on macOS. Confirm with \`uname -s\` and \`xcodebuild -version\`: on macOS, do all
+   the work here and do not create child sessions; only if this session is not on macOS (platform fallback),
+   create one macOS child session for the simulator work.
+2. Reproduce on the iOS Simulator with \`make run APP=nordstrom-gift-finder\` and failure reports off
+   (\`SIMCTL_CHILD_NORDSTROM_DISABLE_FAILURE_REPORTS=1\`, or launch with \`-disableFailureReports -resetState\`),
+   using the recipient, interests, budget and deadline from the alert's context, and confirm the reported error.
+3. Find the root cause and fix it in the app's reservation configuration and/or logic. Do not swallow the error,
+   skip the recipient or hide the failure state.
+4. Add or update XCTest coverage in \`${APP_DIR}/Tests/\` that fails before and passes after the fix, and run
+   \`make test APP=nordstrom-gift-finder\` to green.
+5. Keep the client identity, the report payload shape and the failure-state UI unchanged. Re-run the reproduction
+   on the fix commit and record BEFORE/AFTER on the simulator.
+6. Open a pull request against \`main\` of \`${APP_REPO_NAME}\`, request Devin Review, post findings back to the
+   Slack thread, and stop for human approval before merging.
+
+Reproduction safety: every failure report from the app raises a real Slack alert and Devin session. Always run
+the app with \`NORDSTROM_DISABLE_FAILURE_REPORTS=1\` (\`SIMCTL_CHILD_\` prefix under \`simctl launch\`) or the
+\`-disableFailureReports\` launch argument unless the alert chain is deliberately being exercised.`;
+
+function directiveFor(report) {
+  return isPartnerScenario(report) ? APP_REMEDIATION_DIRECTIVE : GENERIC_REMEDIATION_DIRECTIVE;
+}
+
 function clip(value, max) {
   if (value === undefined || value === null) return '';
   return String(value).slice(0, max);
@@ -116,11 +160,54 @@ function isAppSource(body) {
   return source.startsWith(APP_SOURCE_PREFIX);
 }
 
+// Swift error identity as the app reports it, e.g. `ReservationError.missingFulfillmentProfile`.
+const ERROR_TYPE_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$/;
+const RECIPIENT_PATTERN = /^[a-z][a-z0-9-]{0,31}$/;
+const PARTNER_SCENARIO = { recipient: 'partner', errorType: 'ReservationError.missingFulfillmentProfile' };
+
 function isAppReport(body) {
   return isAppSource(body)
     && body.service === APP_SERVICE
-    && typeof body.errorType === 'string' && body.errorType.trim() !== ''
-    && typeof body.recipient === 'string' && body.recipient.trim() !== '';
+    && typeof body.errorType === 'string' && ERROR_TYPE_PATTERN.test(body.errorType)
+    && typeof body.recipient === 'string' && RECIPIENT_PATTERN.test(body.recipient);
+}
+
+function isPartnerScenario(report) {
+  return report.recipient === PARTNER_SCENARIO.recipient && report.errorType === PARTNER_SCENARIO.errorType;
+}
+
+// The app sends one report per incident and carries its own `reference`; a resend of the same
+// reference (lost response, retry) must not raise a second alert or session.
+const RECENT_REPORT_TTL_MS = 10 * 60 * 1000;
+const RECENT_REPORT_MAX = 200;
+const recentReports = new Map();
+
+function pruneRecentReports(now) {
+  for (const [key, entry] of recentReports) {
+    if (entry.expiresAt <= now) recentReports.delete(key);
+  }
+  while (recentReports.size > RECENT_REPORT_MAX) {
+    recentReports.delete(recentReports.keys().next().value);
+  }
+}
+
+function findRecentReport(clientReference, now = Date.now()) {
+  const key = clip(clientReference, 64);
+  if (!key) return null;
+  pruneRecentReports(now);
+  const entry = recentReports.get(key);
+  return entry && entry.expiresAt > now ? entry : null;
+}
+
+function rememberReport(clientReference, reference, now = Date.now()) {
+  const key = clip(clientReference, 64);
+  if (!key) return;
+  pruneRecentReports(now);
+  recentReports.set(key, { reference, expiresAt: now + RECENT_REPORT_TTL_MS });
+}
+
+function clearRecentReports() {
+  recentReports.clear();
 }
 
 async function resolveUserIdByEmail(email, orgId) {
@@ -246,7 +333,7 @@ function reportAppFailure(report) {
     project: APP_PROJECT,
     release,
     sessionPlatform: GIFT_FINDER_IOS_SESSION_PLATFORM || undefined,
-    promptAppendix: APP_REMEDIATION_DIRECTIVE,
+    promptAppendix: directiveFor(report),
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
     extra: {
       ...extra,
@@ -275,6 +362,7 @@ function reportAppFailure(report) {
     });
   });
 
+  rememberReport(clientReference, reference);
   return { reference, sessionPromise };
 }
 
@@ -293,7 +381,13 @@ module.exports = {
   APP_CULPRIT,
   GIFT_FINDER_IOS_SESSION_PLATFORM,
   APP_REMEDIATION_DIRECTIVE,
+  GENERIC_REMEDIATION_DIRECTIVE,
+  ERROR_TYPE_PATTERN,
   customerForOrg,
+  directiveFor,
+  isPartnerScenario,
+  findRecentReport,
+  clearRecentReports,
   isAppSource,
   isAppReport,
   reportAppFailure,
