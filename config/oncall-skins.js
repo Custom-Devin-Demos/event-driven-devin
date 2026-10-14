@@ -3479,6 +3479,31 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A VERTICAN TECHNOLOGIES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Vertican Technologies product.',
   },
+  'ddfc5af1': {
+    slug: 'ddfc5af1',
+    company: 'United Airlines',
+    brandMark: 'U',
+    vertical: 'banking',
+    oncallOnly: true,
+    teamsAlerts: true,
+    page: { file: 'ddfc5af1.html', title: 'Transfer miles | United Airlines' },
+    theme: {
+      '--accent': '#1414D2',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#002244',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'MileagePlus Service Center',
+    alertCard: {
+      title: 'p95 latency \u2014 MileagePlus Transfer miles',
+      release: 'mileageplus-web@1.0.3',
+      baseline: '~280ms (7-day p95, before mileageplus-web@1.0.3)',
+      symptom: 'Transfer miles hangs ~9s before the transfer confirms. Error rate is normal \u2014 transfers eventually go through.',
+      impact: 'MileagePlus members transferring miles wait ~9 seconds on Transfer miles; some press it again or abandon the transfer before it confirms.',
+    },
+    disclaimer: 'NOT ACTUALLY A UNITED AIRLINES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real United Airlines product.',
+  },
 };
 
 function getOncallSkin(slug) {
