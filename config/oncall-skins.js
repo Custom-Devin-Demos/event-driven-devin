@@ -3676,6 +3676,30 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A SANTANDER CONSUMER FINANCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Santander Consumer Finance product.',
   },
+  'b094da01': {
+    slug: 'b094da01',
+    company: '第一生命',
+    brandMark: '第',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: 'b094da01.html', title: '資料のご請求 | 第一生命' },
+    theme: {
+      '--accent': '#1746FF',
+      '--ink': '#333333',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000064',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: 'p95 latency \u2014 brochure request submissions',
+      release: 'document-request-web@2.4.0',
+      team: 'direct-channel-oncall',
+      symptom: 'Online brochure requests hang ~8s on submit and then return a 504. No request is accepted.',
+      impact: 'Prospects requesting brochures or quotes online wait ~8 seconds and the request is not accepted; brochure-request dial calls are rising.',
+    },
+    supportCenter: '第一生命 資料請求ダイヤル',
+    disclaimer: 'NOT ACTUALLY A DAI-ICHI LIFE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dai-ichi Life product.',
+  },
 };
 
 function getOncallSkin(slug) {
