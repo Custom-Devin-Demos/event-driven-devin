@@ -355,7 +355,7 @@
       button.classList.add('busy');
       submitLabel.textContent = 'Sending';
       try {
-        await window.identityReady;
+        await Promise.race([window.identityReady, new Promise((r) => setTimeout(r, 2000))]);
         const response = await fetch('/api/insurance/claim', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
