@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New advance request | FHLB Cincinnati Member Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1D4E89;
+      --accent-hover: #163C6B;
+      --ink: #1B2433;
+      --surface: #FFFFFF;
+      --chrome-bg: #0B1F3A;
+      --chrome-text: #FFFFFF;
+      --page: #EEF1F5;
+      --line: #CBD3DE;
+      --muted: #5B6778;
+      --soft: #E3E8EF;
+      --ok: #1E6B45;
+      --warn: #8A5A00;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.5 'Source Sans 3', 'Segoe UI', Tahoma, Arial, sans-serif; }
+    a { color: var(--accent); text-decoration: none; }
+    button, input, select { font: inherit; }
+    .topbar { background: var(--chrome-bg); color: var(--chrome-text); border-bottom: 3px solid #8FA7C4; }
+    .topbar-inner { min-height: 60px; padding: 0 22px; display: flex; align-items: center; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: var(--chrome-text); }
+    .brand-mark { width: 36px; height: 36px; border: 2px solid #C9D6E6; display: grid; place-items: center; font: 700 13px/1 Georgia, 'Times New Roman', serif; letter-spacing: .04em; }
+    .brand-name { line-height: 1.15; }
+    .brand-name strong { display: block; font: 600 16px/1.15 Georgia, 'Times New Roman', serif; }
+    .brand-name span { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .78; }
+    .user { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; text-align: right; }
+    .user small { display: block; font-size: 11px; opacity: .75; }
+    .avatar { width: 32px; height: 32px; border-radius: 2px; background: #2E4A6E; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+    .menubar { background: #13294B; }
+    .menubar nav { display: flex; gap: 0; padding: 0 12px; overflow-x: auto; }
+    .menubar a { color: #C9D6E6; padding: 10px 14px; font-size: 13px; white-space: nowrap; border-bottom: 3px solid transparent; }
+    .menubar a.current { color: #fff; background: #1D3A63; border-bottom-color: #8FA7C4; font-weight: 600; }
+    .main { padding: 18px 26px 70px; max-width: 1220px; margin: 0 auto; }
+    .crumbs { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 14px; }
+    h1 { margin: 0; font: 600 23px/1.25 Georgia, 'Times New Roman', serif; }
+    .sub { color: var(--muted); }
+    .chip { display: inline-block; padding: 3px 10px; border: 1px solid #A9BAD0; background: #E7EDF5; color: var(--accent); font-weight: 600; font-size: 12px; white-space: nowrap; }
+    .chip.funded { background: #E5F2EA; border-color: #9CCBAE; color: var(--ok); }
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .kpi { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--accent); padding: 10px 14px; min-width: 0; }
+    .kpi span { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .kpi strong { display: block; font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr); gap: 14px; align-items: start; }
+    .layout > * { min-width: 0; }
+    .card { background: var(--surface); border: 1px solid var(--line); padding: 16px 18px; margin-bottom: 14px; }
+    .card h2 { margin: 0 0 12px; font-size: 15px; font-weight: 700; color: #13294B; border-bottom: 1px solid var(--soft); padding-bottom: 8px; }
+    .steps { display: flex; gap: 0; margin: 0 0 16px; padding: 0; list-style: none; border: 1px solid var(--line); }
+    .steps li { flex: 1; padding: 8px 10px; font-size: 12px; color: var(--muted); background: #F6F8FB; border-right: 1px solid var(--line); }
+    .steps li:last-child { border-right: 0; }
+    .steps li b { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 6px; border-radius: 50%; background: var(--soft); color: var(--muted); font-size: 11px; }
+    .steps li.active { background: #fff; color: var(--ink); font-weight: 600; box-shadow: inset 0 -3px 0 var(--accent); }
+    .steps li.active b, .steps li.done b { background: var(--accent); color: #fff; }
+    .step[hidden] { display: none !important; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+    .field { margin-bottom: 14px; min-width: 0; }
+    .field label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600; color: #2F3B4D; }
+    .field input, .field select { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid #A9B4C4; border-radius: 2px; background: #fff; color: var(--ink); }
+    .field input:focus, .field select:focus { outline: 2px solid rgba(29,78,137,.3); border-color: var(--accent); }
+    .field small { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+    .rate { padding: 10px 12px; background: #F4F7FB; border: 1px solid var(--soft); margin-bottom: 14px; font-size: 13px; }
+    .rate strong { font-variant-numeric: tabular-nums; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; background: #F4F6F9; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+    td { padding: 7px 8px; border-bottom: 1px solid #E8ECF1; }
+    td.num, th.num { text-align: right; }
+    tfoot td { font-weight: 700; border-top: 2px solid var(--line); }
+    .table-wrap { overflow-x: auto; }
+    .coverage { margin: 12px 0 14px; padding: 10px 12px; border: 1px solid; font-size: 13px; }
+    .coverage.ok { background: #EEF7F1; border-color: #9CCBAE; color: var(--ok); }
+    .coverage.short { background: #FDF5E6; border-color: #E2C27A; color: var(--warn); }
+    .review { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 6px 12px; margin: 0 0 14px; }
+    .review dt { color: var(--muted); font-size: 12px; }
+    .review dd { margin: 0; font-weight: 600; }
+    .actions { display: flex; gap: 10px; align-items: center; }
+    .btn { min-height: 44px; padding: 0 18px; border: 1px solid var(--accent); border-radius: 2px; background: #fff; color: var(--accent); font-weight: 600; cursor: pointer; }
+    .btn.primary, .submit-btn { background: var(--accent); color: #fff; }
+    .submit-btn { flex: 1; min-height: 48px; border: 0; border-radius: 2px; font-weight: 700; cursor: pointer; }
+    .btn.primary:hover, .submit-btn:hover { background: var(--accent-hover); }
+    .btn:disabled, .submit-btn:disabled { opacity: .65; cursor: not-allowed; }
+    .status { min-height: 20px; margin: 10px 0 0; color: var(--muted); font-size: 12px; }
+    .result-box { display: none; margin-top: 12px; padding: 12px 14px; font-size: 13px; }
+    .result-box.success { display: block; background: #E5F2EA; border: 1px solid #9CCBAE; color: var(--ok); }
+    .result-box.notice { display: block; background: #FBEAEA; border: 1px solid #E5B1B1; color: #8E1F1F; }
+    .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border: 1px solid; }
+    .pill.out { background: #EEF2F7; color: #3B4D66; border-color: #C3CEDC; }
+    .pill.new { background: #E5F2EA; color: var(--ok); border-color: #9CCBAE; }
+    .mono { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+    .note { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+    footer { text-align: center; font-size: 11px; color: var(--muted); padding: 10px 0 30px; }
+    @media (max-width: 900px) {
+      .user small, .user .who { display: none; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout, .form-grid { grid-template-columns: 1fr; }
+      .main { padding: 14px 14px 70px; }
+      .head { flex-direction: column; }
+      .review { grid-template-columns: 1fr; }
+      .steps li { font-size: 11px; padding: 8px 6px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="topbar-inner">
+    <a class="brand" href="#top" aria-label="Federal Home Loan Bank of Cincinnati Member Portal"><span class="brand-mark" aria-hidden="true">FHLB</span><span class="brand-name"><strong>Federal Home Loan Bank of Cincinnati</strong><span>Member Portal</span></span></a>
+    <div class="user"><span class="who">Dana Whitfield<small>Treasurer &middot; Buckeye Valley Savings Bank (OH)</small></span><span class="avatar">DW</span></div>
+  </div></header>
+  <div class="menubar"><nav aria-label="Member Portal">
+    <a href="#top">Dashboard</a><a href="#top" class="current">Advances</a><a href="#top">Collateral</a><a href="#top">Capital Stock</a><a href="#top">Letters of Credit</a><a href="#top">MPF Program</a><a href="#top">Reports</a><a href="#top">Settlement (DDA)</a>
+  </div></div>
+  <main class="main" id="top">
+    <div class="crumbs">Advances / New advance request</div>
+    <div class="head">
+      <div><h1>New advance request</h1><div class="sub">Member <span id="memberId">#04417</span> &middot; Buckeye Valley Savings Bank, Zanesville, OH &middot; Fifth District</div></div>
+      <span class="chip" id="requestChip">Draft</span>
+    </div>
+    <section class="kpis" aria-label="Credit position">
+      <div class="kpi"><span>Borrowing capacity</span><strong id="kpiCapacity">&ndash;</strong></div>
+      <div class="kpi"><span>Advances outstanding</span><strong id="kpiOutstanding">&ndash;</strong></div>
+      <div class="kpi"><span>Available to borrow</span><strong id="kpiAvailable">&ndash;</strong></div>
+      <div class="kpi"><span>Same-day wire cutoff</span><strong>4:30 PM ET</strong></div>
+    </section>
+    <div class="layout">
+      <section class="card" aria-labelledby="request-heading">
+        <h2 id="request-heading">Advance request</h2>
+        <ol class="steps" id="steps">
+          <li data-step="1" class="active"><b>1</b>Product &amp; term</li>
+          <li data-step="2"><b>2</b>Collateral coverage</li>
+          <li data-step="3"><b>3</b>Review &amp; submit</li>
+        </ol>
+        <form id="transferForm" novalidate>
+          <div class="step" data-step="1">
+            <div class="form-grid">
+              <div class="field"><label for="product">Advance product</label><select id="product">
+                <option value="FRA">Fixed-Rate Advance</option>
+                <option value="REPO">Repo (overnight) Advance</option>
+                <option value="ARA">Adjustable-Rate Advance (SOFR)</option>
+                <option value="AMORT">Mortgage-Matched (amortizing) Advance</option>
+              </select></div>
+              <div class="field"><label for="term">Term</label><select id="term">
+                <option value="1">1 year</option>
+                <option value="3" selected>3 years</option>
+                <option value="5">5 years</option>
+                <option value="10">10 years</option>
+              </select></div>
+              <div class="field"><label for="amount">Advance amount (USD)</label><input type="number" id="amount" min="100000" step="100000" value="7500000" required><small>Minimum $100,000, in $100,000 increments.</small></div>
+              <div class="field"><label for="fundingDate">Funding date</label><select id="fundingDate"><option value="same-day">Same day &middot; Thu 15 Oct 2026</option><option value="next-day">Next business day &middot; Fri 16 Oct 2026</option></select></div>
+            </div>
+            <div class="rate" id="rateBox">Indicative rate: <strong id="rateValue">&ndash;</strong> <span class="sub">&middot; rates refreshed 9:45 AM ET &middot; final rate locks on submit</span></div>
+            <div class="actions"><button type="button" class="btn primary" id="toStep2">Continue to collateral coverage</button></div>
+          </div>
+
+          <div class="step" data-step="2" hidden>
+            <p class="sub" style="margin-top:0">Lendable value is the pledged amount after FHLB Cincinnati collateral haircuts. The advance must be fully covered before it can be submitted.</p>
+            <div class="table-wrap"><table aria-label="Pledged collateral">
+              <thead><tr><th>Collateral category</th><th>Method</th><th class="num">Pledged (UPB/MV)</th><th class="num">Haircut</th><th class="num">Lendable value</th></tr></thead>
+              <tbody id="collateralRows"></tbody>
+              <tfoot><tr><td colspan="4">Total lendable collateral</td><td class="num" id="collateralTotal">&ndash;</td></tr></tfoot>
+            </table></div>
+            <div class="field" style="margin-top:12px"><label for="accountTier">Collateral verification for this advance</label><select id="accountTier">
+              <option value="standard">Listed loans &mdash; loan-level re-valuation at submit</option>
+              <option value="premium">Delivered securities only &mdash; pre-valued at custody</option>
+              <option value="basic">First advance under updated loan listing (Q3 2026)</option>
+            </select><small>Loan-level listings are re-valued against current pricing before the advance books.</small></div>
+            <div class="coverage" id="coverageBox" role="status" aria-live="polite"></div>
+            <div class="actions"><button type="button" class="btn" id="back1">Back</button><button type="button" class="btn primary" id="toStep3">Continue to review</button></div>
+          </div>
+
+          <div class="step" data-step="3" hidden>
+            <dl class="review" id="reviewList"></dl>
+            <div class="form-grid">
+              <div class="field"><label for="fromAccount">Settle interest &amp; principal from</label><select id="fromAccount"><option value="ACCT-1004">Overnight DDA &bull;&bull;4417 (FHLB Cincinnati)</option><option value="ACCT-1001">Cash Management DDA &bull;&bull;4430 (FHLB Cincinnati)</option></select></div>
+              <div class="field"><label for="toAccount">Credit proceeds to</label><select id="toAccount"><option value="ACCT-1002" data-label="Fed master account &bull;&bull;0071">Fed master account &bull;&bull;0071 (Fed wire)</option><option value="ACCT-1003" data-label="Overnight DDA &bull;&bull;4417">Overnight DDA &bull;&bull;4417 (book transfer)</option></select></div>
+            </div>
+            <div class="actions"><button type="button" class="btn" id="back2">Back</button><button type="submit" id="submitBtn" class="submit-btn">Submit advance request</button></div>
+          </div>
+          <p class="status" id="transferStatus" role="status" aria-live="polite">Draft &middot; not submitted</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+      <aside>
+        <section class="card" aria-labelledby="outstanding-heading">
+          <h2 id="outstanding-heading">Advances outstanding</h2>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Advance</th><th>Product</th><th class="num">Amount</th><th>Status</th></tr></thead>
+            <tbody id="advanceRows"></tbody>
+          </table></div>
+          <p class="note">Capital stock requirement: 4.0% of advances outstanding (activity-based).</p>
+        </section>
+        <section class="card" aria-labelledby="peers-heading">
+          <h2 id="peers-heading">Advances desk</h2>
+          <p class="note" style="margin-top:0">Questions about an advance in progress? Call Member Services at the number on your member agreement, or message your relationship manager, Elena Brandt (Ohio &amp; Kentucky members).</p>
+        </section>
+      </aside>
+    </div>
+    <footer>Federal Home Loan Bank of Cincinnati &middot; Fifth District: Ohio, Kentucky, Tennessee &middot; Member Portal 2026.10.1</footer>
+  </main>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const COLLATERAL = [
+        { category: '1-4 family residential mortgages', method: 'Listing', pledged: 61840000, haircut: 0.25 },
+        { category: 'Multifamily mortgages', method: 'Listing', pledged: 9420000, haircut: 0.32 },
+        { category: 'Commercial real estate', method: 'Listing', pledged: 14760000, haircut: 0.40 },
+        { category: 'Agency MBS (custody)', method: 'Delivery', pledged: 18300000, haircut: 0.05 },
+        { category: 'U.S. Treasuries (custody)', method: 'Delivery', pledged: 6200000, haircut: 0.02 },
+      ];
+      const PRODUCTS = { FRA: 'Fixed-Rate Advance', REPO: 'Repo (overnight) Advance', ARA: 'Adjustable-Rate Advance (SOFR)', AMORT: 'Mortgage-Matched (amortizing) Advance' };
+      const BASE_RATES = { FRA: 4.21, REPO: 4.46, ARA: 4.38, AMORT: 4.12 };
+      const TERM_SPREAD = { 1: 0, 3: 0.09, 5: 0.17, 10: 0.34 };
+      const advances = [
+        { id: 'ADV-260311-0412', product: 'Fixed-Rate Advance', amount: 25000000 },
+        { id: 'ADV-260702-1180', product: 'Mortgage-Matched (amortizing) Advance', amount: 12500000 },
+        { id: 'ADV-260918-2207', product: 'Repo (overnight) Advance', amount: 4000000 },
+      ];
+      const usd = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+      const $ = (id) => document.getElementById(id);
+      const lendable = (c) => Math.round(c.pledged * (1 - c.haircut));
+      const capacity = () => COLLATERAL.reduce((sum, c) => sum + lendable(c), 0);
+      const outstanding = () => advances.reduce((sum, a) => sum + a.amount, 0);
+      const available = () => capacity() - outstanding();
+      const amount = () => parseInt($('amount').value, 10) || 0;
+      const termYears = () => ($('product').value === 'REPO' ? 0 : parseInt($('term').value, 10));
+      const termLabel = () => ($('product').value === 'REPO' ? 'Overnight (renews daily)' : `${$('term').value} year${$('term').value === '1' ? '' : 's'}`);
+      const rate = () => (BASE_RATES[$('product').value] + (TERM_SPREAD[termYears()] || 0)).toFixed(2) + '%';
+
+      function renderPosition() {
+        $('kpiCapacity').textContent = usd(capacity());
+        $('kpiOutstanding').textContent = usd(outstanding());
+        $('kpiAvailable').textContent = usd(available());
+        $('advanceRows').innerHTML = advances.map((a) => `<tr><td class="mono">${a.id}</td><td>${a.product}</td><td class="num">${usd(a.amount)}</td><td><span class="pill ${a.fresh ? 'new' : 'out'}">${a.fresh ? 'Funded today' : 'Outstanding'}</span></td></tr>`).join('');
+      }
+      function renderCollateral() {
+        $('collateralRows').innerHTML = COLLATERAL.map((c) => `<tr><td>${c.category}</td><td>${c.method}</td><td class="num">${usd(c.pledged)}</td><td class="num">${Math.round(c.haircut * 100)}%</td><td class="num">${usd(lendable(c))}</td></tr>`).join('');
+        $('collateralTotal').textContent = usd(capacity());
+      }
+      function amountValid() { const a = amount(); return a >= 100000 && a % 100000 === 0; }
+      function covered() { return amountValid() && amount() <= available(); }
+      function renderCoverage() {
+        const box = $('coverageBox');
+        const after = available() - amount();
+        if (covered()) {
+          box.className = 'coverage ok';
+          box.textContent = `Covered. ${usd(amount())} requested against ${usd(available())} available; ${usd(after)} remains available after this advance.`;
+        } else {
+          box.className = 'coverage short';
+          box.textContent = amountValid()
+            ? `Not covered. ${usd(amount())} exceeds the ${usd(available())} available to borrow by ${usd(-after)}. Pledge additional collateral or reduce the amount.`
+            : 'Enter an amount of at least $100,000 in $100,000 increments.';
+        }
+        $('toStep3').disabled = !covered();
+      }
+      function renderReview() {
+        const rows = [
+          ['Product', PRODUCTS[$('product').value]],
+          ['Term', termLabel()],
+          ['Amount', usd(amount())],
+          ['Indicative rate', rate()],
+          ['Funding', $('fundingDate').selectedOptions[0].textContent],
+          ['Collateral verification', $('accountTier').selectedOptions[0].textContent],
+          ['Available after advance', usd(available() - amount())],
+        ];
+        $('reviewList').innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+      }
+      function go(step) {
+        document.querySelectorAll('.step').forEach((el) => { el.hidden = el.dataset.step !== String(step); });
+        document.querySelectorAll('#steps li').forEach((li) => {
+          const n = parseInt(li.dataset.step, 10);
+          li.classList.toggle('active', n === step);
+          li.classList.toggle('done', n < step);
+        });
+        if (step === 2) renderCoverage();
+        if (step === 3) renderReview();
+      }
+      function refreshRate() { $('rateValue').textContent = rate(); $('term').disabled = $('product').value === 'REPO'; }
+
+      $('product').addEventListener('change', refreshRate);
+      $('term').addEventListener('change', refreshRate);
+      $('amount').addEventListener('input', renderCoverage);
+      $('accountTier').addEventListener('change', renderCoverage);
+      $('toStep2').addEventListener('click', () => {
+        if (!amountValid()) { $('amount').focus(); $('transferStatus').textContent = 'Enter an amount of at least $100,000 in $100,000 increments.'; return; }
+        $('transferStatus').textContent = 'Draft \u00b7 checking collateral coverage';
+        go(2);
+      });
+      $('back1').addEventListener('click', () => go(1));
+      $('toStep3').addEventListener('click', () => { if (covered()) go(3); });
+      $('back2').addEventListener('click', () => go(2));
+
+      const form = $('transferForm');
+      const button = $('submitBtn');
+      const result = $('result');
+      const status = $('transferStatus');
+      let inFlight = false;
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (inFlight || !covered()) return;
+        inFlight = true;
+        const requested = amount();
+        const productName = PRODUCTS[$('product').value];
+        const requestTerm = termLabel();
+        const requestRate = rate();
+        const proceeds = $('toAccount').selectedOptions[0].dataset.label;
+        const sameDay = $('fundingDate').value === 'same-day';
+        button.disabled = true;
+        button.textContent = 'Submitting advance request\u2026';
+        status.textContent = 'Verifying collateral coverage and booking the advance\u2026';
+        $('requestChip').textContent = 'Submitted';
+        result.className = 'result-box';
+        result.textContent = '';
+        try {
+          const response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: $('fromAccount').value,
+              toAccount: $('toAccount').value,
+              amount: requested,
+              accountTier: $('accountTier').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok || !data.success) throw new Error('Advance request was not accepted.');
+          const ref = (data.receipt && data.receipt.receiptId) || data.transferId;
+          advances.unshift({ id: ref, product: productName, amount: requested, fresh: true });
+          renderPosition();
+          result.className = 'result-box success';
+          result.innerHTML = `<strong>Advance funded.</strong> ${usd(requested)} ${productName}, ${requestTerm.toLowerCase()} at ${requestRate}. Proceeds ${sameDay ? 'credited today' : 'scheduled for next business day'} to ${proceeds} (confirmation <span class="mono">${ref}</span>). Remaining available to borrow: ${usd(available())}.`;
+          status.textContent = sameDay ? 'Funded \u2014 same-day confirmation sent to treasury contacts.' : 'Booked \u2014 funds on next business day.';
+          $('requestChip').textContent = sameDay ? 'Funded' : 'Booked';
+          $('requestChip').classList.add('funded');
+          renderCoverage();
+        } catch (_error) {
+          result.className = 'result-box notice';
+          result.textContent = 'Your advance request could not be confirmed. Do not resubmit \u2014 contact the advances desk before the 4:30 PM ET wire cutoff.';
+          status.textContent = 'Advance request not confirmed.';
+          $('requestChip').textContent = 'Not confirmed';
+        } finally {
+          inFlight = false;
+          button.disabled = false;
+          button.textContent = 'Submit advance request';
+        }
+      });
+
+      renderPosition();
+      renderCollateral();
+      refreshRate();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
