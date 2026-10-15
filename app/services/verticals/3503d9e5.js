@@ -11,6 +11,7 @@ const ROUTE = '/api/3503d9e5/bookings';
 // The booking route is public: cap real Datadog incidents to one per window.
 const INCIDENT_COOLDOWN_MS = 5 * 60 * 1000;
 let lastIncidentAt = -Infinity;
+let incidentPending = false;
 const PAGE = '/3503d9e5';
 
 /**
@@ -369,8 +370,8 @@ async function processBooking(data) {
     });
 
     const now = Date.now();
-    if (now - lastIncidentAt >= INCIDENT_COOLDOWN_MS) {
-      lastIncidentAt = now;
+    if (!incidentPending && now - lastIncidentAt >= INCIDENT_COOLDOWN_MS) {
+      incidentPending = true;
       declareDatadogIncident({
         title: 'united.com booking purchase failing at ticketing',
         summary: `${error.name}: ${error.message}. Booking ${bookingId} (${market}, ${option.code}) could not be ticketed; customers cannot complete the purchase.`,
@@ -379,7 +380,10 @@ async function processBooking(data) {
         triggeredBy: data.devinEmail || 'united-booking',
         repoUrl: 'https://github.com/COG-GTM/event-driven-devin',
         severity: 'SEV-2',
-      }).catch((err) => logger.warn('Failed to declare Datadog incident for United booking', { error: err.message, bookingId }));
+      })
+        .then((incident) => { if (incident) lastIncidentAt = Date.now(); })
+        .catch((err) => logger.warn('Failed to declare Datadog incident for United booking', { error: err.message, bookingId }))
+        .finally(() => { incidentPending = false; });
     }
 
     // United runs its incident bridge in Microsoft Teams: always alert there, never Slack,
