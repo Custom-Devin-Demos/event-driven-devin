@@ -12,7 +12,7 @@ RUN apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq 
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY cobol ./cobol
-RUN mkdir -p bin && cobc -x -free -o bin/HLDPOST cobol/HLDPOST.cbl
+RUN mkdir -p bin && cobc -x -free -I cobol/copy -o bin/HLDPOST cobol/HLDPOST.cbl
 COPY --from=build /src/target/resort-inventory.jar app.jar
 ENV JAVA_OPTS="-Xms64m -Xmx160m -XX:+UseSerialGC"
 EXPOSE 8080
