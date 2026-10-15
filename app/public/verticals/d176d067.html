@@ -531,9 +531,10 @@
       if (origin.city === destCity) origin = ORIGINS[(h + 1) % ORIGINS.length];
       const international = origin.country !== country;
       const transitDays = international ? 3 : 2;
-      const stage = [5, 5, 4, 3, 2][(h >>> 4) % 5];
-      const delivered = stage === 5;
       const isWorkday = updated.getDay() !== 0 && updated.getDay() !== 6;
+      const hashedStage = [5, 5, 4, 3, 2][(h >>> 4) % 5];
+      const stage = !isWorkday && hashedStage === 4 ? 3 : hashedStage;
+      const delivered = stage === 5;
       const lastDay = delivered || !isWorkday ? addWorkingDays(updated, -1) : updated;
       const pickup = addWorkingDays(lastDay, -(stage === 5 ? transitDays : Math.min(stage - 1, transitDays)));
       const departed = atTime(pickup, 21, 10);
@@ -549,11 +550,13 @@
         { key: 'evOut', at: outFor, where: destCity },
         { key: 'evDelivered', at: deliveredAt, where: zip + ' ' + destCity },
       ];
+      const pendingEta = outFor > updated || outFor.toDateString() === updated.toDateString()
+        ? outFor : atTime(addWorkingDays(updated, 1), 12, 0);
       events.forEach((ev, i) => { if (i <= stage && ev.at > updated) ev.at = new Date(updated); });
       return {
         tracking: tracking.toUpperCase(), zip, country, stage, delivered, international,
         origin, destCity, updated,
-        eta: delivered ? deliveredAt : outFor,
+        eta: delivered ? deliveredAt : pendingEta,
         parcels: 1 + (h % 4), weight: 12 + ((h >>> 2) % 180),
         events,
       };
@@ -602,8 +605,8 @@
     }
 
     function pdfText(str) {
-      return str.replace(/[^\x00-\xff]/g, (c) => c.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace('\u0141', 'L').replace('\u0142', 'l'))
-        .replace(/[\u2014\u2013]/g, '-').replace(/[\u2019]/g, "'").replace(/[\u00b7]/g, '-')
+      return str.replace(/[\u2014\u2013]/g, '-').replace(/[\u2019]/g, "'").replace(/[\u00b7]/g, '-')
+        .replace(/[^\x00-\xff]/g, (c) => c.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace('\u0141', 'L').replace('\u0142', 'l'))
         .replace(/[^\x20-\xff]/g, '?').replace(/([\\()])/g, '\\$1')
         .replace(/[\x80-\xff]/g, (c) => '\\' + c.charCodeAt(0).toString(8));
     }
