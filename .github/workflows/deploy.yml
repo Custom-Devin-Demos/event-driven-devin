@@ -105,6 +105,25 @@ jobs:
             ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
             'install -d -m 700 /var/tmp/devindemos-deploy && [ -O /var/tmp/devindemos-deploy ] && umask 077 && cat > /var/tmp/devindemos-deploy/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
 
+      # Optional: Field CTO reservations Slack app (/fcto) credentials, staged the
+      # same way. Actions secrets FCTO_SLACK_SIGNING_SECRET / FCTO_SLACK_BOT_TOKEN
+      # map to the same .env keys; FCTO_CHANNEL_ID is the #exec-field-requests ID
+      # (override with the FCTO_CHANNEL_ID Actions variable). Appends to the file
+      # staged above. Skipped unless both secrets are set.
+      - name: Stage FCTO Slack app config for host .env
+        env:
+          FCTO_SLACK_SIGNING_SECRET: ${{ secrets.FCTO_SLACK_SIGNING_SECRET }}
+          FCTO_SLACK_BOT_TOKEN: ${{ secrets.FCTO_SLACK_BOT_TOKEN }}
+          FCTO_CHANNEL_ID: ${{ vars.FCTO_CHANNEL_ID || 'C0C96AUKY7R' }}
+        run: |
+          if [ -z "$FCTO_SLACK_SIGNING_SECRET" ] || [ -z "$FCTO_SLACK_BOT_TOKEN" ]; then
+            echo "FCTO_SLACK_SIGNING_SECRET and FCTO_SLACK_BOT_TOKEN not both set; FCTO .env keys left unchanged"; exit 0
+          fi
+          printf 'FCTO_SLACK_SIGNING_SECRET=%s\nFCTO_SLACK_BOT_TOKEN=%s\nFCTO_CHANNEL_ID=%s\n' \
+            "$FCTO_SLACK_SIGNING_SECRET" "$FCTO_SLACK_BOT_TOKEN" "$FCTO_CHANNEL_ID" | \
+            ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
+            'install -d -m 700 /var/tmp/devindemos-deploy && [ -O /var/tmp/devindemos-deploy ] && umask 077 && cat >> /var/tmp/devindemos-deploy/env-sync-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}'
+
       # Everything below happens on the host through scripts/deploy-ec2.sh
       # (taken from the release being deployed): lock, backup, mirror the tree
       # while preserving verticals + host-only files, build, health, smoke every
