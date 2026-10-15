@@ -298,13 +298,12 @@
   </footer>
 
   <script>
-    (function () {
-      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
-      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+    window.identityReady = (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId'))
+      ? Promise.resolve()
+      : fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
         if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
         if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
       }).catch(function () {});
-    })();
   </script>
   <script>
     const form = document.getElementById('claimForm');
@@ -356,6 +355,7 @@
       button.classList.add('busy');
       submitLabel.textContent = 'Sending';
       try {
+        await window.identityReady;
         const response = await fetch('/api/insurance/claim', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
