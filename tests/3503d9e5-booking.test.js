@@ -122,6 +122,7 @@ describe('3503d9e5 united.com booking', () => {
   });
 
   test('repeat failures inside the cooldown open only one Datadog incident', async () => {
+    declareDatadogIncident.mockResolvedValue({ id: 'inc-1', publicId: 1 });
     const later = Date.now() + INCIDENT_COOLDOWN_MS * 10;
     jest.spyOn(Date, 'now').mockReturnValue(later);
     await book();
@@ -131,6 +132,19 @@ describe('3503d9e5 united.com booking', () => {
     Date.now.mockReturnValue(later + INCIDENT_COOLDOWN_MS);
     await book();
     expect(declareDatadogIncident).toHaveBeenCalledTimes(2);
+    Date.now.mockRestore();
+    declareDatadogIncident.mockResolvedValue(null);
+  });
+
+  test('a rejected or skipped declaration does not start the cooldown', async () => {
+    const later = Date.now() + INCIDENT_COOLDOWN_MS * 100;
+    jest.spyOn(Date, 'now').mockReturnValue(later);
+    declareDatadogIncident.mockRejectedValueOnce(new Error('503'));
+    await book();
+    declareDatadogIncident.mockResolvedValueOnce(null);
+    await book();
+    await book();
+    expect(declareDatadogIncident).toHaveBeenCalledTimes(3);
     Date.now.mockRestore();
   });
 
