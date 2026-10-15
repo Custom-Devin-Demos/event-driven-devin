@@ -20,7 +20,7 @@ jest.mock('../app/services/sonar-pr-trigger', () => ({
   scheduleVulnerablePR: jest.fn(),
 }));
 
-const { postMessage, postThreadReply } = require('../app/services/slack');
+const { postMessage, postThreadReply, lookupSlackUserByEmail } = require('../app/services/slack');
 const { scheduleVulnerablePR } = require('../app/services/sonar-pr-trigger');
 const { createDevinSession } = require('../app/services/devin-api');
 const { getOncallSkin } = require('../config/oncall-skins');
@@ -252,5 +252,58 @@ describe('on-call alerts that auto-create a Devin session', () => {
     expect(result.ok).toBe(true);
     expect(result.sessionUrl).toBeUndefined();
     expect(postThreadReply).not.toHaveBeenCalled();
+  });
+});
+
+describe('skins that page the triggering presenter as On-Call', () => {
+  const TRIGGERER_SKIN_SLUG = '6997dfbe';
+
+  beforeEach(() => jest.clearAllMocks());
+
+  test('the presenter owns the session and is paged as On-Call', async () => {
+    lookupSlackUserByEmail.mockResolvedValueOnce('U0PRESENTER');
+    const skin = getOncallSkin(TRIGGERER_SKIN_SLUG);
+
+    const result = await postOncallAlert(skin.vertical, {
+      skin,
+      devinEmail: 'presenter@devindemos.com',
+      devinUserId: 'user_presenter',
+      devinOrgId: 'org_presenter',
+    });
+
+    expect(result.ok).toBe(true);
+    const [, , text, blocks] = postMessage.mock.calls[0];
+    expect(text).toContain('*On-Call:* <@U0PRESENTER>');
+    expect(text).not.toContain('*Owner:*');
+    expect(JSON.stringify(blocks)).toContain('On-Call');
+    expect(JSON.stringify(blocks)).toContain('<@U0PRESENTER>');
+
+    const [prompt, options] = createDevinSession.mock.calls[0];
+    expect(options.userId).toBe('user_presenter');
+    expect(options.orgId).toBe('org_presenter');
+    expect(prompt).toContain('<@U0PRESENTER>');
+  });
+
+  test('an unresolvable presenter keeps the owner rotation and no mention', async () => {
+    const skin = getOncallSkin(TRIGGERER_SKIN_SLUG);
+
+    const result = await postOncallAlert(skin.vertical, { skin, devinEmail: 'nobody@devindemos.com' });
+
+    expect(result.ok).toBe(true);
+    const [, , text] = postMessage.mock.calls[0];
+    expect(text).toContain('*Owner:*');
+    expect(text).not.toContain('*On-Call:*');
+    const [prompt] = createDevinSession.mock.calls[0];
+    expect(prompt).not.toMatch(/<@[A-Z0-9]+>/);
+  });
+
+  test('skins without the flag never page the presenter as On-Call', async () => {
+    lookupSlackUserByEmail.mockResolvedValueOnce('U0PRESENTER');
+    const skin = getOncallSkin(AUTO_SKIN_SLUG);
+
+    await postOncallAlert(skin.vertical, { skin, devinEmail: 'presenter@devindemos.com' });
+
+    const [, , text] = postMessage.mock.calls[0];
+    expect(text).not.toContain('*On-Call:*');
   });
 });
