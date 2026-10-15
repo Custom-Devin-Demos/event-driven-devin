@@ -64,6 +64,29 @@ describe('mock ScoreCard API', () => {
     expect(over.body.error).toBe('insufficient_points');
   });
 
+  test('retrying an order_id does not change the balance twice', async () => {
+    const first = await call('POST', '/members/6100457823/earn', { amount: 50, order_id: 'DSG-R1' });
+    const retry = await call('POST', '/members/6100457823/earn', { amount: 50, order_id: 'DSG-R1' });
+    expect(retry.body.replayed).toBe(true);
+    expect(retry.body.transaction.transaction_id).toBe(first.body.transaction.transaction_id);
+    expect(retry.body.member.points_balance).toBe(first.body.member.points_balance);
+    await call('POST', '/members/6100457823/redeem', { points: 10, order_id: 'DSG-R2' });
+    const again = await call('POST', '/members/6100457823/redeem', { points: 10, order_id: 'DSG-R2' });
+    expect(again.body.member.points_balance).toBe(first.body.member.points_balance - 10);
+    expect((await call('GET', '/members/6100457823/transactions')).body.transactions).toHaveLength(2);
+  });
+
+  test('seeded certificates expire 60 days after issue and read back as expired once past', () => {
+    const seed = require('../app/services/verticals/1b17e823-loyalty/scorecard/members.json');
+    const certs = seed.flatMap((m) => m.reward_certificates);
+    certs.forEach((c) => {
+      expect((new Date(c.expires_on) - new Date(c.issued_on)) / 86400000).toBe(60);
+    });
+    expect(certs.some((c) => c.status === 'expired')).toBe(true);
+    const later = createScoreCardStore(undefined, { now: () => new Date('2027-06-01T00:00:00Z') });
+    expect(later.getMember(5520917046).reward_certificates[0].status).toBe('expired');
+  });
+
   test('unknown members are 404', async () => {
     expect((await call('GET', '/members/1')).status).toBe(404);
   });
