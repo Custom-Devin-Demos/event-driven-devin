@@ -49,6 +49,7 @@ describe('Disney+ playback sessions', () => {
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(createSessionAndAlert).toHaveBeenCalledWith(expect.objectContaining({
       customer: '1bc0c714',
+      slackMemberId: 'U0BCD812VA5',
       devinUserId: IDENTITY.devinUserId,
       devinOrgId: IDENTITY.devinOrgId,
       devinEmail: IDENTITY.devinEmail,

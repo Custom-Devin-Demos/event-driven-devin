@@ -6,7 +6,7 @@ const { createSessionAndAlert } = require('../devin-session');
 
 const ROUTE = '/api/1bc0c714/playback-session';
 const SERVICE = 'customer-1bc0c714-playback';
-const SLACK_MEMBER_ID_FALLBACK = process.env.DISNEYPLUS_SLACK_MEMBER_ID || '';
+const SLACK_MEMBER_ID = process.env.DISNEYPLUS_SLACK_MEMBER_ID || 'U0BCD812VA5';
 const DEFAULT_TITLE = 'chad-powers';
 const DEFAULT_DEVICE = 'web';
 
@@ -217,7 +217,7 @@ async function startPlaybackSession(data) {
       verticalLabel: 'Disney+ Play',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: '1bc0c714',
-      slackMemberIdFallback: SLACK_MEMBER_ID_FALLBACK,
+      slackMemberId: SLACK_MEMBER_ID,
       tags: [
         { key: 'route', value: ROUTE },
         { key: 'service', value: SERVICE },
