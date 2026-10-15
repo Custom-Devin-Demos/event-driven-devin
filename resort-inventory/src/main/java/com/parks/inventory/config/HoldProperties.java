@@ -8,8 +8,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "inventory.holds")
 public class HoldProperties {
 
-    /** Hold time-to-live in minutes. */
-    private long ttl = 15;
+    /** Hold time-to-live in seconds. */
+    private long ttl = 900;
 
     /** How often HoldReleaseJob sweeps for expired holds. */
     private long releaseIntervalMs = 30000;
