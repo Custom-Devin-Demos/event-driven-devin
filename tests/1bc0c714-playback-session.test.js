@@ -67,4 +67,9 @@ describe('Disney+ playback sessions', () => {
       culprit: 'app/services/verticals/1bc0c714.js — buildPlaybackManifest',
     })).toBe(true);
   });
+
+  test('alerts route to #oncall-alerts', () => {
+    const { getCustomerConfig } = require('../config/customers');
+    expect(getCustomerConfig('1bc0c714').slackChannelId).toBe('C0BNWUGCWBS');
+  });
 });
