@@ -3867,6 +3867,47 @@ const ONCALL_SKINS = {
     supportCenter: 'Coca-Cola FEMSA Customer Service',
     disclaimer: 'NOT ACTUALLY A COCA-COLA FEMSA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Coca-Cola FEMSA product. All messages and data are fictional.',
   },
+  '04eac4a1': {
+    slug: '04eac4a1',
+    company: 'Coppel',
+    brandMark: 'C',
+    vertical: 'clickcollect',
+    // Not oncallOnly: /coppel stays the legacy (unshimmed) Coppel demo.
+    alertDestination: 'slack',
+    // Alert card, thread replies, Devin prompt and demo ribbon in Spanish.
+    locale: 'es',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Contexto del cliente: esta alerta viene de la página "Mi carrito" de Coppel enlazada arriba. El botón "Continuar compra" envía el carrito al endpoint de arriba, así que ese endpoint es el backend de este incidente.',
+        'En el hilo, el incidente se lee "Latencia p95 disparada — Continuar compra con Recoger en tienda (504)", versión carrito-web@4.2.0, equipo responsable omnicanal-oncall: las compras con "Recoger en tienda" se quedan cargando ~8s y fallan con 504; "Recibir a domicilio" funciona normal.',
+        'Usa "Coppel" y "Recoger en tienda" en tus respuestas del hilo, el título del PR y la descripción del PR. No despliegues ni hagas merge.',
+      ].join('\n'),
+    },
+    page: { file: 'coppel.html', title: 'Mi carrito | Coppel' },
+    alertCard: {
+      title: 'Latencia p95 disparada \u2014 Continuar compra con Recoger en tienda (504)',
+      service: 'pedidos-api',
+      endpointLabel: 'POST /api/oncall/clickcollect/checkout',
+      release: 'carrito-web@4.2.0',
+      team: 'omnicanal-oncall',
+      metricValue: '8.0s (504 en pedidos con Recoger en tienda)',
+      threshold: '> 2s',
+      baseline: '~380ms (p95 de 7 días)',
+      symptom: 'Las compras con "Recoger en tienda" se quedan cargando ~8s y después fallan con 504 Gateway Timeout; las compras con "Recibir a domicilio" funcionan normal. Empezó con el release carrito-web 4.2.0 del apartado en tienda.',
+      impact: 'Los clientes que eligen Recoger en tienda no pueden terminar su compra; cada pedido se queda en el spinner y termina en error.',
+    },
+    theme: {
+      '--accent': '#006FB9',
+      '--ink': '#1F2937',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#FFD200',
+      '--chrome-text': '#003A70',
+    },
+    supportCenter: 'Atención a clientes Coppel',
+    disclaimer: 'ESTE NO ES UN SITIO REAL DE COPPEL \u2014 demo interna, sin afiliación ni respaldo de Coppel. Todos los pedidos y datos son ficticios.',
+  },
 };
 
 function getOncallSkin(slug) {

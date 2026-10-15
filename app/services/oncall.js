@@ -244,6 +244,28 @@ const ALERT_SCENARIOS = {
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },
+  clickcollect: {
+    vertical: 'clickcollect',
+    page: 'coppel.html',
+    apiPath: '/api/coppel/checkout',
+    oncallApiPath: '/api/oncall/clickcollect/checkout',
+    owner: 'Andrea Salazar (omnicanal-oncall)',
+    brand: 'Retail Storefront (Mi carrito)',
+    service: 'pedidos-api',
+    endpoint: 'POST /api/oncall/clickcollect/checkout',
+    monitor: 'p95 latency — POST /api/oncall/clickcollect/checkout',
+    metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/clickcollect/checkout}',
+    metricValue: '8.0s (504s on store-pickup orders)',
+    threshold: '> 2s',
+    baseline: '~380ms (7-day p95)',
+    release: 'carrito-web@4.2.0',
+    symptom: 'Store-pickup checkouts hang ~8s and then fail with 504 Gateway Timeout. Home-delivery checkouts are normal. Onset coincides with the carrito-web 4.2.0 pickup-hold release.',
+    impact: 'Shoppers choosing store pickup cannot complete checkout; every pickup order sits on a spinner and then errors.',
+    triggerWhen: { delivery: 'tienda' },
+    initialClick: '.delivery-opt[data-delivery="tienda"]',
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   industrials: {
     vertical: 'industrials',
     page: 'industrials-quote.html',
@@ -365,6 +387,85 @@ function makeRunRef() {
 const DD_URL = () => process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com';
 
 /**
+ * Card, thread-reply and session-prompt copy. A skin opts into Spanish with
+ * locale: 'es'; every other skin stays English.
+ */
+const ONCALL_STRINGS = {
+  en: {
+    triggered: 'Triggered',
+    service: 'Service',
+    endpoint: 'Endpoint',
+    metricValue: 'Metric value',
+    threshold: 'Threshold',
+    baseline: 'Baseline',
+    release: 'Release',
+    events: 'Events',
+    first: 'First',
+    last: 'Last',
+    owner: 'Owner',
+    onCall: 'On-Call',
+    incidentRef: 'Incident Ref',
+    triggeredBy: 'Triggered by',
+    monitorQuery: 'Monitor query',
+    affectedPage: 'Affected page',
+    viewDatadog: 'View in Datadog',
+    submittedFrom: 'Submitted from',
+    investigatingText: (url) => `Devin is investigating: ${url}`,
+    investigatingBlock: (url) => `:mag: *Devin is investigating this alert* — <${url}|View session>`,
+    sessionTitle: (monitor) => `[On-Call] ${monitor}`,
+    promptIntro: (service) => `A Datadog monitor is firing on ${service}. Investigate it and open a PR with the fix.`,
+    monitor: 'Monitor',
+    query: 'Query',
+    symptom: 'Symptom',
+    impact: 'Impact',
+    metricLine: (s) => `${s.metricValue} (threshold ${s.threshold}, baseline ${s.baseline})`,
+    reproduce: (url, repo) => `Reproduce the symptom at ${url} and diagnose it from the repository and its telemetry: ${repo}`,
+    notify: (mention) => 'Progress updates for the on-call engineer: reply in the Slack alert thread above twice — '
+      + `(1) as soon as the root cause is confirmed, post ${mention} + the root cause in ≤3 lines; `
+      + `(2) as soon as the fix PR is open, post ${mention} + the PR link + one line on how you verified. `,
+    promptLanguage: null,
+  },
+  es: {
+    triggered: 'Activada',
+    service: 'Servicio',
+    endpoint: 'Endpoint',
+    metricValue: 'Valor de la métrica',
+    threshold: 'Umbral',
+    baseline: 'Línea base',
+    release: 'Versión',
+    events: 'Eventos',
+    first: 'Primero',
+    last: 'Último',
+    owner: 'Responsable',
+    onCall: 'Guardia',
+    incidentRef: 'Ref. de incidente',
+    triggeredBy: 'Activado por',
+    monitorQuery: 'Consulta del monitor',
+    affectedPage: 'Página afectada',
+    viewDatadog: 'Ver en Datadog',
+    submittedFrom: 'Enviado desde',
+    investigatingText: (url) => `Devin está investigando: ${url}`,
+    investigatingBlock: (url) => `:mag: *Devin está investigando esta alerta* — <${url}|Ver sesión>`,
+    sessionTitle: (monitor) => `[Guardia] ${monitor}`,
+    promptIntro: (service) => `Un monitor de Datadog está disparando en ${service}. Investígalo y abre un PR con la corrección.`,
+    monitor: 'Monitor',
+    query: 'Consulta',
+    symptom: 'Síntoma',
+    impact: 'Impacto',
+    metricLine: (s) => `${s.metricValue} (umbral ${s.threshold}, línea base ${s.baseline})`,
+    reproduce: (url, repo) => `Reproduce el síntoma en ${url} y diagnostícalo a partir del repositorio y su telemetría: ${repo}`,
+    notify: (mention) => 'Avisos de progreso para la persona de guardia: responde dos veces en el hilo de la alerta de Slack de arriba — '
+      + `(1) en cuanto confirmes la causa raíz, publica ${mention} + la causa raíz en ≤3 líneas; `
+      + `(2) en cuanto el PR con la corrección esté abierto, publica ${mention} + el link del PR + una línea sobre cómo lo verificaste. `,
+    promptLanguage: '*Idioma:* responde en español — mensajes en el hilo de Slack, título y descripción del PR, y resumen final.',
+  },
+};
+
+function oncallStrings(skin) {
+  return skin && skin.locale === 'es' ? ONCALL_STRINGS.es : ONCALL_STRINGS.en;
+}
+
+/**
  * Resolve the demo user's hub identity email to a Slack @mention so cards
  * show who launched the trigger (same attribution as the legacy alerts).
  */
@@ -411,24 +512,24 @@ function mrkdwnSection(text) {
   return { type: 'section', text: { type: 'mrkdwn', text } };
 }
 
-function datadogActions() {
+function datadogActions(t = ONCALL_STRINGS.en) {
   return {
     type: 'actions',
     elements: [
       {
         type: 'button',
-        text: { type: 'plain_text', text: ':bar_chart: View in Datadog', emoji: true },
+        text: { type: 'plain_text', text: `:bar_chart: ${t.viewDatadog}`, emoji: true },
         url: DD_URL(),
       },
     ],
   };
 }
 
-function contextBlock(service, triggeredBy, submittedFrom) {
-  const parts = [`Service: \`${service || 'checkout-api'}\``];
-  if (submittedFrom) parts.push(`Submitted from: <${submittedFrom}|${submittedFrom.replace(/^https?:\/\//, '')}>`);
+function contextBlock(service, triggeredBy, submittedFrom, t = ONCALL_STRINGS.en) {
+  const parts = [`${t.service}: \`${service || 'checkout-api'}\``];
+  if (submittedFrom) parts.push(`${t.submittedFrom}: <${submittedFrom}|${submittedFrom.replace(/^https?:\/\//, '')}>`);
   parts.push(new Date().toISOString());
-  if (triggeredBy) parts.push(`Triggered by ${triggeredBy}`);
+  if (triggeredBy) parts.push(`${t.triggeredBy} ${triggeredBy}`);
   return {
     type: 'context',
     elements: [{ type: 'mrkdwn', text: parts.join(' | ') }],
@@ -448,7 +549,7 @@ function demoPagePath(scenario, skin) {
 
 function demoPageLine(scenario, skin) {
   const path = demoPagePath(scenario, skin);
-  return path ? `*Affected page:* ${DEMO_BASE_URL()}${path}` : null;
+  return path ? `*${oncallStrings(skin).affectedPage}:* ${DEMO_BASE_URL()}${path}` : null;
 }
 
 /**
@@ -481,20 +582,21 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
 
   const card = resolveAlertCard(scenario, skin);
   const brand = skin ? skin.company : scenario.brand;
+  const t = oncallStrings(skin);
   const lines = [
-    `:rotating_light: *[Triggered] ${card.monitor}*`,
+    `:rotating_light: *[${t.triggered}] ${card.monitor}*`,
     '',
-    `*Service:* ${card.service} (${brand})`,
+    `*${t.service}:* ${card.service} (${brand})`,
     demoPageLine(scenario, skin),
-    `*Endpoint:* ${card.endpoint}`,
-    `*Metric value:* ${card.metricValue} | *Threshold:* ${card.threshold} | *Baseline:* ${card.baseline}`,
-    `*Monitor query:* \`${card.metricQuery}\``,
-    onCall ? `*On-Call:* ${onCall}` : `*Owner:* ${ownerRotation(card.owner)}`,
-    runRef ? `*Incident Ref:* ${runRef}` : null,
-    triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
+    `*${t.endpoint}:* ${card.endpoint}`,
+    `*${t.metricValue}:* ${card.metricValue} | *${t.threshold}:* ${card.threshold} | *${t.baseline}:* ${card.baseline}`,
+    `*${t.monitorQuery}:* \`${card.metricQuery}\``,
+    onCall ? `*${t.onCall}:* ${onCall}` : `*${t.owner}:* ${ownerRotation(card.owner)}`,
+    runRef ? `*${t.incidentRef}:* ${runRef}` : null,
+    triggeredBy ? `*${t.triggeredBy}:* ${triggeredBy}` : null,
     '',
-    `Env: production | Release: ${card.release}`,
-    `Events: ${events} | First: ${firstSeen.toISOString()} | Last: ${now.toISOString()}`,
+    `Env: production | ${t.release}: ${card.release}`,
+    `${t.events}: ${events} | ${t.first}: ${firstSeen.toISOString()} | ${t.last}: ${now.toISOString()}`,
     '',
     `Repo: ${REPO_URL}`,
   ];
@@ -511,12 +613,10 @@ const SLACK_MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
 const SLACK_CHANNEL_ID_RE = /^[A-Z0-9]{1,32}$/i;
 const SLACK_TS_RE = /^\d{1,16}\.\d{1,9}$/;
 
-function notifySlackMemberParagraph(memberId, channel, threadTs) {
+function notifySlackMemberParagraph(memberId, channel, threadTs, t = ONCALL_STRINGS.en) {
   const mention = `<@${memberId}>`;
   return [
-    'Progress updates for the on-call engineer: reply in the Slack alert thread above twice — '
-      + `(1) as soon as the root cause is confirmed, post ${mention} + the root cause in ≤3 lines; `
-      + `(2) as soon as the fix PR is open, post ${mention} + the PR link + one line on how you verified. `
+    t.notify(mention)
       + 'Post with `curl -s -X POST https://slack.com/api/chat.postMessage -H "Authorization: Bearer $SLACK_ONCALL_BOT_TOKEN" '
       + `-H 'Content-Type: application/json' -d '{"channel":"${channel}","thread_ts":"${threadTs}","text":"..."}'\` `
       + '(fall back to `$COG_GTM_DEMO_SLACK_BOT_TOKEN`; both are org secrets available as env vars in the triage session — never print them). '
@@ -525,19 +625,20 @@ function notifySlackMemberParagraph(memberId, channel, threadTs) {
 }
 
 function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, onCallMemberId } = {}) {
+  const t = oncallStrings(skin);
   const lines = [
-    `A Datadog monitor is firing on ${scenario.service}. Investigate it and open a PR with the fix.`,
+    t.promptIntro(scenario.service),
     '',
-    `*Monitor:* ${scenario.monitor} — Triggered`,
-    `*Query:* \`${scenario.metricQuery}\``,
-    `*Endpoint:* ${scenario.endpoint}`,
-    `*Metric value:* ${scenario.metricValue} (threshold ${scenario.threshold}, baseline ${scenario.baseline})`,
-    `*Release:* ${scenario.release}`,
-    `*Symptom:* ${scenario.symptom}`,
-    `*Impact:* ${scenario.impact}`,
-    runRef ? `*Incident Ref:* ${runRef}` : null,
+    `*${t.monitor}:* ${scenario.monitor} — ${t.triggered}`,
+    `*${t.query}:* \`${scenario.metricQuery}\``,
+    `*${t.endpoint}:* ${scenario.endpoint}`,
+    `*${t.metricValue}:* ${t.metricLine(scenario)}`,
+    `*${t.release}:* ${scenario.release}`,
+    `*${t.symptom}:* ${scenario.symptom}`,
+    `*${t.impact}:* ${scenario.impact}`,
+    runRef ? `*${t.incidentRef}:* ${runRef}` : null,
     '',
-    `Reproduce the symptom at ${DEMO_BASE_URL()}/oncall/c/${skin.slug} and diagnose it from the repository and its telemetry: ${REPO_URL}`,
+    t.reproduce(`${DEMO_BASE_URL()}/oncall/c/${skin.slug}`, REPO_URL),
   ].filter((l) => l !== null);
 
   if (
@@ -558,7 +659,12 @@ function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, o
   const notifyId = onCallMemberId || (skin.devinSession && skin.devinSession.notifySlackMemberId);
   if (hasThread && typeof notifyId === 'string' && SLACK_MEMBER_ID_RE.test(notifyId)) {
     lines.push('');
-    lines.push(notifySlackMemberParagraph(notifyId, channel, threadTs));
+    lines.push(notifySlackMemberParagraph(notifyId, channel, threadTs, t));
+  }
+
+  if (t.promptLanguage) {
+    lines.push('');
+    lines.push(t.promptLanguage);
   }
 
   return lines.join('\n');
@@ -628,7 +734,7 @@ async function triggerSkinDevinSession(
     session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, onCallMemberId }), {
       ...resolveSessionIdentity(requester, config),
       apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
-      title: `[On-Call] ${scenario.monitor}`,
+      title: oncallStrings(skin).sessionTitle(scenario.monitor),
     });
   } catch (error) {
     logger.error('On-Call skin Devin session failed', { skin: skin.slug, error: error.message });
@@ -646,8 +752,9 @@ async function triggerSkinDevinSession(
   });
 
   try {
-    await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [
-      mrkdwnSection(`:mag: *Devin is investigating this alert* — <${session.url}|View session>`),
+    const t = oncallStrings(skin);
+    await postThreadReply(token, channel, threadTs, t.investigatingText(session.url), [
+      mrkdwnSection(t.investigatingBlock(session.url)),
     ]);
   } catch (error) {
     logger.error('On-Call skin session link reply failed', { skin: skin.slug, error: error.message });
@@ -756,33 +863,37 @@ async function postOncallAlert(scenarioId, options = {}) {
     ? slackMemberIdOf(triggeredBy)
     : null;
   const onCall = onCallMemberId ? triggeredBy : null;
+  // When the presenter is paged as On-Call, a separate "Triggered by" would
+  // only repeat the same person.
+  const triggeredByLine = onCall ? null : triggeredBy;
+  const t = oncallStrings(skin);
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
   const events = 3 + Math.floor(Math.random() * 12);
-  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, onCall, skin });
+  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy: triggeredByLine, onCall, skin });
   const card = resolveAlertCard(scenario, skin);
   const brand = skin ? skin.company : scenario.brand;
   const blocks = [
-    headerBlock(`:rotating_light: [Triggered] ${card.monitor}`),
+    headerBlock(`:rotating_light: [${t.triggered}] ${card.monitor}`),
     ...fieldPairs([
-      ['Service', `${card.service} (${brand})`],
-      ['Endpoint', card.endpoint],
-      ['Metric value', card.metricValue],
-      ['Threshold', card.threshold],
-      ['Baseline', card.baseline],
-      ['Release', card.release],
-      ['Events', `${events} | First: ${firstSeen.toISOString()}`],
-      onCall ? ['On-Call', onCall] : ['Owner', ownerRotation(card.owner)],
-      runRef ? ['Incident Ref', runRef] : null,
-      triggeredBy ? ['Triggered by', triggeredBy] : null,
+      [t.service, `${card.service} (${brand})`],
+      [t.endpoint, card.endpoint],
+      [t.metricValue, card.metricValue],
+      [t.threshold, card.threshold],
+      [t.baseline, card.baseline],
+      [t.release, card.release],
+      [t.events, `${events} | ${t.first}: ${firstSeen.toISOString()}`],
+      onCall ? [t.onCall, onCall] : [t.owner, ownerRotation(card.owner)],
+      runRef ? [t.incidentRef, runRef] : null,
+      triggeredByLine ? [t.triggeredBy, triggeredByLine] : null,
     ]),
-    mrkdwnSection(`*Monitor query:*\n\`\`\`${card.metricQuery}\`\`\``),
+    mrkdwnSection(`*${t.monitorQuery}:*\n\`\`\`${card.metricQuery}\`\`\``),
     mrkdwnSection(
       (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
-    datadogActions(),
-    contextBlock(card.service, triggeredBy),
+    datadogActions(t),
+    contextBlock(card.service, triggeredByLine, null, t),
   ];
   const teamsDelivery = teamsWebhookUrl
     ? postTeamsAlert(teamsWebhookUrl, scenario, skin, {
