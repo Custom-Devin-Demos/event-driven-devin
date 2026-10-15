@@ -83,6 +83,7 @@ function pushHistory(res, by, action, detail) {
   res.history = res.history || [];
   res.history.push({ at: Math.floor(Date.now() / 1000), by, action, detail: detail || '' });
   res.updatedAt = Math.floor(Date.now() / 1000);
+  res.rev = (res.rev || 0) + 1;
 }
 
 /**
@@ -137,7 +138,7 @@ async function createRequest(store, input, { now = Math.floor(Date.now() / 1000)
   }
 
   const meetingLink = clean(input.meetingLink, 300);
-  if (meetingLink && !/^https?:\/\/\S+$/i.test(meetingLink)) {
+  if (meetingLink && !/^https?:\/\/[^\s<>|]+$/i.test(meetingLink)) {
     throw new ReservationError('bad_link', 'The meeting link must start with http:// or https://.', { field: 'meetingLink' });
   }
 
@@ -318,7 +319,7 @@ function listReservations(store, { from, to, memberKey, requesterId, statuses } 
   return store.all()
     .filter((r) => wanted.includes(r.status))
     .filter((r) => (from === undefined || r.endTs > from) && (to === undefined || r.startTs < to))
-    .filter((r) => !memberKey || r.assigneeKey === memberKey || r.requestedKey === memberKey)
+    .filter((r) => !memberKey || r.assigneeKey === memberKey)
     .filter((r) => !requesterId || r.requesterId === requesterId)
     .sort((a, b) => a.startTs - b.startTs || a.seq - b.seq);
 }
@@ -380,12 +381,21 @@ function slackRange(startTs, endTs) {
   return `${slackDate(startTs)} – ${end}`;
 }
 
+// Current assignee first; the original ask is kept as context when an admin
+// moved the request to somebody else.
 function describeWho(res, env = process.env) {
+  const nameOf = (key) => {
+    const m = key ? findMember(key, env) : null;
+    return m ? m.name : key;
+  };
   if (res.requestType === 'specific') {
-    const m = findMember(res.requestedKey, env);
-    return m ? m.name : res.requestedKey;
+    if (res.assigneeKey && res.assigneeKey !== res.requestedKey) {
+      return `${nameOf(res.assigneeKey)} (requested ${nameOf(res.requestedKey)})`;
+    }
+    return nameOf(res.requestedKey);
   }
-  return PREFERENCES[res.preference] || PREFERENCES.ANY;
+  const pref = PREFERENCES[res.preference] || PREFERENCES.ANY;
+  return res.assigneeKey ? `${nameOf(res.assigneeKey)} (${pref})` : pref;
 }
 
 function durationLabel(res) {

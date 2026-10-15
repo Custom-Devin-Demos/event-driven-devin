@@ -589,3 +589,91 @@ describe('HTTP routes', () => {
     expect(res.roster.find((m) => m.name === 'Akira Shibata').slackIdConfigured).toBe(false);
   });
 });
+
+describe('review fixes', () => {
+  test("reassigned reservations leave the original Field CTO's schedule", async () => {
+    const { store, R } = load();
+    const r = await R.createRequest(store, base(), { now: NOW });
+    await R.reassign(store, r.id, { by: ADMIN, assigneeKey: 'AMAN_THIND' });
+    expect(R.listReservations(store, { memberKey: 'MARK_PORTER' })).toHaveLength(0);
+    expect(R.listReservations(store, { memberKey: 'AMAN_THIND' }).map((x) => x.id)).toEqual([r.id]);
+    expect(R.findConflicts(store, 'MARK_PORTER', r.startTs, r.endTs)).toHaveLength(0);
+    expect(R.describeWho(store.get(r.id))).toBe('Aman Thind (requested Mark Porter)');
+    const any = await R.createRequest(store, base({ who: 'ANY:EU', startTs: NOW + 5 * 86400 }), { now: NOW });
+    await R.claim(store, any.id, { by: KATRIN });
+    expect(R.describeWho(store.get(any.id))).toBe(`Katrin Lehmann (${R.PREFERENCES.EU})`);
+  });
+
+  test('a failed write leaves memory and disk unchanged', async () => {
+    const { store, R } = load();
+    await R.createRequest(store, base(), { now: NOW });
+    const spy = jest.spyOn(fs, 'renameSync').mockImplementationOnce(() => { throw new Error('ENOSPC'); });
+    await expect(R.createRequest(store, base({ account: 'Phantom' }), { now: NOW })).rejects.toThrow('ENOSPC');
+    spy.mockRestore();
+    expect(store.all()).toHaveLength(1);
+    expect(JSON.parse(fs.readFileSync(process.env.FCTO_STORE_FILE, 'utf8')).reservations).toHaveLength(1);
+    const again = await R.createRequest(store, base({ account: 'Real' }), { now: NOW });
+    expect(again.id).toBe('FCR-2');
+  });
+
+  test('user text is escaped in cards; meeting links render as bare URLs', async () => {
+    const { store, R } = load();
+    const B = require('../app/services/fcto/blocks');
+    const r = await R.createRequest(store, base({ account: '<!channel> Acme & Co', purpose: 'ping <@U0BU46F4WCU>', notes: '<https://evil.example|Join>', meetingLink: 'https://zoom.us/j/1' }), { now: NOW });
+    const json = JSON.stringify(B.requestCard(r));
+    expect(json).toContain('&lt;!channel&gt; Acme &amp; Co');
+    expect(json).toContain('ping &lt;@U0BU46F4WCU&gt;');
+    expect(json).toContain('&lt;https://evil.example|Join&gt;');
+    expect(json).not.toContain('<!channel>');
+    expect(json).toContain('<https://zoom.us/j/1>');
+    expect(B.threadNote({ ...r, status: 'declined', declineReason: '<!here> no' })).toContain('&lt;!here&gt; no');
+    await expect(R.createRequest(store, base({ meetingLink: 'https://evil.example/x|Join Zoom' }), { now: NOW })).rejects.toMatchObject({ code: 'bad_link' });
+  });
+
+  test('cards go to the configured channel; unsigned mode is refused in production', () => {
+    const saved = { ...process.env };
+    process.env.FCTO_CHANNEL_ID = 'CEXEC';
+    const { requestChannel, verifySlackSignature } = require('../app/routes/fcto')._internal;
+    expect(requestChannel('CPERSONAL')).toBe('CEXEC');
+    delete process.env.FCTO_CHANNEL_ID;
+    delete process.env.SLACK_CHANNEL_ID;
+    expect(requestChannel('CPERSONAL')).toBe('CPERSONAL');
+
+    delete process.env.FCTO_SLACK_SIGNING_SECRET;
+    process.env.FCTO_ALLOW_UNSIGNED = '1';
+    process.env.NODE_ENV = 'production';
+    const res = { status: jest.fn(() => res), send: jest.fn(() => res) };
+    const next = jest.fn();
+    verifySlackSignature({ headers: {} }, res, next);
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(503);
+    process.env.NODE_ENV = 'test';
+    verifySlackSignature({ headers: {} }, res, next);
+    expect(next).toHaveBeenCalledTimes(1);
+    process.env = saved;
+  });
+
+  test('a slower earlier Slack update cannot restore a superseded card', async () => {
+    const calls = [];
+    jest.doMock('../app/services/fcto/slack-client', () => ({
+      ...jest.requireActual('../app/services/fcto/slack-client'),
+      updateMessage: jest.fn(async (...a) => { calls.push(['chat.update', ...a]); return { ok: true }; }),
+      postMessage: jest.fn(async (...a) => { calls.push(['chat.postMessage', ...a]); return { ok: true, ts: '1' }; }),
+      uploadFile: jest.fn(async (...a) => { calls.push(['files.upload', ...a]); return { ok: true }; }),
+    }));
+    process.env.FCTO_CHANNEL_ID = 'CEXEC';
+    const { store, applyChange } = require('../app/routes/fcto')._internal;
+    const R = require('../app/services/fcto/reservations');
+    const r = await R.createRequest(store, base(), { now: NOW });
+    await R.setMessage(store, r.id, 'CEXEC', '1700.1');
+    const approved = await R.approve(store, r.id, { by: ADMIN });
+    const cancelled = await R.cancel(store, r.id, { by: REQUESTER });
+    await Promise.all([applyChange(approved, 'pending'), applyChange(cancelled, 'approved')]);
+    expect(calls.filter((c) => c[0] === 'files.upload')).toHaveLength(0);
+    const updates = calls.filter((c) => c[0] === 'chat.update');
+    expect(updates.length).toBeGreaterThan(0);
+    updates.forEach((u) => expect(u[3]).toMatch(/cancelled/i));
+    expect(calls.filter((c) => c[0] === 'chat.postMessage')).toHaveLength(1);
+    delete process.env.FCTO_CHANNEL_ID;
+  });
+});

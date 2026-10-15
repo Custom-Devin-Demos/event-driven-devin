@@ -29,8 +29,10 @@ function rawBodySaver(req, _res, buf) {
   req.rawBody = buf;
 }
 
+// Cards always land in the configured reservations channel; the channel the
+// command was typed in is only a fallback for unconfigured local runs.
 function requestChannel(fallback) {
-  return fallback || process.env.FCTO_CHANNEL_ID || process.env.SLACK_CHANNEL_ID || '';
+  return process.env.FCTO_CHANNEL_ID || process.env.SLACK_CHANNEL_ID || fallback || '';
 }
 
 // ─── Signature verification ─────────────────────────────────────────────────
@@ -38,7 +40,7 @@ function requestChannel(fallback) {
 function verifySlackSignature(req, res, next) {
   const secret = process.env.FCTO_SLACK_SIGNING_SECRET;
   if (!secret) {
-    if (process.env.FCTO_ALLOW_UNSIGNED === '1') return next();
+    if (process.env.FCTO_ALLOW_UNSIGNED === '1' && process.env.NODE_ENV !== 'production') return next();
     logger.warn('fcto: FCTO_SLACK_SIGNING_SECRET not set; rejecting Slack request');
     return res.status(503).send('Field CTO app is not configured');
   }
@@ -88,13 +90,29 @@ async function announce(reservation, previousStatus) {
   }
 }
 
-async function applyChange(reservation, previousStatus) {
-  try {
-    await refreshCard(reservation);
-    await announce(reservation, previousStatus);
-  } catch (err) {
-    logger.error('fcto: failed to update Slack after change', { id: reservation.id, error: err.message });
-  }
+// Slack side effects are serialized per reservation and always rendered from
+// the store's current copy, so two overlapping clicks can't leave the card
+// showing an older state or attach an invite for a superseded transition.
+const sideEffects = new Map();
+
+function applyChange(reservation, previousStatus) {
+  const id = reservation.id;
+  const run = (sideEffects.get(id) || Promise.resolve()).then(async () => {
+    try {
+      const current = store.get(id) || reservation;
+      await refreshCard(current);
+      if (current.rev !== reservation.rev || current.status !== reservation.status) {
+        logger.info('fcto: skipping announcement for superseded change', { id, from: reservation.status, now: current.status });
+        return;
+      }
+      await announce(current, previousStatus);
+    } catch (err) {
+      logger.error('fcto: failed to update Slack after change', { id, error: err.message });
+    }
+  });
+  sideEffects.set(id, run);
+  run.then(() => { if (sideEffects.get(id) === run) sideEffects.delete(id); });
+  return run;
 }
 
 async function publishHome(userId) {
@@ -209,8 +227,8 @@ async function handleBlockAction(payload) {
   const id = action.value;
 
   if (action.action_id === B.ACTION.NEW_REQUEST) {
-    const channelId = payload.channel && payload.channel.id && !String(payload.channel.id).startsWith('D') ? payload.channel.id : requestChannel();
-    await slack.openView(triggerId, B.requestModal({ channelId }));
+    const origin = payload.channel && payload.channel.id && !String(payload.channel.id).startsWith('D') ? payload.channel.id : '';
+    await slack.openView(triggerId, B.requestModal({ channelId: requestChannel(origin) }));
     return;
   }
   if (action.action_id === B.ACTION.REFRESH_HOME) {
@@ -438,4 +456,4 @@ router.get('/slack/fcto/health', (_req, res) => {
 });
 
 module.exports = router;
-module.exports._internal = { store, handleCommand, handleBlockAction, handleViewSubmission, parseWindow, resolvePersonArg, verifySlackSignature };
+module.exports._internal = { store, handleCommand, handleBlockAction, handleViewSubmission, parseWindow, resolvePersonArg, verifySlackSignature, applyChange, requestChannel };
