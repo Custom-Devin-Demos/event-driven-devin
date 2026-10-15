@@ -653,7 +653,11 @@
         draft.appendChild(copied);
         r.appendChild(draft);
 
-        retry.addEventListener('click', function () { if (!busy) hideResult(); submit($('submitBtn')); });
+        retry.addEventListener('click', function () {
+          if (busy) return;
+          if (!formValid()) { copied.textContent = 'This date or slot is no longer available. Choose Edit details, then pick a new date \u2014 your details stay saved.'; return; }
+          hideResult(); submit($('submitBtn'));
+        });
         copy.addEventListener('click', function () { copyText(ta, copied); });
         edit.addEventListener('click', function () { hideResult(); $('fullName').focus(); });
         fresh.addEventListener('click', function () { submitSeq++; clearDraft(); location.hash = '#listing'; });
@@ -693,6 +697,9 @@
         var token = ++submitSeq;
         var label = btn.textContent;
         btn.disabled = true;
+        $('claimForm').inert = true;
+        $('step1').inert = true;
+        $('claimForm').setAttribute('aria-busy', 'true');
         btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Submitting\u2026';
         $('description').value = state.pkg + ' screening \u2014 ' + state.loc + ' \u2014 ' + state.date + ' ' + state.slot;
         var ok = false;
@@ -714,6 +721,9 @@
           ok = response.ok && data && data.success !== false;
         } catch (e) { ok = false; }
         busy = false;
+        $('claimForm').inert = false;
+        $('step1').inert = false;
+        $('claimForm').removeAttribute('aria-busy');
         btn.disabled = false;
         btn.textContent = label;
         if (token !== submitSeq) return;
