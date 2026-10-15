@@ -77,29 +77,29 @@ const REWARD_POINTS = 300;
 const REWARD_VALUE = 10;
 
 /**
- * Foot Locker FLX statuses linked to a ScoreCard account are carried over to
- * the equivalent ScoreCard earn tier.
+ * Issued ScoreCard rewards, keyed by reward code. Unredeemed rewards on a
+ * member's account are applied automatically at checkout.
  */
-const FLX_STATUS_CROSSWALK = {
-  X1: 'standard',
-  X2: 'gold',
-  X3: 'elite',
+const REWARD_CERTIFICATES = {
+  'SCR-0212-7741': { value: 10, issuedAt: '2026-09-02', expiresAt: '2026-12-31' },
+  'SCR-1487-3308': { value: 10, issuedAt: '2026-08-19', expiresAt: '2026-11-30' },
 };
 
 const MEMBERS = {
   'SC-8841207733': {
     id: 'SC-8841207733',
     name: 'Jordan Reyes',
-    scorecardTier: 'standard',
+    scorecardTier: 'platinum',
     pointsBalance: 240,
-    linkedProgram: { program: 'FLX', status: 'X3', memberSince: '2019-04-11' },
+    // Reward codes as carried over by the ScoreCard rewards ledger migration.
+    availableRewards: ['SCR02127741'],
   },
   'SC-5520917046': {
     id: 'SC-5520917046',
     name: 'Casey Morgan',
     scorecardTier: 'gold',
     pointsBalance: 280,
-    linkedProgram: null,
+    availableRewards: [],
   },
 };
 
@@ -171,10 +171,18 @@ function computeTax(lines, zipCode) {
 /** Resolves the ScoreCard earn tier for a signed-in member (null for guests). */
 function resolveScoreCardTier(member) {
   if (!member) return null;
-  if (member.linkedProgram && member.linkedProgram.program === 'FLX') {
-    return FLX_STATUS_CROSSWALK[member.linkedProgram.status] || member.scorecardTier;
-  }
   return member.scorecardTier;
+}
+
+/** Applies the member's unredeemed ScoreCard rewards to the order. */
+function applyScoreCardRewards(member, orderTotal) {
+  if (!member || !member.availableRewards.length) {
+    return { codes: [], discount: 0 };
+  }
+  const value = member.availableRewards
+    .map((code) => REWARD_CERTIFICATES[code].value)
+    .reduce((sum, amount) => sum + amount, 0);
+  return { codes: [...member.availableRewards], discount: roundCurrency(Math.min(value, orderTotal)) };
 }
 
 function computeScoreCardEarn(member, tierKey, eligibleSubtotal) {
@@ -216,7 +224,8 @@ async function placeOrder(data) {
     const tax = computeTax(lines, data.zipCode);
     const tierKey = resolveScoreCardTier(member);
     const scorecard = computeScoreCardEarn(member, tierKey, subtotal);
-    const total = roundCurrency(subtotal + shipping.fee + tax.tax);
+    const rewards = applyScoreCardRewards(member, roundCurrency(subtotal + shipping.fee + tax.tax));
+    const total = roundCurrency(subtotal + shipping.fee + tax.tax - rewards.discount);
 
     incrementMetric('dsg_checkout.success', { route: ROUTE, tier: tierKey || 'guest', fulfillment: shipping.method });
     recordTiming('dsg_checkout.latency', Date.now() - startTime, { route: ROUTE });
@@ -231,6 +240,7 @@ async function placeOrder(data) {
       subtotal,
       shipping,
       tax,
+      rewards,
       total,
       payment: { method: data.paymentMethod, label: PAYMENT_METHODS[data.paymentMethod] },
       scorecard,
@@ -238,9 +248,9 @@ async function placeOrder(data) {
     };
   } catch (error) {
     const duration = Date.now() - startTime;
-    const linked = member && member.linkedProgram ? `${member.linkedProgram.program}:${member.linkedProgram.status}` : 'none';
+    const rewardCount = member ? member.availableRewards.length : 0;
 
-    incrementMetric('dsg_checkout.failure', { route: ROUTE, errorClass: error.name, linkedProgram: linked });
+    incrementMetric('dsg_checkout.failure', { route: ROUTE, errorClass: error.name, rewardsApplied: String(rewardCount) });
     recordTiming('dsg_checkout.latency', duration, { route: ROUTE, error: 'true' });
 
     logger.error("DICK'S cart checkout failed", {
@@ -249,20 +259,20 @@ async function placeOrder(data) {
       errorClass: error.name,
       durationMs: duration,
       memberId: data.memberId,
-      linkedProgram: linked,
+      rewardsApplied: rewardCount,
       lines: lines.length,
       service: SERVICE,
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, linkedProgram: linked, alert_path: 'instant' },
+      tags: { route: ROUTE, service: SERVICE, rewardsApplied: String(rewardCount), alert_path: 'instant' },
       extra: { orderId, memberId: data.memberId, storeNumber: data.storeNumber, zipCode: data.zipCode, lines: lines.length },
     });
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/1b17e823.js \u2014 computeScoreCardEarn',
+      culprit: 'app/services/verticals/1b17e823.js \u2014 applyScoreCardRewards',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
@@ -275,7 +285,7 @@ async function placeOrder(data) {
       tags: [
         { key: 'route', value: ROUTE },
         { key: 'service', value: SERVICE },
-        { key: 'linked_program', value: linked },
+        { key: 'rewards_applied', value: String(rewardCount) },
         { key: 'store', value: data.storeNumber },
       ],
       extra: {
@@ -308,13 +318,18 @@ module.exports = {
   placeOrder,
   findProduct,
   findMember,
+  buildCartLines,
+  computeShipping,
+  computeTax,
+  roundCurrency,
   resolveScoreCardTier,
   computeScoreCardEarn,
+  applyScoreCardRewards,
   CATALOG,
   MEMBERS,
   STORES,
   SHIPPING,
   PAYMENT_METHODS,
   SCORECARD_TIERS,
-  FLX_STATUS_CROSSWALK,
+  REWARD_CERTIFICATES,
 };
