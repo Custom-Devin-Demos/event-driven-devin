@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dining Reservations | Walt Disney World Resort</title>
+  <link rel="icon" href="https://cdn1.parksmedia.wdprapps.disney.com/media/layout/assets/icons/pep/tickets.svg">
+  <style>
+    :root { --ink:#253b56; --ink-soft:#5a6f87; --link:#1471d6; --blue:#1e5ba8; --blue-dark:#12417e; --line:#dce3ea; --bg-soft:#f4f7fa; --limited:#e48a00; --err:#c8102e; --font:"InspireTWDC", Helvetica, Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: var(--font); font-size: 14px; color: var(--ink); background: #fff; padding-top: 32px; }
+    a { color: var(--link); text-decoration: none; }
+    button, input, select { font-family: inherit; }
+    .disclaimer { position: fixed; top: 0; left: 0; right: 0; z-index: 60; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0 16px; background: #0b1f3a; color: #fff; font-size: 12px; text-align: center; }
+    .header { position: sticky; top: 32px; z-index: 50; background: #fff; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 28px; padding: 0 32px; height: 64px; }
+    .header .logo img { height: 40px; display: block; }
+    .header nav { display: flex; gap: 22px; flex: 1; }
+    .header nav a { color: var(--ink); font-size: 14px; padding: 22px 0; border-bottom: 3px solid transparent; }
+    .header nav a.active { border-bottom-color: var(--blue); font-weight: 600; }
+    .header .tools { display: flex; gap: 18px; align-items: center; color: var(--ink); }
+    .header .tools a { color: var(--ink); display: flex; align-items: center; gap: 6px; }
+    .hero { position: relative; height: 260px; background: #0b1f3a center/cover no-repeat; color: #fff; display: flex; align-items: flex-end; }
+    .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(5,20,45,.75)); }
+    .hero .copy { position: relative; z-index: 1; padding: 0 48px 28px; max-width: 900px; }
+    .hero h1 { font-size: 38px; font-weight: 300; margin: 0 0 6px; }
+    .hero p { margin: 0; font-size: 16px; opacity: .92; }
+    .crumbs { padding: 14px 48px; color: var(--ink-soft); font-size: 13px; border-bottom: 1px solid var(--line); }
+    .search { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; padding: 22px 48px; background: var(--bg-soft); border-bottom: 1px solid var(--line); }
+    .search label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--ink-soft); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .search select, .search input { height: 40px; border: 1px solid #b9c5d2; border-radius: 4px; padding: 0 12px; font-size: 15px; color: var(--ink); background: #fff; min-width: 170px; }
+    .seg { display: inline-flex; border: 1px solid #b9c5d2; border-radius: 20px; overflow: hidden; }
+    .seg button { border: 0; background: #fff; padding: 10px 18px; font-size: 14px; color: var(--ink); cursor: pointer; }
+    .seg button.on { background: var(--blue); color: #fff; }
+    .layout { display: grid; grid-template-columns: 1fr 360px; gap: 32px; padding: 26px 48px 60px; }
+    .count { color: var(--ink-soft); margin: 0 0 14px; }
+    .card { display: grid; grid-template-columns: 240px 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 18px; background: #fff; }
+    .card.sel { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(30,91,168,.25); }
+    .card img { width: 100%; height: 100%; min-height: 180px; object-fit: cover; display: block; }
+    .card .body { padding: 16px 20px; }
+    .card h3 { margin: 0 0 4px; font-size: 20px; font-weight: 500; }
+    .card .meta { color: var(--ink-soft); font-size: 13px; margin-bottom: 8px; }
+    .card .tags span { display: inline-block; background: #e8f0fa; color: var(--blue-dark); font-size: 12px; border-radius: 12px; padding: 3px 10px; margin: 0 6px 6px 0; }
+    .card p { margin: 6px 0 12px; line-height: 1.45; }
+    .times { display: flex; flex-wrap: wrap; gap: 8px; }
+    .times button { border: 1px solid var(--blue); color: var(--blue); background: #fff; border-radius: 18px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+    .times button.on { background: var(--blue); color: #fff; }
+    .times .none { color: var(--ink-soft); font-style: italic; }
+    .times .loading { color: var(--ink-soft); }
+    .limited { color: var(--limited); font-size: 12px; font-weight: 600; margin-left: 4px; }
+    aside .panel { position: sticky; top: 112px; border: 1px solid var(--line); border-radius: 8px; padding: 20px; background: #fff; }
+    aside h2 { margin: 0 0 12px; font-size: 20px; font-weight: 500; }
+    aside dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0 0 14px; font-size: 14px; }
+    aside dt { color: var(--ink-soft); }
+    aside dd { margin: 0; text-align: right; }
+    .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 12px; color: var(--ink-soft); }
+    .field input { width: 100%; min-width: 0; height: 36px; border: 1px solid #b9c5d2; border-radius: 4px; padding: 0 10px; font-size: 14px; color: var(--ink); }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .note { font-size: 12px; color: var(--ink-soft); line-height: 1.45; margin: 8px 0 12px; }
+    .check { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink-soft); margin-bottom: 14px; }
+    .primary { width: 100%; height: 46px; border: 0; border-radius: 23px; background: var(--blue); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; }
+    .primary:disabled { background: #9fb3cc; cursor: default; }
+    .err { color: var(--err); font-size: 13px; margin-top: 12px; line-height: 1.4; }
+    .modal { position: fixed; inset: 0; background: rgba(9,22,43,.55); display: none; align-items: center; justify-content: center; z-index: 80; }
+    .modal.open { display: flex; }
+    .modal .box { background: #fff; border-radius: 10px; padding: 30px; width: 460px; text-align: center; }
+    .modal code { display: block; font-size: 22px; margin: 10px 0; color: var(--blue-dark); }
+    footer.site { background: #0b1f3a; color: #c9d3df; padding: 32px 48px; }
+    footer.site .cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    footer.site h4 { color: #fff; margin: 0 0 10px; font-weight: 500; }
+    footer.site a { display: block; color: #c9d3df; margin-bottom: 6px; font-size: 13px; }
+    footer.site .legal { margin-top: 24px; font-size: 12px; opacity: .8; }
+  </style>
+</head>
+<body>
+  <div class="disclaimer" role="note">Demo only &mdash; not affiliated with, endorsed by, or associated with The Walt Disney Company, Walt Disney World or Disneyland Resort. All trademarks belong to their owners.</div>
+  <header class="header">
+    <a class="logo" href="/90ccfbb2/dining" aria-label="Home"><img id="brandLogo" alt="Walt Disney World" src="https://cdn1.parksmedia.wdprapps.disney.com/media/layout/syndicated/prod/assets/logos/wdw.svg"></a>
+    <nav aria-label="Primary">
+      <a href="#">Parks</a>
+      <a href="/90ccfbb2/tickets">Tickets &amp; Passes</a>
+      <a href="/90ccfbb2/tickets">Places to Stay</a>
+      <a href="#">Things to Do</a>
+      <a href="/90ccfbb2/dining" class="active">Dining</a>
+      <a href="#">Help</a>
+    </nav>
+    <div class="tools"><a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5.3 0-9 2.7-9 6v2h18v-2c0-3.3-3.7-6-9-6z"/></svg> My Plans</a></div>
+  </header>
+
+  <section class="hero" id="hero" style="background-image:url('https://cdn1.parksmedia.wdprapps.disney.com/vision-dam/digital/parks-platform/parks-global-assets/disney-world/experience/homepage/hero/0922ZP_1415AS_xak-5x2-5x2.jpg')">
+    <div class="copy">
+      <h1>Dining Reservations</h1>
+      <p id="heroSub">Book table-service and character dining up to 60 days in advance at Walt Disney World Resort.</p>
+    </div>
+  </section>
+  <div class="crumbs"><span id="crumbDest">Walt Disney World</span> &rsaquo; Dining &rsaquo; Check Dining Availability</div>
+
+  <section class="search" aria-label="Check dining availability">
+    <label>Destination
+      <span class="seg"><button id="destWdw" class="on">Walt Disney World</button><button id="destDlr">Disneyland Resort</button></span>
+    </label>
+    <label>Party Size<select id="party"></select></label>
+    <label>Date<input type="date" id="date"></label>
+    <label>Meal<select id="meal"><option>Breakfast</option><option>Lunch</option><option selected>Dinner</option></select></label>
+  </section>
+
+  <div class="layout">
+    <main>
+      <p class="count" id="count"></p>
+      <div id="list"></div>
+    </main>
+    <aside>
+      <div class="panel">
+        <h2>Your Reservation</h2>
+        <dl id="summary"></dl>
+        <div class="row2">
+          <div class="field">First Name<input id="first" value="Jordan"></div>
+          <div class="field">Last Name<input id="last" value="Rivera"></div>
+        </div>
+        <div class="field">Email<input id="email" value="jordan.rivera@example.com"></div>
+        <div class="field">Mobile Phone<input id="phone" value="(407) 555-0142"></div>
+        <div class="field">Credit Card Guarantee<input id="card" value="4111 1111 1111 1111"></div>
+        <p class="note" id="feeNote"></p>
+        <label class="check"><input type="checkbox" id="agree" checked> I agree to the dining reservation cancellation policy. Reservations canceled less than 1 day prior or missed incur a no-show fee.</label>
+        <button class="primary" id="bookBtn">Book Reservation</button>
+        <div class="err" id="bookErr" role="alert"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="modal" id="confirm" role="dialog" aria-labelledby="confTitle">
+    <div class="box">
+      <h3 id="confTitle">Your reservation is confirmed!</h3>
+      <code id="confNumber"></code>
+      <p class="note" id="confText"></p>
+      <button class="primary" id="confClose">Done</button>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="cols">
+      <div><h4>Help</h4><a href="#">Contact Us</a><a href="#">Help Center</a><a href="#">Dining FAQ</a></div>
+      <div><h4>Dining</h4><a href="#">Character Dining</a><a href="#">Signature Dining</a><a href="#">Mobile Order</a><a href="#">Special Diets</a></div>
+      <div><h4>Parks &amp; Tickets</h4><a href="/90ccfbb2/tickets">Theme Park Tickets</a><a href="/90ccfbb2/tickets">Park Pass Reservations</a><a href="#">Park Hours</a></div>
+      <div><h4>Places to Stay</h4><a href="/90ccfbb2/tickets">Disney Resort Hotels</a><a href="#">Disney Vacation Club</a><a href="#">Transportation</a></div>
+    </div>
+    <div class="legal">Demo replica for an incident-response walkthrough. Not a Disney website; no reservations are made and no card is charged.</div>
+  </footer>
+
+  <script>
+    var IMG = 'https://images.unsplash.com/';
+    var FALLBACK = 'https://cdn1.parksmedia.wdprapps.disney.com/vision-dam/digital/parks-platform/parks-global-assets/disney-world/experience/homepage/hero/0813ZM_5484SD_xak-5x2.jpg';
+    var RESTAURANTS = [
+      { id: 'wdw-bog', dest: 'wdw', name: 'Be Our Guest Restaurant', where: 'Magic Kingdom Park · Fantasyland', cuisine: 'French', price: '$$$$', tags: ['Table Service', 'Prix Fixe'], img: 'photo-1414235077428-338989a2e8c0', blurb: 'Be our guest in the Beast’s castle, dining in the Grand Ballroom, the Rose Gallery or the mysterious West Wing.' },
+      { id: 'wdw-crt', dest: 'wdw', name: "Cinderella's Royal Table", where: 'Magic Kingdom Park · Fantasyland', cuisine: 'American', price: '$$$$', tags: ['Character Dining', 'Table Service'], img: 'photo-1517248135467-4c7edcad34c4', blurb: 'Feast like royalty inside Cinderella Castle, with visits from Cinderella and her princess friends.' },
+      { id: 'wdw-sp', dest: 'wdw', name: 'Space 220 Restaurant', where: 'EPCOT · World Discovery', cuisine: 'American', price: '$$$$', tags: ['Table Service', 'Signature Dining'], img: 'photo-1559339352-11d035aa65de', blurb: 'Board a space elevator to Centauri Space Station and dine 220 miles above Earth with sweeping views of the planet.' },
+      { id: 'wdw-oha', dest: 'wdw', name: "'Ohana", where: "Disney's Polynesian Village Resort", cuisine: 'Polynesian', price: '$$$', tags: ['Family Style', 'Table Service'], img: 'photo-1504674900247-0877df9cc836', blurb: 'A family-style feast of slow-roasted meats, noodles and Pineapple Bread Pudding cooked over an 18-foot fire pit.' },
+      { id: 'dlr-bb', dest: 'dlr', name: 'Blue Bayou Restaurant', where: 'Disneyland Park · New Orleans Square', cuisine: 'Cajun/Creole', price: '$$$', tags: ['Table Service'], img: 'photo-1555396273-367ea4eb4db5', blurb: 'Dine beneath a twilight sky on the banks of the bayou, beside the boats of Pirates of the Caribbean.' },
+      { id: 'dlr-ll', dest: 'dlr', name: 'Lamplight Lounge', where: 'Disney California Adventure Park · Pixar Pier', cuisine: 'American', price: '$$', tags: ['Table Service'], img: 'photo-1551218808-94e220e084d2', blurb: 'A Pixar animators’ hangout overlooking Paradise Bay, with lobster nachos and a wall of original concept art.' }
+    ];
+    var SEATINGS = {
+      Breakfast: ['8:05 AM', '8:40 AM', '9:15 AM', '10:05 AM'],
+      Lunch: ['11:35 AM', '12:20 PM', '1:10 PM', '2:15 PM'],
+      Dinner: ['5:15 PM', '5:50 PM', '6:30 PM', '7:25 PM', '8:10 PM']
+    };
+    var DEST = {
+      wdw: { label: 'Walt Disney World', logo: 'https://cdn1.parksmedia.wdprapps.disney.com/media/layout/syndicated/prod/assets/logos/wdw.svg', sub: 'Book table-service and character dining up to 60 days in advance at Walt Disney World Resort.' },
+      dlr: { label: 'Disneyland Resort', logo: 'https://cdn1.parksmedia.wdprapps.disney.com/media/layout/syndicated/prod/assets/logos/dlr.svg', sub: 'Book table-service dining up to 60 days in advance at Disneyland Resort.' }
+    };
+    var state = { dest: 'wdw', party: 4, meal: 'Dinner', date: null, avail: {}, sel: { id: 'wdw-bog', time: '5:50 PM' } };
+    function $(id) { return document.getElementById(id); }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function iso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    function pretty(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); }
+    function identity() { return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }; }
+    function api(path, body) {
+      return fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, body: j }; }); });
+    }
+    function restaurant(id) { return RESTAURANTS.filter(function (r) { return r.id === id; })[0]; }
+
+    (function init() {
+      for (var i = 1; i <= 10; i++) { var o = document.createElement('option'); o.value = i; o.textContent = i + (i === 1 ? ' Guest' : ' Guests'); if (i === 4) o.selected = true; $('party').appendChild(o); }
+      var d = new Date(); d.setDate(d.getDate() + 14); while (d.getDay() !== 6) d.setDate(d.getDate() + 1);
+      state.date = iso(d); $('date').value = state.date;
+      var min = new Date(); $('date').min = iso(min); min.setDate(min.getDate() + 60); $('date').max = iso(min);
+    })();
+
+    function setDest(dest) {
+      state.dest = dest;
+      $('destWdw').classList.toggle('on', dest === 'wdw'); $('destDlr').classList.toggle('on', dest === 'dlr');
+      $('brandLogo').src = DEST[dest].logo; $('brandLogo').alt = DEST[dest].label;
+      $('crumbDest').textContent = DEST[dest].label; $('heroSub').textContent = DEST[dest].sub;
+      var first = RESTAURANTS.filter(function (r) { return r.dest === dest; })[0];
+      state.sel = { id: first.id, time: SEATINGS[state.meal][1] };
+      load();
+    }
+    $('destWdw').onclick = function () { setDest('wdw'); };
+    $('destDlr').onclick = function () { setDest('dlr'); };
+    $('party').onchange = function () { state.party = +this.value; render(); };
+    $('date').onchange = function () { if (this.value) { state.date = this.value; load(); } };
+    $('meal').onchange = function () { state.meal = this.value; state.sel.time = SEATINGS[state.meal][1]; render(); };
+
+    var searchGen = 0;
+    function load() {
+      var gen = ++searchGen;
+      state.avail = {};
+      var list = RESTAURANTS.filter(function (r) { return r.dest === state.dest; });
+      render();
+      list.forEach(function (r) {
+        api('/api/90ccfbb2/dining/availability', { restaurantId: r.id, date: state.date }).then(function (res) {
+          if (gen !== searchGen) return;
+          state.avail[r.id] = res.ok ? res.body.status : 'ERROR'; render();
+        }).catch(function () { if (gen === searchGen) { state.avail[r.id] = 'ERROR'; render(); } });
+      });
+    }
+
+    function timesFor(r) {
+      var st = state.avail[r.id];
+      if (!st) return '<span class="loading">Checking availability…</span>';
+      if (st === 'ERROR') return '<span class="none">Availability is temporarily unavailable.</span>';
+      if (st === 'SOLD_OUT') return '<span class="none">No tables available for this date.</span>';
+      var times = SEATINGS[state.meal].slice(0, st === 'LIMITED' ? 2 : 5);
+      return times.map(function (t) {
+        var on = state.sel.id === r.id && state.sel.time === t;
+        return '<button data-r="' + r.id + '" data-t="' + esc(t) + '" class="' + (on ? 'on' : '') + '">' + esc(t) + '</button>';
+      }).join('') + (st === 'LIMITED' ? '<span class="limited">Limited availability</span>' : '');
+    }
+
+    function render() {
+      var list = RESTAURANTS.filter(function (r) { return r.dest === state.dest; });
+      $('count').textContent = list.length + ' table-service restaurants · ' + state.party + ' guests · ' + pretty(state.date) + ' · ' + state.meal;
+      $('list').innerHTML = list.map(function (r) {
+        return '<div class="card' + (state.sel.id === r.id ? ' sel' : '') + '">' +
+          '<img alt="" src="' + IMG + r.img + '?w=640&q=70" onerror="this.onerror=null;this.src=\'' + FALLBACK + '\'">' +
+          '<div class="body"><h3>' + esc(r.name) + '</h3><div class="meta">' + esc(r.where) + ' · ' + esc(r.cuisine) + ' · ' + r.price + '</div>' +
+          '<div class="tags">' + r.tags.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('') + '</div>' +
+          '<p>' + esc(r.blurb) + '</p><div class="times">' + timesFor(r) + '</div></div></div>';
+      }).join('');
+      Array.prototype.forEach.call(document.querySelectorAll('.times button'), function (b) {
+        b.onclick = function () { state.sel = { id: b.getAttribute('data-r'), time: b.getAttribute('data-t') }; $('bookErr').textContent = ''; render(); };
+      });
+      var r = restaurant(state.sel.id);
+      $('summary').innerHTML = '<dt>Restaurant</dt><dd>' + esc(r.name) + '</dd><dt>Location</dt><dd>' + esc(r.where) + '</dd>' +
+        '<dt>Date</dt><dd>' + esc(pretty(state.date)) + '</dd><dt>Time</dt><dd>' + esc(state.sel.time) + '</dd><dt>Party</dt><dd>' + state.party + ' Guests</dd>';
+      $('feeNote').textContent = 'A credit card is required to guarantee this reservation. A no-show fee of $10 per guest ($' + (10 * state.party) + ') applies if the reservation is missed or canceled less than 1 day before.';
+      var st = state.avail[r.id];
+      $('bookBtn').disabled = !st || st === 'SOLD_OUT' || st === 'ERROR';
+    }
+
+    $('bookBtn').onclick = function () {
+      if (!$('agree').checked) { $('bookErr').textContent = 'Please accept the cancellation policy.'; return; }
+      var btn = this; btn.disabled = true; btn.textContent = 'Booking…'; $('bookErr').textContent = '';
+      api('/api/90ccfbb2/dining/reservations', Object.assign({ restaurantId: state.sel.id, date: state.date, time: state.sel.time, partySize: state.party }, identity()))
+        .then(function (res) {
+          btn.textContent = 'Book Reservation'; btn.disabled = false;
+          if (!res.ok) {
+            $('bookErr').innerHTML = 'We’re sorry, we are unable to complete your reservation at this time. Please try again later.' +
+              (res.body && res.body.reference ? ' (Reference: ' + esc(res.body.reference) + ')' : '');
+            return;
+          }
+          var b = res.body, r = restaurant(b.restaurantId);
+          $('confNumber').textContent = b.confirmation;
+          $('confText').textContent = r.name + ' · ' + pretty(b.date) + ' at ' + b.time + ' · ' + b.partySize + ' guests. Estimated $' + b.estimatedTotal.toFixed(2) + ' before tax and gratuity. Confirmation sent to ' + $('email').value + '.';
+          $('confirm').classList.add('open');
+        })
+        .catch(function () { btn.textContent = 'Book Reservation'; btn.disabled = false; $('bookErr').textContent = 'We’re sorry, something went wrong. Please try again.'; });
+    };
+    $('confClose').onclick = function () { $('confirm').classList.remove('open'); load(); };
+    load();
+  </script>
+</body>
+</html>

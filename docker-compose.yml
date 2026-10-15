@@ -489,6 +489,25 @@ services:
     expose:
       - "4001"
 
+  # ─── Disney Parks resort-inventory (Java 8 / Spring Boot, /90ccfbb2) ───
+  # Park ticket, Park Pass and resort room inventory: availability, holds,
+  # checkout and the hold-release job. checkout-api proxies /api/90ccfbb2/*
+  # to it; scripts/deploy-ec2.sh step 5c rebuilds it best-effort.
+  resort-inventory:
+    build:
+      context: ./resort-inventory
+    expose:
+      - "8080"
+    environment:
+      - PORT=8080
+      - JAVA_OPTS=-Xms64m -Xmx160m -XX:+UseSerialGC
+      - INVENTORY_DEMO_ABANDONED_CARTS=${INVENTORY_DEMO_ABANDONED_CARTS:-true}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+
   # ─── Avature Talent Suite (recruiting-platform demo, separate repo) ───
   # Built from ./avature-src, a checkout of COG-GTM/avature-talent-demo that
   # scripts/deploy-ec2.sh step 5b refreshes with GITHUB_PAT (never stored in
