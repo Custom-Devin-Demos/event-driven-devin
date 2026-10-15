@@ -572,14 +572,12 @@
       if (!res.ok) {
         result.className = 'result-box error';
         result.innerHTML = '<div class="result-title">Seats could not be added</div><div>Your workspace was not changed. Try again in a few minutes or contact your Harvey account team.</div>';
-      } else if (data.withinLimit === false) {
-        result.className = 'result-box error';
-        result.innerHTML = '<div class="result-title">Seat limit reached</div><div>' + seats + ' seats exceeds the limit for this workspace plan. Choose a higher plan or contact your Harvey account team.</div>';
       } else {
         const added = data.seatsAdded || seats;
         const cost = data.annualCost != null ? ' Updated annual total: $' + Number(data.annualCost).toLocaleString() + '.' : '';
         result.className = 'result-box success';
-        result.innerHTML = '<div class="result-title">Seats added</div><div>' + added + ' seats added to ' + productLabel + ' for your workspace.' + cost + '</div>';
+        result.innerHTML = '<div class="result-title">Seats added</div><div>' + added + ' seats added to ' + productLabel + ' for your workspace.' + cost + '</div>' +
+          (data.withinLimit === false ? '<div>Your workspace is now above the seat limit for this plan. Contact your Harvey account team to change plans.</div>' : '');
       }
     } catch (err) {
       result.className = 'result-box error';
