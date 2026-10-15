@@ -194,6 +194,33 @@
       footer.site .cols { grid-template-columns: repeat(2, 1fr); }
       .disclaimer { font-size: 10.5px; }
     }
+    /* ---------- Ticket options / add-ons / rooms ---------- */
+    .days { display: flex; gap: 8px; flex-wrap: wrap; }
+    .days button { border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 10px 14px; cursor: pointer; color: var(--ink); min-width: 92px; text-align: left; }
+    .days button strong { display: block; font-size: 15px; }
+    .days button span { font-size: 12px; color: var(--ink-soft); }
+    .days button.active { border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
+    .opts { display: grid; gap: 10px; }
+    .opt { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--line); border-radius: 10px; padding: 14px; cursor: pointer; background: #fff; }
+    .opt.active { border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
+    .opt input { margin-top: 3px; accent-color: var(--blue); }
+    .opt .t { flex: 1; }
+    .opt .t strong { display: block; font-size: 15px; }
+    .opt .t span { font-size: 13px; color: var(--ink-soft); line-height: 1.4; }
+    .opt .price { font-weight: 700; white-space: nowrap; font-size: 14px; }
+    .timer.warn { background: #fdecea; color: #b0392b; font-weight: 700; }
+    .review .box { width: 760px; text-align: left; max-height: 90vh; overflow: auto; }
+    .review .cols2 { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; }
+    .review h3 { margin-top: 0; }
+    .review h4 { margin: 18px 0 8px; font-size: 15px; }
+    .review label { display: block; font-size: 12px; color: var(--ink-soft); margin-bottom: 10px; }
+    .review input { display: block; width: 100%; margin-top: 4px; border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; font-size: 14px; box-sizing: border-box; }
+    .review .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .review dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; font-size: 13px; }
+    .review dd { margin: 0; text-align: right; }
+    .review .grand { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; display: flex; justify-content: space-between; font-weight: 700; font-size: 17px; }
+    .review .x { float: right; background: none; border: 0; font-size: 24px; cursor: pointer; color: var(--ink); }
+    @media (max-width: 760px) { .review .cols2 { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -205,7 +232,9 @@
       <a href="#">Parks</a>
       <a href="#" class="active">Tickets &amp; Passes</a>
       <a href="#" id="navStay">Places to Stay</a>
+      <a href="#">Things to Do</a>
       <a href="#">Dining</a>
+      <a href="#">Help</a>
     </nav>
     <div class="tools">
       <a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5.3 0-9 2.7-9 6v2h18v-2c0-3.3-3.7-6-9-6z"/></svg> My Plans</a>
@@ -245,7 +274,7 @@
         <div id="ticketSteps">
           <div class="step">
             <h2>1. Select Guests</h2>
-            <p class="sub">1-Day Ticket with a Park Pass reservation for one park.</p>
+            <p class="sub">Ticket prices are per guest. Children under 3 do not need a ticket.</p>
             <div class="guests">
               <div class="guest"><div class="label"><strong>Adults</strong><span>Ages 10+</span></div>
                 <div class="stepper"><button data-g="adults" data-d="-1" aria-label="Fewer adults">&minus;</button><output id="adults">2</output><button data-g="adults" data-d="1" aria-label="More adults">+</button></div></div>
@@ -254,8 +283,13 @@
             </div>
           </div>
           <div class="step">
-            <h2>2. Select a Park</h2>
-            <p class="sub">Your ticket includes a Park Pass reservation for the park you choose.</p>
+            <h2>2. Select Number of Days</h2>
+            <p class="sub">The more days you visit, the less you pay per day. Tickets must be used within a window that starts on your first visit date.</p>
+            <div class="days" id="daysPicker"></div>
+          </div>
+          <div class="step">
+            <h2>3. Select a Park for Day 1</h2>
+            <p class="sub">Your ticket includes a Park Pass reservation for the first day. Reserve your other days in My Disney Experience.</p>
             <div class="cards" id="parkCards"></div>
           </div>
         </div>
@@ -267,9 +301,14 @@
             <div class="cards" id="resortCards"></div>
           </div>
           <div class="step">
-            <h2>2. Length of Stay</h2>
+            <h2>2. Select a Room Type</h2>
+            <p class="sub">Rates shown are per room, per night, for 2 adults.</p>
+            <div class="opts" id="roomTypes"></div>
+          </div>
+          <div class="step">
+            <h2>3. Length of Stay</h2>
             <div class="nights" id="nights">
-              <button data-n="1">1 night</button><button data-n="2" class="active">2 nights</button><button data-n="3">3 nights</button>
+              <button data-n="1">1 night</button><button data-n="2" class="active">2 nights</button><button data-n="3">3 nights</button><button data-n="4">4 nights</button><button data-n="5">5 nights</button>
             </div>
           </div>
         </div>
@@ -290,6 +329,19 @@
               <span><i style="background:#9aa7b5"></i>Sold out</span>
             </div>
             <div class="cal-msg" id="calMsg"></div>
+          </div>
+        </div>
+
+        <div id="ticketExtras">
+          <div class="step">
+            <h2>5. Select Ticket Options</h2>
+            <p class="sub" id="optSub">Choose how you want to visit the parks.</p>
+            <div class="opts" id="ticketOpts"></div>
+          </div>
+          <div class="step">
+            <h2>6. Add-Ons</h2>
+            <p class="sub">Enhance your visit. Add-ons are priced per guest unless noted.</p>
+            <div class="opts" id="addOns"></div>
           </div>
         </div>
       </div>
@@ -317,12 +369,41 @@
     </footer>
   </aside>
 
+  <div class="modal review" id="review">
+    <div class="box" role="dialog" aria-labelledby="reviewTitle">
+      <button class="x" id="reviewClose" aria-label="Close">&times;</button>
+      <h3 id="reviewTitle">Review &amp; Purchase</h3>
+      <div class="cols2">
+        <form id="payForm" autocomplete="off" novalidate>
+          <h4>Guest Information</h4>
+          <div class="row2"><label>First Name<input id="fFirst" value="Jordan"></label><label>Last Name<input id="fLast" value="Rivera"></label></div>
+          <label>Email<input id="fEmail" type="email" value="jordan.rivera@example.com"></label>
+          <div class="row2"><label>Phone<input id="fPhone" value="(407) 555-0142"></label><label>ZIP Code<input id="fZip" value="32830"></label></div>
+          <h4>Payment</h4>
+          <label>Name on Card<input id="fCardName" value="Jordan Rivera"></label>
+          <label>Card Number<input id="fCard" inputmode="numeric" value="4111 1111 1111 1111"></label>
+          <div class="row2"><label>Expiration (MM/YY)<input id="fExp" value="09/29"></label><label>Security Code<input id="fCvc" inputmode="numeric" value="123"></label></div>
+          <p class="note">Demo form &mdash; nothing you enter here leaves your browser and no payment is taken.</p>
+        </form>
+        <div>
+          <h4>Your Order</h4>
+          <dl id="reviewList"></dl>
+          <div class="grand"><span>Total</span><span id="reviewTotal">$0.00</span></div>
+          <button class="primary" id="purchaseBtn">Purchase</button>
+          <div class="err" id="reviewErr"></div>
+          <p class="note">By purchasing you agree to the ticket Terms &amp; Conditions. Tickets are non-refundable and non-transferable.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" id="confirm">
     <div class="box">
       <img alt="" src="https://cdn1.parksmedia.wdprapps.disney.com/vision-dam/digital/parks-platform/parks-standard-assets/disney-world/homepage/actions/Parks_Mini_Tickets_Mickey.png">
       <h3>You're all set!</h3>
       <p>Confirmation number</p>
       <code id="confNumber"></code>
+      <p class="note" id="confEmail"></p>
       <p class="note">A confirmation email is on its way. Link your tickets in My Disney Experience to manage Park Pass reservations.</p>
       <button class="primary" id="confClose">Done</button>
     </div>
@@ -333,6 +414,7 @@
       <div><h4>Help</h4><a href="#">Contact Us</a><a href="#">Help Center</a><a href="#">planDisney</a></div>
       <div><h4>Guest Services</h4><a href="#">Park Security</a><a href="#">Property Rules</a><a href="#">Services for Guests with Disabilities</a><a href="#">Disney PhotoPass</a></div>
       <div><h4>Parks &amp; Tickets</h4><a href="#">Magic Kingdom Park</a><a href="#">EPCOT</a><a href="#">Disney's Hollywood Studios</a><a href="#">Disney's Animal Kingdom Park</a><a href="#">Park Hours</a></div>
+      <div><h4>Places to Stay</h4><a href="#">Disney Resort Hotels</a><a href="#">Disney Vacation Club</a><a href="#">Resort Amenities</a><a href="#">Transportation</a></div>
       <div><h4>Get Ready</h4><a href="#">Mobile App</a><a href="#">Get Ready for Your Vacation</a><a href="#">Shops</a></div>
     </div>
     <div class="legal">Demo replica for an incident-response walkthrough. Not a Disney website; no tickets or reservations are sold.</div>
@@ -374,12 +456,28 @@
         ]
       }
     };
+    var DAY_FACTOR = [0, 1, 1.92, 2.78, 3.55, 4.25];
+    var TICKET_OPTS = [
+      { id: 'base', name: 'Base Ticket', desc: 'Visit 1 theme park per day.', add: 0 },
+      { id: 'hopper', name: 'Park Hopper Option', desc: 'Visit more than 1 theme park per day (starting at 2:00 PM).', add: 75 },
+      { id: 'plus', name: 'Park Hopper Plus Option', desc: 'Park hopping plus visits to water parks, golf and more.', add: 95, wdwOnly: true }
+    ];
+    var ADDONS = [
+      { id: 'll', name: 'Lightning Lane Multi Pass', desc: 'Book return times for up to 3 attractions in advance, each day of your visit.', price: 29, per: 'guest/day' },
+      { id: 'mm', name: 'Memory Maker', desc: 'Unlimited downloads of your Disney PhotoPass photos and attraction videos.', price: 185, per: 'order' }
+    ];
+    var ROOM_TYPES = [
+      { id: 'std', name: 'Standard View Room', desc: '2 Queen Beds or 1 King Bed \u00b7 Sleeps up to 5', mult: 1 },
+      { id: 'garden', name: 'Garden View Room', desc: '2 Queen Beds and 1 Day Bed \u00b7 Sleeps up to 5', mult: 1.12 },
+      { id: 'park', name: 'Theme Park View Room', desc: '2 Queen Beds and 1 Day Bed \u00b7 Sleeps up to 5 \u00b7 Views of the park', mult: 1.38 }
+    ];
+    var TAX = { wdw: { tickets: 0.065, resorts: 0.125 }, dlr: { tickets: 0, resorts: 0.1718 } };
     var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     var FALLBACK_IMG = 'https://images.unsplash.com/photo-1575089976121-8ed7b2a54265?w=900&q=70';
 
     var state = {
-      dest: 'wdw', tab: 'tickets', adults: 2, children: 2, nights: 2,
-      productId: 'wdw-mk', month: null, days: {}, selected: null, cart: []
+      dest: 'wdw', tab: 'tickets', adults: 2, children: 2, nights: 2, days: 1, ticketOpt: 'base', addOns: {}, roomType: 'std',
+      productId: 'wdw-mk', month: null, avail: {}, selected: null, cart: []
     };
 
     function $(id) { return document.getElementById(id); }
@@ -452,7 +550,8 @@
       state.selected = null;
       $('ticketSteps').hidden = tab !== 'tickets';
       $('resortSteps').hidden = tab !== 'resorts';
-      $('dateHeading').textContent = tab === 'tickets' ? '3. Select a Date' : '3. Select a Check-In Date';
+      $('dateHeading').textContent = tab === 'tickets' ? '4. Select a Start Date' : '4. Select a Check-In Date';
+      $('ticketExtras').hidden = tab !== 'tickets';
       $('dateSub').textContent = tab === 'tickets' ? 'Prices vary by date. Dates shown in the park\u2019s local time.' : 'Nightly rates shown are the lowest available room rate, before tax.';
       $('sumTitle').textContent = tab === 'tickets' ? 'Your Tickets' : 'Your Stay';
       document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === tab); });
@@ -473,14 +572,14 @@
         .then(function (res) {
           if (requestedFor !== state.productId + state.month.y + state.month.m) return;
           $('cal').classList.remove('cal-loading');
-          state.days = {};
+          state.avail = {};
           if (!res.ok) {
             $('calMsg').textContent = res.body && res.body.code === 'INVENTORY_UNAVAILABLE'
               ? 'We\u2019re having trouble checking availability right now. Please try again in a few minutes.'
               : 'Availability could not be loaded.';
             $('calMsg').style.display = 'block';
           } else {
-            (res.body.days || []).forEach(function (d) { state.days[d.date] = d; });
+            (res.body.days || []).forEach(function (d) { state.avail[d.date] = d; });
           }
           renderCalendar();
         })
@@ -510,7 +609,7 @@
       for (var day = 1; day <= count; day++) {
         (function (dayNum) {
           var date = iso(mo.y, mo.m, dayNum);
-          var info = state.days[date];
+          var info = state.avail[date];
           var cell = document.createElement('button');
           cell.className = 'day';
           var num = document.createElement('span'); num.textContent = dayNum;
@@ -529,36 +628,93 @@
       renderSummary();
     }
 
+    function optionCard(group, o, checked, priceText, onPick, type) {
+      var l = document.createElement('label'); l.className = 'opt' + (checked ? ' active' : '');
+      var i = document.createElement('input'); i.type = type || 'radio'; i.name = group; i.checked = checked;
+      i.onchange = function () { onPick(i.checked); };
+      var t = document.createElement('div'); t.className = 't';
+      var st = document.createElement('strong'); st.textContent = o.name;
+      var sp = document.createElement('span'); sp.textContent = o.desc;
+      t.appendChild(st); t.appendChild(sp);
+      var pr = document.createElement('div'); pr.className = 'price'; pr.textContent = priceText;
+      l.appendChild(i); l.appendChild(t); l.appendChild(pr);
+      return l;
+    }
+    function renderOptions() {
+      var dp = $('daysPicker'); dp.innerHTML = '';
+      var base = state.selected && state.avail[state.selected] ? state.avail[state.selected].priceFromUsd : null;
+      [1, 2, 3, 4, 5].forEach(function (n) {
+        var b = document.createElement('button'); b.className = n === state.days ? 'active' : '';
+        var st = document.createElement('strong'); st.textContent = n + '-Day';
+        var sp = document.createElement('span'); sp.textContent = base ? money(Math.round(base * DAY_FACTOR[n]) / n) + '/day' : (n === 1 ? 'Ticket' : 'Tickets');
+        b.appendChild(st); b.appendChild(sp);
+        b.onclick = function () { state.days = n; renderOptions(); renderSummary(); };
+        dp.appendChild(b);
+      });
+      var to = $('ticketOpts'); to.innerHTML = '';
+      TICKET_OPTS.filter(function (o) { return !o.wdwOnly || state.dest === 'wdw'; }).forEach(function (o) {
+        to.appendChild(optionCard('topt', o, state.ticketOpt === o.id, o.add ? '+' + money(o.add) + ' /ticket' : 'Included', function () { state.ticketOpt = o.id; renderOptions(); renderSummary(); }));
+      });
+      var ao = $('addOns'); ao.innerHTML = '';
+      ADDONS.forEach(function (o) {
+        ao.appendChild(optionCard('addon-' + o.id, o, !!state.addOns[o.id], money(o.price) + ' /' + o.per, function (on) { state.addOns[o.id] = on; renderOptions(); renderSummary(); }, 'checkbox'));
+      });
+      var rt = $('roomTypes'); rt.innerHTML = '';
+      ROOM_TYPES.forEach(function (o) {
+        rt.appendChild(optionCard('room', o, state.roomType === o.id, o.mult === 1 ? 'From base rate' : '+' + Math.round((o.mult - 1) * 100) + '%', function () { state.roomType = o.id; renderOptions(); renderSummary(); }));
+      });
+    }
+    function roomMult() { return ROOM_TYPES.filter(function (r) { return r.id === state.roomType; })[0].mult; }
+    function ticketPrice(base, child) {
+      var p = Math.round((child ? childPrice(base) : base) * DAY_FACTOR[state.days]);
+      return p + TICKET_OPTS.filter(function (o) { return o.id === state.ticketOpt; })[0].add;
+    }
+    function ticketLines() {
+      var base = state.avail[state.selected].priceFromUsd;
+      var guests = state.adults + state.children;
+      var lines = [];
+      if (state.adults) lines.push([state.adults + ' \u00d7 Adult ticket', ticketPrice(base, false) * state.adults]);
+      if (state.children) lines.push([state.children + ' \u00d7 Child ticket', ticketPrice(base, true) * state.children]);
+      if (state.addOns.ll) lines.push(['Lightning Lane Multi Pass', 29 * guests * state.days]);
+      if (state.addOns.mm) lines.push(['Memory Maker', 185]);
+      return lines;
+    }
+    function ticketName() {
+      var o = TICKET_OPTS.filter(function (x) { return x.id === state.ticketOpt; })[0];
+      return state.days + '-Day ' + (o.id === 'base' ? 'Base Ticket' : o.name.replace(' Option', ''));
+    }
+
     function renderSummary() {
       var p = product();
       var dl = $('sumList'); dl.innerHTML = '';
       function row(k, v) { var dt = document.createElement('dt'); dt.textContent = k; var dd = document.createElement('dd'); dd.textContent = v; dl.appendChild(dt); dl.appendChild(dd); }
       var total = null;
       if (state.tab === 'tickets') {
-        row('Park', p ? p.name : '\u2014');
-        row('Date', state.selected ? new Date(state.selected + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'Select a date');
+        row('Ticket', ticketName());
+        row('Day 1 Park', p ? p.name : '\u2014');
+        row('Start date', state.selected ? new Date(state.selected + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'Select a date');
         row('Guests', state.adults + ' Adult' + (state.adults === 1 ? '' : 's') + ', ' + state.children + ' Child' + (state.children === 1 ? '' : 'ren'));
-        if (state.selected && state.days[state.selected]) {
-          var price = state.days[state.selected].priceFromUsd;
-          row('Adult ticket', money(price));
-          row('Child ticket', money(childPrice(price)));
-          total = price * state.adults + childPrice(price) * state.children;
+        if (state.selected && state.avail[state.selected]) {
+          total = 0;
+          ticketLines().forEach(function (l) { row(l[0], money(l[1])); total += l[1]; });
         }
       } else {
         row('Hotel', p ? p.name : '\u2014');
         row('Check-in', state.selected ? new Date(state.selected + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'Select a date');
+        row('Room', ROOM_TYPES.filter(function (r) { return r.id === state.roomType; })[0].name);
         row('Nights', String(state.nights));
         if (state.selected) {
           var nightsDates = stayDates(state.selected);
-          var missing = nightsDates.some(function (d) { return !state.days[d] || state.days[d].status === 'SOLD_OUT'; });
+          var missing = nightsDates.some(function (d) { return !state.avail[d] || state.avail[d].status === 'SOLD_OUT'; });
           if (!missing) {
-            total = nightsDates.reduce(function (s, d) { return s + state.days[d].priceFromUsd; }, 0);
-            row('Room (1 room, 2 adults)', money(total));
+            total = Math.round(nightsDates.reduce(function (s, d) { return s + state.avail[d].priceFromUsd; }, 0) * roomMult());
+            row('1 room, 2 adults', money(total));
           } else {
             row('Room', 'Not available for these nights');
           }
         }
       }
+      renderOptions();
       $('sumTotal').textContent = total == null ? '\u2014' : money(total);
       $('addBtn').disabled = total == null || (state.tab === 'tickets' && state.adults + state.children === 0);
       $('addBtn').textContent = state.tab === 'tickets' ? 'Add Tickets to Cart' : 'Add Room to Cart';
@@ -570,7 +726,6 @@
       var requests = state.tab === 'tickets'
         ? [{ productId: p.id, date: state.selected, quantity: state.adults + state.children }]
         : stayDates(state.selected).map(function (d) { return { productId: p.id, date: d, quantity: 1 }; });
-      var pricePer = state.tab === 'tickets' ? null : null;
       Promise.all(requests.map(function (r) { return api('/api/90ccfbb2/holds', Object.assign({}, r, identity())); })).then(function (results) {
         var failed = results.filter(function (r) { return !r.ok; })[0];
         if (failed) {
@@ -579,14 +734,16 @@
           return;
         }
         var amount = state.tab === 'tickets'
-          ? state.days[state.selected].priceFromUsd * state.adults + childPrice(state.days[state.selected].priceFromUsd) * state.children
-          : stayDates(state.selected).reduce(function (s, d) { return s + state.days[d].priceFromUsd; }, 0);
+          ? ticketLines().reduce(function (s, l) { return s + l[1]; }, 0)
+          : Math.round(stayDates(state.selected).reduce(function (s, d) { return s + state.avail[d].priceFromUsd; }, 0) * roomMult());
+        var room = ROOM_TYPES.filter(function (r) { return r.id === state.roomType; })[0];
         state.cart.push({
-          title: p.name,
+          title: state.tab === 'tickets' ? ticketName() + ' \u2014 ' + p.name : p.name,
           detail: state.tab === 'tickets'
-            ? '1-Day Ticket + Park Pass \u00b7 ' + state.selected + ' \u00b7 ' + (state.adults + state.children) + ' guests'
-            : state.nights + '-night stay \u00b7 check-in ' + state.selected,
+            ? 'Park Pass ' + state.selected + ' \u00b7 ' + (state.adults + state.children) + ' guests' + (state.addOns.ll ? ' \u00b7 Lightning Lane' : '')
+            : room.name + ' \u00b7 ' + state.nights + ' night' + (state.nights === 1 ? '' : 's') + ' \u00b7 check-in ' + state.selected,
           amount: amount,
+          taxRate: TAX[state.dest][state.tab],
           holds: results.map(function (r) { return r.body; })
         });
         renderCart(); openCart();
@@ -594,7 +751,6 @@
       }).catch(function () {
         $('addErr').textContent = 'We couldn\u2019t add this to your cart. Please try again.';
       }).then(function () { renderSummary(); });
-      return pricePer;
     }
 
     function holdExpiry(item) {
@@ -630,7 +786,8 @@
         var left = Number(t.getAttribute('data-exp')) - Date.now();
         if (left <= 0) { t.textContent = 'Hold expired \u2014 items released'; t.classList.add('expired'); return; }
         var m = Math.floor(left / 60000); var s = Math.floor((left % 60000) / 1000);
-        t.textContent = 'Held for you: ' + m + ':' + String(s).padStart(2, '0');
+        t.classList.toggle('warn', left < 120000);
+        t.textContent = (left < 120000 ? 'Hurry! Hold expires in ' : 'Held for you: ') + m + ':' + String(s).padStart(2, '0');
       });
     }
     setInterval(tick, 1000);
@@ -638,6 +795,27 @@
     function openCart() { $('drawer').classList.add('open'); $('scrim').classList.add('open'); }
     function closeCart() { $('drawer').classList.remove('open'); $('scrim').classList.remove('open'); }
 
+    function openReview() {
+      var dl = $('reviewList'); dl.innerHTML = '';
+      function row(k, v) { var dt = document.createElement('dt'); dt.textContent = k; var dd = document.createElement('dd'); dd.textContent = v; dl.appendChild(dt); dl.appendChild(dd); }
+      var sub = 0; var tax = 0;
+      state.cart.forEach(function (i) { row(i.title, money(i.amount)); sub += i.amount; tax += i.amount * (i.taxRate || 0); });
+      row('Subtotal', money(sub));
+      row('Estimated taxes & fees', money(Math.round(tax * 100) / 100));
+      $('reviewTotal').textContent = money(sub + Math.round(tax * 100) / 100);
+      $('reviewErr').textContent = '';
+      $('purchaseBtn').disabled = false;
+      closeCart();
+      $('review').classList.add('open');
+    }
+    function purchase() {
+      var required = ['fFirst', 'fLast', 'fEmail', 'fZip', 'fCardName', 'fCard', 'fExp', 'fCvc'];
+      var empty = required.filter(function (id) { return !$(id).value.trim(); });
+      if (empty.length) { $('reviewErr').textContent = 'Please complete all required fields.'; $(empty[0]).focus(); return; }
+      if (!/^\S+@\S+\.\S+$/.test($('fEmail').value.trim())) { $('reviewErr').textContent = 'Please enter a valid email address.'; return; }
+      $('purchaseBtn').disabled = true;
+      checkoutAll();
+    }
     function checkoutAll() {
       $('checkoutBtn').disabled = true; $('checkoutErr').textContent = '';
       var holds = [];
@@ -645,12 +823,14 @@
       Promise.all(holds.map(function (id) { return api('/api/90ccfbb2/checkout', { holdId: id }); })).then(function (results) {
         var bad = results.filter(function (r) { return !r.ok; })[0];
         if (bad) {
-          $('checkoutErr').textContent = bad.body && bad.body.code === 'HOLD_EXPIRED' ? 'Your hold expired. Please add the items again.' : 'Checkout failed. Please try again.';
-          $('checkoutBtn').disabled = false;
+          $('reviewErr').textContent = bad.body && bad.body.code === 'HOLD_EXPIRED' ? 'Your hold expired. Please add the items again.' : 'Checkout failed. Please try again.';
+          $('purchaseBtn').disabled = false; $('checkoutBtn').disabled = false;
           return;
         }
         $('confNumber').textContent = results[0].body.confirmation;
+        $('confEmail').textContent = 'Receipt sent to ' + $('fEmail').value.trim() + '.';
         state.cart = []; renderCart(); closeCart();
+        $('review').classList.remove('open');
         $('confirm').classList.add('open');
         loadMonth();
       });
@@ -675,7 +855,7 @@
       b.onclick = function () {
         state.nights = Number(b.getAttribute('data-n'));
         document.querySelectorAll('#nights button').forEach(function (x) { x.classList.toggle('active', x === b); });
-        renderCalendar();
+        renderCalendar(); renderSummary();
       };
     });
     $('prevMonth').onclick = function () { var m = state.month; state.month = m.m === 0 ? { y: m.y - 1, m: 11 } : { y: m.y, m: m.m - 1 }; loadMonth(); };
@@ -684,7 +864,10 @@
     $('cartBtn').onclick = openCart;
     $('closeCart').onclick = closeCart;
     $('scrim').onclick = closeCart;
-    $('checkoutBtn').onclick = checkoutAll;
+    $('checkoutBtn').onclick = openReview;
+    $('purchaseBtn').onclick = purchase;
+    $('reviewClose').onclick = function () { $('review').classList.remove('open'); };
+    $('payForm').onsubmit = function (e) { e.preventDefault(); purchase(); };
     $('confClose').onclick = function () { $('confirm').classList.remove('open'); };
 
     state.month = defaultMonth();
@@ -695,6 +878,7 @@
       while (t.getDay() !== 4) t.setDate(t.getDate() + 1);
       t.setDate(t.getDate() + 23);
       state.selected = iso(t.getFullYear(), t.getMonth(), t.getDate());
+      renderSummary();
     })();
   })();
   </script>
