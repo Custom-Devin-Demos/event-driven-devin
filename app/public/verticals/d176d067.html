@@ -533,26 +533,29 @@
       const transitDays = international ? 3 : 2;
       const stage = [5, 5, 4, 3, 2][(h >>> 4) % 5];
       const delivered = stage === 5;
-      const lastDay = delivered ? addWorkingDays(updated, -1) : updated;
+      const isWorkday = updated.getDay() !== 0 && updated.getDay() !== 6;
+      const lastDay = delivered || !isWorkday ? addWorkingDays(updated, -1) : updated;
       const pickup = addWorkingDays(lastDay, -(stage === 5 ? transitDays : Math.min(stage - 1, transitDays)));
       const departed = atTime(pickup, 21, 10);
       const hub = atTime(addWorkingDays(pickup, international ? 1 : 0), international ? 6 : 23, 40);
       const arrived = atTime(addWorkingDays(pickup, transitDays - 1), 5, 25);
       const outFor = atTime(addWorkingDays(pickup, transitDays), 7, 50);
       const deliveredAt = atTime(outFor, 10 + (h % 5), (h >>> 3) % 60);
+      const events = [
+        { key: 'evPickup', at: atTime(pickup, 15, 30), where: origin.city },
+        { key: 'evOrigin', at: departed, where: origin.city },
+        { key: 'evHub', at: hub, where: international ? 'Strasbourg' : (origin.city === 'Paris' ? 'Lyon' : 'Paris') },
+        { key: 'evDest', at: arrived, where: destCity },
+        { key: 'evOut', at: outFor, where: destCity },
+        { key: 'evDelivered', at: deliveredAt, where: zip + ' ' + destCity },
+      ];
+      events.forEach((ev, i) => { if (i <= stage && ev.at > updated) ev.at = new Date(updated); });
       return {
         tracking: tracking.toUpperCase(), zip, country, stage, delivered, international,
         origin, destCity, updated,
         eta: delivered ? deliveredAt : outFor,
         parcels: 1 + (h % 4), weight: 12 + ((h >>> 2) % 180),
-        events: [
-          { key: 'evPickup', at: atTime(pickup, 15, 30), where: origin.city },
-          { key: 'evOrigin', at: departed, where: origin.city },
-          { key: 'evHub', at: hub, where: international ? 'Strasbourg' : (origin.city === 'Paris' ? 'Lyon' : 'Paris') },
-          { key: 'evDest', at: arrived, where: destCity },
-          { key: 'evOut', at: outFor, where: destCity },
-          { key: 'evDelivered', at: deliveredAt, where: zip + ' ' + destCity },
-        ],
+        events,
       };
     }
 
@@ -599,7 +602,8 @@
     }
 
     function pdfText(str) {
-      return str.replace(/[\u2014\u2013]/g, '-').replace(/[\u2019]/g, "'").replace(/[\u00b7]/g, '-')
+      return str.replace(/[^\x00-\xff]/g, (c) => c.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace('\u0141', 'L').replace('\u0142', 'l'))
+        .replace(/[\u2014\u2013]/g, '-').replace(/[\u2019]/g, "'").replace(/[\u00b7]/g, '-')
         .replace(/[^\x20-\xff]/g, '?').replace(/([\\()])/g, '\\$1')
         .replace(/[\x80-\xff]/g, (c) => '\\' + c.charCodeAt(0).toString(8));
     }
