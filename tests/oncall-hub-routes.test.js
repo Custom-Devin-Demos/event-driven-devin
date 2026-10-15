@@ -87,6 +87,7 @@ describe('on-call hub routes', () => {
     expect(html).toContain('/api/oncall/sportinggoods/checkout');
     expect(html).not.toMatch(/FLX|Foot Locker/);
     expect(html).toContain('{"fulfillment":"pickup"}');
+    expect(html).toContain('var initialClick = ".opt[data-f=\\"pickup\\"]"');
     if (legacy.status === 200) expect(await legacy.text()).not.toContain('/api/oncall/sportinggoods/checkout');
   });
 
