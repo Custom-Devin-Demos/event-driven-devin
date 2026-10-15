@@ -54,7 +54,7 @@
     aside dt { color: var(--ink-soft); }
     aside dd { margin: 0; text-align: right; }
     .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 12px; color: var(--ink-soft); }
-    .field input { height: 36px; border: 1px solid #b9c5d2; border-radius: 4px; padding: 0 10px; font-size: 14px; color: var(--ink); }
+    .field input { width: 100%; min-width: 0; height: 36px; border: 1px solid #b9c5d2; border-radius: 4px; padding: 0 10px; font-size: 14px; color: var(--ink); }
     .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .note { font-size: 12px; color: var(--ink-soft); line-height: 1.45; margin: 8px 0 12px; }
     .check { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink-soft); margin-bottom: 14px; }
@@ -167,7 +167,7 @@
       wdw: { label: 'Walt Disney World', logo: 'https://cdn1.parksmedia.wdprapps.disney.com/media/layout/syndicated/prod/assets/logos/wdw.svg', sub: 'Book table-service and character dining up to 60 days in advance at Walt Disney World Resort.' },
       dlr: { label: 'Disneyland Resort', logo: 'https://cdn1.parksmedia.wdprapps.disney.com/media/layout/syndicated/prod/assets/logos/dlr.svg', sub: 'Book table-service dining up to 60 days in advance at Disneyland Resort.' }
     };
-    var state = { dest: 'wdw', party: 4, meal: 'Dinner', date: null, avail: {}, sel: { id: 'wdw-bog', time: '6:30 PM' } };
+    var state = { dest: 'wdw', party: 4, meal: 'Dinner', date: null, avail: {}, sel: { id: 'wdw-bog', time: '5:50 PM' } };
     function $(id) { return document.getElementById(id); }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function iso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -192,14 +192,14 @@
       $('brandLogo').src = DEST[dest].logo; $('brandLogo').alt = DEST[dest].label;
       $('crumbDest').textContent = DEST[dest].label; $('heroSub').textContent = DEST[dest].sub;
       var first = RESTAURANTS.filter(function (r) { return r.dest === dest; })[0];
-      state.sel = { id: first.id, time: SEATINGS[state.meal][2] || SEATINGS[state.meal][0] };
+      state.sel = { id: first.id, time: SEATINGS[state.meal][1] };
       load();
     }
     $('destWdw').onclick = function () { setDest('wdw'); };
     $('destDlr').onclick = function () { setDest('dlr'); };
     $('party').onchange = function () { state.party = +this.value; render(); };
     $('date').onchange = function () { if (this.value) { state.date = this.value; load(); } };
-    $('meal').onchange = function () { state.meal = this.value; state.sel.time = SEATINGS[state.meal][2] || SEATINGS[state.meal][0]; render(); };
+    $('meal').onchange = function () { state.meal = this.value; state.sel.time = SEATINGS[state.meal][1]; render(); };
 
     function load() {
       state.avail = {};
