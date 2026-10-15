@@ -95,5 +95,9 @@ describe('Disney Parks resort-inventory facade', () => {
     await flush();
     expect(postOncallAlert).toHaveBeenCalledWith('90ccfbb2', expect.objectContaining({ devinEmail: 'giri@cognition.ai' }));
     expect(declareDatadogIncident).toHaveBeenCalledWith(expect.objectContaining({ severity: 'SEV-2' }));
+    await expect(svc.createHold({ productId: 'wdw-mk', date: '2026-11-28', quantity: 4 })).rejects.toMatchObject({ code: 'HOLD_FAILED' });
+    await flush();
+    expect(postOncallAlert).toHaveBeenCalledTimes(1);
+    expect(declareDatadogIncident).toHaveBeenCalledTimes(1);
   });
 });

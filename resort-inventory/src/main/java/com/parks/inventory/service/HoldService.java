@@ -75,6 +75,10 @@ public class HoldService {
         if (hold.getStatus() != Hold.Status.ACTIVE) {
             throw new InventoryException("HOLD_EXPIRED", "Hold " + holdId + " is no longer active");
         }
+        if (!hold.getExpiresAt().isAfter(Instant.now(clock))) {
+            hold.setStatus(Hold.Status.RELEASED);
+            throw new InventoryException("HOLD_EXPIRED", "Hold " + holdId + " expired at " + hold.getExpiresAt());
+        }
         hold.setStatus(Hold.Status.CONVERTED);
         store.addSold(hold.getProductId(), hold.getDate(), hold.getQuantity());
         log.info("hold.converted id={} product={} date={} qty={}",

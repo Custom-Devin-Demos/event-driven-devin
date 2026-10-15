@@ -23,6 +23,8 @@ const { declareDatadogIncident } = require('../datadog-incidents');
 const SLUG = '90ccfbb2';
 const SERVICE = 'resort-inventory';
 const INVENTORY_URL = () => (process.env.RESORT_INVENTORY_URL || 'http://resort-inventory:8080').replace(/\/$/, '');
+const HOLD_ALERT_COOLDOWN_MS = () => Number(process.env.RESORT_INVENTORY_ALERT_COOLDOWN_MS) || 10 * 60 * 1000;
+const lastHoldAlertAt = new Map();
 const MONITOR_COOLDOWN_MS = () => Number(process.env.RESORT_INVENTORY_MONITOR_COOLDOWN_MS) || 10 * 60 * 1000;
 const PRODUCT_RE = /^(wdw|dlr)-[a-z]{2,4}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -68,7 +70,7 @@ function validateDate(date) {
   if (!DATE_RE.test(date || '')) throw inventoryError(400, 'INVALID_DATE', 'Dates must be YYYY-MM-DD');
 }
 
-async function getAvailability({ productId, from, days, devinEmail }) {
+async function getAvailability({ productId, from, days }) {
   validateProduct(productId);
   validateDate(from);
   const result = await callInventory('get', '/api/availability', {
@@ -78,9 +80,6 @@ async function getAvailability({ productId, from, days, devinEmail }) {
   if (soldOut.length) {
     incrementMetric('resort_inventory.calendar_soldout_impressions', { productId, service: SERVICE });
     logger.info('Calendar served with sold-out dates', { productId, soldOut, service: SERVICE });
-    evaluateCapacityMonitor({ devinEmail, trigger: { productId, soldOut } }).catch((error) => {
-      logger.warn('Resort inventory monitor evaluation failed', { error: error.message });
-    });
   }
   return result;
 }
@@ -102,6 +101,12 @@ async function createHold({ productId, date, quantity, devinEmail }) {
       tags: { route: '/api/90ccfbb2/holds', service: SERVICE, productId, alert_path: 'instant' },
       extra: { reference, date, quantity: qty, code: error.code },
     });
+    const failure = inventoryError(500, 'HOLD_FAILED', 'We are unable to add these tickets to your cart right now.');
+    failure.reference = reference;
+    failure.detail = error.message;
+    const signature = `${productId}|${error.code}`;
+    if (Date.now() - (lastHoldAlertAt.get(signature) || 0) < HOLD_ALERT_COOLDOWN_MS()) throw failure;
+    lastHoldAlertAt.set(signature, Date.now());
     const email = EMAIL_RE.test(devinEmail || '') ? devinEmail : undefined;
     declareDatadogIncident({
       title: 'Disney Parks: Add to Cart failing on holds',
@@ -115,9 +120,6 @@ async function createHold({ productId, date, quantity, devinEmail }) {
     postOncallAlert(SLUG, { runRef: reference, devinEmail: email })
       .then((alert) => logger.info('Posting alert and triggering Devin', { reference, ok: alert && alert.ok, service: SERVICE }))
       .catch((alertError) => logger.warn('Resort inventory on-call alert failed', { error: alertError.message, reference }));
-    const failure = inventoryError(500, 'HOLD_FAILED', 'We are unable to add these tickets to your cart right now.');
-    failure.reference = reference;
-    failure.detail = error.message;
     throw failure;
   }
 }

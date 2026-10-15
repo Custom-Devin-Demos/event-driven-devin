@@ -495,9 +495,16 @@
     }
     function iso(y, m, d) { return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0'); }
     function today() { var t = new Date(); return iso(t.getFullYear(), t.getMonth(), t.getDate()); }
+    function peakSaturday(y) {
+      var t = new Date(y, 10, 1);
+      while (t.getDay() !== 4) t.setDate(t.getDate() + 1);
+      t.setDate(t.getDate() + 23);
+      return t;
+    }
     function defaultMonth() {
       var t = new Date();
-      return { y: t.getFullYear(), m: t.getMonth() <= 10 ? 10 : t.getMonth() };
+      return peakSaturday(t.getFullYear()) >= new Date(t.getFullYear(), t.getMonth(), t.getDate())
+        ? { y: t.getFullYear(), m: 10 } : { y: t.getFullYear(), m: t.getMonth() };
     }
     function product() {
       var d = DEST[state.dest];
@@ -873,13 +880,11 @@
     state.month = defaultMonth();
     renderDest();
     setTab('tickets');
-    (function () {
-      var y = state.month.y; var t = new Date(y, 10, 1);
-      while (t.getDay() !== 4) t.setDate(t.getDate() + 1);
-      t.setDate(t.getDate() + 23);
-      state.selected = iso(t.getFullYear(), t.getMonth(), t.getDate());
+    if (state.month.m === 10) {
+      var peak = peakSaturday(state.month.y);
+      state.selected = iso(peak.getFullYear(), peak.getMonth(), peak.getDate());
       renderSummary();
-    })();
+    }
   })();
   </script>
 </body>
