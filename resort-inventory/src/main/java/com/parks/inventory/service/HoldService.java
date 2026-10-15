@@ -77,6 +77,6 @@ public class HoldService {
     }
 
     Duration holdTtl() {
-        return Duration.ofSeconds(properties.getTtl());
+        return Duration.ofMinutes(properties.getTtl());
     }
 }
