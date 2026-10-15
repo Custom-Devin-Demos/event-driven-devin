@@ -3,6 +3,7 @@ package com.parks.inventory.service;
 import com.parks.inventory.config.HoldProperties;
 import com.parks.inventory.domain.Hold;
 import com.parks.inventory.domain.Product;
+import com.parks.inventory.domain.ProductType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -61,7 +62,9 @@ public class HoldService {
         Instant expiresAt = createdAt.plus(holdTtl());
         Hold hold = new Hold("H-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
                 productId, date, quantity, channel, createdAt, expiresAt);
-        ledger.post(hold, seasons.seasonFor(date), product.getPriceFromUsd());
+        if (product.getType() != ProductType.DINING) {
+            ledger.post(hold, seasons.seasonFor(date), product.getPriceFromUsd());
+        }
         store.save(hold);
         log.info("hold.created id={} product={} date={} qty={} channel={} expiresAt={}",
                 hold.getId(), productId, date, quantity, channel, expiresAt);

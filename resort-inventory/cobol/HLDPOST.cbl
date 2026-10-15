@@ -26,6 +26,7 @@
 *>   2013-11  room-nights for Deluxe resort hotels, resort tax rows
 *>   2016-06  Disneyland Resort jurisdictions (Anaheim TOT + TMD)
 *>   2019-02  VALUE season multiplier
+*>   2026-09  PEAK season multiplier (Thanksgiving week, holidays)
 *>*****************************************************************
 IDENTIFICATION DIVISION.
 PROGRAM-ID. HLDPOST.
@@ -49,8 +50,9 @@ COPY LEDGREC.
 01  SEASON-RATE-VALUES.
     05 FILLER                       PIC X(05) VALUE "V0950".
     05 FILLER                       PIC X(05) VALUE "R1000".
+    05 FILLER                       PIC X(05) VALUE "P1250".
 01  SEASON-RATE-TABLE REDEFINES SEASON-RATE-VALUES.
-    05 SEASON-RATE OCCURS 2 TIMES INDEXED BY SR-IDX.
+    05 SEASON-RATE OCCURS 3 TIMES INDEXED BY SR-IDX.
        10 SR-CODE                   PIC X(01).
        10 SR-MULTIPLIER             PIC 9V999.
 

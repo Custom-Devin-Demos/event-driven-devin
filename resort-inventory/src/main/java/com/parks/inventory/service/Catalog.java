@@ -35,7 +35,13 @@ public class Catalog {
                 new Product("wdw-poly", "wdw", ProductType.RESORT_ROOM, "Disney's Polynesian Village Resort", WDW, 60, 799),
                 new Product("wdw-cr", "wdw", ProductType.RESORT_ROOM, "Disney's Contemporary Resort", WDW, 60, 649),
                 new Product("dlr-dlh", "dlr", ProductType.RESORT_ROOM, "Disneyland Hotel", DLR, 40, 749),
-                new Product("dlr-gc", "dlr", ProductType.RESORT_ROOM, "Disney's Grand Californian Hotel & Spa", DLR, 40, 829))) {
+                new Product("dlr-gc", "dlr", ProductType.RESORT_ROOM, "Disney's Grand Californian Hotel & Spa", DLR, 40, 829),
+                new Product("wdw-bog", "wdw", ProductType.DINING, "Be Our Guest Restaurant", WDW, 160, 69),
+                new Product("wdw-crt", "wdw", ProductType.DINING, "Cinderella's Royal Table", WDW, 70, 75),
+                new Product("wdw-sp", "wdw", ProductType.DINING, "Space 220 Restaurant", WDW, 90, 79),
+                new Product("wdw-oha", "wdw", ProductType.DINING, "'Ohana", WDW, 140, 55),
+                new Product("dlr-bb", "dlr", ProductType.DINING, "Blue Bayou Restaurant", DLR, 90, 65),
+                new Product("dlr-ll", "dlr", ProductType.DINING, "Lamplight Lounge", DLR, 110, 45))) {
             products.put(p.getId(), p);
         }
     }

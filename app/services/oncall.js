@@ -322,6 +322,26 @@ const ALERT_SCENARIOS = {
     demoPage: '/90ccfbb2',
     unlisted: true,
   },
+  '90ccfbb2-dining': {
+    vertical: '90ccfbb2',
+    page: '90ccfbb2/dining.html',
+    apiPath: '/api/90ccfbb2/dining/reservations',
+    oncallApiPath: '/api/90ccfbb2/dining/reservations',
+    owner: 'Priya Natarajan (dining-reservations-oncall)',
+    brand: 'Disney Dining (Reservations)',
+    service: 'dining-reservations',
+    endpoint: 'POST /api/90ccfbb2/dining/reservations',
+    monitor: '5xx rate — Book Reservation (POST /dining/reservations)',
+    metricQuery: 'sum(last_5m):sum:dining_reservations.booking_failure{service:dining-reservations}.as_count() > 0',
+    metricValue: '100% of Book Reservation attempts failing (HTTP 500 RESERVATION_FAILED) across all restaurants',
+    threshold: '> 0 failures / 5m',
+    baseline: '0 failures (30-day)',
+    release: 'resort-inventory@3.16.0',
+    symptom: 'Book Reservation returns 500 for every restaurant and date (Be Our Guest, Space 220, Blue Bayou…). Tables still show as available; Tickets & Resort Hotels checkout on the same inventory platform is unaffected.',
+    impact: 'Guests cannot book any Advance Dining Reservation at Walt Disney World or Disneyland Resort; character-dining and signature restaurants sell out in minutes at the 60-day window.',
+    demoPage: '/90ccfbb2/dining',
+    unlisted: true,
+  },
 };
 
 function resolveOncallEnv() {

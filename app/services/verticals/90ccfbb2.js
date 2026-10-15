@@ -189,6 +189,8 @@ function resetMonitorForTests() {
 }
 
 module.exports = {
+  callInventory,
+  inventoryError,
   getAvailability,
   createHold,
   checkout,
