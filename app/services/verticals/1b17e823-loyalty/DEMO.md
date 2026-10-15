@@ -10,7 +10,7 @@ rewards with DICK'S ScoreCard, then records itself using the result.
 | FLX loyalty service (Foot Locker) | `COG-GTM/footlocker`, `npm start` → `http://localhost:4100` |
 | ScoreCard mock (DICK'S) | `app/services/verticals/1b17e823-loyalty/scorecard` |
 | Integration target | `app/services/verticals/1b17e823-loyalty/rewards-bridge` (empty; `TICKET.md`) |
-| Web UI | `http://localhost:3100/dicks` (cart page, ScoreCard Rewards panel) |
+| Web UI | `http://localhost:3100/dicks?member=SC-5520917046` (cart page signed in as Casey; ScoreCard Rewards panel) |
 | Finished first slice (fallback) | branch `devin/1792041624-dsg-flx-bridge-fallback` |
 
 ## Prompt (one session)
@@ -44,8 +44,11 @@ cd footlocker && npm install && npm start
 PORT=3100 SENTRY_DSN= DEVIN_API_KEY= SLACK_BOT_TOKEN= node app/server.js
 ```
 
-Open `http://localhost:3100/dicks`, pick **Casey Morgan · ScoreCard Gold**,
-click **Link your FLX account** → **Link**. Expected combined balance:
+The page has no login; `?member=<ScoreCard ID>` sets the signed-in shopper
+(default Jordan Reyes, `?member=guest` for guest checkout).
+
+Open `http://localhost:3100/dicks?member=SC-5520917046` (signed in as Casey
+Morgan), click **Link your FLX account** → **Link**. Expected combined balance:
 **405 pts** (280 ScoreCard + 1,250 FLX ÷ 10).
 
 ## Reset
