@@ -1,4 +1,4 @@
-/* global describe, expect, test, jest, beforeEach */
+/* global describe, expect, test, jest, beforeEach, afterEach */
 
 jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
@@ -79,6 +79,10 @@ function todayUtc() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+});
+
+afterEach(() => {
+  jest.useRealTimers();
 });
 
 describe('Tribute Technology sympathy store', () => {
@@ -163,11 +167,63 @@ describe('Tribute Technology sympathy store', () => {
     expect(arrangement.destination.key).toBe('residence');
 
     [basket, arrangement].forEach((order) => {
-      expect(order.delivery.date > todayUtc()).toBe(true);
+      expect(order.delivery.date >= todayUtc()).toBe(true);
       expect(new Date(`${order.delivery.date}T00:00:00Z`).getUTCDay()).not.toBe(0);
     });
     expect(createSessionAndAlert).not.toHaveBeenCalled();
     expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test('residence orders return card text and use same-day or next-day delivery as appropriate', async () => {
+    jest.useFakeTimers({
+      now: new Date('2026-10-14T15:00:00Z'),
+      doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'nextTick', 'queueMicrotask'],
+    });
+
+    const basket = await placeOrder({
+      product: 'fruit-and-flowers-basket',
+      senderName: 'Ann Lee',
+      senderEmail: 'ann@example.com',
+      recipientName: 'Thomas Hayes',
+      recipientAddress: '17 Garden Lane, Millbrook, CT 06478',
+      cardMessage: '  Thinking of you, Sam.  ',
+      cardSignature: '  The Price family  ',
+    });
+    expect(basket.delivery).toMatchObject({
+      date: '2026-10-14',
+      window: '13:00–17:00',
+      windowLabel: 'Same-day afternoon (1:00 PM – 5:00 PM)',
+    });
+    expect(basket.card).toEqual({
+      message: 'Thinking of you, Sam.',
+      signature: 'The Price family',
+    });
+
+    const orchid = await placeOrder({
+      product: 'orchid-elegance',
+      destination: 'residence',
+      senderName: 'Ann Lee',
+      senderEmail: 'ann@example.com',
+      recipientName: 'Thomas Hayes',
+      recipientAddress: '17 Garden Lane, Millbrook, CT 06478',
+    });
+    expect(orchid.delivery.date).toBe('2026-10-15');
+  });
+
+  test('same-day residence orders move to Monday when today is Sunday', async () => {
+    jest.useFakeTimers({
+      now: new Date('2026-10-18T15:00:00Z'),
+      doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'nextTick', 'queueMicrotask'],
+    });
+
+    const basket = await placeOrder({
+      product: 'fruit-and-flowers-basket',
+      senderName: 'Ann Lee',
+      senderEmail: 'ann@example.com',
+      recipientName: 'Thomas Hayes',
+      recipientAddress: '17 Garden Lane, Millbrook, CT 06478',
+    });
+    expect(basket.delivery.date).toBe('2026-10-19');
   });
 
   test.each([

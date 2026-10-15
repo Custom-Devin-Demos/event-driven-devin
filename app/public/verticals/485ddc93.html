@@ -216,7 +216,7 @@
     var store = null;
     var activeCategory = '';
     var current = null;
-    var LOCATION_LABELS = { service: 'Funeral home', both: 'Funeral home or residence', home: 'Residence' };
+    var LOCATION_LABELS = { service: 'Funeral home', home: 'Residence' };
     var PRICE_BANDS = [
       { value: 'under-75', label: 'Under $75', test: function (p) { return p < 75; } },
       { value: '75-150', label: '$75 – $150', test: function (p) { return p >= 75 && p <= 150; } },
@@ -264,8 +264,14 @@
         while (s.options.length > 1) s.remove(1);
       });
       var list = inCategory();
-      var loc = countBy(list, function (p) { return p.location; });
-      fillSelect($('f-location'), Object.keys(loc).map(function (k) { return { value: k, label: LOCATION_LABELS[k], count: loc[k] }; }));
+      var locations = ['service', 'home'].map(function (key) {
+        return {
+          value: key,
+          label: LOCATION_LABELS[key],
+          count: list.filter(function (p) { return p.location === key || p.location === 'both'; }).length,
+        };
+      }).filter(function (option) { return option.count > 0; });
+      fillSelect($('f-location'), locations);
       var style = countBy(list, function (p) { return p.style; });
       fillSelect($('f-style'), Object.keys(style).sort().map(function (k) { return { value: k, label: k, count: style[k] }; }));
       fillSelect($('f-price'), PRICE_BANDS.map(function (b) {
@@ -279,7 +285,7 @@
       var loc = $('f-location').value, style = $('f-style').value, price = $('f-price').value, color = $('f-color').value;
       var band = PRICE_BANDS.filter(function (b) { return b.value === price; })[0];
       var list = inCategory().filter(function (p) {
-        return (!loc || p.location === loc) && (!style || p.style === style) && (!color || p.color === color) && (!band || band.test(p.sizes[0].price));
+        return (!loc || p.location === loc || p.location === 'both') && (!style || p.style === style) && (!color || p.color === color) && (!band || band.test(p.sizes[0].price));
       });
       var sort = $('f-sort').value;
       if (sort === 'price-asc') list.sort(function (a, b) { return a.sizes[0].price - b.sizes[0].price; });

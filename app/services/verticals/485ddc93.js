@@ -297,8 +297,8 @@ function validateOrder(data, requestId) {
     throw validationError('Enter the recipient name and delivery address.', 'RECIPIENT_INVALID', requestId);
   }
 
-  const cardMessage = String(data.cardMessage === undefined || data.cardMessage === null ? '' : data.cardMessage);
-  const cardSignature = String(data.cardSignature === undefined || data.cardSignature === null ? '' : data.cardSignature);
+  const cardMessage = String(data.cardMessage === undefined || data.cardMessage === null ? '' : data.cardMessage).trim();
+  const cardSignature = String(data.cardSignature === undefined || data.cardSignature === null ? '' : data.cardSignature).trim();
   if (cardMessage.length > 200 || cardSignature.length > 100) {
     throw validationError('Keep the card message to 200 characters and signature to 100 characters.', 'CARD_MESSAGE_INVALID', requestId);
   }
@@ -311,6 +311,8 @@ function validateOrder(data, requestId) {
     senderEmail,
     recipientName,
     recipientAddress,
+    cardMessage,
+    cardSignature,
   };
 }
 
@@ -373,10 +375,13 @@ async function placeOrder(data = {}) {
     const events = buildEvents(asOf);
     let delivery;
     if (order.destination === 'residence') {
+      const sameDay = order.product.sameDay && !isSunday(asOf);
       delivery = {
-        date: nextDeliveryDate(asOf),
-        window: '09:00–12:00',
-        windowLabel: 'Morning (9:00 AM – 12:00 PM)',
+        date: sameDay ? dateString(asOf) : nextDeliveryDate(asOf),
+        window: sameDay ? '13:00–17:00' : '09:00–12:00',
+        windowLabel: sameDay
+          ? 'Same-day afternoon (1:00 PM – 5:00 PM)'
+          : 'Morning (9:00 AM – 12:00 PM)',
         recipient: `${order.recipientName} · ${order.recipientAddress}`,
       };
     } else {
@@ -405,6 +410,7 @@ async function placeOrder(data = {}) {
         ...delivery,
         dateLabel: formatDateLabel(dateFromString(delivery.date)),
       },
+      card: { message: order.cardMessage, signature: order.cardSignature },
       florist: { name: florist.name, phone: florist.phone },
       inMemoryOf: 'Margaret Ellen Hayes',
       subtotal,
