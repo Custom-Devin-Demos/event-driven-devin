@@ -9,6 +9,7 @@ function sendError(res, req, error) {
     code: error.code || 'INVENTORY_ERROR',
     error: error.message,
     requestId: req.requestId,
+    ...(error.reference ? { reference: error.reference, detail: error.detail } : {}),
   });
 }
 
@@ -29,7 +30,7 @@ router.post('/api/90ccfbb2/availability', async (req, res) => {
 router.post('/api/90ccfbb2/holds', async (req, res) => {
   const body = req.body || {};
   try {
-    res.status(201).json(await createHold({ productId: body.productId, date: body.date, quantity: body.quantity }));
+    res.status(201).json(await createHold({ productId: body.productId, date: body.date, quantity: body.quantity, devinEmail: body.devinEmail }));
   } catch (error) {
     sendError(res, req, error);
   }

@@ -2,6 +2,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const logger = require('../../telemetry/logger');
 const { incrementMetric } = require('../../telemetry/datadog');
+const { Sentry } = require('../../telemetry/sentry');
 const { postOncallAlert } = require('../oncall');
 const { declareDatadogIncident } = require('../datadog-incidents');
 
@@ -84,11 +85,41 @@ async function getAvailability({ productId, from, days, devinEmail }) {
   return result;
 }
 
-async function createHold({ productId, date, quantity }) {
+async function createHold({ productId, date, quantity, devinEmail }) {
   validateProduct(productId);
   validateDate(date);
   const qty = Number(quantity) || 1;
-  return callInventory('post', '/api/holds', { data: { productId, date, quantity: qty } });
+  try {
+    return await callInventory('post', '/api/holds', { data: { productId, date, quantity: qty } });
+  } catch (error) {
+    if (!error.statusCode || error.statusCode < 500 || error.code === 'INVENTORY_UNAVAILABLE') throw error;
+    const reference = `INV-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+    incrementMetric('resort_inventory.hold_failure', { productId, code: error.code, service: SERVICE });
+    logger.error('Add to cart failed: hold could not be posted', {
+      reference, productId, date, quantity: qty, code: error.code, error: error.message, service: SERVICE,
+    });
+    Sentry.captureException(error, {
+      tags: { route: '/api/90ccfbb2/holds', service: SERVICE, productId, alert_path: 'instant' },
+      extra: { reference, date, quantity: qty, code: error.code },
+    });
+    const email = EMAIL_RE.test(devinEmail || '') ? devinEmail : undefined;
+    declareDatadogIncident({
+      title: 'Disney Parks: Add to Cart failing on holds',
+      summary: `POST /api/holds returns 500 (${error.code}: ${error.message}) for ${productId} on ${date}.`,
+      runRef: reference,
+      service: SERVICE,
+      triggeredBy: email || 'parks-inventory-oncall',
+      repoUrl: 'https://github.com/COG-GTM/event-driven-devin',
+      severity: 'SEV-2',
+    }).catch((ddError) => logger.warn('Failed to declare Datadog incident for resort inventory', { error: ddError.message, reference }));
+    postOncallAlert(SLUG, { runRef: reference, devinEmail: email })
+      .then((alert) => logger.info('Posting alert and triggering Devin', { reference, ok: alert && alert.ok, service: SERVICE }))
+      .catch((alertError) => logger.warn('Resort inventory on-call alert failed', { error: alertError.message, reference }));
+    const failure = inventoryError(500, 'HOLD_FAILED', 'We are unable to add these tickets to your cart right now.');
+    failure.reference = reference;
+    failure.detail = error.message;
+    throw failure;
+  }
 }
 
 async function checkout({ holdId }) {
