@@ -1,356 +1,590 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex, nofollow">
-  <title>Harvey | Workspace Access</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --ink: #0f0e0d;
-      --ink-soft: #33312c;
-      --muted: #6b6862;
-      --surface: #fafaf9;
-      --surface-2: #f2f1f0;
-      --line: #e2e0dd;
-      --line-strong: #cfccc7;
-      --chrome: #0f0e0d;
-      --chrome-text: #fafaf9;
-      --chrome-muted: #a3a09a;
-      --sans: 'HarveySansFont', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      --serif: 'HarveySerifFont', 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
-      --gutter: 32px;
-    }
-    *, *::before, *::after { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; }
-    body { margin: 0; font: 400 16px/24px var(--sans); color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; }
-    a { color: inherit; text-decoration: none; }
-    button, input, select { font: inherit; color: inherit; }
-    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-    .wrap { max-width: 1728px; margin: 0 auto; padding: 0 var(--gutter); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harvey | AI software for legal and professional services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<script>
+  /* Ensure locked-mode config is in localStorage for direct navigation */
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+</script>
+<style>
+  :root {
+    --sans: HarveySansFont, "HarveySansFont Fallback", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --serif: HarveySerifFont, "HarveySerifFont Fallback", Newsreader, Georgia, "Times New Roman", serif;
+    --bg: #fafaf9;
+    --ink: #0f0e0d;
+    --ink-soft: #33312c;
+    --muted: #706d66;
+    --muted-dark: #8f8b85;
+    --quote-bg: #f2f1f0;
+    --line: rgba(15, 14, 13, 0.12);
+    --line-dark: rgba(250, 250, 249, 0.16);
+    --gutter: 32px;
+    --radius: 8px;
+    --btn-radius: 4px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-size: 16px; line-height: 24px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  img { display: block; max-width: 100%; }
+  button, input, select { font: inherit; color: inherit; }
+  .wrap { padding: 0 var(--gutter); }
+  .serif { font-family: var(--serif); font-weight: 400; }
 
-    .announce { background: var(--chrome); color: var(--chrome-text); }
-    .announce .wrap { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 32px; padding: 6px var(--gutter); font-size: 14px; line-height: 20px; text-align: center; }
-    .announce strong { font-weight: 500; }
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: var(--btn-radius); font-weight: 500; white-space: nowrap; cursor: pointer; border: 0; }
+  .btn-lg { height: 48px; padding: 0 20px; font-size: 16px; line-height: 24px; }
+  .btn-sm { position: relative; height: 32px; padding: 0 12px; font-size: 14px; line-height: 20px; }
+  .btn-sm::before { content: ""; position: absolute; left: 0; right: 0; top: -6px; bottom: -6px; }
+  .btn-dark { background: var(--ink); color: var(--bg); }
+  .btn-light { background: var(--bg); color: var(--ink); }
+  .btn-outline-light { background: transparent; color: var(--bg); border: 1px solid var(--bg); font-weight: 400; }
+  .btn-outline-dark { background: transparent; color: var(--ink); border: 1px solid var(--ink); font-weight: 400; }
 
-    .site-header { background: var(--surface); }
-    .header-inner { display: flex; align-items: center; gap: 28px; min-height: 74px; }
-    .logo { font-family: var(--serif); font-size: 26px; line-height: 1; font-weight: 400; letter-spacing: 0.2px; display: inline-flex; align-items: center; min-height: 44px; }
-    .nav { display: flex; align-items: center; gap: 28px; }
-    .nav a { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; font-size: 14px; color: var(--ink); }
-    .nav a:hover { opacity: 0.7; }
-    .nav svg { width: 14px; height: 14px; }
-    .header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 20px; border: 1px solid transparent; border-radius: 4px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.2s ease; }
-    .btn:hover { opacity: 0.85; }
-    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
-    .btn-ghost:hover { border-color: var(--ink); opacity: 1; }
+  /* Header */
+  .announce { height: 34px; background: var(--ink); color: var(--bg); font-size: 14px; line-height: 18.2px; display: flex; align-items: center; justify-content: center; padding: 0 var(--gutter); position: relative; white-space: nowrap; overflow: hidden; }
+  .announce b { font-weight: 500; margin-left: 4px; }
+  .announce-close { position: absolute; right: 24px; top: 1px; width: 32px; height: 32px; background: none; border: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .nav { height: 72px; background: var(--bg); color: var(--ink); display: flex; align-items: center; padding: 0 var(--gutter); position: relative; }
+  .logo { font-family: var(--serif); font-size: 28px; line-height: 39.2px; letter-spacing: -0.28px; width: 85px; height: 39px; display: flex; align-items: center; }
+  .nav-links { display: flex; height: 72px; margin-left: 32px; list-style: none; }
+  .nav-links a { display: flex; align-items: center; gap: 6px; height: 72px; padding: 0 16px; font-size: 14px; font-weight: 500; line-height: 20px; }
+  .nav-links svg { width: 10px; height: 10px; }
+  .nav-actions { margin-left: auto; display: flex; gap: 16px; align-items: center; }
+  .btn-login { height: 32px; padding: 7px 7px 7px 12px; border: 1px solid var(--ink); border-radius: var(--btn-radius); font-size: 14px; font-weight: 500; line-height: 20px; display: inline-flex; align-items: center; gap: 6px; }
+  .burger { display: none; margin-left: auto; width: 44px; height: 44px; background: none; border: 0; color: var(--ink); align-items: center; justify-content: center; cursor: pointer; margin-right: -10px; }
+  .mobile-menu { display: none; }
 
-    .hero { padding: 72px 0 0; }
-    .hero-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 18px; align-items: start; }
-    h1 { grid-column: 1 / span 7; margin: 0; font-family: var(--serif); font-size: 80px; line-height: 84px; letter-spacing: -1px; font-weight: 400; }
-    .hero-side { grid-column: 8 / span 4; }
-    .hero-side p { margin: 8px 0 28px; font-size: 20px; line-height: 26px; color: var(--ink-soft); }
-    .hero-side .btn { min-height: 48px; font-size: 16px; }
-    .hero-media { margin-top: 64px; position: relative; aspect-ratio: 1440 / 700; border-radius: 2px; overflow: hidden; background: #2c3330; }
-    .hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+  /* Hero */
+  .hero { padding-top: 74px; }
+  .hero-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  .hero h1 { font-family: var(--serif); font-weight: 400; font-size: 72px; line-height: 75.6px; letter-spacing: -0.9px; max-width: 600px; }
+  .hero-copy { padding-top: 11px; }
+  .hero-copy p { font-size: 20px; line-height: 26px; color: var(--ink-soft); max-width: 673px; }
+  .hero-media { margin-top: 64px; border-radius: var(--radius); overflow: hidden; background: #2d332f; aspect-ratio: 1361 / 741; }
+  .hero-media img { width: 100%; height: 100%; object-fit: cover; }
 
-    .band { border-top: 1px solid var(--line); margin-top: 96px; }
-    .band .wrap { display: flex; flex-wrap: wrap; gap: 10px 48px; padding-top: 20px; padding-bottom: 20px; font-size: 14px; color: var(--muted); }
-    .band span { display: inline-flex; align-items: center; gap: 8px; }
-    .band em { font-style: normal; color: var(--ink); }
+  /* Seat form, styled as the hero CTA block */
+  .seat-form { margin-top: 32px; max-width: 560px; }
+  .seat-form .form-title { font-size: 16px; font-weight: 500; line-height: 20.8px; margin-bottom: 16px; }
+  .seat-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 16px; }
+  .field label { display: block; font-size: 14px; line-height: 18.2px; color: var(--ink-soft); margin-bottom: 6px; }
+  .field input, .field select { width: 100%; height: 48px; padding: 0 14px; border: 1px solid rgba(15, 14, 13, 0.2); border-radius: var(--btn-radius); background: #fff; font-size: 16px; line-height: 24px; color: var(--ink); appearance: none; -webkit-appearance: none; }
+  .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M1 3l4 4 4-4' fill='none' stroke='%230f0e0d' stroke-width='1.3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+  .field input:focus, .field select:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .seat-actions { margin-top: 20px; display: flex; align-items: center; gap: 16px; }
+  .seat-actions .btn:disabled { opacity: 0.6; cursor: progress; }
+  .seat-note { font-size: 14px; line-height: 18.2px; color: var(--muted); }
+  .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: var(--btn-radius); font-size: 14px; line-height: 20px; border: 1px solid var(--line); background: #fff; }
+  .result-box.success, .result-box.error { display: block; }
+  .result-box.error { border-color: #c2412d; }
+  .result-title { font-weight: 500; margin-bottom: 2px; }
+  .result-box.error .result-title { color: #a8321f; }
 
-    .access { padding: 96px 0 104px; }
-    .section-head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 18px; margin-bottom: 44px; }
-    .eyebrow { grid-column: 1 / span 3; margin: 0; font-size: 13px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
-    .section-head > div { grid-column: 4 / span 7; }
-    h2 { margin: 0 0 12px; font-family: var(--serif); font-size: 44px; line-height: 50px; letter-spacing: -0.4px; font-weight: 400; }
-    .section-head p { margin: 0; font-size: 18px; line-height: 26px; color: var(--ink-soft); max-width: 640px; }
-    .access-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 32px; align-items: start; }
-    .card { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 36px; }
-    h3 { margin: 0 0 8px; font-family: var(--serif); font-size: 26px; line-height: 32px; font-weight: 400; }
-    .card-sub { margin: 0 0 28px; font-size: 15px; line-height: 22px; color: var(--muted); }
-    .form-group { margin-bottom: 20px; min-width: 0; }
-    .form-group label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; letter-spacing: 0.2px; }
-    input, select { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line-strong); border-radius: 4px; background: #fff; font-size: 15px; }
-    input:focus, select:focus { border-color: var(--ink); }
-    select:disabled { background: var(--surface-2); color: var(--muted); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .field-hint { display: block; margin-top: 7px; font-size: 12.5px; color: var(--muted); }
-    .btn-block { width: 100%; min-height: 52px; font-size: 16px; margin-top: 4px; }
-    .btn-block:disabled { opacity: 0.6; cursor: wait; }
-    .request-status { margin: 12px 0 0; min-height: 20px; font-size: 12.5px; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
-    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border: 1px solid; border-radius: 4px; overflow-wrap: anywhere; font-size: 14px; line-height: 20px; }
-    .result-box.success { display: block; background: #f1f5f2; border-color: #b9cdbd; color: #1f4a2b; }
-    .result-box.error { display: block; background: #fbf1ef; border-color: #ddb3ac; color: #8a2f1f; }
-    .panel { background: var(--chrome); color: var(--chrome-text); border-radius: 6px; padding: 36px; }
-    .panel .eyebrow { color: var(--chrome-muted); }
-    .panel h3 { margin-top: 10px; }
-    .panel > p { margin: 12px 0 26px; font-size: 15px; line-height: 22px; color: var(--chrome-muted); }
-    .panel-list { list-style: none; margin: 0; padding: 0; }
-    .panel-list li { display: flex; gap: 16px; padding: 18px 0; border-top: 1px solid #2a2825; }
-    .panel-list .n { flex: 0 0 24px; height: 24px; display: grid; place-items: center; border: 1px solid #45423d; border-radius: 50%; font-size: 12px; color: var(--chrome-muted); }
-    .panel-list strong { display: block; font-size: 15px; font-weight: 500; margin-bottom: 4px; }
-    .panel-list p { margin: 0; font-size: 14px; line-height: 21px; color: var(--chrome-muted); }
-    .panel-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 10px; font-size: 15px; }
-    .panel-link:hover { opacity: 0.75; }
+  /* Logos */
+  .logos { padding-top: 128px; padding-bottom: 128px; border-bottom: 1px solid var(--line); }
+  .logos h2 { font-family: var(--serif); font-weight: 400; font-size: 32px; line-height: 33.6px; letter-spacing: -0.32px; text-align: center; }
+  .logo-grid { margin-top: 63px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .logo-grid div { height: 96px; padding: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-grid img { height: 58px; width: auto; max-width: 100%; object-fit: contain; }
 
-    .site-footer { background: var(--chrome); color: var(--chrome-text); padding: 72px 0 40px; }
-    .footer-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding-bottom: 48px; border-bottom: 1px solid #2a2825; }
-    .footer-top h3 { max-width: 520px; font-size: 32px; line-height: 38px; }
-    .footer-top .btn { background: var(--surface); color: var(--ink); min-height: 48px; font-size: 16px; }
-    .footer-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; padding: 44px 0 36px; }
-    .footer-cols h4 { margin: 0 0 14px; font-size: 13px; font-weight: 500; letter-spacing: 0.3px; color: var(--chrome-muted); text-transform: uppercase; }
-    .footer-cols a { display: inline-flex; align-items: center; min-height: 32px; font-size: 14px; color: var(--chrome-text); }
-    .footer-cols a:hover { opacity: 0.7; }
-    .footer-cols ul { list-style: none; margin: 0; padding: 0; }
-    .footer-base { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding-top: 28px; border-top: 1px solid #2a2825; font-size: 13px; color: var(--chrome-muted); }
-    .footer-base .logo { font-size: 22px; color: var(--chrome-text); }
+  /* Audience */
+  .audience { padding-top: 64px; text-align: center; }
+  .audience h2, .h2-48 { font-family: var(--serif); font-weight: 400; font-size: 48px; line-height: 50.4px; letter-spacing: -0.48px; }
+  .lede { font-size: 16px; line-height: 20.8px; max-width: 560px; margin: 16px auto 0; color: var(--ink-soft); }
+  .cards { margin-top: 64px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; text-align: left; }
+  .aud-card { position: relative; height: 681px; border-radius: var(--radius); overflow: hidden; color: var(--bg); background: #3a3f3b; }
+  .aud-card .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .aud-card .fg { position: absolute; left: 80px; top: 224px; width: 979px; max-width: none; height: auto; }
+  .aud-card .txt { position: relative; z-index: 1; padding: 32px; max-width: 364px; }
+  .aud-card h3 { font-family: var(--serif); font-weight: 400; font-size: 32px; line-height: 33.6px; letter-spacing: -0.32px; }
+  .aud-card p { margin-top: 16px; font-size: 16px; line-height: 20.8px; }
+  .aud-card .btn { margin-top: 24px; }
 
-    @media (max-width: 1100px) {
-      h1 { grid-column: 1 / span 12; font-size: 56px; line-height: 60px; }
-      .hero-side { grid-column: 1 / span 12; margin-top: 24px; }
-      .nav { display: none; }
-      .section-head { grid-template-columns: 1fr; }
-      .eyebrow, .section-head > div { grid-column: auto; }
-      .access-grid { grid-template-columns: 1fr; }
-      .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width: 640px) {
-      :root { --gutter: 20px; }
-      .hero { padding-top: 44px; }
-      h1 { font-size: 40px; line-height: 44px; letter-spacing: -0.5px; }
-      .hero-side p { font-size: 17px; line-height: 24px; }
-      .hero-media { margin-top: 40px; aspect-ratio: 4 / 3; }
-      .band { margin-top: 56px; }
-      .access { padding: 56px 0 64px; }
-      h2 { font-size: 32px; line-height: 38px; }
-      .card, .panel { padding: 24px; }
-      .form-row { grid-template-columns: 1fr; gap: 0; }
-      .footer-top { grid-template-columns: 1fr; }
-      .footer-top h3 { font-size: 26px; line-height: 32px; }
-      .footer-cols { grid-template-columns: 1fr; }
-      .site-footer { padding-bottom: 80px; }
-      .header-actions .btn-ghost { display: none; }
-      .btn { min-height: 44px; }
-      .footer-cols a { min-height: 44px; }
-    }
-  </style>
+  /* Harvey II */
+  .h2-sec { padding-top: 160px; text-align: center; }
+  .badge { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: var(--radius); background: var(--ink); color: var(--bg); font-size: 12px; line-height: 12px; font-weight: 500; }
+  .h2-sec h2 { margin-top: 32px; }
+  .h2-sec p { font-size: 20px; line-height: 26px; color: var(--ink-soft); max-width: 560px; margin: 16px auto 0; }
+  .h2-sec .btn { margin-top: 33px; }
+  .h2-media { margin-top: 64px; height: 766px; border-radius: var(--radius); overflow: hidden; position: relative; background: radial-gradient(120% 90% at 50% 40%, #e7e6e3 0%, #cfcdc9 55%, #b9b7b2 100%); }
+  .h2-media img { width: 100%; height: 100%; object-fit: cover; }
+  .play { position: absolute; left: 50%; top: 50%; width: 72px; height: 72px; margin: -36px 0 0 -36px; border-radius: 50%; background: rgba(250, 250, 249, 0.18); border: 1px solid rgba(250, 250, 249, 0.6); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+
+  /* Product innovation */
+  .product { padding-top: 160px; padding-bottom: 128px; }
+  .product h2, .sans-h { font-size: 32px; line-height: 35.2px; font-weight: 500; letter-spacing: -0.32px; }
+  .product-row { margin-top: 64px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .acc { max-width: 544px; border-bottom: 1px solid var(--line); }
+  .acc-item { border-top: 1px solid var(--line); }
+  .acc-item button { width: 100%; min-height: 88px; padding: 28px 0 29px; background: none; border: 0; text-align: left; font-size: 24px; line-height: 31.2px; font-weight: 500; color: var(--muted); cursor: pointer; }
+  .acc-item.open button { color: var(--ink); padding-bottom: 0; min-height: 0; }
+  .acc-body { display: none; padding: 12px 0 35px; }
+  .acc-item.open .acc-body { display: block; }
+  .acc-body p { font-size: 16px; line-height: 20.8px; color: var(--ink-soft); max-width: 408px; }
+  .acc-body a { display: inline-block; margin-top: 20px; font-size: 16px; font-weight: 500; }
+  .acc-body .acc-media { display: none; }
+  .prod-media { position: relative; width: 100%; aspect-ratio: 681 / 511; border-radius: var(--radius); overflow: hidden; background: #2e2b28; }
+  .prod-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+  /* Quote */
+  .quote { background: var(--quote-bg); padding: 128px 0 64px; }
+  .quote-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: center; }
+  .quote-photo { aspect-ratio: 1 / 1; border-radius: var(--radius); overflow: hidden; background: #4b4757; }
+  .quote-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .quote-body { padding-left: 16px; }
+  .quote-body blockquote { font-family: var(--serif); font-size: 32px; line-height: 33.6px; letter-spacing: -0.32px; max-width: 657px; }
+  .quote-name { margin-top: 32px; font-size: 20px; line-height: 26px; font-weight: 500; }
+  .quote-role { font-size: 16px; line-height: 20.8px; color: var(--ink-soft); }
+  .quote-logo { margin-top: 48px; height: 72px; width: auto; }
+  .quote-bars { margin-top: 64px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .quote-bars span { height: 2px; background: rgba(15, 14, 13, 0.15); }
+  .quote-bars span:first-child { background: var(--ink); }
+
+  /* Dark sections */
+  .dark { background: var(--ink); color: var(--bg); }
+  .cases { padding-top: 160px; overflow: hidden; }
+  .cases-head { display: flex; align-items: center; justify-content: space-between; }
+  .cases-head h2 { font-size: 32px; line-height: 33.6px; font-weight: 500; letter-spacing: -0.32px; }
+  .case-track { margin-top: 127px; display: flex; gap: 16px; justify-content: center; }
+  .case-card { flex: 0 0 896px; height: 504px; border-radius: var(--radius); position: relative; overflow: hidden; background: linear-gradient(160deg, #4a4f55 0%, #2b2e31 55%, #1c1d1e 100%); }
+  .case-card.dim { opacity: 0.55; }
+  .case-card .case-txt { position: absolute; left: 160px; top: 150px; width: 430px; }
+  .case-card h3 { font-family: var(--serif); font-weight: 400; font-size: 32px; line-height: 33.6px; letter-spacing: -0.32px; color: #fff; }
+  .case-card .play { position: static; margin: 36px 0 0; }
+  .case-logos { margin-top: 64px; display: flex; justify-content: center; align-items: center; height: 56px; }
+  .case-logos img { height: 56px; width: auto; opacity: 0.3; padding: 0 29px; }
+  .case-logos img.on { opacity: 1; }
+  .case-logos img + img { border-left: 1px solid var(--line-dark); }
+
+  .stats { padding-top: 160px; padding-bottom: 62px; }
+  .stats h3 { font-size: 32px; line-height: 35.2px; font-weight: 500; letter-spacing: -0.32px; max-width: 470px; margin-bottom: 128px; }
+  .stat-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; border-top: 1px solid var(--line-dark); padding: 16px 0 49px; }
+  .stat-row span { font-size: 16px; line-height: 20.8px; padding-top: 38px; }
+  .stat-row strong { font-family: var(--serif); font-weight: 400; font-size: 72px; line-height: 75.6px; letter-spacing: -0.9px; }
+
+  .security { padding-top: 128px; padding-bottom: 127px; background: radial-gradient(90% 70% at 30% 20%, #1d1b19 0%, var(--ink) 70%); }
+  .sec-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  .security h2 { font-size: 32px; line-height: 35.2px; font-weight: 500; letter-spacing: -0.32px; max-width: 440px; }
+  .security p { margin-top: 16px; font-size: 18px; line-height: 26px; max-width: 445px; color: rgba(250, 250, 249, 0.86); }
+  .security .btn { margin-top: 32px; }
+  .cert { display: flex; align-items: center; gap: 20px; height: 89px; border-bottom: 1px solid var(--line-dark); }
+  .cert img { width: 48px; height: 48px; }
+  .cert b { font-size: 20px; line-height: 26px; font-weight: 400; }
+  .cert a { margin-left: auto; font-size: 20px; line-height: 26px; color: var(--muted-dark); }
+
+  footer { padding-bottom: 32px; }
+  .foot-cta { display: flex; align-items: center; justify-content: space-between; padding: 64px 0; border-bottom: 1px solid var(--line-dark); }
+  .foot-cta h3 { font-family: var(--serif); font-weight: 400; font-size: 24px; line-height: 25.2px; letter-spacing: -0.24px; }
+  .foot-grid { padding-top: 64px; display: grid; grid-template-columns: minmax(0, 1fr) repeat(5, 210px); gap: 16px; }
+  .foot-mark { display: flex; flex-direction: column; justify-content: space-between; }
+  .foot-mark .copy { font-size: 14px; line-height: 18.2px; color: var(--muted-dark); max-width: 200px; margin-top: 48px; }
+  .foot-col h4 { font-size: 14px; line-height: 18.2px; font-weight: 500; color: var(--muted-dark); margin-bottom: 16px; }
+  .foot-col a { display: block; font-size: 14px; line-height: 18.2px; font-weight: 500; padding: 8px 0; margin: -8px 0 8px; }
+
+  @media (max-width: 1200px) {
+    .foot-grid { grid-template-columns: minmax(0, 1fr) repeat(5, minmax(0, 1fr)); }
+    .case-card { flex-basis: 70%; }
+  }
+  @media (max-width: 1024px) {
+    .nav-links, .nav-actions { display: none; }
+    .burger { display: flex; }
+    .mobile-menu.open { display: block; position: absolute; left: 0; right: 0; top: 100%; background: var(--bg); color: var(--ink); padding: 8px var(--gutter) 24px; z-index: 20; border-top: 1px solid var(--line); }
+    .mobile-menu a { display: flex; align-items: center; min-height: 48px; font-size: 18px; font-weight: 500; border-bottom: 1px solid var(--line); }
+    .mobile-menu .btn { width: 100%; margin-top: 16px; border-bottom: 0; }
+  }
+  @media (max-width: 767px) {
+    :root { --gutter: 28px; }
+    .announce { justify-content: flex-start; }
+    .announce-close { display: none; }
+    .nav { height: 82px; }
+    .hero { padding-top: 56px; }
+    .hero-row { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+    .hero h1 { font-size: 48px; line-height: 50.4px; letter-spacing: -0.48px; max-width: 300px; }
+    .hero-copy { padding-top: 0; }
+    .seat-grid { grid-template-columns: minmax(0, 1fr); }
+    .hero-media { margin-top: 56px; }
+    .logos { padding-top: 112px; padding-bottom: 96px; }
+    .logos h2 { font-size: 28px; line-height: 29.4px; }
+    .logo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 48px; }
+    .logo-grid div { height: 64px; }
+    .logo-grid img { height: 40px; }
+    .audience h2, .h2-48 { font-size: 36px; line-height: 37.8px; letter-spacing: -0.36px; }
+    .cards { grid-template-columns: minmax(0, 1fr); margin-top: 48px; }
+    .aud-card { height: 443px; }
+    .aud-card .txt { padding: 28px; }
+    .aud-card h3 { font-size: 28px; line-height: 29.4px; }
+    .aud-card .fg { left: 28px; top: 240px; width: 520px; }
+    .aud-card .btn { height: 44px; }
+    .h2-sec { padding-top: 112px; }
+    .h2-sec .btn { margin-top: 28px; }
+    .h2-media { height: 212px; margin-top: 48px; }
+    .product { padding-top: 112px; padding-bottom: 96px; }
+    .product h2, .sans-h, .cases-head h2, .stats h3, .security h2 { font-size: 28px; line-height: 30.8px; }
+    .product-row { grid-template-columns: minmax(0, 1fr); margin-top: 48px; }
+    .prod-side { display: none; }
+    .acc-item button { color: var(--ink); padding-bottom: 0; min-height: 44px; }
+    .acc-body { display: block; padding-bottom: 32px; }
+    .acc-body .acc-media { display: block; margin-top: 20px; }
+    .quote { padding: 96px 0 48px; }
+    .quote-row { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+    .quote-body { padding-left: 0; }
+    .quote-body blockquote { font-size: 28px; line-height: 29.4px; }
+    .cases { padding-top: 112px; }
+    .cases-head { flex-direction: column; align-items: flex-start; gap: 24px; }
+    .cases-head .btn { height: 44px; }
+    .case-track { margin-top: 48px; flex-direction: column; padding: 0 var(--gutter); }
+    .case-card { flex: none; width: 100%; height: 360px; }
+    .case-card.dim { opacity: 1; }
+    .case-card .case-txt { left: 28px; top: 40px; width: auto; right: 28px; }
+    .case-card h3 { font-size: 28px; line-height: 29.4px; }
+    .case-logos { flex-wrap: wrap; height: auto; gap: 16px 0; padding: 0 var(--gutter); }
+    .case-logos img { height: 40px; padding: 0 14px; }
+    .stats { padding-top: 112px; padding-bottom: 48px; }
+    .stats h3 { margin-bottom: 64px; }
+    .stat-row { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 20px 0 28px; }
+    .stat-row span { padding-top: 0; }
+    .stat-row strong { font-size: 56px; line-height: 58.8px; }
+    .security { padding-top: 112px; padding-bottom: 96px; }
+    .sec-row { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+    .security .btn { height: 44px; }
+    .foot-cta { flex-direction: column; align-items: flex-start; gap: 24px; }
+    .foot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 16px; }
+    .foot-mark { grid-column: 1 / -1; }
+    .foot-mark .copy { display: none; }
+    .foot-col a { padding: 13px 0; margin: -13px 0 0; }
+  }
+</style>
 </head>
 <body>
-  <div class="announce">
-    <div class="wrap"><span>Harvey Academy: on-demand training and expert workflows for legal teams</span><strong>Learn more</strong></div>
+<header>
+  <div class="announce">We Raised $550M at a $15.5B Valuation to Help Legal Teams Own Their Intelligence <b>Learn more &rarr;</b>
+    <button class="announce-close" type="button" aria-label="Close announcement"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1l10 10M11 1L1 11" stroke="#fafaf9" stroke-width="1.3"/></svg></button>
   </div>
-  <header class="site-header">
-    <div class="wrap header-inner">
-      <a class="logo" href="#top" aria-label="Harvey home">Harvey</a>
-      <nav class="nav" aria-label="Main navigation">
-        <a href="#top">Platform</a>
-        <a href="#top">Solutions</a>
-        <a href="https://www.harvey.ai/customers" target="_blank" rel="noopener noreferrer">Customers</a>
-        <a href="https://www.harvey.ai/security" target="_blank" rel="noopener noreferrer">Security</a>
-        <a href="#top">Resources</a>
-        <a href="#top">Company</a>
-      </nav>
-      <div class="header-actions">
-        <a class="btn btn-ghost" href="#access">Login</a>
-        <a class="btn" href="#access">Request a Demo</a>
+  <nav class="nav" aria-label="Main">
+    <a class="logo" href="#" aria-label="Harvey home">Harvey</a>
+    <ul class="nav-links">
+      <li><a href="#">Platform <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5L5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></a></li>
+      <li><a href="#">Solutions <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5L5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></a></li>
+      <li><a href="#">Customers</a></li>
+      <li><a href="#">Security</a></li>
+      <li><a href="#">Resources <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5L5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></a></li>
+      <li><a href="#">Company <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5L5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></a></li>
+    </ul>
+    <div class="nav-actions">
+      <a class="btn-login" href="#">Login <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5L5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="btn btn-sm btn-dark" href="#add-seats">Request a Demo</a>
+    </div>
+    <button class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+      <svg width="20" height="12" viewBox="0 0 20 12" aria-hidden="true"><path d="M0 1h20M0 11h20" stroke="currentColor" stroke-width="1.5"/></svg>
+    </button>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#">Platform</a><a href="#">Solutions</a><a href="#">Customers</a><a href="#">Security</a><a href="#">Resources</a><a href="#">Company</a><a href="#">Login</a>
+      <a class="btn btn-lg btn-dark" href="#add-seats">Request a Demo</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <div class="hero-row">
+      <h1>Build a Frontier Legal Organization</h1>
+      <div class="hero-copy" id="add-seats">
+        <p>The world's top law firms and in-house legal teams trust Harvey with their highest-stakes work.</p>
+        <form id="provisionForm" class="seat-form">
+          <div class="form-title">Add seats to your Harvey workspace</div>
+          <div class="seat-grid">
+            <div class="field"><label for="product">Product</label>
+              <select id="product">
+                <option value="enterprise_suite">Harvey Platform</option>
+                <option value="devops_platform">Agents</option>
+                <option value="analytics_cloud">Vault</option>
+                <option value="security_gateway">Contract Intelligence</option>
+              </select></div>
+            <div class="field"><label for="seats">Additional seats</label><input type="number" id="seats" value="25" min="1" required></div>
+            <div class="field"><label for="planTier">Workspace plan</label>
+              <select id="planTier">
+                <option value="enterprise">Enterprise</option>
+                <option value="business">Business</option>
+                <option value="starter">Starter</option>
+              </select></div>
+            <div class="field"><label for="region">Data residency</label>
+              <select id="region">
+                <option value="us-east">United States (East)</option>
+                <option value="us-west">United States (West)</option>
+                <option value="eu-west">European Union</option>
+                <option value="ap-south">Australia</option>
+              </select></div>
+          </div>
+          <div class="seat-actions">
+            <button type="submit" class="btn btn-lg btn-dark" id="submitBtn">Add Seats</button>
+            <span class="seat-note">Billed annually to your organization.</span>
+          </div>
+          <div class="result-box" id="result" role="status" aria-live="polite"></div>
+        </form>
       </div>
     </div>
-  </header>
-  <main id="top">
-    <section class="hero">
-      <div class="wrap">
-        <div class="hero-grid">
-          <h1>Bring Harvey to Every Team in Your Firm</h1>
-          <div class="hero-side">
-            <p>Workspace administrators assign Harvey seats to the practice groups that need them, with the firm's security and data controls already in place.</p>
-            <a class="btn" href="#access">Manage workspace seats</a>
-          </div>
+    <div class="hero-media">
+      <img src="https://cdn.sanity.io/images/07s0r5r6/production/acf4a0772c068016f3d3312b1bf191a0e2727114-3296x1796.png?w=1920&auto=format" alt="Harvey's Command Center tracking usage across an organization" onerror="this.style.display='none'">
+    </div>
+  </section>
+
+  <section class="logos wrap">
+    <h2>3,500+ Legal Organizations Build on Harvey</h2>
+    <div class="logo-grid">
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/5a8cebb0d30bb2504e682ef3f56e527c8fd26c46-286x200.svg" alt="Deutsche Telekom" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/aa902d946686d8c88ad90ee5ce12f1accccbd183-477x200.svg" alt="A&amp;O Shearman" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/836f98bbb1bf04b3e949572ec728b4b6a58c18b0-424x200.svg" alt="Latham &amp; Watkins LLP" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/33a2a1dfd3237523efc5e7a9c3d05a0b26ffca74-330x200.svg" alt="Repsol" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/c5f8feb79fbe2434104b1b2c5db6f58c7c2b922d-501x200.svg" alt="Mori Hamada &amp; Matsumoto" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/b3be817e6cf2e694fb4a6468ff40251276cf708e-120x200.svg" alt="Procter &amp; Gamble" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/0d0080b5cb6e1f903501716a74db9599e63f67e7-501x200.svg" alt="Hengeler Mueller" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/85215fdd1f52d4d1be7974d0dbb972f7cefa79ec-364x200.svg" alt="Bridgewater" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/03f1e3758db5ba10391de58da4acd0a150590324-289x200.svg" alt="Cuatrecasas" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/99a63c12d14c6de1a2f46e32ea119bd3c72746dc-322x200.svg" alt="Shardul Amarchand Mangaldas &amp; Co" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/2a1ec348a171945d50c16c55656c9cffd2ebaf79-284x200.svg" alt="Comcast" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/d6a3d85c843c936116350af4cd0c74477622507f-293x200.svg" alt="Reed Smith" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/a764e116e7daa01ace5bd59abd2de1d8224d0456-315x200.svg" alt="Markel" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/0bff8c640f4996856cb0b1686006d20fcf463c06-338x200.svg" alt="Am&eacute;rica M&oacute;vil" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/a13958361b1f0f3cdc4b9996c8ccbfc501e6a58c-264x200.svg" alt="King &amp; Wood Mallesons" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/9e778991e46f3a4ece4897060dba3469564fa08d-343x200.svg" alt="Merck" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/12737bbc7d4f0c6ac48b0a3a5017135f23cdb8ea-250x200.svg" alt="Davies Ward Phillips &amp; Vineberg" onerror="this.style.visibility='hidden'"></div>
+      <div><img src="https://cdn.sanity.io/images/07s0r5r6/production/1d36ebe78fd3be0fb827ad89028494a0629e2cdc-360x200.svg" alt="BonelliErede" onerror="this.style.visibility='hidden'"></div>
+    </div>
+  </section>
+
+  <section class="audience wrap">
+    <h2>One Platform for Legal Work</h2>
+    <p class="lede">Firms and legal departments do their best work with Harvey. Run everything your team and practice needs on one collaborative platform.</p>
+    <div class="cards">
+      <a class="aud-card" href="#">
+        <img class="bg" src="https://cdn.sanity.io/images/07s0r5r6/production/16949d43fd0271a3c172c158813685de30c9eaf1-2442x2328.png?w=1400&auto=format" alt="" onerror="this.style.display='none'">
+        <img class="fg" src="https://cdn.sanity.io/images/07s0r5r6/production/0b07889e9ecc06391d4192704957517f80e600d7-4350x2430.png?w=2000&auto=format" alt="" onerror="this.style.display='none'">
+        <div class="txt"><h3>For Law Firms</h3><p>Run every client matter securely on one platform, with your lawyers and agents working from the same context.</p><span class="btn btn-sm btn-outline-light">Explore Harvey for Law Firms</span></div>
+      </a>
+      <a class="aud-card" href="#">
+        <img class="bg" src="https://cdn.sanity.io/images/07s0r5r6/production/4c4ae330b0956737abec4d0915d60a0fbd68688f-2442x2328.png?w=1400&auto=format" alt="" onerror="this.style.display='none'">
+        <img class="fg" src="https://cdn.sanity.io/images/07s0r5r6/production/b307d0b133b12acf71cc3770ff557630bb49661d-4350x2430.png?w=2000&auto=format" alt="" onerror="this.style.display='none'">
+        <div class="txt"><h3>For In-House</h3><p>Manage your contracts intelligently, optimize external counsel relationships and hand the repetitive work to agents.</p><span class="btn btn-sm btn-outline-light">Explore Harvey for In-House Teams</span></div>
+      </a>
+    </div>
+  </section>
+
+  <section class="h2-sec wrap">
+    <span class="badge">NEW</span>
+    <h2 class="h2-48">Introducing Harvey II</h2>
+    <p>The most powerful Harvey yet. Smarter agents can now deliver more complex work in exactly the way you like it.</p>
+    <a class="btn btn-lg btn-dark" href="#add-seats">Request a Demo</a>
+    <div class="h2-media" role="img" aria-label="Harvey II product walkthrough">
+      <span class="play"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M0 0l14 8-14 8z" fill="#fafaf9"/></svg></span>
+    </div>
+  </section>
+
+  <section class="product wrap">
+    <h2>Product Innovation for the Best Legal Minds</h2>
+    <div class="product-row">
+      <div class="acc">
+        <div class="acc-item open" data-media="https://cdn.sanity.io/images/07s0r5r6/production/6ac228389ac57ca3083a231035184e49a4a19476-2022x1518.png">
+          <button type="button" aria-expanded="true">Agents</button>
+          <div class="acc-body"><p>Orchestrate complex legal work, with tasks automatically routed to the right agent.</p><a href="#">Learn More</a>
+            <div class="prod-media acc-media"><img src="https://cdn.sanity.io/images/07s0r5r6/production/cb5bb6901e11ccc7e666cb0f9d39c36c7e80f896-2022x1518.png?w=800&auto=format" alt="" loading="lazy" onerror="this.style.display='none'"><img src="https://cdn.sanity.io/images/07s0r5r6/production/6ac228389ac57ca3083a231035184e49a4a19476-2022x1518.png?w=800&auto=format" alt="" loading="lazy" onerror="this.style.display='none'"></div></div>
         </div>
-        <div class="hero-media">
-          <img src="https://cdn.sanity.io/images/07s0r5r6/production/acf4a0772c068016f3d3312b1bf191a0e2727114-3296x1796.png?auto=format&amp;w=1920&amp;q=90" alt="" onerror="this.style.display='none'">
+        <div class="acc-item" data-media="https://cdn.sanity.io/images/07s0r5r6/production/4bbd4d069c2d7a2e3cc2715c04c57bd39bf690b4-2022x1518.png">
+          <button type="button" aria-expanded="false">Spaces</button>
+          <div class="acc-body"><p>Bring firms, clients, and co-counsel into one shared workspace, with the governance and ethical walls that sensitive legal work demands.</p><a href="#">Learn More</a>
+            <div class="prod-media acc-media"><img src="https://cdn.sanity.io/images/07s0r5r6/production/cb5bb6901e11ccc7e666cb0f9d39c36c7e80f896-2022x1518.png?w=800&auto=format" alt="" loading="lazy" onerror="this.style.display='none'"><img src="https://cdn.sanity.io/images/07s0r5r6/production/4bbd4d069c2d7a2e3cc2715c04c57bd39bf690b4-2022x1518.png?w=800&auto=format" alt="" loading="lazy" onerror="this.style.display='none'"></div></div>
+        </div>
+        <div class="acc-item" data-media="https://cdn.sanity.io/images/07s0r5r6/production/c5e7c8cb5137cbe709913c22651c4f2cfca751fd-674x506.svg">
+          <button type="button" aria-expanded="false">Vault</button>
+          <div class="acc-body"><p>Organize thousands of documents in one secure place, then extract the insights that matter with a single query.</p><a href="#">Learn More</a>
+            <div class="prod-media acc-media"><img src="https://cdn.sanity.io/images/07s0r5r6/production/cb5bb6901e11ccc7e666cb0f9d39c36c7e80f896-2022x1518.png?w=800&auto=format" alt="" loading="lazy" onerror="this.style.display='none'"><img src="https://cdn.sanity.io/images/07s0r5r6/production/c5e7c8cb5137cbe709913c22651c4f2cfca751fd-674x506.svg" alt="" loading="lazy" onerror="this.style.display='none'"></div></div>
+        </div>
+        <div class="acc-item" data-media="https://cdn.sanity.io/images/07s0r5r6/production/c1874d7f5238cee1347d9e350112138c6a0e1fc9-674x506.svg">
+          <button type="button" aria-expanded="false">Contract Intelligence</button>
+          <div class="acc-body"><p>Accelerate routine reviews, sharpen negotiations, and surface portfolio-wide insights.</p><a href="#">Learn More</a>
+            <div class="prod-media acc-media"><img src="https://cdn.sanity.io/images/07s0r5r6/production/cb5bb6901e11ccc7e666cb0f9d39c36c7e80f896-2022x1518.png?w=800&auto=format" alt="" loading="lazy" onerror="this.style.display='none'"><img src="https://cdn.sanity.io/images/07s0r5r6/production/c1874d7f5238cee1347d9e350112138c6a0e1fc9-674x506.svg" alt="" loading="lazy" onerror="this.style.display='none'"></div></div>
+        </div>
+        <div class="acc-item" data-media="https://cdn.sanity.io/images/07s0r5r6/production/b82a10ba8df774ed522160a98573dcc83cb5d7a6-2022x1518.png">
+          <button type="button" aria-expanded="false">Command Center</button>
+          <div class="acc-body"><p>See who&rsquo;s using Harvey, on what work, across teams, practice groups, and offices. Benchmark usage against comparable organizations to guide your rollout.</p><a href="#">Learn More</a>
+            <div class="prod-media acc-media"><img src="https://cdn.sanity.io/images/07s0r5r6/production/cb5bb6901e11ccc7e666cb0f9d39c36c7e80f896-2022x1518.png?w=800&auto=format" alt="" loading="lazy" onerror="this.style.display='none'"><img src="https://cdn.sanity.io/images/07s0r5r6/production/b82a10ba8df774ed522160a98573dcc83cb5d7a6-2022x1518.png?w=800&auto=format" alt="" loading="lazy" onerror="this.style.display='none'"></div></div>
+        </div>
+        <div class="acc-item" data-media="https://cdn.sanity.io/images/07s0r5r6/production/e1d4433bc4a200b55a7b584d24e4ff9d34a7d2b2-674x506.svg" data-bg="https://cdn.sanity.io/images/07s0r5r6/production/bb5652eaa288e8415db0dd42fb4f1de6d70c4b2c-2022x1518.png">
+          <button type="button" aria-expanded="false">Research</button>
+          <div class="acc-body"><p>Explore the models, benchmarks, and methods behind Harvey&rsquo;s AI work. We publish our findings and build alongside the open-source community.</p><a href="#">Learn More</a>
+            <div class="prod-media acc-media"><img src="https://cdn.sanity.io/images/07s0r5r6/production/bb5652eaa288e8415db0dd42fb4f1de6d70c4b2c-2022x1518.png?w=800&auto=format" alt="" loading="lazy" onerror="this.style.display='none'"><img src="https://cdn.sanity.io/images/07s0r5r6/production/e1d4433bc4a200b55a7b584d24e4ff9d34a7d2b2-674x506.svg" alt="" loading="lazy" onerror="this.style.display='none'"></div></div>
         </div>
       </div>
-    </section>
-    <div class="band">
-      <div class="wrap">
-        <span><em>Assistant</em></span>
-        <span><em>Agents</em></span>
-        <span><em>Vault</em></span>
-        <span><em>Knowledge</em></span>
-        <span><em>Spaces</em></span>
-        <span><em>Command Center</em></span>
+      <div class="prod-side">
+        <div class="prod-media" id="prodMedia">
+          <img id="prodBg" src="https://cdn.sanity.io/images/07s0r5r6/production/cb5bb6901e11ccc7e666cb0f9d39c36c7e80f896-2022x1518.png?w=1400&auto=format" alt="" onerror="this.style.display='none'">
+          <img id="prodFg" src="https://cdn.sanity.io/images/07s0r5r6/production/6ac228389ac57ca3083a231035184e49a4a19476-2022x1518.png?w=1400&auto=format" alt="" onerror="this.style.display='none'">
+        </div>
       </div>
     </div>
-    <section class="access" id="access">
-      <div class="wrap">
-        <div class="section-head">
-          <p class="eyebrow">Workspace access</p>
-          <div>
-            <h2>Assign Harvey seats to your practice groups</h2>
-            <p>Seats are allocated from your firm's plan. Named users sign in with the firm's identity provider and pick up Assistant, Vault and Knowledge in the workspace you assign them to.</p>
-          </div>
-        </div>
-        <div class="access-grid">
-          <div class="card">
-            <h3>Provision user seats</h3>
-            <p class="card-sub">Seats become available in the workspace as soon as the request completes.</p>
-            <form id="provisionForm">
-              <div class="form-group">
-                <label for="product">Workspace</label>
-                <select id="product">
-                  <option value="litigation">Litigation</option>
-                  <option value="transactional">Transactional</option>
-                  <option value="in_house">In-House Legal</option>
-                  <option value="knowledge_management">Knowledge Management</option>
-                </select>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="seats">Additional user seats</label>
-                  <input id="seats" type="number" min="1" max="250" step="1" value="25" required aria-describedby="seats-hint">
-                  <span class="field-hint" id="seats-hint">1–250 seats per request</span>
-                </div>
-                <div class="form-group">
-                  <label for="planTier">Plan</label>
-                  <select id="planTier"><option value="Professional">Professional</option></select>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="region">Data region</label>
-                <select id="region" aria-describedby="region-hint" disabled><option value="us-east">United States (us-east)</option></select>
-                <span class="field-hint" id="region-hint">Set when the workspace was created.</span>
-              </div>
-              <button type="submit" class="btn btn-block" id="submitBtn">Provision seats</button>
-              <p class="request-status" id="requestStatus" role="status">Example data. No real account changes.</p>
-            </form>
-            <div id="result" class="result-box" role="status" aria-live="polite"></div>
-          </div>
-          <aside class="panel" aria-labelledby="panel-title">
-            <p class="eyebrow">How access works</p>
-            <h3 id="panel-title">Professional class AI, governed by your firm</h3>
-            <p>Every workspace keeps its own membership, matter access and retention settings. Nothing is shared between workspaces unless a Space is created for it.</p>
-            <ul class="panel-list">
-              <li><span class="n" aria-hidden="true">1</span><div><strong>Workspaces</strong><p>Each practice group has its own workspace, administrators and seat allocation.</p></div></li>
-              <li><span class="n" aria-hidden="true">2</span><div><strong>Named users</strong><p>Seats are assigned to named users who sign in through your identity provider.</p></div></li>
-              <li><span class="n" aria-hidden="true">3</span><div><strong>Products</strong><p>Assistant, Vault, Knowledge and Command Center are available as soon as a seat is active.</p></div></li>
-            </ul>
-            <a class="panel-link" href="https://www.harvey.ai/security" target="_blank" rel="noopener noreferrer">Security and controls →</a>
-          </aside>
-        </div>
-      </div>
-    </section>
-  </main>
-  <footer class="site-footer">
+  </section>
+
+  <section class="quote">
     <div class="wrap">
-      <div class="footer-top">
-        <h3>Unlock Professional Class AI for Your Organization</h3>
-        <a class="btn" href="#access">Request a Demo</a>
-      </div>
-      <div class="footer-cols">
-        <div>
-          <h4>Platform</h4>
-          <ul>
-            <li><a href="#top">Agents</a></li>
-            <li><a href="#top">Vault</a></li>
-            <li><a href="#top">Knowledge</a></li>
-            <li><a href="#top">Command Center</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Solutions</h4>
-          <ul>
-            <li><a href="#top">Litigation</a></li>
-            <li><a href="#top">Transactional</a></li>
-            <li><a href="#top">In-House</a></li>
-            <li><a href="#top">Law Firms</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Company</h4>
-          <ul>
-            <li><a href="https://www.harvey.ai/customers" target="_blank" rel="noopener noreferrer">Customers</a></li>
-            <li><a href="https://www.harvey.ai/security" target="_blank" rel="noopener noreferrer">Security</a></li>
-            <li><a href="https://www.harvey.ai/about" target="_blank" rel="noopener noreferrer">About</a></li>
-            <li><a href="https://www.harvey.ai/careers" target="_blank" rel="noopener noreferrer">Careers</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Resources</h4>
-          <ul>
-            <li><a href="https://www.harvey.ai/blog" target="_blank" rel="noopener noreferrer">Blog</a></li>
-            <li><a href="#top">Resources Hub</a></li>
-            <li><a href="#top">Harvey Academy</a></li>
-            <li><a href="#top">Help Center</a></li>
-          </ul>
+      <div class="quote-row">
+        <div class="quote-photo"><img src="https://cdn.sanity.io/images/07s0r5r6/production/02256e25683b492523abc870f7d6f5ad8d0320fd-1072x1072.jpg?w=1000&auto=format" alt="Rich Robbins" onerror="this.style.display='none'"></div>
+        <div class="quote-body">
+          <blockquote>&ldquo;What we have seen at Reed Smith with Harvey is by far the most successful firm technology adoption story I have ever been a part of.&rdquo;</blockquote>
+          <div class="quote-name">Rich Robbins</div>
+          <div class="quote-role">Director of Applied Artificial Intelligence</div>
+          <img class="quote-logo" src="https://cdn.sanity.io/images/07s0r5r6/production/bac54c7dcffff7853b25908073a829b723031e9c-293x200.svg" alt="Reed Smith" onerror="this.style.display='none'">
         </div>
       </div>
-      <div class="footer-base">
-        <span class="logo">Harvey</span>
-        <small>Copyright © 2026 Harvey AI Corporation. All rights reserved.</small>
+      <div class="quote-bars" aria-hidden="true"><span></span><span></span><span></span></div>
+    </div>
+  </section>
+
+  <section class="cases dark">
+    <div class="cases-head wrap">
+      <h2>Real Impact for Real Clients</h2>
+      <a class="btn btn-sm btn-outline-light" href="#">See More Videos</a>
+    </div>
+    <div class="case-track">
+      <div class="case-card dim"><div class="case-txt"><h3>Dentsu partners with Harvey to turn pressure into strategic advantage.</h3></div></div>
+      <div class="case-card"><div class="case-txt"><h3>Repsol uses Harvey for greater time savings across their entire legal team.</h3><span class="play"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M0 0l14 8-14 8z" fill="#fafaf9"/></svg></span></div></div>
+      <div class="case-card dim"><div class="case-txt"><h3>Harvey helps Cuatrecasas focus on creating the most value for clients.</h3></div></div>
+    </div>
+    <div class="case-logos">
+      <img src="https://cdn.sanity.io/images/07s0r5r6/production/5b03ddf7a5b525ae7a9b75e8f97b69b32584ca1a-202x196.svg" alt="Dentsu" onerror="this.style.display='none'">
+      <img class="on" src="https://cdn.sanity.io/images/07s0r5r6/production/60b4f3a59bd6f03f8fafc3b973c7c61bffd600d0-330x200.svg" alt="Repsol" onerror="this.style.display='none'">
+      <img src="https://cdn.sanity.io/images/07s0r5r6/production/41dd412dbdacff7fc7a9eb7eee77f7de3872bd6b-289x200.svg" alt="Cuatrecasas" onerror="this.style.display='none'">
+      <img src="https://cdn.sanity.io/images/07s0r5r6/production/e9866cc07539786c6f8e465595bde948c1eb6a87-301x196.svg" alt="The Adecco Group" onerror="this.style.display='none'">
+      <img src="https://cdn.sanity.io/images/07s0r5r6/production/2d4b398bda19ad52d7881bca5099c4a5d55c844d-424x200.svg" alt="Gleiss Lutz / Deutsche Telekom" onerror="this.style.display='none'">
+      <img src="https://cdn.sanity.io/images/07s0r5r6/production/94accdbd4a1b543162412cf72a93f5ef86bcfc37-167x200.svg" alt="CMS" onerror="this.style.display='none'">
+      <img src="https://cdn.sanity.io/images/07s0r5r6/production/3f8fafb4d5df7348b2c12637464c6e155a6ffb45-229x200.svg" alt="Burges Salmon" onerror="this.style.display='none'">
+    </div>
+  </section>
+
+  <section class="stats dark wrap">
+    <h3>Helping Teams Stay Focused and See Measurable Results</h3>
+    <div class="stat-row"><span>Average hours saved per month</span><strong>25+</strong></div>
+    <div class="stat-row"><span>Professionals using Harvey</span><strong>200,000+</strong></div>
+    <div class="stat-row"><span>Law firms and in-house legal teams using Harvey</span><strong>3,500+</strong></div>
+    <div class="stat-row"><span>Countries Harvey is used in</span><strong>85+</strong></div>
+    <div class="stat-row"><span>AmLaw 100 firms using Harvey</span><strong>80+</strong></div>
+  </section>
+
+  <section class="security dark wrap">
+    <div class="sec-row">
+      <div>
+        <h2>Enterprise-Grade Security and Controls</h2>
+        <p>Harvey meets the highest industry standards for security and compliance. We include all default controls that enterprise teams expect: SAML SSO, audit logs, IP allow-listing, data lifecycle management, and more.</p>
+        <a class="btn btn-sm btn-outline-light" href="#">More About Security</a>
+      </div>
+      <div>
+        <div class="cert"><img src="https://cdn.sanity.io/images/07s0r5r6/production/719150faf5a37cd404e401288a68b87d1f5fc3bc-48x48.svg" alt="" onerror="this.style.visibility='hidden'"><b>SOC2 II</b><a href="#">Details</a></div>
+        <div class="cert"><img src="https://cdn.sanity.io/images/07s0r5r6/production/ce9033efbaa4adae71aaf26deb3c2d0a75a048c6-48x48.svg" alt="" onerror="this.style.visibility='hidden'"><b>CCPA</b><a href="#">Details</a></div>
+        <div class="cert"><img src="https://cdn.sanity.io/images/07s0r5r6/production/ce9033efbaa4adae71aaf26deb3c2d0a75a048c6-48x48.svg" alt="" onerror="this.style.visibility='hidden'"><b>GDPR</b><a href="#">Details</a></div>
+        <div class="cert"><img src="https://cdn.sanity.io/images/07s0r5r6/production/320718bb6e0d7a6c7512fcfacbc5a5787ed365a7-48x48.svg" alt="" onerror="this.style.visibility='hidden'"><b>AIUC-1</b><a href="#">Details</a></div>
+        <div class="cert"><img src="https://cdn.sanity.io/images/07s0r5r6/production/86328d107132a40c9644cffdfd1b4a73c87bb9ca-48x48.svg" alt="" onerror="this.style.visibility='hidden'"><b>ISO 27001</b><a href="#">Details</a></div>
+        <div class="cert"><img src="https://cdn.sanity.io/images/07s0r5r6/production/86328d107132a40c9644cffdfd1b4a73c87bb9ca-48x48.svg" alt="" onerror="this.style.visibility='hidden'"><b>ISO 27701</b><a href="#">Details</a></div>
+        <div class="cert"><img src="https://cdn.sanity.io/images/07s0r5r6/production/86328d107132a40c9644cffdfd1b4a73c87bb9ca-48x48.svg" alt="" onerror="this.style.visibility='hidden'"><b>ISO 42001</b><a href="#">Details</a></div>
       </div>
     </div>
-  </footer>
-  <script>
-    (function () {
-      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
-      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
-        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
-        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
-      }).catch(function () {});
-    })();
-  </script>
-  <script>
-    document.getElementById('provisionForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const form = event.currentTarget;
-      const button = document.getElementById('submitBtn');
-      const result = document.getElementById('result');
-      const status = document.getElementById('requestStatus');
-      const started = performance.now();
-      button.disabled = true;
-      button.textContent = 'Provisioning seats…';
-      form.setAttribute('aria-busy', 'true');
-      result.className = 'result-box';
-      result.textContent = '';
-      status.textContent = 'Request in progress…';
-      const timer = setInterval(() => {
-        status.textContent = `Request in progress · ${((performance.now() - started) / 1000).toFixed(1)}s`;
-      }, 100);
-      try {
-        const response = await fetch('/api/licenses/provision', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orgName: document.getElementById('product').value,
-            planName: document.getElementById('planTier').value,
-            seats: Number(document.getElementById('seats').value),
-            billingCycle: 'annual',
-            devinUserId: localStorage.getItem('devinUserId') || '',
-            devinOrgId: localStorage.getItem('devinOrgId') || '',
-            devinEmail: localStorage.getItem('devinEmail') || '',
-          }),
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'The request could not be completed. Please try again.');
-        result.className = 'result-box success';
-        result.textContent = 'User seats provisioned. The workspace has been updated.';
-      } catch (error) {
-        result.className = 'result-box error';
-        result.textContent = `Provisioning could not be completed. ${error.message}`;
-      } finally {
-        clearInterval(timer);
-        status.textContent = `Request finished in ${((performance.now() - started) / 1000).toFixed(1)}s`;
-        form.removeAttribute('aria-busy');
-        button.disabled = false;
-        button.textContent = 'Provision seats';
-      }
+  </section>
+</main>
+
+<footer class="dark wrap">
+  <div class="foot-cta">
+    <h3>Unlock Professional Class AI for Your Organization</h3>
+    <a class="btn btn-lg btn-light" href="#add-seats">Request a Demo</a>
+  </div>
+  <div class="foot-grid">
+    <div class="foot-mark">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-label="Harvey" role="img"><path fill="#fafaf9" d="M2 3h11v2.4l-3 .6v9.6h14V6l-3-.6V3h11v2.4l-3 .6v22l3 .6V31H21v-2.4l3-.6V18.6H10V28l3 .6V31H2v-2.4l3-.6V6l-3-.6z"/></svg>
+      <div class="copy">Copyright &copy; 2026 Harvey AI Corporation. All rights reserved.</div>
+    </div>
+    <div class="foot-col"><h4>Platform</h4><a href="#">Overview</a><a href="#">Agents</a><a href="#">Vault</a><a href="#">Knowledge</a><a href="#">Spaces</a><a href="#">Command Center</a><a href="#">Contract Intelligence</a><a href="#">Horizon Scanning</a><a href="#">Ecosystem</a><a href="#">Intake</a><a href="#">Partnerships</a></div>
+    <div class="foot-col"><h4>Solutions</h4><a href="#">Innovation</a><a href="#">Transactional</a><a href="#">Litigation</a><a href="#">In-House</a><a href="#">Law Firms</a><a href="#">Mid-Sized Firms</a><a href="#">Healthcare &amp; Life Sciences</a><a href="#">Energy &amp; Utilities</a><a href="#">Technology</a><a href="#">Media, Entertainment &amp; Telecom</a></div>
+    <div class="foot-col"><h4>Company</h4><a href="#">Customers</a><a href="#">Security</a><a href="#">About</a><a href="#">Careers</a><a href="#">Newsroom</a><a href="#">Law Schools</a></div>
+    <div class="foot-col"><h4>Resources</h4><a href="#">Blog</a><a href="#">Resources Hub</a><a href="#">Harvey Academy</a><a href="#">Help Center</a><a href="#">Legal</a><a href="#">Privacy Policy</a><a href="#">Press Kit</a><a href="#">Your Privacy Choices</a></div>
+    <div class="foot-col"><h4>Follow</h4><a href="#">X</a><a href="#">LinkedIn</a><a href="#">YouTube</a><a href="#">Instagram</a></div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var burger = document.querySelector('.burger');
+    var menu = document.getElementById('mobileMenu');
+    function setMenu(open) {
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      menu.classList.toggle('open', open);
+    }
+    burger.addEventListener('click', function () { setMenu(burger.getAttribute('aria-expanded') !== 'true'); });
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) setMenu(false); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && burger.getAttribute('aria-expanded') === 'true') { setMenu(false); burger.focus(); }
     });
-  </script>
-  <script src="/session-cap-banner.js"></script>
+
+    var bgDefault = 'https://cdn.sanity.io/images/07s0r5r6/production/cb5bb6901e11ccc7e666cb0f9d39c36c7e80f896-2022x1518.png';
+    var items = document.querySelectorAll('.acc-item');
+    items.forEach(function (item) {
+      item.querySelector('button').addEventListener('click', function () {
+        items.forEach(function (other) {
+          var on = other === item;
+          other.classList.toggle('open', on);
+          other.querySelector('button').setAttribute('aria-expanded', on ? 'true' : 'false');
+        });
+        var media = item.getAttribute('data-media');
+        var bg = item.getAttribute('data-bg') || bgDefault;
+        var sized = function (u) { return /\.svg$/.test(u) ? u : u + '?w=1400&auto=format'; };
+        var fg = document.getElementById('prodFg');
+        var bgi = document.getElementById('prodBg');
+        fg.style.display = ''; bgi.style.display = '';
+        fg.src = sized(media); bgi.src = sized(bg);
+      });
+    });
+  })();
+
+  document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const productSelect = document.getElementById('product');
+    const productLabel = productSelect.options[productSelect.selectedIndex].text;
+    const seats = parseInt(document.getElementById('seats').value, 10);
+    btn.disabled = true; btn.textContent = 'Adding seats...';
+    result.className = 'result-box';
+    result.innerHTML = '';
+    try {
+      const res = await fetch('/api/licenses/provision', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orgName: productSelect.value, planName: document.getElementById('planTier').value, seats: seats, billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">Seats could not be added</div><div>Your workspace was not changed. Try again in a few minutes or contact your Harvey account team.</div>';
+      } else {
+        const added = data.seatsAdded || seats;
+        const cost = data.annualCost != null ? ' Updated annual total: $' + Number(data.annualCost).toLocaleString() + '.' : '';
+        result.className = 'result-box success';
+        result.innerHTML = '<div class="result-title">Seats added</div><div>' + added + ' seats added to ' + productLabel + ' for your workspace.' + cost + '</div>' +
+          (data.withinLimit === false ? '<div>Your workspace is now above the seat limit for this plan. Contact your Harvey account team to change plans.</div>' : '');
+      }
+    } catch (err) {
+      result.className = 'result-box error';
+      result.innerHTML = '<div class="result-title">Seats could not be added</div><div>Check your connection and try again.</div>';
+    } finally { btn.disabled = false; btn.textContent = 'Add Seats'; }
+  });
+</script>
+<script src="/session-cap-banner.js"></script>
 </body>
 </html>
