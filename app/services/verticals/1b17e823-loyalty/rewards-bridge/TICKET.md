@@ -1,7 +1,7 @@
 # LOY-214: Bring Foot Locker FLX members into DICK'S rewards
 
 **Context.** DICK'S has acquired Foot Locker. Foot Locker customers earn points
-in FLX (`COG-GTM/flx-loyalty`); DICK'S customers earn points in ScoreCard
+in FLX (`COG-GTM/footlocker`); DICK'S customers earn points in ScoreCard
 (`../scorecard`). Many customers are members of both, and the two systems
 have never talked to each other.
 

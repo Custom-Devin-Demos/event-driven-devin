@@ -11,7 +11,7 @@ integration demo for the `1b17e823` vertical (devindemos.com/dicks).
 | `scorecard/` | Mock ScoreCard loyalty API (system of record for DICK'S members). 200 seeded members in `scorecard/members.json`, in memory, reset on restart. |
 | `rewards-bridge/` | **Empty.** Where the ScoreCard ↔ FLX integration goes. See `rewards-bridge/TICKET.md`. |
 
-The Foot Locker side lives in its own repo, `COG-GTM/flx-loyalty`
+The Foot Locker side lives in its own repo, `COG-GTM/footlocker`
 (run it with `npm start`, default `http://localhost:4100`).
 
 ## ScoreCard API

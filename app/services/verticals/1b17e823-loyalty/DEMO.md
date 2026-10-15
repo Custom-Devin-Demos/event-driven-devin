@@ -7,7 +7,7 @@ rewards with DICK'S ScoreCard, then records itself using the result.
 
 | | Where |
 |---|---|
-| FLX loyalty service (Foot Locker) | `COG-GTM/flx-loyalty`, `npm start` → `http://localhost:4100` |
+| FLX loyalty service (Foot Locker) | `COG-GTM/footlocker`, `npm start` → `http://localhost:4100` |
 | ScoreCard mock (DICK'S) | `app/services/verticals/1b17e823-loyalty/scorecard` |
 | Integration target | `app/services/verticals/1b17e823-loyalty/rewards-bridge` (empty; `TICKET.md`) |
 | Web UI | `http://localhost:3100/dicks` (cart page, ScoreCard Rewards panel) |
@@ -16,7 +16,7 @@ rewards with DICK'S ScoreCard, then records itself using the result.
 ## Prompt (one session)
 
 ```
-We acquired Foot Locker. Scope the work to integrate Foot Locker's FLX rewards (COG-GTM/flx-loyalty) with DICK'S ScoreCard in the devindemos.com/dicks vertical (COG-GTM/event-driven-devin, vertical 1b17e823). Write a brief plan including a field mapping between the two systems and open decisions, then stop for my approval. After approval, implement the first slice: an FLX member can link their FLX account on the DICK'S cart page and see their combined rewards balance. Run the web app and record a screen capture of the flow, then open a PR.
+We acquired Foot Locker. Scope the work to integrate Foot Locker's FLX rewards (COG-GTM/footlocker) with DICK'S ScoreCard in the devindemos.com/dicks vertical (COG-GTM/event-driven-devin, vertical 1b17e823). Write a brief plan including a field mapping between the two systems and open decisions, then stop for my approval. After approval, implement the first slice: an FLX member can link their FLX account on the DICK'S cart page and see their combined rewards balance. Run the web app and record a screen capture of the flow, then open a PR.
 ```
 
 When it stops with the plan, reply `approved`.
@@ -39,7 +39,7 @@ When it stops with the plan, reply `approved`.
 
 ```bash
 # terminal 1
-cd flx-loyalty && npm install && npm start
+cd footlocker && npm install && npm start
 # terminal 2 (event-driven-devin)
 PORT=3100 SENTRY_DSN= DEVIN_API_KEY= SLACK_BOT_TOKEN= node app/server.js
 ```
