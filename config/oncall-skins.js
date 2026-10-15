@@ -36,6 +36,10 @@
  * devinSession.notifySlackMemberId (a Slack member id) makes the session's
  * prompt ask Devin to @-mention that person in the alert thread when the root
  * cause is confirmed and again when the fix PR is open.
+ * devinSession.onCallIsTriggerer: true pages the presenter who triggered the
+ * alert instead: their devindemos.com email is resolved to a Slack member who
+ * is shown as On-Call on the alert card and @-mentioned by the session, which
+ * is created under that same presenter's Devin user.
  *
  * A skin may set sonarPR: { auto: true, customer } to have each of its alerts
  * also open the SonarCloud remediation demo PR (app/services/sonar-pr-trigger.js)
@@ -3839,6 +3843,40 @@ const ONCALL_SKINS = {
       title: 'Intesa Sanpaolo Group: Corporate Website | Intesa Sanpaolo',
     },
     disclaimer: 'NOT ACTUALLY A INTESA SANPAOLO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Intesa Sanpaolo product.',
+  },
+  '6997dfbe': {
+    slug: '6997dfbe',
+    company: 'Coca-Cola FEMSA',
+    brandMark: 'KOF',
+    vertical: 'insurance',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the Coca-Cola FEMSA corporate Contact page linked above. Its contact form Send button posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'In the alert thread the incident reads "5xx rate spiking \u2014 contact form submission (504)", release corporate-web@5.3.0, owner team corporate-web-oncall: contact form submissions hang ~8s and then fail with 504, so customers, investors, suppliers and press cannot reach the company.',
+        'Use "Coca-Cola FEMSA" and "contact form" in your thread replies, PR title and PR description. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    page: { file: '6997dfbe.html', title: 'Contact | Coca-Cola FEMSA | Coca-Cola FEMSA' },
+    alertCard: {
+      title: '5xx rate spiking \u2014 contact form submission (504)',
+      release: 'corporate-web@5.3.0',
+      team: 'corporate-web-oncall',
+      symptom: 'Contact form submissions hang ~8s and then fail with 504 Gateway Timeout; no confirmation is shown.',
+      impact: 'Visitors cannot send messages to customer service, investor relations, suppliers or press from the website; every Send times out after a long hang.',
+    },
+    theme: {
+      '--accent': '#EB0000',
+      '--ink': '#4D4D4F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#EB0000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Coca-Cola FEMSA Customer Service',
+    disclaimer: 'NOT ACTUALLY A COCA-COLA FEMSA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Coca-Cola FEMSA product. All messages and data are fictional.',
   },
 };
 
