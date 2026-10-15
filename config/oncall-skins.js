@@ -3774,6 +3774,7 @@ const ONCALL_SKINS = {
     vertical: 'insurance',
     oncallOnly: true,
     alertDestination: 'slack',
+    devinSession: { auto: true },
     page: { file: 'd176d067.html', title: 'Heppner | Transport & logistics solutions' },
     alertCard: {
       title: '5xx rate spiking \u2014 shipment tracking search (504)',
