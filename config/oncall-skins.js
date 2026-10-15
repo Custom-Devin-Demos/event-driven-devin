@@ -3773,6 +3773,7 @@ const ONCALL_SKINS = {
     brandMark: 'H',
     vertical: 'insurance',
     oncallOnly: true,
+    alertDestination: 'slack',
     page: { file: 'd176d067.html', title: 'Heppner | Transport & logistics solutions' },
     alertCard: {
       title: '5xx rate spiking \u2014 shipment tracking search (504)',
