@@ -12,6 +12,7 @@ jest.mock('../app/telemetry/sentry', () => ({
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
 const { startPlaybackSession, resolveTitle, CATALOG } = require('../app/services/verticals/1bc0c714');
+const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 
 const IDENTITY = {
   devinUserId: 'clerk-user_demo',
@@ -57,5 +58,12 @@ describe('Disney+ playback sessions', () => {
   test('catalog ids are unique', () => {
     const ids = CATALOG.map((t) => t.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  test('tagless Sentry issue webhooks are treated as already alerted', () => {
+    expect(isInstantPathEvent({
+      tags: [],
+      culprit: 'app/services/verticals/1bc0c714.js — buildPlaybackManifest',
+    })).toBe(true);
   });
 });

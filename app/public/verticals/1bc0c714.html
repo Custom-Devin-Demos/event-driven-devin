@@ -345,8 +345,8 @@
       <div class="scrub"><i id="pProgress"></i></div>
       <div class="ctrls">
         <button id="pToggle" aria-label="Pause"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg></button>
-        <button aria-label="Rewind 10 seconds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <button aria-label="Forward 10 seconds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8.6M20 4v4.6h-4.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button id="pRewind" aria-label="Rewind 10 seconds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button id="pForward" aria-label="Forward 10 seconds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8.6M20 4v4.6h-4.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span id="pTime">0:00</span>
         <span class="spacer"></span>
         <button aria-label="Audio and subtitles"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v12H8l-5 4zm4 5v2h6v-2zm8 0v2h2v-2zm-8 3v1h3v-1z"/></svg></button>
@@ -532,7 +532,7 @@
     /* Player */
     var player = document.getElementById('player');
     var video = document.getElementById('video');
-    var pending = false;
+    var attempt = 0;
     var lastTitle = null;
     var idleTimer = null;
 
@@ -549,6 +549,8 @@
       document.body.style.overflow = 'hidden';
     }
     function closePlayer() {
+      attempt += 1;
+      video.onerror = null;
       video.pause();
       video.removeAttribute('src');
       video.load();
@@ -564,7 +566,9 @@
       video.muted = false;
       video.onerror = function () {
         i += 1;
-        if (i < DEMO_STREAM.length) { video.src = DEMO_STREAM[i]; video.play().catch(function () {}); }
+        if (i < DEMO_STREAM.length) { video.src = DEMO_STREAM[i]; video.play().catch(function () {}); return; }
+        video.onerror = null;
+        showPlaybackError('—', { errorClass: 'MediaError', error: 'Unable to load the video stream', code: 'MEDIA_LOAD_FAILED' });
       };
       video.src = DEMO_STREAM[0];
       video.loop = true;
@@ -584,6 +588,12 @@
     }
     player.addEventListener('mousemove', kickIdle);
     document.getElementById('pToggle').addEventListener('click', function () { if (video.paused) video.play(); else video.pause(); });
+    function seekBy(delta) {
+      var end = video.duration || 0;
+      video.currentTime = Math.max(0, Math.min(end || Infinity, video.currentTime + delta));
+    }
+    document.getElementById('pRewind').addEventListener('click', function () { seekBy(-10); });
+    document.getElementById('pForward').addEventListener('click', function () { seekBy(10); });
     document.getElementById('pFull').addEventListener('click', function () { if (player.requestFullscreen) player.requestFullscreen().catch(function () {}); });
     document.getElementById('pBack').addEventListener('click', closePlayer);
     document.getElementById('pExit').addEventListener('click', closePlayer);
@@ -604,8 +614,9 @@
     }
 
     function openPlayer(id, trigger) {
-      if (pending || !TITLES[id]) return;
-      pending = true;
+      if (!TITLES[id]) return;
+      var myAttempt = ++attempt;
+      document.querySelectorAll('.is-loading').forEach(function (el) { el.classList.remove('is-loading'); });
       lastTitle = id;
       var t = TITLES[id];
       setPlayerTitle(id, t.ep || '');
@@ -630,15 +641,14 @@
           return res.json().then(function (data) { return { ok: res.ok, status: res.status, data: data }; });
         })
         .then(function (result) {
-          pending = false;
           if (trigger) trigger.classList.remove('is-loading');
-          if (!player.classList.contains('open')) return;
+          if (myAttempt !== attempt || !player.classList.contains('open')) return;
           if (!result.ok || !result.data.success) { showPlaybackError(result.status, result.data || {}); return; }
           playStream(id, t.ep || '');
         })
         .catch(function (err) {
-          pending = false;
           if (trigger) trigger.classList.remove('is-loading');
+          if (myAttempt !== attempt || !player.classList.contains('open')) return;
           showPlaybackError('—', { errorClass: 'NetworkError', error: err.message });
         });
     }
