@@ -302,6 +302,26 @@ const ALERT_SCENARIOS = {
     demoPage: '/gusto',
     unlisted: true,
   },
+  '90ccfbb2': {
+    vertical: '90ccfbb2',
+    page: '90ccfbb2.html',
+    apiPath: '/api/90ccfbb2/availability',
+    oncallApiPath: '/api/90ccfbb2/availability',
+    owner: 'Marcus Bell (parks-inventory-oncall)',
+    brand: 'Disney Parks (Tickets & Resorts)',
+    service: 'resort-inventory',
+    endpoint: 'POST /api/90ccfbb2/availability',
+    monitor: 'Sold out with unsold capacity — park & resort inventory',
+    metricQuery: 'max(last_10m):sum:resort_inventory.soldout_with_capacity{service:resort-inventory}.as_count() > 0',
+    metricValue: 'Thanksgiving-weekend dates (Magic Kingdom Sat 11/28, Disneyland Park Sat 11/28, Grand Floridian Thu 11/26, …) show SOLD OUT with 8–28% of capacity unsold',
+    threshold: '> 0 product-dates / 10m',
+    baseline: '0 (30-day)',
+    release: 'resort-inventory@3.14.1',
+    symptom: 'Guests see SOLD OUT on peak park and resort dates while confirmed sales are below capacity. The shortfall is entirely cart holds that are past their 15-minute expiry but still ACTIVE. No errors, no 5xx.',
+    impact: 'Peak Thanksgiving-weekend tickets, Park Pass reservations and room-nights cannot be sold — silent revenue leak on the highest-priced dates of the quarter.',
+    demoPage: '/90ccfbb2',
+    unlisted: true,
+  },
 };
 
 function resolveOncallEnv() {
