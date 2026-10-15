@@ -62,7 +62,8 @@
     .sc .t { font-weight:900; letter-spacing:.4px; font-size:13px; text-transform:uppercase; display:flex; justify-content:space-between; }
     .sc .t span { background:#ffc72c; color:var(--navy); padding:1px 7px; border-radius:3px; font-size:11px; }
     .sc p { font-size:13px; margin-top:6px; opacity:.92; line-height:1.4; }
-    .sc select { width:100%; margin-top:10px; color:var(--ink); }
+    .sc .who { margin-top:10px; font-size:13px; border-top:1px solid rgba(255,255,255,.2); padding-top:10px; }
+    .sc .who small { opacity:.8; white-space:nowrap; }
     .bar { height:6px; background:rgba(255,255,255,.2); border-radius:3px; margin-top:10px; overflow:hidden; }
     .bar i { display:block; height:100%; width:80%; background:#ffc72c; }
     .btn { display:block; width:100%; border:0; border-radius:24px; height:48px; font-size:16px; font-weight:700; cursor:pointer; margin-top:16px; }
@@ -133,11 +134,8 @@
             <div class="t">ScoreCard Rewards <span id="scBadge">Platinum</span></div>
             <p id="scText">Platinum members earn 2x points. Your $10 reward is applied automatically at checkout.</p>
             <div class="bar"><i id="scBar"></i></div>
-            <select id="member" aria-label="Signed-in ScoreCard member">
-              <option value="SC-8841207733">Jordan Reyes · ScoreCard Platinum</option>
-              <option value="SC-5520917046">Casey Morgan · ScoreCard Gold</option>
-              <option value="guest">Check out as guest</option>
-            </select>
+            <div class="who" id="signedIn">Signed in as <b id="memberName">Jordan Reyes</b> <small>· ScoreCard <span id="memberIdLabel">SC-8841207733</span></small></div>
+            <input type="hidden" id="member" value="SC-8841207733">
           </div>
           <button class="btn primary" id="checkoutBtn">Checkout</button>
           <div class="result" id="result"></div>
@@ -182,9 +180,9 @@
   var checkoutInFlight = false;
   var pendingPaymentMethod = null;
   var members = {
-    'SC-8841207733': { first: 'Jordan', badge: 'Platinum', text: 'Platinum members earn 2x points. Your $10 reward is applied automatically at checkout.', pct: 80 },
-    'SC-5520917046': { first: 'Casey', badge: 'Gold', text: 'Gold members earn 1.5x points. 20 points to your next $10 reward.', pct: 93 },
-    guest: { first: 'Guest', badge: 'Not signed in', text: 'Sign in or join ScoreCard to earn points on this order.', pct: 0 }
+    'SC-8841207733': { first: 'Jordan', name: 'Jordan Reyes', badge: 'Platinum', text: 'Platinum members earn 2x points. Your $10 reward is applied automatically at checkout.', pct: 80 },
+    'SC-5520917046': { first: 'Casey', name: 'Casey Morgan', badge: 'Gold', text: 'Gold members earn 1.5x points. 20 points to your next $10 reward.', pct: 93 },
+    guest: { first: 'Guest', name: '', badge: 'Not signed in', text: 'Sign in or join ScoreCard to earn points on this order.', pct: 0 }
   };
   function $(id) { return document.getElementById(id); }
   function money(v) { return '$' + v.toFixed(2); }
@@ -206,7 +204,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('#lines [data-rm]'), function (a) {
       a.addEventListener('click', function (e) { e.preventDefault(); if (checkoutInFlight) return; cart.splice(+a.dataset.rm, 1); render(); });
     });
-    $('checkoutBtn').disabled = checkoutInFlight || cart.length === 0;
+    $('checkoutBtn').disabled = checkoutInFlight || cart.length === 0 || !$('member').value;
     Array.prototype.forEach.call(document.querySelectorAll('.express'), function (b) { b.disabled = $('checkoutBtn').disabled; });
     $('member').disabled = checkoutInFlight;
     if (!cart.length) $('lines').innerHTML = '<div class="line" style="display:block;color:var(--muted)">Your cart is empty.</div>';
@@ -232,11 +230,20 @@
     });
   });
 
-  $('member').addEventListener('change', function () {
-    var m = members[this.value];
+  // No login on this demo page: ?member=<SC-8841207733 | SC-5520917046 | guest> picks the shopper (default Jordan).
+  function showMember(id, m) {
+    $('member').value = id;
     $('hiName').textContent = m.first; $('scBadge').textContent = m.badge; $('scText').textContent = m.text;
     $('scBar').style.width = m.pct + '%';
-  });
+    $('signedIn').innerHTML = id === 'guest' ? 'Checking out as guest' :
+      'Signed in as <b id="memberName">' + esc(m.name) + '</b> <small>· ScoreCard <span id="memberIdLabel">' + esc(id) + '</span></small>';
+  }
+  function applyMember(id) {
+    if (Object.prototype.hasOwnProperty.call(members, id)) return showMember(id, members[id]);
+    showMember('', { first: 'Guest', name: '', badge: 'Not signed in', text: 'This ScoreCard member is not available on this demo page.', pct: 0 });
+    $('signedIn').innerHTML = 'Unknown ScoreCard member <b>' + esc(id) + '</b>';
+    render();
+  }
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
@@ -298,6 +305,7 @@
   shipEta.setDate(shipEta.getDate() + 3);
   $('shipEta').textContent = shipEta.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   render();
+  applyMember(new URLSearchParams(location.search).get('member') || 'SC-8841207733');
 })();
 </script>
 </body>
