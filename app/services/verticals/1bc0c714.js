@@ -2,11 +2,14 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
-const { createSessionAndAlert } = require('../devin-session');
+const { postMessage, postThreadReply, lookupSlackUserByEmail } = require('../slack');
+const { createDevinSession } = require('../devin-api');
+const { declareDatadogIncident } = require('../datadog-incidents');
+const { canCreateSession, reserveSession } = require('../session-rate-limiter');
 
 const ROUTE = '/api/1bc0c714/playback-session';
 const SERVICE = 'customer-1bc0c714-playback';
-const SLACK_MEMBER_ID_FALLBACK = process.env.DISNEYPLUS_SLACK_MEMBER_ID || '';
+const SLACK_MEMBER_ID = process.env.DISNEYPLUS_SLACK_MEMBER_ID || 'U0BCD812VA5';
 const DEFAULT_TITLE = 'chad-powers';
 const DEFAULT_DEVICE = 'web';
 
@@ -136,6 +139,209 @@ function buildPlaybackSession(requestId, title, device, manifest) {
   };
 }
 
+const REPO_NAME = 'COG-GTM/event-driven-devin';
+const REPO_URL = `https://github.com/${REPO_NAME}`;
+const DD_URL = () => process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com';
+const DEMO_BASE_URL = () =>
+  (process.env.ONCALL_DEMO_BASE_URL || `https://${process.env.DOMAIN_NAME || 'devindemos.com'}`).replace(/\/$/, '');
+const MONITOR = {
+  name: `5xx rate — POST ${ROUTE}`,
+  query: `sum(last_5m):sum:playback_session.start_failure{route:${ROUTE}}.as_count() > 0`,
+  threshold: '> 0 failed starts / 5m',
+  baseline: '0 (7-day)',
+  team: 'playback-oncall',
+};
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}$/;
+const DEVIN_ORG_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+const DEVIN_USER_ID_RE = /^[A-Za-z0-9_|.@+-]{1,128}$/;
+
+function resolveOncallEnv() {
+  return {
+    token: process.env.SLACK_ONCALL_BOT_TOKEN || process.env.SLACK_BOT_TOKEN,
+    alertsChannel: process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID,
+  };
+}
+
+function makeRunRef() {
+  return `DSS-INC-${uuidv4().slice(0, 6).toUpperCase()}`;
+}
+
+async function resolveTriggeredBy(token, email) {
+  if (!email || !EMAIL_RE.test(email)) return null;
+  try {
+    const memberId = await lookupSlackUserByEmail(token, email);
+    return memberId ? `<@${memberId}>` : email;
+  } catch (lookupError) {
+    logger.warn('Disney+ triggered-by Slack lookup failed', { error: lookupError.message });
+    return email;
+  }
+}
+
+function fieldPairs(pairs) {
+  const fields = pairs
+    .filter((pair) => pair && pair[1])
+    .map(([label, value]) => ({ type: 'mrkdwn', text: `*${label}:*\n${value}` }));
+  const blocks = [];
+  for (let i = 0; i < fields.length; i += 2) {
+    blocks.push({ type: 'section', fields: fields.slice(i, i + 2) });
+  }
+  return blocks;
+}
+
+function buildAlertBlocks(facts) {
+  return [
+    { type: 'header', text: { type: 'plain_text', text: `:rotating_light: [Triggered] ${MONITOR.name}`, emoji: true } },
+    ...fieldPairs([
+      ['Service', `${SERVICE} (Disney+)`],
+      ['Endpoint', `POST ${ROUTE}`],
+      ['Error', `\`${facts.errorText}\``],
+      ['Title', `${facts.titleName} (${facts.brand}, ${facts.device})`],
+      ['Threshold', MONITOR.threshold],
+      ['Baseline', MONITOR.baseline],
+      ['Release', facts.release],
+      ['On-Call', `<@${SLACK_MEMBER_ID}> (${MONITOR.team})`],
+      ['Incident Ref', facts.runRef],
+      facts.triggeredBy ? ['Triggered by', facts.triggeredBy] : null,
+    ]),
+    { type: 'section', text: { type: 'mrkdwn', text: `*Monitor query:*\n\`\`\`${MONITOR.query}\`\`\`` } },
+    { type: 'section', text: { type: 'mrkdwn', text: `Demo page: ${DEMO_BASE_URL()}/1bc0c714\nRepo: ${REPO_URL}` } },
+    {
+      type: 'actions',
+      elements: [{ type: 'button', text: { type: 'plain_text', text: ':bar_chart: View in Datadog', emoji: true }, url: DD_URL() }],
+    },
+    {
+      type: 'context',
+      elements: [{
+        type: 'mrkdwn',
+        text: [`Service: \`${SERVICE}\``, new Date().toISOString(), facts.triggeredBy ? `Triggered by ${facts.triggeredBy}` : null]
+          .filter(Boolean).join(' | '),
+      }],
+    },
+  ];
+}
+
+function buildAlertText(facts) {
+  return [
+    `:rotating_light: *[Triggered] ${MONITOR.name}*`,
+    `*Service:* ${SERVICE} (Disney+) | *Error:* ${facts.errorText}`,
+    `*On-Call:* <@${SLACK_MEMBER_ID}> | *Incident Ref:* ${facts.runRef}`,
+  ].join('\n');
+}
+
+function buildSessionPrompt(facts, { channel, threadTs }) {
+  const mention = `<@${SLACK_MEMBER_ID}>`;
+  return [
+    `A Datadog monitor is firing on ${SERVICE}. Investigate it and open a PR with the fix.`,
+    '',
+    `*Monitor:* ${MONITOR.name} — Triggered`,
+    `*Query:* \`${MONITOR.query}\``,
+    `*Error:* ${facts.errorText}`,
+    `*Failing request:* Play on "${facts.titleName}" (brand ${facts.brand}, device ${facts.device}), request ${facts.requestId}`,
+    `*Release:* ${facts.release}`,
+    `*Incident Ref:* ${facts.runRef}`,
+    '',
+    `Reproduce it at ${DEMO_BASE_URL()}/1bc0c714 (press Play on the hero title).`,
+    '',
+    REMEDIATION_DIRECTIVE,
+    '',
+    `*Slack Thread:* channel=${channel} thread_ts=${threadTs}`,
+    '',
+    'Progress updates for the on-call engineer: reply in the Slack alert thread above twice — '
+      + `(1) as soon as the root cause is confirmed, post ${mention} + the root cause in ≤3 lines; `
+      + `(2) as soon as the fix PR is open, post ${mention} + the PR link + one line on how you verified. `
+      + 'Post with `curl -s -X POST https://slack.com/api/chat.postMessage -H "Authorization: Bearer $SLACK_ONCALL_BOT_TOKEN" '
+      + `-H 'Content-Type: application/json' -d '{"channel":"${channel}","thread_ts":"${threadTs}","text":"..."}'\` `
+      + '(fall back to `$COG_GTM_DEMO_SLACK_BOT_TOKEN`; never print tokens). If neither is set, use the Devin `slack` tool with `thread_ts`.',
+  ].join('\n');
+}
+
+function resolveSessionIdentity(requester = {}) {
+  if (DEVIN_ORG_ID_RE.test(requester.devinOrgId || '')) {
+    return {
+      orgId: requester.devinOrgId,
+      userId: DEVIN_USER_ID_RE.test(requester.devinUserId || '') ? requester.devinUserId : null,
+    };
+  }
+  return {
+    orgId: process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
+    userId: process.env.DEVIN_ONCALL_USER_ID || null,
+  };
+}
+
+async function triggerDevinSession(facts, { token, channel, threadTs, requester }) {
+  const cap = canCreateSession();
+  if (!cap.allowed) {
+    logger.warn('Disney+ On-Call session creation throttled', { runRef: facts.runRef, ...cap });
+    return null;
+  }
+  const release = reserveSession();
+  let session = null;
+  try {
+    session = await createDevinSession(buildSessionPrompt(facts, { channel, threadTs }), {
+      ...resolveSessionIdentity(requester),
+      apiKey: process.env.DEVIN_ONCALL_SERVICE_KEY,
+      title: `[On-Call] ${facts.runRef} ${MONITOR.name}`,
+      repos: [REPO_NAME],
+    });
+  } catch (sessionError) {
+    logger.error('Disney+ On-Call Devin session failed', { runRef: facts.runRef, error: sessionError.message });
+  }
+  if (!session) {
+    release();
+    return null;
+  }
+  logger.info('Disney+ On-Call Devin session created', { runRef: facts.runRef, sessionId: session.sessionId });
+  try {
+    await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [
+      { type: 'section', text: { type: 'mrkdwn', text: `:mag: *Devin is investigating this alert* — <${session.url}|View session>` } },
+    ]);
+  } catch (replyError) {
+    logger.error('Disney+ session link reply failed', { runRef: facts.runRef, error: replyError.message });
+  }
+  return session;
+}
+
+/**
+ * Post the #oncall-alerts monitor card for a failed playback start, declare a
+ * SEV-2 Datadog incident and open the Devin session in the card's thread —
+ * the same shape as the /oncall alerts, pinned to the Disney+ on-call member.
+ */
+async function raiseOncallAlert({ error, title, device, requestId, requester = {} }) {
+  const { token, alertsChannel } = resolveOncallEnv();
+  if (!token || !alertsChannel) {
+    logger.warn('On-Call alerts channel not configured — Disney+ alert not posted', { requestId });
+    return { ok: false, skipped: true };
+  }
+  const facts = {
+    runRef: makeRunRef(),
+    requestId,
+    errorText: `${error.name}: ${error.message}`,
+    titleName: title.title,
+    brand: title.brand,
+    device: device.key,
+    release: process.env.SENTRY_RELEASE || 'dss-playback-web@4.12.0',
+    triggeredBy: await resolveTriggeredBy(token, requester.devinEmail),
+  };
+
+  const threadTs = await postMessage(token, alertsChannel, buildAlertText(facts), buildAlertBlocks(facts));
+  logger.info('Posting alert and triggering Devin', { runRef: facts.runRef, channel: alertsChannel, ts: threadTs });
+
+  declareDatadogIncident({
+    title: `Disney+: ${MONITOR.name}`,
+    summary: `Play fails for ${facts.brand} titles with ${facts.errorText}.`,
+    runRef: facts.runRef,
+    service: SERVICE,
+    triggeredBy: EMAIL_RE.test(requester.devinEmail || '') ? requester.devinEmail : '1bc0c714',
+    repoUrl: REPO_URL,
+    severity: 'SEV-2',
+  }).catch((ddError) => logger.warn('Failed to declare Datadog incident for Disney+', { error: ddError.message }));
+
+  const session = threadTs
+    ? await triggerDevinSession(facts, { token, channel: alertsChannel, threadTs, requester })
+    : null;
+  return { ok: true, runRef: facts.runRef, ts: threadTs, ...(session ? { sessionUrl: session.url } : {}) };
+}
+
 async function startPlaybackSession(data) {
   const startTime = Date.now();
   const requestId = `DSS-${uuidv4().slice(0, 8).toUpperCase()}`;
@@ -204,49 +410,8 @@ async function startPlaybackSession(data) {
       },
     });
 
-    createSessionAndAlert({
-      issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/1bc0c714.js — buildPlaybackManifest',
-      errorType: error.name || 'Error',
-      errorValue: error.message,
-      devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail,
-      devinOrgId: data.devinOrgId,
-      service: SERVICE,
-      verticalLabel: 'Disney+ Play',
-      promptAppendix: REMEDIATION_DIRECTIVE,
-      customer: '1bc0c714',
-      slackMemberIdFallback: SLACK_MEMBER_ID_FALLBACK,
-      tags: [
-        { key: 'route', value: ROUTE },
-        { key: 'service', value: SERVICE },
-        { key: 'title', value: title.id },
-        { key: 'brand', value: title.brand },
-        { key: 'device', value: device.key },
-      ],
-      extra: {
-        requestId,
-        title: title.title,
-        brand: title.brand,
-        contentType: title.type,
-        errorCode: '83',
-      },
-      level: 'error',
-      platform: 'node',
-      firstSeen: '',
-      lastSeen: new Date().toISOString(),
-      count: '',
-      shortId: '',
-      project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'dss-playback-web@4.12.0',
-      environment: process.env.DD_ENV || 'prod',
-      triggeredRule: '',
-    }).catch((alertError) => {
-      logger.error('Failed to create Devin session for Disney+ playback error', {
-        error: alertError.message,
-        requestId,
-      });
+    raiseOncallAlert({ error, title, device, requestId, requester: data }).catch((alertError) => {
+      logger.error('Failed to raise Disney+ On-Call alert', { error: alertError.message, requestId });
     });
 
     error.requestId = requestId;
@@ -260,5 +425,6 @@ module.exports = {
   resolveDevice,
   resolveOrigin,
   buildPlaybackManifest,
+  raiseOncallAlert,
   CATALOG,
 };
