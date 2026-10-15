@@ -87,4 +87,13 @@ describe('Disney Parks resort-inventory facade', () => {
     await expect(svc.createHold({ productId: 'wdw-mk', date: '2026-11-28', quantity: 2 }))
       .rejects.toMatchObject({ statusCode: 409, code: 'SOLD_OUT' });
   });
+
+  test('a ledger posting failure is a 500 that captures to Sentry and raises the On-Call alert', async () => {
+    respond({ '/api/holds': { status: 500, data: { code: 'LEDGER_POSTING_FAILED', error: 'HLDPOST rc=16: HLD0042E NO RATE ENTRY FOR SEASON P HOLD H-1234ABCD' } } });
+    await expect(svc.createHold({ productId: 'wdw-mk', date: '2026-11-28', quantity: 4, devinEmail: 'giri@cognition.ai' }))
+      .rejects.toMatchObject({ statusCode: 500, code: 'HOLD_FAILED', detail: expect.stringContaining('HLD0042E') });
+    await flush();
+    expect(postOncallAlert).toHaveBeenCalledWith('90ccfbb2', expect.objectContaining({ devinEmail: 'giri@cognition.ai' }));
+    expect(declareDatadogIncident).toHaveBeenCalledWith(expect.objectContaining({ severity: 'SEV-2' }));
+  });
 });
