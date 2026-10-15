@@ -571,10 +571,10 @@
         ? [{ productId: p.id, date: state.selected, quantity: state.adults + state.children }]
         : stayDates(state.selected).map(function (d) { return { productId: p.id, date: d, quantity: 1 }; });
       var pricePer = state.tab === 'tickets' ? null : null;
-      Promise.all(requests.map(function (r) { return api('/api/90ccfbb2/holds', r); })).then(function (results) {
+      Promise.all(requests.map(function (r) { return api('/api/90ccfbb2/holds', Object.assign({}, r, identity())); })).then(function (results) {
         var failed = results.filter(function (r) { return !r.ok; })[0];
         if (failed) {
-          $('addErr').textContent = failed.body && failed.body.code === 'SOLD_OUT' ? 'Sorry \u2014 that date just sold out. Please choose another date.' : 'We couldn\u2019t add this to your cart. Please try again.';
+          $('addErr').textContent = failed.body && failed.body.code === 'SOLD_OUT' ? 'Sorry \u2014 that date just sold out. Please choose another date.' : 'We\u2019re sorry, something went wrong and we couldn\u2019t add this to your cart. Please try again later.' + (failed.body && failed.body.reference ? ' (Reference: ' + failed.body.reference + ')' : '');
           loadMonth();
           return;
         }
@@ -690,6 +690,12 @@
     state.month = defaultMonth();
     renderDest();
     setTab('tickets');
+    (function () {
+      var y = state.month.y; var t = new Date(y, 10, 1);
+      while (t.getDay() !== 4) t.setDate(t.getDate() + 1);
+      t.setDate(t.getDate() + 23);
+      state.selected = iso(t.getFullYear(), t.getMonth(), t.getDate());
+    })();
   })();
   </script>
 </body>
