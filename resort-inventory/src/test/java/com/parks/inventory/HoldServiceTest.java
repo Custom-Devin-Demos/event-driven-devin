@@ -6,6 +6,8 @@ import com.parks.inventory.service.Catalog;
 import com.parks.inventory.service.HoldService;
 import com.parks.inventory.service.InventoryException;
 import com.parks.inventory.service.InventoryStore;
+import com.parks.inventory.service.LedgerPostingClient;
+import com.parks.inventory.service.SeasonCalendar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class HoldServiceTest {
 
-    private static final LocalDate DATE = LocalDate.of(2026, 11, 28);
+    private static final LocalDate DATE = LocalDate.of(2026, 11, 18);
     private final Clock clock = Clock.fixed(Instant.parse("2026-10-15T15:00:00Z"), ZoneOffset.UTC);
     private Catalog catalog;
     private InventoryStore store;
@@ -29,7 +31,13 @@ class HoldServiceTest {
     void setUp() {
         catalog = new Catalog();
         store = new InventoryStore();
-        holds = new HoldService(catalog, store, new HoldProperties(), clock);
+        LedgerPostingClient ledger = new LedgerPostingClient("unused") {
+            @Override
+            public String post(Hold hold, char seasonCode, int basePriceUsd) {
+                return "HLD0000I POSTED";
+            }
+        };
+        holds = new HoldService(catalog, store, new HoldProperties(), clock, new SeasonCalendar(), ledger);
     }
 
     @Test

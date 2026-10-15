@@ -22,12 +22,17 @@ public class HoldService {
     private final InventoryStore store;
     private final HoldProperties properties;
     private final Clock clock;
+    private final SeasonCalendar seasons;
+    private final LedgerPostingClient ledger;
 
-    public HoldService(Catalog catalog, InventoryStore store, HoldProperties properties, Clock clock) {
+    public HoldService(Catalog catalog, InventoryStore store, HoldProperties properties, Clock clock,
+                       SeasonCalendar seasons, LedgerPostingClient ledger) {
         this.catalog = catalog;
         this.store = store;
         this.properties = properties;
         this.clock = clock;
+        this.seasons = seasons;
+        this.ledger = ledger;
     }
 
     public int remaining(Product product, LocalDate date) {
@@ -56,6 +61,7 @@ public class HoldService {
         Instant expiresAt = createdAt.plus(holdTtl());
         Hold hold = new Hold("H-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
                 productId, date, quantity, channel, createdAt, expiresAt);
+        ledger.post(hold, seasons.seasonFor(date), product.getPriceFromUsd());
         store.save(hold);
         log.info("hold.created id={} product={} date={} qty={} channel={} expiresAt={}",
                 hold.getId(), productId, date, quantity, channel, expiresAt);

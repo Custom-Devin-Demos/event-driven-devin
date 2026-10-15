@@ -7,6 +7,7 @@ import com.parks.inventory.service.Catalog;
 import com.parks.inventory.service.HoldService;
 import com.parks.inventory.service.InventoryException;
 import com.parks.inventory.service.InventoryStore;
+import com.parks.inventory.service.LedgerPostingException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -90,6 +91,15 @@ public class InventoryController {
                 .filter(h -> h.getExpiresAt().isBefore(java.time.Instant.now()))
                 .collect(Collectors.counting()));
         return out;
+    }
+
+    @ExceptionHandler(LedgerPostingException.class)
+    public ResponseEntity<Map<String, Object>> ledgerError(LedgerPostingException e) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("code", "LEDGER_POSTING_FAILED");
+        out.put("error", e.getMessage());
+        out.put("exception", e.getClass().getName());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(out);
     }
 
     @ExceptionHandler(InventoryException.class)
