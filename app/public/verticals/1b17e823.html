@@ -204,7 +204,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('#lines [data-rm]'), function (a) {
       a.addEventListener('click', function (e) { e.preventDefault(); if (checkoutInFlight) return; cart.splice(+a.dataset.rm, 1); render(); });
     });
-    $('checkoutBtn').disabled = checkoutInFlight || cart.length === 0;
+    $('checkoutBtn').disabled = checkoutInFlight || cart.length === 0 || !$('member').value;
     Array.prototype.forEach.call(document.querySelectorAll('.express'), function (b) { b.disabled = $('checkoutBtn').disabled; });
     $('member').disabled = checkoutInFlight;
     if (!cart.length) $('lines').innerHTML = '<div class="line" style="display:block;color:var(--muted)">Your cart is empty.</div>';
@@ -230,7 +230,7 @@
     });
   });
 
-  // No login on this demo page: the signed-in shopper comes from ?member=<ScoreCard ID or guest>, default Jordan.
+  // No login on this demo page: ?member=<SC-8841207733 | SC-5520917046 | guest> picks the shopper (default Jordan).
   function showMember(id, m) {
     $('member').value = id;
     $('hiName').textContent = m.first; $('scBadge').textContent = m.badge; $('scText').textContent = m.text;
@@ -240,15 +240,9 @@
   }
   function applyMember(id) {
     if (Object.prototype.hasOwnProperty.call(members, id)) return showMember(id, members[id]);
-    var scId = id.replace(/^SC-/i, '');
-    fetch('/api/1b17e823/scorecard/members/' + encodeURIComponent(scId))
-      .then(function (r) { if (!r.ok) throw new Error('unknown member'); return r.json(); })
-      .then(function (sc) {
-        var tier = sc.tier.charAt(0).toUpperCase() + sc.tier.slice(1);
-        showMember('SC-' + sc.sc_member_id, { first: sc.first_name, name: sc.first_name + ' ' + sc.last_name, badge: tier,
-          text: 'ScoreCard ' + tier + ' member · ' + sc.points_balance + ' points.', pct: Math.round((sc.points_balance % 300) / 3) });
-      })
-      .catch(function () { showMember('SC-8841207733', members['SC-8841207733']); });
+    $('member').value = '';
+    $('signedIn').innerHTML = 'Unknown ScoreCard member <b>' + esc(id) + '</b>';
+    render();
   }
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }

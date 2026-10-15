@@ -44,8 +44,8 @@ cd footlocker && npm install && npm start
 PORT=3100 SENTRY_DSN= DEVIN_API_KEY= SLACK_BOT_TOKEN= node app/server.js
 ```
 
-The page has no login; `?member=<ScoreCard ID>` sets the signed-in shopper
-(default Jordan Reyes, `?member=guest` for guest checkout).
+The page has no login; `?member=` sets the signed-in shopper (Jordan `SC-8841207733`, Casey `SC-5520917046`;
+default Jordan, `?member=guest` for guest checkout).
 
 Open `http://localhost:3100/dicks?member=SC-5520917046` (signed in as Casey
 Morgan), click **Link your FLX account** → **Link**. Expected combined balance:
