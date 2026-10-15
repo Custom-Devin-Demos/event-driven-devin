@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>資料のご請求 | 第一生命</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --dl-blue: #1746FF;
+      --dl-navy: #000064;
+      --dl-sky: #4EDAFF;
+      --dl-ink: #333333;
+      --dl-muted: #808080;
+      --dl-line: #D6D6D6;
+      --dl-field: #CCCCCC;
+      --dl-row: #F9F9F9;
+      --dl-title: #F2F2F2;
+      --dl-rule: #E6E3D3;
+      --dl-red: #C7000D;
+      --dl-orange: #F08A1C;
+      --dl-orange-deep: #E06A00;
+      --dl-ok: #00875A;
+      --dl-grad: linear-gradient(145.21deg, #4EDAFF 0.97%, #56A3FF 20.74%, #1746FF 67.84%, #0000EF 88.45%);
+      --font: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W3", Meiryo, メイリオ, "Noto Sans JP", Osaka, "MS PGothic", arial, helvetica, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--font); color: var(--dl-ink); background: #fff; font-size: 14px; line-height: 1.6; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; font-size: inherit; color: inherit; }
+    .wrap { max-width: 976px; margin: 0 auto; padding: 0 16px; }
+    [hidden] { display: none !important; }
+
+    /* Header */
+    .stripe { height: 8px; background: linear-gradient(90deg, var(--dl-navy) 0%, var(--dl-navy) 30%, var(--dl-blue) 45%, var(--dl-blue) 70%, var(--dl-sky) 100%); }
+    .hdr { border-bottom: 1px solid var(--dl-line); }
+    .hdr .wrap { display: flex; align-items: center; gap: 16px; min-height: 86px; }
+    .logo { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+    .logo svg { width: 30px; height: 30px; flex: none; }
+    .logo-text { display: flex; flex-direction: column; line-height: 1.05; }
+    .logo-text b { font-size: 21px; font-weight: 700; letter-spacing: .12em; color: #111; }
+    .logo-text small { font-size: 10.5px; font-weight: 700; color: #111; margin-top: 3px; letter-spacing: 0; }
+    .hdr-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .lang { display: inline-flex; border: 1px solid var(--dl-line); border-radius: 3px; overflow: hidden; }
+    .lang button { border: 0; background: #fff; min-width: 64px; min-height: 44px; padding: 0 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .lang button + button { border-left: 1px solid var(--dl-line); }
+    .lang button[aria-pressed="true"] { background: var(--dl-blue); color: #fff; }
+    .dial { border: 2px solid #8CC63F; border-radius: 6px; padding: 3px 12px 4px; text-align: center; line-height: 1.2; }
+    .dial small { display: block; font-size: 10px; font-weight: 700; }
+    .dial b { display: flex; align-items: center; gap: 4px; justify-content: center; font-size: 19px; letter-spacing: .02em; }
+    .dial b i { font-style: normal; font-size: 9px; background: #2E8B2E; color: #fff; border-radius: 2px; padding: 1px 3px; }
+    .dial span { display: block; font-size: 9.5px; }
+
+    /* Body */
+    main { padding: 20px 0 48px; }
+    .titleH1 { position: relative; background: var(--dl-title); border-radius: 6px; padding: 16px 8px 14px 30px; font-size: 24px; font-weight: 700; line-height: 1.5; }
+    .titleH1::before { content: ""; position: absolute; left: 8px; top: 16px; bottom: 14px; width: 5px; border-radius: 3px; background: var(--dl-blue); }
+    .lead { color: var(--dl-red); font-size: 16px; font-weight: 700; margin: 24px 0 16px; }
+    .form-step { display: grid; grid-template-columns: repeat(4, 1fr); list-style: none; margin-bottom: 40px; }
+    .form-step li { position: relative; display: flex; align-items: center; justify-content: center; min-height: 60px; padding: 8px 8px 8px 30px; border: 1px solid var(--dl-line); border-left: 0; background: #fff; font-size: 16px; font-weight: 700; text-align: center; line-height: 1.3; }
+    .form-step li:first-child { border-left: 1px solid var(--dl-line); padding-left: 8px; }
+    .form-step li:not(:last-child)::after { content: ""; position: absolute; right: -22px; top: -1px; bottom: -1px; width: 22px; background: inherit; clip-path: polygon(0 0, 100% 50%, 0 100%); z-index: 2; }
+    .form-step li:not(:last-child)::before { content: ""; position: absolute; right: -23px; top: -1px; bottom: -1px; width: 23px; background: var(--dl-line); clip-path: polygon(0 0, 100% 50%, 0 100%); z-index: 1; }
+    .form-step li.is-current { background: var(--dl-blue); color: #fff; border-color: var(--dl-blue); }
+    .form-step li.is-current::before { background: var(--dl-blue); }
+    .form-step li.is-done { color: var(--dl-muted); }
+
+    .titleH2 { position: relative; font-size: 20px; font-weight: 700; padding: 0 0 5px 26px; border-bottom: 3px solid var(--dl-rule); margin-bottom: 14px; line-height: 1.6; }
+    .titleH2::before { content: ""; position: absolute; left: 2px; top: 9px; width: 14px; height: 14px; border-radius: 50%; border: 4px solid var(--dl-blue); box-sizing: border-box; }
+    section.blk { margin-bottom: 44px; }
+    .form-box { width: 100%; border-collapse: collapse; background: var(--dl-row); }
+    .form-box th, .form-box td { text-align: left; vertical-align: top; padding: 12px 20px 12px 15px; font-weight: 400; }
+    .form-box th { width: 280px; }
+    .form-box tr.sep > * { border-top: 2px solid var(--dl-field); }
+    .form-box tr.sub th { padding-left: 15px; }
+    .must, .opt { display: block; font-weight: 700; }
+    .must { color: var(--dl-red); }
+    .opt { color: var(--dl-muted); }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+    input[type=text], input[type=tel], input[type=email], input[type=number], select { height: 40px; border: 1px solid var(--dl-field); border-radius: 3px; background: #fff; padding: 0 10px; font-size: 14px; min-width: 0; }
+    select { background: #EFEFEF; padding-right: 6px; }
+    input:focus, select:focus, button:focus-visible { outline: 2px solid var(--dl-blue); outline-offset: 1px; }
+    .w-name { width: 172px; } .w-yr { width: 64px; } .w-md { width: 72px; } .w-zip1 { width: 70px; } .w-zip2 { width: 90px; }
+    .w-addr { width: 300px; } .w-addr2 { width: 400px; } .w-tel { width: 74px; } .w-mail { width: 230px; } .w-amt { width: 140px; }
+    .note { color: var(--dl-red); font-size: 12px; margin-top: 8px; }
+    .help { font-size: 13px; margin-bottom: 8px; }
+    .zip-btn { min-height: 40px; padding: 0 22px; border: 1px solid #E47C37; border-radius: 2px; background: linear-gradient(#F59A3C, #E8730F); color: #fff; font-weight: 700; cursor: pointer; }
+    .chk { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-right: 14px; cursor: pointer; }
+    .chk input { width: 18px; height: 18px; accent-color: var(--dl-blue); flex: none; }
+    .chk-list { display: flex; flex-wrap: wrap; column-gap: 4px; }
+    .chk-list.stack { flex-direction: column; align-items: flex-start; }
+    .lineBtn { display: flex; justify-content: flex-end; margin-top: 14px; }
+    .lineBtn button { display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 18px; border: 1px solid var(--dl-line); border-bottom: 3px solid var(--dl-blue); background: #fff; border-radius: 4px; font-size: 15px; cursor: pointer; }
+    .dot-arrow { width: 16px; height: 16px; border-radius: 50%; background: var(--dl-blue); position: relative; flex: none; }
+    .dot-arrow::after { content: ""; position: absolute; left: 4px; top: 5px; width: 4px; height: 4px; border-right: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg); }
+    .estimate-intro { margin-bottom: 12px; }
+    .yen-unit { font-size: 14px; }
+    .err-msg { color: var(--dl-red); font-size: 13px; font-weight: 700; margin-top: 6px; }
+
+    .btn-box { display: flex; justify-content: center; gap: 44px; list-style: none; margin: 8px 0 36px; }
+    .pill { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 300px; min-height: 52px; padding: 6px 40px; border-radius: 30px; font-size: 17px; font-weight: 700; line-height: 1.25; cursor: pointer; text-align: center; }
+    .pill::after { content: ""; position: absolute; right: 18px; top: 50%; width: 7px; height: 7px; margin-top: -4px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); }
+    .pill.back { border: 1px solid #B3B3B3; background: linear-gradient(#FCFCFC, #E6E6E6); color: #555; }
+    .pill.back.left::after { right: auto; left: 18px; transform: rotate(135deg); }
+    .pill.go { border: 1px solid #E89A54; background: linear-gradient(#F8A33F, #E87B07); color: #fff; box-shadow: 0 2px 0 #C85F00; }
+    .pill.go:hover { background: linear-gradient(#F9AE55, #EA860F); }
+    .pill:disabled { cursor: progress; opacity: .85; }
+    .pill .spinner { display: none; width: 16px; height: 16px; margin-right: 8px; border: 2px solid rgba(255,255,255,.5); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .pill.loading .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .confirm-lead { font-size: 15px; margin-bottom: 16px; }
+    .result-box { display: none; margin: 0 0 28px; padding: 16px 20px; border-radius: 4px; font-size: 14px; }
+    .result-box.success, .result-box.error, .result-box.wait { display: block; }
+    .result-box.wait { background: #EEF3FF; border: 1px solid #B9CAFF; }
+    .result-box.success { background: #EEF8F3; border: 1px solid #9BD3B7; }
+    .result-box.error { background: #FFF2F2; border: 1px solid #F0A8A8; }
+    .result-box .title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .result-box.error .title { color: var(--dl-red); }
+    .result-box.success .title { color: var(--dl-ok); }
+    .result-box .timing { margin-top: 8px; font-size: 12px; color: #666; }
+    .result-box code { font-family: inherit; font-weight: 700; letter-spacing: .06em; }
+
+    .notes { list-style: none; border-bottom: 1px solid var(--dl-line); padding-bottom: 12px; margin-bottom: 14px; }
+    .notes li, .uses li { position: relative; padding-left: 20px; margin-bottom: 6px; }
+    .notes li::before, .uses li::before { content: ""; position: absolute; left: 4px; top: 7px; width: 8px; height: 8px; border-radius: 50%; background: #333; }
+    .notes .lnk { color: var(--dl-blue); text-decoration: underline; }
+    .uses { list-style: none; margin: 8px 0; }
+    .reg { text-align: right; margin-top: 18px; font-size: 13px; }
+
+    footer .mission { background: #F6F6F6; font-size: 11px; padding: 16px 32px 24px; }
+    footer .copy { background: var(--dl-blue); color: #fff; text-align: center; font-size: 12px; padding: 12px 16px; }
+    footer .copy small { display: block; opacity: .85; margin-top: 2px; }
+
+    @media (max-width: 767px) {
+      .hdr .wrap { min-height: 72px; gap: 10px; flex-wrap: wrap; padding-top: 6px; padding-bottom: 6px; }
+      .dial { display: none; }
+      .lang button { min-width: 56px; padding: 0 8px; }
+      .titleH1 { font-size: 20px; }
+      .lead { font-size: 15px; }
+      .form-step li { font-size: 13px; min-height: 64px; padding-left: 22px; }
+      .form-step li:not(:last-child)::after { right: -14px; width: 14px; }
+      .form-step li:not(:last-child)::before { right: -15px; width: 15px; }
+      .form-box, .form-box tbody, .form-box tr, .form-box th, .form-box td { display: block; width: 100%; }
+      .form-box th { padding: 14px 12px 4px; }
+      .form-box td { padding: 4px 12px 14px; }
+      .form-box tr.sep > td { border-top: 0; }
+      input[type=text], input[type=tel], input[type=email], input[type=number], select, .zip-btn { height: 44px; min-height: 44px; }
+      .w-name { width: calc(50% - 6px); } .w-addr, .w-addr2 { width: 100%; } .w-mail { width: calc(100% - 26px); }
+      .w-tel { width: 62px; } .tel-type { width: 84px; }
+      .btn-box { flex-direction: column-reverse; align-items: center; gap: 16px; }
+      .pill { width: 100%; max-width: 330px; }
+      .lineBtn button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stripe" aria-hidden="true"></div>
+  <header class="hdr" id="top">
+    <div class="wrap">
+      <a class="logo" href="#top" aria-label="第一生命">
+        <svg viewBox="0 0 30 30" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4EDAFF"/><stop offset=".55" stop-color="#1746FF"/><stop offset="1" stop-color="#000064"/></linearGradient></defs><path d="M3 3 L27 15 L3 27 Z" fill="url(#lg)"/><path d="M3 9 L15 15 L3 21 Z" fill="#000064" opacity=".55"/></svg>
+        <span class="logo-text"><b>第一生命</b><small>Daiichi Life Group</small></span>
+      </a>
+      <div class="hdr-right">
+        <div class="lang" role="group" aria-label="Language / 言語">
+          <button type="button" data-lang="ja" aria-pressed="true">日本語</button>
+          <button type="button" data-lang="en" aria-pressed="false">English</button>
+        </div>
+        <div class="dial">
+          <small data-i18n="dial.label">資料請求ダイヤル</small>
+          <b><i>FREE</i>0120-001-008</b>
+          <span data-i18n="dial.hours">月〜金 10:00〜18:00（祝日・年末年始除く）</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <h1 class="titleH1" data-i18n="h1">資料のご請求</h1>
+      <p class="lead" id="lead" data-i18n="lead.entry">ご請求にあたり、お届け先等を入力してください。</p>
+      <ol class="form-step" aria-label="お手続きの流れ" id="steps">
+        <li class="is-done" data-i18n="step.1">資料選択</li>
+        <li class="is-current" aria-current="step" data-i18n="step.2">お届け先入力</li>
+        <li data-i18n="step.3">確認</li>
+        <li data-i18n="step.4">完了</li>
+      </ol>
+
+      <form id="claimForm" novalidate>
+        <input type="hidden" id="policyId" value="POL-5003">
+        <input type="hidden" id="claimType" value="document_request">
+
+        <div id="entryView">
+          <section class="blk" aria-labelledby="h-doc">
+            <h2 class="titleH2" id="h-doc" data-i18n="h.doc">ご希望の資料</h2>
+            <table class="form-box"><tbody>
+              <tr><th><label for="brochure" data-i18n="f.doc">資料名</label></th>
+                <td><select id="brochure">
+                  <option value="step-jump" data-i18n="doc.stepjump">ステップジャンプ</option>
+                  <option value="just" data-i18n="doc.just">ジャスト（総合医療一時金保険）</option>
+                  <option value="medical" data-i18n="doc.medical">医療保険・がん保険のご案内</option>
+                </select></td></tr>
+            </tbody></table>
+            <div class="lineBtn"><button type="button" id="changeDoc"><span class="dot-arrow" aria-hidden="true"></span><span data-i18n="btn.change">ご請求商品の追加・変更</span></button></div>
+          </section>
+
+          <section class="blk" aria-labelledby="h-addr">
+            <h2 class="titleH2" id="h-addr" data-i18n="h.addr">お届け先について</h2>
+            <table class="form-box"><tbody>
+              <tr><th><span class="must" data-i18n="req">【必須】</span><span data-i18n="f.name">お名前（全角）</span></th>
+                <td class="row"><input type="text" class="w-name" id="lastName" value="山田" data-i18n-ph="ph.last" placeholder="姓" aria-label="姓"><input type="text" class="w-name" id="firstName" value="花子" data-i18n-ph="ph.first" placeholder="名" aria-label="名"></td></tr>
+              <tr><th><span class="must" data-i18n="req">【必須】</span><span data-i18n="f.kana">フリガナ（全角）</span></th>
+                <td class="row"><input type="text" class="w-name" id="lastKana" value="ヤマダ" placeholder="セイ" aria-label="セイ"><input type="text" class="w-name" id="firstKana" value="ハナコ" placeholder="メイ" aria-label="メイ"></td></tr>
+              <tr class="sep"><th><span class="must" data-i18n="req">【必須】</span><span data-i18n="f.dob">生年月日（半角数字）</span></th>
+                <td><div class="row">
+                  <select id="era" aria-label="元号"><option value="S" data-i18n="era.s">昭和</option><option value="H" data-i18n="era.h" selected>平成</option><option value="R" data-i18n="era.r">令和</option><option value="T" data-i18n="era.t">大正</option></select>
+                  <input type="text" class="w-yr" id="dobY" value="2" inputmode="numeric" aria-label="年"><span data-i18n="u.y">年</span>
+                  <select class="w-md" id="dobM" aria-label="月"></select><span data-i18n="u.m">月</span>
+                  <select class="w-md" id="dobD" aria-label="日"></select><span data-i18n="u.d">日</span>
+                </div><p class="note" data-i18n="n.age">※契約年齢は商品により異なります。詳しくはHPの詳細ページにてご確認ください。</p></td></tr>
+              <tr class="sep"><th><span class="must" data-i18n="req">【必須】</span><span data-i18n="f.sex">性別</span></th>
+                <td class="chk-list"><label class="chk"><input type="radio" name="sex" value="m"><span data-i18n="sex.m">男性</span></label><label class="chk"><input type="radio" name="sex" value="f" checked><span data-i18n="sex.f">女性</span></label></td></tr>
+              <tr class="sep"><th colspan="2"><span class="must" data-i18n="req">【必須】</span><b data-i18n="f.addr">ご住所</b></th></tr>
+              <tr class="sub"><th><span data-i18n="f.zip">郵便番号（半角数字）</span></th>
+                <td><p class="help" data-i18n="n.zip">郵便番号を入力後、「住所検索」ボタンを押すと住所を検索できます（事業所個別の郵便番号については検索できません）。</p>
+                  <div class="row"><input type="text" class="w-zip1" id="zip1" value="150" inputmode="numeric" maxlength="3" aria-label="郵便番号（前半）"><span>-</span><input type="text" class="w-zip2" id="zip2" value="0002" inputmode="numeric" maxlength="4" aria-label="郵便番号（後半）"><button type="button" class="zip-btn" id="zipBtn" data-i18n="btn.zip">住所検索</button></div>
+                  <p class="err-msg" id="zipErr" role="alert" hidden data-i18n="e.zip">該当する住所が見つかりませんでした。都道府県・市区町村をご確認のうえ、直接入力してください。</p></td></tr>
+              <tr class="sub"><th><label for="pref" data-i18n="f.pref">都道府県</label></th><td><select id="pref"></select></td></tr>
+              <tr class="sub"><th><label for="city" data-i18n="f.city">市区町村・町域（全角）</label></th><td><input type="text" class="w-addr" id="city" value="渋谷区渋谷" data-i18n-ph="ph.city" placeholder="例）千代田区有楽町"></td></tr>
+              <tr class="sub"><th><label for="street" data-i18n="f.street">番地・建物名・部屋番号など（全角）</label></th><td><input type="text" class="w-addr2" id="street" value="２－１５－１　渋谷レジデンス８０２号室" data-i18n-ph="ph.street" placeholder="例）１－１３－１ 第一マンション２３階 ○○号室"></td></tr>
+              <tr class="sep"><th><span class="must" data-i18n="req">【必須】</span><span data-i18n="f.tel">日中のご連絡先電話番号（半角数字）</span></th>
+                <td class="row"><select id="telType" class="tel-type" aria-label="電話の種類"><option value="home" data-i18n="tel.home">自宅</option><option value="mobile" data-i18n="tel.mobile" selected>携帯</option><option value="work" data-i18n="tel.work">勤務先</option></select>
+                  <input type="tel" class="w-tel" id="tel1" value="090" aria-label="電話番号1"><span>-</span><input type="tel" class="w-tel" id="tel2" value="1234" aria-label="電話番号2"><span>-</span><input type="tel" class="w-tel" id="tel3" value="5678" aria-label="電話番号3"></td></tr>
+              <tr class="sep"><th><span class="must" data-i18n="req">【必須】</span><span data-i18n="f.mail">メールアドレス（半角英数字）</span></th>
+                <td><div class="row"><input type="text" class="w-mail" id="mail1" value="hanako.yamada" aria-label="メールアドレス（@の前）"><span>@</span><input type="text" class="w-mail" id="mail2" value="example.jp" aria-label="メールアドレス（@の後）"></div>
+                  <p class="note" data-i18n="n.mail">＊確認のためもう１度入力してください</p>
+                  <div class="row" style="margin-top:6px"><input type="text" class="w-mail" id="mail1c" value="hanako.yamada" aria-label="確認用メールアドレス（@の前）"><span>@</span><input type="text" class="w-mail" id="mail2c" value="example.jp" aria-label="確認用メールアドレス（@の後）"></div></td></tr>
+              <tr class="sep"><th><span class="opt" data-i18n="opt">【任意】</span><span data-i18n="f.contract">第一生命とのご契約</span></th>
+                <td><label class="chk"><input type="checkbox" id="existing"><span data-i18n="c.existing">第一生命に加入している</span></label></td></tr>
+              <tr class="sep"><th><span class="opt" data-i18n="opt">【任意】</span><span data-i18n="f.visit">来訪のきっかけを教えてください</span></th>
+                <td class="chk-list">
+                  <label class="chk"><input type="radio" name="visit" value="designer"><span data-i18n="v.designer">生涯設計デザイナーの勧め</span></label>
+                  <label class="chk"><input type="radio" name="visit" value="tv"><span data-i18n="v.tv">テレビCM</span></label>
+                  <label class="chk"><input type="radio" name="visit" value="print"><span data-i18n="v.print">新聞雑誌</span></label>
+                  <label class="chk"><input type="radio" name="visit" value="ad" checked><span data-i18n="v.ad">ネット広告</span></label>
+                  <label class="chk"><input type="radio" name="visit" value="sns"><span data-i18n="v.sns">ブログ・SNSなど</span></label>
+                  <label class="chk"><input type="radio" name="visit" value="news"><span data-i18n="v.news">ネットのニュース・記事</span></label>
+                  <label class="chk"><input type="radio" name="visit" value="friend"><span data-i18n="v.friend">知人・友人・家族等</span></label>
+                </td></tr>
+            </tbody></table>
+          </section>
+
+          <section class="blk" aria-labelledby="h-est">
+            <h2 class="titleH2" id="h-est" data-i18n="h.est">お見積もり情報</h2>
+            <p class="estimate-intro" data-i18n="n.est">ご選択いただいた資料には商品の概要のみを記載しております。具体的な保障額や保険料を確認されたい場合は、以下にチェックをいれてください。</p>
+            <table class="form-box"><tbody>
+              <tr><th><span class="opt" data-i18n="opt">【任意】</span><span data-i18n="f.est">お見積もり希望</span></th>
+                <td><label class="chk"><input type="checkbox" id="wantEstimate" checked><span data-i18n="c.est">お見積もりを希望する</span></label>
+                  <p class="help" data-i18n="n.aflac">※アフラックのがん保険についてはパンフレットに保険料の記載がございますので、そちらでご確認ください。</p></td></tr>
+              <tr class="sep est-row"><th><span class="must" data-i18n="req">【必須】</span><span data-i18n="f.budget">予算（半角数字）</span></th>
+                <td><div class="row"><select id="payFreq" aria-label="払込方法"><option value="monthly" data-i18n="pay.m">月払</option><option value="semi" data-i18n="pay.s">半年払</option><option value="annual" data-i18n="pay.a">年払</option></select>
+                  <input type="number" class="w-amt" id="amount" value="8000" min="1" step="1" inputmode="numeric" aria-label="予算"><span class="yen-unit" data-i18n="u.yen">円</span></div>
+                  <p class="err-msg" id="amountErr" hidden data-i18n="e.amount">予算を1円単位の半角数字で入力してください。</p></td></tr>
+              <tr class="sep est-row"><th><span class="must" data-i18n="req">【必須】</span><span data-i18n="f.job">職業</span></th>
+                <td class="chk-list">
+                  <label class="chk"><input type="radio" name="job" value="employee" checked><span data-i18n="job.1">会社員</span></label>
+                  <label class="chk"><input type="radio" name="job" value="public"><span data-i18n="job.2">公務員</span></label>
+                  <label class="chk"><input type="radio" name="job" value="contract"><span data-i18n="job.3">非正規（フルタイム）</span></label>
+                  <label class="chk"><input type="radio" name="job" value="self"><span data-i18n="job.4">フリーランス・自営業</span></label>
+                  <label class="chk"><input type="radio" name="job" value="part"><span data-i18n="job.5">パート・アルバイト</span></label>
+                  <label class="chk"><input type="radio" name="job" value="home"><span data-i18n="job.6">専業主婦（夫）</span></label>
+                  <label class="chk"><input type="radio" name="job" value="other"><span data-i18n="job.7">その他</span></label>
+                </td></tr>
+              <tr class="sep est-row"><th><span class="must" data-i18n="req">【必須】</span><span data-i18n="f.insured">保険の対象者（被保険者）</span></th>
+                <td class="chk-list stack">
+                  <label class="chk"><input type="radio" name="insured" value="self" checked><span data-i18n="ins.self">ご本人と同じ（以下の項目は入力不要です。）</span></label>
+                  <label class="chk"><input type="radio" name="insured" value="other"><span data-i18n="ins.other">ご本人以外（以下の項目を入力してください。）</span></label>
+                </td></tr>
+              <tr class="sep est-row ins-row"><th><span class="must" data-i18n="req">【必須】</span><span data-i18n="f.insName">被保険者のお名前（全角）</span></th>
+                <td class="row"><input type="text" class="w-name" id="insLast" data-i18n-ph="ph.last" placeholder="姓" aria-label="被保険者の姓"><input type="text" class="w-name" id="insFirst" data-i18n-ph="ph.first" placeholder="名" aria-label="被保険者の名"></td></tr>
+              <tr class="sep est-row ins-row"><th><span class="must" data-i18n="req">【必須】</span><span data-i18n="f.insDob">被保険者の生年月日（半角数字）</span></th>
+                <td class="row"><select id="insEra" aria-label="被保険者の元号"><option value="S" data-i18n="era.s">昭和</option><option value="H" data-i18n="era.h" selected>平成</option><option value="R" data-i18n="era.r">令和</option><option value="T" data-i18n="era.t">大正</option></select>
+                  <input type="text" class="w-yr" id="insY" inputmode="numeric" aria-label="被保険者の生年"><span data-i18n="u.y">年</span>
+                  <select class="w-md" id="insM" aria-label="被保険者の生月"></select><span data-i18n="u.m">月</span>
+                  <select class="w-md" id="insD" aria-label="被保険者の生日"></select><span data-i18n="u.d">日</span></td></tr>
+            </tbody></table>
+          </section>
+
+          <ul class="btn-box">
+            <li><button type="button" class="pill back left" id="backToDocs" data-i18n="btn.back">パンフレット選択画面へ戻る</button></li>
+            <li><button type="button" class="pill go" id="toConfirm" data-i18n="btn.confirm">内容の確認へ</button></li>
+          </ul>
+          <p class="err-msg" id="entryErr" role="alert" hidden style="text-align:center;margin:-20px 0 28px"></p>
+        </div>
+
+        <div id="confirmView" hidden>
+          <section class="blk" aria-labelledby="h-conf">
+            <h2 class="titleH2" id="h-conf" data-i18n="h.conf">ご入力内容の確認</h2>
+            <p class="confirm-lead" data-i18n="n.conf">以下の内容でよろしければ「この内容で申し込む」ボタンを押してください。</p>
+            <table class="form-box"><tbody id="confirmRows"></tbody></table>
+          </section>
+          <ul class="btn-box">
+            <li><button type="button" class="pill back left" id="backToEntry" data-i18n="btn.edit">入力画面へ戻る</button></li>
+            <li><button type="submit" class="pill go" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span class="label" data-i18n="btn.submit">この内容で申し込む</span></button></li>
+          </ul>
+        </div>
+
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </form>
+
+      <ul class="notes">
+        <li><span data-i18n="nt.1">お客さまに関する情報の保護に努めております。</span><span class="lnk" data-i18n="nt.1a">個人情報保護方針</span></li>
+        <li data-i18n="nt.2">お客さまとの通信は、インターネット標準の暗号化技術により保護しています。</li>
+        <li data-i18n="nt.3">お申込みいただける方は、成人されている方に限らせていただいております。</li>
+        <li data-i18n="nt.4">資料送付後、到着確認のご連絡を差しあげる場合がございます。（システム上の都合で電話番号非通知となる場合がございます。）</li>
+      </ul>
+      <p data-i18n="use.lead">第一生命では、入力いただいた内容を以下の業務などに活用します。</p>
+      <ul class="uses">
+        <li data-i18n="use.1">関連会社・提携会社を含む各種商品・サービスの案内・提供</li>
+        <li data-i18n="use.2">第一生命の業務に関する情報提供・運営管理</li>
+      </ul>
+      <p class="reg">(登)C26P0070(2026.7.10)<br>C25-076-0274(2026.3.3)</p>
+    </div>
+  </main>
+
+  <footer>
+    <p class="mission" data-i18n="ft.mission">生命保険の社会的役割を自覚しつつ、社会との調和ある持続的発展を通じて、お客さまから最も支持される生命保険会社を目指します。</p>
+    <p class="copy">NOT ACTUALLY A DAI-ICHI LIFE SITE — internal demo only.<small data-i18n="ft.demo">第一生命の公式サイトではありません。架空のお客さま情報を使用しています。</small></p>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var PREFS = [['北海道','Hokkaido'],['青森県','Aomori'],['岩手県','Iwate'],['宮城県','Miyagi'],['秋田県','Akita'],['山形県','Yamagata'],['福島県','Fukushima'],['茨城県','Ibaraki'],['栃木県','Tochigi'],['群馬県','Gunma'],['埼玉県','Saitama'],['千葉県','Chiba'],['東京都','Tokyo'],['神奈川県','Kanagawa'],['新潟県','Niigata'],['富山県','Toyama'],['石川県','Ishikawa'],['福井県','Fukui'],['山梨県','Yamanashi'],['長野県','Nagano'],['岐阜県','Gifu'],['静岡県','Shizuoka'],['愛知県','Aichi'],['三重県','Mie'],['滋賀県','Shiga'],['京都府','Kyoto'],['大阪府','Osaka'],['兵庫県','Hyogo'],['奈良県','Nara'],['和歌山県','Wakayama'],['鳥取県','Tottori'],['島根県','Shimane'],['岡山県','Okayama'],['広島県','Hiroshima'],['山口県','Yamaguchi'],['徳島県','Tokushima'],['香川県','Kagawa'],['愛媛県','Ehime'],['高知県','Kochi'],['福岡県','Fukuoka'],['佐賀県','Saga'],['長崎県','Nagasaki'],['熊本県','Kumamoto'],['大分県','Oita'],['宮崎県','Miyazaki'],['鹿児島県','Kagoshima'],['沖縄県','Okinawa']];
+
+    var I18N = {
+      ja: {
+        'title': '資料のご請求 | 第一生命',
+        'dial.label': '資料請求ダイヤル', 'dial.hours': '月〜金 10:00〜18:00（祝日・年末年始除く）',
+        'h1': '資料のご請求', 'lead.entry': 'ご請求にあたり、お届け先等を入力してください。', 'lead.confirm': '入力内容をご確認ください。', 'lead.done': '資料のご請求を受け付けました。',
+        'step.1': '資料選択', 'step.2': 'お届け先入力', 'step.3': '確認', 'step.4': '完了', 'steps': 'お手続きの流れ',
+        'h.doc': 'ご希望の資料', 'f.doc': '資料名', 'doc.stepjump': 'ステップジャンプ', 'doc.just': 'ジャスト（総合医療一時金保険）', 'doc.medical': '医療保険・がん保険のご案内', 'btn.change': 'ご請求商品の追加・変更',
+        'h.addr': 'お届け先について', 'req': '【必須】', 'opt': '【任意】',
+        'f.name': 'お名前（全角）', 'ph.last': '姓', 'ph.first': '名', 'f.kana': 'フリガナ（全角）',
+        'f.dob': '生年月日（半角数字）', 'era.s': '昭和', 'era.h': '平成', 'era.r': '令和', 'era.t': '大正', 'u.y': '年', 'u.m': '月', 'u.d': '日',
+        'n.age': '※契約年齢は商品により異なります。詳しくはHPの詳細ページにてご確認ください。',
+        'f.sex': '性別', 'sex.m': '男性', 'sex.f': '女性',
+        'f.addr': 'ご住所', 'f.zip': '郵便番号（半角数字）', 'n.zip': '郵便番号を入力後、「住所検索」ボタンを押すと住所を検索できます（事業所個別の郵便番号については検索できません）。', 'btn.zip': '住所検索',
+        'f.pref': '都道府県', 'pref.none': '都道府県をお選びください', 'f.city': '市区町村・町域（全角）', 'ph.city': '例）千代田区有楽町', 'f.street': '番地・建物名・部屋番号など（全角）', 'ph.street': '例）１－１３－１ 第一マンション２３階 ○○号室',
+        'f.tel': '日中のご連絡先電話番号（半角数字）', 'tel.home': '自宅', 'tel.mobile': '携帯', 'tel.work': '勤務先',
+        'f.mail': 'メールアドレス（半角英数字）', 'n.mail': '＊確認のためもう１度入力してください',
+        'f.contract': '第一生命とのご契約', 'c.existing': '第一生命に加入している',
+        'f.visit': '来訪のきっかけを教えてください', 'v.designer': '生涯設計デザイナーの勧め', 'v.tv': 'テレビCM', 'v.print': '新聞雑誌', 'v.ad': 'ネット広告', 'v.sns': 'ブログ・SNSなど', 'v.news': 'ネットのニュース・記事', 'v.friend': '知人・友人・家族等',
+        'h.est': 'お見積もり情報', 'n.est': 'ご選択いただいた資料には商品の概要のみを記載しております。具体的な保障額や保険料を確認されたい場合は、以下にチェックをいれてください。',
+        'f.est': 'お見積もり希望', 'c.est': 'お見積もりを希望する', 'n.aflac': '※アフラックのがん保険についてはパンフレットに保険料の記載がございますので、そちらでご確認ください。',
+        'f.budget': '予算（半角数字）', 'pay.m': '月払', 'pay.s': '半年払', 'pay.a': '年払', 'u.yen': '円', 'e.amount': '予算を1円単位の半角数字で入力してください。',
+        'f.job': '職業', 'job.1': '会社員', 'job.2': '公務員', 'job.3': '非正規（フルタイム）', 'job.4': 'フリーランス・自営業', 'job.5': 'パート・アルバイト', 'job.6': '専業主婦（夫）', 'job.7': 'その他',
+        'f.insured': '保険の対象者（被保険者）', 'ins.self': 'ご本人と同じ（以下の項目は入力不要です。）', 'ins.other': 'ご本人以外（以下の項目を入力してください。）', 'f.insName': '被保険者のお名前（全角）', 'f.insDob': '被保険者の生年月日（半角数字）', 'e.zip': '該当する住所が見つかりませんでした。都道府県・市区町村をご確認のうえ、直接入力してください。',
+        'btn.back': 'パンフレット選択画面へ戻る', 'btn.confirm': '内容の確認へ', 'btn.edit': '入力画面へ戻る', 'btn.submit': 'この内容で申し込む', 'btn.busy': '送信しています…',
+        'e.entry': '未入力の必須項目があります。【必須】の項目をご入力ください。', 'e.dob': '生年月日の年を1〜64の半角数字で入力してください。', 'e.mail': '確認用メールアドレスが一致しません。',
+        'h.conf': 'ご入力内容の確認', 'n.conf': '以下の内容でよろしければ「この内容で申し込む」ボタンを押してください。',
+        'cf.est': 'お見積もり', 'cf.estNo': '希望しない', 'cf.budget': '予算', 'cf.addr': 'ご住所', 'cf.tel': 'ご連絡先電話番号', 'cf.mail': 'メールアドレス', 'cf.sec': '秒', 'sep': '　',
+        'r.ok': '資料のご請求を受け付けました', 'r.okp': 'ご登録のご住所へ資料をお送りします。お届けまで1週間程度かかる場合がございます。', 'r.ref': '受付番号', 'r.time': '送信時間',
+        'r.err': '資料のご請求を受け付けできませんでした', 'r.errp': 'ただいま、ご請求の受付に時間がかかっています。お手数ですが、しばらくたってから再度お手続きいただくか、資料請求ダイヤルまでお問い合わせください。', 'r.wait': '待機時間', 'r.reqid': 'お問い合わせ番号',
+        'r.net': '通信に失敗しました', 'r.netp': '通信環境をご確認のうえ、もう一度お手続きください。',
+        'nt.1': 'お客さまに関する情報の保護に努めております。', 'nt.1a': '個人情報保護方針', 'nt.2': 'お客さまとの通信は、インターネット標準の暗号化技術により保護しています。', 'nt.3': 'お申込みいただける方は、成人されている方に限らせていただいております。', 'nt.4': '資料送付後、到着確認のご連絡を差しあげる場合がございます。（システム上の都合で電話番号非通知となる場合がございます。）',
+        'use.lead': '第一生命では、入力いただいた内容を以下の業務などに活用します。', 'use.1': '関連会社・提携会社を含む各種商品・サービスの案内・提供', 'use.2': '第一生命の業務に関する情報提供・運営管理',
+        'ft.mission': '生命保険の社会的役割を自覚しつつ、社会との調和ある持続的発展を通じて、お客さまから最も支持される生命保険会社を目指します。', 'ft.demo': '第一生命の公式サイトではありません。架空のお客さま情報を使用しています。'
+      },
+      en: {
+        'title': 'Request brochures | Dai-ichi Life',
+        'dial.label': 'Brochure request line', 'dial.hours': 'Mon–Fri 10:00–18:00 (excl. holidays & New Year)',
+        'h1': 'Request Brochures', 'lead.entry': 'Please enter the delivery details for your request.', 'lead.confirm': 'Please review the details you entered.', 'lead.done': 'Your brochure request has been received.',
+        'step.1': 'Select brochures', 'step.2': 'Delivery details', 'step.3': 'Confirm', 'step.4': 'Complete', 'steps': 'Request steps',
+        'h.doc': 'Requested brochures', 'f.doc': 'Brochure', 'doc.stepjump': 'Step Jump', 'doc.just': 'Just (lump-sum medical insurance)', 'doc.medical': 'Medical & cancer insurance guide', 'btn.change': 'Add or change brochures',
+        'h.addr': 'Delivery details', 'req': '[Required]', 'opt': '[Optional]',
+        'f.name': 'Name (full-width)', 'ph.last': 'Last name', 'ph.first': 'First name', 'f.kana': 'Name in katakana (full-width)',
+        'f.dob': 'Date of birth (numbers)', 'era.s': 'Showa', 'era.h': 'Heisei', 'era.r': 'Reiwa', 'era.t': 'Taisho', 'u.y': 'yr', 'u.m': 'mo', 'u.d': 'day',
+        'n.age': '*Eligible ages differ by product. See the product page for details.',
+        'f.sex': 'Sex', 'sex.m': 'Male', 'sex.f': 'Female',
+        'f.addr': 'Address', 'f.zip': 'Postal code (numbers)', 'n.zip': 'Enter your postal code and press "Find address" to look it up (business-specific postal codes cannot be searched).', 'btn.zip': 'Find address',
+        'f.pref': 'Prefecture', 'pref.none': 'Select a prefecture', 'f.city': 'City / ward / town (full-width)', 'ph.city': 'e.g. Yurakucho, Chiyoda-ku', 'f.street': 'Street no., building, room (full-width)', 'ph.street': 'e.g. 1-13-1 Daiichi Mansion 23F, Room ○○',
+        'f.tel': 'Daytime phone number (numbers)', 'tel.home': 'Home', 'tel.mobile': 'Mobile', 'tel.work': 'Work',
+        'f.mail': 'Email address (half-width)', 'n.mail': '*Please enter it once more to confirm',
+        'f.contract': 'Existing Dai-ichi Life policy', 'c.existing': 'I have a Dai-ichi Life policy',
+        'f.visit': 'How did you hear about us?', 'v.designer': 'A Total Life Plan Designer', 'v.tv': 'TV commercial', 'v.print': 'Newspaper / magazine', 'v.ad': 'Online ad', 'v.sns': 'Blog / social media', 'v.news': 'Online news / article', 'v.friend': 'Friend / family',
+        'h.est': 'Quote information', 'n.est': 'The brochures you selected only outline each product. To see specific coverage amounts and premiums, tick the box below.',
+        'f.est': 'Request a quote', 'c.est': 'I would like a quote', 'n.aflac': '*Premiums for Aflac cancer insurance are listed in its brochure; please check there.',
+        'f.budget': 'Budget (numbers)', 'pay.m': 'Monthly', 'pay.s': 'Semi-annual', 'pay.a': 'Annual', 'u.yen': 'yen', 'e.amount': 'Enter your budget as a whole number of yen.',
+        'f.job': 'Occupation', 'job.1': 'Company employee', 'job.2': 'Public servant', 'job.3': 'Non-regular (full-time)', 'job.4': 'Freelance / self-employed', 'job.5': 'Part-time', 'job.6': 'Homemaker', 'job.7': 'Other',
+        'f.insured': 'Person to be insured', 'ins.self': 'Same as you (no further input needed)', 'ins.other': 'Someone else (enter their details below)', 'f.insName': "Insured person's name (full-width)", 'f.insDob': "Insured person's date of birth (numbers)", 'e.zip': 'No address found for this postal code. Please check and enter the prefecture and city yourself.',
+        'btn.back': 'Back to brochure selection', 'btn.confirm': 'Review details', 'btn.edit': 'Back to edit', 'btn.submit': 'Submit request', 'btn.busy': 'Submitting…',
+        'e.entry': 'Some required fields are empty. Please fill in all [Required] fields.', 'e.dob': 'Enter the birth year as a number from 1 to 64.', 'e.mail': 'The confirmation email address does not match.',
+        'h.conf': 'Review your details', 'n.conf': 'If everything is correct, press "Submit request".',
+        'cf.est': 'Quote', 'cf.estNo': 'Not requested', 'cf.budget': 'Budget', 'cf.addr': 'Address', 'cf.tel': 'Phone number', 'cf.mail': 'Email address', 'cf.sec': 's', 'sep': ' ',
+        'r.ok': 'Your brochure request has been received', 'r.okp': 'We will mail the brochures to the address you entered. Delivery can take about a week.', 'r.ref': 'Reference no.', 'r.time': 'Time to submit',
+        'r.err': 'We could not accept your brochure request', 'r.errp': 'Requests are taking longer than usual to process. Please try again later, or contact the brochure request line.', 'r.wait': 'Waited', 'r.reqid': 'Inquiry no.',
+        'r.net': 'Connection failed', 'r.netp': 'Please check your connection and try again.',
+        'nt.1': 'We work to protect your personal information. ', 'nt.1a': 'Privacy policy', 'nt.2': 'Communication with you is protected by standard internet encryption.', 'nt.3': 'Requests are limited to adults.', 'nt.4': 'We may contact you to confirm the brochures arrived. (Our number may appear as withheld due to system constraints.)',
+        'use.lead': 'Dai-ichi Life uses the information you enter for purposes including:', 'use.1': 'Information on and provision of products and services, including those of affiliates and partners', 'use.2': 'Information and operational management related to Dai-ichi Life business',
+        'ft.mission': 'Mindful of the social role of life insurance, we aim to be the life insurer most trusted by customers through sustainable growth in harmony with society.', 'ft.demo': 'Not an official Dai-ichi Life site. Uses fictional customer data.'
+      }
+    };
+
+    var lang = 'ja';
+    var step = 2;
+    var lastResult = null;
+    var $ = function (id) { return document.getElementById(id); };
+    function t(k) { return (I18N[lang] && I18N[lang][k] != null) ? I18N[lang][k] : (I18N.ja[k] != null ? I18N.ja[k] : k); }
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function yen(n) { return Number.isSafeInteger(n) && n > 0 ? (lang === 'en' ? '¥' + n.toLocaleString('en-US') : n.toLocaleString('ja-JP') + '円') : '—'; }
+    function selText(id) { var s = $(id); return s.options[s.selectedIndex] ? s.options[s.selectedIndex].text : ''; }
+    function radioText(name) { var r = document.querySelector('input[name="' + name + '"]:checked'); return r ? r.parentNode.textContent.trim() : '—'; }
+
+    (function buildSelects() {
+      var m = $('dobM'), d = $('dobD'), p = $('pref');
+      for (var i = 1; i <= 12; i++) { m.add(new Option(String(i), String(i), false, i === 4)); $('insM').add(new Option(String(i), String(i))); }
+      for (var j = 1; j <= 31; j++) { d.add(new Option(String(j), String(j), false, j === 12)); $('insD').add(new Option(String(j), String(j))); }
+      var none = new Option('', ''); none.setAttribute('data-i18n', 'pref.none'); p.add(none);
+      PREFS.forEach(function (pr, idx) { var o = new Option(pr[0], pr[0], false, pr[0] === '東京都'); o.setAttribute('data-ja', pr[0]); o.setAttribute('data-en', pr[1]); p.add(o); });
+    })();
+
+    function applyLang(next) {
+      lang = next === 'en' ? 'en' : 'ja';
+      document.documentElement.lang = lang;
+      document.title = t('title');
+      document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+      document.querySelectorAll('[data-i18n-ph]').forEach(function (el) { el.placeholder = t(el.getAttribute('data-i18n-ph')); });
+      document.querySelectorAll('#pref option[data-ja]').forEach(function (o) { o.textContent = o.getAttribute('data-' + lang); });
+      $('steps').setAttribute('aria-label', t('steps'));
+      document.querySelectorAll('.lang button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false'); });
+      var btn = $('submitBtn');
+      if (btn.classList.contains('loading')) btn.querySelector('.label').textContent = t('btn.busy');
+      setStep(step);
+      if (!$('confirmView').hidden) renderConfirm();
+      if (lastResult) renderResult(lastResult);
+      if (!$('entryErr').hidden && $('entryErr').dataset.key) $('entryErr').textContent = t($('entryErr').dataset.key);
+      try { localStorage.setItem('dlLang', lang); } catch (e) {}
+    }
+    document.querySelectorAll('.lang button').forEach(function (b) {
+      b.addEventListener('click', function () { applyLang(b.getAttribute('data-lang')); });
+    });
+
+    function setStep(n) {
+      step = n;
+      var items = $('steps').children;
+      for (var i = 0; i < items.length; i++) {
+        items[i].classList.toggle('is-current', i === n - 1);
+        items[i].classList.toggle('is-done', i < n - 1);
+        if (i === n - 1) items[i].setAttribute('aria-current', 'step'); else items[i].removeAttribute('aria-current');
+      }
+      $('lead').textContent = t(n === 2 ? 'lead.entry' : n === 3 ? 'lead.confirm' : 'lead.done');
+    }
+
+    function syncEstimate() {
+      var on = $('wantEstimate').checked;
+      var other = insuredOther();
+      document.querySelectorAll('.est-row').forEach(function (r) { r.hidden = !on || (r.classList.contains('ins-row') && !other); });
+    }
+    function insuredOther() { var r = document.querySelector('input[name="insured"]:checked'); return !!r && r.value === 'other'; }
+    $('wantEstimate').addEventListener('change', syncEstimate);
+    document.querySelectorAll('input[name="insured"]').forEach(function (r) { r.addEventListener('change', syncEstimate); });
+    syncEstimate();
+
+    $('changeDoc').addEventListener('click', function () { $('brochure').focus(); });
+    $('backToDocs').addEventListener('click', function () { $('h-doc').scrollIntoView({ behavior: 'smooth', block: 'start' }); $('brochure').focus({ preventScroll: true }); });
+    var addrFromLookup = true;
+    ['pref', 'city'].forEach(function (id) { $(id).addEventListener('input', function () { addrFromLookup = false; }); });
+    $('pref').addEventListener('change', function () { addrFromLookup = false; });
+    $('zipBtn').addEventListener('click', function () {
+      var z = $('zip1').value + $('zip2').value;
+      var hit = { '1500002': ['東京都', '渋谷区渋谷'], '1000006': ['東京都', '千代田区有楽町'] }[z];
+      var msg = $('zipErr');
+      if (hit) { $('pref').value = hit[0]; $('city').value = hit[1]; addrFromLookup = true; msg.hidden = true; return; }
+      if (addrFromLookup) { $('pref').value = ''; $('city').value = ''; addrFromLookup = false; }
+      msg.hidden = false;
+    });
+
+    function val(id) { return $(id).value.trim(); }
+    function eraYear(id) { var y = val(id); return /^[0-9]{1,2}$/.test(y) && Number(y) >= 1 && Number(y) <= 64; }
+    function validateEntry() {
+      var required = ['lastName', 'firstName', 'lastKana', 'firstKana', 'dobY', 'zip1', 'zip2', 'pref', 'city', 'street', 'tel1', 'tel2', 'tel3', 'mail1', 'mail2'];
+      for (var i = 0; i < required.length; i++) if (!val(required[i])) return 'e.entry';
+      if (!eraYear('dobY')) return 'e.dob';
+      if (val('mail1') !== val('mail1c') || val('mail2') !== val('mail2c')) return 'e.mail';
+      if ($('wantEstimate').checked) {
+        var amt = Number($('amount').value);
+        $('amountErr').hidden = Number.isSafeInteger(amt) && amt > 0;
+        if (!$('amountErr').hidden) return 'e.amount';
+        if (insuredOther() && (!val('insLast') || !val('insFirst') || !val('insY'))) return 'e.entry';
+        if (insuredOther() && !eraYear('insY')) return 'e.dob';
+      }
+      return null;
+    }
+
+    function renderConfirm() {
+      var rows = [
+        [t('f.doc'), selText('brochure')],
+        [t('f.name').replace(/（.*?）|\s*\(.*?\)/, ''), val('lastName') + t('sep') + val('firstName')],
+        [t('f.kana').replace(/（.*?）|\s*\(.*?\)/, ''), val('lastKana') + t('sep') + val('firstKana')],
+        [t('f.dob').replace(/（.*?）|\s*\(.*?\)/, ''), lang === 'en' ? selText('era') + ' ' + val('dobY') + ', ' + $('dobM').value + '/' + $('dobD').value : selText('era') + val('dobY') + '年' + $('dobM').value + '月' + $('dobD').value + '日'],
+        [t('f.sex'), radioText('sex')],
+        [t('cf.addr'), '〒' + val('zip1') + '-' + val('zip2') + ' ' + selText('pref') + ' ' + val('city') + ' ' + val('street')],
+        [t('cf.tel'), selText('telType') + ' ' + val('tel1') + '-' + val('tel2') + '-' + val('tel3')],
+        [t('cf.mail'), val('mail1') + '@' + val('mail2')],
+        [t('cf.est'), $('wantEstimate').checked ? t('c.est') : t('cf.estNo')]
+      ];
+      if ($('wantEstimate').checked) {
+        rows.push([t('cf.budget'), selText('payFreq') + ' ' + yen(Number($('amount').value))]);
+        rows.push([t('f.job'), radioText('job')]);
+        rows.push([t('f.insured'), radioText('insured').replace(/（.*?）|\s*\(.*?\)/, '')]);
+        if (insuredOther()) {
+          rows.push([t('f.insName').replace(/（.*?）|\s*\(.*?\)/, ''), val('insLast') + t('sep') + val('insFirst')]);
+          rows.push([t('f.insDob').replace(/（.*?）|\s*\(.*?\)/, ''), lang === 'en' ? selText('insEra') + ' ' + val('insY') + ', ' + $('insM').value + '/' + $('insD').value : selText('insEra') + val('insY') + '年' + $('insM').value + '月' + $('insD').value + '日']);
+        }
+      }
+      $('confirmRows').innerHTML = rows.map(function (r, i) {
+        return '<tr' + (i ? ' class="sep"' : '') + '><th>' + esc(r[0]) + '</th><td>' + esc(r[1]) + '</td></tr>';
+      }).join('');
+    }
+
+    function clearResult() { lastResult = null; $('result').className = 'result-box'; $('result').innerHTML = ''; }
+
+    function goConfirm() {
+      var errKey = validateEntry();
+      var err = $('entryErr');
+      if (errKey) { err.dataset.key = errKey; err.textContent = t(errKey); err.hidden = false; return; }
+      err.hidden = true; err.dataset.key = '';
+      clearResult();
+      renderConfirm();
+      $('entryView').hidden = true;
+      $('confirmView').hidden = false;
+      setStep(3);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    $('toConfirm').addEventListener('click', goConfirm);
+    $('backToEntry').addEventListener('click', function () {
+      clearResult();
+      $('confirmView').hidden = true;
+      $('entryView').hidden = false;
+      setStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    function renderResult(r) {
+      var box = $('result');
+      if (r.kind === 'ok') {
+        box.className = 'result-box success';
+        box.innerHTML = '<div class="title">' + esc(t('r.ok')) + '</div><div class="detail">' + esc(t('r.okp')) + '<br>' + esc(t('r.ref')) + ' <code>' + esc(r.ref) + '</code></div>'
+          + '<div class="timing">' + esc(t('r.time')) + ' ' + r.elapsed + esc(t('cf.sec')) + '</div>';
+      } else if (r.kind === 'net') {
+        box.className = 'result-box error';
+        box.innerHTML = '<div class="title">' + esc(t('r.net')) + '</div><div class="detail">' + esc(t('r.netp')) + '</div>';
+      } else {
+        box.className = 'result-box error';
+        box.innerHTML = '<div class="title">' + esc(t('r.err')) + '</div><div class="detail">' + esc(t('r.errp')) + '</div>'
+          + '<div class="timing">' + esc(t('r.wait')) + ' ' + r.elapsed + esc(t('cf.sec')) + (r.requestId ? t('sep') + esc(t('r.reqid')) + ' ' + esc(String(r.requestId).slice(0, 8).toUpperCase()) : '') + '</div>';
+      }
+    }
+    function showResult(r) { lastResult = r; renderResult(r); }
+
+    var form = $('claimForm');
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (step === 2) { goConfirm(); return; }
+      if (step !== 3) return;
+      var btn = $('submitBtn');
+      var label = btn.querySelector('.label');
+      var started = Date.now();
+      var ticker = setInterval(function () {
+        label.textContent = t('btn.busy') + ' ' + ((Date.now() - started) / 1000).toFixed(1) + t('cf.sec');
+      }, 100);
+      btn.disabled = true;
+      $('backToEntry').disabled = true;
+      btn.classList.add('loading');
+      label.textContent = t('btn.busy');
+      clearResult();
+      try {
+        var response = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: $('policyId').value,
+            claimType: $('claimType').value,
+            amount: parseFloat($('amount').value),
+            description: selText('brochure'),
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await response.json().catch(function () { return {}; });
+        var elapsed = ((Date.now() - started) / 1000).toFixed(1);
+        if (response.ok && data && data.success !== false) {
+          setStep(4);
+          $('confirmView').hidden = true;
+          showResult({ kind: 'ok', elapsed: elapsed, ref: String(data.claimId || '').slice(0, 8).toUpperCase() });
+        } else {
+          showResult({ kind: 'err', elapsed: elapsed, requestId: data && data.requestId });
+        }
+      } catch (err) {
+        showResult({ kind: 'net' });
+      } finally {
+        clearInterval(ticker);
+        btn.disabled = false;
+        $('backToEntry').disabled = false;
+        btn.classList.remove('loading');
+        label.textContent = t('btn.submit');
+      }
+    });
+
+    (function initLang() {
+      var q = new URLSearchParams(location.search).get('lang');
+      var saved = null;
+      try { saved = localStorage.getItem('dlLang'); } catch (e) {}
+      applyLang(q || saved || 'ja');
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
