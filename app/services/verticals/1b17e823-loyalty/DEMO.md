@@ -9,7 +9,7 @@ rewards with DICK'S ScoreCard, then records itself using the result.
 |---|---|
 | FLX loyalty service (Foot Locker) | `COG-GTM/footlocker`, `npm start` → `http://localhost:4100` |
 | ScoreCard mock (DICK'S) | `app/services/verticals/1b17e823-loyalty/scorecard` |
-| Integration target | `app/services/verticals/1b17e823-loyalty/rewards-bridge` (empty; `TICKET.md`) |
+| Integration target | none yet; the live session adds the ScoreCard ↔ FLX bridge |
 | Web UI | `http://localhost:3100/dicks?member=SC-5520917046` (cart page signed in as Casey; ScoreCard Rewards panel) |
 | Finished first slice (fallback) | branch `devin/1792041624-dsg-flx-bridge-fallback` |
 
