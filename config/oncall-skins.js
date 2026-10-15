@@ -3773,6 +3773,15 @@ const ONCALL_SKINS = {
     brandMark: 'H',
     vertical: 'insurance',
     oncallOnly: true,
+    alertDestination: 'slack',
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the Heppner shipment tracking page linked above. Its tracking Search posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'In the alert thread the incident reads "5xx rate spiking \u2014 shipment tracking search (504)", release track-trace-web@4.2.1, owner team track-trace-oncall: shipment tracking searches hang ~8s and then fail with 504, so consignees cannot track deliveries.',
+        'Use "Heppner" and "shipment tracking search" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Jordan Patel (track-trace-oncall)". Jordan Patel is fictional; never resolve them to a real user. Do not deploy or merge.',
+      ].join('\n'),
+    },
     page: { file: 'd176d067.html', title: 'Heppner | Transport & logistics solutions' },
     alertCard: {
       title: '5xx rate spiking \u2014 shipment tracking search (504)',
