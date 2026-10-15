@@ -422,6 +422,17 @@ else
   tail -5 "$AV_ERR" | log_lines '   '
 fi
 
+# ── 5c. resort-inventory (Java service for /90ccfbb2, best effort) ─────────
+# Built from ./resort-inventory in this repo. A failed build only affects the
+# Disney Parks storefront, which answers 503 INVENTORY_UNAVAILABLE.
+if compose build resort-inventory >/dev/null 2>"$AV_ERR" \
+   && compose up -d --no-deps resort-inventory >/dev/null 2>>"$AV_ERR"; then
+  log "resort-inventory: built and started"
+else
+  log "warning: resort-inventory build/start failed — /90ccfbb2 will report inventory unavailable"
+  tail -5 "$AV_ERR" | log_lines '   '
+fi
+
 # ── 6. reconcile the rest of the stack ──────────────────────────────────────
 compose up -d --no-deps loadgen >/dev/null || log "warning: loadgen restart failed"
 compose up -d >/dev/null || log "warning: compose up -d (reconcile) failed"
