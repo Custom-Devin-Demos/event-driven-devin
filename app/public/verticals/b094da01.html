@@ -479,14 +479,15 @@
 
     $('changeDoc').addEventListener('click', function () { $('brochure').focus(); });
     $('backToDocs').addEventListener('click', function () { $('h-doc').scrollIntoView({ behavior: 'smooth', block: 'start' }); $('brochure').focus({ preventScroll: true }); });
-    var lookupFill = ['東京都', '渋谷区渋谷'];
+    var addrFromLookup = true;
+    ['pref', 'city'].forEach(function (id) { $(id).addEventListener('input', function () { addrFromLookup = false; }); });
+    $('pref').addEventListener('change', function () { addrFromLookup = false; });
     $('zipBtn').addEventListener('click', function () {
       var z = $('zip1').value + $('zip2').value;
       var hit = { '1500002': ['東京都', '渋谷区渋谷'], '1000006': ['東京都', '千代田区有楽町'] }[z];
       var msg = $('zipErr');
-      if (hit) { $('pref').value = hit[0]; $('city').value = hit[1]; lookupFill = hit; msg.hidden = true; return; }
-      if (lookupFill && $('pref').value === lookupFill[0] && $('city').value === lookupFill[1]) { $('pref').value = ''; $('city').value = ''; }
-      lookupFill = null;
+      if (hit) { $('pref').value = hit[0]; $('city').value = hit[1]; addrFromLookup = true; msg.hidden = true; return; }
+      if (addrFromLookup) { $('pref').value = ''; $('city').value = ''; addrFromLookup = false; }
       msg.hidden = false;
     });
 
