@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRQ000001284 | Change Management | BMC Helix ITSM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #FE5000;
+      --accent-hover: #D94400;
+      --ink: #1C2B39;
+      --surface: #FFFFFF;
+      --chrome-bg: #0C1D2E;
+      --chrome-text: #FFFFFF;
+      --page: #F1F3F5;
+      --line: #D6DBE1;
+      --muted: #5E6B78;
+      --soft: #E9ECEF;
+      --nav: #13283D;
+      --ok: #1F7A4D;
+      --warn: #9A5B00;
+      --info: #1565C0;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.5 'Open Sans', 'Segoe UI', Arial, sans-serif; }
+    a { color: var(--info); text-decoration: none; }
+    button, input, select { font: inherit; }
+    .topbar { background: var(--chrome-bg); color: var(--chrome-text); height: 52px; display: flex; align-items: center; gap: 16px; padding: 0 16px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--chrome-text); }
+    .brand-mark { width: 32px; height: 32px; border-radius: 7px; background: var(--accent); color: #fff; display: grid; place-items: center; font: 700 14px/1 'Open Sans', Arial, sans-serif; letter-spacing: -.02em; }
+    .brand-name { font-size: 15px; font-weight: 600; white-space: nowrap; }
+    .brand-name span { font-weight: 400; opacity: .7; margin-left: 6px; }
+    .search { flex: 1; max-width: 460px; margin-left: 18px; }
+    .search input { width: 100%; height: 34px; border: 1px solid #2B4258; background: #15293D; color: #fff; border-radius: 4px; padding: 0 12px; }
+    .search input::placeholder { color: #8FA3B6; }
+    .user { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; text-align: right; white-space: nowrap; }
+    .user small { display: block; font-size: 11px; opacity: .7; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: #2B4258; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+    .shell { display: grid; grid-template-columns: 216px minmax(0, 1fr); min-height: calc(100vh - 52px); }
+    .sidenav { background: var(--nav); color: #C5D2DE; padding: 14px 0; }
+    .sidenav h3 { margin: 6px 18px 6px; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: #7F94A8; font-weight: 600; }
+    .sidenav a { display: flex; align-items: center; gap: 10px; color: #C5D2DE; padding: 9px 18px; font-size: 13px; border-left: 3px solid transparent; }
+    .sidenav a .ico { width: 16px; height: 16px; border-radius: 3px; border: 1.5px solid currentColor; opacity: .75; }
+    .sidenav a.current { background: #1B3550; color: #fff; border-left-color: var(--accent); font-weight: 600; }
+    .main { padding: 16px 24px 70px; min-width: 0; }
+    .crumbs { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 12px; }
+    .head-id { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .02em; }
+    h1 { margin: 2px 0 2px; font-size: 21px; font-weight: 600; line-height: 1.3; }
+    .sub { color: var(--muted); font-size: 13px; }
+    .chip { display: inline-block; padding: 3px 12px; border-radius: 12px; background: #E8EDF2; color: #33475B; font-weight: 600; font-size: 12px; white-space: nowrap; }
+    .chip.pending { background: #FFF1E8; color: #B83A00; }
+    .chip.scheduled { background: #E3F4EA; color: var(--ok); }
+    .chip.failed { background: #FBE9E9; color: #A12020; }
+    .lifecycle { display: flex; margin: 0 0 14px; padding: 0; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; overflow-x: auto; }
+    .lifecycle li { flex: 1 1 0; min-width: 130px; padding: 9px 12px; font-size: 12px; color: var(--muted); border-right: 1px solid var(--soft); white-space: nowrap; }
+    .lifecycle li:last-child { border-right: 0; }
+    .lifecycle li.done { color: var(--ok); }
+    .lifecycle li.current { color: var(--ink); font-weight: 700; box-shadow: inset 0 -3px 0 var(--accent); }
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 10px 14px; min-width: 0; }
+    .kpi span { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .kpi strong { display: block; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .risk-high { color: #B83A00; } .risk-med { color: var(--warn); } .risk-low { color: var(--ok); }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(270px, 1fr); gap: 14px; align-items: start; }
+    .layout > * { min-width: 0; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 16px 18px; margin-bottom: 14px; }
+    .card h2 { margin: 0 0 12px; font-size: 15px; font-weight: 700; border-bottom: 1px solid var(--soft); padding-bottom: 8px; }
+    .steps { display: flex; margin: 0 0 16px; padding: 0; list-style: none; border-bottom: 1px solid var(--line); }
+    .steps li { padding: 8px 14px; font-size: 13px; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -1px; }
+    .steps li.active { color: var(--ink); font-weight: 700; border-bottom-color: var(--accent); }
+    .steps li.done { color: var(--ok); }
+    .step[hidden] { display: none !important; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+    .field { margin-bottom: 14px; min-width: 0; }
+    .field label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600; color: #33475B; }
+    .field input, .field select { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid #B4BEC8; border-radius: 4px; background: #fff; color: var(--ink); }
+    .field input:focus, .field select:focus { outline: 2px solid rgba(254,80,0,.25); border-color: var(--accent); }
+    .field small { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+    .scorebox { display: flex; gap: 14px; align-items: center; padding: 10px 12px; background: #F7F9FA; border: 1px solid var(--soft); border-radius: 4px; margin-bottom: 14px; font-size: 13px; }
+    .scorebox strong { font-size: 22px; font-variant-numeric: tabular-nums; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; background: #F5F7F9; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+    td { padding: 7px 8px; border-bottom: 1px solid #ECEFF2; }
+    td.num, th.num { text-align: right; }
+    .table-wrap { overflow-x: auto; }
+    .review { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 6px 12px; margin: 0 0 14px; }
+    .review dt { color: var(--muted); font-size: 12px; }
+    .review dd { margin: 0; font-weight: 600; }
+    .actions { display: flex; gap: 10px; align-items: center; }
+    .btn { min-height: 44px; padding: 0 18px; border: 1px solid #8C99A6; border-radius: 4px; background: #fff; color: var(--ink); font-weight: 600; cursor: pointer; }
+    .btn.primary, .submit-btn { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .submit-btn { flex: 1; min-height: 48px; border: 0; border-radius: 4px; font-weight: 700; cursor: pointer; }
+    .btn.primary:hover, .submit-btn:hover { background: var(--accent-hover); }
+    .btn:disabled, .submit-btn:disabled { opacity: .6; cursor: not-allowed; }
+    .status { min-height: 20px; margin: 10px 0 0; color: var(--muted); font-size: 12px; }
+    .result-box { display: none; margin-top: 12px; padding: 12px 14px; font-size: 13px; border-radius: 4px; }
+    .result-box.success { display: block; background: #E3F4EA; border: 1px solid #9FD0B4; color: var(--ok); }
+    .result-box.notice { display: block; background: #FBE9E9; border: 1px solid #E8B4B4; color: #A12020; }
+    .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 10px; white-space: nowrap; }
+    .pill.wait { background: #EEF1F4; color: #4A5C6E; }
+    .pill.pend { background: #FFF1E8; color: #B83A00; }
+    .pill.ok { background: #E3F4EA; color: var(--ok); }
+    .pill.crit { background: #FBE9E9; color: #A12020; }
+    .mono { font-family: Consolas, 'Courier New', monospace; font-size: 12px; }
+    .note { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+    footer { text-align: center; font-size: 11px; color: var(--muted); padding: 10px 0 30px; }
+    @media (max-width: 960px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidenav { display: none; }
+      .search, .user small, .user .who { display: none; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout, .form-grid { grid-template-columns: 1fr; }
+      .main { padding: 14px 14px 70px; }
+      .head { flex-direction: column; }
+      .review { grid-template-columns: 1fr; }
+      .steps li { padding: 8px 8px; font-size: 12px; }
+      .lifecycle li { min-width: 0; white-space: normal; padding: 8px 6px; font-size: 11px; line-height: 1.3; }
+    }
+    @media (max-width: 640px) {
+      .lifecycle { flex-direction: column; overflow-x: visible; }
+      .lifecycle li { flex: none; padding: 7px 12px; border-right: 0; border-bottom: 1px solid var(--soft); }
+      .lifecycle li:last-child { border-bottom: 0; }
+      .lifecycle li.current { box-shadow: inset 3px 0 0 var(--accent); }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="BMC Helix ITSM"><span class="brand-mark" aria-hidden="true">bmc</span><span class="brand-name">BMC Helix<span>ITSM</span></span></a>
+    <div class="search"><input type="search" placeholder="Search changes, incidents, CIs, knowledge" aria-label="Search"></div>
+    <div class="user"><span class="who">Priya Natarajan<small>Change Coordinator &middot; Workload Automation Platform</small></span><span class="avatar">PN</span></div>
+  </header>
+  <div class="shell">
+    <nav class="sidenav" aria-label="BMC Helix ITSM">
+      <h3>Service Management</h3>
+      <a href="#top"><span class="ico"></span>Dashboard</a>
+      <a href="#top"><span class="ico"></span>Incidents</a>
+      <a href="#top" class="current"><span class="ico"></span>Changes</a>
+      <a href="#top"><span class="ico"></span>Problems</a>
+      <a href="#top"><span class="ico"></span>Releases</a>
+      <a href="#top"><span class="ico"></span>Change Calendar</a>
+      <h3>Configuration</h3>
+      <a href="#top"><span class="ico"></span>CMDB / Assets</a>
+      <a href="#top"><span class="ico"></span>Knowledge</a>
+      <a href="#top"><span class="ico"></span>Reports</a>
+    </nav>
+    <main class="main" id="top">
+      <div class="crumbs">Change Management / My changes / CRQ000001284</div>
+      <div class="head">
+        <div>
+          <div class="head-id">CRQ000001284 &middot; Normal change &middot; Infrastructure</div>
+          <h1>Patch Control-M/Server 9.0.21 on prod scheduling cluster</h1>
+          <div class="sub">Service: Control-M Enterprise Scheduling (prod) &middot; Requested by Priya Natarajan &middot; Coordinator group: Workload Automation Platform</div>
+        </div>
+        <span class="chip" id="requestChip">Draft</span>
+      </div>
+      <ol class="lifecycle" id="lifecycle" aria-label="Change lifecycle">
+        <li data-stage="draft" class="current">Draft</li>
+        <li data-stage="auth">Request for Authorization</li>
+        <li data-stage="scheduled">Scheduled</li>
+        <li data-stage="impl">Implementation in Progress</li>
+        <li data-stage="closed">Completed</li>
+      </ol>
+      <section class="kpis" aria-label="Change summary">
+        <div class="kpi"><span>Risk level</span><strong id="kpiRisk">&ndash;</strong></div>
+        <div class="kpi"><span>Impacted CIs</span><strong id="kpiCis">&ndash;</strong></div>
+        <div class="kpi"><span>Control-M jobs in window</span><strong id="kpiJobs">&ndash;</strong></div>
+        <div class="kpi"><span>Next CAB</span><strong>Tue 20 Oct</strong></div>
+      </section>
+      <div class="layout">
+        <section class="card" aria-labelledby="change-heading">
+          <h2 id="change-heading">Submit change</h2>
+          <ol class="steps" id="steps">
+            <li data-step="1" class="active">1 &middot; Risk assessment</li>
+            <li data-step="2">2 &middot; Impact &amp; approvals</li>
+            <li data-step="3">3 &middot; Schedule &amp; submit</li>
+          </ol>
+          <form id="transferForm" novalidate>
+            <div class="step" data-step="1">
+              <div class="form-grid">
+                <div class="field"><label for="qOutage">Service outage required?</label><select id="qOutage">
+                  <option value="2">Rolling restart &mdash; no full outage</option>
+                  <option value="4" selected>Partial &mdash; scheduler failover (&lt; 15 min)</option>
+                  <option value="5">Full outage of Control-M/Server</option>
+                </select></div>
+                <div class="field"><label for="qBackout">Backout plan tested?</label><select id="qBackout">
+                  <option value="1" selected>Yes &mdash; rehearsed in pre-prod</option>
+                  <option value="3">Documented, not rehearsed</option>
+                  <option value="5">No backout plan</option>
+                </select></div>
+                <div class="field"><label for="qHistory">Similar changes in last 90 days</label><select id="qHistory">
+                  <option value="1">Successful, no incidents</option>
+                  <option value="3" selected>One caused a P3 incident (CRQ000001163)</option>
+                  <option value="5">First change of this type</option>
+                </select></div>
+                <div class="field"><label for="qBusiness">Business-critical job folders on impacted servers?</label><select id="qBusiness">
+                  <option value="2">No &mdash; non-critical folders only</option>
+                  <option value="4" selected>Yes &mdash; EOD finance &amp; payroll folders</option>
+                  <option value="5">Yes &mdash; month-end close folders</option>
+                </select></div>
+              </div>
+              <div class="scorebox" role="status" aria-live="polite"><div>Calculated risk<br><strong id="riskScore">&ndash;</strong></div><div class="sub" id="riskText"></div></div>
+              <div class="actions"><button type="button" class="btn primary" id="toStep2">Continue to impact &amp; approvals</button></div>
+            </div>
+
+            <div class="step" data-step="2" hidden>
+              <p class="sub" style="margin-top:0">Impacted configuration items come from the CMDB service model for <strong>Control-M Enterprise Scheduling (prod)</strong>. Approvers are added by the change-risk policy for the calculated risk level.</p>
+              <div class="table-wrap"><table aria-label="Impacted configuration items">
+                <thead><tr><th>Configuration item</th><th>Class</th><th>Environment</th><th class="num">Jobs</th></tr></thead>
+                <tbody id="ciRows"></tbody>
+              </table></div>
+              <div class="table-wrap" style="margin-top:12px"><table aria-label="Approvals">
+                <thead><tr><th>Approval</th><th>Approver</th><th>Status</th></tr></thead>
+                <tbody id="approvalRows"></tbody>
+              </table></div>
+              <div class="field" style="margin-top:12px"><label for="accountTier">CAB policy screening</label><select id="accountTier">
+                <option value="standard">Normal change &mdash; full change-risk / CAB policy screening of impacted CIs</option>
+                <option value="basic">Normal change &mdash; first submission under CAB policy 2026.10</option>
+              </select><small>Normal changes are screened against every impacted CI&rsquo;s change history and freeze windows before routing to CAB.</small></div>
+              <div class="actions"><button type="button" class="btn" id="back1">Back</button><button type="button" class="btn primary" id="toStep3">Continue to schedule</button></div>
+            </div>
+
+            <div class="step" data-step="3" hidden>
+              <div class="form-grid">
+                <div class="field"><label for="window">Implementation window</label><select id="window">
+                  <option value="sat" data-label="Sat 24 Oct 2026, 01:00&ndash;03:00 ET" data-jobs="38">Sat 24 Oct, 01:00&ndash;03:00 ET (low batch)</option>
+                  <option value="thu" data-label="Thu 22 Oct 2026, 22:00&ndash;23:30 ET" data-jobs="112">Thu 22 Oct, 22:00&ndash;23:30 ET (EOD batch)</option>
+                </select></div>
+                <div class="field"><label for="amount">Planned scheduler failover (minutes)</label><input type="number" id="amount" min="1" max="240" step="1" value="12" required><small>Jobs submitted during failover queue on the standby Control-M/Server.</small></div>
+                <div class="field"><label for="fromAccount">Coordinator group</label><select id="fromAccount"><option value="ACCT-1004">Workload Automation Platform</option><option value="ACCT-1001">Mainframe Scheduling Ops</option></select></div>
+                <div class="field"><label for="toAccount">Implementation group</label><select id="toAccount"><option value="ACCT-1002" data-label="Control-M Admins (Houston)">Control-M Admins (Houston)</option><option value="ACCT-1003" data-label="Control-M Admins (Pune)">Control-M Admins (Pune)</option></select></div>
+              </div>
+              <dl class="review" id="reviewList"></dl>
+              <div class="actions"><button type="button" class="btn" id="back2">Back</button><button type="submit" id="submitBtn" class="submit-btn">Submit for approval &amp; schedule</button></div>
+            </div>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Draft &middot; not submitted</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <section class="card" aria-labelledby="related-heading">
+            <h2 id="related-heading">Related changes</h2>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Change</th><th>Summary</th><th>Status</th></tr></thead>
+              <tbody id="changeRows"></tbody>
+            </table></div>
+          </section>
+          <section class="card" aria-labelledby="notes-heading">
+            <h2 id="notes-heading">Work notes</h2>
+            <p class="note" style="margin-top:0"><strong>Priya N.</strong> &middot; Fix pack 9.0.21.100 addresses the agent heartbeat CVE flagged in the security backlog. Pre-prod rehearsal passed 13 Oct; failover to ctm-srv-prd-02 measured at 9 min.</p>
+            <p class="note"><strong>CAB &mdash; Infrastructure</strong> &middot; Please confirm EOD finance folders are held or rerouted for the window.</p>
+          </section>
+        </aside>
+      </div>
+      <footer>BMC Helix ITSM &middot; Change Management &middot; Smart IT 26.3</footer>
+    </main>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const CIS = [
+        { name: 'ctm-srv-prd-01', cls: 'Control-M/Server', env: 'Production (primary)', share: 0.46 },
+        { name: 'ctm-srv-prd-02', cls: 'Control-M/Server', env: 'Production (standby)', share: 0 },
+        { name: 'ctm-em-prd-01', cls: 'Control-M/Enterprise Manager', env: 'Production', share: 0 },
+        { name: 'ctm-agt-fin-07', cls: 'Control-M/Agent', env: 'Production', share: 0.31 },
+        { name: 'ctm-agt-pay-03', cls: 'Control-M/Agent', env: 'Production', share: 0.23 },
+      ];
+      const APPROVALS = [
+        { min: 1, role: 'Change Manager', who: 'Marcus Lee' },
+        { min: 1, role: 'Service Owner \u2014 Enterprise Scheduling', who: 'Dana Okafor' },
+        { min: 3, role: 'CAB \u2014 Infrastructure', who: 'CAB board (Tue 20 Oct)' },
+        { min: 4, role: 'Business approver \u2014 Finance Batch', who: 'Elena Brandt' },
+      ];
+      const changes = [
+        { id: 'CRQ000001284', summary: 'Patch Control-M/Server 9.0.21 (prod)', status: 'Draft', cls: 'wait' },
+        { id: 'CRQ000001271', summary: 'Rotate Control-M agent TLS certs', status: 'Scheduled', cls: 'ok' },
+        { id: 'CRQ000001163', summary: 'Control-M/EM 9.0.21 upgrade (prod)', status: 'Completed', cls: 'ok' },
+      ];
+      const $ = (id) => document.getElementById(id);
+      const riskScore = () => ['qOutage', 'qBackout', 'qHistory', 'qBusiness'].reduce((s, id) => s + Number($(id).value), 0);
+      const riskLevel = () => { const s = riskScore(); return s >= 15 ? 4 : s >= 11 ? 3 : s >= 7 ? 2 : 1; };
+      const riskName = () => ['', 'Low', 'Moderate', 'High', 'Critical'][riskLevel()];
+      const approvers = () => APPROVALS.filter((a) => riskLevel() >= a.min);
+      const windowOpt = () => $('window').selectedOptions[0];
+      const jobsInWindow = () => Number(windowOpt().dataset.jobs);
+      const minutes = () => Number($('amount').value);
+      const minutesValid = () => Number.isInteger(minutes()) && minutes() >= 1 && minutes() <= 240;
+      let submitted = false;
+
+      function renderRisk() {
+        const lvl = riskLevel();
+        $('riskScore').textContent = `${riskScore()} / 20`;
+        $('riskText').textContent = `Risk level ${lvl} (${riskName()}). ${approvers().length} approval${approvers().length === 1 ? '' : 's'} required by the change-risk policy${lvl >= 3 ? ', including CAB review' : ''}.`;
+        $('kpiRisk').textContent = `${lvl} \u00b7 ${riskName()}`;
+        $('kpiRisk').className = lvl >= 3 ? 'risk-high' : lvl === 2 ? 'risk-med' : 'risk-low';
+      }
+      function renderImpact() {
+        const jobs = jobsInWindow();
+        $('kpiCis').textContent = String(CIS.length);
+        $('kpiJobs').textContent = String(jobs);
+        let left = jobs;
+        $('ciRows').innerHTML = CIS.map((c, i) => {
+          const isLastShare = CIS.slice(i + 1).every((x) => !x.share);
+          const n = c.share ? (isLastShare ? left : Math.round(jobs * c.share)) : 0;
+          left -= n;
+          return `<tr><td class="mono">${c.name}</td><td>${c.cls}</td><td>${c.env}</td><td class="num">${n || '\u2014'}</td></tr>`;
+        }).join('');
+        const status = submitted ? '<span class="pill pend">Pending</span>' : '<span class="pill wait">Not requested</span>';
+        $('approvalRows').innerHTML = approvers().map((a) => `<tr><td>${a.role}</td><td>${a.who}</td><td>${status}</td></tr>`).join('');
+      }
+      function renderChanges() {
+        $('changeRows').innerHTML = changes.map((c) => `<tr><td class="mono">${c.id}</td><td>${c.summary}</td><td><span class="pill ${c.cls}">${c.status}</span></td></tr>`).join('');
+      }
+      function setStage(stage) {
+        const order = ['draft', 'auth', 'scheduled', 'impl', 'closed'];
+        const idx = order.indexOf(stage);
+        document.querySelectorAll('#lifecycle li').forEach((li) => {
+          const i = order.indexOf(li.dataset.stage);
+          li.classList.toggle('current', i === idx);
+          li.classList.toggle('done', i < idx);
+        });
+      }
+      function renderReview() {
+        const rows = [
+          ['Risk', `${riskLevel()} \u00b7 ${riskName()} (score ${riskScore()} / 20)`],
+          ['Approvals', approvers().map((a) => a.role).join(', ')],
+          ['CAB policy screening', $('accountTier').selectedOptions[0].textContent],
+          ['Window', windowOpt().dataset.label],
+          ['Control-M jobs in window', `${jobsInWindow()} (held or rerouted to standby)`],
+          ['Planned failover', minutesValid() ? `${minutes()} min` : 'Enter 1\u2013240 minutes'],
+        ];
+        $('reviewList').innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+      }
+      function go(step) {
+        document.querySelectorAll('.step').forEach((el) => { el.hidden = el.dataset.step !== String(step); });
+        document.querySelectorAll('#steps li').forEach((li) => {
+          const n = Number(li.dataset.step);
+          li.classList.toggle('active', n === step);
+          li.classList.toggle('done', n < step);
+        });
+        if (step === 2) renderImpact();
+        if (step === 3) renderReview();
+      }
+
+      ['qOutage', 'qBackout', 'qHistory', 'qBusiness'].forEach((id) => $(id).addEventListener('change', () => { renderRisk(); renderImpact(); }));
+      $('window').addEventListener('change', () => { renderImpact(); renderReview(); });
+      $('amount').addEventListener('input', renderReview);
+      $('accountTier').addEventListener('change', renderReview);
+      $('toStep2').addEventListener('click', () => { if (!submitted) $('transferStatus').textContent = 'Draft \u00b7 reviewing impact and approvals'; go(2); });
+      $('back1').addEventListener('click', () => go(1));
+      $('toStep3').addEventListener('click', () => go(3));
+      $('back2').addEventListener('click', () => go(2));
+
+      const form = $('transferForm');
+      const button = $('submitBtn');
+      const result = $('result');
+      const status = $('transferStatus');
+      const chip = $('requestChip');
+      let inFlight = false;
+      const setLocked = (locked) => form.querySelectorAll('input, select, textarea, button').forEach((el) => { el.disabled = locked; });
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (inFlight || submitted) return;
+        if (!minutesValid()) { $('amount').focus(); status.textContent = 'Enter a planned failover between 1 and 240 minutes.'; return; }
+        inFlight = true;
+        const approvalCount = approvers().length;
+        const windowLabel = windowOpt().dataset.label;
+        const jobs = jobsInWindow();
+        const implGroup = $('toAccount').selectedOptions[0].dataset.label;
+        setLocked(true);
+        button.textContent = 'Submitting for approval\u2026';
+        status.textContent = 'Running change-risk / CAB policy screening and routing approvals\u2026';
+        chip.textContent = 'Submitting';
+        chip.className = 'chip pending';
+        result.className = 'result-box';
+        result.textContent = '';
+        try {
+          const response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: $('fromAccount').value,
+              toAccount: $('toAccount').value,
+              amount: minutes(),
+              accountTier: $('accountTier').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok || !data.success) throw new Error('Change was not submitted.');
+          const ref = (data.receipt && data.receipt.receiptId) || data.transferId;
+          submitted = true;
+          changes[0].status = 'Pending approval';
+          changes[0].cls = 'pend';
+          renderChanges();
+          renderImpact();
+          setStage('auth');
+          chip.textContent = 'Request for Authorization';
+          chip.className = 'chip pending';
+          result.className = 'result-box success';
+          result.innerHTML = `<strong>CRQ000001284 submitted for approval.</strong> Routed to ${approvalCount} approver${approvalCount === 1 ? '' : 's'}; scheduled for ${windowLabel} with ${implGroup}. ${jobs} Control-M job${jobs === 1 ? '' : 's'} in the window will be held or rerouted to the standby server (screening ref <span class="mono">${ref}</span>).`;
+          status.textContent = 'Request for Authorization \u2014 approvers notified.';
+        } catch (_error) {
+          chip.textContent = 'Not submitted';
+          chip.className = 'chip failed';
+          result.className = 'result-box notice';
+          result.textContent = 'The change could not be submitted for approval. Do not resubmit \u2014 contact the Change Manager before the CAB agenda closes.';
+          status.textContent = 'Change not submitted.';
+        } finally {
+          inFlight = false;
+          if (submitted) {
+            button.textContent = 'Submitted for approval';
+            ['back1', 'back2', 'toStep2', 'toStep3'].forEach((id) => { $(id).disabled = false; });
+          } else {
+            setLocked(false);
+            button.textContent = 'Submit for approval & schedule';
+          }
+        }
+      });
+
+      renderRisk();
+      renderImpact();
+      renderChanges();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
