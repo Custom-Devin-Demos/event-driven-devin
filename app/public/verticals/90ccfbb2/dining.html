@@ -201,14 +201,17 @@
     $('date').onchange = function () { if (this.value) { state.date = this.value; load(); } };
     $('meal').onchange = function () { state.meal = this.value; state.sel.time = SEATINGS[state.meal][1]; render(); };
 
+    var searchGen = 0;
     function load() {
+      var gen = ++searchGen;
       state.avail = {};
       var list = RESTAURANTS.filter(function (r) { return r.dest === state.dest; });
       render();
       list.forEach(function (r) {
         api('/api/90ccfbb2/dining/availability', { restaurantId: r.id, date: state.date }).then(function (res) {
+          if (gen !== searchGen) return;
           state.avail[r.id] = res.ok ? res.body.status : 'ERROR'; render();
-        }).catch(function () { state.avail[r.id] = 'ERROR'; render(); });
+        }).catch(function () { if (gen === searchGen) { state.avail[r.id] = 'ERROR'; render(); } });
       });
     }
 
