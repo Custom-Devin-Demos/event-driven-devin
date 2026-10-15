@@ -298,6 +298,15 @@
   </footer>
 
   <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
     const form = document.getElementById('claimForm');
     const button = document.getElementById('submitBtn');
     const submitLabel = document.getElementById('submitLabel');
@@ -355,6 +364,13 @@
             claimType: document.getElementById('claimType').value,
             amount: parseFloat(document.getElementById('amount').value),
             description: document.getElementById('description').value.trim(),
+            contact: {
+              name: document.getElementById('nombre').value.trim(),
+              email: document.getElementById('email').value.trim(),
+              phone: document.getElementById('tel').value.trim(),
+              country: document.getElementById('pais').value,
+              area: (form.querySelector('input[name="area"]:checked') || {}).value || '',
+            },
             devinUserId: localStorage.getItem('devinUserId') || '',
             devinOrgId: localStorage.getItem('devinOrgId') || '',
             devinEmail: localStorage.getItem('devinEmail') || '',
