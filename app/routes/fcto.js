@@ -37,10 +37,18 @@ function requestChannel(fallback) {
 
 // ─── Signature verification ─────────────────────────────────────────────────
 
+// Local-testing escape hatch only: unsigned requests are accepted when the
+// operator opted in, the process is not a production build, and the caller is
+// on this machine. Anything else without a signing secret is refused.
+function isLoopback(req) {
+  const addr = (req.socket && req.socket.remoteAddress) || '';
+  return addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1';
+}
+
 function verifySlackSignature(req, res, next) {
   const secret = process.env.FCTO_SLACK_SIGNING_SECRET;
   if (!secret) {
-    if (process.env.FCTO_ALLOW_UNSIGNED === '1' && process.env.NODE_ENV !== 'production') return next();
+    if (process.env.FCTO_ALLOW_UNSIGNED === '1' && process.env.NODE_ENV !== 'production' && isLoopback(req)) return next();
     logger.warn('fcto: FCTO_SLACK_SIGNING_SECRET not set; rejecting Slack request');
     return res.status(503).send('Field CTO app is not configured');
   }

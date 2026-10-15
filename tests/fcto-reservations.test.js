@@ -644,11 +644,14 @@ describe('review fixes', () => {
     process.env.NODE_ENV = 'production';
     const res = { status: jest.fn(() => res), send: jest.fn(() => res) };
     const next = jest.fn();
-    verifySlackSignature({ headers: {} }, res, next);
+    const local = { headers: {}, socket: { remoteAddress: '127.0.0.1' } };
+    verifySlackSignature(local, res, next);
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(503);
     process.env.NODE_ENV = 'test';
-    verifySlackSignature({ headers: {} }, res, next);
+    verifySlackSignature({ headers: {}, socket: { remoteAddress: '203.0.113.9' } }, res, next);
+    expect(next).not.toHaveBeenCalled();
+    verifySlackSignature(local, res, next);
     expect(next).toHaveBeenCalledTimes(1);
     process.env = saved;
   });
