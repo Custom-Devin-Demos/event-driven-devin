@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HMI Medical | More than 25 years of Care across Southeast Asia</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <style>
+    :root {
+      --accent: #0957CB;
+      --ink: #3C3C3C;
+      --surface: #FFFFFF;
+      --chrome-bg: #004E89;
+      --chrome-text: #FFFFFF;
+      --accent-dark: color-mix(in srgb, var(--accent) 78%, #000);
+      --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--surface));
+      --accent-line: color-mix(in srgb, var(--accent) 22%, var(--surface));
+      --paper: color-mix(in srgb, var(--ink) 2%, var(--surface));
+      --card: color-mix(in srgb, var(--ink) 4%, var(--surface));
+      --line: color-mix(in srgb, var(--ink) 16%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 68%, var(--surface));
+      --chrome-dim: color-mix(in srgb, var(--chrome-text) 72%, var(--chrome-bg));
+      --danger: #B42318;
+      --danger-soft: #FEF3F2;
+      --heading: 'Montserrat', sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Inter, Helvetica, Arial, sans-serif; color: var(--ink); background: var(--surface); font-size: 16px; line-height: 1.5; overflow-x: hidden; }
+    h1, h2, h3 { font-family: var(--heading); margin: 0; }
+    a { color: var(--accent); }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    .view { display: none; }
+    .view.on { display: block; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 24px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent); color: #fff; font-weight: 600; font-size: 15px; text-decoration: none; cursor: pointer; }
+    .btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+    .btn:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 2px; }
+    .btn.ghost { background: var(--surface); color: var(--accent); }
+    .btn.ghost:hover { background: var(--accent-soft); }
+    .btn[disabled] { background: var(--line); border-color: var(--line); color: var(--muted); cursor: not-allowed; }
+
+    /* ---------- public site ---------- */
+    .site-hdr { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
+    .site-hdr .wrap { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 76px; }
+    .mark { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--accent); }
+    .mark svg { width: 38px; height: 38px; flex: none; }
+    .mark b { font-family: var(--heading); font-size: 20px; letter-spacing: .02em; }
+    .mark small { display: block; font-size: 10px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+    .site-nav { display: flex; gap: 28px; }
+    .site-nav a { color: var(--ink); text-decoration: none; font-size: 15px; font-weight: 500; padding: 12px 0; }
+    .site-nav a:hover { color: var(--accent); }
+    .hero { position: relative; min-height: 520px; display: flex; align-items: center; background: linear-gradient(110deg, var(--chrome-bg), var(--accent)); overflow: hidden; }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--chrome-bg) 88%, transparent) 0%, color-mix(in srgb, var(--chrome-bg) 40%, transparent) 55%, transparent 100%); }
+    .hero .wrap { position: relative; z-index: 1; width: 100%; color: var(--chrome-text); }
+    .hero h1 { font-size: 46px; line-height: 1.15; max-width: 620px; }
+    .hero p { font-size: 18px; max-width: 520px; color: var(--chrome-dim); margin: 16px 0 28px; }
+    .hero .btn { background: var(--surface); color: var(--accent); border-color: var(--surface); }
+    .hero .btn:hover { background: var(--accent-soft); }
+    .sec { padding: 72px 0; }
+    .eyebrow { font-size: 13px; letter-spacing: .14em; font-weight: 700; color: var(--accent); text-transform: uppercase; }
+    .sec h2 { font-size: 32px; font-weight: 700; color: var(--accent); margin: 10px 0 12px; max-width: 760px; }
+    .sec .lead { color: var(--muted); max-width: 640px; margin: 0 0 36px; }
+    .ranges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .range { background: var(--card); border-radius: 16px; padding: 28px; }
+    .range h3 { font-size: 22px; color: var(--chrome-bg); }
+    .range p { color: var(--muted); margin: 8px 0 0; font-size: 15px; }
+    .range ul { margin: 16px 0 0; padding: 0; list-style: none; font-size: 14px; }
+    .range li { padding: 6px 0; border-top: 1px solid var(--line); }
+    .quick { background: var(--paper); }
+    .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .quick-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+    .quick-card h3 { font-size: 18px; color: var(--accent); }
+    .quick-card p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+    .site-ftr { background: var(--chrome-bg); color: var(--chrome-text); padding: 48px 0 28px; }
+    .ftr-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 32px; }
+    .site-ftr h4 { margin: 0 0 12px; font-size: 15px; font-family: var(--heading); }
+    .site-ftr p, .site-ftr li { color: var(--chrome-dim); font-size: 14px; margin: 0 0 6px; }
+    .site-ftr ul { list-style: none; padding: 0; margin: 0; }
+    .site-ftr .mark { color: var(--chrome-text); }
+    .site-ftr .mark small { color: var(--chrome-dim); }
+    .ftr-base { border-top: 1px solid color-mix(in srgb, var(--chrome-text) 20%, transparent); margin-top: 32px; padding-top: 18px; font-size: 13px; color: var(--chrome-dim); }
+
+    /* ---------- HMI One app shell ---------- */
+    .app { min-height: 100vh; background: #FBFBFB; }
+    .app-hdr { background: var(--surface); border-bottom: 1px solid var(--line); height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 20; }
+    .app-hdr .left { display: flex; align-items: center; gap: 8px; }
+    .menu-btn { display: none; width: 44px; height: 44px; border: 0; background: none; cursor: pointer; border-radius: 8px; }
+    .menu-btn span { display: block; width: 22px; height: 2px; background: var(--chrome-bg); margin: 5px auto; }
+    .login-pill { min-height: 44px; padding: 8px 22px; }
+    .app-body { display: flex; min-height: calc(100vh - 72px); }
+    .side { width: 260px; flex: none; background: var(--chrome-bg); color: var(--chrome-text); padding: 24px 16px; display: flex; flex-direction: column; justify-content: space-between; }
+    .side nav a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 10px 14px; border-radius: 10px; color: var(--chrome-dim); text-decoration: none; font-size: 15px; font-weight: 500; }
+    .side nav a svg { width: 20px; height: 20px; flex: none; }
+    .side nav a:hover, .side nav a.on { background: color-mix(in srgb, var(--chrome-text) 14%, transparent); color: var(--chrome-text); }
+    .side .side-foot a { display: block; color: var(--chrome-dim); font-size: 13px; text-decoration: none; padding: 8px 14px; min-height: 36px; }
+    .side .lang { display: flex; gap: 8px; padding: 12px 14px 0; font-size: 13px; color: var(--chrome-dim); }
+    .side .lang b { color: var(--chrome-text); }
+    .main { flex: 1; min-width: 0; padding: 32px 32px 96px; }
+    .main h2 { font-size: 26px; font-weight: 700; color: var(--accent); }
+    .crumbs { font-size: 14px; color: var(--muted); margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .crumbs a { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; min-height: 32px; }
+    .panel { background: var(--surface); border-radius: 16px; padding: 28px; box-shadow: 0 1px 3px rgba(16, 24, 40, .06); }
+    .muted { color: var(--muted); }
+
+    .gs { max-width: 920px; }
+    .gs .eyebrow { margin-bottom: 4px; }
+    .gs h2 { margin-bottom: 4px; }
+    .gs > p { margin: 0 0 24px; color: var(--muted); }
+    .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .choice { display: flex; flex-direction: column; gap: 12px; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; cursor: pointer; text-decoration: none; color: var(--ink); min-height: 180px; transition: border-color .15s, box-shadow .15s; }
+    .choice:hover { border-color: var(--accent); box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 14%, transparent); }
+    .choice .ico { width: 52px; height: 52px; border-radius: 14px; background: var(--accent-soft); display: grid; place-items: center; color: var(--accent); }
+    .choice .ico svg { width: 28px; height: 28px; }
+    .choice h3 { font-size: 18px; color: var(--chrome-bg); }
+    .choice p { margin: 0; font-size: 14px; color: var(--muted); }
+    .choice .go { margin-top: auto; color: var(--accent); font-weight: 600; font-size: 14px; }
+    .reg { margin-top: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: var(--accent-soft); border-radius: 16px; padding: 20px 24px; }
+    .reg p { margin: 0; font-size: 14px; color: var(--muted); }
+    .reg b { display: block; color: var(--chrome-bg); font-size: 16px; }
+
+    .pkg-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-top: 20px; }
+    .pkg { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 10px; }
+    .pkg.feature { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .pkg .tag { align-self: flex-start; font-size: 12px; font-weight: 600; color: #0746A2; background: #D6E7FF; border-radius: 999px; padding: 3px 10px; }
+    .pkg h3 { font-size: 18px; color: var(--chrome-bg); }
+    .pkg p { margin: 0; font-size: 14px; color: var(--muted); }
+    .pkg .btn { margin-top: auto; align-self: flex-start; }
+
+    .stepper { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 24px; }
+    .stp { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--muted); }
+    .stp i { font-style: normal; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--line); color: var(--surface); font-size: 13px; flex: none; }
+    .stp.on i, .stp.done i { background: var(--accent); }
+    .stp.on { color: var(--accent); }
+    .stp + .stp::before { content: ''; height: 2px; width: 40px; background: var(--line); }
+    .book-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+    .summary { position: sticky; top: 96px; }
+    .summary h3 { font-size: 16px; color: var(--chrome-bg); margin-bottom: 12px; }
+    .summary dl { margin: 0; font-size: 14px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0 0 10px; font-weight: 600; color: var(--ink); }
+    .field-label { display: block; font-size: 14px; font-weight: 600; margin: 0 0 8px; }
+    .req { color: var(--danger); }
+    .seg { display: flex; flex-wrap: wrap; gap: 10px; }
+    .seg label { position: relative; }
+    .seg input { position: absolute; opacity: 0; inset: 0; }
+    .seg span { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; cursor: pointer; background: var(--surface); }
+    .seg input:checked + span { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+    .seg input:focus-visible + span { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 2px; }
+    .block { margin-bottom: 24px; }
+    .cal { border: 1px solid var(--line); border-radius: 14px; padding: 16px; max-width: 420px; }
+    .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .cal-head b { font-family: var(--heading); color: var(--chrome-bg); }
+    .cal-nav { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: 18px; color: var(--accent); }
+    .cal-nav[disabled] { color: var(--line); cursor: default; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
+    .cal-grid .dow { font-size: 12px; color: var(--muted); font-weight: 600; padding: 4px 0; }
+    .day { min-height: 44px; border: 0; border-radius: 10px; background: none; cursor: pointer; font-size: 14px; }
+    .day:hover:not([disabled]) { background: var(--accent-soft); }
+    .day[disabled] { color: var(--line); cursor: default; }
+    .day.sel { background: var(--accent); color: #fff; font-weight: 700; }
+    .actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .linkbtn { background: none; border: 0; color: var(--accent); font-weight: 600; cursor: pointer; min-height: 44px; padding: 0 8px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 15px; }
+
+    .pd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+    .fg { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .fg.full { grid-column: 1 / -1; }
+    .fg label { font-size: 14px; font-weight: 500; }
+    .fg small { color: var(--muted); font-size: 12px; }
+    .ctl { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; background: var(--surface); font-size: 15px; }
+    .ctl:disabled { background: var(--card); color: var(--muted); }
+    textarea.ctl { min-height: 96px; resize: vertical; }
+    .phone { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; }
+    .consent { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; margin-top: 4px; }
+    .consent input { width: 22px; height: 22px; margin: 1px 0 0; flex: none; accent-color: var(--accent); }
+    .consent label { cursor: pointer; }
+    .sub-h { font-size: 16px; font-weight: 600; margin: 8px 0 0; grid-column: 1 / -1; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .result-box { display: none; scroll-margin-top: 96px; }
+    .result-box.show { display: block; }
+    form.failed .pd-fields, form.failed .actions { display: none; }
+    .fail { border: 1px solid #FECDCA; background: var(--danger-soft); border-radius: 14px; padding: 20px 22px; }
+    .fail h3 { font-size: 18px; color: var(--danger); margin-bottom: 6px; }
+    .fail p { margin: 0 0 6px; font-size: 15px; }
+    .kept { margin-top: 20px; }
+    .kept h4 { margin: 0 0 10px; font-size: 15px; color: var(--chrome-bg); }
+    .kept dl { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 8px 16px; margin: 0; font-size: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+    .kept dt { color: var(--muted); }
+    .kept dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+    .draft { margin-top: 20px; }
+    .draft textarea { min-height: 260px; font-size: 14px; line-height: 1.55; }
+    .draft-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .copied { font-size: 13px; color: #067647; min-height: 20px; margin-top: 6px; }
+    .ok { border: 1px solid #ABEFC6; background: #ECFDF3; border-radius: 14px; padding: 20px 22px; }
+    .ok h3 { color: #067647; font-size: 18px; margin-bottom: 6px; }
+    .saved-note { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+
+    @media (max-width: 960px) {
+      .site-nav { display: none; }
+      .ranges, .quick-grid { grid-template-columns: 1fr; }
+      .ftr-grid { grid-template-columns: 1fr 1fr; }
+      .book-grid { grid-template-columns: 1fr; }
+      .summary { position: static; order: -1; }
+      .menu-btn { display: block; }
+      .side { position: fixed; top: 72px; bottom: 0; left: 0; z-index: 30; transform: translateX(-100%); transition: transform .2s; overflow-y: auto; }
+      .app.nav-open .side { transform: none; }
+    }
+    @media (max-width: 640px) {
+      .wrap { padding: 0 16px; }
+      .site-hdr .wrap { min-height: 64px; }
+      .mark b { font-size: 17px; }
+      .site-hdr .btn { padding: 8px 14px; font-size: 14px; }
+      .hero { min-height: 440px; }
+      .hero h1 { font-size: 30px; }
+      .hero p { font-size: 16px; }
+      .sec { padding: 48px 0; }
+      .sec h2 { font-size: 24px; }
+      .ftr-grid { grid-template-columns: 1fr; }
+      .app-hdr { padding: 0 12px; height: 64px; }
+      .side { top: 64px; }
+      .login-pill { padding: 8px 14px; font-size: 14px; }
+      .main { padding: 20px 16px 96px; }
+      .main h2 { font-size: 22px; }
+      .panel { padding: 18px; }
+      .choice-grid, .pd-grid { grid-template-columns: 1fr; }
+      .reg { flex-direction: column; align-items: flex-start; }
+      .stp + .stp::before { width: 16px; }
+      .kept dl { grid-template-columns: 1fr; gap: 2px; }
+      .kept dd { margin-bottom: 8px; }
+      .actions { flex-wrap: wrap; }
+      .draft-actions .btn { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="hm" viewBox="0 0 40 40"><rect x="1" y="1" width="38" height="38" rx="11" fill="currentColor"/><path d="M12 11v18M28 11v18M12 20h16" stroke="#fff" stroke-width="4" stroke-linecap="round"/></symbol>
+  </svg>
+
+  <!-- ================= Public site ================= -->
+  <div class="view" id="v-home">
+    <header class="site-hdr">
+      <div class="wrap">
+        <a class="mark" href="#home" aria-label="HMI Medical home"><svg aria-hidden="true"><use href="#hm"/></svg><span><b>HMI Medical</b><small>Southeast Asia</small></span></a>
+        <nav class="site-nav" aria-label="Main">
+          <a href="#home">About Us</a>
+          <a href="#home">Our Services</a>
+          <a href="#home">Health Screening</a>
+          <a href="#home">Our Doctors</a>
+          <a href="#home">Contact Us</a>
+        </nav>
+        <a class="btn" href="#dashboard" id="bookApptTop">Book Appointment</a>
+      </div>
+    </header>
+    <section class="hero">
+      <img src="https://cdn.sanity.io/images/twjkvh4k/hmimedical/3c940e41889a25112a8628fb0ea8bde6a39b2f2e-1920x1040.jpg?w=1600&auto=format" alt="" onerror="this.remove()">
+      <div class="wrap">
+        <h1>More than 25 years of Care across Southeast Asia</h1>
+        <p>Modern screenings with doctor-led guidance, from results to next steps.</p>
+        <a class="btn" href="#dashboard" id="bookApptHero">Book Appointment</a>
+      </div>
+    </section>
+    <section class="sec">
+      <div class="wrap">
+        <div class="eyebrow">Introducing our new suite</div>
+        <h2>More than additional tests. More meaningful health insights.</h2>
+        <p class="lead">Modern screenings with doctor-led guidance, from results to next steps.</p>
+        <div class="ranges">
+          <div class="range"><h3>Pulse</h3><p>Everyday screening packages.</p><ul><li>Pulse Foundation</li><li>Pulse Essential</li><li>Pulse Select</li><li>Pulse Advanced</li></ul></div>
+          <div class="range"><h3>Meridian</h3><p>Comprehensive screening packages.</p><ul><li>Meridian Point</li><li>Meridian Profile</li><li>Meridian Premier</li><li>Meridian Pinnacle</li></ul></div>
+          <div class="range"><h3>Focus</h3><p>Targeted screening add-ons.</p><ul><li>Speak with our care team about Focus screenings</li></ul></div>
+        </div>
+      </div>
+    </section>
+    <section class="sec quick">
+      <div class="wrap">
+        <div class="eyebrow">HMI One</div>
+        <h2>Book online in a few steps</h2>
+        <p class="lead">Choose a package, pick a date and time at your preferred clinic, and tell us who is coming in.</p>
+        <div class="quick-grid">
+          <div class="quick-card"><h3>HMI Medical Centre</h3><p>Health screening and specialist care.</p></div>
+          <div class="quick-card"><h3>Harley Street Centre</h3><p>Health screening and specialist care.</p></div>
+          <div class="quick-card"><h3>HMI OneCare Clinic</h3><p>Health screening and family medicine.</p></div>
+        </div>
+      </div>
+    </section>
+    <footer class="site-ftr">
+      <div class="wrap">
+        <div class="ftr-grid">
+          <div><a class="mark" href="#home" aria-label="HMI Medical home"><svg aria-hidden="true"><use href="#hm"/></svg><span><b>HMI Medical</b><small>Southeast Asia</small></span></a></div>
+          <div><h4>Our Services</h4><ul><li>Health Screening</li><li>Specialist Care</li><li>Family Medicine</li></ul></div>
+          <div><h4>Patients</h4><ul><li>Book Appointment</li><li>HMI One</li><li>FAQ</li></ul></div>
+          <div><h4>Locations</h4><ul><li>HMI Medical Centre</li><li>Harley Street Centre</li><li>HMI OneCare Clinic</li></ul></div>
+        </div>
+        <div class="ftr-base">&copy; HMI Medical. Terms of Use &amp; Service &middot; Privacy Policy</div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ================= HMI One ================= -->
+  <div class="view app" id="v-app">
+    <header class="app-hdr">
+      <div class="left">
+        <button type="button" class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        <a class="mark" href="#dashboard" aria-label="HMI One dashboard"><svg aria-hidden="true"><use href="#hm"/></svg><b>HMI One</b></a>
+      </div>
+      <button type="button" class="btn login-pill">Login / Register</button>
+    </header>
+    <div class="app-body">
+      <aside class="side" id="side">
+        <nav aria-label="HMI One">
+          <a href="#dashboard" data-nav="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</a>
+          <a href="#listing" data-nav="appointments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Appointments</a>
+          <a href="#dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg>Medical Documents</a>
+          <a href="#dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>About HMI One</a>
+          <a href="#dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17v.5"/></svg>FAQ</a>
+        </nav>
+        <div class="side-foot">
+          <a href="#home">Back To HMI Medical Centre</a>
+          <a href="#dashboard">Terms of Use &amp; Service</a>
+          <a href="#dashboard">Privacy Policy</a>
+          <div class="lang"><b>SG</b><span>|</span><b>EN</b></div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <!-- Dashboard -->
+        <section class="sub" id="s-dashboard">
+          <div class="gs">
+            <div class="eyebrow">Get Started</div>
+            <h2>Start your healthcare journey with us</h2>
+            <p>Schedule an appointment by choosing an option below</p>
+            <div class="choice-grid">
+              <a class="choice" href="#dashboard" aria-disabled="true">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+                <h3>Consult a specialist</h3>
+                <p>See one of our specialists at an HMI clinic.</p>
+                <span class="go">Book a consultation &rarr;</span>
+              </a>
+              <a class="choice" href="#listing" id="bookScreening">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M7.5 15h9"/></svg></span>
+                <h3>Book a screening</h3>
+                <p>Choose a health screening package and a date that suits you.</p>
+                <span class="go">Book a screening &rarr;</span>
+              </a>
+            </div>
+            <div class="reg">
+              <div><b>Register An Account</b><p>Save your details and view your appointments and medical documents in HMI One.</p></div>
+              <button type="button" class="btn ghost">Register An Account</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Screening listing -->
+        <section class="sub" id="s-listing">
+          <div class="crumbs"><a href="#dashboard">Dashboard</a><span>/</span><span>Book a screening</span></div>
+          <h2>Book a screening</h2>
+          <p class="muted">Select a health screening package to continue.</p>
+          <div class="pkg-list">
+            <div class="pkg feature"><span class="tag">Screening</span><h3>Core Health</h3><p>A baseline health screening with doctor-led review of your results.</p><button type="button" class="btn" data-pkg="Core Health">Select</button></div>
+            <div class="pkg"><span class="tag">Pulse</span><h3>Pulse Foundation</h3><p>Everyday screening package.</p><button type="button" class="btn ghost" data-pkg="Pulse Foundation">Select</button></div>
+            <div class="pkg"><span class="tag">Pulse</span><h3>Pulse Essential</h3><p>Everyday screening package.</p><button type="button" class="btn ghost" data-pkg="Pulse Essential">Select</button></div>
+            <div class="pkg"><span class="tag">Pulse</span><h3>Pulse Select</h3><p>Everyday screening package.</p><button type="button" class="btn ghost" data-pkg="Pulse Select">Select</button></div>
+            <div class="pkg"><span class="tag">Meridian</span><h3>Meridian Point</h3><p>Comprehensive screening package.</p><button type="button" class="btn ghost" data-pkg="Meridian Point">Select</button></div>
+            <div class="pkg"><span class="tag">Meridian</span><h3>Meridian Profile</h3><p>Comprehensive screening package.</p><button type="button" class="btn ghost" data-pkg="Meridian Profile">Select</button></div>
+          </div>
+        </section>
+
+        <!-- Booking -->
+        <section class="sub" id="s-book">
+          <div class="crumbs"><a href="#dashboard">Dashboard</a><span>/</span><a href="#listing">Book a screening</a><span>/</span><span id="crumbPkg">Core Health</span></div>
+          <h2 id="bookTitle">Core Health</h2>
+          <div class="stepper" aria-label="Booking steps">
+            <div class="stp" id="stp1"><i>1</i>Date &amp; time</div>
+            <div class="stp" id="stp2"><i>2</i>Patient details</div>
+          </div>
+          <div class="book-grid">
+            <div class="panel">
+              <!-- Step 1 -->
+              <div id="step1">
+                <div class="block">
+                  <span class="field-label">Location <span class="req">*</span></span>
+                  <div class="seg" role="radiogroup" aria-label="Location">
+                    <label><input type="radio" name="loc" value="HMI Medical Centre"><span>HMI Medical Centre</span></label>
+                    <label><input type="radio" name="loc" value="Harley Street Centre"><span>Harley Street Centre</span></label>
+                    <label><input type="radio" name="loc" value="HMI OneCare Clinic"><span>HMI OneCare Clinic</span></label>
+                  </div>
+                </div>
+                <div class="block">
+                  <span class="field-label">Date <span class="req">*</span></span>
+                  <div class="cal">
+                    <div class="cal-head"><button type="button" class="cal-nav" id="calPrev" aria-label="Previous month">&lsaquo;</button><b id="calTitle"></b><button type="button" class="cal-nav" id="calNext" aria-label="Next month">&rsaquo;</button></div>
+                    <div class="cal-grid" id="calGrid"></div>
+                  </div>
+                </div>
+                <div class="block">
+                  <span class="field-label">Time <span class="req">*</span></span>
+                  <div class="seg" role="radiogroup" aria-label="Time">
+                    <label><input type="radio" name="slot" value="Morning Slot"><span>Morning Slot</span></label>
+                    <label><input type="radio" name="slot" value="Afternoon Slot"><span>Afternoon Slot</span></label>
+                  </div>
+                </div>
+                <div class="actions">
+                  <a class="linkbtn" href="#listing">&larr; Packages</a>
+                  <button type="button" class="btn" id="toDetails" disabled>Next &rarr;</button>
+                </div>
+              </div>
+
+              <!-- Step 2: patient details -->
+              <form id="claimForm" novalidate>
+                <input type="hidden" id="policyId" value="POL-5003">
+                <input type="hidden" id="claimType" value="health_screening">
+                <input type="number" id="amount" value="1" hidden>
+                <input type="hidden" id="description">
+                <div class="pd-fields">
+                  <div class="pd-grid">
+                    <div class="fg full"><label for="fullName">Full Name (as per ID document) <span class="req">*</span></label><input class="ctl" id="fullName" autocomplete="name" placeholder="Full Name (as per ID document)" required></div>
+                    <div class="fg"><label for="gender">Gender <span class="req">*</span></label><select class="ctl" id="gender" required><option value="">Select One</option><option>Male</option><option>Female</option></select></div>
+                    <div class="fg"><label for="dob">Date of Birth <span class="req">*</span></label><input class="ctl" id="dob" type="date" autocomplete="bday" required></div>
+                    <div class="fg"><label for="mobile">Mobile Number <span class="req">*</span></label><div class="phone"><select class="ctl" id="dial" aria-label="Country code"><option>+65</option><option>+60</option><option>+62</option></select><input class="ctl" id="mobile" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="Mobile Number" required></div></div>
+                    <div class="fg"><label for="nationality">Nationality <span class="req">*</span></label><select class="ctl" id="nationality" required><option value="">Select One</option><option>Singaporean</option><option>Malaysian</option><option>Indonesian</option><option>Others</option></select></div>
+                    <div class="fg"><label for="idType">ID Type <span class="req">*</span></label><select class="ctl" id="idType" required><option value="">Select One</option><option>NRIC</option><option>FIN</option><option>Passport</option></select></div>
+                    <div class="fg"><label for="idNumber">ID Number <span class="req">*</span></label><input class="ctl" id="idNumber" placeholder="ID Number" autocomplete="off" disabled required></div>
+                    <div class="fg full"><label for="email">Email <span class="req">*</span></label><input class="ctl" id="email" type="email" autocomplete="email" placeholder="Email" required></div>
+                    <p class="sub-h">Do you have a preferred doctor?</p>
+                    <div class="fg full"><div class="seg" role="radiogroup" aria-label="Preferred doctor">
+                      <label><input type="radio" name="doctor" value="Any" checked><span>Any</span></label>
+                      <label><input type="radio" name="doctor" value="Male"><span>Male</span></label>
+                      <label><input type="radio" name="doctor" value="Female"><span>Female</span></label>
+                    </div></div>
+                    <div class="fg full"><label for="notes">Is there anything you would like us to know?</label><textarea class="ctl" id="notes" placeholder="Write note here"></textarea></div>
+                    <div class="fg full">
+                      <div class="consent"><input type="checkbox" id="consentTerms" required><label for="consentTerms">I have read and agree to the <a href="#book">Terms of Use</a>. <span class="req">*</span></label></div>
+                      <div class="consent"><input type="checkbox" id="consentPrivacy" required><label for="consentPrivacy">I consent to the collection, use and disclosure of my personal data in accordance with the Privacy Notices (Singapore / Malaysia). <span class="req">*</span></label></div>
+                    </div>
+                  </div>
+                  <div class="actions">
+                    <button type="button" class="linkbtn" id="backToDate">&larr; Date</button>
+                    <button type="submit" class="btn" id="submitBtn" disabled>Submit &rarr;</button>
+                  </div>
+                </div>
+                <div id="result" class="result-box" role="status" aria-live="polite"></div>
+              </form>
+            </div>
+
+            <aside class="panel summary" aria-label="Appointment summary">
+              <h3>Your appointment</h3>
+              <dl>
+                <dt>Package</dt><dd id="sumPkg">Core Health</dd>
+                <dt>Location</dt><dd id="sumLoc">&mdash;</dd>
+                <dt>Date &amp; time</dt><dd id="sumWhen">Select a date &amp; time</dd>
+              </dl>
+              <span class="saved-note" id="savedNote" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Your details are saved on this device</span>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      var DRAFT_KEY = 'apptDraft';
+      var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      var DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      var TEXT_FIELDS = ['fullName', 'gender', 'dob', 'dial', 'mobile', 'nationality', 'idType', 'idNumber', 'email', 'notes'];
+
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      var firstBookable = new Date(today); firstBookable.setDate(firstBookable.getDate() + 1);
+      var lastBookable = new Date(today); lastBookable.setDate(lastBookable.getDate() + 60);
+      var state = { pkg: 'Core Health', loc: '', date: '', slot: '', doctor: 'Any' };
+      var calMonth = new Date(firstBookable.getFullYear(), firstBookable.getMonth(), 1);
+
+      function iso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+      function parseIso(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+      function fmtDate(s) { if (!s) return ''; var d = parseIso(s); return DOW[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear(); }
+      function fmtDob(s) { if (!s) return ''; var d = parseIso(s); return String(d.getDate()).padStart(2, '0') + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear(); }
+      function maskId(v) { v = (v || '').trim(); if (v.length <= 4) return v; return v.charAt(0) + new Array(v.length - 4).join('*') + v.slice(-4); }
+      function radio(name) { var el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ''; }
+      function setRadio(name, val) { var els = document.querySelectorAll('input[name="' + name + '"]'); for (var i = 0; i < els.length; i++) els[i].checked = els[i].value === val; }
+
+      // ---------- draft persistence ----------
+      function saveDraft() {
+        var d = { pkg: state.pkg, loc: state.loc, date: state.date, slot: state.slot, doctor: radio('doctor') || 'Any', terms: $('consentTerms').checked, privacy: $('consentPrivacy').checked };
+        TEXT_FIELDS.forEach(function (k) { d[k] = $(k).value; });
+        try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch (e) { /* storage unavailable */ }
+        $('savedNote').hidden = !(d.fullName || d.mobile || d.email);
+      }
+      function loadDraft() {
+        var d;
+        try { d = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) { d = null; }
+        if (!d) return;
+        state.pkg = d.pkg || state.pkg;
+        state.loc = d.loc || '';
+        state.slot = d.slot || '';
+        state.date = d.date && parseIso(d.date) >= firstBookable ? d.date : '';
+        TEXT_FIELDS.forEach(function (k) { if (d[k] != null) $(k).value = d[k]; });
+        setRadio('loc', state.loc); setRadio('slot', state.slot); setRadio('doctor', d.doctor || 'Any');
+        $('consentTerms').checked = !!d.terms; $('consentPrivacy').checked = !!d.privacy;
+        if (state.date) calMonth = new Date(parseIso(state.date).getFullYear(), parseIso(state.date).getMonth(), 1);
+      }
+      function clearDraft() {
+        try { sessionStorage.removeItem(DRAFT_KEY); } catch (e) { /* storage unavailable */ }
+        $('claimForm').reset();
+        $('idNumber').disabled = true;
+        setRadio('loc', ''); setRadio('slot', ''); setRadio('doctor', 'Any');
+        state = { pkg: 'Core Health', loc: '', date: '', slot: '', doctor: 'Any' };
+        hideResult();
+        renderCal(); syncStep1(); syncSummary(); validate();
+        $('savedNote').hidden = true;
+      }
+
+      // ---------- routing ----------
+      function route() {
+        var h = (location.hash || '#home').slice(1);
+        var parts = h.split('/');
+        var page = parts[0];
+        if (['home', 'dashboard', 'listing', 'book'].indexOf(page) === -1) page = 'home';
+        $('v-home').classList.toggle('on', page === 'home');
+        $('v-app').classList.toggle('on', page !== 'home');
+        ['dashboard', 'listing', 'book'].forEach(function (s) { $('s-' + s).style.display = s === page ? 'block' : 'none'; });
+        var navLinks = document.querySelectorAll('[data-nav]');
+        for (var i = 0; i < navLinks.length; i++) navLinks[i].classList.toggle('on', navLinks[i].getAttribute('data-nav') === (page === 'dashboard' ? 'dashboard' : 'appointments'));
+        if (page === 'book') {
+          var step = parts[1] === 'details' && step1Valid() ? 2 : 1;
+          if (parts[1] === 'details' && step === 1) history.replaceState(null, '', '#book/date');
+          showStep(step);
+        }
+        closeNav();
+        window.scrollTo(0, 0);
+      }
+      function showStep(n) {
+        $('step1').style.display = n === 1 ? 'block' : 'none';
+        $('claimForm').style.display = n === 2 ? 'block' : 'none';
+        $('stp1').className = 'stp ' + (n === 1 ? 'on' : 'done');
+        $('stp2').className = 'stp ' + (n === 2 ? 'on' : '');
+        $('crumbPkg').textContent = state.pkg; $('bookTitle').textContent = state.pkg;
+        syncSummary();
+      }
+
+      // ---------- step 1 ----------
+      function renderCal() {
+        var grid = $('calGrid');
+        grid.innerHTML = '';
+        $('calTitle').textContent = MONTHS_LONG[calMonth.getMonth()] + ' ' + calMonth.getFullYear();
+        DOW.forEach(function (d) { var s = document.createElement('span'); s.className = 'dow'; s.textContent = d.charAt(0) + d.charAt(1); grid.appendChild(s); });
+        for (var b = 0; b < calMonth.getDay(); b++) grid.appendChild(document.createElement('span'));
+        var days = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 0).getDate();
+        for (var i = 1; i <= days; i++) {
+          var d = new Date(calMonth.getFullYear(), calMonth.getMonth(), i);
+          var btn = document.createElement('button');
+          btn.type = 'button'; btn.className = 'day'; btn.textContent = i;
+          btn.setAttribute('aria-label', fmtDate(iso(d)));
+          var closed = d < firstBookable || d > lastBookable || d.getDay() === 0;
+          if (closed) btn.disabled = true;
+          if (iso(d) === state.date) { btn.classList.add('sel'); btn.setAttribute('aria-pressed', 'true'); }
+          btn.setAttribute('data-date', iso(d));
+          grid.appendChild(btn);
+        }
+        $('calPrev').disabled = calMonth <= new Date(firstBookable.getFullYear(), firstBookable.getMonth(), 1);
+        $('calNext').disabled = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1) > lastBookable;
+      }
+      function step1Valid() { return !!(state.loc && state.date && state.slot); }
+      function syncStep1() { $('toDetails').disabled = !step1Valid(); }
+      function syncSummary() {
+        $('sumPkg').textContent = state.pkg;
+        $('sumLoc').textContent = state.loc || '\u2014';
+        $('sumWhen').textContent = state.date ? fmtDate(state.date) + (state.slot ? ' \u00b7 ' + state.slot : '') : 'Select a date & time';
+      }
+
+      // ---------- step 2 ----------
+      function formValid() {
+        var ok = true;
+        ['fullName', 'gender', 'dob', 'mobile', 'nationality', 'idType', 'idNumber', 'email'].forEach(function (k) { if (!$(k).value.trim()) ok = false; });
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('email').value.trim())) ok = false;
+        if (!$('consentTerms').checked || !$('consentPrivacy').checked) ok = false;
+        return ok && step1Valid();
+      }
+      function validate() { $('submitBtn').disabled = !formValid(); }
+
+      function snapshot() {
+        return {
+          pkg: state.pkg, loc: state.loc, date: fmtDate(state.date), slot: state.slot,
+          name: $('fullName').value.trim(), gender: $('gender').value, dob: fmtDob($('dob').value),
+          mobile: $('dial').value + ' ' + $('mobile').value.trim(), nationality: $('nationality').value,
+          id: $('idType').value + ' ' + maskId($('idNumber').value), email: $('email').value.trim(),
+          doctor: radio('doctor') || 'Any', notes: $('notes').value.trim()
+        };
+      }
+      var ROWS = [
+        ['pkg', 'Package'], ['loc', 'Location'], ['date', 'Date'], ['slot', 'Time'], ['name', 'Full name'],
+        ['gender', 'Gender'], ['dob', 'Date of birth'], ['mobile', 'Mobile'], ['nationality', 'Nationality'],
+        ['id', 'ID'], ['email', 'Email'], ['doctor', 'Preferred doctor'], ['notes', 'Notes']
+      ];
+      function draftMessage(s) {
+        var lines = ['Hello HMI Medical,', '', 'I tried to book a health screening on HMI One but the booking did not go through. Could you please help me confirm this appointment?', ''];
+        ROWS.forEach(function (r) { if (s[r[0]]) lines.push(r[1] + ': ' + s[r[0]]); });
+        lines.push('', 'Please contact me on ' + s.mobile + ' or ' + s.email + ' to confirm.', '', 'Thank you,', s.name);
+        return lines.join('\n');
+      }
+      function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+      function hideResult() { var r = $('result'); r.className = 'result-box'; r.innerHTML = ''; $('claimForm').classList.remove('failed'); }
+
+      function showFailure() {
+        var s = snapshot();
+        var r = $('result');
+        r.innerHTML = '';
+        var box = el('div', 'fail');
+        box.appendChild(el('h3', null, 'We couldn\u2019t confirm your appointment just now'));
+        box.appendChild(el('p', null, 'Our booking system is taking longer than usual to respond, so this appointment has not been booked yet.'));
+        box.appendChild(el('p', null, 'Everything you entered is saved below \u2014 you won\u2019t need to fill it in again. You can try again in a few minutes, or send the message below to our team and we will confirm the booking for you.'));
+        r.appendChild(box);
+
+        var kept = el('div', 'kept');
+        kept.appendChild(el('h4', null, 'Your saved details'));
+        var dl = el('dl');
+        ROWS.forEach(function (row) { if (!s[row[0]]) return; dl.appendChild(el('dt', null, row[1])); dl.appendChild(el('dd', null, s[row[0]])); });
+        kept.appendChild(dl);
+        r.appendChild(kept);
+
+        var draft = el('div', 'draft');
+        var lbl = el('label', 'field-label', 'Message to our patient services team');
+        lbl.setAttribute('for', 'draftMsg');
+        draft.appendChild(lbl);
+        var ta = el('textarea', 'ctl');
+        ta.id = 'draftMsg';
+        ta.value = draftMessage(s);
+        draft.appendChild(ta);
+        var acts = el('div', 'draft-actions');
+        var retry = el('button', 'btn', 'Try again'); retry.type = 'button'; retry.id = 'retryBtn';
+        var copy = el('button', 'btn ghost', 'Copy message'); copy.type = 'button'; copy.id = 'copyBtn';
+        var edit = el('button', 'btn ghost', 'Edit details'); edit.type = 'button'; edit.id = 'editBtn';
+        var fresh = el('button', 'linkbtn', 'Start a new booking'); fresh.type = 'button'; fresh.id = 'newBtn';
+        acts.appendChild(retry); acts.appendChild(copy); acts.appendChild(edit); acts.appendChild(fresh);
+        draft.appendChild(acts);
+        var copied = el('div', 'copied'); copied.id = 'copied'; copied.setAttribute('aria-live', 'polite');
+        draft.appendChild(copied);
+        r.appendChild(draft);
+
+        retry.addEventListener('click', function () { submit(retry); });
+        copy.addEventListener('click', function () { copyText(ta, copied); });
+        edit.addEventListener('click', function () { hideResult(); $('fullName').focus(); });
+        fresh.addEventListener('click', function () { clearDraft(); location.hash = '#listing'; });
+
+        $('claimForm').classList.add('failed');
+        r.className = 'result-box show';
+        r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      function showSuccess() {
+        var s = snapshot();
+        var r = $('result');
+        r.innerHTML = '';
+        var box = el('div', 'ok');
+        box.appendChild(el('h3', null, 'Appointment request received'));
+        box.appendChild(el('p', null, s.pkg + ' at ' + s.loc + ' on ' + s.date + ' (' + s.slot + '). A confirmation will be sent to ' + s.email + '.'));
+        r.appendChild(box);
+        var again = el('button', 'linkbtn', 'Start a new booking'); again.type = 'button';
+        again.addEventListener('click', function () { clearDraft(); location.hash = '#listing'; });
+        r.appendChild(again);
+        $('claimForm').classList.add('failed');
+        r.className = 'result-box show';
+        try { sessionStorage.removeItem(DRAFT_KEY); } catch (e) { /* storage unavailable */ }
+      }
+      function copyText(ta, note) {
+        var done = function () { note.textContent = 'Message copied.'; };
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(ta.value).then(done, function () { ta.select(); document.execCommand('copy'); done(); });
+        } else { ta.select(); document.execCommand('copy'); done(); }
+      }
+
+      var busy = false;
+      async function submit(btn) {
+        if (busy || !formValid()) return;
+        busy = true;
+        saveDraft();
+        var label = btn.textContent;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Submitting\u2026';
+        $('description').value = state.pkg + ' screening \u2014 ' + state.loc + ' \u2014 ' + state.date + ' ' + state.slot;
+        var ok = false;
+        try {
+          var response = await fetch('/api/insurance/claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              policyId: $('policyId').value,
+              claimType: $('claimType').value,
+              amount: parseFloat($('amount').value),
+              description: $('description').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          });
+          var data = await response.json().catch(function () { return {}; });
+          ok = response.ok && data && data.success !== false;
+        } catch (e) { ok = false; }
+        busy = false;
+        btn.disabled = false;
+        btn.textContent = label;
+        if (ok) showSuccess(); else showFailure();
+        validate();
+      }
+
+      // ---------- wiring ----------
+      document.addEventListener('click', function (e) {
+        var day = e.target.closest('.day');
+        if (day && !day.disabled) { state.date = day.getAttribute('data-date'); renderCal(); syncStep1(); syncSummary(); saveDraft(); return; }
+        var pkg = e.target.closest('[data-pkg]');
+        if (pkg) { state.pkg = pkg.getAttribute('data-pkg'); saveDraft(); location.hash = '#book/date'; }
+      });
+      $('calPrev').addEventListener('click', function () { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCal(); });
+      $('calNext').addEventListener('click', function () { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderCal(); });
+      document.querySelectorAll('input[name="loc"], input[name="slot"]').forEach(function (r) {
+        r.addEventListener('change', function () { state.loc = radio('loc'); state.slot = radio('slot'); syncStep1(); syncSummary(); saveDraft(); });
+      });
+      $('toDetails').addEventListener('click', function () { if (step1Valid()) location.hash = '#book/details'; });
+      $('backToDate').addEventListener('click', function () { location.hash = '#book/date'; });
+      $('idType').addEventListener('change', function () { $('idNumber').disabled = !this.value; });
+      $('claimForm').addEventListener('input', function () { saveDraft(); validate(); });
+      $('claimForm').addEventListener('change', function () { saveDraft(); validate(); });
+      $('claimForm').addEventListener('submit', function (e) { e.preventDefault(); submit($('submitBtn')); });
+      $('dob').max = iso(today);
+
+      function closeNav() { $('v-app').classList.remove('nav-open'); $('menuBtn').setAttribute('aria-expanded', 'false'); }
+      $('menuBtn').addEventListener('click', function () {
+        var open = $('v-app').classList.toggle('nav-open');
+        this.setAttribute('aria-expanded', String(open));
+      });
+
+      loadDraft();
+      $('idNumber').disabled = !$('idType').value;
+      renderCal(); syncStep1(); syncSummary(); validate();
+      $('savedNote').hidden = !($('fullName').value || $('mobile').value || $('email').value);
+      window.addEventListener('hashchange', route);
+      route();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

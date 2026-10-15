@@ -3730,6 +3730,30 @@ const ONCALL_SKINS = {
     supportCenter: '第一生命 資料請求ダイヤル',
     disclaimer: 'NOT ACTUALLY A DAI-ICHI LIFE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dai-ichi Life product.',
   },
+  '48298aa2': {
+    slug: '48298aa2',
+    company: 'HMI Medical',
+    brandMark: 'H',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: '48298aa2.html', title: 'HMI Medical | More than 25 years of Care across Southeast Asia' },
+    theme: {
+      '--accent': '#0957CB',
+      '--ink': '#3C3C3C',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#004E89',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: '5xx rate \u2014 screening appointment submissions',
+      release: 'patient-companion-web@3.8.0',
+      team: 'patient-companion-oncall',
+      symptom: 'Screening appointment submissions hang ~8s and then return a 504. No appointment is created.',
+      impact: 'Patients booking health screenings online wait ~8 seconds after Submit and the appointment is not confirmed; calls and emails to the clinics are rising.',
+    },
+    supportCenter: 'HMI Medical Patient Services',
+    disclaimer: 'NOT ACTUALLY AN HMI MEDICAL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real HMI Medical product.',
+  },
 };
 
 function getOncallSkin(slug) {
