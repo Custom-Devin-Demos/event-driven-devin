@@ -19,6 +19,7 @@ const NEARBY_STORES = {
   '1487': ['1487', '1520', '0884', '1311', '0677', '1049'],
 };
 
+const MAX_CART_LINES = 20;
 const STORE_HOLD_DEADLINE_MS = 8000;
 const STORE_HOLD_LATENCY_MS = [700, 900];
 
@@ -33,6 +34,31 @@ function holdAtStore(storeNumber, line) {
       resolve({ storeNumber, sku: line.sku, held: true, holdRef: `HLD-${storeNumber}-${line.sku.slice(-6)}` });
     }, minMs + Math.random() * (maxMs - minMs));
   });
+}
+
+function invalidCart(message) {
+  const err = new Error(message);
+  err.code = 'INVALID_CART';
+  return err;
+}
+
+/** Validates requested lines and merges duplicate SKUs, as the storefront checkout does. */
+function normalizeCartItems(requested) {
+  if (!Array.isArray(requested) || !requested.length) throw invalidCart('Cart must contain at least one item');
+  if (requested.length > MAX_CART_LINES) throw invalidCart(`Cart cannot contain more than ${MAX_CART_LINES} lines`);
+  const qtyBySku = new Map();
+  for (const item of requested) {
+    const product = item && findProduct(item.sku);
+    if (!product) throw invalidCart(`Unknown SKU: ${item && item.sku}`);
+    const qty = Number(item.qty);
+    if (!Number.isInteger(qty) || qty < 1) throw invalidCart(`Quantity for ${product.sku} must be a positive integer`);
+    qtyBySku.set(product.sku, (qtyBySku.get(product.sku) || 0) + qty);
+  }
+  for (const [sku, qty] of qtyBySku) {
+    const { limitPerOrder } = findProduct(sku);
+    if (qty > limitPerOrder) throw invalidCart(`Quantity for ${sku} must be between 1 and ${limitPerOrder}`);
+  }
+  return [...qtyBySku].map(([sku, qty]) => ({ sku, qty }));
 }
 
 function withDeadline(promise, ms, label) {
@@ -86,17 +112,9 @@ async function checkoutOrder(data) {
   logger.info('Cart checkout started', { orderId, fulfillment, storeNumber, service: SERVICE, route: ROUTE });
 
   try {
-    const items = Array.isArray(data.items) && data.items.length
-      ? data.items
-      : [{ sku: '24NIKMPGSS41RDXXXRNN', qty: 1 }, { sku: '20SPAUTF1000LGCYBSKB', qty: 1 }];
-    for (const item of items) {
-      if (!findProduct(item && item.sku)) {
-        const err = new Error(`Unknown SKU: ${item && item.sku}`);
-        err.code = 'INVALID_CART';
-        throw err;
-      }
-    }
-
+    const items = normalizeCartItems(data.items === undefined
+      ? [{ sku: '24NIKMPGSS41RDXXXRNN', qty: 1 }, { sku: '20SPAUTF1000LGCYBSKB', qty: 1 }]
+      : data.items);
     const lines = buildCartLines(items);
     const holds = fulfillment === 'pickup'
       ? await withDeadline(holdPickupInventory(lines, storeNumber, orderId), STORE_HOLD_DEADLINE_MS, 'Store pickup hold')

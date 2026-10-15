@@ -31,6 +31,19 @@ describe('sporting goods on-call checkout', () => {
       .rejects.toMatchObject({ code: 'INVALID_CART' });
   });
 
+  test.each([
+    [[{ sku: '24NIKMPGSS41RDXXXRNN', qty: -1 }]],
+    [[{ sku: '24NIKMPGSS41RDXXXRNN', qty: 'oops' }]],
+    [[{ sku: '24NIKMPGSS41RDXXXRNN', qty: 99 }]],
+    [[]],
+  ])('rejects an invalid cart %j as INVALID_CART', async (items) => {
+    await expect(checkoutOrder({ items, fulfillment: 'ship' })).rejects.toMatchObject({ code: 'INVALID_CART' });
+  });
+
+  test('only store-pickup checkouts page on-call', () => {
+    expect(ALERT_SCENARIOS.sportinggoods.triggerWhen).toEqual({ fulfillment: 'pickup' });
+  });
+
   test('alert scenario is latency-shaped, unlisted and free of code locations', () => {
     const s = ALERT_SCENARIOS.sportinggoods;
     expect(s.apiPath).toBe('/api/1b17e823/checkout');

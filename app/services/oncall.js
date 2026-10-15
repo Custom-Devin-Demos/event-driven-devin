@@ -239,6 +239,7 @@ const ALERT_SCENARIOS = {
     release: 'omni-checkout@3.8.0',
     symptom: 'Store-pickup checkouts hang ~8s and then fail with 504 Gateway Timeout. Ship-to-home checkouts are normal. Onset coincides with the omni-checkout 3.8.0 pickup-hold release.',
     impact: 'Shoppers choosing Free Store Pickup cannot complete checkout; every pickup order sits on a spinner and then errors.',
+    triggerWhen: { fulfillment: 'pickup' },
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },

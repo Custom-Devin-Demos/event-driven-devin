@@ -86,6 +86,7 @@ describe('on-call hub routes', () => {
     const html = await skinned.text();
     expect(html).toContain('/api/oncall/sportinggoods/checkout');
     expect(html).not.toMatch(/FLX|Foot Locker/);
+    expect(html).toContain('{"fulfillment":"pickup"}');
     if (legacy.status === 200) expect(await legacy.text()).not.toContain('/api/oncall/sportinggoods/checkout');
   });
 
