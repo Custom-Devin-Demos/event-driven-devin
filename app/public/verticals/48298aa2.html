@@ -244,6 +244,7 @@
       .actions { flex-wrap: wrap; }
       .draft-actions .btn { flex: 1 1 100%; }
     }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   </style>
 </head>
 <body>
@@ -421,6 +422,7 @@
               </div>
 
               <!-- Step 2: patient details -->
+              <div id="submitStatus" class="sr-only" role="status" aria-live="polite"></div>
               <form id="claimForm" novalidate>
                 <input type="hidden" id="policyId" value="POL-5003">
                 <input type="hidden" id="claimType" value="health_screening">
@@ -660,7 +662,7 @@
         });
         copy.addEventListener('click', function () { copyText(ta, copied); });
         edit.addEventListener('click', function () { hideResult(); $('fullName').focus(); });
-        fresh.addEventListener('click', function () { submitSeq++; clearDraft(); location.hash = '#listing'; });
+        fresh.addEventListener('click', function () { submitSeq++; releaseSubmit(); clearDraft(); location.hash = '#listing'; });
 
         $('claimForm').classList.add('failed');
         r.className = 'result-box show';
@@ -689,17 +691,31 @@
 
       var busy = false;
       var submitSeq = 0;
+      var locked = [];
+      var submitLabel = $('submitBtn').innerHTML;
+      function lockControls() {
+        var ctl = document.querySelectorAll('#step1 input, #step1 select, #step1 button, #claimForm input:not([type=hidden]), #claimForm select, #claimForm textarea');
+        locked = Array.prototype.filter.call(ctl, function (c) { return !c.disabled; });
+        locked.forEach(function (c) { c.disabled = true; });
+      }
+      function releaseSubmit() {
+        if (!busy) return;
+        busy = false;
+        locked.forEach(function (c) { c.disabled = false; });
+        locked = [];
+        $('submitStatus').textContent = '';
+        $('submitBtn').innerHTML = submitLabel;
+        validate();
+      }
       async function submit(btn) {
         if (busy || !formValid()) return;
         busy = true;
         saveDraft();
         var snap = snapshot();
         var token = ++submitSeq;
-        var label = btn.textContent;
+        lockControls();
         btn.disabled = true;
-        $('claimForm').inert = true;
-        $('step1').inert = true;
-        $('claimForm').setAttribute('aria-busy', 'true');
+        $('submitStatus').textContent = 'Submitting your booking\u2026';
         btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Submitting\u2026';
         $('description').value = state.pkg + ' screening \u2014 ' + state.loc + ' \u2014 ' + state.date + ' ' + state.slot;
         var ok = false;
@@ -720,23 +736,17 @@
           var data = await response.json().catch(function () { return {}; });
           ok = response.ok && data && data.success !== false;
         } catch (e) { ok = false; }
-        busy = false;
-        $('claimForm').inert = false;
-        $('step1').inert = false;
-        $('claimForm').removeAttribute('aria-busy');
-        btn.disabled = false;
-        btn.textContent = label;
         if (token !== submitSeq) return;
+        releaseSubmit();
         if (ok) showSuccess(snap); else showFailure(snap);
-        validate();
       }
 
       // ---------- wiring ----------
       document.addEventListener('click', function (e) {
         var day = e.target.closest('.day');
-        if (day && !day.disabled) { state.date = day.getAttribute('data-date'); renderCal(); syncStep1(); syncSummary(); saveDraft(); return; }
+        if (day && !day.disabled && !busy) { state.date = day.getAttribute('data-date'); renderCal(); syncStep1(); syncSummary(); saveDraft(); return; }
         var pkg = e.target.closest('[data-pkg]');
-        if (pkg) { submitSeq++; hideResult(); state.pkg = pkg.getAttribute('data-pkg'); saveDraft(); location.hash = '#book/date'; }
+        if (pkg) { submitSeq++; releaseSubmit(); hideResult(); state.pkg = pkg.getAttribute('data-pkg'); saveDraft(); location.hash = '#book/date'; }
       });
       $('calPrev').addEventListener('click', function () { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCal(); });
       $('calNext').addEventListener('click', function () { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderCal(); });
