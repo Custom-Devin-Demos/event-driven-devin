@@ -1,55 +1,69 @@
-# Disney Parks Tickets & Resorts — On-Call run sheet (`/90ccfbb2`)
+# Disney Parks Commerce — On-Call run sheet (`/90ccfbb2`)
 
-Click → request → legacy COBOL failure → alert. The page is an unaffiliated
-replica of the Walt Disney World / Disneyland Resort booking flow (banner on top).
+One shared inventory provider, two Disney consumers, one contract change that
+only one consumer picked up. Click → request → downstream crash → alert. Both
+pages are unaffiliated replicas of the Walt Disney World / Disneyland Resort
+sites (banner on top).
 
 ## Pieces
 
 | Piece | Where |
 |-------|-------|
-| Storefront (tickets + Park Pass, resort hotels, cart with 15-min hold, checkout) | `app/public/verticals/90ccfbb2.html` |
-| Facade + alert path | `app/services/verticals/90ccfbb2.js`, `app/routes/verticals/90ccfbb2.js` |
-| Inventory service — Java 8, Spring Boot 2.7 (availability, holds, checkout, `HoldReleaseJob`) | `resort-inventory/` (compose service `resort-inventory`, deploy step 5c) |
-| Legacy ledger posting — GnuCOBOL `HLDPOST` (copybooks `HLDREC`/`LEDGREC`, product, season and tax tables) | `resort-inventory/cobol/` (compiled with `cobc` into the container) |
-| Monitor card | `ALERT_SCENARIOS['90ccfbb2']` in `app/services/oncall.js` → On-Call alerts channel |
+| Provider — `resort-inventory`, Java 8 / Spring Boot 2.7 (catalog, availability, holds, checkout, `HoldReleaseJob`) for tickets, hotels and dining | `resort-inventory/` (compose service `resort-inventory`, deploy step 5c) |
+| Legacy ledger posting behind the provider — GnuCOBOL `HLDPOST` | `resort-inventory/cobol/` |
+| Consumer A — Tickets & Resort Hotels (`/90ccfbb2`, `/90ccfbb2/tickets`), **on availability v2** | `app/public/verticals/90ccfbb2.html`, `app/services/verticals/90ccfbb2.js` |
+| Consumer B — Disney Dining reservations (`/90ccfbb2/dining`), **still on v1** | `app/public/verticals/90ccfbb2/dining.html`, `app/services/verticals/90ccfbb2-dining.js` |
+| Monitor card | `ALERT_SCENARIOS['90ccfbb2-dining']` in `app/services/oncall.js` → On-Call alerts channel |
 
 ## The incident (leave it in place)
 
-Commit **"INV-2291: add PEAK rate season for Thanksgiving and holiday weeks"**
-makes `SeasonCalendar` return `P` for Thanksgiving week and Dec 20 – Jan 1.
-`HoldService` passes the season to `LedgerPostingClient`, which runs `HLDPOST`.
-HLDPOST's `SEASON-RATE-TABLE` only has `V` and `R` rows, so `SEARCH … AT END`
-fires: `HLD0042E NO RATE ENTRY FOR SEASON P`, RETURN-CODE 16. Java answers
-500 `LEDGER_POSTING_FAILED`; the facade answers 500 `HOLD_FAILED`, captures to
-Sentry, declares a SEV-2 Datadog incident and posts the monitor card.
+Commit **"INV-2291: availability v2 — price { amount, currency } replaces priceFromUsd"**
+changes `AvailabilityService` from
 
-Telemetry: `ledger.post_failed program=HLDPOST rc=16 … record="…"` (resort-inventory
-logs), `Add to cart failed: hold could not be posted` (checkout-api logs),
-metric `resort_inventory.hold_failure`.
+```json
+{ "date": "2026-11-21", "status": "LIMITED", "priceFromUsd": 89 }
+```
+
+to
+
+```json
+{ "date": "2026-11-21", "status": "LIMITED", "price": { "amount": 89, "currency": "USD" } }
+```
+
+and migrates the Tickets & Resort Hotels consumer to `price.amount`. Dining's
+`quoteReservation` still does `offer.priceFromUsd.toFixed(2)`, so **Book
+Reservation** throws `TypeError: Cannot read properties of undefined (reading 'toFixed')`.
+The facade answers 500 `RESERVATION_FAILED` with a `DIN-…` reference, captures
+to Sentry, declares a SEV-2 Datadog incident and posts the monitor card (once
+per restaurant/error per 10 minutes). Dining's own unit tests still pass because
+they mock the v1 shape: no consumer-driven contract test ties them to the provider.
+
+Telemetry: `Book Reservation failed` (checkout-api logs, `service:dining-reservations`),
+metric `dining_reservations.booking_failure`.
 
 ## Run it
 
-1. Open `https://devindemos.com/90ccfbb2` with the hub identity set.
-2. Magic Kingdom Park and Thanksgiving Saturday are pre-selected → **Add Tickets
-   to Cart** → error with a reference. Any non-holiday date adds to cart and
-   checks out (`WDPR-…`).
+1. Open `https://devindemos.com/90ccfbb2/tickets` with the hub identity set →
+   **Add Tickets to Cart** → cart → Review & Purchase → `WDPR-…`. The provider works.
+2. Open `https://devindemos.com/90ccfbb2/dining` → Be Our Guest is pre-selected →
+   **Book Reservation** → "We're sorry… (Reference: DIN-…)".
 3. The card lands in #oncall-alerts with a SEV-2 Datadog incident.
-4. Devin Oncall pulls logs and metrics, uses DeepWiki on this repo to explain the
-   hold/season/ledger rules, traces the failure from `LedgerPostingClient` into
-   `HLDPOST.cbl` and the INV-2291 commit, adds a `P` row (and bumps `OCCURS`),
-   proves it with `resort-inventory/cobol/test-hldpost.sh` (GnuCOBOL) plus a
-   new peak case, and opens a PR.
+4. Devin Oncall pulls logs and metrics, uses DeepWiki to map provider → consumers,
+   diffs the availability response against what dining reads, traces it to
+   INV-2291, moves dining to `price.amount`, adds a consumer-driven contract test
+   that runs against the provider's real response, and opens a PR.
 
-Local: `cobc -x -free -I resort-inventory/cobol/copy -o /tmp/HLDPOST resort-inventory/cobol/HLDPOST.cbl`,
-build the jar with `maven:3.8.8-eclipse-temurin-8`, run
+Local: build the jar with `maven:3.8.8-eclipse-temurin-8`,
+`cobc -x -free -I resort-inventory/cobol/copy -o /tmp/HLDPOST resort-inventory/cobol/HLDPOST.cbl`, run
 `PORT=8085 java -Dinventory.ledger.hldpost=/tmp/HLDPOST -jar resort-inventory/target/resort-inventory.jar`
 and `RESORT_INVENTORY_URL=http://localhost:8085 node app/server.js`.
 
 ## Close on
 
+- **Consumer-driven contract verification** — the drift he writes about ("APIs drifted out of sync with consumer expectations"), caught in CI next time.
 - **A human approves the PR** — review is the gate, not the bottleneck.
-- **Minutes to RCA** — card landing → root cause in the thread, against "under 1 hour".
+- **Minutes to RCA / MTTR** — card landing → root cause in the thread, against "under 1 hour".
 - **The win is merged fixes, not tokens.**
-- **DeepWiki keeps the context fresh** — the COBOL rate rules come from the code as it is today, not a hand-maintained Confluence page.
+- **DeepWiki keeps the context fresh** — the provider/consumer map comes from the code as it is today, not a hand-maintained Confluence page.
 
 Do not merge Devin's fix PR into `main`: the bug is the demo.
