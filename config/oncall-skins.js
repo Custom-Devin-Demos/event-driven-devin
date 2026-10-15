@@ -1434,6 +1434,19 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BLOOMBERG LAW SITE — internal demo only, not affiliated with, endorsed by, or a real Bloomberg Industry Group product.',
   },
+  b31d1347: {
+    slug: 'b31d1347',
+    company: "DICK'S Sporting Goods",
+    brandMark: 'D',
+    vertical: 'sportinggoods',
+    page: {
+      file: '1b17e823.html',
+      title: "Cart | DICK'S Sporting Goods",
+    },
+    accent: '#006554',
+    accentDark: '#004c3f',
+    disclaimer: "NOT ACTUALLY A DICK'S SPORTING GOODS SITE — internal demo only, not affiliated with, endorsed by, or a real DICK'S Sporting Goods product.",
+  },
   '0d1ff688': {
     slug: '0d1ff688',
     company: 'Nordstrom',

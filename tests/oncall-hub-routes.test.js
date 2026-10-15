@@ -77,6 +77,19 @@ describe('on-call hub routes', () => {
     expect(await shoe.text()).toContain('/api/oncall/marketplace/cart');
   });
 
+  test('the sporting goods skin reroutes checkout while the legacy /1b17e823 page stays unshimmed', async () => {
+    const [skinned, legacy] = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/b31d1347`),
+      fetch(`${baseUrl}/1b17e823`),
+    ]);
+    expect(skinned.status).toBe(200);
+    const html = await skinned.text();
+    expect(html).toContain('/api/oncall/sportinggoods/checkout');
+    expect(html).not.toMatch(/FLX|Foot Locker/);
+    expect(html).toContain('{"fulfillment":"pickup"}');
+    if (legacy.status === 200) expect(await legacy.text()).not.toContain('/api/oncall/sportinggoods/checkout');
+  });
+
   test('the GSK vaccine page uses the vaccines endpoint without changing the banking skins', async () => {
     const [direct, skinned, bank] = await Promise.all([
       fetch(`${baseUrl}/fe4f39ba`),

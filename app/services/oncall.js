@@ -222,6 +222,27 @@ const ALERT_SCENARIOS = {
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },
+  sportinggoods: {
+    vertical: 'sportinggoods',
+    page: '1b17e823.html',
+    apiPath: '/api/1b17e823/checkout',
+    oncallApiPath: '/api/oncall/sportinggoods/checkout',
+    owner: 'Riley Okafor (omnichannel-checkout-oncall)',
+    brand: 'Sporting Goods Storefront (Cart Checkout)',
+    service: 'order-api',
+    endpoint: 'POST /api/oncall/sportinggoods/checkout',
+    monitor: 'p95 latency — POST /api/oncall/sportinggoods/checkout',
+    metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/sportinggoods/checkout}',
+    metricValue: '8.0s (504s on store-pickup orders)',
+    threshold: '> 2s',
+    baseline: '~420ms (7-day p95)',
+    release: 'omni-checkout@3.8.0',
+    symptom: 'Store-pickup checkouts hang ~8s and then fail with 504 Gateway Timeout. Ship-to-home checkouts are normal. Onset coincides with the omni-checkout 3.8.0 pickup-hold release.',
+    impact: 'Shoppers choosing Free Store Pickup cannot complete checkout; every pickup order sits on a spinner and then errors.',
+    triggerWhen: { fulfillment: 'pickup' },
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   industrials: {
     vertical: 'industrials',
     page: 'industrials-quote.html',
