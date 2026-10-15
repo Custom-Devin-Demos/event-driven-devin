@@ -223,6 +223,9 @@ async function handleCommand(body) {
       if (!range) {
         return { response_type: 'ephemeral', text: "I couldn't read those dates. Try `/fcto free oct 22`, `/fcto free oct 22-24`, `/fcto free 2026-11-03..2026-11-05` or `/fcto free next week`." };
       }
+      if (range.to - range.from > R.MAX_AVAILABILITY_DAYS * 86400) {
+        return { response_type: 'ephemeral', text: `I can show up to ${R.MAX_AVAILABILITY_DAYS} days at a time — try a shorter range.` };
+      }
       const blocks = B.availabilityBlocks(store, range);
       return { response_type: 'ephemeral', text: blocks[0].text.text, blocks };
     }

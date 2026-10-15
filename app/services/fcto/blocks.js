@@ -416,6 +416,7 @@ const dayLabel = (ts) => DAY_FMT.format(ts * 1000);
 // `/fcto free <dates>`: one line per Field CTO, fully-free people first.
 function availabilityBlocks(store, { from, to, title } = {}) {
   const { days, members } = R.availability(store, { from, to });
+  if (!days.length) return [section('_No days in that range._')];
   const span = days.length === 1 ? dayLabel(days[0]) : `${dayLabel(days[0])} to ${dayLabel(days[days.length - 1])}`;
   const blocks = [{ type: 'header', text: plain(title || `Who's free — ${span}`) }];
   const sorted = members.slice().sort((a, b) => b.freeDays - a.freeDays || a.member.name.localeCompare(b.member.name));
@@ -430,11 +431,12 @@ function availabilityBlocks(store, { from, to, title } = {}) {
       const what = d.busy.map((b) => (d.status === 'booked' ? b.id : `${R.formatRangeInTz(b.startTs, b.endTs, member.tz)} ${b.id}`)).join(', ');
       return `${AVAIL_EMOJI[d.status]} ${dayLabel(d.day)} (${what})`;
     });
-    const head = freeDays ? AVAIL_EMOJI.partial : AVAIL_EMOJI.booked;
-    const summary = perDay.length === 1 ? (perDay[0].status === 'booked' ? 'booked' : 'partly booked') : `${freeDays}/${perDay.length} days free`;
+    const bookedDays = perDay.filter((d) => d.status === 'booked').length;
+    const head = bookedDays === perDay.length ? AVAIL_EMOJI.booked : AVAIL_EMOJI.partial;
+    const summary = perDay.length === 1 ? (bookedDays ? 'booked' : 'partly booked') : `${freeDays}/${perDay.length} days free`;
     blocks.push(section(`${head} *${member.name}* (${region}) — ${summary}\n${detail.join(' · ')}`));
   });
-  blocks.push(context(`${AVAIL_EMOJI.free} free · ${AVAIL_EMOJI.partial} partly booked · ${AVAIL_EMOJI.booked} booked (6h+) · approved reservations in this app only — not personal calendars · \`/fcto free oct 22-24\``));
+  blocks.push(context(`${AVAIL_EMOJI.free} free · ${AVAIL_EMOJI.partial} partly booked · ${AVAIL_EMOJI.booked} booked (6h+) · each person's local day · approved reservations in this app only — not personal calendars · \`/fcto free oct 22-24\``));
   return blocks;
 }
 

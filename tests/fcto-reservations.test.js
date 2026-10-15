@@ -742,3 +742,42 @@ describe('availability', () => {
     delete process.env.FCTO_CHANNEL_ID;
   });
 });
+
+describe('availability edge cases', () => {
+  const T = Date.UTC(2026, 9, 15, 12) / 1000;
+  const d = (y, m, dd) => Date.UTC(y, m, dd) / 1000;
+
+  test('year-crossing and reversed ranges', () => {
+    const { R } = load();
+    const dec31 = d(2026, 11, 31) + 3600;
+    expect(R.parseDateRange('dec 30 - jan 2', dec31)).toEqual({ from: d(2027, 11, 30), to: d(2028, 0, 3) });
+    expect(R.parseDateRange('dec 31 - jan 2', dec31)).toEqual({ from: d(2026, 11, 31), to: d(2027, 0, 3) });
+    expect(R.parseDateRange('2026-11-05..2026-11-03', T)).toBeNull();
+    expect(R.parseDateRange('nov 5 - nov 3, 2026', T)).toBeNull();
+  });
+
+  test("days are each Field CTO's local day", async () => {
+    const { store, R } = load();
+    expect(R.localDayStart(d(2026, 9, 23), 'Asia/Tokyo')).toBe(d(2026, 9, 22) + 15 * 3600);
+    expect(R.localDayStart(d(2026, 9, 23), 'America/Los_Angeles')).toBe(d(2026, 9, 23) + 7 * 3600);
+    expect(R.localDayStart(d(2026, 10, 2), 'America/Los_Angeles')).toBe(d(2026, 10, 2) + 8 * 3600); // after DST ends
+    // 23:00Z Oct 22 = 08:00 JST Oct 23
+    const r = await R.createRequest(store, base({ startTs: d(2026, 9, 22) + 23 * 3600, durationKey: '1h', who: 'MEMBER:AKIRA_SHIBATA' }), { now: T });
+    await R.approve(store, r.id, { by: ADMIN });
+    const pick = (day) => R.availability(store, { from: day, to: day + 86400 }).members.find((m) => m.member.key === 'AKIRA_SHIBATA').days[0].status;
+    expect(pick(d(2026, 9, 23))).toBe('partial');
+    expect(pick(d(2026, 9, 22))).toBe('free');
+    const B = require('../app/services/fcto/blocks');
+    const json = JSON.stringify(B.availabilityBlocks(store, { from: d(2026, 9, 23), to: d(2026, 9, 24) }));
+    expect(json).toContain(':large_yellow_circle: *Akira Shibata* (Japan / APAC) — partly booked');
+    expect(json).toContain("each person's local day");
+  });
+
+  test('ranges longer than 31 days are refused with a clear message', async () => {
+    process.env.FCTO_CHANNEL_ID = 'CEXEC';
+    const { handleCommand } = require('../app/routes/fcto')._internal;
+    const res = await handleCommand({ command: '/fcto', text: 'free 2026-10-01 - 2026-12-15', user_id: REQUESTER });
+    expect(res.text).toMatch(/up to 31 days/);
+    delete process.env.FCTO_CHANNEL_ID;
+  });
+});

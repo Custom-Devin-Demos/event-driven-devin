@@ -458,7 +458,7 @@ function parseDateRange(text, now = Math.floor(Date.now() / 1000)) {
   const toTs = (o, notBefore) => {
     if (!o || o.mo < 0 || o.mo > 11 || o.d < 1 || o.d > 31) return null;
     let ts = Date.UTC(o.y || year, o.mo, o.d) / 1000;
-    if (!o.y && ts < notBefore) ts = Date.UTC(year + 1, o.mo, o.d) / 1000;
+    for (let extra = 1; !o.y && ts < notBefore && extra <= 2; extra += 1) ts = Date.UTC(year + extra, o.mo, o.d) / 1000;
     return new Date(ts * 1000).getUTCDate() === o.d ? ts : null;
   };
 
@@ -474,29 +474,51 @@ function parseDateRange(text, now = Math.floor(Date.now() / 1000)) {
   if (from === null) return null;
   if (parts.length === 1) return { from, to: from + DAY };
   const end = toTs(parseOne(parts[1], first), from);
-  if (end === null) return null;
+  if (end === null || end < from) return null;
   return { from, to: end + DAY };
 }
 
+const OFFSET_FMT = new Map();
+function tzOffsetSeconds(ts, tz) {
+  let fmt = OFFSET_FMT.get(tz);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+    OFFSET_FMT.set(tz, fmt);
+  }
+  const p = {};
+  fmt.formatToParts(new Date(ts * 1000)).forEach((x) => { if (x.type !== 'literal') p[x.type] = Number(x.value); });
+  return Date.UTC(p.year, p.month - 1, p.day, p.hour % 24, p.minute, p.second) / 1000 - ts;
+}
+
+// Midnight of the calendar date `utcMidnight` names, in `tz`. Two passes so a
+// DST change on that night still lands on local 00:00.
+function localDayStart(utcMidnight, tz) {
+  const guess = utcMidnight - tzOffsetSeconds(utcMidnight, tz);
+  return utcMidnight - tzOffsetSeconds(guess, tz);
+}
+
 /**
- * Who is free on each UTC day of [from, to)? Only approved reservations count
- * (pending ones don't block anyone). A day is `booked` once 6h+ of it is
- * reserved, `partial` for anything less, else `free`.
+ * Who is free on each calendar date of [from, to)? Dates are evaluated in each
+ * Field CTO's own time zone (Akira's "Oct 23" is JST). Only approved
+ * reservations count (pending ones don't block anyone). A day is `booked`
+ * once 6h+ of it is reserved, `partial` for anything less, else `free`.
  */
 function availability(store, { from, to, env = process.env }) {
   const days = [];
   for (let d = utcDay(from); d < to && days.length < MAX_AVAILABILITY_DAYS; d += DAY) days.push(d);
-  const approved = store.all().filter((r) => r.status === STATUS.APPROVED && r.endTs > from && r.startTs < to);
+  const approved = store.all().filter((r) => r.status === STATUS.APPROVED && r.endTs > from - DAY && r.startTs < to + DAY);
   const members = getRoster(env).map((member) => {
     const perDay = days.map((d) => {
+      const startTs = localDayStart(d, member.tz);
+      const endTs = localDayStart(d + DAY, member.tz);
       const busy = approved
-        .filter((r) => r.assigneeKey === member.key && overlaps(r.startTs, r.endTs, d, d + DAY))
-        .map((r) => ({ id: r.id, account: r.account, startTs: Math.max(r.startTs, d), endTs: Math.min(r.endTs, d + DAY) }))
+        .filter((r) => r.assigneeKey === member.key && overlaps(r.startTs, r.endTs, startTs, endTs))
+        .map((r) => ({ id: r.id, account: r.account, startTs: Math.max(r.startTs, startTs), endTs: Math.min(r.endTs, endTs) }))
         .sort((a, b) => a.startTs - b.startTs);
       const seconds = busy.reduce((n, b) => n + (b.endTs - b.startTs), 0);
       let status = 'free';
       if (busy.length) status = seconds >= DAY_BOOKED_SECONDS ? 'booked' : 'partial';
-      return { day: d, status, busy };
+      return { day: d, startTs, endTs, status, busy };
     });
     return { member, days: perDay, freeDays: perDay.filter((x) => x.status === 'free').length };
   });
@@ -506,6 +528,8 @@ function availability(store, { from, to, env = process.env }) {
 module.exports = {
   parseDateRange,
   availability,
+  localDayStart,
+  MAX_AVAILABILITY_DAYS,
   STATUS,
   DURATIONS,
   PREFERENCES,
