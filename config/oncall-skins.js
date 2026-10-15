@@ -1434,6 +1434,19 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BLOOMBERG LAW SITE — internal demo only, not affiliated with, endorsed by, or a real Bloomberg Industry Group product.',
   },
+  b31d1347: {
+    slug: 'b31d1347',
+    company: "DICK'S Sporting Goods",
+    brandMark: 'D',
+    vertical: 'sportinggoods',
+    page: {
+      file: '1b17e823.html',
+      title: "Cart | DICK'S Sporting Goods",
+    },
+    accent: '#006554',
+    accentDark: '#004c3f',
+    disclaimer: "NOT ACTUALLY A DICK'S SPORTING GOODS SITE — internal demo only, not affiliated with, endorsed by, or a real DICK'S Sporting Goods product.",
+  },
   '0d1ff688': {
     slug: '0d1ff688',
     company: 'Nordstrom',
@@ -3729,6 +3742,30 @@ const ONCALL_SKINS = {
     },
     supportCenter: '第一生命 資料請求ダイヤル',
     disclaimer: 'NOT ACTUALLY A DAI-ICHI LIFE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dai-ichi Life product.',
+  },
+  '48298aa2': {
+    slug: '48298aa2',
+    company: 'HMI Medical',
+    brandMark: 'H',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: '48298aa2.html', title: 'HMI Medical | More than 25 years of Care across Southeast Asia' },
+    theme: {
+      '--accent': '#0957CB',
+      '--ink': '#3C3C3C',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#004E89',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: '5xx rate \u2014 screening appointment submissions',
+      release: 'patient-companion-web@3.8.0',
+      team: 'patient-companion-oncall',
+      symptom: 'Screening appointment submissions hang ~8s and then return a 504. No appointment is created.',
+      impact: 'Patients booking health screenings online wait ~8 seconds after Submit and the appointment is not confirmed; calls and emails to the clinics are rising.',
+    },
+    supportCenter: 'HMI Medical Patient Services',
+    disclaimer: 'NOT ACTUALLY AN HMI MEDICAL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real HMI Medical product.',
   },
 };
 

@@ -31,9 +31,9 @@ When it stops with the plan, reply `approved`.
 - **Alex Kim** (`6100457823`) shares an email (different case) with FLX's
   *Alexis Kimball* (`FLX-R2C9T`): a different person. Good matching must not
   auto-link them.
-- Jordan Reyes's existing "FLX X3 linked" badge belongs to the separate
-  on-call demo (X3 crosswalks to a tier that doesn't exist and checkout
-  fails). Don't fix it in this demo.
+- Jordan Reyes (the default `/dicks` shopper, Platinum) belongs to the
+  separate on-call demo: his migrated reward code `SCR02127741` doesn't match
+  the ledger key `SCR-0212-7741`, so checkout fails. Don't fix it in this demo.
 
 ## Run locally (no real alerts)
 

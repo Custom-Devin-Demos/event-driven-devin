@@ -34,7 +34,7 @@ describe('mock ScoreCard API', () => {
     expect(seed).toHaveLength(200);
     const jordan = await call('GET', '/members/8841207733');
     expect(jordan.status).toBe(200);
-    expect(jordan.body).toMatchObject({ first_name: 'Jordan', last_name: 'Reyes', tier: 'standard', points_balance: 240 });
+    expect(jordan.body).toMatchObject({ first_name: 'Jordan', last_name: 'Reyes', tier: 'platinum', points_balance: 240 });
   });
 
   test('member lookup matches stored values exactly', async () => {

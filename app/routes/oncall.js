@@ -308,6 +308,13 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       // demonstrate the per-request growth, so they join the open incident.
       // Every other scenario posts a fresh incident on every submit.
       const retryWindowEnabled = ${JSON.stringify(Boolean(scenario.retryWindow))};
+      const triggerWhen = ${JSON.stringify(scenario.triggerWhen || null)};
+      function shouldTrigger(opts) {
+        if (!triggerWhen) return true;
+        var body;
+        try { body = JSON.parse((opts && opts.body) || '{}'); } catch (e) { return true; }
+        return Object.keys(triggerWhen).every(function (k) { return body && body[k] === triggerWhen[k]; });
+      }
       // Premium accounts are pre-cleared by the compliance program and do
       // not exhibit the on-call degradation, so on-call pages default the
       // tier selector to standard.
@@ -353,6 +360,11 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
           // endpoint: the scenario's real degradation fires and Sentry/
           // Datadog capture genuine telemetry. The alert card is posted
           // alongside. Legacy endpoints are untouched.
+          // Scenarios with triggerWhen only page on-call for the request
+          // shape that actually degrades; other requests are just rerouted.
+          if (!shouldTrigger(opts)) {
+            return origFetch(url.replace(apiPath, oncallApiPath), opts);
+          }
           if (retryWindowEnabled && alertPostedAt && Date.now() - alertPostedAt < RETRY_WINDOW_MS) {
             var statusEl = document.getElementById('oncall-status');
             var retryMsg = 'Retry joined the open incident (60s window)';

@@ -36,7 +36,7 @@ Router: `app/routes/verticals/1b17e823-loyalty.js`.
 
 | ScoreCard ID | Name | Tier | Points | Notes |
 |---|---|---|---|---|
-| `8841207733` | Jordan Reyes | standard | 240 | Also an FLX member |
+| `8841207733` | Jordan Reyes | platinum | 240 | Also an FLX member |
 | `5520917046` | Casey Morgan | gold | 280 | Also an FLX member; one active $10 certificate |
 | `6100457823` | Alex Kim | standard | 95 | DICK'S only |
 
