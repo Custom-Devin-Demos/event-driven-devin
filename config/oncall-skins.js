@@ -3767,6 +3767,30 @@ const ONCALL_SKINS = {
     supportCenter: 'HMI Medical Patient Services',
     disclaimer: 'NOT ACTUALLY AN HMI MEDICAL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real HMI Medical product.',
   },
+  'd176d067': {
+    slug: 'd176d067',
+    company: 'Heppner',
+    brandMark: 'H',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'd176d067.html', title: 'Heppner | Transport & logistics solutions' },
+    alertCard: {
+      title: 'p95 latency \u2014 shipment tracking search',
+      release: 'track-trace-web@4.2.1',
+      team: 'track-trace-oncall',
+      symptom: 'Shipment tracking searches hang ~9s before the shipment page loads. Error rate is normal \u2014 lookups eventually succeed.',
+      impact: 'Every consignee checking a delivery waits ~9 seconds on Search before the status timeline appears; delivery-status calls to customer service are rising.',
+    },
+    theme: {
+      '--accent': '#7BC142',
+      '--ink': '#000000',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#252A2D',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Heppner Customer Service',
+    disclaimer: 'NOT ACTUALLY A HEPPNER SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Heppner product. All shipments and data are fictional.',
+  },
 };
 
 function getOncallSkin(slug) {
