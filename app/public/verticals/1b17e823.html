@@ -130,11 +130,11 @@
           <div class="row"><span>Estimated Tax <small style="color:var(--muted)">(PA 15205)</small></span><span id="tax">$0.00</span></div>
           <div class="row tot"><span>Estimated Total</span><span id="total">$0.00</span></div>
           <div class="sc">
-            <div class="t">ScoreCard Rewards <span id="scBadge">FLX X3 linked</span></div>
-            <p id="scText">Your Foot Locker FLX status is linked — points post when you check out. 60 points to your next $10 reward.</p>
+            <div class="t">ScoreCard Rewards <span id="scBadge">Platinum</span></div>
+            <p id="scText">Platinum members earn 2x points. Your $10 reward is applied automatically at checkout.</p>
             <div class="bar"><i id="scBar"></i></div>
             <select id="member" aria-label="Signed-in ScoreCard member">
-              <option value="SC-8841207733">Jordan Reyes · ScoreCard (FLX X3 linked)</option>
+              <option value="SC-8841207733">Jordan Reyes · ScoreCard Platinum</option>
               <option value="SC-5520917046">Casey Morgan · ScoreCard Gold</option>
               <option value="guest">Check out as guest</option>
             </select>
@@ -162,7 +162,7 @@
 
   <footer><div class="wrap">
     <div><b>Customer Service</b><ul><li>Order Status</li><li>Shipping &amp; Delivery</li><li>Returns &amp; Exchanges</li><li>Product Recalls</li></ul></div>
-    <div><b>ScoreCard</b><ul><li>Join ScoreCard</li><li>Check Points Balance</li><li>ScoreCard Gold &amp; Platinum</li><li>Link Foot Locker FLX</li></ul></div>
+    <div><b>ScoreCard</b><ul><li>Join ScoreCard</li><li>Check Points Balance</li><li>ScoreCard Gold &amp; Platinum</li><li>ScoreCard Credit Card</li></ul></div>
     <div><b>Services</b><ul><li>Store Pickup</li><li>Gift Cards</li><li>Team Sales</li><li>Bike &amp; Racquet Services</li></ul></div>
     <div><b>About</b><ul><li>Our Company</li><li>Careers</li><li>Sports Matter</li><li>Investor Relations</li></ul></div>
   </div></footer>
@@ -182,7 +182,7 @@
   var checkoutInFlight = false;
   var pendingPaymentMethod = null;
   var members = {
-    'SC-8841207733': { first: 'Jordan', badge: 'FLX X3 linked', text: 'Your Foot Locker FLX status is linked — points post when you check out. 60 points to your next $10 reward.', pct: 80 },
+    'SC-8841207733': { first: 'Jordan', badge: 'Platinum', text: 'Platinum members earn 2x points. Your $10 reward is applied automatically at checkout.', pct: 80 },
     'SC-5520917046': { first: 'Casey', badge: 'Gold', text: 'Gold members earn 1.5x points. 20 points to your next $10 reward.', pct: 93 },
     guest: { first: 'Guest', badge: 'Not signed in', text: 'Sign in or join ScoreCard to earn points on this order.', pct: 0 }
   };
@@ -265,6 +265,7 @@
           var sc = res.body.scorecard;
           result.className = 'result ok';
           result.innerHTML = '<b>Order placed — #' + esc(res.body.orderId) + '</b><br>Total charged: ' + money(res.body.total) + ' · ' + esc(res.body.payment.label) +
+            (res.body.rewards && res.body.rewards.discount ? '<br>ScoreCard reward applied: −' + money(res.body.rewards.discount) : '') +
             (sc && sc.member ? '<br>' + esc(sc.tierLabel) + ': +' + sc.pointsEarned + ' points' + (sc.rewardsIssued ? ' · ' + money(sc.rewardValue) + ' reward issued' : '') : '<br>' + esc(sc.message));
         } else {
           result.className = 'result err';

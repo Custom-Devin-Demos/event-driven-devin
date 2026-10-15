@@ -9,6 +9,7 @@ const { processQuote } = require('../services/oncall-verticals/industrials');
 const { addToCart } = require('../services/oncall-verticals/marketplace');
 const { submitOrder } = require('../services/oncall-verticals/vaccines');
 const { addToBag } = require('../services/oncall-verticals/apparel');
+const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
@@ -271,6 +272,36 @@ router.post('/api/oncall/vaccines/order', async (req, res) => {
         : error.message,
       errorClass: error.name,
       code: error.code || 'ORDER_SUBMIT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/sportinggoods/checkout — place a sporting-goods cart checkout
+ */
+router.post('/api/oncall/sportinggoods/checkout', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await checkoutSportingGoodsOrder({
+      items: body.items,
+      memberId: body.memberId || 'guest',
+      fulfillment: body.fulfillment || 'ship',
+      storeNumber: body.storeNumber || '0212',
+      zipCode: body.zipCode,
+      paymentMethod: body.paymentMethod || 'card',
+    });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'STORE_HOLD_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_CART' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'Your order timed out while reserving items at your store. Please try again in a few minutes.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'CHECKOUT_FAILED',
       requestId: req.requestId,
     });
   }
