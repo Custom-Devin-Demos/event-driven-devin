@@ -42,6 +42,7 @@ describe('sporting goods on-call checkout', () => {
 
   test('only store-pickup checkouts page on-call', () => {
     expect(ALERT_SCENARIOS.sportinggoods.triggerWhen).toEqual({ fulfillment: 'pickup' });
+    expect(ALERT_SCENARIOS.sportinggoods.initialClick).toBe('.opt[data-f="pickup"]');
   });
 
   test('alert scenario is latency-shaped, unlisted and free of code locations', () => {

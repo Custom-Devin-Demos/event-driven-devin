@@ -259,7 +259,15 @@
         devinOrgId: localStorage.getItem('devinOrgId') || '',
         devinEmail: localStorage.getItem('devinEmail') || ''
       })
-    }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+    }).then(function (r) {
+      return r.text().then(function (t) {
+        try { return { ok: r.ok, body: JSON.parse(t) }; } catch (e) {
+          return { ok: false, body: r.status === 504
+            ? { errorClass: 'GatewayTimeout', error: 'Checkout timed out (HTTP 504)' }
+            : { errorClass: 'HttpError', error: 'Checkout failed (HTTP ' + r.status + ')' } };
+        }
+      });
+    })
       .then(function (res) {
         if (res.ok) {
           var sc = res.body.scorecard;

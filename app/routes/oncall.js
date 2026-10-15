@@ -320,6 +320,11 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       // tier selector to standard.
       var tierSelect = document.getElementById('accountTier');
       if (vertical === 'banking' && tierSelect) tierSelect.value = 'standard';
+      // Preselect the page control that exhibits the scenario's degradation
+      // (e.g. Free Store Pickup) so the default demo click reproduces it.
+      var initialClick = ${JSON.stringify(scenario.initialClick || null)};
+      var initialClickEl = initialClick && document.querySelector(initialClick);
+      if (initialClickEl) initialClickEl.click();
       const origFetch = window.fetch.bind(window);
       // After the alert lands, collapse the demo ribbon to a small dot so it
       // doesn't sit over the customer page; clicking the dot re-expands it.
