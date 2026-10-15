@@ -26,7 +26,6 @@ const NEARBY_STORES = {
 
 const DELIVERY = new Set(['domicilio', 'tienda']);
 const MAX_CART_LINES = 20;
-const MAX_QTY_PER_LINE = 10;
 const STORE_HOLD_DEADLINE_MS = 8000;
 const STORE_HOLD_LATENCY_MS = [1400, 1700];
 const FREE_SHIPPING_THRESHOLD = 499;
@@ -68,7 +67,6 @@ function buildCartLines(requested) {
     qtyBySku.set(product.id, (qtyBySku.get(product.id) || 0) + qty);
   }
   return [...qtyBySku].map(([sku, qty]) => {
-    if (qty > MAX_QTY_PER_LINE) throw invalidCart(`La cantidad de ${sku} debe estar entre 1 y ${MAX_QTY_PER_LINE}`);
     const product = findProduct(sku);
     return {
       sku,

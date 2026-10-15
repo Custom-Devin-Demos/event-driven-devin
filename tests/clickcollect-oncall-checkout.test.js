@@ -27,11 +27,16 @@ describe('Coppel click & collect on-call checkout', () => {
     expect(Date.now() - started).toBeLessThan(500);
   });
 
+  test('accepts any quantity the cart page can build', async () => {
+    const result = await checkoutOrder({ items: [{ sku: 'TEL-SAMS-A54', qty: 11 }], delivery: 'domicilio' });
+    expect(result.total).toBe(6499 * 11);
+  });
+
   test.each([
     [[{ sku: 'NOPE', qty: 1 }]],
     [[{ sku: 'TEL-SAMS-A54', qty: 0 }]],
     [[{ sku: 'TEL-SAMS-A54', qty: 'oops' }]],
-    [[{ sku: 'TEL-SAMS-A54', qty: 11 }]],
+    [[{ sku: 'TEL-SAMS-A54', qty: 1.5 }]],
     [[]],
   ])('rejects an invalid cart %j as INVALID_CART', async (items) => {
     await expect(checkoutOrder({ items, delivery: 'tienda' })).rejects.toMatchObject({ code: 'INVALID_CART' });
