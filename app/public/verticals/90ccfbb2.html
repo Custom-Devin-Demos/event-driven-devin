@@ -624,7 +624,7 @@
           if (date < t) cell.classList.add('past');
           if (!info) { price.textContent = ''; cell.disabled = true; }
           else if (info.status === 'SOLD_OUT') { cell.classList.add('sold'); price.textContent = 'Sold out'; cell.disabled = true; cell.title = 'Sold out'; }
-          else { price.textContent = '$' + info.priceFromUsd; if (info.status === 'LIMITED') cell.classList.add('limited'); }
+          else { price.textContent = '$' + info.price.amount; if (info.status === 'LIMITED') cell.classList.add('limited'); }
           if (state.selected === date) cell.classList.add('selected');
           else if (stay.indexOf(date) > 0) cell.classList.add('in-stay');
           cell.appendChild(num); cell.appendChild(price);
@@ -649,7 +649,7 @@
     }
     function renderOptions() {
       var dp = $('daysPicker'); dp.innerHTML = '';
-      var base = state.selected && state.avail[state.selected] ? state.avail[state.selected].priceFromUsd : null;
+      var base = state.selected && state.avail[state.selected] ? state.avail[state.selected].price.amount : null;
       [1, 2, 3, 4, 5].forEach(function (n) {
         var b = document.createElement('button'); b.className = n === state.days ? 'active' : '';
         var st = document.createElement('strong'); st.textContent = n + '-Day';
@@ -677,7 +677,7 @@
       return p + TICKET_OPTS.filter(function (o) { return o.id === state.ticketOpt; })[0].add;
     }
     function ticketLines() {
-      var base = state.avail[state.selected].priceFromUsd;
+      var base = state.avail[state.selected].price.amount;
       var guests = state.adults + state.children;
       var lines = [];
       if (state.adults) lines.push([state.adults + ' \u00d7 Adult ticket', ticketPrice(base, false) * state.adults]);
@@ -714,7 +714,7 @@
           var nightsDates = stayDates(state.selected);
           var missing = nightsDates.some(function (d) { return !state.avail[d] || state.avail[d].status === 'SOLD_OUT'; });
           if (!missing) {
-            total = Math.round(nightsDates.reduce(function (s, d) { return s + state.avail[d].priceFromUsd; }, 0) * roomMult());
+            total = Math.round(nightsDates.reduce(function (s, d) { return s + state.avail[d].price.amount; }, 0) * roomMult());
             row('1 room, 2 adults', money(total));
           } else {
             row('Room', 'Not available for these nights');
@@ -742,7 +742,7 @@
         }
         var amount = state.tab === 'tickets'
           ? ticketLines().reduce(function (s, l) { return s + l[1]; }, 0)
-          : Math.round(stayDates(state.selected).reduce(function (s, d) { return s + state.avail[d].priceFromUsd; }, 0) * roomMult());
+          : Math.round(stayDates(state.selected).reduce(function (s, d) { return s + state.avail[d].price.amount; }, 0) * roomMult());
         var room = ROOM_TYPES.filter(function (r) { return r.id === state.roomType; })[0];
         state.cart.push({
           title: state.tab === 'tickets' ? ticketName() + ' \u2014 ' + p.name : p.name,

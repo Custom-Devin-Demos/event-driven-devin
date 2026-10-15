@@ -23,8 +23,8 @@ function respond(routes) {
   });
 }
 
-const SOLD_OUT_CAL = { status: 200, data: { productId: 'wdw-mk', days: [{ date: '2026-11-28', status: 'SOLD_OUT', priceFromUsd: 179 }] } };
-const OPEN_CAL = { status: 200, data: { productId: 'wdw-mk', days: [{ date: '2026-11-27', status: 'AVAILABLE', priceFromUsd: 169 }] } };
+const SOLD_OUT_CAL = { status: 200, data: { productId: 'wdw-mk', days: [{ date: '2026-11-28', status: 'SOLD_OUT', price: { amount: 179, currency: 'USD' } }] } };
+const OPEN_CAL = { status: 200, data: { productId: 'wdw-mk', days: [{ date: '2026-11-27', status: 'AVAILABLE', price: { amount: 169, currency: 'USD' } }] } };
 const LEAKING_AUDIT = {
   status: 200,
   data: {

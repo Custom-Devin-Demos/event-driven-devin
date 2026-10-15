@@ -32,7 +32,12 @@ public class AvailabilityService {
             Map<String, Object> day = new LinkedHashMap<>();
             day.put("date", date.toString());
             day.put("status", status(product, remaining));
-            day.put("priceFromUsd", product.getPriceFromUsd() + surcharge(date));
+            // INV-2291 availability v2: one money shape for every channel (tickets,
+            // hotels, dining, retail). Replaces the v1 USD-only `priceFromUsd` field.
+            Map<String, Object> price = new LinkedHashMap<>();
+            price.put("amount", product.getPriceFromUsd() + surcharge(date));
+            price.put("currency", "USD");
+            day.put("price", price);
             out.add(day);
         }
         return out;

@@ -54,7 +54,7 @@ describe('Disney Dining reservations (90ccfbb2/dining)', () => {
   });
 
   test('a quote failure is a 500 that raises one On-Call alert and SEV-2 per cooldown', async () => {
-    provider({ date: '2026-11-21', status: 'AVAILABLE' });
+    provider({ date: '2026-11-21', status: 'AVAILABLE', price: { amount: 89, currency: 'USD' } });
     await expect(dining.createReservation(reservation))
       .rejects.toMatchObject({ statusCode: 500, code: 'RESERVATION_FAILED', reference: expect.stringMatching(/^DIN-[0-9A-F]{6}$/) });
     await expect(dining.createReservation(reservation)).rejects.toMatchObject({ code: 'RESERVATION_FAILED' });
