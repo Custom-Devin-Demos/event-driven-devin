@@ -343,6 +343,11 @@ async function resolveTriggeredBy(token, devinEmail) {
   }
 }
 
+function slackMemberIdOf(mention) {
+  const match = /^<@([A-Z0-9]{1,32})>$/i.exec(mention || '');
+  return match ? match[1] : null;
+}
+
 /**
  * Shared Block Kit helpers so On-Call cards match the polish of the legacy
  * Automated Alerts cards (header, field grid, action buttons, context row).
@@ -432,7 +437,7 @@ function resolveAlertCard(scenario, skin) {
   };
 }
 
-function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin }) {
+function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, onCall, skin }) {
 
   const card = resolveAlertCard(scenario, skin);
   const brand = skin ? skin.company : scenario.brand;
@@ -444,7 +449,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     `*Endpoint:* ${card.endpoint}`,
     `*Metric value:* ${card.metricValue} | *Threshold:* ${card.threshold} | *Baseline:* ${card.baseline}`,
     `*Monitor query:* \`${card.metricQuery}\``,
-    `*Owner:* ${ownerRotation(card.owner)}`,
+    onCall ? `*On-Call:* ${onCall}` : `*Owner:* ${ownerRotation(card.owner)}`,
     runRef ? `*Incident Ref:* ${runRef}` : null,
     triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
@@ -479,7 +484,7 @@ function notifySlackMemberParagraph(memberId, channel, threadTs) {
   ].join('');
 }
 
-function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs } = {}) {
+function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, onCallMemberId } = {}) {
   const lines = [
     `A Datadog monitor is firing on ${scenario.service}. Investigate it and open a PR with the fix.`,
     '',
@@ -510,7 +515,7 @@ function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs } 
     lines.push(`*Slack Thread:* channel=${channel} thread_ts=${threadTs}`);
   }
 
-  const notifyId = skin.devinSession && skin.devinSession.notifySlackMemberId;
+  const notifyId = onCallMemberId || (skin.devinSession && skin.devinSession.notifySlackMemberId);
   if (hasThread && typeof notifyId === 'string' && SLACK_MEMBER_ID_RE.test(notifyId)) {
     lines.push('');
     lines.push(notifySlackMemberParagraph(notifyId, channel, threadTs));
@@ -565,7 +570,7 @@ function resolveSessionIdentity(requester, config) {
 async function triggerSkinDevinSession(
   scenario,
   skin,
-  { token, channel, threadTs, runRef, requester },
+  { token, channel, threadTs, runRef, requester, onCallMemberId },
 ) {
   const config = skin.devinSession;
   if (!config || !config.auto) return null;
@@ -580,7 +585,7 @@ async function triggerSkinDevinSession(
   const release = reserveSession();
   let session = null;
   try {
-    session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs }), {
+    session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, onCallMemberId }), {
       ...resolveSessionIdentity(requester, config),
       apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
       title: `[On-Call] ${scenario.monitor}`,
@@ -706,10 +711,15 @@ async function postOncallAlert(scenarioId, options = {}) {
 
   const runRef = options.runRef || (options.unique !== false ? makeRunRef() : null);
   const triggeredBy = slackReady ? await resolveTriggeredBy(token, options.devinEmail) : null;
+  // onCallIsTriggerer: the presenter who triggered the alert is paged as On-Call.
+  const onCallMemberId = skin && skin.devinSession && skin.devinSession.onCallIsTriggerer
+    ? slackMemberIdOf(triggeredBy)
+    : null;
+  const onCall = onCallMemberId ? triggeredBy : null;
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
   const events = 3 + Math.floor(Math.random() * 12);
-  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin });
+  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, onCall, skin });
   const card = resolveAlertCard(scenario, skin);
   const brand = skin ? skin.company : scenario.brand;
   const blocks = [
@@ -722,7 +732,7 @@ async function postOncallAlert(scenarioId, options = {}) {
       ['Baseline', card.baseline],
       ['Release', card.release],
       ['Events', `${events} | First: ${firstSeen.toISOString()}`],
-      ['Owner', ownerRotation(card.owner)],
+      onCall ? ['On-Call', onCall] : ['Owner', ownerRotation(card.owner)],
       runRef ? ['Incident Ref', runRef] : null,
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
@@ -770,7 +780,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   // already investigates the alert, and a second session would duplicate it.
   const session = skin && ts
     ? await triggerSkinDevinSession(scenario, skin, {
-      token, channel: alertsChannel, threadTs: ts, runRef, requester,
+      token, channel: alertsChannel, threadTs: ts, runRef, requester, onCallMemberId,
     })
     : null;
   const sonarPR = triggerSkinSonarPR(skin, requester);
