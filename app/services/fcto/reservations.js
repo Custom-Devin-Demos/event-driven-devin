@@ -407,7 +407,105 @@ function durationLabel(res) {
   return `${minutes} minutes`;
 }
 
+// ─── Availability ───────────────────────────────────────────────────────────
+
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const DAY = 86400;
+const DAY_BOOKED_SECONDS = 6 * 3600;
+const MAX_AVAILABILITY_DAYS = 31;
+
+function utcDay(ts) {
+  return Math.floor(ts / DAY) * DAY;
+}
+
+/**
+ * Parse the free-text date range of `/fcto free …` into UTC day bounds
+ * (`to` exclusive). Accepts "oct 22", "oct 22-24", "22 oct", "oct 30 - nov 2",
+ * "2026-11-03..2026-11-05", "11/3", "today", "tomorrow", "week", "next week",
+ * "month". Dates without a year roll forward to the next occurrence.
+ * Returns null when it can't be read.
+ */
+function parseDateRange(text, now = Math.floor(Date.now() / 1000)) {
+  const s = String(text || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const today = utcDay(now);
+  const year = new Date(now * 1000).getUTCFullYear();
+  if (!s || s === 'today') return { from: today, to: today + DAY };
+  if (s === 'tomorrow') return { from: today + DAY, to: today + 2 * DAY };
+  if (s === 'week' || s === 'this week') return { from: today, to: today + 7 * DAY };
+  if (s === 'next' || s === 'next week') {
+    const dow = (new Date(today * 1000).getUTCDay() + 6) % 7;
+    const monday = today - dow * DAY + 7 * DAY;
+    return { from: monday, to: monday + 7 * DAY };
+  }
+  if (s === 'month') return { from: today, to: today + 31 * DAY };
+
+  const parseOne = (part, ctx) => {
+    const p = part.trim();
+    let m;
+    if ((m = p.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) return { y: +m[1], mo: +m[2] - 1, d: +m[3] };
+    if ((m = p.match(/^([a-z]{3,9})\.? (\d{1,2})(?:st|nd|rd|th)?(?:,? (\d{4}))?$/))) {
+      const mo = MONTHS.indexOf(m[1].slice(0, 3));
+      return mo < 0 ? null : { y: m[3] ? +m[3] : null, mo, d: +m[2] };
+    }
+    if ((m = p.match(/^(\d{1,2})(?:st|nd|rd|th)? ([a-z]{3,9})\.?(?:,? (\d{4}))?$/))) {
+      const mo = MONTHS.indexOf(m[2].slice(0, 3));
+      return mo < 0 ? null : { y: m[3] ? +m[3] : null, mo, d: +m[1] };
+    }
+    if ((m = p.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?$/))) return { y: m[3] ? +m[3] : null, mo: +m[1] - 1, d: +m[2] };
+    if (ctx && (m = p.match(/^(\d{1,2})(?:st|nd|rd|th)?$/))) return { y: ctx.y, mo: ctx.mo, d: +m[1] };
+    return null;
+  };
+  const toTs = (o, notBefore) => {
+    if (!o || o.mo < 0 || o.mo > 11 || o.d < 1 || o.d > 31) return null;
+    let ts = Date.UTC(o.y || year, o.mo, o.d) / 1000;
+    if (!o.y && ts < notBefore) ts = Date.UTC(year + 1, o.mo, o.d) / 1000;
+    return new Date(ts * 1000).getUTCDate() === o.d ? ts : null;
+  };
+
+  let parts;
+  let m;
+  if ((m = s.match(/^(\d{4}-\d{1,2}-\d{1,2})\s*(?:-|–|—|\.\.|to|through)\s*(\d{4}-\d{1,2}-\d{1,2})$/))) parts = [m[1], m[2]];
+  else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(s)) parts = [s];
+  else parts = s.split(/\s*(?:–|—|\.\.|\bto\b|\bthrough\b|\bthru\b)\s*|(?<=\d)\s*-\s*(?=[a-z0-9])/).filter(Boolean);
+  if (parts.length < 1 || parts.length > 2) return null;
+
+  const first = parseOne(parts[0]);
+  const from = toTs(first, today);
+  if (from === null) return null;
+  if (parts.length === 1) return { from, to: from + DAY };
+  const end = toTs(parseOne(parts[1], first), from);
+  if (end === null) return null;
+  return { from, to: end + DAY };
+}
+
+/**
+ * Who is free on each UTC day of [from, to)? Only approved reservations count
+ * (pending ones don't block anyone). A day is `booked` once 6h+ of it is
+ * reserved, `partial` for anything less, else `free`.
+ */
+function availability(store, { from, to, env = process.env }) {
+  const days = [];
+  for (let d = utcDay(from); d < to && days.length < MAX_AVAILABILITY_DAYS; d += DAY) days.push(d);
+  const approved = store.all().filter((r) => r.status === STATUS.APPROVED && r.endTs > from && r.startTs < to);
+  const members = getRoster(env).map((member) => {
+    const perDay = days.map((d) => {
+      const busy = approved
+        .filter((r) => r.assigneeKey === member.key && overlaps(r.startTs, r.endTs, d, d + DAY))
+        .map((r) => ({ id: r.id, account: r.account, startTs: Math.max(r.startTs, d), endTs: Math.min(r.endTs, d + DAY) }))
+        .sort((a, b) => a.startTs - b.startTs);
+      const seconds = busy.reduce((n, b) => n + (b.endTs - b.startTs), 0);
+      let status = 'free';
+      if (busy.length) status = seconds >= DAY_BOOKED_SECONDS ? 'booked' : 'partial';
+      return { day: d, status, busy };
+    });
+    return { member, days: perDay, freeDays: perDay.filter((x) => x.status === 'free').length };
+  });
+  return { days, members };
+}
+
 module.exports = {
+  parseDateRange,
+  availability,
   STATUS,
   DURATIONS,
   PREFERENCES,

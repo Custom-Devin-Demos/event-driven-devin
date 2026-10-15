@@ -217,6 +217,15 @@ async function handleCommand(body) {
       }
       return { response_type: 'ephemeral', text: window.title, blocks: B.scheduleBlocks(store, { ...window, viewerId: userId }) };
     }
+    case 'free':
+    case 'available': {
+      const range = R.parseDateRange(args.join(' '));
+      if (!range) {
+        return { response_type: 'ephemeral', text: "I couldn't read those dates. Try `/fcto free oct 22`, `/fcto free oct 22-24`, `/fcto free 2026-11-03..2026-11-05` or `/fcto free next week`." };
+      }
+      const blocks = B.availabilityBlocks(store, range);
+      return { response_type: 'ephemeral', text: blocks[0].text.text, blocks };
+    }
     case 'roster':
       return { response_type: 'ephemeral', text: 'Field CTO roster', blocks: B.rosterBlocks() };
     case 'help':

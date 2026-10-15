@@ -680,3 +680,65 @@ describe('review fixes', () => {
     delete process.env.FCTO_CHANNEL_ID;
   });
 });
+
+describe('availability', () => {
+  const T = Date.UTC(2026, 9, 15, 12) / 1000; // Thu 15 Oct 2026
+  const d = (y, m, dd) => Date.UTC(y, m, dd) / 1000;
+
+  test('parseDateRange handles the common spellings', () => {
+    const { R } = load();
+    expect(R.parseDateRange('oct 22', T)).toEqual({ from: d(2026, 9, 22), to: d(2026, 9, 23) });
+    expect(R.parseDateRange('Oct 22-24', T)).toEqual({ from: d(2026, 9, 22), to: d(2026, 9, 25) });
+    expect(R.parseDateRange('oct 30 - nov 2', T)).toEqual({ from: d(2026, 9, 30), to: d(2026, 10, 3) });
+    expect(R.parseDateRange('2026-11-03..2026-11-05', T)).toEqual({ from: d(2026, 10, 3), to: d(2026, 10, 6) });
+    expect(R.parseDateRange('22 oct', T)).toEqual({ from: d(2026, 9, 22), to: d(2026, 9, 23) });
+    expect(R.parseDateRange('11/3', T)).toEqual({ from: d(2026, 10, 3), to: d(2026, 10, 4) });
+    expect(R.parseDateRange('jan 5', T)).toEqual({ from: d(2027, 0, 5), to: d(2027, 0, 6) });
+    expect(R.parseDateRange('tomorrow', T)).toEqual({ from: d(2026, 9, 16), to: d(2026, 9, 17) });
+    expect(R.parseDateRange('next week', T)).toEqual({ from: d(2026, 9, 19), to: d(2026, 9, 26) });
+    expect(R.parseDateRange('feb 30', T)).toBeNull();
+    expect(R.parseDateRange('whenever', T)).toBeNull();
+  });
+
+  test('marks free, partly booked and booked days from approved reservations only', async () => {
+    const { store, R } = load();
+    const oct22 = d(2026, 9, 22);
+    await R.createRequest(store, base({ startTs: oct22 + 9 * 3600, durationKey: '2h' }), { now: T }); // Mark, pending
+    const b = await R.createRequest(store, base({ startTs: oct22 + 8 * 3600, durationKey: 'full_day', who: 'MEMBER:KATRIN_LEHMANN' }), { now: T });
+    await R.approve(store, b.id, { by: ADMIN });
+    const c = await R.createRequest(store, base({ startTs: oct22 + 86400 + 10 * 3600, durationKey: '1h', who: 'MEMBER:AMAN_THIND' }), { now: T });
+    await R.approve(store, c.id, { by: ADMIN });
+
+    const av = R.availability(store, { from: oct22, to: oct22 + 2 * 86400 });
+    const by = Object.fromEntries(av.members.map((m) => [m.member.key, m]));
+    expect(av.days).toEqual([oct22, oct22 + 86400]);
+    expect(by.MARK_PORTER.days.map((x) => x.status)).toEqual(['free', 'free']);
+    expect(by.KATRIN_LEHMANN.days.map((x) => x.status)).toEqual(['booked', 'free']);
+    expect(by.AMAN_THIND.days.map((x) => x.status)).toEqual(['free', 'partial']);
+    expect(by.AMAN_THIND.days[1].busy[0].id).toBe(c.id);
+
+    const B = require('../app/services/fcto/blocks');
+    const blocks = B.availabilityBlocks(store, { from: oct22, to: oct22 + 2 * 86400 });
+    const json = JSON.stringify(blocks);
+    expect(blocks[0].text.text).toBe("Who's free — Thu, Oct 22 to Fri, Oct 23");
+    expect(json).toContain('*Mark Porter* (US) — free all 2 days');
+    expect(json).toContain('*Katrin Lehmann* (EU) — 1/2 days free');
+    expect(json).toContain(`Fri, Oct 23 (`);
+    expect(json).toContain(c.id);
+    expect(blocks.findIndex((x) => JSON.stringify(x).includes('Mark Porter'))).toBeLessThan(blocks.findIndex((x) => JSON.stringify(x).includes('Katrin')));
+    expect(JSON.stringify(B.homeView(store, REQUESTER))).toContain('Free for the next 7 days');
+  });
+
+  test('/fcto free answers with an availability card; unreadable dates get a hint', async () => {
+    process.env.FCTO_CHANNEL_ID = 'CEXEC';
+    const { handleCommand } = require('../app/routes/fcto')._internal;
+    const ok = await handleCommand({ command: '/fcto', text: 'free oct 22-24', user_id: REQUESTER });
+    expect(ok.response_type).toBe('ephemeral');
+    expect(ok.text).toMatch(/^Who's free — /);
+    expect(ok.blocks.length).toBe(8);
+    const bad = await handleCommand({ command: '/fcto', text: 'free sometime', user_id: REQUESTER });
+    expect(bad.text).toMatch(/couldn't read those dates/);
+    expect((await handleCommand({ command: '/fcto', text: 'help', user_id: REQUESTER })).text).toContain('/fcto free');
+    delete process.env.FCTO_CHANNEL_ID;
+  });
+});

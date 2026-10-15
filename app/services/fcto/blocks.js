@@ -409,6 +409,35 @@ function scheduleBlocks(store, { from, to, title, memberKey, tz = 'UTC', viewerI
   return blocks.slice(0, 48);
 }
 
+const AVAIL_EMOJI = { free: ':large_green_circle:', partial: ':large_yellow_circle:', booked: ':red_circle:' };
+const DAY_FMT = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' });
+const dayLabel = (ts) => DAY_FMT.format(ts * 1000);
+
+// `/fcto free <dates>`: one line per Field CTO, fully-free people first.
+function availabilityBlocks(store, { from, to, title } = {}) {
+  const { days, members } = R.availability(store, { from, to });
+  const span = days.length === 1 ? dayLabel(days[0]) : `${dayLabel(days[0])} to ${dayLabel(days[days.length - 1])}`;
+  const blocks = [{ type: 'header', text: plain(title || `Who's free — ${span}`) }];
+  const sorted = members.slice().sort((a, b) => b.freeDays - a.freeDays || a.member.name.localeCompare(b.member.name));
+  sorted.forEach(({ member, days: perDay, freeDays }) => {
+    const region = REGION_LABELS[member.region] || member.region;
+    if (freeDays === perDay.length) {
+      blocks.push(section(`${AVAIL_EMOJI.free} *${member.name}* (${region}) — free ${perDay.length === 1 ? 'all day' : `all ${perDay.length} days`}`));
+      return;
+    }
+    const detail = perDay.map((d) => {
+      if (d.status === 'free') return `${AVAIL_EMOJI.free} ${dayLabel(d.day)}`;
+      const what = d.busy.map((b) => (d.status === 'booked' ? b.id : `${R.formatRangeInTz(b.startTs, b.endTs, member.tz)} ${b.id}`)).join(', ');
+      return `${AVAIL_EMOJI[d.status]} ${dayLabel(d.day)} (${what})`;
+    });
+    const head = freeDays ? AVAIL_EMOJI.partial : AVAIL_EMOJI.booked;
+    const summary = perDay.length === 1 ? (perDay[0].status === 'booked' ? 'booked' : 'partly booked') : `${freeDays}/${perDay.length} days free`;
+    blocks.push(section(`${head} *${member.name}* (${region}) — ${summary}\n${detail.join(' · ')}`));
+  });
+  blocks.push(context(`${AVAIL_EMOJI.free} free · ${AVAIL_EMOJI.partial} partly booked · ${AVAIL_EMOJI.booked} booked (6h+) · approved reservations in this app only — not personal calendars · \`/fcto free oct 22-24\``));
+  return blocks;
+}
+
 function rosterBlocks() {
   const now = Math.floor(Date.now() / 1000);
   const lines = getRoster().map((m) => {
@@ -445,6 +474,11 @@ function homeView(store, userId) {
     blocks.push({ type: 'divider' });
     blocks.push(section(`*Your open requests*\n${mine.map((r) => `• ${r.id} · ${esc(r.account)} · ${R.describeWho(r)} · ${R.slackRange(r.startTs, r.endTs)} · ${STATUS_META[r.status].label}`).join('\n')}`));
   }
+  const freeAll = R.availability(store, { from: now, to: now + 7 * 86400 }).members
+    .filter((m) => m.freeDays === m.days.length)
+    .map((m) => m.member.name);
+  blocks.push({ type: 'divider' });
+  blocks.push(section(`*Free for the next 7 days*\n${freeAll.length ? freeAll.join(', ') : '_Nobody is fully free — try `/fcto free <dates>` for a day-by-day view._'}`));
   blocks.push(context(`Admins: ${getAdminIds().map((id) => `<@${id}>`).join(', ') || '_none configured_'} · \`/fcto help\` for commands`));
   return { type: 'home', blocks: blocks.slice(0, 100) };
 }
@@ -455,6 +489,7 @@ function helpText() {
     '• `/fcto request` — open the request form (or `/fcto` alone)',
     '• `/fcto schedule` — this week · `/fcto schedule next` — next week · `/fcto schedule month`',
     '• `/fcto schedule @person` — one Field CTO\'s reservations · `/fcto schedule me` — your requests',
+    '• `/fcto free oct 22` · `/fcto free oct 22-24` · `/fcto free next week` — who has no approved reservation on those days',
     '• `/fcto roster` — who the Field CTOs are and their current local time',
     'Approve / Decline / Claim / Reassign happen on the request card in the channel. Admins and the named Field CTO can act; everyone else gets a polite no.',
   ].join('\n');
@@ -462,6 +497,7 @@ function helpText() {
 
 module.exports = {
   esc,
+  availabilityBlocks,
   CALLBACK,
   ACTION,
   STATUS_META,

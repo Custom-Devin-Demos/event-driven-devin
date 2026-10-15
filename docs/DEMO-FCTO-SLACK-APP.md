@@ -25,6 +25,9 @@ in the thread. The authoritative answer to "who is reserved when" is
    and an `.ics` file is attached for either side to add to their calendar.
 4. `/fcto schedule`, `/fcto schedule next`, `/fcto schedule month`,
    `/fcto schedule @katrin`, `/fcto schedule me`, `/fcto roster`, `/fcto help`.
+5. `/fcto free oct 22`, `/fcto free oct 22-24`, `/fcto free next week` — who has no
+   approved reservation on those days (green / yellow = partly / red = 6h+ booked).
+   Based on this app's reservations only; it can't see personal calendars.
    App Home shows the roster with everyone's current local time, the next three
    weeks of reservations, and your open requests.
 
