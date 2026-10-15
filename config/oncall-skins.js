@@ -3791,6 +3791,16 @@ const ONCALL_SKINS = {
     supportCenter: 'Heppner Customer Service',
     disclaimer: 'NOT ACTUALLY A HEPPNER SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Heppner product. All shipments and data are fictional.',
   },
+  'b983a7ef': {
+    slug: 'b983a7ef',
+    company: 'Intesa Sanpaolo',
+    vertical: 'banking',
+    page: {
+      file: 'b983a7ef.html',
+      title: 'Intesa Sanpaolo Group: Corporate Website | Intesa Sanpaolo',
+    },
+    disclaimer: 'NOT ACTUALLY A INTESA SANPAOLO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Intesa Sanpaolo product.',
+  },
 };
 
 function getOncallSkin(slug) {
