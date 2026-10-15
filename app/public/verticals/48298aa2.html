@@ -492,13 +492,14 @@
       function fmtDate(s) { if (!s) return ''; var d = parseIso(s); return DOW[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear(); }
       function fmtDob(s) { if (!s) return ''; var d = parseIso(s); return String(d.getDate()).padStart(2, '0') + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear(); }
       function maskId(v) { v = (v || '').trim(); if (v.length <= 4) return v; return v.charAt(0) + new Array(v.length - 4).join('*') + v.slice(-4); }
+      function bookable(v) { if (!v) return false; var d = parseIso(v); return d >= firstBookable && d <= lastBookable && d.getDay() !== 0; }
       function radio(name) { var el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ''; }
       function setRadio(name, val) { var els = document.querySelectorAll('input[name="' + name + '"]'); for (var i = 0; i < els.length; i++) els[i].checked = els[i].value === val; }
 
       // ---------- draft persistence ----------
       function saveDraft() {
         var d = { pkg: state.pkg, loc: state.loc, date: state.date, slot: state.slot, doctor: radio('doctor') || 'Any', terms: $('consentTerms').checked, privacy: $('consentPrivacy').checked };
-        TEXT_FIELDS.forEach(function (k) { d[k] = $(k).value; });
+        TEXT_FIELDS.forEach(function (k) { if (k !== 'idNumber') d[k] = $(k).value; });
         try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch (e) { /* storage unavailable */ }
         $('savedNote').hidden = !(d.fullName || d.mobile || d.email);
       }
@@ -509,7 +510,7 @@
         state.pkg = d.pkg || state.pkg;
         state.loc = d.loc || '';
         state.slot = d.slot || '';
-        state.date = d.date && parseIso(d.date) >= firstBookable ? d.date : '';
+        state.date = bookable(d.date) ? d.date : '';
         TEXT_FIELDS.forEach(function (k) { if (d[k] != null) $(k).value = d[k]; });
         setRadio('loc', state.loc); setRadio('slot', state.slot); setRadio('doctor', d.doctor || 'Any');
         $('consentTerms').checked = !!d.terms; $('consentPrivacy').checked = !!d.privacy;
@@ -576,7 +577,7 @@
         $('calPrev').disabled = calMonth <= new Date(firstBookable.getFullYear(), firstBookable.getMonth(), 1);
         $('calNext').disabled = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1) > lastBookable;
       }
-      function step1Valid() { return !!(state.loc && state.date && state.slot); }
+      function step1Valid() { return !!(state.loc && bookable(state.date) && state.slot); }
       function syncStep1() { $('toDetails').disabled = !step1Valid(); }
       function syncSummary() {
         $('sumPkg').textContent = state.pkg;
@@ -617,8 +618,7 @@
       function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
       function hideResult() { var r = $('result'); r.className = 'result-box'; r.innerHTML = ''; $('claimForm').classList.remove('failed'); }
 
-      function showFailure() {
-        var s = snapshot();
+      function showFailure(s) {
         var r = $('result');
         r.innerHTML = '';
         var box = el('div', 'fail');
@@ -653,22 +653,21 @@
         draft.appendChild(copied);
         r.appendChild(draft);
 
-        retry.addEventListener('click', function () { submit(retry); });
+        retry.addEventListener('click', function () { if (!busy) hideResult(); submit($('submitBtn')); });
         copy.addEventListener('click', function () { copyText(ta, copied); });
         edit.addEventListener('click', function () { hideResult(); $('fullName').focus(); });
-        fresh.addEventListener('click', function () { clearDraft(); location.hash = '#listing'; });
+        fresh.addEventListener('click', function () { submitSeq++; clearDraft(); location.hash = '#listing'; });
 
         $('claimForm').classList.add('failed');
         r.className = 'result-box show';
         r.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-      function showSuccess() {
-        var s = snapshot();
+      function showSuccess(s) {
         var r = $('result');
         r.innerHTML = '';
         var box = el('div', 'ok');
         box.appendChild(el('h3', null, 'Appointment request received'));
-        box.appendChild(el('p', null, s.pkg + ' at ' + s.loc + ' on ' + s.date + ' (' + s.slot + '). A confirmation will be sent to ' + s.email + '.'));
+        box.appendChild(el('p', null, s.pkg + ' at ' + s.loc + ' on ' + s.date + ' (' + s.slot + '). Our patient services team will contact you to confirm.'));
         r.appendChild(box);
         var again = el('button', 'linkbtn', 'Start a new booking'); again.type = 'button';
         again.addEventListener('click', function () { clearDraft(); location.hash = '#listing'; });
@@ -685,10 +684,13 @@
       }
 
       var busy = false;
+      var submitSeq = 0;
       async function submit(btn) {
         if (busy || !formValid()) return;
         busy = true;
         saveDraft();
+        var snap = snapshot();
+        var token = ++submitSeq;
         var label = btn.textContent;
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Submitting\u2026';
@@ -714,7 +716,8 @@
         busy = false;
         btn.disabled = false;
         btn.textContent = label;
-        if (ok) showSuccess(); else showFailure();
+        if (token !== submitSeq) return;
+        if (ok) showSuccess(snap); else showFailure(snap);
         validate();
       }
 
@@ -723,7 +726,7 @@
         var day = e.target.closest('.day');
         if (day && !day.disabled) { state.date = day.getAttribute('data-date'); renderCal(); syncStep1(); syncSummary(); saveDraft(); return; }
         var pkg = e.target.closest('[data-pkg]');
-        if (pkg) { state.pkg = pkg.getAttribute('data-pkg'); saveDraft(); location.hash = '#book/date'; }
+        if (pkg) { submitSeq++; hideResult(); state.pkg = pkg.getAttribute('data-pkg'); saveDraft(); location.hash = '#book/date'; }
       });
       $('calPrev').addEventListener('click', function () { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCal(); });
       $('calNext').addEventListener('click', function () { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderCal(); });
