@@ -245,7 +245,7 @@
         $('kpiCapacity').textContent = usd(capacity());
         $('kpiOutstanding').textContent = usd(outstanding());
         $('kpiAvailable').textContent = usd(available());
-        $('advanceRows').innerHTML = advances.map((a) => `<tr><td class="mono">${a.id}</td><td>${a.product}</td><td class="num">${usd(a.amount)}</td><td><span class="pill ${a.fresh ? 'new' : 'out'}">${a.fresh ? 'Funded today' : 'Outstanding'}</span></td></tr>`).join('');
+        $('advanceRows').innerHTML = advances.map((a) => `<tr><td class="mono">${a.id}</td><td>${a.product}</td><td class="num">${usd(a.amount)}</td><td><span class="pill ${a.fresh ? 'new' : 'out'}">${a.fresh || 'Outstanding'}</span></td></tr>`).join('');
       }
       function renderCollateral() {
         $('collateralRows').innerHTML = COLLATERAL.map((c) => `<tr><td>${c.category}</td><td>${c.method}</td><td class="num">${usd(c.pledged)}</td><td class="num">${Math.round(c.haircut * 100)}%</td><td class="num">${usd(lendable(c))}</td></tr>`).join('');
@@ -342,10 +342,10 @@
           const data = await response.json();
           if (!response.ok || !data.success) throw new Error('Advance request was not accepted.');
           const ref = (data.receipt && data.receipt.receiptId) || data.transferId;
-          advances.unshift({ id: ref, product: productName, amount: requested, fresh: true });
+          advances.unshift({ id: ref, product: productName, amount: requested, fresh: sameDay ? 'Funded today' : 'Booked \u2014 next business day' });
           renderPosition();
           result.className = 'result-box success';
-          result.innerHTML = `<strong>Advance funded.</strong> ${usd(requested)} ${productName}, ${requestTerm.toLowerCase()} at ${requestRate}. Proceeds ${sameDay ? 'credited today' : 'scheduled for next business day'} to ${proceeds} (confirmation <span class="mono">${ref}</span>). Remaining available to borrow: ${usd(available())}.`;
+          result.innerHTML = `<strong>${sameDay ? 'Advance funded.' : 'Advance booked.'}</strong> ${usd(requested)} ${productName}, ${requestTerm.toLowerCase()} at ${requestRate}. Proceeds ${sameDay ? 'credited today' : 'scheduled for next business day'} to ${proceeds} (confirmation <span class="mono">${ref}</span>). Remaining available to borrow: ${usd(available())}.`;
           status.textContent = sameDay ? 'Funded \u2014 same-day confirmation sent to treasury contacts.' : 'Booked \u2014 funds on next business day.';
           $('requestChip').textContent = sameDay ? 'Funded' : 'Booked';
           $('requestChip').classList.add('funded');
