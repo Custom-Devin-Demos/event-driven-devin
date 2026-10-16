@@ -36,6 +36,8 @@ export default [
       "app/public/verticals/*-app/",
       // Vendored CloudCraze theme JS in the static Cummins mirror (scripts/8d3527ab-capture.js)
       "app/public/verticals/8d3527ab/",
+      // Static BoA Online Banking mirror of COG-GTM/boa-web-app (browser JS, jQuery globals)
+      "app/public/verticals/e7fd3fee-olb/",
     ],
   },
 ];
