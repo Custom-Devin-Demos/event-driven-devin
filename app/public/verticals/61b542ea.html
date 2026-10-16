@@ -257,7 +257,7 @@
         <div class="hero-panel">
           <h2>The gift that lets them choose</h2>
           <h3>Spend online or in-store at Dunelm</h3>
-          <form id="transferForm" class="gc-form" novalidate>
+          <form id="transferForm" class="gc-form">
             <div class="gc-field">
               <label for="fromAccount">Pay with</label>
               <select id="fromAccount">
@@ -275,7 +275,7 @@
             </div>
             <div class="gc-field">
               <label for="amount">Amount</label>
-              <div class="gc-amount"><span>£</span><input type="number" id="amount" value="50" min="1" step="0.01" placeholder="0.00"></div>
+              <div class="gc-amount"><span>£</span><input type="number" id="amount" value="50" min="1" step="0.01" placeholder="0.00" required></div>
             </div>
             <div class="gc-field">
               <label for="accountTier">Delivery</label>
@@ -407,24 +407,33 @@
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
+      const showResult = (kind, title, detail) => {
+        result.className = 'result-box ' + kind;
+        result.replaceChildren();
+        const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        showResult('error', 'Enter an amount', 'Gift card amount must be at least £1.');
+        return;
+      }
       btn.disabled = true; btn.textContent = 'Processing...';
       result.className = 'result-box';
       try {
         const res = await fetch('/api/banking/transfer', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount, accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
         });
         const data = await res.json();
         if (!res.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Gift card order failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          showResult('error', 'Gift card order failed', `${data.errorClass}: ${data.error}`);
         } else {
-          result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">E-card order placed</div><div class="error-detail">£${data.debitAmount} charged to your card (includes £${data.fee} delivery fee). Your e-card will arrive by e-mail.</div>`;
+          showResult('success', 'E-card order placed', `£${data.debitAmount} charged to your card (includes £${data.fee} delivery fee). Your e-card will arrive by e-mail.`);
         }
       } catch (err) {
-        result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+        showResult('error', 'Network error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Buy e-cards'; }
     });
   </script>
