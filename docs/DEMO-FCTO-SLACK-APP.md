@@ -79,8 +79,7 @@ Everything is enforced server-side; unauthorized clicks get an ephemeral note.
    people can @-mention it).
 4. Admins: `FCTO_ADMIN_SLACK_IDS=U09HHJ5B5L5,U…` (defaults to Jeff Wang).
 5. Roster Slack IDs default to the known handles in `config/fcto-roster.js`;
-   set `FCTO_SLACK_ID_NARRY_SINGH` (and any
-   override) in the environment. Members without an ID still show up and can
+   override any of them with `FCTO_SLACK_ID_<KEY>` in the environment. Members without an ID still show up and can
    be booked; they just can't be @-mentioned or act on their own requests.
 6. Deploy. Slack will verify the events URL (`url_verification` is handled).
 
