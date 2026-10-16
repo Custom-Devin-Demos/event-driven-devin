@@ -3728,9 +3728,9 @@ const ONCALL_SKINS = {
     paths: ['/oncall/c/egencia', '/egencia-oncall'],
     // The Egencia chat bubble sits bottom-right, so dock the demo ribbon on the left.
     ribbonSide: 'left',
-    teamsAlerts: true,
-    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
-    alertDestination: 'teams',
+    // Slack-routed: the card lands in the on-call alerts channel and the Slack
+    // responder triages, so no devinSession.auto (it would double-trigger).
+    alertDestination: 'slack',
     page: { file: 'e7a1c4d9.html', title: 'Trips | Egencia' },
     alertCard: {
       title: 'Egencia rebooking: 504 timeouts on POST /api/oncall/rebooking/rebook during AF disruption',

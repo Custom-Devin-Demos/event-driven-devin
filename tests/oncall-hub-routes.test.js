@@ -113,7 +113,7 @@ describe('on-call hub routes', () => {
     if (legacy.status === 200) expect(await legacy.text()).not.toContain('oncall-ribbon');
   });
 
-  test('the Egencia skin is served shimmed at its slug, friendly aliases and direct page URL, forcing Teams', async () => {
+  test('the Egencia skin is served shimmed at its slug, friendly aliases and direct page URL, forcing Slack', async () => {
     const [skinned, alias, friendly, direct] = await Promise.all([
       fetch(`${baseUrl}/oncall/c/e7a1c4d9`),
       fetch(`${baseUrl}/oncall/c/egencia`),
@@ -128,7 +128,7 @@ describe('on-call hub routes', () => {
     expect(html).toContain('<title>Trips | Egencia</title>');
     expect(html).toContain('const apiPath = "/api/egencia/rebook"');
     expect(html).toContain('const oncallApiPath = "/api/oncall/rebooking/rebook"');
-    expect(html).toContain('var skinAlertDestination = "teams"');
+    expect(html).toContain('var skinAlertDestination = "slack"');
     expect(html).toMatch(/id="oncall-ribbon" style="[^"]*bottom:16px;left:16px;/);
     expect(html).toContain('const triggerWhen = {"action":"rebook"}');
     expect(html).toContain('Flight cancelled \u2014 rebooking options');
