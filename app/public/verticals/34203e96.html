@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Administrativo Jurídico</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F1F4FA;
+      --surface: #FFFFFF;
+      --ink: #1B1A16;
+      --muted: #71706D;
+      --placeholder: #9E9E9E;
+      --blue: #006FB9;
+      --blue-hover: #005A96;
+      --logo: #385EA4;
+      --card-border: #BDBDBD;
+      --table-border: #C5C5C5;
+      --row-alt: #FAFBFC;
+      --row-divider: #F2F1F1;
+      --info-bg: #E4F7FF;
+      --info-ink: #0076A9;
+      --success: #23803A;
+      --inactive: #9E9E9E;
+      --error-bg: #FDECEC;
+      --error-ink: #B3261E;
+      --header-h: 64px;
+      --container: 1184px;
+      --radius-card: 12px;
+      --radius-control: 8px;
+      --font-body: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      --font-head: 'Coppel Sans', Figtree, 'Helvetica Neue', Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: var(--font-body); font-size: 16px; line-height: 1.25; color: var(--ink); background: var(--bg); overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* Header */
+    .header { position: sticky; top: 0; z-index: 20; height: var(--header-h); background: var(--surface); border-bottom: 1px solid #EFEEEF; }
+    .header__row { display: flex; align-items: center; justify-content: space-between; height: 100%; padding: 0 39px 0 22px; }
+    .header__left { display: flex; align-items: center; }
+    .burger { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; }
+    .burger svg { width: 20px; height: 14px; }
+    .brand { display: flex; align-items: center; margin-left: 43px; }
+    .brand svg { display: block; width: 54px; height: 28px; }
+    .brand__name { margin-left: 18px; font-size: 16px; color: #000; white-space: nowrap; }
+    .header__right { display: flex; align-items: center; }
+    .user { display: flex; align-items: center; gap: 0; min-height: 44px; border: 0; background: none; padding: 0; text-align: left; }
+    .avatar { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--blue); color: #fff; font-weight: 700; font-size: 20px; letter-spacing: -0.5px; flex: none; }
+    .user__text { margin-left: 8px; }
+    .user__name { display: block; font-size: 18px; line-height: 22px; font-weight: 500; color: var(--blue); white-space: nowrap; }
+    .user__id { display: block; font-size: 14px; line-height: 17px; color: var(--ink); }
+    .user__chev { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-left: 10px; }
+    .user__chev svg { width: 20px; height: 11px; }
+    .header__divider { width: 1px; height: 32px; background: #CDCDCD; margin: 0 21px 0 23px; }
+    .logout { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; }
+    .logout svg { width: 21px; height: 21px; }
+
+    /* Main */
+    .main { max-width: calc(var(--container) + 32px); margin: 0 auto; padding: 0 16px 32px; }
+    .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 0; margin: 0; padding: 34px 0 0; list-style: none; font-size: 16px; line-height: 20px; }
+    .crumbs li { display: inline-flex; align-items: center; }
+    .crumbs li + li::before { content: ''; display: inline-block; width: 7px; height: 7px; margin: 0 14px 0 13px; border-top: 1.5px solid var(--blue); border-right: 1.5px solid var(--blue); transform: rotate(45deg); }
+    .crumbs a { color: var(--blue); font-weight: 700; }
+    .title { margin: 30px 0 0; font-family: var(--font-head); font-size: 36px; line-height: 44px; font-weight: 700; color: var(--ink); letter-spacing: -0.2px; }
+
+    .card { background: var(--surface); border: 1px solid var(--card-border); border-radius: var(--radius-card); }
+    .card__title { margin: 0; font-family: var(--font-head); font-size: 24px; line-height: 30px; font-weight: 700; color: var(--ink); }
+
+    /* Filters */
+    .filters { margin-top: 23px; }
+    .filters__head { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 76px; padding: 0 24px; border: 0; background: none; text-align: left; }
+    .filters__chev { display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; transition: transform .15s; }
+    .filters__chev svg { width: 22px; height: 12px; }
+    .filters.open .filters__chev { transform: rotate(180deg); }
+    .filters__body { display: none; padding: 0 24px 22px; margin-top: -14px; }
+    .filters.open .filters__body { display: block; }
+    .filters__hint { margin: 0 0 20px; font-size: 14px; line-height: 18px; color: var(--ink); }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .field label { display: block; margin-bottom: 9px; font-size: 14px; line-height: 18px; color: var(--ink); }
+    .input, .select { display: block; width: 100%; height: 48px; padding: 0 15px; border: 1px solid var(--table-border); border-radius: var(--radius-control); background: var(--surface); font-size: 14px; color: var(--ink); outline: none; }
+    .input::placeholder { color: var(--placeholder); }
+    .input:focus, .select:focus { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+    .input.invalid { border-color: var(--error-ink); }
+    .select { appearance: none; -webkit-appearance: none; padding-right: 48px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='12' viewBox='0 0 22 12'%3E%3Cpath d='M1 1l10 10L21 1' fill='none' stroke='%231B1A16' stroke-width='1.6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 15px center; background-size: 20px 11px; }
+    .filters__actions { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; }
+    .link-btn { min-height: 44px; padding: 0; border: 0; background: none; font-size: 14px; color: var(--blue); }
+    .link-btn:disabled { color: #CDCDCD; cursor: default; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 48px; padding: 0 24px; border-radius: 24px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+    .btn--primary { min-width: 190px; border: 0; background: var(--blue); color: #fff; }
+    .btn--primary:hover { background: var(--blue-hover); }
+    .btn--primary:disabled { background: #7FB4DA; cursor: progress; }
+    .btn--outline { border: 1px solid var(--blue); background: var(--surface); color: var(--blue); font-weight: 400; }
+    .btn--outline:hover { background: #EFF6FB; }
+    .btn--outline svg { width: 22px; height: 22px; }
+
+    /* List */
+    .list { margin-top: 32px; padding: 32px 24px 22px; }
+    .list__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .list__count { margin: 9px 0 0; font-size: 16px; line-height: 20px; color: var(--ink); }
+    .list__head .btn { margin-top: 1px; width: 246px; }
+    .notice { display: flex; align-items: center; gap: 12px; min-height: 48px; margin-top: 18px; padding: 12px 16px 12px 19px; border-radius: var(--radius-control); background: var(--info-bg); color: var(--info-ink); font-size: 16px; line-height: 20px; }
+    .notice svg { flex: none; width: 21px; height: 21px; }
+    .notice strong { font-weight: 700; }
+    .table-wrap { margin-top: 16px; border: 1px solid var(--table-border); border-radius: var(--radius-control); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { height: 56px; padding: 0 8px; text-align: left; vertical-align: middle; font-size: 14px; }
+    th { height: 48px; font-size: 16px; font-weight: 700; background: var(--surface); }
+    th button { display: inline-flex; align-items: center; gap: 13px; min-height: 44px; padding: 0; border: 0; background: none; font-weight: 700; }
+    th button svg { width: 17px; height: 17px; }
+    tbody tr { border-top: 1px solid var(--row-divider); }
+    tbody tr:nth-child(odd) td { background: var(--row-alt); }
+    tbody tr:nth-child(odd) td.col-id { background: var(--surface); }
+    .col-id { width: 71px; }
+    .col-status { width: 125px; }
+    .col-menu { width: 62px; text-align: center; }
+    .status { font-weight: 700; color: var(--success); }
+    .status.inactive { color: var(--inactive); }
+    .kebab { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; border-radius: 50%; }
+    .kebab:hover { background: #EFF6FB; }
+    .kebab svg { width: 5px; height: 21px; }
+    .menu { position: fixed; z-index: 50; min-width: 168px; padding: 6px 0; background: #fff; border: 1px solid var(--table-border); border-radius: var(--radius-control); box-shadow: 0 6px 16px rgba(0,0,0,.12); text-align: left; }
+    .menu button { display: block; width: 100%; min-height: 44px; padding: 0 16px; border: 0; background: none; font-size: 15px; text-align: left; }
+    .menu button:hover { background: var(--bg); }
+    td.empty { height: 96px; text-align: center; color: var(--muted); }
+    .pager { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 17px; }
+    .pager button { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 44px; padding: 0; border: 0; background: none; font-size: 16px; color: var(--blue); }
+    .pager button::before { content: ''; position: absolute; left: 0; top: 6px; width: 32px; height: 32px; border-radius: 50%; z-index: -1; }
+    .pager { position: relative; z-index: 0; }
+    .pager button[aria-current="page"] { color: #fff; }
+    .pager button[aria-current="page"]::before { background: var(--blue); }
+    .pager button:disabled { color: #CDCDCD; cursor: default; }
+    .pager svg { width: 9px; height: 16px; }
+
+    /* Modal */
+    .modal { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(27, 26, 22, .5); }
+    .modal.show { display: flex; }
+    .modal__card { width: 100%; max-width: 560px; max-height: calc(100vh - 32px); overflow-y: auto; padding: 28px 24px 24px; }
+    .modal__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .modal__close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -8px -10px 0 0; padding: 0; border: 0; background: none; }
+    .modal__close svg { width: 16px; height: 16px; }
+    .modal__hint { margin: 8px 0 20px; font-size: 14px; line-height: 18px; }
+    .modal .field + .field { margin-top: 16px; }
+    .modal__actions { display: flex; justify-content: flex-end; gap: 16px; margin-top: 28px; }
+    .modal__actions .btn { min-width: 150px; }
+    .alert-error { display: none; gap: 12px; align-items: flex-start; margin-top: 18px; padding: 12px 16px; border-radius: var(--radius-control); background: var(--error-bg); color: var(--error-ink); font-size: 15px; line-height: 20px; }
+    .alert-error.show { display: flex; }
+    .alert-error svg { flex: none; width: 20px; height: 20px; margin-top: 0; }
+    .spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .busy .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast { position: fixed; z-index: 70; right: 24px; bottom: 24px; display: none; align-items: center; gap: 10px; max-width: 420px; padding: 14px 18px; border-radius: var(--radius-control); background: #E8F5EB; color: #1D6B31; border: 1px solid #B9DFC3; box-shadow: 0 6px 16px rgba(0,0,0,.12); font-size: 15px; }
+    .toast.show { display: flex; }
+
+    @media (max-width: 1100px) {
+      .user__text { display: none; }
+    }
+    @media (max-width: 720px) {
+      .header__row { padding: 0 6px 0 4px; }
+      .brand { margin-left: 6px; }
+      .brand__name, .header__divider, .user__chev { display: none; }
+      .title { margin-top: 20px; font-size: 28px; line-height: 34px; }
+      .crumbs { padding-top: 20px; font-size: 14px; }
+      .grid3 { grid-template-columns: 1fr; gap: 16px; }
+      .filters__head { min-height: 68px; padding: 0 16px; }
+      .filters__body { padding: 0 16px 18px; }
+      .filters__actions { flex-direction: column-reverse; align-items: stretch; gap: 8px; }
+      .btn--primary { width: 100%; }
+      .card__title { font-size: 20px; line-height: 26px; }
+      .list { padding: 24px 16px 16px; }
+      .list__head { flex-direction: column; align-items: stretch; }
+      .list__head .btn { width: 100%; }
+      .notice { font-size: 14px; }
+      th, td { font-size: 14px; padding: 0 6px; }
+      .col-id { width: 52px; }
+      .col-status { width: 78px; }
+      .col-menu { width: 48px; }
+      th button { gap: 6px; }
+      .pager { gap: 4px; justify-content: center; }
+      .modal__actions { flex-direction: column-reverse; }
+      .modal__actions .btn { width: 100%; }
+      .toast { left: 16px; right: 16px; bottom: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header__row">
+      <div class="header__left">
+        <button class="burger" type="button" aria-label="Abrir menú">
+          <svg viewBox="0 0 20 14" aria-hidden="true"><path d="M0 1h20M0 7h20M0 13h20" stroke="#1B1A16" stroke-width="1.6"/></svg>
+        </button>
+        <a class="brand" href="#" aria-label="SAJ — Sistema Administrativo Jurídico, inicio">
+          <svg viewBox="0 0 54 28" aria-hidden="true">
+            <path fill="#385EA4" d="M13.6 7.6c-.9-2-2.6-3.1-5-3.1-2.2 0-3.6 1-3.6 2.4 0 1.6 1.6 2.2 4.6 3 4 1 7.3 2.6 7.3 7 0 4.4-3.6 7.3-8.6 7.3-4.3 0-7.3-2-8.3-5.5l3.9-1.6c.6 2 2.2 3.3 4.5 3.3 2.3 0 3.8-1 3.8-2.7 0-1.7-1.5-2.4-4.6-3.2C3.9 13.6.8 12.2.8 7.9.8 3.9 4.1 1.1 8.6 1.1c3.7 0 6.4 1.7 7.6 4.6z"/>
+            <path fill="#385EA4" d="M27.2 1.4h4.4L23.1 24.6h-4.6zM31.6 1.4h.2L38 18.2l-4.3 6.4h-.2l-4.5-12.3z"/>
+            <path fill="#385EA4" d="M48.8 1.4h4.4v15.4c0 5-3 8.1-7.8 8.1-1.5 0-2.9-.3-3.9-.8l.9-3.9c.7.3 1.6.5 2.5.5 2.4 0 3.9-1.4 3.9-4.2z"/>
+          </svg>
+          <span class="brand__name">Sistema Administrativo Juridico</span>
+        </a>
+      </div>
+      <div class="header__right">
+        <button class="user" type="button" aria-label="Menú de usuario: Jorge Carlos Flores Menchaca">
+          <span class="avatar" aria-hidden="true">JF</span>
+          <span class="user__text">
+            <span class="user__name">Jorge Carlos Flores Menchaca</span>
+            <span class="user__id">0900008835</span>
+          </span>
+          <span class="user__chev" aria-hidden="true"><svg viewBox="0 0 20 11"><path d="M1 1l9 9 9-9" fill="none" stroke="#1B1A16" stroke-width="1.6"/></svg></span>
+        </button>
+        <span class="header__divider" aria-hidden="true"></span>
+        <button class="logout" type="button" aria-label="Cerrar sesión">
+          <svg viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="#006FB9" stroke-width="1.6" stroke-linejoin="round"><path d="M9 1.5H1.8v19H9"/><path d="M9 1.5l5.2 1.8v15.4L9 20.5z"/><path d="M15.5 11h6M19 8.3l2.6 2.7-2.6 2.7"/><circle cx="11.6" cy="11" r=".6" fill="#006FB9"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <nav aria-label="Ruta de navegación">
+      <ol class="crumbs">
+        <li><a href="#">Inicio</a></li>
+        <li>Tipos</li>
+        <li>Condusef</li>
+        <li aria-current="page">Tipos de subdelegaciones</li>
+      </ol>
+    </nav>
+    <h1 class="title">Tipos de subdelegaciones</h1>
+
+    <section class="card filters" id="filters">
+      <button class="filters__head" type="button" id="filtersToggle" aria-expanded="false" aria-controls="filtersBody">
+        <h2 class="card__title">Filtros de búsqueda</h2>
+        <span class="filters__chev" aria-hidden="true"><svg viewBox="0 0 22 12"><path d="M1 1l10 10L21 1" fill="none" stroke="#1D5CF5" stroke-width="1.6"/></svg></span>
+      </button>
+      <form class="filters__body" id="filtersBody" autocomplete="off">
+        <p class="filters__hint">Ingresa uno o más campos para realizar una búsqueda</p>
+        <div class="grid3">
+          <div class="field">
+            <label for="fId">ID</label>
+            <input class="input" id="fId" inputmode="numeric" maxlength="4" placeholder="Ingresa ID">
+          </div>
+          <div class="field">
+            <label for="fNombre">Nombre</label>
+            <input class="input" id="fNombre" maxlength="60" placeholder="Buscar por nombre">
+          </div>
+          <div class="field">
+            <label for="fEstatus">Estatus</label>
+            <select class="select" id="fEstatus">
+              <option value="activo" selected>Activo</option>
+              <option value="inactivo">Inactivo</option>
+              <option value="todos">Todos</option>
+            </select>
+          </div>
+        </div>
+        <div class="filters__actions">
+          <button class="link-btn" type="button" id="clearFilters" disabled>Limpiar filtros</button>
+          <button class="btn btn--primary" type="submit">Buscar</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card list" aria-labelledby="listTitle">
+      <div class="list__head">
+        <div>
+          <h2 class="card__title" id="listTitle">Listado de subdelegaciones</h2>
+          <p class="list__count" id="listCount" aria-live="polite"></p>
+        </div>
+        <button class="btn btn--outline" type="button" id="openAdd">
+          <svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 1v20M1 11h20" stroke="#006FB9" stroke-width="1.6"/></svg>
+          Agregar subdelegación
+        </button>
+      </div>
+      <div class="notice" role="note">
+        <svg viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="#0076A9" stroke-width="1.5"><circle cx="11" cy="11" r="9.5"/><path d="M11 9.5v6.5"/><circle cx="11" cy="6.4" r=".5" fill="#0076A9"/></svg>
+        <span>Al <strong>desactivar</strong> una Subdelegación no podrá ser relacionado a un folio asunto.</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-id" scope="col"><button type="button" data-sort="id">ID <svg viewBox="0 0 17 17" aria-hidden="true" fill="none" stroke="#1B1A16" stroke-width="1.3"><path d="M5 15V2M1.8 5.2L5 2l3.2 3.2M12 2v13M8.8 11.8L12 15l3.2-3.2"/></svg></button></th>
+              <th scope="col"><button type="button" data-sort="nombre">Nombre <svg viewBox="0 0 17 17" aria-hidden="true" fill="none" stroke="#1B1A16" stroke-width="1.3"><path d="M5 15V2M1.8 5.2L5 2l3.2 3.2M12 2v13M8.8 11.8L12 15l3.2-3.2"/></svg></button></th>
+              <th class="col-status" scope="col"><button type="button" data-sort="estatus">Estatus <svg viewBox="0 0 17 17" aria-hidden="true" fill="none" stroke="#1B1A16" stroke-width="1.3"><path d="M5 15V2M1.8 5.2L5 2l3.2 3.2M12 2v13M8.8 11.8L12 15l3.2-3.2"/></svg></button></th>
+              <th class="col-menu" scope="col"><span class="sr-only">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <nav class="pager" id="pager" aria-label="Paginación"></nav>
+    </section>
+  </main>
+
+  <div class="modal" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+    <div class="card modal__card">
+      <form id="claimForm" novalidate autocomplete="off">
+        <div class="modal__head">
+          <h2 class="card__title" id="addTitle">Agregar subdelegación</h2>
+          <button class="modal__close" type="button" id="closeAdd" aria-label="Cerrar"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 1l14 14M15 1L1 15" stroke="#1B1A16" stroke-width="1.6"/></svg></button>
+        </div>
+        <p class="modal__hint">Captura los datos de la nueva subdelegación Condusef.</p>
+        <div class="field">
+          <label for="description">Nombre</label>
+          <input class="input" id="description" maxlength="60" placeholder="Ingresa el nombre de la subdelegación" required>
+        </div>
+        <div class="field">
+          <label for="newEstatus">Estatus</label>
+          <select class="select" id="newEstatus">
+            <option value="Activo" selected>Activo</option>
+            <option value="Inactivo">Inactivo</option>
+          </select>
+        </div>
+        <input type="hidden" id="policyId" value="POL-5002">
+        <input type="hidden" id="claimType" value="weather">
+        <input type="hidden" id="amount" value="1">
+        <div class="alert-error" id="result" role="alert">
+          <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="#B3261E" stroke-width="1.5"><circle cx="10" cy="10" r="8.6"/><path d="M10 5.5v5.5"/><circle cx="10" cy="14.2" r=".5" fill="#B3261E"/></svg>
+          <span id="resultText"></span>
+        </div>
+        <div class="modal__actions">
+          <button class="btn btn--outline" type="button" id="cancelAdd">Cancelar</button>
+          <button class="btn btn--primary" type="submit" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span id="submitLabel">Guardar</span></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    window.identityReady = (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId'))
+      ? Promise.resolve()
+      : fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+  </script>
+  <script>
+    const PAGE_SIZE = 10;
+    const NAMES = ['Centro', 'Metropolitana', 'Noreste', 'Norponiente', 'Norte', 'Occidente', 'Oriente', 'Sur', 'Sureste', 'Surponiente',
+      'Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Ciudad de México', 'Coahuila',
+      'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit',
+      'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas',
+      'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'];
+    const records = NAMES.map((nombre, i) => ({ id: String(i + 1).padStart(4, '0'), nombre, estatus: 'Activo' }));
+    const state = { page: 1, sortKey: null, sortDir: 1, filters: { id: '', nombre: '', estatus: 'activo' } };
+
+    const $ = (id) => document.getElementById(id);
+    const norm = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    function visibleRecords() {
+      const f = state.filters;
+      let list = records.filter((r) => (!f.id || r.id.includes(f.id))
+        && (!f.nombre || norm(r.nombre).includes(norm(f.nombre)))
+        && (f.estatus === 'todos' || norm(r.estatus) === f.estatus));
+      if (state.sortKey) {
+        const k = state.sortKey;
+        list = list.slice().sort((a, b) => a[k].localeCompare(b[k], 'es') * state.sortDir);
+      }
+      return list;
+    }
+
+    const KEBAB = '<svg viewBox="0 0 5 21" aria-hidden="true"><circle cx="2.5" cy="2.5" r="2.2" fill="#006FB9"/><circle cx="2.5" cy="10.5" r="2.2" fill="#006FB9"/><circle cx="2.5" cy="18.5" r="2.2" fill="#006FB9"/></svg>';
+
+    function render() {
+      const list = visibleRecords();
+      const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+      if (state.page > pages) state.page = pages;
+      const start = (state.page - 1) * PAGE_SIZE;
+      const slice = list.slice(start, start + PAGE_SIZE);
+      $('listCount').textContent = list.length
+        ? `Mostrando ${start + 1}-${start + slice.length} de ${list.length} resultados totales`
+        : 'Mostrando 0 de 0 resultados totales';
+      $('rows').innerHTML = slice.length ? slice.map((r) => `
+        <tr>
+          <td class="col-id">${r.id}</td>
+          <td>${esc(r.nombre)}</td>
+          <td class="col-status"><span class="status${r.estatus === 'Activo' ? '' : ' inactive'}">${r.estatus}</span></td>
+          <td class="col-menu"><button class="kebab" type="button" data-id="${r.id}" aria-haspopup="menu" aria-label="Acciones para ${esc(r.nombre)}">${KEBAB}</button></td>
+        </tr>`).join('') : '<tr><td class="empty" colspan="4">No se encontraron subdelegaciones con los filtros seleccionados.</td></tr>';
+      renderPager(pages);
+    }
+
+    function pageItems(pages) {
+      if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1);
+      const p = state.page;
+      if (p <= 4) return [1, 2, 3, 4, 5, '…', pages];
+      if (p >= pages - 3) return [1, '…', pages - 4, pages - 3, pages - 2, pages - 1, pages];
+      return [1, '…', p - 1, p, p + 1, '…', pages];
+    }
+
+    function renderPager(pages) {
+      const items = pageItems(pages).map((n) => (n === '…'
+        ? '<button type="button" disabled aria-hidden="true">...</button>'
+        : `<button type="button" data-page="${n}"${n === state.page ? ' aria-current="page"' : ''} aria-label="Página ${n}">${n}</button>`));
+      if (state.page > 1) items.unshift('<button type="button" data-page="prev" aria-label="Página anterior"><svg viewBox="0 0 9 16"><path d="M8 1L1 8l7 7" fill="none" stroke="#006FB9" stroke-width="1.5"/></svg></button>');
+      if (state.page < pages) items.push('<button type="button" data-page="next" aria-label="Página siguiente"><svg viewBox="0 0 9 16"><path d="M1 1l7 7-7 7" fill="none" stroke="#006FB9" stroke-width="1.5"/></svg></button>');
+      $('pager').innerHTML = items.join('');
+    }
+
+    $('pager').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-page]');
+      if (!b) return;
+      const v = b.dataset.page;
+      state.page = v === 'prev' ? state.page - 1 : v === 'next' ? state.page + 1 : Number(v);
+      render();
+    });
+
+    document.querySelectorAll('th button[data-sort]').forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.sort;
+      state.sortDir = state.sortKey === k ? -state.sortDir : 1;
+      state.sortKey = k;
+      state.page = 1;
+      render();
+    }));
+
+    // Filters
+    const filtersCard = $('filters');
+    $('filtersToggle').addEventListener('click', () => {
+      const open = filtersCard.classList.toggle('open');
+      $('filtersToggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    function syncClear() {
+      $('clearFilters').disabled = !$('fId').value.trim() && !$('fNombre').value.trim() && $('fEstatus').value === 'activo';
+    }
+    ['fId', 'fNombre', 'fEstatus'].forEach((id) => $(id).addEventListener('input', syncClear));
+    $('fId').addEventListener('input', () => { $('fId').value = $('fId').value.replace(/\D/g, ''); });
+    $('filtersBody').addEventListener('submit', (e) => {
+      e.preventDefault();
+      state.filters = { id: $('fId').value.trim(), nombre: $('fNombre').value, estatus: $('fEstatus').value };
+      state.page = 1;
+      render();
+    });
+    $('clearFilters').addEventListener('click', () => {
+      $('fId').value = '';
+      $('fNombre').value = '';
+      $('fEstatus').value = 'activo';
+      state.filters = { id: '', nombre: '', estatus: 'activo' };
+      state.page = 1;
+      syncClear();
+      render();
+    });
+
+    // Row menu
+    let openMenu = null;
+    let menuTrigger = null;
+    function closeMenu(restoreFocus = true) {
+      if (!openMenu) return;
+      const hadFocus = openMenu.contains(document.activeElement);
+      openMenu.remove();
+      openMenu = null;
+      if (restoreFocus && hadFocus && menuTrigger && menuTrigger.isConnected) menuTrigger.focus({ preventScroll: true });
+      menuTrigger = null;
+    }
+    window.addEventListener('scroll', () => closeMenu(), { passive: true });
+    window.addEventListener('resize', () => closeMenu());
+    $('rows').addEventListener('click', (e) => {
+      const b = e.target.closest('.kebab');
+      if (!b) return;
+      e.stopPropagation();
+      const already = openMenu && openMenu.dataset.for === b.dataset.id;
+      closeMenu();
+      if (already) return;
+      const rec = records.find((r) => r.id === b.dataset.id);
+      const menu = document.createElement('div');
+      menu.className = 'menu';
+      menu.setAttribute('role', 'menu');
+      menu.dataset.for = b.dataset.id;
+      menu.innerHTML = `<button type="button" role="menuitem">${rec.estatus === 'Activo' ? 'Desactivar' : 'Activar'}</button>`;
+      menu.querySelector('button').addEventListener('click', () => {
+        rec.estatus = rec.estatus === 'Activo' ? 'Inactivo' : 'Activo';
+        closeMenu(false);
+        render();
+        showToast(`La subdelegación ${rec.nombre} quedó ${rec.estatus === 'Activo' ? 'activa' : 'inactiva'}.`);
+      });
+      document.body.appendChild(menu);
+      const rect = b.getBoundingClientRect();
+      const h = menu.offsetHeight;
+      const below = rect.bottom + 4;
+      menu.style.top = `${below + h > window.innerHeight - 8 ? Math.max(8, rect.top - h - 4) : below}px`;
+      menu.style.left = `${Math.max(8, rect.right - menu.offsetWidth)}px`;
+      menu.addEventListener('click', (ev) => ev.stopPropagation());
+      openMenu = menu;
+      menuTrigger = b;
+      menu.querySelector('button').focus();
+    });
+    document.addEventListener('click', () => closeMenu());
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+
+    let toastTimer = null;
+    function showToast(text) {
+      const t = $('toast');
+      t.textContent = text;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
+    }
+
+    // Agregar subdelegación
+    const modal = $('addModal');
+    const form = $('claimForm');
+    const button = $('submitBtn');
+    const nameInput = $('description');
+    let saving = false;
+    function showError(text) {
+      $('resultText').textContent = text;
+      $('result').classList.toggle('show', Boolean(text));
+    }
+    function openModal() {
+      form.reset();
+      nameInput.classList.remove('invalid');
+      showError('');
+      modal.classList.add('show');
+      nameInput.focus();
+    }
+    function closeModal() {
+      if (saving) return;
+      modal.classList.remove('show');
+      $('openAdd').focus();
+    }
+    $('openAdd').addEventListener('click', openModal);
+    $('closeAdd').addEventListener('click', closeModal);
+    $('cancelAdd').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('show')) closeModal(); });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      showError('');
+      const nombre = nameInput.value.trim().replace(/\s+/g, ' ');
+      if (!nombre) {
+        nameInput.classList.add('invalid');
+        showError('Ingresa el nombre de la subdelegación.');
+        nameInput.focus();
+        return;
+      }
+      if (records.some((r) => norm(r.nombre) === norm(nombre))) {
+        nameInput.classList.add('invalid');
+        showError('Ya existe una subdelegación con ese nombre.');
+        nameInput.focus();
+        return;
+      }
+      nameInput.classList.remove('invalid');
+      const estatus = $('newEstatus').value;
+      saving = true;
+      button.disabled = true;
+      button.classList.add('busy');
+      $('submitLabel').textContent = 'Guardando';
+      try {
+        await Promise.race([window.identityReady, new Promise((r) => setTimeout(r, 2000))]);
+        const response = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: $('policyId').value,
+            claimType: $('claimType').value,
+            amount: parseFloat($('amount').value),
+            description: nombre,
+            subdelegacion: { nombre, estatus, catalogo: 'condusef' },
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) throw new Error('save failed');
+        const nextId = String(Math.max(...records.map((r) => Number(r.id))) + 1).padStart(4, '0');
+        records.push({ id: nextId, nombre, estatus });
+        saving = false;
+        modal.classList.remove('show');
+        render();
+        showToast(`La subdelegación ${nombre} se agregó correctamente con el ID ${nextId}.`);
+      } catch (_error) {
+        showError('No fue posible guardar la subdelegación. Intenta de nuevo en unos minutos.');
+      } finally {
+        saving = false;
+        button.classList.remove('busy');
+        button.disabled = false;
+        $('submitLabel').textContent = 'Guardar';
+      }
+    });
+
+    render();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
