@@ -65,6 +65,8 @@
  * ribbonSide: 'left' docks the ribbon bottom-left instead, for native pages
  * whose own toast sits bottom-right.
  *
+ * paths: ['/<name>'] adds friendly direct URLs served exactly like /oncall/c/<slug>.
+ *
  * A native page whose primary action has no legacy /api/<vertical> endpoint
  * (only the on-call one) sets oncallOnly: true, so its direct /<page-slug>
  * URL is served with the shim instead of as a bare page whose action 404s.
@@ -3874,6 +3876,7 @@ const ONCALL_SKINS = {
     company: 'Coppel',
     brandMark: 'C',
     vertical: 'clickcollect',
+    paths: ['/coppel-oncall'],
     // Not oncallOnly: /coppel stays the legacy (unshimmed) Coppel demo.
     alertDestination: 'slack',
     // Alert card, thread replies, Devin prompt and demo ribbon in Spanish.

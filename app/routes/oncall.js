@@ -267,6 +267,13 @@ for (const skin of Object.values(ONCALL_SKINS)) {
   router.get(`/${path.basename(skin.page.file, '.html')}`, (_req, res, next) => serveSkinPage(skin, res, next));
 }
 
+// Friendly direct URLs (skin.paths, e.g. /coppel-oncall), served like /oncall/c/:slug.
+for (const skin of Object.values(ONCALL_SKINS)) {
+  for (const urlPath of skin.paths || []) {
+    router.get(urlPath, (_req, res, next) => serveSkinPage(skin, res, next));
+  }
+}
+
 /**
  * GET /oncall — On-Call demo control page.
  */

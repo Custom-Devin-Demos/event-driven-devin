@@ -92,13 +92,16 @@ describe('on-call hub routes', () => {
   });
 
   test('the Coppel skin reroutes checkout in Spanish with the ribbon docked left, while /coppel stays unshimmed', async () => {
-    const [skinned, legacy, other] = await Promise.all([
+    const [skinned, friendly, legacy, other] = await Promise.all([
       fetch(`${baseUrl}/oncall/c/04eac4a1`),
+      fetch(`${baseUrl}/coppel-oncall`),
       fetch(`${baseUrl}/coppel`),
       fetch(`${baseUrl}/oncall/c/b31d1347`),
     ]);
     expect(skinned.status).toBe(200);
+    expect(friendly.status).toBe(200);
     const html = await skinned.text();
+    expect(await friendly.text()).toEqual(html);
     expect(html).toContain('/api/oncall/clickcollect/checkout');
     expect(html).toContain('Demo de Devin On-Call');
     expect(html).toMatch(/id="oncall-ribbon" style="[^"]*bottom:16px;left:16px;/);
