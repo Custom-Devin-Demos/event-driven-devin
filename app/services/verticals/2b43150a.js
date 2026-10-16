@@ -6,7 +6,9 @@ const { createSessionAndAlert } = require('../devin-session');
 
 const ROUTE = '/api/2b43150a/checkout';
 const SERVICE = 'customer-gap-pdp-checkout';
-const DATADOG_LOGS_QUERY = `service:${SERVICE} status:error`;
+// The JSON log line carries this service in its own `service` attribute; the reserved
+// service tag stays the agent-level checkout-api, so the query uses the attribute.
+const DATADOG_LOGS_QUERY = `@service:${SERVICE} status:error`;
 
 const IMAGE_BASE = 'https://content.gapinc.com/b/0063/336/';
 
