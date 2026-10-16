@@ -113,6 +113,28 @@ describe('on-call hub routes', () => {
     if (legacy.status === 200) expect(await legacy.text()).not.toContain('oncall-ribbon');
   });
 
+  test('the Neo skin is served shimmed at its slug, friendly aliases and direct page URL, forcing Teams', async () => {
+    const [skinned, alias, friendly, direct] = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/e7a1c4d9`),
+      fetch(`${baseUrl}/oncall/c/neo`),
+      fetch(`${baseUrl}/neo-oncall`),
+      fetch(`${baseUrl}/e7a1c4d9`),
+    ]);
+    expect([skinned.status, alias.status, friendly.status, direct.status]).toEqual([200, 200, 200, 200]);
+    const html = await skinned.text();
+    expect(await alias.text()).toEqual(html);
+    expect(await friendly.text()).toEqual(html);
+    expect(await direct.text()).toEqual(html);
+    expect(html).toContain('<title>Neo \u2014 Trip disruption \u00b7 Amex GBT</title>');
+    expect(html).toContain('const apiPath = "/api/neo/rebook"');
+    expect(html).toContain('const oncallApiPath = "/api/oncall/rebooking/rebook"');
+    expect(html).toContain('var skinAlertDestination = "teams"');
+    expect(html).toContain('const triggerWhen = {"action":"rebook"}');
+    expect(html).toContain('Flight cancelled \u2014 rebooking options');
+    const legacy = await fetch(`${baseUrl}/api/neo/rebook`, { method: 'POST' });
+    expect(legacy.status).toBe(404);
+  });
+
   test('the GSK vaccine page uses the vaccines endpoint without changing the banking skins', async () => {
     const [direct, skinned, bank] = await Promise.all([
       fetch(`${baseUrl}/fe4f39ba`),
