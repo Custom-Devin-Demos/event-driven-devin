@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Legal Holds | Everlaw</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #343b3d;
+      --muted: #758184;
+      --teal: #4b929b;
+      --teal-dark: #1b3538;
+      --line: #e0e4e4;
+      --panel: #fff;
+      --canvas: #fafbfb;
+      --sidebar: #292824;
+      --sidebar-active: #62615e;
+      --gold: #e2c65b;
+      --green: #8ca94e;
+      --red: #bc453f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: #123537;
+      color: var(--ink);
+      font: 13px/1.4 "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { color: inherit; font: inherit; }
+    .app-frame {
+      min-height: calc(100vh - 42px);
+      margin: 22px 17px 20px;
+      overflow: hidden;
+      background: var(--panel);
+      border: 1px solid #d1d9d9;
+      border-radius: 9px;
+      box-shadow: 0 1px 3px #071e2022;
+    }
+    .topbar {
+      height: 51px;
+      display: flex;
+      align-items: center;
+      gap: 58px;
+      padding: 0 17px;
+      border-bottom: 1px solid #e4e7e7;
+      background: #fff;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 126px;
+      color: #39484a;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -.65px;
+    }
+    .brand svg { width: 28px; height: 26px; color: #59696a; }
+    .org-switcher {
+      border: 0;
+      padding: 6px 0;
+      background: transparent;
+      color: #3e4445;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: default;
+    }
+    .org-switcher span { margin-left: 8px; font-size: 11px; }
+    .top-actions { display: flex; align-items: center; gap: 21px; margin-left: auto; color: #697779; }
+    .top-actions .divider { height: 20px; border-left: 1px solid #e1e5e5; }
+    .pin { font-size: 16px; transform: rotate(-28deg); }
+    .help {
+      width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 50%;
+      text-align: center; font-size: 11px; font-weight: 700; line-height: 14px;
+    }
+    .avatar {
+      width: 21px; height: 21px; display: grid; place-items: center; border-radius: 50%;
+      background: #66aeb7; color: #fff; font-size: 9px; font-weight: 700;
+    }
+    .workspace { display: flex; min-height: calc(100vh - 93px); }
+    .sidebar {
+      flex: 0 0 204px;
+      padding: 13px 12px;
+      background: var(--sidebar);
+      color: #f4f2ed;
+    }
+    .nav-item {
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 9px;
+      border-radius: 2px;
+      color: #eeece8;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .nav-item .chev { color: #dedbd5; font-size: 15px; font-weight: 400; }
+    .nav-item.current {
+      height: 31px;
+      margin: 1px 0 2px;
+      background: var(--sidebar-active);
+      box-shadow: inset 2px 0 #fff;
+    }
+    .nav-sub {
+      height: 34px;
+      padding-left: 26px;
+      display: flex;
+      align-items: center;
+      color: #e8e5df;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .main { min-width: 0; flex: 1; background: var(--canvas); padding: 15px 15px 30px; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .breadcrumbs {
+      display: flex; align-items: center; gap: 9px; height: 18px;
+      color: #67888d; font-size: 12px;
+    }
+    .breadcrumbs a { color: #67888d; text-decoration: none; cursor: pointer; }
+    .breadcrumbs .arrow { color: #737d7e; font-size: 17px; line-height: 12px; }
+    .matter-head, .notice-heading {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      min-height: 66px; padding-top: 7px;
+    }
+    .eyebrow { color: #687174; font-size: 9px; font-weight: 700; letter-spacing: .2px; }
+    h1 { margin: 4px 0 2px; color: #353a3b; font-size: 21px; line-height: 1.25; font-weight: 600; }
+    .subtle-link { color: #598a92; text-decoration: none; font-size: 12px; }
+    .head-actions { display: flex; gap: 7px; align-items: center; padding-top: 12px; }
+    .ellipsis { border: 0; background: transparent; color: #687375; font-size: 17px; padding: 0 4px; }
+    .button {
+      min-height: 27px; padding: 4px 13px; border: 1px solid #c5cbcc; border-radius: 2px;
+      background: #fff; color: #4b5354; font-size: 12px; font-weight: 600; cursor: pointer;
+      box-shadow: 0 1px 1px #0000000a;
+    }
+    .button:hover { background: #f5f7f7; }
+    .button.primary { border-color: #448d97; background: #4d929c; color: #fff; }
+    .button.primary:hover { background: #3e818b; }
+    .button.release { min-width: 141px; }
+    .tabs { height: 39px; display: flex; align-items: stretch; gap: 33px; border-bottom: 1px solid #d9dede; }
+    .tab {
+      position: relative; display: flex; align-items: center; gap: 6px;
+      color: #464d4e; font-size: 13px; white-space: nowrap;
+    }
+    .tab.active { font-weight: 600; }
+    .tab.active::after { position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; content: ""; background: #4e9098; }
+    .count-badge { min-width: 18px; height: 17px; display: inline-grid; place-items: center; padding: 0 4px; border-radius: 9px; background: #e5e8e8; color: #687173; font-size: 10px; font-weight: 700; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; margin: 23px 0 10px; }
+    .section-head h2 { margin: 0; font-size: 14px; font-weight: 600; }
+    .export { color: #60949a; font-size: 12px; text-decoration: none; }
+    .hold-card {
+      width: min(890px, 100%); min-height: 79px; display: grid;
+      grid-template-columns: 114px minmax(155px, 1fr) 1fr 100px;
+      align-items: center; gap: 0; padding: 11px 18px;
+      border: 1px solid #e2e5e5; background: #fff;
+    }
+    .notice-meta { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #687174; }
+    .status-badge {
+      display: inline-flex; align-items: center; height: 19px; padding: 0 7px;
+      border: 1px solid #b9d6d8; border-radius: 2px; background: #e8f4f4;
+      color: #557c80; font-size: 9px; font-weight: 700; text-transform: uppercase;
+    }
+    .notice-name { display: flex; align-items: center; gap: 5px; color: #444a4b; font-size: 14px; font-weight: 600; }
+    .directory { margin-top: 3px; color: #667174; font-size: 12px; }
+    .directory .people { margin-right: 5px; font-size: 13px; }
+    .stats-bar {
+      display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+      height: 5px; margin: 0 0 8px;
+    }
+    .stats-bar span:nth-child(1) { background: var(--gold); }
+    .stats-bar span:nth-child(2) { background: var(--green); }
+    .stats-bar span:nth-child(3) { background: #d9dddd; }
+    .stats-bar span:nth-child(4) { background: #f0f1f1; }
+    .stats-labels { display: grid; grid-template-columns: 1.35fr 1fr .8fr .8fr; text-align: center; color: #596264; }
+    .stats-labels div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .stats-labels b { font-size: 9px; font-weight: 700; }
+    .stats-labels strong { font-size: 13px; }
+    .card-view { justify-self: end; min-width: 76px; }
+    .section-subhead { display: flex; justify-content: space-between; align-items: center; margin: 17px 0 12px; }
+    .section-subhead h2 { margin: 0; font-size: 14px; }
+    .section-subhead span { color: #596264; font-size: 12px; }
+    .preservation-card { width: min(890px, 100%); border: 1px solid #e2e5e5; background: #fff; }
+    .preservation-top { min-height: 84px; padding: 16px 25px; display: grid; grid-template-columns: 90px 1fr 90px; align-items: center; }
+    .created { color: #727b7c; text-align: center; font-size: 11px; }
+    .created strong { display: block; font-size: 11px; font-weight: 500; }
+    .preservation-name { font-size: 13px; font-weight: 600; }
+    .preservation-name small { display: block; color: #697274; font-size: 12px; font-weight: 400; }
+    .preservation-details {
+      min-height: 55px; border-left: 6px solid #e5e2f5;
+      display: grid; grid-template-columns: 72px 1.5fr 2.3fr 80px 80px 80px 80px 80px;
+      align-items: center; padding: 7px 20px; column-gap: 5px;
+    }
+    .pending-badge { justify-self: start; border-radius: 3px; background: #fff0c5; color: #a2812d; padding: 3px 6px; font-size: 9px; font-weight: 700; }
+    .product { font-size: 12px; font-weight: 600; }
+    .product small { display: block; margin-top: 3px; color: #687174; font-size: 11px; font-weight: 400; }
+    .product-icons { color: #788183; font-size: 11px; }
+    .mini-count { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .mini-count b { color: #5d6668; font-size: 9px; }
+    .mini-count strong { font-size: 12px; }
+    .notice-heading { min-height: 58px; padding-top: 7px; }
+    .notice-heading h1 { display: flex; align-items: center; gap: 12px; margin-top: 3px; }
+    .directory-line { margin-top: 3px; color: #5f6b6d; font-size: 12px; }
+    .directory-line .people { margin-right: 6px; }
+    .notice-actions { display: flex; align-items: center; gap: 7px; padding-top: 16px; }
+    .notice-tabs { margin-top: 4px; }
+    .table-tools { display: flex; align-items: center; gap: 13px; margin: 25px 0 10px; color: #525c5e; font-size: 12px; }
+    .table-tools .select-link { color: #5e959a; cursor: pointer; }
+    .table-tools .expand-tools { margin-left: auto; color: #609298; }
+    .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #dfe3e3; background: #fff; }
+    table { width: 100%; min-width: 890px; border-collapse: collapse; table-layout: fixed; }
+    th {
+      height: 31px; border-right: 1px solid #e6e8e8; border-bottom: 1px solid #dfe3e3;
+      background: #f4f5f5; color: #565e60; text-align: left; padding: 5px 10px;
+      font-size: 11px; font-weight: 600;
+    }
+    td { min-height: 32px; height: 32px; border-right: 1px solid #eaeded; border-bottom: 1px solid #e6e9e9; padding: 5px 10px; color: #42494a; font-size: 12px; }
+    th:first-child, td:first-child { width: 40px; text-align: center; padding-left: 5px; padding-right: 5px; }
+    th:nth-child(2) { width: 190px; }
+    th:nth-child(3) { width: 104px; }
+    th:nth-child(4) { width: 184px; }
+    th:nth-child(5) { width: 154px; }
+    th:nth-child(6) { min-width: 260px; }
+    input[type="checkbox"] { width: 14px; height: 14px; margin: 0; vertical-align: middle; accent-color: #4d929c; }
+    .status-pill { display: inline-flex; align-items: center; min-height: 19px; padding: 1px 7px; border: 1px solid #b9d4d8; border-radius: 2px; background: #e8f4f5; color: #587c81; font-size: 9px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+    .status-pill.pending { border-color: #e8dca6; background: #fff4d1; color: #a18439; }
+    .history { color: #758083; font-size: 11px; }
+    .history.loading { text-align: center; }
+    .history-line { display: block; line-height: 1.5; }
+    .error-banner {
+      display: none; margin: 13px 0 0; padding: 11px 13px; border: 1px solid #e7b8b5;
+      border-left: 4px solid #bd4a43; background: #fff5f4; color: #77332f;
+    }
+    .error-banner.show { display: block; }
+    .error-title { font-size: 13px; font-weight: 700; }
+    .error-copy { margin-top: 3px; }
+    .error-tech { margin-top: 7px; white-space: pre-wrap; color: #633e3b; font: 11px/1.5 Menlo, Consolas, monospace; }
+    .success-banner { display: none; margin: 13px 0 0; padding: 10px 12px; border: 1px solid #b6d8bf; background: #f0faf2; color: #2d6940; }
+    .success-banner.show { display: block; }
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center;
+      padding: 20px; background: #17242670;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      width: 495px; max-width: 100%; border: 1px solid #d4d9d9; border-radius: 3px;
+      background: #fff; box-shadow: 0 14px 48px #14232340;
+    }
+    .modal-head { padding: 18px 22px 13px; border-bottom: 1px solid #e4e7e7; font-size: 17px; font-weight: 600; }
+    .modal-body { padding: 17px 22px 20px; color: #50595b; font-size: 13px; line-height: 1.55; }
+    .modal-body p { margin: 0 0 8px; }
+    .modal-warning { margin-top: 14px; padding: 10px 12px; border-left: 3px solid #e3c157; background: #fff9e9; color: #675526; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 22px; border-top: 1px solid #e4e7e7; }
+    .toast {
+      position: fixed; z-index: 20; right: 30px; bottom: 28px; max-width: min(460px, calc(100vw - 32px));
+      display: none; border: 1px solid #e4b9b6; border-left: 4px solid var(--red);
+      background: #fff; padding: 12px 16px; box-shadow: 0 4px 20px #0002; color: #74322e;
+    }
+    .toast.show { display: block; }
+    @media (max-width: 850px) {
+      .app-frame { margin: 0; border-radius: 0; }
+      .topbar { gap: 20px; }
+      .sidebar { flex-basis: 170px; padding-right: 8px; padding-left: 8px; }
+      .main { padding: 14px 12px 24px; }
+      .hold-card { grid-template-columns: 90px minmax(140px, 1fr) 1.35fr 74px; padding: 10px; }
+      .preservation-details { grid-template-columns: 65px 1.4fr 1.6fr repeat(5, 55px); padding: 7px 8px; }
+    }
+    @media (max-width: 620px) {
+      .topbar { height: 49px; padding: 0 10px; }
+      .brand { min-width: auto; font-size: 17px; }
+      .org-switcher { font-size: 12px; }
+      .top-actions { gap: 10px; }
+      .workspace { min-height: calc(100vh - 49px); }
+      .sidebar { flex-basis: 56px; padding: 12px 5px; }
+      .nav-item { justify-content: center; padding: 0; font-size: 0; }
+      .nav-item .chev, .nav-sub { display: none; }
+      .nav-item::first-letter { font-size: 12px; }
+      .matter-head, .notice-heading { min-height: 68px; }
+      .tabs { gap: 19px; }
+      .hold-card { grid-template-columns: 76px 1fr 74px; row-gap: 12px; }
+      .hold-card .card-stats { grid-column: 1 / -1; grid-row: 2; }
+      .card-view { grid-column: 3; grid-row: 1; }
+      .preservation-details { min-width: 760px; }
+      .preservation-card { overflow-x: auto; }
+      .notice-actions { padding-top: 13px; }
+      .button.release { min-width: auto; padding-right: 8px; padding-left: 8px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-frame">
+    <header class="topbar">
+      <div class="brand" aria-label="Everlaw">
+        <svg viewBox="0 0 32 28" fill="none" aria-hidden="true">
+          <path d="M3 8.2 10.9 2l7.7 6.2-8 6.3L3 8.2Z" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/>
+          <path d="m12.4 8.2 7.9-6.1L29 8.2l-8 6.3-8.6-6.3Z" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/>
+          <path d="m7.8 12 8.1 6.2 8-6.2" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/>
+        </svg>
+        Everlaw
+      </div>
+      <button class="org-switcher">Testing Org 4 [POV] <span>▼</span></button>
+      <div class="top-actions" aria-hidden="true">
+        <span class="pin">◆</span><span class="divider"></span><span class="help">?</span><span class="avatar">CR</span>
+      </div>
+    </header>
+    <div class="workspace">
+      <aside class="sidebar" aria-label="Organization navigation">
+        <div class="nav-item">Projects &amp; Users <span class="chev">›</span></div>
+        <div class="nav-item">Database Sizes <span class="chev">›</span></div>
+        <div class="nav-item">Staging Drive</div>
+        <div class="nav-item">Everlaw AI <span class="chev">›</span></div>
+        <div class="nav-item current">Legal Holds <span class="chev">⌄</span></div>
+        <div class="nav-sub">Directories</div>
+        <div class="nav-sub">Settings</div>
+        <div class="nav-item">Processed Uploads</div>
+        <div class="nav-item">File Transfers</div>
+        <div class="nav-item">Cloud Management <span class="chev">›</span></div>
+        <div class="nav-item">Tasks</div>
+        <div class="nav-item">Current User Activity</div>
+        <div class="nav-item">User Access History <span class="chev">›</span></div>
+        <div class="nav-item">API keys</div>
+        <div class="nav-item">Multi-Matter Models</div>
+      </aside>
+      <main class="main">
+        <section class="view" id="matter-view" aria-label="Matter">
+          <nav class="breadcrumbs"><a href="#matter">Organization Legal Holds</a><span class="arrow">›</span><span>New Matter</span></nav>
+          <div class="matter-head">
+            <div>
+              <div class="eyebrow">MATTER · DATABASE</div>
+              <h1>New Matter</h1>
+              <a class="subtle-link" href="#matter">View database</a>
+            </div>
+            <div class="head-actions"><button class="ellipsis" aria-label="More actions">•••</button><button class="button">＋ Add custodians</button><button class="button primary">＋ New</button></div>
+          </div>
+          <div class="tabs" role="tablist">
+            <div class="tab active">Legal holds</div><div class="tab">Custodians</div><div class="tab">Notes</div>
+          </div>
+          <div class="section-head">
+            <h2>Hold notices</h2>
+            <a class="export" href="#matter">↗ Export legal holds</a>
+          </div>
+          <article class="hold-card">
+            <div class="notice-meta"><span class="status-badge">Issued</span><span>May 1</span></div>
+            <div>
+              <div class="notice-name">Hold Notice</div>
+              <div class="directory"><span class="people">♧</span>Demo Directory</div>
+            </div>
+            <div class="card-stats">
+              <div class="stats-bar"><span></span><span></span><span></span><span></span></div>
+              <div class="stats-labels">
+                <div><b>NOT ACKNOWLEDGED</b><strong id="matter-unack-count">3</strong></div>
+                <div><b>ACKNOWLEDGED</b><strong id="matter-ack-count">–</strong></div>
+                <div><b>RELEASED</b><strong id="matter-released-count">–</strong></div>
+                <div><b>TOTAL</b><strong>3</strong></div>
+              </div>
+            </div>
+            <button class="button card-view" id="view-notice">View</button>
+          </article>
+          <div class="section-subhead"><h2>Data preservations</h2><span>Manage data preservation login&nbsp; ▼</span></div>
+          <article class="preservation-card">
+            <div class="preservation-top">
+              <div class="created">Created<strong>May 1</strong></div>
+              <div class="preservation-name">Data Preservation<small>No query<br><span style="display:inline-block;margin-top:7px">♧ EasyESI</span></small></div>
+              <button class="button">View</button>
+            </div>
+            <div class="preservation-details">
+              <span class="pending-badge">PENDING</span>
+              <div class="product">Microsoft 365</div>
+              <div class="product-icons">▱ Mailbox&nbsp;&nbsp; ◉ OneDrive</div>
+              <div class="mini-count"><b>ERRORED</b><strong>–</strong></div>
+              <div class="mini-count"><b>PENDING</b><strong>1</strong></div>
+              <div class="mini-count"><b>ACTIVE</b><strong>–</strong></div>
+              <div class="mini-count"><b>RELEASED</b><strong>–</strong></div>
+              <div class="mini-count"><b>TOTAL</b><strong>1</strong></div>
+            </div>
+          </article>
+        </section>
+
+        <section class="view" id="notice-view" aria-label="Hold Notice">
+          <nav class="breadcrumbs">
+            <a href="#matter">Organization Legal Holds</a><span class="arrow">›</span>
+            <a href="#matter">New Matter</a><span class="arrow">›</span><span>Hold Notice</span>
+          </nav>
+          <div class="notice-heading">
+            <div>
+              <div class="eyebrow">HOLD NOTICE</div>
+              <h1>Hold Notice <span class="status-badge" id="notice-status">Issued</span></h1>
+              <div class="directory-line"><span class="people">♧</span>Demo Directory</div>
+            </div>
+            <div class="notice-actions">
+              <button class="button release" id="release-all">Release all custodians</button>
+              <button class="ellipsis" aria-label="More actions">•••</button>
+            </div>
+          </div>
+          <div class="tabs notice-tabs" role="tablist">
+            <div class="tab active">Custodians</div>
+            <div class="tab">Questionnaire responses <span class="count-badge">0</span></div>
+            <div class="tab">Activity</div>
+          </div>
+          <div class="error-banner" id="error-banner" role="alert">
+            <div class="error-title">Couldn't release custodians — <span id="hold-count-label">3 custodians are still on hold</span></div>
+            <div class="error-copy">No custodians were released. They remain on hold while this issue is investigated.</div>
+            <div class="error-tech" id="error-tech"></div>
+          </div>
+          <div class="success-banner" id="success-banner" role="status">Release notices sent. Custodians have been released from this hold.</div>
+          <div class="table-tools">
+            <span id="custodian-count">3 total</span><span>|</span><span id="not-ack-count">3 not acknowledged</span>
+            <a class="select-link" id="select-all" role="button">Select</a>
+            <span class="expand-tools">Expand all&nbsp; / &nbsp;Collapse all</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th><input type="checkbox" id="check-all" aria-label="Select all custodians"></th>
+                <th>Custodian</th><th>Hold status</th><th>Acknowledgement status</th><th>Questionnaire status</th><th>Communication history</th>
+              </tr></thead>
+              <tbody id="custodian-rows">
+                <tr data-id="custodian-alex">
+                  <td><input type="checkbox" class="custodian-check" aria-label="Select Alex"></td><td>Alex</td>
+                  <td><span class="status-pill hold-status">Issued</span></td>
+                  <td><span class="status-pill pending">×&nbsp; Not acknowledged</span></td>
+                  <td><span class="status-pill pending">×&nbsp; Not responded</span></td>
+                  <td class="history loading">Loading…</td>
+                </tr>
+                <tr data-id="custodian-chris">
+                  <td><input type="checkbox" class="custodian-check" aria-label="Select Chris"></td><td>Chris</td>
+                  <td><span class="status-pill hold-status">Issued</span></td>
+                  <td><span class="status-pill pending">×&nbsp; Not acknowledged</span></td>
+                  <td><span class="status-pill pending">×&nbsp; Not responded</span></td>
+                  <td class="history loading">Loading…</td>
+                </tr>
+                <tr data-id="custodian-dana">
+                  <td><input type="checkbox" class="custodian-check" aria-label="Select Dana"></td><td>Dana</td>
+                  <td><span class="status-pill hold-status">Issued</span></td>
+                  <td><span class="status-pill pending">×&nbsp; Not acknowledged</span></td>
+                  <td><span class="status-pill pending">×&nbsp; Not responded</span></td>
+                  <td class="history loading">Loading…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <div class="modal-head" id="modal-title">Release all custodians?</div>
+      <div class="modal-body">
+        <p>This will release all custodians from this legal hold.</p>
+        <p>A release notice will be sent to <strong id="modal-count">3 custodians</strong>.</p>
+        <div class="modal-warning">Custodians will no longer be required to preserve information for this matter.</div>
+      </div>
+      <div class="modal-actions">
+        <button class="button" id="cancel-release">Cancel</button>
+        <button class="button primary" id="confirm-release">Release</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="error-toast" role="alert"></div>
+
+  <script>
+    (function () {
+      var slug = 'd2dd4b8e';
+      var noticeId = 'hold-notice-1';
+      var fallbackUserId = '';
+      var fallbackOrgId = 'org_69IXJFLrljx8zSAw';
+      var matterView = document.getElementById('matter-view');
+      var noticeView = document.getElementById('notice-view');
+      var modal = document.getElementById('confirm-modal');
+      var releaseButton = document.getElementById('release-all');
+      var confirmButton = document.getElementById('confirm-release');
+      var errorBanner = document.getElementById('error-banner');
+      var toast = document.getElementById('error-toast');
+      var rows = Array.prototype.slice.call(document.querySelectorAll('#custodian-rows tr'));
+      var working = false;
+
+      function showView() {
+        var isNotice = window.location.hash === '#hold-notice';
+        matterView.classList.toggle('active', !isNotice);
+        noticeView.classList.toggle('active', isNotice);
+        if (isNotice) loadHistory();
+      }
+
+      function loadHistory() {
+        rows.forEach(function (row, index) {
+          var cell = row.querySelector('.history');
+          if (cell.dataset.loaded) return;
+          cell.textContent = 'Loading…';
+          window.setTimeout(function () {
+            cell.innerHTML = '<span class="history-line">Hold notice sent May 1</span><span class="history-line">Reminder sent May 8</span>';
+            cell.dataset.loaded = 'true';
+          }, 500 + (index * 100));
+        });
+      }
+
+      function openModal() {
+        var count = rows.filter(function (row) {
+          return row.querySelector('.hold-status').textContent.toLowerCase() !== 'released';
+        }).length;
+        document.getElementById('modal-count').textContent = count + (count === 1 ? ' custodian' : ' custodians');
+        modal.classList.add('show');
+      }
+
+      function closeModal() {
+        modal.classList.remove('show');
+      }
+
+      function showError(payload) {
+        var count = rows.filter(function (row) {
+          return row.querySelector('.hold-status').textContent.toLowerCase() !== 'released';
+        }).length;
+        var phrase = count + (count === 1 ? ' custodian is still on hold' : ' custodians are still on hold');
+        document.getElementById('hold-count-label').textContent = phrase;
+        document.getElementById('error-tech').textContent =
+          (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error') +
+          '\n' + (payload.code || 'CUSTODIAN_RELEASE_FAILED') +
+          ' · Reference ID: ' + (payload.requestId || 'unavailable');
+        errorBanner.classList.add('show');
+        toast.textContent = "Couldn't release custodians — " + phrase;
+        toast.classList.add('show');
+        window.setTimeout(function () { toast.classList.remove('show'); }, 6000);
+      }
+
+      function applySuccess(result) {
+        (result.releasedCustodians || []).forEach(function (custodian) {
+          var row = document.querySelector('tr[data-id="' + custodian.id + '"]');
+          if (row) {
+            row.querySelector('.hold-status').textContent = 'Released';
+            row.querySelector('.hold-status').classList.add('pending');
+          }
+        });
+        var remaining = rows.filter(function (row) {
+          return row.querySelector('.hold-status').textContent.toLowerCase() !== 'released';
+        }).length;
+        document.getElementById('custodian-count').textContent = rows.length + ' total';
+        document.getElementById('not-ack-count').textContent = remaining + ' not acknowledged';
+        document.getElementById('matter-unack-count').textContent = remaining || '–';
+        document.getElementById('matter-released-count').textContent = rows.length - remaining || '–';
+        document.getElementById('success-banner').classList.add('show');
+        errorBanner.classList.remove('show');
+      }
+
+      async function releaseAll() {
+        if (working) return;
+        working = true;
+        confirmButton.disabled = true;
+        confirmButton.textContent = 'Releasing…';
+        errorBanner.classList.remove('show');
+        document.getElementById('success-banner').classList.remove('show');
+        try {
+          var response = await fetch('/api/' + slug + '/release-custodians', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              holdNoticeId: noticeId,
+              devinUserId: localStorage.getItem('devinUserId') || fallbackUserId,
+              devinOrgId: localStorage.getItem('devinOrgId') || fallbackOrgId,
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          });
+          var result = await response.json();
+          if (!response.ok || result.error) showError(result);
+          else applySuccess(result);
+        } catch (error) {
+          showError({ errorClass: 'NetworkError', error: error.message });
+        } finally {
+          closeModal();
+          confirmButton.disabled = false;
+          confirmButton.textContent = 'Release';
+          working = false;
+        }
+      }
+
+      document.getElementById('view-notice').addEventListener('click', function () {
+        window.location.hash = 'hold-notice';
+      });
+      releaseButton.addEventListener('click', openModal);
+      document.getElementById('cancel-release').addEventListener('click', closeModal);
+      confirmButton.addEventListener('click', releaseAll);
+      modal.addEventListener('click', function (event) {
+        if (event.target === modal) closeModal();
+      });
+      document.getElementById('check-all').addEventListener('change', function (event) {
+        document.querySelectorAll('.custodian-check').forEach(function (checkbox) { checkbox.checked = event.target.checked; });
+      });
+      document.getElementById('select-all').addEventListener('click', function () {
+        var checks = Array.prototype.slice.call(document.querySelectorAll('.custodian-check'));
+        var selected = checks.some(function (checkbox) { return !checkbox.checked; });
+        checks.forEach(function (checkbox) { checkbox.checked = selected; });
+        document.getElementById('check-all').checked = selected;
+        this.textContent = selected ? 'Deselect' : 'Select';
+      });
+      window.addEventListener('hashchange', showView);
+      if (!window.location.hash) window.location.hash = 'matter';
+      showView();
+    }());
+  </script>
+</body>
+</html>
