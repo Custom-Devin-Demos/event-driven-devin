@@ -40,12 +40,13 @@ async function call(method, body, { token = botToken(), form = false } = {}) {
 }
 
 const postMessage = (channel, text, blocks, extra = {}) => call('chat.postMessage', { channel, text, blocks, ...extra });
-const updateMessage = (channel, ts, text, blocks) => call('chat.update', { channel, ts, text, blocks });
+const updateMessage = (channel, ts, text, blocks, extra = {}) => call('chat.update', { channel, ts, text, blocks, ...extra });
 const postEphemeral = (channel, user, text, blocks) => call('chat.postEphemeral', { channel, user, text, blocks });
 const openView = (triggerId, view) => call('views.open', { trigger_id: triggerId, view });
 const updateView = (viewId, view, hash) => call('views.update', { view_id: viewId, view, hash });
 const publishHome = (userId, view) => call('views.publish', { user_id: userId, view });
 const openDm = (users) => call('conversations.open', { users });
+const userInfo = (user) => call('users.info', { user }, { form: true });
 
 // Posts text via Slack's response_url (slash command / interaction follow-up).
 async function respond(responseUrl, body) {
@@ -95,6 +96,7 @@ module.exports = {
   updateView,
   publishHome,
   openDm,
+  userInfo,
   respond,
   uploadFile,
 };

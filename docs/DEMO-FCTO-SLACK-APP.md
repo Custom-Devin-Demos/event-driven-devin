@@ -42,8 +42,20 @@ in the thread. The authoritative answer to "who is reserved when" is
 5. `/fcto free oct 22`, `/fcto free oct 22-24`, `/fcto free next week` — who has no
    approved reservation on those days (green / yellow = partly / red = 6h+ booked).
    Based on this app's reservations only; it can't see personal calendars.
-   App Home shows the roster with everyone's current local time, the next three
-   weeks of reservations, and your open requests.
+   App Home shows counters (pending, booked, free today, waiting on you), a
+   **Needs your action** queue with Approve / Claim / Assign buttons for admins
+   and Field CTOs, a 7-day green/yellow/red heatmap per Field CTO with their
+   photo and local time, the next three weeks of reservations, and your open
+   requests.
+6. Card design: the request details sit at the top (Field CTO photo,
+   qualification chips like `:crown: C-level  :flag-jp: Japan  :bank: Finance`,
+   purpose as a quote, local times). Status, a progress line
+   (Requested → Field CTO → Approval → On the calendar) and the buttons sit in a
+   color bar: yellow pending, green approved, red declined, grey cancelled.
+   Approved cards and the approval thread reply get **Add to Google Calendar** /
+   **Add to Outlook** buttons, which open a prefilled event in the clicker's own
+   calendar. Photos come from `users.info` (existing `users:read` scope), are
+   cached for 12 hours, and are skipped if Slack is slow.
 
 ## Who can do what
 
