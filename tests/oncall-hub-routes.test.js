@@ -106,7 +106,10 @@ describe('on-call hub routes', () => {
     expect(html).toContain('Demo de Devin On-Call');
     expect(html).toMatch(/id="oncall-ribbon" style="[^"]*bottom:16px;left:16px;/);
     expect(html).toMatch(/id="oncall-dot"[^>]*bottom:16px;left:16px;/);
-    expect(await other.text()).toMatch(/id="oncall-ribbon" style="[^"]*bottom:16px;right:16px;/);
+    expect(html).toContain('@media (max-width: 640px) { #oncall-ribbon, #oncall-dot { top: 16px !important; bottom: auto !important; } }');
+    const otherHtml = await other.text();
+    expect(otherHtml).toMatch(/id="oncall-ribbon" style="[^"]*bottom:16px;right:16px;/);
+    expect(otherHtml).not.toContain('#oncall-ribbon, #oncall-dot { top: 16px');
     if (legacy.status === 200) expect(await legacy.text()).not.toContain('oncall-ribbon');
   });
 
