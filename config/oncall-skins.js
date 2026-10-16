@@ -3726,6 +3726,8 @@ const ONCALL_SKINS = {
     vertical: 'rebooking',
     oncallOnly: true,
     paths: ['/oncall/c/egencia', '/egencia-oncall'],
+    // The Egencia chat bubble sits bottom-right, so dock the demo ribbon on the left.
+    ribbonSide: 'left',
     teamsAlerts: true,
     teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
     alertDestination: 'teams',

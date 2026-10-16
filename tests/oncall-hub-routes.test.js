@@ -129,6 +129,7 @@ describe('on-call hub routes', () => {
     expect(html).toContain('const apiPath = "/api/egencia/rebook"');
     expect(html).toContain('const oncallApiPath = "/api/oncall/rebooking/rebook"');
     expect(html).toContain('var skinAlertDestination = "teams"');
+    expect(html).toMatch(/id="oncall-ribbon" style="[^"]*bottom:16px;left:16px;/);
     expect(html).toContain('const triggerWhen = {"action":"rebook"}');
     expect(html).toContain('Flight cancelled \u2014 rebooking options');
     const legacy = await fetch(`${baseUrl}/api/egencia/rebook`, { method: 'POST' });
