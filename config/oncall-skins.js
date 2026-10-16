@@ -4139,6 +4139,32 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Report Center & query platform incident intake',
     disclaimer: 'Internal demo only \u2014 fictional Unify+ Report Center scenario with invented client data, not a real Circana product screen or affiliated with or endorsed by Circana.',
   },
+  '80a0e391': {
+    slug: '80a0e391',
+    company: 'HP',
+    brandMark: 'hp',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '80a0e391.html', title: 'Checkout | HP\u00ae Store' },
+    teamsAlerts: true,
+    alertCard: {
+      title: 'p95 latency \u2014 place order submissions',
+      service: 'store-checkout-api',
+      release: 'store-checkout@2026.10.2',
+      team: 'checkout-oncall',
+      symptom: 'Place order submissions hang ~10s before the order confirms. Error rate is normal \u2014 orders eventually go through.',
+      impact: 'Every shopper placing an order waits on a spinner for ~10 seconds; Customer Service is reporting rising call volume during the sale.',
+    },
+    theme: {
+      '--accent': '#024AD8',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1A1A1A',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'HP Customer Service',
+    disclaimer: 'NOT ACTUALLY AN HP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real HP product.',
+  },
 };
 
 function getOncallSkin(slug) {
