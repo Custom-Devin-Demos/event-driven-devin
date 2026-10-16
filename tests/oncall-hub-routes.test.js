@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const oncallRoutes = require('../app/routes/oncall');
+const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
 
 let server;
 let baseUrl;
@@ -12,6 +13,7 @@ beforeAll((done) => {
   const app = express();
   app.use(express.json());
   app.use(oncallRoutes);
+  app.use(oncallVerticalRoutes);
   server = http.createServer(app);
   server.listen(0, () => {
     baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -135,6 +137,58 @@ describe('on-call hub routes', () => {
     const legacy = await fetch(`${baseUrl}/api/egencia/rebook`, { method: 'POST' });
     expect(legacy.status).toBe(404);
   });
+
+  test('the store-pickup skin reroutes checkout and keeps the legacy page unshimmed', async () => {
+    const [skinned, friendly, legacy, report, incident] = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/d36c67bf`),
+      fetch(`${baseUrl}/gap-oncall`),
+      fetch(`${baseUrl}/gap`),
+      fetch(`${baseUrl}/oncall/c/d36c67bf/report`),
+      fetch(`${baseUrl}/oncall/c/d36c67bf/incident`),
+    ]);
+    expect([skinned.status, friendly.status, report.status, incident.status]).toEqual([200, 200, 404, 404]);
+    const html = await skinned.text();
+    expect(await friendly.text()).toEqual(html);
+    expect(html).toContain('const oncallApiPath = "/api/oncall/storepickup/checkout"');
+    expect(html).toContain('const triggerWhen = {"fulfillment":"pickup"}');
+    expect(html).toContain('var skinAlertDestination = "slack"');
+    expect(html).toMatch(/id="oncall-ribbon" style="[^"]*bottom:16px;left:16px;/);
+    expect(html).toContain('NOT ACTUALLY A GAP SITE');
+    if (legacy.status === 200) expect(await legacy.text()).not.toContain('oncall-ribbon');
+  });
+
+  test('store-pickup route accepts ship orders and rejects missing carts', async () => {
+    const ship = await fetch(`${baseUrl}/api/oncall/storepickup/checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [{ sku: 'GAP-441020', qty: 1 }], fulfillment: 'ship' }),
+    });
+    expect(ship.status).toBe(200);
+    expect(await ship.json()).toMatchObject({ success: true, fulfillment: 'ship', holds: [] });
+
+    const invalid = await fetch(`${baseUrl}/api/oncall/storepickup/checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    expect(invalid.status).toBe(400);
+    expect(await invalid.json()).toMatchObject({ success: false, code: 'INVALID_CART' });
+  });
+
+  test('pickup route returns the store reservation timeout', async () => {
+    const response = await fetch(`${baseUrl}/api/oncall/storepickup/checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [{ sku: 'GAP-441020', qty: 1 }], fulfillment: 'pickup', storeNumber: '0412' }),
+    });
+    expect(response.status).toBe(504);
+    expect(await response.json()).toMatchObject({
+      success: false,
+      error: 'Your order timed out while reserving items at your store. Please try again in a few minutes.',
+      errorClass: 'GatewayTimeout',
+      code: 'STORE_HOLD_TIMEOUT',
+    });
+  }, 15000);
 
   test('the GSK vaccine page uses the vaccines endpoint without changing the banking skins', async () => {
     const [direct, skinned, bank] = await Promise.all([
