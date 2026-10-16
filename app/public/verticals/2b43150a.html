@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relaxed Polo Sweater | Gap</title>
+  <style>
+    :root {
+      --gap-blue: #031BA1;
+      --ink: #000000;
+      --ink-soft: #595959;
+      --line: #d9d9d9;
+      --line-strong: #000000;
+      --surface: #ffffff;
+      --surface-soft: #f5f5f5;
+      --error: #c8102e;
+      --error-soft: #fdeef0;
+      --ok: #1b6e2a;
+      --ok-soft: #eaf6ec;
+      --warn: #7a4b00;
+      --warn-soft: #fff4d6;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: "Gap Sans", "Helvetica Neue", Helvetica, Arial, Roboto, sans-serif; color: var(--ink); background: var(--surface); font-size: 14px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+    img { display: block; max-width: 100%; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    .demo-disclaimer { background: var(--warn-soft); color: var(--warn); font-size: 11px; font-weight: 700; letter-spacing: 0.02em; text-align: center; padding: 6px 12px; text-transform: uppercase; }
+    .repro-banner { display: none; background: #e8f0ff; color: var(--gap-blue); font-size: 12px; font-weight: 600; text-align: center; padding: 5px 12px; border-bottom: 1px solid #c7d3f5; }
+
+    /* Brand bar */
+    .brand-bar { background: #000; color: #fff; height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; font-size: 12px; letter-spacing: 0.2px; }
+    .brand-bar__brands { display: flex; gap: 32px; }
+    .brand-bar__brands a { opacity: 0.85; }
+    .brand-bar__brands a.is-active { opacity: 1; text-decoration: underline; text-underline-offset: 6px; }
+    .brand-bar__icons { display: flex; gap: 20px; }
+    .brand-bar__icons svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.5; }
+
+    /* Promo banner */
+    .promo-bar { background: var(--gap-blue); color: #fff; min-height: 44px; display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 10px 24px; font-size: 13px; }
+    .promo-bar__msg { text-align: center; font-weight: 400; }
+    .promo-bar__meta { font-size: 11px; display: flex; gap: 6px; align-items: center; }
+    .promo-bar__meta a { text-decoration: underline; }
+    .promo-bar__pause { margin-left: 14px; font-size: 14px; letter-spacing: 1px; }
+
+    /* Header */
+    .site-header { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 36px; padding: 18px 48px 18px; border-bottom: 1px solid var(--line); background: #fff; position: sticky; top: 0; z-index: 20; }
+    .logo { font-family: "Times New Roman", Times, serif; font-size: 36px; letter-spacing: 6px; line-height: 1; font-weight: 400; padding: 0 2px; }
+    .nav { display: flex; gap: 20px; font-size: 15px; overflow-x: auto; scrollbar-width: none; }
+    .nav::-webkit-scrollbar { display: none; }
+    .nav a { padding: 10px 0; white-space: nowrap; border-bottom: 2px solid transparent; }
+    .nav a.is-active { border-bottom-color: var(--ink); }
+    .header-tools { display: flex; align-items: center; gap: 18px; }
+    .search { display: flex; align-items: center; background: var(--surface-soft); border-radius: 2px; height: 36px; width: 220px; padding: 0 10px; }
+    .search input { border: 0; background: transparent; flex: 1; font: inherit; font-size: 13px; outline: none; min-width: 0; }
+    .search svg { width: 20px; height: 20px; stroke: #000; fill: none; stroke-width: 1.6; }
+    .bag-btn { position: relative; background: none; border: 0; padding: 6px; display: flex; align-items: center; min-width: 44px; min-height: 44px; justify-content: center; }
+    .bag-btn svg { width: 22px; height: 22px; stroke: #000; fill: none; stroke-width: 1.5; }
+    .bag-btn__count { position: absolute; top: 2px; right: 0; background: var(--gap-blue); color: #fff; font-size: 10px; font-weight: 700; min-width: 17px; height: 17px; border-radius: 9px; display: none; align-items: center; justify-content: center; padding: 0 4px; }
+    .bag-btn__count.is-visible { display: inline-flex; }
+
+    /* Page */
+    .page { max-width: 1200px; margin: 0 auto; padding: 18px 24px 120px; }
+    .crumbs { font-size: 13px; color: var(--ink-soft); margin: 0 0 14px; }
+    .crumbs a { color: var(--ink); }
+    .crumbs span { margin: 0 6px; }
+    .pdp { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 26px; align-items: start; }
+    .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .gallery figure { margin: 0; background: #f0f0f0; aspect-ratio: 3 / 4; overflow: hidden; }
+    .gallery img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+
+    .buy { position: sticky; top: 104px; }
+    .buy h1 { font-size: 28px; font-weight: 400; margin: 0 0 14px; letter-spacing: -0.2px; }
+    .price-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .price { font-size: 16px; }
+    .rating { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+    .rating .stars { color: #000; font-size: 20px; letter-spacing: 1px; line-height: 1; }
+    .rating a { text-decoration: underline; }
+    .promo-line { font-size: 13px; color: var(--ink-soft); margin: 10px 0 22px; }
+    .label { font-size: 13px; margin: 0 0 10px; }
+    .label strong { font-weight: 400; }
+    .swatches { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+    .swatch { width: 44px; height: 44px; border: 1px solid #c9c9c9; padding: 3px; background: #fff; display: flex; }
+    .swatch span { flex: 1; display: block; }
+    .swatch.is-selected { border: 2px solid #000; padding: 2px; }
+    .swatch:focus-visible { outline: 2px solid var(--gap-blue); outline-offset: 2px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .chip { min-width: 44px; height: 44px; padding: 0 14px; border: 1px solid #b3b3b3; background: #fff; font-size: 14px; color: #000; display: inline-flex; align-items: center; justify-content: center; }
+    .chip.is-selected { border: 2px solid #000; }
+    .chip:hover { border-color: #000; }
+    .size-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+    .size-head a { font-size: 13px; text-decoration: underline; }
+    .size-error { display: none; color: var(--error); font-size: 12px; margin: -14px 0 16px; }
+    .size-error.is-visible { display: block; }
+    .atb-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .qty { position: relative; width: 60px; height: 44px; border: 1px solid #b3b3b3; display: flex; align-items: center; }
+    .qty select { appearance: none; -webkit-appearance: none; border: 0; background: transparent; width: 100%; height: 100%; padding: 0 22px 0 12px; font: inherit; font-size: 14px; }
+    .qty::after { content: ""; position: absolute; right: 12px; top: 17px; width: 6px; height: 6px; border-right: 1.5px solid #000; border-bottom: 1.5px solid #000; transform: rotate(45deg); pointer-events: none; }
+    .atb { flex: 1; height: 44px; background: var(--gap-blue); color: #fff; border: 0; font-size: 15px; font-weight: 400; }
+    .atb:hover { background: #02167f; }
+    .atb:disabled { opacity: 0.6; cursor: default; }
+    .pay-line { font-size: 11px; color: #000; margin: 0 0 18px; line-height: 1.6; }
+    .pay-line .i { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; border-radius: 50%; font-size: 8px; text-align: center; line-height: 11px; vertical-align: 1px; margin-left: 2px; }
+    .fulfil { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .fulfil__box { border: 1px solid #000; padding: 14px 12px; font-size: 13px; min-height: 104px; }
+    .fulfil__box strong { font-weight: 400; display: block; margin-bottom: 8px; font-size: 14px; }
+    .fulfil__box a { text-decoration: underline; display: inline-block; margin-top: 4px; }
+    .fulfil__box .store { font-weight: 400; }
+
+    .details { margin-top: 44px; border-top: 1px solid var(--line); }
+    .details details { border-bottom: 1px solid var(--line); }
+    .details summary { list-style: none; cursor: pointer; padding: 18px 0; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .details summary::-webkit-details-marker { display: none; }
+    .details summary::after { content: "+"; font-size: 20px; font-weight: 300; }
+    .details details[open] summary::after { content: "–"; }
+    .details ul { margin: 0 0 18px; padding: 0 0 0 18px; font-size: 14px; color: #000; }
+    .details li { margin: 0 0 6px; }
+
+    .also { margin-top: 48px; }
+    .also h2 { font-size: 20px; font-weight: 400; margin: 0 0 18px; }
+    .also__row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .also__card figure { margin: 0 0 8px; background: #f0f0f0; aspect-ratio: 3 / 4; overflow: hidden; }
+    .also__card img { width: 100%; height: 100%; object-fit: cover; }
+    .also__card .name { font-size: 13px; }
+    .also__card .p { font-size: 13px; margin-top: 2px; }
+    .also__card .d { font-size: 12px; color: var(--ink-soft); }
+
+    .sticky-promo { position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; width: min(420px, calc(100% - 24px)); background: #000; color: #fff; font-size: 13px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 15; }
+    .sticky-promo span.chev { font-size: 14px; }
+    .offer-pill { position: fixed; left: 18px; bottom: 18px; background: var(--gap-blue); color: #fff; font-size: 15px; padding: 12px 16px; display: flex; gap: 18px; align-items: center; z-index: 15; }
+    .offer-pill b { font-weight: 400; }
+
+    /* Bag drawer */
+    .scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.45); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 30; }
+    .bag { position: fixed; top: 0; right: 0; height: 100%; width: 420px; max-width: 100%; background: #fff; transform: translateX(100%); transition: transform .25s ease; z-index: 31; display: flex; flex-direction: column; box-shadow: -8px 0 24px rgba(0,0,0,0.12); }
+    body.bag-open .scrim { opacity: 1; pointer-events: auto; }
+    body.bag-open .bag { transform: translateX(0); }
+    .bag__head { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+    .bag__head h2 { font-size: 18px; font-weight: 400; margin: 0; }
+    .bag__close { background: none; border: 0; font-size: 26px; line-height: 1; width: 44px; height: 44px; margin: -10px -14px -10px 0; }
+    .bag__body { flex: 1; overflow-y: auto; padding: 18px 20px; }
+    .bag__notice { display: none; background: var(--warn-soft); color: var(--warn); font-size: 12px; padding: 10px 12px; margin-bottom: 16px; }
+    .bag__notice.is-visible { display: block; }
+    .bag__promo { background: #e8f0ff; color: var(--gap-blue); font-size: 12px; padding: 10px 12px; margin-bottom: 16px; }
+    .bag__item { display: grid; grid-template-columns: 96px 1fr; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .bag__item img { width: 96px; height: 128px; object-fit: cover; background: #f0f0f0; }
+    .bag__item .n { font-size: 14px; margin-bottom: 6px; }
+    .bag__item .m { font-size: 12px; color: var(--ink-soft); line-height: 1.7; }
+    .bag__item .pr { font-size: 14px; margin-top: 8px; }
+    .bag__remove { background: none; border: 0; padding: 0; margin-top: 10px; min-height: 44px; font-size: 12px; text-decoration: underline; color: var(--ink-soft); }
+    .bag__sum { padding: 16px 0 0; font-size: 13px; }
+    .bag__sum div { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .bag__sum .save { color: var(--ok); }
+    .bag__sum .tot { font-size: 15px; margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
+    .bag__foot { padding: 16px 20px 20px; border-top: 1px solid var(--line); }
+    .checkout-btn { width: 100%; height: 48px; background: var(--gap-blue); color: #fff; border: 0; font-size: 15px; }
+    .checkout-btn:disabled { opacity: 0.6; cursor: default; }
+    .checkout-btn.busy { position: relative; color: transparent; }
+    .checkout-btn.busy::after { content: ""; position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .bag__foot .fine { font-size: 11px; color: var(--ink-soft); margin: 10px 0 0; text-align: center; }
+    .outcome { display: none; margin: 16px 0 0; padding: 14px; font-size: 13px; border: 1px solid; }
+    .outcome.is-error { display: block; border-color: var(--error); background: var(--error-soft); color: #4a0b14; }
+    .outcome.is-ok { display: block; border-color: var(--ok); background: var(--ok-soft); color: #0d3d17; }
+    .outcome__title { font-size: 15px; margin: 0 0 6px; font-weight: 600; }
+    .outcome p { margin: 0 0 6px; }
+    .outcome code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 3px; word-break: break-all; }
+    .outcome .rows div { display: flex; justify-content: space-between; margin-top: 4px; }
+
+    @media (max-width: 1000px) {
+      .brand-bar, .site-header { padding-left: 20px; padding-right: 20px; }
+      .pdp { grid-template-columns: 1fr; }
+      .buy { position: static; }
+      .also__row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .brand-bar__brands { gap: 14px; font-size: 11px; }
+      .brand-bar__brands a:nth-child(n+4) { display: none; }
+      .promo-bar { grid-template-columns: 1fr; text-align: center; gap: 4px; }
+      .promo-bar__meta { justify-content: center; }
+      .promo-bar__pause { display: none; }
+      .site-header { grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 10px 16px; padding: 12px 16px 0; }
+      .header-tools { grid-column: 2; justify-content: flex-end; }
+      .search { display: none; }
+      .nav { grid-column: 1 / -1; gap: 16px; font-size: 14px; }
+      .logo { font-size: 30px; }
+      .page { padding: 14px 16px 150px; }
+      .gallery { grid-template-columns: 1fr; }
+      .gallery figure:nth-child(n+3) { display: none; }
+      .buy h1 { font-size: 24px; }
+      .fulfil { grid-template-columns: 1fr; }
+      .sticky-promo { width: 100%; }
+      .offer-pill { display: none; }
+      .bag { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-disclaimer" role="note">Not actually a Gap site — internal demo only, not affiliated with, endorsed by, or a real Gap product. All orders and data are fictional.</div>
+  <div class="repro-banner" id="repro-banner">Reproduction mode — checkout fails exactly as in production but raises no alert</div>
+
+  <div class="brand-bar">
+    <nav class="brand-bar__brands" aria-label="Gap Inc. brands">
+      <a href="#" class="is-active">Gap</a>
+      <a href="#">Gap Factory</a>
+      <a href="#">Old Navy</a>
+      <a href="#">Banana Republic</a>
+      <a href="#">Athleta</a>
+    </nav>
+    <div class="brand-bar__icons" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+    </div>
+  </div>
+
+  <div class="promo-bar">
+    <div class="promo-bar__msg">Friends &amp; Family 50% off matching PJs for everyone</div>
+    <div class="promo-bar__meta">Online &amp; in stores. Select styles. <a href="#">Details</a><span class="promo-bar__pause" aria-hidden="true">||</span></div>
+  </div>
+
+  <header class="site-header">
+    <a class="logo" href="#" aria-label="Gap home">GAP</a>
+    <nav class="nav" aria-label="Departments">
+      <a href="#">Women</a>
+      <a href="#" class="is-active">Men</a>
+      <a href="#">Girls</a>
+      <a href="#">Boys</a>
+      <a href="#">Baby &amp; Toddler</a>
+      <a href="#">Accessories</a>
+      <a href="#">GapX</a>
+    </nav>
+    <div class="header-tools">
+      <label class="search"><span class="sr-only">Search Gap</span><input type="search" placeholder="Search Gap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></label>
+      <button class="bag-btn" id="bagBtn" type="button" aria-label="Open shopping bag">
+        <svg viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <span class="bag-btn__count" id="bagCount">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page" id="pdp-page-content">
+    <p class="crumbs"><a href="#">Men</a><span>/</span>Sweaters</p>
+
+    <section class="pdp">
+      <div class="gallery" aria-label="Product images">
+        <figure><img src="https://content.gapinc.com/b/0063/336/073/cn63336073.png?width=737" alt="Relaxed Polo Sweater in new classic navy blue, front view" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80';"></figure>
+        <figure><img src="https://content.gapinc.com/b/0063/336/080/cn63336080.png?width=737" alt="Relaxed Polo Sweater, full-length view" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80';"></figure>
+        <figure><img src="https://content.gapinc.com/b/0063/336/085/cn63336085.png?width=737" alt="Relaxed Polo Sweater, collar detail" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80';"></figure>
+        <figure><img src="https://content.gapinc.com/b/0063/336/102/cn63336102.png?width=737" alt="Relaxed Polo Sweater, side view" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80';"></figure>
+        <figure><img src="https://content.gapinc.com/b/0063/336/044/cn63336044.png?width=737" alt="Relaxed Polo Sweater, flat lay" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80';"></figure>
+      </div>
+
+      <div class="buy">
+        <h1>Relaxed Polo Sweater</h1>
+        <div class="price-row">
+          <div class="price" id="price">$79.95</div>
+          <div class="rating"><span class="stars" aria-hidden="true">★★★★★</span><a href="#reviews">1 rating</a></div>
+        </div>
+        <p class="promo-line" id="promoLine">40% off at checkout</p>
+
+        <p class="label">Color: <strong id="colorName">New classic navy blue</strong></p>
+        <div class="swatches" id="swatches" role="radiogroup" aria-label="Color">
+          <button class="swatch" type="button" role="radio" aria-checked="false" data-variant="907280002" data-name="Terra brown" aria-label="Terra brown"><span style="background:#3b2416"></span></button>
+          <button class="swatch is-selected" type="button" role="radio" aria-checked="true" data-variant="907280012" data-name="New classic navy blue" aria-label="New classic navy blue"><span style="background:#0f1a3a"></span></button>
+          <button class="swatch" type="button" role="radio" aria-checked="false" data-variant="907280022" data-name="Blue &amp; grey stripe" aria-label="Blue and grey stripe"><span style="background:repeating-linear-gradient(180deg,#3d4a63 0 3px,#8e949c 3px 6px)"></span></button>
+          <button class="swatch" type="button" role="radio" aria-checked="false" data-variant="907280032" data-name="Bamboo green stripe" aria-label="Bamboo green stripe"><span style="background:repeating-linear-gradient(180deg,#2f4a3b 0 3px,#6f8d7a 3px 6px)"></span></button>
+          <button class="swatch" type="button" role="radio" aria-checked="false" data-variant="907280042" data-name="True black" aria-label="True black"><span style="background:#111"></span></button>
+          <button class="swatch" type="button" role="radio" aria-checked="false" data-variant="907280052" data-name="Regular gray" aria-label="Regular gray"><span style="background:#c9c9c9"></span></button>
+        </div>
+
+        <p class="label">Fit</p>
+        <div class="chips" id="fits" role="radiogroup" aria-label="Fit">
+          <button class="chip is-selected" type="button" role="radio" aria-checked="true" data-fit="Regular">Regular</button>
+          <button class="chip" type="button" role="radio" aria-checked="false" data-fit="Tall">Tall</button>
+        </div>
+
+        <div class="size-head"><p class="label" style="margin:0">Size</p><a href="#">Size Guide</a></div>
+        <div class="chips" id="sizes" role="radiogroup" aria-label="Size">
+          <button class="chip" type="button" role="radio" aria-checked="false" data-size="XS">XS</button>
+          <button class="chip" type="button" role="radio" aria-checked="false" data-size="S">S</button>
+          <button class="chip" type="button" role="radio" aria-checked="false" data-size="M">M</button>
+          <button class="chip" type="button" role="radio" aria-checked="false" data-size="L">L</button>
+          <button class="chip" type="button" role="radio" aria-checked="false" data-size="XL">XL</button>
+          <button class="chip" type="button" role="radio" aria-checked="false" data-size="XXL">XXL</button>
+          <button class="chip" type="button" role="radio" aria-checked="false" data-size="XXXL">XXXL</button>
+        </div>
+        <p class="size-error" id="sizeError" role="alert">Please select a size</p>
+
+        <div class="atb-row">
+          <div class="qty"><label class="sr-only" for="qty">Quantity</label><select id="qty"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+          <button class="atb" id="addToBag" type="button">Add to Bag</button>
+        </div>
+
+        <p class="pay-line">4 interest-free payments of $19.99 with PayPal<span class="i">i</span> Afterpay<span class="i">i</span> or Klarna<span class="i">i</span></p>
+
+        <div class="fulfil">
+          <div class="fulfil__box"><strong>Free shipping</strong>on $50+ for Encore Members<br><a href="#">Sign in or join now</a></div>
+          <div class="fulfil__box"><strong>In-store pickup</strong><span class="store">TIMES SQUARE</span><br><a href="#">Change Store</a></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="details">
+      <details open>
+        <summary>Product details</summary>
+        <ul>
+          <li>Soft knit cotton polo sweater. In a relaxed fit.</li>
+          <li>Spread collar with front button placket.</li>
+          <li>Long sleeves with drop shoulders.</li>
+          <li>Ribbed cuffs and hem.</li>
+          <li>Product #907280</li>
+        </ul>
+      </details>
+      <details>
+        <summary>Size &amp; fit</summary>
+        <ul>
+          <li>Fit: Relaxed. A straight &amp; easy fit with a relaxed sleeve.</li>
+          <li>For a Classic fit, go down one size.</li>
+          <li>Hits at the hip.</li>
+          <li>Model is 6'1" and wearing size M.</li>
+        </ul>
+      </details>
+      <details>
+        <summary>Fabric &amp; care</summary>
+        <ul>
+          <li>100% Cotton.</li>
+          <li>Machine wash cold, gentle cycle. Tumble dry low.</li>
+          <li>Imported.</li>
+        </ul>
+      </details>
+      <details>
+        <summary>Shipping &amp; returns</summary>
+        <ul>
+          <li>Free shipping on orders of $50 or more for Encore Members.</li>
+          <li>Free returns in store or by mail within 30 days.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="also" aria-labelledby="alsoTitle">
+      <h2 id="alsoTitle">Customers also viewed</h2>
+      <div class="also__row">
+        <a class="also__card" href="#"><figure><img src="https://www.gap.com/webcontent/0063/250/632/cn63250632.jpg" alt="Relaxed Polo Cardigan Sweater" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80';"></figure><div class="name">Relaxed Polo Cardigan Sweater</div><div class="p">$89.95</div><div class="d">40% off at checkout</div></a>
+        <a class="also__card" href="#"><figure><img src="https://www.gap.com/webcontent/0063/671/694/cn63671694.jpg" alt="Relaxed Quarter-Zip Sweater" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80';"></figure><div class="name">Relaxed Quarter-Zip Sweater</div><div class="p">$79.95</div><div class="d">40% off at checkout</div></a>
+        <a class="also__card" href="#"><figure><img src="https://www.gap.com/webcontent/0063/426/507/cn63426507.jpg" alt="CashSoft Crew Sweater" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80';"></figure><div class="name">CashSoft Crew Sweater</div><div class="p">$69.95</div><div class="d">40% off at checkout</div></a>
+        <a class="also__card" href="#"><figure><img src="https://www.gap.com/webcontent/0063/426/523/cn63426523.jpg" alt="CashSoft Waffle Crew Sweater" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80';"></figure><div class="name">CashSoft Waffle Crew Sweater</div><div class="p">$79.95</div><div class="d">40% off at checkout</div></a>
+      </div>
+    </section>
+  </main>
+
+  <div class="offer-pill" aria-hidden="true"><b>Get 15% Off</b><span>✕</span></div>
+  <div class="sticky-promo" aria-hidden="true"><span>Friends &amp; Family: 40% off everything + more</span><span class="chev">︿</span></div>
+
+  <div class="scrim" id="scrim"></div>
+  <aside class="bag" id="bag" aria-label="Shopping bag" aria-hidden="true">
+    <div class="bag__head">
+      <h2 id="bagTitle">Your Bag (0)</h2>
+      <button class="bag__close" id="bagClose" type="button" aria-label="Close bag">×</button>
+    </div>
+    <div class="bag__body">
+      <div class="bag__promo">Friends &amp; Family 40% off everything — applied at checkout. Ends 10/21.</div>
+      <div class="bag__notice" id="bagNotice" role="alert"></div>
+      <div id="bagItems"></div>
+      <div class="bag__sum" id="bagSummary"></div>
+      <div class="outcome" id="checkoutOutcome" role="status" aria-live="polite"></div>
+    </div>
+    <div class="bag__foot">
+      <button class="checkout-btn" id="checkoutBtn" type="button" disabled>Checkout</button>
+      <p class="fine">Markdowns, shipping and tax are calculated at checkout.</p>
+    </div>
+  </aside>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    // /2b43150a?repro=1 fails identically but raises no Sentry event, Slack alert or
+    // Devin session, so a remediation session can reproduce without re-alerting.
+    const REPRO_MODE = new URLSearchParams(window.location.search).has('repro');
+    if (REPRO_MODE) document.getElementById('repro-banner').style.display = 'block';
+
+    const PRODUCT_NAME = 'Relaxed Polo Sweater';
+    const UNIT_PRICE = 79.95;
+    const MARKDOWN_RATE = 0.4;
+    const MAX_PER_LINE = 10;
+    const MAX_LINES = 20; // keep in sync with MAX_LINES_PER_ORDER in app/services/verticals/2b43150a.js
+    const THUMB = 'https://content.gapinc.com/b/0063/336/073/cn63336073.png?width=200';
+
+    const state = { variantId: '907280012', colorName: 'New classic navy blue', fit: 'Regular', size: null, bag: [], checkingOut: false };
+
+    const swatches = document.getElementById('swatches');
+    const fits = document.getElementById('fits');
+    const sizes = document.getElementById('sizes');
+    const colorName = document.getElementById('colorName');
+    const sizeError = document.getElementById('sizeError');
+    const qty = document.getElementById('qty');
+    const addToBag = document.getElementById('addToBag');
+    const bagBtn = document.getElementById('bagBtn');
+    const bagCount = document.getElementById('bagCount');
+    const bagTitle = document.getElementById('bagTitle');
+    const bagItems = document.getElementById('bagItems');
+    const bagSummary = document.getElementById('bagSummary');
+    const bagNotice = document.getElementById('bagNotice');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const outcome = document.getElementById('checkoutOutcome');
+    const bag = document.getElementById('bag');
+
+    function money(n) { return '$' + n.toFixed(2); }
+    function el(tag, cls, text) {
+      const node = document.createElement(tag);
+      if (cls) node.className = cls;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    function pickRadio(group, button, attr) {
+      group.querySelectorAll('[role=radio]').forEach((b) => {
+        const on = b === button;
+        b.classList.toggle('is-selected', on);
+        b.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      return button.dataset[attr];
+    }
+
+    swatches.addEventListener('click', (e) => {
+      const b = e.target.closest('.swatch');
+      if (!b) return;
+      state.variantId = pickRadio(swatches, b, 'variant');
+      state.colorName = b.dataset.name;
+      colorName.textContent = state.colorName;
+    });
+    fits.addEventListener('click', (e) => {
+      const b = e.target.closest('.chip');
+      if (b) state.fit = pickRadio(fits, b, 'fit');
+    });
+    sizes.addEventListener('click', (e) => {
+      const b = e.target.closest('.chip');
+      if (!b) return;
+      state.size = pickRadio(sizes, b, 'size');
+      sizeError.classList.remove('is-visible');
+    });
+
+    function openBag() {
+      document.body.classList.add('bag-open');
+      bag.setAttribute('aria-hidden', 'false');
+    }
+    function closeBag() {
+      document.body.classList.remove('bag-open');
+      bag.setAttribute('aria-hidden', 'true');
+    }
+    bagBtn.addEventListener('click', openBag);
+    document.getElementById('bagClose').addEventListener('click', closeBag);
+    document.getElementById('scrim').addEventListener('click', closeBag);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeBag(); });
+
+    function renderBag() {
+      const count = state.bag.reduce((n, l) => n + l.quantity, 0);
+      if (state.bag.length < MAX_LINES) showBagNotice('');
+      bagCount.textContent = String(count);
+      bagCount.classList.toggle('is-visible', count > 0);
+      bagTitle.textContent = 'Your Bag (' + count + ')';
+      bagItems.replaceChildren();
+      state.bag.forEach((line) => {
+        const row = el('div', 'bag__item');
+        const img = el('img');
+        img.src = THUMB;
+        img.alt = PRODUCT_NAME;
+        const info = el('div');
+        const remove = el('button', 'bag__remove', 'Remove');
+        remove.type = 'button';
+        remove.setAttribute('aria-label', 'Remove ' + line.colorName + ' size ' + line.size + ' from bag');
+        remove.disabled = state.checkingOut;
+        remove.addEventListener('click', () => {
+          if (state.checkingOut) return;
+          state.bag = state.bag.filter((l) => l !== line);
+          outcome.className = 'outcome';
+          outcome.replaceChildren();
+          renderBag();
+        });
+        info.append(
+          el('div', 'n', PRODUCT_NAME),
+          el('div', 'm', 'Color: ' + line.colorName + '\nFit: ' + line.fit + ' · Size: ' + line.size + '\nQty: ' + line.quantity + (line.capped ? ' (limit ' + MAX_PER_LINE + ' per item)' : '')),
+          el('div', 'pr', money(line.unitPrice * line.quantity)),
+          remove,
+        );
+        info.querySelector('.m').style.whiteSpace = 'pre-line';
+        row.append(img, info);
+        bagItems.append(row);
+      });
+      bagSummary.replaceChildren();
+      if (count === 0) {
+        bagSummary.append(el('div', '', 'Your bag is empty.'));
+        checkoutBtn.disabled = true;
+        return;
+      }
+      const merchandise = state.bag.reduce((n, l) => n + l.unitPrice * l.quantity, 0);
+      const savings = Math.round(merchandise * MARKDOWN_RATE * 100) / 100;
+      const sub = el('div'); sub.append(el('span', '', 'Subtotal'), el('span', '', money(merchandise)));
+      const save = el('div', 'save'); save.append(el('span', '', 'Friends & Family 40% off (at checkout)'), el('span', '', '-' + money(savings)));
+      const tot = el('div', 'tot'); tot.append(el('span', '', 'Estimated total'), el('span', '', money(merchandise - savings)));
+      bagSummary.append(sub, save, tot);
+      checkoutBtn.disabled = state.checkingOut;
+    }
+
+    function showBagNotice(text) {
+      bagNotice.textContent = text;
+      bagNotice.classList.toggle('is-visible', Boolean(text));
+    }
+
+    addToBag.addEventListener('click', () => {
+      if (state.checkingOut) return;
+      if (!state.size) {
+        sizeError.classList.add('is-visible');
+        sizes.scrollIntoView({ block: 'nearest' });
+        return;
+      }
+      const quantity = Number(qty.value);
+      const existing = state.bag.find((l) => l.variantId === state.variantId && l.size === state.size && l.fit === state.fit);
+      if (!existing && state.bag.length >= MAX_LINES) {
+        showBagNotice('Your bag is full \u2014 orders are limited to ' + MAX_LINES + ' different items. Remove an item to add another.');
+        openBag();
+        return;
+      }
+      showBagNotice('');
+      if (existing) {
+        existing.capped = existing.quantity + quantity > MAX_PER_LINE;
+        existing.quantity = Math.min(MAX_PER_LINE, existing.quantity + quantity);
+      } else {
+        state.bag.push({ variantId: state.variantId, colorName: state.colorName, fit: state.fit, size: state.size, quantity, unitPrice: UNIT_PRICE, capped: false });
+      }
+      outcome.className = 'outcome';
+      outcome.replaceChildren();
+      renderBag();
+      openBag();
+    });
+
+    function showCheckoutError(requestId, detail) {
+      const ref = el('p', '', 'Reference ID: ');
+      ref.append(el('code', '', requestId || 'unavailable'));
+      const msg = el('p', '', 'Error: ');
+      msg.append(el('code', '', detail));
+      outcome.className = 'outcome is-error';
+      outcome.replaceChildren(
+        el('div', 'outcome__title', 'We couldn\u2019t complete your checkout'),
+        el('p', '', 'Your bag is saved and you haven\u2019t been charged. Try again, or continue shopping.'),
+        ref,
+        msg,
+      );
+    }
+
+    function showOrderPlaced(data, submitted) {
+      const p = data.pricing;
+      const rows = el('div', 'rows');
+      [['Merchandise', money(p.merchandise)], [p.promotion || 'Markdown', '-' + money(p.markdown)], ['Shipping', p.shipping === 0 ? 'Free' : money(p.shipping)], ['Estimated tax', money(p.tax)], ['Order total', money(p.total)]].forEach(([k, v]) => {
+        const r = el('div'); r.append(el('span', '', k), el('span', '', v)); rows.append(r);
+      });
+      outcome.className = 'outcome is-ok';
+      outcome.replaceChildren(
+        el('div', 'outcome__title', 'Order placed \u2014 #' + data.orderNumber),
+        el('p', '', p.lines.reduce((n, l) => n + l.quantity, 0) + ' item(s). ' + data.estimatedDelivery + '. A confirmation is on its way to your inbox.'),
+        rows,
+      );
+      state.bag = state.bag.filter((l) => !submitted.includes(l));
+      renderBag();
+    }
+
+    async function checkout() {
+      if (state.bag.length === 0 || state.checkingOut) return;
+      const submitted = state.bag.slice();
+      state.checkingOut = true;
+      renderBag();
+      checkoutBtn.disabled = true;
+      checkoutBtn.classList.add('busy');
+      outcome.className = 'outcome';
+      outcome.replaceChildren();
+      try {
+        const response = await fetch('/api/2b43150a/checkout', {
+          method: 'POST',
+          headers: REPRO_MODE
+            ? { 'Content-Type': 'application/json', 'x-synthetic': '1' }
+            : { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lines: submitted.map((l) => ({ variantId: l.variantId, size: l.size, fit: l.fit, quantity: l.quantity })),
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+          showCheckoutError(data.requestId, (data.errorClass ? data.errorClass + ': ' : '') + (data.error || 'Unknown error'));
+          return;
+        }
+        showOrderPlaced(data, submitted);
+      } catch (error) {
+        showCheckoutError(null, error.message);
+      } finally {
+        state.checkingOut = false;
+        checkoutBtn.classList.remove('busy');
+        renderBag();
+        outcome.scrollIntoView({ block: 'nearest' });
+      }
+    }
+    checkoutBtn.addEventListener('click', checkout);
+
+    renderBag();
+  </script>
+</body>
+</html>

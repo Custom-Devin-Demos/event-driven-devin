@@ -82,7 +82,7 @@ function buildTeamsAlertCardForAlert(alertData) {
     actions: [
       { title: t.watchDevin, url: process.env.AUTOMATIONS_TEAMS_AUTOMATION_URL || DEFAULT_TEAMS_AUTOMATION_URL },
       { title: t.viewSentry, url: alertData.issueUrl },
-      { title: t.viewDatadog, url: process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
+      { title: t.viewDatadog, url: alertData.datadogUrl || process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
     ],
     // Teams hands responders only top-level TextBlocks, not ColumnSet contents,
     // so the facts the investigation needs are repeated in the footer.
