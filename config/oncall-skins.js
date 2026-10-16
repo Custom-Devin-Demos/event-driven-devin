@@ -3735,7 +3735,7 @@ const ONCALL_SKINS = {
       service: 'neo-rebooking-api',
       release: 'neo-rebooking@5.2.0',
       team: 'neo-rebooking-oncall',
-      metricQuery: 'p95:rebooking.rebook.latency{service:neo-rebooking-api,route:/api/oncall/rebooking/rebook}',
+      metricQuery: 'p95:demo.rebooking.rebook.latency{service:neo-rebooking-api,route:/api/oncall/rebooking/rebook}',
       metricValue: '8.0s (504 on every Rebook during the AF 1680 disruption)',
       threshold: '> 2s',
       baseline: '~640ms (7-day p95)',

@@ -276,7 +276,7 @@ const ALERT_SCENARIOS = {
     service: 'neo-rebooking-api',
     endpoint: 'POST /api/oncall/rebooking/rebook',
     monitor: 'p95 latency — POST /api/oncall/rebooking/rebook',
-    metricQuery: 'p95:rebooking.rebook.latency{service:neo-rebooking-api,route:/api/oncall/rebooking/rebook}',
+    metricQuery: 'p95:demo.rebooking.rebook.latency{service:neo-rebooking-api,route:/api/oncall/rebooking/rebook}',
     metricValue: '8.0s (504s on every rebook)',
     threshold: '> 2s',
     baseline: '~640ms (7-day p95)',

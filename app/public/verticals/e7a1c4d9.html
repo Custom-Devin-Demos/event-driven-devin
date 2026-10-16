@@ -266,8 +266,26 @@
       const euro = (n) => '€' + Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const inPolicy = (alt) => alt.cabin === 'Economy' && alt.fareDelta <= POLICY_CEILING;
       const fmtTime = (iso) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      const esc = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      let holdRefreshTimer = null;
+
+      // Drop holds whose server expiry has passed and re-render when the next one lapses,
+      // so a lapsed seat can be held again without reloading.
+      function pruneExpiredHolds() {
+        const now = Date.now();
+        let next = Infinity;
+        for (const [id, hold] of Object.entries(state.holds)) {
+          const expires = new Date(hold.expiresAt).getTime();
+          if (!(expires > now)) delete state.holds[id];
+          else next = Math.min(next, expires);
+        }
+        clearTimeout(holdRefreshTimer);
+        holdRefreshTimer = null;
+        if (next !== Infinity) holdRefreshTimer = setTimeout(renderAlts, Math.min(next - now + 250, 2147483647));
+      }
 
       function renderAlts() {
+        pruneExpiredHolds();
         $('alts').innerHTML = ALTERNATIVES.map((alt) => {
           const hold = state.holds[alt.id];
           const isRebooked = state.rebooked && state.rebooked.id === alt.id;
@@ -343,7 +361,7 @@
             setChips({ text: `Rebooked · ${data.flight}`, cls: 'ok' }, { text: 'Confirmed', cls: 'ok' });
             $('disruptionBanner').style.display = 'none';
             result.className = 'result-box success';
-            result.innerHTML = `<strong>You're rebooked on ${data.carrier} ${data.flight}.</strong> Departs CDG ${data.departs}, arrives LHR ${data.arrives}. New booking reference <b>${data.pnr}</b>${data.fareDelta > 0 ? ` · ${euro(data.fareDelta)} fare difference charged to your Virtual Card` : ' · no fare difference'}. Your updated itinerary is on its way to your calendar.`;
+            result.innerHTML = `<strong>You're rebooked on ${esc(data.carrier)} ${esc(data.flight)}.</strong> Departs CDG ${esc(data.departs)}, arrives LHR ${esc(data.arrives)}. New booking reference <b>${esc(data.pnr)}</b>${data.fareDelta > 0 ? ` · ${euro(data.fareDelta)} fare difference charged to your Virtual Card` : ' · no fare difference'}. Your updated itinerary is on its way to your calendar.`;
             status.textContent = 'Ticket reissued — you are all set.';
           }
         } catch (error) {
@@ -352,7 +370,7 @@
             result.className = 'result-box notice';
             result.innerHTML = error.status === 504
               ? `<strong>Rebooking is taking longer than expected.</strong> We could not confirm your new flight — your original ticket is still open and nothing was charged. Try again in a few minutes, or <a href="#" id="resultChat">chat with Travel Care 24/7</a> and a counselor will ticket ${alt.flight} for you.`
-              : `<strong>We couldn't rebook you.</strong> ${error.message}`;
+              : `<strong>We couldn't rebook you.</strong> ${esc(error.message)}`;
             status.textContent = 'Not rebooked.';
             const chatLink = $('resultChat');
             if (chatLink) chatLink.addEventListener('click', (e) => { e.preventDefault(); openChat(); });

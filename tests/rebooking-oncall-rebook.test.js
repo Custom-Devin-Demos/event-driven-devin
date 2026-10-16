@@ -58,6 +58,8 @@ describe('Neo trip-disruption on-call rebooking', () => {
     expect(s.monitor).toMatch(/^p95 latency/);
     expect(s.service).toBe('neo-rebooking-api');
     expect(s.metricQuery).toContain('service:neo-rebooking-api');
+    // The StatsD client prefixes every metric with `demo.`, so the monitor must query the prefixed name.
+    expect(s.metricQuery).toMatch(/^p95:demo\.rebooking\.rebook\.latency\{/);
     expect(s.unlisted).toBe(true);
     expect(JSON.stringify(s)).not.toMatch(/\.js|FARE_FAMILIES|RESHOP/);
   });
@@ -74,6 +76,7 @@ describe('Neo trip-disruption on-call rebooking', () => {
     expect(skin.alertCard.service).toBe('neo-rebooking-api');
     expect(skin.alertCard.metricQuery).toContain(`service:${skin.alertCard.service}`);
     expect(skin.alertCard.metricQuery).toContain('/api/oncall/rebooking/rebook');
+    expect(skin.alertCard.metricQuery).toMatch(/^p95:demo\.rebooking\.rebook\.latency\{/);
     expect(skin.alertCard.title).toContain('POST /api/oncall/rebooking/rebook');
     const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'verticals', skin.page.file), 'utf8');
     expect(html).toContain(`<title>${skin.page.title}</title>`);
