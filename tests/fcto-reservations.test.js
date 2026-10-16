@@ -619,6 +619,42 @@ describe('HTTP routes', () => {
     expect(internal.store.all()).toHaveLength(0);
   });
 
+  test('overlapping qualification picks are serialized and the latest suggestion wins', async () => {
+    const B = require('../app/services/fcto/blocks');
+    const slackClient = require('../app/services/fcto/slack-client');
+    const modal = B.requestModal({ channelId: 'CEXEC' });
+    const viewWith = (over) => {
+      const values = requestValues(over);
+      delete values.who;
+      values.who = { value: {} };
+      return { id: 'V2', hash: 'h0', callback_id: modal.callback_id, private_metadata: modal.private_metadata, state: { values } };
+    };
+    let release;
+    const gate = new Promise((r) => { release = r; });
+    slackClient.updateView
+      .mockImplementationOnce(async (...args) => { slackCalls.push(['views.update', ...args]); await gate; return { ok: true, view: { hash: 'h1' } }; })
+      .mockImplementationOnce(async (...args) => { slackCalls.push(['views.update', ...args]); return { ok: false, error: 'hash_conflict' }; });
+    const send = (view, blockId) => {
+      const body = blockAction('value', undefined, REQUESTER, { view, actions: [{ action_id: 'value', block_id: blockId, type: 'static_select' }] });
+      return post(port, '/slack/fcto/interactions', body, sign('shhh', body));
+    };
+    await send(viewWith({ country: { value: { selected_option: { value: 'DE' } } } }), 'country');
+    await flush();
+    await send(viewWith({ country: { value: { selected_option: { value: 'DE' } } }, industry: { value: { selected_option: { value: 'FINANCE' } } } }), 'industry');
+    await flush();
+    expect(slackCalls.filter((c) => c[0] === 'views.update')).toHaveLength(1);
+    release();
+    await flush();
+    const updates = slackCalls.filter((c) => c[0] === 'views.update');
+    expect(updates).toHaveLength(3);
+    const whoOf = (u) => u[2].blocks.find((b) => b.block_id.startsWith('who')).block_id;
+    expect(whoOf(updates[0])).toBe('who_MEMBER_KATRIN_LEHMANN');
+    expect(updates[1][3]).toBe('h1');
+    expect(whoOf(updates[1])).toBe('who_MEMBER_AMAN_THIND');
+    expect(updates[2][3]).toBeUndefined();
+    expect(whoOf(updates[2])).toBe('who_MEMBER_AMAN_THIND');
+  });
+
   test('"Below" audience is rejected inline; suggested who block is read on submit', async () => {
     const below = submission('fcto_request_submit', requestValues({ audience: { value: { selected_option: { value: 'BELOW' } } } }), { channelId: 'CEXEC' });
     const res = await post(port, '/slack/fcto/interactions', below, sign('shhh', below));

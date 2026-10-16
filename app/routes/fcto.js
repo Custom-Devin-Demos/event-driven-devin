@@ -242,10 +242,37 @@ async function handleCommand(body) {
 
 // Audience/country/industry picks in the request modal re-render it with the
 // "Below" warning and the suggested Field CTO pre-selected.
+// Updates are serialized per view and coalesced to the latest picks, so a
+// quick country-then-industry selection can't leave the first suggestion in
+// place. Overlapping actions carry a hash Slack has already superseded with our
+// own update; this queue is the only writer of the modal, so on hash_conflict
+// we re-apply the newest picks without the hash.
+const modalRefreshes = new Map();
+
 async function refreshRequestModal(view) {
-  const input = B.readRequestModal(view);
-  const next = B.requestModal({ channelId: input.channelId, audience: input.audience, suggestion: suggestWho(input) });
-  await slack.updateView(view.id, next, view.hash);
+  let entry = modalRefreshes.get(view.id);
+  if (!entry) {
+    entry = { latest: null, hash: view.hash, running: false };
+    modalRefreshes.set(view.id, entry);
+  }
+  entry.latest = view;
+  if (entry.running) return;
+  entry.running = true;
+  try {
+    while (entry.latest) {
+      const current = entry.latest;
+      entry.latest = null;
+      const input = B.readRequestModal(current);
+      const next = B.requestModal({ channelId: input.channelId, audience: input.audience, suggestion: suggestWho(input) });
+      let res = await slack.updateView(current.id, next, entry.hash);
+      if (res && !res.ok && res.error === 'hash_conflict') res = await slack.updateView(current.id, next);
+      if (res && res.ok) entry.hash = (res.view && res.view.hash) || null;
+      else logger.warn('fcto: request modal refresh failed', { error: res && res.error });
+    }
+  } finally {
+    entry.running = false;
+    modalRefreshes.delete(view.id);
+  }
 }
 
 async function handleBlockAction(payload) {
