@@ -453,9 +453,17 @@
 
     // Row menu
     let openMenu = null;
-    function closeMenu() { if (openMenu) { openMenu.remove(); openMenu = null; } }
-    window.addEventListener('scroll', closeMenu, { passive: true });
-    window.addEventListener('resize', closeMenu);
+    let menuTrigger = null;
+    function closeMenu(restoreFocus = true) {
+      if (!openMenu) return;
+      const hadFocus = openMenu.contains(document.activeElement);
+      openMenu.remove();
+      openMenu = null;
+      if (restoreFocus && hadFocus && menuTrigger && menuTrigger.isConnected) menuTrigger.focus();
+      menuTrigger = null;
+    }
+    window.addEventListener('scroll', () => closeMenu(), { passive: true });
+    window.addEventListener('resize', () => closeMenu());
     $('rows').addEventListener('click', (e) => {
       const b = e.target.closest('.kebab');
       if (!b) return;
@@ -471,7 +479,7 @@
       menu.innerHTML = `<button type="button" role="menuitem">${rec.estatus === 'Activo' ? 'Desactivar' : 'Activar'}</button>`;
       menu.querySelector('button').addEventListener('click', () => {
         rec.estatus = rec.estatus === 'Activo' ? 'Inactivo' : 'Activo';
-        closeMenu();
+        closeMenu(false);
         render();
         showToast(`La subdelegación ${rec.nombre} quedó ${rec.estatus === 'Activo' ? 'activa' : 'inactiva'}.`);
       });
@@ -483,9 +491,11 @@
       menu.style.left = `${Math.max(8, rect.right - menu.offsetWidth)}px`;
       menu.addEventListener('click', (ev) => ev.stopPropagation());
       openMenu = menu;
+      menuTrigger = b;
       menu.querySelector('button').focus();
     });
-    document.addEventListener('click', closeMenu);
+    document.addEventListener('click', () => closeMenu());
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
 
     let toastTimer = null;
     function showToast(text) {
