@@ -43,6 +43,9 @@ const base = (over = {}) => ({
   startTs: NOW + 3 * 86400,
   durationKey: '2h',
   who: 'MEMBER:MARK_PORTER',
+  audience: 'VP',
+  country: 'US',
+  industry: 'TECH_NATIVE',
   ...over,
 });
 
@@ -285,12 +288,15 @@ describe('block kit', () => {
     const { R } = load();
     const modal = B.requestModal({ channelId: 'C123' });
     expect(modal.callback_id).toBe(B.CALLBACK.REQUEST);
-    expect(modal.blocks.map((b) => b.block_id)).toEqual(['account', 'purpose', 'who', 'start', 'duration', 'end', 'meetingLink', 'notes']);
+    expect(modal.blocks.map((b) => b.block_id)).toEqual(['account', 'purpose', 'audience', 'country', 'industry', 'who', 'start', 'duration', 'end', 'meetingLink', 'notes']);
     const view = {
       private_metadata: modal.private_metadata,
       state: { values: {
         account: { value: { value: 'Acme' } },
         purpose: { value: { value: 'EBC' } },
+        audience: { value: { selected_option: { value: 'VP' } } },
+        country: { value: { selected_option: { value: 'DE' } } },
+        industry: { value: { selected_option: { value: 'FINANCE' } } },
         who: { value: { selected_option: { value: 'MEMBER:JEFF_WANG' } } },
         start: { value: { selected_date_time: NOW } },
         duration: { value: { selected_option: { value: 'half_day' } } },
@@ -299,7 +305,7 @@ describe('block kit', () => {
         notes: { value: { value: 'bring slides' } },
       } },
     };
-    expect(B.readRequestModal(view)).toMatchObject({ account: 'Acme', who: 'MEMBER:JEFF_WANG', durationKey: 'half_day', channelId: 'C123', notes: 'bring slides' });
+    expect(B.readRequestModal(view)).toMatchObject({ account: 'Acme', audience: 'VP', country: 'DE', industry: 'FINANCE', who: 'MEMBER:JEFF_WANG', durationKey: 'half_day', channelId: 'C123', notes: 'bring slides' });
     expect(B.modalErrors(new R.ReservationError('x', 'Pick a start', { field: 'start' }))).toEqual({ response_action: 'errors', errors: { start: 'Pick a start' } });
   });
 
@@ -363,6 +369,7 @@ describe('HTTP routes', () => {
         updateMessage: record('chat.update'),
         postEphemeral: record('chat.postEphemeral'),
         openView: record('views.open'),
+        updateView: record('views.update'),
         publishHome: record('views.publish'),
         openDm: record('conversations.open', { ok: true, channel: { id: 'DM1' } }),
         respond: record('response_url'),
@@ -438,6 +445,9 @@ describe('HTTP routes', () => {
   const requestValues = (over = {}) => ({
     account: { value: { value: 'Acme Corp' } },
     purpose: { value: { value: 'EBC' } },
+    audience: { value: { selected_option: { value: 'C_LEVEL' } } },
+    country: { value: { selected_option: { value: 'US' } } },
+    industry: { value: { selected_option: { value: 'TECH_NATIVE' } } },
     who: { value: { selected_option: { value: 'MEMBER:MARK_PORTER' } } },
     start: { value: { selected_date_time: Math.floor(Date.now() / 1000) + 86400 } },
     duration: { value: { selected_option: { value: '1h' } } },
@@ -587,6 +597,110 @@ describe('HTTP routes', () => {
     expect(res).toMatchObject({ ok: true, signingSecretConfigured: true, botTokenConfigured: true, channelConfigured: true, admins: 1, reservations: 0 });
     expect(JSON.stringify(res)).not.toContain('xoxb');
     expect(res.roster.find((m) => m.name === 'Akira Shibata').slackIdConfigured).toBe(false);
+  });
+
+  test('qualification picks re-render the request modal with a suggested Field CTO', async () => {
+    const B = require('../app/services/fcto/blocks');
+    const modal = B.requestModal({ channelId: 'CEXEC' });
+    const values = requestValues({ country: { value: { selected_option: { value: 'JP' } } } });
+    delete values.who;
+    values.who = { value: {} };
+    const view = { id: 'V1', hash: 'h1', callback_id: modal.callback_id, private_metadata: modal.private_metadata, state: { values } };
+    const body = blockAction('value', undefined, REQUESTER, { view, actions: [{ action_id: 'value', block_id: 'country', type: 'static_select' }] });
+    expect((await post(port, '/slack/fcto/interactions', body, sign('shhh', body))).status).toBe(200);
+    await flush();
+    const update = slackCalls.find((c) => c[0] === 'views.update');
+    expect(update[1]).toBe('V1');
+    expect(update[3]).toBe('h1');
+    const who = update[2].blocks.find((b) => b.block_id.startsWith('who_'));
+    expect(who.block_id).toBe('who_MEMBER_AKIRA_SHIBATA');
+    expect(who.element.initial_option.value).toBe('MEMBER:AKIRA_SHIBATA');
+    expect(JSON.parse(update[2].private_metadata)).toEqual({ channelId: 'CEXEC' });
+    expect(internal.store.all()).toHaveLength(0);
+  });
+
+  test('"Below" audience is rejected inline; suggested who block is read on submit', async () => {
+    const below = submission('fcto_request_submit', requestValues({ audience: { value: { selected_option: { value: 'BELOW' } } } }), { channelId: 'CEXEC' });
+    const res = await post(port, '/slack/fcto/interactions', below, sign('shhh', below));
+    expect(res.json()).toEqual({ response_action: 'errors', errors: { audience: expect.stringMatching(/Director-level and above/) } });
+    expect(internal.store.all()).toHaveLength(0);
+
+    const values = requestValues({ country: { value: { selected_option: { value: 'JP' } } } });
+    delete values.who;
+    values.who_MEMBER_AKIRA_SHIBATA = { value: { selected_option: { value: 'MEMBER:AKIRA_SHIBATA' } } };
+    const ok = submission('fcto_request_submit', values, { channelId: 'CEXEC' });
+    expect((await post(port, '/slack/fcto/interactions', ok, sign('shhh', ok))).body).toBe('');
+    await flush();
+    expect(internal.store.get('FCR-1')).toMatchObject({ requestedKey: 'AKIRA_SHIBATA', audience: 'C_LEVEL', country: 'JP', industry: 'TECH_NATIVE' });
+    const posted = slackCalls.find((c) => c[0] === 'chat.postMessage');
+    expect(JSON.stringify(posted)).toContain('C-level · Japan · Tech Native');
+  });
+});
+
+describe('qualifications', () => {
+  const Q = require('../config/fcto-qualifications');
+
+  test('option lists match the requested choices', () => {
+    expect(Q.AUDIENCES.map((a) => a.label)).toEqual(['C-level', 'VP', 'Director', 'Below Director']);
+    expect(Q.INDUSTRIES.map((i) => i.label)).toEqual(['Finance', 'Tech Native', 'Industrial', 'Healthcare', 'Public Sector', 'Other']);
+    expect(Q.COUNTRIES).toHaveLength(21);
+    expect(Q.COUNTRIES[Q.COUNTRIES.length - 1].key).toBe('OTHER');
+  });
+
+  test.each([
+    [{ country: 'JP', industry: 'FINANCE' }, 'MEMBER:AKIRA_SHIBATA'],
+    [{ country: 'DE', industry: 'FINANCE' }, 'MEMBER:AMAN_THIND'],
+    [{ country: 'GB', industry: 'HEALTHCARE' }, 'MEMBER:KATRIN_LEHMANN'],
+    [{ country: 'FR' }, 'MEMBER:KATRIN_LEHMANN'],
+    [{ country: 'US', industry: 'FINANCE' }, 'MEMBER:AMAN_THIND'],
+    [{ industry: 'FINANCE' }, 'MEMBER:AMAN_THIND'],
+    [{ country: 'KR', industry: 'INDUSTRIAL' }, 'MEMBER:AKIRA_SHIBATA'],
+    [{ country: 'CA', industry: 'TECH_NATIVE' }, 'ANY:US'],
+    [{ country: 'BR' }, 'ANY:US'],
+    [{ country: 'SA' }, 'ANY:EU'],
+  ])('suggestWho(%o) → %s', (input, who) => {
+    expect(Q.suggestWho(input).who).toBe(who);
+  });
+
+  test('no suggestion without country/industry signal', () => {
+    expect(Q.suggestWho({})).toBeNull();
+    expect(Q.suggestWho({ country: 'OTHER', industry: 'OTHER' })).toBeNull();
+  });
+
+  test('createRequest requires qualifications and blocks "Below"', async () => {
+    const { store, R } = load();
+    await expect(R.createRequest(store, base({ audience: 'BELOW' }), { now: NOW })).rejects.toMatchObject({ field: 'audience', code: 'audience_ineligible' });
+    await expect(R.createRequest(store, base({ audience: '' }), { now: NOW })).rejects.toMatchObject({ field: 'audience' });
+    await expect(R.createRequest(store, base({ country: 'XX' }), { now: NOW })).rejects.toMatchObject({ field: 'country' });
+    await expect(R.createRequest(store, base({ industry: undefined }), { now: NOW })).rejects.toMatchObject({ field: 'industry' });
+    const r = await R.createRequest(store, base({ audience: 'director', country: 'de', industry: 'finance' }), { now: NOW });
+    expect(r).toMatchObject({ audience: 'DIRECTOR', country: 'DE', industry: 'FINANCE' });
+    expect(R.qualificationsLabel(r)).toBe('Director · Germany · Finance');
+    expect(R.qualificationsLabel({})).toBe('');
+  });
+
+  test('assign suggestions put the rule-recommended Field CTO first and preselect them', async () => {
+    const { store, R } = load();
+    const B = require('../app/services/fcto/blocks');
+    const r = await R.createRequest(store, base({ who: 'ANY:EU', country: 'DE', industry: 'FINANCE' }), { now: NOW });
+    const list = R.suggestAssignees(store, r);
+    expect(list[0]).toMatchObject({ key: 'AMAN_THIND', recommended: true });
+    const modal = B.assignModal(store, r);
+    const select = modal.blocks.find((b) => b.block_id === 'assignee').element;
+    expect(select.initial_option.value).toBe('AMAN_THIND');
+    expect(select.options[0].text.text).toContain('recommended');
+  });
+
+  test('request modal shows the "Below" warning; card, schedule and ics show qualifications', async () => {
+    const { store, R } = load();
+    const B = require('../app/services/fcto/blocks');
+    const { buildIcs } = require('../app/services/fcto/ics');
+    expect(JSON.stringify(B.requestModal({ audience: 'BELOW' }))).toContain('Director-level and above');
+    expect(JSON.stringify(B.requestModal({ audience: 'VP' }))).not.toContain('Director-level and above');
+    const r = await R.createRequest(store, base({ country: 'JP', industry: 'HEALTHCARE' }), { now: NOW });
+    expect(JSON.stringify(B.requestCard(r))).toContain('VP · Japan · Healthcare');
+    expect(JSON.stringify(B.scheduleBlocks(store, { from: NOW, to: NOW + 30 * 86400 }))).toContain('VP · Japan · Healthcare');
+    expect(buildIcs({ ...r, id: r.id, assigneeKey: 'MARK_PORTER' }, { now: NOW })).toContain('VP · Japan · Healthcare');
   });
 });
 

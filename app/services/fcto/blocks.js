@@ -4,6 +4,7 @@
 
 const { getRoster, findMember, REGION_LABELS, getAdminIds } = require('../../../config/fcto-roster');
 const R = require('./reservations');
+const Q = require('../../../config/fcto-qualifications');
 
 const CALLBACK = Object.freeze({
   REQUEST: 'fcto_request_submit',
@@ -78,7 +79,33 @@ function durationOptions() {
 
 // ─── Request modal ──────────────────────────────────────────────────────────
 
-function requestModal({ channelId, defaultStartTs } = {}) {
+const qualOptions = (list) => list.map((x) => ({ text: plain(x.label), value: x.key }));
+
+function qualSelect(blockId, label, list, placeholder) {
+  return {
+    type: 'input',
+    block_id: blockId,
+    dispatch_action: true,
+    label: plain(label),
+    element: { type: 'static_select', action_id: 'value', placeholder: plain(placeholder), options: qualOptions(list) },
+  };
+}
+
+// The "who" block id carries the suggestion so Slack re-applies initial_option
+// when the suggestion changes but keeps a manual pick while it stays the same.
+const whoBlockId = (suggestion) => (suggestion ? `who_${suggestion.who.replace(/[^A-Za-z0-9]/g, '_')}` : 'who');
+
+function findWhoOption(value) {
+  for (const group of whoOptions()) {
+    const hit = group.options.find((o) => o.value === value);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+// `audience`/`suggestion` come from the requester's current picks (see
+// routes/fcto.js): a "Below" warning and a pre-selected Field CTO.
+function requestModal({ channelId, defaultStartTs, audience, suggestion } = {}) {
   const start = defaultStartTs || (() => {
     const d = new Date();
     d.setUTCDate(d.getUTCDate() + 1);
@@ -105,12 +132,26 @@ function requestModal({ channelId, defaultStartTs } = {}) {
         label: plain('What do you need them for?'),
         element: { type: 'plain_text_input', action_id: 'value', multiline: true, max_length: 500, placeholder: plain('Executive briefing, architecture review, onsite, QBR…') },
       },
-      {
-        type: 'input',
-        block_id: 'who',
-        label: plain('Who do you need?'),
-        element: { type: 'static_select', action_id: 'value', placeholder: plain('Pick a Field CTO or "any"'), option_groups: whoOptions() },
-      },
+      qualSelect('audience', 'Audience', Q.AUDIENCES, 'Most senior customer attendee'),
+      ...(Q.AUDIENCE[audience] && !Q.AUDIENCE[audience].eligible ? [context(`:no_entry: ${Q.BELOW_MESSAGE}`)] : []),
+      qualSelect('country', 'Country', Q.COUNTRIES, 'Where the customer is'),
+      qualSelect('industry', 'Industry', Q.INDUSTRIES, 'Customer industry'),
+      (() => {
+        const initial = suggestion && findWhoOption(suggestion.who);
+        return {
+          type: 'input',
+          block_id: whoBlockId(initial ? suggestion : null),
+          label: plain('Who do you need?'),
+          ...(initial ? { hint: plain(`Suggested for ${suggestion.reason}. You can pick someone else.`) } : {}),
+          element: {
+            type: 'static_select',
+            action_id: 'value',
+            placeholder: plain('Pick a Field CTO or "any"'),
+            option_groups: whoOptions(),
+            ...(initial ? { initial_option: initial } : {}),
+          },
+        };
+      })(),
       {
         type: 'input',
         block_id: 'start',
@@ -163,7 +204,10 @@ function readRequestModal(view) {
   return {
     account: pick('account').value,
     purpose: pick('purpose').value,
-    who: (pick('who').selected_option || {}).value,
+    audience: (pick('audience').selected_option || {}).value,
+    country: (pick('country').selected_option || {}).value,
+    industry: (pick('industry').selected_option || {}).value,
+    who: (pick(Object.keys(v).find((k) => k === 'who' || k.startsWith('who_')) || 'who').selected_option || {}).value,
     startTs: pick('start').selected_date_time,
     durationKey: (pick('duration').selected_option || {}).value,
     endTs: pick('end').selected_date_time,
@@ -174,9 +218,11 @@ function readRequestModal(view) {
 }
 
 // Map a ReservationError.field to the modal block id for an inline error.
-function modalErrors(err) {
-  const field = err && err.field;
+function modalErrors(err, view) {
+  let field = err && err.field;
   if (!field) return null;
+  const values = (view && view.state && view.state.values) || {};
+  if (field === 'who') field = Object.keys(values).find((k) => k === 'who' || k.startsWith('who_')) || field;
   return { response_action: 'errors', errors: { [field]: err.message } };
 }
 
@@ -208,10 +254,12 @@ function declineModal(reservation) {
 function assignModal(store, reservation, { mode = 'assign', preselectKey = null, warning = null } = {}) {
   const candidates = R.suggestAssignees(store, reservation);
   const options = candidates.map((m) => ({
-    text: plain(`${m.conflicts.length ? ':warning: ' : ''}${memberLabel(m)}${m.preferred ? '' : ' · other region'}`),
+    text: plain(`${m.conflicts.length ? ':warning: ' : ''}${memberLabel(m)}${m.recommended ? ' · recommended' : ''}${m.preferred || m.recommended ? '' : ' · other region'}`),
     value: m.key,
   }));
-  const initial = preselectKey ? options.find((o) => o.value === preselectKey) : null;
+  const recommended = candidates.find((m) => m.recommended && !m.conflicts.length);
+  const initialKey = preselectKey || (recommended ? recommended.key : null);
+  const initial = initialKey ? options.find((o) => o.value === initialKey) : null;
   const titles = { assign: 'Assign a Field CTO', reassign: `Reassign ${reservation.id}`, approve: `Approve ${reservation.id}`, claim: `Claim ${reservation.id}` };
   const blocks = [
     section(`*${esc(reservation.account)}* — ${esc(reservation.purpose)}\n${R.slackRange(reservation.startTs, reservation.endTs)} · ${R.durationLabel(reservation)}\nRequested: ${R.describeWho(reservation)}`),
@@ -344,6 +392,8 @@ function requestCard(reservation, { conflicts = [] } = {}) {
     },
     section(`*Purpose*\n${esc(reservation.purpose)}`),
   ];
+  const qualifications = R.qualificationsLabel(reservation);
+  if (qualifications) blocks.push(context(`*Audience · country · industry:* ${qualifications}`));
   if (reservation.notes) blocks.push(section(`*Notes*\n${esc(reservation.notes)}`));
   if (reservation.meetingLink) blocks.push(context(`:link: <${reservation.meetingLink}>`));
   blocks.push(context(localTimesLine(reservation)));
@@ -401,7 +451,8 @@ function scheduleBlocks(store, { from, to, title, memberKey, tz = 'UTC', viewerI
       const who = member ? `*${member.name}*` : `_${R.describeWho(r)}_`;
       const pending = r.status === R.STATUS.PENDING ? ' · :hourglass_flowing_sand: pending' : '';
       const mine = viewerId && r.requesterId === viewerId ? ' · _yours_' : '';
-      return `• ${R.slackRange(r.startTs, r.endTs)} — ${who} · ${esc(r.account)} (${r.id})${pending}${mine}`;
+      const qual = R.qualificationsLabel(r);
+      return `• ${R.slackRange(r.startTs, r.endTs)} — ${who} · ${esc(r.account)} (${r.id})${qual ? ` · ${qual}` : ''}${pending}${mine}`;
     });
     blocks.push(section(`*${day}*\n${lines.join('\n')}`));
   });

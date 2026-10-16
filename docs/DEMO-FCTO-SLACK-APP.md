@@ -14,6 +14,20 @@ in the thread. The authoritative answer to "who is reserved when" is
    multi-day blocks), meeting link, notes. Times are entered in the
    requester's Slack time zone and rendered in each viewer's time zone plus the
    Field CTO's local time.
+   The modal also asks three required qualifications:
+   * **Audience** — C-level / VP / Director / Below Director. *Below Director*
+     can't be submitted (Field CTOs join Director-level and above).
+   * **Country** — the 20 largest economies by GDP, plus Other.
+   * **Industry** — Finance / Tech Native / Industrial / Healthcare /
+     Public Sector / Other.
+   Picking a country or industry pre-selects a suggested Field CTO (the
+   requester can change it): Japan → Akira; Europe + Finance → Aman; Europe →
+   Katrin; Finance elsewhere → Aman; other APAC → Akira; North/Latin America →
+   any (US hours); Middle East → any (EU hours). The same rules rank and
+   pre-select candidates in **Assign…** / **Claim**. Lists and rules live in
+   `config/fcto-qualifications.js` (`ROUTING_RULES`, first match wins).
+   Audience · country · industry show on the card, in `/fcto schedule`, and
+   in the `.ics` description.
 2. The card lands in the channel as **Pending**.
    * Specific person → **Approve** / **Decline** / **Reassign…** (admins) /
      **Cancel request** (requester or admin).

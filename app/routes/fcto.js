@@ -19,6 +19,7 @@ const R = require('../services/fcto/reservations');
 const B = require('../services/fcto/blocks');
 const slack = require('../services/fcto/slack-client');
 const { buildIcs, icsFilename } = require('../services/fcto/ics');
+const { suggestWho } = require('../../config/fcto-qualifications');
 
 const router = express.Router();
 const store = new ReservationStore();
@@ -239,6 +240,14 @@ async function handleCommand(body) {
 
 // ─── Interactions ───────────────────────────────────────────────────────────
 
+// Audience/country/industry picks in the request modal re-render it with the
+// "Below" warning and the suggested Field CTO pre-selected.
+async function refreshRequestModal(view) {
+  const input = B.readRequestModal(view);
+  const next = B.requestModal({ channelId: input.channelId, audience: input.audience, suggestion: suggestWho(input) });
+  await slack.updateView(view.id, next, view.hash);
+}
+
 async function handleBlockAction(payload) {
   const action = (payload.actions || [])[0];
   if (!action) return;
@@ -256,6 +265,10 @@ async function handleBlockAction(payload) {
     return;
   }
   if (action.action_id === B.ACTION.NOOP) return;
+  if (payload.view && payload.view.callback_id === B.CALLBACK.REQUEST) {
+    await refreshRequestModal(payload.view);
+    return;
+  }
 
   const current = store.get(id);
   if (!current) {
@@ -354,7 +367,7 @@ async function handleViewSubmission(payload, after) {
       return null;
     } catch (err) {
       if (err instanceof R.ReservationError) {
-        return B.modalErrors(err) || { response_action: 'errors', errors: { account: err.message } };
+        return B.modalErrors(err, view) || { response_action: 'errors', errors: { account: err.message } };
       }
       throw err;
     }

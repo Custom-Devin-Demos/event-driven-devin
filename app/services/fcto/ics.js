@@ -5,6 +5,7 @@
 // calendar they use — no calendar API required.
 
 const { findMember } = require('../../../config/fcto-roster');
+const { qualificationsLabel } = require('./reservations');
 
 function icsDate(ts) {
   return new Date(ts * 1000).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
@@ -37,6 +38,8 @@ function buildIcs(reservation, { host = 'devindemos.com', now = Math.floor(Date.
     `Account: ${reservation.account}`,
     `Purpose: ${reservation.purpose}`,
   ];
+  const qualifications = qualificationsLabel(reservation);
+  if (qualifications) descriptionParts.push(`Audience / country / industry: ${qualifications}`);
   if (reservation.notes) descriptionParts.push(`Notes: ${reservation.notes}`);
   if (reservation.meetingLink) descriptionParts.push(`Meeting link: ${reservation.meetingLink}`);
   descriptionParts.push(`Requested in Slack #exec-field-requests by <@${reservation.requesterId}>`);
