@@ -11,7 +11,7 @@ const { getOncallSkin } = require('../config/oncall-skins');
 
 jest.setTimeout(30000);
 
-describe('Neo trip-disruption on-call rebooking', () => {
+describe('Egencia trip-disruption on-call rebooking', () => {
   test('rebooking an alternative times out re-shopping the GDS', async () => {
     const started = Date.now();
     await expect(rebookFlight({ tripId: TRIP.tripId, alternativeId: 'BA0303', action: 'rebook' }))
@@ -54,18 +54,18 @@ describe('Neo trip-disruption on-call rebooking', () => {
 
   test('alert scenario is latency-shaped, unlisted and free of code locations', () => {
     const s = ALERT_SCENARIOS.rebooking;
-    expect(s.apiPath).toBe('/api/neo/rebook');
+    expect(s.apiPath).toBe('/api/egencia/rebook');
     expect(s.oncallApiPath).toBe('/api/oncall/rebooking/rebook');
     expect(s.monitor).toMatch(/^p95 latency/);
-    expect(s.service).toBe('neo-rebooking-api');
-    expect(s.metricQuery).toContain('service:neo-rebooking-api');
+    expect(s.service).toBe('egencia-rebooking-api');
+    expect(s.metricQuery).toContain('service:egencia-rebooking-api');
     // The StatsD client prefixes every metric with `demo.`, so the monitor must query the prefixed name.
     expect(s.metricQuery).toMatch(/^p95:demo\.rebooking\.rebook\.latency\{/);
     expect(s.unlisted).toBe(true);
     expect(JSON.stringify(s)).not.toMatch(/\.js|FARE_FAMILIES|RESHOP/);
   });
 
-  test('the Neo skin routes to Teams and its card matches the service it names', () => {
+  test('the Egencia skin routes to Teams and its card matches the service it names', () => {
     const skin = getOncallSkin('e7a1c4d9');
     expect(skin.vertical).toBe('rebooking');
     expect(skin.oncallOnly).toBe(true);
@@ -73,15 +73,15 @@ describe('Neo trip-disruption on-call rebooking', () => {
     expect(skin.alertDestination).toBe('teams');
     expect(skin.teamsWebhookEnv).toBe('ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI');
     expect(skin.devinSession).toBeUndefined();
-    expect(skin.paths).toEqual(['/oncall/c/neo', '/neo-oncall']);
-    expect(skin.alertCard.service).toBe('neo-rebooking-api');
+    expect(skin.paths).toEqual(['/oncall/c/egencia', '/egencia-oncall']);
+    expect(skin.alertCard.service).toBe('egencia-rebooking-api');
     expect(skin.alertCard.metricQuery).toContain(`service:${skin.alertCard.service}`);
     expect(skin.alertCard.metricQuery).toContain('/api/oncall/rebooking/rebook');
     expect(skin.alertCard.metricQuery).toMatch(/^p95:demo\.rebooking\.rebook\.latency\{/);
     expect(skin.alertCard.title).toContain('POST /api/oncall/rebooking/rebook');
     const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'verticals', skin.page.file), 'utf8');
     expect(html).toContain(`<title>${skin.page.title}</title>`);
-    expect(html).toContain("fetch('/api/neo/rebook'");
+    expect(html).toContain("fetch('/api/egencia/rebook'");
     expect(html).not.toMatch(/\/api\/oncall\//);
   });
 });
