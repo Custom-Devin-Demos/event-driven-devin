@@ -11,7 +11,9 @@ const { submitOrder } = require('../services/oncall-verticals/vaccines');
 const { addToBag } = require('../services/oncall-verticals/apparel');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
+const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
 const { rebookFlight } = require('../services/oncall-verticals/rebooking');
+const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
@@ -338,6 +340,35 @@ router.post('/api/oncall/clickcollect/checkout', async (req, res) => {
 });
 
 /**
+ * POST /api/oncall/storepickup/checkout — place a cart checkout
+ */
+router.post('/api/oncall/storepickup/checkout', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await checkoutStorePickupOrder({
+      items: body.items,
+      promoCode: body.promoCode,
+      fulfillment: body.fulfillment || 'ship',
+      storeNumber: body.storeNumber || '0412',
+      zipCode: body.zipCode,
+    });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'STORE_HOLD_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_CART' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'Your order timed out while reserving items at your store. Please try again in a few minutes.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'CHECKOUT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
  * POST /api/oncall/rebooking/rebook — rebook a disrupted traveler onto an
  * alternative flight (`action: 'rebook'`) or hold a seat on it (`action: 'hold'`)
  */
@@ -408,6 +439,55 @@ router.post('/api/oncall/grocery/checkout', async (req, res) => {
       error: 'We couldn\'t calculate your order total. Please try again.',
       errorClass: error.name,
       code: error.code || 'CHECKOUT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+router.post('/api/oncall/identity/environments', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await createEnvironment({
+      name: body.name,
+      description: body.description,
+      licenseType: body.licenseType,
+      useCase: body.useCase,
+      type: body.type,
+      services: body.services,
+      samplePopulations: body.samplePopulations,
+    });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'PROVISION_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_ENVIRONMENT' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'The environment could not be created. The request timed out before provisioning finished. Try again in a few minutes.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'ENVIRONMENT_CREATE_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+router.post('/api/oncall/identity/applications', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await createApplication({
+      environmentId: body.environmentId,
+      name: body.name,
+      type: body.type,
+    });
+    res.json(result);
+  } catch (error) {
+    const status = error.code === 'INVALID_APPLICATION' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'APPLICATION_CREATE_FAILED',
       requestId: req.requestId,
     });
   }
