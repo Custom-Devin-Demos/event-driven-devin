@@ -536,7 +536,7 @@
     var CHECK_IN_LABEL = 'Thu, Mar 11, 2027';
     var CHECK_OUT_LABEL = 'Mon, Mar 15, 2027';
 
-    fetch('/api/f86cc1c6/resorts').then(function (r) { return r.json(); }).then(function (data) {
+    var resortsReady = fetch('/api/f86cc1c6/resorts').then(function (r) { return r.json(); }).then(function (data) {
       resorts = data.resorts;
       stay = data.defaultStay;
       document.getElementById('resort-count').textContent = resorts.length + ' Resorts';
@@ -552,6 +552,7 @@
     });
 
     function openResort(id) {
+      if (!resorts.length) { resortsReady.then(function () { openResort(id); }); return; }
       var r = resorts.find(function (x) { return x.id === id; });
       if (!r) return;
       current.resort = r;

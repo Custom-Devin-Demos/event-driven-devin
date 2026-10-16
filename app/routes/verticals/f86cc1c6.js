@@ -6,7 +6,11 @@ const {
 const router = express.Router();
 
 router.get('/api/f86cc1c6/menu', (req, res) => {
-  res.json(getMenu(req.query.restaurantId));
+  try {
+    res.json(getMenu(req.query.restaurantId));
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, error: error.message, code: error.code });
+  }
 });
 
 router.get('/api/f86cc1c6/resorts', (req, res) => {

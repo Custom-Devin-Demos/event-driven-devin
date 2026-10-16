@@ -118,7 +118,7 @@ function resolveLines(restaurant, items) {
   return items.map((line) => {
     const item = MENU.find((entry) => entry.id === (line && line.id) && entry.restaurantId === restaurant.id);
     if (!item) throw validationError('An item in your bag is no longer available.', 'ITEM_UNAVAILABLE');
-    const qty = Number.parseInt(line.qty, 10);
+    const qty = Number(line.qty);
     if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) throw validationError('Choose a quantity between 1 and 10.', 'INVALID_QUANTITY');
     return { item, qty };
   });
@@ -177,7 +177,7 @@ function monitorFor(flow) {
     team: flow.team,
   };
 }
-const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}$/;
+const EMAIL_RE = /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,190}$/;
 const DEVIN_ORG_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 const DEVIN_USER_ID_RE = /^[A-Za-z0-9_|.@+-]{1,128}$/;
 
@@ -500,18 +500,26 @@ function listResorts() {
   return { resorts: Object.values(RESORTS), defaultStay: DEFAULT_STAY };
 }
 
+function parseStayDate(value) {
+  const date = new Date(`${value}T00:00:00Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value)) || Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+    throw validationError('Choose valid check-in and check-out dates.', 'INVALID_DATES');
+  }
+  return date;
+}
+
 function resolveStay(data) {
   const resort = RESORTS[String(data.resortId || DEFAULT_STAY.resortId).toLowerCase()];
   if (!resort) throw validationError('This resort is not available for online booking.', 'RESORT_NOT_FOUND', 404);
   const room = resort.rooms.find((r) => r.id === (data.roomId || resort.rooms[0].id));
   if (!room) throw validationError('This room type is no longer available.', 'ROOM_UNAVAILABLE');
-  const checkIn = new Date(`${data.checkIn || DEFAULT_STAY.checkIn}T00:00:00Z`);
-  const checkOut = new Date(`${data.checkOut || DEFAULT_STAY.checkOut}T00:00:00Z`);
+  const checkIn = parseStayDate(data.checkIn || DEFAULT_STAY.checkIn);
+  const checkOut = parseStayDate(data.checkOut || DEFAULT_STAY.checkOut);
   const nights = Math.round((checkOut - checkIn) / 86400000);
   if (!Number.isFinite(nights) || nights < 1 || nights > 14) throw validationError('Choose a stay between 1 and 14 nights.', 'INVALID_DATES');
-  const adults = Number.parseInt(data.adults ?? DEFAULT_STAY.adults, 10);
-  const children = Number.parseInt(data.children ?? DEFAULT_STAY.children, 10);
-  if (!(adults >= 1) || !(children >= 0) || adults + children > room.sleeps) throw validationError(`This room sleeps up to ${room.sleeps} Guests.`, 'INVALID_PARTY');
+  const adults = Number(data.adults ?? DEFAULT_STAY.adults);
+  const children = Number(data.children ?? DEFAULT_STAY.children);
+  if (!Number.isInteger(adults) || !Number.isInteger(children) || adults < 1 || children < 0 || adults + children > room.sleeps) throw validationError(`This room sleeps up to ${room.sleeps} Guests.`, 'INVALID_PARTY');
   return { resort, room, checkIn, checkOut, nights, adults, children };
 }
 

@@ -118,3 +118,12 @@ describe('Walt Disney World resort booking', () => {
     await expect(bookResortStay({ resortId: 'pop-century', roomId: 'pc-std', adults: 4, children: 2 })).rejects.toMatchObject({ statusCode: 400 });
   });
 });
+
+describe('input validation', () => {
+  const { bookResortStay } = require('../app/services/verticals/f86cc1c6');
+  test('rejects impossible dates, fractional parties and fractional quantities', async () => {
+    await expect(bookResortStay({ resortId: 'pop-century', checkIn: '2027-02-30', checkOut: '2027-03-04' })).rejects.toMatchObject({ code: 'INVALID_DATES' });
+    await expect(bookResortStay({ resortId: 'pop-century', adults: 2.5, children: 0 })).rejects.toMatchObject({ code: 'INVALID_PARTY' });
+    await expect(submitMobileOrder({ restaurantId: 'cosmic-rays', items: [{ id: 'cr1', qty: 1.9 }] })).rejects.toMatchObject({ code: 'INVALID_QUANTITY' });
+  });
+});
