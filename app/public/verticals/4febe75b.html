@@ -85,6 +85,7 @@
     .qty { display: inline-flex; align-items: center; height: 42px; border: 1px solid var(--ink-2); border-radius: 8px; overflow: hidden; }
     .qty button { width: 42px; height: 42px; border: 0; background: #fff; color: var(--ink-2); display: flex; align-items: center; justify-content: center; }
     .qty button svg { width: 16px; height: 16px; }
+    .qty button:disabled { opacity: .35; cursor: default; }
     .qty .val { width: 46px; text-align: center; font-size: 16px; line-height: 24px; }
     .iconbtn { width: 44px; height: 44px; border: 0; background: none; display: inline-flex; align-items: center; justify-content: center; color: var(--ink); }
     .iconbtn svg { width: 24px; height: 24px; }
@@ -342,9 +343,9 @@
         <a class="hicon" href="#" aria-label="Wishlist">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.5c0 5.4-7.5 10-7.5 10z"/></svg>
         </a>
-        <a class="hicon" href="#" aria-label="Bag, 2 items">
+        <a class="hicon" href="#" aria-label="Bag, 2 items" id="bagLink">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 13H6L5 8z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg>
-          <span class="badge">2</span>
+          <span class="badge" id="bagBadge">2</span>
         </a>
         <button class="hicon mobile-only" type="button" aria-label="Search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -363,13 +364,13 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
           Continue shopping
         </a>
-        <h1>My bag (2 items)</h1>
+        <h1 id="bagTitle">My bag (2 items)</h1>
 
         <div class="mobile-summary">
-          <div class="row total"><span class="lbl">Total<small>(excluding delivery)</small></span><span class="amt">£118.00</span></div>
+          <div class="row total"><span class="lbl">Total<small>(excluding delivery)</small></span><span class="amt" data-total>£118.00</span></div>
           <button class="cta" type="button" data-proxy-checkout>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-            Checkout securely (2 items)
+            <span data-checkout-label>Checkout securely (2 items)</span>
           </button>
           <div class="express-row">
             <span class="lbl">Express checkout options</span>
@@ -491,8 +492,8 @@
       <aside class="right">
         <div class="summary">
           <h2>Summary</h2>
-          <div class="row"><span class="lbl">Bag Total</span><span class="amt">£118.00</span></div>
-          <div class="row total"><span class="lbl">Total<small>(excluding delivery)</small></span><span class="amt">£118.00</span></div>
+          <div class="row"><span class="lbl">Bag Total</span><span class="amt" data-total>£118.00</span></div>
+          <div class="row total"><span class="lbl">Total<small>(excluding delivery)</small></span><span class="amt" data-total>£118.00</span></div>
 
           <div class="fulfil">
             <span class="fulfil-label" id="fulfilLbl">Delivery method</span>
@@ -687,7 +688,22 @@
     function $(id) { return document.getElementById(id); }
     function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-    var cart = [{ sku: '24NIKMPGSS41RDXXXRNN', qty: 1 }, { sku: '20SPAUTF1000LGCYBSKB', qty: 1 }];
+    var cart = [
+      { sku: '24NIKMPGSS41RDXXXRNN', qty: 1, price: 110, max: 4 },
+      { sku: '20SPAUTF1000LGCYBSKB', qty: 1, price: 8, max: 6 }
+    ];
+    function bagCount() { return cart.reduce(function (n, it) { return n + it.qty; }, 0); }
+    function bagTotal() { return cart.reduce(function (n, it) { return n + it.qty * it.price; }, 0); }
+    function checkoutLabel() { return 'Checkout securely (' + bagCount() + ' item' + (bagCount() === 1 ? '' : 's') + ')'; }
+    function renderBag() {
+      var n = bagCount(), total = '£' + bagTotal().toFixed(2);
+      $('bagBadge').textContent = n;
+      $('bagLink').setAttribute('aria-label', 'Bag, ' + n + ' item' + (n === 1 ? '' : 's'));
+      $('bagTitle').textContent = 'My bag (' + n + ' item' + (n === 1 ? '' : 's') + ')';
+      Array.prototype.forEach.call(document.querySelectorAll('[data-total]'), function (el) { el.textContent = total; });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-checkout-label]'), function (el) { el.textContent = checkoutLabel(); });
+      if (!checkoutInFlight) $('checkoutLabel').textContent = checkoutLabel();
+    }
     var fulfillment = 'ship';
     var checkoutInFlight = false;
     var pendingPaymentMethod = null;
@@ -707,7 +723,7 @@
     function setBusy(busy) {
       checkoutInFlight = busy;
       $('checkoutBtn').disabled = busy;
-      $('checkoutLabel').textContent = busy ? 'Placing your order…' : 'Checkout securely (2 items)';
+      $('checkoutLabel').textContent = busy ? 'Placing your order…' : checkoutLabel();
       Array.prototype.forEach.call(document.querySelectorAll('.express, .opt, [data-proxy-checkout]'), function (b) { b.disabled = busy; });
     }
 
@@ -789,9 +805,11 @@
       Array.prototype.forEach.call(box.querySelectorAll('button'), function (b, i) {
         b.addEventListener('click', function () {
           var v = parseInt(val.textContent, 10) + (i === 0 ? -1 : 1);
-          if (v < 1 || v > 9) return;
+          if (v < 1 || v > cart[idx].max) return;
           val.textContent = v;
           cart[idx].qty = v;
+          box.querySelectorAll('button')[1].disabled = v >= cart[idx].max;
+          renderBag();
         });
       });
     });
