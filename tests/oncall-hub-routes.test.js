@@ -91,6 +91,22 @@ describe('on-call hub routes', () => {
     if (legacy.status === 200) expect(await legacy.text()).not.toContain('/api/oncall/sportinggoods/checkout');
   });
 
+  test('the Coppel skin reroutes checkout in Spanish with the ribbon docked left, while /coppel stays unshimmed', async () => {
+    const [skinned, legacy, other] = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/04eac4a1`),
+      fetch(`${baseUrl}/coppel`),
+      fetch(`${baseUrl}/oncall/c/b31d1347`),
+    ]);
+    expect(skinned.status).toBe(200);
+    const html = await skinned.text();
+    expect(html).toContain('/api/oncall/clickcollect/checkout');
+    expect(html).toContain('Demo de Devin On-Call');
+    expect(html).toMatch(/id="oncall-ribbon" style="[^"]*bottom:16px;left:16px;/);
+    expect(html).toMatch(/id="oncall-dot"[^>]*bottom:16px;left:16px;/);
+    expect(await other.text()).toMatch(/id="oncall-ribbon" style="[^"]*bottom:16px;right:16px;/);
+    if (legacy.status === 200) expect(await legacy.text()).not.toContain('oncall-ribbon');
+  });
+
   test('the GSK vaccine page uses the vaccines endpoint without changing the banking skins', async () => {
     const [direct, skinned, bank] = await Promise.all([
       fetch(`${baseUrl}/fe4f39ba`),

@@ -305,9 +305,10 @@ const RIBBON_STRINGS = {
 
 function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
   const r = skin && skin.locale === 'es' ? RIBBON_STRINGS.es : RIBBON_STRINGS.en;
+  const ribbonSide = skin && skin.ribbonSide === 'left' ? 'left' : 'right';
   return `
-  <div id="oncall-dot" title="${r.title}" style="display:none;position:fixed;bottom:16px;right:16px;z-index:9999;width:14px;height:14px;border-radius:50%;background:#3fb950;border:2px solid #0d1117;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>
-  <div id="oncall-ribbon" style="${hideRibbon ? 'display:none;' : ''}position:fixed;bottom:16px;right:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+  <div id="oncall-dot" title="${r.title}" style="display:none;position:fixed;bottom:16px;${ribbonSide}:16px;z-index:9999;width:14px;height:14px;border-radius:50%;background:#3fb950;border:2px solid #0d1117;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>
+  <div id="oncall-ribbon" style="${hideRibbon ? 'display:none;' : ''}position:fixed;bottom:16px;${ribbonSide}:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
     <div style="font-weight:700;color:#f0f6fc;margin-bottom:4px;">${r.title}</div>
     <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
       <input type="checkbox" id="oncall-unique" checked style="accent-color:#58a6ff;appearance:auto;-webkit-appearance:checkbox;flex:none;width:13px;min-width:13px;height:13px;min-height:13px;margin:0;padding:0;border:0;border-radius:0;background:none;">

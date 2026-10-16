@@ -62,6 +62,8 @@
  *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
+ * ribbonSide: 'left' docks the ribbon bottom-left instead, for native pages
+ * whose own toast sits bottom-right.
  *
  * A native page whose primary action has no legacy /api/<vertical> endpoint
  * (only the on-call one) sets oncallOnly: true, so its direct /<page-slug>
@@ -3876,6 +3878,8 @@ const ONCALL_SKINS = {
     alertDestination: 'slack',
     // Alert card, thread replies, Devin prompt and demo ribbon in Spanish.
     locale: 'es',
+    // The page's checkout toast sits bottom-right.
+    ribbonSide: 'left',
     devinSession: {
       auto: true,
       onCallIsTriggerer: true,
@@ -3897,13 +3901,6 @@ const ONCALL_SKINS = {
       baseline: '~380ms (p95 de 7 días)',
       symptom: 'Las compras con "Recoger en tienda" se quedan cargando ~8s y después fallan con 504 Gateway Timeout; las compras con "Recibir a domicilio" funcionan normal. Empezó con el release carrito-web 4.2.0 del apartado en tienda.',
       impact: 'Los clientes que eligen Recoger en tienda no pueden terminar su compra; cada pedido se queda en el spinner y termina en error.',
-    },
-    theme: {
-      '--accent': '#006FB9',
-      '--ink': '#1F2937',
-      '--surface': '#FFFFFF',
-      '--chrome-bg': '#FFD200',
-      '--chrome-text': '#003A70',
     },
     supportCenter: 'Atención a clientes Coppel',
     disclaimer: 'ESTE NO ES UN SITIO REAL DE COPPEL \u2014 demo interna, sin afiliación ni respaldo de Coppel. Todos los pedidos y datos son ficticios.',
