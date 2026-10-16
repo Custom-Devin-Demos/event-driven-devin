@@ -62,7 +62,7 @@
  *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
- * ribbonSide: 'left' docks the ribbon bottom-left instead (top-left on phones),
+ * ribbonSide: 'left' docks the ribbon bottom-left instead (below a 68px header on phones),
  * for native pages whose own toast sits at the bottom.
  *
  * paths: ['/<name>'] adds friendly direct URLs served exactly like /oncall/c/<slug>.
