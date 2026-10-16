@@ -288,7 +288,7 @@ describe('block kit', () => {
     const { R } = load();
     const modal = B.requestModal({ channelId: 'C123' });
     expect(modal.callback_id).toBe(B.CALLBACK.REQUEST);
-    expect(modal.blocks.map((b) => b.block_id)).toEqual(['account', 'purpose', 'audience', 'country', 'industry', 'who', 'start', 'duration', 'end', 'meetingLink', 'notes']);
+    expect(modal.blocks.filter((b) => b.type === 'input').map((b) => b.block_id)).toEqual(['account', 'purpose', 'audience', 'country', 'industry', 'who', 'start', 'duration', 'end', 'meetingLink', 'notes']);
     const view = {
       private_metadata: modal.private_metadata,
       state: { values: {
@@ -374,6 +374,7 @@ describe('HTTP routes', () => {
         openDm: record('conversations.open', { ok: true, channel: { id: 'DM1' } }),
         respond: record('response_url'),
         uploadFile: record('files.upload'),
+        userInfo: jest.fn(async () => ({ ok: false, error: 'not_mocked' })),
       };
     });
     const router = require('../app/routes/fcto');
@@ -612,7 +613,7 @@ describe('HTTP routes', () => {
     const update = slackCalls.find((c) => c[0] === 'views.update');
     expect(update[1]).toBe('V1');
     expect(update[3]).toBe('h1');
-    const who = update[2].blocks.find((b) => b.block_id.startsWith('who_'));
+    const who = update[2].blocks.find((b) => (b.block_id || '').startsWith('who_'));
     expect(who.block_id).toBe('who_MEMBER_AKIRA_SHIBATA');
     expect(who.element.initial_option.value).toBe('MEMBER:AKIRA_SHIBATA');
     expect(JSON.parse(update[2].private_metadata)).toEqual({ channelId: 'CEXEC' });
@@ -650,7 +651,7 @@ describe('HTTP routes', () => {
     await flush();
     const updates = slackCalls.filter((c) => c[0] === 'views.update');
     expect(updates).toHaveLength(3);
-    const whoOf = (u) => u[2].blocks.find((b) => b.block_id.startsWith('who')).block_id;
+    const whoOf = (u) => u[2].blocks.find((b) => (b.block_id || '').startsWith('who')).block_id;
     expect(whoOf(updates[0])).toBe('who_MEMBER_KATRIN_LEHMANN');
     expect(updates[1][3]).toBe('h0');
     expect(whoOf(updates[1])).toBe('who_MEMBER_AMAN_THIND');
@@ -677,7 +678,7 @@ describe('HTTP routes', () => {
     await flush();
     expect(internal.store.get('FCR-1')).toMatchObject({ requestedKey: 'AKIRA_SHIBATA', audience: 'C_LEVEL', country: 'JP', industry: 'TECH_NATIVE' });
     const posted = slackCalls.find((c) => c[0] === 'chat.postMessage');
-    expect(JSON.stringify(posted)).toContain('C-level · Japan · Tech Native');
+    expect(JSON.stringify(posted)).toContain(':crown: C-level   :flag-jp: Japan   :rocket: Tech Native');
   });
 });
 
@@ -742,7 +743,7 @@ describe('qualifications', () => {
     expect(JSON.stringify(B.requestModal({ audience: 'BELOW' }))).toContain('Director-level and above');
     expect(JSON.stringify(B.requestModal({ audience: 'VP' }))).not.toContain('Director-level and above');
     const r = await R.createRequest(store, base({ country: 'JP', industry: 'HEALTHCARE' }), { now: NOW });
-    expect(JSON.stringify(B.requestCard(r))).toContain('VP · Japan · Healthcare');
+    expect(JSON.stringify(B.requestCard(r))).toContain(':briefcase: VP   :flag-jp: Japan   :hospital: Healthcare');
     expect(JSON.stringify(B.scheduleBlocks(store, { from: NOW, to: NOW + 30 * 86400 }))).toContain('VP · Japan · Healthcare');
     expect(buildIcs({ ...r, id: r.id, assigneeKey: 'MARK_PORTER' }, { now: NOW })).toContain('VP · Japan · Healthcare');
   });
@@ -821,6 +822,7 @@ describe('review fixes', () => {
       updateMessage: jest.fn(async (...a) => { calls.push(['chat.update', ...a]); return { ok: true }; }),
       postMessage: jest.fn(async (...a) => { calls.push(['chat.postMessage', ...a]); return { ok: true, ts: '1' }; }),
       uploadFile: jest.fn(async (...a) => { calls.push(['files.upload', ...a]); return { ok: true }; }),
+      userInfo: jest.fn(async () => ({ ok: false })),
     }));
     process.env.FCTO_CHANNEL_ID = 'CEXEC';
     const { store, applyChange } = require('../app/routes/fcto')._internal;
@@ -937,5 +939,82 @@ describe('availability edge cases', () => {
     const res = await handleCommand({ command: '/fcto', text: 'free 2026-10-01 - 2026-12-15', user_id: REQUESTER });
     expect(res.text).toMatch(/up to 31 days/);
     delete process.env.FCTO_CHANNEL_ID;
+  });
+});
+
+describe('slack design', () => {
+  const NOW_D = Math.floor(Date.UTC(2027, 0, 11, 16) / 1000);
+  const fresh = () => {
+    jest.resetModules();
+    const { ReservationStore } = require('../app/services/fcto/store');
+    const store = new ReservationStore(path.join(os.tmpdir(), `fcto-design-${Date.now()}-${Math.random()}.json`));
+    return { store, R: require('../app/services/fcto/reservations'), B: require('../app/services/fcto/blocks'), avatars: require('../app/services/fcto/avatars') };
+  };
+  const req = (over = {}) => ({ requesterId: 'UREQUESTER1', account: 'Acme Corp', purpose: 'EBC', audience: 'VP', country: 'DE', industry: 'FINANCE', who: 'MEMBER:MARK_PORTER', startTs: NOW_D + 86400, durationKey: '2h', ...over });
+
+  test('card message puts status in a colored attachment with a progress line', async () => {
+    const { store, R, B } = fresh();
+    const r = await R.createRequest(store, req(), { now: NOW_D });
+    const pending = B.requestCardMessage(r);
+    expect(pending.text).toMatch(/^\[Pending\]/);
+    expect(pending.attachments[0].color).toBe('#ECB22E');
+    expect(JSON.stringify(pending.blocks)).toContain(':briefcase: VP   :flag-de: Germany   :bank: Finance');
+    expect(JSON.stringify(pending.attachments[0].blocks)).toContain(':hourglass_flowing_sand: Approval');
+    const approved = B.requestCardMessage(await R.approve(store, r.id, { by: 'U09HHJ5B5L5' }));
+    expect(approved.attachments[0].color).toBe('#2EB67D');
+    const cal = approved.attachments[0].blocks.find((b) => b.block_id === `cal_${r.id}`);
+    expect(cal.elements.map((e) => e.action_id)).toEqual([B.ACTION.CAL_GOOGLE, B.ACTION.CAL_OUTLOOK]);
+    expect(cal.elements[0].url).toMatch(/^https:\/\/calendar\.google\.com\/calendar\/render\?action=TEMPLATE&text=Field%20CTO%3A%20Mark%20Porter/);
+    expect(cal.elements[0].url).toContain('dates=20270112T160000Z%2F20270112T180000Z');
+    expect(cal.elements[1].url).toContain('startdt=2027-01-12T16%3A00%3A00Z');
+    expect(B.threadBlocks(await R.cancel(store, r.id, { by: 'UREQUESTER1' }))).toBeUndefined();
+  });
+
+  test('cached Slack photos show on the card and in the free list', async () => {
+    const { store, R, B, avatars } = fresh();
+    avatars._cache.set('U0BU46F4WCU', { url: 'https://example.com/mark.png', at: Date.now() });
+    const r = await R.createRequest(store, req(), { now: NOW_D });
+    const card = B.requestCard(r);
+    expect(card[1].accessory).toEqual({ type: 'image', image_url: 'https://example.com/mark.png', alt_text: 'Mark Porter' });
+    const free = B.availabilityBlocks(store, { from: NOW_D, to: NOW_D + 86400 });
+    expect(free.find((b) => JSON.stringify(b).includes('Mark Porter')).accessory.image_url).toBe('https://example.com/mark.png');
+  });
+
+  test('avatars.warm caches users.info photos and tolerates failures', async () => {
+    jest.resetModules();
+    const userInfo = jest.fn(async (id) => (id === 'UOK' ? { ok: true, user: { profile: { image_192: 'https://x/192.png' } } } : { ok: false }));
+    jest.doMock('../app/services/fcto/slack-client', () => ({ userInfo }));
+    const avatars = require('../app/services/fcto/avatars');
+    await avatars.warm(['UOK', 'UBAD', 'UOK', '']);
+    expect(avatars.get('UOK')).toBe('https://x/192.png');
+    expect(avatars.get('UBAD')).toBeNull();
+    await avatars.warm(['UOK', 'UBAD']);
+    expect(userInfo).toHaveBeenCalledTimes(2);
+    jest.dontMock('../app/services/fcto/slack-client');
+  });
+
+  test('request modal has section headers and a suggestion callout', () => {
+    const { B } = fresh();
+    const modal = B.requestModal({ channelId: 'CEXEC', suggestion: { who: 'MEMBER:AKIRA_SHIBATA', reason: 'Japan' } });
+    expect(modal.blocks.filter((b) => b.type === 'header').map((b) => b.text.text)).toEqual([':office: The meeting', ":busts_in_silhouette: Who's in the room", ':calendar: When', ':paperclip: Extras']);
+    expect(JSON.stringify(modal.blocks)).toContain(':sparkles: *Suggested: Akira Shibata* for Japan');
+    expect(JSON.stringify(modal.blocks[0])).toContain('<#CEXEC>');
+    const country = modal.blocks.find((b) => b.block_id === 'country').element.options;
+    expect(country.find((o) => o.value === 'JP').text.text).toBe(':flag-jp: Japan');
+  });
+
+  test('home shows stats, an action queue for admins and a week heatmap', async () => {
+    const { store, R, B } = fresh();
+    const soon = Math.floor(Date.now() / 1000) + 2 * 86400;
+    await R.createRequest(store, req({ startTs: soon }));
+    await R.createRequest(store, req({ startTs: soon + 86400, who: 'ANY:EU' }));
+    const home = B.homeView(store, 'U09HHJ5B5L5');
+    const json = JSON.stringify(home);
+    expect(json).toContain(':raising_hand: *Waiting on you*\\n2');
+    const queue = home.blocks.filter((b) => b.accessory && b.accessory.type === 'button');
+    expect(queue.map((b) => b.accessory.action_id)).toEqual([B.ACTION.APPROVE, B.ACTION.ASSIGN]);
+    expect(json).toContain(':large_green_square:');
+    const stranger = JSON.stringify(B.homeView(store, 'USTRANGER1'));
+    expect(stranger).not.toContain('Needs your action');
   });
 });

@@ -29,10 +29,9 @@ function foldLine(line) {
   return out.join('\r\n');
 }
 
-function buildIcs(reservation, { host = 'devindemos.com', now = Math.floor(Date.now() / 1000), attendees = [] } = {}) {
+function eventText(reservation) {
   const member = findMember(reservation.assigneeKey);
-  const who = member ? member.name : 'Field CTO';
-  const summary = `Field CTO: ${who} — ${reservation.account}`;
+  const summary = `Field CTO: ${member ? member.name : 'Field CTO'} — ${reservation.account}`;
   const descriptionParts = [
     `Field CTO reservation ${reservation.id}`,
     `Account: ${reservation.account}`,
@@ -43,6 +42,38 @@ function buildIcs(reservation, { host = 'devindemos.com', now = Math.floor(Date.
   if (reservation.notes) descriptionParts.push(`Notes: ${reservation.notes}`);
   if (reservation.meetingLink) descriptionParts.push(`Meeting link: ${reservation.meetingLink}`);
   descriptionParts.push(`Requested in Slack #exec-field-requests by <@${reservation.requesterId}>`);
+  return { summary, description: descriptionParts.join('\n') };
+}
+
+// One-click "add to calendar" links (no calendar API): each opens a prefilled
+// new-event form in the clicker's own Google or Outlook calendar.
+function calendarLinks(reservation) {
+  const { summary, description } = eventText(reservation);
+  const details = description.slice(0, 1200);
+  const iso = (ts) => new Date(ts * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
+  const q = (params) => Object.entries(params).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+  return {
+    google: `https://calendar.google.com/calendar/render?${q({
+      action: 'TEMPLATE',
+      text: summary,
+      dates: `${icsDate(reservation.startTs)}/${icsDate(reservation.endTs)}`,
+      details,
+      location: reservation.meetingLink,
+    })}`,
+    outlook: `https://outlook.office.com/calendar/0/deeplink/compose?${q({
+      path: '/calendar/action/compose',
+      rru: 'addevent',
+      subject: summary,
+      startdt: iso(reservation.startTs),
+      enddt: iso(reservation.endTs),
+      body: details,
+      location: reservation.meetingLink,
+    })}`,
+  };
+}
+
+function buildIcs(reservation, { host = 'devindemos.com', now = Math.floor(Date.now() / 1000), attendees = [] } = {}) {
+  const { summary, description } = eventText(reservation);
 
   const lines = [
     'BEGIN:VCALENDAR',
@@ -56,7 +87,7 @@ function buildIcs(reservation, { host = 'devindemos.com', now = Math.floor(Date.
     `DTSTART:${icsDate(reservation.startTs)}`,
     `DTEND:${icsDate(reservation.endTs)}`,
     `SUMMARY:${escapeText(summary)}`,
-    `DESCRIPTION:${escapeText(descriptionParts.join('\n'))}`,
+    `DESCRIPTION:${escapeText(description)}`,
   ];
   if (reservation.meetingLink) lines.push(`URL:${reservation.meetingLink}`);
   if (reservation.meetingLink) lines.push(`LOCATION:${escapeText(reservation.meetingLink)}`);
@@ -74,4 +105,4 @@ function icsFilename(reservation) {
   return `${reservation.id.toLowerCase()}-${who}-${day}.ics`;
 }
 
-module.exports = { buildIcs, icsFilename, icsDate, escapeText };
+module.exports = { buildIcs, icsFilename, icsDate, escapeText, calendarLinks };
