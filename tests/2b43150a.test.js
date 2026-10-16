@@ -18,7 +18,7 @@ const express = require('express');
 const http = require('http');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
-const { placeOrder, priceBag, CHECKOUT_MARKDOWNS, PRODUCT, DATADOG_LOGS_QUERY } = require('../app/services/verticals/2b43150a');
+const { placeOrder, priceBag, datadogLogsUrl, CHECKOUT_MARKDOWNS, PRODUCT, DATADOG_LOGS_QUERY } = require('../app/services/verticals/2b43150a');
 const checkoutRoutes = require('../app/routes/verticals/2b43150a');
 const customer = require('../config/customers/2b43150a');
 
@@ -121,11 +121,49 @@ describe('Gap product page checkout (2b43150a)', () => {
   test('unknown variants, missing sizes and bad quantities are handled 400s with no alert', async () => {
     const unknownVariant = await request('POST', '/api/2b43150a/checkout', { ...NAVY_CHECKOUT, variantId: '907280999' });
     const noSize = await request('POST', '/api/2b43150a/checkout', { ...NAVY_CHECKOUT, size: '' });
-    const badQty = await request('POST', '/api/2b43150a/checkout', { ...NAVY_CHECKOUT, quantity: 0 });
     expect(unknownVariant.status).toBe(400);
     expect(noSize.status).toBe(400);
-    expect(badQty.status).toBe(400);
+    for (const quantity of [0, 11, 2.9, '2garbage', '', null, true]) {
+      const res = await request('POST', '/api/2b43150a/checkout', { ...NAVY_CHECKOUT, quantity });
+      expect([quantity, res.status, res.body.code]).toEqual([quantity, 400, 'INVALID_QUANTITY']);
+    }
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('a multi-line bag is priced as one order and every line is returned', async () => {
+    const lines = [
+      { variantId: '907280042', size: 'M', fit: 'Regular', quantity: 2 },
+      { variantId: '907280052', size: 'L', fit: 'Tall', quantity: '1' },
+    ];
+    const res = await request('POST', '/api/2b43150a/checkout', { lines });
+    expect(res.status).toBe(200);
+    expect(res.body.pricing.lines).toHaveLength(2);
+    expect(res.body.pricing.lines.map((l) => [l.variantId, l.quantity])).toEqual([['907280042', 2], ['907280052', 1]]);
+    expect(res.body.pricing).toMatchObject({ merchandise: 239.85, markdown: 95.94, subtotal: 143.91, shipping: 0 });
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('a multi-line bag that includes the navy colorway fails as one checkout with one alert', async () => {
+    const lines = [
+      { variantId: '907280042', size: 'M', fit: 'Regular', quantity: 1 },
+      { variantId: '907280012', size: 'L', fit: 'Regular', quantity: 1 },
+    ];
+    const res = await request('POST', '/api/2b43150a/checkout', { lines });
+    expect(res.status).toBe(500);
+    expect(res.body.errorClass).toBe('TypeError');
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(createSessionAndAlert.mock.calls[0][0].extra.variantId).toBe('907280042,907280012');
+    const empty = await request('POST', '/api/2b43150a/checkout', { lines: [] });
+    expect(empty.status).toBe(400);
+  });
+
+  test('the Datadog link targets the app host of the configured site', () => {
+    const original = process.env.DD_SITE;
+    process.env.DD_SITE = 'us5.datadoghq.com';
+    expect(datadogLogsUrl()).toMatch(/^https:\/\/app\.us5\.datadoghq\.com\/logs\?query=/);
+    delete process.env.DD_SITE;
+    expect(datadogLogsUrl()).toMatch(/^https:\/\/app\.datadoghq\.com\/logs\?query=/);
+    if (original === undefined) delete process.env.DD_SITE; else process.env.DD_SITE = original;
   });
 
   test('GET /api/2b43150a/product returns the product and the promotion', async () => {

@@ -148,6 +148,7 @@
     .bag__item .n { font-size: 14px; margin-bottom: 6px; }
     .bag__item .m { font-size: 12px; color: var(--ink-soft); line-height: 1.7; }
     .bag__item .pr { font-size: 14px; margin-top: 8px; }
+    .bag__remove { background: none; border: 0; padding: 0; margin-top: 10px; min-height: 44px; font-size: 12px; text-decoration: underline; color: var(--ink-soft); }
     .bag__sum { padding: 16px 0 0; font-size: 13px; }
     .bag__sum div { display: flex; justify-content: space-between; margin-bottom: 8px; }
     .bag__sum .save { color: var(--ok); }
@@ -387,6 +388,7 @@
     const PRODUCT_NAME = 'Relaxed Polo Sweater';
     const UNIT_PRICE = 79.95;
     const MARKDOWN_RATE = 0.4;
+    const MAX_PER_LINE = 10;
     const THUMB = 'https://content.gapinc.com/b/0063/336/073/cn63336073.png?width=200';
 
     const state = { variantId: '907280012', colorName: 'New classic navy blue', fit: 'Regular', size: null, bag: [] };
@@ -467,10 +469,20 @@
         img.src = THUMB;
         img.alt = PRODUCT_NAME;
         const info = el('div');
+        const remove = el('button', 'bag__remove', 'Remove');
+        remove.type = 'button';
+        remove.setAttribute('aria-label', 'Remove ' + line.colorName + ' size ' + line.size + ' from bag');
+        remove.addEventListener('click', () => {
+          state.bag = state.bag.filter((l) => l !== line);
+          outcome.className = 'outcome';
+          outcome.replaceChildren();
+          renderBag();
+        });
         info.append(
           el('div', 'n', PRODUCT_NAME),
-          el('div', 'm', 'Color: ' + line.colorName + '\nFit: ' + line.fit + ' · Size: ' + line.size + '\nQty: ' + line.quantity),
+          el('div', 'm', 'Color: ' + line.colorName + '\nFit: ' + line.fit + ' · Size: ' + line.size + '\nQty: ' + line.quantity + (line.capped ? ' (limit ' + MAX_PER_LINE + ' per item)' : '')),
           el('div', 'pr', money(line.unitPrice * line.quantity)),
+          remove,
         );
         info.querySelector('.m').style.whiteSpace = 'pre-line';
         row.append(img, info);
@@ -499,8 +511,12 @@
       }
       const quantity = Number(qty.value);
       const existing = state.bag.find((l) => l.variantId === state.variantId && l.size === state.size && l.fit === state.fit);
-      if (existing) existing.quantity += quantity;
-      else state.bag.push({ variantId: state.variantId, colorName: state.colorName, fit: state.fit, size: state.size, quantity, unitPrice: UNIT_PRICE });
+      if (existing) {
+        existing.capped = existing.quantity + quantity > MAX_PER_LINE;
+        existing.quantity = Math.min(MAX_PER_LINE, existing.quantity + quantity);
+      } else {
+        state.bag.push({ variantId: state.variantId, colorName: state.colorName, fit: state.fit, size: state.size, quantity, unitPrice: UNIT_PRICE, capped: false });
+      }
       outcome.className = 'outcome';
       outcome.replaceChildren();
       renderBag();
@@ -530,7 +546,7 @@
       outcome.className = 'outcome is-ok';
       outcome.replaceChildren(
         el('div', 'outcome__title', 'Order placed \u2014 #' + data.orderNumber),
-        el('p', '', data.estimatedDelivery + '. A confirmation is on its way to your inbox.'),
+        el('p', '', p.lines.reduce((n, l) => n + l.quantity, 0) + ' item(s). ' + data.estimatedDelivery + '. A confirmation is on its way to your inbox.'),
         rows,
       );
       state.bag = [];
@@ -538,8 +554,7 @@
     }
 
     async function checkout() {
-      const line = state.bag[0];
-      if (!line) return;
+      if (state.bag.length === 0) return;
       checkoutBtn.disabled = true;
       checkoutBtn.classList.add('busy');
       outcome.className = 'outcome';
@@ -551,10 +566,7 @@
             ? { 'Content-Type': 'application/json', 'x-synthetic': '1' }
             : { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            variantId: line.variantId,
-            size: line.size,
-            fit: line.fit,
-            quantity: line.quantity,
+            lines: state.bag.map((l) => ({ variantId: l.variantId, size: l.size, fit: l.fit, quantity: l.quantity })),
             devinUserId: localStorage.getItem('devinUserId') || '',
             devinOrgId: localStorage.getItem('devinOrgId') || '',
             devinEmail: localStorage.getItem('devinEmail') || '',

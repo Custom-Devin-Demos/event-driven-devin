@@ -74,19 +74,22 @@ const CHECKOUT_MARKDOWNS = {
 const SALES_TAX_RATE = 0.08875;
 const FREE_SHIPPING_THRESHOLD = 50;
 const STANDARD_SHIPPING = 7;
+const MAX_QUANTITY_PER_LINE = 10;
+const MAX_LINES_PER_ORDER = 20;
 
 const GAP_SLACK_MEMBER_ID = process.env.GAP_PDP_SLACK_MEMBER_ID || '';
 const GAP_DEVIN_USER_ID = process.env.DEVIN_USER_ID_2B43150A || '';
 
 const SENTRY_ISSUE_QUERY = 'is:unresolved rate';
 
+// DD_SITE is the API/agent site (datadoghq.com, us5.datadoghq.com, datadoghq.eu, ...);
+// the Logs Explorer lives on the matching app.<site> host.
 function datadogLogsUrl() {
-  const site = process.env.DD_SITE || 'datadoghq.com';
-  const host = site === 'datadoghq.com' ? 'app.datadoghq.com' : site;
-  return `https://${host}/logs?query=${encodeURIComponent(DATADOG_LOGS_QUERY)}`;
+  const site = (process.env.DD_SITE || 'datadoghq.com').replace(/^app\./, '');
+  return `https://app.${site}/logs?query=${encodeURIComponent(DATADOG_LOGS_QUERY)}`;
 }
 
-const REMEDIATION_DIRECTIVE = `Repository: COG-GTM/event-driven-devin. Scope: only the Gap product page checkout failure below. This repository hosts many independent demo verticals, each with its own intentional bug and its own Sentry issues (for example POST /api/banking/transfer, POST /api/storefront/checkout and the other Gap verticals under /api/43f2f084, /api/f813dd7a and /api/383b99d1 throw their own TypeErrors and generate constant background traffic). Ignore every issue that is not from POST ${ROUTE}, do not investigate or modify any other vertical, and do not widen the Sentry or Datadog search beyond this route. The failing surface is the Relaxed Polo Sweater product page at app/public/verticals/2b43150a.html (served at /2b43150a), where "Add to Bag" opens the bag and the bag's "Checkout" button posts to POST ${ROUTE} in app/routes/verticals/2b43150a.js. The checkout pipeline lives in app/services/verticals/2b43150a.js: placeOrder -> priceBag -> applyCheckoutMarkdown -> markdownLine. Start at applyCheckoutMarkdown: it looks up CHECKOUT_MARKDOWNS by the bag line's style-color variant, and the new colorway 907280012 (New classic navy blue, dropped 2026-10-09) was added to the product without a Friends & Family markdown entry, so markdownLine dereferences undefined. Add the missing variant's markdown entry (the same 40% Friends & Family values as the other colorways), and make a variant without a markdown entry fail as a handled "This item's promotion isn't available right now" error (HTTP 409, no alert) instead of a TypeError. Do not change the page's look and feel and do not touch other verticals. The Datadog logs for this failure are the error logs with service ${SERVICE} (Logs query: ${DATADOG_LOGS_QUERY}); each one carries the requestId, variantId, size and durationMs of the failed checkout, and the alert's "View Datadog" button opens that query. Verify by starting the server (node app/server.js) and POSTing {"variantId":"907280012","size":"M","fit":"Regular","quantity":1} to ${ROUTE}, which must return an order whose pricing applies the 40% markdown (merchandise 79.95, markdown -31.98), and confirm npm run lint passes.
+const REMEDIATION_DIRECTIVE = `Repository: COG-GTM/event-driven-devin. Scope: only the Gap product page checkout failure below. This repository hosts many independent demo verticals, each with its own intentional bug and its own Sentry issues (for example POST /api/banking/transfer, POST /api/storefront/checkout and the other Gap verticals under /api/43f2f084, /api/f813dd7a and /api/383b99d1 throw their own TypeErrors and generate constant background traffic). Ignore every issue that is not from POST ${ROUTE}, do not investigate or modify any other vertical, and do not widen the Sentry or Datadog search beyond this route. The failing surface is the Relaxed Polo Sweater product page at app/public/verticals/2b43150a.html (served at /2b43150a), where "Add to Bag" opens the bag and the bag's "Checkout" button posts to POST ${ROUTE} in app/routes/verticals/2b43150a.js. The checkout pipeline lives in app/services/verticals/2b43150a.js: placeOrder -> priceBag -> applyCheckoutMarkdown -> markdownLine. Start at applyCheckoutMarkdown: it looks up CHECKOUT_MARKDOWNS by the bag line's style-color variant, and the new colorway 907280012 (New classic navy blue, dropped 2026-10-09) was added to the product without a Friends & Family markdown entry, so markdownLine dereferences undefined. Add the missing variant's markdown entry (the same 40% Friends & Family values as the other colorways), and make a variant without a markdown entry fail as a handled "This item's promotion isn't available right now" error (HTTP 409, no alert) instead of a TypeError. Do not change the page's look and feel and do not touch other verticals. The Datadog logs for this failure are the error logs with service ${SERVICE} (Logs query: ${DATADOG_LOGS_QUERY}); each one carries the requestId, variantId, sizes and durationMs of the failed checkout, and the alert's "View Datadog" button opens that query. Verify by starting the server (node app/server.js) and POSTing {"variantId":"907280012","size":"M","fit":"Regular","quantity":1} to ${ROUTE}, which must return an order whose pricing applies the 40% markdown (merchandise 79.95, markdown -31.98), and confirm npm run lint passes.
 
 Reproduce before you diagnose. Your first action after reading the alert, before reading any source file and before proposing a cause, is to start the server (node app/server.js), open /2b43150a?repro=1 in a real browser, pick a size, click "Add to Bag", then click "Checkout" in the bag, with your screen recording, so the recording shows the product page, the bag, the click and the checkout error. Always use ?repro=1 for your own submissions: the checkout fails identically but raises no Sentry event, Slack alert or Devin session. If it does not reproduce, stop and report that instead of fixing anything.
 
@@ -144,8 +147,8 @@ function buildLine(data) {
   if (!color) throw validationError(`Unknown color variant: ${data.variantId || '(none)'}`, 'UNKNOWN_VARIANT');
   if (!PRODUCT.sizes.includes(data.size)) throw validationError('Choose a size before checking out', 'SIZE_REQUIRED');
   const fit = PRODUCT.fits.includes(data.fit) ? data.fit : 'Regular';
-  const quantity = Number.parseInt(data.quantity, 10);
-  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) throw validationError('Quantity must be between 1 and 10', 'INVALID_QUANTITY');
+  const quantity = typeof data.quantity === 'boolean' ? NaN : Number(data.quantity);
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY_PER_LINE) throw validationError(`Quantity must be a whole number between 1 and ${MAX_QUANTITY_PER_LINE}`, 'INVALID_QUANTITY');
   return {
     styleNumber: PRODUCT.styleNumber,
     variantId: color.variantId,
@@ -158,26 +161,38 @@ function buildLine(data) {
   };
 }
 
+/**
+ * Bag lines to price. Multi-line bags send `lines: [{ variantId, size, fit, quantity }]`;
+ * a single line may also be sent as the top-level fields.
+ */
+function buildLines(data) {
+  const raw = Array.isArray(data.lines) ? data.lines : [data];
+  if (raw.length === 0) throw validationError('Your bag is empty', 'EMPTY_BAG');
+  if (raw.length > MAX_LINES_PER_ORDER) throw validationError(`Orders are limited to ${MAX_LINES_PER_ORDER} items`, 'TOO_MANY_LINES');
+  return raw.map((entry) => buildLine(entry || {}));
+}
+
 async function placeOrder(data) {
   const startTime = Date.now();
   const requestId = uuidv4();
-  const line = buildLine(data);
+  const lines = buildLines(data);
+  const variantIds = lines.map((l) => l.variantId).join(',');
+  const units = lines.reduce((sum, l) => sum + l.quantity, 0);
 
   logger.info('Pricing bag for checkout', {
     requestId,
-    styleNumber: line.styleNumber,
-    variantId: line.variantId,
-    color: line.color,
-    size: line.size,
-    quantity: line.quantity,
+    styleNumber: PRODUCT.styleNumber,
+    variantIds,
+    lineCount: lines.length,
+    units,
     service: SERVICE,
     route: ROUTE,
   });
 
   try {
-    const pricing = priceBag([line]);
+    const pricing = priceBag(lines);
     const duration = Date.now() - startTime;
-    incrementMetric('gap_pdp_checkout.success', { route: ROUTE, variantId: line.variantId });
+    incrementMetric('gap_pdp_checkout.success', { route: ROUTE, variantIds });
     recordTiming('gap_pdp_checkout.latency', duration, { route: ROUTE });
     return {
       success: true,
@@ -194,17 +209,17 @@ async function placeOrder(data) {
       throw error;
     }
 
-    incrementMetric('gap_pdp_checkout.failure', { route: ROUTE, errorClass: error.name, variantId: line.variantId });
+    incrementMetric('gap_pdp_checkout.failure', { route: ROUTE, errorClass: error.name, variantIds });
     recordTiming('gap_pdp_checkout.latency', duration, { route: ROUTE, error: 'true' });
 
     const context = {
       requestId,
-      styleNumber: line.styleNumber,
-      variantId: line.variantId,
-      color: line.color,
-      fit: line.fit,
-      size: line.size,
-      quantity: line.quantity,
+      styleNumber: PRODUCT.styleNumber,
+      variantId: variantIds,
+      colors: lines.map((l) => l.color).join(', '),
+      sizes: lines.map((l) => `${l.fit}/${l.size}`).join(', '),
+      lineCount: lines.length,
+      units,
       promotion: FRIENDS_AND_FAMILY.code,
     };
 
@@ -223,7 +238,7 @@ async function placeOrder(data) {
       throw error;
     }
 
-    const tags = { route: ROUTE, service: SERVICE, variantId: line.variantId, promotion: FRIENDS_AND_FAMILY.code, alert_path: 'instant' };
+    const tags = { route: ROUTE, service: SERVICE, variantId: variantIds, promotion: FRIENDS_AND_FAMILY.code, alert_path: 'instant' };
 
     Sentry.captureException(error, { tags, extra: context });
 
@@ -273,6 +288,7 @@ module.exports = {
   CHECKOUT_MARKDOWNS,
   FRIENDS_AND_FAMILY,
   PRODUCT,
+  MAX_QUANTITY_PER_LINE,
   DATADOG_LOGS_QUERY,
   REMEDIATION_DIRECTIVE,
 };

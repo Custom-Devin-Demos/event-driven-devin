@@ -18,6 +18,7 @@ router.post('/api/2b43150a/checkout', async (req, res) => {
 
   try {
     const result = await placeOrder({
+      lines: body.lines,
       variantId: body.variantId,
       size: body.size,
       fit: body.fit,
