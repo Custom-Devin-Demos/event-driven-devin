@@ -3908,6 +3908,17 @@ const ONCALL_SKINS = {
     supportCenter: 'Atención a clientes Coppel',
     disclaimer: 'ESTE NO ES UN SITIO REAL DE COPPEL \u2014 demo interna, sin afiliación ni respaldo de Coppel. Todos los pedidos y datos son ficticios.',
   },
+  'abaf79d0': {
+    slug: 'abaf79d0',
+    company: 'Nextdoor',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: {
+      file: 'abaf79d0.html',
+      title: 'Opportunity Alerts for Small Businesses | Real-Time Local Leads | Nextdoor',
+    },
+    disclaimer: 'NOT ACTUALLY A NEXTDOOR SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nextdoor product.',
+  },
 };
 
 function getOncallSkin(slug) {
