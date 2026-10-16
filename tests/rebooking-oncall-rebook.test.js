@@ -65,13 +65,13 @@ describe('Egencia trip-disruption on-call rebooking', () => {
     expect(JSON.stringify(s)).not.toMatch(/\.js|FARE_FAMILIES|RESHOP/);
   });
 
-  test('the Egencia skin routes to Teams and its card matches the service it names', () => {
+  test('the Egencia skin routes to Slack and its card matches the service it names', () => {
     const skin = getOncallSkin('e7a1c4d9');
     expect(skin.vertical).toBe('rebooking');
     expect(skin.oncallOnly).toBe(true);
-    expect(skin.teamsAlerts).toBe(true);
-    expect(skin.alertDestination).toBe('teams');
-    expect(skin.teamsWebhookEnv).toBe('ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI');
+    expect(skin.alertDestination).toBe('slack');
+    expect(skin.teamsAlerts).toBeUndefined();
+    expect(skin.teamsWebhookEnv).toBeUndefined();
     expect(skin.devinSession).toBeUndefined();
     expect(skin.paths).toEqual(['/oncall/c/egencia', '/egencia-oncall']);
     expect(skin.alertCard.service).toBe('egencia-rebooking-api');
