@@ -62,8 +62,8 @@
  *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
- * ribbonSide: 'left' docks the ribbon bottom-left instead (below a 68px header on phones),
- * for native pages whose own toast sits at the bottom.
+ * ribbonSide: 'left' docks the ribbon bottom-left instead, and ribbonYieldTo: '<css selector>'
+ * hides the ribbon while that page element matches (e.g. the page's own toast).
  *
  * paths: ['/<name>'] adds friendly direct URLs served exactly like /oncall/c/<slug>.
  *
@@ -3881,8 +3881,9 @@ const ONCALL_SKINS = {
     alertDestination: 'slack',
     // Alert card, thread replies, Devin prompt and demo ribbon in Spanish.
     locale: 'es',
-    // The page's checkout toast sits bottom-right.
+    // The page's checkout toast sits bottom-right (full-width on phones).
     ribbonSide: 'left',
+    ribbonYieldTo: '.toast.show',
     devinSession: {
       auto: true,
       onCallIsTriggerer: true,
