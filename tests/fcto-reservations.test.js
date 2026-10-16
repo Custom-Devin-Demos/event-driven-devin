@@ -56,6 +56,7 @@ describe('roster config', () => {
     expect(byKey.JEFF_WANG.slackId).toBe(ADMIN);
     expect(byKey.NARRY_SINGH.slackId).toBe('');
     expect(byKey.AKIRA_SHIBATA.tz).toBe('Asia/Tokyo');
+    expect(byKey.AKIRA_SHIBATA.slackId).toBe('U0B1DCC2LAK');
     expect(getRoster({ FCTO_SLACK_ID_NARRY_SINGH: 'u0narry123' }).find((m) => m.key === 'NARRY_SINGH').slackId).toBe('U0NARRY123');
     expect(getAdminIds()).toEqual([ADMIN]);
     expect(getAdminIds({ FCTO_ADMIN_SLACK_IDS: 'U1, u2,bad id,,U1' })).toEqual(['U1', 'U2']);
@@ -597,7 +598,8 @@ describe('HTTP routes', () => {
     const res = await new Promise((resolve) => http.get({ port, path: '/slack/fcto/health' }, (r) => { let d = ''; r.on('data', (c) => { d += c; }); r.on('end', () => resolve(JSON.parse(d))); }));
     expect(res).toMatchObject({ ok: true, signingSecretConfigured: true, botTokenConfigured: true, channelConfigured: true, admins: 1, reservations: 0 });
     expect(JSON.stringify(res)).not.toContain('xoxb');
-    expect(res.roster.find((m) => m.name === 'Akira Shibata').slackIdConfigured).toBe(false);
+    expect(res.roster.find((m) => m.name === 'Akira Shibata').slackIdConfigured).toBe(true);
+    expect(res.roster.find((m) => m.name === 'Narry Singh').slackIdConfigured).toBe(false);
   });
 
   test('qualification picks re-render the request modal with a suggested Field CTO', async () => {

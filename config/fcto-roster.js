@@ -17,7 +17,7 @@ const ROSTER = [
   { key: 'MARK_PORTER', name: 'Mark Porter', tz: 'America/Los_Angeles', region: 'US', defaultSlackId: 'U0BU46F4WCU' },
   { key: 'NARRY_SINGH', name: 'Narry Singh', tz: 'Europe/London', region: 'EU', defaultSlackId: '' },
   { key: 'AMAN_THIND', name: 'Aman Thind', tz: 'Europe/London', region: 'EU', defaultSlackId: 'U0BBSF50MBR' },
-  { key: 'AKIRA_SHIBATA', name: 'Akira Shibata', tz: 'Asia/Tokyo', region: 'JP', defaultSlackId: '' },
+  { key: 'AKIRA_SHIBATA', name: 'Akira Shibata', tz: 'Asia/Tokyo', region: 'JP', defaultSlackId: 'U0B1DCC2LAK' },
 ];
 
 const REGION_LABELS = {
