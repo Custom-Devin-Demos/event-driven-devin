@@ -5,6 +5,7 @@
 // time formatting. No Slack calls here — see routes/fcto.js and blocks.js.
 
 const { getRoster, findMember, getAdminIds, REGION_LABELS } = require('../../../config/fcto-roster');
+const Q = require('../../../config/fcto-qualifications');
 
 const STATUS = Object.freeze({
   PENDING: 'pending',
@@ -44,7 +45,8 @@ class ReservationError extends Error {
 
 function clean(value, max = MAX_TEXT) {
   if (value === undefined || value === null) return '';
-  return Array.from(String(value)).filter((ch) => { const c = ch.charCodeAt(0); return c > 31 || c === 9 || c === 10 || c === 13; }).join('').trim().slice(0, max);
+  const text = Array.from(String(value)).filter((ch) => { const c = ch.charCodeAt(0); return c > 31 || c === 9 || c === 10 || c === 13; }).join('').trim();
+  return Array.from(text).slice(0, max).join('');
 }
 
 function toEpoch(value) {
@@ -99,6 +101,14 @@ async function createRequest(store, input, { now = Math.floor(Date.now() / 1000)
   const purpose = clean(input.purpose, MAX_TEXT);
   if (!purpose) throw new ReservationError('purpose_required', 'Describe what the Field CTO is needed for.', { field: 'purpose' });
 
+  const audience = clean(input.audience, 20).toUpperCase();
+  if (!Q.AUDIENCE[audience]) throw new ReservationError('audience_required', 'Pick the audience for this meeting.', { field: 'audience' });
+  if (!Q.AUDIENCE[audience].eligible) throw new ReservationError('audience_ineligible', Q.BELOW_MESSAGE, { field: 'audience' });
+  const country = clean(input.country, 20).toUpperCase();
+  if (!Q.COUNTRY[country]) throw new ReservationError('country_required', 'Pick the customer\'s country.', { field: 'country' });
+  const industry = clean(input.industry, 20).toUpperCase();
+  if (!Q.INDUSTRY[industry]) throw new ReservationError('industry_required', 'Pick the customer\'s industry.', { field: 'industry' });
+
   const startTs = toEpoch(input.startTs);
   if (!startTs) throw new ReservationError('start_required', 'Pick a start date and time.', { field: 'start' });
   if (startTs - now < MIN_LEAD_SECONDS) throw new ReservationError('start_in_past', 'The start time is in the past.', { field: 'start' });
@@ -149,6 +159,9 @@ async function createRequest(store, input, { now = Math.floor(Date.now() / 1000)
     requesterId,
     account,
     purpose,
+    audience,
+    country,
+    industry,
     notes: clean(input.notes, MAX_TEXT),
     meetingLink,
     requestType,
@@ -324,16 +337,21 @@ function listReservations(store, { from, to, memberKey, requesterId, statuses } 
     .sort((a, b) => a.startTs - b.startTs || a.seq - b.seq);
 }
 
-// Candidates for an open request: roster members matching the regional
-// preference first, each annotated with whether they are free.
+// Candidates for an open request: the Field CTO the routing rules recommend
+// for its country/industry first, then members matching the regional
+// preference, each annotated with whether they are free.
 function suggestAssignees(store, res, env = process.env) {
+  const suggestion = Q.suggestWho(res);
+  const recommendedKey = suggestion && suggestion.who.startsWith('MEMBER:') ? suggestion.who.slice('MEMBER:'.length) : null;
   return getRoster(env)
     .map((m) => ({
       ...m,
+      recommended: m.key === recommendedKey,
       preferred: !res.preference || res.preference === 'ANY' || m.region === res.preference,
       conflicts: findConflicts(store, m.key, res.startTs, res.endTs, res.id),
     }))
-    .sort((a, b) => Number(b.preferred) - Number(a.preferred)
+    .sort((a, b) => Number(b.recommended) - Number(a.recommended)
+      || Number(b.preferred) - Number(a.preferred)
       || a.conflicts.length - b.conflicts.length
       || a.name.localeCompare(b.name));
 }
@@ -396,6 +414,12 @@ function describeWho(res, env = process.env) {
   }
   const pref = PREFERENCES[res.preference] || PREFERENCES.ANY;
   return res.assigneeKey ? `${nameOf(res.assigneeKey)} (${pref})` : pref;
+}
+
+// "VP · Germany · Finance"; empty for requests made before qualifications.
+function qualificationsLabel(res) {
+  return [Q.AUDIENCE[res.audience], Q.COUNTRY[res.country], Q.INDUSTRY[res.industry]]
+    .filter(Boolean).map((x) => x.label).join(' · ');
 }
 
 function durationLabel(res) {
@@ -526,6 +550,7 @@ function availability(store, { from, to, env = process.env }) {
 }
 
 module.exports = {
+  qualificationsLabel,
   parseDateRange,
   availability,
   localDayStart,

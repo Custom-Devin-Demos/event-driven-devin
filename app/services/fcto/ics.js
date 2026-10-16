@@ -5,6 +5,7 @@
 // calendar they use — no calendar API required.
 
 const { findMember } = require('../../../config/fcto-roster');
+const { qualificationsLabel } = require('./reservations');
 
 function icsDate(ts) {
   return new Date(ts * 1000).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
@@ -28,18 +29,75 @@ function foldLine(line) {
   return out.join('\r\n');
 }
 
-function buildIcs(reservation, { host = 'devindemos.com', now = Math.floor(Date.now() / 1000), attendees = [] } = {}) {
+function eventText(reservation) {
   const member = findMember(reservation.assigneeKey);
-  const who = member ? member.name : 'Field CTO';
-  const summary = `Field CTO: ${who} — ${reservation.account}`;
+  const summary = `Field CTO: ${member ? member.name : 'Field CTO'} — ${reservation.account}`;
   const descriptionParts = [
     `Field CTO reservation ${reservation.id}`,
     `Account: ${reservation.account}`,
     `Purpose: ${reservation.purpose}`,
   ];
+  const qualifications = qualificationsLabel(reservation);
+  if (qualifications) descriptionParts.push(`Audience / country / industry: ${qualifications}`);
   if (reservation.notes) descriptionParts.push(`Notes: ${reservation.notes}`);
   if (reservation.meetingLink) descriptionParts.push(`Meeting link: ${reservation.meetingLink}`);
   descriptionParts.push(`Requested in Slack #exec-field-requests by <@${reservation.requesterId}>`);
+  return { summary, description: descriptionParts.join('\n') };
+}
+
+// Slack rejects a whole message whose button URL is over 3,000 characters.
+const MAX_BUTTON_URL = 3000;
+
+// Shortens `details` (by code point, so encoding never sees a lone surrogate)
+// until the URL fits; drops the location and trims the title as a last resort.
+function fitUrl(build, summary, details, location) {
+  const chars = Array.from(details);
+  const url = build(summary, details, location);
+  if (url.length <= MAX_BUTTON_URL) return url;
+  const prefix = (n) => (n ? `${chars.slice(0, n).join('')}…` : '');
+  let lo = 0;
+  let hi = chars.length;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (build(summary, prefix(mid), location).length <= MAX_BUTTON_URL) lo = mid;
+    else hi = mid - 1;
+  }
+  const fitted = build(summary, prefix(lo), location);
+  if (fitted.length <= MAX_BUTTON_URL) return fitted;
+  return build(Array.from(summary).slice(0, 120).join(''), '', '');
+}
+
+// One-click "add to calendar" links (no calendar API): each opens a prefilled
+// new-event form in the clicker's own Google or Outlook calendar.
+function calendarLinks(reservation) {
+  const { summary, description } = eventText(reservation);
+  const iso = (ts) => new Date(ts * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
+  const q = (params) => Object.entries(params).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+  const google = (text, details, location) => `https://calendar.google.com/calendar/render?${q({
+    action: 'TEMPLATE',
+    text,
+    dates: `${icsDate(reservation.startTs)}/${icsDate(reservation.endTs)}`,
+    details,
+    location,
+  })}`;
+  const outlook = (subject, body, location) => `https://outlook.office.com/calendar/0/deeplink/compose?${q({
+    path: '/calendar/action/compose',
+    rru: 'addevent',
+    subject,
+    startdt: iso(reservation.startTs),
+    enddt: iso(reservation.endTs),
+    body,
+    location,
+  })}`;
+  const location = reservation.meetingLink || '';
+  return {
+    google: fitUrl(google, summary, description, location),
+    outlook: fitUrl(outlook, summary, description, location),
+  };
+}
+
+function buildIcs(reservation, { host = 'devindemos.com', now = Math.floor(Date.now() / 1000), attendees = [] } = {}) {
+  const { summary, description } = eventText(reservation);
 
   const lines = [
     'BEGIN:VCALENDAR',
@@ -53,7 +111,7 @@ function buildIcs(reservation, { host = 'devindemos.com', now = Math.floor(Date.
     `DTSTART:${icsDate(reservation.startTs)}`,
     `DTEND:${icsDate(reservation.endTs)}`,
     `SUMMARY:${escapeText(summary)}`,
-    `DESCRIPTION:${escapeText(descriptionParts.join('\n'))}`,
+    `DESCRIPTION:${escapeText(description)}`,
   ];
   if (reservation.meetingLink) lines.push(`URL:${reservation.meetingLink}`);
   if (reservation.meetingLink) lines.push(`LOCATION:${escapeText(reservation.meetingLink)}`);
@@ -71,4 +129,4 @@ function icsFilename(reservation) {
   return `${reservation.id.toLowerCase()}-${who}-${day}.ics`;
 }
 
-module.exports = { buildIcs, icsFilename, icsDate, escapeText };
+module.exports = { buildIcs, icsFilename, icsDate, escapeText, calendarLinks, MAX_BUTTON_URL };

@@ -19,6 +19,8 @@ const R = require('../services/fcto/reservations');
 const B = require('../services/fcto/blocks');
 const slack = require('../services/fcto/slack-client');
 const { buildIcs, icsFilename } = require('../services/fcto/ics');
+const avatars = require('../services/fcto/avatars');
+const { suggestWho } = require('../../config/fcto-qualifications');
 
 const router = express.Router();
 const store = new ReservationStore();
@@ -69,14 +71,16 @@ function verifySlackSignature(req, res, next) {
 
 // ─── Shared side effects ────────────────────────────────────────────────────
 
+const warmAvatars = () => avatars.warm(getRoster().map((m) => m.slackId));
+
 async function refreshCard(reservation) {
   const conflicts = reservation.status === R.STATUS.PENDING && reservation.assigneeKey
     ? R.findConflicts(store, reservation.assigneeKey, reservation.startTs, reservation.endTs, reservation.id)
     : [];
-  const blocks = B.requestCard(reservation, { conflicts });
-  const text = B.cardText(reservation);
   if (reservation.channelId && reservation.messageTs) {
-    return slack.updateMessage(reservation.channelId, reservation.messageTs, text, blocks);
+    await warmAvatars();
+    const msg = B.requestCardMessage(reservation, { conflicts });
+    return slack.updateMessage(reservation.channelId, reservation.messageTs, msg.text, msg.blocks, { attachments: msg.attachments });
   }
   return null;
 }
@@ -85,7 +89,7 @@ async function announce(reservation, previousStatus) {
   if (!reservation.channelId || !reservation.messageTs) return;
   if (reservation.status === previousStatus && reservation.status !== R.STATUS.APPROVED) return;
   const note = B.threadNote(reservation);
-  await slack.postMessage(reservation.channelId, note, undefined, { thread_ts: reservation.messageTs });
+  await slack.postMessage(reservation.channelId, note, B.threadBlocks(reservation), { thread_ts: reservation.messageTs });
   if (reservation.status === R.STATUS.APPROVED) {
     const assignee = findMember(reservation.assigneeKey);
     await slack.uploadFile({
@@ -125,6 +129,7 @@ function applyChange(reservation, previousStatus) {
 
 async function publishHome(userId) {
   try {
+    await warmAvatars();
     await slack.publishHome(userId, B.homeView(store, userId));
   } catch (err) {
     logger.warn('fcto: views.publish failed', { error: err.message });
@@ -138,6 +143,10 @@ async function tellUser(payload, text) {
     return slack.respond(payload.response_url, { response_type: 'ephemeral', replace_original: false, text });
   }
   if (channel && user) return slack.postEphemeral(channel, user, text);
+  if (user) {
+    const dm = await slack.openDm(user);
+    if (dm && dm.ok) return slack.postMessage(dm.channel.id, text);
+  }
   return null;
 }
 
@@ -150,7 +159,9 @@ async function postNewRequest(reservation) {
   const conflicts = reservation.assigneeKey
     ? R.findConflicts(store, reservation.assigneeKey, reservation.startTs, reservation.endTs, reservation.id)
     : [];
-  const posted = await slack.postMessage(channel, B.cardText(reservation), B.requestCard(reservation, { conflicts }));
+  await warmAvatars();
+  const msg = B.requestCardMessage(reservation, { conflicts });
+  const posted = await slack.postMessage(channel, msg.text, msg.blocks, { attachments: msg.attachments });
   if (posted && posted.ok) {
     return R.setMessage(store, reservation.id, posted.channel || channel, posted.ts);
   }
@@ -226,6 +237,7 @@ async function handleCommand(body) {
       if (range.to - range.from > R.MAX_AVAILABILITY_DAYS * 86400) {
         return { response_type: 'ephemeral', text: `I can show up to ${R.MAX_AVAILABILITY_DAYS} days at a time — try a shorter range.` };
       }
+      await warmAvatars();
       const blocks = B.availabilityBlocks(store, range);
       return { response_type: 'ephemeral', text: blocks[0].text.text, blocks };
     }
@@ -238,6 +250,54 @@ async function handleCommand(body) {
 }
 
 // ─── Interactions ───────────────────────────────────────────────────────────
+
+// Audience/country/industry picks in the request modal re-render it with the
+// "Below" warning and the suggested Field CTO pre-selected.
+// Updates are serialized per view, coalesced to the latest picks, and ordered
+// by Slack's action_ts so a delayed older snapshot can never overwrite a newer
+// suggestion. Slack has no views.get, so the newest action's snapshot is the
+// best view of the requester's picks: if its hash was superseded by our own
+// update, it is re-applied without the hash. Older snapshots are dropped.
+const modalRefreshes = new Map();
+const MODAL_REFRESH_TTL_MS = 60 * 60 * 1000;
+
+function pruneModalRefreshes(now) {
+  if (modalRefreshes.size < 200) return;
+  modalRefreshes.forEach((e, id) => { if (!e.running && now - e.touched > MODAL_REFRESH_TTL_MS) modalRefreshes.delete(id); });
+}
+
+async function refreshRequestModal(view, actionTs) {
+  const ts = Number(actionTs) || 0;
+  const now = Date.now();
+  let entry = modalRefreshes.get(view.id);
+  if (!entry) {
+    pruneModalRefreshes(now);
+    entry = { latest: null, latestTs: 0, running: false, touched: now };
+    modalRefreshes.set(view.id, entry);
+  }
+  if (ts && ts <= entry.latestTs) return;
+  entry.latest = view;
+  entry.latestTs = Math.max(entry.latestTs, ts);
+  entry.touched = now;
+  if (entry.running) return;
+  entry.running = true;
+  try {
+    while (entry.latest) {
+      const current = entry.latest;
+      entry.latest = null;
+      const input = B.readRequestModal(current);
+      await warmAvatars();
+      const next = B.requestModal({ channelId: input.channelId, audience: input.audience, suggestion: suggestWho(input) });
+      let res = await slack.updateView(current.id, next, current.hash);
+      if (res && !res.ok && res.error === 'hash_conflict' && !entry.latest) res = await slack.updateView(current.id, next);
+      if (!res || (!res.ok && !(res.error === 'hash_conflict' && entry.latest))) {
+        logger.warn('fcto: request modal refresh failed', { error: res && res.error });
+      }
+    }
+  } finally {
+    entry.running = false;
+  }
+}
 
 async function handleBlockAction(payload) {
   const action = (payload.actions || [])[0];
@@ -255,7 +315,11 @@ async function handleBlockAction(payload) {
     await publishHome(userId);
     return;
   }
-  if (action.action_id === B.ACTION.NOOP) return;
+  if (B.LINK_ACTIONS.has(action.action_id)) return;
+  if (payload.view && payload.view.callback_id === B.CALLBACK.REQUEST) {
+    await refreshRequestModal(payload.view, action.action_ts);
+    return;
+  }
 
   const current = store.get(id);
   if (!current) {
@@ -331,6 +395,7 @@ async function handleBlockAction(payload) {
     logger.error('fcto: block action failed', { action: action.action_id, id, error: err.message });
     await tellUser(payload, 'Something went wrong handling that action.');
   }
+  if (payload.view && payload.view.type === 'home') await publishHome(userId);
 }
 
 // Returns the JSON body Slack expects for view_submission (or null for a
@@ -354,7 +419,7 @@ async function handleViewSubmission(payload, after) {
       return null;
     } catch (err) {
       if (err instanceof R.ReservationError) {
-        return B.modalErrors(err) || { response_action: 'errors', errors: { account: err.message } };
+        return B.modalErrors(err, view) || { response_action: 'errors', errors: { account: err.message } };
       }
       throw err;
     }
@@ -365,7 +430,10 @@ async function handleViewSubmission(payload, after) {
     const current = store.get(id);
     try {
       const updated = await R.decline(store, id, { by: userId, reason });
-      after(() => applyChange(updated, current ? current.status : null));
+      after(async () => {
+        await applyChange(updated, current ? current.status : null);
+        await publishHome(userId);
+      });
       return null;
     } catch (err) {
       if (err instanceof R.ReservationError) return { response_action: 'errors', errors: { reason: err.message } };
@@ -387,7 +455,10 @@ async function handleViewSubmission(payload, after) {
       } else {
         updated = await R.approve(store, id, { by: userId, assigneeKey, force });
       }
-      after(() => applyChange(updated, current.status));
+      after(async () => {
+        await applyChange(updated, current.status);
+        await publishHome(userId);
+      });
       return null;
     } catch (err) {
       if (err instanceof R.ReservationError) {
