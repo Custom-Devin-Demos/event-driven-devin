@@ -142,6 +142,8 @@
     .bag__head h2 { font-size: 18px; font-weight: 400; margin: 0; }
     .bag__close { background: none; border: 0; font-size: 26px; line-height: 1; width: 44px; height: 44px; margin: -10px -14px -10px 0; }
     .bag__body { flex: 1; overflow-y: auto; padding: 18px 20px; }
+    .bag__notice { display: none; background: var(--warn-soft); color: var(--warn); font-size: 12px; padding: 10px 12px; margin-bottom: 16px; }
+    .bag__notice.is-visible { display: block; }
     .bag__promo { background: #e8f0ff; color: var(--gap-blue); font-size: 12px; padding: 10px 12px; margin-bottom: 16px; }
     .bag__item { display: grid; grid-template-columns: 96px 1fr; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
     .bag__item img { width: 96px; height: 128px; object-fit: cover; background: #f0f0f0; }
@@ -360,6 +362,7 @@
     </div>
     <div class="bag__body">
       <div class="bag__promo">Friends &amp; Family 40% off everything — applied at checkout. Ends 10/21.</div>
+      <div class="bag__notice" id="bagNotice" role="alert"></div>
       <div id="bagItems"></div>
       <div class="bag__sum" id="bagSummary"></div>
       <div class="outcome" id="checkoutOutcome" role="status" aria-live="polite"></div>
@@ -389,9 +392,10 @@
     const UNIT_PRICE = 79.95;
     const MARKDOWN_RATE = 0.4;
     const MAX_PER_LINE = 10;
+    const MAX_LINES = 20; // keep in sync with MAX_LINES_PER_ORDER in app/services/verticals/2b43150a.js
     const THUMB = 'https://content.gapinc.com/b/0063/336/073/cn63336073.png?width=200';
 
-    const state = { variantId: '907280012', colorName: 'New classic navy blue', fit: 'Regular', size: null, bag: [] };
+    const state = { variantId: '907280012', colorName: 'New classic navy blue', fit: 'Regular', size: null, bag: [], checkingOut: false };
 
     const swatches = document.getElementById('swatches');
     const fits = document.getElementById('fits');
@@ -405,6 +409,7 @@
     const bagTitle = document.getElementById('bagTitle');
     const bagItems = document.getElementById('bagItems');
     const bagSummary = document.getElementById('bagSummary');
+    const bagNotice = document.getElementById('bagNotice');
     const checkoutBtn = document.getElementById('checkoutBtn');
     const outcome = document.getElementById('checkoutOutcome');
     const bag = document.getElementById('bag');
@@ -472,7 +477,9 @@
         const remove = el('button', 'bag__remove', 'Remove');
         remove.type = 'button';
         remove.setAttribute('aria-label', 'Remove ' + line.colorName + ' size ' + line.size + ' from bag');
+        remove.disabled = state.checkingOut;
         remove.addEventListener('click', () => {
+          if (state.checkingOut) return;
           state.bag = state.bag.filter((l) => l !== line);
           outcome.className = 'outcome';
           outcome.replaceChildren();
@@ -500,10 +507,16 @@
       const save = el('div', 'save'); save.append(el('span', '', 'Friends & Family 40% off (at checkout)'), el('span', '', '-' + money(savings)));
       const tot = el('div', 'tot'); tot.append(el('span', '', 'Estimated total'), el('span', '', money(merchandise - savings)));
       bagSummary.append(sub, save, tot);
-      checkoutBtn.disabled = false;
+      checkoutBtn.disabled = state.checkingOut;
+    }
+
+    function showBagNotice(text) {
+      bagNotice.textContent = text;
+      bagNotice.classList.toggle('is-visible', Boolean(text));
     }
 
     addToBag.addEventListener('click', () => {
+      if (state.checkingOut) return;
       if (!state.size) {
         sizeError.classList.add('is-visible');
         sizes.scrollIntoView({ block: 'nearest' });
@@ -511,6 +524,12 @@
       }
       const quantity = Number(qty.value);
       const existing = state.bag.find((l) => l.variantId === state.variantId && l.size === state.size && l.fit === state.fit);
+      if (!existing && state.bag.length >= MAX_LINES) {
+        showBagNotice('Your bag is full \u2014 orders are limited to ' + MAX_LINES + ' different items. Remove an item to add another.');
+        openBag();
+        return;
+      }
+      showBagNotice('');
       if (existing) {
         existing.capped = existing.quantity + quantity > MAX_PER_LINE;
         existing.quantity = Math.min(MAX_PER_LINE, existing.quantity + quantity);
@@ -537,7 +556,7 @@
       );
     }
 
-    function showOrderPlaced(data) {
+    function showOrderPlaced(data, submitted) {
       const p = data.pricing;
       const rows = el('div', 'rows');
       [['Merchandise', money(p.merchandise)], [p.promotion || 'Markdown', '-' + money(p.markdown)], ['Shipping', p.shipping === 0 ? 'Free' : money(p.shipping)], ['Estimated tax', money(p.tax)], ['Order total', money(p.total)]].forEach(([k, v]) => {
@@ -549,12 +568,15 @@
         el('p', '', p.lines.reduce((n, l) => n + l.quantity, 0) + ' item(s). ' + data.estimatedDelivery + '. A confirmation is on its way to your inbox.'),
         rows,
       );
-      state.bag = [];
+      state.bag = state.bag.filter((l) => !submitted.includes(l));
       renderBag();
     }
 
     async function checkout() {
-      if (state.bag.length === 0) return;
+      if (state.bag.length === 0 || state.checkingOut) return;
+      const submitted = state.bag.slice();
+      state.checkingOut = true;
+      renderBag();
       checkoutBtn.disabled = true;
       checkoutBtn.classList.add('busy');
       outcome.className = 'outcome';
@@ -566,7 +588,7 @@
             ? { 'Content-Type': 'application/json', 'x-synthetic': '1' }
             : { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            lines: state.bag.map((l) => ({ variantId: l.variantId, size: l.size, fit: l.fit, quantity: l.quantity })),
+            lines: submitted.map((l) => ({ variantId: l.variantId, size: l.size, fit: l.fit, quantity: l.quantity })),
             devinUserId: localStorage.getItem('devinUserId') || '',
             devinOrgId: localStorage.getItem('devinOrgId') || '',
             devinEmail: localStorage.getItem('devinEmail') || '',
@@ -575,15 +597,15 @@
         const data = await response.json().catch(() => ({}));
         if (!response.ok || !data.success) {
           showCheckoutError(data.requestId, (data.errorClass ? data.errorClass + ': ' : '') + (data.error || 'Unknown error'));
-          checkoutBtn.disabled = false;
           return;
         }
-        showOrderPlaced(data);
+        showOrderPlaced(data, submitted);
       } catch (error) {
         showCheckoutError(null, error.message);
-        checkoutBtn.disabled = false;
       } finally {
+        state.checkingOut = false;
         checkoutBtn.classList.remove('busy');
+        renderBag();
         outcome.scrollIntoView({ block: 'nearest' });
       }
     }
