@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Environments | PingOne</title>
+  <style>
+    :root {
+      --navy: #2e3f5c; --navy-deep: #253650; --navy-hover: #3a4d6e; --blue: #4462ed; --blue-dark: #3249c9;
+      --text: #253746; --muted: #68747f; --line: #dadde3; --page: #f7f8fa; --row-active: #e9ecf8;
+      --danger: #a31300; --danger-bg: #fdecea; --ok: #1d7a43; --ok-bg: #e7f5ec;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--text); font: 14px/1.45 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .shell { display: flex; min-height: 100vh; }
+    .sidebar { width: 236px; flex: 0 0 236px; background: var(--navy); color: #fff; display: flex; flex-direction: column; }
+    .logo { height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 18px; border-bottom: 1px solid rgba(255,255,255,.14); }
+    .logo-mark { width: 22px; height: 22px; background: #fff; color: var(--navy); font-weight: 800; font-size: 14px; display: grid; place-items: center; border-radius: 2px; }
+    .logo-word { font-size: 19px; letter-spacing: -.02em; }
+    .logo-word b { font-weight: 700; }
+    .side-nav { list-style: none; margin: 10px 0; padding: 0; }
+    .side-nav a { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 18px; color: #fff; text-decoration: none; font-weight: 600; border-left: 3px solid transparent; }
+    .side-nav a:hover { background: var(--navy-hover); }
+    .side-nav a[aria-current="page"] { background: var(--navy-deep); border-left-color: #fff; }
+    .side-nav svg { width: 17px; height: 17px; fill: currentColor; flex: none; }
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .topbar { height: 56px; background: #fff; border-bottom: 1px solid var(--line); display: flex; align-items: center; padding: 0 16px; gap: 6px; }
+    .crumbs { display: flex; align-items: center; gap: 8px; font-weight: 600; min-width: 0; }
+    .crumbs svg { width: 15px; height: 15px; fill: var(--text); }
+    .crumbs .sep { color: var(--muted); font-weight: 400; }
+    .crumb-btn { border: 0; background: none; font-weight: 600; min-height: 44px; padding: 0 4px; white-space: nowrap; }
+    .top-right { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+    .icon-btn { border: 0; background: none; min-width: 44px; min-height: 44px; display: grid; place-items: center; border-radius: 4px; }
+    .icon-btn:hover { background: #f0f2f5; }
+    .icon-btn svg { width: 19px; height: 19px; fill: var(--text); }
+    .explore { border: 0; background: none; min-height: 44px; padding: 0 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: #c6ccd6; color: var(--navy); font-weight: 700; font-size: 12px; display: grid; place-items: center; }
+    .menu-btn { display: none; }
+    .content { padding: 22px 24px 40px; max-width: 980px; width: 100%; }
+    .title-row { display: flex; align-items: center; gap: 12px; }
+    h1 { font-size: 26px; margin: 0; font-weight: 700; }
+    .add-btn { width: 44px; height: 44px; border: 0; background: none; display: grid; place-items: center; padding: 0; }
+    .add-btn span { width: 28px; height: 28px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 22px; line-height: 1; }
+    .add-btn:hover span { background: var(--blue-dark); }
+    .sub { color: var(--muted); margin: 4px 0 16px; }
+    .sub a { color: var(--blue); font-weight: 600; text-decoration: none; display: inline-block; padding: 12px 0; margin: -12px 0; }
+    .search { position: relative; max-width: 420px; }
+    .search svg { position: absolute; left: 12px; top: 50%; width: 15px; height: 15px; transform: translateY(-50%); fill: var(--muted); }
+    .search input[type=text] { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 3px; padding: 0 12px 0 36px; background: #fff; }
+    .count { margin: 14px 0 8px; font-weight: 600; color: var(--muted); font-size: 13px; }
+    .count b { color: var(--blue); }
+    .env-list { background: #fff; border: 1px solid var(--line); border-radius: 3px; }
+    .env { border-bottom: 1px solid var(--line); }
+    .env:last-child { border-bottom: 0; }
+    .env-row { width: 100%; display: flex; align-items: center; gap: 14px; padding: 12px 8px 12px 18px; min-height: 64px; border: 0; background: none; text-align: left; }
+    .env-row:hover, .env.open .env-row { background: var(--row-active); }
+    .env-icon { width: 26px; height: 26px; flex: none; fill: #4a5a85; }
+    .env-name { font-weight: 700; font-size: 15px; }
+    .env-desc { color: var(--muted); font-size: 13px; }
+    .env-meta { flex: 1; min-width: 0; }
+    .tag { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 7px; border-radius: 10px; background: #eef0f4; color: #4b5866; margin-left: 8px; }
+    .tag.sandbox { background: #fff4d6; color: #7a5a00; }
+    .kebab { width: 44px; height: 44px; display: grid; place-items: center; flex: none; }
+    .kebab svg { width: 4px; height: 16px; fill: var(--text); }
+    .env-detail { display: none; padding: 4px 18px 20px 58px; background: #fbfbfd; border-top: 1px solid var(--line); }
+    .env.open .env-detail { display: block; }
+    .detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 24px; margin: 14px 0 18px; }
+    .detail-grid dt { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .detail-grid dd { margin: 2px 0 0; font-weight: 600; word-break: break-all; }
+    .pill { display: inline-block; padding: 2px 8px; margin: 2px 4px 2px 0; border-radius: 10px; background: #e8ebfb; color: #2c3fa8; font-size: 12px; font-weight: 600; }
+    h3 { font-size: 15px; margin: 0 0 8px; }
+    .app-form { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    label, .label { font-size: 12px; font-weight: 700; color: var(--text); }
+    .req { color: #c21d1d; }
+    input[type=text], select, textarea { min-height: 44px; border: 1px solid var(--line); border-left: 3px solid var(--blue); border-radius: 2px; padding: 8px 10px; background: #fff; }
+    textarea { min-height: 72px; resize: vertical; }
+    .btn { min-height: 44px; padding: 0 20px; border-radius: 3px; border: 1px solid var(--blue); background: var(--blue); color: #fff; font-weight: 700; }
+    .btn:hover { background: var(--blue-dark); }
+    .btn:disabled { opacity: .6; cursor: progress; }
+    .btn-link { min-height: 44px; padding: 0 14px; border: 0; background: none; color: var(--blue); font-weight: 700; }
+    .note { margin-top: 12px; padding: 10px 12px; border-radius: 3px; font-size: 13px; display: none; }
+    .note.show { display: block; }
+    .note.ok { background: var(--ok-bg); color: var(--ok); }
+    .note.err { background: var(--danger-bg); color: var(--danger); }
+    .apps { margin: 10px 0 0; padding: 0; list-style: none; }
+    .apps li { padding: 6px 0; border-top: 1px dashed var(--line); font-size: 13px; }
+    /* Add New Environment setup assistant */
+    .overlay { position: fixed; inset: 0; background: rgba(23,32,48,.45); display: none; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; z-index: 50; }
+    .overlay.open { display: flex; }
+    .modal { width: 100%; max-width: 860px; background: #fff; border-radius: 3px; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+    .modal-head { display: flex; align-items: center; gap: 12px; padding: 0 8px 0 18px; height: 56px; background: #f5f6f9; border-bottom: 1px solid var(--line); }
+    .modal-head svg.globe { width: 22px; height: 22px; fill: #4a5a85; }
+    .modal-head h2 { font-size: 16px; margin: 0; flex: 1; }
+    .close svg { width: 15px; height: 15px; fill: var(--text); }
+    .steps { display: flex; justify-content: center; align-items: center; margin: 18px 0 6px; }
+    .step { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #c3c8d1; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: var(--muted); background: #fff; }
+    .step.active { border-color: var(--blue); color: var(--blue); }
+    .step.done { border-color: var(--blue); background: var(--blue); color: #fff; }
+    .step-line { width: 80px; border-top: 1px dashed #c3c8d1; }
+    .modal-body { padding: 8px 24px 8px; }
+    .modal-body h4 { font-size: 17px; margin: 10px 0 2px; }
+    .modal-body .hint { color: var(--muted); margin: 0 0 16px; font-size: 13px; }
+    .stack { display: flex; flex-direction: column; gap: 16px; }
+    .radios { display: flex; gap: 18px; flex-wrap: wrap; }
+    .radios label, .check { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 400; min-height: 44px; }
+    .radios input, .check input { width: 18px; height: 18px; accent-color: var(--blue); }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    .card { position: relative; border: 1px solid var(--line); border-radius: 3px; padding: 16px; text-align: center; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.06); min-height: 44px; }
+    .card[aria-pressed="true"], .card[aria-checked="true"] { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+    .card[aria-pressed="true"]::after, .card[aria-checked="true"]::after { content: '\2713'; position: absolute; top: -9px; right: -9px; width: 20px; height: 20px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 12px; line-height: 20px; }
+    .card svg { width: 38px; height: 38px; fill: #4a5a85; }
+    .card strong { display: block; margin: 6px 0 4px; font-size: 15px; }
+    .card span { color: var(--muted); font-size: 13px; }
+    .card:disabled { cursor: default; opacity: 1; }
+    .review { display: grid; grid-template-columns: 180px 1fr; gap: 10px 16px; margin: 0; }
+    .review dt { color: var(--muted); font-weight: 600; }
+    .review dd { margin: 0; font-weight: 600; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 24px 20px; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.5); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .result-box { margin: 0 24px; padding: 12px 14px; border-radius: 3px; display: none; font-size: 14px; }
+    .result-box.show { display: block; }
+    .result-box.err { background: var(--danger-bg); color: var(--danger); border-left: 4px solid var(--danger); }
+    .result-box.ok { background: var(--ok-bg); color: var(--ok); border-left: 4px solid var(--ok); }
+    .result-box.busy { background: #eef1fd; color: #2c3fa8; border-left: 4px solid var(--blue); }
+    .result-box small { display: block; color: var(--muted); margin-top: 4px; }
+    @media (max-width: 760px) {
+      .sidebar { display: none; }
+      .sidebar.open { display: flex; position: fixed; top: 0; bottom: 0; left: 0; z-index: 40; }
+      .menu-btn { display: grid; }
+      .topbar { padding: 0 6px; }
+      .explore, .crumbs .org, .crumbs .sep, .crumbs .home { display: none; }
+      .content { padding: 16px 12px 40px; }
+      .detail-grid { grid-template-columns: 1fr 1fr; }
+      .env-detail { padding: 4px 14px 18px; }
+      .app-form > * { flex: 1 1 100%; }
+      .overlay { padding: 0; }
+      .modal { min-height: 100vh; border-radius: 0; }
+      .modal-body { padding: 8px 14px; }
+      .modal-foot { padding: 14px; }
+      .result-box { margin: 0 14px; }
+      .step-line { width: 44px; }
+      .review { grid-template-columns: 1fr; gap: 2px; }
+      .review dd { margin-bottom: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-globe" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-2.9a15.6 15.6 0 0 0-1.4-3.6A8 8 0 0 1 18.9 8ZM12 4c.8 1.2 1.5 2.5 1.9 4h-3.8c.4-1.5 1.1-2.8 1.9-4ZM4.3 14a8.2 8.2 0 0 1 0-4h3.4a16.5 16.5 0 0 0 0 4H4.3Zm.8 2h2.9c.3 1.3.8 2.5 1.4 3.6A8 8 0 0 1 5.1 16ZM8 8H5.1a8 8 0 0 1 4.3-3.6C8.8 5.5 8.4 6.7 8 8Zm4 12c-.8-1.2-1.5-2.5-1.9-4h3.8c-.4 1.5-1.1 2.8-1.9 4Zm2.3-6H9.7a14.7 14.7 0 0 1 0-4h4.6a14.7 14.7 0 0 1 0 4Zm.3 5.6c.6-1.1 1.1-2.3 1.4-3.6h2.9a8 8 0 0 1-4.3 3.6Zm1.7-5.6a16.5 16.5 0 0 0 0-4h3.4a8.2 8.2 0 0 1 0 4h-3.4Z"/></symbol>
+    <symbol id="i-admins" viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-3.3 0-7 1.6-7 4v2h11.3a6 6 0 0 1-.3-1.8c0-1.6.6-3 1.6-4.1A12 12 0 0 0 9 14Zm9.5-.5-.4-1h-1.2l-.4 1-1 .4-1-.5-.8.8.5 1-.4 1-1 .4v1.2l1 .4.4 1-.5 1 .8.8 1-.5 1 .4.4 1h1.2l.4-1 1-.4 1 .5.8-.8-.5-1 .4-1 1-.4v-1.2l-1-.4-.4-1 .5-1-.8-.8-1 .5-1-.4Zm-.9 2.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/></symbol>
+    <symbol id="i-license" viewBox="0 0 24 24"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5L14 3.5ZM7 12h10v2H7v-2Zm0 4h7v2H7v-2Z"/></symbol>
+    <symbol id="i-kebab" viewBox="0 0 4 16"><circle cx="2" cy="2" r="2"/><circle cx="2" cy="8" r="2"/><circle cx="2" cy="14" r="2"/></symbol>
+  </svg>
+
+  <div class="shell">
+    <nav class="sidebar" id="sidebar" aria-label="PingOne">
+      <div class="logo"><span class="logo-mark" aria-hidden="true">P</span><span class="logo-word"><b>Ping</b>Identity.</span></div>
+      <ul class="side-nav">
+        <li><a href="#" aria-current="page"><svg><use href="#i-globe"/></svg>Environments</a></li>
+        <li><a href="#"><svg><use href="#i-admins"/></svg>Administrators</a></li>
+        <li><a href="#"><svg><use href="#i-license"/></svg>Licenses</a></li>
+      </ul>
+    </nav>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Open navigation" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6Zm0 5h18v2H3v-2Zm0 5h18v2H3v-2Z"/></svg></button>
+        <div class="crumbs">
+          <svg class="home" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3L12 3Z"/></svg>
+          <span class="org">Meridian Holdings</span><span class="sep">&rsaquo;</span>
+          <button class="crumb-btn" type="button">Corporate &#9662;</button>
+        </div>
+        <div class="top-right">
+          <button class="icon-btn" type="button" aria-label="Help"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm-1-5h2v2h-2v-2Zm1-10a4 4 0 0 0-4 4h2a2 2 0 1 1 3.2 1.6c-1.2.9-2.2 1.6-2.2 3.4h2c0-1 .6-1.5 1.4-2.1A4 4 0 0 0 12 5Z"/></svg></button>
+          <button class="explore" type="button">Explore &#9662;</button>
+          <button class="icon-btn" type="button" aria-label="Account: Dana Whitfield"><span class="avatar">DW</span></button>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="title-row">
+          <h1>Environments</h1>
+          <button class="add-btn" id="addEnvBtn" type="button" aria-label="Add environment"><span aria-hidden="true">+</span></button>
+        </div>
+        <p class="sub">View and manage your organization's environments. <a href="#">Learn More</a></p>
+        <div class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z"/></svg>
+          <input type="text" id="envSearch" placeholder="Search" aria-label="Search environments">
+        </div>
+        <p class="count"><span id="envCount">4</span> Environments by <b>A-Z &#9662;</b></p>
+        <div class="env-list" id="envList"></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="overlay" id="envWizard" role="dialog" aria-modal="true" aria-labelledby="wizardTitle">
+    <form class="modal" id="environmentForm" novalidate>
+      <div class="modal-head">
+        <svg class="globe" aria-hidden="true"><use href="#i-globe"/></svg>
+        <h2 id="wizardTitle">Add New Environment</h2>
+        <button class="icon-btn close" id="closeWizard" type="button" aria-label="Close"><svg viewBox="0 0 16 16"><path d="M1.4 0 0 1.4 6.6 8 0 14.6 1.4 16 8 9.4l6.6 6.6 1.4-1.4L9.4 8 16 1.4 14.6 0 8 6.6 1.4 0Z"/></svg></button>
+      </div>
+      <div class="steps" aria-hidden="true">
+        <span class="step active" data-step="1">1</span><span class="step-line"></span>
+        <span class="step" data-step="2">2</span><span class="step-line"></span>
+        <span class="step" data-step="3">3</span>
+      </div>
+
+      <section class="modal-body" data-panel="1">
+        <h4>Define Your Environment</h4>
+        <p class="hint">Provide details for the environment and select the environment type.</p>
+        <div class="stack">
+          <div class="field"><label for="envName">Name <span class="req">*</span></label><input type="text" id="envName" maxlength="256" autocomplete="off"></div>
+          <div class="field"><label for="envDescription">Description</label><textarea id="envDescription" maxlength="1024"></textarea></div>
+          <div class="field">
+            <span class="label">License Type <span class="req">*</span></span>
+            <div class="radios">
+              <label><input type="radio" name="licenseType" value="trial"> Trial (Expires in 30 days)</label>
+              <label><input type="radio" name="licenseType" value="paid" checked> Paid</label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="label">Environment Use Case <span class="req">*</span></span>
+            <div class="cards" role="radiogroup" aria-label="Environment use case" id="useCaseCards">
+              <button type="button" class="card" role="radio" aria-checked="true" data-value="customer"><svg viewBox="0 0 24 24"><path d="M19 10a5 5 0 0 0-9.6-1.9A4 4 0 0 0 6 16h13a3 3 0 0 0 0-6Zm-6.2 4.5v1h-1.2v-1c-.9-.1-1.6-.6-1.7-1.5h1.1c.1.4.5.7 1.2.7.7 0 1-.3 1-.6 0-.4-.3-.6-1.2-.8-1.2-.3-1.9-.7-1.9-1.6 0-.7.6-1.3 1.5-1.4v-1h1.2v1c.9.2 1.4.7 1.5 1.4h-1.1c-.1-.4-.4-.6-1-.6-.5 0-.9.2-.9.6 0 .3.3.5 1.2.7 1.3.3 1.9.8 1.9 1.7 0 .7-.6 1.3-1.6 1.4Z"/></svg><strong>Customer</strong><span>Recommended for end-customer or external identities, including B2B.</span></button>
+              <button type="button" class="card" role="radio" aria-checked="false" data-value="workforce"><svg viewBox="0 0 24 24"><path d="M19 10a5 5 0 0 0-9.6-1.9A4 4 0 0 0 6 16h13a3 3 0 0 0 0-6Zm-6 1a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm-3 3.5c0-1.2 1.6-2 3-2s3 .8 3 2v.5h-6v-.5Z"/></svg><strong>Workforce</strong><span>Recommended for employee identities and internal access.</span></button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="label">Environment Type <span class="req">*</span></span>
+            <div class="cards" role="radiogroup" aria-label="Environment type" id="typeCards">
+              <button type="button" class="card" role="radio" aria-checked="true" data-value="SANDBOX"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9h8v7H7v2h10v-2h-4v-7h8a9 9 0 0 0-9-9Z"/></svg><strong>Sandbox</strong><span>Deletes with no recovery.</span></button>
+              <button type="button" class="card" role="radio" aria-checked="false" data-value="PRODUCTION"><svg viewBox="0 0 24 24"><path d="M3 21V9l6 3V9l6 3V4h6v17H3Zm3-3h3v-2H6v2Zm5 0h3v-2h-3v2Zm5 0h3v-2h-3v2Z"/></svg><strong>Production</strong><span>Protected from deletion.</span></button>
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" id="samplePopulations"> Generate sample populations and users</label>
+        </div>
+      </section>
+
+      <section class="modal-body" data-panel="2" hidden>
+        <h4>Select Services</h4>
+        <p class="hint">Choose the PingOne services to add to this environment. PingOne SSO is included with every environment.</p>
+        <div class="cards" id="serviceCards">
+          <button type="button" class="card" aria-pressed="true" data-value="SSO" disabled><strong>PingOne SSO</strong><span>Single sign-on and directory.</span></button>
+          <button type="button" class="card" aria-pressed="true" data-value="MFA"><strong>PingOne MFA</strong><span>Multi-factor authentication.</span></button>
+          <button type="button" class="card" aria-pressed="false" data-value="DAVINCI"><strong>PingOne DaVinci</strong><span>No-code identity orchestration.</span></button>
+          <button type="button" class="card" aria-pressed="false" data-value="PROTECT"><strong>PingOne Protect</strong><span>Risk-based threat protection.</span></button>
+          <button type="button" class="card" aria-pressed="false" data-value="VERIFY"><strong>PingOne Verify</strong><span>Identity verification.</span></button>
+          <button type="button" class="card" aria-pressed="false" data-value="AUTHORIZE"><strong>PingOne Authorize</strong><span>Dynamic authorization.</span></button>
+        </div>
+      </section>
+
+      <section class="modal-body" data-panel="3" hidden>
+        <h4>Review</h4>
+        <p class="hint">Confirm the environment details, then click Finish to create the environment.</p>
+        <dl class="review">
+          <dt>Name</dt><dd id="rvName"></dd>
+          <dt>License type</dt><dd id="rvLicense"></dd>
+          <dt>Use case</dt><dd id="rvUseCase"></dd>
+          <dt>Environment type</dt><dd id="rvType"></dd>
+          <dt>Services</dt><dd id="rvServices"></dd>
+          <dt>Region</dt><dd>North America (organization region)</dd>
+        </dl>
+      </section>
+
+      <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      <div class="modal-foot">
+        <button type="button" class="btn-link" id="cancelBtn">Cancel</button>
+        <button type="button" class="btn-link" id="backBtn" hidden>Back</button>
+        <button type="button" class="btn" id="nextBtn">Next</button>
+        <button type="submit" class="btn" id="submitBtn" hidden>Finish</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var ENVIRONMENTS = [
+      { id: 'b8d1c2e4-6f0a-4c51-9a2e-11c0a7e3d001', name: 'Administrators', description: 'This is the administrator environment created when the organization was provisioned.', type: 'PRODUCTION', services: ['SSO'], apps: 1 },
+      { id: 'c41e7a90-2b3d-4f8e-8d6c-5e2f9b1a0002', name: 'Customer Identity - Production', description: 'Customer sign-on for web and mobile.', type: 'PRODUCTION', services: ['SSO', 'MFA', 'PROTECT'], apps: 6 },
+      { id: 'd7f03b16-8e4c-4a2d-b1f9-3c6e0d8a0003', name: 'Customer Identity - Staging', description: 'Pre-production testing for customer sign-on.', type: 'SANDBOX', services: ['SSO', 'MFA', 'DAVINCI'], apps: 4 },
+      { id: 'e2a96c58-4d1f-4b7e-a3c8-9f0b2e6d0004', name: 'Workforce', description: 'Employee SSO and MFA.', type: 'PRODUCTION', services: ['SSO', 'MFA'], apps: 12 },
+    ];
+    var SERVICE_NAMES = { SSO: 'PingOne SSO', MFA: 'PingOne MFA', DAVINCI: 'PingOne DaVinci', PROTECT: 'PingOne Protect', VERIFY: 'PingOne Verify', AUTHORIZE: 'PingOne Authorize' };
+    var APP_TYPES = [['OIDC_WEB_APP', 'OIDC Web App'], ['SINGLE_PAGE_APP', 'Single Page'], ['NATIVE_APP', 'Native'], ['WORKER', 'Worker'], ['SAML', 'SAML']];
+
+    function identity() {
+      return {
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      };
+    }
+    function assign(target, src) { Object.keys(src).forEach(function (k) { target[k] = src[k]; }); return target; }
+    function el(tag, attrs, text) {
+      var node = document.createElement(tag);
+      Object.keys(attrs || {}).forEach(function (k) { node.setAttribute(k, attrs[k]); });
+      if (text != null) node.textContent = text;
+      return node;
+    }
+    function postJson(url, body) {
+      return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (data) { return { ok: r.ok, data: data }; }); });
+    }
+
+    // ---- Environments list + Add Application (per environment) ----
+    var list = document.getElementById('envList');
+    function renderList(filter) {
+      list.textContent = '';
+      var q = (filter || '').toLowerCase();
+      var shown = ENVIRONMENTS.filter(function (env) { return env.name.toLowerCase().indexOf(q) !== -1; });
+      document.getElementById('envCount').textContent = shown.length;
+      shown.forEach(function (env) {
+        var wrap = el('div', { class: 'env' });
+        var row = el('button', { type: 'button', class: 'env-row', 'aria-expanded': 'false' });
+        var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('class', 'env-icon');
+        var use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+        use.setAttribute('href', env.name === 'Administrators' ? '#i-admins' : '#i-globe');
+        icon.appendChild(use);
+        var meta = el('span', { class: 'env-meta' });
+        var name = el('span', { class: 'env-name' }, env.name);
+        name.appendChild(el('span', { class: 'tag' + (env.type === 'SANDBOX' ? ' sandbox' : '') }, env.type === 'SANDBOX' ? 'Sandbox' : 'Production'));
+        meta.appendChild(name);
+        if (env.description) { meta.appendChild(el('br')); meta.appendChild(el('span', { class: 'env-desc' }, env.description)); }
+        var kebab = el('span', { class: 'kebab', 'aria-hidden': 'true' });
+        kebab.innerHTML = '<svg><use href="#i-kebab"/></svg>';
+        row.appendChild(icon); row.appendChild(meta); row.appendChild(kebab);
+        wrap.appendChild(row);
+        wrap.appendChild(renderDetail(env));
+        row.addEventListener('click', function () {
+          var open = wrap.classList.toggle('open');
+          row.setAttribute('aria-expanded', String(open));
+        });
+        list.appendChild(wrap);
+      });
+    }
+    function renderDetail(env) {
+      var detail = el('div', { class: 'env-detail' });
+      var grid = el('dl', { class: 'detail-grid' });
+      [['Environment ID', env.id], ['Region', 'North America'], ['Applications', String(env.apps)]].forEach(function (pair) {
+        var d = el('div'); d.appendChild(el('dt', {}, pair[0])); var dd = el('dd', {}, pair[1]); d.appendChild(dd); grid.appendChild(d);
+        if (pair[0] === 'Applications') dd.setAttribute('data-app-count', '');
+      });
+      var svc = el('div'); svc.appendChild(el('dt', {}, 'Services'));
+      var svcDd = el('dd'); env.services.forEach(function (s) { svcDd.appendChild(el('span', { class: 'pill' }, SERVICE_NAMES[s])); });
+      svc.appendChild(svcDd); grid.appendChild(svc);
+      detail.appendChild(grid);
+      detail.appendChild(el('h3', {}, 'Add Application'));
+      var form = el('form', { class: 'app-form', novalidate: '' });
+      var nameField = el('div', { class: 'field' });
+      var nameId = 'appName-' + env.id.slice(0, 8);
+      nameField.appendChild(el('label', { for: nameId }, 'Application Name'));
+      var nameInput = el('input', { type: 'text', id: nameId, maxlength: '256', autocomplete: 'off' });
+      nameInput.value = 'Partner Portal';
+      nameField.appendChild(nameInput);
+      var typeField = el('div', { class: 'field' });
+      var typeId = 'appType-' + env.id.slice(0, 8);
+      typeField.appendChild(el('label', { for: typeId }, 'Application Type'));
+      var typeSelect = el('select', { id: typeId });
+      APP_TYPES.forEach(function (t) { typeSelect.appendChild(el('option', { value: t[0] }, t[1])); });
+      typeField.appendChild(typeSelect);
+      var save = el('button', { type: 'submit', class: 'btn' }, 'Save');
+      form.appendChild(nameField); form.appendChild(typeField); form.appendChild(save);
+      var note = el('div', { class: 'note', role: 'status', 'aria-live': 'polite' });
+      var apps = el('ul', { class: 'apps' });
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        save.disabled = true;
+        note.className = 'note';
+        postJson('/api/identity-console/applications', assign({
+          action: 'create-application',
+          environmentId: env.id,
+          name: nameInput.value.trim(),
+          type: typeSelect.value,
+        }, identity())).then(function (res) {
+          if (res.ok && res.data.success) {
+            var a = res.data.application;
+            env.apps += 1;
+            detail.querySelector('[data-app-count]').textContent = String(env.apps);
+            note.textContent = a.name + ' was added. Client ID ' + a.clientId + '. Enable the application to allow sign-on.';
+            note.className = 'note show ok';
+            apps.appendChild(el('li', {}, a.name + ' · ' + typeSelect.options[typeSelect.selectedIndex].text + ' · Disabled'));
+          } else {
+            note.textContent = (res.data && res.data.error) || 'The application could not be added. Try again.';
+            note.className = 'note show err';
+          }
+        }).catch(function () {
+          note.textContent = 'The application could not be added. Check your connection and try again.';
+          note.className = 'note show err';
+        }).then(function () { save.disabled = false; });
+      });
+      detail.appendChild(form); detail.appendChild(note); detail.appendChild(apps);
+      return detail;
+    }
+    renderList('');
+    document.getElementById('envSearch').addEventListener('input', function (e) { renderList(e.target.value); });
+    var sidebar = document.getElementById('sidebar');
+    var menuBtn = document.getElementById('menuBtn');
+    menuBtn.addEventListener('click', function () {
+      var open = sidebar.classList.toggle('open');
+      menuBtn.setAttribute('aria-expanded', String(open));
+    });
+
+    // ---- Add New Environment setup assistant ----
+    var wizard = document.getElementById('envWizard');
+    var form = document.getElementById('environmentForm');
+    var result = document.getElementById('result');
+    var nextBtn = document.getElementById('nextBtn');
+    var backBtn = document.getElementById('backBtn');
+    var submitBtn = document.getElementById('submitBtn');
+    var nameInput = document.getElementById('envName');
+    var step = 1;
+    var busy = false;
+
+    function selected(groupId) {
+      var card = document.querySelector('#' + groupId + ' [aria-checked="true"]');
+      return card ? card.getAttribute('data-value') : null;
+    }
+    function selectedServices() {
+      return Array.prototype.map.call(document.querySelectorAll('#serviceCards [aria-pressed="true"]'), function (c) { return c.getAttribute('data-value'); });
+    }
+    function licenseType() { var r = form.querySelector('input[name="licenseType"]:checked'); return r ? r.value : null; }
+    ['useCaseCards', 'typeCards'].forEach(function (id) {
+      document.getElementById(id).addEventListener('click', function (e) {
+        var card = e.target.closest('.card'); if (!card) return;
+        this.querySelectorAll('.card').forEach(function (c) { c.setAttribute('aria-checked', String(c === card)); });
+      });
+    });
+    document.getElementById('serviceCards').addEventListener('click', function (e) {
+      var card = e.target.closest('.card'); if (!card || card.disabled) return;
+      card.setAttribute('aria-pressed', String(card.getAttribute('aria-pressed') !== 'true'));
+    });
+
+    function showResult(kind, html) { result.className = 'result-box show ' + kind; result.innerHTML = html; }
+    function clearResult() { result.className = 'result-box'; result.textContent = ''; }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+    function goTo(n) {
+      step = n;
+      form.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = Number(p.getAttribute('data-panel')) !== n; });
+      document.querySelectorAll('.steps .step').forEach(function (s) {
+        var i = Number(s.getAttribute('data-step'));
+        s.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+      });
+      backBtn.hidden = n === 1;
+      nextBtn.hidden = n === 3;
+      submitBtn.hidden = n !== 3;
+      if (n === 3) {
+        document.getElementById('rvName').textContent = nameInput.value.trim();
+        document.getElementById('rvLicense').textContent = licenseType() === 'trial' ? 'Trial' : 'Paid';
+        document.getElementById('rvUseCase').textContent = selected('useCaseCards') === 'workforce' ? 'Workforce' : 'Customer';
+        document.getElementById('rvType').textContent = selected('typeCards') === 'PRODUCTION' ? 'Production' : 'Sandbox';
+        document.getElementById('rvServices').textContent = selectedServices().map(function (s) { return SERVICE_NAMES[s]; }).join(', ');
+      }
+    }
+    function resetWizard() {
+      form.reset();
+      document.querySelectorAll('#useCaseCards .card, #typeCards .card').forEach(function (c, i) { c.setAttribute('aria-checked', String(i % 2 === 0)); });
+      document.querySelectorAll('#serviceCards .card').forEach(function (c) { c.setAttribute('aria-pressed', String(c.getAttribute('data-value') === 'SSO' || c.getAttribute('data-value') === 'MFA')); });
+      clearResult();
+      submitBtn.disabled = false; submitBtn.textContent = 'Finish';
+      goTo(1);
+    }
+    function openWizard() { resetWizard(); wizard.classList.add('open'); nameInput.focus(); }
+    function closeWizard() { if (busy) return; wizard.classList.remove('open'); }
+    document.getElementById('addEnvBtn').addEventListener('click', openWizard);
+    document.getElementById('closeWizard').addEventListener('click', closeWizard);
+    document.getElementById('cancelBtn').addEventListener('click', closeWizard);
+    backBtn.addEventListener('click', function () { if (!busy) { clearResult(); goTo(step - 1); } });
+    nextBtn.addEventListener('click', function () {
+      clearResult();
+      if (step === 1 && !nameInput.value.trim()) {
+        showResult('err', 'Enter a name for the environment.');
+        nameInput.focus();
+        return;
+      }
+      goTo(step + 1);
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (busy || step !== 3) return;
+      busy = true;
+      submitBtn.disabled = true;
+      backBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Creating';
+      showResult('busy', 'Creating environment&hellip;');
+      var payload = assign({
+        action: 'create-environment',
+        name: nameInput.value.trim(),
+        description: document.getElementById('envDescription').value.trim(),
+        licenseType: licenseType(),
+        useCase: selected('useCaseCards'),
+        type: selected('typeCards'),
+        services: selectedServices(),
+      }, identity());
+      postJson('/api/identity-console/environments', payload).then(function (res) {
+        if (res.ok && res.data.success) {
+          var env = res.data.environment;
+          ENVIRONMENTS.push({ id: env.id, name: env.name, description: env.description, type: env.type, services: env.services, apps: 0 });
+          ENVIRONMENTS.sort(function (a, b) { return a.name.localeCompare(b.name); });
+          renderList(document.getElementById('envSearch').value);
+          showResult('ok', escapeHtml(env.name) + ' was created.');
+          submitBtn.textContent = 'Finish';
+        } else {
+          var msg = (res.data && res.data.error) || 'The environment could not be created. Try again.';
+          showResult('err', '<strong>Environment not created.</strong> ' + escapeHtml(msg) + (res.data && res.data.requestId ? '<small>Request ID: ' + escapeHtml(res.data.requestId) + '</small>' : ''));
+          submitBtn.textContent = 'Finish';
+        }
+      }).catch(function () {
+        showResult('err', '<strong>Environment not created.</strong> Check your connection and try again.');
+        submitBtn.textContent = 'Finish';
+      }).then(function () {
+        busy = false; submitBtn.disabled = false; backBtn.disabled = false;
+      });
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
