@@ -4,12 +4,12 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 
 const ROUTE = '/api/oncall/rebooking/rebook';
-const SERVICE = 'neo-rebooking-api';
+const SERVICE = 'egencia-rebooking-api';
 
 /** The disrupted trip the traveler is being rebooked on. */
 const TRIP = {
-  tripId: 'NEO-7F2K9Q',
-  traveler: 'Camille Moreau',
+  tripId: 'EGN-7F2K9Q',
+  traveler: 'Julia Rhee',
   origin: 'CDG',
   destination: 'LHR',
   cancelledFlight: 'AF 1680',
