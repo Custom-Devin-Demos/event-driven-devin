@@ -437,7 +437,7 @@ const ONCALL_STRINGS = {
     first: 'Primero',
     last: 'Último',
     owner: 'Responsable',
-    onCall: 'Guardia',
+    onCall: 'On Call',
     incidentRef: 'Ref. de incidente',
     triggeredBy: 'Activado por',
     monitorQuery: 'Consulta del monitor',
@@ -446,7 +446,7 @@ const ONCALL_STRINGS = {
     submittedFrom: 'Enviado desde',
     investigatingText: (url) => `Devin está investigando: ${url}`,
     investigatingBlock: (url) => `:mag: *Devin está investigando esta alerta* — <${url}|Ver sesión>`,
-    sessionTitle: (monitor) => `[Guardia] ${monitor}`,
+    sessionTitle: (monitor) => `[On Call] ${monitor}`,
     promptIntro: (service) => `Un monitor de Datadog está disparando en ${service}. Investígalo y abre un PR con la corrección.`,
     monitor: 'Monitor',
     query: 'Consulta',
@@ -454,7 +454,7 @@ const ONCALL_STRINGS = {
     impact: 'Impacto',
     metricLine: (s) => `${s.metricValue} (umbral ${s.threshold}, línea base ${s.baseline})`,
     reproduce: (url, repo) => `Reproduce el síntoma en ${url} y diagnostícalo a partir del repositorio y su telemetría: ${repo}`,
-    notify: (mention) => 'Avisos de progreso para la persona de guardia: responde dos veces en el hilo de la alerta de Slack de arriba — '
+    notify: (mention) => 'Avisos de progreso para la persona On Call: responde dos veces en el hilo de la alerta de Slack de arriba — '
       + `(1) en cuanto confirmes la causa raíz, publica ${mention} + la causa raíz en ≤3 líneas; `
       + `(2) en cuanto el PR con la corrección esté abierto, publica ${mention} + el link del PR + una línea sobre cómo lo verificaste. `,
     promptLanguage: '*Idioma:* responde en español — mensajes en el hilo de Slack, título y descripción del PR, y resumen final.',
