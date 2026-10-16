@@ -34,7 +34,7 @@ const ENVIRONMENTS = {
 };
 
 const PROVISION_DEADLINE_MS = 9000;
-const REGISTRATION_LATENCY_MS = [1450, 1700];
+const REGISTRATION_LATENCY_MS = [1550, 1750];
 const APPLICATION_LATENCY_MS = [70, 160];
 
 const delay = ([minMs, maxMs]) => new Promise((resolve) => setTimeout(resolve, minMs + Math.random() * (maxMs - minMs)));
@@ -76,7 +76,10 @@ function validateEnvironment(data) {
   if (!services.length || !services.every((s) => SERVICES.includes(s))) throw invalidRequest('Select at least one service.', code);
   if (!services.includes('SSO')) throw invalidRequest('PingOne SSO is required for every environment.', code);
   const description = typeof data.description === 'string' ? data.description.trim().slice(0, 1024) : '';
-  return { name, description, useCase: data.useCase, type: data.type, licenseType: data.licenseType, services };
+  return {
+    name, description, useCase: data.useCase, type: data.type, licenseType: data.licenseType, services,
+    samplePopulations: data.samplePopulations === true,
+  };
 }
 
 /**
@@ -123,6 +126,8 @@ async function createEnvironment(data = {}) {
     incrementMetric('identity.environment.create.success', { route: ENVIRONMENTS_ROUTE });
     recordTiming('identity.environment.create.latency', Date.now() - startTime, { route: ENVIRONMENTS_ROUTE, service: SERVICE });
 
+    ENVIRONMENTS[environmentId] = { id: environmentId, name: env.name, type: env.type, region: HOME_REGION };
+
     return {
       success: true,
       environment: {
@@ -134,6 +139,7 @@ async function createEnvironment(data = {}) {
         licenseType: env.licenseType,
         region: HOME_REGION,
         services: env.services,
+        samplePopulations: env.samplePopulations,
         createdAt: new Date().toISOString(),
       },
       regionsRegistered: registrations.length,
@@ -158,7 +164,7 @@ async function createEnvironment(data = {}) {
 async function createApplication(data = {}) {
   const startTime = Date.now();
   const code = 'INVALID_APPLICATION';
-  const env = ENVIRONMENTS[data.environmentId];
+  const env = Object.hasOwn(ENVIRONMENTS, data.environmentId) ? ENVIRONMENTS[data.environmentId] : null;
   if (!env) throw invalidRequest('Unknown environment.', code);
   const name = cleanName(data.name, code);
   if (!APPLICATION_TYPES.includes(data.type)) throw invalidRequest('Select an application type.', code);
@@ -191,4 +197,5 @@ module.exports = {
   SERVICES,
   APPLICATION_TYPES,
   PROVISION_DEADLINE_MS,
+  REGISTRATION_LATENCY_MS,
 };

@@ -424,6 +424,7 @@ router.post('/api/oncall/identity/environments', async (req, res) => {
       useCase: body.useCase,
       type: body.type,
       services: body.services,
+      samplePopulations: body.samplePopulations,
     });
     res.json(result);
   } catch (error) {

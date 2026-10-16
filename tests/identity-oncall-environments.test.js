@@ -1,4 +1,4 @@
-/* global afterAll, beforeAll, beforeEach, describe, expect, jest, test */
+/* global afterAll, beforeAll, beforeEach, describe, expect, jest, test, fetch */
 
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: { captureException: jest.fn() },
@@ -32,7 +32,7 @@ process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-test';
 process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID = 'C0TEST';
 
 const {
-  createEnvironment, createApplication, ENVIRONMENTS, REGIONS, PROVISION_DEADLINE_MS,
+  createEnvironment, createApplication, ENVIRONMENTS, REGIONS, PROVISION_DEADLINE_MS, REGISTRATION_LATENCY_MS,
 } = require('../app/services/oncall-verticals/identity');
 const { ALERT_SCENARIOS, postOncallAlert } = require('../app/services/oncall');
 const { getOncallSkin } = require('../config/oncall-skins');
@@ -93,10 +93,16 @@ describe('identity on-call vertical: environment provisioning', () => {
 
   test.each([
     [{ environmentId: 'nope', name: 'App', type: 'SAML' }],
+    [{ environmentId: 'toString', name: 'App', type: 'SAML' }],
+    [{ environmentId: '__proto__', name: 'App', type: 'SAML' }],
     [{ environmentId: STAGING_ID, name: '', type: 'SAML' }],
     [{ environmentId: STAGING_ID, name: 'App', type: 'LDAP' }],
   ])('rejects invalid application %#', async (body) => {
     await expect(createApplication(body)).rejects.toMatchObject({ code: 'INVALID_APPLICATION' });
+  });
+
+  test('serial region registration always outlasts the provisioning deadline', () => {
+    expect(REGIONS.length * REGISTRATION_LATENCY_MS[0]).toBeGreaterThan(PROVISION_DEADLINE_MS);
   });
 
   test('only environment creates page on-call; application creates are just rerouted', () => {
