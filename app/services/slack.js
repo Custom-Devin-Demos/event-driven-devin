@@ -219,7 +219,7 @@ function buildAlertBlocks(alertData, options = {}) {
   actions.push({
     type: 'button',
     text: { type: 'plain_text', text: `:bar_chart: ${t.viewDatadog}`, emoji: true },
-    url: process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com',
+    url: alertData.datadogUrl || process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com',
   });
   if (actions.length > 0) {
     blocks.push({ type: 'actions', elements: actions });
