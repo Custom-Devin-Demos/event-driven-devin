@@ -25,6 +25,7 @@ describe('Neo trip-disruption on-call rebooking', () => {
     expect(result.success).toBe(true);
     expect(result.flight).toBe('BA 0303');
     expect(result.holdMinutes).toBe(SEAT_HOLD_MINUTES);
+    expect(result.holdRef).toMatch(/^HLD-BA0303-/);
     expect(new Date(result.expiresAt).getTime()).toBeGreaterThan(Date.now());
     expect(Date.now() - started).toBeLessThan(500);
   });

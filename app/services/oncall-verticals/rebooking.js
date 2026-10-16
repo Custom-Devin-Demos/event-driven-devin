@@ -39,6 +39,21 @@ const FARE_FAMILIES = ['LIGHT', 'STANDARD', 'FLEX', 'PREMIUM_ECONOMY', 'BUSINESS
 const RESHOP_DEADLINE_MS = 8000;
 const RESHOP_LATENCY_MS = [1250, 1550];
 const SEAT_HOLD_MINUTES = 15;
+const SEAT_HOLD_LATENCY_MS = [60, 140];
+
+/** Hold one seat on a flight through the airline seat map (a single round trip). */
+function holdSeat(flight, rebookId) {
+  const [minMs, maxMs] = SEAT_HOLD_LATENCY_MS;
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        flight,
+        holdRef: `HLD-${flight.replace(/\s/g, '')}-${rebookId.slice(-4)}`,
+        expiresAt: new Date(Date.now() + SEAT_HOLD_MINUTES * 60000).toISOString(),
+      });
+    }, minMs + Math.random() * (maxMs - minMs));
+  });
+}
 
 /** Re-shop one fare family for a flight through the GDS (one airline round trip). */
 function reshopFareFamily(flight, family) {
@@ -119,7 +134,11 @@ async function rebookFlight(data) {
     const alt = resolveAlternative(data.alternativeId);
 
     if (action === 'hold') {
-      const expiresAt = new Date(Date.now() + SEAT_HOLD_MINUTES * 60000).toISOString();
+      const startedAt = Date.now();
+      const hold = await holdSeat(alt.flight, rebookId);
+      logger.info('Seat hold', {
+        rebookId, flight: alt.flight, holdRef: hold.holdRef, durationMs: Date.now() - startedAt, service: SERVICE, endpoint: 'seat-map/v2/hold',
+      });
       incrementMetric('rebooking.hold.success', { route: ROUTE });
       recordTiming('rebooking.hold.latency', Date.now() - startTime, { route: ROUTE, service: SERVICE });
       return {
@@ -129,8 +148,9 @@ async function rebookFlight(data) {
         tripId: TRIP.tripId,
         flight: alt.flight,
         carrier: alt.carrier,
+        holdRef: hold.holdRef,
         holdMinutes: SEAT_HOLD_MINUTES,
-        expiresAt,
+        expiresAt: hold.expiresAt,
         policy: policy(alt),
       };
     }
