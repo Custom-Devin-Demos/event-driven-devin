@@ -600,13 +600,15 @@ function rosterBlocks() {
 const HEAT = { free: ':large_green_square:', partial: ':large_yellow_square:', booked: ':large_red_square:' };
 const WEEKDAY_FMT = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', weekday: 'short' });
 
-// Pending requests this user can act on from the App Home.
-function actionQueue(store, userId) {
+const QUEUE_ROWS = 5;
+
+// Upcoming pending requests this user can act on from the App Home, soonest
+// first: `total` counts all of them, `rows` shows the first QUEUE_ROWS.
+function actionQueue(store, userId, now = Math.floor(Date.now() / 1000)) {
   const admin = R.isAdmin(userId);
-  return R.listReservations(store, { statuses: [R.STATUS.PENDING] })
-    .filter((r) => (r.requestType === 'any' ? admin || R.canClaim(r, userId) : R.canDecide(r, userId)))
-    .slice(0, 5)
-    .map((r) => {
+  const eligible = R.listReservations(store, { from: now, statuses: [R.STATUS.PENDING] })
+    .filter((r) => (r.requestType === 'any' ? admin || R.canClaim(r, userId) : R.canDecide(r, userId)));
+  const rows = eligible.slice(0, QUEUE_ROWS).map((r) => {
       const claim = r.requestType === 'any' && !admin;
       const button = r.requestType === 'specific'
         ? { type: 'button', text: plain('Approve'), style: 'primary', action_id: ACTION.APPROVE, value: r.id }
@@ -614,6 +616,10 @@ function actionQueue(store, userId) {
       const chips = qualChips(r);
       return section(`*${r.id} · ${esc(r.account)}*\n${R.describeWho(r)} · ${R.slackRange(r.startTs, r.endTs)}${chips ? `\n${chips}` : ''}`, { accessory: button });
     });
+  if (eligible.length > QUEUE_ROWS) {
+    rows.push(context(`+${eligible.length - QUEUE_ROWS} more waiting on you in the channel`));
+  }
+  return { total: eligible.length, rows };
 }
 
 function homeView(store, userId) {
@@ -627,7 +633,7 @@ function homeView(store, userId) {
   const pending = R.listReservations(store, { from: now, statuses: [R.STATUS.PENDING] });
   const booked = R.listReservations(store, { from: now, to: horizon, statuses: [R.STATUS.APPROVED] });
   const freeToday = week.members.filter((m) => m.days[0] && m.days[0].status === 'free').length;
-  const queue = actionQueue(store, userId);
+  const queue = actionQueue(store, userId, now);
 
   const blocks = [
     { type: 'header', text: plain(':calendar: Field CTO reservations') },
@@ -645,12 +651,12 @@ function homeView(store, userId) {
         mrkdwn(`:hourglass_flowing_sand: *Pending*\n${pending.length}`),
         mrkdwn(`:white_check_mark: *Booked, next 3 weeks*\n${booked.length}`),
         mrkdwn(`:large_green_circle: *Free today*\n${freeToday} of ${week.members.length}`),
-        mrkdwn(`:raising_hand: *Waiting on you*\n${queue.length}`),
+        mrkdwn(`:raising_hand: *Waiting on you*\n${queue.total}`),
       ],
     },
   ];
-  if (queue.length) {
-    blocks.push({ type: 'divider' }, { type: 'header', text: plain(':inbox_tray: Needs your action') }, ...queue);
+  if (queue.total) {
+    blocks.push({ type: 'divider' }, { type: 'header', text: plain(':inbox_tray: Needs your action') }, ...queue.rows);
   }
   blocks.push({ type: 'divider' }, { type: 'header', text: plain(':world_map: The week at a glance') });
   const dayNames = week.days.map((d) => WEEKDAY_FMT.format(d * 1000).slice(0, 2)).join(' ');

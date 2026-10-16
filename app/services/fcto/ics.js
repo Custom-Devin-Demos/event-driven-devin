@@ -45,30 +45,54 @@ function eventText(reservation) {
   return { summary, description: descriptionParts.join('\n') };
 }
 
+// Slack rejects a whole message whose button URL is over 3,000 characters.
+const MAX_BUTTON_URL = 3000;
+
+// Shortens `details` (by code point, so encoding never sees a lone surrogate)
+// until the URL fits; drops the location and trims the title as a last resort.
+function fitUrl(build, summary, details, location) {
+  const chars = Array.from(details);
+  const url = build(summary, details, location);
+  if (url.length <= MAX_BUTTON_URL) return url;
+  let lo = 0;
+  let hi = chars.length;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (build(summary, chars.slice(0, mid).join(''), location).length <= MAX_BUTTON_URL) lo = mid;
+    else hi = mid - 1;
+  }
+  const trimmed = lo ? `${chars.slice(0, lo).join('')}…` : '';
+  const fitted = build(summary, trimmed, location);
+  if (fitted.length <= MAX_BUTTON_URL) return fitted;
+  return build(Array.from(summary).slice(0, 120).join(''), '', '');
+}
+
 // One-click "add to calendar" links (no calendar API): each opens a prefilled
 // new-event form in the clicker's own Google or Outlook calendar.
 function calendarLinks(reservation) {
   const { summary, description } = eventText(reservation);
-  const details = description.slice(0, 1200);
   const iso = (ts) => new Date(ts * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
   const q = (params) => Object.entries(params).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+  const google = (text, details, location) => `https://calendar.google.com/calendar/render?${q({
+    action: 'TEMPLATE',
+    text,
+    dates: `${icsDate(reservation.startTs)}/${icsDate(reservation.endTs)}`,
+    details,
+    location,
+  })}`;
+  const outlook = (subject, body, location) => `https://outlook.office.com/calendar/0/deeplink/compose?${q({
+    path: '/calendar/action/compose',
+    rru: 'addevent',
+    subject,
+    startdt: iso(reservation.startTs),
+    enddt: iso(reservation.endTs),
+    body,
+    location,
+  })}`;
+  const location = reservation.meetingLink || '';
   return {
-    google: `https://calendar.google.com/calendar/render?${q({
-      action: 'TEMPLATE',
-      text: summary,
-      dates: `${icsDate(reservation.startTs)}/${icsDate(reservation.endTs)}`,
-      details,
-      location: reservation.meetingLink,
-    })}`,
-    outlook: `https://outlook.office.com/calendar/0/deeplink/compose?${q({
-      path: '/calendar/action/compose',
-      rru: 'addevent',
-      subject: summary,
-      startdt: iso(reservation.startTs),
-      enddt: iso(reservation.endTs),
-      body: details,
-      location: reservation.meetingLink,
-    })}`,
+    google: fitUrl(google, summary, description, location),
+    outlook: fitUrl(outlook, summary, description, location),
   };
 }
 
@@ -105,4 +129,4 @@ function icsFilename(reservation) {
   return `${reservation.id.toLowerCase()}-${who}-${day}.ics`;
 }
 
-module.exports = { buildIcs, icsFilename, icsDate, escapeText, calendarLinks };
+module.exports = { buildIcs, icsFilename, icsDate, escapeText, calendarLinks, MAX_BUTTON_URL };

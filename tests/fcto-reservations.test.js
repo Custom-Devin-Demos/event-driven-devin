@@ -565,7 +565,7 @@ describe('HTTP routes', () => {
     await post(port, '/slack/fcto/interactions', reassign, sign('shhh', reassign));
     await flush();
     expect(internal.store.get('FCR-1').assigneeKey).toBe('AMAN_THIND');
-    expect(slackCalls.map((c) => c[0])).toEqual(['chat.update', 'chat.postMessage', 'files.upload']);
+    expect(slackCalls.map((c) => c[0])).toEqual(['chat.update', 'chat.postMessage', 'files.upload', 'views.publish']);
   });
 
   test('cancel by requester updates the card; events handle url_verification and app_home_opened', async () => {
@@ -1016,5 +1016,43 @@ describe('slack design', () => {
     expect(json).toContain(':large_green_square:');
     const stranger = JSON.stringify(B.homeView(store, 'USTRANGER1'));
     expect(stranger).not.toContain('Needs your action');
+  });
+});
+
+describe('slack design review fixes', () => {
+  const NOW_F = Math.floor(Date.UTC(2027, 0, 11, 16) / 1000);
+  const fresh = () => {
+    jest.resetModules();
+    const { ReservationStore } = require('../app/services/fcto/store');
+    const store = new ReservationStore(path.join(os.tmpdir(), `fcto-fix-${Date.now()}-${Math.random()}.json`));
+    return { store, R: require('../app/services/fcto/reservations'), B: require('../app/services/fcto/blocks'), ics: require('../app/services/fcto/ics') };
+  };
+  const req = (over = {}) => ({ requesterId: 'UREQUESTER1', account: 'Acme Corp', purpose: 'EBC', audience: 'VP', country: 'JP', industry: 'TECH_NATIVE', who: 'MEMBER:MARK_PORTER', startTs: NOW_F + 86400, durationKey: '2h', ...over });
+
+  test('calendar button URLs stay under Slack\'s 3,000-character limit for max-length multibyte input', async () => {
+    const { store, R, ics } = fresh();
+    const r = await R.createRequest(store, req({ account: '株'.repeat(150), purpose: '日本語'.repeat(200), notes: '😀'.repeat(500), meetingLink: `https://zoom.us/j/${'9'.repeat(400)}` }), { now: NOW_F });
+    const links = ics.calendarLinks(r);
+    for (const url of [links.google, links.outlook]) {
+      expect(url.length).toBeLessThanOrEqual(ics.MAX_BUTTON_URL);
+      expect(() => decodeURIComponent(url)).not.toThrow();
+      expect(url).toMatch(/20270112T160000Z|2027-01-12T16%3A00%3A00Z/);
+    }
+    const short = ics.calendarLinks(await R.createRequest(store, req({ meetingLink: 'https://zoom.us/j/1' }), { now: NOW_F }));
+    expect(decodeURIComponent(short.google)).toContain('Purpose: EBC');
+    expect(decodeURIComponent(short.google)).toContain('location=https://zoom.us/j/1');
+  });
+
+  test('home action queue skips past requests, prefers the soonest and counts them all', async () => {
+    const { store, R, B } = fresh();
+    const now = Math.floor(Date.now() / 1000);
+    for (let i = 0; i < 3; i += 1) await R.createRequest(store, req({ startTs: now - (10 - i) * 86400 }), { now: now - 20 * 86400 });
+    for (let i = 0; i < 7; i += 1) await R.createRequest(store, req({ startTs: now + (i + 1) * 86400 }), { now });
+    const home = B.homeView(store, 'U09HHJ5B5L5');
+    const json = JSON.stringify(home);
+    expect(json).toContain(':raising_hand: *Waiting on you*\\n7');
+    expect(json).toContain('+2 more waiting on you in the channel');
+    const ids = home.blocks.filter((b) => b.accessory && b.accessory.type === 'button').map((b) => b.accessory.value);
+    expect(ids).toEqual(['FCR-4', 'FCR-5', 'FCR-6', 'FCR-7', 'FCR-8']);
   });
 });

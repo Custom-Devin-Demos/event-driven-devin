@@ -237,6 +237,7 @@ async function handleCommand(body) {
       if (range.to - range.from > R.MAX_AVAILABILITY_DAYS * 86400) {
         return { response_type: 'ephemeral', text: `I can show up to ${R.MAX_AVAILABILITY_DAYS} days at a time — try a shorter range.` };
       }
+      await warmAvatars();
       const blocks = B.availabilityBlocks(store, range);
       return { response_type: 'ephemeral', text: blocks[0].text.text, blocks };
     }
@@ -285,6 +286,7 @@ async function refreshRequestModal(view, actionTs) {
       const current = entry.latest;
       entry.latest = null;
       const input = B.readRequestModal(current);
+      await warmAvatars();
       const next = B.requestModal({ channelId: input.channelId, audience: input.audience, suggestion: suggestWho(input) });
       let res = await slack.updateView(current.id, next, current.hash);
       if (res && !res.ok && res.error === 'hash_conflict' && !entry.latest) res = await slack.updateView(current.id, next);
@@ -428,7 +430,10 @@ async function handleViewSubmission(payload, after) {
     const current = store.get(id);
     try {
       const updated = await R.decline(store, id, { by: userId, reason });
-      after(() => applyChange(updated, current ? current.status : null));
+      after(async () => {
+        await applyChange(updated, current ? current.status : null);
+        await publishHome(userId);
+      });
       return null;
     } catch (err) {
       if (err instanceof R.ReservationError) return { response_action: 'errors', errors: { reason: err.message } };
@@ -450,7 +455,10 @@ async function handleViewSubmission(payload, after) {
       } else {
         updated = await R.approve(store, id, { by: userId, assigneeKey, force });
       }
-      after(() => applyChange(updated, current.status));
+      after(async () => {
+        await applyChange(updated, current.status);
+        await publishHome(userId);
+      });
       return null;
     } catch (err) {
       if (err instanceof R.ReservationError) {
