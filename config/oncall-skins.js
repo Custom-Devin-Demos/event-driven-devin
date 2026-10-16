@@ -3988,6 +3988,30 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A NEXTDOOR SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nextdoor product.',
   },
+  '9e4e060c': {
+    slug: '9e4e060c',
+    company: 'Computershare',
+    brandMark: 'C',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '9e4e060c.html', title: 'Sell shares | Investor Centre | Computershare' },
+    theme: {
+      '--accent': '#93186C',
+      '--ink': '#432063',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#432063',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Computershare Investor Centre Help',
+    alertCard: {
+      title: 'p95 latency \u2014 Investor Centre share sale instructions',
+      release: 'investor-centre-dealing@1.0.3',
+      baseline: '~300ms (7-day p95, before investor-centre-dealing@1.0.3)',
+      symptom: 'Sell shares submissions hang ~9s before the sale instruction is confirmed. Error rate is normal \u2014 instructions are eventually accepted.',
+      impact: 'Shareholders selling through Investor Centre wait ~9 seconds for confirmation; some press Confirm sale again and contact the helpline about duplicate sale instructions.',
+    },
+    disclaimer: 'NOT ACTUALLY A COMPUTERSHARE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Computershare product.',
+  },
 };
 
 function getOncallSkin(slug) {
