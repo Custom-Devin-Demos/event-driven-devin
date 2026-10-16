@@ -45,7 +45,8 @@ class ReservationError extends Error {
 
 function clean(value, max = MAX_TEXT) {
   if (value === undefined || value === null) return '';
-  return Array.from(String(value)).filter((ch) => { const c = ch.charCodeAt(0); return c > 31 || c === 9 || c === 10 || c === 13; }).join('').trim().slice(0, max);
+  const text = Array.from(String(value)).filter((ch) => { const c = ch.charCodeAt(0); return c > 31 || c === 9 || c === 10 || c === 13; }).join('').trim();
+  return Array.from(text).slice(0, max).join('');
 }
 
 function toEpoch(value) {
