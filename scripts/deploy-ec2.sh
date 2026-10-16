@@ -101,11 +101,21 @@ cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 
 # Optional .env sync from the deploy workflow (Actions secrets). Applied under
 # the lock and after the backup above, so rollback restores the previous .env.
-# The staged file holds one `KEY=value` line per allowlisted key, each with a
-# single-line https URL value. Invalid or duplicate lines are logged and
-# skipped; a file with more lines than allowlisted keys is ignored entirely
-# (deploy continues with the current .env).
-ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL AUTOMATIONS_TEAMS_WEBHOOK_URL ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI)
+# The staged file holds one `KEY=value` line per allowlisted key; each value
+# must match its key's format (Teams webhooks: single-line https URL; FCTO
+# Slack app: signing secret, xoxb- bot token, channel ID). Invalid or duplicate
+# lines are logged and skipped; a file with more lines than allowlisted keys is
+# ignored entirely (deploy continues with the current .env).
+ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL AUTOMATIONS_TEAMS_WEBHOOK_URL ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI
+  FCTO_SLACK_SIGNING_SECRET FCTO_SLACK_BOT_TOKEN FCTO_CHANNEL_ID)
+env_sync_value_ok() {
+  case "$1" in
+    FCTO_SLACK_SIGNING_SECRET) [[ "$2" =~ ^[A-Za-z0-9]{16,128}$ ]] ;;
+    FCTO_SLACK_BOT_TOKEN) [[ "$2" =~ ^xoxb-[A-Za-z0-9-]{10,250}$ ]] ;;
+    FCTO_CHANNEL_ID) [[ "$2" =~ ^[CG][A-Z0-9]{6,20}$ ]] ;;
+    *) [[ "$2" =~ ^https://[^[:space:]\"\'\$]+$ ]] ;;
+  esac
+}
 is_env_sync_key() {
   local key
   for key in "${ENV_SYNC_KEYS[@]}"; do [ "$key" = "$1" ] && return 0; done
@@ -122,8 +132,8 @@ if [ -n "${ENV_SYNC_FILE:-}" ] && [ -s "$ENV_SYNC_FILE" ]; then
         log "env sync: WARNING non-allowlisted key; line skipped"
       elif [[ "$synced_keys" == *" $sync_key "* ]]; then
         log "env sync: WARNING duplicate $sync_key; line skipped"
-      elif ! [[ "$sync_val" =~ ^https://[^[:space:]\"\'\$]+$ ]]; then
-        log "env sync: WARNING $sync_key is not a single-line https URL; line skipped"
+      elif ! env_sync_value_ok "$sync_key" "$sync_val"; then
+        log "env sync: WARNING $sync_key value has an unexpected format; line skipped"
       else
         synced_keys+="$sync_key "
         if grep -qxF "$sync_key=$sync_val" "$APP_DIR/.env"; then

@@ -58,6 +58,12 @@ Everything is enforced server-side; unauthorized clicks get an ephemeral note.
    be booked; they just can't be @-mentioned or act on their own requests.
 6. Deploy. Slack will verify the events URL (`url_verification` is handled).
 
+No SSH needed for the credentials: add Actions secrets `FCTO_SLACK_SIGNING_SECRET`
+and `FCTO_SLACK_BOT_TOKEN` to this repo (Settings → Secrets and variables →
+Actions). Every "Deploy to EC2" run writes them, plus `FCTO_CHANNEL_ID`
+(`C0C96AUKY7R`, or the `FCTO_CHANNEL_ID` Actions variable), into the host
+`.env` via the deploy env sync. Re-run the workflow after changing them.
+
 Reservations persist in `data/fcto-reservations.json` on the Docker volume
 (`FCTO_STORE_FILE` to override).
 
