@@ -634,13 +634,16 @@ describe('HTTP routes', () => {
     slackClient.updateView
       .mockImplementationOnce(async (...args) => { slackCalls.push(['views.update', ...args]); await gate; return { ok: true, view: { hash: 'h1' } }; })
       .mockImplementationOnce(async (...args) => { slackCalls.push(['views.update', ...args]); return { ok: false, error: 'hash_conflict' }; });
-    const send = (view, blockId) => {
-      const body = blockAction('value', undefined, REQUESTER, { view, actions: [{ action_id: 'value', block_id: blockId, type: 'static_select' }] });
+    const send = (view, blockId, actionTs) => {
+      const body = blockAction('value', undefined, REQUESTER, { view, actions: [{ action_id: 'value', block_id: blockId, type: 'static_select', action_ts: actionTs }] });
       return post(port, '/slack/fcto/interactions', body, sign('shhh', body));
     };
-    await send(viewWith({ country: { value: { selected_option: { value: 'DE' } } } }), 'country');
+    await send(viewWith({ country: { value: { selected_option: { value: 'DE' } } } }), 'country', '100.1');
     await flush();
-    await send(viewWith({ country: { value: { selected_option: { value: 'DE' } } }, industry: { value: { selected_option: { value: 'FINANCE' } } } }), 'industry');
+    await send(viewWith({ country: { value: { selected_option: { value: 'DE' } } }, industry: { value: { selected_option: { value: 'FINANCE' } } } }), 'industry', '100.3');
+    await flush();
+    // A delayed older snapshot (country only) arriving mid-update is dropped.
+    await send(viewWith({ country: { value: { selected_option: { value: 'DE' } } } }), 'country', '100.2');
     await flush();
     expect(slackCalls.filter((c) => c[0] === 'views.update')).toHaveLength(1);
     release();
@@ -649,10 +652,15 @@ describe('HTTP routes', () => {
     expect(updates).toHaveLength(3);
     const whoOf = (u) => u[2].blocks.find((b) => b.block_id.startsWith('who')).block_id;
     expect(whoOf(updates[0])).toBe('who_MEMBER_KATRIN_LEHMANN');
-    expect(updates[1][3]).toBe('h1');
+    expect(updates[1][3]).toBe('h0');
     expect(whoOf(updates[1])).toBe('who_MEMBER_AMAN_THIND');
     expect(updates[2][3]).toBeUndefined();
     expect(whoOf(updates[2])).toBe('who_MEMBER_AMAN_THIND');
+
+    // ...and one arriving after the update finished is dropped too.
+    await send(viewWith({ country: { value: { selected_option: { value: 'DE' } } } }), 'country', '100.2');
+    await flush();
+    expect(slackCalls.filter((c) => c[0] === 'views.update')).toHaveLength(3);
   });
 
   test('"Below" audience is rejected inline; suggested who block is read on submit', async () => {

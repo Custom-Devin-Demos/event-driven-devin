@@ -242,20 +242,32 @@ async function handleCommand(body) {
 
 // Audience/country/industry picks in the request modal re-render it with the
 // "Below" warning and the suggested Field CTO pre-selected.
-// Updates are serialized per view and coalesced to the latest picks, so a
-// quick country-then-industry selection can't leave the first suggestion in
-// place. Overlapping actions carry a hash Slack has already superseded with our
-// own update; this queue is the only writer of the modal, so on hash_conflict
-// we re-apply the newest picks without the hash.
+// Updates are serialized per view, coalesced to the latest picks, and ordered
+// by Slack's action_ts so a delayed older snapshot can never overwrite a newer
+// suggestion. Slack has no views.get, so the newest action's snapshot is the
+// best view of the requester's picks: if its hash was superseded by our own
+// update, it is re-applied without the hash. Older snapshots are dropped.
 const modalRefreshes = new Map();
+const MODAL_REFRESH_TTL_MS = 60 * 60 * 1000;
 
-async function refreshRequestModal(view) {
+function pruneModalRefreshes(now) {
+  if (modalRefreshes.size < 200) return;
+  modalRefreshes.forEach((e, id) => { if (!e.running && now - e.touched > MODAL_REFRESH_TTL_MS) modalRefreshes.delete(id); });
+}
+
+async function refreshRequestModal(view, actionTs) {
+  const ts = Number(actionTs) || 0;
+  const now = Date.now();
   let entry = modalRefreshes.get(view.id);
   if (!entry) {
-    entry = { latest: null, hash: view.hash, running: false };
+    pruneModalRefreshes(now);
+    entry = { latest: null, latestTs: 0, running: false, touched: now };
     modalRefreshes.set(view.id, entry);
   }
+  if (ts && ts <= entry.latestTs) return;
   entry.latest = view;
+  entry.latestTs = Math.max(entry.latestTs, ts);
+  entry.touched = now;
   if (entry.running) return;
   entry.running = true;
   try {
@@ -264,14 +276,14 @@ async function refreshRequestModal(view) {
       entry.latest = null;
       const input = B.readRequestModal(current);
       const next = B.requestModal({ channelId: input.channelId, audience: input.audience, suggestion: suggestWho(input) });
-      let res = await slack.updateView(current.id, next, entry.hash);
-      if (res && !res.ok && res.error === 'hash_conflict') res = await slack.updateView(current.id, next);
-      if (res && res.ok) entry.hash = (res.view && res.view.hash) || null;
-      else logger.warn('fcto: request modal refresh failed', { error: res && res.error });
+      let res = await slack.updateView(current.id, next, current.hash);
+      if (res && !res.ok && res.error === 'hash_conflict' && !entry.latest) res = await slack.updateView(current.id, next);
+      if (!res || (!res.ok && !(res.error === 'hash_conflict' && entry.latest))) {
+        logger.warn('fcto: request modal refresh failed', { error: res && res.error });
+      }
     }
   } finally {
     entry.running = false;
-    modalRefreshes.delete(view.id);
   }
 }
 
@@ -293,7 +305,7 @@ async function handleBlockAction(payload) {
   }
   if (action.action_id === B.ACTION.NOOP) return;
   if (payload.view && payload.view.callback_id === B.CALLBACK.REQUEST) {
-    await refreshRequestModal(payload.view);
+    await refreshRequestModal(payload.view, action.action_ts);
     return;
   }
 
