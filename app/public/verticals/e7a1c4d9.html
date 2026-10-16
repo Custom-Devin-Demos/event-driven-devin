@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neo — Trip disruption · Amex GBT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1A5FB4;
+      --accent-dark: #144A8C;
+      --ink: #0B2A5B;
+      --navy: #0B2A5B;
+      --royal: #2B6FD6;
+      --text: #1F2937;
+      --muted: #5B6B82;
+      --line: #D9E2EE;
+      --soft: #EAF1FA;
+      --page: #F4F7FB;
+      --surface: #FFFFFF;
+      --danger: #C62828;
+      --danger-bg: #FDECEC;
+      --ok: #1B7F4B;
+      --ok-bg: #E6F4EC;
+      --warn: #8A5A00;
+      --warn-bg: #FFF4D6;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--text); font: 14px/1.5 'Open Sans', 'Segoe UI', Arial, sans-serif; }
+    a { color: var(--accent); text-decoration: none; }
+    button { font: inherit; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .topbar-in { max-width: 1120px; margin: 0 auto; padding: 0 20px; height: 64px; display: flex; align-items: center; gap: 22px; min-width: 0; }
+    .wordmark { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+    .wordmark strong { font-size: 26px; font-weight: 800; letter-spacing: -.03em; color: var(--navy); }
+    .wordmark span { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--royal); }
+    .nav { display: flex; gap: 18px; margin-left: 8px; }
+    .nav a { color: var(--text); font-weight: 600; font-size: 14px; padding: 6px 0; border-bottom: 2px solid transparent; }
+    .nav a.current { color: var(--navy); border-bottom-color: var(--accent); }
+    .user { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; text-align: right; white-space: nowrap; }
+    .user small { display: block; font-size: 11px; color: var(--muted); }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--soft); color: var(--navy); display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+    .hero { background: linear-gradient(90deg, #E8F1FC 0%, #F4F7FB 60%, #EAF1FA 100%); border-bottom: 1px solid var(--line); }
+    .hero-in { max-width: 1120px; margin: 0 auto; padding: 22px 20px 18px; display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; min-width: 0; }
+    .hero h1 { margin: 0; font-size: 26px; font-weight: 800; color: var(--navy); letter-spacing: -.02em; }
+    .hero .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; border-radius: 14px; font-weight: 700; font-size: 12px; white-space: nowrap; background: var(--soft); color: var(--navy); }
+    .chip.danger { background: var(--danger-bg); color: var(--danger); }
+    .chip.ok { background: var(--ok-bg); color: var(--ok); }
+    .chip.warn { background: var(--warn-bg); color: var(--warn); }
+    .chip.pending { background: #E3ECFA; color: var(--accent-dark); }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; }
+    .wrap > * { min-width: 0; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; box-shadow: 0 1px 2px rgba(11, 42, 91, .04); }
+    .card h2 { margin: 0 0 10px; font-size: 17px; font-weight: 700; color: var(--navy); }
+    .card h3 { margin: 0 0 8px; font-size: 14px; font-weight: 700; color: var(--navy); }
+    .trip-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .route { font-size: 22px; font-weight: 800; color: var(--navy); letter-spacing: -.02em; }
+    .route small { font-size: 13px; font-weight: 600; color: var(--muted); margin-left: 8px; }
+    .banner { margin: 14px 0; padding: 12px 14px; border-radius: 10px; background: var(--danger-bg); border: 1px solid #F3B8B8; display: flex; gap: 12px; align-items: flex-start; }
+    .banner .icon { width: 28px; height: 28px; border-radius: 50%; background: var(--danger); color: #fff; display: grid; place-items: center; font-weight: 800; flex: none; }
+    .banner strong { color: var(--danger); display: block; font-size: 15px; }
+    .banner p { margin: 2px 0 0; color: #5B2222; font-size: 13px; }
+    .segment { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: #FBFCFE; }
+    .segment .flight { font-weight: 700; color: var(--navy); }
+    .segment .times { font-variant-numeric: tabular-nums; }
+    .segment .times b { font-size: 16px; }
+    .segment .strike { text-decoration: line-through; color: var(--muted); }
+    .alts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .alt { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; align-items: center; background: var(--surface); transition: border-color .15s, box-shadow .15s; }
+    .alt:hover { border-color: #B9CCE8; }
+    .alt.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(26, 95, 180, .15); }
+    .alt.held { border-color: #8BC4A3; }
+    .alt.rebooked { border-color: var(--ok); background: #F3FBF6; }
+    .alt-main { min-width: 0; }
+    .alt-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .carrier { font-weight: 700; color: var(--navy); }
+    .fnum { color: var(--muted); font-weight: 600; font-size: 13px; }
+    .alt-times { margin-top: 4px; display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+    .alt-times b { font-size: 17px; color: var(--text); }
+    .alt-times span { color: var(--muted); font-size: 12px; }
+    .alt-fare { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .alt-fare strong { color: var(--text); }
+    .alt-actions { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+    .btn { min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--accent); background: var(--surface); color: var(--accent); font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .btn:hover:not(:disabled) { background: var(--soft); }
+    .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); min-width: 110px; }
+    .btn.primary:hover:not(:disabled) { background: var(--accent-dark); }
+    .btn.ghost { border-color: var(--line); color: var(--navy); }
+    .btn.small { min-height: 40px; padding: 0 12px; font-size: 13px; }
+    .alt-note { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
+    .alt-note.ok { color: var(--ok); font-weight: 600; }
+    .status { min-height: 20px; margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+    .result-box { display: none; margin-top: 12px; padding: 12px 14px; font-size: 13px; border-radius: 10px; }
+    .result-box.success { display: block; background: var(--ok-bg); border: 1px solid #9CD4B3; color: #0F4D2C; }
+    .result-box.notice { display: block; background: var(--danger-bg); border: 1px solid #F3B8B8; color: #5B2222; }
+    .result-box a { font-weight: 700; }
+    .rail { display: grid; gap: 16px; align-content: start; }
+    .vcard { border-radius: 14px; padding: 16px; color: #fff; background: linear-gradient(135deg, #0B2A5B 0%, #1A5FB4 60%, #2B6FD6 100%); box-shadow: 0 8px 20px rgba(11, 42, 91, .18); }
+    .vcard .brand { display: flex; justify-content: space-between; align-items: center; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; opacity: .9; }
+    .vcard .num { margin: 22px 0 10px; font-size: 17px; letter-spacing: .14em; font-variant-numeric: tabular-nums; }
+    .vcard .row { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; opacity: .92; flex-wrap: wrap; }
+    .vcard .row b { display: block; font-size: 13px; letter-spacing: 0; }
+    .vmeta { display: grid; gap: 6px; margin-top: 12px; font-size: 13px; }
+    .vmeta div { display: flex; justify-content: space-between; gap: 10px; }
+    .vmeta span { color: var(--muted); }
+    .chat-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .chat-btn .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px rgba(27, 127, 75, .18); }
+    .links { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .links li a { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--navy); font-weight: 600; }
+    .links li a:hover { background: var(--soft); }
+    .chat-panel { display: none; position: fixed; right: 16px; bottom: 72px; width: 320px; max-width: calc(100vw - 32px); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px rgba(11, 42, 91, .2); z-index: 60; overflow: hidden; }
+    .chat-panel.open { display: block; }
+    .chat-head { background: var(--navy); color: #fff; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+    .chat-head button { background: transparent; border: 0; color: #fff; font-size: 18px; cursor: pointer; }
+    .chat-body { padding: 12px 14px; display: grid; gap: 8px; font-size: 13px; }
+    .bubble { padding: 8px 10px; border-radius: 10px; background: var(--soft); color: var(--text); max-width: 92%; }
+    .bubble.me { background: var(--accent); color: #fff; justify-self: end; }
+    .muted { color: var(--muted); font-size: 12px; }
+    footer { max-width: 1120px; margin: 0 auto; padding: 8px 20px 28px; color: var(--muted); font-size: 12px; display: flex; gap: 14px; flex-wrap: wrap; }
+    @media (max-width: 900px) {
+      .wrap { grid-template-columns: minmax(0, 1fr); }
+      .nav { display: none; }
+    }
+    @media (max-width: 560px) {
+      .topbar-in { height: 56px; gap: 10px; }
+      .wordmark strong { font-size: 22px; }
+      .user small { display: none; }
+      .hero h1 { font-size: 21px; }
+      .segment { grid-template-columns: 1fr; gap: 6px; }
+      .alt { grid-template-columns: 1fr; }
+      .alt-actions { justify-content: flex-start; }
+      .alt-actions .btn { flex: 1 1 auto; }
+      .wrap { padding: 14px; gap: 14px; }
+      .card { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="wordmark"><strong>neo</strong><span>by Amex GBT</span></div>
+      <nav class="nav" aria-label="Primary">
+        <a href="#" class="current">Trips</a>
+        <a href="#">Expenses</a>
+        <a href="#">Cards</a>
+        <a href="#">Approvals</a>
+        <a href="#">Help</a>
+      </nav>
+      <div class="user">
+        <div>Camille Moreau<small>Egencia · Paris engineering</small></div>
+        <div class="avatar" aria-hidden="true">CM</div>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-in">
+      <div>
+        <h1>Your trip needs attention</h1>
+        <div class="sub">Paris → London · Fri 16 Oct 2026 · Trip <span id="tripRef">NEO-7F2K9Q</span></div>
+      </div>
+      <span class="chip danger" id="tripChip">Cancelled by airline</span>
+    </div>
+  </section>
+
+  <main class="wrap">
+    <section>
+      <div class="card">
+        <div class="trip-head">
+          <div class="route">CDG → LHR <small>Outbound · 1 traveler</small></div>
+          <span class="chip" id="stageChip">Action needed</span>
+        </div>
+
+        <div class="banner" role="alert" id="disruptionBanner">
+          <div class="icon" aria-hidden="true">!</div>
+          <div>
+            <strong>Flight cancelled — rebooking options</strong>
+            <p>Air France cancelled <b>AF 1680</b> (CDG 07:25 → LHR 07:45) because of the strike disruption. Pick an alternative below — in-policy options are reissued at no cost to your cost centre.</p>
+          </div>
+        </div>
+
+        <div class="segment" aria-label="Cancelled segment">
+          <div class="flight">AF 1680<br><span class="muted">Air France · Economy</span></div>
+          <div class="times"><b class="strike">07:25</b> CDG &nbsp;→&nbsp; <b class="strike">07:45</b> LHR<br><span class="muted">1h 20m · Terminal 2E → Terminal 4</span></div>
+          <span class="chip danger">Cancelled</span>
+        </div>
+
+        <h2 style="margin-top:18px">Alternative flights</h2>
+        <p class="muted" style="margin:0 0 12px">Fares are compared with your travel policy ceiling of <b>€320</b> for this route. Rebooking reissues your ticket; a hold keeps the seat for a few minutes while you check with your team.</p>
+        <ul class="alts" id="alts" aria-label="Alternative flights"></ul>
+
+        <div class="status" id="rebookStatus" aria-live="polite">Select an alternative to rebook or hold.</div>
+        <div class="result-box" id="result" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <aside class="rail">
+      <div class="card">
+        <h3>Virtual Card</h3>
+        <div class="vcard">
+          <div class="brand"><span>American Express</span><span>Virtual</span></div>
+          <div class="num">•••• •••• •••• 4071</div>
+          <div class="row">
+            <div>Cardholder<b>Camille Moreau</b></div>
+            <div>Expires<b>10/27</b></div>
+            <div>Trip<b>NEO-7F2K9Q</b></div>
+          </div>
+        </div>
+        <div class="vmeta">
+          <div><span>Status</span><b>Active · trip-scoped</b></div>
+          <div><span>Available for fare difference</span><b id="vcardLimit">€320.00</b></div>
+          <div><span>Expense capture</span><b>Automatic</b></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Need help right now?</h3>
+        <p class="muted" style="margin:0 0 10px">Travel counselors are available around the clock for disruptions.</p>
+        <button type="button" class="btn ghost chat-btn" id="chatBtn"><span class="dot" aria-hidden="true"></span>Go with 24/7 live chat</button>
+      </div>
+
+      <div class="card">
+        <h3>Modify your trip anytime</h3>
+        <ul class="links">
+          <li><a href="#">Change hotel · The Hoxton, Shoreditch <span>›</span></a></li>
+          <li><a href="#">Add rail · LHR → London Paddington <span>›</span></a></li>
+          <li><a href="#">Share trip with your approver <span>›</span></a></li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <span>© American Express Global Business Travel</span>
+    <a href="#">Travel policy</a>
+    <a href="#">Privacy</a>
+    <a href="#">Accessibility</a>
+  </footer>
+
+  <div class="chat-panel" id="chatPanel" role="dialog" aria-label="Live chat">
+    <div class="chat-head"><span>Chat · Amex GBT Travel Care</span><button type="button" id="chatClose" aria-label="Close chat">×</button></div>
+    <div class="chat-body">
+      <div class="bubble">Thank you for contacting American Express Global Business Travel. I can see AF 1680 was cancelled — I'm here to help you get to London.</div>
+      <div class="bubble me">Hi, I need help rebooking my flight.</div>
+      <div class="bubble">Of course. Would you like me to confirm one of the alternatives shown in Neo, or look for other options?</div>
+      <div class="muted">Connected · typical reply under 1 min</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const TRIP_ID = 'NEO-7F2K9Q';
+      const POLICY_CEILING = 320;
+      const ALTERNATIVES = [
+        { id: 'AF1280', carrier: 'Air France', flight: 'AF 1280', departs: '09:55', arrives: '10:15', duration: '1h 20m', fareDelta: 0, cabin: 'Economy', seatsLeft: 4 },
+        { id: 'BA0303', carrier: 'British Airways', flight: 'BA 0303', departs: '10:40', arrives: '11:00', duration: '1h 20m', fareDelta: 46, cabin: 'Economy', seatsLeft: 7 },
+        { id: 'AF1080', carrier: 'Air France', flight: 'AF 1080', departs: '12:20', arrives: '12:40', duration: '1h 20m', fareDelta: 0, cabin: 'Economy', seatsLeft: 9 },
+        { id: 'BA0309', carrier: 'British Airways', flight: 'BA 0309', departs: '14:15', arrives: '14:35', duration: '1h 20m', fareDelta: 212, cabin: 'Business', seatsLeft: 2 },
+      ];
+      const state = { inFlight: false, rebooked: null, holds: {} };
+      const euro = (n) => '€' + Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const inPolicy = (alt) => alt.cabin === 'Economy' && alt.fareDelta <= POLICY_CEILING;
+      const fmtTime = (iso) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+      function renderAlts() {
+        $('alts').innerHTML = ALTERNATIVES.map((alt) => {
+          const hold = state.holds[alt.id];
+          const isRebooked = state.rebooked && state.rebooked.id === alt.id;
+          const policyChip = inPolicy(alt)
+            ? '<span class="chip ok">In policy</span>'
+            : '<span class="chip warn">Needs approval</span>';
+          const stateChip = isRebooked
+            ? '<span class="chip ok">Rebooked</span>'
+            : hold ? `<span class="chip pending">Seat held until ${fmtTime(hold.expiresAt)}</span>` : '';
+          const fare = alt.fareDelta === 0
+            ? '<strong>No fare difference</strong> · reissued free of charge'
+            : `<strong>+${euro(alt.fareDelta)}</strong> fare difference · charged to your Virtual Card`;
+          const disabled = state.inFlight || Boolean(state.rebooked) ? 'disabled' : '';
+          return `
+            <li class="alt ${isRebooked ? 'rebooked' : ''} ${hold ? 'held' : ''}" data-id="${alt.id}">
+              <div class="alt-main">
+                <div class="alt-top"><span class="carrier">${alt.carrier}</span><span class="fnum">${alt.flight} · ${alt.cabin}</span>${policyChip}${stateChip}</div>
+                <div class="alt-times"><b>${alt.departs}</b><span>CDG</span><span>→</span><b>${alt.arrives}</b><span>LHR</span><span>· ${alt.duration} · ${alt.seatsLeft} seats left</span></div>
+                <div class="alt-fare">${fare}</div>
+              </div>
+              <div class="alt-actions">
+                <button type="button" class="btn small ghost" data-action="hold" data-id="${alt.id}" ${disabled || (hold ? 'disabled' : '')}>${hold ? 'Seat held' : 'Hold seat 15 min'}</button>
+                <button type="button" class="btn primary" data-action="rebook" data-id="${alt.id}" ${disabled}>${isRebooked ? 'Rebooked' : 'Rebook'}</button>
+              </div>
+            </li>`;
+        }).join('');
+      }
+
+      function setChips(trip, stage) {
+        const tripChip = $('tripChip');
+        tripChip.textContent = trip.text;
+        tripChip.className = 'chip ' + trip.cls;
+        const stageChip = $('stageChip');
+        stageChip.textContent = stage.text;
+        stageChip.className = 'chip ' + stage.cls;
+      }
+
+      async function act(action, alt) {
+        if (state.inFlight || state.rebooked) return;
+        state.inFlight = true;
+        renderAlts();
+        const row = document.querySelector(`.alt[data-id="${alt.id}"]`);
+        if (row) row.classList.add('selected');
+        const status = $('rebookStatus');
+        const result = $('result');
+        result.className = 'result-box';
+        result.textContent = '';
+        if (action === 'rebook') {
+          setChips({ text: 'Cancelled by airline', cls: 'danger' }, { text: 'Rebooking…', cls: 'pending' });
+          status.textContent = `Rebooking you on ${alt.flight} — confirming the fare with the airline…`;
+        } else {
+          status.textContent = `Holding a seat on ${alt.flight}…`;
+        }
+        try {
+          const response = await fetch('/api/neo/rebook', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tripId: TRIP_ID, alternativeId: alt.id, action }),
+          });
+          let data = null;
+          try { data = await response.json(); } catch (_e) { data = null; }
+          if (!response.ok || !data || !data.success) {
+            const err = new Error((data && data.error) || 'The request could not be completed.');
+            err.status = response.status;
+            throw err;
+          }
+          if (action === 'hold') {
+            state.holds[alt.id] = { expiresAt: data.expiresAt };
+            status.textContent = `Seat held on ${data.flight} for ${data.holdMinutes} minutes (until ${fmtTime(data.expiresAt)}). Rebook before then to keep it.`;
+            setChips({ text: 'Cancelled by airline', cls: 'danger' }, { text: 'Seat held', cls: 'pending' });
+          } else {
+            state.rebooked = alt;
+            setChips({ text: `Rebooked · ${data.flight}`, cls: 'ok' }, { text: 'Confirmed', cls: 'ok' });
+            $('disruptionBanner').style.display = 'none';
+            result.className = 'result-box success';
+            result.innerHTML = `<strong>You're rebooked on ${data.carrier} ${data.flight}.</strong> Departs CDG ${data.departs}, arrives LHR ${data.arrives}. New booking reference <b>${data.pnr}</b>${data.fareDelta > 0 ? ` · ${euro(data.fareDelta)} fare difference charged to your Virtual Card` : ' · no fare difference'}. Your updated itinerary is on its way to your calendar.`;
+            status.textContent = 'Ticket reissued — you are all set.';
+          }
+        } catch (error) {
+          if (action === 'rebook') {
+            setChips({ text: 'Cancelled by airline', cls: 'danger' }, { text: 'Rebooking failed', cls: 'danger' });
+            result.className = 'result-box notice';
+            result.innerHTML = error.status === 504
+              ? `<strong>Rebooking is taking longer than expected.</strong> We could not confirm your new flight — your original ticket is still open and nothing was charged. Try again in a few minutes, or <a href="#" id="resultChat">chat with Travel Care 24/7</a> and a counselor will ticket ${alt.flight} for you.`
+              : `<strong>We couldn't rebook you.</strong> ${error.message}`;
+            status.textContent = 'Not rebooked.';
+            const chatLink = $('resultChat');
+            if (chatLink) chatLink.addEventListener('click', (e) => { e.preventDefault(); openChat(); });
+          } else {
+            status.textContent = `We couldn't hold a seat on ${alt.flight}. ${error.message}`;
+          }
+        } finally {
+          state.inFlight = false;
+          renderAlts();
+        }
+      }
+
+      $('alts').addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button || button.disabled) return;
+        const alt = ALTERNATIVES.find((a) => a.id === button.dataset.id);
+        if (alt) act(button.dataset.action, alt);
+      });
+
+      function openChat() { $('chatPanel').classList.add('open'); }
+      $('chatBtn').addEventListener('click', openChat);
+      $('chatClose').addEventListener('click', () => $('chatPanel').classList.remove('open'));
+
+      renderAlts();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

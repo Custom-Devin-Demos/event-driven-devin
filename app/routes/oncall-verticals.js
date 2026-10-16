@@ -11,6 +11,7 @@ const { submitOrder } = require('../services/oncall-verticals/vaccines');
 const { addToBag } = require('../services/oncall-verticals/apparel');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
+const { rebookFlight } = require('../services/oncall-verticals/rebooking');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
@@ -331,6 +332,34 @@ router.post('/api/oncall/clickcollect/checkout', async (req, res) => {
         : error.message,
       errorClass: isTimeout ? 'GatewayTimeout' : error.name,
       code: error.code || 'CHECKOUT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/rebooking/rebook — rebook a disrupted traveler onto an
+ * alternative flight (`action: 'rebook'`) or hold a seat on it (`action: 'hold'`)
+ */
+router.post('/api/oncall/rebooking/rebook', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await rebookFlight({
+      tripId: body.tripId,
+      alternativeId: body.alternativeId,
+      action: body.action,
+    });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'RESHOP_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_REBOOK' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'Rebooking is taking longer than expected. We could not confirm your new flight — your original ticket is still open.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'REBOOK_FAILED',
       requestId: req.requestId,
     });
   }

@@ -266,6 +266,27 @@ const ALERT_SCENARIOS = {
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },
+  rebooking: {
+    vertical: 'rebooking',
+    page: 'e7a1c4d9.html',
+    apiPath: '/api/neo/rebook',
+    oncallApiPath: '/api/oncall/rebooking/rebook',
+    owner: 'Camille Lefevre (neo-rebooking-oncall)',
+    brand: 'Travel App (Trip Disruption Rebooking)',
+    service: 'neo-rebooking-api',
+    endpoint: 'POST /api/oncall/rebooking/rebook',
+    monitor: 'p95 latency — POST /api/oncall/rebooking/rebook',
+    metricQuery: 'p95:rebooking.rebook.latency{service:neo-rebooking-api,route:/api/oncall/rebooking/rebook}',
+    metricValue: '8.0s (504s on every rebook)',
+    threshold: '> 2s',
+    baseline: '~640ms (7-day p95)',
+    release: 'neo-rebooking@5.2.0',
+    symptom: 'Rebook requests hang ~8s and then fail with 504 Gateway Timeout. Seat holds on the same alternatives are normal. Onset coincides with the neo-rebooking 5.2.0 fare-family re-shop release during an airline disruption.',
+    impact: 'Travelers whose flight was cancelled cannot confirm an alternative; every Rebook sits on a spinner and then errors, leaving them unticketed.',
+    triggerWhen: { action: 'rebook' },
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   industrials: {
     vertical: 'industrials',
     page: 'industrials-quote.html',
