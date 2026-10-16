@@ -1455,6 +1455,14 @@ const ONCALL_SKINS = {
     accentDark: '#004c3f',
     disclaimer: "NOT ACTUALLY A DICK'S SPORTING GOODS SITE — internal demo only, not affiliated with, endorsed by, or a real DICK'S Sporting Goods product.",
   },
+  '4febe75b': {
+    slug: '4febe75b',
+    company: 'JD Sports',
+    vertical: 'sportinggoods',
+    oncallOnly: true,
+    page: { file: '4febe75b.html', title: 'Basket - JD Sports UK' },
+    disclaimer: 'NOT ACTUALLY A JD SPORTS SITE — internal demo only, not affiliated with, endorsed by, or a real JD Sports product.',
+  },
   '0d1ff688': {
     slug: '0d1ff688',
     company: 'Nordstrom',
