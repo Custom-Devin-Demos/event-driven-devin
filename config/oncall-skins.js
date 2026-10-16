@@ -4073,6 +4073,42 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A COMPUTERSHARE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Computershare product.',
   },
+  ebc99f00: {
+    slug: 'ebc99f00',
+    company: 'Circana',
+    brandMark: 'C',
+    vertical: 'inference',
+    oncallOnly: true,
+    paths: ['/oncall/c/circana', '/circana-oncall'],
+    // Teams-capable: the presenter's hub picker decides Slack vs Teams per
+    // browser (default Slack). The Slack/Teams responders triage, so no
+    // devinSession.auto (it would double-trigger).
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    page: { file: 'ebc99f00.html', title: 'Report Center | Unify+' },
+    alertCard: {
+      title: 'Report runs: p95 time to first rows trending up during POS load window',
+      service: 'unify-query-api',
+      release: 'unify-query-api@2026.10.2',
+      team: 'platform-reliability-oncall',
+      metricQuery: 'p95:demo.inference.ttft{service:checkout-api,route:/api/oncall/inference/completions}',
+      metricValue: '6.4s to first rows and climbing',
+      threshold: '> 1.5s',
+      baseline: '~310ms (7-day p95, before unify-query-api@2026.10.2)',
+      symptom: 'Run report hangs 6\u20139s before the first result rows come back, and the wait grows with every run served during the Monday retailer POS load window. Row streaming after the first rows is normal and error rate is normal \u2014 runs eventually complete. Process RSS trends up alongside the wait.',
+      impact: 'Interactive report runs for client deliverables (Walmart / Target JBP decks due this week) sit on a spinner for several seconds before any rows appear, and the wait climbs under sustained load; modelers are blocked while runs queue behind the POS load.',
+    },
+    theme: {
+      '--accent': '#00B2A9',
+      '--ink': '#0B1F3A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0B1F3A',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Unify+ Platform Support',
+    supportCenterSub: 'Report Center & query platform incident intake',
+    disclaimer: 'Internal demo only \u2014 fictional Unify+ Report Center scenario with invented client data, not a real Circana product screen or affiliated with or endorsed by Circana.',
+  },
 };
 
 function getOncallSkin(slug) {
