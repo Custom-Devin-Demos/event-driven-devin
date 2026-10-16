@@ -36,6 +36,7 @@ const {
 } = require('../app/services/oncall-verticals/identity');
 const { ALERT_SCENARIOS, postOncallAlert } = require('../app/services/oncall');
 const { getOncallSkin } = require('../config/oncall-skins');
+const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 
 jest.setTimeout(30000);
 
@@ -184,7 +185,7 @@ describe('identity on-call vertical: environment provisioning', () => {
     });
     afterAll((done) => {
       server.closeAllConnections();
-      server.close(done);
+      server.close(() => stopGateway().then(() => done()));
     });
 
     test('POST /api/oncall/identity/environments returns a customer-facing 504 after ~9s', async () => {
