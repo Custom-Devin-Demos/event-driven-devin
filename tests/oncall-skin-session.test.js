@@ -315,7 +315,7 @@ describe('Coppel On-Call skin (Spanish, presenter paged)', () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  test('the presenter owns the session, is paged as Guardia and is not repeated as "Activado por"', async () => {
+  test('the presenter owns the session, is paged as On Call and is not repeated as "Activado por"', async () => {
     lookupSlackUserByEmail.mockResolvedValueOnce('U0PRESENTER');
     const skin = getOncallSkin(COPPEL_SLUG);
 
@@ -330,7 +330,7 @@ describe('Coppel On-Call skin (Spanish, presenter paged)', () => {
     const [, , text, blocks] = postMessage.mock.calls[0];
     const blocksJson = JSON.stringify(blocks);
     expect(text).toContain('*[Activada] Latencia p95 disparada');
-    expect(text).toContain('*Guardia:* <@U0PRESENTER>');
+    expect(text).toContain('*On Call:* <@U0PRESENTER>');
     expect(text).toContain('*Servicio:* pedidos-api (Coppel)');
     expect(text).toContain('*Página afectada:*');
     expect(blocksJson).toContain('Ver en Datadog');
@@ -342,7 +342,7 @@ describe('Coppel On-Call skin (Spanish, presenter paged)', () => {
     const [prompt, options] = createDevinSession.mock.calls[0];
     expect(options.userId).toBe('user_presenter');
     expect(options.orgId).toBe('org_presenter');
-    expect(options.title).toMatch(/^\[Guardia\] /);
+    expect(options.title).toMatch(/^\[On Call\] /);
     expect(prompt).toContain('Un monitor de Datadog está disparando en pedidos-api');
     expect(prompt).toContain('/oncall/c/04eac4a1');
     expect(prompt).toContain('POST /api/oncall/clickcollect/checkout');
@@ -363,7 +363,7 @@ describe('Coppel On-Call skin (Spanish, presenter paged)', () => {
     const [, , text] = postMessage.mock.calls[0];
     expect(text).toContain('*Responsable:*');
     expect(text).toContain('omnicanal-oncall');
-    expect(text).not.toContain('*Guardia:*');
+    expect(text).not.toContain('*On Call:*');
   });
 
   test('English skins keep their English card', async () => {
