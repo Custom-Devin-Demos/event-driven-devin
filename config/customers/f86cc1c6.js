@@ -1,5 +1,5 @@
 module.exports = {
-  label: 'My Disney Experience — Mobile Order (web)',
+  label: 'Walt Disney World — Resort Booking + Mobile Order (web)',
   triggerMode: 'api',
   githubOrg: 'COG-GTM',
 };

@@ -94,3 +94,27 @@ describe('My Disney Experience Mobile Order', () => {
     expect(isInstantPathEvent({ culprit: 'app/services/verticals/f86cc1c6.js — estimateReadyWindow', tags: [] })).toBe(true);
   });
 });
+
+describe('Walt Disney World resort booking', () => {
+  const { bookResortStay } = require('../app/services/verticals/f86cc1c6');
+
+  test.each([['grand-floridian', 'gf-garden'], ['pop-century', 'pc-std'], ['riviera', 'rv-deluxe']])('books %s', async (resortId, roomId) => {
+    const result = await bookResortStay({ resortId, roomId, checkIn: '2027-03-11', checkOut: '2027-03-15', adults: 2, children: 2 });
+    expect(result.success).toBe(true);
+    expect(result.nights).toBe(4);
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test('the pre-filled Lakeshore Lodge stay fails and raises the On-Call alert', async () => {
+    await expect(bookResortStay({ ...IDENTITY })).rejects.toThrow("Cannot read properties of undefined (reading 'depositNights')");
+    await flush(); await flush(); await flush();
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+    expect(Sentry.captureException.mock.calls[0][1].tags.service).toBe('customer-f86cc1c6-resort-booking');
+    expect(slack.postMessage).toHaveBeenCalledTimes(1);
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+  });
+
+  test('rejects an oversized party', async () => {
+    await expect(bookResortStay({ resortId: 'pop-century', roomId: 'pc-std', adults: 4, children: 2 })).rejects.toMatchObject({ statusCode: 400 });
+  });
+});

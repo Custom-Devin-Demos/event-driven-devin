@@ -9,13 +9,15 @@ const { canCreateSession, reserveSession } = require('../session-rate-limiter');
 
 const ROUTE = '/api/f86cc1c6/mobile-order';
 const SERVICE = 'customer-f86cc1c6-mobile-order';
+const BOOKING_ROUTE = '/api/f86cc1c6/resort-booking';
+const BOOKING_SERVICE = 'customer-f86cc1c6-resort-booking';
 const SLACK_MEMBER_ID = process.env.MDE_SLACK_MEMBER_ID || 'U0BCD812VA5';
 const DEFAULT_RESTAURANT = 'cosmic-rays';
 const MAX_QTY = 10;
 
 const RESTAURANTS = {
   'cosmic-rays': {
-    id: 'cosmic-rays', name: "Cosmic Ray's Starlight Cafe", park: 'Magic Kingdom', land: 'Tomorrowland',
+    id: 'cosmic-rays', name: "Cosmic Ray's Starlight Café", park: 'Magic Kingdom', land: 'Tomorrowland',
     menuName: 'Lunch And Dinner Menu', arrivalWindow: 'Now - 2:40 PM', cuisine: 'American', distance: '0.2 mi',
   },
   'pecos-bill': {
@@ -74,18 +76,19 @@ const PREP_STATIONS = {
 
 const SALES_TAX_RATE = 0.065;
 
-const REMEDIATION_DIRECTIVE = [
-  '*Repository to investigate and fix:* `COG-GTM/event-driven-devin`',
-  '',
-  'The failing code path is the My Disney Experience Mobile Order "Submit Order" call:',
-  '- Service: `app/services/verticals/f86cc1c6.js`',
-  '- Route: `app/routes/verticals/f86cc1c6.js`',
-  '- Page: `app/public/verticals/f86cc1c6.html` (served at `/f86cc1c6`)',
-  '',
-  'Preserve existing behavior for every restaurant and menu category.',
-  'Run `npm run lint` and `npx jest tests/f86cc1c6-mobile-order.test.js`, and verify that Submit Order on the pre-filled bag at `/f86cc1c6` returns an order number.',
-  'Open a pull request against `main` with the fix.',
-].join('\n');
+function remediationDirective(flow) {
+  return [
+    '*Repository to investigate and fix:* `COG-GTM/event-driven-devin`',
+    '',
+    `The failing code path is the Walt Disney World "${flow.action}" call:`,
+    ...flow.files,
+    '- Page: `app/public/verticals/f86cc1c6.html` (served at `/f86cc1c6`)',
+    '',
+    'Preserve existing behavior for every resort, restaurant and category.',
+    `Run \`npm run lint\` and \`npx jest tests/f86cc1c6-mobile-order.test.js\`, ${flow.test}`,
+    'Open a pull request against `main` with the fix.',
+  ].join('\n');
+}
 
 function validationError(message, code, statusCode = 400) {
   const error = new Error(message);
@@ -142,13 +145,38 @@ const REPO_URL = `https://github.com/${REPO_NAME}`;
 const DD_URL = () => process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com';
 const DEMO_BASE_URL = () =>
   (process.env.ONCALL_DEMO_BASE_URL || `https://${process.env.DOMAIN_NAME || 'devindemos.com'}`).replace(/\/$/, '');
-const MONITOR = {
-  name: `5xx rate — POST ${ROUTE}`,
-  query: `sum(last_5m):sum:mobile_order.submit_failure{route:${ROUTE}}.as_count() > 0`,
-  threshold: '> 0 failed orders / 5m',
-  baseline: '0 (7-day)',
-  team: 'parks-dining-oncall',
+const FLOWS = {
+  booking: {
+    route: BOOKING_ROUTE,
+    service: BOOKING_SERVICE,
+    metric: 'resort_booking.book_failure',
+    team: 'resorts-reservations-oncall',
+    repro: 'Places to Stay → Disney\'s Lakeshore Lodge → Book Now',
+    action: 'Book Now',
+    files: ['- Service: `app/services/verticals/f86cc1c6.js` (`bookResortStay`)', '- Route: `app/routes/verticals/f86cc1c6.js`'],
+    test: 'and verify that Book Now on the pre-filled Lakeshore Lodge stay at `/f86cc1c6` returns a confirmation number.',
+  },
+  mobileOrder: {
+    route: ROUTE,
+    service: SERVICE,
+    metric: 'mobile_order.submit_failure',
+    team: 'parks-dining-oncall',
+    repro: 'Dining → Cosmic Ray\'s Starlight Café → Your Bag → Submit Order',
+    action: 'Submit Order',
+    files: ['- Service: `app/services/verticals/f86cc1c6.js` (`submitMobileOrder`)', '- Route: `app/routes/verticals/f86cc1c6.js`'],
+    test: 'and verify that Submit Order on the pre-filled bag at `/f86cc1c6` returns an order number.',
+  },
 };
+
+function monitorFor(flow) {
+  return {
+    name: `5xx rate — POST ${flow.route}`,
+    query: `sum(last_5m):sum:${flow.metric}{route:${flow.route}}.as_count() > 0`,
+    threshold: '> 0 failures / 5m',
+    baseline: '0 (7-day)',
+    team: flow.team,
+  };
+}
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}$/;
 const DEVIN_ORG_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 const DEVIN_USER_ID_RE = /^[A-Za-z0-9_|.@+-]{1,128}$/;
@@ -181,13 +209,14 @@ function fieldPairs(pairs) {
 }
 
 function buildAlertBlocks(facts) {
+  const MONITOR = monitorFor(facts.flow);
   return [
     { type: 'header', text: { type: 'plain_text', text: `:rotating_light: [Triggered] ${MONITOR.name}`, emoji: true } },
     ...fieldPairs([
-      ['Service', `${SERVICE} (My Disney Experience)`],
-      ['Endpoint', `POST ${ROUTE}`],
+      ['Service', `${facts.flow.service} (Walt Disney World)`],
+      ['Endpoint', `POST ${facts.flow.route}`],
       ['Error', `\`${facts.errorText}\``],
-      ['Restaurant', `${facts.restaurantName} (${facts.itemCount} items)`],
+      [facts.contextLabel, facts.contextValue],
       ['Threshold', MONITOR.threshold],
       ['Baseline', MONITOR.baseline],
       ['Release', facts.release],
@@ -202,7 +231,7 @@ function buildAlertBlocks(facts) {
       type: 'context',
       elements: [{
         type: 'mrkdwn',
-        text: [`Service: \`${SERVICE}\``, new Date().toISOString(), facts.triggeredBy ? `Triggered by ${facts.triggeredBy}` : null]
+        text: [`Service: \`${facts.flow.service}\``, new Date().toISOString(), facts.triggeredBy ? `Triggered by ${facts.triggeredBy}` : null]
           .filter(Boolean).join(' | '),
       }],
     },
@@ -210,28 +239,30 @@ function buildAlertBlocks(facts) {
 }
 
 function buildAlertText(facts) {
+  const MONITOR = monitorFor(facts.flow);
   return [
     `:rotating_light: *[Triggered] ${MONITOR.name}*`,
-    `*Service:* ${SERVICE} (My Disney Experience) | *Error:* ${facts.errorText}`,
+    `*Service:* ${facts.flow.service} (Walt Disney World) | *Error:* ${facts.errorText}`,
     `*On-Call:* <@${SLACK_MEMBER_ID}> | *Incident Ref:* ${facts.runRef}`,
   ].join('\n');
 }
 
 function buildSessionPrompt(facts, { channel, threadTs }) {
   const mention = `<@${SLACK_MEMBER_ID}>`;
+  const MONITOR = monitorFor(facts.flow);
   return [
-    `A Datadog monitor is firing on ${SERVICE}. Investigate it and open a PR with the fix.`,
+    `A Datadog monitor is firing on ${facts.flow.service}. Investigate it and open a PR with the fix.`,
     '',
     `*Monitor:* ${MONITOR.name} — Triggered`,
     `*Query:* \`${MONITOR.query}\``,
     `*Error:* ${facts.errorText}`,
-    `*Failing request:* Submit Order at ${facts.restaurantName} (${facts.itemCount} items), request ${facts.requestId}`,
+    `*Failing request:* ${facts.flow.action} — ${facts.contextValue}, request ${facts.requestId}`,
     `*Release:* ${facts.release}`,
     `*Incident Ref:* ${facts.runRef}`,
     '',
-    `Reproduce it at ${DEMO_BASE_URL()}/f86cc1c6 (Dining → Order Food → Cosmic Ray's → Bag → Submit Order).`,
+    `Reproduce it at ${DEMO_BASE_URL()}/f86cc1c6 (${facts.flow.repro}).`,
     '',
-    REMEDIATION_DIRECTIVE,
+    remediationDirective(facts.flow),
     '',
     `*Slack Thread:* channel=${channel} thread_ts=${threadTs}`,
     '',
@@ -269,7 +300,7 @@ async function triggerDevinSession(facts, { token, channel, threadTs, requester 
     session = await createDevinSession(buildSessionPrompt(facts, { channel, threadTs }), {
       ...resolveSessionIdentity(requester),
       apiKey: process.env.DEVIN_ONCALL_SERVICE_KEY,
-      title: `[On-Call] ${facts.runRef} ${MONITOR.name}`,
+      title: `[On-Call] ${facts.runRef} ${monitorFor(facts.flow).name}`,
       repos: [REPO_NAME],
     });
   } catch (sessionError) {
@@ -291,22 +322,23 @@ async function triggerDevinSession(facts, { token, channel, threadTs, requester 
 }
 
 /**
- * Post the #oncall-alerts monitor card for a failed Mobile Order, declare a
+ * Post the #oncall-alerts monitor card for a failed booking / Mobile Order, declare a
  * SEV-2 Datadog incident and open the Devin session in the card's thread.
  */
-async function raiseOncallAlert({ error, restaurant, itemCount, requestId, requester = {} }) {
+async function raiseOncallAlert({ error, flow = FLOWS.mobileOrder, contextLabel, contextValue, requestId, requester = {} }) {
   const { token, alertsChannel } = resolveOncallEnv();
   if (!token || !alertsChannel) {
     logger.warn('On-Call alerts channel not configured — MDE alert not posted', { requestId });
     return { ok: false, skipped: true };
   }
   const facts = {
-    runRef: `MDE-INC-${uuidv4().slice(0, 6).toUpperCase()}`,
+    runRef: `WDW-INC-${uuidv4().slice(0, 6).toUpperCase()}`,
     requestId,
     errorText: `${error.name}: ${error.message}`,
-    restaurantName: restaurant.name,
-    itemCount,
-    release: process.env.SENTRY_RELEASE || 'mde-mobile-order-web@8.25.0',
+    flow,
+    contextLabel,
+    contextValue,
+    release: process.env.SENTRY_RELEASE || 'wdw-web@26.10.2',
     triggeredBy: await resolveTriggeredBy(token, requester.devinEmail),
   };
 
@@ -314,10 +346,10 @@ async function raiseOncallAlert({ error, restaurant, itemCount, requestId, reque
   logger.info('Posting alert and triggering Devin', { runRef: facts.runRef, channel: alertsChannel, ts: threadTs });
 
   declareDatadogIncident({
-    title: `My Disney Experience: ${MONITOR.name}`,
-    summary: `Mobile Order submit fails at ${facts.restaurantName} with ${facts.errorText}.`,
+    title: `Walt Disney World: ${monitorFor(flow).name}`,
+    summary: `${flow.action} fails (${contextValue}) with ${facts.errorText}.`,
     runRef: facts.runRef,
-    service: SERVICE,
+    service: flow.service,
     triggeredBy: EMAIL_RE.test(requester.devinEmail || '') ? requester.devinEmail : 'f86cc1c6',
     repoUrl: REPO_URL,
     severity: 'SEV-2',
@@ -378,7 +410,9 @@ async function submitMobileOrder(data) {
       extra: { requestId, itemIds: lines.map((line) => line.item.id), itemCount },
     });
 
-    raiseOncallAlert({ error, restaurant, itemCount, requestId, requester: data }).catch((alertError) => {
+    raiseOncallAlert({
+      error, flow: FLOWS.mobileOrder, contextLabel: 'Restaurant', contextValue: `${restaurant.name} (${itemCount} items)`, requestId, requester: data,
+    }).catch((alertError) => {
       logger.error('Failed to raise MDE On-Call alert', { error: alertError.message, requestId });
     });
 
@@ -387,7 +421,165 @@ async function submitMobileOrder(data) {
   }
 }
 
+const IMG = 'https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/900/450/75';
+const RESORTS = {
+  'lakeshore-lodge': {
+    id: 'lakeshore-lodge', name: "Disney's Lakeshore Lodge", area: 'Magic Kingdom Resort Area', category: 'deluxe-signature',
+    categoryLabel: 'Deluxe Resort', isNew: true, transport: 'Boat to Magic Kingdom Park',
+    image: `${IMG}/vision-dam/digital/parks-platform/parks-global-assets/disney-world/resorts/lakeshore-lodge/overview/LL_PoolSide_Render_04_24_26-7x3-16x9.jpg`,
+    blurb: 'A brand-new lakeside retreat on the shores of Bay Lake, steps from the magic of Magic Kingdom Park.',
+    rooms: [
+      { id: 'll-lake', name: 'Lodge Room – Lake View', sleeps: 5, beds: '2 Queen Beds and 1 Day Bed', nightly: 789 },
+      { id: 'll-garden', name: 'Lodge Room – Garden View', sleeps: 5, beds: '2 Queen Beds and 1 Day Bed', nightly: 712 },
+    ],
+  },
+  'grand-floridian': {
+    id: 'grand-floridian', name: "Disney's Grand Floridian Resort & Spa", area: 'Magic Kingdom Resort Area', category: 'deluxe',
+    categoryLabel: 'Deluxe Resort', transport: 'Monorail, Boat',
+    image: `${IMG}/vision-dam/digital/parks-platform/parks-global-assets/disney-world/resorts/grand-floridian/0821ZM_0873SD_JRoh_R2-16x9.jpg`,
+    blurb: 'Victorian elegance on the shores of the Seven Seas Lagoon.',
+    rooms: [
+      { id: 'gf-garden', name: 'Resort View Room', sleeps: 5, beds: '2 Queen Beds and 1 Day Bed', nightly: 899 },
+      { id: 'gf-lagoon', name: 'Theme Park View Room', sleeps: 5, beds: '2 Queen Beds and 1 Day Bed', nightly: 1049 },
+    ],
+  },
+  polynesian: {
+    id: 'polynesian', name: "Disney's Polynesian Village Resort", area: 'Magic Kingdom Resort Area', category: 'deluxe',
+    categoryLabel: 'Deluxe Resort', transport: 'Monorail, Boat',
+    image: `${IMG}/vision-dam/digital/parks-platform/parks-global-assets/disney-world/resorts/polynesian-resort/experience/0721ZU_0017KP-2-16x9.jpg`,
+    blurb: 'South Pacific charm with white-sand beaches and views of the nighttime spectaculars.',
+    rooms: [
+      { id: 'py-std', name: 'Standard View Room', sleeps: 5, beds: '2 Queen Beds and 1 Day Bed', nightly: 829 },
+      { id: 'py-lagoon', name: 'Lagoon View Room', sleeps: 5, beds: '2 Queen Beds and 1 Day Bed', nightly: 989 },
+    ],
+  },
+  riviera: {
+    id: 'riviera', name: "Disney's Riviera Resort", area: 'EPCOT Resort Area', category: 'deluxe-villa',
+    categoryLabel: 'Disney Vacation Club Villas', transport: 'Disney Skyliner',
+    image: `${IMG}/dam/disney-world/resorts/riviera-resort/overview/riviera-enterance-16x9.jpg`,
+    blurb: 'European grandeur inspired by Walt Disney\u2019s travels along the Riviera.',
+    rooms: [
+      { id: 'rv-deluxe', name: 'Deluxe Studio – Preferred View', sleeps: 5, beds: '1 Queen Bed and 1 Sleeper Sofa', nightly: 712 },
+    ],
+  },
+  'caribbean-beach': {
+    id: 'caribbean-beach', name: "Disney's Caribbean Beach Resort", area: 'EPCOT Resort Area', category: 'moderate',
+    categoryLabel: 'Moderate Resort', transport: 'Disney Skyliner, Bus',
+    image: `${IMG}/vision-dam/digital/parks-platform/parks-global-assets/disney-world/resorts/caribbean-beach-resort/experience/0425ZM_0079OK_R1PW-5x2.jpg`,
+    blurb: 'Island-inspired villages around a 45-acre lake.',
+    rooms: [
+      { id: 'cb-std', name: 'Standard Room', sleeps: 5, beds: '2 Queen Beds and 1 Pull-Down Bed', nightly: 289 },
+    ],
+  },
+  'pop-century': {
+    id: 'pop-century', name: "Disney's Pop Century Resort", area: 'ESPN Wide World of Sports Area', category: 'value',
+    categoryLabel: 'Value Resort', transport: 'Disney Skyliner, Bus',
+    image: `${IMG}/vision-dam/digital/parks-platform/parks-global-assets/disney-world/resorts/disneys-pop-century-resort/experience/WDW_POP_PopShop_ExteriorAngle_BS-16x9.jpg`,
+    blurb: 'Larger-than-life icons from the 1950s through the 1990s.',
+    rooms: [
+      { id: 'pc-std', name: 'Standard Room', sleeps: 4, beds: '2 Full Beds', nightly: 172 },
+    ],
+  },
+};
+
+// Deposit + cancellation rules per resort category, consumed by the payment
+// scheduler. Lakeshore Lodge pre-sales introduced the new 'deluxe-signature'
+// category through resort-catalog sync RES-2207; payment rules are owned by
+// the Reservations Finance team and are released separately.
+const DEPOSIT_POLICIES = {
+  value: { depositNights: 1, balanceDueDays: 30, cancelFeeNights: 1 },
+  moderate: { depositNights: 1, balanceDueDays: 30, cancelFeeNights: 1 },
+  deluxe: { depositNights: 1, balanceDueDays: 30, cancelFeeNights: 1 },
+  'deluxe-villa': { depositNights: 1, balanceDueDays: 30, cancelFeeNights: 1 },
+};
+
+const RESORT_TAX_RATE = 0.125;
+const DEFAULT_STAY = { resortId: 'lakeshore-lodge', roomId: 'll-lake', checkIn: '2027-03-11', checkOut: '2027-03-15', adults: 2, children: 2 };
+
+function listResorts() {
+  return { resorts: Object.values(RESORTS), defaultStay: DEFAULT_STAY };
+}
+
+function resolveStay(data) {
+  const resort = RESORTS[String(data.resortId || DEFAULT_STAY.resortId).toLowerCase()];
+  if (!resort) throw validationError('This resort is not available for online booking.', 'RESORT_NOT_FOUND', 404);
+  const room = resort.rooms.find((r) => r.id === (data.roomId || resort.rooms[0].id));
+  if (!room) throw validationError('This room type is no longer available.', 'ROOM_UNAVAILABLE');
+  const checkIn = new Date(`${data.checkIn || DEFAULT_STAY.checkIn}T00:00:00Z`);
+  const checkOut = new Date(`${data.checkOut || DEFAULT_STAY.checkOut}T00:00:00Z`);
+  const nights = Math.round((checkOut - checkIn) / 86400000);
+  if (!Number.isFinite(nights) || nights < 1 || nights > 14) throw validationError('Choose a stay between 1 and 14 nights.', 'INVALID_DATES');
+  const adults = Number.parseInt(data.adults ?? DEFAULT_STAY.adults, 10);
+  const children = Number.parseInt(data.children ?? DEFAULT_STAY.children, 10);
+  if (!(adults >= 1) || !(children >= 0) || adults + children > room.sleeps) throw validationError(`This room sleeps up to ${room.sleeps} Guests.`, 'INVALID_PARTY');
+  return { resort, room, checkIn, checkOut, nights, adults, children };
+}
+
+function priceStay(stay) {
+  const roomTotal = stay.room.nightly * stay.nights;
+  const tax = Math.round(roomTotal * RESORT_TAX_RATE * 100) / 100;
+  return { nightly: stay.room.nightly, roomTotal, tax, total: Math.round((roomTotal + tax) * 100) / 100 };
+}
+
+function buildPaymentSchedule(stay, totals) {
+  const policy = DEPOSIT_POLICIES[stay.resort.category];
+  const depositDue = Math.round(totals.nightly * policy.depositNights * (1 + RESORT_TAX_RATE) * 100) / 100;
+  const balanceDate = new Date(stay.checkIn.getTime() - policy.balanceDueDays * 86400000);
+  return { depositDue, balanceDue: Math.round((totals.total - depositDue) * 100) / 100, balanceDueDate: balanceDate.toISOString().slice(0, 10) };
+}
+
+async function bookResortStay(data) {
+  const startTime = Date.now();
+  const requestId = `RES-${uuidv4().slice(0, 8).toUpperCase()}`;
+  const stay = resolveStay(data || {});
+  const tags = { route: BOOKING_ROUTE, resort: stay.resort.id };
+
+  logger.info('Booking WDW resort stay', {
+    requestId, resortId: stay.resort.id, roomId: stay.room.id, nights: stay.nights, service: BOOKING_SERVICE, route: BOOKING_ROUTE,
+  });
+
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 300));
+    const totals = priceStay(stay);
+    const schedule = buildPaymentSchedule(stay, totals);
+    incrementMetric('resort_booking.book_success', tags);
+    recordTiming('resort_booking.book_latency', Date.now() - startTime, tags);
+    return {
+      success: true,
+      requestId,
+      confirmationNumber: String(Math.floor(100000000 + Math.random() * 899999999)),
+      resort: { id: stay.resort.id, name: stay.resort.name },
+      room: stay.room.name,
+      checkIn: stay.checkIn.toISOString().slice(0, 10),
+      checkOut: stay.checkOut.toISOString().slice(0, 10),
+      nights: stay.nights,
+      ...totals,
+      ...schedule,
+    };
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    incrementMetric('resort_booking.book_failure', { ...tags, errorClass: error.name });
+    recordTiming('resort_booking.book_latency', duration, { ...tags, error: 'true' });
+    logger.error('WDW resort booking failed', {
+      requestId, error: error.message, errorClass: error.name, durationMs: duration, resortId: stay.resort.id, service: BOOKING_SERVICE,
+    });
+    Sentry.captureException(error, {
+      tags: { route: BOOKING_ROUTE, service: BOOKING_SERVICE, resort: stay.resort.id, alert_path: 'instant' },
+      extra: { requestId, roomId: stay.room.id, nights: stay.nights },
+    });
+    raiseOncallAlert({
+      error, flow: FLOWS.booking, contextLabel: 'Resort', contextValue: `${stay.resort.name} · ${stay.room.name} · ${stay.nights} nights`, requestId, requester: data,
+    }).catch((alertError) => {
+      logger.error('Failed to raise WDW booking On-Call alert', { error: alertError.message, requestId });
+    });
+    error.requestId = requestId;
+    throw error;
+  }
+}
+
 module.exports = {
+  listResorts,
+  bookResortStay,
   getMenu,
   submitMobileOrder,
   resolveRestaurant,
