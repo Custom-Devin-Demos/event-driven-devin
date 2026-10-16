@@ -10,6 +10,7 @@ const { addToCart } = require('../services/oncall-verticals/marketplace');
 const { submitOrder } = require('../services/oncall-verticals/vaccines');
 const { addToBag } = require('../services/oncall-verticals/apparel');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
+const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
@@ -299,6 +300,34 @@ router.post('/api/oncall/sportinggoods/checkout', async (req, res) => {
       success: false,
       error: isTimeout
         ? 'Your order timed out while reserving items at your store. Please try again in a few minutes.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'CHECKOUT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/clickcollect/checkout — place a Coppel cart checkout
+ * (home delivery or "Recoger en tienda")
+ */
+router.post('/api/oncall/clickcollect/checkout', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await checkoutClickCollectOrder({
+      items: body.items,
+      delivery: body.delivery || 'domicilio',
+      storeNumber: body.storeNumber || '0071',
+    });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'STORE_HOLD_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_CART' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'Se agotó el tiempo al apartar tus productos en la tienda. Intenta de nuevo en unos minutos.'
         : error.message,
       errorClass: isTimeout ? 'GatewayTimeout' : error.name,
       code: error.code || 'CHECKOUT_FAILED',
