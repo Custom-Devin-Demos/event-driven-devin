@@ -57,6 +57,7 @@
 
       /* Header */
       .header {
+        position: relative;
         background: var(--surface);
       }
       .header-row {
@@ -439,7 +440,7 @@
       .footer-col a {
         display: flex;
         align-items: center;
-        min-height: 34px;
+        min-height: 44px;
       }
       .footer-bottom {
         margin-top: 56px;
@@ -453,8 +454,13 @@
       }
       .footer-bottom nav {
         display: flex;
-        gap: 20px;
+        gap: 0 20px;
         flex-wrap: wrap;
+      }
+      .footer-bottom nav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
       }
       .footer-word {
         font-size: 30px;
@@ -472,6 +478,23 @@
         .menu-btn {
           display: inline-grid;
           place-items: center;
+        }
+        .header.nav-open .nav {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 0;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          z-index: 20;
+          padding: 8px 16px 16px;
+          background: var(--surface);
+          border-bottom: 1px solid rgba(31, 13, 5, 0.12);
+        }
+        .header.nav-open .nav a {
+          justify-content: space-between;
         }
         .util .hide-sm {
           display: none;
@@ -520,7 +543,7 @@
     <header class="header">
       <div class="wrap header-row">
         <a class="brand" href="#" aria-label="Oscar home"><span class="brand-mark">O</span>oscar</a>
-        <nav class="nav" aria-label="Primary">
+        <nav class="nav" id="primaryNav" aria-label="Primary">
           <a href="#">Get Coverage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></a>
           <a href="#">For Members <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></a>
           <a href="#">For Employers <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></a>
@@ -530,7 +553,7 @@
         <div class="util">
           <a href="#" class="hide-sm">Find Doctors &amp; Drugs</a>
           <a href="#" aria-label="Account"><span class="avatar">JR</span><span class="hide-sm">Jordan</span></a>
-          <button class="menu-btn" type="button" aria-label="Menu">
+          <button class="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
           </button>
         </div>
@@ -708,8 +731,21 @@
           : "\u2014";
       }
 
+      const header = document.querySelector(".header");
+      const menuBtn = document.querySelector(".menu-btn");
+      menuBtn.addEventListener("click", () => {
+        const open = header.classList.toggle("nav-open");
+        menuBtn.setAttribute("aria-expanded", String(open));
+      });
+
+      let submission = 0;
+      const submitBtn = document.getElementById("submitBtn");
+
       form.addEventListener("input", updateSummary);
       form.addEventListener("reset", () => {
+        submission++;
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit claim";
         result.className = "result-box";
         result.textContent = "";
         requestAnimationFrame(updateSummary);
@@ -718,7 +754,8 @@
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const btn = document.getElementById("submitBtn");
+        const current = ++submission;
+        const btn = submitBtn;
         btn.disabled = true;
         btn.textContent = "Submitting claim\u2026";
         result.className = "result-box";
@@ -741,6 +778,7 @@
           try {
             d = await res.json();
           } catch (_) {}
+          if (current !== submission) return;
           if (!res.ok) {
             result.className = "result-box error";
             result.textContent =
@@ -750,10 +788,12 @@
             result.textContent = `Claim submitted. Your reference is ${d.claimId}. We\u2019ll review it and let you know the outcome.`;
           }
         } catch (_) {
+          if (current !== submission) return;
           result.className = "result-box error";
           result.textContent =
             "We couldn\u2019t submit your claim right now. Please try again in a few minutes. If this keeps happening, contact Oscar Member Services.";
         } finally {
+          if (current !== submission) return;
           btn.disabled = false;
           btn.textContent = "Submit claim";
         }
