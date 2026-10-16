@@ -275,6 +275,8 @@ describe('skins that page the triggering presenter as On-Call', () => {
     const [, , text, blocks] = postMessage.mock.calls[0];
     expect(text).toContain('*On-Call:* <@U0PRESENTER>');
     expect(text).not.toContain('*Owner:*');
+    expect(text).not.toContain('Triggered by');
+    expect(JSON.stringify(blocks)).not.toContain('Triggered by');
     expect(JSON.stringify(blocks)).toContain('On-Call');
     expect(JSON.stringify(blocks)).toContain('<@U0PRESENTER>');
 
@@ -305,5 +307,72 @@ describe('skins that page the triggering presenter as On-Call', () => {
 
     const [, , text] = postMessage.mock.calls[0];
     expect(text).not.toContain('*On-Call:*');
+  });
+});
+
+describe('Coppel On-Call skin (Spanish, presenter paged)', () => {
+  const COPPEL_SLUG = '04eac4a1';
+
+  beforeEach(() => jest.clearAllMocks());
+
+  test('the presenter owns the session, is paged as Guardia and is not repeated as "Activado por"', async () => {
+    lookupSlackUserByEmail.mockResolvedValueOnce('U0PRESENTER');
+    const skin = getOncallSkin(COPPEL_SLUG);
+
+    const result = await postOncallAlert(skin.vertical, {
+      skin,
+      devinEmail: 'presenter@devindemos.com',
+      devinUserId: 'user_presenter',
+      devinOrgId: 'org_presenter',
+    });
+
+    expect(result.ok).toBe(true);
+    const [, , text, blocks] = postMessage.mock.calls[0];
+    const blocksJson = JSON.stringify(blocks);
+    expect(text).toContain('*[Activada] Latencia p95 disparada');
+    expect(text).toContain('*Guardia:* <@U0PRESENTER>');
+    expect(text).toContain('*Servicio:* pedidos-api (Coppel)');
+    expect(text).toContain('*Página afectada:*');
+    expect(blocksJson).toContain('Ver en Datadog');
+    for (const forbidden of ['Triggered by', 'Activado por', '*Responsable:*', '*On-Call:*', '*Owner:*']) {
+      expect(text).not.toContain(forbidden);
+    }
+    expect(blocksJson).not.toMatch(/Triggered by|Activado por/);
+
+    const [prompt, options] = createDevinSession.mock.calls[0];
+    expect(options.userId).toBe('user_presenter');
+    expect(options.orgId).toBe('org_presenter');
+    expect(options.title).toMatch(/^\[Guardia\] /);
+    expect(prompt).toContain('Un monitor de Datadog está disparando en pedidos-api');
+    expect(prompt).toContain('/oncall/c/04eac4a1');
+    expect(prompt).toContain('POST /api/oncall/clickcollect/checkout');
+    expect(prompt).toContain('<@U0PRESENTER>');
+    expect(prompt).toContain('responde en español');
+    expect(prompt).toContain('Recoger en tienda');
+
+    const [, , , replyText, replyBlocks] = postThreadReply.mock.calls.find((c) => /Devin está investigando/.test(c[3]));
+    expect(replyText).toContain('https://app.devin.ai/sessions/session-abc');
+    expect(JSON.stringify(replyBlocks)).toContain('Ver sesión');
+  });
+
+  test('an unresolvable presenter falls back to the Responsable rotation in Spanish', async () => {
+    const skin = getOncallSkin(COPPEL_SLUG);
+
+    await postOncallAlert(skin.vertical, { skin, devinEmail: 'nobody@devindemos.com' });
+
+    const [, , text] = postMessage.mock.calls[0];
+    expect(text).toContain('*Responsable:*');
+    expect(text).toContain('omnicanal-oncall');
+    expect(text).not.toContain('*Guardia:*');
+  });
+
+  test('English skins keep their English card', async () => {
+    const skin = getOncallSkin(AUTO_SKIN_SLUG);
+
+    await postOncallAlert(skin.vertical, { skin });
+
+    const [, , text] = postMessage.mock.calls[0];
+    expect(text).toContain('*Service:*');
+    expect(text).not.toContain('*Servicio:*');
   });
 });
