@@ -1038,6 +1038,13 @@ describe('slack design review fixes', () => {
       expect(() => decodeURIComponent(url)).not.toThrow();
       expect(url).toMatch(/20270112T160000Z|2027-01-12T16%3A00%3A00Z/);
     }
+    const mixed = ics.calendarLinks(await R.createRequest(store, req({ purpose: 'a😀'.repeat(250), notes: 'b😀'.repeat(250), meetingLink: 'https://zoom.us/j/1' }), { now: NOW_F }));
+    for (const url of [mixed.google, mixed.outlook]) {
+      expect(url.length).toBeLessThanOrEqual(ics.MAX_BUTTON_URL);
+      expect(url.length).toBeGreaterThan(ics.MAX_BUTTON_URL - 20);
+      expect(decodeURIComponent(url)).toContain('location=https://zoom.us/j/1');
+      expect(decodeURIComponent(url)).toContain('…');
+    }
     const short = ics.calendarLinks(await R.createRequest(store, req({ meetingLink: 'https://zoom.us/j/1' }), { now: NOW_F }));
     expect(decodeURIComponent(short.google)).toContain('Purpose: EBC');
     expect(decodeURIComponent(short.google)).toContain('location=https://zoom.us/j/1');

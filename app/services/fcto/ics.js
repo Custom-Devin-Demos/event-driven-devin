@@ -54,15 +54,15 @@ function fitUrl(build, summary, details, location) {
   const chars = Array.from(details);
   const url = build(summary, details, location);
   if (url.length <= MAX_BUTTON_URL) return url;
+  const prefix = (n) => (n ? `${chars.slice(0, n).join('')}…` : '');
   let lo = 0;
   let hi = chars.length;
   while (lo < hi) {
     const mid = Math.ceil((lo + hi) / 2);
-    if (build(summary, chars.slice(0, mid).join(''), location).length <= MAX_BUTTON_URL) lo = mid;
+    if (build(summary, prefix(mid), location).length <= MAX_BUTTON_URL) lo = mid;
     else hi = mid - 1;
   }
-  const trimmed = lo ? `${chars.slice(0, lo).join('')}…` : '';
-  const fitted = build(summary, trimmed, location);
+  const fitted = build(summary, prefix(lo), location);
   if (fitted.length <= MAX_BUTTON_URL) return fitted;
   return build(Array.from(summary).slice(0, 120).join(''), '', '');
 }
