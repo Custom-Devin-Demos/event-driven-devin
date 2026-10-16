@@ -103,6 +103,7 @@
     .slides { display: flex; align-items: flex-end; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 20px; }
     .slides::-webkit-scrollbar { display: none; }
     .slide { flex: 0 0 353px; display: flex; align-items: flex-end; }
+    .slide[hidden] { display: none; }
     .card-root { position: relative; margin: 45px 10px 0; width: 333px; }
     .card-root.no-strip { margin-top: 51px; }
     .merch-strip { position: absolute; left: 0; right: 0; top: -39px; height: 70px; background: var(--merch); border-radius: 40px 40px 0 0; padding: 15px 24px 35px; text-align: center; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--purple); z-index: 0; }
@@ -347,13 +348,13 @@
           <p>All the best live and on demand from Netflix, Sky channels from NOW, TNT Sports and more. Swap and manage your package via My BT app.</p>
         </div>
         <div class="tabs" role="tablist">
-          <button type="button" role="tab">TV shows and Movies</button>
-          <button type="button" role="tab">Sports and games</button>
-          <button type="button" role="tab" class="active" aria-selected="true">Both</button>
+          <button type="button" role="tab" data-tab="tv" aria-selected="false">TV shows and Movies</button>
+          <button type="button" role="tab" data-tab="sport" aria-selected="false">Sports and games</button>
+          <button type="button" role="tab" data-tab="both" class="active" aria-selected="true">Both</button>
         </div>
         <div class="carousel">
           <div class="slides" id="slides">
-            <div class="slide">
+            <div class="slide" data-category="sport">
               <div class="card-root">
                 <div class="merch-strip">Get Sport for just £5 a month</div>
                 <div class="card" data-plan="BASIC-12">
@@ -380,7 +381,7 @@
                 </div>
               </div>
             </div>
-            <div class="slide">
+            <div class="slide" data-category="tv">
               <div class="card-root">
                 <div class="merch-strip">Enjoy Entertainment for £15 a month</div>
                 <div class="card" data-plan="PLUS-24">
@@ -408,7 +409,7 @@
                 </div>
               </div>
             </div>
-            <div class="slide">
+            <div class="slide" data-category="sport">
               <div class="card-root no-strip">
                 <div class="card" data-plan="FAMILY-PLUS-12">
                   <img class="card-img" src="https://img01.products.bt.co.uk/content/dam/bt/storefront/bt-tv/common/images/tv-product-card/2026/october/sport_plus_332x166.webp" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="card-img-fallback"></div>
@@ -435,7 +436,7 @@
                 </div>
               </div>
             </div>
-            <div class="slide">
+            <div class="slide" data-category="tv">
               <div class="card-root no-strip">
                 <div class="card" data-plan="ULTRA-36">
                   <img class="card-img" src="https://img01.products.bt.co.uk/content/dam/bt/storefront/bt-tv/common/images/tv-product-card/2026/october/entertainment_plus_332x166.webp" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="card-img-fallback"></div>
@@ -462,7 +463,7 @@
                 </div>
               </div>
             </div>
-            <div class="slide">
+            <div class="slide" data-category="both">
               <div class="card-root no-strip">
                 <div class="card" data-plan="UNLIMITED-24">
                   <img class="card-img" src="https://img01.products.bt.co.uk/content/dam/bt/storefront/bt-tv/common/images/tv-product-card/2026/october/full_works_332x166.webp" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="card-img-fallback"></div>
@@ -504,8 +505,8 @@
                 <div class="field">
                   <label for="currentPlan">Your BT Broadband package</label>
                   <select id="currentPlan">
-                    <option value="BASIC-12">Fibre Essential</option>
-                    <option value="PLUS-24" selected>Full Fibre 100</option>
+                    <option value="BASIC-12" selected>Fibre Essential</option>
+                    <option value="PLUS-24">Full Fibre 100</option>
                     <option value="ULTRA-36">Full Fibre 300</option>
                     <option value="FAMILY-PLUS-12">Full Fibre 900</option>
                   </select>
@@ -657,6 +658,17 @@
         slides.scrollTo({ left: slides.scrollLeft + 10 >= max ? 0 : slides.scrollLeft + 353, behavior: 'smooth' });
       });
 
+      document.querySelectorAll('.tabs [data-tab]').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          document.querySelectorAll('.tabs [data-tab]').forEach(function (t) { var on = t === tab; t.classList.toggle('active', on); t.setAttribute('aria-selected', on ? 'true' : 'false'); });
+          document.querySelectorAll('.slide[data-category]').forEach(function (sl) {
+            var cat = sl.dataset.category;
+            sl.hidden = !(tab.dataset.tab === 'both' || cat === 'both' || cat === tab.dataset.tab);
+          });
+          slides.scrollTo({ left: 0 });
+        });
+      });
+
       var newPlan = document.getElementById('newPlan');
       function markSelected() {
         document.querySelectorAll('.card').forEach(function (c) { c.classList.toggle('selected', c.dataset.plan === newPlan.value); });
@@ -700,7 +712,7 @@
           const broadband = document.querySelector('#currentPlan option:checked').textContent;
           const ref = String(data.upgradeId || '').slice(0, 8).toUpperCase();
           result.className = 'result-box success';
-          show(planLabel + ' added to your BT Broadband', 'Added to ' + broadband + ' on a 24 month contract' + (ref ? ' — order reference BT-' + ref : '') + '. Your TV Box is on its way; we’ll confirm the delivery slot by text and email.');
+          show(planLabel + ' added to your BT Broadband', 'Added to ' + broadband + (ref ? ' — order reference BT-' + ref : '') + '. Your TV Box is on its way; we’ll confirm the delivery slot by text and email.');
         }
       } catch (err) {
         result.className = 'result-box error';
