@@ -4012,6 +4012,30 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A COMPUTERSHARE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Computershare product.',
   },
+  'd2530969': {
+    slug: 'd2530969',
+    company: 'Oscar',
+    brandMark: 'O',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: 'd2530969.html', title: 'Submit a claim | Oscar' },
+    theme: {
+      '--accent': '#4F50FF',
+      '--ink': '#1F0D05',
+      '--surface': '#F7F5EB',
+      '--chrome-bg': '#4F50FF',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Oscar Member Services',
+    alertCard: {
+      title: '5xx rate \u2014 member reimbursement claim submissions',
+      release: 'member-claims@1.0.3',
+      team: 'member-claims-oncall',
+      symptom: 'Reimbursement claim submissions hang ~8s and then fail with 504 Gateway Timeout.',
+      impact: 'Members filing a reimbursement claim from their account wait ~8 seconds and get an error; Member Services is reporting rising call volume about claims that will not submit.',
+    },
+    disclaimer: 'NOT ACTUALLY AN OSCAR HEALTH SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Oscar Health product.',
+  },
 };
 
 function getOncallSkin(slug) {
