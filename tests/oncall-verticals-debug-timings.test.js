@@ -12,6 +12,7 @@ jest.mock('../app/services/oncall-verticals/industrials', () => ({
 const { processTransfer } = require('../app/services/oncall-verticals/banking');
 const { processQuote } = require('../app/services/oncall-verticals/industrials');
 const routes = require('../app/routes/oncall-verticals');
+const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 
 let server;
 let baseUrl;
@@ -26,7 +27,7 @@ beforeAll((done) => {
   });
 });
 
-afterAll((done) => { server.close(done); });
+afterAll((done) => { server.close(() => stopGateway().then(() => done())); });
 beforeEach(() => { processTransfer.mockClear(); processQuote.mockClear(); });
 
 const post = (path, headers = {}) => fetch(`${baseUrl}${path}`, {

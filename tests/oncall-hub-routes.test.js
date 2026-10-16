@@ -190,6 +190,29 @@ describe('on-call hub routes', () => {
     });
   }, 15000);
 
+  test('the a9a14d80 skin is served natively shimmed at its slug, forcing Slack, and opts out of report/incident', async () => {
+    const [skinned, direct, report, incident] = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/a9a14d80`),
+      fetch(`${baseUrl}/a9a14d80`),
+      fetch(`${baseUrl}/oncall/c/a9a14d80/report`),
+      fetch(`${baseUrl}/oncall/c/a9a14d80/incident`),
+    ]);
+    expect(skinned.status).toBe(200);
+    expect([report.status, incident.status]).toEqual([404, 404]);
+    const html = await skinned.text();
+    if (direct.status === 200) expect(await direct.text()).toEqual(html);
+    expect(html).toContain('<title>Environments | PingOne</title>');
+    expect(html).toContain('NOT ACTUALLY A PING IDENTITY SITE');
+    expect(html).toContain('const apiPath = "/api/identity-console"');
+    expect(html).toContain('const oncallApiPath = "/api/oncall/identity"');
+    expect(html).toContain('const triggerWhen = {"action":"create-environment"}');
+    expect(html).toContain('var skinAlertDestination = "slack"');
+    expect(html).toMatch(/id="oncall-ribbon" style="[^"]*bottom:16px;left:16px;/);
+    expect(html).not.toContain('All Demos');
+    const legacyApi = await fetch(`${baseUrl}/api/identity-console/environments`, { method: 'POST' });
+    expect(legacyApi.status).toBe(404);
+  });
+
   test('the GSK vaccine page uses the vaccines endpoint without changing the banking skins', async () => {
     const [direct, skinned, bank] = await Promise.all([
       fetch(`${baseUrl}/fe4f39ba`),
