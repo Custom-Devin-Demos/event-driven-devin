@@ -3977,6 +3977,35 @@ const ONCALL_SKINS = {
     supportCenter: 'Atención a clientes Coppel',
     disclaimer: 'ESTE NO ES UN SITIO REAL DE COPPEL \u2014 demo interna, sin afiliación ni respaldo de Coppel. Todos los pedidos y datos son ficticios.',
   },
+  'd36c67bf': {
+    slug: 'd36c67bf',
+    company: 'Gap',
+    brandMark: 'G',
+    vertical: 'storepickup',
+    paths: ['/gap-oncall'],
+    // Not oncallOnly: /gap stays the legacy (unshimmed) storefront demo.
+    // Slack-routed: the Slack on-call responder triages the card, so no
+    // devinSession.auto (it would double-trigger).
+    alertDestination: 'slack',
+    // The bag drawer and its Checkout button sit on the right.
+    ribbonSide: 'left',
+    ribbonYieldTo: '.toast.show',
+    page: { file: 'f813dd7a.html', title: "Gap | Individual style for Women's, Men's, Baby & Kids' Clothing" },
+    accent: '#002554',
+    accentDark: '#001a3d',
+    alertCard: {
+      title: 'p95 latency spike \u2014 Checkout with Pick up in store (504)',
+      service: 'checkout-api',
+      release: 'bag-web@3.12.0',
+      team: 'omnichannel-oncall',
+      metricValue: '8.0s (504 on Pick up in store orders)',
+      threshold: '> 2s',
+      baseline: '~350ms (7-day p95)',
+      symptom: 'Checkouts with "Pick up in store" hang ~8s and then fail with 504 Gateway Timeout; "Ship to address" checkouts are normal. Onset coincides with the bag-web 3.12.0 pickup-hold release.',
+      impact: 'Shoppers who choose Pick up in store cannot complete checkout; every pickup order sits on "Placing your order\u2026" and then errors.',
+    },
+    disclaimer: 'NOT ACTUALLY A GAP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Gap product.',
+  },
   '34203e96': {
     slug: '34203e96',
     company: 'Coppel',
