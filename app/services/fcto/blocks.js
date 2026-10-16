@@ -4,6 +4,9 @@
 
 const { getRoster, findMember, REGION_LABELS, getAdminIds } = require('../../../config/fcto-roster');
 const R = require('./reservations');
+const Q = require('../../../config/fcto-qualifications');
+const avatars = require('./avatars');
+const { calendarLinks } = require('./ics');
 
 const CALLBACK = Object.freeze({
   REQUEST: 'fcto_request_submit',
@@ -20,13 +23,19 @@ const ACTION = Object.freeze({
   CANCEL: 'fcto_cancel',
   REFRESH_HOME: 'fcto_refresh_home',
   NOOP: 'fcto_noop',
+  CAL_GOOGLE: 'fcto_cal_google',
+  CAL_OUTLOOK: 'fcto_cal_outlook',
 });
 
+// URL buttons still send a block_actions payload; the router ignores these.
+const LINK_ACTIONS = new Set([ACTION.NOOP, ACTION.CAL_GOOGLE, ACTION.CAL_OUTLOOK]);
+
+// `color` is the bar beside the card's status section.
 const STATUS_META = {
-  [R.STATUS.PENDING]: { emoji: ':hourglass_flowing_sand:', label: 'Pending' },
-  [R.STATUS.APPROVED]: { emoji: ':white_check_mark:', label: 'Approved' },
-  [R.STATUS.DECLINED]: { emoji: ':no_entry_sign:', label: 'Declined' },
-  [R.STATUS.CANCELLED]: { emoji: ':wastebasket:', label: 'Cancelled' },
+  [R.STATUS.PENDING]: { emoji: ':hourglass_flowing_sand:', label: 'Pending', color: '#ECB22E' },
+  [R.STATUS.APPROVED]: { emoji: ':white_check_mark:', label: 'Approved', color: '#2EB67D' },
+  [R.STATUS.DECLINED]: { emoji: ':no_entry_sign:', label: 'Declined', color: '#E01E5A' },
+  [R.STATUS.CANCELLED]: { emoji: ':wastebasket:', label: 'Cancelled', color: '#9AA0A6' },
 };
 
 const REGION_ZONES = { US: 'America/Los_Angeles', EU: 'Europe/Berlin', JP: 'Asia/Tokyo' };
@@ -58,6 +67,17 @@ function mention(member) {
   return member.slackId ? `<@${member.slackId}> (${member.name})` : `*${member.name}*`;
 }
 
+function avatarImage(member) {
+  const url = member && avatars.get(member.slackId);
+  return url ? { type: 'image', image_url: url, alt_text: member.name } : null;
+}
+
+// ":crown: VP   :flag-de: Germany   :bank: Finance"; empty for older requests.
+function qualChips(res) {
+  return [Q.AUDIENCE[res.audience], Q.COUNTRY[res.country], Q.INDUSTRY[res.industry]]
+    .filter(Boolean).map((x) => `${x.emoji} ${x.label}`).join('   ');
+}
+
 function memberLabel(member) {
   const zone = R.formatInTz(Math.floor(Date.now() / 1000), member.tz).zone;
   return `${member.name} — ${REGION_LABELS[member.region] || member.region} (${zone})`;
@@ -78,7 +98,47 @@ function durationOptions() {
 
 // ─── Request modal ──────────────────────────────────────────────────────────
 
-function requestModal({ channelId, defaultStartTs } = {}) {
+const qualOptions = (list) => list.map((x) => ({ text: plain(x.emoji ? `${x.emoji} ${x.label}` : x.label), value: x.key }));
+
+function qualSelect(blockId, label, list, placeholder) {
+  return {
+    type: 'input',
+    block_id: blockId,
+    dispatch_action: true,
+    label: plain(label),
+    element: { type: 'static_select', action_id: 'value', placeholder: plain(placeholder), options: qualOptions(list) },
+  };
+}
+
+// The "who" block id carries the suggestion so Slack re-applies initial_option
+// when the suggestion changes but keeps a manual pick while it stays the same.
+const whoBlockId = (suggestion) => (suggestion ? `who_${suggestion.who.replace(/[^A-Za-z0-9]/g, '_')}` : 'who');
+
+function suggestionCallout(suggestion) {
+  const key = suggestion.who.startsWith('MEMBER:') ? suggestion.who.slice('MEMBER:'.length) : null;
+  const member = key ? findMember(key) : null;
+  if (member) {
+    const t = R.formatInTz(Math.floor(Date.now() / 1000), member.tz);
+    const image = avatarImage(member);
+    return section(`:sparkles: *Suggested: ${member.name}* for ${suggestion.reason}\n${REGION_LABELS[member.region]} · it's ${t.time} ${t.zone} for them now`, image ? { accessory: image } : {});
+  }
+  const pref = R.PREFERENCES[suggestion.who.slice('ANY:'.length)];
+  return section(`:sparkles: *Suggested: ${pref || 'any Field CTO'}* for ${suggestion.reason}`);
+}
+
+const stepHeader = (text) => ({ type: 'header', text: plain(text) });
+
+function findWhoOption(value) {
+  for (const group of whoOptions()) {
+    const hit = group.options.find((o) => o.value === value);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+// `audience`/`suggestion` come from the requester's current picks (see
+// routes/fcto.js): a "Below" warning and a pre-selected Field CTO.
+function requestModal({ channelId, defaultStartTs, audience, suggestion } = {}) {
   const start = defaultStartTs || (() => {
     const d = new Date();
     d.setUTCDate(d.getUTCDate() + 1);
@@ -93,6 +153,8 @@ function requestModal({ channelId, defaultStartTs } = {}) {
     submit: plain('Submit request'),
     close: plain('Cancel'),
     blocks: [
+      context(`:wave: Requests post to ${channelId ? `<#${channelId}>` : 'the requests channel'} for an admin or the Field CTO to approve. Audience, country and industry pick a suggested Field CTO.`),
+      stepHeader(':office: The meeting'),
       {
         type: 'input',
         block_id: 'account',
@@ -105,12 +167,29 @@ function requestModal({ channelId, defaultStartTs } = {}) {
         label: plain('What do you need them for?'),
         element: { type: 'plain_text_input', action_id: 'value', multiline: true, max_length: 500, placeholder: plain('Executive briefing, architecture review, onsite, QBR…') },
       },
-      {
-        type: 'input',
-        block_id: 'who',
-        label: plain('Who do you need?'),
-        element: { type: 'static_select', action_id: 'value', placeholder: plain('Pick a Field CTO or "any"'), option_groups: whoOptions() },
-      },
+      stepHeader(":busts_in_silhouette: Who's in the room"),
+      qualSelect('audience', 'Audience', Q.AUDIENCES, 'Most senior customer attendee'),
+      ...(Q.AUDIENCE[audience] && !Q.AUDIENCE[audience].eligible ? [section(`:no_entry: *Field CTOs can't take this one.* ${Q.BELOW_MESSAGE}`)] : []),
+      qualSelect('country', 'Country', Q.COUNTRIES, 'Where the customer is'),
+      qualSelect('industry', 'Industry', Q.INDUSTRIES, 'Customer industry'),
+      ...(suggestion && findWhoOption(suggestion.who) ? [suggestionCallout(suggestion)] : []),
+      (() => {
+        const initial = suggestion && findWhoOption(suggestion.who);
+        return {
+          type: 'input',
+          block_id: whoBlockId(initial ? suggestion : null),
+          label: plain('Who do you need?'),
+          ...(initial ? { hint: plain(`Suggested for ${suggestion.reason}. You can pick someone else.`) } : {}),
+          element: {
+            type: 'static_select',
+            action_id: 'value',
+            placeholder: plain('Pick a Field CTO or "any"'),
+            option_groups: whoOptions(),
+            ...(initial ? { initial_option: initial } : {}),
+          },
+        };
+      })(),
+      stepHeader(':calendar: When'),
       {
         type: 'input',
         block_id: 'start',
@@ -137,6 +216,7 @@ function requestModal({ channelId, defaultStartTs } = {}) {
         hint: plain('Use this for multi-day blocks like an onsite or a conference.'),
         element: { type: 'datetimepicker', action_id: 'value' },
       },
+      stepHeader(':paperclip: Extras'),
       {
         type: 'input',
         block_id: 'meetingLink',
@@ -163,7 +243,10 @@ function readRequestModal(view) {
   return {
     account: pick('account').value,
     purpose: pick('purpose').value,
-    who: (pick('who').selected_option || {}).value,
+    audience: (pick('audience').selected_option || {}).value,
+    country: (pick('country').selected_option || {}).value,
+    industry: (pick('industry').selected_option || {}).value,
+    who: (pick(Object.keys(v).find((k) => k === 'who' || k.startsWith('who_')) || 'who').selected_option || {}).value,
     startTs: pick('start').selected_date_time,
     durationKey: (pick('duration').selected_option || {}).value,
     endTs: pick('end').selected_date_time,
@@ -174,9 +257,11 @@ function readRequestModal(view) {
 }
 
 // Map a ReservationError.field to the modal block id for an inline error.
-function modalErrors(err) {
-  const field = err && err.field;
+function modalErrors(err, view) {
+  let field = err && err.field;
   if (!field) return null;
+  const values = (view && view.state && view.state.values) || {};
+  if (field === 'who') field = Object.keys(values).find((k) => k === 'who' || k.startsWith('who_')) || field;
   return { response_action: 'errors', errors: { [field]: err.message } };
 }
 
@@ -208,10 +293,12 @@ function declineModal(reservation) {
 function assignModal(store, reservation, { mode = 'assign', preselectKey = null, warning = null } = {}) {
   const candidates = R.suggestAssignees(store, reservation);
   const options = candidates.map((m) => ({
-    text: plain(`${m.conflicts.length ? ':warning: ' : ''}${memberLabel(m)}${m.preferred ? '' : ' · other region'}`),
+    text: plain(`${m.conflicts.length ? ':warning: ' : ''}${memberLabel(m)}${m.recommended ? ' · recommended' : ''}${m.preferred || m.recommended ? '' : ' · other region'}`),
     value: m.key,
   }));
-  const initial = preselectKey ? options.find((o) => o.value === preselectKey) : null;
+  const recommended = candidates.find((m) => m.recommended && !m.conflicts.length);
+  const initialKey = preselectKey || (recommended ? recommended.key : null);
+  const initial = initialKey ? options.find((o) => o.value === initialKey) : null;
   const titles = { assign: 'Assign a Field CTO', reassign: `Reassign ${reservation.id}`, approve: `Approve ${reservation.id}`, claim: `Claim ${reservation.id}` };
   const blocks = [
     section(`*${esc(reservation.account)}* — ${esc(reservation.purpose)}\n${R.slackRange(reservation.startTs, reservation.endTs)} · ${R.durationLabel(reservation)}\nRequested: ${R.describeWho(reservation)}`),
@@ -297,6 +384,33 @@ function statusLine(reservation) {
   }
 }
 
+// "✅ Requested → ✅ Field CTO: Mark → ⏳ Approval"
+function progressLine(reservation) {
+  const done = ':white_check_mark:';
+  const assignee = findMember(reservation.assigneeKey);
+  const steps = [`${done} Requested`];
+  if (reservation.status === R.STATUS.DECLINED) steps.push(':x: Declined');
+  else if (reservation.status === R.STATUS.CANCELLED) steps.push(':wastebasket: Cancelled');
+  else {
+    steps.push(assignee ? `${done} Field CTO: ${assignee.name.split(' ')[0]}` : ':hourglass_flowing_sand: Field CTO');
+    if (reservation.status === R.STATUS.APPROVED) steps.push(`${done} Approved`, ':calendar: On the calendar');
+    else steps.push(`${assignee ? ':hourglass_flowing_sand:' : ':white_circle:'} Approval`, ':white_circle: On the calendar');
+  }
+  return steps.join('  →  ');
+}
+
+function calendarButtons(reservation, blockId) {
+  const links = calendarLinks(reservation);
+  return {
+    type: 'actions',
+    block_id: blockId,
+    elements: [
+      { type: 'button', text: plain(':calendar: Add to Google Calendar'), action_id: ACTION.CAL_GOOGLE, url: links.google },
+      { type: 'button', text: plain(':calendar: Add to Outlook'), action_id: ACTION.CAL_OUTLOOK, url: links.outlook },
+    ],
+  };
+}
+
 function cardActions(reservation, conflicts) {
   if (reservation.status === R.STATUS.DECLINED || reservation.status === R.STATUS.CANCELLED) return null;
   const btn = (text, actionId, style, confirm) => ({
@@ -329,37 +443,68 @@ function cardActions(reservation, conflicts) {
   return { type: 'actions', block_id: `actions_${reservation.id}`, elements };
 }
 
-function requestCard(reservation, { conflicts = [] } = {}) {
-  const meta = STATUS_META[reservation.status];
+// The request details: who/when (with the Field CTO's photo), qualification
+// chips, the purpose as a block quote, and local times.
+function cardDetailBlocks(reservation, conflicts) {
+  const member = findMember(reservation.assigneeKey || reservation.requestedKey);
+  const image = avatarImage(member);
   const blocks = [
-    { type: 'header', text: plain(`${meta.emoji} Field CTO request ${reservation.id} · ${meta.label}`) },
-    {
-      type: 'section',
-      fields: [
-        mrkdwn(`*Account*\n${esc(reservation.account)}`),
-        mrkdwn(`*Requested by*\n<@${reservation.requesterId}>`),
-        mrkdwn(`*Who*\n${R.describeWho(reservation)}`),
-        mrkdwn(`*When*\n${R.slackRange(reservation.startTs, reservation.endTs)} · ${R.durationLabel(reservation)}`),
-      ],
-    },
-    section(`*Purpose*\n${esc(reservation.purpose)}`),
+    { type: 'header', text: plain(`:briefcase: Field CTO request ${reservation.id}`) },
+    section([
+      `*${esc(reservation.account)}*`,
+      `*Who*  ${R.describeWho(reservation)}`,
+      `*When*  ${R.slackRange(reservation.startTs, reservation.endTs)} · ${R.durationLabel(reservation)}`,
+      `*Requested by*  <@${reservation.requesterId}>`,
+    ].join('\n'), image ? { accessory: image } : {}),
   ];
-  if (reservation.notes) blocks.push(section(`*Notes*\n${esc(reservation.notes)}`));
+  const chips = qualChips(reservation);
+  if (chips) blocks.push(context(chips));
+  blocks.push(section(`*Purpose*\n>${esc(reservation.purpose).replace(/\n/g, '\n>')}`));
+  if (reservation.notes) blocks.push(section(`:memo: *Notes*\n${esc(reservation.notes)}`));
   if (reservation.meetingLink) blocks.push(context(`:link: <${reservation.meetingLink}>`));
-  blocks.push(context(localTimesLine(reservation)));
+  blocks.push({ type: 'context', elements: [...(image ? [image] : []), mrkdwn(localTimesLine(reservation))] });
   if (conflicts.length && reservation.status === R.STATUS.PENDING) {
-    blocks.push(context(`:warning: *Conflict:* ${conflicts.map((c) => `${c.id} (${c.account}, ${R.slackRange(c.startTs, c.endTs)})`).join('; ')}`));
+    blocks.push(section(`:warning: *Conflict:* ${conflicts.map((c) => `${c.id} (${esc(c.account)}, ${R.slackRange(c.startTs, c.endTs)})`).join('; ')}`));
   }
-  blocks.push({ type: 'divider' });
-  blocks.push(section(statusLine(reservation)));
+  return blocks;
+}
+
+function cardStatusBlocks(reservation, conflicts) {
+  const blocks = [context(progressLine(reservation)), section(statusLine(reservation))];
   const actions = cardActions(reservation, conflicts);
   if (actions) blocks.push(actions);
+  if (reservation.status === R.STATUS.APPROVED) blocks.push(calendarButtons(reservation, `cal_${reservation.id}`));
   return blocks;
+}
+
+function requestCard(reservation, { conflicts = [] } = {}) {
+  return [...cardDetailBlocks(reservation, conflicts), ...cardStatusBlocks(reservation, conflicts)];
+}
+
+// chat.postMessage / chat.update payload: details as blocks, status in a
+// colored attachment so pending/approved/declined read at a glance.
+function requestCardMessage(reservation, { conflicts = [] } = {}) {
+  const meta = STATUS_META[reservation.status];
+  return {
+    text: cardText(reservation),
+    blocks: cardDetailBlocks(reservation, conflicts),
+    attachments: [{ color: meta.color, fallback: `${meta.label}: ${reservation.id}`, blocks: cardStatusBlocks(reservation, conflicts) }],
+  };
 }
 
 function cardText(reservation) {
   const member = findMember(reservation.assigneeKey || reservation.requestedKey);
   return `[${STATUS_META[reservation.status].label}] Field CTO request ${reservation.id}: ${esc(reservation.account)} — ${member ? member.name : R.describeWho(reservation)}, ${R.formatRangeInTz(reservation.startTs, reservation.endTs, 'UTC')}`;
+}
+
+// Approved thread reply: the note, the Field CTO's photo and calendar buttons.
+function threadBlocks(reservation) {
+  if (reservation.status !== R.STATUS.APPROVED) return undefined;
+  const image = avatarImage(findMember(reservation.assigneeKey));
+  return [
+    section(`:tada: ${threadNote(reservation)}`, image ? { accessory: image } : {}),
+    calendarButtons(reservation, `thread_cal_${reservation.id}`),
+  ];
 }
 
 function threadNote(reservation) {
@@ -401,7 +546,8 @@ function scheduleBlocks(store, { from, to, title, memberKey, tz = 'UTC', viewerI
       const who = member ? `*${member.name}*` : `_${R.describeWho(r)}_`;
       const pending = r.status === R.STATUS.PENDING ? ' · :hourglass_flowing_sand: pending' : '';
       const mine = viewerId && r.requesterId === viewerId ? ' · _yours_' : '';
-      return `• ${R.slackRange(r.startTs, r.endTs)} — ${who} · ${esc(r.account)} (${r.id})${pending}${mine}`;
+      const qual = R.qualificationsLabel(r);
+      return `• ${R.slackRange(r.startTs, r.endTs)} — ${who} · ${esc(r.account)} (${r.id})${qual ? ` · ${qual}` : ''}${pending}${mine}`;
     });
     blocks.push(section(`*${day}*\n${lines.join('\n')}`));
   });
@@ -422,8 +568,10 @@ function availabilityBlocks(store, { from, to, title } = {}) {
   const sorted = members.slice().sort((a, b) => b.freeDays - a.freeDays || a.member.name.localeCompare(b.member.name));
   sorted.forEach(({ member, days: perDay, freeDays }) => {
     const region = REGION_LABELS[member.region] || member.region;
+    const image = avatarImage(member);
+    const extra = image ? { accessory: image } : {};
     if (freeDays === perDay.length) {
-      blocks.push(section(`${AVAIL_EMOJI.free} *${member.name}* (${region}) — free ${perDay.length === 1 ? 'all day' : `all ${perDay.length} days`}`));
+      blocks.push(section(`${AVAIL_EMOJI.free} *${member.name}* (${region}) — free ${perDay.length === 1 ? 'all day' : `all ${perDay.length} days`}`, extra));
       return;
     }
     const detail = perDay.map((d) => {
@@ -434,7 +582,7 @@ function availabilityBlocks(store, { from, to, title } = {}) {
     const bookedDays = perDay.filter((d) => d.status === 'booked').length;
     const head = bookedDays === perDay.length ? AVAIL_EMOJI.booked : AVAIL_EMOJI.partial;
     const summary = perDay.length === 1 ? (bookedDays ? 'booked' : 'partly booked') : `${freeDays}/${perDay.length} days free`;
-    blocks.push(section(`${head} *${member.name}* (${region}) — ${summary}\n${detail.join(' · ')}`));
+    blocks.push(section(`${head} *${member.name}* (${region}) — ${summary}\n${detail.join(' · ')}`, extra));
   });
   blocks.push(context(`${AVAIL_EMOJI.free} free · ${AVAIL_EMOJI.partial} partly booked · ${AVAIL_EMOJI.booked} booked (6h+) · each person's local day · approved reservations in this app only — not personal calendars · \`/fcto free oct 22-24\``));
   return blocks;
@@ -449,6 +597,31 @@ function rosterBlocks() {
   return [section(`*Field CTOs*\n${lines.join('\n')}`)];
 }
 
+const HEAT = { free: ':large_green_square:', partial: ':large_yellow_square:', booked: ':large_red_square:' };
+const WEEKDAY_FMT = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', weekday: 'short' });
+
+const QUEUE_ROWS = 5;
+
+// Upcoming pending requests this user can act on from the App Home, soonest
+// first: `total` counts all of them, `rows` shows the first QUEUE_ROWS.
+function actionQueue(store, userId, now = Math.floor(Date.now() / 1000)) {
+  const admin = R.isAdmin(userId);
+  const eligible = R.listReservations(store, { from: now, statuses: [R.STATUS.PENDING] })
+    .filter((r) => (r.requestType === 'any' ? admin || R.canClaim(r, userId) : R.canDecide(r, userId)));
+  const rows = eligible.slice(0, QUEUE_ROWS).map((r) => {
+      const claim = r.requestType === 'any' && !admin;
+      const button = r.requestType === 'specific'
+        ? { type: 'button', text: plain('Approve'), style: 'primary', action_id: ACTION.APPROVE, value: r.id }
+        : { type: 'button', text: plain(claim ? 'Claim' : 'Assign…'), ...(claim ? { style: 'primary' } : {}), action_id: claim ? ACTION.CLAIM : ACTION.ASSIGN, value: r.id };
+      const chips = qualChips(r);
+      return section(`*${r.id} · ${esc(r.account)}*\n${R.describeWho(r)} · ${R.slackRange(r.startTs, r.endTs)}${chips ? `\n${chips}` : ''}`, { accessory: button });
+    });
+  if (eligible.length > QUEUE_ROWS) {
+    rows.push(context(`+${eligible.length - QUEUE_ROWS} more waiting on you in the channel`));
+  }
+  return { total: eligible.length, rows };
+}
+
 function homeView(store, userId) {
   const now = Math.floor(Date.now() / 1000);
   const horizon = now + 21 * 86400;
@@ -456,6 +629,12 @@ function homeView(store, userId) {
   const mine = R.listReservations(store, { from: now, requesterId: userId });
   const admin = R.isAdmin(userId);
   const member = R.memberBySlackId(userId);
+  const week = R.availability(store, { from: now, to: now + 7 * 86400 });
+  const pending = R.listReservations(store, { from: now, statuses: [R.STATUS.PENDING] });
+  const booked = R.listReservations(store, { from: now, to: horizon, statuses: [R.STATUS.APPROVED] });
+  const freeToday = week.members.filter((m) => m.days[0] && m.days[0].status === 'free').length;
+  const queue = actionQueue(store, userId, now);
+
   const blocks = [
     { type: 'header', text: plain(':calendar: Field CTO reservations') },
     section(`Request a block of a Field CTO's time for an account. Requests post to the channel where ${admin ? 'you and the other admins' : 'admins and the Field CTO'} approve them.${member ? `\nYou're on the roster as *${member.name}* — you can approve requests that name you and claim open ones.` : ''}${admin ? '\nYou are an *admin*: you can approve, decline, assign and reassign any request.' : ''}`),
@@ -463,24 +642,40 @@ function homeView(store, userId) {
       type: 'actions',
       elements: [
         { type: 'button', text: plain(':heavy_plus_sign: New request'), style: 'primary', action_id: ACTION.NEW_REQUEST, value: 'home' },
-        { type: 'button', text: plain('Refresh'), action_id: ACTION.REFRESH_HOME, value: 'home' },
+        { type: 'button', text: plain(':arrows_counterclockwise: Refresh'), action_id: ACTION.REFRESH_HOME, value: 'home' },
       ],
     },
-    { type: 'divider' },
-    ...rosterBlocks(),
-    { type: 'divider' },
-    section(`*Upcoming reservations*`),
-    ...upcoming,
+    {
+      type: 'section',
+      fields: [
+        mrkdwn(`:hourglass_flowing_sand: *Pending*\n${pending.length}`),
+        mrkdwn(`:white_check_mark: *Booked, next 3 weeks*\n${booked.length}`),
+        mrkdwn(`:large_green_circle: *Free today*\n${freeToday} of ${week.members.length}`),
+        mrkdwn(`:raising_hand: *Waiting on you*\n${queue.total}`),
+      ],
+    },
   ];
+  if (queue.total) {
+    blocks.push({ type: 'divider' }, { type: 'header', text: plain(':inbox_tray: Needs your action') }, ...queue.rows);
+  }
+  blocks.push({ type: 'divider' }, { type: 'header', text: plain(':world_map: The week at a glance') });
+  const dayNames = week.days.map((d) => WEEKDAY_FMT.format(d * 1000).slice(0, 2)).join(' ');
+  week.members.forEach(({ member: m, days }) => {
+    const t = R.formatInTz(now, m.tz);
+    const image = avatarImage(m);
+    blocks.push(section(
+      `*${m.slackId ? `<@${m.slackId}>` : m.name}* · ${REGION_LABELS[m.region]} · :clock3: ${t.time} ${t.zone}${m.slackId ? '' : ' · _Slack handle not configured_'}\n${days.map((d) => HEAT[d.status]).join('')}`,
+      image ? { accessory: image } : {},
+    ));
+  });
+  blocks.push(context(`Next 7 days (${dayNames}) · ${HEAT.free} free · ${HEAT.partial} partly booked · ${HEAT.booked} booked 6h+ · \`/fcto free <dates>\` for detail`));
+  const freeAll = week.members.filter((m) => m.freeDays === m.days.length).map((m) => m.member.name);
+  blocks.push(section(`*Free for the next 7 days:* ${freeAll.length ? freeAll.join(', ') : '_nobody is fully free_'}`));
+  blocks.push({ type: 'divider' }, { type: 'header', text: plain(':spiral_calendar_pad: Upcoming reservations') }, ...upcoming);
   if (mine.length) {
     blocks.push({ type: 'divider' });
-    blocks.push(section(`*Your open requests*\n${mine.map((r) => `• ${r.id} · ${esc(r.account)} · ${R.describeWho(r)} · ${R.slackRange(r.startTs, r.endTs)} · ${STATUS_META[r.status].label}`).join('\n')}`));
+    blocks.push(section(`*Your open requests*\n${mine.map((r) => `• ${STATUS_META[r.status].emoji} ${r.id} · ${esc(r.account)} · ${R.describeWho(r)} · ${R.slackRange(r.startTs, r.endTs)} · ${STATUS_META[r.status].label}`).join('\n')}`));
   }
-  const freeAll = R.availability(store, { from: now, to: now + 7 * 86400 }).members
-    .filter((m) => m.freeDays === m.days.length)
-    .map((m) => m.member.name);
-  blocks.push({ type: 'divider' });
-  blocks.push(section(`*Free for the next 7 days*\n${freeAll.length ? freeAll.join(', ') : '_Nobody is fully free — try `/fcto free <dates>` for a day-by-day view._'}`));
   blocks.push(context(`Admins: ${getAdminIds().map((id) => `<@${id}>`).join(', ') || '_none configured_'} · \`/fcto help\` for commands`));
   return { type: 'home', blocks: blocks.slice(0, 100) };
 }
@@ -510,9 +705,12 @@ module.exports = {
   readDeclineModal,
   assignModal,
   readAssignModal,
+  LINK_ACTIONS,
   requestCard,
+  requestCardMessage,
   cardText,
   threadNote,
+  threadBlocks,
   scheduleBlocks,
   rosterBlocks,
   homeView,
