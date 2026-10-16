@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Disney Experience | Walt Disney World Resort</title>
+  <link rel="icon" href="https://cdn1.parksmedia.wdprapps.disney.com/media/layout/assets/icons/pep/disney-park-generic-castle.svg">
+  <style>
+    :root {
+      --navy: #1A2B5C; --ink: #1F2A44; --secondary: #5B6478; --blue: #1F6FCF; --sky: #2AA8E0;
+      --sky-deep: #3A66D6; --purple: #6C3FC8; --magenta: #B43BB5; --orange: #E9822F;
+      --bg: #F0F3FA; --border: #1F4E8C; --hair: #D9DEE8; --green: #1E8A4C; --green-tint: #E3F5EA;
+      --purple-tint: #EFE8FB; --ll: #1BA88A;
+      --font: "InspireTWDC", "Avenir Next", "Avenir", "Nunito", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); color: var(--ink); background: var(--bg); font-size: 15px; }
+    button { font-family: inherit; cursor: pointer; }
+    a { color: var(--blue); text-decoration: none; }
+    .demo-banner { background: #C62828; color: #fff; text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .06em; padding: 7px 12px; }
+    header.site { background: #fff; border-bottom: 1px solid var(--hair); position: sticky; top: 0; z-index: 20; }
+    .site-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; gap: 28px; padding: 0 28px; height: 64px; }
+    .site-inner img.logo { height: 38px; }
+    .site-nav { display: flex; gap: 22px; font-size: 14px; color: var(--ink); flex: 1; }
+    .site-nav span { cursor: pointer; }
+    .site-nav span:hover { color: var(--blue); }
+    .site-right { display: flex; align-items: center; gap: 14px; font-size: 14px; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--sky), var(--purple)); color: #fff; display: grid; place-items: center; font-weight: 700; }
+    .mde-bar { background: linear-gradient(90deg, var(--navy), var(--sky-deep)); color: #fff; }
+    .mde-bar .wrap { max-width: 1280px; margin: 0 auto; padding: 0 28px; display: flex; align-items: center; gap: 6px; height: 52px; }
+    .mde-bar h1 { font-size: 17px; font-weight: 600; margin-right: 24px; white-space: nowrap; }
+    .tab { background: none; border: 0; color: rgba(255,255,255,.8); font-size: 14px; padding: 15px 14px; border-bottom: 3px solid transparent; }
+    .tab.active, .tab:hover { color: #fff; border-bottom-color: #fff; }
+    main { max-width: 1280px; margin: 0 auto; padding: 28px; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .hero { position: relative; border-radius: 18px; overflow: hidden; min-height: 300px; display: flex; align-items: flex-end; color: #fff; }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
+    .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(26,43,92,.92) 0%, rgba(26,43,92,.55) 45%, rgba(26,43,92,0) 75%); }
+    .hero .copy { position: relative; z-index: 1; padding: 36px 40px; max-width: 560px; }
+    .hero .eyebrow { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; opacity: .85; }
+    .hero h2 { font-size: 34px; font-weight: 700; margin: 6px 0 10px; }
+    .hero p { font-size: 16px; opacity: .92; line-height: 1.45; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 999px; padding: 12px 24px; font-size: 15px; font-weight: 600; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #1859ab; }
+    .btn-primary:disabled { opacity: .6; cursor: progress; }
+    .btn-ghost { background: #fff; color: var(--blue); border: 1px solid var(--blue); }
+    .hero .btn { margin-top: 18px; }
+    .grid { display: grid; gap: 18px; }
+    .g4 { grid-template-columns: repeat(4, 1fr); }
+    .g3 { grid-template-columns: repeat(3, 1fr); }
+    .g2 { grid-template-columns: 2fr 1fr; }
+    .section-title { font-size: 21px; font-weight: 700; color: var(--navy); margin: 30px 0 14px; }
+    .card { background: #fff; border-radius: 14px; border: 1px solid var(--hair); padding: 18px; }
+    .qa { display: flex; flex-direction: column; gap: 10px; cursor: pointer; transition: box-shadow .15s; }
+    .qa:hover { box-shadow: 0 6px 20px rgba(31,42,68,.12); }
+    .qa .ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff; font-size: 22px; }
+    .qa b { font-size: 15px; }
+    .qa small { color: var(--secondary); font-size: 13px; line-height: 1.35; }
+    .plan { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--hair); }
+    .plan:last-child { border-bottom: 0; }
+    .plan .time { min-width: 76px; font-weight: 700; color: var(--navy); font-size: 14px; }
+    .plan .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-bottom: 4px; }
+    .pill-ll { background: #DDF4EE; color: var(--ll); }
+    .pill-dine { background: #FDEBDD; color: #B65E17; }
+    .pill-show { background: var(--purple-tint); color: var(--purple); }
+    .plan small { color: var(--secondary); display: block; margin-top: 2px; }
+    .wait { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--hair); font-size: 14px; }
+    .wait:last-child { border-bottom: 0; }
+    .wait .mins { background: var(--navy); color: #fff; border-radius: 8px; padding: 4px 10px; font-weight: 700; font-size: 13px; min-width: 56px; text-align: center; }
+    .promo { border-radius: 14px; overflow: hidden; background: #fff; border: 1px solid var(--hair); }
+    .promo img { width: 100%; height: 170px; object-fit: cover; display: block; }
+    .promo div { padding: 14px 16px 18px; }
+    .promo b { display: block; font-size: 16px; color: var(--navy); margin-bottom: 4px; }
+    .promo small { color: var(--secondary); line-height: 1.4; }
+    /* Mobile Order */
+    .order-layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
+    .rest-head { display: flex; gap: 18px; align-items: center; }
+    .rest-head img { width: 132px; height: 88px; border-radius: 12px; object-fit: cover; }
+    .rest-head h2 { font-size: 24px; color: var(--navy); }
+    .rest-head small { color: var(--secondary); display: block; margin-top: 3px; }
+    .arrival { margin-top: 12px; display: inline-flex; gap: 8px; align-items: center; background: var(--green-tint); color: var(--green); font-weight: 600; font-size: 13px; border-radius: 999px; padding: 6px 12px; }
+    .rest-switch { display: flex; gap: 8px; margin: 18px 0 4px; flex-wrap: wrap; }
+    .chip { border: 1px solid var(--hair); background: #fff; color: var(--ink); border-radius: 999px; padding: 7px 14px; font-size: 13px; }
+    .chip.active { border-color: var(--blue); color: var(--blue); background: #E9F1FC; font-weight: 600; }
+    .cat { margin-top: 22px; }
+    .cat h3 { font-size: 16px; color: var(--navy); margin-bottom: 8px; display: flex; gap: 8px; align-items: center; }
+    .cat h3 .new { background: var(--magenta); color: #fff; font-size: 10px; letter-spacing: .06em; padding: 2px 7px; border-radius: 999px; }
+    .item { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--hair); }
+    .item b { font-size: 15px; }
+    .item p { font-size: 13px; color: var(--secondary); margin-top: 4px; line-height: 1.4; max-width: 560px; }
+    .item .right { text-align: right; min-width: 92px; }
+    .item .price { font-weight: 700; }
+    .add { margin-top: 8px; background: #fff; border: 1px solid var(--blue); color: var(--blue); border-radius: 999px; font-size: 13px; padding: 5px 14px; font-weight: 600; }
+    .bag { position: sticky; top: 84px; }
+    .bag h3 { font-size: 18px; color: var(--navy); display: flex; justify-content: space-between; }
+    .bag-line { display: flex; justify-content: space-between; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--hair); font-size: 14px; }
+    .bag-line .qty { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+    .bag-line .qty button { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--hair); background: #fff; color: var(--blue); font-weight: 700; }
+    .bag-line .remove { background: none; border: 0; color: var(--blue); font-size: 12px; margin-left: 8px; }
+    .totals { margin-top: 12px; font-size: 14px; }
+    .totals div { display: flex; justify-content: space-between; padding: 3px 0; color: var(--secondary); }
+    .totals .grand { color: var(--ink); font-weight: 700; font-size: 16px; padding-top: 8px; }
+    .bag .btn { width: 100%; margin-top: 16px; }
+    .pay { display: flex; gap: 10px; align-items: center; margin-top: 14px; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 10px; font-size: 13px; }
+    .pay .cc { background: var(--navy); color: #fff; font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 4px; }
+    .empty { color: var(--secondary); font-size: 14px; padding: 16px 0; }
+    .confirm { text-align: center; padding: 26px 10px 6px; }
+    .confirm .check { width: 64px; height: 64px; border-radius: 50%; background: var(--green); color: #fff; font-size: 34px; display: grid; place-items: center; margin: 0 auto 12px; }
+    .confirm h4 { font-size: 20px; color: var(--navy); }
+    .confirm .num { font-size: 26px; font-weight: 800; color: var(--blue); margin: 8px 0; letter-spacing: .04em; }
+    .confirm small { color: var(--secondary); }
+    .photopass img { width: 100%; height: 240px; object-fit: cover; border-radius: 14px; display: block; }
+    /* App download */
+    .apps { margin-top: 34px; display: flex; gap: 24px; align-items: center; background: #fff; border-radius: 18px; overflow: hidden; border: 1px solid var(--hair); }
+    .apps img.art { width: 46%; height: 240px; object-fit: cover; }
+    .apps .badges { display: flex; gap: 10px; margin-top: 14px; }
+    .apps .badges img { height: 44px; }
+    footer { background: var(--navy); color: rgba(255,255,255,.8); margin-top: 48px; font-size: 13px; }
+    footer .wrap { max-width: 1280px; margin: 0 auto; padding: 28px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    footer .links { display: flex; gap: 18px; flex-wrap: wrap; }
+    /* Toast */
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 440px; background: #fff; border-left: 5px solid #C62828; border-radius: 12px; box-shadow: 0 14px 40px rgba(31,42,68,.25); padding: 16px 18px; z-index: 50; transform: translateY(140%); visibility: hidden; transition: transform .3s, visibility .3s; }
+    .toast.show { transform: none; visibility: visible; }
+    .toast.ok { border-left-color: var(--green); }
+    .toast b { display: block; font-size: 15px; margin-bottom: 4px; }
+    .toast p { font-size: 13px; color: var(--secondary); line-height: 1.4; }
+    .toast code { display: block; margin-top: 8px; font-size: 12px; background: #FBECEC; color: #8E1B1B; padding: 7px 9px; border-radius: 6px; word-break: break-word; }
+    .toast .x { position: absolute; top: 8px; right: 10px; background: none; border: 0; font-size: 18px; color: var(--secondary); }
+    @media (max-width: 980px) { .g4 { grid-template-columns: repeat(2, 1fr); } .g3, .g2, .order-layout { grid-template-columns: 1fr; } .site-nav { display: none; } .bag { position: static; } }
+  </style>
+</head>
+<body>
+  <div class="demo-banner">DEMO SITE · Not affiliated with, associated with, or endorsed by Disney</div>
+  <header class="site">
+    <div class="site-inner">
+      <img class="logo" alt="Walt Disney World" src="https://cdn1.parksmedia.wdprapps.disney.com/media/layout/syndicated/prod/assets/logos/wdw.svg" onerror="this.style.display='none'">
+      <nav class="site-nav"><span>Parks &amp; Tickets</span><span>Places to Stay</span><span>Things to Do</span><span>Shop</span><span>Help</span><span>Special Offers</span></nav>
+      <div class="site-right"><span>Cart</span><div class="avatar">O</div><span>Olivia</span></div>
+    </div>
+  </header>
+  <div class="mde-bar">
+    <div class="wrap">
+      <h1>My Disney Experience</h1>
+      <button class="tab active" data-view="home">Home</button>
+      <button class="tab" data-view="plans">My Plans</button>
+      <button class="tab" data-view="order">Mobile Order</button>
+      <button class="tab" data-view="photopass">PhotoPass</button>
+    </div>
+  </div>
+
+  <main>
+    <section class="view active" id="view-home">
+      <div class="hero">
+        <img data-fallback src="https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/1920/1080/75/vision-dam/digital/parks-platform/parks-global-assets/disney-world/guest-services/my-disney-experience/10282025-MyDayWithBackgroundDesktop-4x-16x9.jpg" alt="MyDay in the My Disney Experience app">
+        <div class="copy">
+          <div class="eyebrow">Today · Magic Kingdom Park · 9 AM – 10 PM</div>
+          <h2>Good afternoon, Olivia</h2>
+          <p>Your party of 4 is all set. Skip the line at quick-service spots — order lunch from your phone and we'll tell you when it's ready.</p>
+          <button class="btn btn-primary" data-go="order">Order Food</button>
+        </div>
+      </div>
+
+      <h3 class="section-title">Quick Actions</h3>
+      <div class="grid g4">
+        <div class="card qa" data-go="order"><div class="ico" style="background:var(--orange)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16M5 11a7 5 0 0 1 14 0M4 15h16M5 15v1a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-1"/></svg></div><b>Mobile Order</b><small>Order ahead at Cosmic Ray's and 30+ quick-service locations</small></div>
+        <div class="card qa" data-go="plans"><div class="ico" style="background:var(--ll)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div><b>Lightning Lane</b><small>Space Mountain return 3:15 PM – 4:15 PM</small></div>
+        <div class="card qa"><div class="ico" style="background:var(--purple)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2v20M4 2v6a3 3 0 0 0 6 0V2M17 2c-2 2-3 5-3 8h3v12"/></svg></div><b>Dining Availability</b><small>Find table-service reservations for tonight</small></div>
+        <div class="card qa" data-go="photopass"><div class="ico" style="background:var(--sky-deep)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg></div><b>PhotoPass</b><small>12 new photos from Cinderella Castle</small></div>
+      </div>
+
+      <div class="grid g2" style="margin-top:24px">
+        <div class="card">
+          <h3 class="section-title" style="margin-top:0">Today's Plans</h3>
+          <div id="plans-today"></div>
+        </div>
+        <div class="card">
+          <h3 class="section-title" style="margin-top:0">Wait Times · Magic Kingdom</h3>
+          <div id="waits"></div>
+        </div>
+      </div>
+
+      <h3 class="section-title">Get More Out of Your Visit</h3>
+      <div class="grid g3">
+        <div class="promo"><img data-fallback src="https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/1920/1080/75/dam/disney-world/plan/my-disney-experience/mobile-apps/appMarketingPage_desktop_dine.jpg" alt="Mobile Order dining"><div><b>Mobile Order</b><small>Browse menus, order and pay, then pick up your food when it's ready.</small></div></div>
+        <div class="promo"><img data-fallback src="https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/1920/1080/75/dam/disney-world/plan/my-disney-experience/mobile-apps/appMarketingPage-desktop_magicMobile.jpg" alt="Disney MagicMobile"><div><b>Disney MagicMobile</b><small>Tap your phone or watch to enter the parks and unlock your room.</small></div></div>
+        <div class="promo"><img data-fallback src="https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/1920/1080/75/vision-dam/digital/parks-platform/parks-standard-assets/disney-world/guest-services/know-before-you-go/KBYG_Personal-in-park-Guide_Desktop_3x.jpg" alt="Personal in-park guide"><div><b>Your In-Park Guide</b><small>Real-time wait times, showtimes and tips tailored to your day.</small></div></div>
+      </div>
+
+      <div class="apps">
+        <img class="art" data-fallback src="https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/1920/1080/75/dam/disney-world/plan/my-disney-experience/mobile-apps/appMarketingPage_desktop_atHome.jpg" alt="Plan from home">
+        <div style="padding:24px">
+          <h3 style="font-size:22px;color:var(--navy)">Take My Disney Experience with you</h3>
+          <p style="color:var(--secondary);margin-top:8px;line-height:1.45">Everything on this page — plans, Mobile Order, PhotoPass and more — is in the free app.</p>
+          <div class="badges">
+            <img alt="Download on the App Store" src="https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/310/310/75/dam/wdpro-assets/pages/play-app/apple-story-badge_062018%402x.png" onerror="this.style.display='none'">
+            <img alt="Get it on Google Play" src="https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/310/310/75/dam/wdpro-assets/pages/play-app/google-play-badge_062018%402x.png" onerror="this.style.display='none'">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-plans">
+      <h3 class="section-title" style="margin-top:0">My Plans · Saturday, December 13</h3>
+      <div class="grid g2">
+        <div class="card"><div id="plans-full"></div></div>
+        <div class="card">
+          <b style="color:var(--navy)">Park Reservation</b>
+          <p style="color:var(--secondary);font-size:14px;margin-top:6px">Magic Kingdom Park · 4 guests · Ticket: 4-Day Park Hopper</p>
+          <div class="arrival" style="margin-top:14px">✓ Reservation confirmed</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-order">
+      <div class="order-layout">
+        <div>
+          <div class="card">
+            <div class="rest-head">
+              <img id="rest-img" data-fallback src="https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/630/354/75/dam/disney-world/plan/my-disney-experience/mobile-apps/appMarketingPage_mobile_dine.jpg" alt="Restaurant">
+              <div>
+                <h2 id="rest-name">Cosmic Ray's Starlight Cafe</h2>
+                <small id="rest-meta">Magic Kingdom · Tomorrowland · American · 0.2 mi</small>
+                <div class="arrival">Arrival Window: <span id="rest-window">Now - 2:40 PM</span></div>
+              </div>
+            </div>
+            <div class="rest-switch" id="rest-switch"></div>
+          </div>
+          <div class="card" style="margin-top:18px">
+            <h3 style="font-size:18px;color:var(--navy)" id="menu-name">Lunch And Dinner Menu</h3>
+            <div id="menu"></div>
+          </div>
+        </div>
+        <aside class="card bag" id="bag"></aside>
+      </div>
+    </section>
+
+    <section class="view" id="view-photopass">
+      <h3 class="section-title" style="margin-top:0">PhotoPass · 12 new photos</h3>
+      <div class="grid g3 photopass">
+        <img data-fallback src="https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/1920/1080/75/dam/disney-world/plan/my-disney-experience/appMarketingPage_desktop-photo-pass.jpg" alt="PhotoPass">
+        <img data-fallback src="https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/750/750/75/vision-dam/digital/parks-platform/parks-global-assets/disney-world/experience/archive/0820ZO_3036SD_JB-2-1x1.jpg" alt="Cinderella Castle">
+        <img data-fallback src="https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/1920/1080/75/vision-dam/digital/parks-platform/parks-standard-assets/disney-world/guest-services/know-before-you-go/KBYG_Direct-to-Room-_Services_3x.jpg" alt="Resort">
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="links"><span>Help</span><span>Guest Services</span><span>Accessibility</span><span>Privacy Policy</span><span>Terms of Use</span></div>
+      <div>Demo experience for illustration only — not affiliated with Disney.</div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="alert"><button class="x" aria-label="Dismiss">×</button><div id="toast-body"></div></div>
+
+  <script>
+    var FALLBACK_IMG = 'https://images.unsplash.com/photo-1597466599360-3b9775841aec?w=1200&q=70';
+    function wireFallbacks(root) {
+      (root || document).querySelectorAll('img[data-fallback]').forEach(function (el) {
+        el.addEventListener('error', function () { if (el.src !== FALLBACK_IMG) el.src = FALLBACK_IMG; }, { once: true });
+      });
+    }
+    wireFallbacks();
+    function esc(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function money(n) { return '$' + Number(n).toFixed(2); }
+
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    /* Tabs */
+    function show(view) {
+      document.querySelectorAll('.view').forEach(function (v) { v.classList.toggle('active', v.id === 'view-' + view); });
+      document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('active', t.dataset.view === view); });
+      window.scrollTo({ top: 0 });
+    }
+    document.querySelectorAll('[data-view]').forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.view); }); });
+    document.querySelectorAll('[data-go]').forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.go); }); });
+
+    /* Plans + waits (fixture data mirrors the MDE iOS app) */
+    var PLANS = [
+      { time: '9:00 AM', pill: ['pill-show', 'Park'], title: 'Magic Kingdom Park', sub: 'Park Reservation · 4 guests' },
+      { time: '1:30 PM', pill: ['pill-dine', 'Mobile Order'], title: "Cosmic Ray's Starlight Cafe", sub: 'Arrival window Now - 2:40 PM' },
+      { time: '3:15 PM', pill: ['pill-ll', 'Lightning Lane'], title: 'Space Mountain', sub: 'Return 3:15 PM – 4:15 PM' },
+      { time: '6:00 PM', pill: ['pill-dine', 'Dining'], title: 'Be Our Guest Restaurant', sub: 'Party of 4 · Confirmation #3829104' },
+      { time: '9:00 PM', pill: ['pill-show', 'Show'], title: 'Happily Ever After', sub: 'Cinderella Castle' },
+    ];
+    function planHtml(p) {
+      return '<div class="plan"><div class="time">' + esc(p.time) + '</div><div><span class="pill ' + p.pill[0] + '">' + esc(p.pill[1]) + '</span><br><b>' + esc(p.title) + '</b><small>' + esc(p.sub) + '</small></div></div>';
+    }
+    document.getElementById('plans-today').innerHTML = PLANS.slice(1, 4).map(planHtml).join('');
+    document.getElementById('plans-full').innerHTML = PLANS.map(planHtml).join('');
+    var WAITS = [['Seven Dwarfs Mine Train', 75], ['TRON Lightcycle / Run', 60], ['Space Mountain', 45], ['Peter Pan\'s Flight', 50], ['Haunted Mansion', 30]];
+    document.getElementById('waits').innerHTML = WAITS.map(function (w) {
+      return '<div class="wait"><span>' + esc(w[0]) + '</span><span class="mins">' + w[1] + ' min</span></div>';
+    }).join('');
+
+    /* Mobile Order */
+    var state = { restaurantId: 'cosmic-rays', menu: null, restaurants: [], bag: [{ id: 'cr1', qty: 1 }, { id: 'cr9', qty: 1 }, { id: 'cr20', qty: 1 }] };
+    var bagByRestaurant = {};
+
+    function findItem(id) {
+      var found = null;
+      (state.menu ? state.menu.categories : []).forEach(function (c) { c.items.forEach(function (i) { if (i.id === id) found = i; }); });
+      return found;
+    }
+
+    function loadMenu(restaurantId) {
+      return fetch('/api/f86cc1c6/menu?restaurantId=' + encodeURIComponent(restaurantId))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          state.menu = data;
+          state.restaurants = data.restaurants;
+          renderRestaurant();
+          renderMenu();
+          renderBag();
+        });
+    }
+
+    function renderRestaurant() {
+      var r = state.menu.restaurant;
+      document.getElementById('rest-name').textContent = r.name;
+      document.getElementById('rest-meta').textContent = r.park + ' · ' + r.land + ' · ' + r.cuisine + ' · ' + r.distance;
+      document.getElementById('rest-window').textContent = r.arrivalWindow;
+      document.getElementById('menu-name').textContent = r.menuName;
+      document.getElementById('rest-switch').innerHTML = state.restaurants.map(function (x) {
+        return '<button class="chip' + (x.id === r.id ? ' active' : '') + '" data-rest="' + esc(x.id) + '">' + esc(x.name) + '</button>';
+      }).join('');
+      document.querySelectorAll('[data-rest]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (b.dataset.rest === state.restaurantId) return;
+          bagByRestaurant[state.restaurantId] = state.bag;
+          state.restaurantId = b.dataset.rest;
+          state.bag = bagByRestaurant[state.restaurantId] || [];
+          loadMenu(state.restaurantId);
+        });
+      });
+    }
+
+    function renderMenu() {
+      document.getElementById('menu').innerHTML = state.menu.categories.map(function (c) {
+        var isNew = c.items.some(function (i) { return i.seasonal; });
+        return '<div class="cat"><h3>' + esc(c.name) + (isNew ? ' <span class="new">NEW · HOLIDAY</span>' : '') + '</h3>' + c.items.map(function (i) {
+          return '<div class="item"><div><b>' + esc(i.name) + '</b><p>' + esc(i.description) + '</p></div><div class="right"><div class="price">' + money(i.price) + '</div><button class="add" data-add="' + esc(i.id) + '">Add</button></div></div>';
+        }).join('') + '</div>';
+      }).join('');
+      document.querySelectorAll('[data-add]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var line = state.bag.find(function (l) { return l.id === b.dataset.add; });
+          if (line) line.qty = Math.min(10, line.qty + 1); else state.bag.push({ id: b.dataset.add, qty: 1 });
+          renderBag();
+        });
+      });
+    }
+
+    function renderBag(confirmation) {
+      var el = document.getElementById('bag');
+      if (confirmation) {
+        el.innerHTML = '<div class="confirm"><div class="check">✓</div><h4>Order Submitted</h4><div class="num">' + esc(confirmation.orderNumber) + '</div>' +
+          '<small>' + esc(confirmation.restaurant.name) + ' · ready in about ' + esc(confirmation.readyInMinutes) + ' min<br>Tap "I\'m Here, Prepare My Order" when you arrive.</small>' +
+          '<div class="totals" style="text-align:left"><div class="grand"><span>Total charged</span><span>' + money(confirmation.total) + '</span></div></div>' +
+          '<button class="btn btn-ghost" id="new-order" style="width:100%;margin-top:16px">Start a New Order</button></div>';
+        document.getElementById('new-order').addEventListener('click', function () { renderBag(); });
+        return;
+      }
+      var subtotal = 0;
+      var lines = state.bag.map(function (l) {
+        var item = findItem(l.id);
+        if (!item) return '';
+        subtotal += item.price * l.qty;
+        return '<div class="bag-line"><div><b>' + esc(item.name) + '</b><div class="qty"><button data-dec="' + esc(l.id) + '" aria-label="Decrease">−</button><span>' + l.qty + '</span><button data-inc="' + esc(l.id) + '" aria-label="Increase">+</button><button class="remove" data-remove="' + esc(l.id) + '">Remove</button></div></div><div>' + money(item.price * l.qty) + '</div></div>';
+      }).join('');
+      var tax = Math.round(subtotal * 0.065 * 100) / 100;
+      el.innerHTML = '<h3><span>Your Bag</span><span style="font-size:13px;color:var(--secondary);font-weight:400">' + esc(state.menu.restaurant.name) + '</span></h3>' +
+        (state.bag.length ? lines : '<div class="empty">Your bag is empty. Add items from the menu.</div>') +
+        '<div class="totals"><div><span>Subtotal</span><span>' + money(subtotal) + '</span></div><div><span>Tax</span><span>' + money(tax) + '</span></div><div class="grand"><span>Total</span><span>' + money(subtotal + tax) + '</span></div></div>' +
+        '<div class="pay"><span class="cc">VISA</span><span>Disney Visa ending in 4417</span></div>' +
+        '<button class="btn btn-primary" id="submit-order"' + (state.bag.length ? '' : ' disabled') + '>Submit Order · ' + money(subtotal + tax) + '</button>';
+      el.querySelectorAll('[data-inc]').forEach(function (b) { b.addEventListener('click', function () { adjust(b.dataset.inc, 1); }); });
+      el.querySelectorAll('[data-dec]').forEach(function (b) { b.addEventListener('click', function () { adjust(b.dataset.dec, -1); }); });
+      el.querySelectorAll('[data-remove]').forEach(function (b) { b.addEventListener('click', function () { adjust(b.dataset.remove, -99); }); });
+      document.getElementById('submit-order').addEventListener('click', submitOrder);
+    }
+
+    function adjust(id, delta) {
+      state.bag = state.bag.map(function (l) { return l.id === id ? { id: l.id, qty: Math.min(10, l.qty + delta) } : l; })
+        .filter(function (l) { return l.qty > 0; });
+      renderBag();
+    }
+
+    var toast = document.getElementById('toast');
+    var toastTimer = null;
+    function showToast(html, ok) {
+      document.getElementById('toast-body').innerHTML = html;
+      toast.classList.toggle('ok', !!ok);
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 12000);
+    }
+    toast.querySelector('.x').addEventListener('click', function () { toast.classList.remove('show'); });
+
+    function submitOrder() {
+      var btn = document.getElementById('submit-order');
+      btn.disabled = true;
+      btn.textContent = 'Submitting Order…';
+      identityReady.then(function () {
+        return fetch('/api/f86cc1c6/mobile-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            restaurantId: state.restaurantId,
+            items: state.bag,
+            arrivalWindow: state.menu.restaurant.arrivalWindow,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+      }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+        .then(function (res) {
+          if (res.ok && res.body.success) {
+            state.bag = [];
+            renderBag(res.body);
+            showToast('<b>Order ' + esc(res.body.orderNumber) + ' submitted</b><p>We\'ll let you know when it\'s ready for pickup at ' + esc(res.body.restaurant.name) + '.</p>', true);
+            return;
+          }
+          renderBag();
+          showToast('<b>We couldn\'t submit your order</b><p>Something went wrong on our end. You haven\'t been charged. Please try again or visit a Cast Member at the restaurant.</p>' +
+            '<code>' + esc(res.body.errorClass || 'Error') + ': ' + esc(res.body.error) + '<br>Reference: ' + esc(res.body.requestId) + '</code>');
+        })
+        .catch(function (err) {
+          renderBag();
+          showToast('<b>We couldn\'t submit your order</b><p>Check your connection and try again.</p><code>' + esc(err.message) + '</code>');
+        });
+    }
+
+    loadMenu(state.restaurantId);
+  </script>
+</body>
+</html>
