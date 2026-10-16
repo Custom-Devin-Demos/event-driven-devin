@@ -231,10 +231,11 @@
             <div class="row save"><span>Promo savings</span><span id="sumSavings">-$0.00</span></div>
             <div class="row"><span>Shipping</span><span>FREE</span></div>
             <div class="row"><span>Estimated tax</span><span id="sumTax">$0.00</span></div>
+            <div class="row"><span>Payment processing</span><span id="sumFee">$0.00</span></div>
             <div class="row total"><span>Order total</span><span id="sumTotal">$0.00</span></div>
           </div>
           <div class="amount-field">
-            <label for="amount">Order total (USD)</label>
+            <label for="amount">Merchandise total (USD)</label>
             <input type="number" id="amount" step="0.01" min="1" readonly>
           </div>
           <button type="submit" class="btn-primary" id="submitBtn">Place order</button>
@@ -293,13 +294,16 @@
         });
         var taxable = round(subtotal - savings);
         var tax = round(taxable * TAX_RATE);
-        var total = round(taxable + tax);
+        var merchandise = round(taxable + tax);
+        var fee = round(Math.max(merchandise * 0.001, 2.50));
+        var total = round(merchandise + fee);
         document.getElementById('sumSubtotal').textContent = fmt(subtotal);
         document.getElementById('sumSavings').textContent = '-' + fmt(savings);
         document.getElementById('sumTax').textContent = fmt(tax);
+        document.getElementById('sumFee').textContent = fmt(fee);
         document.getElementById('sumTotal').textContent = fmt(total);
         document.getElementById('monthly').textContent = '$' + Math.ceil(total / 12);
-        amount.value = total.toFixed(2);
+        amount.value = merchandise.toFixed(2);
       }
       form.addEventListener('reset', function () { setTimeout(recalc, 0); });
       recalc();
@@ -308,6 +312,7 @@
         e.preventDefault();
         var btn = document.getElementById('submitBtn');
         var result = document.getElementById('result');
+        var placed = false;
         btn.disabled = true; btn.textContent = 'Placing your order\u2026';
         result.className = 'result-box';
         result.innerHTML = '';
@@ -330,13 +335,18 @@
             result.innerHTML = '<div class="title">We couldn\u2019t place your order</div><div class="detail">Your payment method was not charged. Please try again in a moment.</div>';
           } else {
             var orderNo = 'H' + String(data.transferId || '').replace(/[^0-9A-Za-z]/g, '').slice(-9).toUpperCase();
+            var debit = parseFloat(data.debitAmount);
+            var charged = isFinite(debit) ? ' Total charged: ' + fmt(debit) + '.' : '';
+            placed = true;
             result.className = 'result-box success';
-            result.innerHTML = '<div class="title">Thank you, your order is placed</div><div class="detail">Order ' + orderNo + '. A confirmation email is on its way. Track it anytime from Order status.</div>';
+            result.innerHTML = '<div class="title">Thank you, your order is placed</div><div class="detail">Order ' + orderNo + '.' + charged + ' A confirmation email is on its way. Track it anytime from Order status.</div>';
           }
         } catch (err) {
           result.className = 'result-box error';
           result.innerHTML = '<div class="title">We couldn\u2019t place your order</div><div class="detail">Check your connection and try again.</div>';
-        } finally { btn.disabled = false; btn.textContent = 'Place order'; }
+        } finally {
+          if (placed) { btn.textContent = 'Order placed'; } else { btn.disabled = false; btn.textContent = 'Place order'; }
+        }
       });
     })();
   </script>
