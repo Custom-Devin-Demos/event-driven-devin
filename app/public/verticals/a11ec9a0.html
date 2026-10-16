@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add TV to Broadband | TV with Broadband | BT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple: #5514b4;
+      --purple-deep: #6400aa;
+      --ink: #000000;
+      --ink-2: #2a2a2a;
+      --ink-3: #333333;
+      --nav-text: #36454f;
+      --grey-text: #434343;
+      --tab-text: #686868;
+      --disabled: #6b6b6b;
+      --step-grey: #9c9b9f;
+      --line: #c8c8c8;
+      --surface-grey: #f0f0f0;
+      --hero-grey: #f3f3f3;
+      --merch: #f6f3fb;
+      --white: #ffffff;
+      --curve: "BT Curve", "Figtree", "Century Gothic", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--curve); font-size: 16px; line-height: 24px; color: var(--ink); background: var(--white); }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+    ul { list-style: none; }
+    img { display: block; }
+    .bt-container { max-width: 1200px; margin: 0 auto; }
+
+    /* ---------- universal nav (40px) ---------- */
+    .universal-nav { background: var(--surface-grey); height: 40px; }
+    .universal-nav .bt-container { padding: 0 22px; height: 40px; }
+    .universal-nav ul { display: flex; align-items: center; height: 40px; }
+    .universal-nav li + li { margin-left: 30px; }
+    .universal-nav a { font-size: 14px; line-height: 40px; color: var(--ink-3); }
+
+    /* ---------- global nav (80px) ---------- */
+    .global-nav { background: var(--white); height: 80px; }
+    .global-nav .bt-container { padding: 0 22px; height: 80px; display: flex; align-items: center; justify-content: space-between; }
+    .global-nav-left, .global-nav-right { display: flex; align-items: center; height: 80px; }
+    .global-nav-logo-link { display: flex; align-items: center; height: 80px; padding-right: 20px; }
+    .bt-mark { width: 40px; height: 40px; }
+    .top-level-menu { display: flex; align-items: center; height: 80px; }
+    .top-level-menu a { display: inline-block; font-size: 18px; line-height: 80px; color: var(--nav-text); padding-right: 16px; }
+    .top-level-menu a.padding-right-zero { padding-right: 0; }
+    .global-nav-menu { display: none; }
+
+    /* ---------- local nav (42px) ---------- */
+    .local-nav { height: 42px; border-bottom: 1px solid #e3e3e3; background: var(--white); }
+    .local-nav .bt-container { padding: 0 15px; display: flex; height: 42px; }
+    .local-nav a { display: inline-block; font-size: 14px; line-height: 21px; color: var(--purple); padding: 9px 3px; margin: 0 10px; height: 41px; border-bottom: 2px solid transparent; }
+    .local-nav a.active { font-weight: 700; border-bottom-color: var(--purple); }
+    .local-nav-mobile { display: none; }
+
+    /* ---------- hero ---------- */
+    .hero { position: relative; background: var(--hero-grey); min-height: 422px; overflow: hidden; }
+    .hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    .hero-content { position: relative; padding: 0 15px; }
+    .hero-content .bt-container { padding: 48px 0 0; margin-top: 49px; min-height: 324px; display: flex; justify-content: flex-start; }
+    .hero-text { width: 672px; max-width: 100%; padding: 0 15px 0 25px; }
+    .hero-text h1 { font-size: 16px; line-height: 24px; font-weight: 400; color: var(--purple); }
+    .hero-text h2 { font-size: 40px; line-height: 48px; font-weight: 400; color: var(--purple); margin-top: 8px; text-transform: uppercase; }
+    .hero-text p { margin-top: 24px; }
+    .btn-primary { display: inline-block; margin-top: 21px; height: 47px; padding: 0 31px; border: 0; border-radius: 40px; background: var(--purple); color: var(--white); font-size: 16px; line-height: 47px; font-weight: 400; }
+    .btn-primary:hover { background: #4a10a0; }
+
+    /* ---------- explore ---------- */
+    .explore { padding-top: 48px; }
+    .explore .intro { padding: 0 16px; }
+    .explore h2 { font-size: 32px; line-height: 40px; font-weight: 400; color: var(--purple); text-transform: uppercase; }
+    .explore .intro p { margin-top: 12px; }
+    .steps-section { padding: 24px; }
+    .steps-section .steps-title { font-size: 20px; line-height: 28px; font-weight: 700; color: var(--purple); }
+    .step-wrapper { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 30px; position: relative; min-height: 76px; }
+    .step-wrapper::before { content: ""; position: absolute; left: 12px; right: 372px; top: 12px; height: 1px; background: var(--line); }
+    .step { flex: 1 1 0; position: relative; }
+    .step-number { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--white); border: 1px solid var(--line); font-size: 12px; line-height: 18px; font-weight: 700; color: var(--step-grey); position: relative; }
+    .step.active .step-number { background: var(--purple); border-color: var(--purple); color: var(--white); }
+    .step p { font-size: 16px; line-height: 24px; }
+    .step.active p { font-weight: 700; }
+    .step-mobile-label { display: none; }
+
+    /* ---------- packages ---------- */
+    .packages { padding-top: 58px; }
+    .step-heading { padding: 16px; }
+    .step-heading .row { display: flex; align-items: center; }
+    .circle { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 28px; border-radius: 50%; background: var(--purple); color: var(--white); font-size: 16px; line-height: 18px; margin-right: 10px; }
+    .step-heading h2 { font-size: 20px; line-height: 28px; font-weight: 400; color: var(--purple); }
+    .step-heading p { margin-top: 12px; color: var(--ink-2); }
+    .tabs { padding: 0 16px; margin-top: 8px; border-bottom: 1px solid var(--line); display: flex; }
+    .tabs button { position: relative; white-space: nowrap; background: none; border: 0; font-size: 16px; line-height: 20px; color: var(--tab-text); padding: 10px 8px; margin-left: 4px; border-bottom: 2px solid transparent; }
+    .tabs button.active { color: var(--purple); font-weight: 500; border-bottom-color: var(--purple); }
+
+    .carousel { margin-top: 48px; position: relative; }
+    .slides { display: flex; align-items: flex-end; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 20px; }
+    .slides::-webkit-scrollbar { display: none; }
+    .slide { flex: 0 0 353px; display: flex; align-items: flex-end; }
+    .card-root { position: relative; margin: 45px 10px 0; width: 333px; }
+    .card-root.no-strip { margin-top: 51px; }
+    .merch-strip { position: absolute; left: 0; right: 0; top: -39px; height: 70px; background: var(--merch); border-radius: 40px 40px 0 0; padding: 15px 24px 35px; text-align: center; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--purple); z-index: 0; }
+    .card { position: relative; z-index: 1; background: var(--white); border: 1px solid var(--line); border-radius: 40px; padding: 16px; }
+    .card.selected { border-color: var(--purple); box-shadow: 0 0 0 1px var(--purple); }
+    .card-img { width: 299px; height: 149px; border-radius: 20px; object-fit: cover; background: var(--surface-grey); }
+    .card-img-fallback { width: 299px; height: 149px; border-radius: 20px; background: linear-gradient(135deg, #2b0a5e, #5514b4); display: none; }
+    .card-desc { margin-top: 6px; height: 320px; position: relative; overflow: hidden; }
+    .card-root.no-strip .card { padding-bottom: 10px; }
+    .card-desc h3 { margin-top: 8px; font-size: 20px; line-height: 28px; font-weight: 400; color: var(--purple); }
+    .contract-pill { display: inline-block; margin-top: 9px; font-size: 12px; line-height: 15px; padding: 12px; border-radius: 24px; background: var(--surface-grey); }
+    .included { font-size: 12px; line-height: 16px; margin-top: 28px; }
+    .included p { margin: 12px 0; }
+    .included ul { list-style: disc; padding-left: 40px; margin: 12px 0; }
+    .logos { position: absolute; left: 0; bottom: 0; display: flex; align-items: center; height: 40px; gap: 10px; }
+    .logos img { height: 32px; width: auto; }
+    .logos .logo-text { font-size: 12px; font-weight: 700; color: var(--ink); letter-spacing: 0.04em; display: none; }
+    .card-bottom { background: var(--surface-grey); border-radius: 20px; padding: 16px; height: 291px; display: flex; flex-direction: column; }
+    .countdown { display: block; margin: 2px auto 0; width: fit-content; padding: 0 20px; border-radius: 20px; background: #e6dcf5; font-size: 12px; line-height: 18px; color: var(--purple); text-align: center; }
+    .countdown b { font-weight: 700; }
+    .countdown span { margin: 0 5px; }
+    .countdown span b { margin: 0; }
+    .countdown-spacer { height: 18px; margin-top: 2px; }
+    .price-row { display: flex; align-items: baseline; margin-top: 29px; }
+    .price { font-size: 24px; line-height: 36px; font-weight: 500; }
+    .price .sign { font-size: 16px; font-weight: 700; }
+    .price-sub { font-size: 16px; color: var(--grey-text); margin-left: 3px; }
+    .price-divider { width: 1px; height: 30px; background: var(--ink); margin: 0 12px; align-self: center; }
+    .price-sub.upfront { text-decoration: underline; text-decoration-style: dotted; margin-left: 5px; }
+    .price-detail { margin-top: 6px; padding: 0 4px; }
+    .price-detail div { display: flex; justify-content: space-between; font-size: 14px; line-height: 21px; }
+    .price-detail div b { font-weight: 700; }
+    .card-footer { margin-top: auto; padding-top: 16px; }
+    .btn-outline { display: block; width: 100%; height: 50px; border-radius: 40px; border: 2px solid var(--purple); background: var(--white); color: var(--purple); font-size: 16px; line-height: 24px; padding: 11px 19px; }
+    .btn-outline:hover { background: var(--purple); color: var(--white); }
+    .card.selected .btn-outline { background: var(--purple); color: var(--white); }
+    .details-link { position: relative; display: block; margin: 17px auto 0; background: none; border: 0; font-size: 12px; line-height: 18px; color: var(--purple); text-decoration: underline; }
+    .slider-btn { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; border: 0; background: rgba(0, 0, 0, 0.08); color: #111; margin: 3px 0 0 calc(50% + 18px); }
+    .slider-btn svg { width: 14px; height: 14px; }
+
+    /* ---------- add-to-broadband form (the page's primary action) ---------- */
+    .add-plan { margin-top: 36px; padding: 0 16px; }
+    .add-plan .panel { border: 1px solid var(--line); border-radius: 40px; padding: 32px 40px 36px; background: var(--white); }
+    .add-plan h2 { font-size: 24px; line-height: 36px; font-weight: 400; color: var(--purple); }
+    .add-plan .lede { margin-top: 8px; color: var(--ink-2); }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; margin-top: 24px; }
+    .field label { display: block; font-size: 16px; line-height: 24px; font-weight: 700; margin-bottom: 8px; }
+    .field select, .field input { width: 100%; height: 50px; border: 1px solid var(--grey-text); border-radius: 8px; background: var(--white); font-family: inherit; font-size: 16px; line-height: 24px; color: var(--ink); padding: 0 16px; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%235514b4' stroke-width='2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 18px center; padding-right: 44px; }
+    .field select:focus, .field input:focus { outline: 2px solid var(--purple); outline-offset: 1px; }
+    .field .hint { margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--grey-text); }
+    .form-actions { margin-top: 28px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .form-actions .btn-primary { margin-top: 0; min-width: 282px; }
+    .form-actions .btn-primary:disabled { opacity: 0.7; cursor: default; }
+    .form-actions .note { font-size: 14px; line-height: 21px; color: var(--grey-text); }
+    .result-box { display: none; margin-top: 24px; padding: 16px 20px; border-radius: 20px; font-size: 16px; line-height: 24px; }
+    .result-box.success { display: block; background: var(--merch); border: 1px solid #cdbbea; color: var(--ink); }
+    .result-box.error { display: block; background: #fbeaec; border: 1px solid #e9a3ab; color: #7a1020; }
+    .result-box .result-title { font-weight: 700; }
+    .result-box .result-detail { margin-top: 4px; }
+
+    /* ---------- disabled steps ---------- */
+    .steps-disabled { padding: 0 16px; margin-top: 60px; }
+    .steps-disabled .inner { padding: 16px; }
+    .steps-disabled .row { display: flex; align-items: center; }
+    .steps-disabled .row + .row { margin-top: 16px; }
+    .circle-off { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--disabled); background: var(--white); color: var(--ink); font-size: 16px; margin-right: 10px; }
+    .steps-disabled span.label { color: var(--disabled); }
+
+    /* ---------- faq / legal ---------- */
+    .section { padding: 32px 24px; }
+    .section h2 { font-size: 24px; line-height: 36px; font-weight: 400; color: var(--purple); }
+    .accordion { margin-top: 20px; }
+    .accordion-item { padding: 1px; border-radius: 25px; margin-bottom: 10px; }
+    .accordion-btn { display: flex; align-items: center; width: 100%; text-align: left; background: var(--surface-grey); border: 0; border-radius: 25px; padding: 10px 20px 10px 35px; font-size: 16px; line-height: 24px; color: var(--purple-deep); position: relative; }
+    .accordion-btn::before { content: ""; position: absolute; left: 14px; top: 50%; width: 7px; height: 7px; border-right: 1.5px solid var(--purple-deep); border-bottom: 1.5px solid var(--purple-deep); transform: translateY(-70%) rotate(45deg); }
+    .legal { margin-top: 8px; }
+    .legal h3 { font-size: 16px; line-height: 24px; font-weight: 700; }
+    .legal p a { color: var(--purple); text-decoration: underline; }
+    .copyrights { padding: 32px 24px 36px; }
+    .copyrights h2 { font-size: 20px; line-height: 28px; font-weight: 700; color: var(--purple); }
+    .copyrights p { margin: 16px 0; }
+
+    /* ---------- footer ---------- */
+    footer { background: var(--surface-grey); font-size: 14px; line-height: 21px; color: var(--ink-2); }
+    .ft-top { height: 80px; padding-top: 20px; border-bottom: 1px solid #d5d5d5; }
+    .ft-top .bt-container { padding: 0 22px; display: flex; align-items: center; gap: 43px; height: 39px; margin-top: 10px; }
+    .ft-top a, .ft-top button { font-size: 14px; line-height: 19px; color: var(--ink-2); background: none; border: 0; display: inline-flex; align-items: center; gap: 8px; }
+    .ft-top svg { width: 10px; height: 6px; }
+    .ft-bottom { max-width: 1170px; margin: 17px auto 0; padding: 0 22px 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .ft-links { display: flex; flex-wrap: wrap; column-gap: 43px; row-gap: 31px; max-width: 1025px; }
+    .ft-links a { font-size: 14px; line-height: 21px; color: var(--ink-2); }
+    .ft-logo { display: flex; align-items: center; margin-top: 38px; }
+    .ft-logo span { padding-right: 16px; }
+
+    /* ---------- mobile ---------- */
+    @media (max-width: 900px) {
+      .universal-nav { display: none; }
+      .global-nav { height: 60px; }
+      .global-nav .bt-container { height: 60px; padding: 0 15px; }
+      .global-nav-left, .global-nav-right, .global-nav-logo-link { height: 60px; }
+      .global-nav-logo-link { padding-right: 6px; }
+      .top-level-menu { display: none; }
+      .global-nav-menu { display: inline-flex; align-items: center; gap: 8px; height: 59px; background: none; border: 0; font-size: 18px; color: var(--ink-2); padding: 0; }
+      .global-nav-menu svg { width: 12px; height: 8px; }
+      .local-nav { display: none; }
+      .local-nav-mobile { display: block; height: 47px; margin-bottom: 10px; border-bottom: 1px solid #e3e3e3; }
+      .local-nav-mobile button { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 46px; padding: 10px 15px; background: none; border: 0; font-size: 16px; line-height: 24px; color: var(--purple-deep); text-align: left; }
+      .local-nav-mobile svg { width: 12px; height: 8px; }
+
+      .hero { min-height: 0; }
+      .hero-img { display: none; }
+      .hero-img-mobile { display: block; width: 100%; height: auto; margin-bottom: 6px; }
+      .hero-content .bt-container { margin-top: 0; min-height: 0; padding: 48px 0 8px; }
+      .hero-text { width: 100%; padding: 0; }
+      .hero-text h2 { font-size: 28px; line-height: 36px; }
+      .explore h2 { font-size: 24px; line-height: 32px; }
+      .steps-section { padding: 24px 16px; }
+      .step-wrapper { flex-wrap: wrap; margin-top: 30px; min-height: 0; }
+      .step-wrapper::before { left: 12px; right: 33%; top: 45px; }
+      .step-mobile-label { display: block; width: 100%; font-size: 16px; line-height: 24px; font-weight: 700; margin-bottom: 9px; }
+      .step { flex: 0 0 33%; }
+      .step p { display: none; }
+      .step-number { margin-left: 8px; }
+
+      .tabs { padding: 0 4px 0 16px; overflow-x: auto; scrollbar-width: none; }
+      .tabs::-webkit-scrollbar { display: none; }
+      .tabs button { font-size: 14px; line-height: 19px; }
+      .slide { flex: 0 0 341px; }
+      .card-root { margin: 45px 8px 0; width: 325px; }
+      .card-img, .card-img-fallback { width: 291px; height: 145px; }
+      .slider-btn { margin-left: calc(50% - 24px); }
+      .add-plan .panel { padding: 24px 20px 28px; border-radius: 24px; }
+      .form-grid { grid-template-columns: 1fr; gap: 16px; }
+      .form-actions .btn-primary { width: 100%; min-width: 0; }
+      .section { padding: 32px 12px; }
+      .copyrights { padding: 32px 12px 36px; }
+      .ft-top { height: auto; padding: 20px 0 16px; }
+      .ft-top .bt-container { flex-wrap: wrap; gap: 16px 24px; height: auto; margin-top: 0; padding: 0 15px; }
+      .ft-bottom { flex-direction: column; padding: 0 15px 20px; }
+      .ft-links { column-gap: 30px; row-gap: 30px; }
+      .ft-logo { align-self: flex-end; margin-top: 24px; }
+    }
+    @media (max-width: 480px) {
+      .global-nav-menu, .local-nav-mobile button, .ft-top a, .ft-top button, .ft-links a, .universal-nav a { min-height: 44px; }
+      .tabs button::before, .details-link::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+      .ft-links a, .ft-top a { display: inline-flex; align-items: center; }
+      .ft-links { row-gap: 7px; }
+      .global-nav-logo-link { min-height: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="universal-nav" aria-label="BT sites">
+      <div class="bt-container">
+        <ul>
+          <li><a href="#">For the home</a></li>
+          <li><a href="#">UK business</a></li>
+          <li><a href="#">International business</a></li>
+        </ul>
+      </div>
+    </nav>
+    <nav class="global-nav" aria-label="Main">
+      <div class="bt-container">
+        <div class="global-nav-left">
+          <a class="global-nav-logo-link" href="#" aria-label="BT home">
+            <svg class="bt-mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+              <circle cx="20" cy="20" r="18.25" fill="none" stroke="#5514b4" stroke-width="3.5"/>
+              <text x="20" y="25.6" text-anchor="middle" font-family="Figtree, Century Gothic, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#5514b4" letter-spacing="-0.4">BT</text>
+            </svg>
+          </a>
+          <ul class="top-level-menu">
+            <li><a href="#">Broadband</a></li>
+            <li><a href="#">TV</a></li>
+            <li><a href="#">Sport</a></li>
+            <li><a href="#">Mobile</a></li>
+            <li><a href="#">Home Phone</a></li>
+            <li><a href="#">Why BT</a></li>
+            <li><a href="#">Business</a></li>
+          </ul>
+        </div>
+        <div class="global-nav-right">
+          <ul class="top-level-menu">
+            <li><a href="#">Help</a></li>
+            <li><a href="#">My BT</a></li>
+            <li><a href="#" class="padding-right-zero">Email</a></li>
+          </ul>
+          <button class="global-nav-menu" type="button" aria-label="Open menu">Menu <svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="maincontent">
+    <section class="local-nav" aria-label="TV">
+      <div class="bt-container">
+        <a href="#">TV and broadband deals</a>
+        <a href="#" class="active" aria-current="page">Add TV to your broadband</a>
+        <a href="#">Change TV</a>
+      </div>
+    </section>
+    <section class="local-nav-mobile" aria-label="TV">
+      <button type="button">TV <svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+    </section>
+
+    <section class="hero">
+      <img class="hero-img" src="https://img01.products.bt.co.uk/content/dam/bt/storefront/bt-tv/add/content-images/herobanner/2026/october/tv-sport-hero-banner-desktop.webp" alt="" onerror="this.style.display='none'">
+      <div class="hero-content">
+        <div class="bt-container">
+          <div class="hero-text">
+            <h1>BT TV deals</h1>
+            <h2>Get the Sport plan for £5 a month for 3 months</h2>
+            <p>Then £27 a month. £29 from 31 March 2027. £31 from 31 March 2028. No activation fee. 24 month contract.</p>
+            <a class="btn-primary" href="#add-plan">Add TV to your BT broadband</a>
+          </div>
+        </div>
+      </div>
+      <img class="hero-img-mobile" src="https://img01.products.bt.co.uk/content/dam/bt/storefront/bt-tv/add/content-images/herobanner/2026/october/tv-sport-hero-banner-mobile.webp" alt="" style="display:none" onerror="this.remove()">
+    </section>
+
+    <section class="explore bt-container">
+      <div class="intro">
+        <h2>Explore BT TV plans</h2>
+        <p>All the best live and on demand from Netflix, Sky channels from NOW, TNT Sports and more. Swap and manage your package via My BT app.</p>
+      </div>
+      <div class="steps-section">
+        <span class="steps-title">Let’s build your package</span>
+        <div class="step-wrapper">
+          <span class="step-mobile-label">Step 1 – Choose a BT TV plan</span>
+          <div class="step active"><span class="step-number">1</span><p>Choose a BT TV plan</p></div>
+          <div class="step"><span class="step-number">2</span><p>Choose BT TV extras</p></div>
+          <div class="step"><span class="step-number">3</span><p>Setting you up</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="packages" id="packages">
+      <div class="bt-container">
+        <div class="step-heading">
+          <div class="row"><span class="circle">1</span><h2>Choose a BT TV plan</h2></div>
+          <p>All the best live and on demand from Netflix, Sky channels from NOW, TNT Sports and more. Swap and manage your package via My BT app.</p>
+        </div>
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab">TV shows and Movies</button>
+          <button type="button" role="tab">Sports and games</button>
+          <button type="button" role="tab" class="active" aria-selected="true">Both</button>
+        </div>
+        <div class="carousel">
+          <div class="slides" id="slides">
+            <div class="slide">
+              <div class="card-root">
+                <div class="merch-strip">Get Sport for just £5 a month</div>
+                <div class="card" data-plan="BASIC-12">
+                  <img class="card-img" src="https://img01.products.bt.co.uk/content/dam/bt/storefront/bt-tv/common/images/tv-product-card/2026/october/sport_332x166.webp" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="card-img-fallback"></div>
+                  <div class="card-desc">
+                    <h3>Sport</h3>
+                    <span class="contract-pill">24 month contract</span>
+                    <div class="included">
+                      <p>What’s included:</p>
+                      <ul>
+                        <li>All TNT Sports HD channels and access to TNT Sports on HBO Max</li>
+                        <li>Includes most popular free-to-air channels</li>
+                        <li>TV Box Pro which supports recording</li>
+                      </ul>
+                    </div>
+                    <div class="logos"><img src="https://www.bt.com/tv/assets/images/new_tv_pack_partner_logos/TNTSport.png" alt="TNT Sports" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="logo-text">TNT SPORTS</span></div>
+                  </div>
+                  <div class="card-bottom">
+                    <span class="countdown"><b>Offer ends in</b> <span data-countdown></span></span>
+                    <div class="price-row"><span class="price"><span class="sign">£</span>5</span><span class="price-sub">a month</span><span class="price-divider"></span><span class="price"><span class="sign">£</span>0</span><span class="price-sub upfront">upfront</span></div>
+                    <div class="price-detail"><div><span>After 3 months</span><b>£27</b></div><div><span>From 31 March 2027</span><b>£29</b></div><div><span>From 31 March 2028</span><b>£31</b></div></div>
+                    <div class="card-footer"><button type="button" class="btn-outline" data-select="BASIC-12">Select this plan</button><button type="button" class="details-link">See the Sport package details</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="slide">
+              <div class="card-root">
+                <div class="merch-strip">Enjoy Entertainment for £15 a month</div>
+                <div class="card" data-plan="PLUS-24">
+                  <img class="card-img" src="https://img01.products.bt.co.uk/content/dam/bt/storefront/bt-tv/common/images/tv-product-card/2026/october/entertainment_332x166.webp" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="card-img-fallback"></div>
+                  <div class="card-desc">
+                    <h3>Entertainment</h3>
+                    <span class="contract-pill">24 month contract</span>
+                    <div class="included">
+                      <p>What’s included:</p>
+                      <ul>
+                        <li>Netflix Standard with Ads</li>
+                        <li>21 Channels from NOW Entertainment</li>
+                        <li>Includes most popular free-to-air channels</li>
+                        <li>TV Box Edge which doesn't support recording</li>
+                      </ul>
+                    </div>
+                    <div class="logos"><img src="https://www.bt.com/tv/assets/images/new_tv_pack_partner_logos/NetFlix_NOw.png" alt="Netflix and NOW" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="logo-text">NETFLIX · NOW</span></div>
+                  </div>
+                  <div class="card-bottom">
+                    <span class="countdown"><b>Offer ends in</b> <span data-countdown></span></span>
+                    <div class="price-row"><span class="price"><span class="sign">£</span>15</span><span class="price-sub">a month</span><span class="price-divider"></span><span class="price"><span class="sign">£</span>0</span><span class="price-sub upfront">upfront</span></div>
+                    <div class="price-detail"><div><span>From 31 March 2027</span><b>£17</b></div><div><span>From 31 March 2028</span><b>£19</b></div></div>
+                    <div class="card-footer"><button type="button" class="btn-outline" data-select="PLUS-24">Select this plan</button><button type="button" class="details-link">See the Entertainment package details</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="slide">
+              <div class="card-root no-strip">
+                <div class="card" data-plan="FAMILY-PLUS-12">
+                  <img class="card-img" src="https://img01.products.bt.co.uk/content/dam/bt/storefront/bt-tv/common/images/tv-product-card/2026/october/sport_plus_332x166.webp" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="card-img-fallback"></div>
+                  <div class="card-desc">
+                    <h3>Sport Plus</h3>
+                    <span class="contract-pill">24 month contract</span>
+                    <div class="included">
+                      <p>What’s included:</p>
+                      <ul>
+                        <li>All TNT Sports HD channels and access to TNT Sports on HBO Max</li>
+                        <li>Sky Sports channels with NOW Sports in HD</li>
+                        <li>Includes most popular free-to-air channels</li>
+                        <li>TV Box Pro which supports recording</li>
+                      </ul>
+                    </div>
+                    <div class="logos"><img src="https://www.bt.com/tv/assets/images/new_tv_pack_partner_logos/Nowandsports.png" alt="NOW and TNT Sports" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="logo-text">NOW · TNT SPORTS</span></div>
+                  </div>
+                  <div class="card-bottom">
+                    <span class="countdown-spacer"></span>
+                    <div class="price-row"><span class="price"><span class="sign">£</span>30</span><span class="price-sub">a month</span><span class="price-divider"></span><span class="price"><span class="sign">£</span>0</span><span class="price-sub upfront">upfront</span></div>
+                    <div class="price-detail"><div><span>After 3 months</span><b>£55</b></div><div><span>From 31 March 2027</span><b>£57</b></div><div><span>From 31 March 2028</span><b>£59</b></div></div>
+                    <div class="card-footer"><button type="button" class="btn-outline" data-select="FAMILY-PLUS-12">Select this plan</button><button type="button" class="details-link">See the Sport Plus package details</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="slide">
+              <div class="card-root no-strip">
+                <div class="card" data-plan="ULTRA-36">
+                  <img class="card-img" src="https://img01.products.bt.co.uk/content/dam/bt/storefront/bt-tv/common/images/tv-product-card/2026/october/entertainment_plus_332x166.webp" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="card-img-fallback"></div>
+                  <div class="card-desc">
+                    <h3>Entertainment Plus</h3>
+                    <span class="contract-pill">24 month contract</span>
+                    <div class="included">
+                      <p>What’s included:</p>
+                      <ul>
+                        <li>Netflix Standard with Ads</li>
+                        <li>21 Channels from NOW Entertainment &amp; HBO Max (Basic with Ads)</li>
+                        <li>Includes most popular free-to-air channels</li>
+                        <li>TV Box Pro which supports recording</li>
+                      </ul>
+                    </div>
+                    <div class="logos"><img src="https://www.bt.com/tv/assets/images/new_tv_pack_partner_logos/NetFlix_NOw.png" alt="Netflix and NOW" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="logo-text">NETFLIX · NOW</span></div>
+                  </div>
+                  <div class="card-bottom">
+                    <span class="countdown"><b>Offer ends in</b> <span data-countdown></span></span>
+                    <div class="price-row"><span class="price"><span class="sign">£</span>19</span><span class="price-sub">a month</span><span class="price-divider"></span><span class="price"><span class="sign">£</span>0</span><span class="price-sub upfront">upfront</span></div>
+                    <div class="price-detail"><div><span>From 31 March 2027</span><b>£21</b></div><div><span>From 31 March 2028</span><b>£23</b></div></div>
+                    <div class="card-footer"><button type="button" class="btn-outline" data-select="ULTRA-36">Select this plan</button><button type="button" class="details-link">See the Entertainment Plus package details</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="slide">
+              <div class="card-root no-strip">
+                <div class="card" data-plan="UNLIMITED-24">
+                  <img class="card-img" src="https://img01.products.bt.co.uk/content/dam/bt/storefront/bt-tv/common/images/tv-product-card/2026/october/full_works_332x166.webp" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="card-img-fallback"></div>
+                  <div class="card-desc">
+                    <h3>Full Works</h3>
+                    <span class="contract-pill">24 month contract</span>
+                    <div class="included">
+                      <p>What’s included:</p>
+                      <ul>
+                        <li>Get NOW Entertainment &amp; HBO Max (Basic with Ads)</li>
+                        <li>Netflix Standard</li>
+                        <li>Sky Sports channels with NOW Sports in HD</li>
+                        <li>All TNT Sports HD channels and access to TNT Sports on HBO Max</li>
+                        <li>Includes most popular free-to-air channels</li>
+                        <li>TV Box Pro which supports recording</li>
+                      </ul>
+                    </div>
+                    <div class="logos"><img src="https://www.bt.com/tv/assets/images/new_tv_pack_partner_logos/NetflixNowSport.png" alt="Netflix, NOW and TNT Sports" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="logo-text">NETFLIX · NOW · TNT SPORTS</span></div>
+                  </div>
+                  <div class="card-bottom">
+                    <span class="countdown-spacer"></span>
+                    <div class="price-row"><span class="price"><span class="sign">£</span>88</span><span class="price-sub">a month</span><span class="price-divider"></span><span class="price"><span class="sign">£</span>0</span><span class="price-sub upfront">upfront</span></div>
+                    <div class="price-detail"><div><span>From 31 March 2027</span><b>£90</b></div><div><span>From 31 March 2028</span><b>£92</b></div></div>
+                    <div class="card-footer"><button type="button" class="btn-outline" data-select="UNLIMITED-24">Select this plan</button><button type="button" class="details-link">See the Full Works package details</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="slider-btn" id="slideNext" aria-label="Next plans"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M4 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+        </div>
+
+        <div class="add-plan" id="add-plan">
+          <div class="panel">
+            <h2>Add your plan to BT Broadband</h2>
+            <p class="lede">Choose the plan you want and we’ll add it to your existing BT Broadband account. Your TV Box is delivered within 3 working days.</p>
+            <form id="upgradeForm" novalidate>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="currentPlan">Your BT Broadband package</label>
+                  <select id="currentPlan">
+                    <option value="BASIC-12">Fibre Essential</option>
+                    <option value="PLUS-24" selected>Full Fibre 100</option>
+                    <option value="ULTRA-36">Full Fibre 300</option>
+                    <option value="FAMILY-PLUS-12">Full Fibre 900</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="newPlan">BT TV plan to add</label>
+                  <select id="newPlan">
+                    <option value="BASIC-12">Sport — £5 a month for 3 months</option>
+                    <option value="PLUS-24">Entertainment — £15 a month</option>
+                    <option value="FAMILY-PLUS-12">Sport Plus — £30 a month</option>
+                    <option value="ULTRA-36">Entertainment Plus — £19 a month</option>
+                    <option value="UNLIMITED-24">Full Works — £88 a month</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="addon">BT TV extras</label>
+                  <select id="addon">
+                    <option value="none">No extras for now</option>
+                    <option value="international">NOW Cinema membership</option>
+                    <option value="hotspot">Netflix Standard (ad-free) upgrade</option>
+                    <option value="insurance">Extra TV Box for another room</option>
+                  </select>
+                  <p class="hint">You can change extras at any time in the My BT app.</p>
+                </div>
+                <div class="field">
+                  <label for="promoCode">Offer code (optional)</label>
+                  <input type="text" id="promoCode" placeholder="Enter an offer code" autocomplete="off">
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" id="submitBtn">Add TV to your BT broadband</button>
+                <span class="note">24 month contract. No activation fee. Prices rise by £2 a month every 31 March.</span>
+              </div>
+            </form>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="steps-disabled">
+          <div class="inner">
+            <div class="row"><span class="circle-off">2</span><span class="label">Choose BT TV extras</span></div>
+            <div class="row"><span class="circle-off">3</span><span class="label">Setting you up</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bt-container section">
+      <h2>Frequently asked questions about TV</h2>
+      <div class="accordion">
+        <div class="accordion-item"><button type="button" class="accordion-btn">What is BT TV?</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">What are BT TV extras?</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">Can I watch the Sky channels and Sky Sports channels on BT TV?</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">How can I watch BT TV in another room?</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">How does BT TV work and how do I setup BT TV?</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">What channels do I get with BT TV?</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">Can I switch my BT TV plan?</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">Can I get Netflix on BT TV?</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">Where can I find the YouTube app?</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">How do I get YouTube Premium?</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">How much does NOW Pass cost on BT TV?</button></div>
+      </div>
+    </section>
+
+    <section class="bt-container section">
+      <h2>Important information</h2>
+      <div class="legal">
+        <h3>The legal stuff</h3>
+        <p>On 31 March each year the monthly price shown for your TV plan will increase by £2. Out of bundle charges will increase by 5%. All prices shown are in contract prices. Please note the cost of other services you take from us may increase or decrease while you are a BT customer. See <a href="#">bt.com/prices-explained</a> for details.</p>
+      </div>
+      <div class="accordion">
+        <div class="accordion-item"><button type="button" class="accordion-btn">BT Broadband</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">BT TV</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">BT Home Phone</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">TNT Sports</button></div>
+        <div class="accordion-item"><button type="button" class="accordion-btn">BT Mobile</button></div>
+      </div>
+    </section>
+
+    <section class="bt-container copyrights">
+      <h2>Copyrights:</h2>
+      <p>The Miniature Wife © 2026 Mr. Magoo, LLC. All rights reserved.<br>
+      Euphoria © Home Box Office, Inc. All rights reserved. HBO® and all related programs are the property of Home Box Office, Inc.<br>
+      The Pitt © Home Box Office, Inc. All rights reserved. HBO® and all related programs are the property of Home Box Office, Inc.<br>
+      The Bad Guys 2: © 2026 DreamWorks Animation LLC. All Rights Reserved. © 2026 Universal Studios. All Rights Reserved.<br>
+      How To Train Your Dragon © 2025 Universal Studios &amp; DreamWorks Animation LLC. All Rights Reserved.<br>
+      Superman © &amp; TM DC © 2026 Warner Bros. Entertainment Inc. All Rights Reserved.<br>
+      © 2026 Warner Bros. Discovery. All rights reserved.<br>
+      Avatar: Fire &amp; Ash © 2026 20th Century Studios<br>
+      GOAT ©2026 Columbia Pictures Industries, Inc. and TSG Entertainment II LLC. All Rights Reserved<br>
+      “Wuthering Heights” © 2026 Warner Bros. Ent. All Rights Reserved</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="ft-top">
+      <div class="bt-container">
+        <a href="#">For UK and global businesses</a>
+        <a href="#">BT Group</a>
+        <button type="button">More Sites <svg viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></button>
+      </div>
+    </div>
+    <div class="ft-bottom">
+      <div class="ft-links">
+        <a href="#">Contact BT</a><a href="#">Careers</a><a href="#">Privacy</a><a href="#">Cookies</a><a href="#">Terms of use</a><a href="#">Codes of practice</a><a href="#">Broadband Universal Service</a><a href="#">Make a complaint</a><a href="#">T&amp;Cs</a><a href="#">Complaints Code</a><a href="#">Modern Slavery Statement</a><a href="#">Here For You - Supporting your needs</a><a href="#">Accessibility</a><a href="#">Welsh language support</a>
+      </div>
+      <div class="ft-logo">
+        <span>©BT 2026</span>
+        <svg class="bt-mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+          <circle cx="20" cy="20" r="18.25" fill="none" stroke="#5514b4" stroke-width="3.5"/>
+          <text x="20" y="25.6" text-anchor="middle" font-family="Figtree, Century Gothic, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#5514b4" letter-spacing="-0.4">BT</text>
+        </svg>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var mobileHero = document.querySelector('.hero-img-mobile');
+      function syncHero() { if (mobileHero) mobileHero.style.display = window.innerWidth <= 900 ? 'block' : 'none'; }
+      syncHero(); window.addEventListener('resize', syncHero);
+
+      var end = Date.now() + ((6 * 24 + 7) * 60 + 13) * 60 * 1000;
+      var cds = document.querySelectorAll('[data-countdown]');
+      function tick() {
+        var s = Math.max(0, Math.floor((end - Date.now()) / 1000));
+        var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+        var parts = [[d, 'd'], [h, 'hr'], [m, 'm'], [sec, 's']];
+        cds.forEach(function (el) {
+          el.replaceChildren();
+          parts.forEach(function (p) { var sp = document.createElement('span'); var b = document.createElement('b'); b.textContent = p[0]; sp.append(b, p[1]); el.appendChild(sp); });
+        });
+      }
+      tick(); setInterval(tick, 1000);
+
+      var slides = document.getElementById('slides');
+      document.getElementById('slideNext').addEventListener('click', function () {
+        var max = slides.scrollWidth - slides.clientWidth;
+        slides.scrollTo({ left: slides.scrollLeft + 10 >= max ? 0 : slides.scrollLeft + 353, behavior: 'smooth' });
+      });
+
+      var newPlan = document.getElementById('newPlan');
+      function markSelected() {
+        document.querySelectorAll('.card').forEach(function (c) { c.classList.toggle('selected', c.dataset.plan === newPlan.value); });
+      }
+      document.querySelectorAll('[data-select]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          newPlan.value = btn.dataset.select;
+          markSelected();
+          document.getElementById('add-plan').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+      newPlan.addEventListener('change', markSelected);
+      markSelected();
+    })();
+  </script>
+  <script>
+    function show(title, detail) {
+      const result = document.getElementById('result');
+      result.replaceChildren();
+      const t = document.createElement('div'); t.className = 'result-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'result-detail'; d.textContent = detail;
+      result.append(t, d);
+    }
+    document.getElementById('upgradeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Adding TV to your account...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/telco/upgrade', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId: 'CUST-3001', currentPlanCode: document.getElementById('currentPlan').value, targetPlanCode: document.getElementById('newPlan').value, billingDay: 15, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          show('We couldn’t add TV to your broadband', (data.errorClass ? data.errorClass + ': ' : '') + (data.error || 'Please try again.'));
+        } else {
+          const planLabel = document.querySelector('#newPlan option:checked').textContent.split(' — ')[0];
+          const broadband = document.querySelector('#currentPlan option:checked').textContent;
+          const ref = String(data.upgradeId || '').slice(0, 8).toUpperCase();
+          result.className = 'result-box success';
+          show(planLabel + ' added to your BT Broadband', 'Added to ' + broadband + ' on a 24 month contract' + (ref ? ' — order reference BT-' + ref : '') + '. Your TV Box is on its way; we’ll confirm the delivery slot by text and email.');
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        show('Network error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Add TV to your BT broadband'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
