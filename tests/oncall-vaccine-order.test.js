@@ -3,6 +3,7 @@ const http = require('http');
 
 const { submitOrder, DISTRIBUTION_CENTERS } = require('../app/services/oncall-verticals/vaccines');
 const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
+const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 
 jest.setTimeout(30000);
 
@@ -57,7 +58,7 @@ describe('POST /api/oncall/vaccines/order', () => {
   });
 
   afterAll((done) => {
-    server.close(done);
+    server.close(() => stopGateway().then(() => done()));
   });
 
   test('answers 504 with the allocation timeout after ~8s', async () => {
