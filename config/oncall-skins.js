@@ -3867,6 +3867,17 @@ const ONCALL_SKINS = {
     supportCenter: 'Coca-Cola FEMSA Customer Service',
     disclaimer: 'NOT ACTUALLY A COCA-COLA FEMSA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Coca-Cola FEMSA product. All messages and data are fictional.',
   },
+  'abaf79d0': {
+    slug: 'abaf79d0',
+    company: 'Nextdoor',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: {
+      file: 'abaf79d0.html',
+      title: 'Opportunity Alerts for Small Businesses | Real-Time Local Leads | Nextdoor',
+    },
+    disclaimer: 'NOT ACTUALLY A NEXTDOOR SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nextdoor product.',
+  },
 };
 
 function getOncallSkin(slug) {
