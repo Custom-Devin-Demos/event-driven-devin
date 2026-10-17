@@ -58,7 +58,7 @@ describe('roster config', () => {
     expect(byKey.AKIRA_SHIBATA.tz).toBe('Asia/Tokyo');
     expect(byKey.AKIRA_SHIBATA.slackId).toBe('U0AUFDRGGLC');
     expect(getRoster({ FCTO_SLACK_ID_NARRY_SINGH: 'u0narry123' }).find((m) => m.key === 'NARRY_SINGH').slackId).toBe('U0NARRY123');
-    expect(getAdminIds()).toEqual([ADMIN]);
+    expect(getAdminIds()).toEqual([ADMIN, 'U0AKUU81BR9']);
     expect(getAdminIds({ FCTO_ADMIN_SLACK_IDS: 'U1, u2,bad id,,U1' })).toEqual(['U1', 'U2']);
   });
 });
