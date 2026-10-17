@@ -31,6 +31,24 @@ in the thread. The authoritative answer to "who is reserved when" is
    requests don't count). Booked people can still be requested.
    Audience · country · industry show on the card, in `/fcto schedule`, and
    in the `.ics` description.
+   **Request types** (first field; config in `config/fcto-guide.js`):
+   * **Customer meeting** — the named Field CTO reviews it (or any Field CTO
+     claims an open one); admins can also approve. Requires a **meeting goal**
+     of at least 150 characters (what the customer wants from a Field CTO and
+     why the SE/AE can't cover it) and **key attendees** (name — title).
+     **Salesforce opportunity** and **contact record** links are optional; they
+     are format-checked (`*.lightning.force.com` / `*.salesforce.com`
+     Opportunity `006…` / Contact `003…` URLs, no Salesforce API) and the card
+     shows "No Salesforce … linked" when they are missing.
+   * **Earned speaking** — conference, panel, podcast or webinar. Asks event
+     name, talk topic (100+ characters), event link, audience size, event
+     country and an optional answer-by date; no audience/industry. Approved
+     only by the speaking reviewer (`FCTO_SPEAKING_REVIEWER_IDS`, default
+     Nicole Zuuring) or an admin, who is pinged in the card's thread. Field
+     CTOs can't approve or claim these.
+   `/fcto guide` shows what a request needs, both types, the default routing
+   picks and each Field CTO's region, local time and focus areas (`FOCUS` in
+   `config/fcto-guide.js`, blank until written).
 2. The card lands in the channel as **Pending**.
    * Specific person → **Approve** / **Decline** / **Reassign…** (admins) /
      **Cancel request** (requester or admin).
@@ -41,7 +59,7 @@ in the thread. The authoritative answer to "who is reserved when" is
    reply tags requester and Field CTO with the time in the Field CTO's zone,
    and an `.ics` file is attached for either side to add to their calendar.
 4. `/fcto schedule`, `/fcto schedule next`, `/fcto schedule month`,
-   `/fcto schedule @katrin`, `/fcto schedule me`, `/fcto roster`, `/fcto help`.
+   `/fcto schedule @katrin`, `/fcto schedule me`, `/fcto roster`, `/fcto guide`, `/fcto help`.
 5. `/fcto free oct 22`, `/fcto free oct 22-24`, `/fcto free next week` — who has no
    approved reservation on those days (green / yellow = partly / red = 6h+ booked).
    Based on this app's reservations only; it can't see personal calendars.
@@ -75,6 +93,10 @@ in the thread. The authoritative answer to "who is reserved when" is
 | Claim an "any" request | – | – | yes | – |
 | Assign / Reassign | yes | – | – | – |
 | Cancel | yes | – | – | yes |
+
+Earned speaking requests: Approve / Decline / Assign / Reassign are limited to
+admins and the speaking reviewer (`FCTO_SPEAKING_REVIEWER_IDS`); the named
+Field CTO can't approve and nobody can Claim.
 
 Everything is enforced server-side; unauthorized clicks get an ephemeral note.
 

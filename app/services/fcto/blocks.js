@@ -5,6 +5,7 @@
 const { getRoster, findMember, REGION_LABELS, getAdminIds } = require('../../../config/fcto-roster');
 const R = require('./reservations');
 const Q = require('../../../config/fcto-qualifications');
+const G = require('../../../config/fcto-guide');
 const avatars = require('./avatars');
 const { calendarLinks } = require('./ics');
 
@@ -120,7 +121,8 @@ function suggestionCallout(suggestion) {
   if (member) {
     const t = R.formatInTz(Math.floor(Date.now() / 1000), member.tz);
     const image = avatarImage(member);
-    return section(`:sparkles: *Suggested: ${member.name}* for ${suggestion.reason}\n${REGION_LABELS[member.region]} · it's ${t.time} ${t.zone} for them now`, image ? { accessory: image } : {});
+    const focus = G.FOCUS[member.key] ? `\n_Focus: ${esc(G.FOCUS[member.key])}_` : '';
+    return section(`:sparkles: *Suggested: ${member.name}* for ${suggestion.reason}\n${REGION_LABELS[member.region]} · it's ${t.time} ${t.zone} for them now${focus}`, image ? { accessory: image } : {});
   }
   const pref = R.PREFERENCES[suggestion.who.slice('ANY:'.length)];
   return section(`:sparkles: *Suggested: ${pref || 'any Field CTO'}* for ${suggestion.reason}`);
@@ -164,16 +166,104 @@ function findWhoOption(value) {
   return null;
 }
 
-// `audience`/`suggestion`/`availability` come from the requester's current
-// picks (see routes/fcto.js): a "Below" warning, a pre-selected Field CTO and
-// whether the chosen Field CTO is free at the chosen time.
-function requestModal({ channelId, defaultStartTs, audience, suggestion, availability } = {}) {
+const kindOption = (k) => ({ text: plain(`${k.emoji} ${k.label}`), description: plain(k.blurb.slice(0, 75)), value: k.key });
+
+function textInput(blockId, label, { optional = false, multiline = false, max = 500, min, placeholder, hint, type = 'plain_text_input' } = {}) {
+  return {
+    type: 'input',
+    block_id: blockId,
+    ...(optional ? { optional: true } : {}),
+    label: plain(label),
+    ...(hint ? { hint: plain(hint) } : {}),
+    element: {
+      type,
+      action_id: 'value',
+      ...(type === 'plain_text_input' ? { max_length: max, ...(multiline ? { multiline: true } : {}), ...(min ? { min_length: min } : {}) } : {}),
+      ...(placeholder ? { placeholder: plain(placeholder) } : {}),
+    },
+  };
+}
+
+// The blocks that differ between a customer meeting and earned speaking.
+function meetingBlocks(audience) {
+  return {
+    about: [
+      textInput('account', 'Account / customer', { max: 120, placeholder: 'e.g. Acme Corp — EBC' }),
+      textInput('purpose', 'Meeting goal', {
+        multiline: true,
+        max: 1000,
+        min: G.MIN_GOAL_CHARS,
+        placeholder: 'What does the customer want from a Field CTO? Why can\'t the SE/AE cover it? What happens next if it goes well?',
+        hint: `At least ${G.MIN_GOAL_CHARS} characters. The more context, the faster the Field CTO can say yes.`,
+      }),
+    ],
+    room: [
+      stepHeader(":busts_in_silhouette: Who's in the room"),
+      textInput('attendees', 'Key customer attendees', { multiline: true, placeholder: 'Jane Doe — CIO\nRaj Patel — VP Engineering' }),
+      qualSelect('audience', 'Audience', Q.AUDIENCES, 'Most senior customer attendee'),
+      ...(Q.AUDIENCE[audience] && !Q.AUDIENCE[audience].eligible ? [section(`:no_entry: *Field CTOs can't take this one.* ${Q.BELOW_MESSAGE}`)] : []),
+      qualSelect('country', 'Country', Q.COUNTRIES, 'Where the customer is'),
+      qualSelect('industry', 'Industry', Q.INDUSTRIES, 'Customer industry'),
+    ],
+    extras: [
+      stepHeader(':cloud: Salesforce'),
+      textInput('opportunityUrl', 'Opportunity link', { optional: true, type: 'url_text_input', placeholder: 'https://….lightning.force.com/lightning/r/Opportunity/006…/view', hint: 'Optional, but the card flags requests without one.' }),
+      textInput('contactUrls', 'Contact record links', { optional: true, multiline: true, max: 3000, placeholder: 'One Salesforce Contact URL per line, for the key attendees' }),
+      stepHeader(':paperclip: Extras'),
+      textInput('meetingLink', 'Meeting link', { optional: true, type: 'url_text_input', placeholder: 'https://…' }),
+    ],
+  };
+}
+
+function speakingBlocks() {
+  return {
+    about: [
+      textInput('account', 'Event name', { max: 120, placeholder: 'e.g. AWS re:Invent 2026 — CIO panel' }),
+      textInput('purpose', 'Talk topic and why it needs a Field CTO', {
+        multiline: true,
+        max: 1000,
+        min: G.MIN_TOPIC_CHARS,
+        placeholder: 'Session format, topic, who\'s in the audience and what we get out of it',
+        hint: `At least ${G.MIN_TOPIC_CHARS} characters.`,
+      }),
+    ],
+    room: [
+      stepHeader(':ticket: The event'),
+      textInput('eventUrl', 'Event link', { type: 'url_text_input', placeholder: 'https://…' }),
+      {
+        type: 'input',
+        block_id: 'audienceSize',
+        label: plain('Expected audience size'),
+        element: { type: 'static_select', action_id: 'value', placeholder: plain('How many people'), options: G.AUDIENCE_SIZES.map((x) => ({ text: plain(x.label), value: x.key })) },
+      },
+      {
+        type: 'input',
+        block_id: 'deadline',
+        optional: true,
+        label: plain('Need an answer by'),
+        hint: plain('e.g. the speaker submission deadline'),
+        element: { type: 'datepicker', action_id: 'value' },
+      },
+      qualSelect('country', 'Event country', Q.COUNTRIES, 'Where the event is'),
+    ],
+    extras: [stepHeader(':paperclip: Extras')],
+  };
+}
+
+// `kind`/`audience`/`suggestion`/`availability` come from the requester's
+// current picks (see routes/fcto.js): the request type, a "Below" warning, a
+// pre-selected Field CTO and whether they are free at the chosen time.
+function requestModal({ channelId, defaultStartTs, kind, audience, suggestion, availability } = {}) {
   const start = defaultStartTs || (() => {
     const d = new Date();
     d.setUTCDate(d.getUTCDate() + 1);
     d.setUTCHours(17, 0, 0, 0); // 10am PT / 7pm CET-ish default
     return Math.floor(d.getTime() / 1000);
   })();
+  const kindDef = G.KIND[kind] || G.KIND.MEETING;
+  const speaking = kindDef.key === 'SPEAKING';
+  const parts = speaking ? speakingBlocks() : meetingBlocks(audience);
+  const reviewers = G.speakingReviewerIds().map((id) => `<@${id}>`).join(', ') || 'the speaking reviewer';
   return {
     type: 'modal',
     callback_id: CALLBACK.REQUEST,
@@ -182,25 +272,17 @@ function requestModal({ channelId, defaultStartTs, audience, suggestion, availab
     submit: plain('Submit request'),
     close: plain('Cancel'),
     blocks: [
-      context(`:wave: Requests post to ${channelId ? `<#${channelId}>` : 'the requests channel'} for an admin or the Field CTO to approve. Audience, country and industry pick a suggested Field CTO.`),
-      stepHeader(':office: The meeting'),
+      context(`:wave: Requests post to ${channelId ? `<#${channelId}>` : 'the requests channel'}. ${speaking ? `Earned speaking is approved by ${reviewers}.` : 'The Field CTO reviews meetings; admins can also approve.'} Not sure who to ask? \`/fcto guide\``),
       {
         type: 'input',
-        block_id: 'account',
-        label: plain('Account / customer'),
-        element: { type: 'plain_text_input', action_id: 'value', max_length: 120, placeholder: plain('e.g. Acme Corp — EBC') },
+        block_id: 'kind',
+        dispatch_action: true,
+        label: plain('Request type'),
+        element: { type: 'static_select', action_id: 'value', options: G.KINDS.map(kindOption), initial_option: kindOption(kindDef) },
       },
-      {
-        type: 'input',
-        block_id: 'purpose',
-        label: plain('What do you need them for?'),
-        element: { type: 'plain_text_input', action_id: 'value', multiline: true, max_length: 500, placeholder: plain('Executive briefing, architecture review, onsite, QBR…') },
-      },
-      stepHeader(":busts_in_silhouette: Who's in the room"),
-      qualSelect('audience', 'Audience', Q.AUDIENCES, 'Most senior customer attendee'),
-      ...(Q.AUDIENCE[audience] && !Q.AUDIENCE[audience].eligible ? [section(`:no_entry: *Field CTOs can't take this one.* ${Q.BELOW_MESSAGE}`)] : []),
-      qualSelect('country', 'Country', Q.COUNTRIES, 'Where the customer is'),
-      qualSelect('industry', 'Industry', Q.INDUSTRIES, 'Customer industry'),
+      stepHeader(speaking ? ':microphone: The talk' : ':office: The meeting'),
+      ...parts.about,
+      ...parts.room,
       ...(suggestion && findWhoOption(suggestion.who) ? [suggestionCallout(suggestion)] : []),
       (() => {
         const initial = suggestion && findWhoOption(suggestion.who);
@@ -208,7 +290,7 @@ function requestModal({ channelId, defaultStartTs, audience, suggestion, availab
           type: 'input',
           block_id: whoBlockId(initial ? suggestion : null),
           dispatch_action: true,
-          label: plain('Who do you need?'),
+          label: plain(speaking ? 'Who should speak?' : 'Who do you need?'),
           ...(initial ? { hint: plain(`Suggested for ${suggestion.reason}. You can pick someone else.`) } : {}),
           element: {
             type: 'static_select',
@@ -250,21 +332,8 @@ function requestModal({ channelId, defaultStartTs, audience, suggestion, availab
         element: { type: 'datetimepicker', action_id: 'value' },
       },
       ...availabilityCallout(availability),
-      stepHeader(':paperclip: Extras'),
-      {
-        type: 'input',
-        block_id: 'meetingLink',
-        optional: true,
-        label: plain('Meeting link'),
-        element: { type: 'url_text_input', action_id: 'value', placeholder: plain('https://…') },
-      },
-      {
-        type: 'input',
-        block_id: 'notes',
-        optional: true,
-        label: plain('Notes for the Field CTO'),
-        element: { type: 'plain_text_input', action_id: 'value', multiline: true, max_length: 500 },
-      },
+      ...parts.extras,
+      textInput('notes', 'Notes for the Field CTO', { optional: true, multiline: true }),
     ],
   };
 }
@@ -275,6 +344,7 @@ function readRequestModal(view) {
   const pick = (block) => (v[block] && v[block].value) || {};
   const meta = (() => { try { return JSON.parse(view.private_metadata || '{}'); } catch { return {}; } })();
   return {
+    kind: (pick('kind').selected_option || {}).value,
     account: pick('account').value,
     purpose: pick('purpose').value,
     audience: (pick('audience').selected_option || {}).value,
@@ -285,6 +355,12 @@ function readRequestModal(view) {
     durationKey: (pick('duration').selected_option || {}).value,
     endTs: pick('end').selected_date_time,
     meetingLink: pick('meetingLink').value,
+    attendees: pick('attendees').value,
+    opportunityUrl: pick('opportunityUrl').value,
+    contactUrls: pick('contactUrls').value,
+    eventUrl: pick('eventUrl').value,
+    audienceSize: (pick('audienceSize').selected_option || {}).value,
+    deadline: pick('deadline').selected_date,
     notes: pick('notes').value,
     channelId: meta.channelId,
   };
@@ -412,6 +488,10 @@ function statusLine(reservation) {
     case R.STATUS.CANCELLED:
       return `${meta.emoji} *Cancelled*`;
     default:
+      if (R.kindOf(reservation) === 'speaking') {
+        const reviewers = G.speakingReviewerIds().map((id) => `<@${id}>`).join(', ') || 'an admin';
+        return `${meta.emoji} *Pending* — earned speaking, waiting on ${reviewers} to ${reservation.requestType === 'any' ? 'assign a speaker' : 'approve'}`;
+      }
       return reservation.requestType === 'any'
         ? `${meta.emoji} *Pending* — open to any Field CTO${reservation.preference && reservation.preference !== 'ANY' ? ` (${REGION_LABELS[reservation.preference]} hours preferred)` : ''}. Field CTOs can *Claim*; admins can *Assign*.`
         : `${meta.emoji} *Pending* — waiting on ${mention(assignee)} or an admin`;
@@ -459,6 +539,8 @@ function cardActions(reservation, conflicts) {
   if (reservation.status === R.STATUS.PENDING) {
     if (reservation.requestType === 'specific') {
       elements.push(btn(conflicts.length ? 'Approve (conflict)' : 'Approve', ACTION.APPROVE, conflicts.length ? undefined : 'primary'));
+    } else if (R.kindOf(reservation) === 'speaking') {
+      elements.push(btn('Assign…', ACTION.ASSIGN, 'primary'));
     } else {
       elements.push(btn('Claim', ACTION.CLAIM, 'primary'));
       elements.push(btn('Assign…', ACTION.ASSIGN));
@@ -477,15 +559,38 @@ function cardActions(reservation, conflicts) {
   return { type: 'actions', block_id: `actions_${reservation.id}`, elements };
 }
 
+function deadlineLabel(date) {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+// Salesforce links as buttons-free mrkdwn links (URLs are validated in
+// R.createRequest), or a warning for the reviewer when they're missing.
+function salesforceBlocks(reservation) {
+  const contacts = reservation.contactUrls || [];
+  const links = [
+    reservation.opportunityUrl ? `<${reservation.opportunityUrl}|Opportunity>` : null,
+    ...contacts.map((u, i) => `<${u}|Contact ${i + 1}>`),
+  ].filter(Boolean);
+  const missing = [
+    reservation.opportunityUrl ? null : 'opportunity',
+    contacts.length ? null : 'contact records',
+  ].filter(Boolean);
+  const blocks = [];
+  if (links.length) blocks.push(context(`:cloud: *Salesforce:* ${links.join('  ·  ')}`));
+  if (missing.length) blocks.push(context(`:warning: *No Salesforce ${missing.join(' or ')} linked.* Ask the requester before approving.`));
+  return blocks;
+}
+
 // The request details: who/when (with the Field CTO's photo), qualification
 // chips, the purpose as a block quote, and local times.
 function cardDetailBlocks(reservation, conflicts) {
   const member = findMember(reservation.assigneeKey || reservation.requestedKey);
   const image = avatarImage(member);
+  const speaking = R.kindOf(reservation) === 'speaking';
   const blocks = [
-    { type: 'header', text: plain(`:briefcase: Field CTO request ${reservation.id}`) },
+    { type: 'header', text: plain(speaking ? `:microphone: Earned speaking request ${reservation.id}` : `:briefcase: Field CTO request ${reservation.id}`) },
     section([
-      `*${esc(reservation.account)}*`,
+      speaking ? `*Event*  ${esc(reservation.account)}` : `*${esc(reservation.account)}*`,
       `*Who*  ${R.describeWho(reservation)}`,
       `*When*  ${R.slackRange(reservation.startTs, reservation.endTs)} · ${R.durationLabel(reservation)}`,
       `*Requested by*  <@${reservation.requesterId}>`,
@@ -493,7 +598,18 @@ function cardDetailBlocks(reservation, conflicts) {
   ];
   const chips = qualChips(reservation);
   if (chips) blocks.push(context(chips));
-  blocks.push(section(`*Purpose*\n>${esc(reservation.purpose).replace(/\n/g, '\n>')}`));
+  const purposeLabel = { speaking: 'Talk', meeting: 'Meeting goal' }[reservation.kind] || 'Purpose';
+  blocks.push(section(`*${purposeLabel}*\n>${esc(reservation.purpose).replace(/\n/g, '\n>')}`));
+  if (reservation.attendees) blocks.push(section(`:busts_in_silhouette: *Key attendees*\n${esc(reservation.attendees)}`));
+  if (reservation.kind === 'meeting') blocks.push(...salesforceBlocks(reservation));
+  if (speaking) {
+    const size = G.AUDIENCE_SIZE[reservation.audienceSize];
+    blocks.push(context([
+      reservation.eventUrl ? `:link: <${reservation.eventUrl}|Event page>` : null,
+      size ? `:busts_in_silhouette: Audience ${size.label}` : null,
+      reservation.deadline ? `:alarm_clock: Answer needed by ${deadlineLabel(reservation.deadline)}` : null,
+    ].filter(Boolean).join('  ·  ')));
+  }
   if (reservation.notes) blocks.push(section(`:memo: *Notes*\n${esc(reservation.notes)}`));
   if (reservation.meetingLink) blocks.push(context(`:link: <${reservation.meetingLink}>`));
   blocks.push({ type: 'context', elements: [...(image ? [image] : []), mrkdwn(localTimesLine(reservation))] });
@@ -639,11 +755,10 @@ const QUEUE_ROWS = 5;
 // Upcoming pending requests this user can act on from the App Home, soonest
 // first: `total` counts all of them, `rows` shows the first QUEUE_ROWS.
 function actionQueue(store, userId, now = Math.floor(Date.now() / 1000)) {
-  const admin = R.isAdmin(userId);
   const eligible = R.listReservations(store, { from: now, statuses: [R.STATUS.PENDING] })
-    .filter((r) => (r.requestType === 'any' ? admin || R.canClaim(r, userId) : R.canDecide(r, userId)));
+    .filter((r) => (r.requestType === 'any' ? R.canReassign(r, userId) || R.canClaim(r, userId) : R.canDecide(r, userId)));
   const rows = eligible.slice(0, QUEUE_ROWS).map((r) => {
-      const claim = r.requestType === 'any' && !admin;
+      const claim = r.requestType === 'any' && !R.canReassign(r, userId);
       const button = r.requestType === 'specific'
         ? { type: 'button', text: plain('Approve'), style: 'primary', action_id: ACTION.APPROVE, value: r.id }
         : { type: 'button', text: plain(claim ? 'Claim' : 'Assign…'), ...(claim ? { style: 'primary' } : {}), action_id: claim ? ACTION.CLAIM : ACTION.ASSIGN, value: r.id };
@@ -714,10 +829,45 @@ function homeView(store, userId) {
   return { type: 'home', blocks: blocks.slice(0, 100) };
 }
 
+const WHO_LABEL = (who) => {
+  if (who.startsWith('MEMBER:')) {
+    const m = findMember(who.slice('MEMBER:'.length));
+    return m ? m.name : who;
+  }
+  return R.PREFERENCES[who.slice('ANY:'.length)] || who;
+};
+
+// `/fcto guide`: who to use for what and what a request needs. Text lives in
+// config/fcto-guide.js; routing comes from config/fcto-qualifications.js.
+function guideBlocks() {
+  const now = Math.floor(Date.now() / 1000);
+  const reviewers = G.speakingReviewerIds().map((id) => `<@${id}>`).join(', ') || 'an admin';
+  const blocks = [
+    { type: 'header', text: plain(':compass: Which Field CTO, and how to ask') },
+    section(`*Before you request*\n${G.BEFORE_YOU_ASK.map((x) => `• ${esc(x)}`).join('\n')}`),
+    section([
+      '*Two request types*',
+      `• ${G.KIND.MEETING.emoji} *${G.KIND.MEETING.label}*: the Field CTO you name reviews it, or any Field CTO claims an open one. Admins can also approve.`,
+      `• ${G.KIND.SPEAKING.emoji} *${G.KIND.SPEAKING.label}*: conference, panel, podcast or webinar. Approved by ${reviewers}.`,
+    ].join('\n')),
+    section(`*Default picks* (the form pre-selects these; you can change them)\n${Q.ROUTING_RULES.map((r) => `• ${r.reason} → ${WHO_LABEL(r.who)}`).join('\n')}`),
+    { type: 'divider' },
+  ];
+  getRoster().forEach((m) => {
+    const t = R.formatInTz(now, m.tz);
+    const image = avatarImage(m);
+    const focus = G.FOCUS[m.key] ? `\n${esc(G.FOCUS[m.key])}` : '';
+    blocks.push(section(`*${mention(m)}* · ${REGION_LABELS[m.region]} · :clock3: ${t.time} ${t.zone}${focus}`, image ? { accessory: image } : {}));
+  });
+  blocks.push(context('Start a request with `/fcto request`. See who is free with `/fcto free next week`.'));
+  return blocks;
+}
+
 function helpText() {
   return [
     '*Field CTO reservations*',
     '• `/fcto request` — open the request form (or `/fcto` alone)',
+    '• `/fcto guide` — which Field CTO to ask for what, and what a request needs',
     '• `/fcto schedule` — this week · `/fcto schedule next` — next week · `/fcto schedule month`',
     '• `/fcto schedule @person` — one Field CTO\'s reservations · `/fcto schedule me` — your requests',
     '• `/fcto free oct 22` · `/fcto free oct 22-24` · `/fcto free next week` — who has no approved reservation on those days',
@@ -751,5 +901,6 @@ module.exports = {
   rosterBlocks,
   homeView,
   helpText,
+  guideBlocks,
   mention,
 };

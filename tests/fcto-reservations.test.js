@@ -36,10 +36,12 @@ function load() {
 }
 
 const NOW = 1_800_000_000;
+const LONG_GOAL = 'Executive briefing with the CIO on the platform roadmap. They want a peer-level view of how other banks run Devin at scale and the SE cannot speak to that yet.';
 const base = (over = {}) => ({
   requesterId: REQUESTER,
   account: 'Acme Corp',
-  purpose: 'Executive briefing',
+  purpose: LONG_GOAL,
+  attendees: 'Jane Doe — CIO',
   startTs: NOW + 3 * 86400,
   durationKey: '2h',
   who: 'MEMBER:MARK_PORTER',
@@ -252,7 +254,7 @@ describe('ics', () => {
   test('builds a valid VEVENT with escaped text', async () => {
     const { store, R } = load();
     const { buildIcs, icsFilename } = require('../app/services/fcto/ics');
-    const r = await R.createRequest(store, base({ purpose: 'EBC; roadmap, pricing', meetingLink: 'https://zoom.us/j/123' }), { now: NOW });
+    const r = await R.createRequest(store, base({ purpose: `${LONG_GOAL} EBC; roadmap, pricing`, meetingLink: 'https://zoom.us/j/123' }), { now: NOW });
     const approved = await R.approve(store, r.id, { by: ADMIN });
     const ics = buildIcs(approved, { now: NOW });
     expect(ics).toMatch(/^BEGIN:VCALENDAR\r\n/);
@@ -289,12 +291,13 @@ describe('block kit', () => {
     const { R } = load();
     const modal = B.requestModal({ channelId: 'C123' });
     expect(modal.callback_id).toBe(B.CALLBACK.REQUEST);
-    expect(modal.blocks.filter((b) => b.type === 'input').map((b) => b.block_id)).toEqual(['account', 'purpose', 'audience', 'country', 'industry', 'who', 'start', 'duration', 'end', 'meetingLink', 'notes']);
+    expect(modal.blocks.filter((b) => b.type === 'input').map((b) => b.block_id)).toEqual(['kind', 'account', 'purpose', 'attendees', 'audience', 'country', 'industry', 'who', 'start', 'duration', 'end', 'opportunityUrl', 'contactUrls', 'meetingLink', 'notes']);
     const view = {
       private_metadata: modal.private_metadata,
       state: { values: {
         account: { value: { value: 'Acme' } },
-        purpose: { value: { value: 'EBC' } },
+        purpose: { value: { value: LONG_GOAL } },
+    attendees: { value: { value: 'Jane Doe — CIO' } },
         audience: { value: { selected_option: { value: 'VP' } } },
         country: { value: { selected_option: { value: 'DE' } } },
         industry: { value: { selected_option: { value: 'FINANCE' } } },
@@ -446,7 +449,8 @@ describe('HTTP routes', () => {
 
   const requestValues = (over = {}) => ({
     account: { value: { value: 'Acme Corp' } },
-    purpose: { value: { value: 'EBC' } },
+    purpose: { value: { value: LONG_GOAL } },
+    attendees: { value: { value: 'Jane Doe — CIO' } },
     audience: { value: { selected_option: { value: 'C_LEVEL' } } },
     country: { value: { selected_option: { value: 'US' } } },
     industry: { value: { selected_option: { value: 'TECH_NATIVE' } } },
@@ -818,7 +822,7 @@ describe('review fixes', () => {
   test('user text is escaped in cards; meeting links render as bare URLs', async () => {
     const { store, R } = load();
     const B = require('../app/services/fcto/blocks');
-    const r = await R.createRequest(store, base({ account: '<!channel> Acme & Co', purpose: 'ping <@U0BT6626DB3>', notes: '<https://evil.example|Join>', meetingLink: 'https://zoom.us/j/1' }), { now: NOW });
+    const r = await R.createRequest(store, base({ account: '<!channel> Acme & Co', purpose: `ping <@U0BT6626DB3> ${LONG_GOAL}`, notes: '<https://evil.example|Join>', meetingLink: 'https://zoom.us/j/1' }), { now: NOW });
     const json = JSON.stringify(B.requestCard(r));
     expect(json).toContain('&lt;!channel&gt; Acme &amp; Co');
     expect(json).toContain('ping &lt;@U0BT6626DB3&gt;');
@@ -990,7 +994,7 @@ describe('slack design', () => {
     const store = new ReservationStore(path.join(os.tmpdir(), `fcto-design-${Date.now()}-${Math.random()}.json`));
     return { store, R: require('../app/services/fcto/reservations'), B: require('../app/services/fcto/blocks'), avatars: require('../app/services/fcto/avatars') };
   };
-  const req = (over = {}) => ({ requesterId: 'UREQUESTER1', account: 'Acme Corp', purpose: 'EBC', audience: 'VP', country: 'DE', industry: 'FINANCE', who: 'MEMBER:MARK_PORTER', startTs: NOW_D + 86400, durationKey: '2h', ...over });
+  const req = (over = {}) => ({ requesterId: 'UREQUESTER1', account: 'Acme Corp', purpose: LONG_GOAL, attendees: 'Jane Doe — CIO', audience: 'VP', country: 'DE', industry: 'FINANCE', who: 'MEMBER:MARK_PORTER', startTs: NOW_D + 86400, durationKey: '2h', ...over });
 
   test('card message puts status in a colored attachment with a progress line', async () => {
     const { store, R, B } = fresh();
@@ -1036,7 +1040,7 @@ describe('slack design', () => {
   test('request modal has section headers and a suggestion callout', () => {
     const { B } = fresh();
     const modal = B.requestModal({ channelId: 'CEXEC', suggestion: { who: 'MEMBER:AKIRA_SHIBATA', reason: 'Japan' } });
-    expect(modal.blocks.filter((b) => b.type === 'header').map((b) => b.text.text)).toEqual([':office: The meeting', ":busts_in_silhouette: Who's in the room", ':calendar: When', ':paperclip: Extras']);
+    expect(modal.blocks.filter((b) => b.type === 'header').map((b) => b.text.text)).toEqual([':office: The meeting', ":busts_in_silhouette: Who's in the room", ':calendar: When', ':cloud: Salesforce', ':paperclip: Extras']);
     expect(JSON.stringify(modal.blocks)).toContain(':sparkles: *Suggested: Akira Shibata* for Japan');
     expect(JSON.stringify(modal.blocks[0])).toContain('<#CEXEC>');
     const country = modal.blocks.find((b) => b.block_id === 'country').element.options;
@@ -1067,7 +1071,7 @@ describe('slack design review fixes', () => {
     const store = new ReservationStore(path.join(os.tmpdir(), `fcto-fix-${Date.now()}-${Math.random()}.json`));
     return { store, R: require('../app/services/fcto/reservations'), B: require('../app/services/fcto/blocks'), ics: require('../app/services/fcto/ics') };
   };
-  const req = (over = {}) => ({ requesterId: 'UREQUESTER1', account: 'Acme Corp', purpose: 'EBC', audience: 'VP', country: 'JP', industry: 'TECH_NATIVE', who: 'MEMBER:MARK_PORTER', startTs: NOW_F + 86400, durationKey: '2h', ...over });
+  const req = (over = {}) => ({ requesterId: 'UREQUESTER1', account: 'Acme Corp', purpose: LONG_GOAL, attendees: 'Jane Doe — CIO', audience: 'VP', country: 'JP', industry: 'TECH_NATIVE', who: 'MEMBER:MARK_PORTER', startTs: NOW_F + 86400, durationKey: '2h', ...over });
 
   test('calendar button URLs stay under Slack\'s 3,000-character limit for max-length multibyte input', async () => {
     const { store, R, ics } = fresh();
@@ -1086,7 +1090,7 @@ describe('slack design review fixes', () => {
       expect(decodeURIComponent(url)).toContain('…');
     }
     const short = ics.calendarLinks(await R.createRequest(store, req({ meetingLink: 'https://zoom.us/j/1' }), { now: NOW_F }));
-    expect(decodeURIComponent(short.google)).toContain('Purpose: EBC');
+    expect(decodeURIComponent(short.google)).toContain('Meeting goal: Executive briefing');
     expect(decodeURIComponent(short.google)).toContain('location=https://zoom.us/j/1');
   });
 
@@ -1293,5 +1297,121 @@ describe('/fcto calendar command', () => {
     expect(reply[2].response_type).toBe('ephemeral');
     expect(reply[2].text).toContain('/invite @Field CTO Reservations');
     expect(reply[2].text).toContain('<#CEXEC>');
+  });
+});
+
+describe('request types, context and guide', () => {
+  const NICOLE = 'U0AKUU81BR9';
+  const OPP = 'https://acme.lightning.force.com/lightning/r/Opportunity/006Ab00000XyZ12AAA/view';
+  const CONTACT = 'https://acme.lightning.force.com/lightning/r/Contact/003Ab00000XyZ12AAA/view';
+  const TOPIC = 'Keynote panel on AI-assisted software engineering for 400 bank CIOs. Organisers asked for a Field CTO by name; good pipeline for EMEA finance.';
+  const speakingInput = (over = {}) => base({
+    kind: 'SPEAKING', account: 'FinTech Summit', purpose: TOPIC, audience: undefined, industry: undefined, attendees: undefined,
+    eventUrl: 'https://fintechsummit.example/2026', audienceSize: '200_1000', deadline: '2026-11-01', country: 'GB', ...over,
+  });
+
+  test('meetings need a detailed goal and attendees; Salesforce links are optional but checked', async () => {
+    const { store, R } = load();
+    await expect(R.createRequest(store, base({ purpose: 'EBC' }), { now: NOW })).rejects.toMatchObject({ field: 'purpose', code: 'purpose_too_short' });
+    await expect(R.createRequest(store, base({ attendees: ' ' }), { now: NOW })).rejects.toMatchObject({ field: 'attendees' });
+    await expect(R.createRequest(store, base({ opportunityUrl: 'https://evil.example/006Ab00000XyZ12' }), { now: NOW })).rejects.toMatchObject({ field: 'opportunityUrl' });
+    await expect(R.createRequest(store, base({ opportunityUrl: CONTACT }), { now: NOW })).rejects.toMatchObject({ field: 'opportunityUrl' });
+    await expect(R.createRequest(store, base({ contactUrls: `${CONTACT}\nhttps://acme.lightning.force.com/x|y` }), { now: NOW })).rejects.toMatchObject({ field: 'contactUrls' });
+    const r = await R.createRequest(store, base({ opportunityUrl: OPP, contactUrls: `${CONTACT}\n https://na1.salesforce.com/003Ab00000XyZ99 ` }), { now: NOW });
+    expect(r).toMatchObject({ kind: 'meeting', opportunityUrl: OPP, contactUrls: [CONTACT, 'https://na1.salesforce.com/003Ab00000XyZ99'], attendees: 'Jane Doe — CIO' });
+    const bare = await R.createRequest(store, base(), { now: NOW });
+    expect(bare).toMatchObject({ opportunityUrl: '', contactUrls: [] });
+  });
+
+  test('earned speaking needs event details, skips audience/industry and goes to the speaking reviewer', async () => {
+    const { store, R } = load();
+    await expect(R.createRequest(store, speakingInput({ eventUrl: '' }), { now: NOW })).rejects.toMatchObject({ field: 'eventUrl' });
+    await expect(R.createRequest(store, speakingInput({ audienceSize: '' }), { now: NOW })).rejects.toMatchObject({ field: 'audienceSize' });
+    await expect(R.createRequest(store, speakingInput({ purpose: 'Panel' }), { now: NOW })).rejects.toMatchObject({ field: 'purpose' });
+    const r = await R.createRequest(store, speakingInput(), { now: NOW });
+    expect(r).toMatchObject({ kind: 'speaking', audience: null, industry: null, country: 'GB', audienceSize: '200_1000', deadline: '2026-11-01' });
+    expect(R.canDecide(r, MARK)).toBe(false);
+    expect(R.canDecide(r, NICOLE)).toBe(true);
+    expect(R.canDecide(r, ADMIN)).toBe(true);
+    await expect(R.approve(store, r.id, { by: MARK })).rejects.toThrow(/speaking reviewer/);
+    await expect(R.approve(store, r.id, { by: NICOLE })).resolves.toMatchObject({ status: 'approved', assigneeKey: 'MARK_PORTER' });
+
+    const open = await R.createRequest(store, speakingInput({ who: 'ANY:EU', startTs: NOW + 9 * 86400 }), { now: NOW });
+    expect(R.canClaim(open, AMAN)).toBe(false);
+    process.env.FCTO_ADMIN_SLACK_IDS = ADMIN;
+    expect(R.canReassign(open, NICOLE)).toBe(true);
+    expect(R.canReassign(await R.createRequest(store, base({ who: 'ANY:EU', startTs: NOW + 12 * 86400 }), { now: NOW }), NICOLE)).toBe(false);
+  });
+
+  test('meeting rules are unchanged: the named Field CTO and admins approve, Field CTOs claim', async () => {
+    const { store, R } = load();
+    const r = await R.createRequest(store, base(), { now: NOW });
+    expect(R.canDecide(r, MARK)).toBe(true);
+    expect(R.canDecide(r, ADMIN)).toBe(true);
+    expect(R.canDecide(r, AMAN)).toBe(false);
+    const open = await R.createRequest(store, base({ who: 'ANY:EU' }), { now: NOW });
+    expect(R.canClaim(open, AMAN)).toBe(true);
+    const legacy = { ...r, kind: undefined };
+    expect(R.kindOf(legacy)).toBe('meeting');
+    expect(R.canDecide(legacy, MARK)).toBe(true);
+  });
+
+  test('cards show Salesforce links, warn when they are missing, and show speaking details', async () => {
+    const { store, R } = load();
+    const B = require('../app/services/fcto/blocks');
+    const linked = JSON.stringify(B.requestCardMessage(await R.createRequest(store, base({ opportunityUrl: OPP, contactUrls: CONTACT }), { now: NOW })));
+    expect(linked).toContain(`<${OPP}|Opportunity>`);
+    expect(linked).toContain(`<${CONTACT}|Contact 1>`);
+    expect(linked).toContain('*Meeting goal*');
+    expect(linked).toContain('Key attendees');
+    expect(linked).not.toContain('No Salesforce');
+    const bare = JSON.stringify(B.requestCardMessage(await R.createRequest(store, base(), { now: NOW })));
+    expect(bare).toContain('No Salesforce opportunity or contact records linked');
+    const talk = B.requestCardMessage(await R.createRequest(store, speakingInput({ who: 'ANY:EU' }), { now: NOW }));
+    const talkJson = JSON.stringify(talk);
+    expect(talkJson).toContain('Earned speaking request');
+    expect(talkJson).toContain('<https://fintechsummit.example/2026|Event page>');
+    expect(talkJson).toContain('Audience 200–1,000');
+    expect(talkJson).toContain('Answer needed by Sun, Nov 1');
+    expect(talkJson).toContain(`waiting on <@${NICOLE}> to assign a speaker`);
+    expect(talkJson).not.toContain('No Salesforce');
+    const actions = talk.attachments[0].blocks.find((b) => b.type === 'actions').elements.map((e) => e.action_id);
+    expect(actions).not.toContain(B.ACTION.CLAIM);
+    expect(actions).toContain(B.ACTION.ASSIGN);
+  });
+
+  test('speaking form swaps in event fields and round-trips them', () => {
+    const B = require('../app/services/fcto/blocks');
+    const modal = B.requestModal({ channelId: 'CEXEC', kind: 'SPEAKING' });
+    const ids = modal.blocks.filter((b) => b.type === 'input').map((b) => b.block_id);
+    expect(ids).toEqual(['kind', 'account', 'purpose', 'eventUrl', 'audienceSize', 'deadline', 'country', 'who', 'start', 'duration', 'end', 'notes']);
+    expect(modal.blocks.find((b) => b.block_id === 'kind').element.initial_option.value).toBe('SPEAKING');
+    expect(modal.blocks.find((b) => b.block_id === 'purpose').element.min_length).toBe(100);
+    const view = {
+      private_metadata: modal.private_metadata,
+      state: { values: {
+        kind: { value: { selected_option: { value: 'SPEAKING' } } },
+        eventUrl: { value: { value: 'https://x.example' } },
+        audienceSize: { value: { selected_option: { value: 'OVER_1000' } } },
+        deadline: { value: { selected_date: '2026-11-01' } },
+      } },
+    };
+    expect(B.readRequestModal(view)).toMatchObject({ kind: 'SPEAKING', eventUrl: 'https://x.example', audienceSize: 'OVER_1000', deadline: '2026-11-01' });
+    expect(B.requestModal({}).blocks.find((b) => b.block_id === 'purpose').element.min_length).toBe(150);
+  });
+
+  test('/fcto guide lists the bar for a request, both types, default picks and every Field CTO', () => {
+    const B = require('../app/services/fcto/blocks');
+    const guide = JSON.stringify(B.guideBlocks());
+    expect(guide).toContain('Director or above');
+    expect(guide).toContain('Earned speaking');
+    expect(guide).toContain(`<@${NICOLE}>`);
+    expect(guide).toContain('Japan → Akira Shibata');
+    expect(guide).toContain('Europe + Finance → Aman Thind');
+    ['JEFF_WANG', 'KATRIN_LEHMANN', 'MARK_PORTER', 'NARRY_SINGH', 'AMAN_THIND', 'AKIRA_SHIBATA'].forEach((k) => {
+      const { findMember } = require('../config/fcto-roster');
+      expect(guide).toContain(findMember(k).slackId);
+    });
+    expect(B.helpText()).toContain('/fcto guide');
   });
 });

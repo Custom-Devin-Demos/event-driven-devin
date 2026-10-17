@@ -22,6 +22,7 @@ const { buildIcs, icsFilename } = require('../services/fcto/ics');
 const { MAX_CALENDAR_DAYS, renderCalendarPng, rangeTitle } = require('../services/fcto/calendar-image');
 const avatars = require('../services/fcto/avatars');
 const { suggestWho } = require('../../config/fcto-qualifications');
+const { speakingReviewerIds: getSpeakingReviewerIds } = require('../../config/fcto-guide');
 
 const router = express.Router();
 const store = new ReservationStore();
@@ -164,7 +165,14 @@ async function postNewRequest(reservation) {
   const msg = B.requestCardMessage(reservation, { conflicts });
   const posted = await slack.postMessage(channel, msg.text, msg.blocks, { attachments: msg.attachments });
   if (posted && posted.ok) {
-    return R.setMessage(store, reservation.id, posted.channel || channel, posted.ts);
+    const stored = await R.setMessage(store, reservation.id, posted.channel || channel, posted.ts);
+    if (R.kindOf(reservation) === 'speaking') {
+      const reviewers = getSpeakingReviewerIds().map((id) => `<@${id}>`).join(' ');
+      if (reviewers) {
+        await slack.postMessage(stored.channelId, `:microphone: ${reviewers} earned speaking request ${reservation.id} is waiting for your review.`, undefined, { thread_ts: stored.messageTs });
+      }
+    }
+    return stored;
   }
   return null;
 }
@@ -287,6 +295,9 @@ async function handleCommand(body) {
     }
     case 'roster':
       return { response_type: 'ephemeral', text: 'Field CTO roster', blocks: B.rosterBlocks() };
+    case 'guide':
+      await warmAvatars();
+      return { response_type: 'ephemeral', text: 'Which Field CTO, and how to ask', blocks: B.guideBlocks() };
     case 'help':
     default:
       return { response_type: 'ephemeral', text: B.helpText() };
@@ -345,7 +356,7 @@ async function refreshRequestModal(view, actionTs) {
       const input = B.readRequestModal(current);
       await warmAvatars();
       const suggestion = suggestWho(input);
-      const next = B.requestModal({ channelId: input.channelId, audience: input.audience, suggestion, availability: formAvailability(current, input, suggestion) });
+      const next = B.requestModal({ channelId: input.channelId, kind: input.kind, audience: input.audience, suggestion, availability: formAvailability(current, input, suggestion) });
       let res = await slack.updateView(current.id, next, current.hash);
       if (res && !res.ok && res.error === 'hash_conflict' && !entry.latest) res = await slack.updateView(current.id, next);
       if (!res || (!res.ok && !(res.error === 'hash_conflict' && entry.latest))) {
@@ -389,7 +400,7 @@ async function handleBlockAction(payload) {
   try {
     switch (action.action_id) {
       case B.ACTION.APPROVE: {
-        if (!R.canDecide(current, userId)) throw new R.ReservationError('forbidden', 'Only an admin or the requested Field CTO can approve this request.');
+        if (!R.canDecide(current, userId)) throw new R.ReservationError('forbidden', R.decideRefusal(current, 'approve'));
         try {
           const updated = await R.approve(store, id, { by: userId });
           await applyChange(updated, previousStatus);
@@ -426,13 +437,17 @@ async function handleBlockAction(payload) {
         break;
       }
       case B.ACTION.ASSIGN: {
-        if (!R.canReassign(current, userId)) throw new R.ReservationError('forbidden', 'Only an admin can assign or reassign a request.');
+        if (!R.canReassign(current, userId)) {
+          throw new R.ReservationError('forbidden', R.kindOf(current) === 'speaking'
+            ? 'Only the speaking reviewer or an admin can assign or reassign this request.'
+            : 'Only an admin can assign or reassign a request.');
+        }
         const mode = current.status === R.STATUS.PENDING && current.requestType === 'any' ? 'assign' : 'reassign';
         await slack.openView(triggerId, B.assignModal(store, current, { mode, preselectKey: current.assigneeKey }));
         return;
       }
       case B.ACTION.DECLINE: {
-        if (!R.canDecide(current, userId)) throw new R.ReservationError('forbidden', 'Only an admin or the requested Field CTO can decline this request.');
+        if (!R.canDecide(current, userId)) throw new R.ReservationError('forbidden', R.decideRefusal(current, 'decline'));
         if (current.status !== R.STATUS.PENDING) throw new R.ReservationError('not_pending', `${id} is already ${current.status}.`);
         await slack.openView(triggerId, B.declineModal(current));
         return;
@@ -508,7 +523,7 @@ async function handleViewSubmission(payload, after) {
       const me = R.memberBySlackId(userId);
       if (mode === 'reassign' || (current.status !== R.STATUS.PENDING)) {
         updated = await R.reassign(store, id, { by: userId, assigneeKey, force });
-      } else if (!R.isAdmin(userId) && me && me.key === assigneeKey && R.canClaim(current, userId)) {
+      } else if (!R.canReassign(current, userId) && me && me.key === assigneeKey && R.canClaim(current, userId)) {
         updated = await R.claim(store, id, { by: userId, force });
       } else {
         updated = await R.approve(store, id, { by: userId, assigneeKey, force });
