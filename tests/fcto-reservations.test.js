@@ -1204,6 +1204,8 @@ describe('calendar image', () => {
     expect(svg).toContain('CEST → CET Oct 25');
     expect(svg).toContain('PDT → PST Nov 1');
     expect(svg).toContain('JST · ');
+    const oneDay = calendarSvg(store, { from: day(2026, 9, 25), to: day(2026, 9, 26), now: day(2026, 9, 19) });
+    expect(oneDay).toContain('CEST → CET Oct 25');
   });
 
   test('renders a PNG with the bundled fonts', async () => {

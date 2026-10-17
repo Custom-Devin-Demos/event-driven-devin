@@ -74,11 +74,11 @@ function zoneLabel(tz, at) {
 // One abbreviation per row; if the range crosses a DST change, name both and
 // the first date on the new offset, e.g. "CEST → CET Oct 25".
 function rowZoneLabel(tz, cells) {
-  const first = zoneLabel(tz, cells[0].startTs + 12 * 3600);
-  const change = cells.find((c) => zoneLabel(tz, c.startTs + 12 * 3600) !== first);
+  const first = zoneLabel(tz, cells[0].startTs);
+  const change = cells.find((c) => zoneLabel(tz, c.endTs - 1) !== first);
   if (!change) return first;
   const on = new Date(change.day * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-  return `${first} → ${zoneLabel(tz, change.startTs + 12 * 3600)} ${on}`;
+  return `${first} → ${zoneLabel(tz, change.endTs - 1)} ${on}`;
 }
 
 function dayLabel(d) {
