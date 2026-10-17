@@ -356,6 +356,36 @@ function suggestAssignees(store, res, env = process.env) {
       || a.name.localeCompare(b.name));
 }
 
+// The [start, end) the request form currently describes, or null while it is
+// incomplete or invalid.
+function requestWindow({ startTs, durationKey, endTs } = {}) {
+  const start = toEpoch(startTs);
+  const duration = DURATIONS[durationKey];
+  if (!start || !duration) return null;
+  const end = duration.minutes === null ? toEpoch(endTs) : start + duration.minutes * 60;
+  if (!end || end <= start || end - start > MAX_SPAN_DAYS * 86400) return null;
+  return { startTs: start, endTs: end };
+}
+
+// The Field CTOs a request-form "who" value covers, each with the approved
+// reservations overlapping the window, free people first. Null for no pick.
+function whoIsFree(store, { who, startTs, endTs }, env = process.env) {
+  const value = String(who || '').toUpperCase();
+  let members;
+  if (value.startsWith('MEMBER:')) {
+    const member = findMember(value.slice('MEMBER:'.length), env);
+    members = member ? [member] : [];
+  } else if (value.startsWith('ANY:') && PREFERENCES[value.slice('ANY:'.length)]) {
+    const pref = value.slice('ANY:'.length);
+    members = getRoster(env).filter((m) => pref === 'ANY' || m.region === pref);
+  } else {
+    return null;
+  }
+  return members
+    .map((member) => ({ member, conflicts: findConflicts(store, member.key, startTs, endTs) }))
+    .sort((a, b) => a.conflicts.length - b.conflicts.length || a.member.name.localeCompare(b.member.name));
+}
+
 // ─── Time formatting ────────────────────────────────────────────────────────
 
 function formatInTz(ts, tz, opts = {}) {
@@ -570,6 +600,8 @@ module.exports = {
   listReservations,
   suggestAssignees,
   findConflicts,
+  requestWindow,
+  whoIsFree,
   canDecide,
   canClaim,
   canCancel,
