@@ -116,10 +116,10 @@ function applyChange(reservation, previousStatus) {
     try {
       const current = store.get(id) || reservation;
       if (current.status === R.STATUS.APPROVED) {
-        // Calendar buttons and the .ics invite the assignee by Slack profile
-        // email, so wait longer for that one lookup than for photos.
+        // Without an FCTO_EMAIL_<KEY> override, calendar buttons and the .ics
+        // invite the assignee by Slack profile email, so wait longer for it.
         const assignee = findMember(current.assigneeKey);
-        if (assignee && assignee.slackId) await avatars.warm([assignee.slackId], { timeoutMs: INVITE_LOOKUP_TIMEOUT_MS });
+        if (assignee && assignee.slackId && !assignee.email) await avatars.warm([assignee.slackId], { timeoutMs: INVITE_LOOKUP_TIMEOUT_MS });
       }
       await refreshCard(current);
       if (current.rev !== reservation.rev || current.status !== reservation.status) {
