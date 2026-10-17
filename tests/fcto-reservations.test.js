@@ -8,9 +8,9 @@ const http = require('http');
 const express = require('express');
 const { URLSearchParams } = require('url');
 
-const ADMIN = 'U09HHJ5B5L5';
-const MARK = 'U0BU46F4WCU';
-const AMAN = 'U0BBSF50MBR';
+const ADMIN = 'U053N173C4E';
+const MARK = 'U0BT6626DB3';
+const AMAN = 'U0BARJZMV36';
 const KATRIN = 'U0C5GJ3RT63';
 const REQUESTER = 'UREQUESTER1';
 const STRANGER = 'USTRANGER01';
@@ -780,10 +780,10 @@ describe('review fixes', () => {
   test('user text is escaped in cards; meeting links render as bare URLs', async () => {
     const { store, R } = load();
     const B = require('../app/services/fcto/blocks');
-    const r = await R.createRequest(store, base({ account: '<!channel> Acme & Co', purpose: 'ping <@U0BU46F4WCU>', notes: '<https://evil.example|Join>', meetingLink: 'https://zoom.us/j/1' }), { now: NOW });
+    const r = await R.createRequest(store, base({ account: '<!channel> Acme & Co', purpose: 'ping <@U0BT6626DB3>', notes: '<https://evil.example|Join>', meetingLink: 'https://zoom.us/j/1' }), { now: NOW });
     const json = JSON.stringify(B.requestCard(r));
     expect(json).toContain('&lt;!channel&gt; Acme &amp; Co');
-    expect(json).toContain('ping &lt;@U0BU46F4WCU&gt;');
+    expect(json).toContain('ping &lt;@U0BT6626DB3&gt;');
     expect(json).toContain('&lt;https://evil.example|Join&gt;');
     expect(json).not.toContain('<!channel>');
     expect(json).toContain('<https://zoom.us/j/1>');
@@ -962,7 +962,7 @@ describe('slack design', () => {
     expect(pending.attachments[0].color).toBe('#ECB22E');
     expect(JSON.stringify(pending.blocks)).toContain(':briefcase: VP   :flag-de: Germany   :bank: Finance');
     expect(JSON.stringify(pending.attachments[0].blocks)).toContain(':hourglass_flowing_sand: Approval');
-    const approved = B.requestCardMessage(await R.approve(store, r.id, { by: 'U09HHJ5B5L5' }));
+    const approved = B.requestCardMessage(await R.approve(store, r.id, { by: 'U053N173C4E' }));
     expect(approved.attachments[0].color).toBe('#2EB67D');
     const cal = approved.attachments[0].blocks.find((b) => b.block_id === `cal_${r.id}`);
     expect(cal.elements.map((e) => e.action_id)).toEqual([B.ACTION.CAL_GOOGLE, B.ACTION.CAL_OUTLOOK]);
@@ -974,7 +974,7 @@ describe('slack design', () => {
 
   test('cached Slack photos show on the card and in the free list', async () => {
     const { store, R, B, avatars } = fresh();
-    avatars._cache.set('U0BU46F4WCU', { url: 'https://example.com/mark.png', at: Date.now() });
+    avatars._cache.set('U0BT6626DB3', { url: 'https://example.com/mark.png', at: Date.now() });
     const r = await R.createRequest(store, req(), { now: NOW_D });
     const card = B.requestCard(r);
     expect(card[1].accessory).toEqual({ type: 'image', image_url: 'https://example.com/mark.png', alt_text: 'Mark Porter' });
@@ -1010,7 +1010,7 @@ describe('slack design', () => {
     const soon = Math.floor(Date.now() / 1000) + 2 * 86400;
     await R.createRequest(store, req({ startTs: soon }));
     await R.createRequest(store, req({ startTs: soon + 86400, who: 'ANY:EU' }));
-    const home = B.homeView(store, 'U09HHJ5B5L5');
+    const home = B.homeView(store, 'U053N173C4E');
     const json = JSON.stringify(home);
     expect(json).toContain(':raising_hand: *Waiting on you*\\n2');
     const queue = home.blocks.filter((b) => b.accessory && b.accessory.type === 'button');
@@ -1057,7 +1057,7 @@ describe('slack design review fixes', () => {
     const now = Math.floor(Date.now() / 1000);
     for (let i = 0; i < 3; i += 1) await R.createRequest(store, req({ startTs: now - (10 - i) * 86400 }), { now: now - 20 * 86400 });
     for (let i = 0; i < 7; i += 1) await R.createRequest(store, req({ startTs: now + (i + 1) * 86400 }), { now });
-    const home = B.homeView(store, 'U09HHJ5B5L5');
+    const home = B.homeView(store, 'U053N173C4E');
     const json = JSON.stringify(home);
     expect(json).toContain(':raising_hand: *Waiting on you*\\n7');
     expect(json).toContain('+2 more waiting on you in the channel');
