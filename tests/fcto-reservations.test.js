@@ -282,15 +282,17 @@ describe('ics', () => {
     const ics = require('../app/services/fcto/ics');
     const avatars = require('../app/services/fcto/avatars');
     const mark = await R.approve(store, (await R.createRequest(store, base(), { now: NOW })).id, { by: ADMIN });
-    expect(ics.invitees(mark)).toEqual([]);
-    expect(ics.buildIcs(mark, { now: NOW })).not.toContain('ATTENDEE');
-    expect(ics.calendarLinks(mark).google).not.toContain('add=');
-    expect(ics.calendarLinks(mark).outlook).not.toContain('to=');
+    const unknown = { ...mark, assigneeKey: 'NOT_ON_ROSTER' };
+    expect(ics.invitees(unknown)).toEqual([]);
+    expect(ics.buildIcs(unknown, { now: NOW })).not.toContain('ATTENDEE');
+    expect(ics.calendarLinks(unknown).google).not.toContain('add=');
+    expect(ics.calendarLinks(unknown).outlook).not.toContain('to=');
+    expect(ics.invitees(mark)).toEqual([{ name: 'Mark Porter', email: 'mark.porter@cognition.ai' }]);
     avatars._cache.set(MARK, { url: null, email: 'mark@example.com', at: Date.now() });
     expect(ics.invitees(mark)).toEqual([{ name: 'Mark Porter', email: 'mark@example.com' }]);
-    process.env.FCTO_EMAIL_MARK_PORTER = 'Mark.Porter@Cognition.ai';
+    process.env.FCTO_EMAIL_MARK_PORTER = 'Mark.Porter2@Cognition.ai';
     try {
-      expect(ics.invitees(mark)).toEqual([{ name: 'Mark Porter', email: 'mark.porter@cognition.ai' }]);
+      expect(ics.invitees(mark)).toEqual([{ name: 'Mark Porter', email: 'mark.porter2@cognition.ai' }]);
       process.env.FCTO_EMAIL_MARK_PORTER = 'not an email';
       expect(ics.invitees(mark)).toEqual([{ name: 'Mark Porter', email: 'mark@example.com' }]);
     } finally {
