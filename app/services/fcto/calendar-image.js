@@ -71,6 +71,16 @@ function zoneLabel(tz, at) {
   return label || ZONE_FALLBACK[tz] || name('en-GB') || tz;
 }
 
+// One abbreviation per row; if the range crosses a DST change, name both and
+// the first date on the new offset, e.g. "CEST → CET Oct 25".
+function rowZoneLabel(tz, cells) {
+  const first = zoneLabel(tz, cells[0].startTs);
+  const change = cells.find((c) => zoneLabel(tz, c.endTs - 1) !== first);
+  if (!change) return first;
+  const on = new Date(change.day * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return `${first} → ${zoneLabel(tz, change.endTs - 1)} ${on}`;
+}
+
 function dayLabel(d) {
   const date = new Date(d * 1000);
   return {
@@ -144,7 +154,7 @@ function calendarSvg(store, { from, to, now = Math.floor(Date.now() / 1000), env
     out.push(`<text x="${pad + 20}" y="${cy + 5}" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">${esc(initials(member.name))}</text>`);
     out.push(`<text x="${pad + 48}" y="${cy - 3}" font-size="15" font-weight="600" fill="${C.ink}">${esc(fit(member.name, 20))}</text>`);
     const region = R.REGION_LABELS[member.region] || member.region;
-    out.push(`<text x="${pad + 48}" y="${cy + 15}" font-size="12" fill="${C.muted}">${esc(fit(`${zoneLabel(member.tz, from)} · ${region}`, 24))}</text>`);
+    out.push(`<text x="${pad + 48}" y="${cy + 15}" font-size="12" fill="${C.muted}">${esc(fit(`${rowZoneLabel(member.tz, row.days)} · ${region}`, 24))}</text>`);
 
     row.days.forEach((cell, di) => {
       const x = pad + nameW + di * dayW + 5;
@@ -168,8 +178,8 @@ function calendarSvg(store, { from, to, now = Math.floor(Date.now() / 1000), env
       const barX = x + 10;
       const barW = w - 20;
       const barY = top + h - 13;
-      const winStart = cell.startTs + WORK_START * 3600;
-      const winEnd = cell.startTs + WORK_END * 3600;
+      const winStart = R.localDayStart(cell.day + WORK_START * 3600, member.tz);
+      const winEnd = R.localDayStart(cell.day + WORK_END * 3600, member.tz);
       out.push(`<rect x="${barX}" y="${barY}" width="${barW}" height="6" rx="3" fill="${C.track}"/>`);
       cell.busy.forEach((b) => {
         const s = Math.max(b.startTs, winStart);
