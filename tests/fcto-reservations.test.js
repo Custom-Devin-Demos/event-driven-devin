@@ -297,6 +297,15 @@ describe('ics', () => {
       delete process.env.FCTO_EMAIL_MARK_PORTER;
     }
   });
+
+  test('the Slack profile email wins over a roster default', async () => {
+    const { store, R } = load();
+    const ics = require('../app/services/fcto/ics');
+    const avatars = require('../app/services/fcto/avatars');
+    const akira = await R.approve(store, (await R.createRequest(store, base({ who: 'MEMBER:AKIRA_SHIBATA' }), { now: NOW })).id, { by: ADMIN });
+    avatars._cache.set('U0AUFDRGGLC', { url: null, email: 'akira@new.example', at: Date.now() });
+    expect(ics.invitees(akira)).toEqual([{ name: 'Akira Shibata', email: 'akira@new.example' }]);
+  });
 });
 
 describe('block kit', () => {

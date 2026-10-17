@@ -49,14 +49,14 @@ function fetchOne(slackId) {
   return run;
 }
 
-async function warm(slackIds) {
+async function warm(slackIds, { timeoutMs = WARM_TIMEOUT_MS } = {}) {
   const now = Date.now();
   const todo = Array.from(new Set((slackIds || []).filter(Boolean))).filter((id) => !fresh(cache.get(id), now));
   if (!todo.length) return;
   let timer;
   await Promise.race([
     Promise.all(todo.map(fetchOne)),
-    new Promise((resolve) => { timer = setTimeout(resolve, WARM_TIMEOUT_MS); }),
+    new Promise((resolve) => { timer = setTimeout(resolve, timeoutMs); }),
   ]);
   clearTimeout(timer);
 }

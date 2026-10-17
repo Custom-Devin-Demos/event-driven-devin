@@ -53,7 +53,7 @@ function eventText(reservation) {
 function invitees(reservation) {
   const member = findMember(reservation.assigneeKey);
   if (!member) return [];
-  const email = member.email || avatars.getEmail(member.slackId);
+  const email = member.email || avatars.getEmail(member.slackId) || member.defaultEmail;
   return email && EMAIL_RE.test(email) ? [{ name: member.name, email }] : [];
 }
 

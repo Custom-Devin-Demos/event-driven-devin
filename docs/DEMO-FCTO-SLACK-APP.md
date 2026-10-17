@@ -83,9 +83,9 @@ in the thread. The authoritative answer to "who is reserved when" is
    Approved cards and the approval thread reply get **Add to Google Calendar** /
    **Add to Outlook** buttons, which open a prefilled event in the clicker's own
    calendar. The assigned Field CTO is added as a guest on both links and as an
-   `ATTENDEE` in the `.ics` file, using their roster email (`FCTO_EMAIL_<KEY>`
-   overrides it) or, failing that, their Slack profile email (needs the
-   `users:read.email` scope; reinstall the app after adding it). Photos come
+   `ATTENDEE` in the `.ics` file. The email is `FCTO_EMAIL_<KEY>` if set, else
+   their Slack profile email (needs the `users:read.email` scope; reinstall the
+   app after adding it), else the roster default. Photos come
    from `users.info` (`users:read` scope), are cached for 12 hours, and are
    skipped if Slack is slow.
 

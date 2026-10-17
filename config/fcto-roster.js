@@ -7,9 +7,9 @@
 // appears in the request form and the schedule; they just cannot be
 // @-mentioned, DM'd an invite, or act on their own requests until the ID is
 // set. Time zones are IANA names and drive the "local time" shown next to
-// every reservation. Emails (FCTO_EMAIL_<KEY> overrides the default) invite
-// the assigned Field CTO to calendar events; without one, the Slack profile
-// email is used when the app has the users:read.email scope.
+// every reservation. The assigned Field CTO is invited to calendar events at
+// FCTO_EMAIL_<KEY>, else their Slack profile email (users:read.email scope),
+// else the roster default.
 
 const MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
 const EMAIL_RE = /^[^\s@<>,;"]+@[^\s@<>,;"]+\.[^\s@<>,;"]+$/;
@@ -39,8 +39,8 @@ function getRoster(env = process.env) {
     const override = (env[`FCTO_SLACK_ID_${member.key}`] || '').trim();
     const slackId = MEMBER_ID_RE.test(override) ? override.toUpperCase() : member.defaultSlackId;
     const emailOverride = (env[`FCTO_EMAIL_${member.key}`] || '').trim();
-    const email = EMAIL_RE.test(emailOverride) ? emailOverride.toLowerCase() : (member.defaultEmail || '');
-    return { key: member.key, name: member.name, tz: member.tz, region: member.region, slackId, email };
+    const email = EMAIL_RE.test(emailOverride) ? emailOverride.toLowerCase() : '';
+    return { key: member.key, name: member.name, tz: member.tz, region: member.region, slackId, email, defaultEmail: member.defaultEmail || '' };
   });
 }
 

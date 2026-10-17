@@ -108,12 +108,19 @@ async function announce(reservation, previousStatus) {
 // the store's current copy, so two overlapping clicks can't leave the card
 // showing an older state or attach an invite for a superseded transition.
 const sideEffects = new Map();
+const INVITE_LOOKUP_TIMEOUT_MS = 8000;
 
 function applyChange(reservation, previousStatus) {
   const id = reservation.id;
   const run = (sideEffects.get(id) || Promise.resolve()).then(async () => {
     try {
       const current = store.get(id) || reservation;
+      if (current.status === R.STATUS.APPROVED) {
+        // Calendar buttons and the .ics invite the assignee by Slack profile
+        // email, so wait longer for that one lookup than for photos.
+        const assignee = findMember(current.assigneeKey);
+        if (assignee && assignee.slackId) await avatars.warm([assignee.slackId], { timeoutMs: INVITE_LOOKUP_TIMEOUT_MS });
+      }
       await refreshCard(current);
       if (current.rev !== reservation.rev || current.status !== reservation.status) {
         logger.info('fcto: skipping announcement for superseded change', { id, from: reservation.status, now: current.status });
