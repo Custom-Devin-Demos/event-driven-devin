@@ -167,7 +167,8 @@
     .cw-side li { font-size: 12px; padding: 3px 0; }
 
     /* ---------- action bar ---------- */
-    .cw-actionbar { position: sticky; bottom: 0; background: #fff; border-top: 1px solid #d9dfe6; padding: 12px 20px; display: flex; justify-content: flex-end; gap: 12px; z-index: 5; }
+    .cw-actionbar { position: sticky; bottom: 0; background: #fff; border-top: 1px solid #d9dfe6; padding: 12px 20px; z-index: 5; }
+    .cw-actionbar-inner { max-width: 1180px; margin: 0 auto; padding-right: 260px; display: flex; justify-content: flex-end; gap: 12px; }
     .cw-actionbar .ghost { font: inherit; font-size: 12px; font-weight: 500; letter-spacing: 0.4px; color: var(--cw-ink-2); background: transparent; border: 0; padding: 0 12px; cursor: pointer; }
     .cw-btn { font: inherit; font-size: 12px; font-weight: 500; letter-spacing: 0.6px; text-transform: uppercase; color: #fff; background: var(--cw-blue); border: 0; border-radius: 3px; height: 36px; padding: 0 22px; cursor: pointer; }
     .cw-btn:hover { background: var(--cw-blue-dark); }
@@ -200,6 +201,7 @@
       .cw-field .with-prefix span { font-size: 14px; }
       .cw-btn { height: 44px; }
       .cw-actionbar { padding: 10px 12px; }
+      .cw-actionbar-inner { padding-right: 0; }
       .cw-actionbar .ghost { min-height: 44px; }
     }
   </style>
@@ -324,7 +326,7 @@
           <div class="cw-row">
             <div class="cw-field">
               <label for="amount">Amount to Transfer</label>
-              <div class="with-prefix"><span>$</span><input type="number" id="amount" value="100000" min="1" step="0.01" placeholder="0.00"></div>
+              <div class="with-prefix"><span>$</span><input type="number" id="amount" value="100000" min="1" step="0.01" required placeholder="0.00"></div>
             </div>
           </div>
           <div class="cw-help">Funds will be drawn from the selected bank instruction and credited to the LPL account above.</div>
@@ -368,8 +370,10 @@
   </main>
 
   <div class="cw-actionbar">
-    <button type="button" class="ghost">SAVE &amp; CLOSE</button>
-    <button type="submit" form="transferForm" class="cw-btn" id="submitBtn">Submit ACH Request</button>
+    <div class="cw-actionbar-inner">
+      <button type="button" class="ghost">SAVE &amp; CLOSE</button>
+      <button type="submit" form="transferForm" class="cw-btn" id="submitBtn">Submit ACH Request</button>
+    </div>
   </div>
 
   <script>
@@ -389,6 +393,12 @@
       const result = document.getElementById('result');
       btn.disabled = true; btn.textContent = 'Submitting...';
       result.className = 'result-box';
+      const show = (title, detail) => {
+        result.textContent = '';
+        const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
       try {
         const res = await fetch('/api/banking/transfer', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -397,15 +407,15 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">ACH Request Not Submitted</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          show('ACH Request Not Submitted', `${data.errorClass}: ${data.error}`);
         } else {
           result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">ACH Request Submitted</div><div class="error-detail">$${data.debitAmount} will be drawn from the selected bank instruction (includes $${data.fee} ACH processing fee). The request now appears under Review and Forms.</div>`;
+          show('ACH Request Submitted', `$${data.debitAmount} will be drawn from the selected bank instruction (includes $${data.fee} ACH processing fee). The request now appears under Review and Forms.`);
         }
         result.scrollIntoView({ block: 'nearest' });
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+        show('Network Error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Submit ACH Request'; }
     });
   </script>
