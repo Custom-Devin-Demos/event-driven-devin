@@ -53,16 +53,20 @@ function clean(value, max = MAX_TEXT) {
 }
 
 const SAFE_URL = /^https?:\/\/[^\s<>|]+$/i;
-const SALESFORCE_URL = /^https:\/\/[^\s<>|/]+\.(lightning\.force\.com|salesforce\.com)(\/[^\s<>|]*)?$/i;
-const SALESFORCE_RECORD = {
-  opportunity: /\/Opportunity\/|\/006[A-Za-z0-9]{12}/,
-  contact: /\/Contact\/|\/003[A-Za-z0-9]{12}/,
-};
+const SALESFORCE_HOST = /^[a-z0-9-]+(\.[a-z0-9-]+)*\.(lightning\.force\.com|salesforce\.com)$/i;
+const SALESFORCE_RECORD = { opportunity: ['Opportunity', '006'], contact: ['Contact', '003'] };
 
-// True for a Salesforce Opportunity / Contact record URL (Lightning or
-// Classic). Format check only: there is no Salesforce API connection.
+// True for a Salesforce Opportunity / Contact record URL: Lightning
+// /lightning/r/<Object>/<id>[/view] or Classic /<id>, with a 15/18-char id.
+// Format check only: there is no Salesforce API connection.
 function isSalesforceRecord(url, type) {
-  return SALESFORCE_URL.test(url) && SALESFORCE_RECORD[type].test(url);
+  const [object, prefix] = SALESFORCE_RECORD[type];
+  if (!/^https:\/\/[^\s<>|&]+$/i.test(url)) return false;
+  let parsed;
+  try { parsed = new URL(url); } catch { return false; }
+  if (parsed.username || parsed.password || parsed.port || !SALESFORCE_HOST.test(parsed.hostname)) return false;
+  const id = `${prefix}[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?`;
+  return new RegExp(`^/(?:lightning/r/${object}/${id}(?:/view)?|${id})/?$`, 'i').test(parsed.pathname);
 }
 
 // 'meeting' (also for requests made before request types) or 'speaking'.

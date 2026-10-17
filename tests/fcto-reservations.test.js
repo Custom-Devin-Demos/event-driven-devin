@@ -724,6 +724,22 @@ describe('HTTP routes', () => {
     const posted = slackCalls.find((c) => c[0] === 'chat.postMessage');
     expect(JSON.stringify(posted)).toContain(':crown: C-level   :flag-jp: Japan   :rocket: Tech Native');
   });
+
+  test('switching a Finance meeting to earned speaking drops the stale industry from the suggestion', async () => {
+    const { callback_id: callbackId, private_metadata: meta } = require('../app/services/fcto/blocks').requestModal({ channelId: 'CEXEC' });
+    const values = requestValues({
+      kind: { value: { selected_option: { value: 'SPEAKING' } } },
+      industry: { value: { selected_option: { value: 'FINANCE' } } },
+    });
+    const view = { id: 'V20', hash: 'h1', callback_id: callbackId, private_metadata: meta, state: { values } };
+    const body = blockAction('value', undefined, REQUESTER, { view, actions: [{ action_id: 'value', block_id: 'kind', type: 'static_select' }] });
+    expect((await post(port, '/slack/fcto/interactions', body, sign('shhh', body))).status).toBe(200);
+    await flush();
+    const blocks = slackCalls.filter((c) => c[0] === 'views.update').pop()[2].blocks;
+    expect(blocks.map((b) => b.block_id)).toContain('who_ANY_US');
+    expect(blocks.map((b) => b.block_id)).toContain('eventUrl');
+    expect(JSON.stringify(blocks)).not.toContain('Aman Thind* for');
+  });
 });
 
 describe('qualifications', () => {
@@ -1378,6 +1394,43 @@ describe('request types, context and guide', () => {
     const actions = talk.attachments[0].blocks.find((b) => b.type === 'actions').elements.map((e) => e.action_id);
     expect(actions).not.toContain(B.ACTION.CLAIM);
     expect(actions).toContain(B.ACTION.ASSIGN);
+  });
+
+  test('Salesforce links must be real record URLs and render without markup injection', async () => {
+    const { store, R } = load();
+    const B = require('../app/services/fcto/blocks');
+    [
+      [OPP, 'opportunity', true],
+      ['https://acme.lightning.force.com/lightning/r/Opportunity/006Ab00000XyZ12/view', 'opportunity', true],
+      ['https://na1.salesforce.com/006Ab00000XyZ12', 'opportunity', true],
+      [CONTACT, 'contact', true],
+      ['https://acme.lightning.force.com/lightning/setup/Contact/home', 'contact', false],
+      ['https://acme.lightning.force.com/lightning/r/Report/00O000000000001/Contact/', 'contact', false],
+      [CONTACT, 'opportunity', false],
+      ['https://evil.example/lightning/r/Contact/003Ab00000XyZ12AAA/view', 'contact', false],
+      ['https://acme.lightning.force.com.evil.example/lightning/r/Contact/003Ab00000XyZ12AAA/view', 'contact', false],
+      ['https://acme.lightning.force.com/lightning/r/Contact/003Ab00000XyZ12AAA/view?x=&gt;<!channel>', 'contact', false],
+      ['https://acme.lightning.force.com/lightning/r/Contact/003Ab00000XyZ12AAA/view&gt;|Fake', 'contact', false],
+    ].forEach(([url, type, ok]) => expect([url, type, R.isSalesforceRecord(url, type)]).toEqual([url, type, ok]));
+
+    const talk = await R.createRequest(store, speakingInput({ eventUrl: 'https://x.example/?a=1&gt;|Forged <!here>' }), { now: NOW }).catch((e) => e);
+    if (!(talk instanceof Error)) {
+      expect(JSON.stringify(B.requestCardMessage(talk))).toContain('<https://x.example/?a=1&amp;gt;|Event page>');
+    }
+  });
+
+  test('ten long contact links all stay on the card, split under the 3,000-character limit', async () => {
+    const { store, R } = load();
+    const B = require('../app/services/fcto/blocks');
+    const contacts = Array.from({ length: 10 }, (_, i) => `https://${'a'.repeat(225)}.lightning.force.com/lightning/r/Contact/003Ab00000XyZ${String(i).padStart(2, '0')}AAA/view`);
+    const r = await R.createRequest(store, base({ opportunityUrl: OPP, contactUrls: contacts.join('\n') }), { now: NOW });
+    const texts = B.requestCardMessage(r).blocks.concat(B.requestCardMessage(r).attachments[0].blocks)
+      .filter((b) => b.type === 'context').flatMap((b) => b.elements.map((e) => e.text)).filter((t) => t.includes('lightning.force.com'));
+    expect(texts.length).toBeGreaterThan(1);
+    texts.forEach((t) => expect(t.length).toBeLessThan(3000));
+    const all = texts.join(' ');
+    contacts.forEach((u, i) => expect(all).toContain(`<${u}|Contact ${i + 1}>`));
+    expect(all).toContain(`<${OPP}|Opportunity>`);
   });
 
   test('speaking form swaps in event fields and round-trips them', () => {

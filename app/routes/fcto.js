@@ -355,7 +355,8 @@ async function refreshRequestModal(view, actionTs) {
       entry.latest = null;
       const input = B.readRequestModal(current);
       await warmAvatars();
-      const suggestion = suggestWho(input);
+      // Speaking has no industry field; drop any left over from a meeting form.
+      const suggestion = suggestWho(input.kind === 'SPEAKING' ? { ...input, industry: null } : input);
       const next = B.requestModal({ channelId: input.channelId, kind: input.kind, audience: input.audience, suggestion, availability: formAvailability(current, input, suggestion) });
       let res = await slack.updateView(current.id, next, current.hash);
       if (res && !res.ok && res.error === 'hash_conflict' && !entry.latest) res = await slack.updateView(current.id, next);

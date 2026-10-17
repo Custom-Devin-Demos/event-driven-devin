@@ -559,6 +559,8 @@ function cardActions(reservation, conflicts) {
   return { type: 'actions', block_id: `actions_${reservation.id}`, elements };
 }
 
+const MAX_LINKS_TEXT = 2900;
+
 function deadlineLabel(date) {
   return new Date(`${date}T00:00:00Z`).toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' });
 }
@@ -568,15 +570,22 @@ function deadlineLabel(date) {
 function salesforceBlocks(reservation) {
   const contacts = reservation.contactUrls || [];
   const links = [
-    reservation.opportunityUrl ? `<${reservation.opportunityUrl}|Opportunity>` : null,
-    ...contacts.map((u, i) => `<${u}|Contact ${i + 1}>`),
+    reservation.opportunityUrl ? `<${esc(reservation.opportunityUrl)}|Opportunity>` : null,
+    ...contacts.map((u, i) => `<${esc(u)}|Contact ${i + 1}>`),
   ].filter(Boolean);
   const missing = [
     reservation.opportunityUrl ? null : 'opportunity',
     contacts.length ? null : 'contact records',
   ].filter(Boolean);
   const blocks = [];
-  if (links.length) blocks.push(context(`:cloud: *Salesforce:* ${links.join('  ·  ')}`));
+  // Split so no mrkdwn text passes Slack's 3,000-character limit mid-link.
+  const chunks = [];
+  links.forEach((link) => {
+    const last = chunks[chunks.length - 1];
+    if (last && last.length + link.length + 5 <= MAX_LINKS_TEXT) chunks[chunks.length - 1] = `${last}  ·  ${link}`;
+    else chunks.push(`${chunks.length ? '' : ':cloud: *Salesforce:* '}${link}`);
+  });
+  chunks.forEach((text) => blocks.push(context(text)));
   if (missing.length) blocks.push(context(`:warning: *No Salesforce ${missing.join(' or ')} linked.* Ask the requester before approving.`));
   return blocks;
 }
@@ -605,13 +614,13 @@ function cardDetailBlocks(reservation, conflicts) {
   if (speaking) {
     const size = G.AUDIENCE_SIZE[reservation.audienceSize];
     blocks.push(context([
-      reservation.eventUrl ? `:link: <${reservation.eventUrl}|Event page>` : null,
+      reservation.eventUrl ? `:link: <${esc(reservation.eventUrl)}|Event page>` : null,
       size ? `:busts_in_silhouette: Audience ${size.label}` : null,
       reservation.deadline ? `:alarm_clock: Answer needed by ${deadlineLabel(reservation.deadline)}` : null,
     ].filter(Boolean).join('  ·  ')));
   }
   if (reservation.notes) blocks.push(section(`:memo: *Notes*\n${esc(reservation.notes)}`));
-  if (reservation.meetingLink) blocks.push(context(`:link: <${reservation.meetingLink}>`));
+  if (reservation.meetingLink) blocks.push(context(`:link: <${esc(reservation.meetingLink)}>`));
   blocks.push({ type: 'context', elements: [...(image ? [image] : []), mrkdwn(localTimesLine(reservation))] });
   if (conflicts.length && reservation.status === R.STATUS.PENDING) {
     blocks.push(section(`:warning: *Conflict:* ${conflicts.map((c) => `${c.id} (${esc(c.account)}, ${R.slackRange(c.startTs, c.endTs)})`).join('; ')}`));
