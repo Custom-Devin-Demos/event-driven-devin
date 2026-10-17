@@ -721,6 +721,7 @@ function helpText() {
     '• `/fcto schedule` — this week · `/fcto schedule next` — next week · `/fcto schedule month`',
     '• `/fcto schedule @person` — one Field CTO\'s reservations · `/fcto schedule me` — your requests',
     '• `/fcto free oct 22` · `/fcto free oct 22-24` · `/fcto free next week` — who has no approved reservation on those days',
+    '• `/fcto calendar` · `/fcto calendar next week` · `/fcto calendar oct 22-28` — post an availability calendar image to the channel (up to 14 days)',
     '• `/fcto roster` — who the Field CTOs are and their current local time',
     'Approve / Decline / Claim / Reassign happen on the request card in the channel. Admins and the named Field CTO can act; everyone else gets a polite no.',
   ].join('\n');
