@@ -61,7 +61,7 @@ const SALESFORCE_RECORD = { opportunity: ['Opportunity', '006'], contact: ['Cont
 // Format check only: there is no Salesforce API connection.
 function isSalesforceRecord(url, type) {
   const [object, prefix] = SALESFORCE_RECORD[type];
-  if (!/^https:\/\/[^\s<>|&]+$/i.test(url)) return false;
+  if (!/^https:\/\/[^\s<>|]+$/i.test(url)) return false;
   let parsed;
   try { parsed = new URL(url); } catch { return false; }
   if (parsed.username || parsed.password || parsed.port || !SALESFORCE_HOST.test(parsed.hostname)) return false;

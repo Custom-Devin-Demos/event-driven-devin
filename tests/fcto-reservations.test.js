@@ -1337,6 +1337,9 @@ describe('request types, context and guide', () => {
     expect(r).toMatchObject({ kind: 'meeting', opportunityUrl: OPP, contactUrls: [CONTACT, 'https://na1.salesforce.com/003Ab00000XyZ99'], attendees: 'Jane Doe — CIO' });
     const bare = await R.createRequest(store, base(), { now: NOW });
     expect(bare).toMatchObject({ opportunityUrl: '', contactUrls: [] });
+    const withQuery = 'https://acme.lightning.force.com/lightning/r/Opportunity/006Ab00000XyZ12/view?filter=recent&tab=details';
+    const q = await R.createRequest(store, base({ opportunityUrl: withQuery }), { now: NOW });
+    expect(JSON.stringify(require('../app/services/fcto/blocks').requestCardMessage(q))).toContain('/view?filter=recent&amp;tab=details|Opportunity>');
   });
 
   test('earned speaking needs event details, skips audience/industry and goes to the speaking reviewer', async () => {
@@ -1404,6 +1407,7 @@ describe('request types, context and guide', () => {
       ['https://acme.lightning.force.com/lightning/r/Opportunity/006Ab00000XyZ12/view', 'opportunity', true],
       ['https://na1.salesforce.com/006Ab00000XyZ12', 'opportunity', true],
       [CONTACT, 'contact', true],
+      ['https://acme.lightning.force.com/lightning/r/Opportunity/006Ab00000XyZ12/view?filter=recent&tab=details', 'opportunity', true],
       ['https://acme.lightning.force.com/lightning/setup/Contact/home', 'contact', false],
       ['https://acme.lightning.force.com/lightning/r/Report/00O000000000001/Contact/', 'contact', false],
       [CONTACT, 'opportunity', false],
