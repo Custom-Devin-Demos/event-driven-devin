@@ -19,6 +19,7 @@ const R = require('../services/fcto/reservations');
 const B = require('../services/fcto/blocks');
 const slack = require('../services/fcto/slack-client');
 const { buildIcs, icsFilename } = require('../services/fcto/ics');
+const { MAX_CALENDAR_DAYS, renderCalendarPng, rangeTitle } = require('../services/fcto/calendar-image');
 const avatars = require('../services/fcto/avatars');
 const { suggestWho } = require('../../config/fcto-qualifications');
 
@@ -191,6 +192,36 @@ function resolvePersonArg(arg) {
   return getRoster().find((r) => r.name.toLowerCase().includes(needle) || r.key.toLowerCase().includes(needle)) || null;
 }
 
+function calendarError(error) {
+  if (error === 'not_in_channel' || error === 'channel_not_found') {
+    const home = process.env.FCTO_CHANNEL_ID ? ` or run it in <#${process.env.FCTO_CHANNEL_ID}>` : '';
+    return `I can't post in this channel yet. Invite me with \`/invite @Field CTO Reservations\`${home}.`;
+  }
+  return `Couldn't post the calendar (${error || 'unknown error'}). Try again in a moment.`;
+}
+
+// Renders the availability image and uploads it to the channel the command was
+// run in, so everyone there sees it. Runs after the slash command is acked.
+async function postCalendar({ channel, userId, responseUrl, range }) {
+  let error;
+  try {
+    const label = rangeTitle(range.from, range.to);
+    const result = await slack.uploadFile({
+      channel,
+      filename: `field-cto-availability-${new Date(range.from * 1000).toISOString().slice(0, 10)}.png`,
+      title: `Field CTO availability · ${label}`,
+      content: renderCalendarPng(store, range),
+      contentType: 'image/png',
+      initialComment: `:calendar: <@${userId}> shared Field CTO availability for *${label}*. Request time with \`/fcto request\`.`,
+    });
+    if (!result || !result.ok) error = (result && result.error) || 'upload_failed';
+  } catch (err) {
+    logger.error('fcto: calendar image failed', { error: err.message });
+    error = 'render_failed';
+  }
+  if (error) await slack.respond(responseUrl, { response_type: 'ephemeral', replace_original: false, text: calendarError(error) });
+}
+
 async function handleCommand(body) {
   const text = (body.text || '').trim();
   const [sub = '', ...args] = text.split(/\s+/).filter(Boolean);
@@ -240,6 +271,19 @@ async function handleCommand(body) {
       await warmAvatars();
       const blocks = B.availabilityBlocks(store, range);
       return { response_type: 'ephemeral', text: blocks[0].text.text, blocks };
+    }
+    case 'calendar':
+    case 'cal': {
+      const range = R.parseDateRange(args.join(' ') || 'week');
+      if (!range) {
+        return { response_type: 'ephemeral', text: "I couldn't read those dates. Try `/fcto calendar`, `/fcto calendar next week` or `/fcto calendar oct 22-28`." };
+      }
+      if (range.to - range.from > MAX_CALENDAR_DAYS * 86400) {
+        return { response_type: 'ephemeral', text: `The calendar fits up to ${MAX_CALENDAR_DAYS} days. Try a shorter range, or \`/fcto free\` for up to ${R.MAX_AVAILABILITY_DAYS}.` };
+      }
+      const job = { channel: body.channel_id, userId, responseUrl: body.response_url, range };
+      setTimeout(() => { postCalendar(job); }, 0);
+      return { response_type: 'ephemeral', text: `:calendar: Drawing the Field CTO calendar for ${rangeTitle(range.from, range.to)}. It'll appear in this channel in a moment.` };
     }
     case 'roster':
       return { response_type: 'ephemeral', text: 'Field CTO roster', blocks: B.rosterBlocks() };

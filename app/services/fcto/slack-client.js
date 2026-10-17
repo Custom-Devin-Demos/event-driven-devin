@@ -59,21 +59,22 @@ async function respond(responseUrl, body) {
   return null;
 }
 
-// Upload a small text file (the .ics invite) into a channel/thread using the
-// v2 upload flow: getUploadURLExternal -> PUT bytes -> completeUploadExternal.
-async function uploadFile({ channel, threadTs, filename, content, title, initialComment }) {
+// Upload a file (the .ics invite, the /fcto calendar PNG) into a channel/thread
+// using the v2 upload flow: getUploadURLExternal -> PUT bytes ->
+// completeUploadExternal. `content` is a string (UTF-8) or a Buffer.
+async function uploadFile({ channel, threadTs, filename, content, contentType = 'text/calendar', title, initialComment }) {
   const token = botToken();
   if (!token) return { ok: false, error: 'no_token' };
-  const bytes = Buffer.from(content, 'utf8');
+  const bytes = Buffer.isBuffer(content) ? content : Buffer.from(content, 'utf8');
   const step1 = await call('files.getUploadURLExternal', { filename, length: bytes.length }, { form: true });
   if (!step1.ok) return step1;
   try {
     await axios.post(step1.upload_url, bytes, {
-      headers: { 'Content-Type': 'text/calendar' },
+      headers: { 'Content-Type': contentType },
       timeout: 15000,
     });
   } catch (err) {
-    logger.warn('fcto: ics upload failed', { error: err.message });
+    logger.warn('fcto: file upload failed', { filename, error: err.message });
     return { ok: false, error: 'upload_failed' };
   }
   const complete = {

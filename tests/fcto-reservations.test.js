@@ -1157,3 +1157,117 @@ describe('request form availability', () => {
     expect(JSON.stringify(B.requestModal({}).blocks)).not.toContain('free then');
   });
 });
+
+describe('calendar image', () => {
+  const day = (y, m, dd) => Date.UTC(y, m, dd) / 1000;
+  const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
+
+  async function seeded() {
+    const { store, R } = load();
+    const r1 = await R.createRequest(store, base({ account: 'A<B> & Co', who: 'MEMBER:MARK_PORTER', startTs: day(2026, 9, 20) + 17 * 3600, durationKey: '1h' }), { now: day(2026, 9, 15) });
+    await R.approve(store, r1.id, { by: ADMIN });
+    const r2 = await R.createRequest(store, base({ account: 'Pending Inc', who: 'MEMBER:AMAN_THIND', startTs: day(2026, 9, 20) + 9 * 3600 }), { now: day(2026, 9, 15) });
+    return { store, R, pending: r2 };
+  }
+
+  test('svg lists every Field CTO, approved bookings in local time, escapes text, skips pending', async () => {
+    const { store } = await seeded();
+    const { calendarSvg } = require('../app/services/fcto/calendar-image');
+    const svg = calendarSvg(store, { from: day(2026, 9, 19), to: day(2026, 9, 26), now: day(2026, 9, 19) });
+    ['Jeff Wang', 'Katrin Lehmann', 'Mark Porter', 'Narry Singh', 'Aman Thind', 'Akira Shibata'].forEach((n) => expect(svg).toContain(n));
+    expect(svg).toContain('10a–11a A&lt;B&gt; &amp; Co');
+    expect(svg).not.toContain('Pending Inc');
+    expect(svg).toContain('Oct 19 – Oct 25, 2026');
+    expect(svg).toContain('PDT');
+    expect(svg).toContain('CEST');
+    expect(svg).toContain('JST');
+    expect(svg).toContain('TODAY');
+  });
+
+  test('renders a PNG with the bundled fonts', async () => {
+    const { store } = await seeded();
+    const { renderCalendarPng } = require('../app/services/fcto/calendar-image');
+    const png = renderCalendarPng(store, { from: day(2026, 9, 19), to: day(2026, 9, 21) });
+    expect(png.subarray(0, 4)).toEqual(PNG_SIG);
+    expect(png.length).toBeGreaterThan(5000);
+  });
+
+  test('rangeTitle', () => {
+    const { rangeTitle } = require('../app/services/fcto/calendar-image');
+    expect(rangeTitle(day(2026, 9, 19), day(2026, 9, 26))).toBe('Oct 19 – Oct 25, 2026');
+    expect(rangeTitle(day(2026, 9, 19), day(2026, 9, 20))).toBe('Oct 19, 2026');
+  });
+});
+
+describe('/fcto calendar command', () => {
+  let calls;
+  let uploadResult;
+  let server;
+  let port;
+
+  beforeEach(async () => {
+    calls = [];
+    uploadResult = { ok: true };
+    process.env.FCTO_SLACK_SIGNING_SECRET = 'shhh';
+    process.env.FCTO_SLACK_BOT_TOKEN = 'xoxb-test';
+    process.env.FCTO_CHANNEL_ID = 'CEXEC';
+    jest.doMock('../app/services/fcto/slack-client', () => {
+      const actual = jest.requireActual('../app/services/fcto/slack-client');
+      return {
+        ...actual,
+        uploadFile: jest.fn(async (args) => { calls.push(['files.upload', args]); return uploadResult; }),
+        respond: jest.fn(async (url, body) => { calls.push(['response_url', url, body]); }),
+        userInfo: jest.fn(async () => ({ ok: false })),
+      };
+    });
+    ({ server, port } = await startApp(require('../app/routes/fcto')));
+  });
+
+  afterEach(async () => {
+    await new Promise((resolve) => server.close(resolve));
+    delete process.env.FCTO_SLACK_SIGNING_SECRET;
+    delete process.env.FCTO_SLACK_BOT_TOKEN;
+    delete process.env.FCTO_CHANNEL_ID;
+  });
+
+  const command = async (text, channel = 'CEXEC') => {
+    const body = new URLSearchParams({ command: '/fcto', text, user_id: REQUESTER, channel_id: channel, response_url: 'https://hooks.example/r' }).toString();
+    return post(port, '/slack/fcto/commands', body, sign('shhh', body));
+  };
+  const until = async (pred) => {
+    for (let i = 0; i < 200 && !pred(); i += 1) await new Promise((r) => setTimeout(r, 10));
+  };
+
+  test('acks privately, then uploads the PNG to the channel for everyone', async () => {
+    const res = await command('calendar next week');
+    expect(res.status).toBe(200);
+    const ack = JSON.parse(res.body);
+    expect(ack.response_type).toBe('ephemeral');
+    expect(ack.text).toContain('Drawing the Field CTO calendar');
+    await until(() => calls.length);
+    const [, upload] = calls[0];
+    expect(upload.channel).toBe('CEXEC');
+    expect(upload.contentType).toBe('image/png');
+    expect(upload.content.subarray(0, 4)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+    expect(upload.filename).toMatch(/^field-cto-availability-\d{4}-\d{2}-\d{2}\.png$/);
+    expect(upload.initialComment).toContain(`<@${REQUESTER}>`);
+  });
+
+  test('rejects unreadable and too-long ranges without uploading', async () => {
+    expect(JSON.parse((await command('calendar someday')).body).text).toContain("couldn't read");
+    expect(JSON.parse((await command('calendar oct 1-30')).body).text).toContain('up to 14 days');
+    await new Promise((r) => setTimeout(r, 30));
+    expect(calls).toHaveLength(0);
+  });
+
+  test('tells the requester to invite the bot when it is not in the channel', async () => {
+    uploadResult = { ok: false, error: 'not_in_channel' };
+    await command('cal', 'COTHER');
+    await until(() => calls.some((c) => c[0] === 'response_url'));
+    const reply = calls.find((c) => c[0] === 'response_url');
+    expect(reply[1]).toBe('https://hooks.example/r');
+    expect(reply[2].response_type).toBe('ephemeral');
+    expect(reply[2].text).toContain('/invite @Field CTO Reservations');
+    expect(reply[2].text).toContain('<#CEXEC>');
+  });
+});
