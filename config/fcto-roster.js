@@ -45,10 +45,13 @@ function findMember(keyOrSlackId, env = process.env) {
   return getRoster(env).find((m) => m.key === needle || (m.slackId && m.slackId === needle)) || null;
 }
 
-// Admins can approve/decline/reassign/cancel anything. Defaults to Jeff Wang.
+const DEFAULT_ADMIN_IDS = 'U053N173C4E,U0AKUU81BR9';
+
+// Admins can approve/decline/reassign/cancel anything. Defaults to Jeff Wang
+// and Nicole Zuuring.
 function getAdminIds(env = process.env) {
   const raw = env.FCTO_ADMIN_SLACK_IDS;
-  const list = (raw === undefined ? 'U053N173C4E' : raw)
+  const list = (raw === undefined ? DEFAULT_ADMIN_IDS : raw)
     .split(',')
     .map((s) => s.trim().toUpperCase())
     .filter((s) => MEMBER_ID_RE.test(s));

@@ -87,7 +87,7 @@ Everything is enforced server-side; unauthorized clicks get an ephemeral note.
 3. `FCTO_CHANNEL_ID` = the channel ID of `#exec-field-requests` (the bot has
    `chat:write.public`, so it does not need to be invited; invite it anyway so
    people can @-mention it).
-4. Admins: `FCTO_ADMIN_SLACK_IDS=U053N173C4E,U…` (defaults to Jeff Wang).
+4. Admins: `FCTO_ADMIN_SLACK_IDS=U053N173C4E,U0AKUU81BR9,U…` (defaults to Jeff Wang and Nicole Zuuring; setting it replaces the default list).
 5. Roster Slack IDs default to the known handles in `config/fcto-roster.js`;
    override any of them with `FCTO_SLACK_ID_<KEY>` in the environment. Members without an ID still show up and can
    be booked; they just can't be @-mentioned or act on their own requests.
