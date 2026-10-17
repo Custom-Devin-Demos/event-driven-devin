@@ -35,8 +35,11 @@ function eventText(reservation) {
   const descriptionParts = [
     `Field CTO reservation ${reservation.id}`,
     `Account: ${reservation.account}`,
-    `Purpose: ${reservation.purpose}`,
+    `${{ speaking: 'Talk', meeting: 'Meeting goal' }[reservation.kind] || 'Purpose'}: ${reservation.purpose}`,
   ];
+  if (reservation.attendees) descriptionParts.push(`Key attendees: ${reservation.attendees}`);
+  if (reservation.opportunityUrl) descriptionParts.push(`Salesforce opportunity: ${reservation.opportunityUrl}`);
+  if (reservation.eventUrl) descriptionParts.push(`Event: ${reservation.eventUrl}`);
   const qualifications = qualificationsLabel(reservation);
   if (qualifications) descriptionParts.push(`Audience / country / industry: ${qualifications}`);
   if (reservation.notes) descriptionParts.push(`Notes: ${reservation.notes}`);
