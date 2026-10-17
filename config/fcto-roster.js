@@ -13,11 +13,11 @@ const MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
 
 const ROSTER = [
   { key: 'JEFF_WANG', name: 'Jeff Wang', tz: 'America/Los_Angeles', region: 'US', defaultSlackId: 'U053N173C4E' },
-  { key: 'KATRIN_LEHMANN', name: 'Katrin Lehmann', tz: 'Europe/Berlin', region: 'EU', defaultSlackId: 'U0C5GJ3RT63' },
+  { key: 'KATRIN_LEHMANN', name: 'Katrin Lehmann', tz: 'Europe/Berlin', region: 'EU', defaultSlackId: 'U0C4QNNFANS' },
   { key: 'MARK_PORTER', name: 'Mark Porter', tz: 'America/Los_Angeles', region: 'US', defaultSlackId: 'U0BT6626DB3' },
   { key: 'NARRY_SINGH', name: 'Narry Singh', tz: 'Europe/London', region: 'EU', defaultSlackId: 'U0BUYNKE136' },
   { key: 'AMAN_THIND', name: 'Aman Thind', tz: 'Europe/London', region: 'EU', defaultSlackId: 'U0BARJZMV36' },
-  { key: 'AKIRA_SHIBATA', name: 'Akira Shibata', tz: 'Asia/Tokyo', region: 'JP', defaultSlackId: 'U0B1DCC2LAK' },
+  { key: 'AKIRA_SHIBATA', name: 'Akira Shibata', tz: 'Asia/Tokyo', region: 'JP', defaultSlackId: 'U0AUFDRGGLC' },
 ];
 
 const REGION_LABELS = {
