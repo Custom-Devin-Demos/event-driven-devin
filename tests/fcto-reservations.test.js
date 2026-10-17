@@ -265,6 +265,38 @@ describe('ics', () => {
     expect(ics.split('\r\n').every((line) => line.length <= 75)).toBe(true);
     expect(icsFilename(approved)).toMatch(/^fcr-1-mark-porter-\d{4}-\d{2}-\d{2}\.ics$/);
   });
+
+  test('invites the assigned Field CTO on the .ics and both calendar links', async () => {
+    const { store, R } = load();
+    const ics = require('../app/services/fcto/ics');
+    const r = await R.createRequest(store, base({ who: 'MEMBER:AKIRA_SHIBATA' }), { now: NOW });
+    const approved = await R.approve(store, r.id, { by: ADMIN });
+    expect(ics.buildIcs(approved, { now: NOW }).replace(/\r\n /g, '')).toContain('ATTENDEE;CN=Akira Shibata;ROLE=REQ-PARTICIPANT:mailto:akira.shibata@cognition.ai');
+    const links = ics.calendarLinks(approved);
+    expect(links.google).toContain('add=akira.shibata%40cognition.ai');
+    expect(links.outlook).toContain('to=akira.shibata%40cognition.ai');
+  });
+
+  test('falls back to the Slack profile email, honours FCTO_EMAIL_<KEY> and omits guests when unknown', async () => {
+    const { store, R } = load();
+    const ics = require('../app/services/fcto/ics');
+    const avatars = require('../app/services/fcto/avatars');
+    const mark = await R.approve(store, (await R.createRequest(store, base(), { now: NOW })).id, { by: ADMIN });
+    expect(ics.invitees(mark)).toEqual([]);
+    expect(ics.buildIcs(mark, { now: NOW })).not.toContain('ATTENDEE');
+    expect(ics.calendarLinks(mark).google).not.toContain('add=');
+    expect(ics.calendarLinks(mark).outlook).not.toContain('to=');
+    avatars._cache.set(MARK, { url: null, email: 'mark@example.com', at: Date.now() });
+    expect(ics.invitees(mark)).toEqual([{ name: 'Mark Porter', email: 'mark@example.com' }]);
+    process.env.FCTO_EMAIL_MARK_PORTER = 'Mark.Porter@Cognition.ai';
+    try {
+      expect(ics.invitees(mark)).toEqual([{ name: 'Mark Porter', email: 'mark.porter@cognition.ai' }]);
+      process.env.FCTO_EMAIL_MARK_PORTER = 'not an email';
+      expect(ics.invitees(mark)).toEqual([{ name: 'Mark Porter', email: 'mark@example.com' }]);
+    } finally {
+      delete process.env.FCTO_EMAIL_MARK_PORTER;
+    }
+  });
 });
 
 describe('block kit', () => {
