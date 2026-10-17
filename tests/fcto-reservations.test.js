@@ -596,7 +596,7 @@ describe('HTTP routes', () => {
 
   test('health endpoint reports configuration without secrets', async () => {
     const res = await new Promise((resolve) => http.get({ port, path: '/slack/fcto/health' }, (r) => { let d = ''; r.on('data', (c) => { d += c; }); r.on('end', () => resolve(JSON.parse(d))); }));
-    expect(res).toMatchObject({ ok: true, signingSecretConfigured: true, botTokenConfigured: true, channelConfigured: true, admins: 1, reservations: 0 });
+    expect(res).toMatchObject({ ok: true, signingSecretConfigured: true, botTokenConfigured: true, channelConfigured: true, admins: 2, reservations: 0 });
     expect(JSON.stringify(res)).not.toContain('xoxb');
     expect(res.roster.find((m) => m.name === 'Akira Shibata').slackIdConfigured).toBe(true);
     expect(res.roster.find((m) => m.name === 'Narry Singh').slackIdConfigured).toBe(true);
