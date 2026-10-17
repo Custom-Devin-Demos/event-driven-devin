@@ -11,7 +11,7 @@ const { URLSearchParams } = require('url');
 const ADMIN = 'U053N173C4E';
 const MARK = 'U0BT6626DB3';
 const AMAN = 'U0BARJZMV36';
-const KATRIN = 'U0C5GJ3RT63';
+const KATRIN = 'U0C4QNNFANS';
 const REQUESTER = 'UREQUESTER1';
 const STRANGER = 'USTRANGER01';
 
@@ -56,7 +56,7 @@ describe('roster config', () => {
     expect(byKey.JEFF_WANG.slackId).toBe(ADMIN);
     expect(byKey.NARRY_SINGH.slackId).toBe('U0BUYNKE136');
     expect(byKey.AKIRA_SHIBATA.tz).toBe('Asia/Tokyo');
-    expect(byKey.AKIRA_SHIBATA.slackId).toBe('U0B1DCC2LAK');
+    expect(byKey.AKIRA_SHIBATA.slackId).toBe('U0AUFDRGGLC');
     expect(getRoster({ FCTO_SLACK_ID_NARRY_SINGH: 'u0narry123' }).find((m) => m.key === 'NARRY_SINGH').slackId).toBe('U0NARRY123');
     expect(getAdminIds()).toEqual([ADMIN]);
     expect(getAdminIds({ FCTO_ADMIN_SLACK_IDS: 'U1, u2,bad id,,U1' })).toEqual(['U1', 'U2']);
