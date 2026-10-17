@@ -6,6 +6,7 @@
 
 const { getRoster, findMember, getAdminIds, REGION_LABELS } = require('../../../config/fcto-roster');
 const Q = require('../../../config/fcto-qualifications');
+const G = require('../../../config/fcto-guide');
 
 const STATUS = Object.freeze({
   PENDING: 'pending',
@@ -32,6 +33,8 @@ const PREFERENCES = Object.freeze({
 });
 
 const MAX_TEXT = 500;
+const MAX_DETAIL = 1000;
+const MAX_CONTACTS = 10;
 const MAX_SPAN_DAYS = 14;
 const MIN_LEAD_SECONDS = -15 * 60; // allow "starting a few minutes ago" (clock skew / same-hour asks)
 
@@ -47,6 +50,32 @@ function clean(value, max = MAX_TEXT) {
   if (value === undefined || value === null) return '';
   const text = Array.from(String(value)).filter((ch) => { const c = ch.charCodeAt(0); return c > 31 || c === 9 || c === 10 || c === 13; }).join('').trim();
   return Array.from(text).slice(0, max).join('');
+}
+
+const SAFE_URL = /^https?:\/\/[^\s<>|]+$/i;
+const SALESFORCE_HOST = /^[a-z0-9-]+(\.[a-z0-9-]+)*\.(lightning\.force\.com|salesforce\.com)$/i;
+const SALESFORCE_RECORD = { opportunity: ['Opportunity', '006'], contact: ['Contact', '003'] };
+
+// True for a Salesforce Opportunity / Contact record URL: Lightning
+// /lightning/r/<Object>/<id>[/view] or Classic /<id>, with a 15/18-char id.
+// Format check only: there is no Salesforce API connection.
+function isSalesforceRecord(url, type) {
+  const [object, prefix] = SALESFORCE_RECORD[type];
+  if (!/^https:\/\/[^\s<>|]+$/i.test(url)) return false;
+  let parsed;
+  try { parsed = new URL(url); } catch { return false; }
+  if (parsed.username || parsed.password || parsed.port || !SALESFORCE_HOST.test(parsed.hostname)) return false;
+  const id = `${prefix}[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?`;
+  return new RegExp(`^/(?:lightning/r/${object}/${id}(?:/view)?|${id})/?$`, 'i').test(parsed.pathname);
+}
+
+// 'meeting' (also for requests made before request types) or 'speaking'.
+function kindOf(res) {
+  return res && res.kind === 'speaking' ? 'speaking' : 'meeting';
+}
+
+function isSpeakingReviewer(userId, env = process.env) {
+  return G.speakingReviewerIds(env).includes(String(userId || '').toUpperCase());
 }
 
 function toEpoch(value) {
@@ -91,23 +120,77 @@ function pushHistory(res, by, action, detail) {
 /**
  * Build and validate a reservation request. Returns the stored reservation.
  */
+function meetingDetails(input) {
+  const attendees = clean(input.attendees, MAX_TEXT);
+  if (!attendees) {
+    throw new ReservationError('attendees_required', 'List the key customer attendees with their titles.', { field: 'attendees' });
+  }
+  const opportunityUrl = clean(input.opportunityUrl, 300);
+  if (opportunityUrl && !isSalesforceRecord(opportunityUrl, 'opportunity')) {
+    throw new ReservationError('bad_opportunity', 'Paste a Salesforce Opportunity link (…lightning.force.com/lightning/r/Opportunity/006…), or leave it empty.', { field: 'opportunityUrl' });
+  }
+  const contactUrls = Array.from(new Set(String(input.contactUrls || '').split(/[\s,]+/).filter(Boolean)));
+  if (contactUrls.length > MAX_CONTACTS) {
+    throw new ReservationError('too_many_contacts', `Link up to ${MAX_CONTACTS} contacts.`, { field: 'contactUrls' });
+  }
+  const badContact = contactUrls.find((u) => u.length > 300 || !isSalesforceRecord(u, 'contact'));
+  if (badContact) {
+    throw new ReservationError('bad_contact', `Not a Salesforce Contact link: ${badContact.slice(0, 80)}. Paste one Contact URL per line, or leave it empty.`, { field: 'contactUrls' });
+  }
+  return { attendees, opportunityUrl, contactUrls };
+}
+
+function speakingDetails(input) {
+  const eventUrl = clean(input.eventUrl, 300);
+  if (!eventUrl) throw new ReservationError('event_link_required', 'Add a link to the event page.', { field: 'eventUrl' });
+  if (!SAFE_URL.test(eventUrl)) throw new ReservationError('bad_event_link', 'The event link must start with http:// or https://.', { field: 'eventUrl' });
+  const audienceSize = clean(input.audienceSize, 20).toUpperCase();
+  if (!G.AUDIENCE_SIZE[audienceSize]) throw new ReservationError('audience_size_required', 'Pick the expected audience size.', { field: 'audienceSize' });
+  const deadline = clean(input.deadline, 10);
+  if (deadline && !/^\d{4}-\d{2}-\d{2}$/.test(deadline)) throw new ReservationError('bad_deadline', 'Pick a valid date.', { field: 'deadline' });
+  return { eventUrl, audienceSize, deadline: deadline || null };
+}
+
 async function createRequest(store, input, { now = Math.floor(Date.now() / 1000), env = process.env } = {}) {
   const requesterId = clean(input.requesterId, 32).toUpperCase();
   if (!/^[A-Z0-9]{1,32}$/.test(requesterId)) throw new ReservationError('bad_requester', 'Missing requester.');
 
+  const kindKey = clean(input.kind, 20).toUpperCase() || 'MEETING';
+  if (!G.KIND[kindKey]) throw new ReservationError('kind_required', 'Pick a request type.', { field: 'kind' });
+  const kind = kindKey === 'SPEAKING' ? 'speaking' : 'meeting';
+  const speaking = kind === 'speaking';
+
   const account = clean(input.account, 120);
-  if (!account) throw new ReservationError('account_required', 'Tell us which account or customer this is for.', { field: 'account' });
+  if (!account) {
+    throw new ReservationError('account_required', speaking ? 'Tell us the event name.' : 'Tell us which account or customer this is for.', { field: 'account' });
+  }
 
-  const purpose = clean(input.purpose, MAX_TEXT);
-  if (!purpose) throw new ReservationError('purpose_required', 'Describe what the Field CTO is needed for.', { field: 'purpose' });
+  const purpose = clean(input.purpose, MAX_DETAIL);
+  const minDetail = speaking ? G.MIN_TOPIC_CHARS : G.MIN_GOAL_CHARS;
+  if (purpose.length < minDetail) {
+    const ask = speaking
+      ? 'Describe the talk and why it needs a Field CTO'
+      : 'Describe what the customer wants from a Field CTO and why your SE/AE can\'t cover it';
+    throw new ReservationError('purpose_too_short', `${ask} (at least ${minDetail} characters; you have ${purpose.length}).`, { field: 'purpose' });
+  }
 
-  const audience = clean(input.audience, 20).toUpperCase();
-  if (!Q.AUDIENCE[audience]) throw new ReservationError('audience_required', 'Pick the audience for this meeting.', { field: 'audience' });
-  if (!Q.AUDIENCE[audience].eligible) throw new ReservationError('audience_ineligible', Q.BELOW_MESSAGE, { field: 'audience' });
+  let audience = null;
+  let industry = null;
+  if (!speaking) {
+    audience = clean(input.audience, 20).toUpperCase();
+    if (!Q.AUDIENCE[audience]) throw new ReservationError('audience_required', 'Pick the audience for this meeting.', { field: 'audience' });
+    if (!Q.AUDIENCE[audience].eligible) throw new ReservationError('audience_ineligible', Q.BELOW_MESSAGE, { field: 'audience' });
+  }
   const country = clean(input.country, 20).toUpperCase();
-  if (!Q.COUNTRY[country]) throw new ReservationError('country_required', 'Pick the customer\'s country.', { field: 'country' });
-  const industry = clean(input.industry, 20).toUpperCase();
-  if (!Q.INDUSTRY[industry]) throw new ReservationError('industry_required', 'Pick the customer\'s industry.', { field: 'industry' });
+  if (!Q.COUNTRY[country]) {
+    throw new ReservationError('country_required', speaking ? 'Pick the event\'s country.' : 'Pick the customer\'s country.', { field: 'country' });
+  }
+  if (!speaking) {
+    industry = clean(input.industry, 20).toUpperCase();
+    if (!Q.INDUSTRY[industry]) throw new ReservationError('industry_required', 'Pick the customer\'s industry.', { field: 'industry' });
+  }
+
+  const details = speaking ? speakingDetails(input) : meetingDetails(input);
 
   const startTs = toEpoch(input.startTs);
   if (!startTs) throw new ReservationError('start_required', 'Pick a start date and time.', { field: 'start' });
@@ -148,7 +231,7 @@ async function createRequest(store, input, { now = Math.floor(Date.now() / 1000)
   }
 
   const meetingLink = clean(input.meetingLink, 300);
-  if (meetingLink && !/^https?:\/\/[^\s<>|]+$/i.test(meetingLink)) {
+  if (meetingLink && !SAFE_URL.test(meetingLink)) {
     throw new ReservationError('bad_link', 'The meeting link must start with http:// or https://.', { field: 'meetingLink' });
   }
 
@@ -157,11 +240,13 @@ async function createRequest(store, input, { now = Math.floor(Date.now() / 1000)
     seq: null,
     status: STATUS.PENDING,
     requesterId,
+    kind,
     account,
     purpose,
     audience,
     country,
     industry,
+    ...details,
     notes: clean(input.notes, MAX_TEXT),
     meetingLink,
     requestType,
@@ -197,15 +282,18 @@ function requireReservation(store, id) {
 
 // Who may approve / decline this request: admins, the Field CTO it names,
 // and (once assigned) the assignee.
+// Earned speaking is decided by admins and the speaking reviewer only.
 function canDecide(res, userId, env = process.env) {
   if (isAdmin(userId, env)) return true;
+  if (kindOf(res) === 'speaking') return isSpeakingReviewer(userId, env);
   const member = memberBySlackId(userId, env);
   if (!member) return false;
   return member.key === res.requestedKey || member.key === res.assigneeKey;
 }
 
 function canClaim(res, userId, env = process.env) {
-  return res.status === STATUS.PENDING && res.requestType === 'any' && !!memberBySlackId(userId, env);
+  return kindOf(res) === 'meeting'
+    && res.status === STATUS.PENDING && res.requestType === 'any' && !!memberBySlackId(userId, env);
 }
 
 function canCancel(res, userId, env = process.env) {
@@ -213,7 +301,13 @@ function canCancel(res, userId, env = process.env) {
 }
 
 function canReassign(res, userId, env = process.env) {
-  return isAdmin(userId, env);
+  return isAdmin(userId, env) || (kindOf(res) === 'speaking' && isSpeakingReviewer(userId, env));
+}
+
+function decideRefusal(res, verb) {
+  return kindOf(res) === 'speaking'
+    ? `Only the speaking reviewer or an admin can ${verb} an earned speaking request.`
+    : `Only an admin or the requested Field CTO can ${verb} this request.`;
 }
 
 function assertOpen(res) {
@@ -235,10 +329,10 @@ async function approve(store, id, { by, assigneeKey, force = false, env = proces
   return store.transact(() => {
     const res = requireReservation(store, id);
     assertOpen(res);
-    if (!canDecide(res, by, env)) throw new ReservationError('forbidden', 'Only an admin or the requested Field CTO can approve this request.');
+    if (!canDecide(res, by, env)) throw new ReservationError('forbidden', decideRefusal(res, 'approve'));
     const targetKey = assigneeKey ? (findMember(assigneeKey, env) || {}).key : res.assigneeKey;
     if (!targetKey) throw new ReservationError('assignee_required', 'Pick which Field CTO takes this request before approving.', { needsAssignee: true });
-    if (assigneeKey && targetKey !== res.assigneeKey && !isAdmin(by, env)) {
+    if (assigneeKey && targetKey !== res.assigneeKey && !canReassign(res, by, env)) {
       throw new ReservationError('forbidden', 'Only an admin can assign a different Field CTO.');
     }
     conflictOrForce(store, res, targetKey, force);
@@ -271,7 +365,7 @@ async function decline(store, id, { by, reason = '', env = process.env }) {
   return store.transact(() => {
     const res = requireReservation(store, id);
     assertOpen(res);
-    if (!canDecide(res, by, env)) throw new ReservationError('forbidden', 'Only an admin or the requested Field CTO can decline this request.');
+    if (!canDecide(res, by, env)) throw new ReservationError('forbidden', decideRefusal(res, 'decline'));
     res.status = STATUS.DECLINED;
     res.declineReason = clean(reason, MAX_TEXT);
     res.decidedBy = String(by).toUpperCase();
@@ -300,7 +394,7 @@ async function reassign(store, id, { by, assigneeKey, force = false, env = proce
     if (res.status === STATUS.CANCELLED || res.status === STATUS.DECLINED) {
       throw new ReservationError('not_open', `${res.id} is already ${res.status}.`);
     }
-    if (!canReassign(res, by, env)) throw new ReservationError('forbidden', 'Only an admin can reassign a request.');
+    if (!canReassign(res, by, env)) throw new ReservationError('forbidden', kindOf(res) === 'speaking' ? 'Only the speaking reviewer or an admin can reassign this request.' : 'Only an admin can reassign a request.');
     const member = findMember(assigneeKey, env);
     if (!member) throw new ReservationError('unknown_member', 'That Field CTO is not on the roster.');
     conflictOrForce(store, res, member.key, force);
@@ -591,6 +685,10 @@ module.exports = {
   REGION_LABELS,
   ReservationError,
   createRequest,
+  isSalesforceRecord,
+  kindOf,
+  isSpeakingReviewer,
+  decideRefusal,
   approve,
   claim,
   decline,
