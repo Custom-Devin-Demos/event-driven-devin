@@ -128,6 +128,34 @@ function suggestionCallout(suggestion) {
 
 const stepHeader = (text) => ({ type: 'header', text: plain(text) });
 
+const AVAILABILITY_NOTE = 'Approved reservations in this app only, not personal calendars. You can still request someone who is booked; an admin decides.';
+
+// "Is the Field CTO free then?" for the request form's current who + time.
+// `check` is { who, startTs, endTs, results } with results from R.whoIsFree.
+function availabilityCallout(check) {
+  if (!check || !check.results || !check.results.length) return [];
+  const booked = ({ member, conflicts }) => conflicts.map((c) => `${R.formatRangeInTz(c.startTs, c.endTs, member.tz)} (${c.id})`).join(', ');
+  const lines = [];
+  if (check.who.startsWith('MEMBER:')) {
+    const hit = check.results[0];
+    lines.push(hit.conflicts.length
+      ? `:red_circle: *${hit.member.name} is already booked then:* ${booked(hit)}`
+      : `:large_green_circle: *${hit.member.name} is free then* · ${R.formatRangeInTz(check.startTs, check.endTs, hit.member.tz)} for them`);
+  } else {
+    const free = check.results.filter((r) => !r.conflicts.length);
+    const busy = check.results.filter((r) => r.conflicts.length);
+    const label = R.PREFERENCES[check.who.slice('ANY:'.length)] || R.PREFERENCES.ANY;
+    lines.push(free.length
+      ? `:large_green_circle: *Free then:* ${free.map((r) => r.member.name).join(', ')}`
+      : `:red_circle: *Nobody for "${label}" is free then*`);
+    if (busy.length) lines.push(`:red_circle: *Booked:* ${busy.map((r) => `${r.member.name} — ${booked(r)}`).join(' · ')}`);
+  }
+  return [section(lines.join('\n')), context(AVAILABILITY_NOTE)];
+}
+
+// Block id the who select will get for a suggestion (see whoBlockId).
+const whoBlockIdFor = (suggestion) => whoBlockId(suggestion && findWhoOption(suggestion.who) ? suggestion : null);
+
 function findWhoOption(value) {
   for (const group of whoOptions()) {
     const hit = group.options.find((o) => o.value === value);
@@ -136,9 +164,10 @@ function findWhoOption(value) {
   return null;
 }
 
-// `audience`/`suggestion` come from the requester's current picks (see
-// routes/fcto.js): a "Below" warning and a pre-selected Field CTO.
-function requestModal({ channelId, defaultStartTs, audience, suggestion } = {}) {
+// `audience`/`suggestion`/`availability` come from the requester's current
+// picks (see routes/fcto.js): a "Below" warning, a pre-selected Field CTO and
+// whether the chosen Field CTO is free at the chosen time.
+function requestModal({ channelId, defaultStartTs, audience, suggestion, availability } = {}) {
   const start = defaultStartTs || (() => {
     const d = new Date();
     d.setUTCDate(d.getUTCDate() + 1);
@@ -178,6 +207,7 @@ function requestModal({ channelId, defaultStartTs, audience, suggestion } = {}) 
         return {
           type: 'input',
           block_id: whoBlockId(initial ? suggestion : null),
+          dispatch_action: true,
           label: plain('Who do you need?'),
           ...(initial ? { hint: plain(`Suggested for ${suggestion.reason}. You can pick someone else.`) } : {}),
           element: {
@@ -193,6 +223,7 @@ function requestModal({ channelId, defaultStartTs, audience, suggestion } = {}) 
       {
         type: 'input',
         block_id: 'start',
+        dispatch_action: true,
         label: plain('Start'),
         hint: plain('Shown in your Slack time zone. Field CTOs see it in theirs.'),
         element: { type: 'datetimepicker', action_id: 'value', initial_date_time: start },
@@ -200,6 +231,7 @@ function requestModal({ channelId, defaultStartTs, audience, suggestion } = {}) 
       {
         type: 'input',
         block_id: 'duration',
+        dispatch_action: true,
         label: plain('Duration'),
         element: {
           type: 'static_select',
@@ -212,10 +244,12 @@ function requestModal({ channelId, defaultStartTs, audience, suggestion } = {}) 
         type: 'input',
         block_id: 'end',
         optional: true,
+        dispatch_action: true,
         label: plain('End (only for "Custom end time")'),
         hint: plain('Use this for multi-day blocks like an onsite or a conference.'),
         element: { type: 'datetimepicker', action_id: 'value' },
       },
+      ...availabilityCallout(availability),
       stepHeader(':paperclip: Extras'),
       {
         type: 'input',
@@ -700,6 +734,7 @@ module.exports = {
   STATUS_META,
   requestModal,
   readRequestModal,
+  whoBlockIdFor,
   modalErrors,
   declineModal,
   readDeclineModal,

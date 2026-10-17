@@ -251,8 +251,9 @@ async function handleCommand(body) {
 
 // ─── Interactions ───────────────────────────────────────────────────────────
 
-// Audience/country/industry picks in the request modal re-render it with the
-// "Below" warning and the suggested Field CTO pre-selected.
+// Audience/country/industry/who/time picks in the request modal re-render it
+// with the "Below" warning, the suggested Field CTO pre-selected and whether
+// that Field CTO is free at the chosen time.
 // Updates are serialized per view, coalesced to the latest picks, and ordered
 // by Slack's action_ts so a delayed older snapshot can never overwrite a newer
 // suggestion. Slack has no views.get, so the newest action's snapshot is the
@@ -264,6 +265,18 @@ const MODAL_REFRESH_TTL_MS = 60 * 60 * 1000;
 function pruneModalRefreshes(now) {
   if (modalRefreshes.size < 200) return;
   modalRefreshes.forEach((e, id) => { if (!e.running && now - e.touched > MODAL_REFRESH_TTL_MS) modalRefreshes.delete(id); });
+}
+
+// When the suggestion changes the who block id, Slack resets the select to the
+// new suggestion, so check that person rather than the old pick.
+function formAvailability(view, input, suggestion) {
+  const currentWhoBlock = Object.keys(view.state.values).find((k) => k === 'who' || k.startsWith('who_'));
+  const suggested = suggestion ? suggestion.who : null;
+  const who = B.whoBlockIdFor(suggestion) !== currentWhoBlock ? suggested : (input.who || suggested);
+  const window = R.requestWindow(input);
+  if (!who || !window) return null;
+  const results = R.whoIsFree(store, { who, ...window });
+  return results && results.length ? { who, ...window, results } : null;
 }
 
 async function refreshRequestModal(view, actionTs) {
@@ -287,7 +300,8 @@ async function refreshRequestModal(view, actionTs) {
       entry.latest = null;
       const input = B.readRequestModal(current);
       await warmAvatars();
-      const next = B.requestModal({ channelId: input.channelId, audience: input.audience, suggestion: suggestWho(input) });
+      const suggestion = suggestWho(input);
+      const next = B.requestModal({ channelId: input.channelId, audience: input.audience, suggestion, availability: formAvailability(current, input, suggestion) });
       let res = await slack.updateView(current.id, next, current.hash);
       if (res && !res.ok && res.error === 'hash_conflict' && !entry.latest) res = await slack.updateView(current.id, next);
       if (!res || (!res.ok && !(res.error === 'hash_conflict' && entry.latest))) {

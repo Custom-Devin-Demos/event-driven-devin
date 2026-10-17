@@ -666,6 +666,44 @@ describe('HTTP routes', () => {
     expect(slackCalls.filter((c) => c[0] === 'views.update')).toHaveLength(3);
   });
 
+  test('picking a time shows whether the chosen Field CTO is free, using the new suggestion when it changes', async () => {
+    const B = require('../app/services/fcto/blocks');
+    const R = require('../app/services/fcto/reservations');
+    const start = Math.floor(Date.now() / 1000) + 2 * 86400;
+    const booked = await R.createRequest(internal.store, base({ startTs: start - 1800, durationKey: '1h' }));
+    await R.approve(internal.store, booked.id, { by: ADMIN });
+    const modal = B.requestModal({ channelId: 'CEXEC' });
+    // The view as Slack shows it after the US suggestion (who_ANY_US block) and a manual pick.
+    const viewWith = (id, over) => {
+      const values = requestValues({ start: { value: { selected_date_time: start } }, ...over });
+      values.who_ANY_US = values.who;
+      delete values.who;
+      return { id, hash: 'h1', callback_id: modal.callback_id, private_metadata: modal.private_metadata, state: { values } };
+    };
+    const send = async (view, blockId) => {
+      const body = blockAction('value', undefined, REQUESTER, { view, actions: [{ action_id: 'value', block_id: blockId, type: 'datetimepicker' }] });
+      expect((await post(port, '/slack/fcto/interactions', body, sign('shhh', body))).status).toBe(200);
+      await flush();
+      return JSON.stringify(slackCalls.filter((c) => c[0] === 'views.update').pop()[2].blocks);
+    };
+
+    const mark = await send(viewWith('V10'), 'start');
+    expect(mark).toContain(':red_circle: *Mark Porter is already booked then:*');
+    expect(mark).toContain(`(${booked.id})`);
+
+    const any = await send(viewWith('V11', { who: { value: { selected_option: { value: 'ANY:US' } } } }), 'start');
+    expect(any).toContain(':large_green_circle: *Free then:* Jeff Wang');
+    expect(any).toContain(':red_circle: *Booked:* Mark Porter');
+
+    // Country → Japan swaps the select to Akira, so the check is about him, not Mark.
+    const akira = await send(viewWith('V12', { country: { value: { selected_option: { value: 'JP' } } } }), 'country');
+    expect(akira).toContain(':large_green_circle: *Akira Shibata is free then*');
+    expect(akira).not.toContain('Mark Porter is');
+
+    const noWindow = await send(viewWith('V13', { duration: { value: { selected_option: { value: 'custom' } } } }), 'duration');
+    expect(noWindow).not.toContain('free then');
+  });
+
   test('"Below" audience is rejected inline; suggested who block is read on submit', async () => {
     const below = submission('fcto_request_submit', requestValues({ audience: { value: { selected_option: { value: 'BELOW' } } } }), { channelId: 'CEXEC' });
     const res = await post(port, '/slack/fcto/interactions', below, sign('shhh', below));
@@ -1063,5 +1101,59 @@ describe('slack design review fixes', () => {
     expect(json).toContain('+2 more waiting on you in the channel');
     const ids = home.blocks.filter((b) => b.accessory && b.accessory.type === 'button').map((b) => b.accessory.value);
     expect(ids).toEqual(['FCR-4', 'FCR-5', 'FCR-6', 'FCR-7', 'FCR-8']);
+  });
+});
+
+describe('request form availability', () => {
+  test('requestWindow follows the duration and rejects incomplete picks', () => {
+    const { R } = load();
+    expect(R.requestWindow({ startTs: NOW, durationKey: '90m' })).toEqual({ startTs: NOW, endTs: NOW + 5400 });
+    expect(R.requestWindow({ startTs: NOW, durationKey: 'custom', endTs: NOW + 7200 })).toEqual({ startTs: NOW, endTs: NOW + 7200 });
+    expect(R.requestWindow({ startTs: NOW, durationKey: 'custom' })).toBeNull();
+    expect(R.requestWindow({ startTs: NOW, durationKey: 'custom', endTs: NOW - 1 })).toBeNull();
+    expect(R.requestWindow({ durationKey: '1h' })).toBeNull();
+    expect(R.requestWindow({ startTs: NOW })).toBeNull();
+  });
+
+  test('whoIsFree checks one member or a regional pool against approved bookings only', async () => {
+    const { store, R } = load();
+    const start = NOW + 3 * 86400;
+    const pending = await R.createRequest(store, base({ startTs: start, who: 'MEMBER:KATRIN_LEHMANN' }), { now: NOW });
+    const approved = await R.createRequest(store, base({ startTs: start }), { now: NOW });
+    await R.approve(store, approved.id, { by: ADMIN });
+    const window = { startTs: start + 3600, endTs: start + 5400 };
+    const mark = R.whoIsFree(store, { who: 'MEMBER:MARK_PORTER', ...window });
+    expect(mark.map((r) => [r.member.key, r.conflicts.map((c) => c.id)])).toEqual([['MARK_PORTER', [approved.id]]]);
+    expect(R.whoIsFree(store, { who: 'MEMBER:KATRIN_LEHMANN', ...window })[0].conflicts).toEqual([]);
+    expect(pending.status).toBe('pending');
+    expect(R.whoIsFree(store, { who: 'ANY:US', ...window }).map((r) => r.member.key)).toEqual(['JEFF_WANG', 'MARK_PORTER']);
+    expect(R.whoIsFree(store, { who: 'ANY:ANY', ...window })).toHaveLength(6);
+    expect(R.whoIsFree(store, { who: 'MEMBER:AKIRA_SHIBATA', startTs: start + 7200, endTs: start + 9000 })[0].conflicts).toEqual([]);
+    expect(R.whoIsFree(store, { who: '', ...window })).toBeNull();
+    expect(R.whoIsFree(store, { who: 'ANY:MARS', ...window })).toBeNull();
+  });
+
+  test('request modal renders the free/booked callout and dispatches on who and time picks', async () => {
+    const { store, R } = load();
+    const B = require('../app/services/fcto/blocks');
+    const start = NOW + 3 * 86400;
+    const approved = await R.createRequest(store, base({ startTs: start }), { now: NOW });
+    await R.approve(store, approved.id, { by: ADMIN });
+    const check = (who) => ({ who, startTs: start, endTs: start + 3600, results: R.whoIsFree(store, { who, startTs: start, endTs: start + 3600 }) });
+    const modal = B.requestModal({ channelId: 'CEXEC', availability: check('MEMBER:MARK_PORTER') });
+    const json = JSON.stringify(modal.blocks);
+    expect(json).toContain(':red_circle: *Mark Porter is already booked then:*');
+    expect(json).toContain('not personal calendars');
+    const ids = modal.blocks.map((b) => b.block_id);
+    expect(ids.indexOf('end')).toBeLessThan(modal.blocks.findIndex((b) => JSON.stringify(b).includes('already booked')));
+    ['who', 'start', 'duration', 'end', 'audience', 'country', 'industry'].forEach((id) => {
+      expect(modal.blocks.find((b) => b.block_id === id).dispatch_action).toBe(true);
+    });
+    expect(JSON.stringify(B.requestModal({ availability: check('MEMBER:KATRIN_LEHMANN') }).blocks)).toContain(':large_green_circle: *Katrin Lehmann is free then*');
+    const eu = JSON.stringify(B.requestModal({ availability: check('ANY:EU') }).blocks);
+    expect(eu).toContain(':large_green_circle: *Free then:* Aman Thind, Katrin Lehmann, Narry Singh');
+    const us = JSON.stringify(B.requestModal({ availability: check('ANY:US') }).blocks);
+    expect(us).toContain(':red_circle: *Booked:* Mark Porter');
+    expect(JSON.stringify(B.requestModal({}).blocks)).not.toContain('free then');
   });
 });

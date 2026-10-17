@@ -26,6 +26,9 @@ in the thread. The authoritative answer to "who is reserved when" is
    any (US hours); Middle East → any (EU hours). The same rules rank and
    pre-select candidates in **Assign…** / **Claim**. Lists and rules live in
    `config/fcto-qualifications.js` (`ROUTING_RULES`, first match wins).
+   Once a Field CTO (or "any …") and a time are picked, the form shows whether
+   they are free then, or which approved reservation overlaps (pending
+   requests don't count). Booked people can still be requested.
    Audience · country · industry show on the card, in `/fcto schedule`, and
    in the `.ics` description.
 2. The card lands in the channel as **Pending**.
