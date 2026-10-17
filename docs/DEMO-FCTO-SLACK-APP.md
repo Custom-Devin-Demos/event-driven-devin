@@ -45,6 +45,13 @@ in the thread. The authoritative answer to "who is reserved when" is
 5. `/fcto free oct 22`, `/fcto free oct 22-24`, `/fcto free next week` — who has no
    approved reservation on those days (green / yellow = partly / red = 6h+ booked).
    Based on this app's reservations only; it can't see personal calendars.
+   `/fcto calendar` (next 7 days), `/fcto calendar next week` or
+   `/fcto calendar oct 22-28` (up to 14 days) posts the same data as a calendar
+   image to the channel for everyone: a row per Field CTO, a column per day,
+   each cell in that person's local time with bookings listed and drawn on an
+   8 AM – 7 PM bar. Rendered on the server with `@resvg/resvg-js` and the Inter
+   fonts in `app/services/fcto/fonts/`, then uploaded with `files:write`; the bot
+   has to be a member of the channel.
    App Home shows counters (pending, booked, free today, waiting on you), a
    **Needs your action** queue with Approve / Claim / Assign buttons for admins
    and Field CTOs, a 7-day green/yellow/red heatmap per Field CTO with their
