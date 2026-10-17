@@ -1184,6 +1184,28 @@ describe('calendar image', () => {
     expect(svg).toContain('TODAY');
   });
 
+  test('booking bars use local 8 AM – 7 PM on DST-change days', async () => {
+    const { store, R } = load();
+    // Berlin springs forward Mar 29 2026: 12:00 CEST = 10:00 UTC, 4h into an 11h bar.
+    const r = await R.createRequest(store, base({ account: 'Spring', who: 'MEMBER:KATRIN_LEHMANN', startTs: day(2026, 2, 29) + 10 * 3600, durationKey: '1h' }), { now: day(2026, 2, 20) });
+    await R.approve(store, r.id, { by: ADMIN });
+    const { calendarSvg } = require('../app/services/fcto/calendar-image');
+    const svg = calendarSvg(store, { from: day(2026, 2, 29), to: day(2026, 2, 30), now: day(2026, 2, 20) });
+    expect(svg).toContain('12p–1p Spring');
+    const track = svg.match(/<rect x="([\d.]+)" y="(\d+)" width="([\d.]+)" height="6" rx="3" fill="#E4E7EC"\/>(?:(?!fill="#E4E7EC").)*?<rect x="([\d.]+)" y="\2" width="[\d.]+" height="6" rx="3" fill="(?!#E4E7EC)/);
+    expect(track).not.toBeNull();
+    expect(Number(track[4])).toBeCloseTo(Number(track[1]) + (4 / 11) * Number(track[3]), 0);
+  });
+
+  test('row zone label names both offsets when the range crosses DST', async () => {
+    const { store } = load();
+    const { calendarSvg } = require('../app/services/fcto/calendar-image');
+    const svg = calendarSvg(store, { from: day(2026, 9, 19), to: day(2026, 10, 2), now: day(2026, 9, 19) });
+    expect(svg).toContain('CEST → CET Oct 25');
+    expect(svg).toContain('PDT → PST Nov 1');
+    expect(svg).toContain('JST · ');
+  });
+
   test('renders a PNG with the bundled fonts', async () => {
     const { store } = await seeded();
     const { renderCalendarPng } = require('../app/services/fcto/calendar-image');
