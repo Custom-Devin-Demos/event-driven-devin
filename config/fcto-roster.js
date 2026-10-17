@@ -15,9 +15,9 @@ const ROSTER = [
   { key: 'JEFF_WANG', name: 'Jeff Wang', tz: 'America/Los_Angeles', region: 'US', defaultSlackId: 'U09HHJ5B5L5' },
   { key: 'KATRIN_LEHMANN', name: 'Katrin Lehmann', tz: 'Europe/Berlin', region: 'EU', defaultSlackId: 'U0C5GJ3RT63' },
   { key: 'MARK_PORTER', name: 'Mark Porter', tz: 'America/Los_Angeles', region: 'US', defaultSlackId: 'U0BU46F4WCU' },
-  { key: 'NARRY_SINGH', name: 'Narry Singh', tz: 'Europe/London', region: 'EU', defaultSlackId: '' },
+  { key: 'NARRY_SINGH', name: 'Narry Singh', tz: 'Europe/London', region: 'EU', defaultSlackId: 'U0BUYNKE136' },
   { key: 'AMAN_THIND', name: 'Aman Thind', tz: 'Europe/London', region: 'EU', defaultSlackId: 'U0BBSF50MBR' },
-  { key: 'AKIRA_SHIBATA', name: 'Akira Shibata', tz: 'Asia/Tokyo', region: 'JP', defaultSlackId: '' },
+  { key: 'AKIRA_SHIBATA', name: 'Akira Shibata', tz: 'Asia/Tokyo', region: 'JP', defaultSlackId: 'U0B1DCC2LAK' },
 ];
 
 const REGION_LABELS = {
