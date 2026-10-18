@@ -264,23 +264,12 @@
                 <option value="UNLIMITED-24">Unlimited – Unlimited data, 24 months</option>
               </select>
             </div>
-            <div class="field">
-              <label for="addon">Extras</label>
-              <select id="addon" name="addon">
-                <option value="none" selected>No extras</option>
-                <option value="international">O2 Travel – roaming bolt on</option>
-                <option value="hotspot">Personal hotspot allowance</option>
-                <option value="insurance">O2 Insure – device cover</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="promoCode">Promotional code <span style="font-weight:400">(optional)</span></label>
-              <input type="text" id="promoCode" name="promoCode" autocomplete="off" placeholder="Enter a code if you have one">
-            </div>
+            <input type="hidden" id="addon" name="addon" value="none">
+            <input type="hidden" id="promoCode" name="promoCode" value="">
           </div>
           <div class="form-actions">
             <button type="submit" id="submitBtn" class="btn-primary">Upgrade my plan</button>
-            <p class="form-note">No new device required. Your number and Device Plan are unaffected.</p>
+            <p class="form-note">No new device required. Your number and Device Plan are unaffected. Extras and promotional codes are added in My O2 once your new plan is active.</p>
           </div>
         </form>
         <div id="result" class="result-box" role="status" aria-live="polite"></div>
@@ -469,7 +458,7 @@
             show('error', 'We couldn’t update your plan', String(data.error || ('Request failed with status ' + res.status)) + '. Please try again or sign in to My O2.');
           } else {
             var plan = data.newPlan || data.plan || document.getElementById('newPlan').selectedOptions[0].text;
-            var dataGB = data.newDataGB === -1 ? 'Unlimited data' : (data.newDataGB != null ? data.newDataGB + 'GB' : '');
+            var dataGB = data.newDataGB != null ? (data.newDataGB === 'Unlimited' ? 'Unlimited data' : String(data.newDataGB)) : '';
             var term = data.newTermMonths ? data.newTermMonths + '-month term' : '';
             var rate = gbp(data.newMonthlyRate != null ? data.newMonthlyRate : data.monthlyTotal);
             var parts = [plan, dataGB, term, rate ? rate + ' a month' : ''].filter(Boolean).join(' · ');
