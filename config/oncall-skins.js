@@ -743,6 +743,17 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A WOORI BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Woori Bank product.',
   },
+  'c3aa3f67': {
+    slug: 'c3aa3f67',
+    company: 'Virgin Media O2',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: {
+      file: 'c3aa3f67.html',
+      title: 'Upgrade Phone Deals & Offers | O2',
+    },
+    disclaimer: 'NOT ACTUALLY A VIRGIN MEDIA O2 SITE — internal demo only, not affiliated with, endorsed by, or a real Virgin Media O2 product.',
+  },
   'a11ec9a0': {
     slug: 'a11ec9a0',
     company: 'BT',
