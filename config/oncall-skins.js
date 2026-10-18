@@ -357,6 +357,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A ROBINHOOD SITE — internal demo only, not affiliated with, endorsed by, or a real Robinhood product.',
   },
+  'b3935d41': {
+    slug: 'b3935d41',
+    company: 'LPL ClientWorks',
+    vertical: 'banking',
+    page: {
+      file: 'b3935d41.html',
+      title: 'ClientWorks - Move Money',
+    },
+    disclaimer: 'NOT ACTUALLY AN LPL CLIENTWORKS SITE — internal demo only, not affiliated with, endorsed by, or a real LPL Financial product.',
+  },
   'df1b99c6': {
     slug: 'df1b99c6',
     company: 'Bilt Rewards',
