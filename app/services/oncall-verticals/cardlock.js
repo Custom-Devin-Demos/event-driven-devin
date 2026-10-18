@@ -9,16 +9,33 @@ const { canCreateSession, reserveSession } = require('../session-rate-limiter');
 const CARDLOCK = {
   slug: 'e91b0f39',
   service: 'card-controls-mobile',
-  brand: 'Bank of America mobile (Erica)',
-  sourcePrefix: 'card-controls-mobile/',
-  platforms: ['ios', 'android'],
-  repos: ['COG-GTM/ios-demos', 'COG-GTM/android-demos'],
+  sources: {
+    'card-controls-mobile/ios': {
+      service: 'card-controls-mobile',
+      platform: 'ios',
+      label: 'iOS',
+      brand: 'Bank of America mobile (Erica)',
+    },
+    'card-controls-mobile/android': {
+      service: 'card-controls-mobile',
+      platform: 'android',
+      label: 'Android',
+      brand: 'Bank of America mobile (Erica)',
+    },
+    'card-controls-web/desktop': {
+      service: 'card-controls-web',
+      platform: 'web',
+      label: 'Web',
+      brand: 'Bank of America Online Banking (Erica)',
+    },
+  },
+  repos: ['COG-GTM/ios-demos', 'COG-GTM/android-demos', 'COG-GTM/event-driven-devin'],
   appDir: 'apps/e91b0f39',
+  webAppDir: 'app/public/verticals/e91b0f39/',
   check: 'card_lock.duration_ms <= slo_ms',
   owner: 'Card Controls Mobile (card-controls-oncall)',
 };
 
-const PLATFORM_LABELS = { ios: 'iOS', android: 'Android' };
 const REFERENCE_RE = /^CL-[0-9a-f]{6}$/;
 const RELEASE_RE = /^[A-Za-z0-9][A-Za-z0-9@._+-]{0,63}$/;
 const TOKEN_RE = /^[A-Za-z0-9_-]{1,40}$/;
@@ -84,15 +101,15 @@ function datadogLogsUrl(reference, reportedAtMs) {
   return `https://app.${site}/logs?query=${encodeURIComponent(datadogLogsQuery(reference))}&from_ts=${fromTs}&to_ts=${toTs}&live=false`;
 }
 
-function platformOf(body) {
-  const source = body && typeof body.source === 'string' ? body.source : '';
-  if (!source.startsWith(CARDLOCK.sourcePrefix)) return null;
-  const platform = source.slice(CARDLOCK.sourcePrefix.length);
-  return CARDLOCK.platforms.includes(platform) ? platform : null;
+function sourceConfigOf(source) {
+  return typeof source === 'string' && Object.prototype.hasOwnProperty.call(CARDLOCK.sources, source)
+    ? CARDLOCK.sources[source]
+    : null;
 }
 
 function isCardLockReport(body) {
-  return Boolean(body) && platformOf(body) !== null && body.service === CARDLOCK.service;
+  const sourceConfig = body && sourceConfigOf(body.source);
+  return Boolean(sourceConfig) && body.service === sourceConfig.service;
 }
 
 function isOptionalCount(value) {
@@ -101,8 +118,8 @@ function isOptionalCount(value) {
 
 function normalizeReport(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
-  const platform = platformOf(body);
-  if (!platform || body.service !== CARDLOCK.service) return null;
+  const sourceConfig = sourceConfigOf(body.source);
+  if (!sourceConfig || body.service !== sourceConfig.service) return null;
 
   const durationMs = body.durationMs;
   const sloMs = SLO_MS;
@@ -112,6 +129,8 @@ function normalizeReport(body) {
 
   const cardType = body.cardType === undefined ? 'debit' : body.cardType;
   if (!['debit', 'credit'].includes(cardType)) return null;
+  const outcome = body.outcome === undefined ? 'success' : body.outcome;
+  if (!['success', 'timeout'].includes(outcome)) return null;
   if (!isOptionalCount(body.requestCount) || !isOptionalCount(body.merchantCount)) return null;
   if (Array.isArray(body.spans) && body.spans.length > 20) return null;
 
@@ -132,14 +151,17 @@ function normalizeReport(body) {
 
   const release = typeof body.release === 'string' && RELEASE_RE.test(body.release)
     ? body.release
-    : `${CARDLOCK.service}@unknown`;
+    : `${sourceConfig.service}@unknown`;
 
   return {
     source: body.source,
-    platform,
-    platformLabel: PLATFORM_LABELS[platform],
+    service: sourceConfig.service,
+    platform: sourceConfig.platform,
+    platformLabel: sourceConfig.label,
+    brand: sourceConfig.brand,
     durationMs,
     sloMs,
+    outcome,
     cardLast4: body.cardLast4,
     cardType,
     reportId: typeof body.reportId === 'string' && REPORT_ID_RE.test(body.reportId) ? body.reportId : null,
@@ -185,11 +207,19 @@ function fieldPairs(pairs) {
 }
 
 function monitorTitle(report) {
-  return `Card lock latency above SLO — ${CARDLOCK.service} (${report.platformLabel})`;
+  return `Card lock latency above SLO — ${report.service} (${report.platformLabel})`;
 }
 
 function whereLine(report) {
   return `${report.screen} → ${report.action} (${report.cardType} ••${report.cardLast4})`;
+}
+
+function repoLines() {
+  return [
+    `Repo: https://github.com/${CARDLOCK.repos[0]} (${CARDLOCK.appDir})`,
+    `Repo: https://github.com/${CARDLOCK.repos[1]} (${CARDLOCK.appDir})`,
+    `Repo: https://github.com/${CARDLOCK.repos[2]} (${CARDLOCK.webAppDir})`,
+  ];
 }
 
 function latencyLine(report) {
@@ -201,9 +231,10 @@ function buildAlertMessage(report, { reference, triggeredBy, now }) {
   const lines = [
     `:rotating_light: *[Triggered] ${monitorTitle(report)}*`,
     '',
-    `*Service:* ${CARDLOCK.service} (${CARDLOCK.brand})`,
+    `*Service:* ${report.service} (${report.brand})`,
     `*Where:* ${whereLine(report)}`,
     `*Latency:* ${latencyLine(report)}`,
+    report.outcome === 'timeout' ? '*Outcome:* Timed out' : null,
     `*Release:* ${report.release} (${report.platformLabel})`,
     `*Owner:* ${ownerRotation(CARDLOCK.owner)}`,
     `*Incident Ref:* ${reference}`,
@@ -212,8 +243,7 @@ function buildAlertMessage(report, { reference, triggeredBy, now }) {
     '',
     `Reported: ${now.toISOString()}`,
     '',
-    `Repo: https://github.com/${CARDLOCK.repos[0]} (${CARDLOCK.appDir})`,
-    `Repo: https://github.com/${CARDLOCK.repos[1]} (${CARDLOCK.appDir})`,
+    ...repoLines(),
   ];
   return lines.filter((line) => line !== null).join('\n');
 }
@@ -222,9 +252,10 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
   return [
     { type: 'header', text: { type: 'plain_text', text: `:rotating_light: [Triggered] ${monitorTitle(report)}`, emoji: true } },
     ...fieldPairs([
-      ['Service', `${CARDLOCK.service} (${CARDLOCK.brand})`],
+      ['Service', `${report.service} (${report.brand})`],
       ['Where', whereLine(report)],
       ['Latency', latencyLine(report)],
+      report.outcome === 'timeout' ? ['Outcome', 'Timed out'] : null,
       ['Release', `${report.release} (${report.platformLabel})`],
       ['Owner', ownerRotation(CARDLOCK.owner)],
       ['Incident Ref', reference],
@@ -244,7 +275,7 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `Repo: https://github.com/${CARDLOCK.repos[0]} (${CARDLOCK.appDir})\nRepo: https://github.com/${CARDLOCK.repos[1]} (${CARDLOCK.appDir})`,
+        text: repoLines().join('\n'),
       },
     },
     {
@@ -252,7 +283,7 @@ function buildAlertBlocks(report, { reference, triggeredBy, now }) {
       elements: [{
         type: 'mrkdwn',
         text: [
-          `Service: \`${CARDLOCK.service}\``,
+          `Service: \`${report.service}\``,
           `Reported from the ${report.platformLabel} app`,
           now.toISOString(),
           triggeredBy ? `Triggered by ${triggeredBy}` : null,
@@ -267,33 +298,39 @@ function buildSessionPrompt(report, reference, { channel, threadTs, reportedAtMs
   const logsUrl = datadogLogsUrl(reference, reportedAtMs);
   const fromTime = new Date(reportedAtMs - DATADOG_WINDOW_MS).toISOString();
   const toTime = new Date(reportedAtMs + DATADOG_WINDOW_MS).toISOString();
-  const prompt = `A latency SLO breach was reported by the Bank of America mobile app (Erica → Lock my card). The app has native iOS (SwiftUI) and Android (Kotlin / Jetpack Compose) clients that share the same card-controls client logic. Coordinate the fix on BOTH platforms through child sessions and make sure guardrails land so it cannot regress.
+  const impact = report.outcome === 'timeout'
+    ? 'Customers see a spinner for ~10 s and then "Something went wrong. Request timed out"; the card is not locked.'
+    : 'Customers locking a lost or stolen card wait ~10 s on a spinner before the lock is confirmed; some abandon and call the card services line.';
+  const outcomeLine = report.outcome === 'timeout' ? '*Outcome:* Timed out\n' : '';
+  const prompt = `A latency SLO breach was reported by the Bank of America card-lock flow (Erica → Lock my card), from the ${report.platformLabel} client. The native iOS (SwiftUI), Android (Kotlin / Jetpack Compose), and desktop web clients share the same card-controls logic. Coordinate the fix across all three clients through child sessions and make sure guardrails land so it cannot regress.
 
 *Alert:* ${monitorTitle(report)} — Triggered
 *Incident Ref:* ${reference}
 *SLO:* card lock completes within ${report.sloMs} ms — observed ${report.durationMs} ms on ${report.platformLabel}
 *Where:* ${report.screen} → ${report.action} (${report.cardType} card ending ${report.cardLast4})
 *Release:* ${report.release} (${report.platformLabel})${report.device ? ` | Device: ${report.device} ${report.osVersion}` : ''}
+${outcomeLine}*Impact:* ${impact}
 *Datadog logs:*
 - Query: \`${query}\`
 - Time window: ${fromTime} to ${toTime} (±15 minutes around the report)
 - Logs URL: ${logsUrl}
-*Impact:* Customers locking a lost or stolen card wait ~10 s on a spinner before the lock is confirmed; some abandon and call the card services line.
 
-Repositories (same app folder in both):
+Repositories:
 - iOS: https://github.com/COG-GTM/ios-demos — apps/e91b0f39 (read its DEMO.md and the repo Makefile first)
 - Android: https://github.com/COG-GTM/android-demos — apps/e91b0f39 (read its DEMO.md and the repo README first)
+- Web: https://github.com/COG-GTM/event-driven-devin — app/public/verticals/e91b0f39/ (card-controls logic in js/card-controls.js)
 
-You are the ORCHESTRATOR for this incident. Do not edit, build or run either app yourself. Your job is to diagnose, delegate one fix per platform to a child Devin session, and review the results.
+You are the ORCHESTRATOR for this incident. Do not edit, build or run any app yourself. Your job is to diagnose, delegate one fix per client to a child Devin session, and review the results.
 
 Steps:
-1. Diagnose from Datadog first: use the Datadog MCP (search_datadog_logs) with that query to pull the breach log and the client span logs for this lock, state what they show (where the time goes and how many card-controls requests one lock makes), and note that the breach log's \`spans\` field carries the per-span breakdown alongside the individual client span logs; then confirm the responsible code read-only in both repos (DEMO.md and the shared card-controls logic). Keep the recurring-payment check; do not hide the spinner, add a timeout or return a cached result.
-2. Create TWO child Devin sessions in parallel, and give each the diagnosis, including the Datadog log evidence and the logs URL, plus the instructions in step 3:
+1. Diagnose from Datadog first: use the Datadog MCP (search_datadog_logs) with that query to pull the breach log and client span logs for this lock, state what they show (where the time goes and how many card-controls requests one lock makes), and note that the breach log's \`spans\` field carries the per-span breakdown alongside the individual client span logs; then confirm the responsible code read-only in both native repos (DEMO.md and the shared card-controls logic) and inspect web \`js/card-controls.js\` read-only.
+2. Create THREE child Devin sessions in parallel, and give each the diagnosis, including the Datadog log evidence and logs URL, plus the instructions in step 3:
    - a *macOS* child for COG-GTM/ios-demos apps/e91b0f39 (Xcode + iOS Simulator; build and test with \`make test APP=e91b0f39\`, run with \`make run APP=e91b0f39\`)
    - a *Linux* child for COG-GTM/android-demos apps/e91b0f39 (Android SDK + emulator; \`make test APP=e91b0f39\`, \`make run APP=e91b0f39\`)
-3. Each child must: (a) reproduce on its simulator/emulator with \`make run APP=e91b0f39\` (failure reports stay off) following the tap path in DEMO.md, and time the lock; (b) apply the fix in the shared card-controls logic; (c) add guardrail unit tests that fail before and pass after, asserting the lock completes within the SLO budget and bounding the number of card-controls requests, and run \`make test APP=e91b0f39\`; (d) record BEFORE/AFTER of the lock flow on the simulator/emulator; (e) open a *draft* PR against main titled \`[DEMO — DO NOT MERGE] ...\`, touching only apps/e91b0f39/, and report the PR link, test output and before/after lock times. Never merge: main keeps the unfixed app so the demo can be re-run. Never launch the app with failure reports on (no \`make demo\`, no \`-demoReports on\`, no \`--ez demoReports true\`).
-4. Wait for both children to finish. Review both PRs: the iOS and Android fixes must be equivalent and both must include the guardrail tests. Send any corrections back to the child that owns the PR and wait for its update.
-5. Reply ONCE in the Slack alert thread below with the root cause, the fix, both PR links, the guardrails added, the before/after lock times on iOS and Android, the Datadog evidence including span numbers, and the Datadog logs link.
+   - a *Linux* child for COG-GTM/event-driven-devin app/public/verticals/e91b0f39/ (card-controls logic in \`js/card-controls.js\`; run \`npx jest tests/e91b0f39-web-card-controls.test.js\`; verify in a browser at \`http://localhost:<port>/e91b0f39?reports=off\`)
+3. Each child must: (a) reproduce its native scenario on the simulator/emulator with \`make run APP=e91b0f39\`, or reproduce the web flow in a browser at \`http://localhost:<port>/e91b0f39?reports=off\`; follow the DEMO.md tap path where applicable, keep failure reports off, and time the lock; (b) apply the equivalent fix in its shared card-controls logic, keeping the recurring-payment check; keep \`LOCK_TIMEOUT_MS = 10000\` (do not raise or remove it), do not hide or reword "Something went wrong. Request timed out", do not cache, and make the fixed lock succeed in under 3 s; (c) add guardrail tests that fail before and pass after, assert completion under the SLO and bound card-controls requests, and run the platform's test command; (d) record BEFORE/AFTER of the lock flow; (e) open a *draft* PR against main titled \`[DEMO — DO NOT MERGE] ...\`, touching only its assigned app directory and relevant tests, and report the PR link, test output and before/after lock times. For the web child, run \`npx jest tests/e91b0f39-web-card-controls.test.js\`, verify in the browser at \`http://localhost:<port>/e91b0f39?reports=off\`, and touch only app/public/verticals/e91b0f39/ and that test. Never merge: main keeps the unfixed behavior so the demo can be re-run. Never launch an app with reports enabled (no \`make demo\`, no \`-demoReports on\`, no \`--ez demoReports true\`).
+4. Wait for all three children to finish. Review all three PRs: the iOS, Android and web fixes must be equivalent and each must include guardrail tests. Send any corrections back to the child that owns the PR and wait for its update.
+5. Reply ONCE in the Slack alert thread below with the diagnosis, fix, all three PR links, guardrails added, before/after lock times on iOS, Android and web, Datadog evidence including span numbers, and the Datadog logs link.
 `;
   if (channel && threadTs) {
     return `${prompt}\n\n*Slack Thread:* channel=${channel} thread_ts=${threadTs}`;
@@ -321,7 +358,7 @@ async function triggerDevinSession(report, reference, { token, channel, threadTs
   try {
     session = await createDevinSession(buildSessionPrompt(report, reference, { channel, threadTs, reportedAtMs }), {
       ...resolveSessionIdentity(),
-      title: `[On-Call] ${reference} Card lock latency above SLO (${CARDLOCK.service})`,
+      title: `[On-Call] ${reference} Card lock latency above SLO (${report.service})`,
       platform: process.env.DEVIN_ONCALL_CARDLOCK_PLATFORM || 'linux',
       repos: CARDLOCK.repos,
     });
@@ -342,7 +379,7 @@ async function triggerDevinSession(report, reference, { token, channel, threadTs
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `:mag: *Devin is investigating this alert* — <${session.url}|View session> (orchestrator — macOS child for ${CARDLOCK.repos[0]}, Linux child for ${CARDLOCK.repos[1]})`,
+            text: `:mag: *Devin is investigating this alert* — <${session.url}|View session> (orchestrator — macOS child for ios-demos, Linux children for android-demos and web)`,
           },
         },
       ]);
@@ -361,7 +398,9 @@ function reportLockLatency(report) {
     ? report.reportId
     : null;
   if (reportId) {
-    const duplicate = Array.from(reports.values()).find((entry) => entry.reportId === reportId);
+    const duplicate = Array.from(reports.values()).find(
+      (entry) => entry.source === report.source && entry.reportId === reportId,
+    );
     if (duplicate) {
       return { reference: duplicate.reference, statusToken: null, duplicate: true };
     }
@@ -374,6 +413,8 @@ function reportLockLatency(report) {
     reference,
     statusToken,
     receivedAt: now.getTime(),
+    source: report.source,
+    service: report.service,
     platform: report.platform,
     durationMs: report.durationMs,
     reportId,
@@ -386,7 +427,7 @@ function reportLockLatency(report) {
 
   const tags = {
     route: `/api/oncall/${CARDLOCK.slug}/lock-latency`,
-    service: CARDLOCK.service,
+    service: report.service,
     check: CARDLOCK.check,
     platform: report.platform,
     screen: report.screen,
@@ -401,6 +442,7 @@ function reportLockLatency(report) {
     reference,
     check: CARDLOCK.check,
     slug: CARDLOCK.slug,
+    service: report.service,
     platform: report.platform,
     source: report.source,
     release: report.release,
@@ -413,6 +455,7 @@ function reportLockLatency(report) {
     requestCount: report.requestCount,
     merchantCount: report.merchantCount,
     reportId: report.reportId,
+    outcome: report.outcome,
     spans: report.spans.map((s) => ({
       name: s.name,
       count: s.count,
@@ -433,7 +476,7 @@ function reportLockLatency(report) {
       avgMs: span.count > 0 ? Math.round(span.totalMs / span.count) : null,
     });
   }
-  Sentry.captureMessage(`${monitorTitle(report)} (${CARDLOCK.service}/${report.platform})`, {
+  Sentry.captureMessage(`${monitorTitle(report)} (${report.service}/${report.platform})`, {
     level: 'error',
     tags,
     extra: {
@@ -441,6 +484,7 @@ function reportLockLatency(report) {
       release: report.release,
       durationMs: report.durationMs,
       sloMs: report.sloMs,
+      outcome: report.outcome,
     },
   });
 
@@ -498,7 +542,7 @@ function getLockLatencyStatus(reference, statusToken) {
   if (!entry || !tokenMatches(entry.statusToken, statusToken)) return null;
   return {
     reference: entry.reference,
-    service: CARDLOCK.service,
+    service: entry.service,
     alertPosted: Boolean(entry.alert),
     sessionUrl: entry.session ? entry.session.url : null,
     done: entry.done,

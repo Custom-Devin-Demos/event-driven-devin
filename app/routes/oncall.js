@@ -588,7 +588,7 @@ router.post(CARDLOCK_FAILURE_PATH, (req, res, next) => {
   if (!isCardLockReport(body)) {
     return res.status(400).json({
       received: false,
-      error: `Expected a card-controls-mobile/<ios|android> source with service ${CARDLOCK.service}`,
+      error: 'Expected an approved card-lock source with its matching service',
     });
   }
   const report = normalizeCardLockReport(body);
@@ -609,7 +609,8 @@ router.post(CARDLOCK_FAILURE_PATH, (req, res, next) => {
     received: true,
     reference: result.reference,
     statusToken: result.statusToken,
-    service: CARDLOCK.service,
+    service: req.cardLockReport.service,
+    platform: req.cardLockReport.platform,
     sessionRequested: true,
     receivedAt: new Date().toISOString(),
   });

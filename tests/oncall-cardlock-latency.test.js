@@ -114,7 +114,7 @@ describe('Card lock latency report (e91b0f39)', () => {
     return response;
   }
 
-  test.each(['ios', 'android'])('%s report creates one alert and one orchestrator session for both repos', async (platform) => {
+  test.each(['ios', 'android'])('%s report creates one alert and one orchestrator session for all three client repos', async (platform) => {
     const response = await postAndWait({ ...REPORT, source: `card-controls-mobile/${platform}` });
 
     expect(response.body).toMatchObject({
@@ -138,6 +138,7 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(text).toContain('`card_lock.duration_ms <= slo_ms` — failed on device');
     expect(text).toContain('https://github.com/COG-GTM/ios-demos (apps/e91b0f39)');
     expect(text).toContain('https://github.com/COG-GTM/android-demos (apps/e91b0f39)');
+    expect(text).toContain('https://github.com/COG-GTM/event-driven-devin (app/public/verticals/e91b0f39/)');
     expect(text).toContain('Triggered by:* <@U0CARDLOCK>');
     expect(blocks[0].type).toBe('header');
     expect(JSON.stringify(blocks)).toContain('card-controls-mobile');
@@ -158,9 +159,14 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(options).toMatchObject({
       orgId: 'org_test',
       platform: 'linux',
-      repos: ['COG-GTM/ios-demos', 'COG-GTM/android-demos'],
+      repos: ['COG-GTM/ios-demos', 'COG-GTM/android-demos', 'COG-GTM/event-driven-devin'],
       title: `[On-Call] ${response.body.reference} Card lock latency above SLO (card-controls-mobile)`,
     });
+    expect(CARDLOCK.repos).toEqual([
+      'COG-GTM/ios-demos',
+      'COG-GTM/android-demos',
+      'COG-GTM/event-driven-devin',
+    ]);
     expect(prompt).toContain(`*Incident Ref:* ${response.body.reference}`);
     expect(prompt).toContain(`@slug:${CARDLOCK.slug} @reference:${response.body.reference}`);
     expect(prompt).toContain('search_datadog_logs');
@@ -170,6 +176,14 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(prompt).toContain('You are the ORCHESTRATOR');
     expect(prompt).toContain('a *macOS* child for COG-GTM/ios-demos');
     expect(prompt).toContain('a *Linux* child for COG-GTM/android-demos');
+    expect(prompt).toContain('a *Linux* child for COG-GTM/event-driven-devin');
+    expect(prompt).toContain('Create THREE child Devin sessions in parallel');
+    expect(prompt).toContain('app/public/verticals/e91b0f39/');
+    expect(prompt).toContain('npx jest tests/e91b0f39-web-card-controls.test.js');
+    expect(prompt).toContain('http://localhost:<port>/e91b0f39?reports=off');
+    expect(prompt).toContain('LOCK_TIMEOUT_MS = 10000');
+    expect(prompt).toContain('Something went wrong. Request timed out');
+    expect(prompt).toContain('under 3 s');
     expect(prompt).toContain('[DEMO — DO NOT MERGE]');
     expect(prompt).not.toContain('You are on macOS');
     expect(prompt).not.toContain('Create ONE Linux child');
@@ -187,8 +201,55 @@ describe('Card lock latency report (e91b0f39)', () => {
       expect.any(Array),
     );
     expect(postThreadReply.mock.calls[0][4][0].text.text).toContain(
-      '(orchestrator — macOS child for COG-GTM/ios-demos, Linux child for COG-GTM/android-demos)',
+      '(orchestrator — macOS child for ios-demos, Linux children for android-demos and web)',
     );
+  });
+
+  test('accepts web reports and labels the alert and prompt as Web', async () => {
+    const response = await postAndWait({
+      ...REPORT,
+      source: 'card-controls-web/desktop',
+      service: 'card-controls-web',
+      release: 'card-controls-web@1.2.3',
+    });
+
+    expect(response.body).toMatchObject({
+      received: true,
+      service: 'card-controls-web',
+      platform: 'web',
+      sessionRequested: true,
+    });
+    const [, , text, blocks] = postMessage.mock.calls[0];
+    expect(text).toContain('card-controls-web (Web)');
+    expect(text).toContain('Bank of America Online Banking (Erica)');
+    expect(text).toContain('(Web)');
+    expect(JSON.stringify(blocks)).toContain('Web');
+    expect(JSON.stringify(blocks)).toContain('card-controls-web');
+
+    const [prompt, options] = createDevinSession.mock.calls[0];
+    expect(prompt).toContain('from the Web client');
+    expect(prompt).toContain('a *Linux* child for COG-GTM/event-driven-devin');
+    expect(prompt).toContain('app/public/verticals/e91b0f39/');
+    expect(options.repos).toEqual(CARDLOCK.repos);
+  });
+
+  test('includes timeout outcome in logs, alerts, and prompt impact', async () => {
+    await postAndWait({ ...REPORT, durationMs: 10000, outcome: 'timeout' });
+
+    const breachLog = logger.error.mock.calls
+      .find(([message]) => message === 'Card lock latency SLO breach reported');
+    expect(breachLog[1]).toMatchObject({ outcome: 'timeout' });
+
+    const [, , text, blocks] = postMessage.mock.calls[0];
+    expect(text).toContain('*Outcome:* Timed out');
+    const outcomeField = blocks
+      .flatMap((block) => block.fields || [])
+      .find((field) => field.text.startsWith('*Outcome:*'));
+    expect(outcomeField.text).toBe('*Outcome:*\nTimed out');
+
+    const [prompt] = createDevinSession.mock.calls[0];
+    expect(prompt).toContain('*Outcome:* Timed out');
+    expect(prompt).toContain('Customers see a spinner for ~10 s and then "Something went wrong. Request timed out"; the card is not locked.');
   });
 
   test('logs accepted breach details and one Datadog record per normalized span', async () => {
@@ -296,6 +357,8 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(report).toMatchObject({
       platform: 'android',
       platformLabel: 'Android',
+      service: 'card-controls-mobile',
+      outcome: 'success',
       requestCount: null,
       merchantCount: null,
       screen: 'erica',
@@ -317,6 +380,15 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect((await request(server, 'POST', PATH, { ...REPORT, durationMs: 800, sloMs: 500 })).status).toBe(400);
     expect((await request(server, 'POST', PATH, { ...REPORT, source: 'other/ios' })).status).toBe(400);
     expect((await request(server, 'POST', PATH, { ...REPORT, service: 'other' })).status).toBe(400);
+    expect((await request(server, 'POST', PATH, {
+      ...REPORT,
+      source: 'card-controls-web/desktop',
+    })).status).toBe(400);
+    expect((await request(server, 'POST', PATH, {
+      ...REPORT,
+      service: 'card-controls-web',
+    })).status).toBe(400);
+    expect((await request(server, 'POST', PATH, { ...REPORT, outcome: 'failed' })).status).toBe(400);
     expect((await request(server, 'POST', PATH, { ...REPORT, cardLast4: '12x4' })).status).toBe(400);
     const tooManySpans = Array.from({ length: 21 }, (_, i) => ({ name: `span_${i}`, count: 1, totalMs: 1 }));
     expect(normalizeReport({ ...REPORT, spans: tooManySpans })).toBeNull();
@@ -355,6 +427,27 @@ describe('Card lock latency report (e91b0f39)', () => {
       info: logger.info.mock.calls.length,
       warn: logger.warn.mock.calls.length,
     }).toEqual(logCountsBeforeDuplicate);
+  });
+
+  test('deduplicates reportIds independently by source', async () => {
+    const reportId = 'cross-source-0001';
+    const mobile = await postAndWait({ ...REPORT, reportId });
+    const web = await postAndWait({
+      ...REPORT,
+      source: 'card-controls-web/desktop',
+      service: 'card-controls-web',
+      release: 'card-controls-web@1.2.3',
+      reportId,
+    });
+
+    expect(mobile.body.reference).not.toBe(web.body.reference);
+    expect(web.body).toMatchObject({
+      service: 'card-controls-web',
+      platform: 'web',
+      sessionRequested: true,
+    });
+    expect(postMessage).toHaveBeenCalledTimes(2);
+    expect(createDevinSession).toHaveBeenCalledTimes(2);
   });
 
   test('builds an encoded Datadog URL with a fifteen-minute window around the report', () => {
@@ -396,10 +489,16 @@ describe('Card lock latency report (e91b0f39)', () => {
     })).status).toBe(200);
   });
 
-  test('isCardLockReport accepts only the two native source platforms and service', () => {
+  test('isCardLockReport accepts only configured source and service pairs', () => {
     expect(isCardLockReport(REPORT)).toBe(true);
     expect(isCardLockReport({ ...REPORT, source: 'card-controls-mobile/android' })).toBe(true);
+    expect(isCardLockReport({
+      ...REPORT,
+      source: 'card-controls-web/desktop',
+      service: 'card-controls-web',
+    })).toBe(true);
     expect(isCardLockReport({ ...REPORT, source: 'card-controls-mobile/web' })).toBe(false);
+    expect(isCardLockReport({ ...REPORT, source: 'card-controls-web/desktop' })).toBe(false);
     expect(isCardLockReport({ ...REPORT, service: 'other' })).toBe(false);
     expect(isCardLockReport(null)).toBe(false);
   });
