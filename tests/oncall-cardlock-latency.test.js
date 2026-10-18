@@ -12,6 +12,12 @@ jest.mock('../app/services/devin-api', () => ({
   }),
 }));
 
+jest.mock('../app/telemetry/logger', () => ({
+  error: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+}));
+
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: { captureMessage: jest.fn(), captureException: jest.fn() },
 }));
@@ -26,12 +32,21 @@ const express = require('express');
 const http = require('http');
 const { postMessage, postThreadReply, lookupSlackUserByEmail } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
-const { CARDLOCK, isCardLockReport, normalizeReport, getLockLatencyStatus } = require('../app/services/oncall-verticals/cardlock');
+const logger = require('../app/telemetry/logger');
+const {
+  CARDLOCK,
+  isCardLockReport,
+  normalizeReport,
+  datadogLogsQuery,
+  datadogLogsUrl,
+  getLockLatencyStatus,
+} = require('../app/services/oncall-verticals/cardlock');
 const router = require('../app/routes/oncall');
 
 process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-test';
 process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID = 'C0TEST';
 process.env.DEVIN_ONCALL_ORG_ID = 'org_test';
+process.env.DD_SITE = 'us5.datadoghq.com';
 
 const REPORT = {
   source: 'card-controls-mobile/ios',
@@ -118,14 +133,25 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(text).toContain(`Incident Ref:* ${response.body.reference}`);
     expect(text).toContain('erica → lock_card (debit ••4417)');
     expect(text).toContain('10,214 ms (SLO 3,000 ms)');
-    expect(text).toContain('40 card-controls calls');
-    expect(text).toContain('card_controls.recurring_merchants ×1 — 10004 ms');
+    expect(text).not.toContain('*Requests:*');
+    expect(text).not.toContain('*Spans:*');
     expect(text).toContain('`card_lock.duration_ms <= slo_ms` — failed on device');
     expect(text).toContain('https://github.com/COG-GTM/ios-demos (apps/e91b0f39)');
     expect(text).toContain('https://github.com/COG-GTM/android-demos (apps/e91b0f39)');
     expect(text).toContain('Triggered by:* <@U0CARDLOCK>');
     expect(blocks[0].type).toBe('header');
     expect(JSON.stringify(blocks)).toContain('card-controls-mobile');
+    expect(JSON.stringify(blocks)).not.toContain('Requests');
+    expect(JSON.stringify(blocks)).not.toContain('*Spans:*');
+    const datadogButton = blocks.find((block) => block.type === 'actions')?.elements[0];
+    expect(datadogButton).toMatchObject({
+      type: 'button',
+      text: { type: 'plain_text', text: 'View logs in Datadog', emoji: true },
+    });
+    expect(datadogButton.url).toContain('https://app.us5.datadoghq.com/logs?query=');
+    expect(new URL(datadogButton.url).searchParams.get('query')).toBe(
+      `@slug:${CARDLOCK.slug} @reference:${response.body.reference}`,
+    );
 
     expect(createDevinSession).toHaveBeenCalledTimes(1);
     const [prompt, options] = createDevinSession.mock.calls[0];
@@ -136,13 +162,17 @@ describe('Card lock latency report (e91b0f39)', () => {
       title: `[On-Call] ${response.body.reference} Card lock latency above SLO (card-controls-mobile)`,
     });
     expect(prompt).toContain(`*Incident Ref:* ${response.body.reference}`);
+    expect(prompt).toContain(`@slug:${CARDLOCK.slug} @reference:${response.body.reference}`);
+    expect(prompt).toContain('search_datadog_logs');
+    expect(prompt).toContain('https://app.us5.datadoghq.com/logs?query=');
+    expect(prompt).not.toContain('*Spans:*');
+    expect(prompt).not.toContain('*Requests during the lock:*');
     expect(prompt).toContain('You are the ORCHESTRATOR');
     expect(prompt).toContain('a *macOS* child for COG-GTM/ios-demos');
     expect(prompt).toContain('a *Linux* child for COG-GTM/android-demos');
     expect(prompt).toContain('[DEMO — DO NOT MERGE]');
     expect(prompt).not.toContain('You are on macOS');
     expect(prompt).not.toContain('Create ONE Linux child');
-    expect(prompt).toContain('card_controls.recurring_merchants ×1 = 10004 ms');
     expect(prompt).toContain('https://github.com/COG-GTM/ios-demos');
     expect(prompt).toContain('https://github.com/COG-GTM/android-demos');
     expect(prompt).toContain('*Slack Thread:* channel=C0TEST thread_ts=1700000000.000100');
@@ -159,6 +189,93 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(postThreadReply.mock.calls[0][4][0].text.text).toContain(
       '(orchestrator — macOS child for COG-GTM/ios-demos, Linux child for COG-GTM/android-demos)',
     );
+  });
+
+  test('logs accepted breach details and one Datadog record per normalized span', async () => {
+    const spans = [
+      ...REPORT.spans,
+      { name: 'card_controls.empty_span', count: 0, totalMs: 0 },
+    ];
+    const response = await postAndWait({
+      ...REPORT,
+      spans,
+      reportId: 'card-lock-log-test',
+    });
+    const breachLogs = logger.error.mock.calls.filter(([message]) => message === 'Card lock latency SLO breach reported');
+    expect(breachLogs).toHaveLength(1);
+    expect(breachLogs[0][1]).toMatchObject({
+      reference: response.body.reference,
+      check: CARDLOCK.check,
+      slug: CARDLOCK.slug,
+      platform: 'ios',
+      source: 'card-controls-mobile/ios',
+      release: REPORT.release,
+      device: REPORT.device,
+      osVersion: REPORT.osVersion,
+      cardType: REPORT.cardType,
+      cardLast4: REPORT.cardLast4,
+      durationMs: REPORT.durationMs,
+      sloMs: 3000,
+      requestCount: REPORT.requestCount,
+      merchantCount: REPORT.merchantCount,
+      reportId: 'card-lock-log-test',
+      spans: spans.map((span) => ({
+        name: span.name,
+        count: span.count,
+        totalMs: span.totalMs,
+        avgMs: span.count > 0 ? Math.round(span.totalMs / span.count) : null,
+      })),
+    });
+
+    const spanLogs = logger.info.mock.calls
+      .filter(([message]) => message === 'Card lock client span')
+      .map(([, fields]) => fields);
+    expect(spanLogs).toEqual([
+      {
+        reference: response.body.reference,
+        check: CARDLOCK.check,
+        slug: CARDLOCK.slug,
+        platform: 'ios',
+        release: REPORT.release,
+        span: 'card_controls.recurring_merchants',
+        count: 1,
+        totalMs: 10004,
+        avgMs: 10004,
+      },
+      {
+        reference: response.body.reference,
+        check: CARDLOCK.check,
+        slug: CARDLOCK.slug,
+        platform: 'ios',
+        release: REPORT.release,
+        span: 'card_controls.merchant_status',
+        count: 38,
+        totalMs: 203,
+        avgMs: 5,
+      },
+      {
+        reference: response.body.reference,
+        check: CARDLOCK.check,
+        slug: CARDLOCK.slug,
+        platform: 'ios',
+        release: REPORT.release,
+        span: 'card_controls.lock',
+        count: 1,
+        totalMs: 7,
+        avgMs: 7,
+      },
+      {
+        reference: response.body.reference,
+        check: CARDLOCK.check,
+        slug: CARDLOCK.slug,
+        platform: 'ios',
+        release: REPORT.release,
+        span: 'card_controls.empty_span',
+        count: 0,
+        totalMs: 0,
+        avgMs: null,
+      },
+    ]);
   });
 
   test('normalizes bounds, defaults, clipped device details, and valid spans', () => {
@@ -220,6 +337,11 @@ describe('Card lock latency report (e91b0f39)', () => {
   test('deduplicates valid reportIds without posting another alert or session', async () => {
     const report = { ...REPORT, reportId: 'lock-retry-0001' };
     const first = await postAndWait(report);
+    const logCountsBeforeDuplicate = {
+      error: logger.error.mock.calls.length,
+      info: logger.info.mock.calls.length,
+      warn: logger.warn.mock.calls.length,
+    };
     const duplicate = await request(server, 'POST', PATH, report);
 
     expect(duplicate.status).toBe(202);
@@ -228,6 +350,28 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(duplicate.body.statusToken).not.toBe(first.body.statusToken);
     expect(postMessage).toHaveBeenCalledTimes(1);
     expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect({
+      error: logger.error.mock.calls.length,
+      info: logger.info.mock.calls.length,
+      warn: logger.warn.mock.calls.length,
+    }).toEqual(logCountsBeforeDuplicate);
+  });
+
+  test('builds an encoded Datadog URL with a fifteen-minute window around the report', () => {
+    const reference = 'CL-12ab34';
+    const reportedAtMs = Date.UTC(2026, 0, 2, 3, 4, 5);
+    const query = `@slug:${CARDLOCK.slug} @reference:${reference}`;
+    const url = datadogLogsUrl(reference, reportedAtMs);
+    const parsed = new URL(url);
+
+    expect(datadogLogsQuery(reference)).toBe(query);
+    expect(url).toContain(`query=${encodeURIComponent(query)}`);
+    expect(parsed.origin).toBe('https://app.us5.datadoghq.com');
+    expect(parsed.pathname).toBe('/logs');
+    expect(parsed.searchParams.get('query')).toBe(query);
+    expect(parsed.searchParams.get('from_ts')).toBe(String(reportedAtMs - 15 * 60 * 1000));
+    expect(parsed.searchParams.get('to_ts')).toBe(String(reportedAtMs + 15 * 60 * 1000));
+    expect(parsed.searchParams.get('live')).toBe('false');
   });
 
   test('status requires the token and the fallback alert text includes the responder skip marker', async () => {
@@ -258,5 +402,42 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(isCardLockReport({ ...REPORT, source: 'card-controls-mobile/web' })).toBe(false);
     expect(isCardLockReport({ ...REPORT, service: 'other' })).toBe(false);
     expect(isCardLockReport(null)).toBe(false);
+  });
+
+  test('retains the breach span breakdown when the real logger level is error', async () => {
+    const previousLogLevel = process.env.LOG_LEVEL;
+    const records = [];
+    let isolatedLogger;
+    let loggerSpy;
+    let isolatedReportLockLatency;
+
+    try {
+      process.env.LOG_LEVEL = 'error';
+      jest.unmock('../app/telemetry/logger');
+      jest.isolateModules(() => {
+        isolatedLogger = require('../app/telemetry/logger');
+        loggerSpy = jest.spyOn(isolatedLogger.transports[0], 'log').mockImplementation((info, callback) => {
+          records.push(info);
+          if (callback) callback();
+        });
+        ({ reportLockLatency: isolatedReportLockLatency } = require('../app/services/oncall-verticals/cardlock'));
+      });
+
+      expect(isolatedLogger.level).toBe('error');
+      isolatedReportLockLatency(normalizeReport(REPORT));
+      await new Promise((resolve) => setImmediate(resolve));
+
+      const breachRecord = records.find((record) => record.message === 'Card lock latency SLO breach reported');
+      expect(breachRecord.spans).toEqual(REPORT.spans.map((span) => ({
+        name: span.name,
+        count: span.count,
+        totalMs: span.totalMs,
+        avgMs: Math.round(span.totalMs / span.count),
+      })));
+    } finally {
+      if (loggerSpy) loggerSpy.mockRestore();
+      if (previousLogLevel === undefined) delete process.env.LOG_LEVEL;
+      else process.env.LOG_LEVEL = previousLogLevel;
+    }
   });
 });
