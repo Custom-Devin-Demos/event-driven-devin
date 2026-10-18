@@ -22,6 +22,13 @@ const {
   getEtaFailureStatus,
 } = require('../services/oncall-verticals/fleet');
 const {
+  CARDLOCK,
+  isCardLockReport,
+  normalizeReport: normalizeCardLockReport,
+  reportLockLatency,
+  getLockLatencyStatus,
+} = require('../services/oncall-verticals/cardlock');
+const {
   PARTIFUL,
   isPartifulReport,
   normalizeReport: normalizePartifulReport,
@@ -570,6 +577,47 @@ router.post(FLEET_FAILURE_PATH, (req, res, next) => {
 router.get(`${FLEET_FAILURE_PATH}/:reference`, (req, res) => {
   const token = req.get('x-status-token');
   const status = getEtaFailureStatus(req.params.reference, token);
+  if (!status) return res.status(404).json({ error: 'Unknown reference' });
+  return res.json(status);
+});
+
+const CARDLOCK_FAILURE_PATH = `/api/oncall/${CARDLOCK.slug}/lock-latency`;
+
+router.post(CARDLOCK_FAILURE_PATH, (req, res, next) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  if (!isCardLockReport(body)) {
+    return res.status(400).json({
+      received: false,
+      error: `Expected a card-controls-mobile/<ios|android> source with service ${CARDLOCK.service}`,
+    });
+  }
+  const report = normalizeCardLockReport(body);
+  if (!report) {
+    return res.status(400).json({
+      received: false,
+      error: 'Expected a card-lock latency above its SLO with a valid cardLast4',
+    });
+  }
+  req.cardLockReport = report;
+  next();
+}, oncallCap('trigger'), (req, res) => {
+  const result = reportLockLatency(req.cardLockReport);
+  if (!result) {
+    return res.status(400).json({ received: false, error: 'Invalid report' });
+  }
+  return res.status(202).json({
+    received: true,
+    reference: result.reference,
+    statusToken: result.statusToken,
+    service: CARDLOCK.service,
+    sessionRequested: true,
+    receivedAt: new Date().toISOString(),
+  });
+});
+
+router.get(`${CARDLOCK_FAILURE_PATH}/:reference`, (req, res) => {
+  const token = req.get('x-status-token');
+  const status = getLockLatencyStatus(req.params.reference, token);
   if (!status) return res.status(404).json({ error: 'Unknown reference' });
   return res.json(status);
 });
