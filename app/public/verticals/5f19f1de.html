@@ -170,14 +170,14 @@
           <p class="crumbs">Vibe &rsaquo; Workspace settings &rsaquo; Members</p>
           <h1>Add seats</h1>
         </div>
-        <span class="ws"><span class="dot" aria-hidden="true"></span><b>Meridian Research</b> &middot; Team plan &middot; 12 of 12 seats in use</span>
+        <span class="ws" id="wsBadge"><span class="dot" aria-hidden="true"></span><b id="wsBadgeName">Meridian Research</b>&nbsp;&middot; Team plan &middot; <span id="wsBadgeSeats">12 of 12 seats in use</span></span>
       </div>
     </div>
 
     <main>
       <div class="wrap">
         <form id="provisionForm" class="grid" novalidate>
-          <select id="planTier" hidden aria-hidden="true" tabindex="-1"><option value="Team" selected>Team</option></select>
+          <select id="planTier" hidden aria-hidden="true" tabindex="-1"><option value="enterprise" selected>Team</option></select>
           <div class="pane">
             <h2>Seats</h2>
             <p class="lead">Every member of the workspace needs a seat. New seats are billed from today, prorated to your billing date.</p>
@@ -284,6 +284,8 @@
       var timerHandle = null;
       var pending = false;
       var added = {};
+      var badgeName = document.getElementById('wsBadgeName');
+      var badgeSeats = document.getElementById('wsBadgeSeats');
 
       var list = document.getElementById('memberList');
       INVITES.forEach(function (m) {
@@ -307,6 +309,8 @@
         var n = seatCount();
         var ws = wsSel.value;
         var have = SEATS[ws] + (added[ws] || 0);
+        badgeName.textContent = ws;
+        badgeSeats.textContent = SEATS[ws] + ' of ' + have + ' seats in use';
         document.getElementById('sumWs').textContent = ws;
         document.getElementById('sumSeats').textContent = isNaN(n) ? '\u2014' : have + ' \u2192 ' + (have + n);
         var total = document.getElementById('sumTotal');
@@ -317,7 +321,7 @@
         }
         document.getElementById('sumNote').textContent = isNaN(n) ? 'Enter the number of seats to add.' : 'Prorated charge today for the remainder of this cycle, then ' + money(PRICE * n) + ' added to each monthly invoice.';
         minus.disabled = pending || isNaN(n) || n <= 1;
-        plus.disabled = pending || isNaN(n) || n >= 250;
+        plus.disabled = pending || (!isNaN(n) && n >= 250);
       }
       function step(d) {
         if (pending) return;
@@ -403,19 +407,22 @@
               orgName: ws,
               planName: document.getElementById('planTier').value,
               seats: n,
-              billingCycle: 'annual',
+              billingCycle: 'monthly',
               devinUserId: getStore('devinUserId'),
               devinOrgId: getStore('devinOrgId'),
               devinEmail: getStore('devinEmail'),
             }),
           });
-          await res.json().catch(function () {});
+          var data = await res.json().catch(function () { return null; });
           stopTimer(started);
-          if (!res.ok) {
+          if (!res.ok || !data || data.success !== true) {
             show('error', 'We couldn\u2019t add seats right now.', ' Please try again in a few minutes. Your workspace and invoice are unchanged.');
+          } else if (data.withinLimit === false) {
+            show('error', 'This request exceeds the seats available on your plan.', ' No seats were added to ' + ws + '. Contact us about an Enterprise plan for larger teams.');
           } else {
-            added[ws] = (added[ws] || 0) + n;
-            show('success', n + ' seat' + (n === 1 ? '' : 's') + ' added to ' + ws + '.', ' Pending invitations can now join. ' + money(PRICE * n) + ' per month has been added to your next invoice, prorated for this cycle.');
+            var got = typeof data.seatsAdded === 'number' ? data.seatsAdded : n;
+            added[ws] = (added[ws] || 0) + got;
+            show('success', got + ' seat' + (got === 1 ? '' : 's') + ' added to ' + ws + '.', ' Pending invitations can now join. ' + money(PRICE * got) + ' per month has been added to your next invoice, prorated for this cycle.');
             sync();
           }
         } catch (_) {
