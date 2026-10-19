@@ -34,8 +34,11 @@ function invalidPayment(message, code = 'INVALID_PAYMENT') {
   return err;
 }
 
-function easternHour(date) {
-  return Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: 'America/New_York' }).format(date));
+function postsSameDay(date, cutoffHourEt) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    weekday: 'short', hour: 'numeric', hourCycle: 'h23', timeZone: 'America/New_York',
+  }).formatToParts(date).map((p) => [p.type, p.value]));
+  return !['Sat', 'Sun'].includes(parts.weekday) && Number(parts.hour) < cutoffHourEt;
 }
 
 /** Validates the request and returns the payment amount in whole cents. */
@@ -70,7 +73,7 @@ async function submitCardPayment(data, now = new Date()) {
   try {
     const { funding, card, cents } = validatePayment(data);
     const rule = POSTING_RULES[funding.product];
-    const postsSameDay = easternHour(now) < rule.cutoffHourEt;
+    const sameDay = postsSameDay(now, rule.cutoffHourEt);
     const amount = cents / 100;
 
     incrementMetric('card.payment.success', { route: ROUTE, product: funding.product });
@@ -88,7 +91,7 @@ async function submitCardPayment(data, now = new Date()) {
       fee: '0.00',
       totalDebit: amount.toFixed(2),
       rail: rule.rail,
-      postsOn: postsSameDay ? 'today' : 'next_business_day',
+      postsOn: sameDay ? 'today' : 'next_business_day',
       scheduledAt: now.toISOString(),
     };
   } catch (error) {

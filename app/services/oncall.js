@@ -297,7 +297,7 @@ const ALERT_SCENARIOS = {
     service: 'card-payments-api',
     endpoint: 'POST /api/oncall/cardpayment/payment',
     monitor: 'Error rate \u2014 POST /api/oncall/cardpayment/payment',
-    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/cardpayment/payment}.as_rate()',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/cardpayment/payment}.as_count() / sum:trace.express.request.hits{service:checkout-api,resource:POST /api/oncall/cardpayment/payment}.as_count() * 100',
     metricValue: '100% of checking-funded payments (HTTP 500)',
     threshold: '> 2%',
     baseline: '~0.1% (7-day)',

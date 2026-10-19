@@ -60,7 +60,8 @@ describe('accounts dashboard on-call skin (8f167941)', () => {
     expect(skinned).toContain('const oncallApiPath = "/api/oncall/cardpayment/payment"');
     expect(skinned).toContain('const triggerWhen = {"fromAccount":"CHK-1634"}');
     expect(skinned).toContain("fetch('/api/8f167941/card-payment'");
-    expect(skinned).toContain('<option value="CHK-1634"');
+    expect(skinned).toContain('<option value="CHK-1634" data-label="My Checking" data-balance="4000.00">');
+    expect(skinned).toContain('v <= availableBalance()');
     expect(skinned).toContain('NOT ACTUALLY A BANK OF AMERICA SITE');
   });
 
@@ -106,5 +107,15 @@ describe('accounts dashboard on-call skin (8f167941)', () => {
       new Date('2026-10-20T02:00:00Z'),
     );
     expect(result.postsOn).toBe('next_business_day');
+  });
+
+  test('weekend payments post the next business day', async () => {
+    const saturdayMorning = new Date('2026-10-24T14:00:00Z');
+    const result = await submitCardPayment({ fromAccount: 'SAV-8820', toAccount: 'CARD-4417', amount: 25 }, saturdayMorning);
+    expect(result.postsOn).toBe('next_business_day');
+  });
+
+  test('error monitor query is an error percentage of all payment requests', () => {
+    expect(ALERT_SCENARIOS.cardpayment.metricQuery).toMatch(/errors\{[^}]+\}\.as_count\(\) \/ sum:trace\.express\.request\.hits\{[^}]+\}\.as_count\(\) \* 100$/);
   });
 });

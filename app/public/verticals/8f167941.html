@@ -198,8 +198,8 @@
           <div class="field">
             <label for="fromAccount">Pay from</label>
             <select id="fromAccount">
-              <option value="CHK-1634" data-label="My Checking">My Checking - 1634 ($4,000.00)</option>
-              <option value="SAV-8820" data-label="My Savings">My Savings - 8820 ($7,680.90)</option>
+              <option value="CHK-1634" data-label="My Checking" data-balance="4000.00">My Checking - 1634 ($4,000.00)</option>
+              <option value="SAV-8820" data-label="My Savings" data-balance="7680.90">My Savings - 8820 ($7,680.90)</option>
             </select>
             <input type="hidden" id="toAccount" value="CARD-4417">
           </div>
@@ -329,7 +329,10 @@
       }
       function amountValid() {
         var v = rawAmount();
-        return Number.isFinite(v) && v >= 1 && Math.abs(v * 100 - Math.round(v * 100)) < 1e-6;
+        return Number.isFinite(v) && v >= 1 && Math.abs(v * 100 - Math.round(v * 100)) < 1e-6 && v <= availableBalance();
+      }
+      function availableBalance() {
+        return Number(fromAccount.options[fromAccount.selectedIndex].getAttribute('data-balance'));
       }
       function amountValue() {
         return Math.round(rawAmount() * 100) / 100;
@@ -345,7 +348,9 @@
         var from = selectedOption().getAttribute('data-label');
         summary.textContent = amountValid()
           ? 'You are paying ' + fmt(amountValue()) + ' from ' + from + ' to BankAmericard Credit Card.'
-          : 'Enter a payment amount of at least $1.00, in dollars and cents.';
+          : rawAmount() > availableBalance()
+            ? 'The payment amount exceeds the available balance in ' + from + '.'
+            : 'Enter a payment amount of at least $1.00, in dollars and cents.';
         if (!inFlight) submitBtn.disabled = !amountValid();
       }
       function setOpen(open) {
