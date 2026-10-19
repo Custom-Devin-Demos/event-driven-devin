@@ -53,11 +53,10 @@ process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID = 'C0TEST';
 jest.setTimeout(30000);
 
 const SLUG = 'e85b5836';
-const VALID_BOOKING = {
+const BOOKING_DETAILS = {
   action: 'confirm-booking',
   examCode: 'MO-200',
   testCentreId: 'VUE-LON-01',
-  slotId: 'VUE-LON-01-1-1',
   candidate: {
     firstName: 'Sam',
     lastName: 'Taylor',
@@ -66,6 +65,12 @@ const VALID_BOOKING = {
   },
   residencyRegion: 'UK',
 };
+
+function validBooking(overrides = {}, now = new Date()) {
+  const londonCentre = getAvailability({ examCode: 'MO-200' }, now).testCentres
+    .find((centre) => centre.id === BOOKING_DETAILS.testCentreId);
+  return { ...BOOKING_DETAILS, slotId: londonCentre.slots[0].id, ...overrides };
+}
 
 describe('Pearson VUE exam scheduling on-call vertical', () => {
   let server;
@@ -90,7 +95,7 @@ describe('Pearson VUE exam scheduling on-call vertical', () => {
 
   test('confirmation hangs about 9s, times out, and logs each completed store write', async () => {
     const started = Date.now();
-    await expect(confirmBooking(VALID_BOOKING)).rejects.toMatchObject({ code: 'BOOKING_TIMEOUT' });
+    await expect(confirmBooking(validBooking())).rejects.toMatchObject({ code: 'BOOKING_TIMEOUT' });
     const elapsed = Date.now() - started;
     expect(elapsed).toBeGreaterThanOrEqual(8500);
     expect(elapsed).toBeLessThan(BOOKING_DEADLINE_MS + 1000);
@@ -132,13 +137,78 @@ describe('Pearson VUE exam scheduling on-call vertical', () => {
     expect(slots.every((slot) => new Date(slot.startsAt).getTime() > now.getTime())).toBe(true);
   });
 
+  test('availability uses London wall time and absolute IDs in BST and GMT', () => {
+    const bstNow = new Date('2026-10-19T12:00:00.000Z');
+    const bstSlots = getAvailability({ examCode: 'MO-200' }, bstNow)
+      .testCentres.find((centre) => centre.id === 'VUE-LON-01').slots;
+    expect(bstSlots.find((slot) => slot.id.endsWith('-0900'))).toMatchObject({
+      id: 'VUE-LON-01-20261020-0900',
+      startsAt: '2026-10-20T08:00:00.000Z',
+    });
+
+    const gmtNow = new Date('2026-11-19T12:00:00.000Z');
+    const gmtSlots = getAvailability({ examCode: 'MO-200' }, gmtNow)
+      .testCentres.find((centre) => centre.id === 'VUE-LON-01').slots;
+    expect(gmtSlots.find((slot) => slot.id.endsWith('-0900'))).toMatchObject({
+      id: 'VUE-LON-01-20261120-0900',
+      startsAt: '2026-11-20T09:00:00.000Z',
+    });
+  });
+
+  test('availability resolves London slots on the 2026 daylight-saving transition date', () => {
+    const now = new Date('2026-10-24T12:00:00.000Z');
+    const slots = getAvailability({ examCode: 'MO-200' }, now)
+      .testCentres.find((centre) => centre.id === 'VUE-LON-01').slots;
+    expect(slots.find((slot) => slot.id === 'VUE-LON-01-20261025-0900').startsAt)
+      .toBe('2026-10-25T09:00:00.000Z');
+    expect(slots.find((slot) => slot.id === 'VUE-LON-01-20261025-1300').startsAt)
+      .toBe('2026-10-25T13:00:00.000Z');
+  });
+
+  test('absolute slot IDs do not map a previous day to a new date after midnight', async () => {
+    const beforeMidnight = new Date('2026-10-19T22:59:00.000Z');
+    const afterMidnight = new Date('2026-10-20T00:01:00.000Z');
+    const firstSlots = getAvailability({ examCode: 'MO-200' }, beforeMidnight)
+      .testCentres.flatMap((centre) => centre.slots);
+    const secondSlots = getAvailability({ examCode: 'MO-200' }, afterMidnight)
+      .testCentres.flatMap((centre) => centre.slots);
+    const secondById = new Map(secondSlots.map((slot) => [slot.id, slot]));
+    firstSlots.forEach((slot) => {
+      if (secondById.has(slot.id)) expect(secondById.get(slot.id).startsAt).toBe(slot.startsAt);
+    });
+    const expiredSlot = firstSlots.find((slot) => !secondById.has(slot.id));
+    expect(expiredSlot).toBeDefined();
+    await expect(confirmBooking(validBooking({ slotId: expiredSlot.id }, afterMidnight), afterMidnight))
+      .rejects.toMatchObject({ code: 'INVALID_BOOKING' });
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  test('toString is not a valid residency region and is rejected before alerting', async () => {
+    const started = Date.now();
+    const response = await fetch(`${baseUrl}/api/oncall/examscheduling/appointments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(validBooking({ residencyRegion: 'toString' })),
+    });
+    expect(Date.now() - started).toBeLessThan(500);
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: 'INVALID_BOOKING' });
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(createDevinSession).not.toHaveBeenCalled();
+  });
+
   test.each([
-    ['unknown exam', { examCode: 'UNKNOWN' }],
-    ['unknown centre', { testCentreId: 'VUE-NOWHERE' }],
-    ['slot from another centre', { testCentreId: 'VUE-MAN-01', slotId: 'VUE-LON-01-1-1' }],
-    ['bad email', { candidate: { ...VALID_BOOKING.candidate, email: 'not-an-email' } }],
-  ])('rejects %s before recording or alerting', async (_caseName, overrides) => {
-    await expect(confirmBooking({ ...VALID_BOOKING, ...overrides })).rejects.toMatchObject({ code: 'INVALID_BOOKING' });
+    ['unknown exam', (booking) => ({ ...booking, examCode: 'UNKNOWN' })],
+    ['unknown centre', (booking) => ({ ...booking, testCentreId: 'VUE-NOWHERE' })],
+    ['slot from another centre', (booking) => ({ ...booking, testCentreId: 'VUE-MAN-01' })],
+    ['bad email', (booking) => ({
+      ...booking,
+      candidate: { ...booking.candidate, email: 'not-an-email' },
+    })],
+  ])('rejects %s before recording or alerting', async (_caseName, invalidBooking) => {
+    await expect(confirmBooking(invalidBooking(validBooking()))).rejects.toMatchObject({ code: 'INVALID_BOOKING' });
     expect(Sentry.captureException).not.toHaveBeenCalled();
     expect(postMessage).not.toHaveBeenCalled();
     expect(createDevinSession).not.toHaveBeenCalled();
@@ -168,7 +238,7 @@ describe('Pearson VUE exam scheduling on-call vertical', () => {
     const response = await fetch(`${baseUrl}/api/oncall/examscheduling/appointments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(VALID_BOOKING),
+      body: JSON.stringify(validBooking()),
     });
     expect(Date.now() - started).toBeGreaterThanOrEqual(8500);
     expect(response.status).toBe(504);

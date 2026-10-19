@@ -221,6 +221,7 @@
     let selectedCentre = null;
     let selectedSlot = null;
     let busy = false;
+    let searchSeq = 0;
 
     function postJson(url, body) {
       return fetch(url, {
@@ -309,16 +310,33 @@
       });
     }
 
+    function clearAvailabilityAndSelection() {
+      availability = null;
+      centresList.textContent = '';
+      confirmBtn.disabled = true;
+      selectedCentre = null;
+      selectedSlot = null;
+      document.getElementById('reviewExam').textContent = examSelect.value;
+      document.getElementById('reviewCentre').textContent = 'Choose a centre';
+      document.getElementById('reviewSlot').textContent = 'Choose a time';
+      document.getElementById('reviewPrice').textContent = '—';
+      clearMessage(result);
+    }
+
     document.getElementById('findCentres').addEventListener('click', function () {
       const button = this;
+      const seq = ++searchSeq;
+      const examCode = examSelect.value;
+      const postcode = postcodeInput.value.trim();
       button.disabled = true;
       button.textContent = 'Searching…';
       clearMessage(result);
       clearMessage(successPanel);
       postJson('/api/vue-scheduling/availability', {
-        examCode: examSelect.value,
-        postcode: postcodeInput.value.trim(),
+        examCode: examCode,
+        postcode: postcode,
       }).then(function (response) {
+        if (seq !== searchSeq || examSelect.value !== examCode) return;
         if (!response.ok) {
           showMessage(result, 'error', response.data.error || 'Availability could not be loaded.');
           return;
@@ -326,6 +344,7 @@
         availability = response.data;
         renderCentres(availability);
       }).catch(function () {
+        if (seq !== searchSeq || examSelect.value !== examCode) return;
         showMessage(result, 'error', 'We could not load test-centre availability. Please try again.');
       }).then(function () {
         button.disabled = false;
@@ -334,20 +353,18 @@
     });
 
     examSelect.addEventListener('change', function () {
-      availability = null;
-      centresList.textContent = '';
-      confirmBtn.disabled = true;
-      selectedCentre = null;
-      selectedSlot = null;
-      document.getElementById('reviewExam').textContent = this.value;
-      document.getElementById('reviewCentre').textContent = 'Choose a centre';
-      document.getElementById('reviewSlot').textContent = 'Choose a time';
-      document.getElementById('reviewPrice').textContent = '—';
-      clearMessage(result);
+      searchSeq += 1;
+      clearAvailabilityAndSelection();
+    });
+
+    postcodeInput.addEventListener('input', function () {
+      searchSeq += 1;
+      clearAvailabilityAndSelection();
     });
 
     confirmBtn.addEventListener('click', function () {
-      if (busy || !availability || !selectedCentre || !selectedSlot) return;
+      if (busy || !availability || !selectedCentre || !selectedSlot
+        || examSelect.value !== availability.exam.code) return;
       busy = true;
       confirmBtn.disabled = true;
       confirmBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Confirming booking';
@@ -355,7 +372,7 @@
       clearMessage(successPanel);
       postJson('/api/vue-scheduling/appointments', {
         action: 'confirm-booking',
-        examCode: availability.exam.code,
+        examCode: examSelect.value,
         testCentreId: selectedCentre.id,
         slotId: selectedSlot.id,
         candidate: {

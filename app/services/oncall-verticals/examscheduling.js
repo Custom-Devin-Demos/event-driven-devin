@@ -13,18 +13,67 @@ const EXAMS = [
   { code: 'SY0-701', name: 'CompTIA Security+', provider: 'Pearson VUE', priceGbp: 33800 },
 ];
 
+function londonDateParts(instant, includeTime = false) {
+  const options = {
+    timeZone: 'Europe/London',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  };
+  if (includeTime) Object.assign(options, {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+  return Object.fromEntries(new Intl.DateTimeFormat('en-GB', options)
+    .formatToParts(instant)
+    .map(({ type, value }) => [type, value]));
+}
+
+function londonUtcOffset(instant) {
+  const parts = londonDateParts(instant, true);
+  const londonWallTimeAsUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour) % 24,
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  return londonWallTimeAsUtc - instant;
+}
+
+function londonWallTimeToUtc(year, month, day, hour, minute) {
+  const guess = Date.UTC(year, month - 1, day, hour, minute);
+  const firstResult = guess - londonUtcOffset(guess);
+  return new Date(guess - londonUtcOffset(firstResult));
+}
+
 function slotsFor(centre, now = new Date()) {
-  const dayStart = new Date(now);
-  dayStart.setUTCHours(0, 0, 0, 0);
-  return centre.dayOffsets.flatMap((dayOffset) => centre.hours.map((hour, slotIndex) => {
-    const startsAt = new Date(dayStart.getTime() + dayOffset * 86400000);
-    startsAt.setUTCHours(hour, slotIndex % 2 ? 30 : 0, 0, 0);
-    return {
-      id: `${centre.id}-${dayOffset}-${slotIndex + 1}`,
-      startsAt: startsAt.toISOString(),
-      status: 'available',
-    };
-  }));
+  const today = londonDateParts(now);
+  return centre.dayOffsets.flatMap((dayOffset) => {
+    const calendarDate = new Date(Date.UTC(
+      Number(today.year),
+      Number(today.month) - 1,
+      Number(today.day) + dayOffset,
+    ));
+    const date = londonDateParts(calendarDate);
+    const year = Number(date.year);
+    const month = Number(date.month);
+    const day = Number(date.day);
+    return centre.hours.map((hour) => {
+      const minute = 0;
+      const startsAt = londonWallTimeToUtc(year, month, day, hour, minute);
+      const dateId = `${year}${String(month).padStart(2, '0')}${String(day).padStart(2, '0')}`;
+      const timeId = `${String(hour).padStart(2, '0')}${String(minute).padStart(2, '0')}`;
+      return {
+        id: `${centre.id}-${dateId}-${timeId}`,
+        startsAt: startsAt.toISOString(),
+        status: 'available',
+      };
+    });
+  });
 }
 
 const TEST_CENTRES = [
@@ -143,6 +192,7 @@ function validateBooking(data = {}, now = new Date()) {
 
   const slot = slotsFor(testCentre, now).find((candidate) => candidate.id === data.slotId);
   if (!slot) throw invalidBooking('Select an available slot at this test centre.');
+  if (new Date(slot.startsAt) <= now) throw invalidBooking('That slot is no longer available. Search again.');
 
   const candidate = data.candidate && typeof data.candidate === 'object' ? data.candidate : {};
   const firstName = typeof candidate.firstName === 'string' ? candidate.firstName.trim() : '';
@@ -153,7 +203,7 @@ function validateBooking(data = {}, now = new Date()) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw invalidBooking('Enter a valid email address.');
 
   const residencyRegion = data.residencyRegion;
-  if (!RESIDENCY_REGIONS[residencyRegion]) throw invalidBooking('Select a valid residency region.');
+  if (!Object.hasOwn(RESIDENCY_REGIONS, residencyRegion)) throw invalidBooking('Select a valid residency region.');
 
   return {
     exam,
@@ -200,9 +250,9 @@ async function syncAcrossRegions(appointmentId, deadlineAt) {
   return writes;
 }
 
-async function confirmBooking(data = {}) {
+async function confirmBooking(data = {}, now = new Date()) {
   const startedAt = Date.now();
-  const booking = validateBooking(data);
+  const booking = validateBooking(data, now);
   const appointmentId = `VUE-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
   try {
