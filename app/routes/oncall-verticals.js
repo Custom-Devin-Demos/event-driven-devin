@@ -19,6 +19,7 @@ const { getOncallSkin } = require('../../config/oncall-skins');
 const { runWithAlertDestination } = require('../services/alert-destination');
 const logger = require('../telemetry/logger');
 const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
+const { getAvailability, confirmBooking } = require('../services/oncall-verticals/examscheduling');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
@@ -576,6 +577,46 @@ router.post('/api/oncall/identity/applications', async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: error.code || 'APPLICATION_CREATE_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+router.post('/api/oncall/examscheduling/availability', (req, res) => {
+  try {
+    res.json(getAvailability(req.body || {}));
+  } catch (error) {
+    const status = error.code === 'INVALID_BOOKING' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'AVAILABILITY_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+router.post('/api/oncall/examscheduling/appointments', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await confirmBooking({
+      examCode: body.examCode,
+      testCentreId: body.testCentreId,
+      slotId: body.slotId,
+      candidate: body.candidate,
+      residencyRegion: body.residencyRegion,
+    }));
+  } catch (error) {
+    const isTimeout = error.code === 'BOOKING_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_BOOKING' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'We couldn\'t confirm your booking. The request timed out before your appointment was reserved. Please try again in a few minutes.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'BOOKING_FAILED',
       requestId: req.requestId,
     });
   }
