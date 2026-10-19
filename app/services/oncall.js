@@ -287,6 +287,27 @@ const ALERT_SCENARIOS = {
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },
+  cardpayment: {
+    vertical: 'cardpayment',
+    page: '8f167941.html',
+    apiPath: '/api/8f167941/card-payment',
+    oncallApiPath: '/api/oncall/cardpayment/payment',
+    owner: 'Dana Whitfield (card-payments-oncall)',
+    brand: 'Online Banking (Credit card payments)',
+    service: 'card-payments-api',
+    endpoint: 'POST /api/oncall/cardpayment/payment',
+    monitor: 'Error rate \u2014 POST /api/oncall/cardpayment/payment',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/cardpayment/payment}.as_count() / sum:trace.express.request.hits{service:checkout-api,resource:POST /api/oncall/cardpayment/payment}.as_count() * 100',
+    metricValue: '100% of checking-funded payments (HTTP 500)',
+    threshold: '> 2%',
+    baseline: '~0.1% (7-day)',
+    release: 'card-payments@2.4.0',
+    symptom: 'Credit card payments funded from checking fail immediately with HTTP 500. Payments funded from savings succeed.',
+    impact: 'Customers cannot pay their credit card from checking, the default funding account; every attempt errors.',
+    triggerWhen: { fromAccount: 'CHK-1634' },
+    // Branded page only: not offered on the generic hub.
+    unlisted: true,
+  },
   rebooking: {
     vertical: 'rebooking',
     page: 'e7a1c4d9.html',
