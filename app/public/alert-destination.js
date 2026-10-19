@@ -124,7 +124,6 @@
     };
   }
 
-  var storedValue = normalize(localStorage.getItem(KEY));
-  if (storedValue && localStorage.getItem(EXPLICIT_KEY) === '1') writeCookie(storedValue);
+  set(get());
   window.AlertDestination = { get: get, set: set, onChange: onChange, mount: mount };
 })();

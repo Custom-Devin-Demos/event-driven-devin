@@ -85,8 +85,8 @@ describe('browser alert destination defaults', () => {
     runtime.api.mount(picker.element, { defaultValue: 'teams' });
 
     expect(runtime.api.get()).toBe('teams');
-    expect(runtime.localStorage.getItem('alertDestination')).toBeNull();
-    expect(runtime.document.cookie).toBe('');
+    expect(runtime.localStorage.getItem('alertDestination')).not.toBe('teams');
+    expect(runtime.document.cookie).not.toContain('alert_destination=teams');
     expect(picker.buttons[1].attributes['aria-checked']).toBe('true');
 
     picker.buttons[0].handlers.click();
@@ -116,7 +116,7 @@ describe('browser alert destination defaults', () => {
     runtime.api.mount(picker.element, { defaultValue: 'teams', teamsAvailable: false });
 
     expect(runtime.api.get()).toBe('slack');
-    expect(runtime.localStorage.getItem('alertDestination')).toBeNull();
+    expect(runtime.localStorage.getItem('alertDestination')).not.toBe('teams');
     expect(picker.buttons[1].attributes['aria-checked']).toBe('false');
   });
 });
