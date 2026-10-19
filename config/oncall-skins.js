@@ -3096,6 +3096,8 @@ const ONCALL_SKINS = {
     brandMark: 'C',
     vertical: 'fluidanalysis',
     oncallOnly: true,
+    teamsAlerts: true,
+    alertDestination: 'teams',
     page: { file: 'b33a7a98.html', title: 'Cummins MarketPlace' },
     theme: {
       '--accent': '#008080',
@@ -3119,6 +3121,8 @@ const ONCALL_SKINS = {
     brandMark: 'C',
     vertical: 'picklist',
     oncallOnly: true,
+    teamsAlerts: true,
+    alertDestination: 'teams',
     page: { file: '35a59686.html', title: 'Genuine Cummins Parts' },
     theme: {
       '--accent': '#008080',
@@ -3142,6 +3146,8 @@ const ONCALL_SKINS = {
     brandMark: 'C',
     vertical: 'esnlookup',
     oncallOnly: true,
+    teamsAlerts: true,
+    alertDestination: 'teams',
     page: { file: 'e8615789.html', title: 'Cummins QuickServe Online' },
     theme: {
       '--accent': '#E4002B',
