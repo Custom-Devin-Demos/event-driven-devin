@@ -194,8 +194,8 @@
                   <fieldset>
                     <label for="planTier">Subscriber class</label>
                     <select id="planTier">
-                      <option value="Professional">Professional</option>
-                      <option value="Non-Professional">Non-Professional</option>
+                      <option value="enterprise">Professional</option>
+                      <option value="business">Non-Professional</option>
                     </select>
                   </fieldset>
                   <fieldset>
@@ -263,6 +263,7 @@
       };
       function getStore(key) { try { return localStorage.getItem(key) || ''; } catch (_) { return ''; } }
       function money(n) { return '$' + n.toLocaleString('en-US'); }
+      function tierLabel() { return tierSel.options[tierSel.selectedIndex].text; }
 
       var form = document.getElementById('provisionForm');
       var productSel = document.getElementById('product');
@@ -300,10 +301,10 @@
       function sync() {
         var p = PRODUCTS[productSel.value];
         var n = seatCount();
-        var unit = tierSel.value === 'Professional' ? p.pro : p.non;
+        var unit = tierLabel() === 'Professional' ? p.pro : p.non;
         hint.textContent = p.hint;
         document.getElementById('sumProduct').textContent = productSel.value;
-        document.getElementById('sumTier').textContent = tierSel.value;
+        document.getElementById('sumTier').textContent = tierLabel();
         document.getElementById('sumSeats').textContent = isNaN(n) ? '\u2014' : n.toLocaleString('en-US');
         document.getElementById('sumUnit').textContent = money(unit) + ' / mo';
         document.getElementById('sumTotal').textContent = isNaN(n) ? '\u2014' : money(unit * n);
@@ -374,7 +375,7 @@
           return;
         }
         var name = productSel.value;
-        var tier = tierSel.value;
+        var tier = tierLabel();
         setBusy(true);
         show('pending', 'Adding ' + n + ' ' + tier.toLowerCase() + ' users to ' + name + '\u2026', ' Validating the request against your vendor agreement and updating the entitlement.');
         var started = startTimer();
@@ -384,18 +385,20 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               orgName: name,
-              planName: tier,
+              planName: tierSel.value,
               seats: n,
-              billingCycle: 'annual',
+              billingCycle: 'monthly',
               devinUserId: getStore('devinUserId'),
               devinOrgId: getStore('devinOrgId'),
               devinEmail: getStore('devinEmail'),
             }),
           });
-          await res.json().catch(function () {});
+          var data = await res.json().catch(function () { return null; });
           stopTimer(started);
-          if (!res.ok) {
+          if (!res.ok || !data || data.success !== true) {
             show('error', 'We couldn\u2019t update this entitlement right now.', ' Please try again in a few minutes. Your existing entitlements are unchanged.');
+          } else if (data.withinLimit === false) {
+            show('error', 'This request exceeds the users permitted under your agreement.', ' No users were added to ' + name + '. Contact your NYSE account manager to raise the ' + tier.toLowerCase() + ' user cap.');
           } else {
             added[name] = (added[name] || 0) + n;
             renderFeeds();
