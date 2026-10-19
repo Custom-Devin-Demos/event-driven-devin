@@ -418,8 +418,8 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
                 if (ribbonCollapsed) expandRibbon();
                 var automatedStatusEl = document.getElementById('oncall-status');
                 if (automatedStatusEl) {
-                  automatedStatusEl.style.color = '#3fb950';
-                  automatedStatusEl.textContent = 'Error reported to the automated alert channel';
+                  automatedStatusEl.style.color = '#d29922';
+                  automatedStatusEl.textContent = 'HTTP 500 — automated alert triggered; watch the automated alerts channel';
                 }
                 scheduleCollapse();
               }

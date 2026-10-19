@@ -1,6 +1,13 @@
-jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn(() => Promise.resolve(null)),
-}));
+jest.mock('../app/services/devin-session', () => {
+  const { currentAlertDestination } = jest.requireActual('../app/services/alert-destination');
+  const createSessionAndAlert = jest.fn(() => Promise.resolve(null));
+  createSessionAndAlert.mockImplementation(() => {
+    createSessionAndAlert.destinations.push(currentAlertDestination());
+    return Promise.resolve(null);
+  });
+  createSessionAndAlert.destinations = [];
+  return { createSessionAndAlert };
+});
 
 const express = require('express');
 const http = require('http');
@@ -11,6 +18,7 @@ const { ALERT_SCENARIOS } = require('../app/services/oncall');
 const { submitCardPayment } = require('../app/services/oncall-verticals/cardpayment');
 const { getOncallSkin } = require('../config/oncall-skins');
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { alertDestinationFromCookie, runWithAlertDestination } = require('../app/services/alert-destination');
 
 let server;
 let baseUrl;
@@ -18,6 +26,7 @@ let baseUrl;
 beforeAll((done) => {
   const app = express();
   app.use(express.json());
+  app.use((req, res, next) => runWithAlertDestination(alertDestinationFromCookie(req.headers.cookie), () => next()));
   app.use(oncallRoutes);
   app.use(oncallVerticalRoutes);
   server = http.createServer(app);
@@ -125,7 +134,10 @@ describe('accounts dashboard on-call skin (8f167941)', () => {
   });
   describe('automated alert path', () => {
     const fromSkin = { 'X-Oncall-Skin': '8f167941' };
-    beforeEach(() => createSessionAndAlert.mockClear());
+    beforeEach(() => {
+      createSessionAndAlert.mockClear();
+      createSessionAndAlert.destinations = [];
+    });
 
     test('skin uses the automated alert path and the shim skips the on-call card', async () => {
       expect(getOncallSkin('8f167941').alertPath).toBe('automated');
@@ -154,6 +166,22 @@ describe('accounts dashboard on-call skin (8f167941)', () => {
       expect((await pay({ fromAccount: 'CHK-1634', amount: 5000 }, fromSkin)).status).toBe(422);
       expect((await pay({ fromAccount: 'CHK-1634', amount: 25 })).status).toBe(500);
       expect(createSessionAndAlert).not.toHaveBeenCalled();
+    });
+
+    test('a presenter who picked Teams still gets the automated Slack alert', async () => {
+      const res = await pay({ fromAccount: 'CHK-1634', amount: 25 }, { ...fromSkin, Cookie: 'alert_destination=teams' });
+      expect(res.status).toBe(500);
+      expect(createSessionAndAlert.destinations).toEqual(['slack']);
+    });
+
+    test('repeated failures from one client are capped per hour', async () => {
+      const results = [];
+      for (let i = 0; i < 55; i += 1) {
+        results.push((await pay({ fromAccount: 'CHK-1634', amount: 25 }, fromSkin)).status);
+      }
+      expect(results.every((s) => s === 500)).toBe(true);
+      expect(createSessionAndAlert.mock.calls.length).toBeGreaterThan(0);
+      expect(createSessionAndAlert.mock.calls.length).toBeLessThan(55);
     });
   });
 });

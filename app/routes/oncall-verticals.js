@@ -16,6 +16,8 @@ const { rebookFlight } = require('../services/oncall-verticals/rebooking');
 const { submitCardPayment } = require('../services/oncall-verticals/cardpayment');
 const { createSessionAndAlert } = require('../services/devin-session');
 const { getOncallSkin } = require('../../config/oncall-skins');
+const { runWithAlertDestination } = require('../services/alert-destination');
+const logger = require('../telemetry/logger');
 const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
@@ -284,15 +286,42 @@ router.post('/api/oncall/vaccines/order', async (req, res) => {
   }
 });
 
+// Same per-IP sliding-hour cap as the on-call trigger endpoints: each alert
+// posts to Slack and can start a Devin session.
+const AUTOMATED_ALERT_HOURLY_CAP = 50;
+const AUTOMATED_ALERT_WINDOW_MS = 3600000;
+const automatedAlertWindows = new Map();
+
+function automatedAlertAllowed(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' && forwarded.trim()
+    ? forwarded.split(',').pop().trim()
+    : (req.socket.remoteAddress || 'unknown');
+  const now = Date.now();
+  for (const [key, window] of automatedAlertWindows) {
+    while (window.length && window[0] <= now - AUTOMATED_ALERT_WINDOW_MS) window.shift();
+    if (!window.length) automatedAlertWindows.delete(key);
+  }
+  const window = automatedAlertWindows.get(ip) || [];
+  if (window.length >= AUTOMATED_ALERT_HOURLY_CAP) {
+    logger.warn('Automated card-payment alert skipped — hourly cap hit', { ip, limit: AUTOMATED_ALERT_HOURLY_CAP });
+    return false;
+  }
+  window.push(now);
+  automatedAlertWindows.set(ip, window);
+  return true;
+}
+
 /**
  * Skins with alertPath 'automated' (e.g. 8f167941) send card-payment server
- * errors to the legacy automated alert channel with a Devin session instead
- * of the on-call card.
+ * errors to the legacy automated alert channel (always Slack, whatever the
+ * hub's Teams/Slack choice) with a Devin session instead of the on-call card.
  */
 function raiseAutomatedCardPaymentAlert(req, body, error) {
   const skin = getOncallSkin(req.get('x-oncall-skin'));
   if (!skin || skin.vertical !== 'cardpayment' || skin.alertPath !== 'automated') return;
-  createSessionAndAlert({
+  if (!automatedAlertAllowed(req)) return;
+  runWithAlertDestination('slack', () => createSessionAndAlert({
     issueTitle: `${error.name}: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
     culprit: 'app/services/oncall-verticals/cardpayment.js — submitCardPayment',
@@ -312,7 +341,7 @@ function raiseAutomatedCardPaymentAlert(req, body, error) {
     extra: { fromAccount: body.fromAccount, amount: body.amount, requestId: req.requestId },
     level: 'error',
     platform: 'node',
-  }).catch(() => {});
+  })).catch(() => {});
 }
 
 /**
