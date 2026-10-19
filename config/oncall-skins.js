@@ -4483,6 +4483,32 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A FOX ONE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Fox Corporation product.',
   },
+  '0176c39d': {
+    slug: '0176c39d',
+    company: 'NYSE',
+    brandMark: 'N',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: { file: '0176c39d.html', title: 'Add Users to Entitlement | NYSE Data Products' },
+    theme: {
+      '--accent': '#235F73',
+      '--ink': '#000000',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'NYSE Market Data Client Support',
+    alertCard: {
+      title: 'p95 latency trending up \u2014 NYSE Data Products entitlement updates',
+      service: 'nyse-entitlements-api',
+      team: 'market-data-platform-oncall',
+      release: 'nyse-entitlements@1.0.3',
+      baseline: '~350ms (7-day p95, before nyse-entitlements@1.0.3)',
+      symptom: 'Entitlement updates on the NYSE Data Products client portal slowed after the last release and get slower with every request. Process RSS trends up alongside latency.',
+      impact: 'Firms adding display users to a feed wait 6+ seconds per request and the wait keeps growing under sustained traffic.',
+    },
+    disclaimer: 'NOT ACTUALLY AN NYSE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real NYSE Group or Intercontinental Exchange product.',
+  },
 };
 
 function getOncallSkin(slug) {
