@@ -355,6 +355,13 @@
     document.getElementById('accountTier').addEventListener('change', updateLines);
     setTimeout(updateLines, 0);
 
+    function showResult(title, detail) {
+      const result = document.getElementById('result');
+      const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+      result.replaceChildren(t, d);
+    }
+
     document.getElementById('transferForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -370,14 +377,14 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Your cash out didn't go through</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          showResult("Your cash out didn't go through", `${data.errorClass}: ${data.error}`);
         } else {
           result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Deposit on its way</div><div class="error-detail">${money(depositTotal())} is headed to your ${card}. Most banks show Express Pay deposits within a few hours.</div>`;
+          showResult('Deposit on its way', `Your earnings are headed to your ${card}. Most banks show Express Pay deposits within a few hours.`);
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+        showResult('Network error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Confirm deposit'; result.scrollIntoView({ block: 'nearest' }); }
     });
   </script>
