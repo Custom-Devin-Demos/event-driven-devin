@@ -106,6 +106,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Cummins OneMarket — Marketplace storefront** (unlisted — direct URL only; static mirror of the salesforce-base CloudCraze recreation regenerated with `scripts/8d3527ab-capture.js`; dealer product pages' Add to Cart is wired by `app/public/verticals/8d3527ab/add-to-cart.js`) | `/cummins`, `/onemarket`, `/8d3527ab` | `app/public/verticals/8d3527ab.html`, `app/public/verticals/8d3527ab/` | `POST /api/8d3527ab/cart` | `app/services/verticals/8d3527ab.js` |
 | **Nordstrom — Homepage & Shopping Bag checkout** (unlisted — direct URL only; bag icon in the header opens a 4-item Shopping Bag drawer, Check Out fails) | `/d3e3804d` | `app/public/verticals/d3e3804d.html` | `GET /api/d3e3804d/catalog`, `POST /api/d3e3804d/checkout` | `app/services/verticals/d3e3804d.js`, `app/services/verticals/d3e3804d-fulfillment.js` |
 | **Nordstrom — Black Friday Gift Finder, native iOS (report bridge)** (no page — `COG-GTM/ios-demos` `apps/nordstrom-gift-finder` SwiftUI app; Partner briefs fail at final reservation and the app posts one report; routed as customer `5b7227b4` only when the report carries the Nordstrom org, else default) | — | — | `POST /api/5b7227b4/gift-finder/ios/error` | `app/services/verticals/5b7227b4-gift-finder-ios.js`, `app/routes/verticals/5b7227b4-gift-finder-ios.js` |
+| **LPL Financial — ClientWorks web + Account View iOS (report bridge)** (no page — `COG-GTM/lpl-clientworks-legacy` .NET/AngularJS workstation and SwiftUI app under `ios/`; positions grid fails for accounts holding a security with no prior close; always routed as the default customer (Devin GTM), session created as the user resolved from `devinEmail`) | — | — | `POST /api/lpl/clientworks/error` | `app/services/verticals/lpl-clientworks.js`, `app/routes/verticals/lpl-clientworks.js` |
 | **PG&E Outage Center — address outage status** (unlisted — direct URL only; clone of the public pgealerts.alerts.pge.com lookup, no sign-in) | `/b6f570dc`, `/b6f570dc/outage-status` | `app/public/verticals/b6f570dc.html` | `GET /api/b6f570dc/addresses`, `GET /api/b6f570dc/situation`, `POST /api/b6f570dc/outage-status`, `POST /api/b6f570dc/outage-status/reset` | `app/services/verticals/b6f570dc.js`, `app/services/verticals/b6f570dc-grid.js` |
 | **Verizon — Wireless Checkout** (unlisted — direct URL only) | `/verizon`, `/4e150e99` | `app/public/verticals/4e150e99.html` | `GET /api/4e150e99/catalog`, `POST /api/4e150e99/checkout` | `app/services/verticals/4e150e99.js` |
 | **Elevance Health — Anthem Individual & Family enrollment** (unlisted — direct URL only) | `/elevance`, `/anthem`, `/9fdcf315` | `app/public/verticals/9fdcf315.html` | `GET /api/9fdcf315/plans`, `POST /api/9fdcf315/enroll` | `app/services/verticals/9fdcf315.js` |
@@ -289,6 +290,25 @@ client-forwarded from the app (`devinUserId`, `devinOrgId`, and `devinEmail`), n
 named person. The remediation directive points to the external Swift repo, and reproductions must
 disable failure reporting with `WBC_DISABLE_FAILURE_REPORTS=1`. Regression coverage lives in
 `tests/westpac-ios-error.test.js`.
+
+### LPL ClientWorks positions-grid scenario (web + native SwiftUI iOS, external repo)
+
+ClientWorks (advisor web workstation, .NET Framework 4.8 Web API 2 + AngularJS) and Account View (SwiftUI, `ios/`)
+live in `COG-GTM/lpl-clientworks-legacy` and call the same positions-grid endpoint. When the grid fails, either client
+posts one report to `POST /api/lpl/clientworks/error` with `source: clientworks/web|ios`, `service:
+customer-lpl-clientworks-web|ios` and the matching `platform`; source, service and platform must agree, `errorType`
+must be a .NET type identity and `reference` (optional) must be `CW-<8 hex>`. Responses: 202 `{accepted, reference}`,
+200 `{accepted, duplicate, reference}` for a delivered resend of the same reference + platform + errorType within 10
+minutes, 400 on an invalid payload, 429 with an exact `Retry-After`. The bridge always uses the default customer
+config (Devin GTM org) and ignores client org/user ids; `devinEmail` is resolved with `listOrgUsers` →
+`listEnterpriseAdmins`. Only pattern-checked fields (`screen`, `action`, `accountNumber`, `columns`,
+`context.securitySymbol`, `reference`) become alert tags. A `System.DivideByZeroException` on a `positions_grid_*`
+action with a day-change column (or a `PositionGridService.ComputeDayChange` frame) gets the day-change directive;
+anything else gets a neutral directive for the same code path. iOS sessions request `macos`
+(`LPL_CLIENTWORKS_IOS_SESSION_PLATFORM`), web the org default (`LPL_CLIENTWORKS_WEB_SESSION_PLATFORM`). The apps'
+kill switches are `CW_DISABLE_INCIDENT_REPORTS=1` and the iOS `-disableIncidentReports` launch argument. The Sentry
+webhook skips the duplicate via `INSTANT_PATH_SLUGS` (`lpl/clientworks`). Regression coverage lives in
+`tests/lpl-clientworks-error.test.js`.
 
 ### ComEd Report Outage scenario (d08b052d, Flutter, external repo)
 
