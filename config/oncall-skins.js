@@ -2319,6 +2319,28 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE — internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
   },
+  '8f167941': {
+    slug: '8f167941',
+    company: 'Bank of America',
+    brandMark: 'B',
+    vertical: 'banking',
+    oncallOnly: true,
+    paths: ['/bofa-oncall'],
+    page: { file: '8f167941.html', title: 'Accounts Overview | Bank of America' },
+    alertCard: {
+      title: 'p95 latency \u2014 credit card payments from deposit accounts (POST /api/oncall/banking/transfer)',
+      symptom: 'Credit card payments submitted from the accounts dashboard hang ~10s before completing. Error rate is normal \u2014 payments eventually post.',
+      impact: 'Every card payment from checking or savings sits on a spinner for ~10 seconds; customers resubmit and call in about duplicate payments.',
+    },
+    theme: {
+      '--accent': '#0b5cab',
+      '--ink': '#2b2b2b',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#cf2230',
+      '--chrome-text': '#FFFFFF',
+    },
+    disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
+  },
   'cc824d2a': {
     slug: 'cc824d2a',
     company: 'PIMCO',
