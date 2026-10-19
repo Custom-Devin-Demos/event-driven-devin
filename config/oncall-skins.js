@@ -4032,7 +4032,7 @@ const ONCALL_SKINS = {
       promptAppendix: [
         'Customer-facing context: this alert comes from the First International Bank of Israel (FIBI) private banking homepage linked above. Its "Fibi Bot" AI chat assistant posts every customer chat message to the endpoint above, so that endpoint is the backend of this incident.',
         'In the alert thread the incident reads "5xx rate spiking \u2014 Fibi Bot chat messages (504)", release fibibot-web@3.6.0, owner team digital-assistant-oncall: every message sent to the Fibi Bot chat (Hebrew, English or any language) shows typing for ~8s and then fails with 504, so customers get "Sorry, we couldn\'t process your message" instead of an answer.',
-        'Use "FIBI" and "Fibi Bot chat" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Noa Levi (digital-assistant-oncall)". Noa Levi is fictional; never resolve them to a real user. Do not deploy or merge.',
+        'Use "FIBI" and "Fibi Bot chat" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread. Noa Levi is a fictional on-call persona; do not @-mention them or substitute a real user. Do not deploy or merge.',
       ].join('\n'),
     },
     page: { file: '2d1b07a6.html', title: '\u05d4\u05d1\u05e0\u05e7 \u05d4\u05d1\u05d9\u05e0\u05dc\u05d0\u05d5\u05de\u05d9 \u2013 \u05de\u05e9\u05e7\u05d9\u05e2\u05d9\u05dd \u05d1\u05da \u2013 \u05d4\u05d1\u05e0\u05e7 \u05d4\u05de\u05d5\u05d1\u05d9\u05dc \u05d1\u05d4\u05e9\u05e7\u05e2\u05d5\u05ea \u05d1\u05e9\u05d5\u05e7 \u05d4\u05d4\u05d5\u05df' },
