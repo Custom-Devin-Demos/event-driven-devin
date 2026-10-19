@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Add seats | Team workspace | Mistral AI</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #1c1b22;
+        --ink-deep: #09090f;
+        --muted: #6d6d78;
+        --dim: #8a8a94;
+        --bg: #fbfbf8;
+        --bg-2: #f5f4ef;
+        --bg-3: #f2f1e8;
+        --line: #e4e2da;
+        --line-strong: #cfcdc3;
+        --orange: #ff8204;
+        --orange-deep: #fa500f;
+        --red: #e61300;
+        --yellow: #ffaf01;
+        --ok: #1f6f3a;
+        --ok-bg: #e9f4ec;
+        --err: #b3121f;
+        --err-bg: #fbecec;
+        --body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+      a { color: inherit; }
+      .wrap { max-width: 1288px; margin: 0 auto; padding: 0 40px; }
+
+      header { background: var(--bg-2); border-bottom: 1px solid var(--line); }
+      header .wrap { display: flex; align-items: stretch; min-height: 48px; padding: 0; }
+      .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; padding: 0 16px 0 40px; font-weight: 600; font-size: 18px; letter-spacing: -0.2px; }
+      .flame { display: grid; grid-template-columns: repeat(5, 4px); grid-auto-rows: 4px; gap: 0; }
+      .flame i { display: block; }
+      header nav { display: flex; }
+      header nav a { text-decoration: none; font-size: 15px; display: inline-flex; align-items: center; padding: 0 16px; border-left: 1px solid var(--line); min-height: 48px; }
+      header nav a:last-child { border-right: 1px solid var(--line); }
+      .right { margin-left: auto; display: flex; }
+      .right a { text-decoration: none; font-size: 15px; display: inline-flex; align-items: center; padding: 0 16px; border-left: 1px solid var(--line); min-height: 48px; }
+      .right a.login { background: var(--ink-deep); color: #fff; padding-right: 40px; font-weight: 500; }
+
+      .titlebar { border-bottom: 1px solid var(--line); background: var(--bg); }
+      .titlebar .wrap { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding-top: 28px; padding-bottom: 28px; flex-wrap: wrap; }
+      .titlebar h1 { margin: 0; font-size: 56px; line-height: 1; font-weight: 500; letter-spacing: -2px; }
+      .titlebar .crumbs { margin: 0 0 10px; color: var(--muted); font-size: 14px; }
+      .ws { display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--line-strong); background: #fff; border-radius: 6px; padding: 8px 12px; font-size: 14px; }
+      .ws .dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, var(--yellow), var(--red)); }
+      .ws b { font-weight: 600; }
+
+      main { padding: 40px 0 80px; }
+      .grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 0; border: 1px solid var(--line); background: var(--bg); }
+      .pane { padding: 32px 36px; }
+      .pane + .pane { border-left: 1px solid var(--line); background: var(--bg-2); }
+      h2 { margin: 0 0 4px; font-size: 24px; font-weight: 500; letter-spacing: -0.5px; }
+      .lead { margin: 0 0 26px; color: var(--muted); font-size: 15px; }
+      label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+      .hint { margin: 6px 0 0; color: var(--dim); font-size: 12.5px; }
+      fieldset { border: 0; margin: 0 0 24px; padding: 0; min-width: 0; }
+      select { width: 100%; font: inherit; font-size: 15px; color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; min-height: 48px; padding: 0 14px; }
+      select:focus { outline: 3px solid rgba(255,130,4,0.3); border-color: var(--orange); }
+      select:disabled { background: var(--bg-3); color: var(--muted); }
+
+      .counter { display: inline-flex; align-items: center; gap: 0; border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; overflow: hidden; }
+      .counter button { font: inherit; font-size: 20px; line-height: 1; width: 48px; min-height: 48px; border: 0; background: var(--bg-3); color: var(--ink); cursor: pointer; }
+      .counter button:hover { background: var(--line); }
+      .counter button:disabled { opacity: 0.5; cursor: default; }
+      .counter input { font: inherit; font-size: 18px; font-weight: 500; width: 88px; text-align: center; border: 0; border-left: 1px solid var(--line); border-right: 1px solid var(--line); min-height: 48px; color: var(--ink); background: #fff; -moz-appearance: textfield; }
+      .counter input::-webkit-outer-spin-button, .counter input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      .counter input:focus { outline: 3px solid rgba(255,130,4,0.3); outline-offset: -3px; }
+      .counter input:disabled { background: var(--bg-3); }
+      .seatrow { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+      .seatrow .who { color: var(--muted); font-size: 14px; }
+
+      .members { border-top: 1px solid var(--line); margin-top: 6px; }
+      .member { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+      .member .av { width: 32px; height: 32px; border-radius: 50%; background: var(--bg-3); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--muted); }
+      .member b { font-weight: 500; display: block; }
+      .member span.e { color: var(--muted); font-size: 13px; }
+      .member .role { font-size: 12.5px; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 999px; padding: 2px 10px; }
+
+      .submit-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+      .submit-btn { font: inherit; font-weight: 500; font-size: 16px; background: var(--ink-deep); color: #fff; border: 0; border-radius: 6px; min-height: 48px; padding: 0 20px; cursor: pointer; display: inline-flex; align-items: center; gap: 28px; }
+      .submit-btn::after { content: '\203A'; font-size: 22px; line-height: 1; }
+      .submit-btn:hover { background: #2b2a33; }
+      .submit-btn:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+      .submit-btn:disabled { background: #6b6a74; cursor: wait; }
+      .btn-secondary { font: inherit; font-weight: 400; font-size: 15px; background: rgba(7,7,11,0.05); color: var(--ink); border: 0; border-radius: 6px; min-height: 48px; padding: 0 18px; cursor: pointer; }
+      .btn-secondary:hover { background: rgba(7,7,11,0.1); }
+      .btn-secondary:disabled { opacity: 0.5; cursor: default; }
+
+      .stopwatch { display: none; align-items: baseline; gap: 12px; margin: 20px 0 0; font-variant-numeric: tabular-nums; }
+      .stopwatch.on { display: flex; }
+      .stopwatch .sw-label { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); font-weight: 600; }
+      .stopwatch .sw-value { font-size: 30px; font-weight: 500; color: var(--ink-deep); letter-spacing: -1px; }
+      .stopwatch.done .sw-value { color: var(--orange-deep); }
+
+      .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 6px; font-size: 14px; line-height: 1.5; border: 1px solid transparent; }
+      .result-box strong { display: block; margin-bottom: 2px; font-weight: 600; }
+      .result-box.pending { display: block; background: var(--bg-3); color: var(--ink); border-color: var(--line); }
+      .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); border-color: #c3dfcc; }
+      .result-box.error { display: block; background: var(--err-bg); color: var(--err); border-color: #f1c4c7; }
+      .fine { margin: 18px 0 0; color: var(--dim); font-size: 12px; line-height: 1.45; }
+
+      .plan-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+      .plan-head .ico { width: 44px; height: 44px; border-radius: 4px; background: linear-gradient(90deg, var(--yellow), var(--orange) 40%, var(--orange-deep) 70%, var(--red)); display: inline-flex; align-items: center; justify-content: center; }
+      .plan-head .ico .flame { grid-template-columns: repeat(5, 3px); grid-auto-rows: 3px; }
+      .plan-head .ico .flame i { background: #fff !important; }
+      .plan-head h3 { margin: 0; font-size: 22px; font-weight: 500; }
+      .price { font-size: 40px; font-weight: 500; letter-spacing: -1.5px; line-height: 1; margin: 6px 0 2px; }
+      .price small { font-size: 22px; color: var(--muted); letter-spacing: -0.5px; font-weight: 400; }
+      .tax { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+      .feats { margin: 0 0 24px; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14px; }
+      .feats li { display: flex; gap: 10px; align-items: flex-start; }
+      .feats li::before { content: ''; flex: none; width: 14px; height: 14px; margin-top: 4px; background: var(--ink); clip-path: polygon(0 40%, 40% 40%, 40% 0, 60% 0, 60% 40%, 100% 40%, 100% 60%, 60% 60%, 60% 100%, 40% 100%, 40% 60%, 0 60%); }
+      .total { border-top: 1px solid var(--line-strong); padding-top: 16px; }
+      .total .row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 6px 0; }
+      .total .row .k { color: var(--muted); }
+      .total .row .v { font-weight: 500; }
+      .total .row.big { font-size: 16px; }
+      .total .row.big .v { font-size: 28px; font-weight: 500; letter-spacing: -1px; }
+      .total .row.big .v small { font-size: 14px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
+      .total .note { margin: 8px 0 0; color: var(--dim); font-size: 12.5px; line-height: 1.45; }
+
+      footer { border-top: 1px solid var(--line); background: var(--bg-2); color: var(--muted); font-size: 13px; padding: 28px 0; }
+      footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+      footer nav { display: flex; gap: 22px; flex-wrap: wrap; }
+      footer a { color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+
+      @media (max-width: 960px) {
+        .wrap { padding: 0 20px; }
+        .brand { padding-left: 20px; }
+        .right a.login { padding-right: 20px; }
+        header nav, .right a:not(.login) { display: none; }
+        .titlebar h1 { font-size: 40px; }
+        .grid { grid-template-columns: 1fr; }
+        .pane { padding: 24px 20px; }
+        .pane + .pane { border-left: 0; border-top: 1px solid var(--line); }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <a class="brand" href="#" aria-label="Mistral AI home">
+          <span class="flame" aria-hidden="true">
+            <i style="background:#ffaf01"></i><i></i><i></i><i></i><i style="background:#ffaf01"></i>
+            <i style="background:#ff8204"></i><i style="background:#ff8204"></i><i></i><i style="background:#ff8204"></i><i style="background:#ff8204"></i>
+            <i style="background:#fa500f"></i><i style="background:#fa500f"></i><i style="background:#fa500f"></i><i style="background:#fa500f"></i><i style="background:#fa500f"></i>
+            <i style="background:#e61300"></i><i></i><i style="background:#e61300"></i><i></i><i style="background:#e61300"></i>
+            <i style="background:#c4001d"></i><i></i><i></i><i></i><i style="background:#c4001d"></i>
+          </span>
+          Mistral
+        </a>
+        <nav aria-label="Primary"><a href="#">Research</a><a href="#">Sovereign AI</a><a href="#">Cloud</a><a href="#">Customers</a><a href="#">Company</a></nav>
+        <div class="right"><a href="#">Get in touch</a><a href="#" class="login">Vibe &#8964;</a></div>
+      </div>
+    </header>
+
+    <div class="titlebar">
+      <div class="wrap">
+        <div>
+          <p class="crumbs">Vibe &rsaquo; Workspace settings &rsaquo; Members</p>
+          <h1>Add seats</h1>
+        </div>
+        <span class="ws" id="wsBadge"><span class="dot" aria-hidden="true"></span><b id="wsBadgeName">Meridian Research</b>&nbsp;&middot; Team plan &middot; <span id="wsBadgeSeats">12 of 12 seats in use</span></span>
+      </div>
+    </div>
+
+    <main>
+      <div class="wrap">
+        <form id="provisionForm" class="grid" novalidate>
+          <select id="planTier" hidden aria-hidden="true" tabindex="-1"><option value="enterprise" selected>Team</option></select>
+          <div class="pane">
+            <h2>Seats</h2>
+            <p class="lead">Every member of the workspace needs a seat. New seats are billed from today, prorated to your billing date.</p>
+            <fieldset>
+              <label for="product">Workspace</label>
+              <select id="product">
+                <option value="Meridian Research">Meridian Research</option>
+                <option value="Meridian Research — Data Platform">Meridian Research &mdash; Data Platform</option>
+                <option value="Meridian Research — Quant">Meridian Research &mdash; Quant</option>
+              </select>
+              <p class="hint">Seats are added to the selected workspace only.</p>
+            </fieldset>
+            <fieldset>
+              <label for="seats">Seats to add</label>
+              <div class="seatrow">
+                <div class="counter">
+                  <button type="button" id="seatMinus" aria-label="Remove one seat">&minus;</button>
+                  <input id="seats" type="number" inputmode="numeric" min="1" max="250" step="1" value="8" required aria-describedby="seatsHint" />
+                  <button type="button" id="seatPlus" aria-label="Add one seat">+</button>
+                </div>
+                <span class="who" id="seatsHint">1 to 250 seats per request. Members you invite afterwards take a seat each.</span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <label>Pending invitations</label>
+              <div class="members" id="memberList"></div>
+            </fieldset>
+            <div class="submit-row">
+              <button type="submit" class="submit-btn" id="submitBtn">Add seats</button>
+              <button type="button" class="btn-secondary" id="clearBtn">Reset</button>
+            </div>
+            <div class="stopwatch" id="submitTimer" role="timer" aria-live="off"><span class="sw-label">Processing time</span><span class="sw-value" id="submitTimerValue">0.0s</span></div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            <p class="fine">Sample workspace settings page. Members, seats and charges shown here are illustrative; no workspace is changed.</p>
+          </div>
+          <aside class="pane" aria-live="polite">
+            <div class="plan-head">
+              <span class="ico" aria-hidden="true"><span class="flame"><i></i><i></i><i style="background:#fff"></i><i></i><i></i><i></i><i style="background:#fff"></i><i style="background:#fff"></i><i style="background:#fff"></i><i></i><i style="background:#fff"></i><i style="background:#fff"></i><i style="background:#fff"></i><i style="background:#fff"></i><i style="background:#fff"></i><i></i><i style="background:#fff"></i><i></i><i style="background:#fff"></i><i></i><i style="background:#fff"></i><i></i><i></i><i></i><i style="background:#fff"></i></span></span>
+              <h3>Team</h3>
+            </div>
+            <p class="price">$24.99<small>/user/mo</small></p>
+            <p class="tax">Excluding taxes</p>
+            <ul class="feats">
+              <li>Even higher limits.</li>
+              <li>Even faster responses.</li>
+              <li>Up to 30GB of storage /user.</li>
+              <li>Domain name verification.</li>
+              <li>Data export.</li>
+            </ul>
+            <div class="total">
+              <div class="row"><span class="k">Workspace</span><span class="v" id="sumWs"></span></div>
+              <div class="row"><span class="k">Seats after change</span><span class="v" id="sumSeats"></span></div>
+              <div class="row big"><span class="k">Added per month</span><span class="v" id="sumTotal"></span></div>
+              <p class="note" id="sumNote"></p>
+            </div>
+          </aside>
+        </form>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>&copy; 2026 Mistral AI</span>
+        <nav aria-label="Footer">
+          <a href="https://mistral.ai/pricing" target="_blank" rel="noopener noreferrer">Pricing</a>
+          <a href="https://docs.mistral.ai/" target="_blank" rel="noopener noreferrer">Documentation</a>
+          <a href="https://help.mistral.ai/" target="_blank" rel="noopener noreferrer">Help center</a>
+          <a href="https://mistral.ai/terms" target="_blank" rel="noopener noreferrer">Terms</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      try { if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return; } catch (_) { return; }
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    (function () {
+      var PRICE = 24.99;
+      var SEATS = { 'Meridian Research': 12, 'Meridian Research — Data Platform': 6, 'Meridian Research — Quant': 4 };
+      var INVITES = [
+        { n: 'Lea Fontaine', e: 'lea.fontaine@meridianresearch.com', r: 'Member' },
+        { n: 'Tomás Ribeiro', e: 'tomas.ribeiro@meridianresearch.com', r: 'Member' },
+        { n: 'Priya Natarajan', e: 'priya.n@meridianresearch.com', r: 'Admin' },
+      ];
+      function getStore(key) { try { return localStorage.getItem(key) || ''; } catch (_) { return ''; } }
+      function money(n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+      var form = document.getElementById('provisionForm');
+      var wsSel = document.getElementById('product');
+      var seatsInput = document.getElementById('seats');
+      var minus = document.getElementById('seatMinus');
+      var plus = document.getElementById('seatPlus');
+      var button = document.getElementById('submitBtn');
+      var clearBtn = document.getElementById('clearBtn');
+      var result = document.getElementById('result');
+      var timer = document.getElementById('submitTimer');
+      var timerValue = document.getElementById('submitTimerValue');
+      var timerHandle = null;
+      var pending = false;
+      var added = {};
+      var badgeName = document.getElementById('wsBadgeName');
+      var badgeSeats = document.getElementById('wsBadgeSeats');
+
+      var list = document.getElementById('memberList');
+      INVITES.forEach(function (m) {
+        var row = document.createElement('div'); row.className = 'member';
+        var av = document.createElement('span'); av.className = 'av'; av.textContent = m.n.split(' ').map(function (p) { return p[0]; }).join('');
+        var who = document.createElement('span');
+        var b = document.createElement('b'); b.textContent = m.n;
+        var e = document.createElement('span'); e.className = 'e'; e.textContent = m.e;
+        who.appendChild(b); who.appendChild(e);
+        var role = document.createElement('span'); role.className = 'role'; role.textContent = m.r + ' \u00b7 awaiting seat';
+        row.appendChild(av); row.appendChild(who); row.appendChild(role);
+        list.appendChild(row);
+      });
+
+      function seatCount() {
+        var raw = (seatsInput.value || '').trim();
+        if (!/^\d+$/.test(raw)) return NaN;
+        return parseInt(raw, 10);
+      }
+      function sync() {
+        var n = seatCount();
+        var ws = wsSel.value;
+        var have = SEATS[ws] + (added[ws] || 0);
+        badgeName.textContent = ws;
+        badgeSeats.textContent = SEATS[ws] + ' of ' + have + ' seats in use';
+        document.getElementById('sumWs').textContent = ws;
+        document.getElementById('sumSeats').textContent = isNaN(n) ? '\u2014' : have + ' \u2192 ' + (have + n);
+        var total = document.getElementById('sumTotal');
+        total.textContent = '';
+        if (isNaN(n)) { total.textContent = '\u2014'; } else {
+          total.appendChild(document.createTextNode(money(PRICE * n) + ' '));
+          var s = document.createElement('small'); s.textContent = '/mo'; total.appendChild(s);
+        }
+        document.getElementById('sumNote').textContent = isNaN(n) ? 'Enter the number of seats to add.' : 'Prorated charge today for the remainder of this cycle, then ' + money(PRICE * n) + ' added to each monthly invoice.';
+        minus.disabled = pending || isNaN(n) || n <= 1;
+        plus.disabled = pending || (!isNaN(n) && n >= 250);
+      }
+      function step(d) {
+        if (pending) return;
+        var n = seatCount();
+        if (isNaN(n)) n = 1; else n = Math.min(250, Math.max(1, n + d));
+        seatsInput.value = String(n);
+        clearResult();
+        sync();
+      }
+
+      function startTimer() {
+        var started = performance.now();
+        timer.className = 'stopwatch on';
+        timerValue.textContent = '0.0s';
+        timerHandle = setInterval(function () {
+          timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+        return started;
+      }
+      function stopTimer(started) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        timer.className = 'stopwatch on done';
+      }
+      function show(kind, title, body) {
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        var s = document.createElement('strong');
+        s.textContent = title;
+        result.appendChild(s);
+        result.appendChild(document.createTextNode(body));
+      }
+      function clearResult() {
+        result.className = 'result-box';
+        result.textContent = '';
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timer.className = 'stopwatch';
+        timerValue.textContent = '0.0s';
+      }
+      function setBusy(on) {
+        pending = on;
+        button.disabled = on;
+        clearBtn.disabled = on;
+        wsSel.disabled = on;
+        seatsInput.disabled = on;
+        button.textContent = on ? 'Adding seats\u2026' : 'Add seats';
+        sync();
+      }
+
+      minus.addEventListener('click', function () { step(-1); });
+      plus.addEventListener('click', function () { step(1); });
+      seatsInput.addEventListener('input', function () { clearResult(); sync(); });
+      wsSel.addEventListener('change', function () { clearResult(); sync(); });
+      clearBtn.addEventListener('click', function () {
+        if (pending) return;
+        wsSel.selectedIndex = 0;
+        seatsInput.value = '8';
+        clearResult();
+        sync();
+      });
+      sync();
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (pending) return;
+        var n = seatCount();
+        if (isNaN(n) || n < 1 || n > 250) {
+          show('error', 'Enter a number of seats between 1 and 250.', ' For larger teams, contact us about an Enterprise plan.');
+          seatsInput.focus();
+          return;
+        }
+        var ws = wsSel.value;
+        setBusy(true);
+        show('pending', 'Adding ' + n + ' seat' + (n === 1 ? '' : 's') + ' to ' + ws + '\u2026', ' Confirming your payment method and updating the workspace.');
+        var started = startTimer();
+        try {
+          var res = await fetch('/api/licenses/provision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: ws,
+              planName: document.getElementById('planTier').value,
+              seats: n,
+              billingCycle: 'monthly',
+              devinUserId: getStore('devinUserId'),
+              devinOrgId: getStore('devinOrgId'),
+              devinEmail: getStore('devinEmail'),
+            }),
+          });
+          var data = await res.json().catch(function () { return null; });
+          stopTimer(started);
+          if (!res.ok || !data || data.success !== true) {
+            show('error', 'We couldn\u2019t add seats right now.', ' Please try again in a few minutes. Your workspace and invoice are unchanged.');
+          } else {
+            var got = typeof data.seatsAdded === 'number' ? data.seatsAdded : n;
+            added[ws] = (added[ws] || 0) + got;
+            if (data.withinLimit === false) {
+              show('pending', got + ' seat' + (got === 1 ? '' : 's') + ' added to ' + ws + ' \u2014 above the seat allowance on your plan.', ' The seats are active, but the workspace is flagged for review until the allowance is raised. Contact us about an Enterprise plan for larger teams.');
+              sync();
+              return;
+            }
+            show('success', got + ' seat' + (got === 1 ? '' : 's') + ' added to ' + ws + '.', ' Pending invitations can now join. ' + money(PRICE * got) + ' per month has been added to your next invoice, prorated for this cycle.');
+            sync();
+          }
+        } catch (_) {
+          stopTimer(started);
+          show('error', 'We couldn\u2019t add seats right now.', ' Please try again in a few minutes. Your workspace and invoice are unchanged.');
+        } finally {
+          setBusy(false);
+        }
+      });
+    })();
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
