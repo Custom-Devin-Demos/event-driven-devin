@@ -181,7 +181,7 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(prompt).toContain('app/public/verticals/e91b0f39/');
     expect(prompt).toContain('npx jest tests/e91b0f39-web-card-controls.test.js');
     expect(prompt).toContain('http://localhost:<port>/e91b0f39?reports=off');
-    expect(prompt).toContain('LOCK_TIMEOUT_MS = 10000');
+    expect(prompt).toContain('LOCK_TIMEOUT_MS = 5000');
     expect(prompt).toContain('Something went wrong. Request timed out');
     expect(prompt).toContain('under 3 s');
     expect(prompt).toContain('[DEMO — DO NOT MERGE]');
@@ -234,7 +234,7 @@ describe('Card lock latency report (e91b0f39)', () => {
   });
 
   test('includes timeout outcome in logs, alerts, and prompt impact', async () => {
-    await postAndWait({ ...REPORT, durationMs: 10000, outcome: 'timeout' });
+    await postAndWait({ ...REPORT, durationMs: 5000, outcome: 'timeout' });
 
     const breachLog = logger.error.mock.calls
       .find(([message]) => message === 'Card lock latency SLO breach reported');
@@ -249,7 +249,7 @@ describe('Card lock latency report (e91b0f39)', () => {
 
     const [prompt] = createDevinSession.mock.calls[0];
     expect(prompt).toContain('*Outcome:* Timed out');
-    expect(prompt).toContain('Customers see a spinner for ~10 s and then "Something went wrong. Request timed out"; the card is not locked.');
+    expect(prompt).toContain('Customers see a spinner for ~5 s and then "Something went wrong. Request timed out"; the card is not locked.');
   });
 
   test('logs accepted breach details and one Datadog record per normalized span', async () => {

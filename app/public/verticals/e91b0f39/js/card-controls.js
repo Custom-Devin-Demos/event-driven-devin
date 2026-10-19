@@ -11,7 +11,7 @@
     lock: 300,
     unlock: 300,
   });
-  const LOCK_TIMEOUT_MS = 10000;
+  const LOCK_TIMEOUT_MS = 5000;
   const SLO_MS = 3000;
   const TIMEOUT_MESSAGE = 'Something went wrong. Request timed out';
   const ERROR_BUBBLE_CLASS = 'erica-bubble--error';
