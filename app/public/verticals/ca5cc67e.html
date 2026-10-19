@@ -250,7 +250,7 @@
               <ul class="tt" id="timetable" style="margin-top: 18px">
                 <li><span class="c">SC2000 Probability &amp; Statistics for Computing</span><span class="au">3 AU</span><span class="t">Index 10091 · LEC Mon 10:30–12:30 · TUT Thu 13:30–14:30</span></li>
                 <li><span class="c">SC2002 Object Oriented Design &amp; Programming</span><span class="au">3 AU</span><span class="t">Index 10105 · LEC Tue 08:30–10:30 · LAB Fri 14:30–16:30</span></li>
-                <li><span class="c">SC2005 Operating Systems</span><span class="au">3 AU</span><span class="t">Index 10118 · LEC Wed 10:30–12:30 · TUT Mon 14:30–15:30</span></li>
+                <li><span class="c">SC2005 Operating Systems</span><span class="au">3 AU</span><span class="t">Index 10118 · LEC Wed 10:30–12:30 · TUT Mon 16:30–17:30</span></li>
                 <li><span class="c">SC2008 Computer Network</span><span class="au">3 AU</span><span class="t">Index 10131 · LEC Thu 08:30–10:30 · TUT Tue 13:30–14:30</span></li>
                 <li><span class="c">HW0288 Engineering Communication II</span><span class="au">3 AU</span><span class="t">Index 20412 · SEM Fri 10:30–12:30</span></li>
               </ul>
@@ -283,6 +283,7 @@
               <fieldset class="field">
                 <legend>Index</legend>
                 <select id="newPlan" hidden>
+                  <option value=""></option>
                   <option value="PLUS-24">Index A</option>
                   <option value="ULTRA-36">Index B</option>
                   <option value="UNLIMITED-24">Index C</option>
@@ -366,8 +367,35 @@
       var timetable = document.getElementById('timetable');
       var registeredAu = 15;
       var registered = ['SC2000', 'SC2002', 'SC2005', 'SC2008', 'HW0288'];
+      var waitlisted = {};
       var timerHandle = null;
       var pending = false;
+
+      var DAYS = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
+      function parseSlots(text) {
+        var out = [];
+        var re = /(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (\d{2}):(\d{2})[–-](\d{2}):(\d{2})/g;
+        var m;
+        while ((m = re.exec(text))) {
+          out.push({ day: DAYS[m[1]], start: +m[2] * 60 + +m[3], end: +m[4] * 60 + +m[5] });
+        }
+        return out;
+      }
+      function findClash(slots) {
+        var wanted = parseSlots(slots);
+        var rows = timetable.querySelectorAll('li');
+        for (var r = 0; r < rows.length; r++) {
+          var have = parseSlots(rows[r].querySelector('.t').textContent);
+          for (var i = 0; i < wanted.length; i++) {
+            for (var j = 0; j < have.length; j++) {
+              if (wanted[i].day === have[j].day && wanted[i].start < have[j].end && have[j].start < wanted[i].end) {
+                return rows[r].querySelector('.c').textContent;
+              }
+            }
+          }
+        }
+        return null;
+      }
 
       function course() { return COURSES[courseSel.value]; }
       function selectedIndex() {
@@ -451,17 +479,18 @@
       }
 
       courseSel.addEventListener('change', function () {
-        plan.selectedIndex = 0;
+        plan.value = PLAN_CODES[0];
         clearResult();
         renderCourse();
       });
       clearBtn.addEventListener('click', function () {
         if (pending) return;
         courseSel.selectedIndex = 0;
-        plan.selectedIndex = 0;
+        plan.value = '';
         clearResult();
         renderCourse();
       });
+      plan.value = PLAN_CODES[0];
       renderCourse();
 
       form.addEventListener('submit', async function (e) {
@@ -477,8 +506,17 @@
           show('error', 'Course already in your timetable.', ' ' + c.title + ' is already registered this semester. Drop it first if you want to change index.');
           return;
         }
+        if (waitlisted[courseSel.value]) {
+          show('error', 'You are already on a waitlist for this course.', ' You joined the waitlist for ' + c.title + ' Index ' + waitlisted[courseSel.value] + '. STARS will notify you when a place opens.');
+          return;
+        }
         if (registeredAu + c.au > MAX_AU) {
           show('error', 'Maximum AU exceeded.', ' Adding ' + c.title + ' (' + c.au + ' AU) would take you past the ' + MAX_AU + ' AU limit for this semester.');
+          return;
+        }
+        var clash = findClash(ix.slots);
+        if (clash) {
+          show('error', 'Timetable clash.', ' Index ' + ix.index + ' overlaps with ' + clash + ' on your timetable. Choose another index.');
           return;
         }
         var action = ix.vacancies === 0 ? 'waitlist' : 'add';
@@ -509,7 +547,10 @@
           if (!res.ok) {
             show('error', 'We couldn\u2019t update your timetable right now.', ' Please try again in a few minutes. Your registered courses have not changed.');
           } else if (action === 'waitlist') {
-            show('success', 'You are on the waitlist for Index ' + ix.index + '.', ' Position ' + (ix.waitlist + 1) + ' of ' + (ix.waitlist + 1) + '. STARS will add ' + c.title + ' to your timetable automatically when a place opens, and notify you by NTU email.');
+            ix.waitlist += 1;
+            waitlisted[courseSel.value] = ix.index;
+            renderCourse();
+            show('success', 'You are on the waitlist for Index ' + ix.index + '.', ' Position ' + ix.waitlist + ' of ' + ix.waitlist + '. STARS will add ' + c.title + ' to your timetable automatically when a place opens, and notify you by NTU email.');
           } else {
             registered.push(courseSel.value);
             registeredAu += c.au;
