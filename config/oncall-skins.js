@@ -3096,6 +3096,8 @@ const ONCALL_SKINS = {
     brandMark: 'C',
     vertical: 'fluidanalysis',
     oncallOnly: true,
+    teamsAlerts: true,
+    alertDestination: 'teams',
     page: { file: 'b33a7a98.html', title: 'Cummins MarketPlace' },
     theme: {
       '--accent': '#008080',
@@ -3119,6 +3121,8 @@ const ONCALL_SKINS = {
     brandMark: 'C',
     vertical: 'picklist',
     oncallOnly: true,
+    teamsAlerts: true,
+    alertDestination: 'teams',
     page: { file: '35a59686.html', title: 'Genuine Cummins Parts' },
     theme: {
       '--accent': '#008080',
@@ -3142,6 +3146,8 @@ const ONCALL_SKINS = {
     brandMark: 'C',
     vertical: 'esnlookup',
     oncallOnly: true,
+    teamsAlerts: true,
+    alertDestination: 'teams',
     page: { file: 'e8615789.html', title: 'Cummins QuickServe Online' },
     theme: {
       '--accent': '#E4002B',
@@ -4366,6 +4372,32 @@ const ONCALL_SKINS = {
       impact: 'Cada transferencia de Banca en Línea tarda ~10 segundos; atención a clientes reporta más llamadas y algunos clientes reintentan la operación.',
     },
     disclaimer: 'ESTE NO ES UN SITIO REAL DE BANAMEX \u2014 demo interna, sin afiliación ni respaldo de Banamex. Todas las cuentas y datos son ficticios.',
+  },
+  'ca5cc67e': {
+    slug: 'ca5cc67e',
+    company: 'Nanyang Technological University',
+    brandMark: 'N',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: { file: 'ca5cc67e.html', title: 'Add Course | STARS Planner | NTU Singapore' },
+    theme: {
+      '--accent': '#D71440',
+      '--ink': '#1B1B1B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#00005B',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'NTU Student Services Support',
+    alertCard: {
+      title: 'p95 latency \u2014 STARS add course',
+      service: 'stars-registration-api',
+      team: 'student-systems-oncall',
+      release: 'stars-web@1.0.3',
+      baseline: '~300ms (7-day p95, before stars-web@1.0.3)',
+      symptom: 'Add-course requests in STARS slowed sharply after the last release. p95 latency is far above the 7-day baseline; error rate is normal.',
+      impact: 'Students adding a course during the add/drop window wait ~7 seconds on every request; registration completion is dropping while vacancies fill up.',
+    },
+    disclaimer: 'NOT ACTUALLY A NANYANG TECHNOLOGICAL UNIVERSITY SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nanyang Technological University product.',
   },
 };
 
