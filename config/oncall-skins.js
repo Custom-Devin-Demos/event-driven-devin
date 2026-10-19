@@ -4535,6 +4535,32 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A NASDAQ SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nasdaq, Inc. product.',
   },
+  '5f19f1de': {
+    slug: '5f19f1de',
+    company: 'Mistral AI',
+    brandMark: 'M',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: { file: '5f19f1de.html', title: 'Add seats | Team workspace | Mistral AI' },
+    theme: {
+      '--accent': '#FF8204',
+      '--ink': '#1C1B22',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#09090F',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Mistral AI Help Center',
+    alertCard: {
+      title: 'p95 latency trending up \u2014 Vibe workspace seat provisioning',
+      service: 'vibe-workspace-api',
+      team: 'platform-billing-oncall',
+      release: 'vibe-workspace@1.0.3',
+      baseline: '~350ms (7-day p95, before vibe-workspace@1.0.3)',
+      symptom: 'Adding seats to a Team workspace slowed after the last release and gets slower with every request. Process RSS trends up alongside latency.',
+      impact: 'Workspace admins wait 6+ seconds to add seats and the wait keeps growing under sustained traffic; pending invitations stay blocked.',
+    },
+    disclaimer: 'NOT ACTUALLY A MISTRAL AI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Mistral AI product.',
+  },
 };
 
 function getOncallSkin(slug) {
