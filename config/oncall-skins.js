@@ -4509,6 +4509,32 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN NYSE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real NYSE Group or Intercontinental Exchange product.',
   },
+  'c463302d': {
+    slug: 'c463302d',
+    company: 'Nasdaq',
+    brandMark: 'N',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: { file: 'c463302d.html', title: 'Change Subscription | Nasdaq Data Link' },
+    theme: {
+      '--accent': '#8355EE',
+      '--ink': '#171717',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#08062A',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Nasdaq Data Link Support',
+    alertCard: {
+      title: 'p95 latency \u2014 Nasdaq Data Link subscription change',
+      service: 'datalink-subscriptions-api',
+      team: 'data-link-platform-oncall',
+      release: 'datalink-web@1.0.3',
+      baseline: '~300ms (7-day p95, before datalink-web@1.0.3)',
+      symptom: 'Subscription changes in the Nasdaq Data Link account page slowed sharply after the last release. p95 latency is far above the 7-day baseline; error rate is normal.',
+      impact: 'Customers upgrading to Nasdaq Basic or Core US Equities wait ~7 seconds on every plan change; upgrade completion rate is dropping.',
+    },
+    disclaimer: 'NOT ACTUALLY A NASDAQ SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nasdaq, Inc. product.',
+  },
 };
 
 function getOncallSkin(slug) {
