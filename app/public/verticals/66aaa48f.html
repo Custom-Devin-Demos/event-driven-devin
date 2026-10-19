@@ -73,6 +73,7 @@
     .submit-btn { min-height: 48px; padding: 10px 28px; border: 2px solid var(--accent); border-radius: 24px; background: var(--accent); color: #fff; font-size: 17px; font-weight: 600; }
     .submit-btn:hover { background: color-mix(in srgb, var(--accent) 86%, var(--chrome-bg)); border-color: color-mix(in srgb, var(--accent) 86%, var(--chrome-bg)); }
     .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .cancel-btn:disabled { opacity: .5; cursor: not-allowed; }
     .cancel-btn { min-height: 48px; padding: 10px 24px; border: 2px solid var(--brown); border-radius: 24px; background: transparent; color: var(--brown); font-size: 17px; font-weight: 600; }
     .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
     .stopwatch.on { display: flex; }
@@ -171,7 +172,6 @@
               <select id="toAccount">
                 <option value="ACCT-1002" data-name="Way2Save Savings" data-num="...5820">Way2Save Savings ...5820 &middot; $12,940.10</option>
                 <option value="ACCT-1001" data-name="Everyday Checking" data-num="...1634">Everyday Checking ...1634 &middot; $4,318.22</option>
-                <option value="ACCT-1003" data-name="Active Cash Card" data-num="...9012">Active Cash&reg; Card ...9012 &middot; Payment</option>
               </select>
             </div>
             <div class="row">
@@ -207,7 +207,7 @@
             <p class="fine">Transfers submitted after 8:00 PM PT to a credit account post the next business day. Your available balance updates as soon as the transfer is submitted.</p>
             <div class="actions">
               <button type="submit" id="submitBtn" class="submit-btn">Submit transfer</button>
-              <button type="reset" class="cancel-btn">Cancel</button>
+              <button type="reset" id="cancelBtn" class="cancel-btn">Cancel</button>
             </div>
             <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
             <p class="status" id="transferStatus" role="status" aria-live="polite">Sample accounts. No money moves on this page.</p>
@@ -283,6 +283,7 @@
     const IDLE_LABEL = 'Submit transfer';
     let timerHandle = null;
     let pending = false;
+    const cancelBtn = document.getElementById('cancelBtn');
     const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
     const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -351,6 +352,7 @@
       }
       pending = true;
       button.disabled = true;
+      cancelBtn.disabled = true;
       transferFields.forEach((el) => { el.disabled = true; });
       button.textContent = 'Submitting\u2026';
       status.textContent = 'Submitting your transfer\u2026';
@@ -379,7 +381,12 @@
         if (!data || !data.receipt) throw new Error('Transfer outcome unknown.');
         const submittedAt = new Date(data.receipt.timestamp);
         result.className = 'result-box success';
-        result.textContent = `Transfer submitted at ${timeFmt.format(submittedAt)}. ${usd.format(Number(data.receipt.amount))} from ${fromLabel} to ${toLabel}. Confirmation number ${data.receipt.receiptId}. You\u2019ll see it in your account activity right away.`;
+        const fee = Number(data.fee);
+        const debit = Number(data.debitAmount);
+        const feeNote = Number.isFinite(fee) && fee > 0 && Number.isFinite(debit)
+          ? ` A ${usd.format(fee)} transfer fee applies; ${usd.format(debit)} total will be debited from ${fromLabel}.`
+          : '';
+        result.textContent = `Transfer submitted at ${timeFmt.format(submittedAt)}. ${usd.format(Number(data.receipt.amount))} from ${fromLabel} to ${toLabel}.${feeNote} Confirmation number ${data.receipt.receiptId}. You\u2019ll see it in your account activity right away.`;
         status.textContent = 'Transfer submitted.';
       } catch (_error) {
         result.className = 'result-box notice';
@@ -395,6 +402,7 @@
         stopTimer(started);
         pending = false;
         button.disabled = false;
+        cancelBtn.disabled = false;
         button.textContent = IDLE_LABEL;
       }
     });
