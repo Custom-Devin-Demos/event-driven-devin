@@ -22,6 +22,8 @@ const APP_REPO = `github.com/${APP_REPO_NAME}`;
 const SERVER_FILE = 'ClientWorks.Core/Positions/PositionGridService.cs';
 const APP_CULPRIT = `${SERVER_FILE} — PositionGridService.ComputeDayChange`;
 const APP_SCENARIO = 'positions-grid-day-change';
+const GENERIC_CULPRIT = 'ClientWorks positions-grid API — GET /api/accounts/{id}/positions-grid';
+const GENERIC_SCENARIO = 'positions-grid-failure';
 const KNOWN_ERROR_TYPE = 'System.DivideByZeroException';
 const DAY_CHANGE_COLUMNS = ['dayChange', 'dayChangePct'];
 
@@ -316,7 +318,16 @@ function findRecentReport(report, now = Date.now()) {
   if (!key) return null;
   pruneRecentReports(now);
   const entry = recentReports.get(key);
-  return entry && entry.expiresAt > now ? entry : null;
+  return entry && entry.delivered && entry.expiresAt > now ? entry : null;
+}
+
+// The same reference still being delivered; its `pending` promise resolves to whether delivery succeeded.
+function findPendingReport(report, now = Date.now()) {
+  const key = recentReportKey(report);
+  if (!key) return null;
+  pruneRecentReports(now);
+  const entry = recentReports.get(key);
+  return entry && !entry.delivered && entry.expiresAt > now ? entry : null;
 }
 
 // Remembered while dispatch is in flight and kept only once the alert/session was delivered, so a failed
@@ -325,8 +336,11 @@ function rememberReport(report, reference, now = Date.now()) {
   const key = recentReportKey(report);
   if (!key) return () => {};
   pruneRecentReports(now);
-  recentReports.set(key, { reference, expiresAt: now + RECENT_REPORT_TTL_MS, delivered: false });
+  let settlePending;
+  const pending = new Promise((resolve) => { settlePending = resolve; });
+  recentReports.set(key, { reference, expiresAt: now + RECENT_REPORT_TTL_MS, delivered: false, pending });
   return (delivered) => {
+    settlePending(Boolean(delivered));
     const entry = recentReports.get(key);
     if (!entry || entry.reference !== reference) return;
     if (delivered) entry.delivered = true;
@@ -369,12 +383,19 @@ function reportAppFailure(report) {
   const appVersion = matching(report.appVersion, VERSION_PATTERN);
   const appName = clip(report.appName || client.appName, 64);
   const errorType = clip(report.errorType, 128);
-  const errorMessage = clip(report.errorMessage || 'Positions grid request failed', 512);
+  // Single line only: the message reaches the alert title and prompt, so it cannot carry its own sections.
+  const errorMessage = clip(
+    // eslint-disable-next-line no-control-regex
+    String(report.errorMessage || '').replace(/[\u0000-\u001f\u007f\u2028\u2029]+/g, ' ').replace(/\s+/g, ' ').trim()
+      || 'Positions grid request failed',
+    512,
+  );
   const stackTrace = clip(report.stackTrace, 4000);
   const release = matching(report.release, RELEASE_PATTERN) || client.release;
   const environment = matching(report.environment, ENVIRONMENT_PATTERN) || process.env.DD_ENV || 'prod';
   const devinEmail = matching(typeof report.devinEmail === 'string' ? report.devinEmail.trim() : '', EMAIL_PATTERN);
   const context = sanitizeContext(report.context);
+  const knownScenario = isKnownScenario(report);
   const securitySymbol = matching(context && context.securitySymbol, SYMBOL_PATTERN);
 
   // Only pattern-checked identifiers become tags (and so reach the prompt); everything else stays in `extra`.
@@ -389,7 +410,7 @@ function reportAppFailure(report) {
     ...(columns ? { columns } : {}),
     ...(securitySymbol ? { securitySymbol } : {}),
     ...(clientReference ? { clientReference } : {}),
-    scenario: APP_SCENARIO,
+    scenario: knownScenario ? APP_SCENARIO : GENERIC_SCENARIO,
     alert_path: 'instant',
   };
 
@@ -442,7 +463,7 @@ function reportAppFailure(report) {
   const raiseAlert = (devinUserId) => createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${client.project}&query=${encodeURIComponent(`is:unresolved service:${client.service}`)}`,
-    culprit: APP_CULPRIT,
+    culprit: knownScenario ? APP_CULPRIT : GENERIC_CULPRIT,
     errorType,
     errorValue: errorMessage,
     devinUserId,
@@ -498,6 +519,8 @@ module.exports = {
   APP_REPO_NAME,
   APP_CULPRIT,
   APP_SCENARIO,
+  GENERIC_CULPRIT,
+  GENERIC_SCENARIO,
   KNOWN_ERROR_TYPE,
   LPL_CLIENTWORKS_IOS_SESSION_PLATFORM,
   LPL_CLIENTWORKS_WEB_SESSION_PLATFORM,
@@ -513,6 +536,7 @@ module.exports = {
   directiveFor,
   sessionPlatformFor,
   findRecentReport,
+  findPendingReport,
   clearRecentReports,
   reportAppFailure,
   resolveUserIdByEmail,

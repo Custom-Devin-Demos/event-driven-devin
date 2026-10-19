@@ -1,6 +1,7 @@
 const express = require('express');
 const {
   ERROR_PATH,
+  findPendingReport,
   findRecentReport,
   isAppReport,
   reportAppFailure,
@@ -26,6 +27,8 @@ const REPORT_MAX = Number.isNaN(parsedMax) ? 10 : parsedMax;
 const parsedWindow = parseInt(process.env.REPORT_CAP_LPL_CLIENTWORKS_WINDOW_MINUTES, 10);
 const REPORT_WINDOW_MS = (Number.isNaN(parsedWindow) ? 10 : parsedWindow) * 60 * 1000;
 const acceptedAt = [];
+const PENDING_RETRY_AFTER_SECONDS = 5;
+let pendingWaitMs = 8000;
 
 // Each accepted report holds its own slot object (released by identity, never by timestamp).
 function reserveReportSlot(now = Date.now()) {
@@ -53,7 +56,7 @@ function retryAfterSeconds(now = Date.now()) {
  * POST /api/lpl/clientworks/error — a positions-grid failure reported by ClientWorks (web) or Account View
  * (iOS), both in COG-GTM/lpl-clientworks-legacy. Raises the Slack alert and the Devin remediation session.
  */
-router.post(ERROR_PATH, allowCrossOrigin, (req, res) => {
+router.post(ERROR_PATH, allowCrossOrigin, async (req, res) => {
   const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
 
   if (!isAppReport(body)) {
@@ -61,6 +64,21 @@ router.post(ERROR_PATH, allowCrossOrigin, (req, res) => {
       accepted: false,
       error: 'Expected source clientworks/web or clientworks/ios with the matching service and platform, a .NET errorType, and an optional CW-<8 hex> reference',
     });
+  }
+
+  // A resend while the first copy is still being delivered waits for that outcome instead of being acknowledged early.
+  const inFlight = findPendingReport(body);
+  if (inFlight) {
+    let timer;
+    const settled = await Promise.race([
+      inFlight.pending,
+      new Promise((resolve) => { timer = setTimeout(() => resolve('timeout'), pendingWaitMs); }),
+    ]);
+    clearTimeout(timer);
+    if (settled === 'timeout') {
+      res.set('Retry-After', String(PENDING_RETRY_AFTER_SECONDS));
+      return res.status(503).json({ accepted: false, pending: true, error: 'The original report is still being delivered; retry later', retryAfterSeconds: PENDING_RETRY_AFTER_SECONDS });
+    }
   }
 
   const duplicate = findRecentReport(body);
@@ -85,4 +103,5 @@ module.exports = router;
 module.exports.reserveReportSlot = reserveReportSlot;
 module.exports.retryAfterSeconds = retryAfterSeconds;
 module.exports.releaseReportSlot = releaseReportSlot;
+module.exports._setPendingWaitMs = (ms) => { pendingWaitMs = ms; };
 module.exports._resetReportCap = () => { acceptedAt.length = 0; };
