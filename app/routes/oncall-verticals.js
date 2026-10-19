@@ -8,6 +8,7 @@ const { runCompletion } = require('../services/oncall-verticals/inference');
 const { processQuote } = require('../services/oncall-verticals/industrials');
 const { addToCart } = require('../services/oncall-verticals/marketplace');
 const { submitOrder } = require('../services/oncall-verticals/vaccines');
+const { submitClaim } = require('../services/oncall-verticals/pbm');
 const { addToBag } = require('../services/oncall-verticals/apparel');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
@@ -276,6 +277,35 @@ router.post('/api/oncall/vaccines/order', async (req, res) => {
         : error.message,
       errorClass: error.name,
       code: error.code || 'ORDER_SUBMIT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/pbm/claim — submit a pharmacy claim
+ */
+router.post('/api/oncall/pbm/claim', async (req, res) => {
+  try {
+    const result = await submitClaim({
+      memberId: req.body.memberId || 'FRX-100245-01',
+      ndc: req.body.ndc || '00093505898',
+      pharmacyId: req.body.pharmacyId || '4012345',
+      quantity: req.body.quantity || 30,
+      daysSupply: req.body.daysSupply || 30,
+      rxNumber: req.body.rxNumber || 'RX-7710452',
+      prescriberNpi: req.body.prescriberNpi || '1467582039',
+    });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'ADJUDICATION_TIMEOUT';
+    res.status(isTimeout ? 504 : 500).json({
+      success: false,
+      error: isTimeout
+        ? 'The claim timed out during adjudication. Please resubmit, or call the pharmacy help desk if it keeps failing.'
+        : error.message,
+      errorClass: error.name,
+      code: error.code || 'CLAIM_SUBMIT_FAILED',
       requestId: req.requestId,
     });
   }

@@ -67,6 +67,35 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(axios.post).not.toHaveBeenCalled();
   });
 
+  test('PBM scenario branding reaches Slack and Teams without Datadog wording', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_ALL_ALERTS = 'true';
+    const result = await postOncallAlert('pbm', { runRef: 'run-pbm' });
+
+    expect(result).toMatchObject({ ok: true, channel: 'C0TEST', teams: true });
+    const card = teamsCard();
+    const cardText = JSON.stringify(card);
+    const query = 'index=prod sourcetype=claims service:pbm-claims-api http.status=504 | timechart span=5m count';
+    expect(cardText).toContain('[OPEN Problem] Response time degradation — pbm-claims-api');
+    expect(cardText).toContain('Splunk search');
+    expect(cardText).toContain(query);
+    expect(cardText).toContain('Dynatrace');
+    expect(cardText).not.toMatch(/Datadog|sum:trace|Monitor query|Triggered|View in Datadog/);
+    expect(card.actions.map((action) => action.title)).toEqual(['Open affected page']);
+
+    const plainTeamsText = axios.post.mock.calls[0][1].text;
+    expect(plainTeamsText).toContain('Splunk search');
+    expect(plainTeamsText).not.toMatch(/Datadog|sum:trace|Monitor query|Triggered|View in Datadog/);
+
+    const [, , slackText, slackBlocks] = postMessage.mock.calls[0];
+    expect(slackText).toContain('*[OPEN Problem] Response time degradation — pbm-claims-api*');
+    expect(slackText).toContain('*Splunk search:*');
+    expect(slackText).toContain(query);
+    expect(JSON.stringify(slackBlocks)).toContain('Splunk search');
+    expect(JSON.stringify(slackBlocks)).toContain(query);
+    expect(`${slackText}\n${JSON.stringify(slackBlocks)}`).not.toMatch(/Datadog|sum:trace|Monitor query|Triggered|View in Datadog/);
+  });
+
   test('posts the same LoanTrack alert to Slack and Teams, with no session', async () => {
     setEnv({ slack: true, teams: true });
     const result = await postOncallAlert('banking', { runRef: 'run-abc', skin: LOANTRACK, devinEmail: 'julia@example.com' });

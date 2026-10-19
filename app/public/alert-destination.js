@@ -71,6 +71,8 @@
   function mount(el, opts) {
     opts = opts || {};
     var teamsAvailable = opts.teamsAvailable !== false;
+    var defaultValue = normalize(opts.defaultValue);
+    if (defaultValue && localStorage.getItem(EXPLICIT_KEY) !== '1') set(defaultValue, false);
     injectCss();
     el.innerHTML = ''
       + '<div class="adp">'
