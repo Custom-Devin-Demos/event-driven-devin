@@ -1,11 +1,12 @@
 /* global document, location, localStorage, window */
 /* Per-browser "Send my demo alerts to: Slack / Teams" choice, shared by the
- * demo hub (/) and the On-Call hub (/oncall). Saved in localStorage and
- * mirrored into the alert_destination cookie so every demo page's API request
- * carries it to the server. It only affects this browser. */
+ * demo hub (/) and the On-Call hub (/oncall). Explicit choices are saved in
+ * localStorage and mirrored into the alert_destination cookie so every demo
+ * page's API request carries it to the server. It only affects this browser. */
 (function () {
   var KEY = 'alertDestination';
   var EXPLICIT_KEY = 'alertDestinationExplicit'; // set only when the presenter clicks the picker
+  var pageDefault = null;
   var listeners = [];
 
   var SLACK_ICON = '<svg viewBox="0 0 54 54" aria-hidden="true"><path fill="#36C5F0" d="M19.7.1a5.4 5.4 0 0 0 0 10.8h5.4V5.5A5.4 5.4 0 0 0 19.7.1m0 14.4H5.4a5.4 5.4 0 0 0 0 10.8h14.3a5.4 5.4 0 0 0 0-10.8"/><path fill="#2EB67D" d="M53.8 19.9a5.4 5.4 0 0 0-10.8 0v5.4h5.4a5.4 5.4 0 0 0 5.4-5.4m-14.4 0V5.5a5.4 5.4 0 0 0-10.8 0v14.4a5.4 5.4 0 0 0 10.8 0"/><path fill="#ECB22E" d="M34 54a5.4 5.4 0 0 0 0-10.8h-5.4v5.4A5.4 5.4 0 0 0 34 54m0-14.4h14.4a5.4 5.4 0 0 0 0-10.8H34a5.4 5.4 0 0 0 0 10.8"/><path fill="#E01E5A" d="M0 34.2a5.4 5.4 0 0 0 10.8 0v-5.4H5.4A5.4 5.4 0 0 0 0 34.2m14.3 0v14.4a5.4 5.4 0 0 0 10.8 0V34.2a5.4 5.4 0 0 0-10.8 0"/></svg>';
@@ -34,6 +35,7 @@
   }
 
   function get() {
+    if (pageDefault && localStorage.getItem(EXPLICIT_KEY) !== '1') return pageDefault;
     return normalize(localStorage.getItem(KEY)) || 'slack';
   }
 
@@ -71,8 +73,8 @@
   function mount(el, opts) {
     opts = opts || {};
     var teamsAvailable = opts.teamsAvailable !== false;
-    var defaultValue = normalize(opts.defaultValue);
-    if (defaultValue && localStorage.getItem(EXPLICIT_KEY) !== '1') set(defaultValue, false);
+    var d = normalize(opts.defaultValue);
+    if (d && !(d === 'teams' && !teamsAvailable)) pageDefault = d;
     injectCss();
     el.innerHTML = ''
       + '<div class="adp">'
@@ -122,6 +124,7 @@
     };
   }
 
-  set(get());
+  var storedValue = normalize(localStorage.getItem(KEY));
+  if (storedValue && localStorage.getItem(EXPLICIT_KEY) === '1') writeCookie(storedValue);
   window.AlertDestination = { get: get, set: set, onChange: onChange, mount: mount };
 })();

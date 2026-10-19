@@ -45,20 +45,25 @@ const {
 } = require('../services/oncall-verticals/account-opening');
 
 const router = express.Router();
-const VERTICALS_DIR = path.join(__dirname, '..', 'public', 'verticals');
+const VERTICALS_DIR = path.resolve(__dirname, '..', 'public', 'verticals');
+
+function verticalPagePath(file) {
+  if (typeof file !== 'string' || !file.endsWith('.html')) return null;
+  const resolved = path.resolve(VERTICALS_DIR, file);
+  return resolved.startsWith(VERTICALS_DIR + path.sep) ? resolved : null;
+}
+
 const SCENARIO_PAGE_PATHS = Object.create(null);
 for (const scenario of Object.values(ALERT_SCENARIOS)) {
-  if (scenario.page && path.basename(scenario.page) === scenario.page && scenario.page.endsWith('.html')) {
-    SCENARIO_PAGE_PATHS[scenario.vertical] = path.join(VERTICALS_DIR, scenario.page);
-  }
+  const pagePath = verticalPagePath(scenario.page);
+  if (pagePath) SCENARIO_PAGE_PATHS[scenario.vertical] = pagePath;
 }
 const SKIN_PAGE_PATHS = Object.create(null);
 for (const skin of Object.values(ONCALL_SKINS)) {
   const scenario = ALERT_SCENARIOS[skin.vertical];
   const pageFile = (skin.page && skin.page.file) || (scenario && scenario.page);
-  if (pageFile && path.basename(pageFile) === pageFile && pageFile.endsWith('.html')) {
-    SKIN_PAGE_PATHS[skin.slug] = path.join(VERTICALS_DIR, pageFile);
-  }
+  const pagePath = verticalPagePath(pageFile);
+  if (pagePath) SKIN_PAGE_PATHS[skin.slug] = pagePath;
 }
 
 /**
