@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banca en Línea | Banamex</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #003746; --teal: #005162; --teal-mid: #369AB0; --sky: #A0D6E2; --mist: #E4EFF2; --canvas: #EDF6F7;
+      --red: #FF1B44; --red-dark: #E0062F; --green: #00AD59; --gray: #939DA1; --line: #DAE9EE; --white: #FFFFFF;
+      --danger: #C4111B; --danger-bg: #FDF1F2; --danger-border: #F3C3C7;
+      --success: #00804A; --success-bg: #EAF8F1; --success-border: #A2F6D3;
+      --font: 'Banamex-text', Figtree, 'Helvetica Neue', Arial, sans-serif;
+      --display: 'Banamex-display', Figtree, 'Helvetica Neue', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--canvas); color: var(--ink); line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: var(--teal); }
+    button, input, select { font: inherit; color: inherit; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.4s ease-out both; }
+    .d1 { animation-delay: .05s; } .d2 { animation-delay: .1s; } .d3 { animation-delay: .15s; } .d4 { animation-delay: .2s; }
+
+    .top { background: var(--ink); padding: 0 clamp(12px, 4vw, 48px) 28px; }
+    .navcard { max-width: 1200px; margin: 0 auto; background: var(--white); border-radius: 0 0 24px 24px; min-height: 74px; padding: 0 clamp(14px, 2.4vw, 28px); display: flex; align-items: center; gap: 28px; }
+    .logo { display: flex; align-items: center; text-decoration: none; flex: none; }
+    .logo svg { height: 26px; width: auto; display: block; }
+    .mainnav { display: flex; gap: 6px; flex: 1; }
+    .mainnav a { color: var(--ink); text-decoration: none; font-weight: 500; font-size: 15px; padding: 25px 12px 22px; border-bottom: 4px solid transparent; }
+    .mainnav a.active { border-bottom-color: var(--ink); font-weight: 600; }
+    .navright { display: flex; align-items: center; gap: 14px; margin-left: auto; }
+    .user { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--mist); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+    .pill-out { border: 0; background: var(--mist); color: var(--ink); border-radius: 24px; padding: 11px 20px; font-weight: 500; font-size: 15px; cursor: pointer; white-space: nowrap; }
+    .pill-out:hover { background: #d4e7ec; }
+    .hero { max-width: 1200px; margin: 0 auto; color: var(--white); padding: 34px 4px 30px; }
+    .hero .eyebrow { font-size: 14px; font-weight: 600; color: var(--sky); }
+    .hero h1 { font-family: var(--display); font-weight: 300; font-size: clamp(28px, 4vw, 40px); line-height: 1.15; margin-top: 6px; }
+    .hero p { font-size: 15px; color: rgba(255,255,255,.78); margin-top: 6px; }
+
+    .page { max-width: 1200px; margin: -26px auto 0; padding: 0 clamp(12px, 4vw, 48px) 56px; }
+    .accounts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .account { background: var(--white); border-radius: 20px; padding: 22px 24px; box-shadow: 0 2px 8px rgba(0,55,70,.06); }
+    .account .tag { display: inline-block; font-size: 12px; font-weight: 600; color: var(--teal); background: var(--mist); border-radius: 12px; padding: 3px 10px; }
+    .account .name { font-size: 16px; font-weight: 600; margin-top: 12px; }
+    .account .num { font-size: 13px; color: var(--gray); }
+    .account .bal { font-family: var(--display); font-weight: 300; font-size: 30px; margin-top: 10px; }
+    .account .bal small { font-size: 14px; font-weight: 500; color: var(--teal); margin-left: 4px; }
+    .account.card { background: var(--ink); color: var(--white); }
+    .account.card .tag { background: rgba(160,214,226,.18); color: var(--sky); }
+    .account.card .num { color: var(--sky); }
+    .account.card .bal small { color: var(--sky); }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 24px; margin-top: 28px; align-items: start; }
+    .panel { background: var(--white); border-radius: 24px; padding: 26px 28px; box-shadow: 0 2px 8px rgba(0,55,70,.06); }
+    .panel h2 { font-family: var(--display); font-weight: 400; font-size: 24px; }
+    .panel .sub { font-size: 14px; color: var(--teal); margin-top: 2px; }
+    .table-scroll { overflow-x: auto; margin-top: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-weight: 600; font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: .04em; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+    td { padding: 13px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    td.desc { white-space: normal; min-width: 160px; }
+    td.amt, th.amt { text-align: right; }
+    .credit { color: var(--success); font-weight: 600; }
+    .debit { color: var(--ink); font-weight: 600; }
+
+    form { margin-top: 18px; display: grid; gap: 16px; }
+    .field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .field select, .field input { width: 100%; min-height: 50px; border: 1px solid #b8d3db; border-radius: 12px; padding: 0 14px; background: var(--white); font-size: 16px; color: var(--ink); appearance: auto; }
+    .field select:focus, .field input:focus { outline: 2px solid var(--teal-mid); outline-offset: 1px; border-color: var(--teal-mid); }
+    .field small { display: block; font-size: 12px; color: var(--gray); margin-top: 4px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; }
+    .amount-wrap input { padding-left: 28px; }
+    .btn-primary { min-height: 50px; border: 0; border-radius: 26px; background: var(--red); color: var(--white); font-weight: 700; font-size: 16px; cursor: pointer; padding: 0 28px; }
+    .btn-primary:hover { background: var(--red-dark); }
+    .btn-primary:disabled { opacity: .7; cursor: progress; }
+    .result-box { display: none; margin-top: 16px; border-radius: 14px; padding: 14px 16px; font-size: 14px; }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box .title { font-weight: 700; margin-bottom: 2px; }
+    .note { margin-top: 18px; font-size: 12px; color: var(--gray); display: flex; gap: 8px; align-items: flex-start; }
+    .note svg { flex: none; margin-top: 1px; }
+
+    footer { background: var(--ink); color: rgba(255,255,255,.8); padding: 28px clamp(12px, 4vw, 48px); font-size: 13px; }
+    footer .inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    footer a { color: var(--white); text-decoration: none; margin-right: 18px; }
+
+    @media (max-width: 960px) {
+      .mainnav { display: none; }
+      .grid { grid-template-columns: minmax(0, 1fr); }
+      .accounts { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .user span.uname { display: none; }
+      .pill-out { padding: 10px 14px; font-size: 14px; }
+      .navcard { gap: 12px; }
+      .logo svg { height: 22px; }
+      .panel { padding: 22px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <header class="navcard">
+      <a class="logo" href="#" aria-label="Banamex"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 525.5 100" role="img" aria-hidden="true"> <path fill="#ff1b44" d="M90.3,40.8c-1.5-.5-2.9-.9-4.2-1.2,1.3-1.4,2.6-3.1,3.9-4.8,3.5-4.8,5.3-8.4,5.3-11.7,0-5.5-3.9-9.3-11.2-15-5.6-4.4-10-6.8-14.1-6.8s-8.8,3-13.6,9.5c-.9,1.3-1.8,2.4-2.5,3.6-1-1.6-2.2-3.4-3.5-5.1C45.7,2.7,41.8,0,37.4,0s-8.6,2.4-14.7,6.4c-7.7,5-11.4,9-11.4,14.6s1.9,7.3,5.5,12.1c.9,1.3,1.8,2.4,2.7,3.4-1.9.4-3.9,1-6,1.7C3.4,41.4,0,45.3,0,51.8s.9,6.9,2.2,11.5c3,10.7,6.8,15.7,14.5,15.7s5.8-.6,9.6-1.8c1.5-.5,2.9-1,4.1-1.4-.2,1.9-.3,4-.3,6.2,0,15.4,6,18.2,23.6,18.2s18-3.1,18-18.2,0-3-.1-4.3c1.8.7,3.8,1.5,5.9,2.1,4.1,1.3,7.4,1.8,10.1,1.8,6.3,0,10-5.4,13.9-15.6,1.8-4.7,2.7-8.6,2.7-11.8,0-6.5-4.2-10.1-13.9-13.2ZM67,19.2l1.7-2.3c1-1.3,2.7-1.6,4-.5,6.8,5.8,10.9,14.4,10.9,22.6-4-.7-6.9-.5-9.3,1,0-.4.1-.9.1-1.3.2-4.8-2.2-10-7.1-15.5-1.1-1.2-1.4-2.6-.4-3.9ZM60.7,36.3c5.8,4.1,9.1,5.8,11,6-1.8,2.3-3.3,5.7-4.9,10.5-2.2,6.7-2.8,10.3-2.4,12.2-2.8-1-6.6-1.3-11.6-1.3s-10.8.5-12.5,1.5c0-2.9-.7-6.5-2.3-11.3-2.2-6.7-3.9-10-5.3-11.2,2.8-.8,6.1-2.7,10.2-5.6,5.8-4.1,8.4-6.7,9.2-8.4,1.7,2.4,4.5,4.9,8.6,7.8ZM27.3,19.6c7.7-4.5,17.3-5.8,25.3-3.2-2,3.5-2.6,6.3-1.9,9-.4-.2-.8-.4-1.2-.6-4.6-1.7-10.4-1-17.2,1.8-1.5.6-2.9.5-3.9-.9l-1.7-2.3c-1-1.3-.7-3,.8-3.9ZM28.3,44c-3.1,3.8-4.2,9.4-3.5,16.7.1,1.6-.4,2.8-2,3.4l-2.8.9c-1.6.5-3.2-.3-3.5-1.9-2-8.6-.2-18,4.7-24.6,2.8,2.9,5.3,4.4,8.1,4.6-.3.3-.6.6-.9,1ZM58,84c0,1.6-1.2,2.9-2.9,2.7-8.9-.8-17.5-5.4-22.3-12,3.7-1.7,5.9-3.6,6.9-6.1.2.4.4.8.7,1.2,2.7,4.1,7.8,6.8,15,8.5,1.6.4,2.6,1.3,2.6,2.9v2.9h0ZM89.9,57.8c-3.5,8.1-10.6,14.7-18.5,17.2-.5-4-1.7-6.6-3.8-8.4.4,0,.9-.2,1.3-.3,4.8-1.3,9-5.2,12.8-11.4.8-1.4,2.1-2.1,3.6-1.5l2.8.9c1.6.5,2.4,2,1.7,3.6Z"/> <path fill="#003746" d="M210.2,27.2c-10.4,0-18.8,6.1-21.1,14.6-.4,1.4.4,2.2,1.8,2.2h6.9c1.2,0,1.9-.6,2.2-1.9,1-5.1,3.6-6.7,10.3-6.7s9.5,1.3,9.5,9.5v.5c0,2.2-.8,2.9-3,2.9h-9c-12.5,0-20.7,5.4-20.7,15s7.6,15,16.9,15,12.5-2.9,16-8.3h.4l2,6.1c.3,1.1,1.1,1.7,2.2,1.7h4.8c1.3,0,2-.7,2-2v-28.5c0-12.1-8.3-20.1-20.9-20.1ZM219.6,57.8c0,8.7-4,12.6-13,12.6s-8.5-1.8-8.5-7.4,1.3-7.4,9.1-7.4h12.4v2.2ZM168,42.7v-.4c6.9-3.7,10.2-8.7,10.2-15.4,0-10.9-8.2-17.7-22.2-17.7h-24.5c-1.3,0-2,.7-2,2v64.7c0,1.3.7,2,2,2h25.6c15.4,0,23.3-6.7,23.3-18.4,0-7.6-4.5-13.5-12.4-16.7ZM141.2,18.1h13.9c8.9,0,11,2.1,11,10.3s-2.1,10.3-11,10.3h-13.9v-20.6ZM156.7,68.9h-15.6v-21.3h15.6c9.3,0,11.5,2.1,11.5,10.6s-2.2,10.7-11.5,10.7ZM525.1,75.5l-16.3-23.7v-.4l14.9-21.2c.9-1.4.3-2.4-1.3-2.4h-7.5c-1.1,0-1.9.4-2.4,1.3l-9.9,16h-.4l-9.8-15.9c-.5-.9-1.3-1.4-2.4-1.4h-8.4c-1.6,0-2.2,1.1-1.3,2.4l14.9,21.9v.4l-16.1,23c-.9,1.4-.4,2.4,1.2,2.4h7.6c1.1,0,1.8-.3,2.4-1.3l11.2-17.7h.3l11.3,17.7c.6,1,1.3,1.3,2.4,1.3h8.3c1.6,0,2.2-1.1,1.3-2.4ZM267.6,27.2c-6.4,0-11.5,2.4-15.2,7.1h-.4l-1.9-4.9c-.4-1-1.2-1.6-2.3-1.6h-4.8c-1.3,0-2,.7-2,2v46.1c0,1.3.7,2,2,2h7.6c1.3,0,2-.7,2-2v-31.1c0-7.7,1.8-9.3,10.7-9.3s10,1.8,10,9.3v31.1c0,1.3.7,2,2,2h7.5c1.3,0,2-.7,2-2v-26c0-14.5-6.2-22.6-17.2-22.6ZM452.8,27.2c-14.9,0-24.5,10.2-24.5,25.6s9.7,25.6,24.5,25.6,19.6-5.6,22.8-14.1c.5-1.2-.3-2-1.7-2h-7.1c-1.2,0-1.9.6-2.3,1.7-1.6,4.8-4.5,6.2-12,6.2s-12.1-2.8-12.5-14.3h34.6c1.3,0,2-.7,2-2v-1.1c0-15.9-9.2-25.6-23.9-25.6ZM440.2,49.3c.4-11.1,3.1-13.8,12.4-13.8s12.1,2.9,12.5,13.8h-24.8ZM403.3,27.2c-6.5,0-11.6,2.1-16.1,7.1h-.3c-3.6-4.9-7.9-7.1-13.8-7.1s-11.2,2.4-14.8,7.1h-.4l-1.9-4.9c-.4-1-1.2-1.6-2.3-1.6h-4.8c-1.3,0-2,.7-2,2v46.1c0,1.3.7,2,2,2h7.6c1.3,0,2-.7,2-2v-31.1c0-7.7,1.8-9.3,10.3-9.3s9.6,1.8,9.6,9.3v31.1c0,1.3.7,2,2,2h7.5c1.3,0,2-.7,2-2v-31.1c0-7.7,1.8-9.3,10.3-9.3s9.6,1.8,9.6,9.3v31.1c0,1.3.7,2,2,2h7.5c1.3,0,2-.7,2-2v-26c0-14.7-5.8-22.6-18-22.6ZM316.1,27.2c-10.4,0-18.8,6.1-21.1,14.6-.4,1.4.4,2.2,1.8,2.2h6.9c1.2,0,1.9-.6,2.2-1.9,1-5.1,3.6-6.7,10.3-6.7s9.5,1.3,9.5,9.5v.5c0,2.2-.8,2.9-3,2.9h-9c-12.5,0-20.7,5.4-20.7,15s7.6,15,16.9,15,12.5-2.9,16-8.3h.4l2,6.1c.3,1.1,1.1,1.7,2.2,1.7h4.8c1.3,0,2-.7,2-2v-28.5c0-12.1-8.3-20.1-20.9-20.1ZM325.6,57.8c0,8.7-4,12.6-13,12.6s-8.5-1.8-8.5-7.4,1.3-7.4,9.1-7.4h12.4v2.2Z"/> </svg></a>
+      <nav class="mainnav" aria-label="Banca en Línea">
+        <a href="#" class="active">Mis cuentas</a>
+        <a href="#">Transferencias</a>
+        <a href="#">Pagos</a>
+        <a href="#">Tarjetas</a>
+        <a href="#">Inversiones</a>
+      </nav>
+      <div class="navright">
+        <div class="user"><span class="avatar">AH</span><span class="uname">Alicia Hernández</span></div>
+        <button type="button" class="pill-out">Cerrar sesión</button>
+      </div>
+    </header>
+    <div class="hero fade-in d1">
+      <div class="eyebrow">Banca en Línea</div>
+      <h1>Buenos días, Alicia</h1>
+      <p>Último acceso: hoy, 08:42 h &middot; Cliente desde 2016</p>
+    </div>
+  </div>
+
+  <main class="page">
+    <section class="accounts">
+      <div class="account fade-in d2">
+        <span class="tag">Débito</span>
+        <div class="name">Cuenta Perfiles</div>
+        <div class="num">Cuenta &bull;&bull;&bull;&bull; 1001</div>
+        <div class="bal">$48,250.00<small>MXN</small></div>
+      </div>
+      <div class="account fade-in d3">
+        <span class="tag">Ahorro</span>
+        <div class="name">Cuenta de Ahorro Banamex</div>
+        <div class="num">Cuenta &bull;&bull;&bull;&bull; 1002</div>
+        <div class="bal">$186,420.50<small>MXN</small></div>
+      </div>
+      <div class="account card fade-in d4">
+        <span class="tag">Crédito</span>
+        <div class="name">Tarjeta Banamex Oro</div>
+        <div class="num">Tarjeta &bull;&bull;&bull;&bull; 4821</div>
+        <div class="bal">$12,780.35<small>disponible</small></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel fade-in d3">
+        <h2>Últimos movimientos</h2>
+        <div class="sub">Cuenta Perfiles &bull;&bull;&bull;&bull; 1001</div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Fecha</th><th>Concepto</th><th class="amt">Importe</th><th class="amt">Saldo</th></tr></thead>
+            <tbody>
+              <tr><td>17 oct</td><td class="desc">Depósito de nómina</td><td class="amt credit">+$18,400.00</td><td class="amt">$48,250.00</td></tr>
+              <tr><td>16 oct</td><td class="desc">Walmart Insurgentes</td><td class="amt debit">-$1,284.60</td><td class="amt">$29,850.00</td></tr>
+              <tr><td>15 oct</td><td class="desc">CFE Suministrador de Servicios Básicos</td><td class="amt debit">-$642.00</td><td class="amt">$31,134.60</td></tr>
+              <tr><td>14 oct</td><td class="desc">Transferencia desde Ahorro</td><td class="amt credit">+$5,000.00</td><td class="amt">$31,776.60</td></tr>
+              <tr><td>12 oct</td><td class="desc">Liverpool Perisur</td><td class="amt debit">-$2,319.00</td><td class="amt">$26,776.60</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel fade-in d4">
+        <h2>Transferir entre mis cuentas</h2>
+        <div class="sub">Disponible de inmediato entre tus cuentas Banamex.</div>
+        <form id="transferForm" novalidate>
+          <div class="field"><label for="fromAccount">Cuenta de origen</label>
+            <select id="fromAccount"><option value="ACCT-1001">Cuenta Perfiles &bull;&bull;&bull;&bull; 1001</option><option value="ACCT-1002">Cuenta de Ahorro &bull;&bull;&bull;&bull; 1002</option></select></div>
+          <div class="field"><label for="toAccount">Cuenta de destino</label>
+            <select id="toAccount"><option value="ACCT-1002">Cuenta de Ahorro &bull;&bull;&bull;&bull; 1002</option><option value="ACCT-1001">Cuenta Perfiles &bull;&bull;&bull;&bull; 1001</option></select></div>
+          <div class="field"><label for="amount">Importe</label>
+            <div class="amount-wrap"><span>$</span><input type="number" id="amount" value="2500" min="1" step="0.01" inputmode="decimal"></div></div>
+          <div class="field"><label for="accountTier">Paquete de tu cuenta</label>
+            <select id="accountTier"><option value="standard">Cuenta Perfiles</option><option value="premium">Banamex Priority</option><option value="basic">Cuenta Básica</option></select>
+            <small>El paquete de la cuenta de origen.</small></div>
+          <button type="submit" class="btn-primary" id="submitBtn">Transferir</button>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <div class="note"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#369AB0" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Tus operaciones están protegidas. Banamex nunca te pedirá tus claves por teléfono o correo.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="inner">
+      <div><a href="#">Centro de seguridad</a><a href="#">Sucursales y cajeros</a><a href="#">Aviso de privacidad</a><a href="#">Contáctanos</a></div>
+      <div>&copy; 2026 Banamex</div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const form = document.getElementById('transferForm');
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const fromAccount = document.getElementById('fromAccount');
+      const toAccount = document.getElementById('toAccount');
+      const amountInput = document.getElementById('amount');
+      const mxn = (n) => Number(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      function show(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '';
+        const t = document.createElement('div'); t.className = 'title'; t.textContent = title;
+        const d = document.createElement('div'); d.textContent = detail;
+        result.append(t, d);
+      }
+      function keepDistinct(changed, other) {
+        if (changed.value !== other.value) return;
+        const alt = Array.from(other.options).find((o) => o.value !== changed.value);
+        if (alt) other.value = alt.value;
+      }
+      fromAccount.addEventListener('change', () => keepDistinct(fromAccount, toAccount));
+      toAccount.addEventListener('change', () => keepDistinct(toAccount, fromAccount));
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const amount = Math.round(parseFloat(amountInput.value) * 100) / 100;
+        if (!Number.isFinite(amount) || amount <= 0) {
+          show('error', 'Revisa el importe', 'Captura un importe mayor a $0.00.');
+          return;
+        }
+        button.disabled = true;
+        button.textContent = 'Procesando…';
+        result.className = 'result-box';
+        try {
+          const res = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount,
+              accountTier: document.getElementById('accountTier').value,
+              userId: 'usr_alicia_hernandez',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.receipt) throw new Error('transfer failed');
+          const fee = Number(data.fee || 0);
+          const total = Number(data.debitAmount || data.receipt.amount);
+          show('success', 'Transferencia realizada',
+            fee > 0
+              ? `Enviaste $${mxn(data.receipt.amount)} MXN. Comisión: $${mxn(fee)} · Total cargado: $${mxn(total)} MXN.`
+              : `Enviaste $${mxn(data.receipt.amount)} MXN a tu cuenta de destino.`);
+        } catch (_err) {
+          show('error', 'No pudimos completar tu transferencia', 'Intenta de nuevo en unos minutos.');
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Transferir';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
