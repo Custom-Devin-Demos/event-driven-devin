@@ -4561,6 +4561,32 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A MISTRAL AI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Mistral AI product.',
   },
+  '29197ad0': {
+    slug: '29197ad0',
+    company: 'デジタル庁 マイナポータル',
+    brandMark: 'デ',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: '29197ad0.html', title: '児童手当 現況届の電子申請 | マイナポータル | デジタル庁' },
+    theme: {
+      '--accent': '#00118F',
+      '--ink': '#333333',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#00118F',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'マイナポータル ヘルプデスク',
+    alertCard: {
+      title: '5xx rate \u2014 マイナポータル 電子申請 送信',
+      service: 'mynaportal-application-api',
+      team: 'digital-services-oncall',
+      release: 'mynaportal-web@1.0.3',
+      baseline: '<0.5% (7-day, before mynaportal-web@1.0.3)',
+      symptom: 'Online application submissions on マイナポータル hang ~8s and then fail with 504 Gateway Timeout. Upstream municipal submission latency is elevated.',
+      impact: 'Residents cannot submit 児童手当 現況届 and other applications through the portal; every submission times out after a long hang, days before the June 30 deadline.',
+    },
+    disclaimer: 'NOT ACTUALLY A DIGITAL AGENCY (デジタル庁 / マイナポータル) SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Government of Japan service.',
+  },
 };
 
 function getOncallSkin(slug) {
