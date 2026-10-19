@@ -78,6 +78,12 @@ describe('Cummins site on-call skins', () => {
     expect(html).toContain('const triggerWhen = {"esn":"79464646"}');
   });
 
+  test.each(SKINS)('$slug always sends its on-call alert to Teams', async ({ slug }) => {
+    expect(getOncallSkin(slug)).toMatchObject({ teamsAlerts: true, alertDestination: 'teams' });
+    const html = await (await fetch(`${baseUrl}/oncall/c/${slug}`)).text();
+    expect(html).toContain('var skinAlertDestination = "teams"');
+  });
+
   test('the existing 7772b48a Cummins skin is unchanged', () => {
     expect(getOncallSkin('7772b48a')).toMatchObject({ vertical: 'marketplace', page: { file: '7772b48a.html' } });
   });
