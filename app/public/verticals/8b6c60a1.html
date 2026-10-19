@@ -29,7 +29,7 @@
     .topbar { background: var(--chrome-bg); color: var(--chrome-text); border-bottom: 3px solid #8FA7C4; }
     .topbar-inner { min-height: 60px; padding: 0 22px; display: flex; align-items: center; gap: 24px; }
     .brand { display: inline-flex; align-items: center; gap: 11px; color: var(--chrome-text); }
-    .brand-mark { width: 36px; height: 36px; border: 2px solid #C9D6E6; display: grid; place-items: center; font: 700 13px/1 Georgia, 'Times New Roman', serif; letter-spacing: .04em; }
+    .brand-mark { flex: none; min-width: 48px; height: 36px; padding: 0 6px; border: 2px solid #C9D6E6; display: grid; place-items: center; font: 700 13px/1 Georgia, 'Times New Roman', serif; letter-spacing: .04em; }
     .brand-name { line-height: 1.15; }
     .brand-name strong { display: block; font: 600 16px/1.15 Georgia, 'Times New Roman', serif; }
     .brand-name span { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .78; }
@@ -56,9 +56,9 @@
     .card { background: var(--surface); border: 1px solid var(--line); padding: 16px 18px; margin-bottom: 14px; }
     .card h2 { margin: 0 0 12px; font-size: 15px; font-weight: 700; color: #13294B; border-bottom: 1px solid var(--soft); padding-bottom: 8px; }
     .steps { display: flex; gap: 0; margin: 0 0 16px; padding: 0; list-style: none; border: 1px solid var(--line); }
-    .steps li { flex: 1; padding: 8px 10px; font-size: 12px; color: var(--muted); background: #F6F8FB; border-right: 1px solid var(--line); }
+    .steps li { flex: 1; min-width: 0; display: flex; align-items: center; padding: 8px 10px; font-size: 12px; color: var(--muted); background: #F6F8FB; border-right: 1px solid var(--line); }
     .steps li:last-child { border-right: 0; }
-    .steps li b { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 6px; border-radius: 50%; background: var(--soft); color: var(--muted); font-size: 11px; }
+    .steps li b { flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 6px; border-radius: 50%; background: var(--soft); color: var(--muted); font-size: 11px; }
     .steps li.active { background: #fff; color: var(--ink); font-weight: 600; box-shadow: inset 0 -3px 0 var(--accent); }
     .steps li.active b, .steps li.done b { background: var(--accent); color: #fff; }
     .step[hidden] { display: none !important; }
@@ -92,7 +92,10 @@
     .result-box { display: none; margin-top: 12px; padding: 12px 14px; font-size: 13px; }
     .result-box.success { display: block; background: #E5F2EA; border: 1px solid #9CCBAE; color: var(--ok); }
     .result-box.notice { display: block; background: #FBEAEA; border: 1px solid #E5B1B1; color: #8E1F1F; }
-    .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border: 1px solid; }
+    .pill { display: inline-block; font-size: 11px; font-weight: 600; line-height: 1.4; padding: 1px 7px; border: 1px solid; white-space: nowrap; }
+    .adv-id { display: block; font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .adv-table td { vertical-align: top; }
+    .adv-table td.num { white-space: nowrap; }
     .pill.out { background: #EEF2F7; color: #3B4D66; border-color: #C3CEDC; }
     .pill.new { background: #E5F2EA; color: var(--ok); border-color: #9CCBAE; }
     .mono { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
@@ -105,7 +108,9 @@
       .main { padding: 14px 14px 70px; }
       .head { flex-direction: column; }
       .review { grid-template-columns: 1fr; }
-      .steps li { font-size: 11px; padding: 8px 6px; }
+      .steps li { flex-direction: column; justify-content: center; gap: 4px; text-align: center; font-size: 11px; line-height: 1.25; padding: 8px 4px; }
+      .steps li b { margin-right: 0; }
+      .actions { flex-wrap: wrap; }
     }
   </style>
 </head>
@@ -190,8 +195,8 @@
       <aside>
         <section class="card" aria-labelledby="outstanding-heading">
           <h2 id="outstanding-heading">Advances outstanding</h2>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Advance</th><th>Product</th><th class="num">Amount</th><th>Status</th></tr></thead>
+          <div class="table-wrap"><table class="adv-table">
+            <thead><tr><th>Advance</th><th class="num">Amount</th><th>Status</th></tr></thead>
             <tbody id="advanceRows"></tbody>
           </table></div>
           <p class="note">Capital stock requirement: 4.0% of advances outstanding (activity-based).</p>
@@ -245,7 +250,7 @@
         $('kpiCapacity').textContent = usd(capacity());
         $('kpiOutstanding').textContent = usd(outstanding());
         $('kpiAvailable').textContent = usd(available());
-        $('advanceRows').innerHTML = advances.map((a) => `<tr><td class="mono">${a.id}</td><td>${a.product}</td><td class="num">${usd(a.amount)}</td><td><span class="pill ${a.fresh ? 'new' : 'out'}">${a.fresh || 'Outstanding'}</span></td></tr>`).join('');
+        $('advanceRows').innerHTML = advances.map((a) => `<tr><td><span class="adv-id mono">${a.id}</span>${a.product}</td><td class="num">${usd(a.amount)}</td><td><span class="pill ${a.fresh ? 'new' : 'out'}">${a.fresh || 'Outstanding'}</span></td></tr>`).join('');
       }
       function renderCollateral() {
         $('collateralRows').innerHTML = COLLATERAL.map((c) => `<tr><td>${c.category}</td><td>${c.method}</td><td class="num">${usd(c.pledged)}</td><td class="num">${Math.round(c.haircut * 100)}%</td><td class="num">${usd(lendable(c))}</td></tr>`).join('');
@@ -342,7 +347,7 @@
           const data = await response.json();
           if (!response.ok || !data.success) throw new Error('Advance request was not accepted.');
           const ref = (data.receipt && data.receipt.receiptId) || data.transferId;
-          advances.unshift({ id: ref, product: productName, amount: requested, fresh: sameDay ? 'Funded today' : 'Booked \u2014 next business day' });
+          advances.unshift({ id: ref, product: productName, amount: requested, fresh: sameDay ? 'Funded today' : 'Booked \u00b7 next day' });
           renderPosition();
           result.className = 'result-box success';
           result.innerHTML = `<strong>${sameDay ? 'Advance funded.' : 'Advance booked.'}</strong> ${usd(requested)} ${productName}, ${requestTerm.toLowerCase()} at ${requestRate}. Proceeds ${sameDay ? 'credited today' : 'scheduled for next business day'} to ${proceeds} (confirmation <span class="mono">${ref}</span>). Remaining available to borrow: ${usd(available())}.`;
