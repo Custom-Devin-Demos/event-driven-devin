@@ -37,6 +37,19 @@ describe('on-call skin session prompt appendix', () => {
     ].join('\n'));
   });
 
+  test('uses the skin alertCard monitor facts but keeps the real service and endpoint', () => {
+    const skin = { slug: 'demo', alertCard: { title: 'Chat 504s', release: 'chat-web@3.6.0', symptom: 'Chat fails', impact: 'No answers', service: 'chat-web', endpointLabel: 'POST /chat' } };
+    const prompt = buildOncallSessionPrompt(SCENARIO, skin, '');
+
+    expect(prompt).toContain('*Monitor:* Chat 504s');
+    expect(prompt).toContain('*Release:* chat-web@3.6.0');
+    expect(prompt).toContain('*Symptom:* Chat fails');
+    expect(prompt).toContain('*Impact:* No answers');
+    expect(prompt).toContain('firing on telco-api.');
+    expect(prompt).toContain('*Endpoint:* POST /api/telco/upgrade');
+    expect(prompt).not.toContain('telco@1.0.0');
+  });
+
   test('appends a configured appendix after the prompt', () => {
     const appendix = 'Capture the before and after states.';
     const prompt = buildOncallSessionPrompt(
