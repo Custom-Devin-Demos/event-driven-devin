@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Add Users to Entitlement | NYSE Data Products</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --black: #000000;
+        --sky: #71c5e8;
+        --sky-deep: #235f73;
+        --steel: #27455c;
+        --ink: #000000;
+        --muted: #565a5c;
+        --dim: #656565;
+        --bg: #ffffff;
+        --panel: #f2f1f1;
+        --line: #e2e2e2;
+        --line-strong: #bdbdbd;
+        --ok: #1d6b3a;
+        --ok-bg: #e9f5ed;
+        --err: #a31212;
+        --err-bg: #fbeaea;
+        --body: 'Archivo', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+      a { color: inherit; }
+      .wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+
+      .utility { background: var(--black); color: #fff; font-size: 13px; }
+      .utility .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 40px; }
+      .utility .group { display: flex; align-items: center; gap: 14px; }
+      .utility .ice { font-weight: 700; letter-spacing: 2px; }
+      .utility .sep { width: 1px; height: 16px; background: #555; }
+      .utility a { color: #fff; text-decoration: none; display: inline-flex; align-items: center; min-height: 40px; opacity: 0.9; }
+
+      .mainnav { border-bottom: 1px solid var(--line); background: #fff; }
+      .mainnav .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 76px; gap: 24px; }
+      .brand { display: inline-flex; align-items: baseline; gap: 10px; text-decoration: none; }
+      .brand .mark { font-weight: 700; font-size: 30px; letter-spacing: -1px; line-height: 1; }
+      .brand .mark::after { content: ''; display: inline-block; width: 10px; height: 10px; margin-left: 4px; background: var(--sky); }
+      .brand small { font-size: 12px; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; }
+      .mainnav nav { display: flex; gap: 32px; }
+      .mainnav nav a { text-decoration: none; font-weight: 500; font-size: 15px; display: inline-flex; align-items: center; min-height: 44px; border-bottom: 3px solid transparent; }
+      .mainnav nav a.on { border-bottom-color: var(--sky); }
+      .signin { font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; background: var(--black); color: #fff; text-decoration: none; padding: 0 18px; min-height: 44px; display: inline-flex; align-items: center; border-radius: 2px; }
+
+      .hero { background: linear-gradient(100deg, #0b2a3a 0%, #143f56 45%, #1c6c8d 100%); position: relative; min-height: 300px; }
+      .hero .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 32px; align-items: end; }
+      .hero .block { background: var(--black); color: #fff; padding: 36px 36px 40px; margin-top: 110px; margin-bottom: -56px; }
+      .hero h1 { margin: 0; font-size: 52px; line-height: 1.02; font-weight: 500; letter-spacing: -1.5px; }
+      .hero p { margin: 16px 0 0; font-size: 17px; color: #d6d6d6; max-width: 620px; }
+      .hero .side { background: var(--sky); color: var(--black); padding: 28px 28px 30px; margin-bottom: -56px; }
+      .hero .side h2 { margin: 0 0 8px; font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+      .hero .side p { margin: 0 0 16px; color: var(--black); font-size: 14px; }
+      .hero .side a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; background: var(--black); color: #fff; text-decoration: none; font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; border-radius: 2px; }
+
+      main { padding: 104px 0 80px; }
+      .grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 32px; align-items: start; }
+
+      .crumbs { font-size: 13px; color: var(--muted); margin: 0 0 18px; }
+      .crumbs span { margin: 0 8px; color: var(--line-strong); }
+      .card { border: 1px solid var(--line); padding: 28px 32px; background: #fff; }
+      .card h2 { margin: 0 0 4px; font-size: 24px; font-weight: 500; letter-spacing: -0.5px; }
+      .card .lead { margin: 0 0 22px; color: var(--muted); font-size: 14px; }
+      .firm { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; background: var(--panel); padding: 16px 18px; margin-bottom: 24px; }
+      .firm div span { display: block; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); font-weight: 600; }
+      .firm div b { font-weight: 600; font-size: 15px; }
+
+      fieldset { border: 0; margin: 0 0 20px; padding: 0; min-width: 0; }
+      label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.2px; }
+      .hint { color: var(--dim); font-size: 12.5px; margin: 6px 0 0; }
+      select, input[type="number"] { width: 100%; font: inherit; font-size: 15px; color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 2px; min-height: 48px; padding: 0 14px; }
+      select:focus, input:focus { outline: 3px solid var(--sky); outline-offset: 0; border-color: var(--black); }
+      select:disabled, input:disabled { background: var(--panel); color: var(--muted); }
+      .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+      .feeds { display: grid; gap: 0; border-top: 1px solid var(--line); margin-top: 8px; }
+      .feed { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+      .feed b { font-weight: 600; }
+      .feed span { color: var(--muted); }
+      .feed .st { color: var(--sky-deep); font-weight: 600; white-space: nowrap; }
+
+      .submit-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+      .submit-btn { font: inherit; font-weight: 700; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; background: var(--black); color: #fff; border: 0; border-radius: 2px; min-height: 50px; padding: 0 28px; cursor: pointer; }
+      .submit-btn:hover { background: #222; }
+      .submit-btn:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+      .submit-btn:disabled { background: #666; cursor: wait; }
+      .btn-secondary { font: inherit; font-weight: 700; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; background: #fff; color: var(--black); border: 1.5px solid var(--black); border-radius: 2px; min-height: 50px; padding: 0 22px; cursor: pointer; }
+      .btn-secondary:disabled { opacity: 0.5; cursor: default; }
+
+      .stopwatch { display: none; align-items: baseline; gap: 12px; margin: 18px 0 0; font-variant-numeric: tabular-nums; }
+      .stopwatch.on { display: flex; }
+      .stopwatch .sw-label { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+      .stopwatch .sw-value { font-size: 28px; font-weight: 600; color: var(--black); }
+      .stopwatch.done .sw-value { color: var(--sky-deep); }
+
+      .result-box { display: none; margin-top: 16px; padding: 14px 16px; font-size: 14px; line-height: 1.5; border-left: 4px solid transparent; }
+      .result-box strong { display: block; margin-bottom: 2px; font-weight: 600; }
+      .result-box.pending { display: block; background: var(--panel); color: var(--ink); border-left-color: var(--sky); }
+      .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); border-left-color: var(--ok); }
+      .result-box.error { display: block; background: var(--err-bg); color: var(--err); border-left-color: var(--err); }
+      .fine { margin: 16px 0 0; color: var(--dim); font-size: 12px; line-height: 1.45; }
+
+      .summary { background: var(--panel); padding: 24px 26px; position: sticky; top: 24px; }
+      .summary h3 { margin: 0 0 14px; font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; }
+      .row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid #ddd; font-size: 14px; }
+      .row:first-of-type { border-top: 0; }
+      .row .k { color: var(--muted); }
+      .row .v { font-weight: 600; text-align: right; }
+      .row.total .v { font-size: 22px; font-weight: 600; }
+      .summary .note { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+
+      footer { background: var(--black); color: #bdbdbd; font-size: 13px; padding: 34px 0; margin-top: 40px; }
+      footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+      footer nav { display: flex; gap: 22px; flex-wrap: wrap; }
+      footer a { color: #fff; text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+
+      @media (max-width: 960px) {
+        .wrap { padding: 0 20px; }
+        .mainnav nav, .utility .group.links { display: none; }
+        .hero .wrap, .grid { grid-template-columns: 1fr; }
+        .hero .block { margin-top: 48px; margin-bottom: 0; padding: 28px 24px; }
+        .hero h1 { font-size: 36px; }
+        .hero .side { margin-bottom: -40px; }
+        main { padding-top: 72px; }
+        .firm, .two { grid-template-columns: 1fr; }
+        .card { padding: 22px 20px; }
+        .summary { position: static; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="utility">
+      <div class="wrap">
+        <div class="group"><span class="ice">ICE</span><span class="sep"></span><span>NYSE</span></div>
+        <div class="group links"><a href="#">Contact</a><a href="#">Market Status: Open</a><a href="#">Connect Login</a></div>
+      </div>
+    </div>
+    <div class="mainnav">
+      <div class="wrap">
+        <a class="brand" href="#" aria-label="NYSE home"><span class="mark">NYSE</span><small>Data Products</small></a>
+        <nav aria-label="Primary"><a href="#">Listings</a><a href="#">Trading</a><a href="#" class="on">Market Data</a><a href="#">Insights</a><a href="#">About</a></nav>
+        <a class="signin" href="#">Client Portal</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="wrap">
+        <div class="block">
+          <h1>Manage entitlements</h1>
+          <p>Add display users to your firm&rsquo;s proprietary market data entitlements. Changes are reported on the next daily entitlement file.</p>
+        </div>
+        <div class="side">
+          <h2>Product data catalog</h2>
+          <p>Real-time, reference and historical data across all NYSE Group exchanges.</p>
+          <a href="https://www.nyse.com/market-data" target="_blank" rel="noopener noreferrer">Search the catalog</a>
+        </div>
+      </div>
+    </section>
+
+    <main>
+      <div class="wrap">
+        <div class="grid">
+          <div>
+            <p class="crumbs">Market Data<span>/</span>Entitlements<span>/</span>Add users</p>
+            <div class="card">
+              <h2>Add users</h2>
+              <p class="lead">Users are entitled under your firm&rsquo;s existing vendor agreement. Fees are billed monthly in arrears.</p>
+              <div class="firm">
+                <div><span>Firm</span><b>Meridian Capital Partners</b></div>
+                <div><span>Vendor ID</span><b>NYSE-V-04471</b></div>
+                <div><span>Agreement</span><b>Proprietary Data, 2024</b></div>
+              </div>
+              <form id="provisionForm" novalidate>
+                <fieldset>
+                  <label for="product">Data product</label>
+                  <select id="product">
+                    <option value="NYSE Integrated Feed">NYSE Integrated Feed</option>
+                    <option value="NYSE Arca Integrated Feed">NYSE Arca Integrated Feed</option>
+                    <option value="NYSE BBO">NYSE BBO</option>
+                    <option value="NYSE Trades">NYSE Trades</option>
+                    <option value="NYSE Cloud Streaming">NYSE Cloud Streaming</option>
+                  </select>
+                  <p class="hint" id="productHint"></p>
+                </fieldset>
+                <div class="two">
+                  <fieldset>
+                    <label for="planTier">Subscriber class</label>
+                    <select id="planTier">
+                      <option value="enterprise">Professional</option>
+                      <option value="business">Non-Professional</option>
+                    </select>
+                  </fieldset>
+                  <fieldset>
+                    <label for="seats">Users to add</label>
+                    <input id="seats" type="number" inputmode="numeric" min="1" max="250" step="1" value="25" required aria-describedby="seatsHint" />
+                    <p class="hint" id="seatsHint">1 to 250 users per request.</p>
+                  </fieldset>
+                </div>
+                <fieldset>
+                  <label>Current entitlements</label>
+                  <div class="feeds" id="feedList"></div>
+                </fieldset>
+                <div class="submit-row">
+                  <button type="submit" class="submit-btn" id="submitBtn">Add users</button>
+                  <button type="button" class="btn-secondary" id="clearBtn">Reset</button>
+                </div>
+                <div class="stopwatch" id="submitTimer" role="timer" aria-live="off"><span class="sw-label">Processing time</span><span class="sw-value" id="submitTimerValue">0.0s</span></div>
+                <div id="result" class="result-box" role="status" aria-live="polite"></div>
+                <p class="fine">Sample entitlement page. Firm details, products and fees shown here are illustrative; no entitlement record is changed.</p>
+              </form>
+            </div>
+          </div>
+          <aside class="summary" aria-live="polite">
+            <h3>Entitlement summary</h3>
+            <div class="row"><span class="k">Product</span><span class="v" id="sumProduct"></span></div>
+            <div class="row"><span class="k">Subscriber class</span><span class="v" id="sumTier"></span></div>
+            <div class="row"><span class="k">Users</span><span class="v" id="sumSeats"></span></div>
+            <div class="row"><span class="k">Fee per user</span><span class="v" id="sumUnit"></span></div>
+            <div class="row total"><span class="k">Est. monthly</span><span class="v" id="sumTotal"></span></div>
+            <p class="note">Fees shown are illustrative and exclude exchange access and redistribution charges.</p>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>&copy; 2026 Intercontinental Exchange, Inc. NYSE is a registered trademark of NYSE Group, Inc.</span>
+        <nav aria-label="Footer">
+          <a href="https://www.nyse.com/market-data" target="_blank" rel="noopener noreferrer">Market Data</a>
+          <a href="https://www.nyse.com/connect" target="_blank" rel="noopener noreferrer">NYSE Connect</a>
+          <a href="https://www.nyse.com/privacy" target="_blank" rel="noopener noreferrer">Privacy</a>
+          <a href="https://www.nyse.com/terms-of-use" target="_blank" rel="noopener noreferrer">Terms of Use</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      try { if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return; } catch (_) { return; }
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    (function () {
+      var PRODUCTS = {
+        'NYSE Integrated Feed': { hint: 'Full depth of book, trades and order-by-order detail for NYSE-listed securities.', pro: 70, non: 1, users: 140 },
+        'NYSE Arca Integrated Feed': { hint: 'Full depth of book and trades for all securities traded on NYSE Arca.', pro: 60, non: 1, users: 32 },
+        'NYSE BBO': { hint: 'Top-of-book quotes for NYSE-listed securities.', pro: 30, non: 1, users: 410 },
+        'NYSE Trades': { hint: 'Real-time last sale data for NYSE-listed securities.', pro: 25, non: 1, users: 95 },
+        'NYSE Cloud Streaming': { hint: 'Normalized real-time NYSE Group data delivered over the public cloud.', pro: 85, non: 1, users: 18 },
+      };
+      function getStore(key) { try { return localStorage.getItem(key) || ''; } catch (_) { return ''; } }
+      function money(n) { return '$' + n.toLocaleString('en-US'); }
+      function tierLabel() { return tierSel.options[tierSel.selectedIndex].text; }
+
+      var form = document.getElementById('provisionForm');
+      var productSel = document.getElementById('product');
+      var tierSel = document.getElementById('planTier');
+      var seatsInput = document.getElementById('seats');
+      var button = document.getElementById('submitBtn');
+      var clearBtn = document.getElementById('clearBtn');
+      var result = document.getElementById('result');
+      var timer = document.getElementById('submitTimer');
+      var timerValue = document.getElementById('submitTimerValue');
+      var feedList = document.getElementById('feedList');
+      var hint = document.getElementById('productHint');
+      var timerHandle = null;
+      var pending = false;
+      var added = {};
+
+      function seatCount() {
+        var raw = (seatsInput.value || '').trim();
+        if (!/^\d+$/.test(raw)) return NaN;
+        return parseInt(raw, 10);
+      }
+      function renderFeeds() {
+        feedList.textContent = '';
+        Object.keys(PRODUCTS).forEach(function (name) {
+          var row = document.createElement('div'); row.className = 'feed';
+          var left = document.createElement('div');
+          var b = document.createElement('b'); b.textContent = name;
+          var s = document.createElement('span'); s.textContent = ' \u00b7 ' + (PRODUCTS[name].users + (added[name] || 0)) + ' users';
+          left.appendChild(b); left.appendChild(s);
+          var st = document.createElement('span'); st.className = 'st'; st.textContent = added[name] ? '+' + added[name] + ' added' : 'Active';
+          row.appendChild(left); row.appendChild(st);
+          feedList.appendChild(row);
+        });
+      }
+      function sync() {
+        var p = PRODUCTS[productSel.value];
+        var n = seatCount();
+        var unit = tierLabel() === 'Professional' ? p.pro : p.non;
+        hint.textContent = p.hint;
+        document.getElementById('sumProduct').textContent = productSel.value;
+        document.getElementById('sumTier').textContent = tierLabel();
+        document.getElementById('sumSeats').textContent = isNaN(n) ? '\u2014' : n.toLocaleString('en-US');
+        document.getElementById('sumUnit').textContent = money(unit) + ' / mo';
+        document.getElementById('sumTotal').textContent = isNaN(n) ? '\u2014' : money(unit * n);
+      }
+
+      function startTimer() {
+        var started = performance.now();
+        timer.className = 'stopwatch on';
+        timerValue.textContent = '0.0s';
+        timerHandle = setInterval(function () {
+          timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+        return started;
+      }
+      function stopTimer(started) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        timer.className = 'stopwatch on done';
+      }
+      function show(kind, title, body) {
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        var s = document.createElement('strong');
+        s.textContent = title;
+        result.appendChild(s);
+        result.appendChild(document.createTextNode(body));
+      }
+      function clearResult() {
+        result.className = 'result-box';
+        result.textContent = '';
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timer.className = 'stopwatch';
+        timerValue.textContent = '0.0s';
+      }
+      function setBusy(on) {
+        pending = on;
+        button.disabled = on;
+        clearBtn.disabled = on;
+        productSel.disabled = on;
+        tierSel.disabled = on;
+        seatsInput.disabled = on;
+        button.textContent = on ? 'Adding users\u2026' : 'Add users';
+      }
+
+      productSel.addEventListener('change', function () { clearResult(); sync(); });
+      tierSel.addEventListener('change', function () { clearResult(); sync(); });
+      seatsInput.addEventListener('input', function () { clearResult(); sync(); });
+      clearBtn.addEventListener('click', function () {
+        if (pending) return;
+        productSel.selectedIndex = 0;
+        tierSel.selectedIndex = 0;
+        seatsInput.value = '25';
+        clearResult();
+        sync();
+      });
+      renderFeeds();
+      sync();
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (pending) return;
+        var n = seatCount();
+        if (isNaN(n) || n < 1 || n > 250) {
+          show('error', 'Enter a number of users between 1 and 250.', ' Larger changes are handled by your NYSE account manager.');
+          seatsInput.focus();
+          return;
+        }
+        var name = productSel.value;
+        var tier = tierLabel();
+        setBusy(true);
+        show('pending', 'Adding ' + n + ' ' + tier.toLowerCase() + ' users to ' + name + '\u2026', ' Validating the request against your vendor agreement and updating the entitlement.');
+        var started = startTimer();
+        try {
+          var res = await fetch('/api/licenses/provision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: name,
+              planName: tierSel.value,
+              seats: n,
+              billingCycle: 'monthly',
+              devinUserId: getStore('devinUserId'),
+              devinOrgId: getStore('devinOrgId'),
+              devinEmail: getStore('devinEmail'),
+            }),
+          });
+          var data = await res.json().catch(function () { return null; });
+          stopTimer(started);
+          if (!res.ok || !data || data.success !== true) {
+            show('error', 'We couldn\u2019t update this entitlement right now.', ' Please try again in a few minutes. Your existing entitlements are unchanged.');
+          } else {
+            var got = typeof data.seatsAdded === 'number' ? data.seatsAdded : n;
+            added[name] = (added[name] || 0) + got;
+            renderFeeds();
+            if (data.withinLimit === false) {
+              show('pending', got + ' users added to ' + name + ' \u2014 above the ' + tier.toLowerCase() + ' user cap on your agreement.', ' The entitlement is recorded, but it will be flagged on the next daily entitlement report until your NYSE account manager raises the cap.');
+              return;
+            }
+            show('success', got + ' users added to ' + name + '.', ' The entitlement is active for ' + tier.toLowerCase() + ' use and will appear on the next daily entitlement report. A confirmation has been sent to your firm\u2019s market data administrator.');
+          }
+        } catch (_) {
+          stopTimer(started);
+          show('error', 'We couldn\u2019t update this entitlement right now.', ' Please try again in a few minutes. Your existing entitlements are unchanged.');
+        } finally {
+          setBusy(false);
+        }
+      });
+    })();
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
