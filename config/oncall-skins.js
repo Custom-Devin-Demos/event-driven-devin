@@ -4267,6 +4267,30 @@ const ONCALL_SKINS = {
     page: { file: 'f49a69dd.html', title: 'Earnings | Lyft Driver' },
     disclaimer: 'NOT ACTUALLY A LYFT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Lyft product.',
   },
+  '66aaa48f': {
+    slug: '66aaa48f',
+    company: 'Wells Fargo',
+    brandMark: 'W',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '66aaa48f.html', title: 'Transfer Money | Wells Fargo' },
+    theme: {
+      '--accent': '#D71E28',
+      '--ink': '#141414',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#141414',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Wells Fargo Online Customer Service',
+    alertCard: {
+      title: 'p95 latency \u2014 Online Banking transfer submissions',
+      release: 'transfers-web@2026.10.2',
+      baseline: '~300ms (7-day p95, before transfers-web@2026.10.2)',
+      symptom: 'Submit transfer hangs ~9s before the confirmation number returns. Error rate is normal \u2014 transfers eventually post.',
+      impact: 'Customers moving money between their accounts in Online Banking wait ~9 seconds for a confirmation; some press Submit transfer again and call about duplicate transfers.',
+    },
+    disclaimer: 'NOT ACTUALLY A WELLS FARGO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Wells Fargo product.',
+  },
 };
 
 function getOncallSkin(slug) {

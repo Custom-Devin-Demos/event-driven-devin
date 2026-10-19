@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transfer Money | Wells Fargo</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=Libre+Baskerville:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #D71E28;
+      --ink: #141414;
+      --surface: #FFFFFF;
+      --chrome-bg: #141414;
+      --chrome-text: #FFFFFF;
+      --gold: #FFCD41;
+      --page: #F4F0ED;
+      --line: #E2DEDE;
+      --rule: #B5ADAD;
+      --muted: #787070;
+      --link: #5A469B;
+      --brown: #3B3331;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 17px/1.3 "Source Sans 3", "Source Sans Pro", Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: var(--link); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1200px; margin: auto; padding: 0 24px; }
+    .masthead { background: var(--accent); border-bottom: 4px solid var(--gold); color: var(--chrome-text); }
+    .masthead .wrap { display: flex; align-items: center; min-height: 75px; gap: 24px; }
+    .wordmark { display: inline-flex; align-items: center; min-height: 44px; color: var(--chrome-text); text-decoration: none; font: 700 27px/1 "Libre Baskerville", Georgia, "Times New Roman", serif; letter-spacing: .01em; text-transform: uppercase; white-space: nowrap; }
+    .masthead-links { margin-left: auto; display: flex; align-items: center; gap: 24px; font-size: 13px; }
+    .masthead-links a { min-height: 44px; display: inline-flex; align-items: center; color: var(--chrome-text); text-decoration: none; }
+    .masthead-links .signoff { min-height: 40px; padding: 0 20px; border-radius: 24px; background: var(--surface); color: var(--ink); font-size: 17px; font-weight: 600; }
+    .olb-nav { background: var(--surface); border-bottom: 1px solid var(--rule); }
+    .olb-nav .wrap { display: flex; gap: 40px; min-height: 60px; align-items: stretch; overflow-x: auto; scrollbar-width: none; }
+    .olb-nav a { display: inline-flex; align-items: center; white-space: nowrap; color: var(--ink); text-decoration: none; font-size: 16px; border-bottom: 4px solid transparent; padding-top: 4px; }
+    .olb-nav a.current { font-weight: 700; border-bottom-color: var(--accent); }
+    .page-title { background: var(--surface); }
+    .page-title .wrap { padding: 20px 24px 24px; }
+    .crumbs { margin: 0 0 12px; font-size: 15px; color: var(--ink); }
+    .crumbs a { color: var(--link); text-decoration: none; }
+    .crumbs span { margin: 0 8px; color: var(--muted); }
+    .crumbs strong { font-weight: 600; }
+    h1 { margin: 0; font-size: 34px; font-weight: 400; line-height: 1.2; }
+    .page-title p { margin: 8px 0 0; color: var(--ink); max-width: 720px; }
+    .greeting { color: var(--muted); font-size: 15px; margin: 6px 0 0; }
+    main .wrap { padding: 32px 24px 56px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, .85fr); gap: 24px; align-items: start; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 1px 3px rgba(0, 0, 0, .1); padding: 28px 32px 32px; }
+    .card h2 { margin: 0 0 4px; font-size: 24px; font-weight: 600; line-height: 1.25; }
+    .card .sub { margin: 0 0 24px; color: var(--muted); }
+    .field { margin-bottom: 22px; }
+    .field label, .field-label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 16px; }
+    .field input, .field select { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--muted); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 17px; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 20px) 21px, calc(100% - 14px) 21px; background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 40px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--link); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 14px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: "$"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 17px; color: var(--ink); }
+    .amount-wrap input { padding-left: 28px; }
+    .readonly { min-height: 48px; display: flex; align-items: center; padding: 10px 14px; border-radius: 4px; background: var(--page); font-weight: 600; }
+    .review { margin: 4px 0 24px; padding: 18px 20px; border-radius: 8px; background: var(--page); display: grid; gap: 10px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .fine { margin: -10px 0 24px; color: var(--muted); font-size: 14px; }
+    .actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .submit-btn { min-height: 48px; padding: 10px 28px; border: 2px solid var(--accent); border-radius: 24px; background: var(--accent); color: #fff; font-size: 17px; font-weight: 600; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 86%, var(--chrome-bg)); border-color: color-mix(in srgb, var(--accent) 86%, var(--chrome-bg)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .cancel-btn { min-height: 48px; padding: 10px 24px; border: 2px solid var(--brown); border-radius: 24px; background: transparent; color: var(--brown); font-size: 17px; font-weight: 600; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-size: 22px; font-weight: 700; }
+    .status { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 8px; border-left: 4px solid; }
+    .result-box.success { display: block; background: #EAF6EF; border-color: #1E7B46; color: #14532F; }
+    .result-box.notice { display: block; background: #FDF1F1; border-color: var(--accent); color: var(--ink); }
+    aside .card { padding: 22px 24px; }
+    aside .card + .card { margin-top: 20px; }
+    aside h3 { margin: 0 0 12px; font-size: 18px; font-weight: 600; }
+    .accounts { list-style: none; margin: 0; padding: 0; }
+    .accounts li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+    .accounts li:first-child { border-top: 0; padding-top: 0; }
+    .acct-name { display: block; font-weight: 600; }
+    .acct-num { display: block; color: var(--muted); font-size: 14px; }
+    .acct-bal { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .acct-bal small { display: block; color: var(--muted); font-weight: 400; font-size: 13px; text-align: right; }
+    .promo { text-align: center; }
+    .promo img { width: 140px; height: auto; display: block; margin: 0 auto 10px; }
+    .promo .promo-fallback { display: none; width: 96px; height: 96px; margin: 0 auto 12px; border-radius: 50%; background: var(--page); color: var(--accent); font-size: 40px; line-height: 96px; }
+    .promo.no-img img { display: none; }
+    .promo.no-img .promo-fallback { display: block; }
+    .promo p { margin: 0 0 14px; color: var(--ink); }
+    .promo a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 22px; border: 2px solid var(--brown); border-radius: 24px; color: var(--brown); font-weight: 600; text-decoration: none; }
+    .note p { margin: 0 0 10px; }
+    .site-footer { background: var(--page); border-top: 1px solid var(--rule); color: var(--ink); font-size: 13px; }
+    .site-footer .wrap { padding: 28px 24px 40px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-bottom: 18px; }
+    .footer-links a { color: var(--ink); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+    .footer-legal { margin: 0 0 8px; color: var(--ink); }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .wrap { padding: 0 16px; }
+      .masthead .wrap { gap: 12px; }
+      .wordmark { font-size: 22px; }
+      .masthead-links { gap: 12px; }
+      .masthead-links .hide-sm { display: none; }
+      .masthead-links .signoff { padding: 0 16px; font-size: 16px; }
+      .olb-nav .wrap { gap: 24px; }
+      h1 { font-size: 28px; }
+      .page-title .wrap { padding: 16px 16px 20px; }
+      main .wrap { padding: 20px 16px 40px; }
+      .card { padding: 22px 18px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .actions .submit-btn, .actions .cancel-btn { width: 100%; }
+      .site-footer .wrap { padding-bottom: 72px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="wrap">
+      <a class="wordmark" href="#transfer" aria-label="Wells Fargo Online Banking">Wells Fargo</a>
+      <nav class="masthead-links" aria-label="Utility">
+        <a class="hide-sm" href="https://www.wellsfargo.com/locator/">ATMs/Locations</a>
+        <a class="hide-sm" href="https://www.wellsfargo.com/help/">Help</a>
+        <a class="hide-sm" href="https://www.wellsfargo.com/es/">Español</a>
+        <a class="signoff" href="https://www.wellsfargo.com/">Sign Off</a>
+      </nav>
+    </div>
+  </header>
+  <nav class="olb-nav" aria-label="Online Banking">
+    <div class="wrap">
+      <a href="#accounts">Accounts</a>
+      <a href="#transfer" class="current" aria-current="page">Transfer &amp; Pay</a>
+      <a href="#accounts">Plan &amp; Learn</a>
+      <a href="#accounts">Security &amp; Support</a>
+    </div>
+  </nav>
+  <section class="page-title">
+    <div class="wrap">
+      <p class="crumbs"><a href="#transfer">Transfer &amp; Pay</a><span>&rsaquo;</span><strong>Transfers</strong></p>
+      <h1>Transfer money</h1>
+      <p>Move money between your Wells Fargo accounts. Transfers between your accounts are available immediately.</p>
+      <p class="greeting">Good evening, Jordan. Last sign on: Oct 18, 2026, 8:14 PM PT</p>
+    </div>
+  </section>
+  <main id="transfer">
+    <div class="wrap">
+      <div class="layout">
+        <section class="card" aria-labelledby="form-title">
+          <h2 id="form-title">Make a transfer</h2>
+          <p class="sub">Select the accounts you would like to transfer money From and To.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Everyday Checking" data-num="...1634" data-balance="4318.22">Everyday Checking ...1634 &middot; $4,318.22</option>
+                <option value="ACCT-1002" data-name="Way2Save Savings" data-num="...5820" data-balance="12940.10">Way2Save Savings ...5820 &middot; $12,940.10</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">To</label>
+              <select id="toAccount">
+                <option value="ACCT-1002" data-name="Way2Save Savings" data-num="...5820">Way2Save Savings ...5820 &middot; $12,940.10</option>
+                <option value="ACCT-1001" data-name="Everyday Checking" data-num="...1634">Everyday Checking ...1634 &middot; $4,318.22</option>
+                <option value="ACCT-1003" data-name="Active Cash Card" data-num="...9012">Active Cash&reg; Card ...9012 &middot; Payment</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Amount</label>
+                <div class="amount-wrap"><input type="number" id="amount" min="0.01" step="0.01" value="500.00" inputmode="decimal" required aria-describedby="amountHelp"></div>
+                <small id="amountHelp">Available balance: $4,318.22</small>
+              </div>
+              <div class="field">
+                <label for="accountTier">Frequency</label>
+                <select id="accountTier">
+                  <option value="standard">One time</option>
+                </select>
+                <small>Set up recurring transfers from Accounts &rsaquo; Scheduled transfers.</small>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <span class="field-label">Send on</span>
+                <div class="readonly" id="sendOn">Today</div>
+              </div>
+              <div class="field">
+                <span class="field-label">Delivery</span>
+                <div class="readonly">Immediately</div>
+              </div>
+            </div>
+            <dl class="review" aria-label="Transfer summary">
+              <div><dt>From</dt><dd id="reviewFrom">&mdash;</dd></div>
+              <div><dt>To</dt><dd id="reviewTo">&mdash;</dd></div>
+              <div><dt>Amount</dt><dd id="reviewAmount">&mdash;</dd></div>
+              <div><dt>Send on</dt><dd id="reviewDate">&mdash;</dd></div>
+            </dl>
+            <p class="fine">Transfers submitted after 8:00 PM PT to a credit account post the next business day. Your available balance updates as soon as the transfer is submitted.</p>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Submit transfer</button>
+              <button type="reset" class="cancel-btn">Cancel</button>
+            </div>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Sample accounts. No money moves on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="card" id="accounts">
+            <h3>Account summary</h3>
+            <ul class="accounts">
+              <li><span><span class="acct-name">Everyday Checking</span><span class="acct-num">...1634</span></span><span class="acct-bal">$4,318.22<small>Available</small></span></li>
+              <li><span><span class="acct-name">Way2Save Savings</span><span class="acct-num">...5820</span></span><span class="acct-bal">$12,940.10<small>Available</small></span></li>
+              <li><span><span class="acct-name">Active Cash&reg; Card</span><span class="acct-num">...9012</span></span><span class="acct-bal">$612.47<small>Current balance</small></span></li>
+            </ul>
+          </div>
+          <div class="card promo" id="bankToBank">
+            <img src="https://www17.wellsfargomedia.com/assets/images/rwd/photography/616x353/WF_icon_building_bank_gray_616x353.png" alt="" width="616" height="353" loading="lazy" onerror="this.closest('.promo').classList.add('no-img')">
+            <div class="promo-fallback" aria-hidden="true">&#8646;</div>
+            <h3>Bank-to-bank transfers</h3>
+            <p>Transfer money between your accounts at Wells Fargo and other U.S. financial institutions, and skip the trip to the bank.</p>
+            <a href="https://www.wellsfargo.com/mobile-online-banking/transfers/" target="_blank" rel="noopener noreferrer">Add Non-Wells Fargo Accounts</a>
+          </div>
+          <div class="card note">
+            <h3>Protect yourself from fraud</h3>
+            <p>Wells Fargo will never call, text, or email you asking you to move money to another account. If you are unsure, stop and call the number on the back of your card.</p>
+            <a href="https://www.wellsfargo.com/privacy-security/fraud/" target="_blank" rel="noopener noreferrer">Report fraud</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-links">
+        <a href="https://www.wellsfargo.com/privacy-security/">Privacy, Cookies, Security &amp; Legal</a>
+        <a href="https://www.wellsfargo.com/privacy-security/notice-of-data-collection/">Notice of Data Collection</a>
+        <a href="https://www.wellsfargo.com/privacy-security/terms/">General Terms of Use</a>
+        <a href="https://www.wellsfargo.com/online-banking/online-access-agreement/">Online Access Agreement</a>
+        <a href="https://www.wellsfargo.com/privacy-security/fraud/report/">Report Fraud</a>
+        <a href="https://www.wellsfargo.com/help/">Help</a>
+      </div>
+      <p class="footer-legal">Example Online Banking experience. Accounts, balances, and transfers shown here are sample data.</p>
+      <p class="footer-legal">Deposit products offered by Wells Fargo Bank, N.A. Member FDIC.</p>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const amountHelp = document.getElementById('amountHelp');
+    const sendOn = document.getElementById('sendOn');
+    const reviewFrom = document.getElementById('reviewFrom');
+    const reviewTo = document.getElementById('reviewTo');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewDate = document.getElementById('reviewDate');
+    const transferFields = [fromAccount, toAccount, amountInput, document.getElementById('accountTier')];
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    const IDLE_STATUS = 'Sample accounts. No money moves on this page.';
+    const IDLE_LABEL = 'Submit transfer';
+    let timerHandle = null;
+    let pending = false;
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function label(select) { const d = selected(select).dataset; return `${d.name} ${d.num}`; }
+    function parsedAmount() {
+      const raw = amountInput.value.trim();
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw);
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function renderReview() {
+      const available = Number(selected(fromAccount).dataset.balance);
+      const amount = parsedAmount();
+      const valid = Number.isFinite(amount) && amount > 0 && amount <= available;
+      const today = dateFmt.format(new Date());
+      amountHelp.textContent = `Available balance: ${usd.format(available)}`;
+      sendOn.textContent = `Today, ${today}`;
+      reviewFrom.textContent = label(fromAccount);
+      reviewTo.textContent = label(toAccount);
+      reviewAmount.textContent = valid ? usd.format(amount) : '—';
+      reviewDate.textContent = today;
+    }
+    [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
+    amountInput.addEventListener('input', renderReview);
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        renderReview();
+      });
+    });
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const amount = parsedAmount();
+      const available = Number(selected(fromAccount).dataset.balance);
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choose a different To account. You can\u2019t transfer money to the same account it comes from.';
+        status.textContent = IDLE_STATUS;
+        toAccount.focus();
+        return;
+      }
+      if (!Number.isFinite(amount) || amount <= 0 || amount > available) {
+        result.className = 'result-box notice';
+        result.textContent = `Enter an amount between $0.01 and ${usd.format(available)}.`;
+        status.textContent = IDLE_STATUS;
+        amountInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      transferFields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Submitting\u2026';
+      status.textContent = 'Submitting your transfer\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const fromLabel = label(fromAccount);
+      const toLabel = label(toAccount);
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Transfer not submitted.');
+        if (!data || !data.receipt) throw new Error('Transfer outcome unknown.');
+        const submittedAt = new Date(data.receipt.timestamp);
+        result.className = 'result-box success';
+        result.textContent = `Transfer submitted at ${timeFmt.format(submittedAt)}. ${usd.format(Number(data.receipt.amount))} from ${fromLabel} to ${toLabel}. Confirmation number ${data.receipt.receiptId}. You\u2019ll see it in your account activity right away.`;
+        status.textContent = 'Transfer submitted.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'We\u2019re sorry, we couldn\u2019t complete your transfer right now. No money has moved. Please try again later.';
+          status.textContent = 'Transfer not submitted.';
+        } else {
+          result.textContent = 'We couldn\u2019t confirm your transfer. Check your account activity before trying again so you don\u2019t transfer twice.';
+          status.textContent = 'Transfer not confirmed.';
+        }
+      } finally {
+        transferFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
