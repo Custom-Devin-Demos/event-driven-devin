@@ -417,11 +417,14 @@
           stopTimer(started);
           if (!res.ok || !data || data.success !== true) {
             show('error', 'We couldn\u2019t add seats right now.', ' Please try again in a few minutes. Your workspace and invoice are unchanged.');
-          } else if (data.withinLimit === false) {
-            show('error', 'This request exceeds the seats available on your plan.', ' No seats were added to ' + ws + '. Contact us about an Enterprise plan for larger teams.');
           } else {
             var got = typeof data.seatsAdded === 'number' ? data.seatsAdded : n;
             added[ws] = (added[ws] || 0) + got;
+            if (data.withinLimit === false) {
+              show('pending', got + ' seat' + (got === 1 ? '' : 's') + ' added to ' + ws + ' \u2014 above the seat allowance on your plan.', ' The seats are active, but the workspace is flagged for review until the allowance is raised. Contact us about an Enterprise plan for larger teams.');
+              sync();
+              return;
+            }
             show('success', got + ' seat' + (got === 1 ? '' : 's') + ' added to ' + ws + '.', ' Pending invitations can now join. ' + money(PRICE * got) + ' per month has been added to your next invoice, prorated for this cycle.');
             sync();
           }
