@@ -340,6 +340,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
+      const automatedAlertPath = ${JSON.stringify(Boolean(skin && skin.alertPath === 'automated'))};
       var skinAlertDestination = ${JSON.stringify(skin && (skin.alertDestination === 'teams' || skin.alertDestination === 'slack') ? skin.alertDestination : null)};
       // Only climbing-latency scenarios keep a retry window: repeat submits
       // demonstrate the per-request growth, so they join the open incident.
@@ -406,6 +407,24 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
           // shape that actually degrades; other requests are just rerouted.
           if (!shouldTrigger(opts)) {
             return origFetch(url.replace(apiPath, oncallApiPath), opts);
+          }
+          // Automated-alert skins: the on-call route raises the legacy
+          // automated alert itself when the call really fails.
+          if (automatedAlertPath) {
+            var automatedHeaders = new Headers((opts && opts.headers) || {});
+            automatedHeaders.set('X-Oncall-Skin', skinSlug);
+            return origFetch(url.replace(apiPath, oncallApiPath), Object.assign({}, opts, { headers: automatedHeaders })).then(function (resp) {
+              if (resp.status >= 500) {
+                if (ribbonCollapsed) expandRibbon();
+                var automatedStatusEl = document.getElementById('oncall-status');
+                if (automatedStatusEl) {
+                  automatedStatusEl.style.color = '#3fb950';
+                  automatedStatusEl.textContent = 'Error reported to the automated alert channel';
+                }
+                scheduleCollapse();
+              }
+              return resp;
+            });
           }
           if (retryWindowEnabled && alertPostedAt && Date.now() - alertPostedAt < RETRY_WINDOW_MS) {
             var statusEl = document.getElementById('oncall-status');

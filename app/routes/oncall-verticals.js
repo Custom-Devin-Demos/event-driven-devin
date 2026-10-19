@@ -14,6 +14,8 @@ const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
 const { rebookFlight } = require('../services/oncall-verticals/rebooking');
 const { submitCardPayment } = require('../services/oncall-verticals/cardpayment');
+const { createSessionAndAlert } = require('../services/devin-session');
+const { getOncallSkin } = require('../../config/oncall-skins');
 const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
@@ -283,6 +285,37 @@ router.post('/api/oncall/vaccines/order', async (req, res) => {
 });
 
 /**
+ * Skins with alertPath 'automated' (e.g. 8f167941) send card-payment server
+ * errors to the legacy automated alert channel with a Devin session instead
+ * of the on-call card.
+ */
+function raiseAutomatedCardPaymentAlert(req, body, error) {
+  const skin = getOncallSkin(req.get('x-oncall-skin'));
+  if (!skin || skin.vertical !== 'cardpayment' || skin.alertPath !== 'automated') return;
+  createSessionAndAlert({
+    issueTitle: `${error.name}: ${error.message}`,
+    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+    culprit: 'app/services/oncall-verticals/cardpayment.js — submitCardPayment',
+    errorType: error.name || 'Error',
+    errorValue: error.message,
+    devinUserId: body.devinUserId,
+    devinEmail: body.devinEmail,
+    devinOrgId: body.devinOrgId,
+    service: 'card-payments-api',
+    verticalLabel: `${skin.company} Online Banking — Credit card payment`,
+    customer: skin.slug,
+    tags: [
+      { key: 'route', value: '/api/oncall/cardpayment/payment' },
+      { key: 'service', value: 'card-payments-api' },
+      { key: 'fromAccount', value: String(body.fromAccount || '') },
+    ],
+    extra: { fromAccount: body.fromAccount, amount: body.amount, requestId: req.requestId },
+    level: 'error',
+    platform: 'node',
+  }).catch(() => {});
+}
+
+/**
  * POST /api/oncall/cardpayment/payment — pay a credit card from a deposit account
  */
 router.post('/api/oncall/cardpayment/payment', async (req, res) => {
@@ -296,6 +329,7 @@ router.post('/api/oncall/cardpayment/payment', async (req, res) => {
     res.json(result);
   } catch (error) {
     const status = error.code === 'INVALID_PAYMENT' ? 400 : error.code === 'INSUFFICIENT_FUNDS' ? 422 : 500;
+    if (status === 500) raiseAutomatedCardPaymentAlert(req, body, error);
     res.status(status).json({
       success: false,
       error: status === 500 ? 'We could not process your payment.' : error.message,

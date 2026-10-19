@@ -59,6 +59,9 @@
  * skinless alerts stay Slack-only even when that webhook is configured,
  * unless ONCALL_TEAMS_ALL_ALERTS=true.
  * alertDestination: 'teams' | 'slack' — always route this skin's browser alerts there, ignoring the hub picker
+ * alertPath: 'automated' — skip the on-call card; a server error on the rerouted
+ * call goes through the legacy automated alert (createSessionAndAlert: Sentry-style
+ * card in SLACK_CHANNEL_ID plus a Devin session). The on-call route must support it.
  *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
@@ -2325,6 +2328,7 @@ const ONCALL_SKINS = {
     brandMark: 'B',
     vertical: 'cardpayment',
     oncallOnly: true,
+    alertPath: 'automated',
     paths: ['/bofa-oncall'],
     page: { file: '8f167941.html', title: 'Accounts Overview | Bank of America' },
     alertCard: {

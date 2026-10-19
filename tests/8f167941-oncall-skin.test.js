@@ -1,3 +1,7 @@
+jest.mock('../app/services/devin-session', () => ({
+  createSessionAndAlert: jest.fn(() => Promise.resolve(null)),
+}));
+
 const express = require('express');
 const http = require('http');
 
@@ -6,6 +10,7 @@ const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
 const { ALERT_SCENARIOS } = require('../app/services/oncall');
 const { submitCardPayment } = require('../app/services/oncall-verticals/cardpayment');
 const { getOncallSkin } = require('../config/oncall-skins');
+const { createSessionAndAlert } = require('../app/services/devin-session');
 
 let server;
 let baseUrl;
@@ -26,10 +31,10 @@ afterAll((done) => {
   server.close(done);
 });
 
-function pay(body) {
+function pay(body, headers = {}) {
   return fetch(`${baseUrl}/api/oncall/cardpayment/payment`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...headers },
     body: JSON.stringify(body),
   });
 }
@@ -117,5 +122,38 @@ describe('accounts dashboard on-call skin (8f167941)', () => {
 
   test('error monitor query is an error percentage of all payment requests', () => {
     expect(ALERT_SCENARIOS.cardpayment.metricQuery).toMatch(/errors\{[^}]+\}\.as_count\(\) \/ sum:trace\.express\.request\.hits\{[^}]+\}\.as_count\(\) \* 100$/);
+  });
+  describe('automated alert path', () => {
+    const fromSkin = { 'X-Oncall-Skin': '8f167941' };
+    beforeEach(() => createSessionAndAlert.mockClear());
+
+    test('skin uses the automated alert path and the shim skips the on-call card', async () => {
+      expect(getOncallSkin('8f167941').alertPath).toBe('automated');
+      const html = await (await fetch(`${baseUrl}/oncall/c/8f167941`)).text();
+      expect(html).toContain('const automatedAlertPath = true');
+    });
+
+    test('a checking failure from the skin raises the automated alert with a Devin session', async () => {
+      const res = await pay({
+        fromAccount: 'CHK-1634', amount: 25, devinEmail: 'presenter@devindemos.com', devinUserId: 'user-1', devinOrgId: 'org-1',
+      }, fromSkin);
+      expect(res.status).toBe(500);
+      expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+      expect(createSessionAndAlert.mock.calls[0][0]).toMatchObject({
+        customer: '8f167941',
+        errorType: 'TypeError',
+        service: 'card-payments-api',
+        devinEmail: 'presenter@devindemos.com',
+        devinUserId: 'user-1',
+        devinOrgId: 'org-1',
+      });
+    });
+
+    test('savings successes, overdrafts and requests without the skin header raise nothing', async () => {
+      expect((await pay({ fromAccount: 'SAV-8820', amount: 25 }, fromSkin)).status).toBe(200);
+      expect((await pay({ fromAccount: 'CHK-1634', amount: 5000 }, fromSkin)).status).toBe(422);
+      expect((await pay({ fromAccount: 'CHK-1634', amount: 25 })).status).toBe(500);
+      expect(createSessionAndAlert).not.toHaveBeenCalled();
+    });
   });
 });
