@@ -397,12 +397,15 @@
           stopTimer(started);
           if (!res.ok || !data || data.success !== true) {
             show('error', 'We couldn\u2019t update this entitlement right now.', ' Please try again in a few minutes. Your existing entitlements are unchanged.');
-          } else if (data.withinLimit === false) {
-            show('error', 'This request exceeds the users permitted under your agreement.', ' No users were added to ' + name + '. Contact your NYSE account manager to raise the ' + tier.toLowerCase() + ' user cap.');
           } else {
-            added[name] = (added[name] || 0) + n;
+            var got = typeof data.seatsAdded === 'number' ? data.seatsAdded : n;
+            added[name] = (added[name] || 0) + got;
             renderFeeds();
-            show('success', n + ' users added to ' + name + '.', ' The entitlement is active for ' + tier.toLowerCase() + ' use and will appear on the next daily entitlement report. A confirmation has been sent to your firm\u2019s market data administrator.');
+            if (data.withinLimit === false) {
+              show('pending', got + ' users added to ' + name + ' \u2014 above the ' + tier.toLowerCase() + ' user cap on your agreement.', ' The entitlement is recorded, but it will be flagged on the next daily entitlement report until your NYSE account manager raises the cap.');
+              return;
+            }
+            show('success', got + ' users added to ' + name + '.', ' The entitlement is active for ' + tier.toLowerCase() + ' use and will appear on the next daily entitlement report. A confirmation has been sent to your firm\u2019s market data administrator.');
           }
         } catch (_) {
           stopTimer(started);
