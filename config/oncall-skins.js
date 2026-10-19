@@ -4227,6 +4227,14 @@ const ONCALL_SKINS = {
     supportCenter: 'HP Customer Service',
     disclaimer: 'NOT ACTUALLY AN HP SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real HP product.',
   },
+  'f49a69dd': {
+    slug: 'f49a69dd',
+    company: 'Lyft',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'f49a69dd.html', title: 'Earnings | Lyft Driver' },
+    disclaimer: 'NOT ACTUALLY A LYFT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Lyft product.',
+  },
 };
 
 function getOncallSkin(slug) {
