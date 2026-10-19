@@ -14,6 +14,7 @@ const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncal
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
 const { rebookFlight } = require('../services/oncall-verticals/rebooking');
+const { submitCardPayment } = require('../services/oncall-verticals/cardpayment');
 const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
@@ -306,6 +307,30 @@ router.post('/api/oncall/pbm/claim', async (req, res) => {
         : error.message,
       errorClass: error.name,
       code: error.code || 'CLAIM_SUBMIT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/cardpayment/payment — pay a credit card from a deposit account
+ */
+router.post('/api/oncall/cardpayment/payment', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await submitCardPayment({
+      fromAccount: body.fromAccount,
+      toAccount: body.toAccount || 'CARD-4417',
+      amount: body.amount,
+    });
+    res.json(result);
+  } catch (error) {
+    const status = error.code === 'INVALID_PAYMENT' ? 400 : error.code === 'INSUFFICIENT_FUNDS' ? 422 : 500;
+    res.status(status).json({
+      success: false,
+      error: status === 500 ? 'We could not process your payment.' : error.message,
+      errorClass: error.name,
+      code: error.code || 'PAYMENT_FAILED',
       requestId: req.requestId,
     });
   }
