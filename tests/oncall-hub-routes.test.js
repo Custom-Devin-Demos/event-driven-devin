@@ -6,6 +6,7 @@ const path = require('path');
 const oncallRoutes = require('../app/routes/oncall');
 const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
 const { ALERT_SCENARIOS } = require('../app/services/oncall');
+const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 
 let server;
 let baseUrl;
@@ -23,7 +24,9 @@ beforeAll((done) => {
 });
 
 afterAll((done) => {
-  server.close(done);
+  server.close(() => {
+    stopGateway().then(() => done());
+  });
 });
 
 describe('on-call hub routes', () => {
