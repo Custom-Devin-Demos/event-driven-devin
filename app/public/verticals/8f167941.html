@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accounts Overview | Bank of America</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #0b5cab;
+    --accent-dark: #08437d;
+    --brand-red: #cf2230;
+    --alert-red: #b3122a;
+    --tab-bg: #ebe9e4;
+    --row-bg: #f4f2ee;
+    --panel-bg: #e9e7e2;
+    --rule: #2a6ebb;
+    --ink: #2b2b2b;
+    --muted: #555555;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; font-family: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif; color: var(--ink); font-size: 15px; }
+  a { color: var(--accent); }
+  a:hover { color: var(--accent-dark); }
+  button { cursor: pointer; font-family: inherit; }
+
+  .olb-header { background: var(--brand-red); padding: 14px 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; }
+  .olb-brand { display: flex; align-items: center; gap: 20px; color: #fff; text-decoration: none; }
+  .olb-brand img { height: 18px; width: auto; display: block; }
+  .olb-brand span { font-size: 20px; }
+  .olb-utility { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; color: #fff; font-size: 14px; }
+  .olb-utility a { color: #fff; text-decoration: none; }
+  .olb-utility a:hover { text-decoration: underline; color: #fff; }
+  .olb-utility .user { font-weight: 600; }
+  .olb-utility .logout { font-weight: 600; }
+
+  .olb-tabs { background: var(--tab-bg); padding: 0 32px; display: flex; flex-wrap: wrap; gap: 2px; }
+  .olb-tabs a { padding: 12px 20px; color: #444; text-decoration: none; font-size: 14px; }
+  .olb-tabs a:hover { color: var(--ink); text-decoration: underline; }
+  .olb-tabs a[aria-current="page"] { background: #fff; color: var(--ink); font-weight: 600; }
+
+  main { max-width: 1240px; margin: 0 auto; padding: 28px 32px 56px; display: flex; flex-wrap: wrap; gap: 32px; }
+  .accounts { flex: 999 1 520px; min-width: 0; }
+  h1 { font-size: 30px; font-weight: 400; margin: 0 0 6px; }
+  .profile-links { display: flex; gap: 12px; font-size: 14px; margin-bottom: 36px; }
+  .profile-links .sep { color: #999; }
+
+  .section-head { display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--rule); padding-bottom: 8px; }
+  .section-head svg { flex: none; }
+  .section-head h2 { font-size: 17px; font-weight: 600; margin: 0; }
+  .section-head.spaced { margin-top: 36px; }
+  .group-label { font-size: 13px; color: var(--muted); padding: 10px 0 6px; }
+  .group-label.spaced { padding-top: 18px; }
+
+  .acct-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; background: var(--row-bg); padding: 14px 16px; border-bottom: 2px solid #fff; }
+  .acct-name { font-size: 19px; text-decoration: none; }
+  .acct-name:hover { text-decoration: underline; }
+  .acct-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .acct-balance { font-size: 17px; font-weight: 700; white-space: nowrap; }
+  .card-block { background: var(--row-bg); border-bottom: 2px solid #fff; }
+  .card-block .acct-row { border-bottom: 0; }
+  .payment-due { display: flex; align-items: center; gap: 8px; color: var(--alert-red); font-weight: 600; font-size: 14px; white-space: nowrap; }
+  .due-strip { background: #cfe3f5; padding: 10px 16px; font-size: 14px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+
+  .btn { min-height: 44px; padding: 0 22px; border-radius: 4px; border: 2px solid var(--accent); font-size: 15px; font-weight: 600; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-dark); border-color: var(--accent-dark); }
+  .btn-primary:disabled { opacity: .6; cursor: progress; }
+  .btn-secondary { background: #fff; color: var(--accent); }
+
+  .pay-panel { background: #fff; border: 1px solid #d6d2ca; border-top: 0; padding: 18px 16px 20px; }
+  .pay-panel[hidden] { display: none; }
+  .pay-panel h3 { margin: 0 0 14px; font-size: 18px; font-weight: 600; }
+  .pay-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px 24px; }
+  .field label, .field legend { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; padding: 0; }
+  .field fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .field select, .field input[type="number"] { width: 100%; min-height: 40px; padding: 6px 10px; border: 1px solid #8a867f; border-radius: 3px; font: inherit; color: var(--ink); background: #fff; }
+  .radio { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 6px 0; }
+  .radio input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+  .radio .amt { margin-left: auto; font-weight: 600; }
+  .other-amt { margin-top: 6px; }
+  .pay-summary { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e3e0da; font-size: 14px; color: #444; }
+  .pay-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-top: 16px; }
+  .pay-status { font-size: 13px; color: var(--muted); }
+  .result-box { display: none; margin-top: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.45; border-left: 4px solid; }
+  .result-box.success { display: block; background: #eaf5ec; border-color: #2e7d32; color: #1e4d22; }
+  .result-box.error { display: block; background: #fdecee; border-color: var(--alert-red); color: #7a0c1c; }
+
+  .merrill { background: var(--row-bg); padding: 14px 16px; margin-top: 2px; }
+  .merrill a { font-size: 16px; font-weight: 600; text-decoration: none; }
+  .merrill p { margin: 8px 0 0; line-height: 1.5; font-size: 14px; color: #444; }
+  .open-acct { display: flex; align-items: center; gap: 14px; background: var(--row-bg); padding: 14px 16px; margin-top: 16px; }
+  .open-acct a { font-size: 16px; text-decoration: none; }
+  .round-icon { width: 32px; height: 32px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
+
+  aside { flex: 1 1 300px; min-width: 0; max-width: 360px; }
+  .panel { background: var(--panel-bg); padding: 12px; }
+  .panel h2 { font-size: 18px; font-weight: 400; color: var(--muted); margin: 0 0 10px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .tile { position: relative; background: #fff; min-height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-decoration: none; color: #444; font-size: 13px; text-align: center; padding: 8px 4px; }
+  .tile:hover { color: var(--accent); }
+  .badge { position: absolute; top: 6px; right: 10px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--brand-red); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .aside-links { display: flex; gap: 20px; padding: 16px 4px; font-size: 14px; }
+  .aside-links a { text-decoration: none; }
+  .connections h2 { font-size: 16px; }
+  .connection-card { background: #fff; padding: 18px 16px; display: flex; align-items: center; gap: 14px; }
+  .connection-card .round-icon { width: 44px; height: 44px; background: var(--row-bg); }
+  .connection-card .title { font-size: 17px; color: #444; }
+  .connection-card a { font-size: 14px; text-decoration: none; }
+
+  .olb-footer { border-top: 1px solid #ddd; padding: 18px 32px 28px; font-size: 12px; color: #666; max-width: 1240px; margin: 0 auto; line-height: 1.5; }
+
+  @media (max-width: 600px) {
+    .olb-header, .olb-tabs { padding-left: 16px; padding-right: 16px; }
+    .olb-tabs a { padding: 10px 12px; }
+    main { padding: 20px 16px 40px; }
+    aside { max-width: none; }
+    .due-strip .btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+  <header class="olb-header">
+    <a class="olb-brand" href="#accounts" aria-label="Bank of America Online Banking">
+      <img src="/verticals/e91b0f39/img/logo-white.png" alt="Bank of America">
+      <span>Online Banking</span>
+    </a>
+    <nav class="olb-utility" aria-label="Account utilities">
+      <span class="user">Jane Smith</span>
+      <a href="#profile">Profile &amp; Settings</a>
+      <a href="#saved">Saved Items</a>
+      <a href="#logout" class="logout">Log Out</a>
+      <a href="#search">Search</a>
+    </nav>
+  </header>
+
+  <nav class="olb-tabs" aria-label="Main sections">
+    <a href="#accounts" aria-current="page">Accounts</a>
+    <a href="#pay">Pay &amp; Transfer</a>
+    <a href="#rewards">Rewards &amp; Deals</a>
+    <a href="#tools">Tools &amp; Investing</a>
+    <a href="#security">Security Center</a>
+    <a href="#open">Open an Account</a>
+    <a href="#help">Help &amp; Support</a>
+  </nav>
+
+  <main id="accounts">
+    <section class="accounts" aria-labelledby="greeting">
+      <h1 id="greeting">Hello, Jane</h1>
+      <div class="profile-links">
+        <a href="#update">Update profile</a><span class="sep" aria-hidden="true">|</span><a href="#security">Security Center</a>
+      </div>
+
+      <div class="section-head">
+        <svg width="22" height="16" viewBox="0 0 22 16" aria-hidden="true"><rect x="1" y="1" width="20" height="14" rx="2" fill="none" stroke="#6b6760" stroke-width="1.6"/><path d="M1 5h20" stroke="#6b6760" stroke-width="1.6"/></svg>
+        <h2>Personal accounts</h2>
+      </div>
+      <div class="group-label">Checking, savings &amp; CDs</div>
+
+      <div class="acct-row">
+        <div>
+          <a href="#checking" class="acct-name">My Checking</a>
+          <div class="acct-sub">Quick view</div>
+        </div>
+        <div class="acct-balance">$4,000.00</div>
+      </div>
+      <div class="acct-row">
+        <div>
+          <a href="#savings" class="acct-name">My Savings</a>
+          <div class="acct-sub">Quick view</div>
+        </div>
+        <div class="acct-balance">$7,680.90</div>
+      </div>
+
+      <div class="group-label spaced">Credit cards</div>
+      <div class="card-block">
+        <div class="acct-row">
+          <div>
+            <a href="#card" class="acct-name">BankAmericard Credit Card</a>
+            <div class="acct-sub">Close quick view</div>
+          </div>
+          <div class="payment-due" id="paymentDueLabel">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 2 C5 2 4 4.5 4 7 L4 10 L2.5 12 H13.5 L12 10 L12 7 C12 4.5 11 2 8 2 Z"/><path d="M6.5 13.5a1.5 1.5 0 0 0 3 0"/></svg>
+            <span>Payment due</span>
+          </div>
+        </div>
+        <div class="due-strip">
+          <span id="dueCopy">Minimum payment of $25.00 is due on 11/05/2026</span>
+          <button type="button" class="btn btn-primary" id="openPayBtn" aria-expanded="false" aria-controls="payPanel">Make a payment</button>
+        </div>
+      </div>
+
+      <form class="pay-panel" id="payPanel" hidden aria-labelledby="payHeading" novalidate>
+        <h3 id="payHeading">Pay your BankAmericard Credit Card</h3>
+        <div class="pay-grid">
+          <div class="field">
+            <label for="fromAccount">Pay from</label>
+            <select id="fromAccount">
+              <option value="CHK-1634" data-label="My Checking" data-balance="4000.00">My Checking - 1634 ($4,000.00)</option>
+              <option value="SAV-8820" data-label="My Savings" data-balance="7680.90">My Savings - 8820 ($7,680.90)</option>
+            </select>
+            <input type="hidden" id="toAccount" value="CARD-4417">
+          </div>
+          <div class="field">
+            <fieldset>
+              <legend>Amount</legend>
+              <label class="radio"><input type="radio" name="amountChoice" value="25" checked> Minimum payment <span class="amt">$25.00</span></label>
+              <label class="radio"><input type="radio" name="amountChoice" value="412.37"> Statement balance <span class="amt">$412.37</span></label>
+              <label class="radio"><input type="radio" name="amountChoice" value="other"> Other amount</label>
+              <input type="number" id="otherAmount" class="other-amt" min="1" step="0.01" placeholder="0.00" aria-label="Other amount in dollars" hidden>
+            </fieldset>
+          </div>
+          <div class="field">
+            <label for="payDate">Payment date</label>
+            <select id="payDate">
+              <option value="today">Today (posts same day before 8 p.m. ET on business days)</option>
+            </select>
+          </div>
+        </div>
+        <div class="pay-summary" id="paySummary">You are paying $25.00 from My Checking to BankAmericard Credit Card.</div>
+        <div class="pay-actions">
+          <button type="submit" class="btn btn-primary" id="submitBtn">Submit payment</button>
+          <button type="button" class="btn btn-secondary" id="cancelPayBtn">Cancel</button>
+          <span class="pay-status" id="requestStatus" role="status" aria-live="polite"></span>
+        </div>
+        <div class="result-box" id="result" role="alert"></div>
+      </form>
+
+      <div class="section-head spaced">
+        <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M3 18V10M8 18V6M13 18V12M18 18V4" stroke="#6b6760" stroke-width="2" stroke-linecap="round"/></svg>
+        <h2>Investment accounts at Merrill</h2>
+      </div>
+      <div class="merrill">
+        <a href="#merrill">Sign up for convenient one-click access</a>
+        <p>Link your eligible Bank of America banking and Merrill investment accounts and enjoy the convenience of banking and investing with one log-in.</p>
+      </div>
+
+      <div class="open-acct">
+        <span class="round-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke="#0b5cab" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <a href="#openacct">Open a new account</a>
+      </div>
+    </section>
+
+    <aside aria-label="Activity center">
+      <div class="panel">
+        <h2>Activity center</h2>
+        <div class="tiles">
+          <a href="#alerts" class="tile">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#6b6760" stroke-width="1.6" aria-hidden="true"><path d="M12 3C8.7 3 7 5.8 7 9v4l-2 3h14l-2-3V9c0-3.2-1.7-6-5-6Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
+            <span>Alerts</span><span class="badge" aria-label="1 new">1</span>
+          </a>
+          <a href="#billpay" class="tile">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#6b6760" stroke-width="1.6" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6"/></svg>
+            <span>Bill Pay</span><span class="badge" aria-label="4 new">4</span>
+          </a>
+          <a href="#transfers" class="tile">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#6b6760" stroke-width="1.6" aria-hidden="true"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>
+            <span>Transfers</span>
+          </a>
+          <a href="#messages" class="tile">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#6b6760" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+            <span>Messages</span>
+          </a>
+          <a href="#offers" class="tile">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#6b6760" stroke-width="1.6" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8Z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg>
+            <span>Special Offers &amp; Deals</span>
+          </a>
+          <a href="#open" class="tile">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#6b6760" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+            <span>Open an Account</span>
+          </a>
+        </div>
+      </div>
+      <div class="aside-links">
+        <a href="#appt">Schedule an appointment</a>
+        <a href="#find">Find us</a>
+      </div>
+      <div class="panel connections">
+        <h2>Connections</h2>
+        <div class="connection-card">
+          <span class="round-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6b6760" stroke-width="1.6"><path d="M12 3C8.7 3 7 5.8 7 9v4l-2 3h14l-2-3V9c0-3.2-1.7-6-5-6Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></span>
+          <div>
+            <div class="title">Set up alerts</div>
+            <a href="#alerts">Get notified about balances and payments</a>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="olb-footer">
+    Bank of America, N.A. Member FDIC. Equal Housing Lender. All names, balances and dates on this page are synthetic.
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config')
+        .then(function (r) { return r.json(); })
+        .then(function (cfg) {
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        })
+        .catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var openBtn = document.getElementById('openPayBtn');
+      var cancelBtn = document.getElementById('cancelPayBtn');
+      var form = document.getElementById('payPanel');
+      var fromAccount = document.getElementById('fromAccount');
+      var toAccount = document.getElementById('toAccount');
+      var otherAmount = document.getElementById('otherAmount');
+      var submitBtn = document.getElementById('submitBtn');
+      var status = document.getElementById('requestStatus');
+      var result = document.getElementById('result');
+      var summary = document.getElementById('paySummary');
+      var inFlight = false;
+
+      function choice() {
+        return form.querySelector('input[name="amountChoice"]:checked').value;
+      }
+      function rawAmount() {
+        var c = choice();
+        return c === 'other' ? otherAmount.valueAsNumber : Number(c);
+      }
+      function amountValid() {
+        var v = rawAmount();
+        return Number.isFinite(v) && v >= 1 && Math.abs(v * 100 - Math.round(v * 100)) < 1e-6 && v <= availableBalance();
+      }
+      function availableBalance() {
+        return Number(fromAccount.options[fromAccount.selectedIndex].getAttribute('data-balance'));
+      }
+      function amountValue() {
+        return Math.round(rawAmount() * 100) / 100;
+      }
+      function fmt(n) {
+        return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function selectedOption() {
+        return fromAccount.options[fromAccount.selectedIndex];
+      }
+      function sync() {
+        otherAmount.hidden = choice() !== 'other';
+        var from = selectedOption().getAttribute('data-label');
+        summary.textContent = amountValid()
+          ? 'You are paying ' + fmt(amountValue()) + ' from ' + from + ' to BankAmericard Credit Card.'
+          : rawAmount() > availableBalance()
+            ? 'The payment amount exceeds the available balance in ' + from + '.'
+            : 'Enter a payment amount of at least $1.00, in dollars and cents.';
+        if (!inFlight) submitBtn.disabled = !amountValid();
+      }
+      function setOpen(open) {
+        form.hidden = !open;
+        openBtn.setAttribute('aria-expanded', String(open));
+        if (open) fromAccount.focus();
+      }
+
+      openBtn.addEventListener('click', function () { setOpen(form.hidden); });
+      cancelBtn.addEventListener('click', function () { if (!inFlight) setOpen(false); });
+      form.addEventListener('change', sync);
+      form.addEventListener('input', sync);
+      sync();
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (inFlight || !amountValid()) return;
+        inFlight = true;
+        var started = performance.now();
+        var outcome = 'unknown';
+        var amount = amountValue();
+        submitBtn.disabled = true;
+        cancelBtn.disabled = true;
+        submitBtn.textContent = 'Processing…';
+        form.setAttribute('aria-busy', 'true');
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = 'Submitting payment…';
+        var timer = setInterval(function () {
+          status.textContent = 'Submitting payment · ' + ((performance.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+        try {
+          var response = await fetch('/api/8f167941/card-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: amount,
+              paymentDate: document.getElementById('payDate').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          var data = null;
+          try { data = await response.json(); } catch (e) { data = null; }
+          if (!response.ok) {
+            outcome = 'failed';
+            result.className = 'result-box error';
+            result.textContent = response.status === 400 || response.status === 422
+              ? ((data && data.error) || 'Please check the payment details and try again.') + '.'
+              : 'We\u2019re sorry, we couldn\u2019t process your payment right now. Please try again later.' + (data && data.requestId ? ' Reference: ' + data.requestId : '');
+            return;
+          }
+          if (!data || !data.success) throw new Error('unreadable response');
+          outcome = 'paid';
+          var paid = Number(data.totalDebit);
+          result.className = 'result-box success';
+          result.textContent = 'Your ' + fmt(paid) + ' payment from ' + data.fromAccount.label + ' is scheduled' +
+            (data.postsOn === 'today' ? ' for today' : ' for the next business day') +
+            '. Confirmation ' + data.confirmationNumber + '. No fee was charged.';
+          if (paid >= 25) {
+            document.getElementById('paymentDueLabel').style.visibility = 'hidden';
+            document.getElementById('dueCopy').textContent = 'Payment of ' + fmt(paid) + ' scheduled. Thank you.';
+          }
+        } catch (error) {
+          outcome = 'unknown';
+          result.className = 'result-box error';
+          result.textContent = 'We couldn\u2019t confirm whether your payment went through. Check your card activity before trying again.';
+        } finally {
+          clearInterval(timer);
+          form.removeAttribute('aria-busy');
+          submitBtn.textContent = 'Submit payment';
+          cancelBtn.disabled = false;
+          inFlight = false;
+          sync();
+          var elapsed = ((performance.now() - started) / 1000).toFixed(1);
+          status.textContent = outcome === 'paid' ? 'Completed in ' + elapsed + 's' : 'Not completed · ' + elapsed + 's';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
