@@ -8,6 +8,7 @@ const { stopGateway } = require('../app/services/oncall-verticals/industrials-ed
 
 const oncallRoutes = require('../app/routes/oncall');
 const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
+const { getOncallSkin } = require('../config/oncall-skins');
 
 let server;
 let baseUrl;
@@ -116,6 +117,29 @@ describe('on-call hub routes', () => {
     const otherHtml = await other.text();
     expect(otherHtml).toMatch(/id="oncall-ribbon" style="[^"]*bottom:16px;right:16px;/);
     expect(otherHtml).not.toContain('body:has(');
+    if (legacy.status === 200) expect(await legacy.text()).not.toContain('oncall-ribbon');
+  });
+
+  test('the Banamex skin serves its native page in Spanish, reroutes transfers and pages the presenter as On Call, while /banamex stays unshimmed', async () => {
+    const skin = getOncallSkin('0cab09fe');
+    expect(skin).toMatchObject({
+      vertical: 'banking', locale: 'es', alertDestination: 'slack', paths: ['/banamex-oncall'],
+      page: { file: '0cab09fe.html' },
+      devinSession: { auto: true, onCallIsTriggerer: true },
+    });
+    const [skinned, friendly, legacy] = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/0cab09fe`),
+      fetch(`${baseUrl}/banamex-oncall`),
+      fetch(`${baseUrl}/banamex`),
+    ]);
+    expect(skinned.status).toBe(200);
+    expect(friendly.status).toBe(200);
+    const html = await skinned.text();
+    expect(await friendly.text()).toEqual(html);
+    expect(html).toContain('<title>Banca en Línea | Banamex</title>');
+    expect(html).toContain('/api/oncall/banking/transfer');
+    expect(html).toContain('ESTE NO ES UN SITIO REAL DE BANAMEX');
+    expect(html).toContain("devinEmail: localStorage.getItem('devinEmail') || ''");
     if (legacy.status === 200) expect(await legacy.text()).not.toContain('oncall-ribbon');
   });
 
