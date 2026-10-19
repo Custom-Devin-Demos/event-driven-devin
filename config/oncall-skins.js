@@ -1017,7 +1017,16 @@ const ONCALL_SKINS = {
     company: 'Pearson',
     brandMark: 'P',
     vertical: 'telco',
+    teamsAlerts: true,
+    alertDestination: 'teams',
     page: { file: 'd22a0a30.html', title: 'Pearson+ | Manage subscription' },
+    alertCard: {
+      title: 'p95 latency \u2014 subscription plan changes',
+      release: 'subscriptions-api@2026.10.2',
+      team: 'subscriptions-oncall',
+      symptom: 'Update subscription submissions hang ~9s before the new plan is confirmed. Error rate is normal \u2014 plan changes eventually go through.',
+      impact: 'Every student changing plan waits on a spinner for ~9 seconds; some press Update subscription again and contact the help centre about duplicate charges.',
+    },
     theme: {
       '--accent': '#6D0176',
       '--ink': '#333333',
