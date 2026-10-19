@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule your exam | Pearson VUE</title>
+  <style>
+    :root {
+      --navy: #05112A;
+      --accent: #6D0176;
+      --ink: #333333;
+      --muted: #646b75;
+      --line: #d9dce2;
+      --surface: #ffffff;
+      --page: #f4f5f7;
+      --danger: #9d1c27;
+      --danger-bg: #fff0f1;
+      --success: #17653d;
+      --success-bg: #e9f6ee;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--page); font: 15px/1.5 Arial, Helvetica, sans-serif; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .site-header { min-height: 72px; background: var(--navy); color: #fff; display: flex; align-items: center; padding: 0 max(24px, calc((100vw - 1160px) / 2)); gap: 38px; }
+    .wordmark { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; white-space: nowrap; }
+    .mark { width: 34px; height: 34px; display: grid; place-items: center; background: #fff; color: var(--accent); font-size: 22px; font-weight: 800; border-radius: 50%; }
+    .wordmark-text { font-size: 21px; font-weight: 700; letter-spacing: -.04em; }
+    .wordmark-text span { font-weight: 400; }
+    .site-nav { display: flex; align-items: center; gap: 30px; margin-left: auto; }
+    .site-nav a, .account { color: #fff; text-decoration: none; font-weight: 600; white-space: nowrap; }
+    .account { border: 1px solid rgba(255,255,255,.45); border-radius: 4px; padding: 9px 14px; }
+    main { width: min(100% - 40px, 960px); margin: 0 auto; padding: 30px 0 32px; }
+    .welcome { margin: 0 0 22px; }
+    .eyebrow { color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 3px 0 5px; font-size: clamp(25px, 4vw, 32px); line-height: 1.2; }
+    .welcome p { color: var(--muted); margin: 0; }
+    .booking-card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 16px rgba(5,17,42,.06); overflow: hidden; }
+    .booking-head { padding: 22px 26px 18px; border-bottom: 1px solid var(--line); }
+    .booking-head h2 { margin: 0 0 3px; font-size: 21px; }
+    .booking-head p { color: var(--muted); margin: 0; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px 26px; background: #faf9fb; border-bottom: 1px solid var(--line); }
+    .step { display: flex; align-items: center; gap: 9px; color: var(--muted); font-weight: 600; font-size: 13px; }
+    .step-number { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border: 1px solid #b8bac1; border-radius: 50%; background: #fff; }
+    .step.active { color: var(--accent); }
+    .step.active .step-number { color: #fff; border-color: var(--accent); background: var(--accent); }
+    .booking-content { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 26px; padding: 24px 26px; }
+    .section-title { margin: 0 0 14px; font-size: 17px; }
+    .field { display: flex; flex-direction: column; gap: 6px; margin: 0 0 16px; }
+    label { font-size: 13px; font-weight: 700; }
+    input, select { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid #aeb3bd; border-radius: 4px; background: #fff; color: var(--ink); }
+    input:focus, select:focus, button:focus-visible { outline: 3px solid rgba(109,1,118,.24); outline-offset: 2px; }
+    .search-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+    .primary, .secondary { min-height: 48px; border: 0; border-radius: 4px; padding: 0 20px; font-weight: 700; }
+    .primary { color: #fff; background: var(--accent); }
+    .primary:hover { background: #56015e; }
+    .primary:disabled { cursor: progress; opacity: .72; }
+    .secondary { border: 1px solid var(--accent); color: var(--accent); background: #fff; }
+    .candidate { margin-top: 23px; padding: 14px 16px; border-left: 3px solid var(--accent); background: #f8f5f9; }
+    .candidate strong { display: block; margin-bottom: 3px; }
+    .candidate span { display: block; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+    .centres { margin-top: 22px; }
+    .centre-card { padding: 15px; border: 1px solid var(--line); border-radius: 5px; margin-top: 10px; }
+    .centre-heading { display: flex; justify-content: space-between; gap: 12px; }
+    .centre-heading h3 { margin: 0; font-size: 15px; }
+    .centre-heading p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+    .slots { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .slot { min-height: 40px; padding: 7px 11px; border: 1px solid #b7bbc4; border-radius: 4px; background: #fff; color: var(--ink); font-size: 13px; }
+    .slot[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); color: var(--accent); background: #fbf5fc; }
+    .review { padding: 18px; border: 1px solid var(--line); border-radius: 5px; background: #fbfbfc; align-self: start; }
+    .review h2 { margin: 0 0 13px; font-size: 17px; }
+    .review-line { display: flex; justify-content: space-between; gap: 10px; margin: 8px 0; font-size: 13px; }
+    .review-line span:first-child { color: var(--muted); }
+    .review-line strong { text-align: right; }
+    .price { padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--line); font-size: 15px; }
+    .price strong { color: var(--accent); font-size: 20px; }
+    .confirm-area { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-top: 1px solid var(--line); padding-top: 20px; }
+    .confirm-copy { color: var(--muted); font-size: 13px; }
+    .confirm-copy strong { display: block; color: var(--ink); font-size: 14px; }
+    #confirmBtn { min-width: 220px; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.5); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -3px; margin-right: 9px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .message { display: none; margin: 0 26px 22px; padding: 13px 15px; border-radius: 4px; overflow-wrap: anywhere; }
+    .message.show { display: block; }
+    .message.error { color: var(--danger); background: var(--danger-bg); border-left: 4px solid var(--danger); }
+    .message.success { color: var(--success); background: var(--success-bg); border-left: 4px solid var(--success); }
+    .message.pending { color: #34304a; background: #f3eff7; border-left: 4px solid var(--accent); }
+    footer { padding: 0 20px 24px; text-align: center; color: var(--muted); font-size: 12px; }
+    @media (max-width: 700px) {
+      .site-header { min-height: 64px; padding: 0 16px; gap: 12px; }
+      .wordmark-text { font-size: 18px; }
+      .mark { width: 30px; height: 30px; font-size: 20px; }
+      .site-nav { gap: 14px; }
+      .site-nav a { font-size: 12px; }
+      .site-nav a:nth-child(2) { display: none; }
+      .account { padding: 7px 9px; font-size: 12px; }
+      main { width: min(100% - 24px, 600px); padding-top: 22px; padding-bottom: 140px; }
+      .booking-head { padding: 18px 16px 15px; }
+      .steps { padding: 13px 16px; gap: 4px; }
+      .step { gap: 6px; font-size: 11px; }
+      .step-number { width: 23px; height: 23px; }
+      .booking-content { grid-template-columns: minmax(0, 1fr); padding: 20px 16px; gap: 18px; }
+      .review { grid-row: auto; }
+      .confirm-area { align-items: stretch; flex-direction: column; gap: 12px; padding-top: 17px; }
+      #confirmBtn { width: 100%; min-height: 52px; }
+      .message { margin: 0 16px 18px; }
+      footer { padding-bottom: 20px; }
+    }
+    @media (max-width: 390px) {
+      .site-header { padding: 0 10px; }
+      .site-nav { gap: 8px; }
+      .site-nav a { font-size: 11px; }
+      .account { padding: 6px 7px; }
+      main { width: calc(100% - 20px); }
+      .steps { padding-left: 10px; padding-right: 10px; }
+      .step { font-size: 10px; }
+      .search-row { grid-template-columns: minmax(0, 1fr); }
+      #findCentres { width: 100%; }
+      .centre-heading { flex-direction: column; gap: 3px; }
+      .slot { flex: 1 1 112px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="wordmark" href="#" aria-label="Pearson VUE home">
+      <span class="mark" aria-hidden="true">P</span>
+      <span class="wordmark-text">Pearson <span>VUE</span></span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="#booking">Find a test centre</a>
+      <a href="#candidate">My account</a>
+      <a href="#help">Help</a>
+    </nav>
+    <a class="account" href="#candidate">Sam Taylor</a>
+  </header>
+
+  <main>
+    <section class="welcome">
+      <div class="eyebrow">Pearson VUE candidate account</div>
+      <h1>Welcome back, Sam Taylor</h1>
+      <p>Choose your exam and a convenient test-centre appointment.</p>
+    </section>
+
+    <section class="booking-card" id="booking" aria-labelledby="bookingTitle">
+      <div class="booking-head">
+        <h2 id="bookingTitle">Schedule an exam</h2>
+        <p>Find an available appointment and review your details before confirming.</p>
+      </div>
+      <div class="steps" aria-label="Booking steps">
+        <div class="step active"><span class="step-number">1</span><span>Choose exam</span></div>
+        <div class="step active"><span class="step-number">2</span><span>Choose a time</span></div>
+        <div class="step"><span class="step-number">3</span><span>Review &amp; confirm</span></div>
+      </div>
+      <div class="booking-content">
+        <section aria-labelledby="examHeading">
+          <h2 class="section-title" id="examHeading">1. Find your exam appointment</h2>
+          <div class="field">
+            <label for="examCode">Exam</label>
+            <select id="examCode">
+              <option value="MO-200" selected>MO-200 · Microsoft Excel Associate (Microsoft 365 Apps)</option>
+              <option value="MO-100">MO-100 · Microsoft Word Associate</option>
+              <option value="IC3-GS6-L1">IC3 Digital Literacy GS6 Level 1</option>
+              <option value="SY0-701">CompTIA Security+ (SY0-701)</option>
+            </select>
+          </div>
+          <div class="search-row">
+            <div class="field">
+              <label for="postcode">Postcode</label>
+              <input id="postcode" type="text" value="EC1A 1BB" autocomplete="postal-code">
+            </div>
+            <button class="secondary" id="findCentres" type="button">Find test centres</button>
+          </div>
+          <div class="centres" id="centresList" aria-live="polite"></div>
+          <section class="candidate" id="candidate" aria-label="Candidate details">
+            <strong>Booking for Sam Taylor</strong>
+            <span>Candidate ID: PSV1234567</span>
+            <span>Email: sam.taylor@example.co.uk</span>
+            <span>Data residency: United Kingdom</span>
+          </section>
+        </section>
+
+        <aside class="review" aria-labelledby="reviewTitle">
+          <h2 id="reviewTitle">Review your booking</h2>
+          <div class="review-line"><span>Exam</span><strong id="reviewExam">MO-200</strong></div>
+          <div class="review-line"><span>Test centre</span><strong id="reviewCentre">Choose a centre</strong></div>
+          <div class="review-line"><span>Appointment</span><strong id="reviewSlot">Choose a time</strong></div>
+          <div class="review-line"><span>Candidate</span><strong>Sam Taylor</strong></div>
+          <div class="review-line"><span>Residency</span><strong>United Kingdom</strong></div>
+          <div class="review-line price"><span>Exam fee</span><strong id="reviewPrice">—</strong></div>
+        </aside>
+
+        <div class="confirm-area">
+          <div class="confirm-copy"><strong>Ready to reserve your seat?</strong>Your appointment is not reserved until confirmation completes.</div>
+          <button class="primary" id="confirmBtn" type="button" disabled>Confirm booking</button>
+        </div>
+      </div>
+      <div class="message" id="result" role="status" aria-live="polite"></div>
+      <div class="message success" id="successPanel" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer id="help">Need help? Contact Pearson VUE Customer Service for exam scheduling and test-centre support.</footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (response) { return response.json(); }).then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    const examSelect = document.getElementById('examCode');
+    const postcodeInput = document.getElementById('postcode');
+    const centresList = document.getElementById('centresList');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const result = document.getElementById('result');
+    const successPanel = document.getElementById('successPanel');
+    let availability = null;
+    let selectedCentre = null;
+    let selectedSlot = null;
+    let busy = false;
+
+    function postJson(url, body) {
+      return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }).then(function (response) {
+        return response.json().catch(function () { return {}; }).then(function (data) {
+          return { ok: response.ok, data: data };
+        });
+      });
+    }
+
+    function showMessage(node, kind, text) {
+      node.className = 'message show ' + kind;
+      node.textContent = text;
+    }
+
+    function clearMessage(node) {
+      node.className = 'message';
+      node.textContent = '';
+    }
+
+    function formatPrice(priceGbp) {
+      return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(priceGbp / 100);
+    }
+
+    function formatSlot(startsAt) {
+      return new Intl.DateTimeFormat('en-GB', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/London',
+      }).format(new Date(startsAt));
+    }
+
+    function renderCentres(data) {
+      centresList.textContent = '';
+      selectedCentre = null;
+      selectedSlot = null;
+      confirmBtn.disabled = true;
+      document.getElementById('reviewCentre').textContent = 'Choose a centre';
+      document.getElementById('reviewSlot').textContent = 'Choose a time';
+      document.getElementById('reviewExam').textContent = data.exam.code;
+      document.getElementById('reviewPrice').textContent = formatPrice(data.exam.priceGbp);
+
+      data.testCentres.forEach(function (centre) {
+        const card = document.createElement('article');
+        card.className = 'centre-card';
+        const heading = document.createElement('div');
+        heading.className = 'centre-heading';
+        const details = document.createElement('div');
+        const name = document.createElement('h3');
+        name.textContent = centre.name;
+        const address = document.createElement('p');
+        address.textContent = centre.address + ', ' + centre.city + ' ' + centre.postcode;
+        details.appendChild(name);
+        details.appendChild(address);
+        heading.appendChild(details);
+        card.appendChild(heading);
+        const slots = document.createElement('div');
+        slots.className = 'slots';
+        slots.setAttribute('aria-label', 'Available appointments at ' + centre.name);
+        centre.slots.forEach(function (slot) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'slot';
+          button.textContent = formatSlot(slot.startsAt);
+          button.setAttribute('aria-pressed', 'false');
+          button.addEventListener('click', function () {
+            centresList.querySelectorAll('.slot').forEach(function (item) { item.setAttribute('aria-pressed', 'false'); });
+            button.setAttribute('aria-pressed', 'true');
+            selectedCentre = centre;
+            selectedSlot = slot;
+            confirmBtn.disabled = false;
+            document.getElementById('reviewCentre').textContent = centre.name;
+            document.getElementById('reviewSlot').textContent = formatSlot(slot.startsAt);
+            clearMessage(result);
+          });
+          slots.appendChild(button);
+        });
+        card.appendChild(slots);
+        centresList.appendChild(card);
+      });
+    }
+
+    document.getElementById('findCentres').addEventListener('click', function () {
+      const button = this;
+      button.disabled = true;
+      button.textContent = 'Searching…';
+      clearMessage(result);
+      clearMessage(successPanel);
+      postJson('/api/vue-scheduling/availability', {
+        examCode: examSelect.value,
+        postcode: postcodeInput.value.trim(),
+      }).then(function (response) {
+        if (!response.ok) {
+          showMessage(result, 'error', response.data.error || 'Availability could not be loaded.');
+          return;
+        }
+        availability = response.data;
+        renderCentres(availability);
+      }).catch(function () {
+        showMessage(result, 'error', 'We could not load test-centre availability. Please try again.');
+      }).then(function () {
+        button.disabled = false;
+        button.textContent = 'Find test centres';
+      });
+    });
+
+    examSelect.addEventListener('change', function () {
+      availability = null;
+      centresList.textContent = '';
+      confirmBtn.disabled = true;
+      selectedCentre = null;
+      selectedSlot = null;
+      document.getElementById('reviewExam').textContent = this.value;
+      document.getElementById('reviewCentre').textContent = 'Choose a centre';
+      document.getElementById('reviewSlot').textContent = 'Choose a time';
+      document.getElementById('reviewPrice').textContent = '—';
+      clearMessage(result);
+    });
+
+    confirmBtn.addEventListener('click', function () {
+      if (busy || !availability || !selectedCentre || !selectedSlot) return;
+      busy = true;
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Confirming booking';
+      showMessage(result, 'pending', 'Confirming your appointment… Please keep this page open.');
+      clearMessage(successPanel);
+      postJson('/api/vue-scheduling/appointments', {
+        action: 'confirm-booking',
+        examCode: availability.exam.code,
+        testCentreId: selectedCentre.id,
+        slotId: selectedSlot.id,
+        candidate: {
+          firstName: 'Sam',
+          lastName: 'Taylor',
+          email: 'sam.taylor@example.co.uk',
+          candidateId: 'PSV1234567',
+        },
+        residencyRegion: 'UK',
+      }).then(function (response) {
+        if (!response.ok || !response.data.success) {
+          showMessage(result, 'error', response.data.error || 'We could not confirm your booking.');
+          return;
+        }
+        clearMessage(result);
+        const appointment = response.data.appointment;
+        showMessage(successPanel, 'success', 'Booking confirmed. Confirmation number: ' + appointment.confirmationNumber + '. ' +
+          appointment.exam.name + ' at ' + appointment.testCentre.name + ' on ' + formatSlot(appointment.startsAt) +
+          ' for ' + formatPrice(appointment.priceGbp) + '.');
+      }).catch(function () {
+        showMessage(result, 'error', 'We could not confirm your booking. Check your connection and try again.');
+      }).then(function () {
+        busy = false;
+        confirmBtn.disabled = !selectedCentre || !selectedSlot;
+        confirmBtn.textContent = 'Confirm booking';
+      });
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
