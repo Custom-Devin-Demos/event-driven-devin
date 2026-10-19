@@ -509,6 +509,24 @@ describe('LPL ClientWorks positions-grid incident bridge', () => {
       await flush();
       expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
 
+      const fanout = { ...WEB_REPORT, reference: 'CW-ABCDEF03' };
+      createSessionAndAlert.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+      await send(fanout);
+      await flush();
+      let finishRetry;
+      createSessionAndAlert.mockImplementationOnce(() => new Promise((resolve) => { finishRetry = resolve; }));
+      const waiters = [send(fanout), send(fanout)];
+      await flush();
+      finish(null);
+      await flush();
+      await flush();
+      expect(createSessionAndAlert).toHaveBeenCalledTimes(4);
+      finishRetry({ triggered: true });
+      const fanned = (await Promise.all(waiters)).map((r) => r.status).sort();
+      expect(fanned).toEqual([200, 202]);
+      expect(createSessionAndAlert).toHaveBeenCalledTimes(4);
+      createSessionAndAlert.mockClear();
+
       const delivered = { ...WEB_REPORT, reference: 'CW-ABCDEF01' };
       createSessionAndAlert.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
       const original = await send(delivered);
@@ -519,7 +537,7 @@ describe('LPL ClientWorks positions-grid incident bridge', () => {
       const dup = await pendingResend;
       expect(dup.status).toBe(200);
       expect(dup.body).toEqual({ accepted: true, duplicate: true, reference: original.body.reference });
-      expect(createSessionAndAlert).toHaveBeenCalledTimes(3);
+      expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
 
       const slow = { ...WEB_REPORT, reference: 'CW-ABCDEF02' };
       createSessionAndAlert.mockImplementationOnce(() => new Promise(() => {}));
@@ -541,7 +559,8 @@ describe('LPL ClientWorks positions-grid incident bridge', () => {
     await post(makeApp(), other);
     await flush();
     const alert = createSessionAndAlert.mock.calls[0][0];
-    expect(alert.culprit).toBe(GENERIC_CULPRIT);
+    expect(alert.culprit).toBe(`${GENERIC_CULPRIT} — positions_grid_save_layout`);
+    expect(alert.culprit).not.toMatch(/GET /);
     expect(alert.promptAppendix).toBe(GENERIC_WEB_DIRECTIVE);
     expect(Object.fromEntries(alert.tags.map(({ key, value }) => [key, value])).scenario).toBe(GENERIC_SCENARIO);
     expect(Sentry.captureException.mock.calls[0][1].tags.scenario).toBe(GENERIC_SCENARIO);

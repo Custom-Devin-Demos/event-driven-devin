@@ -67,12 +67,14 @@ router.post(ERROR_PATH, allowCrossOrigin, async (req, res) => {
   }
 
   // A resend while the first copy is still being delivered waits for that outcome instead of being acknowledged early.
-  const inFlight = findPendingReport(body);
-  if (inFlight) {
+  // After a failed delivery only the first waiter to resume re-dispatches (synchronously registering a new pending
+  // entry); the others find that entry and keep waiting on it.
+  const deadline = Date.now() + pendingWaitMs;
+  for (let inFlight = findPendingReport(body); inFlight; inFlight = findPendingReport(body)) {
     let timer;
     const settled = await Promise.race([
       inFlight.pending,
-      new Promise((resolve) => { timer = setTimeout(() => resolve('timeout'), pendingWaitMs); }),
+      new Promise((resolve) => { timer = setTimeout(() => resolve('timeout'), Math.max(0, deadline - Date.now())); }),
     ]);
     clearTimeout(timer);
     if (settled === 'timeout') {

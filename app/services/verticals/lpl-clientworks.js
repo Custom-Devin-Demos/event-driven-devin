@@ -22,7 +22,7 @@ const APP_REPO = `github.com/${APP_REPO_NAME}`;
 const SERVER_FILE = 'ClientWorks.Core/Positions/PositionGridService.cs';
 const APP_CULPRIT = `${SERVER_FILE} — PositionGridService.ComputeDayChange`;
 const APP_SCENARIO = 'positions-grid-day-change';
-const GENERIC_CULPRIT = 'ClientWorks positions-grid API — GET /api/accounts/{id}/positions-grid';
+const GENERIC_CULPRIT = 'ClientWorks positions grid';
 const GENERIC_SCENARIO = 'positions-grid-failure';
 const KNOWN_ERROR_TYPE = 'System.DivideByZeroException';
 const DAY_CHANGE_COLUMNS = ['dayChange', 'dayChangePct'];
@@ -463,7 +463,7 @@ function reportAppFailure(report) {
   const raiseAlert = (devinUserId) => createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${client.project}&query=${encodeURIComponent(`is:unresolved service:${client.service}`)}`,
-    culprit: knownScenario ? APP_CULPRIT : GENERIC_CULPRIT,
+    culprit: knownScenario ? APP_CULPRIT : `${GENERIC_CULPRIT} — ${action}`,
     errorType,
     errorValue: errorMessage,
     devinUserId,
