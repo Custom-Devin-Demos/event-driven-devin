@@ -5,6 +5,7 @@ const path = require('path');
 
 const oncallRoutes = require('../app/routes/oncall');
 const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
+const verticalRoutes = require('../app/routes/verticals');
 const { ALERT_SCENARIOS } = require('../app/services/oncall');
 const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 
@@ -16,6 +17,7 @@ beforeAll((done) => {
   app.use(express.json());
   app.use(oncallRoutes);
   app.use(oncallVerticalRoutes);
+  app.use(verticalRoutes);
   server = http.createServer(app);
   server.listen(0, () => {
     baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -61,10 +63,36 @@ describe('on-call hub routes', () => {
       group: 'healthcare',
       summary: 'Submit a pharmacy claim. It hangs ~8s, then returns a 504.',
     });
+    const payer = grouped.find((scenario) => scenario.id === 'payer');
+    expect(payer).toMatchObject({
+      group: 'healthcare',
+      retryWindow: true,
+      summary: 'Submit a prior authorization. Each submission is slower than the last.',
+    });
     const { scenarios: defaults } = await defaultResponse.json();
-    expect(defaults.map((scenario) => scenario.id)).not.toContain('pbm');
+    expect(defaults.map((scenario) => scenario.id)).not.toEqual(expect.arrayContaining(['pbm', 'payer']));
     expect(defaults.find((scenario) => scenario.id === 'banking')).toMatchObject({ group: null, summary: null });
     expect(Object.keys(ALERT_SCENARIOS)).not.toContain('healthcare');
+  });
+
+  test('payer prior-auth pages are shimmed while legacy /payer remains unchanged', async () => {
+    const [oncallResponse, directResponse, legacyResponse] = await Promise.all([
+      fetch(`${baseUrl}/oncall/payer`),
+      fetch(`${baseUrl}/priorauth`),
+      fetch(`${baseUrl}/payer`),
+    ]);
+    expect([oncallResponse.status, directResponse.status, legacyResponse.status]).toEqual([200, 200, 200]);
+    const html = await oncallResponse.text();
+    expect(await directResponse.text()).toEqual(html);
+    expect(html).toContain("fetch('/api/priorauth/submit'");
+    expect(html).toContain('const oncallApiPath = "/api/oncall/payer/prior-auth"');
+    expect(html).toContain('var scenarioAlertDestination = "teams"');
+    expect(html).toContain('const retryWindowEnabled = true');
+
+    const legacy = await legacyResponse.text();
+    expect(legacy).toContain('Pharmacy Benefits');
+    expect(legacy).toContain('/api/payer/members');
+    expect(legacy).not.toContain('/api/oncall/payer/prior-auth');
   });
 
   test('scenario oncallOnly pages are shimmed at both /oncall/pbm and /pbm', async () => {
