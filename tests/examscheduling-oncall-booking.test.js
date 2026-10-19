@@ -165,23 +165,49 @@ describe('Pearson VUE exam scheduling on-call vertical', () => {
       .toBe('2026-10-25T13:00:00.000Z');
   });
 
-  test('absolute slot IDs do not map a previous day to a new date after midnight', async () => {
+  test('absolute slot IDs remain valid across London midnight while the appointment is still future', async () => {
     const beforeMidnight = new Date('2026-10-19T22:59:00.000Z');
     const afterMidnight = new Date('2026-10-20T00:01:00.000Z');
-    const firstSlots = getAvailability({ examCode: 'MO-200' }, beforeMidnight)
-      .testCentres.flatMap((centre) => centre.slots);
+    const firstAvailability = getAvailability({ examCode: 'MO-200' }, beforeMidnight);
+    const firstSlots = firstAvailability.testCentres.flatMap((centre) => centre.slots);
     const secondSlots = getAvailability({ examCode: 'MO-200' }, afterMidnight)
       .testCentres.flatMap((centre) => centre.slots);
     const secondById = new Map(secondSlots.map((slot) => [slot.id, slot]));
     firstSlots.forEach((slot) => {
       if (secondById.has(slot.id)) expect(secondById.get(slot.id).startsAt).toBe(slot.startsAt);
     });
-    const expiredSlot = firstSlots.find((slot) => !secondById.has(slot.id));
-    expect(expiredSlot).toBeDefined();
-    await expect(confirmBooking(validBooking({ slotId: expiredSlot.id }, afterMidnight), afterMidnight))
+
+    const morningSlot = firstAvailability.testCentres
+      .find((centre) => centre.id === 'VUE-LON-01').slots
+      .find((slot) => slot.id === 'VUE-LON-01-20261020-0900');
+    expect(morningSlot).toMatchObject({ startsAt: '2026-10-20T08:00:00.000Z' });
+    await expect(confirmBooking(validBooking({ slotId: morningSlot.id }, afterMidnight), afterMidnight))
+      .rejects.toMatchObject({ code: 'BOOKING_TIMEOUT' });
+    expect(logger.info.mock.calls.some(([message]) => message === 'Regional scheduling-store write')).toBe(true);
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+
+    Sentry.captureException.mockClear();
+    logger.info.mockClear();
+    const afterSlotStarts = new Date('2026-10-20T08:01:00.000Z');
+    await expect(confirmBooking(validBooking({ slotId: morningSlot.id }, afterSlotStarts), afterSlotStarts))
       .rejects.toMatchObject({ code: 'INVALID_BOOKING' });
     expect(Sentry.captureException).not.toHaveBeenCalled();
     expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['an unconfigured hour', 'VUE-LON-01-20261020-1000'],
+    ['a non-zero minute', 'VUE-LON-01-20261020-0901'],
+    ['another centre prefix', 'VUE-MAN-01-20261020-0900'],
+    ['an out-of-horizon date', 'VUE-LON-01-20261101-0900'],
+    ['an invalid calendar date', 'VUE-LON-01-20261340-0900'],
+  ])('rejects an absolute slot ID with %s', async (_description, slotId) => {
+    const now = new Date('2026-10-19T22:59:00.000Z');
+    await expect(confirmBooking(validBooking({ slotId }, now), now))
+      .rejects.toMatchObject({ code: 'INVALID_BOOKING' });
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(createDevinSession).not.toHaveBeenCalled();
   });
 
   test('toString is not a valid residency region and is rejected before alerting', async () => {
