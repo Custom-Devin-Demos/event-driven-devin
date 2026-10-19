@@ -4357,7 +4357,6 @@ const ONCALL_SKINS = {
     page: { file: '0cab09fe.html', title: 'Banca en Línea | Banamex' },
     alertCard: {
       title: 'Latencia p95 disparada \u2014 Transferir entre mis cuentas',
-      service: 'banca-en-linea-api',
       release: 'banca-en-linea-transferencias@1.0.3',
       team: 'transferencias-oncall',
       metricValue: '9.6s',
