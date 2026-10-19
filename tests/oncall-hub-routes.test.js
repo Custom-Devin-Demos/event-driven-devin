@@ -1,13 +1,15 @@
+/* global afterAll, beforeAll, describe, expect, test, fetch */
+
 const express = require('express');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 
 const oncallRoutes = require('../app/routes/oncall');
 const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
 const verticalRoutes = require('../app/routes/verticals');
 const { ALERT_SCENARIOS } = require('../app/services/oncall');
-const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 
 let server;
 let baseUrl;
@@ -26,9 +28,8 @@ beforeAll((done) => {
 });
 
 afterAll((done) => {
-  server.close(() => {
-    stopGateway().then(() => done());
-  });
+  server.closeAllConnections();
+  server.close(() => stopGateway().then(() => done()));
 });
 
 describe('on-call hub routes', () => {
@@ -286,6 +287,29 @@ describe('on-call hub routes', () => {
     expect(html).not.toContain('All Demos');
     const legacyApi = await fetch(`${baseUrl}/api/identity-console/environments`, { method: 'POST' });
     expect(legacyApi.status).toBe(404);
+  });
+
+  test('the e85b5836 Pearson VUE skin is served at its slug and friendly URLs with the booking shim', async () => {
+    const responses = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/e85b5836`),
+      fetch(`${baseUrl}/e85b5836`),
+      fetch(`${baseUrl}/pearson`),
+      fetch(`${baseUrl}/pearsonvue`),
+    ]);
+    expect(responses.map((response) => response.status)).toEqual([200, 200, 200, 200]);
+    const pages = await Promise.all(responses.map((response) => response.text()));
+    expect(pages.every((page) => page === pages[0])).toBe(true);
+    const html = pages[0];
+    expect(html).toContain('<title>Schedule your exam | Pearson VUE</title>');
+    expect(html).toContain('NOT ACTUALLY A PEARSON VUE SITE');
+    expect(html).toContain('const apiPath = "/api/vue-scheduling"');
+    expect(html).toContain('const oncallApiPath = "/api/oncall/examscheduling"');
+    expect(html).toContain('const triggerWhen = {"action":"confirm-booking"}');
+    expect(html).toContain('var skinAlertDestination = "slack"');
+    expect(html).not.toContain('All Demos');
+    const legacyApi = await fetch(`${baseUrl}/api/vue-scheduling/appointments`, { method: 'POST' });
+    expect(legacyApi.status).toBe(404);
+    await legacyApi.text();
   });
 
   test('the GSK vaccine page uses the vaccines endpoint without changing the banking skins', async () => {
