@@ -731,7 +731,7 @@ function resolveAlertCard(scenario, skin) {
     service: pick('service', scenario.service),
     endpoint: pick('endpointLabel', scenario.endpoint),
     release: pick('release', scenario.release),
-    owner: team ? `${scenario.owner.replace(/\s*\([^)]*\)$/, '')} (${team})` : scenario.owner,
+    owner: team && scenario.owner ? `${scenario.owner.replace(/\s*\([^)]*\)$/, '')} (${team})` : scenario.owner,
     metricQuery: pick('metricQuery', scenario.metricQuery),
     metricValue: pick('metricValue', scenario.metricValue),
     threshold: pick('threshold', scenario.threshold),
@@ -789,16 +789,18 @@ function notifySlackMemberParagraph(memberId, channel, threadTs, t = ONCALL_STRI
 
 function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, onCallMemberId } = {}) {
   const t = oncallStrings(skin);
+  // Monitor facts match the skin's Slack card; service/endpoint stay real so the session can find the code.
+  const card = { ...resolveAlertCard(scenario, skin), service: scenario.service, endpoint: scenario.endpoint };
   const lines = [
-    t.promptIntro(scenario.service),
+    t.promptIntro(card.service),
     '',
-    `*${t.monitor}:* ${scenario.monitor} — ${t.triggered}`,
-    `*${t.query}:* \`${scenario.metricQuery}\``,
-    `*${t.endpoint}:* ${scenario.endpoint}`,
-    `*${t.metricValue}:* ${t.metricLine(scenario)}`,
-    `*${t.release}:* ${scenario.release}`,
-    `*${t.symptom}:* ${scenario.symptom}`,
-    `*${t.impact}:* ${scenario.impact}`,
+    `*${t.monitor}:* ${card.monitor} — ${t.triggered}`,
+    `*${t.query}:* \`${card.metricQuery}\``,
+    `*${t.endpoint}:* ${card.endpoint}`,
+    `*${t.metricValue}:* ${t.metricLine(card)}`,
+    `*${t.release}:* ${card.release}`,
+    `*${t.symptom}:* ${card.symptom}`,
+    `*${t.impact}:* ${card.impact}`,
     runRef ? `*${t.incidentRef}:* ${runRef}` : null,
     '',
     t.reproduce(`${DEMO_BASE_URL()}/oncall/c/${skin.slug}`, REPO_URL),
@@ -897,7 +899,7 @@ async function triggerSkinDevinSession(
     session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, onCallMemberId }), {
       ...resolveSessionIdentity(requester, config),
       apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
-      title: oncallStrings(skin).sessionTitle(scenario.monitor),
+      title: oncallStrings(skin).sessionTitle(resolveAlertCard(scenario, skin).monitor),
     });
   } catch (error) {
     logger.error('On-Call skin Devin session failed', { skin: skin.slug, error: error.message });
