@@ -5,6 +5,7 @@ const oncallRoutes = require('../app/routes/oncall');
 const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
 const { ALERT_SCENARIOS } = require('../app/services/oncall');
 const { submitCardPayment } = require('../app/services/oncall-verticals/cardpayment');
+const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 const { getOncallSkin } = require('../config/oncall-skins');
 
 let server;
@@ -23,7 +24,9 @@ beforeAll((done) => {
 });
 
 afterAll((done) => {
-  server.close(done);
+  server.close(() => {
+    stopGateway().then(() => done());
+  });
 });
 
 function pay(body) {
