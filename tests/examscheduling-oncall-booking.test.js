@@ -210,6 +210,19 @@ describe('Pearson VUE exam scheduling on-call vertical', () => {
     expect(createDevinSession).not.toHaveBeenCalled();
   });
 
+  test('rejects a previously generated slot date omitted from today’s availability window', async () => {
+    const now = new Date('2026-10-19T11:00:00.000Z');
+    const slotId = 'VUE-LON-01-20261022-0900';
+    await expect(confirmBooking(validBooking({ slotId }, now), now))
+      .rejects.toMatchObject({ code: 'INVALID_BOOKING' });
+    const storeWriteLogs = logger.info.mock.calls
+      .filter(([message]) => message === 'Regional scheduling-store write');
+    expect(storeWriteLogs).toHaveLength(0);
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(createDevinSession).not.toHaveBeenCalled();
+  });
+
   test('toString is not a valid residency region and is rejected before alerting', async () => {
     const started = Date.now();
     const response = await fetch(`${baseUrl}/api/oncall/examscheduling/appointments`, {

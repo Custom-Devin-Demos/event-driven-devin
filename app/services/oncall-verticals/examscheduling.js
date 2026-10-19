@@ -190,42 +190,25 @@ function validateBooking(data = {}, now = new Date()) {
   const testCentre = getTestCentre(data.testCentreId);
   if (!testCentre) throw invalidBooking('Select a valid test centre.');
 
-  const slotIdMatch = typeof data.slotId === 'string'
-    ? data.slotId.match(/^(.+)-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})$/)
-    : null;
-  if (!slotIdMatch) throw invalidBooking('Select an available slot at this test centre.');
+  const londonToday = londonDateParts(now);
+  const maxOffset = Math.max(...testCentre.dayOffsets);
+  let slot = null;
+  for (let k = 0; k <= maxOffset && !slot; k += 1) {
+    const candidate = slotsFor(testCentre, new Date(now.getTime() - k * 86400000))
+      .find((availableSlot) => availableSlot.id === data.slotId) || null;
+    if (!candidate) continue;
 
-  const [, slotCentreId, yearValue, monthValue, dayValue, hourValue, minuteValue] = slotIdMatch;
-  if (slotCentreId !== testCentre.id) throw invalidBooking('Select an available slot at this test centre.');
-
-  const year = Number(yearValue);
-  const month = Number(monthValue);
-  const day = Number(dayValue);
-  const hour = Number(hourValue);
-  const calendarDate = new Date(Date.UTC(year, month - 1, day));
-  if (calendarDate.getUTCFullYear() !== year
-    || calendarDate.getUTCMonth() !== month - 1
-    || calendarDate.getUTCDate() !== day
-    || minuteValue !== '00'
-    || !testCentre.hours.includes(hour)) {
-    throw invalidBooking('Select an available slot at this test centre.');
+    const candidateDate = londonDateParts(new Date(candidate.startsAt));
+    const isToday = candidateDate.year === londonToday.year
+      && candidateDate.month === londonToday.month
+      && candidateDate.day === londonToday.day;
+    if (k === 0 || isToday) slot = candidate;
   }
 
-  const startsAt = londonWallTimeToUtc(year, month, day, hour, Number(minuteValue));
-  if (startsAt.getTime() <= now.getTime()) {
+  if (!slot) throw invalidBooking('Select an available slot at this test centre.');
+  if (new Date(slot.startsAt) <= now) {
     throw invalidBooking('That slot is no longer available. Search again.');
   }
-
-  const bookingHorizon = now.getTime() + (Math.max(...testCentre.dayOffsets) + 1) * 86400000;
-  if (startsAt.getTime() > bookingHorizon) {
-    throw invalidBooking('Select an available slot at this test centre.');
-  }
-
-  const slot = {
-    id: data.slotId,
-    startsAt: startsAt.toISOString(),
-    status: 'available',
-  };
 
   const candidate = data.candidate && typeof data.candidate === 'object' ? data.candidate : {};
   const firstName = typeof candidate.firstName === 'string' ? candidate.firstName.trim() : '';
