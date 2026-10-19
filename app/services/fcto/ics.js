@@ -4,7 +4,8 @@
 // Posted into Slack as a file so both parties can add the block to whatever
 // calendar they use — no calendar API required.
 
-const { findMember } = require('../../../config/fcto-roster');
+const { findMember, EMAIL_RE } = require('../../../config/fcto-roster');
+const avatars = require('./avatars');
 const { qualificationsLabel } = require('./reservations');
 
 function icsDate(ts) {
@@ -48,6 +49,14 @@ function eventText(reservation) {
   return { summary, description: descriptionParts.join('\n') };
 }
 
+// The assigned Field CTO, invited as a guest when an email is known.
+function invitees(reservation) {
+  const member = findMember(reservation.assigneeKey);
+  if (!member) return [];
+  const email = member.email || avatars.getEmail(member.slackId) || member.defaultEmail;
+  return email && EMAIL_RE.test(email) ? [{ name: member.name, email }] : [];
+}
+
 // Slack rejects a whole message whose button URL is over 3,000 characters.
 const MAX_BUTTON_URL = 3000;
 
@@ -74,6 +83,7 @@ function fitUrl(build, summary, details, location) {
 // new-event form in the clicker's own Google or Outlook calendar.
 function calendarLinks(reservation) {
   const { summary, description } = eventText(reservation);
+  const guests = invitees(reservation).map((g) => g.email).join(',');
   const iso = (ts) => new Date(ts * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
   const q = (params) => Object.entries(params).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
   const google = (text, details, location) => `https://calendar.google.com/calendar/render?${q({
@@ -82,11 +92,13 @@ function calendarLinks(reservation) {
     dates: `${icsDate(reservation.startTs)}/${icsDate(reservation.endTs)}`,
     details,
     location,
+    add: guests,
   })}`;
   const outlook = (subject, body, location) => `https://outlook.office.com/calendar/0/deeplink/compose?${q({
     path: '/calendar/action/compose',
     rru: 'addevent',
     subject,
+    to: guests,
     startdt: iso(reservation.startTs),
     enddt: iso(reservation.endTs),
     body,
@@ -99,7 +111,7 @@ function calendarLinks(reservation) {
   };
 }
 
-function buildIcs(reservation, { host = 'devindemos.com', now = Math.floor(Date.now() / 1000), attendees = [] } = {}) {
+function buildIcs(reservation, { host = 'devindemos.com', now = Math.floor(Date.now() / 1000), attendees = invitees(reservation) } = {}) {
   const { summary, description } = eventText(reservation);
 
   const lines = [
@@ -118,8 +130,9 @@ function buildIcs(reservation, { host = 'devindemos.com', now = Math.floor(Date.
   ];
   if (reservation.meetingLink) lines.push(`URL:${reservation.meetingLink}`);
   if (reservation.meetingLink) lines.push(`LOCATION:${escapeText(reservation.meetingLink)}`);
-  attendees.filter(Boolean).forEach((email) => {
-    lines.push(`ATTENDEE;CN=${escapeText(email)};ROLE=REQ-PARTICIPANT:mailto:${email}`);
+  attendees.filter(Boolean).forEach((attendee) => {
+    const { name, email } = typeof attendee === 'string' ? { name: attendee, email: attendee } : attendee;
+    lines.push(`ATTENDEE;CN=${escapeText(name || email).replace(/[:"]/g, '')};ROLE=REQ-PARTICIPANT:mailto:${email}`);
   });
   lines.push('STATUS:CONFIRMED', 'TRANSP:OPAQUE', 'END:VEVENT', 'END:VCALENDAR');
   return `${lines.map(foldLine).join('\r\n')}\r\n`;
@@ -132,4 +145,4 @@ function icsFilename(reservation) {
   return `${reservation.id.toLowerCase()}-${who}-${day}.ics`;
 }
 
-module.exports = { buildIcs, icsFilename, icsDate, escapeText, calendarLinks, MAX_BUTTON_URL };
+module.exports = { buildIcs, icsFilename, icsDate, escapeText, calendarLinks, invitees, MAX_BUTTON_URL };
