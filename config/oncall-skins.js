@@ -59,6 +59,9 @@
  * skinless alerts stay Slack-only even when that webhook is configured,
  * unless ONCALL_TEAMS_ALL_ALERTS=true.
  * alertDestination: 'teams' | 'slack' — always route this skin's browser alerts there, ignoring the hub picker
+ * alertPath: 'automated' — skip the on-call card; a server error on the rerouted
+ * call goes through the legacy automated alert (createSessionAndAlert: Sentry-style
+ * card in SLACK_CHANNEL_ID plus a Devin session). The on-call route must support it.
  *
  * A skin or scenario may set telemetryBrand: 'splunk-dynatrace' to word its
  * alert cards and Devin prompt as Splunk searches and Dynatrace problems
@@ -1018,7 +1021,16 @@ const ONCALL_SKINS = {
     company: 'Pearson',
     brandMark: 'P',
     vertical: 'telco',
+    teamsAlerts: true,
+    alertDestination: 'teams',
     page: { file: 'd22a0a30.html', title: 'Pearson+ | Manage subscription' },
+    alertCard: {
+      title: 'p95 latency \u2014 subscription plan changes',
+      release: 'subscriptions-api@2026.10.2',
+      team: 'subscriptions-oncall',
+      symptom: 'Update subscription submissions hang ~9s before the new plan is confirmed. Error rate is normal \u2014 plan changes eventually go through.',
+      impact: 'Every student changing plan waits on a spinner for ~9 seconds; some press Update subscription again and contact the help centre about duplicate charges.',
+    },
     theme: {
       '--accent': '#6D0176',
       '--ink': '#333333',
@@ -2329,6 +2341,7 @@ const ONCALL_SKINS = {
     brandMark: 'B',
     vertical: 'cardpayment',
     oncallOnly: true,
+    alertPath: 'automated',
     paths: ['/bofa-oncall'],
     page: { file: '8f167941.html', title: 'Accounts Overview | Bank of America' },
     alertCard: {
@@ -3869,6 +3882,38 @@ const ONCALL_SKINS = {
     supportCenter: 'Ping Identity Support',
     supportCenterSub: 'PingOne administration',
     disclaimer: 'NOT ACTUALLY A PING IDENTITY SITE — internal demo only, not affiliated with, endorsed by, or a real Ping Identity product.',
+  },
+  'e85b5836': {
+    slug: 'e85b5836',
+    company: 'Pearson VUE',
+    brandMark: 'P',
+    vertical: 'examscheduling',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    paths: ['/pearson', '/pearsonvue'],
+    page: { file: 'e85b5836.html', title: 'Schedule your exam | Pearson VUE' },
+    alertCard: {
+      title: 'Pearson VUE scheduling: 504 timeouts on POST /api/oncall/examscheduling/appointments',
+      service: 'vue-scheduling-api',
+      release: 'vue-scheduling@2026.10.1',
+      team: 'vue-scheduling-oncall',
+      metricQuery: 'p95:demo.examscheduling.booking.confirm.latency{service:vue-scheduling-api,route:/api/oncall/examscheduling/appointments}',
+      metricValue: '9.0s (504 on every booking confirmation)',
+      threshold: '> 3s',
+      baseline: '~1.7s (7-day p95)',
+      symptom: 'Confirm booking hangs about 9s, then 504; test-centre availability search answers in under 200ms; onset coincides with the release.',
+      impact: 'Candidates cannot book Certiport or Pearson VUE exams, seats are not reserved, and some retry or call the contact centre.',
+    },
+    theme: {
+      '--accent': '#6D0176',
+      '--ink': '#333333',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#05112A',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Pearson VUE Customer Service',
+    supportCenterSub: 'Exam scheduling & test centres',
+    disclaimer: 'NOT ACTUALLY A PEARSON VUE SITE — internal demo only, not affiliated with, endorsed by, or a real Pearson VUE or Certiport product.',
   },
   '99defdc4': {
     slug: '99defdc4',
