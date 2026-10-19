@@ -298,8 +298,9 @@ function buildSessionPrompt(report, reference, { channel, threadTs, reportedAtMs
   const logsUrl = datadogLogsUrl(reference, reportedAtMs);
   const fromTime = new Date(reportedAtMs - DATADOG_WINDOW_MS).toISOString();
   const toTime = new Date(reportedAtMs + DATADOG_WINDOW_MS).toISOString();
+  const waitSeconds = Math.round(report.durationMs / 1000);
   const impact = report.outcome === 'timeout'
-    ? 'Customers see a spinner for ~5 s and then "Something went wrong. Request timed out"; the card is not locked.'
+    ? `Customers see a spinner for ~${waitSeconds} s and then "Something went wrong. Request timed out"; the card is not locked.`
     : 'Customers locking a lost or stolen card wait several seconds on a spinner before the lock is confirmed; some abandon and call the card services line.';
   const outcomeLine = report.outcome === 'timeout' ? '*Outcome:* Timed out\n' : '';
   const prompt = `A latency SLO breach was reported by the Bank of America card-lock flow (Erica → Lock my card), from the ${report.platformLabel} client. The native iOS (SwiftUI), Android (Kotlin / Jetpack Compose), and desktop web clients share the same card-controls logic. Coordinate the fix across all three clients through child sessions and make sure guardrails land so it cannot regress.

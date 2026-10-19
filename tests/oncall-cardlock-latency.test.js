@@ -252,6 +252,19 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(prompt).toContain('Customers see a spinner for ~5 s and then "Something went wrong. Request timed out"; the card is not locked.');
   });
 
+  test('uses a native timeout report duration in the prompt impact', async () => {
+    await postAndWait({
+      ...REPORT,
+      reportId: 'native-timeout-10s',
+      durationMs: 10000,
+      outcome: 'timeout',
+    });
+
+    const [prompt] = createDevinSession.mock.calls[0];
+    expect(prompt).toContain('Customers see a spinner for ~10 s');
+    expect(prompt).not.toContain('Customers see a spinner for ~5 s');
+  });
+
   test('logs accepted breach details and one Datadog record per normalized span', async () => {
     const spans = [
       ...REPORT.spans,
