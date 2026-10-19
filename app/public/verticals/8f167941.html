@@ -198,8 +198,8 @@
           <div class="field">
             <label for="fromAccount">Pay from</label>
             <select id="fromAccount">
-              <option value="ACCT-1002" data-tier="standard" data-label="My Checking">My Checking - 1634 ($4,000.00)</option>
-              <option value="ACCT-1003" data-tier="standard" data-label="My Savings">My Savings - 8820 ($7,680.90)</option>
+              <option value="CHK-1634" data-label="My Checking">My Checking - 1634 ($4,000.00)</option>
+              <option value="SAV-8820" data-label="My Savings">My Savings - 8820 ($7,680.90)</option>
             </select>
             <input type="hidden" id="toAccount" value="CARD-4417">
           </div>
@@ -323,13 +323,16 @@
       function choice() {
         return form.querySelector('input[name="amountChoice"]:checked').value;
       }
-      function amountValue() {
+      function rawAmount() {
         var c = choice();
         return c === 'other' ? otherAmount.valueAsNumber : Number(c);
       }
       function amountValid() {
-        var v = amountValue();
-        return Number.isFinite(v) && v >= 1;
+        var v = rawAmount();
+        return Number.isFinite(v) && v >= 1 && Math.abs(v * 100 - Math.round(v * 100)) < 1e-6;
+      }
+      function amountValue() {
+        return Math.round(rawAmount() * 100) / 100;
       }
       function fmt(n) {
         return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -342,7 +345,7 @@
         var from = selectedOption().getAttribute('data-label');
         summary.textContent = amountValid()
           ? 'You are paying ' + fmt(amountValue()) + ' from ' + from + ' to BankAmericard Credit Card.'
-          : 'Enter a payment amount of at least $1.00.';
+          : 'Enter a payment amount of at least $1.00, in dollars and cents.';
         if (!inFlight) submitBtn.disabled = !amountValid();
       }
       function setOpen(open) {
@@ -362,7 +365,7 @@
         if (inFlight || !amountValid()) return;
         inFlight = true;
         var started = performance.now();
-        var succeeded = false;
+        var outcome = 'unknown';
         var amount = amountValue();
         submitBtn.disabled = true;
         cancelBtn.disabled = true;
@@ -375,36 +378,44 @@
           status.textContent = 'Submitting payment · ' + ((performance.now() - started) / 1000).toFixed(1) + 's';
         }, 100);
         try {
-          var response = await fetch('/api/banking/transfer', {
+          var response = await fetch('/api/8f167941/card-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               fromAccount: fromAccount.value,
               toAccount: toAccount.value,
               amount: amount,
-              accountTier: selectedOption().getAttribute('data-tier'),
-              paymentType: 'credit_card',
-              userId: 'usr_jane_smith',
+              paymentDate: document.getElementById('payDate').value,
               devinUserId: localStorage.getItem('devinUserId') || '',
               devinOrgId: localStorage.getItem('devinOrgId') || '',
               devinEmail: localStorage.getItem('devinEmail') || '',
             }),
           });
-          await response.json();
-          if (!response.ok) throw new Error('payment failed');
-          succeeded = true;
-          var slow = performance.now() - started > 4000;
+          var data = null;
+          try { data = await response.json(); } catch (e) { data = null; }
+          if (!response.ok) {
+            outcome = 'failed';
+            result.className = 'result-box error';
+            result.textContent = response.status === 400 || response.status === 422
+              ? ((data && data.error) || 'Please check the payment details and try again.') + '.'
+              : 'We\u2019re sorry, we couldn\u2019t process your payment right now. Please try again later.' + (data && data.requestId ? ' Reference: ' + data.requestId : '');
+            return;
+          }
+          if (!data || !data.success) throw new Error('unreadable response');
+          outcome = 'paid';
+          var paid = Number(data.totalDebit);
           result.className = 'result-box success';
-          result.textContent = slow
-            ? 'Your ' + fmt(amount) + ' payment was received, but it took longer than usual to process. It will appear in your card activity shortly.'
-            : 'Your ' + fmt(amount) + ' payment was received and will appear in your card activity shortly.';
-          if (amount >= 25) {
+          result.textContent = 'Your ' + fmt(paid) + ' payment from ' + data.fromAccount.label + ' is scheduled' +
+            (data.postsOn === 'today' ? ' for today' : ' for the next business day') +
+            '. Confirmation ' + data.confirmationNumber + '. No fee was charged.';
+          if (paid >= 25) {
             document.getElementById('paymentDueLabel').style.visibility = 'hidden';
-            document.getElementById('dueCopy').textContent = 'Payment of ' + fmt(amount) + ' scheduled for today. Thank you.';
+            document.getElementById('dueCopy').textContent = 'Payment of ' + fmt(paid) + ' scheduled. Thank you.';
           }
         } catch (error) {
+          outcome = 'unknown';
           result.className = 'result-box error';
-          result.textContent = 'We could not complete your payment right now. No money has left your account. Please try again in a few minutes.';
+          result.textContent = 'We couldn\u2019t confirm whether your payment went through. Check your card activity before trying again.';
         } finally {
           clearInterval(timer);
           form.removeAttribute('aria-busy');
@@ -413,7 +424,7 @@
           inFlight = false;
           sync();
           var elapsed = ((performance.now() - started) / 1000).toFixed(1);
-          status.textContent = succeeded ? 'Completed in ' + elapsed + 's' : 'Not completed · ' + elapsed + 's';
+          status.textContent = outcome === 'paid' ? 'Completed in ' + elapsed + 's' : 'Not completed · ' + elapsed + 's';
         }
       });
     })();
