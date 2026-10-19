@@ -128,6 +128,19 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
     expect(`${text}\n${blocks}`).not.toMatch(/Datadog|sum:trace|p95:trace|Monitor query|Triggered|View in Datadog/);
   });
 
+  test('lifesciences sample-order card uses Splunk/Dynatrace wording', async () => {
+    await postOncallAlert('lifesciences', { runRef: 'run-lifesciences', destination: 'slack' });
+    const [, , text, blockValues] = postMessage.mock.calls[postMessage.mock.calls.length - 1];
+    const blocks = JSON.stringify(blockValues);
+    const query = 'index=prod sourcetype=samples service:hcp-sample-order-api | timechart span=5m p95(duration_ms)';
+    expect(text).toContain('[OPEN Problem] Response time degradation — hcp-sample-order-api');
+    expect(text).toContain('*Splunk search:*');
+    expect(text).toContain(query);
+    expect(blocks).toContain('Splunk search');
+    expect(blocks).toContain(query);
+    expect(`${text}\n${blocks}`).not.toMatch(/Datadog|sum:trace|p95:trace|Monitor query|Triggered|View in Datadog/);
+  });
+
   test('partial alertCard overrides only the given fields', async () => {
     const base = getOncallSkin('cb84fd21');
     const scenario = ALERT_SCENARIOS.banking;

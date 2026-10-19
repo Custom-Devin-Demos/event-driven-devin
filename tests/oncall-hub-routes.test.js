@@ -69,8 +69,13 @@ describe('on-call hub routes', () => {
       retryWindow: true,
       summary: 'Submit a prior authorization. Each submission is slower than the last.',
     });
+    const lifesciences = grouped.find((scenario) => scenario.id === 'lifesciences');
+    expect(lifesciences).toMatchObject({
+      group: 'healthcare',
+      summary: 'Order drug samples as a prescriber. It hangs ~10s, then confirms.',
+    });
     const { scenarios: defaults } = await defaultResponse.json();
-    expect(defaults.map((scenario) => scenario.id)).not.toEqual(expect.arrayContaining(['pbm', 'payer']));
+    expect(defaults.map((scenario) => scenario.id)).not.toEqual(expect.arrayContaining(['pbm', 'payer', 'lifesciences']));
     expect(defaults.find((scenario) => scenario.id === 'banking')).toMatchObject({ group: null, summary: null });
     expect(Object.keys(ALERT_SCENARIOS)).not.toContain('healthcare');
   });
@@ -93,6 +98,21 @@ describe('on-call hub routes', () => {
     expect(legacy).toContain('Pharmacy Benefits');
     expect(legacy).toContain('/api/payer/members');
     expect(legacy).not.toContain('/api/oncall/payer/prior-auth');
+  });
+
+  test('lifesciences sample-order pages are shimmed at /oncall/lifesciences and /samples', async () => {
+    const [oncallResponse, directResponse] = await Promise.all([
+      fetch(`${baseUrl}/oncall/lifesciences`),
+      fetch(`${baseUrl}/samples`),
+    ]);
+    expect([oncallResponse.status, directResponse.status]).toEqual([200, 200]);
+    const html = await oncallResponse.text();
+    expect(await directResponse.text()).toEqual(html);
+    expect(html).toContain("fetch('/api/samples/order'");
+    expect(html).toContain('const oncallApiPath = "/api/oncall/lifesciences/sample-order"');
+    expect(html).toContain('var scenarioAlertDestination = "teams"');
+    expect(html).toContain('id="sampleOrderForm"');
+    expect(html).toContain('Corvane Therapeutics is a fictional demo brand. Product names are fictional.');
   });
 
   test('scenario oncallOnly pages are shimmed at both /oncall/pbm and /pbm', async () => {

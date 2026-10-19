@@ -145,6 +145,7 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 | Vaccines (GSK skin `fe4f39ba`) | `POST /api/oncall/vaccines/order` | `app/services/oncall-verticals/vaccines.js` |
 | PBM claims (Fernway Rx) | `POST /api/oncall/pbm/claim` | `app/services/oncall-verticals/pbm.js` |
 | Payer prior authorization (Larkspur Health Plan) | `POST /api/oncall/payer/prior-auth` | `app/services/oncall-verticals/priorauth.js` |
+| Life-sciences HCP sample orders (Corvane Therapeutics) | `POST /api/oncall/lifesciences/sample-order` | `app/services/oncall-verticals/samples.js` |
 | Store pickup (Gap skin `d36c67bf`) | `POST /api/oncall/storepickup/checkout` | `app/services/oncall-verticals/storepickup.js` |
 | Voice | `POST /api/oncall/voice/transcribe` | `app/services/oncall-verticals/voice.js` |
 | Samsara Fleet (native iOS/macOS app) | `POST /api/oncall/26a3d261/eta-failure` | `app/services/oncall-verticals/fleet.js` |

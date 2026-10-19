@@ -10,6 +10,7 @@ const { addToCart } = require('../services/oncall-verticals/marketplace');
 const { submitOrder } = require('../services/oncall-verticals/vaccines');
 const { submitClaim } = require('../services/oncall-verticals/pbm');
 const { submitPriorAuth } = require('../services/oncall-verticals/priorauth');
+const { submitSampleOrder, PRESCRIBERS, PRODUCTS } = require('../services/oncall-verticals/samples');
 const { addToBag } = require('../services/oncall-verticals/apparel');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
@@ -335,6 +336,46 @@ router.post('/api/oncall/payer/prior-auth', async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: error.code || 'PRIOR_AUTH_SUBMIT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/lifesciences/sample-order — request HCP drug samples
+ */
+router.post('/api/oncall/lifesciences/sample-order', async (req, res) => {
+  const body = req.body || {};
+  const defaultPrescriber = PRESCRIBERS.find((prescriber) => prescriber.hcpNpi === body.hcpNpi) || PRESCRIBERS[0];
+  const defaultItems = [
+    { productId: PRODUCTS[0].productId, quantity: 4 },
+    { productId: PRODUCTS[1].productId, quantity: 4 },
+    { productId: PRODUCTS[2].productId, quantity: 4 },
+    { productId: PRODUCTS[0].productId, quantity: 4 },
+  ];
+  try {
+    const result = await submitSampleOrder({
+      hcpNpi: body.hcpNpi || defaultPrescriber.hcpNpi,
+      stateLicense: body.stateLicense || defaultPrescriber.stateLicense,
+      shipToAddressId: body.shipToAddressId || defaultPrescriber.shipToAddresses[0].addressId,
+      items: body.items === undefined ? defaultItems : body.items,
+      signature: body.signature === undefined ? defaultPrescriber.name : body.signature,
+    });
+    res.json(result);
+  } catch (error) {
+    const validationCodes = [
+      'LICENSE_NOT_VALID',
+      'PRODUCT_NOT_SAMPLEABLE',
+      'QUANTITY_LIMIT_EXCEEDED',
+      'SIGNATURE_REQUIRED',
+      'INVALID_ORDER',
+      'SHIP_TO_ADDRESS_NOT_FOUND',
+    ];
+    res.status(validationCodes.includes(error.code) ? 422 : 500).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'SAMPLE_ORDER_FAILED',
       requestId: req.requestId,
     });
   }
