@@ -11,6 +11,9 @@ const { submitOrder } = require('../services/oncall-verticals/vaccines');
 const { submitClaim } = require('../services/oncall-verticals/pbm');
 const { submitPriorAuth } = require('../services/oncall-verticals/priorauth');
 const { addToBag } = require('../services/oncall-verticals/apparel');
+const { addKitToCart } = require('../services/oncall-verticals/fluidanalysis');
+const { addToPickList } = require('../services/oncall-verticals/picklist');
+const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
@@ -636,6 +639,67 @@ router.post('/api/oncall/identity/applications', async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: error.code || 'APPLICATION_CREATE_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/fluidanalysis/cart — add a FluidWatch test kit to a
+ * marketplace buyer's cart
+ */
+router.post('/api/oncall/fluidanalysis/cart', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await addKitToCart({
+      sku: body.sku || 'DEOK-B-5',
+      accountId: body.accountId || 'CMI-DLR-40817',
+      quantity: body.quantity || 1,
+    }));
+  } catch (error) {
+    res.status(error.code === 'INVALID_CART' ? 400 : 500).json({
+      success: false,
+      error: 'We were unable to add this item to your cart.',
+      errorClass: error.name,
+      code: error.code || 'CART_ADD_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/picklist/add — add a genuine part to the pick list
+ */
+router.post('/api/oncall/picklist/add', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await addToPickList({ partNumber: body.partNumber || '3800984', quantity: body.quantity || 1 }));
+  } catch (error) {
+    res.status(error.code === 'PART_NOT_FOUND' ? 404 : 500).json({
+      success: false,
+      error: 'Unable to add this part to your Pick List.',
+      errorClass: error.name,
+      code: error.code || 'PICKLIST_ADD_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/esnlookup/lookup — look up an engine serial number and
+ * list its service manuals
+ */
+router.post('/api/oncall/esnlookup/lookup', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await lookupEsn({ esn: body.esn }));
+  } catch (error) {
+    const status = error.code === 'INVALID_ESN' ? 400 : error.code === 'ESN_NOT_FOUND' ? 404 : 500;
+    res.status(status).json({
+      success: false,
+      error: status === 500 ? 'Service information is temporarily unavailable for this engine.' : error.message,
+      errorClass: error.name,
+      code: error.code || 'ESN_LOOKUP_FAILED',
       requestId: req.requestId,
     });
   }

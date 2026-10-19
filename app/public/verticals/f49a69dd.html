@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Earnings | Lyft Driver</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Hanken+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1d0c17;
+      --plum: #820076;
+      --pink: #ff00bf;
+      --rule: #dfdbd6;
+      --chip: rgba(54, 34, 1, 0.07);
+      --app-ink: #0c0c23;
+      --app-ink-2: #242546;
+      --app-muted: #63637a;
+      --app-faint: #a8a7b4;
+      --app-violet: #523be4;
+      --app-violet-press: #4430c9;
+      --app-bg: #f2f2f5;
+      --app-seg: #e6e6ee;
+      --font: 'RebelSansText', 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+      --font-display: 'RebelSansDisplay', 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--font); font-size: 16px; line-height: 22px; color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    h1, h2, h3, p, ul { margin: 0; padding: 0; }
+    ul { list-style: none; }
+    button, input, select { font-family: inherit; }
+    svg { display: block; }
+
+    /* ---------- lyft.com header ---------- */
+    .ly-header { position: relative; z-index: 10; background: #fff; border-bottom: 1px solid var(--rule); overflow: hidden; }
+    .ly-bar { height: 80px; display: flex; align-items: center; max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    .ly-logo { display: block; width: 64px; height: 64px; color: var(--pink); flex: 0 0 64px; }
+    .ly-nav { display: flex; height: 80px; flex: 1 1 auto; min-width: 0; margin-left: calc((100% + 16px) / 12 - 64px); }
+    .ly-nav > li { display: flex; flex: none; align-items: center; border-left: 1px solid var(--rule); padding: 0 24px; white-space: nowrap; }
+    .ly-nav > li.ly-grow { flex: 1 1 auto; }
+    .ly-nav > li.ly-lang { gap: 8px; padding-right: 0; }
+    .ly-top { font-size: 18px; line-height: 25px; font-weight: 600; text-decoration: none; }
+    .ly-sub { display: flex; align-items: center; margin-left: 32px; gap: 24px; }
+    .ly-sub .ly-pill { flex: 0 1 auto; min-width: 100px; height: auto; min-height: 32px; white-space: normal; text-align: center; justify-content: center; }
+    .ly-sub a { font-size: 16px; line-height: 22px; text-decoration: none; }
+    .ly-pill { display: inline-flex; align-items: center; height: 32px; padding: 0 16px; border-radius: 48px; border: 1px solid transparent; background: var(--plum); color: #fff !important; font-size: 16px; line-height: 22px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .ly-mobile { display: none; }
+    .ly-burger { width: 32px; height: 32px; border: 0; background: none; padding: 0; cursor: pointer; color: var(--ink); position: relative; }
+    .ly-burger::before { content: ''; position: absolute; inset: -6px; }
+
+    /* ---------- earnings screen ---------- */
+    .ep-page { padding: 80px 16px; }
+    .ep-screen { width: 100%; max-width: 480px; margin: 0 auto; border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; background: var(--app-bg); color: var(--app-ink); }
+    .ep-topbar { height: 56px; display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; background: #fff; }
+    .ep-topbar h1 { font-size: 16px; line-height: 22px; font-weight: 700; text-align: center; }
+    .ep-icon-btn { width: 44px; height: 44px; margin: 0 6px; display: flex; align-items: center; justify-content: center; border: 0; background: none; color: var(--app-ink); cursor: pointer; border-radius: 22px; }
+    .ep-icon-btn.ep-eye { color: var(--app-muted); }
+    .ep-summary { padding: 16px 16px 24px; text-align: center; background: #fff; }
+    .ep-seg { display: inline-flex; padding: 3px; border-radius: 22px; background: var(--app-seg); }
+    .ep-seg button { height: 34px; min-width: 74px; padding: 0 16px; border: 0; border-radius: 18px; background: none; color: var(--app-muted); font-size: 16px; line-height: 22px; font-weight: 500; cursor: pointer; }
+    .ep-seg button[aria-pressed="true"] { background: #fff; color: var(--app-ink); box-shadow: 0 1px 3px rgba(12, 12, 35, 0.12); }
+    .ep-range { position: relative; display: flex; align-items: center; justify-content: center; height: 28px; margin-top: 20px; }
+    .ep-prev { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 12px 0 8px; border: 0; border-radius: 14px; background: var(--app-seg); color: var(--app-ink); font-size: 14px; line-height: 20px; font-weight: 500; cursor: pointer; }
+    .ep-prev::before { content: ''; position: absolute; inset: -8px 0; }
+    .ep-range-label { font-size: 16px; line-height: 22px; font-weight: 500; color: var(--app-ink-2); }
+    .ep-total { margin-top: 18px; font-family: var(--font-display); font-size: 64px; line-height: 72px; font-weight: 700; letter-spacing: -0.5px; color: var(--app-ink); }
+    .ep-chart { display: grid; grid-template-columns: repeat(7, 1fr); align-items: end; height: 150px; margin-top: 16px; padding: 0 8px; }
+    .ep-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+    .ep-col b { font-size: 15px; line-height: 20px; font-weight: 500; color: var(--app-violet); margin-bottom: 6px; }
+    .ep-col i { display: block; width: 18px; border-radius: 9px; background: var(--app-violet); }
+    .ep-col i.ep-zero { height: 6px; background: #d9d9e3; }
+    .ep-col span { margin-top: 8px; font-size: 14px; line-height: 18px; color: var(--app-muted); }
+    .ep-cashout { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 282px; height: 50px; margin-left: auto; margin-right: auto; margin-top: 24px; border: 0; border-radius: 26px; background: var(--app-violet); color: #fff; font-size: 18px; line-height: 24px; font-weight: 700; cursor: pointer; }
+    .ep-cashout:hover { background: var(--app-violet-press); }
+    .ep-note { margin-top: 10px; font-size: 13px; line-height: 18px; color: var(--app-muted); }
+    .ep-link-row.ep-ink { color: var(--app-ink); }
+    .ep-empty { padding: 20px 16px 24px; text-align: center; font-size: 15px; line-height: 21px; color: var(--app-faint); border-bottom: 1px solid #ececf1; margin: 0 16px; }
+    .ep-link-row { display: flex; align-items: center; justify-content: center; gap: 8px; height: 56px; background: #fff; border-top: 1px solid #ececf1; font-size: 16px; line-height: 22px; font-weight: 600; color: var(--app-violet); text-decoration: none; }
+    .ep-card { margin-top: 8px; background: #fff; }
+    .ep-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 12px 16px; text-decoration: none; color: var(--app-ink); font-size: 15px; line-height: 21px; }
+    .ep-row .ep-grow { flex: 1; }
+    .ep-row .ep-chev { color: var(--app-faint); }
+    .ep-card h2 { padding: 20px 16px 4px; font-size: 20px; line-height: 26px; font-weight: 700; }
+    .ep-card h2 span { color: var(--app-faint); }
+
+    /* ---------- Express Pay sheet ---------- */
+    .xp-overlay { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(12, 12, 35, 0.48); }
+    .xp-overlay.open { display: flex; }
+    .xp-sheet { width: 100%; max-width: 440px; max-height: calc(100vh - 48px); overflow-y: auto; border-radius: 16px; background: #fff; color: var(--app-ink); box-shadow: 0 12px 40px rgba(12, 12, 35, 0.24); }
+    .xp-head { display: grid; grid-template-columns: 80px 1fr 80px; align-items: center; height: 56px; border-bottom: 1px solid #ececf1; }
+    .xp-head h2 { grid-column: 2; font-size: 16px; line-height: 22px; font-weight: 700; text-align: center; }
+    .xp-close { justify-self: end; height: 44px; padding: 0 16px; border: 0; background: none; color: var(--app-violet); font-size: 15px; line-height: 21px; font-weight: 600; cursor: pointer; }
+    .xp-body { padding: 24px 16px 20px; }
+    .xp-badge { width: 56px; height: 56px; margin: 0 auto; border-radius: 28px; background: #efedfd; color: var(--app-violet); display: flex; align-items: center; justify-content: center; }
+    .xp-lede { margin-top: 12px; text-align: center; font-size: 15px; line-height: 21px; color: var(--app-muted); }
+    .xp-lines { margin-top: 20px; }
+    .xp-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; font-size: 16px; line-height: 22px; }
+    .xp-line span { color: var(--app-ink-2); }
+    .xp-amount { display: inline-flex; align-items: center; height: 44px; border-bottom: 1px solid #d9d9e3; }
+    .xp-amount b { font-weight: 600; }
+    .xp-amount input { width: 104px; height: 44px; border: 0; padding: 0; background: none; color: var(--app-ink); font-size: 16px; line-height: 22px; font-weight: 600; text-align: right; outline: none; -moz-appearance: textfield; }
+    .xp-amount input::-webkit-outer-spin-button, .xp-amount input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .xp-amount:focus-within { border-bottom-color: var(--app-violet); }
+    .xp-total { margin-top: 8px; padding-top: 8px; border-top: 1px solid #ececf1; font-weight: 700; }
+    .xp-total span { color: var(--app-ink); }
+    .xp-fields { margin-top: 16px; display: grid; gap: 12px; }
+    .xp-field label { display: block; margin-bottom: 6px; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--app-muted); }
+    .xp-field select { width: 100%; height: 48px; padding: 0 40px 0 16px; border: 1px solid #d9d9e3; border-radius: 12px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 6l4.5 4.5L12.5 6' fill='none' stroke='%230c0c23' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center; color: var(--app-ink); font-size: 15px; line-height: 21px; -webkit-appearance: none; appearance: none; cursor: pointer; }
+    .xp-field select:focus { outline: none; border-color: var(--app-violet); }
+    .xp-submit { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 56px; margin-top: 24px; border: 0; border-radius: 28px; background: var(--app-violet); color: #fff; font-size: 18px; line-height: 24px; font-weight: 700; cursor: pointer; }
+    .xp-submit:hover { background: var(--app-violet-press); }
+    .xp-submit:disabled { opacity: 0.72; cursor: progress; }
+    .xp-spin { width: 18px; height: 18px; border: 2px solid rgba(255, 255, 255, 0.4); border-top-color: #fff; border-radius: 50%; animation: xpspin 0.8s linear infinite; }
+    @keyframes xpspin { to { transform: rotate(360deg); } }
+    .xp-fine { margin-top: 12px; text-align: center; font-size: 13px; line-height: 18px; color: var(--app-muted); }
+    .result-box { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 12px; font-size: 14px; line-height: 20px; }
+    .result-box.success { display: block; background: #e8f7ee; color: #0b5a2f; }
+    .result-box.error { display: block; background: #fdecee; color: #8a1023; }
+    .result-box .error-title { font-weight: 700; }
+
+    /* ---------- lyft.com footer ---------- */
+    .ly-footer { padding: 32px 0; background: linear-gradient(rgba(54, 34, 1, 0.09), rgba(54, 34, 1, 0) 64px); }
+    .ly-foot-wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    .ly-foot-inner { margin-left: calc((100% + 16px) / 12); width: calc((100% + 16px) / 12 * 10 - 16px); }
+    .ly-foot-cols { display: flex; padding-bottom: 8px; }
+    .ly-foot-col { flex: 0 0 calc((100% + 16px) * 0.236); padding-right: 16px; }
+    .ly-foot-col h2 { padding-top: 32px; margin-bottom: 24px; font-size: 18px; line-height: 25px; font-weight: 600; }
+    .ly-foot-col h2 svg { display: none; }
+    .ly-foot-col li + li { margin-top: 8px; }
+    .ly-foot-col a { font-size: 16px; line-height: 22px; text-decoration: none; }
+    .ly-foot-apps { flex: 0 0 calc((100% + 16px) * 0.236 - 16px); padding-top: 32px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+    .ly-chip { display: inline-flex; align-items: center; height: 32px; padding: 0 16px; border-radius: 48px; border: 1px solid transparent; background: var(--chip); font-size: 16px; line-height: 22px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .ly-foot-lang { margin-left: auto; padding-top: 32px; display: flex; align-items: flex-start; gap: 8px; font-size: 18px; line-height: 25px; font-weight: 600; }
+    .ly-foot-lang svg { margin-top: 1px; }
+    .ly-foot-lang .ly-chev { display: none; }
+    .ly-foot-bottom { display: flex; justify-content: flex-end; align-items: center; margin-top: -1px; }
+    .ly-legal { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; padding-left: 4px; }
+    .ly-legal li { margin-left: 24px; font-size: 14px; line-height: 20px; }
+    .ly-legal a { text-decoration: underline; }
+    .ly-legal .ly-choices { display: inline-flex; align-items: center; gap: 4px; }
+    .ly-social { display: flex; padding: 0 0 0 24px; }
+    .ly-social li { margin-left: 24px; }
+    .ly-social li:first-child { margin-left: 0; }
+
+    /* ---------- below desktop: lyft.com mobile chrome ---------- */
+    @media (max-width: 1023px) {
+      .ly-bar { padding: 0 8px 0 16px; justify-content: space-between; }
+      .ly-nav { display: none; }
+      .ly-logo { margin-right: 0; }
+      .ly-mobile { display: flex; align-items: center; gap: 24px; padding-right: 8px; }
+      .ly-mobile .ly-pill { font-size: 15px; line-height: 21px; }
+    }
+    @media (max-width: 767px) {
+      .ly-footer { padding: 0 0 20px; background: none; }
+      .ly-foot-wrap { padding: 0 16px; }
+      .ly-foot-inner { margin: 0; width: auto; }
+      .ly-foot-cols { flex-direction: column; }
+      .ly-foot-col { flex: none; padding-right: 16px; }
+      .ly-foot-col h2 { display: flex; justify-content: space-between; align-items: center; margin: 0; padding: 32px 0; border-bottom: 1px solid var(--rule); font-size: 17px; line-height: 24px; }
+      .ly-foot-col h2 svg { display: block; }
+      .ly-foot-col ul { display: none; }
+      .ly-foot-apps { flex: none; align-items: center; padding-top: 32px; }
+      .ly-chip { font-size: 15px; line-height: 21px; }
+      .ly-foot-lang { margin: 40px 0 0; padding: 12px 14px; height: 64px; align-items: center; border-bottom: 1px solid var(--rule); font-size: 15px; line-height: 21px; gap: 17px; }
+      .ly-foot-lang .ly-chev { display: block; margin-left: auto; }
+      .ly-foot-bottom { flex-direction: column-reverse; align-items: flex-start; margin-top: 26px; padding: 0 24px; }
+      .ly-social { padding: 0; margin-bottom: 13px; }
+      .ly-legal { justify-content: flex-start; padding: 0; margin-left: -24px; }
+      .ly-legal li { font-size: 13px; line-height: 18px; margin-top: 11px; }
+    }
+    @media (max-width: 600px) {
+      .ep-page { padding: 0 0 40px; }
+      .ep-screen { max-width: none; border: 0; border-radius: 0; }
+      .xp-overlay { align-items: flex-end; padding: 0; }
+      .xp-sheet { max-width: none; max-height: 92vh; border-radius: 16px 16px 0 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="ly-header">
+    <div class="ly-bar">
+      <a class="ly-logo" href="#" aria-label="Lyft home">
+        <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><g fill="currentColor"><path d="M6 14h7.5v19.2c0 2.3 1 3.4 2.6 3.9V40.4C9.9 40.4 6 37.7 6 31.6z"/><path d="M15.5 21.6H23v10.2c0 1.6 1.1 2.6 2.7 2.6s2.8-1 2.8-2.6V21.6H36v19.5c0 4.9-3.4 8.2-8.8 8.2-3.4 0-6.1-.6-8.7-1.9v-6.1c2.4 1 4.9 1.5 7.4 1.5 2.1 0 3.2-.9 3.2-2.6v-.5c-1.1.7-2.6 1-4.2 1-5.3 0-9.4-3.2-9.4-9.1z"/><path d="M34.8 40.4V22.3c0-5.4 3.2-8.6 8.4-8.6 1 0 1.8.1 2.2.2v6.7c-.4-.1-.8-.1-1.1-.1-1.4 0-2 .8-2 2.1h3.1V29H42.3v11.4z"/><path d="M46.6 14h7.4v7.6h3.9V29h-3.9v3.3c0 1.3.8 1.9 2.1 1.9.6 0 1.2-.1 1.8-.3v6.3c-1.2.3-2.4.4-3.4.4-5.1 0-7.9-2.8-7.9-7.9z"/></g></svg>
+      </a>
+      <ul class="ly-nav">
+        <li><a class="ly-top" href="#">Rider</a></li>
+        <li class="ly-grow"><a class="ly-top" href="#">Driver</a>
+          <div class="ly-sub"><a href="#">Earnings</a><a href="#">Cities</a><a href="#">Help</a><a class="ly-pill" href="#">Become a driver</a></div>
+        </li>
+        <li><a class="ly-top" href="#">Business</a></li>
+        <li><a class="ly-top" href="#">Log in</a></li>
+        <li><a class="ly-top" href="#">Sign up</a></li>
+        <li class="ly-lang">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><ellipse cx="12" cy="12" rx="3.6" ry="8.5"/><path d="M3.8 9h16.4M3.8 15h16.4"/></svg>
+          <span class="ly-top">EN</span>
+        </li>
+      </ul>
+      <div class="ly-mobile">
+        <a class="ly-pill" href="#">Download the app</a>
+        <button class="ly-burger" type="button" aria-label="Open menu"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 8h24M4 16h24M4 24h24" stroke="currentColor" stroke-width="2"/></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="ep-page">
+    <section class="ep-screen" aria-label="Earnings">
+      <div class="ep-topbar">
+        <a class="ep-icon-btn" href="#" aria-label="Close"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M4 4l14 14M18 4L4 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></a>
+        <h1>Earnings</h1>
+        <button class="ep-icon-btn ep-eye" type="button" aria-label="Hide earnings"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5c-4.6 0-8.3 3.1-9.6 6.5 1.3 3.4 5 6.5 9.6 6.5s8.3-3.1 9.6-6.5c-1.3-3.4-5-6.5-9.6-6.5z" fill="currentColor"/><circle cx="12" cy="12" r="3.2" fill="#fff"/></svg></button>
+      </div>
+
+      <div class="ep-summary">
+        <div class="ep-seg" role="group" aria-label="Period">
+          <button type="button" aria-pressed="true">Week</button>
+          <button type="button" aria-pressed="false">Month</button>
+          <button type="button" aria-pressed="false">Year</button>
+        </div>
+        <div class="ep-range">
+          <button class="ep-prev" type="button"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="prevWeek">Oct 5</span></button>
+          <span class="ep-range-label" id="weekRange">Oct 12 - 18</span>
+        </div>
+        <div class="ep-total">$612.48</div>
+        <div class="ep-chart" aria-label="Daily earnings">
+          <div class="ep-col"><b>$92</b><i style="height:70px"></i><span>M</span></div>
+          <div class="ep-col"><b>$119</b><i style="height:90px"></i><span>T</span></div>
+          <div class="ep-col"><b>$0</b><i class="ep-zero"></i><span>W</span></div>
+          <div class="ep-col"><b>$76</b><i style="height:58px"></i><span>T</span></div>
+          <div class="ep-col"><b>$104</b><i style="height:79px"></i><span>F</span></div>
+          <div class="ep-col"><b>$131</b><i style="height:100px"></i><span>S</span></div>
+          <div class="ep-col"><b>$90</b><i style="height:68px"></i><span>S</span></div>
+        </div>
+        <button class="ep-cashout" id="cashOutBtn" type="button">Cash out $612.48</button>
+        <p class="ep-note">Express Pay &middot; arrives within a few hours</p>
+      </div>
+      <a class="ep-link-row" href="#">View weekly breakdown <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 9h11M10 4.5L14.5 9 10 13.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+
+      <div class="ep-card">
+        <a class="ep-row" href="#"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 2.8l2.5 5.2 5.7.8-4.1 4 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4.1-4 5.7-.8z" fill="none" stroke="#13a77b" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="ep-grow">Set a weekly earnings goal</span><svg class="ep-chev" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+
+      <div class="ep-card">
+        <h2>Today <span id="todayLabel">Oct 19</span></h2>
+        <p class="ep-empty">You didn't give any rides.</p>
+        <a class="ep-link-row ep-ink" href="#">See all activity <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 9h11M10 4.5L14.5 9 10 13.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+
+      <div class="ep-card">
+        <h2>Other ways to earn</h2>
+        <a class="ep-row" href="#"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="2.5" y="5" width="17" height="12" rx="2" fill="none" stroke="#ff00bf" stroke-width="1.6"/><path d="M2.5 9h17" stroke="#ff00bf" stroke-width="1.6"/></svg><span class="ep-grow">Earn cash back rewards with Lyft Direct</span><svg class="ep-chev" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+    </section>
+  </main>
+
+  <div class="xp-overlay" id="xpOverlay" role="dialog" aria-modal="true" aria-labelledby="xpTitle">
+    <div class="xp-sheet">
+      <div class="xp-head">
+        <h2 id="xpTitle">Express Pay</h2>
+        <button class="xp-close" id="xpClose" type="button">Close</button>
+      </div>
+      <div class="xp-body">
+        <div class="xp-badge"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M15.5 3L6 16h7l-1.5 9L22 12h-7z" fill="currentColor"/></svg></div>
+        <p class="xp-lede">Cash out your earnings to your debit card.</p>
+        <form id="transferForm">
+          <div class="xp-lines">
+            <div class="xp-line"><span>Payments</span><label class="xp-amount"><b>$</b><input type="number" id="amount" value="612.48" min="6.75" step="0.01" aria-label="Cash out amount"></label></div>
+            <div class="xp-line"><span>Express Pay fee</span><b id="feeLine">-$1.75</b></div>
+            <div class="xp-line xp-total"><span>Total deposit</span><span id="totalLine">$610.73</span></div>
+          </div>
+          <div class="xp-fields">
+            <div class="xp-field"><label for="toAccount">Deposit to</label><select id="toAccount"><option value="ACCT-EXT-001">Mastercard debit (&bull;&bull;&bull;&bull;4242)</option><option value="ACCT-EXT-002">Visa debit (&bull;&bull;&bull;&bull;0187)</option></select></div>
+            <div class="xp-field"><label for="fromAccount">From</label><select id="fromAccount"><option value="ACCT-1001">Lyft driver earnings</option><option value="ACCT-1002">Lyft Direct account</option></select></div>
+            <div class="xp-field"><label for="accountTier">Payout method</label><select id="accountTier"><option value="standard">Express Pay &middot; within a few hours</option><option value="basic">Weekly deposit &middot; next Tuesday</option></select></div>
+          </div>
+          <button type="submit" class="xp-submit" id="submitBtn">Confirm deposit</button>
+          <p class="xp-fine">Earnings you cash out won't be included in your weekly payout.</p>
+        </form>
+        <div id="result" class="result-box"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="ly-footer">
+    <div class="ly-foot-wrap"><div class="ly-foot-inner">
+      <nav class="ly-foot-cols" aria-label="Footer">
+        <div class="ly-foot-col"><h2>Driver<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></h2><ul>
+          <li><a href="#">Become a Driver</a></li><li><a href="#">New Driver Guide</a></li><li><a href="#">Earnings</a></li><li><a href="#">Cities</a></li><li><a href="#">Help</a></li><li><a href="#">Safety</a></li><li><a href="#">Application Requirements</a></li><li><a href="#">Express Drive</a></li><li><a href="#">Bonus</a></li><li><a href="#">Lyft Rewards</a></li><li><a href="#">Insurance</a></li><li><a href="#">Black Car Fleets</a></li><li><a href="#">Driver Blog</a></li><li><a href="#">Beta Program</a></li></ul></div>
+        <div class="ly-foot-col"><h2>Rider<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></h2><ul>
+          <li><a href="#">Sign up to ride</a></li><li><a href="#">Lyft Pink</a></li><li><a href="#">Cities</a></li><li><a href="#">Help</a></li><li><a href="#">Safety</a></li><li><a href="#">Business Profile</a></li><li><a href="#">Rewards</a></li><li><a href="#">Events</a></li><li><a href="#">Airports</a></li><li><a href="#">Gift Cards</a></li><li><a href="#">Donate</a></li></ul></div>
+        <div class="ly-foot-col"><h2>Lyft<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></h2><ul>
+          <li><a href="#">Careers</a></li><li><a href="#">Lyft Up</a></li><li><a href="#">Business</a></li><li><a href="#">Healthcare</a></li><li><a href="#">Bikes</a></li><li><a href="#">Scooters</a></li><li><a href="#">Autonomous</a></li><li><a href="#">Lyft Ads</a></li><li><a href="#">Venue Partnerships</a></li><li><a href="#">Developers</a></li><li><a href="#">Lyft Blog</a></li><li><a href="#">Press</a></li><li><a href="#">Investor Relations</a></li></ul></div>
+        <div class="ly-foot-apps"><a class="ly-chip" href="#">Lyft driver app</a><a class="ly-chip" href="#">Lyft rider app</a></div>
+        <div class="ly-foot-lang">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><ellipse cx="12" cy="12" rx="3.6" ry="8.5"/><path d="M3.8 9h16.4M3.8 15h16.4"/></svg>
+          <span>EN</span>
+          <svg class="ly-chev" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </nav>
+      <div class="ly-foot-bottom">
+        <ul class="ly-legal">
+          <li><a href="#">Terms</a></li><li><a href="#">Privacy</a></li><li><a href="#">Accessibility Statement</a></li>
+          <li><a class="ly-choices" href="#">Your Privacy Choices <svg width="26" height="12" viewBox="0 0 26 12" aria-hidden="true"><rect x="0.6" y="0.6" width="24.8" height="10.8" rx="5.4" fill="#fff" stroke="#0066ff" stroke-width="1.2"/><path d="M13 0.6h7a5.4 5.4 0 010 10.8h-9z" fill="#0066ff"/><path d="M4.5 6l2 2 3.5-4" fill="none" stroke="#0066ff" stroke-width="1.4"/><path d="M16 3.6l4 4.8M20 3.6l-4 4.8" stroke="#fff" stroke-width="1.4"/></svg></a></li>
+          <li><span>&copy; 2026 Lyft, Inc.</span></li><li><span>CPUC ID No. TCP0032513-P</span></li>
+        </ul>
+        <ul class="ly-social">
+          <li><a href="#" aria-label="X"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="1.6"/></svg></a></li>
+          <li><a href="#" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M8.9 15V9.6h1.8l.3-2.1H8.9V6.2c0-.6.2-1 1-1h1.1V3.3c-.2 0-.9-.1-1.6-.1-1.6 0-2.7 1-2.7 2.8v1.5H5v2.1h1.7V15z" fill="#fff"/></svg></a></li>
+          <li><a href="#" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2.8" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11.6" cy="4.4" r="0.9" fill="currentColor"/></svg></a></li>
+        </ul>
+      </div>
+    </div></div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var now = new Date();
+      var monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7) - 7);
+      var sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+      var prev = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() - 7);
+      function md(d) { return MONTHS[d.getMonth()] + ' ' + d.getDate(); }
+      document.getElementById('weekRange').textContent = md(monday) + ' - ' + (sunday.getMonth() === monday.getMonth() ? sunday.getDate() : md(sunday));
+      document.getElementById('prevWeek').textContent = md(prev);
+      document.getElementById('todayLabel').textContent = md(now);
+    })();
+
+    var overlay = document.getElementById('xpOverlay');
+    document.getElementById('cashOutBtn').addEventListener('click', function () { overlay.classList.add('open'); document.getElementById('submitBtn').focus(); });
+    document.getElementById('xpClose').addEventListener('click', function () { overlay.classList.remove('open'); });
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.classList.remove('open'); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') overlay.classList.remove('open'); });
+
+    var PAYOUT_FEES = { standard: 1.75, basic: 0 };
+    function money(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+    function payoutFee() { var f = PAYOUT_FEES[document.getElementById('accountTier').value]; return f === undefined ? 1.75 : f; }
+    function depositTotal() { return Math.max(0, (parseFloat(document.getElementById('amount').value) || 0) - payoutFee()); }
+    function updateLines() {
+      document.getElementById('feeLine').textContent = '-' + money(payoutFee());
+      document.getElementById('totalLine').textContent = money(depositTotal());
+    }
+    document.getElementById('amount').addEventListener('input', updateLines);
+    document.getElementById('accountTier').addEventListener('change', updateLines);
+    setTimeout(updateLines, 0);
+
+    function showResult(title, detail) {
+      const result = document.getElementById('result');
+      const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+      result.replaceChildren(t, d);
+    }
+
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.innerHTML = '<span class="xp-spin" aria-hidden="true"></span>Confirming deposit';
+      result.className = 'result-box';
+      const card = document.getElementById('toAccount').selectedOptions[0].textContent.replace(' debit', '');
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          showResult("Your cash out didn't go through", `${data.errorClass}: ${data.error}`);
+        } else {
+          result.className = 'result-box success';
+          showResult('Deposit on its way', `Your earnings are headed to your ${card}. Most banks show Express Pay deposits within a few hours.`);
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        showResult('Network error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Confirm deposit'; result.scrollIntoView({ block: 'nearest' }); }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

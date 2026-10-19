@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Add Course | STARS Planner | NTU Singapore</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --red: #d71440;
+        --red-deep: #b30f34;
+        --red-dim: rgba(215, 20, 64, 0.1);
+        --navy: #00005b;
+        --navy-deep: #000043;
+        --ink: #1b1b1b;
+        --muted: #4a4a4a;
+        --dim: #707070;
+        --bg: #f1f2f8;
+        --card: #ffffff;
+        --line: #e0e0e0;
+        --line-strong: #c9c9c9;
+        --ok: #1f7a3a;
+        --ok-bg: #e8f5ec;
+        --err: #a3101f;
+        --err-bg: #fbe9ec;
+        --body: 'Lato', Arial, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+      a { color: inherit; }
+      .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+      .topbar { background: var(--navy); color: #fff; font-size: 13px; }
+      .topbar .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 36px; gap: 16px; }
+      .topbar nav { display: flex; gap: 20px; }
+      .topbar a { color: #fff; text-decoration: none; display: inline-flex; align-items: center; min-height: 36px; opacity: 0.92; }
+      .topbar a:hover { opacity: 1; text-decoration: underline; }
+
+      .site { background: #fff; border-bottom: 1px solid var(--line); }
+      .site .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 84px; gap: 24px; }
+      .brand { display: inline-flex; align-items: center; gap: 14px; text-decoration: none; min-height: 44px; }
+      .brand .mark { width: 52px; height: 52px; display: block; flex: none; }
+      .brand .word { display: flex; flex-direction: column; line-height: 1.1; }
+      .brand .word .l1 { font-weight: 900; font-size: 15px; letter-spacing: 0.4px; color: var(--navy); text-transform: uppercase; }
+      .brand .word .l2 { font-weight: 700; font-size: 12px; letter-spacing: 2.4px; color: var(--red); text-transform: uppercase; margin-top: 3px; }
+      .links { display: flex; align-items: center; gap: 28px; }
+      .links a { font-size: 15px; font-weight: 700; color: var(--navy); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; border-bottom: 3px solid transparent; }
+      .links a.on, .links a:hover { border-bottom-color: var(--red); }
+      .links .user { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); font-weight: 400; min-height: 44px; }
+      .links .user .av { width: 34px; height: 34px; border-radius: 50%; background: var(--navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+
+      .hero { position: relative; background: var(--navy); color: #fff; overflow: hidden; }
+      .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 35%; opacity: 0.38; }
+      .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0, 0, 91, 0.96) 0%, rgba(0, 0, 91, 0.78) 55%, rgba(0, 0, 91, 0.45) 100%); }
+      .hero .wrap { position: relative; z-index: 1; padding-top: 44px; padding-bottom: 44px; display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
+      .hero .eyebrow { margin: 0 0 8px; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #ffb3c4; }
+      .hero h1 { margin: 0 0 10px; font-size: 40px; font-weight: 900; line-height: 1.1; letter-spacing: -0.3px; }
+      .hero p { margin: 0; font-size: 16px; opacity: 0.92; max-width: 640px; }
+      .chips { display: flex; gap: 10px; flex-wrap: wrap; }
+      .chip { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.28); padding: 10px 14px; min-height: 44px; display: inline-flex; flex-direction: column; justify-content: center; min-width: 120px; }
+      .chip .k { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; opacity: 0.8; }
+      .chip .v { font-size: 20px; font-weight: 900; line-height: 1.15; }
+
+      .page { padding: 36px 0 64px; }
+      .page .wrap { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 28px; align-items: start; }
+      .card { background: var(--card); border: 1px solid var(--line); border-top: 4px solid var(--navy); padding: 26px 28px; }
+      .card.accent { border-top-color: var(--red); }
+      .card h2 { margin: 0 0 4px; font-size: 22px; font-weight: 900; color: var(--navy); line-height: 1.2; }
+      .card .sub { margin: 0 0 20px; font-size: 14px; color: var(--dim); }
+      dl.kv { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 16px; font-size: 14px; }
+      dl.kv dt { color: var(--dim); }
+      dl.kv dd { margin: 0; font-weight: 700; text-align: right; }
+      .tt { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+      .tt li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+      .tt .c { font-weight: 700; color: var(--navy); }
+      .tt .t { color: var(--muted); grid-column: 1 / -1; font-size: 13px; }
+      .tt .au { color: var(--dim); white-space: nowrap; }
+      .tt li.new { background: var(--ok-bg); margin: 0 -12px; padding-left: 12px; padding-right: 12px; }
+      .au-bar { margin: 18px 0 0; }
+      .au-bar .lbl { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+      .au-bar .bar { height: 8px; background: var(--bg); border: 1px solid var(--line); overflow: hidden; }
+      .au-bar .bar span { display: block; height: 100%; background: var(--navy); transition: width 0.3s; }
+      .aside-note { margin-top: 20px; padding: 18px 20px; background: #fff; border: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+      .aside-note strong { color: var(--navy); }
+      .aside-note a { color: var(--red); font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; }
+
+      .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+      .field label, .field legend { font-size: 13px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
+      .field select, .field input {
+        width: 100%; min-height: 48px; padding: 12px 14px; font: 400 15px/1.4 var(--body); color: var(--ink);
+        background: #fff; border: 1px solid var(--line-strong); border-radius: 2px; -webkit-appearance: none; appearance: none;
+      }
+      .field select {
+        background-image: linear-gradient(45deg, transparent 50%, var(--navy) 50%), linear-gradient(135deg, var(--navy) 50%, transparent 50%);
+        background-position: calc(100% - 20px) 50%, calc(100% - 15px) 50%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 40px;
+      }
+      .field select:focus, .field input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(0, 0, 91, 0.15); }
+      .field select:disabled { color: var(--dim); background-color: var(--bg); }
+      fieldset.field { border: 0; padding: 0; margin: 0 0 20px; min-width: 0; }
+      fieldset.field legend { padding: 0; margin-bottom: 8px; }
+      .course-info { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 14px 16px; background: var(--bg); border-left: 4px solid var(--navy); margin: -8px 0 20px; font-size: 14px; }
+      .course-info .title { font-weight: 700; color: var(--navy); font-size: 16px; }
+      .course-info .school { color: var(--muted); grid-column: 1; }
+      .course-info .au { font-weight: 900; color: var(--navy); font-size: 18px; grid-row: 1 / span 2; align-self: center; }
+      .indexes { display: grid; gap: 10px; }
+      .idx {
+        display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 2px 14px; align-items: start; width: 100%; min-height: 44px;
+        padding: 14px 16px; text-align: left; cursor: pointer; font: inherit; color: inherit; background: #fff; border: 1px solid var(--line-strong); border-radius: 2px;
+      }
+      .idx:hover { border-color: var(--navy); }
+      .idx:disabled { cursor: default; opacity: 0.7; }
+      .idx .radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line-strong); margin-top: 3px; position: relative; }
+      .idx[aria-pressed='true'] { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); background: #fff8f9; }
+      .idx[aria-pressed='true'] .radio { border-color: var(--red); }
+      .idx[aria-pressed='true'] .radio::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--red); }
+      .idx .n { font-weight: 900; color: var(--navy); font-size: 16px; }
+      .idx .n small { font-weight: 700; color: var(--dim); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; margin-right: 6px; }
+      .idx .s { grid-column: 2; font-size: 13px; color: var(--muted); line-height: 1.5; }
+      .idx .vac { grid-column: 3; text-align: right; font-size: 13px; color: var(--muted); grid-row: 1 / span 2; align-self: center; }
+      .idx .vac b { display: block; font-size: 18px; color: var(--ok); font-weight: 900; }
+      .idx .vac.low b { color: var(--red); }
+      .idx .vac.wait b { color: var(--dim); }
+
+      .submit-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
+      .submit-btn {
+        display: inline-flex; align-items: center; justify-content: center; min-height: 50px; padding: 0 28px; border: 0; border-radius: 2px;
+        background: var(--red); color: #fff; font: 700 16px/1 var(--body); letter-spacing: 0.3px; cursor: pointer;
+      }
+      .submit-btn:hover { background: var(--red-deep); }
+      .submit-btn:disabled { opacity: 0.7; cursor: wait; }
+      .btn-secondary {
+        display: inline-flex; align-items: center; justify-content: center; min-height: 50px; padding: 0 20px; border: 1px solid var(--navy); border-radius: 2px;
+        background: #fff; color: var(--navy); font: 700 15px/1 var(--body); cursor: pointer;
+      }
+      .btn-secondary:disabled { opacity: 0.5; cursor: default; }
+      .stopwatch { display: none; align-items: baseline; justify-content: flex-start; gap: 10px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+      .stopwatch.on { display: flex; }
+      .stopwatch .sw-label { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+      .stopwatch .sw-value { font-size: 26px; font-weight: 900; color: var(--navy); }
+      .stopwatch.done .sw-value { color: var(--red); }
+      .result-box { display: none; margin-top: 16px; padding: 14px 16px; border: 1px solid var(--line); border-left-width: 4px; font-size: 15px; line-height: 1.5; }
+      .result-box.pending, .result-box.success, .result-box.error { display: block; }
+      .result-box.pending { border-left-color: var(--navy); background: var(--bg); color: var(--muted); }
+      .result-box.success { border-left-color: var(--ok); background: var(--ok-bg); color: #163f23; }
+      .result-box.error { border-left-color: var(--err); background: var(--err-bg); color: #5c0a12; }
+      .result-box strong { display: block; margin-bottom: 2px; color: inherit; }
+      .fine { margin: 18px 0 0; font-size: 13px; color: var(--dim); }
+
+      footer { background: var(--navy); color: #fff; padding: 36px 0 28px; margin-top: 20px; }
+      footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 13px; }
+      footer nav { display: flex; gap: 22px; flex-wrap: wrap; }
+      footer nav a { color: #fff; text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; opacity: 0.9; }
+      footer nav a:hover { opacity: 1; text-decoration: underline; }
+      footer .copy { opacity: 0.8; }
+
+      @media (max-width: 960px) {
+        .page .wrap { grid-template-columns: minmax(0, 1fr); }
+        .links a:not(.on) { display: none; }
+        .topbar nav a:nth-child(n + 3) { display: none; }
+        .hero h1 { font-size: 32px; }
+      }
+      @media (max-width: 560px) {
+        .wrap { padding: 0 16px; }
+        .topbar .wrap > span { display: none; }
+        .site .wrap { min-height: 72px; }
+        .brand .mark { width: 44px; height: 44px; }
+        .brand .word .l1 { font-size: 12px; }
+        .brand .word .l2 { font-size: 10px; letter-spacing: 1.8px; }
+        .links { gap: 12px; }
+        .links .user span.nm { display: none; }
+        .hero .wrap { padding-top: 32px; padding-bottom: 32px; }
+        .hero h1 { font-size: 28px; }
+        .chip { min-width: calc(50% - 5px); }
+        .card { padding: 20px 16px; }
+        .idx { grid-template-columns: 22px minmax(0, 1fr); }
+        .idx .vac { grid-row: auto; grid-column: 2; text-align: left; display: flex; gap: 8px; align-items: baseline; }
+        .idx .vac b { display: inline; font-size: 15px; }
+        .submit-btn, .btn-secondary { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="wrap">
+        <span>Nanyang Technological University, Singapore</span>
+        <nav aria-label="University links">
+          <a href="https://www.ntu.edu.sg/education/academic-services" target="_blank" rel="noopener noreferrer">Academic Services</a>
+          <a href="https://www.ntu.edu.sg/life-at-ntu" target="_blank" rel="noopener noreferrer">Life at NTU</a>
+          <a href="https://www.ntu.edu.sg/library" target="_blank" rel="noopener noreferrer">Library</a>
+          <a href="https://www.ntu.edu.sg/education/class-and-exam-schedule" target="_blank" rel="noopener noreferrer">Class &amp; Exam Schedule</a>
+        </nav>
+      </div>
+    </div>
+    <header class="site">
+      <div class="wrap">
+        <a class="brand" href="#top" aria-label="NTU Singapore home">
+          <svg class="mark" viewBox="0 0 52 52" aria-hidden="true" focusable="false">
+            <rect x="1" y="1" width="50" height="50" rx="4" fill="#00005b" />
+            <path d="M8 36V16h4.2l8.1 12.6V16H24v20h-4.2L11.7 23.4V36H8z" fill="#fff" />
+            <path d="M27 16h17v3.8h-6.4V36h-4.2V19.8H27V16z" fill="#d71440" />
+            <path d="M8 40h36v3H8z" fill="#d71440" />
+          </svg>
+          <span class="word"><span class="l1">Nanyang Technological University</span><span class="l2">Singapore</span></span>
+        </a>
+        <nav class="links" aria-label="Primary">
+          <a class="on" href="#add">STARS Planner</a>
+          <a href="https://www.ntu.edu.sg/education/class-and-exam-schedule" target="_blank" rel="noopener noreferrer">Class Schedule</a>
+          <a href="https://www.ntu.edu.sg/education/academic-services" target="_blank" rel="noopener noreferrer">Academic Services</a>
+          <span class="user"><span class="av" aria-hidden="true">WL</span><span class="nm">Wei Lin Tan · U2410xxxF</span></span>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <img src="https://www.ntu.edu.sg/media/images/default-source/ug-campaign/ug-2026/ai-banner-v2.jpg" alt="" onerror="this.style.display='none'" />
+        <div class="wrap">
+          <div>
+            <p class="eyebrow">STARS Planner · Add/Drop Period</p>
+            <h1>Course Registration</h1>
+            <p>Semester 2, AY2025-26. Add/Drop closes Friday, 23 January 2026 at 23:59 (Singapore time). Changes take effect on your timetable immediately after confirmation.</p>
+          </div>
+          <div class="chips" aria-label="Registration summary">
+            <div class="chip"><span class="k">Registered AU</span><span class="v" id="chipAu">15</span></div>
+            <div class="chip"><span class="k">Max AU</span><span class="v">21</span></div>
+            <div class="chip"><span class="k">Courses</span><span class="v" id="chipCourses">5</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page">
+        <div class="wrap">
+          <aside>
+            <div class="card">
+              <h2>My timetable</h2>
+              <p class="sub">Semester 2, AY2025-26</p>
+              <dl class="kv">
+                <dt>Programme</dt><dd>Bachelor of Computing in Computer Science</dd>
+                <dt>Year of study</dt><dd>Year 2</dd>
+                <dt>School</dt><dd>CCDS</dd>
+              </dl>
+              <div class="au-bar">
+                <div class="lbl"><span>Academic units</span><span><b id="auNow">15</b> / 21 AU</span></div>
+                <div class="bar"><span id="auFill" style="width: 71.4%"></span></div>
+              </div>
+              <ul class="tt" id="timetable" style="margin-top: 18px">
+                <li><span class="c">SC2000 Probability &amp; Statistics for Computing</span><span class="au">3 AU</span><span class="t">Index 10091 · LEC Mon 10:30–12:30 · TUT Thu 13:30–14:30</span></li>
+                <li><span class="c">SC2002 Object Oriented Design &amp; Programming</span><span class="au">3 AU</span><span class="t">Index 10105 · LEC Tue 08:30–10:30 · LAB Fri 14:30–16:30</span></li>
+                <li><span class="c">SC2005 Operating Systems</span><span class="au">3 AU</span><span class="t">Index 10118 · LEC Wed 10:30–12:30 · TUT Mon 16:30–17:30</span></li>
+                <li><span class="c">SC2008 Computer Network</span><span class="au">3 AU</span><span class="t">Index 10131 · LEC Thu 08:30–10:30 · TUT Tue 13:30–14:30</span></li>
+                <li><span class="c">HW0288 Engineering Communication II</span><span class="au">3 AU</span><span class="t">Index 20412 · SEM Fri 10:30–12:30</span></li>
+              </ul>
+            </div>
+            <div class="aside-note">
+              <strong>Need help with registration?</strong>
+              <p style="margin: 6px 0 0">Course vacancies refresh every few minutes during Add/Drop. If an index is full, you can join its waitlist and STARS will add you automatically when a place opens.</p>
+              <a href="https://www.ntu.edu.sg/education/academic-services" target="_blank" rel="noopener noreferrer">Academic Services FAQ</a>
+            </div>
+          </aside>
+
+          <div class="card accent" id="add">
+            <h2>Add course</h2>
+            <p class="sub">Choose a course and an index. Your timetable is checked for clashes before the course is added.</p>
+            <form id="upgradeForm" novalidate>
+              <input type="hidden" id="currentPlan" value="BASIC-12" />
+              <div class="field">
+                <label for="courseCode">Course</label>
+                <select id="courseCode">
+                  <option value="SC2001" selected>SC2001 — Algorithms</option>
+                  <option value="SC2006">SC2006 — Software Engineering</option>
+                  <option value="SC3000">SC3000 — Artificial Intelligence</option>
+                </select>
+              </div>
+              <div class="course-info" id="courseInfo" aria-live="polite">
+                <span class="title" id="courseTitle">SC2001 Algorithms</span>
+                <span class="au" id="courseAu">3 AU</span>
+                <span class="school" id="courseSchool">College of Computing and Data Science · Core</span>
+              </div>
+              <fieldset class="field">
+                <legend>Index</legend>
+                <select id="newPlan" hidden>
+                  <option value=""></option>
+                  <option value="PLUS-24">Index A</option>
+                  <option value="ULTRA-36">Index B</option>
+                  <option value="UNLIMITED-24">Index C</option>
+                </select>
+                <div class="indexes" id="indexList"></div>
+              </fieldset>
+              <div class="submit-row">
+                <button type="submit" class="submit-btn" id="submitBtn">Add course to timetable</button>
+                <button type="button" class="btn-secondary" id="clearBtn">Clear selection</button>
+              </div>
+              <div class="stopwatch" id="submitTimer" role="timer" aria-live="off"><span class="sw-label">Processing time</span><span class="sw-value" id="submitTimerValue">0.0s</span></div>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+              <p class="fine">Sample registration page. Student details, courses and vacancies shown here are illustrative, and no registration record is changed.</p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span class="copy">&copy; 2026 Nanyang Technological University, Singapore. 50 Nanyang Avenue, Singapore 639798.</span>
+        <nav aria-label="Footer">
+          <a href="https://www.ntu.edu.sg/about-us" target="_blank" rel="noopener noreferrer">About NTU</a>
+          <a href="https://www.ntu.edu.sg/privacy-statement" target="_blank" rel="noopener noreferrer">Privacy Statement</a>
+          <a href="https://www.ntu.edu.sg/terms-of-use" target="_blank" rel="noopener noreferrer">Terms of Use</a>
+          <a href="https://www.ntu.edu.sg/contact-us" target="_blank" rel="noopener noreferrer">Contact Us</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    (function () {
+      var MAX_AU = 21;
+      var PLAN_CODES = ['PLUS-24', 'ULTRA-36', 'UNLIMITED-24'];
+      var COURSES = {
+        SC2001: {
+          title: 'SC2001 Algorithms', au: 3, school: 'College of Computing and Data Science · Core',
+          indexes: [
+            { index: '10123', slots: 'LEC Mon 14:30–16:30 · TUT Wed 09:30–10:30', vacancies: 12, waitlist: 0 },
+            { index: '10124', slots: 'LEC Mon 14:30–16:30 · TUT Thu 15:30–16:30', vacancies: 3, waitlist: 0 },
+            { index: '10125', slots: 'LEC Mon 14:30–16:30 · TUT Fri 08:30–09:30', vacancies: 0, waitlist: 7 },
+          ],
+        },
+        SC2006: {
+          title: 'SC2006 Software Engineering', au: 3, school: 'College of Computing and Data Science · Core',
+          indexes: [
+            { index: '10141', slots: 'LEC Tue 10:30–12:30 · LAB Wed 14:30–16:30', vacancies: 8, waitlist: 0 },
+            { index: '10142', slots: 'LEC Tue 10:30–12:30 · LAB Thu 10:30–12:30', vacancies: 1, waitlist: 0 },
+            { index: '10143', slots: 'LEC Tue 10:30–12:30 · LAB Fri 12:30–14:30', vacancies: 0, waitlist: 4 },
+          ],
+        },
+        SC3000: {
+          title: 'SC3000 Artificial Intelligence', au: 3, school: 'College of Computing and Data Science · Major Prescribed Elective',
+          indexes: [
+            { index: '10207', slots: 'LEC Wed 14:30–16:30 · TUT Tue 15:30–16:30', vacancies: 21, waitlist: 0 },
+            { index: '10208', slots: 'LEC Wed 14:30–16:30 · TUT Thu 11:30–12:30', vacancies: 5, waitlist: 0 },
+            { index: '10209', slots: 'LEC Wed 14:30–16:30 · TUT Fri 15:30–16:30', vacancies: 0, waitlist: 11 },
+          ],
+        },
+      };
+
+      var form = document.getElementById('upgradeForm');
+      var courseSel = document.getElementById('courseCode');
+      var plan = document.getElementById('newPlan');
+      var list = document.getElementById('indexList');
+      var button = document.getElementById('submitBtn');
+      var clearBtn = document.getElementById('clearBtn');
+      var result = document.getElementById('result');
+      var timer = document.getElementById('submitTimer');
+      var timerValue = document.getElementById('submitTimerValue');
+      var timetable = document.getElementById('timetable');
+      var registeredAu = 15;
+      var registered = ['SC2000', 'SC2002', 'SC2005', 'SC2008', 'HW0288'];
+      var waitlisted = {};
+      var timerHandle = null;
+      var pending = false;
+
+      var DAYS = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
+      function parseSlots(text) {
+        var out = [];
+        var re = /(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (\d{2}):(\d{2})[–-](\d{2}):(\d{2})/g;
+        var m;
+        while ((m = re.exec(text))) {
+          out.push({ day: DAYS[m[1]], start: +m[2] * 60 + +m[3], end: +m[4] * 60 + +m[5] });
+        }
+        return out;
+      }
+      function findClash(slots) {
+        var wanted = parseSlots(slots);
+        var rows = timetable.querySelectorAll('li');
+        for (var r = 0; r < rows.length; r++) {
+          var have = parseSlots(rows[r].querySelector('.t').textContent);
+          for (var i = 0; i < wanted.length; i++) {
+            for (var j = 0; j < have.length; j++) {
+              if (wanted[i].day === have[j].day && wanted[i].start < have[j].end && have[j].start < wanted[i].end) {
+                return rows[r].querySelector('.c').textContent;
+              }
+            }
+          }
+        }
+        return null;
+      }
+
+      function course() { return COURSES[courseSel.value]; }
+      function selectedIndex() {
+        var i = PLAN_CODES.indexOf(plan.value);
+        return i >= 0 ? course().indexes[i] : null;
+      }
+
+      function renderCourse() {
+        var c = course();
+        document.getElementById('courseTitle').textContent = c.title;
+        document.getElementById('courseAu').textContent = c.au + ' AU';
+        document.getElementById('courseSchool').textContent = c.school;
+        list.textContent = '';
+        c.indexes.forEach(function (ix, i) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'idx';
+          b.setAttribute('data-plan', PLAN_CODES[i]);
+          var radio = document.createElement('span'); radio.className = 'radio'; radio.setAttribute('aria-hidden', 'true');
+          var n = document.createElement('span'); n.className = 'n';
+          var small = document.createElement('small'); small.textContent = 'Index';
+          n.appendChild(small); n.appendChild(document.createTextNode(ix.index));
+          var s = document.createElement('span'); s.className = 's'; s.textContent = ix.slots;
+          var vac = document.createElement('span');
+          var bb = document.createElement('b');
+          if (ix.vacancies === 0) { vac.className = 'vac wait'; bb.textContent = 'Full'; vac.appendChild(bb); vac.appendChild(document.createTextNode('Waitlist ' + ix.waitlist)); }
+          else { vac.className = 'vac' + (ix.vacancies <= 3 ? ' low' : ''); bb.textContent = String(ix.vacancies); vac.appendChild(bb); vac.appendChild(document.createTextNode(ix.vacancies === 1 ? 'vacancy' : 'vacancies')); }
+          b.appendChild(radio); b.appendChild(n); b.appendChild(s); b.appendChild(vac);
+          b.addEventListener('click', function () {
+            if (pending) return;
+            plan.value = PLAN_CODES[i];
+            sync();
+          });
+          list.appendChild(b);
+        });
+        sync();
+      }
+      function sync() {
+        Array.prototype.forEach.call(list.children, function (c) {
+          c.setAttribute('aria-pressed', c.getAttribute('data-plan') === plan.value ? 'true' : 'false');
+          c.disabled = pending;
+        });
+      }
+      function setAu(au, count) {
+        document.getElementById('auNow').textContent = au;
+        document.getElementById('chipAu').textContent = au;
+        document.getElementById('chipCourses').textContent = count;
+        document.getElementById('auFill').style.width = Math.min(100, (au / MAX_AU) * 100).toFixed(1) + '%';
+      }
+
+      function startTimer() {
+        var started = performance.now();
+        timer.className = 'stopwatch on';
+        timerValue.textContent = '0.0s';
+        timerHandle = setInterval(function () {
+          timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+        return started;
+      }
+      function stopTimer(started) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        timer.className = 'stopwatch on done';
+      }
+      function show(kind, title, body) {
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        var s = document.createElement('strong');
+        s.textContent = title;
+        result.appendChild(s);
+        result.appendChild(document.createTextNode(body));
+      }
+      function clearResult() {
+        result.className = 'result-box';
+        result.textContent = '';
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timer.className = 'stopwatch';
+        timerValue.textContent = '0.0s';
+      }
+
+      courseSel.addEventListener('change', function () {
+        plan.value = PLAN_CODES[0];
+        clearResult();
+        renderCourse();
+      });
+      clearBtn.addEventListener('click', function () {
+        if (pending) return;
+        courseSel.selectedIndex = 0;
+        plan.value = '';
+        clearResult();
+        renderCourse();
+      });
+      plan.value = PLAN_CODES[0];
+      renderCourse();
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (pending) return;
+        var c = course();
+        var ix = selectedIndex();
+        if (!ix) {
+          show('error', 'Select an index.', ' Choose one of the indexes listed for this course.');
+          return;
+        }
+        if (registered.indexOf(courseSel.value) !== -1) {
+          show('error', 'Course already in your timetable.', ' ' + c.title + ' is already registered this semester. Drop it first if you want to change index.');
+          return;
+        }
+        if (waitlisted[courseSel.value]) {
+          show('error', 'You are already on a waitlist for this course.', ' You joined the waitlist for ' + c.title + ' Index ' + waitlisted[courseSel.value] + '. STARS will notify you when a place opens.');
+          return;
+        }
+        if (registeredAu + c.au > MAX_AU) {
+          show('error', 'Maximum AU exceeded.', ' Adding ' + c.title + ' (' + c.au + ' AU) would take you past the ' + MAX_AU + ' AU limit for this semester.');
+          return;
+        }
+        var clash = findClash(ix.slots);
+        if (clash) {
+          show('error', 'Timetable clash.', ' Index ' + ix.index + ' overlaps with ' + clash + ' on your timetable. Choose another index.');
+          return;
+        }
+        var action = ix.vacancies === 0 ? 'waitlist' : 'add';
+        pending = true;
+        sync();
+        button.disabled = true;
+        clearBtn.disabled = true;
+        courseSel.disabled = true;
+        button.textContent = action === 'waitlist' ? 'Joining waitlist…' : 'Adding course…';
+        show('pending', action === 'waitlist' ? 'Joining the waitlist for Index ' + ix.index + '…' : 'Adding ' + c.title + ' (Index ' + ix.index + ')…', ' Checking your timetable for clashes and confirming the vacancy.');
+        var started = startTimer();
+        try {
+          var res = await fetch('/api/telco/upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              accountId: 'CUST-3001',
+              currentPlanCode: document.getElementById('currentPlan').value,
+              targetPlanCode: plan.value,
+              billingDay: 15,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          await res.json().catch(function () {});
+          stopTimer(started);
+          if (!res.ok) {
+            show('error', 'We couldn\u2019t update your timetable right now.', ' Please try again in a few minutes. Your registered courses have not changed.');
+          } else if (action === 'waitlist') {
+            ix.waitlist += 1;
+            waitlisted[courseSel.value] = ix.index;
+            renderCourse();
+            show('success', 'You are on the waitlist for Index ' + ix.index + '.', ' Position ' + ix.waitlist + ' of ' + ix.waitlist + '. STARS will add ' + c.title + ' to your timetable automatically when a place opens, and notify you by NTU email.');
+          } else {
+            registered.push(courseSel.value);
+            registeredAu += c.au;
+            setAu(registeredAu, registered.length);
+            var li = document.createElement('li');
+            li.className = 'new';
+            var cc = document.createElement('span'); cc.className = 'c'; cc.textContent = c.title;
+            var au = document.createElement('span'); au.className = 'au'; au.textContent = c.au + ' AU';
+            var t = document.createElement('span'); t.className = 't'; t.textContent = 'Index ' + ix.index + ' · ' + ix.slots;
+            li.appendChild(cc); li.appendChild(au); li.appendChild(t);
+            timetable.appendChild(li);
+            show('success', c.title + ' added to your timetable.', ' Index ' + ix.index + ' · ' + c.au + ' AU. Your registered AU is now ' + registeredAu + ' of ' + MAX_AU + '. A confirmation has been sent to your NTU email.');
+          }
+        } catch (_) {
+          stopTimer(started);
+          show('error', 'We couldn\u2019t update your timetable right now.', ' Please try again in a few minutes. Your registered courses have not changed.');
+        } finally {
+          pending = false;
+          button.disabled = false;
+          clearBtn.disabled = false;
+          courseSel.disabled = false;
+          button.textContent = 'Add course to timetable';
+          sync();
+        }
+      });
+    })();
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
