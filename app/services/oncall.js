@@ -199,6 +199,7 @@ const ALERT_SCENARIOS = {
     release: 'marketplace-cart@5.2.0',
     symptom: 'Add to Cart on fluid-analysis kits fails immediately with HTTP 500 for dealer accounts. Latency is normal. Onset coincides with the dealer price book migration.',
     impact: 'Dealers cannot order FluidWatch oil and coolant analysis kits; every Add to Cart errors.',
+    triggerWhen: { accountId: 'CMI-DLR-40817' },
     unlisted: true,
   },
   picklist: {
@@ -218,6 +219,7 @@ const ALERT_SCENARIOS = {
     release: 'parts-catalog@17.3.1',
     symptom: 'Add to Pick List on part details fails immediately with HTTP 500 for some part numbers. Latency is normal. Onset coincides with the parts-master sync.',
     impact: 'Technicians cannot add affected genuine parts to their pick list; the button errors on the part-details page.',
+    triggerWhen: { partNumber: '3800984' },
     unlisted: true,
   },
   esnlookup: {
@@ -237,6 +239,7 @@ const ALERT_SCENARIOS = {
     release: 'qsol-info@9.14.0',
     symptom: 'Engine serial number lookups fail immediately with HTTP 500 for some engines. Latency is normal. Onset coincides with the latest engine build-record import.',
     impact: 'Service technicians cannot open owners manuals, troubleshooting guides or wiring diagrams for affected engines.',
+    triggerWhen: { esn: '79464646' },
     unlisted: true,
   },
   apparel: {

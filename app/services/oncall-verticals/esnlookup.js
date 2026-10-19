@@ -57,7 +57,7 @@ async function lookupEsn(lookupData, options = {}) {
       throw error;
     }
     const library = SERVICE_LIBRARY[`${engine.model}|${engine.ecm}`];
-    const manuals = library.manuals.map((m) => ({ ...m, url: `/qsol/manuals/${m.id}` }));
+    const manuals = library.manuals.map((m) => ({ ...m }));
     const duration = Date.now() - startTime;
 
     incrementMetric('esn.lookup.success', { route: ROUTE });
