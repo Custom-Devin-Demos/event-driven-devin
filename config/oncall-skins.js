@@ -4267,6 +4267,32 @@ const ONCALL_SKINS = {
     page: { file: 'f49a69dd.html', title: 'Earnings | Lyft Driver' },
     disclaimer: 'NOT ACTUALLY A LYFT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Lyft product.',
   },
+  'ca5cc67e': {
+    slug: 'ca5cc67e',
+    company: 'Nanyang Technological University',
+    brandMark: 'N',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: { file: 'ca5cc67e.html', title: 'Add Course | STARS Planner | NTU Singapore' },
+    theme: {
+      '--accent': '#D71440',
+      '--ink': '#1B1B1B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#00005B',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'NTU Student Services Support',
+    alertCard: {
+      title: 'p95 latency \u2014 STARS add course',
+      service: 'stars-registration-api',
+      team: 'student-systems-oncall',
+      release: 'stars-web@1.0.3',
+      baseline: '~300ms (7-day p95, before stars-web@1.0.3)',
+      symptom: 'Add-course requests in STARS slowed sharply after the last release. p95 latency is far above the 7-day baseline; error rate is normal.',
+      impact: 'Students adding a course during the add/drop window wait ~7 seconds on every request; registration completion is dropping while vacancies fill up.',
+    },
+    disclaimer: 'NOT ACTUALLY A NANYANG TECHNOLOGICAL UNIVERSITY SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nanyang Technological University product.',
+  },
 };
 
 function getOncallSkin(slug) {
