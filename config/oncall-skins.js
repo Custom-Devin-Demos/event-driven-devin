@@ -4457,6 +4457,32 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A NANYANG TECHNOLOGICAL UNIVERSITY SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Nanyang Technological University product.',
   },
+  '2b2a8fe5': {
+    slug: '2b2a8fe5',
+    company: 'FOX One',
+    brandMark: 'F',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: { file: '2b2a8fe5.html', title: 'Manage Plan | FOX One' },
+    theme: {
+      '--accent': '#D70935',
+      '--ink': '#0A0A0A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'FOX One Help Center',
+    alertCard: {
+      title: 'p95 latency \u2014 FOX One plan change',
+      service: 'foxone-subscriptions-api',
+      team: 'dtc-subscriptions-oncall',
+      release: 'foxone-web@1.0.3',
+      baseline: '~300ms (7-day p95, before foxone-web@1.0.3)',
+      symptom: 'Plan changes in the FOX One account page slowed sharply after the last release. p95 latency is far above the 7-day baseline; error rate is normal.',
+      impact: 'Subscribers switching to Annual or the ESPN bundle wait ~7 seconds on every plan change; completion rate is dropping.',
+    },
+    disclaimer: 'NOT ACTUALLY A FOX ONE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Fox Corporation product.',
+  },
 };
 
 function getOncallSkin(slug) {

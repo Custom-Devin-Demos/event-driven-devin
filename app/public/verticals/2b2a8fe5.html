@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manage Plan | FOX One</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --black: #000000;
+        --coal: #1a1a1a;
+        --red: #d70935;
+        --red-deep: #9e0022;
+        --ink: #0a0a0a;
+        --muted: #4d4d4d;
+        --dim: #7a7a7a;
+        --bg: #f7f4f0;
+        --card: #ffffff;
+        --line: #e1dcd5;
+        --line-strong: #cdcfd4;
+        --ok: #1b7a3d;
+        --ok-bg: #e7f5ec;
+        --err: #b00020;
+        --err-bg: #fdeaee;
+        --body: 'Inter', Helvetica, Arial, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+      a { color: inherit; }
+      .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+      header { background: var(--black); color: #fff; }
+      header .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 70px; gap: 24px; }
+      .brand { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
+      .brand .fox { font-weight: 900; font-size: 24px; letter-spacing: -0.5px; line-height: 1; }
+      .brand .one { font-weight: 900; font-size: 13px; letter-spacing: 1px; line-height: 1; background: #fff; color: #000; border-radius: 999px; padding: 5px 9px 4px; }
+      .nav { display: flex; gap: 32px; }
+      .nav a { color: #9a9a9a; text-decoration: none; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; min-height: 44px; }
+      .nav a.on { color: #fff; }
+      .acct { display: flex; align-items: center; gap: 16px; font-size: 15px; font-weight: 600; }
+      .acct a { color: #fff; text-decoration: underline; text-underline-offset: 3px; display: inline-flex; align-items: center; min-height: 44px; }
+      .acct .avatar { width: 36px; height: 36px; border-radius: 50%; background: #333; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+
+      .hero { background: var(--black); color: #fff; padding: 40px 0 56px; text-align: center; }
+      .hero h1 { margin: 0; font-size: 56px; line-height: 0.96; font-weight: 900; letter-spacing: -1.5px; text-transform: uppercase; }
+      .hero h1 .dot { color: var(--red); }
+      .hero p { margin: 18px auto 0; max-width: 540px; color: #d3d3d3; font-size: 17px; }
+      .hero .pills { margin-top: 22px; display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+      .hero .pill { border: 1px solid #3a3a3a; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.4px; color: #cfcfcf; text-transform: uppercase; }
+
+      main { padding: 0 0 72px; }
+      .sheet { margin-top: -28px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+
+      .plans { display: grid; gap: 14px; }
+      .plan { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 16px; align-items: start; background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 20px 22px; text-align: left; font: inherit; color: inherit; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; min-height: 44px; width: 100%; }
+      .plan:hover { border-color: var(--line-strong); }
+      .plan[aria-checked="true"] { border-color: var(--black); box-shadow: 0 0 0 1px var(--black) inset; }
+      .plan:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+      .plan:disabled { cursor: default; opacity: 0.75; }
+      .plan .radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #9a9a9a; margin-top: 2px; position: relative; }
+      .plan[aria-checked="true"] .radio { border-color: var(--black); }
+      .plan[aria-checked="true"] .radio::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: var(--black); }
+      .plan .name { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .plan .tag { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; border-radius: 999px; padding: 3px 8px; background: #efece7; color: var(--muted); }
+      .plan .tag.red { background: var(--red); color: #fff; }
+      .plan .desc { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+      .plan .inc { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+      .plan .inc li::before { content: '\2713'; color: var(--ok); margin-right: 6px; font-weight: 700; }
+      .plan .price { text-align: right; white-space: nowrap; }
+      .plan .price b { font-size: 24px; font-weight: 900; letter-spacing: -0.5px; display: block; line-height: 1.1; }
+      .plan .price span { color: var(--dim); font-size: 13px; font-weight: 500; }
+
+      .summary { background: var(--card); border-radius: 16px; border: 1px solid var(--line); padding: 24px; position: sticky; top: 24px; }
+      .summary h2 { margin: 0 0 4px; font-size: 20px; font-weight: 900; letter-spacing: -0.3px; }
+      .summary .sub { margin: 0 0 18px; color: var(--dim); font-size: 13px; }
+      .row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 14px; }
+      .row:first-of-type { border-top: 0; }
+      .row .k { color: var(--muted); }
+      .row .v { font-weight: 600; text-align: right; }
+      .row.total .v { font-size: 22px; font-weight: 900; }
+      .row.total .v small { font-size: 13px; color: var(--dim); font-weight: 500; }
+      .summary .note { margin: 6px 0 0; color: var(--dim); font-size: 12.5px; line-height: 1.45; }
+
+      .submit-row { display: grid; gap: 10px; margin-top: 18px; }
+      .submit-btn { font: inherit; font-weight: 700; font-size: 16px; background: var(--black); color: #fff; border: 0; border-radius: 999px; min-height: 52px; padding: 0 24px; cursor: pointer; transition: background 0.15s; }
+      .submit-btn:hover { background: var(--coal); }
+      .submit-btn:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+      .submit-btn:disabled { background: #555; cursor: wait; }
+      .btn-secondary { font: inherit; font-weight: 600; font-size: 15px; background: transparent; color: var(--ink); border: 1.5px solid var(--line-strong); border-radius: 999px; min-height: 48px; padding: 0 20px; cursor: pointer; }
+      .btn-secondary:hover { border-color: var(--black); }
+      .btn-secondary:disabled { opacity: 0.5; cursor: default; }
+
+      .stopwatch { display: none; align-items: baseline; justify-content: space-between; gap: 10px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+      .stopwatch.on { display: flex; }
+      .stopwatch .sw-label { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); font-weight: 700; }
+      .stopwatch .sw-value { font-size: 26px; font-weight: 900; color: var(--black); }
+      .stopwatch.done .sw-value { color: var(--red); }
+
+      .result-box { display: none; margin-top: 14px; padding: 14px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5; border: 1px solid transparent; }
+      .result-box strong { display: block; margin-bottom: 2px; font-weight: 700; }
+      .result-box.pending { display: block; background: #f1efea; color: var(--ink); border-color: var(--line); }
+      .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); border-color: #bfe3cc; }
+      .result-box.error { display: block; background: var(--err-bg); color: var(--err); border-color: #f3c2cb; }
+      .fine { margin: 14px 0 0; color: var(--dim); font-size: 12px; line-height: 1.45; }
+
+      footer { background: var(--black); color: #9a9a9a; font-size: 13px; padding: 28px 0; }
+      footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+      footer nav { display: flex; gap: 20px; flex-wrap: wrap; }
+      footer a { color: #cfcfcf; text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+
+      @media (max-width: 900px) {
+        .sheet { grid-template-columns: 1fr; }
+        .summary { position: static; }
+        .nav { display: none; }
+        .hero h1 { font-size: 40px; }
+        .plan { grid-template-columns: 22px minmax(0, 1fr); }
+        .plan .price { grid-column: 2; text-align: left; margin-top: 8px; }
+        .plan .price b { display: inline; margin-right: 6px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <a class="brand" href="#" aria-label="FOX One home"><span class="fox">FOX</span><span class="one">ONE</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a href="#">Home</a><a href="#">Shows</a><a href="#">News</a><a href="#">Sports</a><a href="#">Elections</a><a href="#" class="on">Account</a>
+        </nav>
+        <div class="acct"><a href="#">TV Provider</a><span class="avatar" aria-hidden="true">JD</span></div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="wrap">
+        <h1>Manage your<span class="dot"> &middot; </span>plan</h1>
+        <p>Live News, Sports &amp; Entertainment. Switch plans any time &mdash; changes take effect on your next billing date.</p>
+        <div class="pills"><span class="pill">FOX</span><span class="pill">FOX News</span><span class="pill">FOX Sports</span><span class="pill">FOX Business</span><span class="pill">FOX Weather</span><span class="pill">FOX Local</span></div>
+      </div>
+    </section>
+
+    <main>
+      <div class="wrap">
+        <form id="upgradeForm" class="sheet" novalidate>
+          <select id="currentPlan" hidden aria-hidden="true" tabindex="-1"><option value="BASIC-12" selected>FOX One Monthly</option></select>
+          <select id="newPlan" hidden aria-hidden="true" tabindex="-1">
+            <option value="PLUS-24">FOX One Annual</option>
+            <option value="ULTRA-36">FOX One + ESPN Unlimited</option>
+          </select>
+
+          <div class="plans" role="radiogroup" aria-label="Choose a plan" id="planList"></div>
+
+          <aside class="summary">
+            <h2>Plan summary</h2>
+            <p class="sub">Account ending in 4471 &middot; Billed to Visa &bull;&bull;&bull;&bull; 2208</p>
+            <div class="row"><span class="k">Current plan</span><span class="v">FOX One Monthly</span></div>
+            <div class="row"><span class="k">New plan</span><span class="v" id="sumPlan">&mdash;</span></div>
+            <div class="row"><span class="k">Starts</span><span class="v">Nov 12, 2026</span></div>
+            <div class="row total"><span class="k">New price</span><span class="v" id="sumPrice">&mdash;</span></div>
+            <p class="note" id="sumNote">Select a plan to see what changes.</p>
+            <div class="submit-row">
+              <button type="submit" class="submit-btn" id="submitBtn">Confirm plan change</button>
+              <button type="button" class="btn-secondary" id="clearBtn">Keep current plan</button>
+            </div>
+            <div class="stopwatch" id="submitTimer" role="timer" aria-live="off"><span class="sw-label">Processing</span><span class="sw-value" id="submitTimerValue">0.0s</span></div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            <p class="fine">Prices shown exclude tax. Plans renew automatically until cancelled. Sample account page; no subscription is changed.</p>
+          </aside>
+        </form>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>&copy; 2026 Fox Media LLC. All rights reserved.</span>
+        <nav aria-label="Footer">
+          <a href="https://www.fox.com/help" target="_blank" rel="noopener noreferrer">Help Center</a>
+          <a href="https://www.foxcorporation.com/privacy-policy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+          <a href="https://www.fox.com/terms-of-use/" target="_blank" rel="noopener noreferrer">Terms of Use</a>
+          <a href="https://www.fox.com/plans/" target="_blank" rel="noopener noreferrer">Pick Your Plan</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      try { if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return; } catch (_) { return; }
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    (function () {
+      var PLANS = [
+        { code: '', name: 'FOX One Monthly', tag: 'Current plan', price: '$19.99', per: '/ month', desc: 'All of FOX streaming live, in one place.', inc: ['Live FOX, FOX News, FOX Sports', 'Full on-demand library', 'Cancel any time'], note: 'This is your current plan.' },
+        { code: 'PLUS-24', name: 'FOX One Annual', tag: 'Save 16%', red: true, price: '$199.99', per: '/ year', desc: 'Everything in FOX One, billed once a year.', inc: ['Everything in FOX One Monthly', 'Two months free vs. monthly', 'Price locked for 12 months'], note: 'You pay $199.99 today for the year ahead. Your monthly charge stops.' },
+        { code: 'ULTRA-36', name: 'FOX One + ESPN Unlimited', tag: 'Bundle', price: '$39.99', per: '/ month', desc: 'FOX One and ESPN Unlimited together, one bill.', inc: ['Everything in FOX One Monthly', 'ESPN Unlimited, every ESPN network', 'One login, one monthly charge'], note: 'Your monthly charge changes from $19.99 to $39.99 starting Nov 12, 2026.' },
+      ];
+      function getStore(key) { try { return localStorage.getItem(key) || ''; } catch (_) { return ''; } }
+
+      var form = document.getElementById('upgradeForm');
+      var plan = document.getElementById('newPlan');
+      var list = document.getElementById('planList');
+      var button = document.getElementById('submitBtn');
+      var clearBtn = document.getElementById('clearBtn');
+      var result = document.getElementById('result');
+      var timer = document.getElementById('submitTimer');
+      var timerValue = document.getElementById('submitTimerValue');
+      var sumPlan = document.getElementById('sumPlan');
+      var sumPrice = document.getElementById('sumPrice');
+      var sumNote = document.getElementById('sumNote');
+      var timerHandle = null;
+      var pending = false;
+      var selected = '';
+
+      PLANS.forEach(function (p) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'plan';
+        b.setAttribute('role', 'radio');
+        b.dataset.code = p.code;
+        var r = document.createElement('span'); r.className = 'radio'; r.setAttribute('aria-hidden', 'true');
+        var body = document.createElement('span');
+        var name = document.createElement('span'); name.className = 'name'; name.textContent = p.name;
+        var tag = document.createElement('span'); tag.className = 'tag' + (p.red ? ' red' : ''); tag.textContent = p.tag; name.appendChild(tag);
+        var desc = document.createElement('span'); desc.className = 'desc'; desc.textContent = p.desc; desc.style.display = 'block';
+        var inc = document.createElement('ul'); inc.className = 'inc';
+        p.inc.forEach(function (t) { var li = document.createElement('li'); li.textContent = t; inc.appendChild(li); });
+        body.appendChild(name); body.appendChild(desc); body.appendChild(inc);
+        var price = document.createElement('span'); price.className = 'price';
+        var pb = document.createElement('b'); pb.textContent = p.price;
+        var ps = document.createElement('span'); ps.textContent = p.per;
+        price.appendChild(pb); price.appendChild(ps);
+        b.appendChild(r); b.appendChild(body); b.appendChild(price);
+        b.addEventListener('click', function () {
+          if (pending) return;
+          selected = p.code;
+          plan.value = p.code;
+          clearResult();
+          sync();
+        });
+        list.appendChild(b);
+      });
+
+      function current() {
+        for (var i = 0; i < PLANS.length; i++) if (PLANS[i].code === selected) return PLANS[i];
+        return PLANS[0];
+      }
+      function sync() {
+        Array.prototype.forEach.call(list.children, function (c) {
+          c.setAttribute('aria-checked', c.dataset.code === selected ? 'true' : 'false');
+          c.disabled = pending;
+        });
+        var p = current();
+        if (!selected) {
+          sumPlan.innerHTML = '&mdash;';
+          sumPrice.innerHTML = '&mdash;';
+          sumNote.textContent = 'Select a plan to see what changes.';
+        } else {
+          sumPlan.textContent = p.name;
+          sumPrice.textContent = '';
+          sumPrice.appendChild(document.createTextNode(p.price + ' '));
+          var small = document.createElement('small'); small.textContent = p.per; sumPrice.appendChild(small);
+          sumNote.textContent = p.note;
+        }
+      }
+
+      function startTimer() {
+        var started = performance.now();
+        timer.className = 'stopwatch on';
+        timerValue.textContent = '0.0s';
+        timerHandle = setInterval(function () {
+          timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+        return started;
+      }
+      function stopTimer(started) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        timer.className = 'stopwatch on done';
+      }
+      function show(kind, title, body) {
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        var s = document.createElement('strong');
+        s.textContent = title;
+        result.appendChild(s);
+        result.appendChild(document.createTextNode(body));
+      }
+      function clearResult() {
+        result.className = 'result-box';
+        result.textContent = '';
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timer.className = 'stopwatch';
+        timerValue.textContent = '0.0s';
+      }
+
+      clearBtn.addEventListener('click', function () {
+        if (pending) return;
+        selected = '';
+        plan.value = '';
+        clearResult();
+        sync();
+      });
+      selected = 'PLUS-24';
+      plan.value = selected;
+      sync();
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (pending) return;
+        if (!selected || !plan.value) {
+          show('error', 'Choose a new plan.', ' Select FOX One Annual or the FOX One + ESPN Unlimited bundle to continue. You are currently on FOX One Monthly.');
+          return;
+        }
+        var p = current();
+        pending = true;
+        sync();
+        button.disabled = true;
+        clearBtn.disabled = true;
+        button.textContent = 'Updating your plan\u2026';
+        show('pending', 'Switching you to ' + p.name + '\u2026', ' Confirming your payment method and updating your subscription.');
+        var started = startTimer();
+        try {
+          var res = await fetch('/api/telco/upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              accountId: 'CUST-3001',
+              currentPlanCode: document.getElementById('currentPlan').value,
+              targetPlanCode: plan.value,
+              billingDay: 15,
+              devinUserId: getStore('devinUserId'),
+              devinOrgId: getStore('devinOrgId'),
+              devinEmail: getStore('devinEmail'),
+            }),
+          });
+          await res.json().catch(function () {});
+          stopTimer(started);
+          if (!res.ok) {
+            show('error', 'We couldn\u2019t update your plan right now.', ' Please try again in a few minutes. You are still on FOX One Monthly and have not been charged.');
+          } else {
+            show('success', 'You\u2019re all set. ' + p.name + ' starts Nov 12, 2026.', ' You keep everything you watch today until then. A confirmation has been sent to the email on your account.');
+          }
+        } catch (_) {
+          stopTimer(started);
+          show('error', 'We couldn\u2019t update your plan right now.', ' Please try again in a few minutes. You are still on FOX One Monthly and have not been charged.');
+        } finally {
+          pending = false;
+          button.disabled = false;
+          clearBtn.disabled = false;
+          button.textContent = 'Confirm plan change';
+          sync();
+        }
+      });
+    })();
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
