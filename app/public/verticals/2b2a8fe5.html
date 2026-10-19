@@ -137,7 +137,7 @@
     <section class="hero">
       <div class="wrap">
         <h1>Manage your<span class="dot"> &middot; </span>plan</h1>
-        <p>Live News, Sports &amp; Entertainment. Switch plans any time &mdash; changes take effect on your next billing date.</p>
+        <p>Live News, Sports &amp; Entertainment. Switch plans any time &mdash; changes take effect as soon as they are confirmed.</p>
         <div class="pills"><span class="pill">FOX</span><span class="pill">FOX News</span><span class="pill">FOX Sports</span><span class="pill">FOX Business</span><span class="pill">FOX Weather</span><span class="pill">FOX Local</span></div>
       </div>
     </section>
@@ -158,7 +158,7 @@
             <p class="sub">Account ending in 4471 &middot; Billed to Visa &bull;&bull;&bull;&bull; 2208</p>
             <div class="row"><span class="k">Current plan</span><span class="v">FOX One Monthly</span></div>
             <div class="row"><span class="k">New plan</span><span class="v" id="sumPlan">&mdash;</span></div>
-            <div class="row"><span class="k">Starts</span><span class="v">Nov 12, 2026</span></div>
+            <div class="row"><span class="k">Starts</span><span class="v" id="sumStart">On confirmation</span></div>
             <div class="row total"><span class="k">New price</span><span class="v" id="sumPrice">&mdash;</span></div>
             <p class="note" id="sumNote">Select a plan to see what changes.</p>
             <div class="submit-row">
@@ -198,8 +198,8 @@
     (function () {
       var PLANS = [
         { code: '', name: 'FOX One Monthly', tag: 'Current plan', price: '$19.99', per: '/ month', desc: 'All of FOX streaming live, in one place.', inc: ['Live FOX, FOX News, FOX Sports', 'Full on-demand library', 'Cancel any time'], note: 'This is your current plan.' },
-        { code: 'PLUS-24', name: 'FOX One Annual', tag: 'Save 16%', red: true, price: '$199.99', per: '/ year', desc: 'Everything in FOX One, billed once a year.', inc: ['Everything in FOX One Monthly', 'Two months free vs. monthly', 'Price locked for 12 months'], note: 'You pay $199.99 today for the year ahead. Your monthly charge stops.' },
-        { code: 'ULTRA-36', name: 'FOX One + ESPN Unlimited', tag: 'Bundle', price: '$39.99', per: '/ month', desc: 'FOX One and ESPN Unlimited together, one bill.', inc: ['Everything in FOX One Monthly', 'ESPN Unlimited, every ESPN network', 'One login, one monthly charge'], note: 'Your monthly charge changes from $19.99 to $39.99 starting Nov 12, 2026.' },
+        { code: 'PLUS-24', name: 'FOX One Annual', tag: 'Save 16%', red: true, price: '$199.99', per: '/ year', desc: 'Everything in FOX One, billed once a year.', inc: ['Everything in FOX One Monthly', 'Two months free vs. monthly', 'Price locked for 12 months'], note: 'You pay $199.99 for the year ahead as soon as the change is confirmed. Your monthly charge stops.' },
+        { code: 'ULTRA-36', name: 'FOX One + ESPN Unlimited', tag: 'Bundle', price: '$39.99', per: '/ month', desc: 'FOX One and ESPN Unlimited together, one bill.', inc: ['Everything in FOX One Monthly', 'ESPN Unlimited, every ESPN network', 'One login, one monthly charge'], note: 'Your monthly charge changes from $19.99 to $39.99 as soon as the change is confirmed.' },
       ];
       function getStore(key) { try { return localStorage.getItem(key) || ''; } catch (_) { return ''; } }
 
@@ -214,6 +214,13 @@
       var sumPlan = document.getElementById('sumPlan');
       var sumPrice = document.getElementById('sumPrice');
       var sumNote = document.getElementById('sumNote');
+      var sumStart = document.getElementById('sumStart');
+      function longDate(iso) {
+        var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+        if (!m) return '';
+        var d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+      }
       var timerHandle = null;
       var pending = false;
       var selected = '';
@@ -296,6 +303,7 @@
       function clearResult() {
         result.className = 'result-box';
         result.textContent = '';
+        sumStart.textContent = 'On confirmation';
         clearInterval(timerHandle);
         timerHandle = null;
         timer.className = 'stopwatch';
@@ -342,12 +350,14 @@
               devinEmail: getStore('devinEmail'),
             }),
           });
-          await res.json().catch(function () {});
+          var data = await res.json().catch(function () { return null; });
           stopTimer(started);
-          if (!res.ok) {
+          if (!res.ok || !data || data.success !== true) {
             show('error', 'We couldn\u2019t update your plan right now.', ' Please try again in a few minutes. You are still on FOX One Monthly and have not been charged.');
           } else {
-            show('success', 'You\u2019re all set. ' + p.name + ' starts Nov 12, 2026.', ' You keep everything you watch today until then. A confirmation has been sent to the email on your account.');
+            var when = longDate(data.effectiveDate) || 'today';
+            sumStart.textContent = when;
+            show('success', 'You\u2019re all set. ' + p.name + ' is active as of ' + when + '.', ' Everything you watch today carries over. A confirmation has been sent to the email on your account.');
           }
         } catch (_) {
           stopTimer(started);
