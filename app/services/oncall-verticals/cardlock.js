@@ -301,7 +301,7 @@ function buildSessionPrompt(report, reference, { channel, threadTs, reportedAtMs
   const waitSeconds = Math.round(report.durationMs / 1000);
   const impact = report.outcome === 'timeout'
     ? `Customers see a spinner for ~${waitSeconds} s and then "Something went wrong. Request timed out"; the card is not locked.`
-    : 'Customers locking a lost or stolen card wait several seconds on a spinner before the lock is confirmed; some abandon and call the card services line.';
+    : `Customers locking a lost or stolen card wait ~${(report.durationMs / 1000).toFixed(1)} s on a spinner before the lock is confirmed, above the ${report.sloMs / 1000} s target.`;
   const outcomeLine = report.outcome === 'timeout' ? '*Outcome:* Timed out\n' : '';
   const prompt = `A latency SLO breach was reported by the Bank of America card-lock flow (Erica → Lock my card), from the ${report.platformLabel} client. The native iOS (SwiftUI), Android (Kotlin / Jetpack Compose), and desktop web clients share the same card-controls logic. Coordinate the fix across all three clients through child sessions and make sure guardrails land so it cannot regress.
 
