@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>児童手当 現況届の電子申請 | マイナポータル | デジタル庁</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --blue: #00118f;
+        --blue-2: #0017c1;
+        --blue-light: #d9e6ff;
+        --blue-pale: #f0f5ff;
+        --ink: #333333;
+        --muted: #666666;
+        --dim: #767676;
+        --bg: #ffffff;
+        --panel: #f5f6f8;
+        --line: #d8d8d8;
+        --line-strong: #949494;
+        --ok: #197a3f;
+        --ok-bg: #e8f5ec;
+        --err: #b50a0a;
+        --err-bg: #fdecec;
+        --body: 'Noto Sans JP', -apple-system, 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'BIZ UDPGothic', Meiryo, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+      a { color: var(--blue); }
+      .wrap { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+
+      header { background: rgba(255,255,255,0.88); border-bottom: 1px solid var(--line); }
+      header .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 80px; gap: 24px; }
+      .agency { display: inline-flex; align-items: baseline; gap: 14px; text-decoration: none; color: var(--ink); }
+      .agency .name { font-weight: 700; font-size: 24px; letter-spacing: 2px; }
+      .agency .svc { font-size: 15px; font-weight: 500; color: var(--muted); padding-left: 14px; border-left: 1px solid var(--line); }
+      header nav { display: flex; gap: 6px; align-items: center; }
+      header nav a { color: var(--ink); text-decoration: none; font-size: 15px; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid transparent; }
+      header nav a.on { border-color: var(--ink); }
+      header nav .u { color: var(--ink); font-size: 15px; padding: 0 12px; display: inline-flex; align-items: center; min-height: 44px; }
+
+      .crumbs { background: var(--panel); font-size: 14px; }
+      .crumbs .wrap { min-height: 44px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .crumbs a { text-decoration: underline; }
+      .crumbs span { color: var(--dim); }
+
+      main { padding: 40px 0 80px; }
+      .grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 40px; align-items: start; }
+      h1 { margin: 0 0 8px; font-size: 32px; font-weight: 700; line-height: 1.4; letter-spacing: 0.5px; }
+      .lead { margin: 0 0 24px; color: var(--muted); font-size: 16px; }
+      .steps { display: flex; gap: 0; margin: 0 0 32px; padding: 0; list-style: none; counter-reset: s; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+      .steps li { flex: 1; padding: 12px 14px; font-size: 14px; color: var(--muted); background: #fff; border-left: 1px solid var(--line); counter-increment: s; display: flex; gap: 8px; align-items: center; }
+      .steps li:first-child { border-left: 0; }
+      .steps li::before { content: counter(s); width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line-strong); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; flex: none; }
+      .steps li.on { color: var(--blue); font-weight: 700; background: var(--blue-pale); }
+      .steps li.on::before { background: var(--blue); color: #fff; border-color: var(--blue); }
+      .steps li.done::before { content: '\2713'; background: var(--ink); color: #fff; border-color: var(--ink); }
+
+      .sec { border: 1px solid var(--line); border-radius: 8px; padding: 28px 32px; margin-bottom: 24px; background: #fff; }
+      .sec h2 { margin: 0 0 18px; font-size: 20px; font-weight: 700; padding-left: 12px; border-left: 4px solid var(--blue); line-height: 1.4; }
+      .ro { display: grid; grid-template-columns: 180px minmax(0, 1fr); border-top: 1px solid var(--line); font-size: 15px; }
+      .ro > div { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+      .ro > div:nth-child(odd) { background: var(--panel); font-weight: 500; }
+      label { display: block; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+      label .req { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: var(--err); border-radius: 4px; padding: 0 6px; margin-left: 8px; line-height: 1.6; vertical-align: 2px; }
+      .hint { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+      fieldset { border: 0; margin: 0 0 22px; padding: 0; min-width: 0; }
+      select, input[type="number"], textarea { width: 100%; font: inherit; font-size: 16px; color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 8px; min-height: 48px; padding: 8px 14px; }
+      textarea { min-height: 96px; resize: vertical; }
+      select:focus, input:focus, textarea:focus { outline: 3px solid #ffd43d; outline-offset: 0; border-color: var(--ink); }
+      select:disabled, input:disabled, textarea:disabled { background: var(--panel); color: var(--muted); }
+      .narrow { max-width: 240px; }
+      .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+      .submit-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+      .submit-btn { font: inherit; font-weight: 700; font-size: 17px; background: var(--blue); color: #fff; border: 0; border-radius: 8px; min-height: 56px; padding: 0 40px; cursor: pointer; min-width: 260px; }
+      .submit-btn:hover { background: var(--blue-2); }
+      .submit-btn:focus-visible { outline: 3px solid #ffd43d; outline-offset: 2px; }
+      .submit-btn:disabled { background: #7d86b8; cursor: wait; }
+      .btn-secondary { font: inherit; font-weight: 700; font-size: 16px; background: #fff; color: var(--blue); border: 1px solid var(--blue); border-radius: 8px; min-height: 56px; padding: 0 28px; cursor: pointer; }
+      .btn-secondary:disabled { opacity: 0.5; cursor: default; }
+
+      .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 12px; margin: 20px 0 0; font-variant-numeric: tabular-nums; }
+      .stopwatch.on { display: flex; }
+      .stopwatch .sw-label { font-size: 13px; color: var(--muted); font-weight: 500; }
+      .stopwatch .sw-value { font-size: 30px; font-weight: 700; color: var(--blue); }
+      .stopwatch.done .sw-value { color: var(--err); }
+
+      .result-box { display: none; margin-top: 18px; padding: 16px 18px; border-radius: 8px; font-size: 15px; line-height: 1.7; border: 1px solid transparent; }
+      .result-box strong { display: block; margin-bottom: 2px; font-weight: 700; }
+      .result-box.pending { display: block; background: var(--blue-pale); color: var(--ink); border-color: var(--blue-light); }
+      .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); border-color: #bfdfca; }
+      .result-box.error { display: block; background: var(--err-bg); color: var(--err); border-color: #f3c0c0; }
+      .fine { margin: 18px 0 0; color: var(--dim); font-size: 13px; line-height: 1.6; text-align: center; }
+
+      .side { display: grid; gap: 16px; position: sticky; top: 24px; }
+      .box { border: 1px solid var(--line); border-radius: 8px; padding: 20px 22px; background: #fff; }
+      .box h3 { margin: 0 0 10px; font-size: 16px; font-weight: 700; }
+      .box p, .box li { font-size: 14px; color: var(--muted); margin: 0; }
+      .box ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+      .box.blue { background: var(--blue-pale); border-color: var(--blue-light); }
+      .box .big { font-size: 24px; font-weight: 700; color: var(--blue); margin: 0; }
+      .box a { font-size: 14px; display: inline-flex; align-items: center; min-height: 44px; }
+
+      footer { background: var(--panel); border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; padding: 32px 0; }
+      footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+      footer nav { display: flex; gap: 22px; flex-wrap: wrap; }
+      footer a { color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+
+      @media (max-width: 960px) {
+        .wrap { padding: 0 20px; }
+        header nav a { display: none; }
+        .agency .svc { display: none; }
+        .grid { grid-template-columns: 1fr; }
+        .side { position: static; }
+        h1 { font-size: 24px; }
+        .steps { flex-direction: column; }
+        .steps li { border-left: 0; border-top: 1px solid var(--line); }
+        .steps li:first-child { border-top: 0; }
+        .sec { padding: 20px 18px; }
+        .ro { grid-template-columns: 1fr; }
+        .ro > div:nth-child(odd) { border-bottom: 0; padding-bottom: 2px; }
+        .two { grid-template-columns: 1fr; }
+        .submit-btn, .btn-secondary { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <a class="agency" href="#" aria-label="デジタル庁 マイナポータル"><span class="name">デジタル庁</span><span class="svc">マイナポータル</span></a>
+        <nav aria-label="メインメニュー"><a href="#">ホーム</a><a href="#">一般の方</a><a href="#" class="on">手続きを探す</a><a href="#">よくある質問</a><span class="u">&#127760; Language</span><span class="u">&#9776; メニュー</span></nav>
+      </div>
+    </header>
+    <div class="crumbs">
+      <div class="wrap"><a href="#">ホーム</a><span>&rsaquo;</span><a href="#">手続きの検索・電子申請</a><span>&rsaquo;</span><a href="#">子育て</a><span>&rsaquo;</span><span>児童手当 現況届</span></div>
+    </div>
+
+    <main>
+      <div class="wrap">
+        <div class="grid">
+          <div>
+            <h1>児童手当 現況届の電子申請</h1>
+            <p class="lead">毎年6月の現況届を、お住まいの市区町村にマイナポータルから提出します。入力内容を確認のうえ、申請してください。</p>
+            <ol class="steps" aria-label="申請の手順"><li class="done">手続きの選択</li><li class="done">申請者情報</li><li class="on">申請内容の入力</li><li>送信完了</li></ol>
+
+            <form id="claimForm" novalidate>
+              <select id="policyId" hidden aria-hidden="true" tabindex="-1"><option value="POL-5001" selected>POL-5001</option></select>
+              <select id="claimType" hidden aria-hidden="true" tabindex="-1"><option value="collision" selected>collision</option></select>
+
+              <section class="sec">
+                <h2>申請者情報（マイナンバーカードから読み取り）</h2>
+                <div class="ro">
+                  <div>氏名</div><div>佐藤 美咲</div>
+                  <div>住所</div><div>東京都千代田区紀尾井町1-3</div>
+                  <div>提出先</div><div>千代田区役所 子ども家庭課</div>
+                  <div>受給者番号</div><div>13101-00482-7</div>
+                </div>
+              </section>
+
+              <section class="sec">
+                <h2>申請内容</h2>
+                <fieldset>
+                  <label for="procedure">手続き<span class="req">必須</span></label>
+                  <select id="procedure">
+                    <option value="現況届">児童手当 現況届（令和8年度）</option>
+                    <option value="額改定">児童手当 額改定認定請求</option>
+                    <option value="受給事由消滅">児童手当 受給事由消滅届</option>
+                  </select>
+                  <p class="hint" id="procHint"></p>
+                </fieldset>
+                <div class="two">
+                  <fieldset>
+                    <label for="amount">支給対象児童数<span class="req">必須</span></label>
+                    <input id="amount" class="narrow" type="number" inputmode="numeric" min="1" max="9" step="1" value="2" required aria-describedby="amountHint" />
+                    <p class="hint" id="amountHint">同居している18歳到達後最初の3月31日までの児童の人数</p>
+                  </fieldset>
+                  <fieldset>
+                    <label for="income">前年の所得区分</label>
+                    <select id="income">
+                      <option>所得制限限度額未満</option>
+                      <option>所得制限限度額以上・所得上限限度額未満</option>
+                    </select>
+                  </fieldset>
+                </div>
+                <fieldset>
+                  <label for="description">備考（変更事項・連絡事項）</label>
+                  <textarea id="description" placeholder="住所・振込口座・児童の状況に変更がある場合は入力してください"></textarea>
+                </fieldset>
+              </section>
+
+              <section class="sec">
+                <h2>添付書類</h2>
+                <div class="ro">
+                  <div>健康保険証の写し</div><div>マイナ保険証による資格確認のため省略</div>
+                  <div>振込口座</div><div>公金受取口座を利用（登録済み）</div>
+                </div>
+              </section>
+
+              <div class="submit-row">
+                <button type="button" class="btn-secondary" id="clearBtn">入力内容を戻す</button>
+                <button type="submit" class="submit-btn" id="submitBtn">申請する</button>
+              </div>
+              <div class="stopwatch" id="submitTimer" role="timer" aria-live="off"><span class="sw-label">処理時間</span><span class="sw-value" id="submitTimerValue">0.0s</span></div>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+              <p class="fine">サンプルの申請画面です。表示している氏名・住所・受給者番号は架空のもので、実際の申請は行われません。</p>
+            </form>
+          </div>
+
+          <aside class="side">
+            <div class="box blue">
+              <h3>申請の控え</h3>
+              <p>手続き</p><p class="big" id="sumProc"></p>
+              <p id="sumKids"></p>
+            </div>
+            <div class="box">
+              <h3>提出期限</h3>
+              <p>令和8年6月30日（火）まで。期限を過ぎると、10月分以降の手当の支給が遅れる場合があります。</p>
+            </div>
+            <div class="box">
+              <h3>この手続きについて</h3>
+              <ul><li>マイナンバーカードと署名用電子証明書が必要です</li><li>申請状況は「申請状況照会」で確認できます</li><li>受付後、市区町村から審査結果が通知されます</li></ul>
+              <a href="https://www.digital.go.jp/policies/mynaportal" target="_blank" rel="noopener noreferrer">マイナポータルについて（デジタル庁）</a>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>&copy; Digital Agency, Government of Japan</span>
+        <nav aria-label="フッター">
+          <a href="https://www.digital.go.jp/" target="_blank" rel="noopener noreferrer">デジタル庁</a>
+          <a href="https://www.digital.go.jp/policies/mynaportal" target="_blank" rel="noopener noreferrer">マイナポータル</a>
+          <a href="https://www.digital.go.jp/privacy-policy" target="_blank" rel="noopener noreferrer">プライバシーポリシー</a>
+          <a href="https://www.digital.go.jp/accessibility" target="_blank" rel="noopener noreferrer">ウェブアクセシビリティ</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      try { if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return; } catch (_) { return; }
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    (function () {
+      var HINTS = {
+        '現況届': '毎年6月1日時点の状況を届け出ます。提出がないと6月分以降の手当を受け取れません。',
+        '額改定': '出生などで支給対象の児童が増えた場合に請求します。',
+        '受給事由消滅': '転出や児童の養育をしなくなった場合に届け出ます。',
+      };
+      function getStore(key) { try { return localStorage.getItem(key) || ''; } catch (_) { return ''; } }
+
+      var form = document.getElementById('claimForm');
+      var proc = document.getElementById('procedure');
+      var amount = document.getElementById('amount');
+      var income = document.getElementById('income');
+      var desc = document.getElementById('description');
+      var button = document.getElementById('submitBtn');
+      var clearBtn = document.getElementById('clearBtn');
+      var result = document.getElementById('result');
+      var timer = document.getElementById('submitTimer');
+      var timerValue = document.getElementById('submitTimerValue');
+      var timerHandle = null;
+      var pending = false;
+
+      function kids() {
+        var raw = (amount.value || '').trim();
+        if (!/^\d+$/.test(raw)) return NaN;
+        return parseInt(raw, 10);
+      }
+      function sync() {
+        var n = kids();
+        document.getElementById('procHint').textContent = HINTS[proc.value];
+        document.getElementById('sumProc').textContent = proc.options[proc.selectedIndex].text;
+        document.getElementById('sumKids').textContent = isNaN(n) ? '支給対象児童数を入力してください' : '支給対象児童 ' + n + '人 ・ ' + income.value;
+      }
+
+      function startTimer() {
+        var started = performance.now();
+        timer.className = 'stopwatch on';
+        timerValue.textContent = '0.0s';
+        timerHandle = setInterval(function () {
+          timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+        return started;
+      }
+      function stopTimer(started) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timerValue.textContent = ((performance.now() - started) / 1000).toFixed(1) + 's';
+        timer.className = 'stopwatch on done';
+      }
+      function show(kind, title, body) {
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        var s = document.createElement('strong');
+        s.textContent = title;
+        result.appendChild(s);
+        result.appendChild(document.createTextNode(body));
+      }
+      function clearResult() {
+        result.className = 'result-box';
+        result.textContent = '';
+        clearInterval(timerHandle);
+        timerHandle = null;
+        timer.className = 'stopwatch';
+        timerValue.textContent = '0.0s';
+      }
+      function setBusy(on) {
+        pending = on;
+        button.disabled = on;
+        clearBtn.disabled = on;
+        proc.disabled = on; amount.disabled = on; income.disabled = on; desc.disabled = on;
+        button.textContent = on ? '送信中…' : '申請する';
+      }
+
+      proc.addEventListener('change', function () { clearResult(); sync(); });
+      income.addEventListener('change', function () { clearResult(); sync(); });
+      amount.addEventListener('input', function () { clearResult(); sync(); });
+      clearBtn.addEventListener('click', function () {
+        if (pending) return;
+        proc.selectedIndex = 0; income.selectedIndex = 0; amount.value = '2'; desc.value = '';
+        clearResult(); sync();
+      });
+      sync();
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (pending) return;
+        var n = kids();
+        if (isNaN(n) || n < 1 || n > 9) {
+          show('error', '支給対象児童数を1〜9の範囲で入力してください。', ' 10人以上の場合は、お住まいの市区町村の窓口にご相談ください。');
+          amount.focus();
+          return;
+        }
+        var name = proc.options[proc.selectedIndex].text;
+        setBusy(true);
+        show('pending', name + 'を送信しています…', ' 電子署名を確認し、千代田区役所 子ども家庭課へ申請データを送信しています。この画面を閉じないでください。');
+        var started = startTimer();
+        try {
+          var res = await fetch('/api/insurance/claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              policyId: document.getElementById('policyId').value,
+              claimType: document.getElementById('claimType').value,
+              amount: parseFloat(amount.value),
+              description: (desc.value || '').trim() || name + '（支給対象児童 ' + n + '人）',
+              devinUserId: getStore('devinUserId'),
+              devinOrgId: getStore('devinOrgId'),
+              devinEmail: getStore('devinEmail'),
+            }),
+          });
+          await res.json().catch(function () {});
+          stopTimer(started);
+          if (!res.ok) {
+            show('error', '申請を受け付けられませんでした。', ' 送信処理が完了しませんでした。時間をおいて再度お試しください。入力内容は保持されています。申請は提出されていません。');
+          } else {
+            show('success', '申請を受け付けました。', ' 受付番号は「申請状況照会」で確認できます。千代田区役所 子ども家庭課での審査後、結果が通知されます。');
+          }
+        } catch (_) {
+          stopTimer(started);
+          show('error', '申請を受け付けられませんでした。', ' 送信処理が完了しませんでした。時間をおいて再度お試しください。入力内容は保持されています。申請は提出されていません。');
+        } finally {
+          setBusy(false);
+        }
+      });
+    })();
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>

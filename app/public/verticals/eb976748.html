@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ご注文内容の確認 | イオンネットスーパー</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --magenta: #B90C87; --magenta-dark: #970A6E; --magenta-tint: #FBEFF7;
+      --text: #333333; --sub: #666666; --line: #DDDDDD; --chrome: #1E1E1E; --tile: #555555;
+      --footer: #F3F3F3; --page: #FFFFFF; --muted-bg: #F7F7F7;
+      --danger: #C4111B; --danger-bg: #FDF1F2; --danger-border: #F3C3C7;
+      --success: #1D7A3E; --success-bg: #EEF8F1; --success-border: #B7E2C4;
+      --font: "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", "Noto Sans JP", Meiryo, "Helvetica Neue", Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--page); color: var(--text); font-size: 14px; line-height: 1.6; overflow-x: hidden; }
+    a { color: var(--text); }
+    button, input, select { font: inherit; color: inherit; }
+
+    .brandbar { background: var(--chrome); color: #fff; height: 32px; display: flex; align-items: center; padding: 0 20px; gap: 8px; font-size: 12px; }
+    .brandbar .word { font-weight: 700; letter-spacing: .04em; font-size: 15px; font-style: italic; }
+    .storehead { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; gap: 24px; padding: 14px 20px; }
+    .logo { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 44px; text-decoration: none; color: var(--magenta); line-height: 1.15; flex: none; }
+    .logo .tag { font-size: 11px; }
+    .logo .name { font-size: 18px; font-weight: 700; color: var(--magenta-dark); letter-spacing: .02em; }
+    .store { flex: 1; min-width: 0; }
+    .store .s1 { font-size: 18px; font-weight: 700; }
+    .store .s2 { font-size: 12px; color: var(--sub); }
+    .store .s2 b { font-size: 15px; color: var(--text); }
+    .headlinks { display: flex; align-items: center; gap: 16px; flex: none; }
+    .headlinks a { font-size: 13px; color: var(--sub); text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; }
+
+    .navrow { max-width: 1320px; margin: 0 auto; display: flex; gap: 6px; padding: 0 20px 8px; align-items: stretch; }
+    .search { flex: 1 1 260px; display: flex; border: 2px solid var(--magenta); border-radius: 4px; overflow: hidden; min-height: 56px; }
+    .search input { flex: 1; border: 0; padding: 0 12px; font-size: 14px; min-width: 0; outline: none; }
+    .search button { width: 48px; border: 0; background: var(--magenta); color: #fff; cursor: pointer; }
+    .tile { flex: 0 1 92px; background: var(--tile); color: #fff; border-radius: 6px 6px 0 0; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; min-height: 56px; gap: 2px; }
+    .tile.mg { background: var(--magenta); flex-basis: 130px; font-weight: 700; }
+    .tile svg { width: 14px; height: 14px; }
+    .cartmini { flex: 0 1 380px; border: 2px solid #eee; border-radius: 4px; display: flex; align-items: center; gap: 10px; padding: 4px 8px; font-size: 13px; }
+    .cartmini .sum b { font-size: 16px; }
+    .cartmini .go { margin-left: auto; background: var(--magenta); color: #fff; border-radius: 4px; padding: 0 12px; min-height: 44px; display: inline-flex; align-items: center; font-weight: 700; text-decoration: none; }
+    .magline { height: 3px; background: var(--magenta); }
+    .crumbs { max-width: 1320px; margin: 0 auto; padding: 0 20px; font-size: 12px; color: var(--sub); }
+    .crumbs a { color: var(--magenta); display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+
+    main { max-width: 1320px; margin: 0 auto; padding: 4px 20px 48px; }
+    h1 { font-size: 22px; font-weight: 700; border-left: 5px solid var(--magenta); padding-left: 10px; margin: 6px 0 16px; }
+    .steps { display: flex; list-style: none; margin-bottom: 20px; counter-reset: s; }
+    .steps li { flex: 1; text-align: center; background: var(--muted-bg); color: var(--sub); padding: 10px 4px; font-size: 13px; position: relative; }
+    .steps li + li { margin-left: 2px; }
+    .steps li.on { background: var(--magenta); color: #fff; font-weight: 700; }
+    .steps li.done { background: var(--magenta-tint); color: var(--magenta-dark); }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+    .panel { border: 1px solid var(--line); border-radius: 4px; margin-bottom: 18px; }
+    .panel h2 { font-size: 15px; background: var(--muted-bg); border-bottom: 1px solid var(--line); padding: 10px 14px; }
+    .panel .body { padding: 14px; }
+    .items { list-style: none; }
+    .items li { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px dashed var(--line); }
+    .items li:last-child { border-bottom: 0; }
+    .thumb { width: 64px; height: 64px; border: 1px solid #eee; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #999; background: #fafafa; text-align: center; }
+    .iname { font-size: 14px; }
+    .iprice { font-size: 13px; color: var(--sub); }
+    .iprice b { color: #E50012; font-size: 16px; }
+    .qty { min-height: 44px; min-width: 76px; border: 1px solid #bbb; border-radius: 4px; padding: 0 8px; background: #fff; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-weight: 700; margin-bottom: 6px; }
+    .field select, .field input { width: 100%; min-height: 44px; border: 1px solid #bbb; border-radius: 4px; padding: 0 10px; background: #fff; }
+    .field input[readonly] { background: var(--muted-bg); }
+    .field .note { font-size: 12px; color: var(--sub); margin-top: 4px; }
+    .field select:focus, .field input:focus, .qty:focus, .search input:focus { outline: 2px solid var(--magenta); outline-offset: 1px; }
+
+    .summary { position: sticky; top: 12px; }
+    .summary dl { display: grid; grid-template-columns: 1fr auto; row-gap: 8px; font-size: 14px; }
+    .summary dd { text-align: right; }
+    .summary .total { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; font-weight: 700; font-size: 16px; }
+    .summary .total dd { color: #E50012; font-size: 22px; }
+    .submit { width: 100%; min-height: 52px; margin-top: 14px; border: 0; border-radius: 4px; background: var(--magenta); color: #fff; font-weight: 700; font-size: 17px; cursor: pointer; }
+    .submit:hover { background: var(--magenta-dark); }
+    .submit:disabled { background: #A6A6A6; cursor: progress; }
+    .back { display: flex; align-items: center; justify-content: center; min-height: 44px; margin-top: 8px; color: var(--sub); font-size: 13px; }
+    .fine { font-size: 12px; color: var(--sub); margin-top: 10px; }
+
+    .result-box { display: none; margin-top: 14px; border-radius: 4px; padding: 12px 14px; font-size: 14px; }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box .title { font-weight: 700; margin-bottom: 2px; }
+
+    footer { background: var(--footer); padding: 28px 20px; font-size: 12px; color: var(--sub); }
+    footer .in { max-width: 1320px; margin: 0 auto; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-bottom: 12px; }
+    footer nav a { color: var(--text); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+    footer .help { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; margin-bottom: 14px; }
+    footer .help b { color: var(--text); font-size: 14px; }
+
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: minmax(0, 1fr); }
+      .summary { position: static; }
+      .navrow { flex-wrap: wrap; }
+      .search { flex-basis: 100%; }
+      .tile { flex: 1 1 calc(25% - 6px); }
+      .tile.mg { flex: 1 1 calc(50% - 6px); }
+      .cartmini { flex: 1 1 100%; }
+    }
+    @media (max-width: 600px) {
+      .storehead { flex-wrap: wrap; gap: 10px 16px; padding: 10px 14px; }
+      .store { flex-basis: 100%; order: 3; }
+      .headlinks { margin-left: auto; gap: 12px; }
+      .navrow, .crumbs, main { padding-left: 14px; padding-right: 14px; }
+      .steps li { font-size: 11px; padding: 8px 2px; }
+      .items li { grid-template-columns: 52px minmax(0, 1fr); }
+      .items li .qty { grid-column: 2; justify-self: start; }
+      .thumb { width: 52px; height: 52px; }
+      h1 { font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="brandbar"><span class="word">A</span><span>イオンネットスーパー</span></div>
+  <header>
+    <div class="storehead">
+      <a class="logo" href="#" aria-label="イオンネットスーパー トップ"><span class="tag">おうちでイオン</span><span class="name">イオンネットスーパー</span></a>
+      <div class="store">
+        <div class="s1">イオンスタイル碑文谷</div>
+        <div class="s2">医薬品は <b>イオン薬局イオンスタイル碑文谷</b> での販売となります</div>
+      </div>
+      <div class="headlinks"><a href="#">マイページ</a><a href="#">テキスト売場一覧</a></div>
+    </div>
+    <div class="navrow">
+      <form class="search" role="search" onsubmit="return false"><input type="search" placeholder="キーワードを入力して下さい" aria-label="キーワード"><button type="button" aria-label="検索"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button></form>
+      <a class="tile" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>売場一覧</a>
+      <a class="tile" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>お気に入り</a>
+      <a class="tile" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="5" width="16" height="15" rx="1"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>購入履歴</a>
+      <a class="tile" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>注文変更</a>
+      <a class="tile mg" href="#">通常配送便</a>
+      <a class="tile mg" href="#">先取り配送便</a>
+      <div class="cartmini"><span class="sum">お会計（税込） <b id="miniTotal">0円</b><br>商品点数: <span id="miniCount">0</span>点</span><a class="go" href="#orderForm">注文に進む</a></div>
+    </div>
+    <div class="magline"></div>
+  </header>
+  <div class="crumbs"><a href="#">ホーム</a> ＞ <a href="#">カゴ</a> ＞ ご注文内容の確認</div>
+
+  <main>
+    <h1>ご注文内容の確認</h1>
+    <ol class="steps" aria-label="ご注文の手順">
+      <li class="done">カゴ</li><li class="done">お届け日時</li><li class="done">お支払い方法</li><li class="on" aria-current="step">ご注文内容の確認</li><li>注文完了</li>
+    </ol>
+
+    <form id="transferForm" class="grid" novalidate>
+      <div>
+        <section class="panel">
+          <h2>ご注文の商品</h2>
+          <div class="body">
+            <ul class="items">
+              <li><div class="thumb">お米</div><div><div class="iname">【令和8年産】秋田県産 あきたこまち 5kg</div><div class="iprice">本体価格 <b>2,780円</b>（税込3,002円）</div></div>
+                <select class="qty" data-price="2780" data-rate="8" aria-label="あきたこまち 5kg の数量"><option>0</option><option selected>1</option><option>2</option><option>3</option></select></li>
+              <li><div class="thumb">パン</div><div><div class="iname">パスコ 超熟 6枚入</div><div class="iprice">本体価格 <b>198円</b>（税込213円）</div></div>
+                <select class="qty" data-price="198" data-rate="8" aria-label="超熟 6枚入 の数量"><option>0</option><option>1</option><option selected>2</option><option>3</option></select></li>
+              <li><div class="thumb">野菜</div><div><div class="iname">国内産 たまねぎ 1個</div><div class="iprice">本体価格 <b>38円</b>（税込41円）</div></div>
+                <select class="qty" data-price="38" data-rate="8" aria-label="たまねぎ の数量"><option>0</option><option>1</option><option>2</option><option selected>3</option><option>5</option></select></li>
+              <li><div class="thumb">飲料</div><div><div class="iname">トップバリュ 天然水 2L×6本</div><div class="iprice">本体価格 <b>498円</b>（税込537円）</div></div>
+                <select class="qty" data-price="498" data-rate="8" aria-label="天然水 2L×6本 の数量"><option>0</option><option selected>1</option><option>2</option></select></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>お届け・お支払い</h2>
+          <div class="body">
+            <div class="field"><label for="toAccount">お届け日時</label>
+              <select id="toAccount"><option value="ACCT-1002">10月21日（水） 12:00〜14:00</option><option value="ACCT-1003">10月21日（水） 16:00〜18:00</option><option value="ACCT-1004">10月22日（木） 10:00〜12:00</option></select>
+              <div class="note">お届け先: 東京都目黒区碑文谷（ご登録住所）</div></div>
+            <div class="field"><label for="fromAccount">お支払い方法</label>
+              <select id="fromAccount"><option value="ACCT-1001">イオンカード（クレジット） **** 1001</option><option value="ACCT-1005">クレジットカード **** 2231</option><option value="ACCT-1006">代金引換</option></select></div>
+            <div class="field"><label for="accountTier">会員区分</label>
+              <select id="accountTier"><option value="standard">イオンネットスーパー会員</option><option value="basic">ゲスト</option></select></div>
+            <div class="field"><label for="amount">お支払い金額（税込・円）</label>
+              <input type="number" id="amount" min="1" step="1" readonly inputmode="numeric">
+              <div class="note">ご注文の商品・配送料から自動で計算されます。</div></div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="panel summary" aria-labelledby="sumTitle">
+        <h2 id="sumTitle">お会計</h2>
+        <div class="body">
+          <dl>
+            <dt>商品小計（本体）</dt><dd id="sumSub">0円</dd>
+            <dt>消費税（8%対象）</dt><dd id="sumTax">0円</dd>
+            <dt>配送料（税込）</dt><dd id="sumShip">330円</dd>
+            <dt>商品点数</dt><dd id="sumCount">0点</dd>
+            <dt class="total">合計（税込）</dt><dd class="total" id="sumTotal">0円</dd>
+          </dl>
+          <button type="submit" id="submitBtn" class="submit">注文を確定する</button>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <a class="back" href="#">カゴに戻る</a>
+          <p class="fine">「注文を確定する」を押すとご注文が確定します。確定後の変更は「注文変更」から締切時間まで行えます。</p>
+        </div>
+      </aside>
+    </form>
+  </main>
+
+  <footer>
+    <div class="in">
+      <div class="help"><b>イオンネットスーパー お客さまセンター</b><br>ご注文・お届けに関するお問い合わせはこちらから承ります。</div>
+      <nav aria-label="フッター"><a href="#">ご利用ガイド</a><a href="#">よくあるご質問</a><a href="#">ご利用規約</a><a href="#">個人情報保護方針</a><a href="#">特定商取引法に基づく表記</a></nav>
+      <div>イオンネットスーパー（デモ）</div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const form = document.getElementById('transferForm');
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const fromAccount = document.getElementById('fromAccount');
+      const toAccount = document.getElementById('toAccount');
+      const amountInput = document.getElementById('amount');
+      const qtys = Array.from(document.querySelectorAll('.qty'));
+      const SHIPPING = 330;
+      const yen = (n) => Number(n).toLocaleString('ja-JP') + '円';
+      const $ = (id) => document.getElementById(id);
+
+      function recalc() {
+        let sub = 0; let incl = 0; let count = 0;
+        qtys.forEach((q) => {
+          const n = Number(q.value); const price = Number(q.dataset.price);
+          sub += n * price; incl += n * Math.floor(price * (100 + Number(q.dataset.rate)) / 100); count += n;
+        });
+        const tax = incl - sub;
+        const total = count > 0 ? incl + SHIPPING : 0;
+        $('sumSub').textContent = yen(sub);
+        $('sumTax').textContent = yen(tax);
+        $('sumShip').textContent = yen(count > 0 ? SHIPPING : 0);
+        $('sumCount').textContent = count + '点';
+        $('sumTotal').textContent = yen(total);
+        $('miniTotal').textContent = yen(total);
+        $('miniCount').textContent = String(count);
+        amountInput.value = String(total);
+        return { count, total };
+      }
+      function show(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '';
+        const t = document.createElement('div'); t.className = 'title'; t.textContent = title;
+        const d = document.createElement('div'); d.textContent = detail;
+        result.append(t, d);
+      }
+      qtys.forEach((q) => q.addEventListener('change', () => { result.className = 'result-box'; recalc(); }));
+      form.addEventListener('reset', () => setTimeout(() => { result.className = 'result-box'; recalc(); }, 0));
+      recalc();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const state = recalc();
+        const amount = parseFloat(amountInput.value);
+        if (!state.count || !Number.isFinite(amount) || amount <= 0) {
+          show('error', 'ご注文の商品がありません', '商品の数量を1点以上にしてください。');
+          return;
+        }
+        const slot = toAccount.options[toAccount.selectedIndex].text;
+        button.disabled = true;
+        button.textContent = '処理中…';
+        result.className = 'result-box';
+        try {
+          const res = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value),
+              accountTier: document.getElementById('accountTier').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.success) throw new Error('order failed');
+          const paid = Number((data.receipt && data.receipt.amount) || amount);
+          const orderNo = String(data.transferId || '').replace(/-/g, '').slice(0, 10).toUpperCase();
+          show('success', 'ご注文を承りました',
+            (orderNo ? 'ご注文番号: ' + orderNo + '　' : '') + 'お届け日時: ' + slot + '　お支払い金額: ' + yen(paid) + '（税込）');
+        } catch (_err) {
+          show('error', 'ご注文を確定できませんでした', '恐れ入りますが、時間をおいて再度お試しください。');
+        } finally {
+          button.disabled = false;
+          button.textContent = '注文を確定する';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>af1dce4f · AI Workbench</title>
+  <link rel="icon" href="/verticals/assets/af1dce4f/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --v-navy: #0B1F3A;
+      --v-navy-2: #132C52;
+      --v-blue: #005EB8;
+      --v-blue-2: #1F6FD1;
+      --v-ink: #1B2430;
+      --v-muted: #5B6572;
+      --v-faint: #8A94A1;
+      --v-line: #D9DEE5;
+      --v-line-2: #EAEEF2;
+      --v-bg: #F3F5F8;
+      --v-white: #FFFFFF;
+      --v-green: #1E8E3E;
+      --v-green-bg: #E6F4EA;
+      --v-amber: #C98A00;
+      --v-amber-bg: #FFF4D6;
+      --v-red: #C5221F;
+      --v-red-bg: #FCE8E6;
+      --v-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --v-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: var(--v-font); color: var(--v-ink); background: var(--v-bg); font-size: 13px; line-height: 1.45; }
+    a { color: var(--v-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button { font-family: inherit; }
+
+    .masthead { position: sticky; top: 0; z-index: 30; height: 56px; background: var(--v-navy); color: #fff; display: flex; align-items: center; padding: 0 20px 0 18px; gap: 18px; }
+    .masthead .brand { display: flex; align-items: center; gap: 14px; }
+    .masthead .brand img { height: 26px; width: auto; display: block; }
+    .masthead .brand .div { width: 1px; height: 26px; background: rgba(255,255,255,.28); }
+    .masthead .brand .app { font-weight: 600; font-size: 15px; letter-spacing: .01em; color: #fff; }
+    .masthead .env { font: 500 10px var(--v-mono); letter-spacing: .08em; padding: 2px 6px; border-radius: 3px; background: rgba(255,255,255,.12); color: rgba(255,255,255,.85); margin-left: -4px; }
+    .masthead .search { margin-left: 18px; display: flex; align-items: center; gap: 8px; width: 320px; height: 32px; padding: 0 10px; border-radius: 4px; background: rgba(255,255,255,.1); color: rgba(255,255,255,.6); font-size: 12px; }
+    .masthead .search svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .masthead .right { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 12px; }
+    .masthead .status-pill { display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.08); font-weight: 500; color: rgba(255,255,255,.9); }
+    .masthead .status-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #3DBA63; box-shadow: 0 0 0 3px rgba(61,186,99,.18); }
+    .shell.incident .masthead .status-pill .dot { background: #FF5A52; box-shadow: 0 0 0 3px rgba(255,90,82,.22); }
+    .reset { display: none; font: 500 11px var(--v-font); color: rgba(255,255,255,.75); background: transparent; border: 1px solid rgba(255,255,255,.3); border-radius: 3px; padding: 3px 8px; cursor: pointer; }
+    .reset:hover { color: #fff; border-color: rgba(255,255,255,.7); }
+    .reset[disabled] { opacity: .5; cursor: wait; }
+    .shell.incident .reset { display: inline-block; }
+    .masthead .icon-btn { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: rgba(255,255,255,.8); }
+    .masthead .icon-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    .masthead .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--v-blue); color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 11px; }
+    .masthead .back { color: rgba(255,255,255,.45); font-size: 11px; }
+    .masthead .back:hover { color: #fff; text-decoration: none; }
+
+    .shell { min-height: 100%; }
+    .frame { display: flex; min-height: calc(100vh - 56px); }
+    .sidenav { width: 232px; flex: none; background: var(--v-white); border-right: 1px solid var(--v-line); padding: 14px 10px; display: flex; flex-direction: column; }
+    .sidenav .group { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--v-faint); font-weight: 600; padding: 12px 10px 6px; }
+    .sidenav a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 4px; color: var(--v-ink); font-weight: 500; font-size: 13px; }
+    .sidenav a:hover { background: var(--v-bg); text-decoration: none; }
+    .sidenav a.active { background: #E8F0FB; color: var(--v-blue); box-shadow: inset 3px 0 0 var(--v-blue); }
+    .sidenav a svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; flex: none; }
+    .sidenav a .count { margin-left: auto; font: 500 10px var(--v-mono); padding: 1px 6px; border-radius: 999px; background: var(--v-line-2); color: var(--v-muted); }
+    .sidenav a .count.red { background: var(--v-red-bg); color: var(--v-red); }
+    .sidenav .foot { margin-top: auto; padding: 14px 10px 4px; font-size: 11px; color: var(--v-faint); line-height: 1.6; border-top: 1px solid var(--v-line-2); }
+
+    main { flex: 1; min-width: 0; padding: 18px 28px 48px; }
+    .crumbs { font-size: 12px; color: var(--v-muted); display: flex; gap: 6px; align-items: center; }
+    .crumbs a { color: var(--v-muted); }
+    .crumbs span.sep { color: var(--v-faint); }
+    .crumbs b { color: var(--v-ink); font-weight: 500; }
+    .page-head { display: flex; align-items: flex-end; gap: 18px; margin: 10px 0 18px; }
+    .page-head h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.01em; }
+    .page-head p { margin: 4px 0 0; color: var(--v-muted); font-size: 13px; max-width: 760px; }
+    .page-head .actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+
+    .btn { font-weight: 600; font-size: 13px; border: 1px solid transparent; border-radius: 4px; padding: 8px 14px; cursor: pointer; transition: background .15s; }
+    .btn.primary { background: var(--v-blue); color: #fff; }
+    .btn.primary:hover { background: var(--v-blue-2); }
+    .btn.secondary { background: #fff; color: var(--v-ink); border-color: var(--v-line); }
+    .btn.secondary:hover { background: var(--v-bg); }
+    .btn[disabled] { opacity: .6; cursor: wait; }
+    select.ctl { font: 500 13px var(--v-font); color: var(--v-ink); background: #fff; border: 1px solid var(--v-line); border-radius: 4px; padding: 7px 10px; }
+
+    .card { background: #fff; border: 1px solid var(--v-line); border-radius: 6px; }
+    .card .hd { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--v-line-2); }
+    .card .hd h3 { margin: 0; font-size: 13px; font-weight: 600; }
+    .card .hd .sub { color: var(--v-muted); font-size: 12px; }
+    .card .hd .right { margin-left: auto; display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--v-muted); }
+    .card .bd { padding: 14px 16px; }
+    .grid { display: grid; gap: 14px; }
+    .grid.kpi { grid-template-columns: repeat(6, 1fr); }
+    .grid.two { grid-template-columns: 1.3fr 1fr; }
+    .grid.cards3 { grid-template-columns: repeat(3, 1fr); }
+    .kpi .card { padding: 14px 16px; }
+    .kpi .label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--v-muted); font-weight: 600; }
+    .kpi .value { margin-top: 6px; font-size: 24px; font-weight: 600; letter-spacing: -.02em; display: flex; align-items: baseline; gap: 8px; }
+    .kpi .value small { font-size: 12px; color: var(--v-muted); font-weight: 500; }
+    .kpi .value.red { color: var(--v-red); }
+    .kpi .value.green { color: var(--v-green); }
+
+    table.data { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    table.data th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--v-muted); font-weight: 600; padding: 9px 12px; border-bottom: 1px solid var(--v-line); background: #FAFBFC; white-space: nowrap; }
+    table.data td { padding: 9px 12px; border-bottom: 1px solid var(--v-line-2); vertical-align: top; }
+    table.data tr:last-child td { border-bottom: 0; }
+    table.data tr.click { cursor: pointer; }
+    table.data tr.click:hover td { background: #F6F9FD; }
+    table.data td.num, table.data th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .mono { font-family: var(--v-mono); font-size: 12px; }
+    .muted { color: var(--v-muted); }
+    .faint { color: var(--v-faint); }
+    .chip { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 7px; border-radius: 3px; background: var(--v-line-2); color: var(--v-ink); margin: 1px 3px 1px 0; white-space: nowrap; }
+    .chip.blue { background: #E8F0FB; color: var(--v-blue); }
+    .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+    .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .pill.green { background: var(--v-green-bg); color: var(--v-green); }
+    .pill.amber { background: var(--v-amber-bg); color: var(--v-amber); }
+    .pill.red { background: var(--v-red-bg); color: var(--v-red); }
+    .pill.gray { background: var(--v-line-2); color: var(--v-muted); }
+    .pill.blue { background: #E8F0FB; color: var(--v-blue); }
+
+    .ops { border-collapse: separate; border-spacing: 6px; width: 100%; }
+    .ops th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--v-muted); font-weight: 600; padding: 4px 8px; text-align: left; }
+    .ops th.c { text-align: center; }
+    .ops td.agent { font-weight: 600; font-size: 12.5px; white-space: nowrap; padding: 0 8px; }
+    .ops td.agent small { display: block; font-weight: 400; color: var(--v-muted); font-size: 11px; }
+    .cell { border-radius: 5px; padding: 10px 12px; min-width: 150px; border: 1px solid transparent; }
+    .cell .st { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+    .cell .st::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .cell .m { margin-top: 6px; display: flex; gap: 12px; font-size: 11px; color: var(--v-muted); white-space: nowrap; }
+    .cell .m b { display: block; font-size: 12.5px; color: var(--v-ink); font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+    .cell.green { background: var(--v-green-bg); border-color: #CBE8D3; } .cell.green .st { color: var(--v-green); }
+    .cell.yellow { background: var(--v-amber-bg); border-color: #F0DFA6; } .cell.yellow .st { color: var(--v-amber); }
+    .cell.red { background: var(--v-red-bg); border-color: #F4C2BF; cursor: pointer; } .cell.red .st { color: var(--v-red); }
+    .cell.na { background: #FAFBFC; border: 1px dashed var(--v-line); color: var(--v-faint); font-size: 11px; text-align: center; padding: 18px 12px; }
+    .cell .err { margin-top: 6px; font: 11px var(--v-mono); color: var(--v-red); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .legend { display: flex; gap: 16px; font-size: 11px; color: var(--v-muted); margin-top: 10px; }
+    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+    .drawer { position: fixed; top: 56px; right: 0; bottom: 0; width: 520px; background: #fff; border-left: 1px solid var(--v-line); box-shadow: -12px 0 40px rgba(11,31,58,.12); transform: translateX(105%); transition: transform .28s cubic-bezier(.2,.8,.2,1); z-index: 25; display: flex; flex-direction: column; }
+    .drawer.open { transform: translateX(0); }
+    .drawer .hd { padding: 16px 20px; border-bottom: 1px solid var(--v-line-2); display: flex; align-items: flex-start; gap: 12px; }
+    .drawer .hd h3 { margin: 0; font-size: 15px; font-weight: 600; }
+    .drawer .hd .x { margin-left: auto; border: 0; background: transparent; font-size: 18px; color: var(--v-muted); cursor: pointer; line-height: 1; }
+    .drawer .bd { padding: 16px 20px; overflow: auto; }
+    pre.yaml { margin: 0; background: #0F1C2E; color: #D7E1EE; border-radius: 6px; padding: 14px 16px; font: 12px/1.6 var(--v-mono); overflow: auto; }
+    pre.yaml .k { color: #7FB4FF; } pre.yaml .s { color: #B6E39A; } pre.yaml .c { color: #6B7A90; }
+    dl.facts { display: grid; grid-template-columns: 150px 1fr; gap: 8px 14px; margin: 0; font-size: 12.5px; }
+    dl.facts dt { color: var(--v-muted); } dl.facts dd { margin: 0; }
+
+    .app-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #fff; border: 1px solid var(--v-line); border-radius: 6px; margin-bottom: 14px; }
+    .app-bar .lbl { font-size: 12px; color: var(--v-muted); font-weight: 500; }
+    .app-bar .meta { margin-left: auto; font-size: 12px; color: var(--v-muted); }
+    .report-empty { padding: 28px 16px; text-align: center; color: var(--v-muted); font-size: 12.5px; }
+    .report-summary { padding: 14px 16px; background: #F7F9FC; border-bottom: 1px solid var(--v-line-2); font-size: 13px; line-height: 1.55; }
+    .report-error { margin: 14px 16px; padding: 14px 16px; border: 1px solid #F4C2BF; background: var(--v-red-bg); border-radius: 6px; display: flex; gap: 12px; }
+    .report-error svg { width: 20px; height: 20px; flex: none; fill: none; stroke: var(--v-red); stroke-width: 2; }
+    .report-error b { display: block; color: var(--v-red); margin-bottom: 3px; font-size: 13px; }
+    .report-error .ref { font-family: var(--v-mono); font-size: 11.5px; color: var(--v-muted); margin-top: 6px; }
+    .alerts li { padding: 8px 0; border-bottom: 1px solid var(--v-line-2); font-size: 12.5px; display: flex; gap: 10px; }
+    .alerts li:last-child { border-bottom: 0; }
+    .alerts { list-style: none; margin: 0; padding: 0 16px; }
+
+    .timeline { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--v-line); }
+    .timeline li { position: relative; padding: 0 0 14px 14px; font-size: 12.5px; }
+    .timeline li::before { content: ''; position: absolute; left: -19px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--v-blue); border: 2px solid #fff; box-shadow: 0 0 0 1px var(--v-blue); }
+    .timeline li .t { display: block; color: var(--v-muted); font-size: 11px; font-family: var(--v-mono); }
+    .guard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .guard .g { padding: 12px 14px; border: 1px solid var(--v-line); border-radius: 6px; background: #fff; font-size: 12.5px; display: flex; gap: 10px; }
+    .guard .g svg { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--v-blue); stroke-width: 1.8; }
+    .guard .g b { display: block; margin-bottom: 2px; }
+    .pending { color: var(--v-faint); font-style: italic; }
+    .link-row a { display: inline-flex; align-items: center; gap: 6px; }
+    .changed { background: var(--v-amber-bg); }
+    .badge-new { font-size: 10px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; background: var(--v-amber-bg); color: var(--v-amber); }
+
+    .toasts { position: fixed; right: 22px; bottom: 22px; z-index: 50; display: flex; flex-direction: column; gap: 10px; }
+    .toast { min-width: 340px; max-width: 460px; display: flex; gap: 10px; padding: 12px 14px 12px 11px; border-radius: 8px; background: rgba(0,0,0,.85); color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,.25); transform: translateX(120%); opacity: 0; transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s; font-size: 13px; }
+    .toast.in { transform: translateX(0); opacity: 1; }
+    .toast .bar { width: 4px; flex: none; border-radius: 3px; background: #3DBA63; }
+    .toast.error .bar { background: #FF5A52; }
+    .toast b { display: block; margin-bottom: 3px; }
+    .toast .msg { color: rgba(255,255,255,.82); line-height: 1.45; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="shell" id="shell">
+    <header class="masthead">
+      <a class="brand" href="#/home">
+        <img src="/verticals/assets/af1dce4f/logo.svg" alt="GE Aerospace">
+        <span class="div"></span>
+        <span class="app">AI Workbench</span>
+        <span class="env">PROD</span>
+      </a>
+      <div class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        Search agents, apps, data products, engines…
+      </div>
+      <div class="right">
+        <span class="status-pill"><span class="dot"></span><span id="status-text">All systems nominal</span></span>
+        <button class="reset" id="reset-btn" type="button" title="Presenter control: clears open incidents and run history and returns the workbench to its opening state. Does not change any code.">Reset</button>
+        <span class="icon-btn" title="Notifications"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></span>
+        <span class="icon-btn" title="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7"/><path d="M12 17h.01"/></svg></span>
+        <span class="avatar" title="Signed in">PM</span>
+        <a class="back" href="/">← All Demos</a>
+      </div>
+    </header>
+
+    <div class="frame">
+      <nav class="sidenav" id="sidenav">
+        <div class="group">Workbench</div>
+        <a href="#/home" data-nav="home"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
+        <a href="#/agents" data-nav="agents"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>Agent Library<span class="count" id="count-agents"></span></a>
+        <a href="#/apps" data-nav="apps"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>Apps<span class="count" id="count-apps"></span></a>
+        <a href="#/data" data-nav="data"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Data Products<span class="count" id="count-data"></span></a>
+        <div class="group">Run</div>
+        <a href="#/ops" data-nav="ops"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Operations</a>
+        <a href="#/incidents" data-nav="incidents"><svg viewBox="0 0 24 24"><path d="M12 3 2 21h20L12 3z"/><path d="M12 10v5M12 18h.01"/></svg>Incidents<span class="count" id="count-incidents"></span></a>
+        <div class="foot">Internal · GE teams<br>Workbench 3.14.2 · Azure Foundry runtime<br>Observability: Azure + AWS</div>
+      </nav>
+
+      <main id="main"></main>
+    </div>
+  </div>
+
+  <aside class="drawer" id="drawer">
+    <div class="hd"><div><h3 id="drawer-title"></h3><div class="sub muted" id="drawer-sub"></div></div><button class="x" id="drawer-x" type="button" aria-label="Close">×</button></div>
+    <div class="bd" id="drawer-body"></div>
+  </aside>
+  <div class="toasts" id="toasts"></div>
+
+  <script>
+    (function () {
+      var API = '/api/af1dce4f';
+      var state = { overview: null, viewAs: 'AIR-A', reports: {}, reportErrors: {}, running: false, route: { page: 'home', id: null } };
+
+      function esc(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function num(value) { return Number(value || 0).toLocaleString('en-US'); }
+      function dateShort(value) { return value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'; }
+      function dateTime(value) { return value ? new Date(value).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' UTC' : '—'; }
+      function ago(value) {
+        var mins = Math.round((Date.now() - new Date(value).getTime()) / 60000);
+        if (mins < 1) return 'just now';
+        if (mins < 60) return mins + 'm ago';
+        var hrs = Math.round(mins / 60);
+        return hrs < 48 ? hrs + 'h ago' : Math.round(hrs / 24) + 'd ago';
+      }
+      function customer(id) { return (state.overview.customers.filter(function (c) { return c.id === id; })[0]) || { id: id, name: id }; }
+      function agent(id) { return (state.overview.agents.filter(function (a) { return a.id === id; })[0]) || { id: id, name: id }; }
+      function product(id) { return (state.overview.dataProducts.filter(function (d) { return d.id === id; })[0]) || { id: id, name: id }; }
+      function statusPill(value) {
+        var map = { active: 'green', live: 'green', pilot: 'blue', 'Resolved': 'green', 'Investigating · Devin': 'red', 'Fix in review': 'amber', 'Detected': 'red' };
+        return '<span class="pill ' + (map[value] || 'gray') + '">' + esc(value) + '</span>';
+      }
+      function sevPill(value) { return '<span class="pill ' + (value === 'S1' || value === 'S2' ? 'red' : value === 'S3' ? 'amber' : 'gray') + '">' + esc(value) + '</span>'; }
+
+      function bootstrapIdentity() {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config').then(function (r) { return r.json(); }).then(function (config) {
+          if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+          if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+          if (config.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', config.defaultEmail);
+        }).catch(function () {});
+      }
+
+      function toast(kind, title, msg) {
+        var el = document.createElement('div');
+        el.className = 'toast ' + kind;
+        el.innerHTML = '<span class="bar"></span><div><b>' + esc(title) + '</b><div class="msg">' + esc(msg) + '</div></div>';
+        document.getElementById('toasts').appendChild(el);
+        requestAnimationFrame(function () { el.classList.add('in'); });
+        setTimeout(function () {
+          el.classList.remove('in');
+          setTimeout(function () { el.remove(); }, 400);
+        }, 5500);
+      }
+
+      function openDrawer(title, sub, html) {
+        document.getElementById('drawer-title').textContent = title;
+        document.getElementById('drawer-sub').textContent = sub || '';
+        document.getElementById('drawer-body').innerHTML = html;
+        document.getElementById('drawer').classList.add('open');
+      }
+      function closeDrawer() { document.getElementById('drawer').classList.remove('open'); }
+
+      function crumbs(parts) {
+        return '<div class="crumbs"><a href="#/home">AI Workbench</a>' + parts.map(function (p, i) {
+          var last = i === parts.length - 1;
+          return '<span class="sep">/</span>' + (last ? '<b>' + esc(p.label) + '</b>' : '<a href="' + esc(p.href) + '">' + esc(p.label) + '</a>');
+        }).join('') + '</div>';
+      }
+      function head(title, sub, actions) {
+        return '<div class="page-head"><div><h1>' + esc(title) + '</h1>' + (sub ? '<p>' + esc(sub) + '</p>' : '') + '</div>' + (actions ? '<div class="actions">' + actions + '</div>' : '') + '</div>';
+      }
+
+      function renderChrome() {
+        var o = state.overview;
+        var shell = document.getElementById('shell');
+        shell.classList.toggle('incident', o.status === 'incident');
+        document.getElementById('status-text').textContent = o.status === 'incident'
+          ? o.summary.openIncidents + ' open incident' + (o.summary.openIncidents > 1 ? 's' : '')
+          : 'All systems nominal';
+        document.getElementById('count-agents').textContent = o.agents.length;
+        document.getElementById('count-apps').textContent = o.apps.length;
+        document.getElementById('count-data').textContent = o.dataProducts.length;
+        var inc = document.getElementById('count-incidents');
+        inc.textContent = o.summary.openIncidents > 0 ? o.summary.openIncidents : '';
+        inc.className = 'count' + (o.summary.openIncidents > 0 ? ' red' : '');
+        Array.prototype.forEach.call(document.querySelectorAll('#sidenav a[data-nav]'), function (a) {
+          a.classList.toggle('active', a.getAttribute('data-nav') === state.route.page);
+        });
+      }
+
+      function kpi(label, value, cls, small) {
+        return '<div class="card"><div class="label">' + esc(label) + '</div><div class="value ' + (cls || '') + '">' + value + (small ? '<small>' + esc(small) + '</small>' : '') + '</div></div>';
+      }
+
+      function miniGrid(o) {
+        return '<table class="ops"><thead><tr><th></th>' + o.customers.map(function (c) { return '<th class="c">' + esc(c.name) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+          o.grid.map(function (row) {
+            return '<tr><td class="agent">' + esc(row.agentName) + '</td>' + row.cells.map(function (cell) {
+              if (cell.state === 'na') return '<td><div class="cell na">not deployed</div></td>';
+              return '<td><div class="cell ' + cell.state + '"' + (cell.state === 'red' ? ' data-go="#/incidents"' : '') + '><div class="st">' + (cell.state === 'green' ? 'Healthy' : cell.state === 'yellow' ? 'Degraded' : 'Failing') + '</div><div class="m"><span>Errors<b>' + cell.errorRate.toFixed(1) + '%</b></span><span>p95<b>' + (cell.p95Ms / 1000).toFixed(2) + ' s</b></span><span>Uptime<b>' + cell.uptime.toFixed(2) + '%</b></span></div>' + (cell.lastError ? '<div class="err" title="' + esc(cell.lastError) + '">' + esc(cell.lastError) + '</div>' : '') + '</div></td>';
+            }).join('') + '</tr>';
+          }).join('') + '</tbody></table>';
+      }
+
+      function pageHome(o) {
+        var s = o.summary;
+        var open = o.incidents.filter(function (i) { return i.status !== 'Resolved'; });
+        return crumbs([{ label: 'Home' }]) + head('Home', 'Agents and apps built on GE Aerospace data products, serving GE teams and their airline and lessor customers.') +
+          '<div class="grid kpi">' +
+          kpi('Active agents', s.activeAgents, '', '+1 in pilot') +
+          kpi('Apps', s.apps, '', 'live') +
+          kpi('Customers served', s.customersServed, '', '2 airlines · 1 lessor') +
+          kpi('Runs this week', num(s.runsThisWeek)) +
+          kpi('Open incidents', s.openIncidents, s.openIncidents > 0 ? 'red' : 'green') +
+          kpi('Time saved this week', num(s.hoursSavedThisWeek), '', 'hours') +
+          '</div>' +
+          '<div class="grid two" style="margin-top:14px">' +
+          '<div class="card"><div class="hd"><h3>Operations snapshot</h3><span class="sub">agents × customers</span><div class="right"><a href="#/ops">Open Operations →</a></div></div><div class="bd">' + miniGrid(o) + '</div></div>' +
+          '<div style="display:grid;gap:14px;align-content:start">' +
+          '<div class="card"><div class="hd"><h3>Open incidents</h3><div class="right"><a href="#/incidents">All incidents →</a></div></div>' +
+          (open.length === 0 ? '<div class="report-empty">No open incidents. Last resolved: ' + esc(o.incidents[0].id) + ' · ' + dateShort(o.incidents[0].resolvedAt) + '.</div>' :
+            '<table class="data"><tbody>' + open.map(function (i) { return '<tr class="click" data-go="#/incidents/' + esc(i.id) + '"><td>' + sevPill(i.severity) + '</td><td><b>' + esc(i.title) + '</b><div class="muted">' + esc(i.id) + ' · ' + esc(customer(i.customerId).name) + ' · ' + ago(i.openedAt) + '</div></td><td>' + statusPill(i.status) + '</td></tr>'; }).join('') + '</tbody></table>') +
+          '</div>' +
+          '<div class="card"><div class="hd"><h3>Recent runs</h3><span class="sub">this session</span></div>' +
+          (o.runs.length === 0 ? '<div class="report-empty">No agent runs yet this session. Open <a href="#/apps/fleet-health">Fleet Health</a> and generate a report.</div>' :
+            '<table class="data"><thead><tr><th>Run</th><th>Agent</th><th>Customer</th><th>Status</th><th class="num">Duration</th></tr></thead><tbody>' + o.runs.slice(0, 6).map(function (r) {
+              return '<tr><td class="mono">' + esc(r.reportId) + '</td><td>' + esc(agent(r.agentId).name) + '</td><td>' + esc(customer(r.customerId).name) + '</td><td>' + (r.status === 'failed' ? '<span class="pill red">Failed</span>' : '<span class="pill green">Complete</span>') + '</td><td class="num">' + (r.durationMs / 1000).toFixed(2) + ' s</td></tr>';
+            }).join('') + '</tbody></table>') +
+          '</div></div></div>';
+      }
+
+      function pageAgents(o) {
+        return crumbs([{ label: 'Agent Library' }]) + head('Agent Library', 'Configurable agents defined by a spec: objective, tools and data connections. Every agent reuses what already exists in the ontology.', '<button class="btn secondary" type="button" disabled>New agent</button>') +
+          '<div class="card"><table class="data"><thead><tr><th>Agent</th><th>Objective</th><th>Owner team</th><th>Data products</th><th>Model · runtime</th><th>Customers</th><th class="num">Runs / wk</th><th>Status</th></tr></thead><tbody>' +
+          o.agents.map(function (a) {
+            return '<tr class="click" data-go="#/agents/' + esc(a.id) + '"><td><b>' + esc(a.name) + '</b><div class="muted mono">v' + esc(a.version) + '</div></td><td style="max-width:320px">' + esc(a.objective) + '</td><td>' + esc(a.ownerTeam) + '</td><td>' + a.dataProducts.map(function (d) { return '<span class="chip">' + esc(product(d).name) + '</span>'; }).join('') + '</td><td class="muted">' + esc(a.model) + '</td><td>' + a.customers.map(function (c) { return '<span class="chip blue">' + esc(customer(c).name) + '</span>'; }).join('') + '</td><td class="num">' + num(a.runsThisWeek) + '</td><td>' + statusPill(a.status) + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+      }
+
+      function yamlSpec(a) {
+        var y = function (k, v) { return '<span class="k">' + esc(k) + ':</span> ' + (v === undefined ? '' : '<span class="s">' + esc(v) + '</span>'); };
+        var lines = [
+          '<span class="c"># agent spec · ' + esc(a.id) + ' · v' + esc(a.version) + '</span>',
+          y('name', a.name),
+          y('owner_team', a.ownerTeam),
+          y('status', a.status),
+          y('objective', '>'),
+          '  <span class="s">' + esc(a.objective) + '</span>',
+          y('runtime'),
+          '  ' + y('provider', 'azure-foundry'),
+          '  ' + y('model', a.model.split(' · ')[0]),
+          '  ' + y('region', (a.model.match(/\(([^)]+)\)/) || [])[1] || 'eastus2'),
+          y('data_connections'),
+        ].concat(a.dataProducts.map(function (d) { var p = product(d); return '  - ' + y('product', p.id) + '  <span class="c"># schema ' + esc(p.schemaVersion) + '</span>'; }))
+          .concat([y('tools')]).concat(a.tools.map(function (t) { return '  - <span class="s">' + esc(t) + '</span>'; }))
+          .concat([y('customers')]).concat(a.customers.map(function (c) { return '  - <span class="s">' + esc(c) + '</span>  <span class="c"># ' + esc(customer(c).name) + '</span>'; }))
+          .concat([y('guardrails'), '  ' + y('writes_to_prod', 'false'), '  ' + y('maintainer', 'devin  <span class="c"># incidents and fixes only; not the agent runtime</span>')]);
+        return '<pre class="yaml">' + lines.join('\n') + '</pre>';
+      }
+
+      function showAgent(id) {
+        var a = agent(id);
+        if (!a.objective) return;
+        openDrawer(a.name, 'Agent spec · read-only', '<dl class="facts"><dt>Owner team</dt><dd>' + esc(a.ownerTeam) + '</dd><dt>Model</dt><dd>' + esc(a.model) + '</dd><dt>Status</dt><dd>' + statusPill(a.status) + '</dd><dt>Customers</dt><dd>' + a.customers.map(function (c) { return '<span class="chip blue">' + esc(customer(c).name) + '</span>'; }).join('') + '</dd></dl><div style="height:14px"></div>' + yamlSpec(a));
+      }
+
+      function pageApps(o) {
+        return crumbs([{ label: 'Apps' }]) + head('Apps', 'Customer-facing apps built on library agents. Plan against the ontology, pick a generated UI, then build, test, approve and launch.') +
+          '<div class="grid cards3">' + o.apps.map(function (app) {
+            return '<div class="card"><div class="hd"><h3>' + esc(app.name) + '</h3><div class="right">' + statusPill(app.status) + '</div></div><div class="bd"><p style="margin:0 0 10px;color:var(--v-muted)">' + esc(app.description) + '</p><dl class="facts"><dt>Agents</dt><dd>' + app.agents.map(function (id) { return '<span class="chip">' + esc(agent(id).name) + '</span>'; }).join('') + '</dd><dt>Customers</dt><dd>' + app.customers.map(function (c) { return '<span class="chip blue">' + esc(customer(c).name) + '</span>'; }).join('') + '</dd><dt>Owner</dt><dd>' + esc(app.owner) + '</dd><dt>UI</dt><dd>' + esc(app.ui) + '</dd></dl><div style="margin-top:14px">' + (app.id === 'fleet-health' ? '<a class="btn primary" href="#/apps/fleet-health" style="display:inline-block">Open Fleet Health</a>' : '<button class="btn secondary" type="button" disabled>Open</button>') + '</div></div></div>';
+          }).join('') + '</div>';
+      }
+
+      function pageFleetHealth(o) {
+        var c = customer(state.viewAs);
+        var fleet = o.fleets[c.id] || [];
+        var alerts = fleet.filter(function (e) { return e.egtMarginC < 25; }).map(function (e) { return { esn: e.esn, text: e.tail + ' #' + e.position + ' (' + e.esn + ') EGT margin ' + e.egtMarginC.toFixed(1) + ' °C — ' + (e.egtMarginC < 20 ? 'below 20 °C threshold, plan performance restoration' : 'approaching 20 °C threshold') }; });
+        var cell = (o.grid.filter(function (r) { return r.agentId === 'fleet-health-report'; })[0] || { cells: [] }).cells.filter(function (x) { return x.customerId === c.id; })[0];
+        var report = state.reports[c.id] || null;
+        var err = state.reportErrors[c.id] || null;
+        return crumbs([{ label: 'Apps', href: '#/apps' }, { label: 'Fleet Health' }]) + head('Fleet Health', 'Per-customer engine health, open alerts and a generated fleet report from the Fleet Health Report agent.') +
+          '<div class="app-bar"><span class="lbl">View as</span><select class="ctl" id="view-as">' + o.customers.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === c.id ? ' selected' : '') + '>' + esc(x.name) + ' · ' + esc(x.type) + '</option>'; }).join('') + '</select>' +
+          '<span class="muted">' + esc(c.region) + ' · ' + esc(c.fleet) + ' · ' + esc(c.engines) + ' engines</span>' +
+          '<span class="meta">Agent health for this customer: ' + (cell ? '<span class="pill ' + (cell.state === 'red' ? 'red' : cell.state === 'yellow' ? 'amber' : 'green') + '">' + (cell.state === 'red' ? 'Failing' : cell.state === 'yellow' ? 'Degraded' : 'Healthy') + '</span>' : '—') + '</span></div>' +
+          '<div class="grid kpi" style="grid-template-columns:repeat(4,1fr)">' +
+          kpi('Engines', fleet.length, '', c.fleet) +
+          kpi('Open alerts', alerts.length, alerts.length ? 'red' : 'green', 'EGT margin') +
+          kpi('Mean EGT margin', (fleet.reduce(function (s, e) { return s + e.egtMarginC; }, 0) / Math.max(fleet.length, 1)).toFixed(1), '', '°C') +
+          kpi('Last report', report ? dateTime(report.generatedAt) : '<span class="muted" style="font-size:16px">none this session</span>') +
+          '</div>' +
+          '<div class="grid two" style="margin-top:14px;grid-template-columns:1.6fr 1fr">' +
+          '<div class="card"><div class="hd"><h3>Engine health</h3><span class="sub">Asset Records · schema ' + esc(product('asset-records').schemaVersion) + '</span></div><table class="data"><thead><tr><th>Tail</th><th>ESN</th><th>Model</th><th class="num">TSN</th><th class="num">CSN</th><th class="num">EGT margin</th><th>Last shop visit</th></tr></thead><tbody>' +
+          fleet.map(function (e) {
+            return '<tr><td><b>' + esc(e.tail) + '</b> <span class="muted">#' + e.position + '</span></td><td class="mono">' + esc(e.esn) + '</td><td>' + esc(e.model) + '</td><td class="num">' + num(e.tsn) + '</td><td class="num">' + num(e.csn) + '</td><td class="num" style="color:' + (e.egtMarginC < 20 ? 'var(--v-red)' : e.egtMarginC < 25 ? 'var(--v-amber)' : 'inherit') + '">' + e.egtMarginC.toFixed(1) + ' °C</td><td>' + (e.lastShopVisit ? esc(dateShort(e.lastShopVisit.date)) + ' <span class="muted">· ' + esc(e.lastShopVisit.shop) + ' · ' + esc(e.lastShopVisit.workscope) + '</span>' : '<span class="muted">None · delivered ' + esc(dateShort(e.deliveredAt)) + '</span>') + '</td></tr>';
+          }).join('') + '</tbody></table></div>' +
+          '<div class="card"><div class="hd"><h3>Alerts</h3><span class="sub">' + alerts.length + ' open</span></div>' + (alerts.length ? '<ul class="alerts">' + alerts.map(function (a) { return '<li><span class="pill ' + (a.text.indexOf('below') > -1 ? 'red' : 'amber') + '" style="flex:none">EGT</span><span>' + esc(a.text) + '</span></li>'; }).join('') + '</ul>' : '<div class="report-empty">No open alerts for ' + esc(c.name) + '.</div>') + '</div>' +
+          '</div>' +
+          '<div class="card" style="margin-top:14px"><div class="hd"><h3>Generated report</h3><span class="sub">Fleet Health Report agent · ' + esc(agent('fleet-health-report').model) + '</span><div class="right"><button class="btn primary" id="report-btn" type="button">Generate report</button></div></div>' +
+          (err ? '<div class="report-error"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><div><b>We couldn\u2019t generate this report</b><div>The Fleet Health Report agent returned an error while reading ' + esc(c.name) + '\u2019s engine records. The operations team has been notified automatically and an incident is open.</div><div class="ref">Reference ' + esc(err.reportId) + ' · ' + esc(err.incidentId || 'incident pending') + ' · <a href="#/incidents">view incident</a></div></div></div>' : '') +
+          (report ? '<div class="report-summary">' + esc(report.summary) + '</div><table class="data"><thead><tr><th>#</th><th>Tail</th><th>ESN</th><th class="num">Cycles since SV</th><th class="num">Soft life used</th><th class="num">EGT margin</th><th>Last shop visit</th><th>Health</th></tr></thead><tbody>' +
+            report.engines.map(function (e, i) { return '<tr><td class="muted">' + (i + 1) + '</td><td><b>' + esc(e.tail) + '</b> <span class="muted">#' + e.position + '</span></td><td class="mono">' + esc(e.esn) + '</td><td class="num">' + num(e.cyclesSinceShopVisit) + '</td><td class="num">' + e.softLifeUsedPct.toFixed(1) + '%</td><td class="num">' + e.egtMarginC.toFixed(1) + ' °C</td><td>' + esc(dateShort(e.lastShopVisit.date)) + ' <span class="muted">· ' + esc(e.lastShopVisit.shop) + '</span></td><td>' + (e.health === 'watch' ? '<span class="pill red">Watch</span>' : e.health === 'monitor' ? '<span class="pill amber">Monitor</span>' : '<span class="pill green">Healthy</span>') + '</td></tr>'; }).join('') + '</tbody></table>' : '') +
+          (!report && !err ? '<div class="report-empty">No report generated for ' + esc(c.name) + ' in this session. Generate one to get the ranked watch list and shop-visit candidate.</div>' : '') +
+          '</div>';
+      }
+
+      function pageData(o) {
+        return crumbs([{ label: 'Data Products' }]) + head('Data Products', 'Governed data products from the ontology. Agents connect to these rather than rebuilding their own pipelines.') +
+          '<div class="card"><table class="data"><thead><tr><th>Data product</th><th>Schema</th><th>Last change</th><th>Author</th><th>Change</th><th>Depended on by</th><th></th></tr></thead><tbody>' +
+          o.dataProducts.map(function (d) {
+            var recent = (Date.now() - new Date(d.lastChange).getTime()) < 7 * 86400000;
+            return '<tr class="click" data-go="#/data/' + esc(d.id) + '"><td><b>' + esc(d.name) + '</b><div class="muted">' + esc(d.description) + '</div></td><td class="mono">' + esc(d.schemaVersion) + '<div class="muted">from ' + esc(d.previousVersion) + '</div></td><td>' + esc(dateShort(d.lastChange)) + ' ' + (recent ? '<span class="badge-new">recent</span>' : '') + '<div class="muted">' + ago(d.lastChange) + '</div></td><td class="mono">' + esc(d.changeAuthor) + '<div class="muted" style="font-family:var(--v-font)">' + esc(d.changeTeam) + '</div></td><td style="max-width:320px"><span class="mono">' + esc(d.changeId) + '</span> <span class="muted">' + esc(d.changeSummary) + '</span></td><td>' + d.dependents.map(function (id) { return '<span class="chip">' + esc(agent(id).name) + '</span>'; }).join('') + '</td><td><a href="#/data/' + esc(d.id) + '">Schema →</a></td></tr>';
+          }).join('') + '</tbody></table></div>';
+      }
+
+      function showProduct(id) {
+        var d = product(id);
+        if (!d.fields) return;
+        openDrawer(d.name, 'Schema ' + d.schemaVersion + ' · published ' + dateTime(d.lastChange) + ' by ' + d.changeAuthor, '<dl class="facts"><dt>Owner</dt><dd>' + esc(d.owner) + '</dd><dt>Change</dt><dd><span class="mono">' + esc(d.changeId) + '</span> — ' + esc(d.changeSummary) + '</dd><dt>Depended on by</dt><dd>' + d.dependents.map(function (a) { return '<span class="chip">' + esc(agent(a).name) + '</span>'; }).join('') + '</dd></dl><div style="height:14px"></div><table class="data"><thead><tr><th>Field</th><th>Type</th><th>Nullable</th><th></th></tr></thead><tbody>' +
+          d.fields.map(function (f) { return '<tr' + (f.changedIn ? ' class="changed"' : '') + '><td class="mono">' + esc(f.name) + '</td><td class="mono">' + esc(f.type) + '</td><td>' + (f.nullable ? 'yes' : 'no') + '</td><td>' + (f.changedIn ? '<span class="badge-new">changed in ' + esc(f.changedIn) + '</span>' : '') + '</td></tr>'; }).join('') + '</tbody></table>');
+      }
+
+      function pageOps(o) {
+        return crumbs([{ label: 'Operations' }]) + head('Operations', 'Health of every agent and app per customer — error rate, p95 latency and uptime over the last hour, across Azure and AWS in one view.') +
+          '<div class="card"><div class="bd">' + miniGrid(o) + '<div class="legend"><span><i style="background:var(--v-green)"></i>Healthy</span><span><i style="background:var(--v-amber)"></i>Degraded</span><span><i style="background:var(--v-red)"></i>Failing — incident open</span><span><i style="background:var(--v-line)"></i>Not deployed for customer</span></div></div></div>';
+      }
+
+      function pageIncidents(o) {
+        var open = o.incidents.filter(function (i) { return i.status !== 'Resolved'; });
+        var resolved = o.incidents.filter(function (i) { return i.status === 'Resolved'; });
+        var row = function (i) {
+          return '<tr class="click" data-go="#/incidents/' + esc(i.id) + '"><td class="mono">' + esc(i.id) + '</td><td>' + sevPill(i.severity) + '</td><td><b>' + esc(i.title) + '</b></td><td>' + esc(customer(i.customerId).name) + '</td><td>' + esc(agent(i.agentId).name) + '</td><td>' + statusPill(i.status) + '</td><td class="muted">' + esc(dateTime(i.openedAt)) + '</td><td class="link-row">' + (i.rca ? '<a href="#/incidents/' + esc(i.id) + '">RCA</a>' : '<span class="pending">RCA pending</span>') + ' · ' + (i.pr ? '<a href="' + esc(i.pr.url) + '">PR</a>' : '<span class="pending">PR pending</span>') + ' · ' + (i.session ? '<a href="' + esc(i.session.url) + '" target="_blank" rel="noopener">Devin session</a>' : '<span class="pending">session</span>') + '</td></tr>';
+        };
+        var table = function (rows) { return '<table class="data"><thead><tr><th>Incident</th><th>Sev</th><th>Title</th><th>Customer</th><th>Agent</th><th>Status</th><th>Opened</th><th>Links</th></tr></thead><tbody>' + rows.map(row).join('') + '</tbody></table>'; };
+        return crumbs([{ label: 'Incidents' }]) + head('Incidents', 'Every production incident on the workbench, with its RCA, pull request and Devin session as the audit trail.') +
+          '<div class="card"><div class="hd"><h3>Open</h3><span class="sub">' + open.length + '</span></div>' + (open.length ? table(open) : '<div class="report-empty">No open incidents.</div>') + '</div>' +
+          '<div class="card" style="margin-top:14px"><div class="hd"><h3>Resolved</h3><span class="sub">' + resolved.length + ' · last 30 days</span></div>' + table(resolved) + '</div>' +
+          '<div style="margin-top:14px" class="guard">' +
+          '<div class="g"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><div><b>Devin never changes prod directly</b>Every fix ships as a pull request that a human approves and the normal pipeline deploys.</div></div>' +
+          '<div class="g"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><div><b>Complete, linkable audit trail</b>Each incident keeps its RCA, PR, timeline and the full Devin session.</div></div>' +
+          '<div class="g"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg><div><b>Maintainer only</b>Devin appears in Incidents and Operations. Customer-facing agents run on Azure Foundry, not on Devin.</div></div>' +
+          '</div>';
+      }
+
+      function pageIncident(o, id) {
+        var i = o.incidents.filter(function (x) { return x.id === id; })[0];
+        if (!i) return pageIncidents(o);
+        var pending = '<span class="pending">Pending — Devin is investigating</span>';
+        return crumbs([{ label: 'Incidents', href: '#/incidents' }, { label: i.id }]) + head(i.title, null, sevPill(i.severity) + statusPill(i.status)) +
+          '<div class="grid two" style="grid-template-columns:1.5fr 1fr">' +
+          '<div style="display:grid;gap:14px;align-content:start">' +
+          '<div class="card"><div class="hd"><h3>Summary</h3></div><div class="bd"><dl class="facts"><dt>Incident</dt><dd class="mono">' + esc(i.id) + '</dd><dt>Customer</dt><dd>' + esc(customer(i.customerId).name) + '</dd><dt>Agent</dt><dd>' + esc(agent(i.agentId).name) + '</dd><dt>Opened</dt><dd>' + esc(dateTime(i.openedAt)) + '</dd><dt>Resolved</dt><dd>' + (i.resolvedAt ? esc(dateTime(i.resolvedAt)) : '<span class="pending">open</span>') + '</dd>' + (i.error ? '<dt>Error</dt><dd class="mono" style="color:var(--v-red)">' + esc(i.error) + '</dd>' : '') + '</dl></div></div>' +
+          '<div class="card"><div class="hd"><h3>Root-cause analysis</h3><span class="sub">posted by Devin</span></div><div class="bd"><dl class="facts"><dt>What broke</dt><dd>' + (i.rca ? esc(i.rca) : pending) + '</dd><dt>Who is affected</dt><dd>' + esc(i.affected) + '</dd><dt>Root-cause change</dt><dd>' + (i.rootCause ? esc(i.rootCause) : pending) + '</dd><dt>Confidence</dt><dd>' + (i.confidence ? esc(i.confidence) : pending) + '</dd><dt>Recommended owner</dt><dd>' + (i.recommendedOwner ? esc(i.recommendedOwner) : pending) + '</dd><dt>Note for account team</dt><dd>' + (i.accountNote ? '<em>“' + esc(i.accountNote) + '”</em>' : pending) + '</dd></dl></div></div>' +
+          '</div>' +
+          '<div style="display:grid;gap:14px;align-content:start">' +
+          '<div class="card"><div class="hd"><h3>Links</h3></div><div class="bd"><dl class="facts"><dt>RCA</dt><dd>' + (i.rca ? '<a href="#">RCA · ' + esc(i.id) + '</a>' : '<span class="pending">pending</span>') + '</dd><dt>Pull request</dt><dd>' + (i.pr ? '<a href="' + esc(i.pr.url) + '">' + esc(i.pr.label) + '</a>' : '<span class="pending">pending</span>') + '</dd><dt>Devin session</dt><dd>' + (i.session ? '<a href="' + esc(i.session.url) + '" target="_blank" rel="noopener">' + esc(i.session.label) + '</a>' : '<span class="pending">starting…</span>') + '</dd></dl></div></div>' +
+          '<div class="card"><div class="hd"><h3>Timeline</h3></div><div class="bd"><ul class="timeline">' + i.timeline.map(function (t) { return '<li><span class="t">' + esc(dateTime(t.at)) + '</span>' + esc(t.event) + '</li>'; }).join('') + (i.status !== 'Resolved' ? '<li><span class="t">next</span><span class="pending">RCA posted → PR opened → human approval → deploy → resolved</span></li>' : '') + '</ul></div></div>' +
+          '</div></div>';
+      }
+
+      function parseRoute() {
+        var hash = (location.hash || '#/home').replace(/^#\/?/, '');
+        var parts = hash.split('/');
+        return { page: parts[0] || 'home', id: parts[1] || null };
+      }
+
+      function render() {
+        var o = state.overview;
+        if (!o) return;
+        state.route = parseRoute();
+        renderChrome();
+        var main = document.getElementById('main');
+        var r = state.route;
+        if (r.page === 'agents') { main.innerHTML = pageAgents(o); if (r.id) showAgent(r.id); else closeDrawer(); }
+        else if (r.page === 'apps' && r.id === 'fleet-health') { main.innerHTML = pageFleetHealth(o); closeDrawer(); bindFleetHealth(); }
+        else if (r.page === 'apps') { main.innerHTML = pageApps(o); closeDrawer(); }
+        else if (r.page === 'data') { main.innerHTML = pageData(o); if (r.id) showProduct(r.id); else closeDrawer(); }
+        else if (r.page === 'ops') { main.innerHTML = pageOps(o); closeDrawer(); }
+        else if (r.page === 'incidents' && r.id) { main.innerHTML = pageIncident(o, r.id); closeDrawer(); }
+        else if (r.page === 'incidents') { main.innerHTML = pageIncidents(o); closeDrawer(); }
+        else { state.route.page = 'home'; renderChrome(); main.innerHTML = pageHome(o); closeDrawer(); }
+      }
+
+      function bindFleetHealth() {
+        document.getElementById('view-as').addEventListener('change', function (e) {
+          state.viewAs = e.target.value;
+          render();
+        });
+        var btn = document.getElementById('report-btn');
+        btn.addEventListener('click', generateReport);
+        if (state.running) { btn.disabled = true; btn.textContent = 'Generating…'; }
+      }
+
+      function loadOverview() {
+        return fetch(API + '/overview').then(function (r) { return r.json(); }).then(function (o) {
+          state.overview = o;
+          render();
+        });
+      }
+
+      function generateReport() {
+        if (state.running) return;
+        state.running = true;
+        var customerId = state.viewAs;
+        var btn = document.getElementById('report-btn');
+        btn.disabled = true;
+        btn.textContent = 'Generating…';
+        document.getElementById('reset-btn').disabled = true;
+        fetch(API + '/fleet-health/report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: customerId,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        }).then(function (r) {
+          return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+        }).then(function (res) {
+          if (res.ok) {
+            state.reports[customerId] = res.body.report;
+            delete state.reportErrors[customerId];
+            toast('ok', 'Fleet Health report generated', res.body.report.reportId + ' for ' + customer(customerId).name + ' · ' + res.body.report.engines.length + ' engines assessed.');
+          } else {
+            delete state.reports[customerId];
+            state.reportErrors[customerId] = { customerId: customerId, reportId: null, incidentId: null, error: res.body.error };
+            toast('error', 'Fleet Health report failed for ' + customer(customerId).name, 'The Fleet Health Report agent returned an error. Alert sent to the incident channel; Devin is picking it up.');
+          }
+          return loadOverview();
+        }).then(function () {
+          var pendingError = state.reportErrors[customerId];
+          if (pendingError) {
+            var run = state.overview.runs.filter(function (x) { return x.customerId === customerId && x.status === 'failed'; })[0];
+            var inc = state.overview.incidents.filter(function (x) { return x.customerId === customerId && x.status !== 'Resolved'; })[0];
+            pendingError.reportId = run ? run.reportId : 'n/a';
+            pendingError.incidentId = inc ? inc.id : null;
+            render();
+          }
+        }).catch(function () {
+          toast('error', 'Fleet Health report failed', 'The workbench API did not respond.');
+        }).then(function () {
+          state.running = false;
+          document.getElementById('reset-btn').disabled = false;
+          var b = document.getElementById('report-btn');
+          if (b) { b.disabled = false; b.textContent = 'Generate report'; }
+        });
+      }
+
+      function resetDemo() {
+        if (state.running) return;
+        var btn = document.getElementById('reset-btn');
+        btn.disabled = true;
+        fetch(API + '/fleet-health/reset', { method: 'POST' }).then(function (r) { return r.json(); }).then(function () {
+          state.reports = {};
+          state.reportErrors = {};
+          state.viewAs = 'AIR-A';
+          return loadOverview();
+        }).then(function () {
+          toast('ok', 'Reset', 'Back to the opening state · all systems nominal.');
+        }).catch(function () {}).then(function () { btn.disabled = false; });
+      }
+
+      document.addEventListener('click', function (e) {
+        var go = e.target.closest('[data-go]');
+        if (go) { location.hash = go.getAttribute('data-go'); }
+      });
+      window.addEventListener('hashchange', render);
+      document.getElementById('drawer-x').addEventListener('click', function () {
+        closeDrawer();
+        var r = parseRoute();
+        if (r.id && (r.page === 'agents' || r.page === 'data')) location.hash = '#/' + r.page;
+      });
+      document.getElementById('reset-btn').addEventListener('click', resetDemo);
+      bootstrapIdentity();
+      loadOverview();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
