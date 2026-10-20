@@ -84,6 +84,17 @@ describe('Devin org resolution for direct (non-browser) reports', () => {
     expect(scheduleVulnerablePR).toHaveBeenCalledWith(0, '5b992ae7', 'user-portal', 'org-portal');
   });
 
+  test('forwards a vertical-specific delay to the security remediation flow', async () => {
+    await createSessionAndAlert({ ...portalAlert, vulnerablePrDelayMs: 180000 });
+
+    expect(scheduleVulnerablePR).toHaveBeenCalledWith(
+      180000,
+      '5b992ae7',
+      'user-portal',
+      'org-portal',
+    );
+  });
+
   test('report-supplied org/user still win over customer config', async () => {
     await createSessionAndAlert({
       ...portalAlert,
