@@ -793,6 +793,8 @@
         try { mods = JSON.parse(el.getAttribute('data-interaction-modifiers')); } catch (e) { return; }
         el.addEventListener('click', function (ev) {
           ev.preventDefault();
+          var locking = el.classList.contains('mobile-menu-trigger') && !document.body.classList.contains('mobile-nav-open');
+          if (locking) el.dataset.savedY = String(window.scrollY);
           mods.forEach(function (m) {
             var root = m.interactionScope === 'parent' ? el.closest(m.interactionParent) : document;
             if (!root) return;
@@ -802,6 +804,9 @@
               else t.classList.toggle(cls);
             });
           });
+          if (el.classList.contains('mobile-menu-trigger')) {
+            if (!locking) window.scrollTo(0, parseInt(el.dataset.savedY || '0', 10));
+          }
         });
       });
     })();
