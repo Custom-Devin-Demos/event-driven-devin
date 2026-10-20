@@ -678,6 +678,9 @@ router.post('/api/oncall/privatecloud/deployments', async (req, res) => {
       siteId: body.siteId || 'rr-dc02',
       clusterName: body.clusterName,
       nodeCount: body.nodeCount == null ? 4 : body.nodeCount,
+      storagePolicy: body.storagePolicy,
+      target: body.target,
+      secret: body.secret,
     }));
   } catch (error) {
     res.status(error.code === 'INVALID_DEPLOYMENT' ? 400 : 500).json({

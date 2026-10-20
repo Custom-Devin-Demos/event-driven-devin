@@ -97,11 +97,30 @@ describe('357c3b76 Dell Automation Platform blueprint deploy on-call skin', () =
     expect(body.storage).toEqual(expect.objectContaining({ array: expect.any(String), protocol: expect.any(String) }));
   });
 
-  test('unknown blueprints, sites and out-of-range node counts return 400', async () => {
+  test('wizard selections are applied and echoed in the plan', async () => {
+    const res = await post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-openshift', siteId: 'rr-dc02', clusterName: 'dpc-rr02-prod-02', nodeCount: 3, storagePolicy: 'performance', target: 'bare-metal', secret: 'dpc-shared-admin-credentials' });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toMatchObject({ success: true, secret: 'dpc-shared-admin-credentials', target: 'Bare metal (managed by orchestrator)' });
+    expect(body.storage).toMatchObject({ datastoreTemplate: 'perf-nodedupe', policy: 'Performance (NVMe/TCP, no dedupe)' });
+  });
+
+  test('Nutanix deploys to the XR8000 edge site but R760 blueprints do not', async () => {
+    const ok = await post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-nutanix', siteId: 'lim-edge04', clusterName: 'dpc-lim04-prod-01', nodeCount: 3 });
+    expect(ok.status).toBe(200);
+    expect(await ok.json()).toMatchObject({ success: true, nodes: '3 \u00d7 PowerEdge XR8000' });
+    const bad = await post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-openshift', siteId: 'lim-edge04', clusterName: 'dpc-lim04-prod-01', nodeCount: 3 });
+    expect(bad.status).toBe(400);
+    expect(await bad.json()).toMatchObject({ success: false, code: 'INVALID_DEPLOYMENT' });
+  });
+
+  test('unknown blueprints, sites, options and out-of-range node counts return 400', async () => {
     const bad = await Promise.all([
       post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-azure', siteId: 'rr-dc02', nodeCount: 4 }),
       post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-openshift', siteId: 'mars-01', nodeCount: 4 }),
-      post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-openshift', siteId: 'lim-edge04', nodeCount: 12 }),
+      post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-nutanix', siteId: 'lim-edge04', nodeCount: 12 }),
+      post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-openshift', siteId: 'rr-dc02', nodeCount: 4, target: 'vcenter' }),
+      post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-openshift', siteId: 'rr-dc02', nodeCount: 4, storagePolicy: 'gold' }),
     ]);
     bad.forEach((res) => expect(res.status).toBe(400));
   });

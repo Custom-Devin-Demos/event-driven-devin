@@ -11,10 +11,22 @@ const ROUTE = '/api/oncall/privatecloud/deployments';
  * against.
  */
 const BLUEPRINTS = {
-  'dpc-vsphere': { name: 'Dell Private Cloud \u2014 VMware vSphere 8', version: '2.1.0', ecosystem: 'VMware', storageCode: 'PS-3200T-PRIME', minNodes: 4, maxNodes: 16 },
-  'dpc-openshift': { name: 'Dell Private Cloud \u2014 Red Hat OpenShift', version: '1.3.0', ecosystem: 'Red Hat', storageCode: 'PS-1200T', minNodes: 3, maxNodes: 16 },
-  'dpc-nutanix': { name: 'Dell Private Cloud \u2014 Nutanix AHV', version: '1.0.2', ecosystem: 'Nutanix', storageCode: 'PF-R760', minNodes: 3, maxNodes: 16 },
+  'dpc-vsphere': { name: 'Dell Private Cloud \u2014 VMware vSphere 8', version: '2.1.0', ecosystem: 'VMware', storageCode: 'PS-3200T-PRIME', minNodes: 4, maxNodes: 16, hardware: ['PowerEdge R760', 'PowerEdge R760xa'], targets: ['bare-metal', 'vcenter'] },
+  'dpc-openshift': { name: 'Dell Private Cloud \u2014 Red Hat OpenShift', version: '1.3.0', ecosystem: 'Red Hat', storageCode: 'PS-1200T', minNodes: 3, maxNodes: 16, hardware: ['PowerEdge R760', 'PowerEdge R760xa'], targets: ['bare-metal'] },
+  'dpc-nutanix': { name: 'Dell Private Cloud \u2014 Nutanix AHV', version: '1.0.2', ecosystem: 'Nutanix', storageCode: 'PF-R760', minNodes: 3, maxNodes: 16, hardware: ['PowerEdge R760', 'PowerEdge R760xa', 'PowerEdge XR8000'], targets: ['bare-metal'] },
 };
+
+/**
+ * Storage policies an operator can pick in the wizard; `default` keeps the
+ * blueprint's datastore template.
+ */
+const STORAGE_POLICIES = {
+  default: { label: 'Blueprint default' },
+  performance: { label: 'Performance (NVMe/TCP, no dedupe)', datastoreTemplate: 'perf-nodedupe' },
+  capacity: { label: 'Capacity (compressed, replicated)', datastoreTemplate: 'capacity-replicated' },
+};
+
+const SECRETS = ['dpc-rr02-admin-credentials', 'dpc-shared-admin-credentials'];
 
 /**
  * Storage profiles per array model, from the storage services catalog. The
@@ -45,9 +57,12 @@ async function createDeployment(request, options = {}) {
   const blueprintKey = String(request.blueprintId || '').toLowerCase();
   const siteKey = String(request.siteId || '').toLowerCase();
   const nodeCount = Number(request.nodeCount);
+  const policyKey = String(request.storagePolicy || 'default').toLowerCase();
+  const targetKey = String(request.target || 'bare-metal').toLowerCase();
+  const secret = String(request.secret || SECRETS[0]);
 
   logger.info('Blueprint deployment request', {
-    deploymentId, blueprint: blueprintKey, site: siteKey, nodeCount, service: 'dap-orchestrator-api', route: ROUTE,
+    deploymentId, blueprint: blueprintKey, site: siteKey, nodeCount, storagePolicy: policyKey, target: targetKey, service: 'dap-orchestrator-api', route: ROUTE,
   });
 
   try {
@@ -58,8 +73,19 @@ async function createDeployment(request, options = {}) {
       error.code = 'INVALID_DEPLOYMENT';
       throw error;
     }
+    if (!blueprint.hardware.includes(site.model)) {
+      const error = new Error(`${site.name} (${site.model}) is not a supported hardware profile for ${blueprint.name}`);
+      error.code = 'INVALID_DEPLOYMENT';
+      throw error;
+    }
     if (!Number.isInteger(nodeCount) || nodeCount < blueprint.minNodes || nodeCount > Math.min(blueprint.maxNodes, site.endpoints)) {
       const error = new Error(`Node count ${nodeCount} is outside the range for ${blueprint.name} at ${site.name}`);
+      error.code = 'INVALID_DEPLOYMENT';
+      throw error;
+    }
+    const policy = STORAGE_POLICIES[policyKey];
+    if (!policy || !blueprint.targets.includes(targetKey) || !SECRETS.includes(secret)) {
+      const error = new Error(`Unsupported deployment options for ${blueprint.name}: policy=${policyKey} target=${targetKey}`);
       error.code = 'INVALID_DEPLOYMENT';
       throw error;
     }
@@ -67,7 +93,8 @@ async function createDeployment(request, options = {}) {
     const storage = {
       array: profile.array,
       protocol: profile.protocol,
-      datastoreTemplate: profile.datastoreTemplate,
+      datastoreTemplate: policy.datastoreTemplate || profile.datastoreTemplate,
+      policy: policy.label,
     };
     const duration = Date.now() - startTime;
 
@@ -81,6 +108,8 @@ async function createDeployment(request, options = {}) {
       blueprint: `${blueprint.name} ${blueprint.version}`,
       site: site.name,
       nodes: `${nodeCount} \u00d7 ${site.model}`,
+      target: targetKey === 'vcenter' ? 'Existing vCenter \u00b7 vcsa-rr02.corp.local' : 'Bare metal (managed by orchestrator)',
+      secret,
       storage,
       status: 'Creating deployments',
       progress: 2,
@@ -96,11 +125,11 @@ async function createDeployment(request, options = {}) {
     if (error.code !== 'INVALID_DEPLOYMENT') {
       Sentry.captureException(error, {
         tags: { route: ROUTE, service: 'dap-orchestrator-api', ...(options.synthetic ? { synthetic_probe: 'true' } : {}) },
-        extra: { deploymentId, blueprint: blueprintKey, site: siteKey, nodeCount },
+        extra: { deploymentId, blueprint: blueprintKey, site: siteKey, nodeCount, storagePolicy: policyKey },
       });
     }
     throw error;
   }
 }
 
-module.exports = { createDeployment, BLUEPRINTS, STORAGE_PROFILES, SITES };
+module.exports = { createDeployment, BLUEPRINTS, STORAGE_PROFILES, STORAGE_POLICIES, SITES };
