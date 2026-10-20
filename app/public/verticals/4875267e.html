@@ -179,6 +179,9 @@
     .result-box { display: none; margin-top: 8px; padding: 8px 10px; border-radius: 3px; text-align: left; font-size: 12px; line-height: 18px; }
     .result-box.success { display: block; background: var(--ok-bg); border: 1px solid var(--ok-line); color: var(--ok-text); }
     .result-box.error { display: block; background: var(--ng-bg); border: 1px solid var(--ng-line); color: var(--ng-text); }
+    .demo_dest_area .demo_dest_note { margin: 0 0 6px; font-size: 11px; color: #888; }
+    .demo_dest_area .adp-opt { height: 24px; padding: 0 8px; font-size: 12px; }
+    .demo_dest_area .adp-summary.warn { font-size: 11px; }
     .result-box .error-title { font-weight: 700; }
     .result-box .error-detail { word-break: break-all; }
     .map_image { margin-top: 5px; height: 200px; border: 1px solid var(--line-soft); border-radius: 2px; background: repeating-linear-gradient(0deg, #e9eef0 0 1px, transparent 1px 28px), repeating-linear-gradient(90deg, #e9eef0 0 1px, transparent 1px 28px), #f4f6f7; position: relative; overflow: hidden; }
@@ -469,6 +472,10 @@
             </form>
             <div id="result" class="result-box"></div>
           </div>
+          <div class="group_inner demo_dest_area">
+            <p class="demo_dest_note">デモ設定（デモ専用・このブラウザのみ）</p>
+            <div id="alertDest"></div>
+          </div>
           <div class="group_inner conflict_join_area">
             <p>開催日時が重複しているイベントに申し込んでいる場合、このイベントには申し込むことができません</p>
           </div>
@@ -564,12 +571,34 @@
       }).catch(function () {});
     })();
   </script>
+  <script src="/alert-destination.js"></script>
+  <script>
+    (function () {
+      var picker = window.AlertDestination.mount(document.getElementById('alertDest'), {
+        labels: {
+          title: 'アラート送信先',
+          slack: 'Slack',
+          teams: 'Microsoft Teams',
+          teamsUnavailable: 'このサーバーでは Teams が未設定のため、アラートは <b>Slack</b> に送信されます。',
+          teamsSelected: 'アラートは <b>Microsoft Teams</b> に送信されます（Slack には送信されません）。',
+          slackSelected: 'アラートは <b>Slack</b> に送信されます（Teams には送信されません）。'
+        }
+      });
+      // The on-call alert track (/oncall/c/…) and the bare page's error track
+      // post to Teams through different webhooks; ask the one this page uses.
+      var shimmedPage = location.pathname.indexOf('/oncall/') === 0;
+      fetch(shimmedPage ? '/api/oncall/scenarios' : '/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        picker.setTeamsAvailable(Boolean(shimmedPage ? cfg.teamsDefaultWebhook : cfg.teamsAlerts));
+      }).catch(function () {});
+    })();
+  </script>
   <script>
     (function () {
       var form = document.getElementById('provisionForm');
       var btn = document.getElementById('submitBtn');
       var result = document.getElementById('result');
       var productSel = document.getElementById('product');
+      var REGISTER_TIMEOUT_MS = 4000;
       var SLOT_LABELS = { general: '一般参加枠', lt: 'LT 登壇枠（5分）', online: 'オンライン参加枠（配信視聴）' };
 
       function slotCounter(slot) {
@@ -677,11 +706,27 @@
               referral: document.getElementById('region').value,
               message: document.getElementById('message').value
             };
-          var res = await fetch(apiPath, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(Object.assign(payload, identity))
-          });
+          // Under the shim the registration API is degraded and slow: give up
+          // after REGISTER_TIMEOUT_MS and show the attendee a timeout error.
+          var controller = shimmed && window.AbortController ? new AbortController() : null;
+          var timer = controller ? setTimeout(function () { controller.abort(); }, REGISTER_TIMEOUT_MS) : null;
+          var res;
+          try {
+            res = await fetch(apiPath, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(Object.assign(payload, identity)),
+              signal: controller ? controller.signal : undefined
+            });
+          } catch (fetchErr) {
+            if (controller && controller.signal.aborted) {
+              showResult('error', '申し込みを完了できませんでした', 'TimeoutError: サーバーから ' + (REGISTER_TIMEOUT_MS / 1000) + ' 秒以内に応答がなかったため、申し込みを中断しました（HTTP 504 Gateway Timeout）。しばらくしてから再度お試しください。');
+              return;
+            }
+            throw fetchErr;
+          } finally {
+            if (timer) clearTimeout(timer);
+          }
           var data = await res.json();
           if (!res.ok) {
             showResult('error', '申し込みを完了できませんでした', (data.errorClass || 'Error') + ': ' + (data.error || ''));

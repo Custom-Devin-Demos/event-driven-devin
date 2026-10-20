@@ -571,6 +571,7 @@ const ONCALL_STRINGS = {
     triggeredBy: 'Triggered by',
     monitorQuery: 'Monitor query',
     affectedPage: 'Affected page',
+    openAffectedPage: 'Open affected page',
     viewDatadog: 'View in Datadog',
     submittedFrom: 'Submitted from',
     investigatingText: (url) => `Devin is investigating: ${url}`,
@@ -605,6 +606,7 @@ const ONCALL_STRINGS = {
     triggeredBy: 'Activado por',
     monitorQuery: 'Consulta del monitor',
     affectedPage: 'Página afectada',
+    openAffectedPage: 'Abrir página afectada',
     viewDatadog: 'Ver en Datadog',
     submittedFrom: 'Enviado desde',
     investigatingText: (url) => `Devin está investigando: ${url}`,
@@ -639,6 +641,7 @@ const ONCALL_STRINGS = {
     triggeredBy: '発報者',
     monitorQuery: 'モニタークエリ',
     affectedPage: '影響ページ',
+    openAffectedPage: '影響ページを開く',
     viewDatadog: 'Datadogで表示',
     submittedFrom: '送信元',
     investigatingText: (url) => `Devinが調査中です: ${url}`,
@@ -989,33 +992,34 @@ function validEmail(email) {
  */
 async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef, events, firstSeen, triggeredByEmail }) {
   const demoPath = demoPagePath(scenario, skin);
+  const t = oncallStrings(skin);
   const teamsCard = buildTeamsAlertCard({
-    title: `\u{1F6A8} [Triggered] ${card.monitor}`,
+    title: `\u{1F6A8} [${t.triggered}] ${card.monitor}`,
     facts: [
-      ['Service', `${card.service} (${brand})`],
-      ['Endpoint', card.endpoint],
-      ['Metric value', card.metricValue],
-      ['Threshold', card.threshold],
-      ['Baseline', card.baseline],
-      ['Release', card.release],
-      ['Events', `${events} | First: ${firstSeen.toISOString()}`],
-      ['Triggered by', triggeredByEmail],
+      [t.service, `${card.service} (${brand})`],
+      [t.endpoint, card.endpoint],
+      [t.metricValue, card.metricValue],
+      [t.threshold, card.threshold],
+      [t.baseline, card.baseline],
+      [t.release, card.release],
+      [t.events, `${events} | ${t.first}: ${firstSeen.toISOString()}`],
+      [t.triggeredBy, triggeredByEmail],
     ],
     monitorQuery: card.metricQuery,
     // Top-level TextBlocks: the Teams responder drops FactSet rows.
     body: [
-      `**Owner:** ${ownerRotation(card.owner)}`,
-      demoPath ? `**Affected page:** ${DEMO_BASE_URL()}${demoPath}` : null,
+      `**${t.owner}:** ${ownerRotation(card.owner)}`,
+      demoPath ? `**${t.affectedPage}:** ${DEMO_BASE_URL()}${demoPath}` : null,
       `Repo: ${REPO_URL}`,
     ],
     actions: [
-      { title: 'View in Datadog', url: DD_URL() },
-      demoPath ? { title: 'Open affected page', url: `${DEMO_BASE_URL()}${demoPath}` } : null,
+      { title: t.viewDatadog, url: DD_URL() },
+      demoPath ? { title: t.openAffectedPage, url: `${DEMO_BASE_URL()}${demoPath}` } : null,
     ],
     footer: [
-      runRef ? `Incident Ref: ${runRef}` : null,
-      `Service: ${card.service}`,
-      `Endpoint: ${card.endpoint}`,
+      runRef ? `${t.incidentRef}: ${runRef}` : null,
+      `${t.service}: ${card.service}`,
+      `${t.endpoint}: ${card.endpoint}`,
     ].filter(Boolean).join(' | '),
   });
   try {

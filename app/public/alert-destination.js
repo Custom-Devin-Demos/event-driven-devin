@@ -71,13 +71,21 @@
   function mount(el, opts) {
     opts = opts || {};
     var teamsAvailable = opts.teamsAvailable !== false;
+    var labels = Object.assign({
+      title: 'Post alerts to',
+      slack: 'Slack',
+      teams: 'Microsoft Teams',
+      teamsUnavailable: 'Teams isn\'t set up on this server yet, so alerts still go to <b>Slack</b>.',
+      teamsSelected: 'Alerts post to <b>Microsoft Teams</b>. Nothing goes to Slack.',
+      slackSelected: 'Alerts post to <b>Slack</b>. Nothing goes to Teams.',
+    }, opts.labels || {});
     injectCss();
     el.innerHTML = ''
       + '<div class="adp">'
-      + '<div class="adp-title" id="adp-title">Post alerts to</div>'
+      + '<div class="adp-title" id="adp-title">' + labels.title + '</div>'
       + '<div class="adp-seg" role="radiogroup" aria-labelledby="adp-title">'
-      + '<button type="button" class="adp-opt" role="radio" data-value="slack">' + SLACK_ICON + 'Slack</button>'
-      + '<button type="button" class="adp-opt" role="radio" data-value="teams">' + TEAMS_ICON + 'Microsoft Teams</button>'
+      + '<button type="button" class="adp-opt" role="radio" data-value="slack">' + SLACK_ICON + labels.slack + '</button>'
+      + '<button type="button" class="adp-opt" role="radio" data-value="teams">' + TEAMS_ICON + labels.teams + '</button>'
       + '</div>'
       + '<div class="adp-summary" aria-live="polite"></div>'
       + '</div>';
@@ -95,11 +103,11 @@
       var warn = value === 'teams' && !teamsAvailable;
       summary.classList.toggle('warn', warn);
       if (warn) {
-        summary.innerHTML = 'Teams isn\'t set up on this server yet, so alerts still go to <b>Slack</b>.';
+        summary.innerHTML = labels.teamsUnavailable;
       } else if (value === 'teams') {
-        summary.innerHTML = TEAMS_ICON + '<span>Alerts post to <b>Microsoft Teams</b>. Nothing goes to Slack.</span>';
+        summary.innerHTML = TEAMS_ICON + '<span>' + labels.teamsSelected + '</span>';
       } else {
-        summary.innerHTML = SLACK_ICON + '<span>Alerts post to <b>Slack</b>. Nothing goes to Teams.</span>';
+        summary.innerHTML = SLACK_ICON + '<span>' + labels.slackSelected + '</span>';
       }
     }
 
