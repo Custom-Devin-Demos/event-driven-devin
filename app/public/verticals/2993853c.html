@@ -545,19 +545,8 @@
       const result = document.getElementById('result');
       const productSelect = document.getElementById('product');
       const sdkLabel = productSelect.options[productSelect.selectedIndex].text;
-      const setResult = (type, title, detail) => {
-        const titleElement = document.createElement('div');
-        titleElement.className = 'error-title';
-        titleElement.textContent = title;
-        const detailElement = document.createElement('div');
-        detailElement.className = 'error-detail';
-        detailElement.textContent = detail;
-        result.className = `result-box ${type}`;
-        result.replaceChildren(titleElement, detailElement);
-      };
       btn.disabled = true; btn.textContent = 'Adding licenses...';
       result.className = 'result-box';
-      result.replaceChildren();
       try {
         const res = await fetch('/api/licenses/provision', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -565,20 +554,15 @@
         });
         const data = await res.json();
         if (!res.ok) {
-          setResult(
-            'error',
-            'Licenses could not be added',
-            `${data.errorClass ? data.errorClass + ': ' : ''}${data.error || 'Please try again.'}`,
-          );
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Licenses could not be added</div><div class="error-detail">${data.errorClass ? data.errorClass + ': ' : ''}${data.error || 'Please try again.'}</div>`;
         } else {
-          setResult(
-            'success',
-            'Player licenses added',
-            `${data.seatsAdded} licenses added to the ${sdkLabel} — annual total $${data.annualCost}`,
-          );
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Player licenses added</div><div class="error-detail">${data.seatsAdded} licenses added to the ${sdkLabel} &mdash; annual total $${data.annualCost}</div>`;
         }
       } catch (err) {
-        setResult('error', 'Network error', err.message);
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
       } finally { btn.disabled = false; btn.textContent = 'Add licenses'; }
     });
   </script>

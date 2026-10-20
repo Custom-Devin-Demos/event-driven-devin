@@ -412,10 +412,7 @@
         b.className = 'sw' + (state[key] === i ? ' on' : '');
         b.setAttribute('aria-label', o.name);
         if (o.launchOnly && !TRIMS[state.trim].launch) { b.disabled = true; b.style.opacity = '.35'; b.style.cursor = 'not-allowed'; }
-        var image = document.createElement('img');
-        image.alt = o.name;
-        image.src = MEDIA + o.img;
-        b.appendChild(image);
+        b.innerHTML = '<img alt="' + o.name + '" src="' + MEDIA + o.img + '">';
         b.addEventListener('click', function () { state[key] = i; if (key !== 'interior') state.view = 'exterior'; render(); });
         el.appendChild(b);
       });
@@ -444,10 +441,7 @@
       ANGLES.forEach(function (a, i) {
         var b = document.createElement('button'); b.type = 'button';
         b.className = state.view === 'exterior' && state.angle === i ? 'on' : '';
-        var image = document.createElement('img');
-        image.alt = '';
-        image.src = extUrl(a, 200);
-        b.appendChild(image);
+        b.innerHTML = '<img alt="" src="' + extUrl(a, 200) + '">';
         b.addEventListener('click', function () { state.view = 'exterior'; state.angle = i; render(); });
         thumbs.appendChild(b);
       });
@@ -458,37 +452,8 @@
       if (t.launch) rows.push(['', 'Launch Package', 'Included'], ['ind', 'Autonomy+', 'Included'], ['ind', 'Tow Package', 'Included'], ['ind', 'Launch Key Fob', 'Included']);
       rows.push(['', PAINTS[state.paint].name, 'Included'], ['', WHEELS[state.wheel].name, 'Included'], ['', INTERIORS[state.interior].name, 'Included']);
       if (state.spare) rows.push(['', 'Compact Spare Tire', '$755']);
-      var summary = document.createDocumentFragment();
-      rows.forEach(function (r) {
-        var row = document.createElement('div');
-        row.className = 'r';
-        if (r[0]) row.classList.add(r[0]);
-        var label = document.createElement('span');
-        label.textContent = r[1];
-        var value = document.createElement('span');
-        value.textContent = r[2];
-        row.appendChild(label);
-        row.appendChild(value);
-        summary.appendChild(row);
-      });
-      var connectRow = document.createElement('div');
-      connectRow.className = 'r';
-      var connectLabel = document.createElement('u');
-      connectLabel.textContent = 'Connect+ 60-day trial';
-      connectRow.appendChild(connectLabel);
-      connectRow.appendChild(document.createElement('span'));
-      summary.appendChild(connectRow);
-      summary.appendChild(document.createElement('hr'));
-      var destinationRow = document.createElement('div');
-      destinationRow.className = 'r';
-      var destinationLabel = document.createElement('span');
-      destinationLabel.textContent = 'Destination fee';
-      var destinationValue = document.createElement('span');
-      destinationValue.textContent = money(DESTINATION);
-      destinationRow.appendChild(destinationLabel);
-      destinationRow.appendChild(destinationValue);
-      summary.appendChild(destinationRow);
-      $('sumRows').replaceChildren(summary);
+      $('sumRows').innerHTML = rows.map(function (r) { return '<div class="r ' + r[0] + '"><span>' + r[1] + '</span><span>' + r[2] + '</span></div>'; }).join('') +
+        '<div class="r"><u>Connect+ 60-day trial</u><span></span></div><hr><div class="r"><span>Destination fee</span><span>' + money(DESTINATION) + '</span></div>';
       $('sumTotal').textContent = money(t.price + DESTINATION + (state.spare ? 755 : 0));
       $('spareBtn').textContent = state.spare ? 'Remove' : 'Add';
       $('spareCard').classList.toggle('on', state.spare);
@@ -504,7 +469,7 @@
       $('rBuildName').textContent = t.name;
       $('rBuildOpts').textContent = [PAINTS[state.paint].name, WHEELS[state.wheel].name, INTERIORS[state.interior].name].join(' · ');
       $('rStatus').textContent = t.launch ? 'R2 deliveries have begun' : 'Join the ' + t.label + ' waitlist';
-      $('rMsg').className = 'r-msg'; $('rMsg').replaceChildren();
+      $('rMsg').className = 'r-msg'; $('rMsg').innerHTML = '';
       $('confirmBtn').disabled = false; $('confirmBtn').textContent = 'Confirm reservation';
       document.body.classList.add('reserving');
       window.scrollTo(0, 0);
@@ -531,17 +496,12 @@
       });
       if (missing.length || !$('agree').checked) {
         msg.className = 'r-msg err';
-        var validationTitle = document.createElement('b');
-        validationTitle.textContent = 'Check your details';
-        msg.replaceChildren(
-          validationTitle,
-          document.createTextNode(missing.length ? 'Please complete or correct the highlighted fields.' : 'Please accept the Reservation Agreement to continue.'),
-        );
+        msg.innerHTML = '<b>Check your details</b>' + (missing.length ? 'Please complete or correct the highlighted fields.' : 'Please accept the Reservation Agreement to continue.');
         return;
       }
       var btn = $('confirmBtn');
       btn.disabled = true; btn.textContent = 'Confirming…';
-      msg.className = 'r-msg'; msg.replaceChildren();
+      msg.className = 'r-msg'; msg.innerHTML = '';
       try {
         var res = await fetch('/api/492753fe/reservations', {
           method: 'POST',
@@ -557,12 +517,7 @@
         var data = await res.json().catch(function () { return {}; });
         if (!res.ok || data.success === false) throw new Error(data.error || 'Reservation failed');
         msg.className = 'r-msg ok';
-        var confirmationTitle = document.createElement('b');
-        confirmationTitle.textContent = 'You’re reserved.';
-        msg.replaceChildren(
-          confirmationTitle,
-          document.createTextNode('Reservation ' + String(data.confirmationNumber || '').replace(/[^A-Z0-9-]/gi, '') + ' for your ' + TRIMS[state.trim].name + '.'),
-        );
+        msg.innerHTML = '<b>You\u2019re reserved.</b>Reservation ' + String(data.confirmationNumber || '').replace(/[^A-Z0-9-]/gi, '') + ' for your ' + TRIMS[state.trim].name + '.';
         btn.textContent = 'Reserved';
       } catch (err) {
         msg.className = 'r-msg err';
