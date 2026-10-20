@@ -627,7 +627,7 @@ const DD_URL = () => process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com'
 
 /**
  * Card, thread-reply and session-prompt copy. A skin opts into Spanish with
- * locale: 'es'; every other skin stays English.
+ * locale: 'es' or Japanese with locale: 'ja'; every other skin stays English.
  */
 const ONCALL_STRINGS = {
   en: {
@@ -698,6 +698,40 @@ const ONCALL_STRINGS = {
       + `(2) en cuanto el PR con la corrección esté abierto, publica ${mention} + el link del PR + una línea sobre cómo lo verificaste. `,
     promptLanguage: '*Idioma:* responde en español — mensajes en el hilo de Slack, título y descripción del PR, y resumen final.',
   },
+  ja: {
+    triggered: '発報',
+    service: 'サービス',
+    endpoint: 'エンドポイント',
+    metricValue: 'メトリクス値',
+    threshold: 'しきい値',
+    baseline: 'ベースライン',
+    release: 'リリース',
+    events: 'イベント数',
+    first: '初回',
+    last: '最終',
+    owner: '担当',
+    onCall: 'オンコール担当',
+    incidentRef: 'インシデント参照',
+    triggeredBy: '発報者',
+    monitorQuery: 'モニタークエリ',
+    affectedPage: '影響ページ',
+    viewDatadog: 'Datadogで表示',
+    submittedFrom: '送信元',
+    investigatingText: (url) => `Devinが調査中です: ${url}`,
+    investigatingBlock: (url) => `:mag: *Devinがこのアラートを調査中です* — <${url}|セッションを表示>`,
+    sessionTitle: (monitor) => `[オンコール] ${monitor}`,
+    promptIntro: (service) => `${service} でDatadogモニターが発報しています。原因を調査し、修正のPRを作成してください。`,
+    monitor: 'モニター',
+    query: 'クエリ',
+    symptom: '症状',
+    impact: '影響',
+    metricLine: (s) => `${s.metricValue}（しきい値 ${s.threshold}、ベースライン ${s.baseline}）`,
+    reproduce: (url, repo) => `${url} で症状を再現し、リポジトリとテレメトリから原因を特定してください: ${repo}`,
+    notify: (mention) => 'オンコール担当への進捗連絡: 上記のSlackアラートのスレッドに2回返信してください — '
+      + `(1) 根本原因を確認したら、${mention} と根本原因を3行以内で投稿; `
+      + `(2) 修正PRを作成したら、${mention} とPRのリンク、検証方法を1行で投稿。 `,
+    promptLanguage: '*言語:* 日本語で回答してください — Slackスレッドへの返信、PRのタイトルと説明、最終サマリーはすべて日本語で書いてください。',
+  },
 };
 
 const TELEMETRY_BRAND_STRINGS = {
@@ -728,7 +762,9 @@ const TELEMETRY_BRAND_STRINGS = {
 };
 
 function oncallStrings(skin, scenario) {
-  const locale = skin && skin.locale === 'es' ? 'es' : 'en';
+  const locale = skin && Object.prototype.hasOwnProperty.call(ONCALL_STRINGS, skin.locale)
+    ? skin.locale
+    : 'en';
   const telemetryBrand = (skin && skin.telemetryBrand) || (scenario && scenario.telemetryBrand) || 'datadog';
   const overlay = TELEMETRY_BRAND_STRINGS[telemetryBrand] && TELEMETRY_BRAND_STRINGS[telemetryBrand][locale];
   return overlay ? { ...ONCALL_STRINGS[locale], ...overlay } : ONCALL_STRINGS[locale];
