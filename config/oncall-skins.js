@@ -4674,6 +4674,14 @@ const ONCALL_SKINS = {
     page: { file: '2993853c.html', title: 'Cross-Platform Video Player | Dolby OptiView Player' },
     disclaimer: 'NOT ACTUALLY A DOLBY OPTIVIEW SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dolby OptiView or Dolby Laboratories product.',
   },
+  '959dc0b3': {
+    slug: '959dc0b3',
+    company: 'Hippo',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: '959dc0b3.html', title: 'Hippo Home Insurance - affordable, tailored quotes in under 60 seconds' },
+    disclaimer: 'NOT ACTUALLY A HIPPO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Hippo product.',
+  },
 };
 
 function getOncallSkin(slug) {
