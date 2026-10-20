@@ -260,6 +260,13 @@ function buildReport(reportId, customer, engines) {
 }
 
 function openIncident(customer, error, requestId, reportId) {
+  const existing = OPEN_INCIDENTS.find((inc) => inc.customerId === customer.id && inc.agentId === 'fleet-health-report' && !inc.resolvedAt);
+  if (existing) {
+    existing.occurrences += 1;
+    existing.lastSeenAt = new Date().toISOString();
+    existing.timeline.push({ at: existing.lastSeenAt, event: `Recurred — report ${reportId} failed with the same error` });
+    return existing;
+  }
   incidentSequence += 1;
   const incident = {
     id: `INC-2026-${String(incidentSequence).padStart(4, '0')}`,
@@ -273,6 +280,8 @@ function openIncident(customer, error, requestId, reportId) {
     error: `${error.name}: ${error.message}`,
     requestId,
     reportId,
+    occurrences: 1,
+    lastSeenAt: new Date().toISOString(),
     rootCause: null,
     confidence: null,
     recommendedOwner: null,

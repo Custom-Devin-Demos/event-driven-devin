@@ -119,3 +119,16 @@ describe('af1dce4f Fleet Health Report agent', () => {
     expect(getOverview().summary.openIncidents).toBe(1);
   });
 });
+
+describe('af1dce4f incident de-duplication', () => {
+  test('repeat Airline B failures reuse the open incident', async () => {
+    resetWorkbench();
+    await expect(generateFleetHealthReport({ customerId: 'AIR-B' })).rejects.toThrow(TypeError);
+    await expect(generateFleetHealthReport({ customerId: 'AIR-B' })).rejects.toThrow(TypeError);
+    const overview = getOverview();
+    expect(overview.summary.openIncidents).toBe(1);
+    expect(overview.incidents[0].occurrences).toBe(2);
+    expect(overview.runs).toHaveLength(2);
+    resetWorkbench();
+  });
+});

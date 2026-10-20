@@ -240,7 +240,7 @@
   <script>
     (function () {
       var API = '/api/af1dce4f';
-      var state = { overview: null, viewAs: 'AIR-A', report: null, reportError: null, running: false, route: { page: 'home', id: null } };
+      var state = { overview: null, viewAs: 'AIR-A', reports: {}, reportErrors: {}, running: false, route: { page: 'home', id: null } };
 
       function esc(value) {
         return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
@@ -411,8 +411,8 @@
         var fleet = o.fleets[c.id] || [];
         var alerts = fleet.filter(function (e) { return e.egtMarginC < 25; }).map(function (e) { return { esn: e.esn, text: e.tail + ' #' + e.position + ' (' + e.esn + ') EGT margin ' + e.egtMarginC.toFixed(1) + ' °C — ' + (e.egtMarginC < 20 ? 'below 20 °C threshold, plan performance restoration' : 'approaching 20 °C threshold') }; });
         var cell = (o.grid.filter(function (r) { return r.agentId === 'fleet-health-report'; })[0] || { cells: [] }).cells.filter(function (x) { return x.customerId === c.id; })[0];
-        var report = state.report && state.report.customerId === c.id ? state.report : null;
-        var err = state.reportError && state.reportError.customerId === c.id ? state.reportError : null;
+        var report = state.reports[c.id] || null;
+        var err = state.reportErrors[c.id] || null;
         return crumbs([{ label: 'Apps', href: '#/apps' }, { label: 'Fleet Health' }]) + head('Fleet Health', 'Per-customer engine health, open alerts and a generated fleet report from the Fleet Health Report agent.') +
           '<div class="app-bar"><span class="lbl">View as</span><select class="ctl" id="view-as">' + o.customers.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === c.id ? ' selected' : '') + '>' + esc(x.name) + ' · ' + esc(x.type) + '</option>'; }).join('') + '</select>' +
           '<span class="muted">' + esc(c.region) + ' · ' + esc(c.fleet) + ' · ' + esc(c.engines) + ' engines</span>' +
@@ -553,21 +553,22 @@
           return r.json().then(function (body) { return { ok: r.ok, body: body }; });
         }).then(function (res) {
           if (res.ok) {
-            state.report = res.body.report;
-            state.reportError = null;
+            state.reports[customerId] = res.body.report;
+            delete state.reportErrors[customerId];
             toast('ok', 'Fleet Health report generated', res.body.report.reportId + ' for ' + customer(customerId).name + ' · ' + res.body.report.engines.length + ' engines assessed.');
           } else {
-            state.report = null;
-            state.reportError = { customerId: customerId, reportId: null, incidentId: null, error: res.body.error };
+            delete state.reports[customerId];
+            state.reportErrors[customerId] = { customerId: customerId, reportId: null, incidentId: null, error: res.body.error };
             toast('error', 'Fleet Health report failed for ' + customer(customerId).name, 'The Fleet Health Report agent returned an error. Alert sent to the incident channel; Devin is picking it up.');
           }
           return loadOverview();
         }).then(function () {
-          if (state.reportError) {
+          var pendingError = state.reportErrors[customerId];
+          if (pendingError) {
             var run = state.overview.runs.filter(function (x) { return x.customerId === customerId && x.status === 'failed'; })[0];
             var inc = state.overview.incidents.filter(function (x) { return x.customerId === customerId && x.status !== 'Resolved'; })[0];
-            state.reportError.reportId = run ? run.reportId : 'n/a';
-            state.reportError.incidentId = inc ? inc.id : null;
+            pendingError.reportId = run ? run.reportId : 'n/a';
+            pendingError.incidentId = inc ? inc.id : null;
             render();
           }
         }).catch(function () {
@@ -585,8 +586,8 @@
         var btn = document.getElementById('reset-btn');
         btn.disabled = true;
         fetch(API + '/fleet-health/reset', { method: 'POST' }).then(function (r) { return r.json(); }).then(function () {
-          state.report = null;
-          state.reportError = null;
+          state.reports = {};
+          state.reportErrors = {};
           state.viewAs = 'AIR-A';
           return loadOverview();
         }).then(function () {
