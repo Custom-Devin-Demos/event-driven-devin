@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transfer | Move Money | Chime</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,500;125,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1EC677;
+      --ink: #0C2A1B;
+      --surface: #FFFFFF;
+      --chrome-bg: #052316;
+      --chrome-text: #FFFFFF;
+      --forest: #0D4029;
+      --pine: #082719;
+      --leaf: #027443;
+      --mint: #CCF2D2;
+      --mist: #ECF9EE;
+      --page: #F7F7F7;
+      --line: #E5E5E5;
+      --field: #5A6A62;
+      --muted: #555555;
+      --cta-ink: #0D4029;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.5 "DM Sans", Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: var(--leaf); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .display { font-family: "Archivo", "DM Sans", Arial, sans-serif; font-stretch: 125%; font-weight: 500; letter-spacing: -.4px; }
+    .wrap { max-width: 1200px; margin: auto; padding: 0 40px; }
+    .topbar { background: var(--chrome-bg); color: var(--chrome-text); }
+    .topbar .wrap { display: flex; align-items: center; min-height: 72px; gap: 32px; }
+    .wordmark { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; color: var(--accent); text-decoration: none; font: 700 30px/1 "DM Sans", Arial, sans-serif; letter-spacing: -.04em; white-space: nowrap; }
+    .wordmark sup { font-size: 10px; letter-spacing: 0; align-self: flex-start; margin-top: 8px; font-weight: 500; }
+    .topnav { display: flex; align-items: center; gap: 28px; font-size: 16px; font-weight: 500; }
+    .topnav a { color: var(--chrome-text); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; opacity: .85; }
+    .topnav a.current { opacity: 1; font-weight: 700; box-shadow: inset 0 -3px 0 var(--accent); }
+    .utility { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+    .utility a { color: var(--chrome-text); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+    .utility .avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--chrome-text); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+    .utility .logout { padding: 0 20px; min-height: 44px; border-radius: 6px; background: var(--accent); color: var(--cta-ink); font-size: 16px; }
+    .hero { background: linear-gradient(160deg, var(--forest) 0%, var(--chrome-bg) 100%); color: var(--chrome-text); }
+    .hero .wrap { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 40px 40px 44px; }
+    .hero .crumbs { margin: 0; font-size: 14px; color: var(--mint); display: flex; align-items: center; min-height: 44px; }
+    .hero .crumbs a { color: var(--mint); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+    .hero .crumbs span { margin: 0 8px; opacity: .6; }
+    .hero h1 { margin: 0; font-size: 56px; line-height: 1; }
+    .hero p.lede { margin: 14px 0 0; max-width: 560px; color: rgba(255, 255, 255, .85); font-size: 18px; }
+    .balance { background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); border-radius: 24px; padding: 20px 28px; min-width: 280px; }
+    .balance .label { margin: 0; font-size: 14px; color: var(--mint); font-weight: 500; }
+    .balance .value { margin: 4px 0 0; font-size: 40px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .balance .spot { margin: 8px 0 0; font-size: 13px; color: var(--accent); font-weight: 600; }
+    main .wrap { padding: 36px 40px 64px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .9fr); gap: 28px; align-items: start; }
+    .card { background: var(--surface); border-radius: 24px; padding: 32px 36px 36px; box-shadow: 0 1px 2px rgba(5, 35, 22, .06); }
+    .card h2 { margin: 0 0 6px; font-size: 32px; line-height: 1.1; color: var(--forest); }
+    .card .sub { margin: 0 0 28px; color: var(--muted); }
+    .field { margin-bottom: 22px; }
+    .field label, .field-label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 15px; }
+    .field input, .field select { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--field); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: 16px; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--forest) 50%), linear-gradient(135deg, var(--forest) 50%, transparent 50%); background-position: calc(100% - 20px) 21px, calc(100% - 14px) 21px; background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 40px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 14px; }
+    .swap { display: flex; justify-content: center; margin: -10px 0 12px; }
+    .swap button { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--mist); color: var(--leaf); font-size: 18px; line-height: 1; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: "$"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--ink); }
+    .amount-wrap input { padding-left: 28px; font-variant-numeric: tabular-nums; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .chips button { min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--forest); font-weight: 600; font-size: 14px; }
+    .chips button:hover { background: var(--mist); border-color: var(--accent); }
+    .review { margin: 4px 0 24px; padding: 18px 22px; border-radius: 16px; background: var(--mist); display: grid; gap: 10px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .fine { margin: -8px 0 24px; color: var(--muted); font-size: 14px; }
+    .actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .submit-btn { min-height: 48px; padding: 10px 28px; border: 0; border-radius: 6px; background: var(--accent); color: var(--cta-ink); font-size: 16px; font-weight: 600; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 88%, var(--chrome-bg)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .cancel-btn { min-height: 48px; padding: 10px 24px; border: 1px solid var(--forest); border-radius: 6px; background: transparent; color: var(--forest); font-size: 16px; font-weight: 600; }
+    .cancel-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-size: 22px; font-weight: 700; color: var(--forest); }
+    .status { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 12px; border-left: 4px solid; }
+    .result-box.success { display: block; background: var(--mist); border-color: var(--leaf); color: var(--forest); }
+    .result-box.notice { display: block; background: #FFF4E5; border-color: #B45309; color: var(--ink); }
+    aside .card { padding: 24px 26px; }
+    aside .card + .card { margin-top: 20px; }
+    aside h3 { margin: 0 0 12px; font-size: 20px; color: var(--forest); }
+    .accounts { list-style: none; margin: 0; padding: 0; }
+    .accounts li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+    .accounts li:first-child { border-top: 0; padding-top: 0; }
+    .acct-name { display: block; font-weight: 600; }
+    .acct-num { display: block; color: var(--muted); font-size: 14px; }
+    .acct-bal { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+    .acct-bal small { display: block; color: var(--leaf); font-weight: 500; font-size: 13px; }
+    .promo { background: var(--forest); color: var(--chrome-text); }
+    .promo h3 { color: var(--chrome-text); }
+    .promo p { margin: 0 0 16px; color: rgba(255, 255, 255, .85); }
+    .promo .art { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .promo .art svg { width: 56px; height: 56px; flex: none; }
+    .promo .art strong { font-size: 28px; line-height: 1; }
+    .promo a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 6px; background: var(--accent); color: var(--cta-ink); font-weight: 600; text-decoration: none; }
+    .note p { margin: 0 0 10px; color: var(--muted); }
+    .note a { font-weight: 600; min-height: 44px; display: inline-flex; align-items: center; }
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); font-size: 14px; }
+    .site-footer .wrap { padding: 40px 40px 48px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-bottom: 20px; }
+    .footer-links a { color: var(--chrome-text); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; opacity: .9; }
+    .footer-legal { margin: 0 0 10px; color: rgba(255, 255, 255, .7); font-size: 13px; max-width: 900px; }
+    @media (max-width: 860px) {
+      .wrap { padding: 0 16px; }
+      .topbar .wrap { gap: 16px; }
+      .topnav { display: none; }
+      .wordmark { font-size: 26px; }
+      .utility .hide-sm { display: none; }
+      .hero .wrap { padding: 28px 16px 32px; }
+      .hero h1 { font-size: 40px; }
+      .balance { min-width: 0; width: 100%; padding: 16px 20px; }
+      .balance .value { font-size: 32px; }
+      main .wrap { padding: 20px 16px 40px; }
+      .layout { grid-template-columns: 1fr; gap: 20px; }
+      .card { padding: 24px 18px; border-radius: 18px; }
+      .card h2 { font-size: 26px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .actions .submit-btn, .actions .cancel-btn { width: 100%; }
+      .site-footer .wrap { padding: 28px 16px 80px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="wordmark" href="#transfer" aria-label="Chime">chime<sup>&reg;</sup></a>
+      <nav class="topnav" aria-label="Member">
+        <a href="#accounts">Home</a>
+        <a href="#transfer" class="current" aria-current="page">Move</a>
+        <a href="#accounts">Pay</a>
+        <a href="#accounts">Deals</a>
+      </nav>
+      <div class="utility">
+        <a class="hide-sm" href="https://help.chime.com/">Help Center</a>
+        <a class="hide-sm" href="#accounts" aria-label="Profile"><span class="avatar" aria-hidden="true">JR</span>Jordan</a>
+        <a class="logout" href="https://www.chime.com/">Log out</a>
+      </div>
+    </div>
+  </header>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="crumbs"><a href="#transfer">Move Money</a><span>&rsaquo;</span>Transfer</p>
+        <h1 class="display">Transfer</h1>
+        <p class="lede">Move money between your Chime Checking Account and Savings Account. Transfers between your own accounts post instantly.</p>
+      </div>
+      <div class="balance" aria-label="Checking balance">
+        <p class="label">Checking &middot; Available</p>
+        <p class="value display" id="heroBalance" data-balance-for="ACCT-1001">$2,346.91</p>
+        <p class="spot">$200 SpotMe&reg; &rsaquo;</p>
+      </div>
+    </div>
+  </section>
+  <main id="transfer">
+    <div class="wrap">
+      <div class="layout">
+        <section class="card" aria-labelledby="form-title">
+          <h2 id="form-title" class="display">Move money</h2>
+          <p class="sub">Choose where the money comes from and where it goes.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Checking Account" data-num="...4821" data-balance="2346.91">Checking Account ...4821 &middot; $2,346.91</option>
+                <option value="ACCT-1002" data-name="Savings Account" data-num="...7730" data-balance="5821.45">Savings Account ...7730 &middot; $5,821.45</option>
+              </select>
+            </div>
+            <div class="swap"><button type="button" id="swapBtn" aria-label="Swap From and To accounts">&#8645;</button></div>
+            <div class="field">
+              <label for="toAccount">To</label>
+              <select id="toAccount">
+                <option value="ACCT-1002" data-name="Savings Account" data-num="...7730" data-balance="5821.45">Savings Account ...7730 &middot; $5,821.45</option>
+                <option value="ACCT-1001" data-name="Checking Account" data-num="...4821" data-balance="2346.91">Checking Account ...4821 &middot; $2,346.91</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Amount</label>
+                <div class="amount-wrap"><input type="number" id="amount" min="0.01" step="0.01" value="500.00" inputmode="decimal" required aria-describedby="amountHelp"></div>
+                <small id="amountHelp">Available: $2,346.91</small>
+                <div class="chips" aria-label="Quick amounts">
+                  <button type="button" data-amount="50">$50</button>
+                  <button type="button" data-amount="100">$100</button>
+                  <button type="button" data-amount="250">$250</button>
+                  <button type="button" data-amount="500">$500</button>
+                </div>
+              </div>
+              <div class="field">
+                <label for="accountTier">Transfer speed</label>
+                <select id="accountTier">
+                  <option value="standard">Instant</option>
+                </select>
+                <small>Transfers between your Checking and Savings post right away. Any transfer fee is shown on your confirmation.</small>
+              </div>
+            </div>
+            <dl class="review" aria-label="Transfer summary">
+              <div><dt>From</dt><dd id="reviewFrom">&mdash;</dd></div>
+              <div><dt>To</dt><dd id="reviewTo">&mdash;</dd></div>
+              <div><dt>Amount</dt><dd id="reviewAmount">&mdash;</dd></div>
+              <div><dt>Fee</dt><dd id="reviewFee">Shown on confirmation</dd></div>
+              <div><dt>When</dt><dd id="reviewDate">&mdash;</dd></div>
+            </dl>
+            <p class="fine">Your Savings Account earns 4.00% APY. Money you move today starts earning right away.</p>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Transfer</button>
+              <button type="reset" id="cancelBtn" class="cancel-btn">Cancel</button>
+            </div>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Sample accounts. No money moves on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="card" id="accounts">
+            <h3 class="display">Your accounts</h3>
+            <ul class="accounts">
+              <li><span><span class="acct-name">Checking Account</span><span class="acct-num">...4821</span></span><span class="acct-bal"><span data-balance-for="ACCT-1001">$2,346.91</span><small>$200 SpotMe limit</small></span></li>
+              <li><span><span class="acct-name">Savings Account</span><span class="acct-num">...7730</span></span><span class="acct-bal"><span data-balance-for="ACCT-1002">$5,821.45</span><small>4.00% APY</small></span></li>
+              <li><span><span class="acct-name">Credit Builder</span><span class="acct-num">...2210</span></span><span class="acct-bal">$115.00<small>Secured balance</small></span></li>
+            </ul>
+          </div>
+          <div class="card promo">
+            <div class="art">
+              <svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><circle cx="28" cy="28" r="28" fill="#1EC677"/><path d="M18 30l7 7 13-15" fill="none" stroke="#0D4029" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <strong class="display">Automatic Savings</strong>
+            </div>
+            <h3>Save when you get paid</h3>
+            <p>Move a percentage of every direct deposit into your Savings Account automatically, and round up debit card purchases to the nearest dollar.</p>
+            <a href="https://www.chime.com/savings-account/" target="_blank" rel="noopener noreferrer">Turn on Automatic Savings</a>
+          </div>
+          <div class="card note">
+            <h3 class="display">Sending to someone else?</h3>
+            <p>Use Pay Anyone to send money instantly to friends and family, even if they don&rsquo;t have Chime.</p>
+            <a href="https://www.chime.com/pay-anyone/" target="_blank" rel="noopener noreferrer">Go to Pay Anyone &rsaquo;</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-links">
+        <a href="https://help.chime.com/">Help Center</a>
+        <a href="https://www.chime.com/trust-and-safety/">Trust &amp; Safety</a>
+        <a href="https://www.chime.com/atm-locator/">Find an ATM</a>
+        <a href="https://www.chime.com/policies/">Policies</a>
+        <a href="https://www.chime.com/policies/privacy/">Chime U.S. Privacy Notice</a>
+        <a href="https://www.chime.com/accessibility/">Supporting Those With Disabilities</a>
+      </div>
+      <p class="footer-legal">Example member experience. Accounts, balances, and transfers shown here are sample data.</p>
+      <p class="footer-legal">Chime is a financial technology company, not a bank. Banking services provided by The Bancorp Bank, N.A. or Stride Bank, N.A., Members FDIC.</p>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const amountHelp = document.getElementById('amountHelp');
+    const reviewFrom = document.getElementById('reviewFrom');
+    const reviewTo = document.getElementById('reviewTo');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewDate = document.getElementById('reviewDate');
+    const reviewFee = document.getElementById('reviewFee');
+    const transferFields = [fromAccount, toAccount, amountInput, document.getElementById('accountTier')];
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const swapBtn = document.getElementById('swapBtn');
+    const IDLE_STATUS = 'Sample accounts. No money moves on this page.';
+    const IDLE_LABEL = 'Transfer';
+    let timerHandle = null;
+    let pending = false;
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+    const FEE_PENDING = 'Shown on confirmation';
+    const balances = {};
+    Array.from(fromAccount.options).forEach((opt) => { balances[opt.value] = Number(opt.dataset.balance); });
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function renderBalances() {
+      [fromAccount, toAccount].forEach((select) => {
+        Array.from(select.options).forEach((opt) => {
+          const balance = balances[opt.value];
+          opt.dataset.balance = balance.toFixed(2);
+          opt.textContent = `${opt.dataset.name} ${opt.dataset.num} · ${usd.format(balance)}`;
+        });
+      });
+      document.querySelectorAll('[data-balance-for]').forEach((el) => {
+        el.textContent = usd.format(balances[el.dataset.balanceFor]);
+      });
+      renderReview();
+    }
+    function applyReceipt(receipt) {
+      const amount = Number(receipt.amount);
+      const debit = Number(receipt.totalDebit);
+      if (!Number.isFinite(amount) || !Number.isFinite(debit)) return;
+      if (receipt.from in balances) balances[receipt.from] -= debit;
+      if (receipt.to in balances) balances[receipt.to] += amount;
+      renderBalances();
+    }
+    function label(select) { const d = selected(select).dataset; return `${d.name} ${d.num}`; }
+    function parsedAmount() {
+      const raw = amountInput.value.trim();
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw);
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function renderReview() {
+      const available = Number(selected(fromAccount).dataset.balance);
+      const amount = parsedAmount();
+      const valid = Number.isFinite(amount) && amount > 0 && amount <= available;
+      amountHelp.textContent = `Available: ${usd.format(available)}`;
+      reviewFrom.textContent = label(fromAccount);
+      reviewTo.textContent = label(toAccount);
+      reviewAmount.textContent = valid ? usd.format(amount) : '—';
+      reviewDate.textContent = `Today, ${dateFmt.format(new Date())} · Instant`;
+      reviewFee.textContent = FEE_PENDING;
+    }
+    [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
+    amountInput.addEventListener('input', renderReview);
+    swapBtn.addEventListener('click', () => {
+      if (pending) return;
+      const from = fromAccount.value;
+      fromAccount.value = toAccount.value;
+      toAccount.value = from;
+      renderReview();
+    });
+    document.querySelectorAll('.chips button').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        if (pending) return;
+        amountInput.value = Number(chip.dataset.amount).toFixed(2);
+        renderReview();
+      });
+    });
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        renderReview();
+      });
+    });
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const amount = parsedAmount();
+      const available = Number(selected(fromAccount).dataset.balance);
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choose a different To account. Money can\u2019t be moved into the account it comes from.';
+        status.textContent = IDLE_STATUS;
+        toAccount.focus();
+        return;
+      }
+      if (!Number.isFinite(amount) || amount <= 0 || amount > available) {
+        result.className = 'result-box notice';
+        result.textContent = `Enter an amount between $0.01 and ${usd.format(available)}.`;
+        status.textContent = IDLE_STATUS;
+        amountInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      cancelBtn.disabled = true;
+      swapBtn.disabled = true;
+      transferFields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Transferring\u2026';
+      status.textContent = 'Moving your money\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const fromLabel = label(fromAccount);
+      const toLabel = label(toAccount);
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Transfer not completed.');
+        if (!data || !data.receipt) throw new Error('Transfer outcome unknown.');
+        const completedAt = new Date(data.receipt.timestamp);
+        const fee = Number(data.receipt.fee);
+        const debit = Number(data.receipt.totalDebit);
+        applyReceipt(data.receipt);
+        reviewFee.textContent = Number.isFinite(fee) ? usd.format(fee) : FEE_PENDING;
+        const feeCopy = Number.isFinite(fee) && fee > 0
+          ? ` Transfer fee ${usd.format(fee)}; ${usd.format(debit)} debited from ${fromLabel}.`
+          : ' No transfer fee.';
+        result.className = 'result-box success';
+        result.textContent = `Transfer complete at ${timeFmt.format(completedAt)}. ${usd.format(Number(data.receipt.amount))} moved from ${fromLabel} to ${toLabel}.${feeCopy} Confirmation ${data.receipt.receiptId}. Your balances are updated.`;
+        status.textContent = 'Transfer complete.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'We couldn\u2019t complete this transfer right now. No money has moved. Please try again in a few minutes.';
+          status.textContent = 'Transfer not completed.';
+        } else {
+          result.textContent = 'We couldn\u2019t confirm this transfer. Check your account activity before trying again so you don\u2019t move the money twice.';
+          status.textContent = 'Transfer not confirmed.';
+        }
+      } finally {
+        transferFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        cancelBtn.disabled = false;
+        swapBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
