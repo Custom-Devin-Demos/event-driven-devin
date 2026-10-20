@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Deploy blueprint | Blueprints | Dell Automation Platform</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --blue: #0672cb;
+        --blue-deep: #0063b8;
+        --blue-ink: #00447c;
+        --navy: #002a58;
+        --ink: #0e0e0e;
+        --text: #1f1f1f;
+        --muted: #636363;
+        --dim: #808080;
+        --bg: #f0f0f0;
+        --panel: #ffffff;
+        --line: #c8c9c7;
+        --line-soft: #e1e1e1;
+        --ok: #1e7b34;
+        --ok-bg: #e6f3e8;
+        --err: #ce1126;
+        --err-bg: #fbe9ec;
+        --warn: #f1c21b;
+        --body: 'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 14px; line-height: 20px; -webkit-font-smoothing: antialiased; }
+      a { color: var(--blue); text-decoration: none; }
+      button { font: inherit; cursor: pointer; }
+
+      .masthead { background: var(--navy); color: #fff; height: 48px; display: flex; align-items: center; padding: 0 16px 0 12px; gap: 14px; }
+      .dell { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 2px solid #fff; border-radius: 50%; font-weight: 700; font-size: 9.5px; letter-spacing: 0.4px; }
+      .masthead .app { font-size: 16px; font-weight: 400; letter-spacing: 0.1px; }
+      .masthead .app b { font-weight: 500; }
+      .masthead .sep { width: 1px; height: 24px; background: rgba(255,255,255,0.35); }
+      .masthead .env { font-size: 12px; color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.35); border-radius: 3px; padding: 1px 8px; }
+      .masthead .right { margin-left: auto; display: flex; align-items: center; gap: 18px; font-size: 13px; }
+      .masthead .ico { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.6; }
+      .masthead .user { display: inline-flex; align-items: center; gap: 8px; }
+      .masthead .user .av { width: 26px; height: 26px; border-radius: 50%; background: #5fa8e8; color: #002a58; font-weight: 500; font-size: 12px; display: inline-grid; place-items: center; }
+
+      .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: calc(100vh - 48px); }
+      .sidenav { background: #fff; border-right: 1px solid var(--line-soft); padding: 12px 0; }
+      .sidenav a { display: flex; align-items: center; gap: 10px; padding: 9px 20px; color: var(--text); font-size: 14px; }
+      .sidenav a svg { width: 18px; height: 18px; fill: none; stroke: var(--muted); stroke-width: 1.6; }
+      .sidenav a:hover { background: #f5f6f7; }
+      .sidenav .group { padding: 9px 20px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+      .sidenav .group svg { width: 18px; height: 18px; fill: none; stroke: var(--muted); stroke-width: 1.6; }
+      .sidenav .sub a { padding-left: 48px; font-size: 13px; }
+      .sidenav .sub a.active { color: var(--blue-ink); font-weight: 500; background: #e8f1fb; box-shadow: inset 3px 0 0 var(--blue); }
+
+      main { padding: 20px 28px 48px; }
+      .crumbs { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+      .crumbs a { color: var(--muted); }
+      .crumbs span { margin: 0 6px; }
+      .pagehead { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+      h1 { margin: 0; font-size: 32px; line-height: 40px; font-weight: 300; color: var(--ink); }
+      .pagehead p { margin: 4px 0 0; color: var(--muted); max-width: 720px; }
+      .pagehead .meta { font-size: 12px; color: var(--muted); text-align: right; }
+
+      .toolbar { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line-soft); }
+      .btn { border: 1px solid var(--blue); background: #fff; color: var(--blue); border-radius: 2px; min-height: 36px; padding: 0 16px; font-weight: 500; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+      .btn:hover { background: #e8f1fb; }
+      .btn.primary { background: var(--blue); color: #fff; }
+      .btn.primary:hover { background: var(--blue-deep); }
+      .btn.ghost { border-color: transparent; }
+      .btn:disabled { opacity: 0.55; cursor: default; }
+      .btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+      .search { margin-left: auto; display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 2px; background: #fff; min-height: 36px; padding: 0 10px; width: 280px; gap: 8px; color: var(--dim); }
+      .search input { border: 0; outline: 0; font: inherit; width: 100%; }
+
+      .panel { background: var(--panel); border: 1px solid var(--line-soft); }
+      table { width: 100%; border-collapse: collapse; }
+      th { text-align: left; font-size: 12px; font-weight: 500; color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--line); background: #fafafa; white-space: nowrap; }
+      td { padding: 12px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
+      tr:last-child td { border-bottom: 0; }
+      td .name { font-weight: 500; color: var(--blue-ink); }
+      td .name small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+      .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; border-radius: 12px; padding: 2px 10px; background: #eef0f2; color: var(--text); }
+      .pill.ok { background: var(--ok-bg); color: var(--ok); }
+      .pill i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+      .eco { display: inline-flex; align-items: center; gap: 8px; }
+      .eco b { width: 22px; height: 22px; border-radius: 3px; display: inline-grid; place-items: center; color: #fff; font-size: 10px; font-weight: 700; }
+      td.actions { text-align: right; white-space: nowrap; }
+      .link-btn { background: none; border: 0; color: var(--blue); font-weight: 500; padding: 6px 8px; }
+      .link-btn:hover { text-decoration: underline; }
+
+      .section { margin-top: 26px; }
+      .section h2 { margin: 0 0 10px; font-size: 20px; line-height: 28px; font-weight: 400; }
+      .progress { height: 6px; background: #e1e1e1; border-radius: 3px; overflow: hidden; width: 160px; display: inline-block; vertical-align: middle; margin-right: 8px; }
+      .progress i { display: block; height: 100%; background: var(--blue); width: 0; transition: width 1.2s linear; }
+      .empty { padding: 28px 14px; color: var(--muted); text-align: center; }
+
+      .scrim { position: fixed; inset: 0; background: rgba(14,14,14,0.45); display: none; z-index: 40; }
+      .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(640px, 100vw); background: #fff; box-shadow: -8px 0 24px rgba(0,0,0,0.18); transform: translateX(100%); transition: transform 0.22s ease; z-index: 50; display: flex; flex-direction: column; }
+      body.open .scrim { display: block; }
+      body.open .drawer { transform: none; }
+      .drawer header { padding: 18px 24px 0; }
+      .drawer header h2 { margin: 0; font-size: 24px; line-height: 32px; font-weight: 400; }
+      .drawer header p { margin: 4px 0 0; color: var(--muted); }
+      .drawer .close { position: absolute; top: 14px; right: 14px; background: none; border: 0; font-size: 22px; line-height: 1; color: var(--muted); padding: 6px; }
+      .steps { display: flex; gap: 0; margin: 18px 24px 0; border-bottom: 1px solid var(--line-soft); }
+      .steps span { flex: 1; text-align: center; padding: 10px 0; font-size: 13px; color: var(--muted); border-bottom: 3px solid transparent; }
+      .steps span.on { color: var(--blue-ink); font-weight: 500; border-bottom-color: var(--blue); }
+      .steps span.done { color: var(--ok); }
+      .drawer form { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+      .step { display: none; padding: 20px 24px; overflow: auto; flex: 1; }
+      .step.on { display: block; }
+      label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+      .hint { margin: 4px 0 0; font-size: 12px; color: var(--dim); }
+      fieldset { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
+      select, input[type=text] { width: 100%; font: inherit; font-size: 14px; color: var(--text); background: #fff; border: 1px solid var(--line); border-radius: 2px; min-height: 36px; padding: 0 10px; }
+      select:focus, input[type=text]:focus { outline: 2px solid rgba(6,114,203,0.35); border-color: var(--blue); }
+      select:disabled, input:disabled { background: #f5f5f5; color: var(--muted); }
+      .bp-card { border: 1px solid var(--line-soft); padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; margin-bottom: 18px; background: #fafafa; }
+      .bp-card b { font-weight: 500; }
+      .bp-card small { color: var(--muted); font-size: 12px; }
+      .counter { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; background: #fff; }
+      .counter button { width: 36px; min-height: 36px; border: 0; background: #f5f5f5; font-size: 18px; color: var(--text); }
+      .counter button:disabled { opacity: 0.45; cursor: default; }
+      .counter input { width: 64px; min-height: 36px; border: 0; border-left: 1px solid var(--line-soft); border-right: 1px solid var(--line-soft); text-align: center; font: inherit; font-size: 15px; font-weight: 500; -moz-appearance: textfield; }
+      .counter input::-webkit-outer-spin-button, .counter input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      .kv { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+      .kv td { padding: 8px 0; border-bottom: 1px solid var(--line-soft); font-size: 13px; }
+      .kv td:first-child { color: var(--muted); width: 42%; }
+      .note { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+      .result-box { display: none; border-left: 4px solid var(--line); padding: 10px 12px; margin: 0 0 14px; font-size: 13px; background: #f5f5f5; }
+      .result-box.pending { display: block; border-color: var(--blue); background: #e8f1fb; }
+      .result-box.ok { display: block; border-color: var(--ok); background: var(--ok-bg); }
+      .result-box.error { display: block; border-color: var(--err); background: var(--err-bg); }
+      .result-box strong { display: block; font-weight: 500; margin-bottom: 2px; }
+      .drawer footer { display: flex; gap: 8px; padding: 14px 24px; border-top: 1px solid var(--line-soft); background: #fff; }
+      .drawer footer .spacer { flex: 1; }
+      .stopwatch { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); align-self: center; display: none; }
+      .stopwatch.on { display: inline; }
+      .stopwatch.done { color: var(--text); }
+
+      .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); background: #1f1f1f; color: #fff; padding: 10px 16px; border-radius: 2px; font-size: 13px; opacity: 0; transition: all 0.25s; z-index: 60; pointer-events: none; }
+      .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+      @media (max-width: 900px) {
+        .shell { grid-template-columns: minmax(0, 1fr); }
+        .sidenav { display: none; }
+        main { padding: 16px; }
+        .masthead { gap: 10px; padding-right: 12px; }
+        .masthead .app { font-size: 14px; white-space: nowrap; }
+        .masthead .sep, .masthead .env, .masthead .user span:last-child, .masthead .ico:first-child { display: none; }
+        .masthead .right { gap: 12px; }
+        .pagehead .meta { text-align: left; }
+        .toolbar { flex-wrap: wrap; }
+        .btn, .counter button, .counter input, select, input[type=text] { min-height: 44px; }
+        .search { width: 100%; }
+        .panel { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        td .name { white-space: nowrap; }
+        th:nth-child(4), td:nth-child(4), th:nth-child(5), td:nth-child(5) { display: none; }
+        #depTable th:nth-child(4), #depTable td:nth-child(4) { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="masthead">
+      <span class="dell" aria-label="Dell Technologies">DELL</span>
+      <span class="app"><b>Dell Automation Platform</b></span>
+      <span class="sep"></span>
+      <span class="env">Orchestrator &middot; dap-us-central-01</span>
+      <div class="right">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15z"/><path d="M10 21h4"/></svg>
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5"/><path d="M12 17h.01"/></svg>
+        <span class="user"><span class="av">PR</span>Priya Raman</span>
+      </div>
+    </div>
+
+    <div class="shell">
+      <nav class="sidenav" aria-label="Primary">
+        <a href="#"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>Dashboard</a>
+        <div class="group"><svg viewBox="0 0 24 24"><path d="M4 7h16v10H4z"/><path d="M8 7V5h8v2M4 12h16"/></svg>Inventory</div>
+        <div class="sub">
+          <a href="#">Endpoints</a>
+          <a href="#" class="active" aria-current="page">Blueprints</a>
+          <a href="#">Deployments</a>
+          <a href="#">Sites</a>
+        </div>
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>Catalog</a>
+        <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Jobs</a>
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>Alerts</a>
+        <a href="#"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Audit logs</a>
+        <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.7a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.7a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.5c.07-.4.1-.8.1-1.2z"/></svg>Settings</a>
+      </nav>
+
+      <main>
+        <div class="crumbs"><a href="#">Inventory</a><span>&rsaquo;</span>Blueprints</div>
+        <div class="pagehead">
+          <div>
+            <h1>Blueprints</h1>
+            <p>Dell-validated blueprints describe the desired state of a private cloud stack. Select a blueprint and click Deploy to render its plan against an onboarded site.</p>
+          </div>
+          <div class="meta">Catalog synced 12 min ago<br />Orchestrator 1.4.2 &middot; 48 endpoints onboarded</div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn primary" type="button" id="toolbarDeploy">Deploy</button>
+          <button class="btn" type="button">Add <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+          <button class="btn ghost" type="button">Download from Catalog</button>
+          <button class="btn ghost" type="button">Export</button>
+          <label class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" placeholder="Search blueprints" aria-label="Search blueprints" /></label>
+        </div>
+
+        <div class="panel">
+          <table id="bpTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Version</th>
+                <th>Ecosystem</th>
+                <th>Target infrastructure</th>
+                <th>Deployments</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-bp="dpc-vsphere">
+                <td><span class="name">Dell Private Cloud &mdash; VMware vSphere 8<small>Validated &middot; vSphere 8.0 U3, vCenter, NSX optional</small></span></td>
+                <td>2.1.0</td>
+                <td><span class="eco"><b style="background:#607078">VM</b>VMware</span></td>
+                <td>PowerEdge R760 &middot; PowerStore 3200T Prime</td>
+                <td><a href="#">6</a></td>
+                <td><span class="pill ok"><i></i>Ready</span></td>
+                <td class="actions"><button type="button" class="link-btn deploy-btn" data-bp="dpc-vsphere">Deploy</button></td>
+              </tr>
+              <tr data-bp="dpc-openshift">
+                <td><span class="name">Dell Private Cloud &mdash; Red Hat OpenShift<small>Validated &middot; OpenShift 4.16, bare metal</small></span></td>
+                <td>1.3.0</td>
+                <td><span class="eco"><b style="background:#ee0000">RH</b>Red Hat</span></td>
+                <td>PowerEdge R760 &middot; PowerStore 1200T</td>
+                <td><a href="#">3</a></td>
+                <td><span class="pill ok"><i></i>Ready</span></td>
+                <td class="actions"><button type="button" class="link-btn deploy-btn" data-bp="dpc-openshift">Deploy</button></td>
+              </tr>
+              <tr data-bp="dpc-nutanix">
+                <td><span class="name">Dell Private Cloud &mdash; Nutanix AHV<small>Validated &middot; AOS 6.10, Prism Central</small></span></td>
+                <td>1.0.2</td>
+                <td><span class="eco"><b style="background:#131b2f">NX</b>Nutanix</span></td>
+                <td>PowerEdge R760 &middot; PowerFlex</td>
+                <td><a href="#">1</a></td>
+                <td><span class="pill ok"><i></i>Ready</span></td>
+                <td class="actions"><button type="button" class="link-btn deploy-btn" data-bp="dpc-nutanix">Deploy</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="section">
+          <h2>Recent deployments</h2>
+          <div class="panel">
+            <table id="depTable">
+              <thead>
+                <tr><th>Name</th><th>Blueprint</th><th>Site</th><th>Nodes</th><th>Status</th></tr>
+              </thead>
+              <tbody id="depBody">
+                <tr><td colspan="5" class="empty">No deployments started in this session.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="scrim" id="scrim"></div>
+    <aside class="drawer" id="drawer" aria-hidden="true" role="dialog" aria-labelledby="drawerTitle">
+      <button type="button" class="close" id="closeBtn" aria-label="Close">&times;</button>
+      <header>
+        <h2 id="drawerTitle">Deploy blueprint</h2>
+        <p id="drawerSub">Configure the deployment, review the summary, then deploy.</p>
+      </header>
+      <div class="steps" id="steps"><span class="on">1 &nbsp;Deployment Targets</span><span>2 &nbsp;Configuration</span><span>3 &nbsp;Summary</span></div>
+      <form id="deployForm" novalidate>
+        <div class="step on" data-step="0">
+          <div class="bp-card">
+            <b id="cardName">&mdash;</b><span class="pill" id="cardVersion">&mdash;</span>
+            <small id="cardInfra">&mdash;</small><small id="cardEco">&mdash;</small>
+          </div>
+          <fieldset>
+            <label for="site">Site</label>
+            <select id="site">
+              <option value="rr-dc02">Round Rock DC-02 &middot; 24 endpoints &middot; PowerEdge R760</option>
+              <option value="hop-dc01">Hopkinton DC-01 &middot; 16 endpoints &middot; PowerEdge R760xa</option>
+              <option value="lim-edge04">Limerick EDGE-04 &middot; 8 endpoints &middot; PowerEdge XR8000</option>
+            </select>
+            <p class="hint">Only sites with free, onboarded endpoints that match the blueprint's hardware profile are listed.</p>
+          </fieldset>
+          <fieldset>
+            <label for="target">Deployment target</label>
+            <select id="target">
+              <option>Bare metal (managed by orchestrator)</option>
+              <option>Existing vCenter &middot; vcsa-rr02.corp.local</option>
+            </select>
+          </fieldset>
+        </div>
+        <div class="step" data-step="1">
+          <fieldset>
+            <label for="clusterName">Cluster name</label>
+            <input type="text" id="clusterName" value="dpc-rr02-prod-01" autocomplete="off" />
+            <p class="hint">Lowercase letters, digits and hyphens. Used as the vCenter cluster and inventory group name.</p>
+          </fieldset>
+          <fieldset>
+            <label for="nodes">Node count</label>
+            <div class="counter">
+              <button type="button" id="nodeMinus" aria-label="Fewer nodes">&minus;</button>
+              <input type="number" id="nodes" value="4" min="3" max="16" inputmode="numeric" />
+              <button type="button" id="nodePlus" aria-label="More nodes">+</button>
+            </div>
+            <p class="hint" id="nodeHint">4 of 24 free endpoints at Round Rock DC-02 will be claimed.</p>
+          </fieldset>
+          <fieldset>
+            <label for="storagePolicy">Storage policy</label>
+            <select id="storagePolicy">
+              <option>Blueprint default</option>
+              <option>Performance (NVMe/TCP, no dedupe)</option>
+              <option>Capacity (compressed, replicated)</option>
+            </select>
+          </fieldset>
+          <fieldset>
+            <label for="secrets">Secrets</label>
+            <select id="secrets">
+              <option>dpc-rr02-admin-credentials</option>
+              <option>dpc-shared-admin-credentials</option>
+            </select>
+            <p class="hint">Key-value secrets created under Settings &rsaquo; Secrets. Selected by the blueprint's input constraints.</p>
+          </fieldset>
+        </div>
+        <div class="step" data-step="2">
+          <p class="note">Review the desired state. Deploy renders the plan, claims the endpoints and starts the deployment. Progress is tracked on the Deployments page.</p>
+          <table class="kv">
+            <tr><td>Blueprint</td><td id="sumBp">&mdash;</td></tr>
+            <tr><td>Site</td><td id="sumSite">&mdash;</td></tr>
+            <tr><td>Cluster name</td><td id="sumCluster">&mdash;</td></tr>
+            <tr><td>Nodes</td><td id="sumNodes">&mdash;</td></tr>
+            <tr><td>Storage</td><td id="sumStorage">&mdash;</td></tr>
+            <tr><td>Estimated duration</td><td>~2 h 30 min, no manual steps</td></tr>
+          </table>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </div>
+        <footer>
+          <button type="button" class="btn ghost" id="cancelBtn">Cancel</button>
+          <span class="spacer"></span>
+          <span class="stopwatch" id="submitTimer">Elapsed <span id="submitTimerValue">0.0s</span></span>
+          <button type="button" class="btn" id="backBtn" disabled>Back</button>
+          <button type="button" class="btn primary" id="nextBtn">Next</button>
+          <button type="submit" class="btn primary" id="submitBtn" style="display:none">Deploy</button>
+        </footer>
+      </form>
+    </aside>
+    <div class="toast" id="toast"></div>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      try { if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return; } catch (_) { return; }
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+    (function () {
+      var BLUEPRINTS = {
+        'dpc-vsphere': { name: 'Dell Private Cloud \u2014 VMware vSphere 8', version: '2.1.0', eco: 'VMware', infra: 'PowerEdge R760 \u00b7 PowerStore 3200T Prime', storage: 'PowerStore 3200T Prime \u00b7 NVMe/TCP', min: 4 },
+        'dpc-openshift': { name: 'Dell Private Cloud \u2014 Red Hat OpenShift', version: '1.3.0', eco: 'Red Hat', infra: 'PowerEdge R760 \u00b7 PowerStore 1200T', storage: 'PowerStore 1200T \u00b7 NVMe/TCP', min: 3 },
+        'dpc-nutanix': { name: 'Dell Private Cloud \u2014 Nutanix AHV', version: '1.0.2', eco: 'Nutanix', infra: 'PowerEdge R760 \u00b7 PowerFlex', storage: 'PowerFlex software-defined \u00b7 SDC', min: 3 },
+      };
+      var SITES = {
+        'rr-dc02': { name: 'Round Rock DC-02', free: 24, model: 'PowerEdge R760', code: 'rr02' },
+        'hop-dc01': { name: 'Hopkinton DC-01', free: 16, model: 'PowerEdge R760xa', code: 'hop01' },
+        'lim-edge04': { name: 'Limerick EDGE-04', free: 8, model: 'PowerEdge XR8000', code: 'lim04' },
+      };
+      function $(id) { return document.getElementById(id); }
+      function getStore(key) { try { return localStorage.getItem(key) || ''; } catch (_) { return ''; } }
+      var state = { bp: 'dpc-vsphere', step: 0, pending: false, started: 0, timerHandle: null };
+      var form = $('deployForm');
+      var siteSel = $('site');
+      var nodesInput = $('nodes');
+      var result = $('result');
+      var submitBtn = $('submitBtn');
+      var nextBtn = $('nextBtn');
+      var backBtn = $('backBtn');
+      var timer = $('submitTimer');
+      var timerValue = $('submitTimerValue');
+      var stepEls = Array.prototype.slice.call(document.querySelectorAll('.step'));
+      var stepTabs = Array.prototype.slice.call($('steps').children);
+      var deployments = 0;
+
+      function nodeCount() {
+        var raw = (nodesInput.value || '').trim();
+        return /^\d+$/.test(raw) ? parseInt(raw, 10) : NaN;
+      }
+      function renderCard() {
+        var bp = BLUEPRINTS[state.bp];
+        $('cardName').textContent = bp.name;
+        $('cardVersion').textContent = 'v' + bp.version;
+        $('cardInfra').textContent = bp.infra;
+        $('cardEco').textContent = bp.eco + ' ecosystem';
+        nodesInput.min = String(bp.min);
+        if (nodeCount() < bp.min) nodesInput.value = String(bp.min);
+      }
+      function sync() {
+        var bp = BLUEPRINTS[state.bp];
+        var site = SITES[siteSel.value];
+        var n = nodeCount();
+        var max = Math.min(16, site.free);
+        $('nodeHint').textContent = (isNaN(n) ? '\u2014' : n) + ' of ' + site.free + ' free endpoints at ' + site.name + ' will be claimed.';
+        $('nodeMinus').disabled = state.pending || isNaN(n) || n <= bp.min;
+        $('nodePlus').disabled = state.pending || (!isNaN(n) && n >= max);
+        if (!$('clusterName').dataset.touched) $('clusterName').value = 'dpc-' + site.code + '-prod-01';
+        $('sumBp').textContent = bp.name + ' ' + bp.version;
+        $('sumSite').textContent = site.name + ' \u00b7 ' + site.model;
+        $('sumCluster').textContent = $('clusterName').value.trim() || '\u2014';
+        $('sumNodes').textContent = isNaN(n) ? '\u2014' : n + ' \u00d7 ' + site.model;
+        $('sumStorage').textContent = bp.storage;
+      }
+      function showStep(i) {
+        state.step = i;
+        stepEls.forEach(function (el, idx) { el.classList.toggle('on', idx === i); });
+        stepTabs.forEach(function (el, idx) { el.className = idx === i ? 'on' : idx < i ? 'done' : ''; });
+        backBtn.disabled = i === 0 || state.pending;
+        nextBtn.style.display = i === 2 ? 'none' : '';
+        submitBtn.style.display = i === 2 ? '' : 'none';
+        sync();
+      }
+      function step(d) {
+        if (state.pending) return;
+        var bp = BLUEPRINTS[state.bp];
+        var max = Math.min(16, SITES[siteSel.value].free);
+        var n = nodeCount();
+        if (isNaN(n)) n = bp.min; else n = Math.min(max, Math.max(bp.min, n + d));
+        nodesInput.value = String(n);
+        clearResult();
+        sync();
+      }
+      function open(bp) {
+        if (bp && BLUEPRINTS[bp]) state.bp = bp;
+        $('drawerSub').textContent = BLUEPRINTS[state.bp].name + ' \u00b7 v' + BLUEPRINTS[state.bp].version;
+        renderCard();
+        clearResult();
+        submitBtn.disabled = false; submitBtn.textContent = 'Deploy';
+        showStep(0);
+        document.body.classList.add('open');
+        $('drawer').setAttribute('aria-hidden', 'false');
+      }
+      function close() {
+        if (state.pending) return;
+        document.body.classList.remove('open');
+        $('drawer').setAttribute('aria-hidden', 'true');
+      }
+      function startTimer() {
+        state.started = performance.now();
+        timer.className = 'stopwatch on';
+        timerValue.textContent = '0.0s';
+        state.timerHandle = setInterval(function () {
+          timerValue.textContent = ((performance.now() - state.started) / 1000).toFixed(1) + 's';
+        }, 100);
+      }
+      function stopTimer() {
+        clearInterval(state.timerHandle);
+        state.timerHandle = null;
+        timerValue.textContent = ((performance.now() - state.started) / 1000).toFixed(1) + 's';
+        timer.className = 'stopwatch on done';
+      }
+      function show(kind, title, body) {
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        var s = document.createElement('strong');
+        s.textContent = title;
+        result.appendChild(s);
+        result.appendChild(document.createTextNode(body));
+      }
+      function clearResult() {
+        result.className = 'result-box';
+        result.textContent = '';
+        clearInterval(state.timerHandle);
+        state.timerHandle = null;
+        timer.className = 'stopwatch';
+        timerValue.textContent = '0.0s';
+      }
+      function setBusy(on) {
+        state.pending = on;
+        submitBtn.disabled = on;
+        backBtn.disabled = on || state.step === 0;
+        $('cancelBtn').disabled = on;
+        $('closeBtn').disabled = on;
+        submitBtn.textContent = on ? 'Deploying\u2026' : 'Deploy';
+      }
+      function toast(text) {
+        var t = $('toast');
+        t.textContent = text;
+        t.classList.add('show');
+        setTimeout(function () { t.classList.remove('show'); }, 3200);
+      }
+      function addDeploymentRow(data) {
+        var body = $('depBody');
+        if (deployments === 0) body.textContent = '';
+        deployments++;
+        var tr = document.createElement('tr');
+        function td(text) { var c = document.createElement('td'); c.textContent = text; tr.appendChild(c); return c; }
+        var nameCell = td(''); var link = document.createElement('a'); link.href = '#'; link.textContent = data.deploymentName; nameCell.appendChild(link);
+        td(data.blueprint);
+        td(data.site);
+        td(data.nodes);
+        var status = td('');
+        var bar = document.createElement('span'); bar.className = 'progress'; var fill = document.createElement('i'); bar.appendChild(fill);
+        var label = document.createElement('span'); label.textContent = data.status + '\u2026 ' + data.progress + '%';
+        status.appendChild(bar); status.appendChild(label);
+        body.insertBefore(tr, body.firstChild);
+        var pct = data.progress;
+        setTimeout(function () { fill.style.width = pct + '%'; }, 50);
+        var tick = setInterval(function () {
+          pct = Math.min(pct + 1, 23);
+          fill.style.width = pct + '%';
+          label.textContent = (pct < 8 ? 'Creating deployments' : pct < 15 ? 'Claiming endpoints' : 'Installing cloud OS') + '\u2026 ' + pct + '%';
+          if (pct >= 23) clearInterval(tick);
+        }, 4000);
+      }
+
+      Array.prototype.forEach.call(document.querySelectorAll('.deploy-btn'), function (b) {
+        b.addEventListener('click', function () { open(b.getAttribute('data-bp')); });
+      });
+      $('toolbarDeploy').addEventListener('click', function () { open(state.bp); });
+      $('closeBtn').addEventListener('click', close);
+      $('cancelBtn').addEventListener('click', close);
+      $('scrim').addEventListener('click', close);
+      nextBtn.addEventListener('click', function () { if (state.step < 2) showStep(state.step + 1); });
+      backBtn.addEventListener('click', function () { if (state.step > 0) { clearResult(); showStep(state.step - 1); } });
+      $('nodeMinus').addEventListener('click', function () { step(-1); });
+      $('nodePlus').addEventListener('click', function () { step(1); });
+      nodesInput.addEventListener('input', function () { clearResult(); sync(); });
+      siteSel.addEventListener('change', function () { clearResult(); sync(); });
+      $('clusterName').addEventListener('input', function () { $('clusterName').dataset.touched = '1'; sync(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (state.pending) return;
+        var bp = BLUEPRINTS[state.bp];
+        var site = SITES[siteSel.value];
+        var n = nodeCount();
+        var cluster = $('clusterName').value.trim();
+        if (isNaN(n) || n < bp.min || n > Math.min(16, site.free) || !/^[a-z0-9-]{3,40}$/.test(cluster)) {
+          show('error', 'Check the configuration.', ' Node count must be between ' + bp.min + ' and ' + Math.min(16, site.free) + ' for this site, and the cluster name must be lowercase letters, digits and hyphens.');
+          return;
+        }
+        setBusy(true);
+        show('pending', 'Rendering the desired-state plan for ' + bp.name + '\u2026', ' Validating inventory, storage profile and secrets for ' + site.name + '.');
+        startTimer();
+        try {
+          var res = await fetch('/api/357c3b76/deployments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              blueprintId: state.bp,
+              siteId: siteSel.value,
+              clusterName: cluster,
+              nodeCount: n,
+              storagePolicy: $('storagePolicy').value,
+              devinUserId: getStore('devinUserId'),
+              devinOrgId: getStore('devinOrgId'),
+              devinEmail: getStore('devinEmail'),
+            }),
+          });
+          var data = await res.json().catch(function () { return null; });
+          stopTimer();
+          if (!res.ok || !data || data.success !== true) {
+            show('error', 'The deployment could not be started.', ' No changes were made to the selected endpoints. Please try again in a few minutes or contact Dell Technologies Support.');
+            setBusy(false);
+            return;
+          }
+          show('ok', 'Deployment started.', ' ' + data.deploymentName + ' is being created on ' + data.site + '. Track progress on the Deployments page.');
+          submitBtn.textContent = 'Deployed';
+          state.pending = false;
+          $('cancelBtn').disabled = false; $('closeBtn').disabled = false; backBtn.disabled = true;
+          addDeploymentRow(data);
+          toast('Creating deployments\u2026 ' + data.deploymentName);
+          setTimeout(close, 1600);
+        } catch (err) {
+          stopTimer();
+          show('error', 'The deployment could not be started.', ' No changes were made to the selected endpoints. Please try again in a few minutes or contact Dell Technologies Support.');
+          setBusy(false);
+        }
+      });
+
+      renderCard();
+      sync();
+    })();
+    </script>
+  </body>
+</html>
