@@ -256,7 +256,7 @@
               </div>
               <div class="field-row">
                 <div class="field"><label for="amount">Loan amount (USD)</label><input type="number" id="amount" value="2500" min="0.01" step="0.01" required placeholder="Enter amount"></div>
-                <div class="field"><label for="accountTier">Disbursement method</label><select id="accountTier"><option value="premium">Same-day ACH</option><option value="standard">Standard ACH</option><option value="basic">Debit card push</option></select></div>
+                <div class="field"><label for="accountTier">Funding tier</label><select id="accountTier"><option value="premium">Priority</option><option value="standard">Standard</option><option value="basic">Basic</option></select></div>
               </div>
               <button type="submit" class="btn" id="submitBtn">Fund loan</button>
             </form>
@@ -352,6 +352,7 @@
     })();
   </script>
   <script>
+    const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
     document.getElementById('transferForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -372,14 +373,14 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Loan funding failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          result.innerHTML = `<div class="error-title">Loan funding failed</div><div class="error-detail">${esc(data.errorClass)}: ${esc(data.error)}</div>`;
         } else {
           result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Loan funded</div><div class="error-detail">$${amount.toFixed(2)} sent to the borrower account. Funding account debited $${data.debitAmount} (includes $${data.fee} ACH fee).</div>`;
+          result.innerHTML = `<div class="error-title">Loan funded</div><div class="error-detail">$${amount.toFixed(2)} sent to the borrower account. Funding account debited $${esc(data.debitAmount)} (includes $${esc(data.fee)} fee).</div>`;
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${esc(err.message)}</div>`;
       } finally { btn.disabled = false; btn.textContent = 'Fund loan'; }
     });
   </script>
