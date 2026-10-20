@@ -4626,6 +4626,32 @@ const ONCALL_SKINS = {
     supportCenter: 'イオンネットスーパー お客さまセンター',
     disclaimer: 'NOT ACTUALLY AN AEON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real AEON product. ／ イオンネットスーパーの実際のサイトではありません（社内デモ用）。',
   },
+  '3ae0c983': {
+    slug: '3ae0c983',
+    company: 'PROTO Industrial Tools',
+    brandMark: 'P',
+    vertical: 'wheretobuy',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    paths: ['/proto', '/protoindustrial'],
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the PROTO Industrial Tools product detail page linked above (J6060B micrometer torque wrench). Its Where to Buy buttons post to the endpoint above, so that endpoint is the backend of this incident.',
+        'In the alert thread the incident reads "5xx rate \u2014 Where to Buy (product detail)", release proto-catalog-web@5.12.0, owner team product-catalog-oncall: Where to Buy fails immediately with HTTP 500 for some SKUs while other SKUs on the same page work.',
+        'Use "PROTO" and "Where to Buy" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Dana Whitfield (product-catalog-oncall)". Dana Whitfield is fictional; never resolve them to a real user. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    page: { file: '3ae0c983.html', title: '1/4 in. Drive Ratcheting Head Micrometer Torque Wrench With Quick Release Head Design | PROTO' },
+    alertCard: {
+      title: '5xx rate \u2014 Where to Buy (product detail)',
+      release: 'proto-catalog-web@5.12.0',
+      team: 'product-catalog-oncall',
+      symptom: 'Where to Buy on the J6060B torque wrench product page fails immediately with HTTP 500; no retailer list is shown. Other SKUs on the page load retailers normally. Latency is normal.',
+      impact: 'Buyers cannot find a distributor for the affected PROTO torque wrench; every Where to Buy click on it errors.',
+    },
+    disclaimer: 'NOT ACTUALLY A PROTO INDUSTRIAL TOOLS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real PROTO Industrial Tools or Stanley Black & Decker product.',
+  },
 };
 
 function getOncallSkin(slug) {
