@@ -306,23 +306,17 @@ describe('Chapter OTC iOS checkout failure report', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
-  test('answers the CORS preflight', async () => {
+  test('sends no CORS headers, so browsers on other origins cannot post reports', async () => {
     const { port } = server.address();
-    const response = await fetch(`http://127.0.0.1:${port}${IOS_ERROR_PATH}`, {
+    const preflight = await fetch(`http://127.0.0.1:${port}${IOS_ERROR_PATH}`, {
       method: 'OPTIONS',
-      headers: { origin: 'http://localhost:8080', 'access-control-request-method': 'POST' },
+      headers: { origin: 'https://evil.example', 'access-control-request-method': 'POST' },
     });
+    expect(preflight.headers.get('access-control-allow-origin')).toBeNull();
 
-    expect(response.status).toBe(204);
-    expect(response.headers.get('access-control-allow-origin')).toBe('*');
-    expect(response.headers.get('access-control-allow-methods')).toContain('POST');
-  });
-
-  test('POST /api/chapter/ios/error includes CORS headers on rejection', async () => {
     const { status, headers } = await postJson(server, IOS_ERROR_PATH, {});
-
     expect(status).toBe(400);
-    expect(headers['access-control-allow-origin']).toBe('*');
+    expect(headers['access-control-allow-origin']).toBeUndefined();
   });
 
   test('throttles accepted reports after the per-route cap', async () => {
@@ -332,10 +326,20 @@ describe('Chapter OTC iOS checkout failure report', () => {
 
     const { status, headers, body } = await postJson(server, IOS_ERROR_PATH, APP_REPORT);
     expect(status).toBe(429);
-    expect(headers['retry-after']).toBe('600');
+    expect(Number(headers['retry-after'])).toBeGreaterThan(0);
+    expect(Number(headers['retry-after'])).toBeLessThanOrEqual(600);
     expect(body).toMatchObject({ received: false, status: 'throttled' });
     expect(createSessionAndAlert).not.toHaveBeenCalled();
     expect(reserveReportSlot(now + 11 * 60 * 1000)).toBe(true);
+  });
+
+  test('Retry-After counts down to when the oldest slot frees', () => {
+    const { reserveReportSlot, retryAfterSeconds } = require('../app/routes/verticals/chapter-ios');
+    const start = Date.now() + 60 * 60 * 1000;
+    while (reserveReportSlot(start)) { /* fill a fresh window */ }
+    expect(retryAfterSeconds(start)).toBe(600);
+    expect(retryAfterSeconds(start + 599 * 1000)).toBe(1);
+    expect(retryAfterSeconds(start + 599.5 * 1000)).toBe(1);
   });
 
   test('applies the chapter-ios identity to webhook alerts carrying the iOS service', () => {

@@ -9,19 +9,8 @@ const {
 
 const router = express.Router();
 
-function allowCrossOrigin(req, res, next) {
-  res.set({
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, User-Agent',
-    'Access-Control-Max-Age': '600',
-  });
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  return next();
-}
-
-router.options(IOS_ERROR_PATH, allowCrossOrigin);
-
+// Native-only client (URLSession): no CORS headers, so browsers on other
+// origins cannot post JSON reports here.
 const parsedMax = parseInt(process.env.REPORT_CAP_CHAPTER_IOS_MAX, 10);
 const REPORT_MAX = Number.isNaN(parsedMax) ? 10 : parsedMax;
 const parsedWindow = parseInt(process.env.REPORT_CAP_CHAPTER_IOS_WINDOW_MINUTES, 10);
@@ -36,7 +25,12 @@ function reserveReportSlot(now = Date.now()) {
   return true;
 }
 
-router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
+function retryAfterSeconds(now = Date.now()) {
+  if (acceptedAt.length === 0) return 1;
+  return Math.max(1, Math.ceil((acceptedAt[0] + REPORT_WINDOW_MS - now) / 1000));
+}
+
+router.post(IOS_ERROR_PATH, (req, res) => {
   const body = req.body && typeof req.body === 'object' ? req.body : {};
 
   if (!isAppReport(body)) {
@@ -47,8 +41,9 @@ router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
     });
   }
 
-  if (!reserveReportSlot()) {
-    res.set('Retry-After', String(Math.ceil(REPORT_WINDOW_MS / 1000)));
+  const now = Date.now();
+  if (!reserveReportSlot(now)) {
+    res.set('Retry-After', String(retryAfterSeconds(now)));
     return res.status(429).json({
       received: false,
       status: 'throttled',
@@ -70,3 +65,4 @@ router.post(IOS_ERROR_PATH, allowCrossOrigin, (req, res) => {
 
 module.exports = router;
 module.exports.reserveReportSlot = reserveReportSlot;
+module.exports.retryAfterSeconds = retryAfterSeconds;
