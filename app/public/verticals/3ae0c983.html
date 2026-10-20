@@ -788,6 +788,26 @@
   </script>
 <script>
     (function () {
+      document.querySelectorAll('.coh-interaction[data-interaction-modifiers]').forEach(function (el) {
+        var mods;
+        try { mods = JSON.parse(el.getAttribute('data-interaction-modifiers')); } catch (e) { return; }
+        el.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          mods.forEach(function (m) {
+            var root = m.interactionScope === 'parent' ? el.closest(m.interactionParent) : document;
+            if (!root) return;
+            var cls = m.modifierName.replace(/^\./, '');
+            root.querySelectorAll(m.interactionTarget).forEach(function (t) {
+              if (m.modifierType === 'remove-modifier') t.classList.remove(cls);
+              else t.classList.toggle(cls);
+            });
+          });
+        });
+      });
+    })();
+  </script>
+<script>
+    (function () {
       if (!window.matchMedia('(min-width: 1024px)').matches) return;
       document.querySelectorAll('li.level-1-menu-item').forEach(function (li) {
         var sub = li.querySelector('.level-1-sub-menu');
