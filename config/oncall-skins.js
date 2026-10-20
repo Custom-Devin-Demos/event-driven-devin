@@ -4666,6 +4666,14 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A PROTO INDUSTRIAL TOOLS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real PROTO Industrial Tools or Stanley Black & Decker product.',
   },
+  '2993853c': {
+    slug: '2993853c',
+    company: 'Dolby OptiView',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: { file: '2993853c.html', title: 'Cross-Platform Video Player | Dolby OptiView Player' },
+    disclaimer: 'NOT ACTUALLY A DOLBY OPTIVIEW SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dolby OptiView or Dolby Laboratories product.',
+  },
 };
 
 function getOncallSkin(slug) {
