@@ -11,7 +11,7 @@ jest.mock('../app/telemetry/sentry', () => ({
   Sentry: {
     captureException: jest.fn(),
     withScope: jest.fn((callback) => {
-      const scope = { setTransactionName: jest.fn() };
+      const scope = { setTransactionName: jest.fn(), addEventProcessor: jest.fn() };
       callback(scope);
       return scope;
     }),
@@ -197,6 +197,12 @@ describe('Mac Tools AMP iOS weekly payment failure report', () => {
       plan_code: 'FLEX36',
       scenario: APP_SCENARIO,
       alert_path: 'instant',
+    });
+    const processor = scope.addEventProcessor.mock.calls[0][0];
+    expect(processor({ release: 'host@1.0.0', environment: 'staging', message: 'x' })).toEqual({
+      release: APP_RELEASE,
+      environment: 'prod',
+      message: 'x',
     });
     expect(context.extra).toMatchObject({
       accountId: 'EC-48817',

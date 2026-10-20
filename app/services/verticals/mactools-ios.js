@@ -160,12 +160,15 @@ function reportAppFailure(report) {
 
   Sentry.withScope((scope) => {
     scope.setTransactionName(`POST ${IOS_ERROR_PATH}`);
+    // Label the event with the native app's release/environment rather than this host's.
+    scope.addEventProcessor((event) => ({ ...event, release, environment }));
     Sentry.captureException(error, {
       tags,
       extra: { reference, release, environment, ...details },
     });
   });
 
+  const lookupOrgId = report.devinOrgId || getCustomerConfig(CUSTOMER).devinOrgId || process.env.DEVIN_ORG_ID || '';
   const raiseAlert = (devinUserId) => createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=${encodeURIComponent(APP_SENTRY_ISSUE_QUERY)}`,
@@ -174,7 +177,7 @@ function reportAppFailure(report) {
     errorValue: errorMessage,
     devinUserId,
     devinEmail: report.devinEmail,
-    devinOrgId: report.devinOrgId,
+    devinOrgId: lookupOrgId || undefined,
     slackMemberId: report.devinEmail ? '' : MACTOOLS_SLACK_MEMBER_ID,
     slackMemberIdFallback: MACTOOLS_SLACK_MEMBER_ID,
     service: APP_SERVICE,
@@ -200,9 +203,9 @@ function reportAppFailure(report) {
     triggeredRule: '',
   });
 
-  const needsLookup = !report.devinUserId && report.devinEmail && report.devinOrgId;
+  const needsLookup = !report.devinUserId && report.devinEmail && lookupOrgId;
   const sessionPromise = (needsLookup
-    ? resolveUserIdByEmail(report.devinEmail, report.devinOrgId)
+    ? resolveUserIdByEmail(report.devinEmail, lookupOrgId)
       .then((userId) => raiseAlert(userId || undefined))
     : raiseAlert(report.devinUserId)
   ).catch((alertError) => {
