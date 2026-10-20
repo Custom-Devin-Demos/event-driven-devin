@@ -711,6 +711,7 @@
           var controller = shimmed && window.AbortController ? new AbortController() : null;
           var timer = controller ? setTimeout(function () { controller.abort(); }, REGISTER_TIMEOUT_MS) : null;
           var res;
+          var data;
           try {
             res = await fetch(apiPath, {
               method: 'POST',
@@ -718,6 +719,7 @@
               body: JSON.stringify(Object.assign(payload, identity)),
               signal: controller ? controller.signal : undefined
             });
+            data = await res.json();
           } catch (fetchErr) {
             if (controller && controller.signal.aborted) {
               showResult('error', '申し込みを完了できませんでした', 'TimeoutError: サーバーから ' + (REGISTER_TIMEOUT_MS / 1000) + ' 秒以内に応答がなかったため、申し込みを中断しました（HTTP 504 Gateway Timeout）。しばらくしてから再度お試しください。');
@@ -727,7 +729,6 @@
           } finally {
             if (timer) clearTimeout(timer);
           }
-          var data = await res.json();
           if (!res.ok) {
             showResult('error', '申し込みを完了できませんでした', (data.errorClass || 'Error') + ': ' + (data.error || ''));
           } else {
