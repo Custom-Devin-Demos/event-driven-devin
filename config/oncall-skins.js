@@ -4682,6 +4682,33 @@ const ONCALL_SKINS = {
     page: { file: '959dc0b3.html', title: 'Hippo Home Insurance - affordable, tailored quotes in under 60 seconds' },
     disclaimer: 'NOT ACTUALLY A HIPPO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Hippo product.',
   },
+  '492753fe': {
+    slug: '492753fe',
+    company: 'Rivian',
+    brandMark: 'R',
+    vertical: 'evreservation',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    paths: ['/rivian', '/rivian-r2'],
+    ribbonSide: 'left',
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the Rivian R2 configurator linked above. Reserve opens the R2 reservation form, and its Confirm reservation button posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'In the alert thread the incident reads "5xx rate \u2014 R2 Confirm reservation", release r2-configurator-web@3.8.0, owner team order-intake-oncall: Confirm reservation fails immediately with HTTP 500 for R2 Performance builds while Premium and Standard reservations succeed.',
+        'Use "Rivian R2" and "Confirm reservation" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread and cc the on-call engineer as plain text: "cc @Jordan Reyes (order-intake-oncall)". Jordan Reyes is fictional; never resolve them to a real user. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    page: { file: '492753fe.html', title: 'Design Your Rivian R2 | Configurator | Rivian' },
+    alertCard: {
+      title: '5xx rate \u2014 R2 Confirm reservation',
+      release: 'r2-configurator-web@3.8.0',
+      team: 'order-intake-oncall',
+      symptom: 'Confirm reservation on the R2 configurator fails immediately with HTTP 500 for R2 Performance builds; no deposit is taken. Premium and Standard reservations succeed. Latency is normal.',
+      impact: 'Buyers cannot reserve the R2 Performance, the only trim available now; every Confirm reservation on it errors.',
+    },
+    disclaimer: 'NOT ACTUALLY A RIVIAN SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Rivian product.',
+  },
 };
 
 function getOncallSkin(slug) {
