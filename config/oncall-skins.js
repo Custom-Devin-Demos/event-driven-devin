@@ -4733,6 +4733,33 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BUILDERS FIRSTSOURCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Builders FirstSource product.',
   },
+  '553b83cc': {
+    slug: '553b83cc',
+    company: 'Base Power',
+    brandMark: 'B',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: { file: '553b83cc.html', title: 'Change your plan | Base Power' },
+    theme: {
+      '--accent': '#1E4D2B',
+      '--ink': '#292826',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#292826',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Base Power Support',
+    devinSession: { auto: true },
+    alertCard: {
+      title: 'p95 latency \u2014 Base Power plan change',
+      service: 'member-plans-api',
+      team: 'member-platform-oncall',
+      release: 'member-web@2026.10.3',
+      baseline: '~300ms (7-day p95, before member-web@2026.10.3)',
+      symptom: 'Plan changes in the Base member account slowed sharply after the last release. p95 latency is far above the 7-day baseline; error rate is normal \u2014 plan changes eventually confirm.',
+      impact: 'Members adding a Base Core battery or moving to Energy + backup wait ~8 seconds for a confirmation; some press Confirm plan change again and contact Support about duplicate requests.',
+    },
+    disclaimer: 'NOT ACTUALLY A BASE POWER SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Base Power Company product.',
+  },
 };
 
 function getOncallSkin(slug) {
