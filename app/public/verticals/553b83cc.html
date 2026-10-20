@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Change your plan | Base Power</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --grey-100: #292826;
+            --grey-70: #5c5a56;
+            --grey-40: #a09d97;
+            --grey-20: #d9d6d0;
+            --grey-5: #f0eeeb;
+            --green-100: #102a17;
+            --green-90: #1e4d2b;
+            --green-60: #77a45a;
+            --green-20: #b2dd79;
+            --green-5: #d6f0b4;
+            --orange-60: #ed6c30;
+            --white: #ffffff;
+            --sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+            --radius-pill: 9999px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            font-family: var(--sans);
+            font-size: 16px;
+            line-height: 24px;
+            color: var(--grey-100);
+            background: var(--grey-5);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        a { color: inherit; text-decoration: none; }
+        button, input, select { font: inherit; color: inherit; }
+        .wrap { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* Navigation */
+        .nav { background: var(--grey-100); color: var(--white); }
+        .nav .wrap { height: 69px; display: flex; align-items: center; gap: 24px; }
+        .mark { display: inline-flex; align-items: center; height: 44px; color: var(--white); }
+        .mark svg { display: block; height: 22px; width: auto; }
+        .nav-links { display: flex; gap: 2px; list-style: none; }
+        .nav-links a {
+            display: inline-flex; align-items: center; gap: 6px;
+            height: 40px; padding: 8px 14px; border-radius: var(--radius-md);
+            font-weight: 500; color: var(--white);
+        }
+        .nav-links a:hover { background: rgba(255, 255, 255, 0.08); }
+        .nav-links a svg { width: 12px; height: 12px; opacity: 0.8; }
+        .nav-right { margin-left: auto; display: flex; gap: 8px; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-height: 44px; padding: 8px 14px; border-radius: var(--radius-md);
+            font-size: 14px; font-weight: 600; border: 1px solid transparent;
+            cursor: pointer; white-space: nowrap;
+        }
+        .btn-outline { border-color: var(--white); color: var(--white); background: transparent; }
+        .btn-outline:hover { background: rgba(255, 255, 255, 0.08); }
+        .btn-lime { background: var(--green-20); color: var(--green-90); }
+        .btn-lime:hover { background: #c3e68f; }
+        .btn-lime:disabled { opacity: 0.7; cursor: progress; }
+
+        /* Hero band */
+        .hero { background: var(--grey-100); color: var(--white); padding: 44px 0 100px; }
+        .eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+            color: var(--green-20); margin-bottom: 14px;
+        }
+        .eyebrow i { width: 8px; height: 8px; border-radius: 50%; background: var(--green-20); display: inline-block; }
+        .hero h1 { font-size: 48px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; max-width: 720px; }
+        .hero p { margin-top: 14px; max-width: 640px; color: rgba(255, 255, 255, 0.82); }
+
+        /* Layout */
+        .main { flex: 1; margin-top: -64px; padding-bottom: 72px; }
+        .grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
+        .card { background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--grey-20); }
+        .card-pad { padding: 28px; }
+        .card h2 { font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+        .muted { color: var(--grey-70); }
+        .small { font-size: 14px; line-height: 20px; }
+
+        /* Current plan */
+        .current {
+            margin-top: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+            padding: 16px 18px; border-radius: var(--radius-md); background: var(--grey-5);
+        }
+        .current strong { display: block; font-weight: 600; }
+        .tag {
+            display: inline-block; padding: 2px 10px; border-radius: var(--radius-pill);
+            font-size: 12px; font-weight: 600; background: var(--green-5); color: var(--green-90); white-space: nowrap;
+        }
+
+        /* Plan options */
+        .section-label { margin-top: 28px; font-weight: 600; }
+        .plans { margin-top: 12px; display: grid; gap: 12px; }
+        .plan {
+            display: grid; grid-template-columns: 24px 1fr auto; gap: 14px; align-items: start;
+            padding: 18px; border: 1.5px solid var(--grey-20); border-radius: var(--radius-lg);
+            background: var(--white); cursor: pointer; text-align: left; width: 100%; min-height: 44px;
+            transition: border-color 0.12s ease, background 0.12s ease;
+        }
+        .plan:hover { border-color: var(--green-60); }
+        .plan[aria-checked="true"] { border-color: var(--green-90); background: #f7fbef; }
+        .plan .radio {
+            width: 22px; height: 22px; margin-top: 1px; border-radius: 50%;
+            border: 2px solid var(--grey-40); display: grid; place-items: center;
+        }
+        .plan[aria-checked="true"] .radio { border-color: var(--green-90); }
+        .plan[aria-checked="true"] .radio::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--green-90); }
+        .plan .name { font-weight: 600; }
+        .plan .desc { font-size: 14px; line-height: 20px; color: var(--grey-70); margin-top: 2px; }
+        .plan .perks { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--grey-70); }
+        .plan .perks span::before { content: '✓'; color: var(--green-60); margin-right: 6px; font-weight: 700; }
+        .plan .price { text-align: right; white-space: nowrap; }
+        .plan .price b { display: block; font-size: 22px; line-height: 26px; font-weight: 600; letter-spacing: -0.01em; }
+        .plan .price small { font-size: 12px; color: var(--grey-70); }
+        .plan:focus-visible { outline: 3px solid var(--green-20); outline-offset: 2px; }
+
+        /* Fields */
+        .fields { margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+        .field select, .field input {
+            width: 100%; min-height: 48px; padding: 10px 14px; border-radius: var(--radius-md);
+            border: 1.5px solid var(--grey-20); background: var(--white);
+        }
+        .field select:focus, .field input:focus { outline: none; border-color: var(--green-90); box-shadow: 0 0 0 3px var(--green-5); }
+        .field .hint { font-size: 13px; color: var(--grey-70); margin-top: 6px; }
+        .hidden-select { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+        .actions { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+        .actions .btn { min-height: 52px; padding: 12px 22px; font-size: 16px; }
+        .btn-ghost { background: transparent; color: var(--grey-70); border-color: var(--grey-20); }
+        .btn-ghost:hover { background: var(--grey-5); }
+        .status-line { font-size: 14px; color: var(--grey-70); display: none; align-items: center; gap: 8px; }
+        .status-line.show { display: inline-flex; }
+        .spinner {
+            width: 16px; height: 16px; border-radius: 50%;
+            border: 2px solid var(--grey-20); border-top-color: var(--green-90);
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .result-box { margin-top: 20px; display: none; padding: 16px 18px; border-radius: var(--radius-md); font-size: 15px; line-height: 22px; }
+        .result-box.show { display: block; }
+        .result-box.success { background: var(--green-5); color: var(--green-100); border: 1px solid var(--green-20); }
+        .result-box.error { background: #fdece4; color: #7a2e0c; border: 1px solid #f5c3a9; }
+        .result-box strong { display: block; font-weight: 600; margin-bottom: 4px; }
+        .fine { margin-top: 20px; font-size: 13px; line-height: 19px; color: var(--grey-70); }
+
+        /* Summary */
+        .summary { position: sticky; top: 20px; overflow: hidden; }
+        .summary-media { aspect-ratio: 16 / 9; background: linear-gradient(135deg, var(--green-90), var(--green-100)); position: relative; }
+        .summary-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .summary-media .caption { position: absolute; left: 16px; bottom: 14px; color: var(--white); font-size: 13px; font-weight: 600; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5); }
+        .summary h3 { font-size: 18px; font-weight: 600; }
+        .rows { margin-top: 14px; }
+        .row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--grey-5); font-size: 14px; line-height: 20px; }
+        .row:first-child { border-top: 0; }
+        .row span { color: var(--grey-70); }
+        .row b { font-weight: 600; text-align: right; }
+        .row.total { border-top: 1px solid var(--grey-20); margin-top: 6px; padding-top: 14px; font-size: 15px; }
+        .summary .note { margin-top: 14px; font-size: 13px; line-height: 19px; color: var(--grey-70); }
+        .help { margin-top: 16px; padding: 14px 16px; border-radius: var(--radius-md); background: var(--grey-5); font-size: 14px; line-height: 20px; }
+        .help a { color: var(--green-90); font-weight: 600; }
+
+        /* Facts strip */
+        .facts { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .fact { padding: 22px 24px; }
+        .fact b { display: block; font-size: 28px; line-height: 32px; font-weight: 600; color: var(--green-90); letter-spacing: -0.02em; }
+        .fact span { display: block; margin-top: 6px; font-size: 14px; line-height: 20px; color: var(--grey-70); }
+
+        /* Footer */
+        .footer { background: var(--green-90); color: var(--white); padding: 48px 0 32px; }
+        .footer-top { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 32px; }
+        .footer h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+        .footer ul { list-style: none; }
+        .footer li { font-size: 14px; line-height: 32px; color: rgba(255, 255, 255, 0.85); }
+        .footer .tagline { margin-top: 14px; font-size: 14px; color: rgba(255, 255, 255, 0.85); max-width: 300px; }
+        .footer-bottom { margin-top: 36px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.2); display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 13px; color: rgba(255, 255, 255, 0.75); }
+
+        @media (max-width: 900px) {
+            .nav-links { display: none; }
+            .grid { grid-template-columns: 1fr; }
+            .summary { position: static; }
+            .facts { grid-template-columns: 1fr; }
+            .footer-top { grid-template-columns: 1fr 1fr; }
+            .hero h1 { font-size: 36px; }
+        }
+        @media (max-width: 480px) {
+            .wrap { padding: 0 16px; }
+            .hero { padding: 32px 0 88px; }
+            .hero h1 { font-size: 32px; }
+            .card-pad { padding: 20px; }
+            .plan { grid-template-columns: 24px 1fr; }
+            .plan .price { grid-column: 2; text-align: left; margin-top: 8px; }
+            .fields { grid-template-columns: 1fr; }
+            .actions .btn { width: 100%; }
+            .footer-top { grid-template-columns: 1fr; }
+            .nav-right .btn-outline { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="nav">
+        <div class="wrap">
+            <a class="mark" href="#" aria-label="Base Power">
+                <svg viewBox="0 0 100 36" role="img" aria-hidden="true">
+                    <rect x="1.5" y="1.5" width="97" height="33" rx="9" fill="none" stroke="currentColor" stroke-width="3" />
+                    <text x="50" y="25.5" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="19" font-weight="700" letter-spacing="1.5" fill="currentColor">BASE</text>
+                </svg>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#">Products <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4l4 4 4-4" /></svg></a></li>
+                <li><a href="#">Pricing <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4l4 4 4-4" /></svg></a></li>
+                <li><a href="#">Resources <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4l4 4 4-4" /></svg></a></li>
+                <li><a href="#">Utilities</a></li>
+                <li><a href="#">Company <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4l4 4 4-4" /></svg></a></li>
+            </ul>
+            <div class="nav-right">
+                <a class="btn btn-outline" href="#">Account</a>
+                <a class="btn btn-lime" href="#">Get started</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="wrap">
+            <div class="eyebrow"><i></i>Member account · Oncor service area</div>
+            <h1>Change your plan.</h1>
+            <p>Add a Base Core battery to your Energy plan, or move to Energy + two batteries for longer backup. Your new rate and membership fee start on your next billing cycle.</p>
+        </div>
+    </section>
+
+    <main class="main">
+        <div class="wrap">
+            <div class="grid">
+                <section class="card card-pad">
+                    <h2>Your plan</h2>
+                    <p class="muted small" style="margin-top:6px;">Member 3001 · 1420 Lakeview Dr, Fort Worth, TX 76107</p>
+
+                    <div class="current">
+                        <div>
+                            <span class="small muted">Current plan</span>
+                            <strong id="currentPlanName">Energy only</strong>
+                            <span class="small muted">14.2¢/kWh all-in · 100% renewable · no battery</span>
+                        </div>
+                        <span class="tag">Active</span>
+                    </div>
+
+                    <form id="upgradeForm" novalidate>
+                        <select id="currentPlan" class="hidden-select" tabindex="-1" aria-hidden="true">
+                            <option value="BASIC-12" selected>Energy only</option>
+                        </select>
+
+                        <div class="section-label" id="plansLabel">Choose your new plan</div>
+                        <div class="plans" role="radiogroup" aria-labelledby="plansLabel">
+                            <button type="button" class="plan" role="radio" aria-checked="true" data-plan="PLUS-24">
+                                <span class="radio"></span>
+                                <span>
+                                    <span class="name">Energy + one battery</span>
+                                    <span class="desc">One 39.2 kWh Base Core — up to 36 hours of whole-home backup.</span>
+                                    <span class="perks"><span>Below-market rate</span><span>Generator recharge port</span><span>Installed by Base</span></span>
+                                </span>
+                                <span class="price"><b>13.9¢<small>/kWh</small></b><small>$695 install · $19/mo</small></span>
+                            </button>
+                            <button type="button" class="plan" role="radio" aria-checked="false" data-plan="ULTRA-36">
+                                <span class="radio"></span>
+                                <span>
+                                    <span class="name">Energy + two batteries</span>
+                                    <span class="desc">Two 39.2 kWh Base Core batteries — up to 72 hours of whole-home backup.</span>
+                                    <span class="perks"><span>Below-market rate</span><span>Generator recharge port</span><span>Installed by Base</span></span>
+                                </span>
+                                <span class="price"><b>13.9¢<small>/kWh</small></b><small>$995 install · $29/mo</small></span>
+                            </button>
+                        </div>
+                        <select id="newPlan" class="hidden-select" tabindex="-1" aria-hidden="true">
+                            <option value="PLUS-24" selected>Energy + one battery</option>
+                            <option value="ULTRA-36">Energy + two batteries</option>
+                        </select>
+
+                        <div class="fields">
+                            <div class="field">
+                                <label for="addon">Installation add-on</label>
+                                <select id="addon">
+                                    <option value="none">None</option>
+                                    <option value="generator">Generator recharge port (included)</option>
+                                    <option value="solar">Connect existing solar (included)</option>
+                                </select>
+                                <div class="hint">Installation is scheduled by Base after your plan change is confirmed.</div>
+                            </div>
+                            <div class="field">
+                                <label for="promoCode">Referral code (optional)</label>
+                                <input type="text" id="promoCode" placeholder="Enter code" autocomplete="off" />
+                                <div class="hint">Referral credits are applied to your first membership invoice.</div>
+                            </div>
+                        </div>
+
+                        <div class="actions">
+                            <button type="submit" class="btn btn-lime" id="submitBtn">Confirm plan change</button>
+                            <button type="reset" class="btn btn-ghost" id="resetBtn">Cancel</button>
+                            <span class="status-line" id="statusLine"><span class="spinner"></span><span id="statusText">Updating your plan…</span></span>
+                        </div>
+
+                        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+                    </form>
+
+                    <p class="fine">Plan changes are a 36-month term at the rate shown, based on 2,000 kWh/mo. Rate includes energy and delivery fees. The one-time installation fee is billed after your Base Core is installed; the monthly membership fee begins the following billing cycle. Energy + backup plans require a Base Core installation at your home.</p>
+                </section>
+
+                <aside class="card summary">
+                    <div class="summary-media">
+                        <img src="https://www.basepowercompany.com/_bpc/assets/images/content/homepage-card-backup-energy.avif" alt="" loading="lazy" onerror="this.style.display='none'" />
+                        <span class="caption">Base Core · 39.2 kWh home battery</span>
+                    </div>
+                    <div class="card-pad">
+                        <h3>Plan change summary</h3>
+                        <div class="rows">
+                            <div class="row"><span>From</span><b id="sumFrom">Energy only</b></div>
+                            <div class="row"><span>To</span><b id="sumTo">Energy + one battery</b></div>
+                            <div class="row"><span>Energy rate</span><b id="sumRate">13.9¢/kWh</b></div>
+                            <div class="row"><span>Backup duration</span><b id="sumBackup">Up to 36 hours</b></div>
+                            <div class="row"><span>Installation add-on</span><b id="sumAddon">None</b></div>
+                            <div class="row"><span>Referral code</span><b id="sumPromo">—</b></div>
+                            <div class="row total"><span>Due at installation</span><b id="sumInstall">$695</b></div>
+                            <div class="row total" style="margin-top:0;border-top:0;padding-top:4px;"><span>Membership fee</span><b id="sumFee">$19/mo</b></div>
+                        </div>
+                        <p class="note">Your new rate starts on your next billing cycle. Installation is typically scheduled within 2–4 weeks of confirmation.</p>
+                        <div class="help">Questions about your plan? <a href="#">Contact Base Power Support</a> or call (512) 877-0000, Mon–Sat 8am–8pm CT.</div>
+                    </div>
+                </aside>
+            </div>
+
+            <div class="facts">
+                <div class="card fact"><b>39.2 kWh</b><span>Capacity of every Base Core — one of the largest home batteries available.</span></div>
+                <div class="card fact"><b>Within seconds</b><span>Base Core takes over when the grid goes down — no fuel, no noise.</span></div>
+                <div class="card fact"><b>Installed by Base</b><span>Installation, service, and ownership handled by Base for the life of your membership.</span></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="wrap">
+            <div class="footer-top">
+                <div>
+                    <span class="mark" aria-hidden="true">
+                        <svg viewBox="0 0 100 36"><rect x="1.5" y="1.5" width="97" height="33" rx="9" fill="none" stroke="currentColor" stroke-width="3" /><text x="50" y="25.5" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="19" font-weight="700" letter-spacing="1.5" fill="currentColor">BASE</text></svg>
+                    </span>
+                    <p class="tagline">Save money. Stay powered. The power company bringing affordable, reliable energy to homes across America.</p>
+                </div>
+                <div><h4>Products</h4><ul><li>Base Core</li><li>Energy</li><li>Backup + Energy</li><li>Backup Only</li></ul></div>
+                <div><h4>Resources</h4><ul><li>How it works</li><li>Pricing</li><li>Utilities</li><li>Electricity Facts Label</li></ul></div>
+                <div><h4>Company</h4><ul><li>About</li><li>Careers</li><li>Press</li><li>Support</li></ul></div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2026 Base Power Company</span>
+                <span>Privacy</span>
+                <span>Terms of Service</span>
+                <span>PUCT Certificate No. 10325</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+            fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+                if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+                if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+            }).catch(function () {});
+        })();
+
+        (function () {
+            var PLANS = {
+                'PLUS-24': { name: 'Energy + one battery', rate: '13.9¢/kWh', backup: 'Up to 36 hours', install: '$695', fee: '$19/mo' },
+                'ULTRA-36': { name: 'Energy + two batteries', rate: '13.9¢/kWh', backup: 'Up to 72 hours', install: '$995', fee: '$29/mo' },
+            };
+            var ADDONS = { none: 'None', generator: 'Generator recharge port', solar: 'Connect existing solar' };
+
+            var form = document.getElementById('upgradeForm');
+            var currentPlan = document.getElementById('currentPlan');
+            var newPlan = document.getElementById('newPlan');
+            var addon = document.getElementById('addon');
+            var promo = document.getElementById('promoCode');
+            var submitBtn = document.getElementById('submitBtn');
+            var resetBtn = document.getElementById('resetBtn');
+            var result = document.getElementById('result');
+            var statusLine = document.getElementById('statusLine');
+            var statusText = document.getElementById('statusText');
+            var planButtons = Array.prototype.slice.call(document.querySelectorAll('.plan'));
+
+            function getStore(key) { return localStorage.getItem(key) || ''; }
+            function text(id, value) { document.getElementById(id).textContent = value; }
+
+            function updateSummary() {
+                var plan = PLANS[newPlan.value] || PLANS['PLUS-24'];
+                text('sumFrom', currentPlan.options[currentPlan.selectedIndex].text);
+                text('sumTo', plan.name);
+                text('sumRate', plan.rate);
+                text('sumBackup', plan.backup);
+                text('sumAddon', ADDONS[addon.value] || 'None');
+                text('sumPromo', promo.value.trim() ? promo.value.trim().toUpperCase() : '—');
+                text('sumInstall', plan.install);
+                text('sumFee', plan.fee);
+            }
+
+            function selectPlan(code) {
+                newPlan.value = code;
+                planButtons.forEach(function (btn) {
+                    btn.setAttribute('aria-checked', btn.getAttribute('data-plan') === code ? 'true' : 'false');
+                });
+                updateSummary();
+            }
+
+            planButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () { selectPlan(btn.getAttribute('data-plan')); });
+            });
+            addon.addEventListener('change', updateSummary);
+            promo.addEventListener('input', updateSummary);
+
+            function showResult(kind, title, body) {
+                result.className = 'result-box show ' + kind;
+                result.innerHTML = '';
+                var strong = document.createElement('strong');
+                strong.textContent = title;
+                result.appendChild(strong);
+                result.appendChild(document.createTextNode(body));
+            }
+
+            var timer = null;
+            function setBusy(busy) {
+                submitBtn.disabled = busy;
+                resetBtn.disabled = busy;
+                planButtons.forEach(function (b) { b.disabled = busy; });
+                if (busy) {
+                    var started = Date.now();
+                    statusText.textContent = 'Updating your plan…';
+                    statusLine.classList.add('show');
+                    timer = setInterval(function () {
+                        var secs = Math.floor((Date.now() - started) / 1000);
+                        statusText.textContent = secs >= 3 ? 'Still working on it (' + secs + 's)…' : 'Updating your plan…';
+                    }, 500);
+                } else {
+                    clearInterval(timer);
+                    statusLine.classList.remove('show');
+                }
+            }
+
+            form.addEventListener('reset', function () {
+                setTimeout(function () {
+                    result.className = 'result-box';
+                    result.innerHTML = '';
+                    selectPlan('PLUS-24');
+                }, 0);
+            });
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                result.className = 'result-box';
+                result.innerHTML = '';
+                setBusy(true);
+                var targetName = (PLANS[newPlan.value] || {}).name || 'your new plan';
+                try {
+                    var res = await fetch('/api/telco/upgrade', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            accountId: 'CUST-3001',
+                            currentPlanCode: currentPlan.value,
+                            targetPlanCode: newPlan.value,
+                            billingDay: 15,
+                            devinUserId: getStore('devinUserId'),
+                            devinOrgId: getStore('devinOrgId'),
+                            devinEmail: getStore('devinEmail'),
+                        }),
+                    });
+                    var data = null;
+                    try { data = await res.json(); } catch (err) { data = null; }
+                    if (!res.ok || !data || data.success !== true) {
+                        showResult('error', 'We couldn’t update your plan right now.', 'Your current plan is unchanged and nothing has been billed. Please try again in a few minutes, or contact Base Power Support if this keeps happening.');
+                        return;
+                    }
+                    var ref = data.upgradeId ? ' Reference ' + String(data.upgradeId).replace(/-/g, '').slice(0, 8).toUpperCase() + '.' : '';
+                    showResult('success', 'Your plan change is confirmed.',
+                        targetName + ' starts on your next billing cycle. Our installation team will contact you to schedule your Base Core installation.' + ref);
+                } catch (err) {
+                    showResult('error', 'We couldn’t update your plan right now.', 'Your current plan is unchanged and nothing has been billed. Please check your connection and try again.');
+                } finally {
+                    setBusy(false);
+                }
+            });
+
+            updateSummary();
+        })();
+    </script>
+    <script src="/session-cap-banner.js"></script>
+</body>
+</html>
