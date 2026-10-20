@@ -60,3 +60,29 @@ describe('alert locale', () => {
     expect(en).not.toContain('español');
   });
 });
+
+describe('alert locale — Japanese', () => {
+  const JA = {
+    ...BASE,
+    culprit: 'app/services/verticals/4875267e.js — registerAttendee',
+    service: 'event-registration-api',
+    verticalLabel: 'イベント参加登録',
+    locale: 'ja',
+  };
+
+  test('an alert tagged locale ja gets a Japanese Slack card', () => {
+    expect(alertLocale(JA)).toBe('ja');
+    const text = card(JA, { includeDevinOnCall: false });
+    expect(text).toContain('Sentryアラート — イベント参加登録エラー');
+    expect(text).toContain('*重大度:*');
+    expect(text).toContain('*発生箇所:*');
+    expect(text).toContain('*オンコール担当:*\\n<@U08S7AVJ478>');
+    expect(text).toContain('Sentryで表示');
+    expect(text).not.toContain('Severity');
+  });
+
+  test('the Devin prompt asks for Japanese replies; English alerts do not', () => {
+    expect(buildPrompt({ ...JA, customerConfig: {} })).toContain('日本語で回答してください');
+    expect(buildPrompt({ ...BASE, customerConfig: {} })).not.toContain('日本語');
+  });
+});
