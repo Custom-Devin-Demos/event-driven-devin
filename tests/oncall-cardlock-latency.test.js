@@ -57,7 +57,7 @@ const REPORT = {
   cardLast4: '4417',
   cardType: 'debit',
   durationMs: 10214,
-  sloMs: 3000,
+  sloMs: 1000,
   requestCount: 40,
   merchantCount: 38,
   spans: [
@@ -132,7 +132,7 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(text).toContain('card-controls-mobile (Bank of America mobile (Erica))');
     expect(text).toContain(`Incident Ref:* ${response.body.reference}`);
     expect(text).toContain('erica → lock_card (debit ••4417)');
-    expect(text).toContain('10,214 ms (SLO 3,000 ms)');
+    expect(text).toContain('10,214 ms (SLO 1,000 ms)');
     expect(text).not.toContain('*Requests:*');
     expect(text).not.toContain('*Spans:*');
     expect(text).toContain('`card_lock.duration_ms <= slo_ms` — failed on device');
@@ -181,9 +181,9 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(prompt).toContain('app/public/verticals/e91b0f39/');
     expect(prompt).toContain('npx jest tests/e91b0f39-web-card-controls.test.js');
     expect(prompt).toContain('http://localhost:<port>/e91b0f39?reports=off');
-    expect(prompt).toContain('LOCK_TIMEOUT_MS = 5000');
+    expect(prompt).toContain('LOCK_TIMEOUT_MS = 2000');
     expect(prompt).toContain('Something went wrong. Request timed out');
-    expect(prompt).toContain('under 3 s');
+    expect(prompt).toContain('under 1 s');
     expect(prompt).toContain('[DEMO — DO NOT MERGE]');
     expect(prompt).not.toContain('You are on macOS');
     expect(prompt).not.toContain('Create ONE Linux child');
@@ -234,7 +234,7 @@ describe('Card lock latency report (e91b0f39)', () => {
   });
 
   test('includes timeout outcome in logs, alerts, and prompt impact', async () => {
-    await postAndWait({ ...REPORT, durationMs: 5000, outcome: 'timeout' });
+    await postAndWait({ ...REPORT, durationMs: 2000, outcome: 'timeout' });
 
     const breachLog = logger.error.mock.calls
       .find(([message]) => message === 'Card lock latency SLO breach reported');
@@ -249,7 +249,20 @@ describe('Card lock latency report (e91b0f39)', () => {
 
     const [prompt] = createDevinSession.mock.calls[0];
     expect(prompt).toContain('*Outcome:* Timed out');
-    expect(prompt).toContain('Customers see a spinner for ~5 s and then "Something went wrong. Request timed out"; the card is not locked.');
+    expect(prompt).toContain('Customers see a spinner for ~2 s and then "Something went wrong. Request timed out"; the card is not locked.');
+  });
+
+  test('uses a native five-second timeout report duration in the prompt impact', async () => {
+    await postAndWait({
+      ...REPORT,
+      reportId: 'native-timeout-5s',
+      durationMs: 5000,
+      outcome: 'timeout',
+    });
+
+    const [prompt] = createDevinSession.mock.calls[0];
+    expect(prompt).toContain('Customers see a spinner for ~5 s');
+    expect(prompt).not.toContain('Customers see a spinner for ~2 s');
   });
 
   test('uses a native timeout report duration in the prompt impact', async () => {
@@ -289,7 +302,7 @@ describe('Card lock latency report (e91b0f39)', () => {
       cardType: REPORT.cardType,
       cardLast4: REPORT.cardLast4,
       durationMs: REPORT.durationMs,
-      sloMs: 3000,
+      sloMs: 1000,
       requestCount: REPORT.requestCount,
       merchantCount: REPORT.merchantCount,
       reportId: 'card-lock-log-test',
@@ -381,15 +394,15 @@ describe('Card lock latency report (e91b0f39)', () => {
     expect(report.spans).toHaveLength(6);
     expect(report.device).toHaveLength(40);
     expect(report.osVersion).toHaveLength(20);
-    expect(normalizeReport({ ...REPORT, sloMs: undefined }).sloMs).toBe(3000);
-    expect(normalizeReport({ ...REPORT, sloMs: 500 }).sloMs).toBe(3000);
+    expect(normalizeReport({ ...REPORT, sloMs: undefined }).sloMs).toBe(1000);
+    expect(normalizeReport({ ...REPORT, sloMs: 500 }).sloMs).toBe(1000);
     expect(normalizeReport({ ...REPORT, cardType: undefined }).cardType).toBe('debit');
     expect(normalizeReport({ ...REPORT, reportId: 'bad id' }).reportId).toBeNull();
   });
 
   test('rejects healthy durations and invalid report identity or card facts', async () => {
-    expect((await request(server, 'POST', PATH, { ...REPORT, durationMs: 3000 })).status).toBe(400);
-    expect((await request(server, 'POST', PATH, { ...REPORT, durationMs: 2999 })).status).toBe(400);
+    expect((await request(server, 'POST', PATH, { ...REPORT, durationMs: 1000 })).status).toBe(400);
+    expect((await request(server, 'POST', PATH, { ...REPORT, durationMs: 999 })).status).toBe(400);
     expect((await request(server, 'POST', PATH, { ...REPORT, durationMs: 800, sloMs: 500 })).status).toBe(400);
     expect((await request(server, 'POST', PATH, { ...REPORT, source: 'other/ios' })).status).toBe(400);
     expect((await request(server, 'POST', PATH, { ...REPORT, service: 'other' })).status).toBe(400);

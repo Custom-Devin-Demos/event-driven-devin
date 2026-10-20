@@ -11,8 +11,8 @@
     lock: 300,
     unlock: 300,
   });
-  const LOCK_TIMEOUT_MS = 5000;
-  const SLO_MS = 3000;
+  const LOCK_TIMEOUT_MS = 2000;
+  const SLO_MS = 1000;
   const TIMEOUT_MESSAGE = 'Something went wrong. Request timed out';
   const ERROR_BUBBLE_CLASS = 'erica-bubble--error';
   const CARD = Object.freeze({
@@ -427,7 +427,7 @@
           startedAt,
           before,
           merchantCount,
-          'locked',
+          'success',
           false,
         );
         if (measurement.durationMs > SLO_MS) this.deliverReport(measurement, card);

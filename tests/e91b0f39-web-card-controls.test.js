@@ -6,9 +6,11 @@ const {
   CARD,
   CardLockTimeoutError,
   ERROR_BUBBLE_CLASS,
+  LATENCY,
   TIMEOUT_MESSAGE,
   buildLockLatencyReport,
   createCardControls,
+  createFakeTransport,
   createLockLatencyReporter,
   createSystemClock,
   lockFailureMessage,
@@ -36,7 +38,7 @@ describe('e91b0f39 web card controls', () => {
     let settled = false;
     pendingLock.catch(() => { settled = true; });
 
-    await jest.advanceTimersByTimeAsync(4999);
+    await jest.advanceTimersByTimeAsync(1999);
     expect(settled).toBe(false);
     await jest.advanceTimersByTimeAsync(1);
     const timeoutError = await pendingLock.catch((error) => error);
@@ -47,18 +49,22 @@ describe('e91b0f39 web card controls', () => {
 
     const lockRequests = controls.transport.log.filter((entry) => entry.path.endsWith('/lock'));
     expect(lockRequests).toHaveLength(0);
-    expect(controls.transport.log).toHaveLength(20);
+    expect(controls.transport.log).toHaveLength(8);
     expect(controls.transport.log.filter((entry) => entry.path.endsWith('/recurring-merchants'))).toHaveLength(1);
-    expect(controls.transport.log.filter((entry) => entry.path.endsWith('/status'))).toHaveLength(19);
+    expect(controls.transport.log.filter((entry) => entry.path.endsWith('/status'))).toHaveLength(7);
 
     expect(timeoutError).toBeInstanceOf(CardLockTimeoutError);
     expect(timeoutError.measurement).toMatchObject({
-      durationMs: 5000,
+      durationMs: 2000,
       outcome: 'timeout',
       merchantCount: 38,
-      requestCount: 20,
+      requestCount: 8,
     });
-    await jest.advanceTimersByTimeAsync(5000);
+    expect(timeoutError.measurement.spans).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'card_controls.recurring_merchants', count: 1 }),
+      expect.objectContaining({ name: 'card_controls.merchant_status', count: 7 }),
+    ]));
+    await jest.advanceTimersByTimeAsync(2000);
     expect(controls.transport.log.filter((entry) => entry.path.endsWith('/lock'))).toHaveLength(0);
     expect(jest.getTimerCount()).toBe(0);
   });
@@ -87,18 +93,23 @@ describe('e91b0f39 web card controls', () => {
       (value) => ({ value }),
       (error) => ({ error }),
     );
-    await jest.advanceTimersByTimeAsync(5000);
+    await jest.advanceTimersByTimeAsync(2000);
     const { error } = await outcome;
 
     await controls.telemetry.lastReportDelivery;
     expect(error).toBeInstanceOf(CardLockTimeoutError);
     expect(reportLockLatency).toHaveBeenCalledTimes(1);
     expect(reportLockLatency.mock.calls[0][0]).toMatchObject({
-      durationMs: 5000,
+      durationMs: 2000,
       outcome: 'timeout',
       merchantCount: 38,
-      requestCount: 20,
+      requestCount: 8,
     });
+
+    expect(reportLockLatency.mock.calls[0][0].spans).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'card_controls.recurring_merchants', count: 1 }),
+      expect.objectContaining({ name: 'card_controls.merchant_status', count: 7 }),
+    ]));
 
     const fetchImpl = jest.fn();
     const disabledReporter = createLockLatencyReporter({
@@ -128,7 +139,7 @@ describe('e91b0f39 web card controls', () => {
     });
     const pendingLock = controls.lock(CARD);
     const outcome = pendingLock.catch(() => undefined);
-    await jest.advanceTimersByTimeAsync(5000);
+    await jest.advanceTimersByTimeAsync(2000);
     await outcome;
     await controls.telemetry.lastReportDelivery;
 
@@ -139,23 +150,64 @@ describe('e91b0f39 web card controls', () => {
       source: 'card-controls-web/desktop',
       service: 'card-controls-web',
       platform: 'web',
-      durationMs: 5000,
+      durationMs: 2000,
       outcome: 'timeout',
       cardLast4: '4417',
       cardType: 'debit',
-      sloMs: 3000,
+      sloMs: 1000,
       devinEmail: 'owner@example.com',
+      requestCount: 8,
     });
     const payload = JSON.parse(fetchImpl.mock.calls[0][1].body);
-    expect(payload.spans.length).toBeLessThanOrEqual(6);
+    expect(payload.spans).toHaveLength(2);
+    expect(payload.spans).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'card_controls.recurring_merchants', count: 1 }),
+      expect.objectContaining({ name: 'card_controls.merchant_status', count: 7 }),
+    ]));
     expect(payload.device).toBe('Chrome 141 / macOS');
+  });
+
+  test('reports a successful lock above the SLO before the timeout', async () => {
+    const reportLockLatency = jest.fn();
+    const clock = createSystemClock();
+    const transport = createFakeTransport({
+      clock,
+      latency: { ...LATENCY, merchantStatus: 17 },
+    });
+    const controls = createCardControls({
+      clock,
+      transport,
+      reporter: { reportLockLatency },
+    });
+    const pendingLock = controls.lock(CARD);
+    const outcome = pendingLock.then(
+      (value) => ({ value }),
+      (error) => ({ error }),
+    );
+    await jest.advanceTimersByTimeAsync(1095);
+    await jest.advanceTimersByTimeAsync(1);
+    const result = await outcome;
+
+    await controls.telemetry.lastReportDelivery;
+    expect(result.error).toBeUndefined();
+    expect(result.value).toBeDefined();
+    expect(reportLockLatency).toHaveBeenCalledTimes(1);
+    expect(reportLockLatency.mock.calls[0][0]).toMatchObject({
+      durationMs: 1096,
+      outcome: 'success',
+      merchantCount: 38,
+      requestCount: 40,
+    });
+    expect(reportLockLatency.mock.calls[0][0].durationMs).toBeGreaterThan(1000);
+    expect(reportLockLatency.mock.calls[0][0].durationMs).toBeLessThan(2000);
+    expect(transport.log.filter((entry) => entry.path.endsWith('/lock'))).toHaveLength(1);
   });
 
   test('omits devinEmail when no owner email is available', () => {
     const report = buildLockLatencyReport({
       reportId: 'CL-abc123',
-      durationMs: 5000,
-      requestCount: 39,
+      durationMs: 2000,
+      requestCount: 8,
       merchantCount: 38,
       spans: [],
       outcome: 'timeout',
