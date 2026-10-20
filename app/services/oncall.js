@@ -476,7 +476,7 @@ const ALERT_SCENARIOS = {
     service: 'where-to-buy-api',
     endpoint: 'POST /api/oncall/wheretobuy/retailers',
     monitor: '5xx rate — POST /api/oncall/wheretobuy/retailers',
-    metricQuery: 'sum:trace.express.request.errors{service:where-to-buy-api,resource:POST /api/oncall/wheretobuy/retailers,http.status_code:500}',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/wheretobuy/retailers,http.status_code:500}',
     metricValue: '500 on Where to Buy for affected SKUs',
     threshold: '> 2% error rate',
     baseline: '<0.1% (7-day)',

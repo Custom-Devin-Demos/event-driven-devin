@@ -14,6 +14,7 @@
   .thumbnail-slider .slick-track { width: auto; transform: none; }
   .thumbnail-slider-mobile .slick-slide { width: 96px; }
   #show-family-childs { position: relative; }
+  li.level-1-menu-item.open > .level-1-sub-menu { min-height: 536px; }
   #show-family-childs::after { content: ''; position: absolute; left: 0; right: 0; top: -12px; bottom: -12px; }
   .wtb-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; padding: 16px; }
   .wtb-overlay.open { display: flex; }
@@ -787,6 +788,17 @@
   </script>
 <script>
     (function () {
+      if (!window.matchMedia('(min-width: 1024px)').matches) return;
+      document.querySelectorAll('li.level-1-menu-item').forEach(function (li) {
+        var sub = li.querySelector('.level-1-sub-menu');
+        if (!sub) return;
+        li.addEventListener('mouseenter', function () { li.classList.add('open'); sub.style.display = 'block'; });
+        li.addEventListener('mouseleave', function () { li.classList.remove('open'); sub.style.display = 'none'; });
+      });
+    })();
+  </script>
+<script>
+    (function () {
       var wrap = document.querySelector('.tablesaw-wrapper');
       var more = document.getElementById('show-family-childs');
       var rows = wrap.querySelectorAll('tbody tr');
@@ -811,9 +823,20 @@
       document.getElementById('wtbClose').addEventListener('click', close);
       modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+      var RETAILER_SEARCH = {
+        Grainger: 'https://www.grainger.com/search?searchQuery=',
+        'MSC Industrial Supply': 'https://www.mscdirect.com/browse/tn?searchterm=',
+        Fastenal: 'https://www.fastenal.com/product?query=',
+        Zoro: 'https://www.zoro.com/search?q=',
+      };
+      var img = document.getElementById('wtbImg');
+      var lookupGen = 0;
       document.querySelectorAll('.ps-buy-button').forEach(function (btn) {
         btn.addEventListener('click', async function () {
           var sku = btn.getAttribute('data-sku');
+          var gen = ++lookupGen;
+          img.style.visibility = 'visible';
+          img.src = 'https://www.protoindustrial.com/NAG/PRODUCT/IMAGES/HIRES/' + encodeURIComponent(sku) + '_1.jpg?resize=530x530';
           var row = btn.closest('tr');
           var nameCell = row && row.querySelectorAll('.tablesaw-cell-content')[1];
           document.getElementById('wtbSku').textContent = sku;
@@ -828,11 +851,13 @@
               body: JSON.stringify(Object.assign({ sku: sku }, devinIdentity())),
             });
             var data = await res.json().catch(function () { return {}; });
+            if (gen !== lookupGen) return;
             if (!res.ok || data.success === false) throw new Error(data.error || 'where to buy failed');
             result.innerHTML = '<ul>' + data.retailers.map(function (r) {
-              return '<li><div><strong>' + esc(r.name) + '</strong><br><span>Online retailer</span></div><a class="wtb-buy" href="#">Buy Now</a></li>';
+              return '<li><div><strong>' + esc(r.name) + '</strong><br><span>Online retailer</span></div>' + (RETAILER_SEARCH[r.name] ? '<a class="wtb-buy" target="_blank" rel="noopener" href="' + esc(RETAILER_SEARCH[r.name] + encodeURIComponent(sku)) + '">Buy Now</a>' : '') + '</li>';
             }).join('') + '</ul>';
           } catch (e) {
+            if (gen !== lookupGen) return;
             result.innerHTML = '<p class="wtb-error">We were unable to load retailers for this product. Please try again later.</p>';
           } finally {
             btn.disabled = false;
