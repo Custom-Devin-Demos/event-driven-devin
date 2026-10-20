@@ -14,6 +14,7 @@ const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { createReservation } = require('../services/oncall-verticals/evreservation');
+const { createDeployment } = require('../services/oncall-verticals/privatecloud');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
@@ -660,6 +661,33 @@ router.post('/api/oncall/evreservation/reservations', async (req, res) => {
       error: 'We couldn\'t complete your reservation. Your card has not been charged.',
       errorClass: error.name,
       code: error.code || 'RESERVATION_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/privatecloud/deployments — render the desired-state plan
+ * for a validated blueprint and start the deployment on a site
+ */
+router.post('/api/oncall/privatecloud/deployments', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await createDeployment({
+      blueprintId: body.blueprintId || 'dpc-vsphere',
+      siteId: body.siteId || 'rr-dc02',
+      clusterName: body.clusterName,
+      nodeCount: body.nodeCount == null ? 4 : body.nodeCount,
+      storagePolicy: body.storagePolicy,
+      target: body.target,
+      secret: body.secret,
+    }));
+  } catch (error) {
+    res.status(error.code === 'INVALID_DEPLOYMENT' ? 400 : 500).json({
+      success: false,
+      error: 'The deployment could not be started. No changes were made to the selected endpoints.',
+      errorClass: error.name,
+      code: error.code || 'DEPLOYMENT_FAILED',
       requestId: req.requestId,
     });
   }
