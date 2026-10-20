@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cross-Platform Video Player | Dolby OptiView Player</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,300;6..12,400;6..12,500;6..12,600;6..12,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ov-bg: #14141a;
+      --ov-text: #ffffff;
+      --ov-muted: #b9b9ba;
+      --ov-soft: #f5f5f5;
+      --ov-faint: rgba(255, 255, 255, 0.7);
+      --ov-purple: #aa33ff;
+      --ov-grad: linear-gradient(99deg, #3e44fe, #aa33ff);
+      --ov-eyebrow: linear-gradient(25deg, #00b5e6 15%, #03e886 45%);
+      --ov-line: rgba(255, 255, 255, 0.35);
+      --ov-rule: #272727;
+      --ov-field-border: #66666a;
+      --ov-regular: 'avenir-next-regular', 'Avenir Next', 'Nunito Sans', sans-serif;
+      --ov-medium: 'avenir-next-medium', 'Avenir Next', 'Nunito Sans', sans-serif;
+      --ov-demi: 'avenir-next-demi', 'Avenir Next', 'Nunito Sans', sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--ov-bg); color: var(--ov-text); font-family: var(--ov-regular); font-size: 16px; font-weight: 400; line-height: 24px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    h1, h2, h3, p { margin: 0; }
+    .wrap { margin: 0 56px; }
+
+    /* Header */
+    .ov-top { position: relative; }
+    .ov-header { position: absolute; top: 0; left: 0; right: 0; height: 90px; z-index: 10; }
+    .ov-header__inner { margin: 0 56px; height: 90px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .ov-logo { display: block; width: 225px; height: 28px; flex: none; }
+    .ov-logo svg { display: block; width: 235px; height: 28px; }
+    .ov-nav { display: flex; align-items: center; justify-content: center; gap: 4px 12px; list-style: none; margin: 0; padding: 0; flex: 1; }
+    .ov-nav a { display: block; font-family: var(--ov-demi); font-weight: 500; font-size: 16px; line-height: 24px; padding: 33px 10px; color: #fff; }
+    .ov-aux { display: flex; align-items: center; gap: 20px; list-style: none; margin: 0; padding: 0; }
+    .ov-aux .login { font-family: var(--ov-medium); font-weight: 500; font-size: 16px; letter-spacing: 0.36px; padding: 25px 10px 35px; }
+    .ov-btn-contact { display: inline-block; font-family: var(--ov-regular); font-size: 15px; font-weight: 600; line-height: 22.5px; letter-spacing: 0.75px; text-transform: uppercase; padding: 13.5px 24px; border-radius: 26px; background: var(--ov-grad); box-shadow: rgba(97,97,97,.18) 0 2px 4px 0, rgba(97,97,97,.18) 0 4px 8px 0; white-space: nowrap; text-align: center; }
+    .ov-burger { display: none; width: 44px; height: 44px; align-items: center; justify-content: center; background: none; border: 0; padding: 0; cursor: pointer; }
+    .ov-burger span, .ov-burger span::before, .ov-burger span::after { display: block; width: 22px; height: 2px; background: #fff; position: relative; content: ''; }
+    .ov-burger span::before { position: absolute; top: -7px; }
+    .ov-burger span::after { position: absolute; top: 7px; }
+
+    /* Buttons */
+    .ov-btn { display: inline-block; font-family: var(--ov-medium); font-weight: 700; font-size: 15px; line-height: 22.5px; letter-spacing: 1.5px; text-transform: uppercase; color: #fff; padding: 13.5px 26px; border-radius: 26px; border: 1.5px solid var(--ov-bg); background: var(--ov-grad); cursor: pointer; }
+    .ov-btn-outline { display: inline-block; font-family: var(--ov-medium); font-weight: 700; font-size: 15px; line-height: 22.5px; letter-spacing: 1.5px; text-transform: uppercase; color: #fff; padding: 8px 24px; border: 1px solid #fff; border-radius: 26px; }
+    .eyebrow { font-family: var(--ov-medium); font-weight: 600; font-size: 16px; line-height: 25.28px; letter-spacing: 2.4px; text-transform: uppercase; background: var(--ov-eyebrow); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+    /* Hero */
+    .ov-hero { position: relative; max-width: 1440px; margin: 0 auto; min-height: 768px; padding: 116px 56px 72px; background: #14141a url('https://optiview.dolby.com/wp-content/uploads/2026/09/header-bg-update-sep26-player-product-1900x800px-dolbyio-6-scaled.webp') 100% 0% / auto 768px no-repeat; }
+    .ov-hero::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 768px; background: linear-gradient(89deg, #15141f 32.92%, rgba(81, 27, 138, 0.65) 60.77%, rgba(82, 184, 244, 0.23) 77.66%, rgba(88, 144, 249, 0) 99.71%), linear-gradient(180deg, rgba(20, 20, 26, 0) 70%, #14141a 100%); pointer-events: none; }
+    .ov-hero > * { position: relative; z-index: 1; }
+    .ov-crumbs { display: flex; list-style: none; margin: 0 0 86px; padding: 0; font-size: 16px; line-height: 22.4px; letter-spacing: 0.16px; }
+    .ov-crumbs li { display: flex; align-items: center; }
+    .ov-crumbs a { color: rgba(255, 255, 255, 0.78); }
+    .ov-crumbs .sep { margin: 0 8px; width: 8px; height: 14px; }
+    .ov-crumbs .current { background: linear-gradient(90deg, #aa33ff, #ff7ad9); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .ov-hero__text { width: 567px; max-width: 100%; }
+    .ov-hero h1 { font-family: var(--ov-medium); font-weight: 600; font-size: 16px; line-height: 25.28px; letter-spacing: 2.4px; text-transform: uppercase; margin-bottom: 12px; }
+    .ov-hero h2 { font-family: var(--ov-medium); font-weight: 700; font-size: 48px; line-height: 57.6px; letter-spacing: -0.96px; margin-bottom: 18px; }
+    .ov-hero p.lead { font-family: var(--ov-regular); font-weight: 500; font-size: 17px; line-height: 27.2px; color: var(--ov-soft); margin-bottom: 30px; }
+
+    /* License form (sits where the hero CTA is) */
+    .ov-form { width: 567px; max-width: 100%; }
+    .ov-form__title { font-family: var(--ov-medium); font-weight: 600; font-size: 14px; line-height: 22px; letter-spacing: 2.1px; text-transform: uppercase; color: #35c8ff; margin-bottom: 12px; }
+    .ov-form__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-bottom: 18px; }
+    .ov-form__grid .full { grid-column: 1 / -1; }
+    .ov-field label { display: block; font-size: 14px; font-weight: 500; line-height: 21px; letter-spacing: 0.5px; color: var(--ov-faint); margin-bottom: 6px; }
+    .ov-field select, .ov-field input { width: 100%; height: 48px; padding: 0 12px; border: 1px solid var(--ov-field-border); border-radius: 8px; background: var(--ov-bg); color: var(--ov-muted); font-family: var(--ov-regular); font-size: 16px; line-height: 48px; appearance: none; -webkit-appearance: none; outline: none; }
+    .ov-field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23b9b9ba' stroke-width='1.6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    .ov-field select:focus, .ov-field input:focus { border-color: var(--ov-purple); color: #fff; }
+    .ov-form .ov-btn { min-height: 52.5px; }
+    .ov-form .ov-btn:disabled { opacity: 0.6; cursor: progress; }
+    .result-box { display: none; margin-top: 18px; padding: 14px 16px; border-radius: 8px; font-size: 15px; line-height: 22.5px; }
+    .result-box.success { display: block; border: 1px solid rgba(3, 232, 134, 0.55); background: rgba(3, 232, 134, 0.08); color: #c9fbe4; }
+    .result-box.error { display: block; border: 1px solid rgba(255, 92, 120, 0.6); background: rgba(255, 92, 120, 0.1); color: #ffd3dc; }
+    .result-box .error-title { font-family: var(--ov-medium); font-weight: 600; color: #fff; margin-bottom: 2px; }
+    .result-box .error-detail { font-size: 14px; opacity: 0.9; word-break: break-word; }
+
+    /* Tabbed section */
+    .ov-tabs { padding: 75px 0 75px; }
+    .ov-tabs__head { max-width: 1060px; margin: 0 auto; text-align: center; }
+    .ov-tabs__head .eyebrow { display: block; margin: 20px 0; font-family: var(--ov-regular); }
+    .ov-tabs__head .title { display: block; font-family: var(--ov-medium); font-weight: 700; font-size: 40px; line-height: 48px; letter-spacing: -1px; margin-bottom: 20px; }
+    .ov-tabs__head p { font-weight: 500; font-size: 17px; line-height: 27px; letter-spacing: 0.17px; color: var(--ov-muted); margin-bottom: 30px; }
+    .ov-tabs__body { display: flex; gap: 40px; max-width: 1060px; margin: 0 auto; }
+    .ov-tabs__list { list-style: none; margin: 0; padding: 0; width: 266px; flex: none; align-self: flex-start; border-left: 1px solid rgba(255,255,255,0.35); }
+    .ov-tabs__list li a { display: block; padding: 15px 0 15px 16px; font-size: 18px; line-height: 29px; font-weight: 500; color: #fff; }
+    .ov-tabs__list li.active { border-left: 2px solid var(--ov-purple); margin-left: -1px; }
+    .ov-tabs__select { display: none; }
+    .ov-tabs__panes { flex: 1; }
+    .ov-pane { border: 1px solid var(--ov-line); border-radius: 4px; padding: 24px 32px 28px; margin-bottom: 0; }
+    .ov-pane + .ov-pane { border-top: 0; }
+    .ov-pane img { width: 100%; height: 250px; object-fit: contain; margin-bottom: 24px; }
+    .ov-pane__desc { font-size: 17px; font-weight: 500; line-height: 27.2px; color: #fff; }
+    .ov-pane__desc b { font-family: var(--ov-medium); font-weight: 600; }
+    .ov-pane__desc a { color: var(--ov-purple); }
+
+    /* Two-column feature rows */
+    .ov-two { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; gap: 30px 50px; padding: 70px 24px; }
+    .ov-two__heads { grid-column: 1; grid-row: 1; }
+    .ov-two__content { grid-column: 1; grid-row: 2; }
+    .ov-two__media { grid-column: 2; grid-row: 1 / span 2; }
+    .ov-two.left .ov-two__heads, .ov-two.left .ov-two__content { grid-column: 2; }
+    .ov-two.left .ov-two__media { grid-column: 1; }
+    .ov-two__heads .eyebrow { display: inline-block; margin: 5px 0 15px; }
+    .ov-two__heads h2 { font-family: var(--ov-medium); font-weight: 700; font-size: 40px; line-height: 44px; letter-spacing: -1px; padding-bottom: 20px; }
+    .ov-two__content p { font-weight: 500; font-size: 17px; line-height: 27.2px; margin-bottom: 30px; }
+    .ov-two__media { background: var(--ov-bg); }
+    .ov-two__media img, .ov-two__media video { width: 100%; height: auto; border-radius: 8px; display: block; }
+    .ov-two__media video { mix-blend-mode: screen; }
+    .ov-checks { list-style: none; margin: -10px 0 30px; padding: 0; }
+    .ov-checks li { position: relative; padding-left: 34px; font-weight: 500; font-size: 17px; line-height: 27.2px; margin-bottom: 18px; }
+    .ov-checks li::before { content: ''; position: absolute; left: 0; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #aa33ff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3.5 3.5L11 1.5' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E") center / 11px no-repeat; }
+
+    /* SDKs */
+    .ov-sdk { padding: 75px 24px; text-align: center; }
+    .ov-sdk .eyebrow { display: inline-block; margin-bottom: 30px; }
+    .ov-sdk h2 { font-family: var(--ov-medium); font-weight: 700; font-size: 40px; line-height: 48px; letter-spacing: -1px; margin-bottom: 18px; }
+    .ov-sdk p { font-weight: 500; font-size: 17px; line-height: 27.2px; margin-bottom: 30px; }
+    .ov-sdk__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding: 40px 0 48px; }
+    .ov-sdk__card { display: block; height: 272px; border-radius: 8px; background: #2a2a30 center / cover no-repeat; }
+
+    /* Customer stories */
+    .ov-cases { padding: 75px 24px; }
+    .ov-cases__label { text-align: center; font-family: var(--ov-medium); font-weight: 600; font-size: 16px; line-height: 25.28px; letter-spacing: 2.4px; text-transform: uppercase; margin-bottom: 30px; }
+    .ov-cases__logos { display: flex; justify-content: center; list-style: none; margin: 0 0 0; padding: 0; }
+    .ov-cases__logos li { width: 220px; padding-right: 35px; }
+    .ov-cases__logos li:last-child { padding-right: 0; }
+    .ov-cases__logos a { display: flex; justify-content: center; padding: 8px 0; border-top: 2px solid var(--ov-purple); height: 96px; }
+    .ov-cases__logos img { width: 120px; height: 80px; object-fit: contain; }
+    .ov-cases__list { margin: 24px 112.5px 0; }
+    .ov-case { display: flex; gap: 20.75px; padding: 24px; border: 1px solid var(--ov-line); border-radius: 4px; }
+    .ov-case + .ov-case { margin-top: 0; }
+    .ov-case__img { flex: 0 0 509px; height: 321px; border-radius: 4px; overflow: hidden; background: #26262c; }
+    .ov-case__img img { width: 100%; height: 100%; object-fit: cover; }
+    .ov-case__body { flex: 1; }
+    .ov-case h2 { font-family: var(--ov-medium); font-weight: 700; font-size: 32px; line-height: 41.6px; margin-bottom: 18px; }
+    .ov-case__desc { font-weight: 500; font-size: 17px; line-height: 27.2px; color: var(--ov-muted); margin-bottom: 30.6px; }
+    .ov-readmore { font-family: var(--ov-medium); font-weight: 600; font-size: 15px; line-height: 24px; color: var(--ov-purple); display: inline-flex; align-items: center; gap: 12px; }
+
+    /* Trusted by */
+    .ov-trusted { padding: 0 24px; text-align: center; }
+    .ov-trusted .eyebrow { display: inline-block; margin-bottom: 18px; font-family: var(--ov-medium); }
+    .ov-marquee { overflow: hidden; height: 80px; }
+    .ov-marquee__row { display: flex; gap: 60px; transform: translateX(-120px); }
+    .ov-marquee__row img { width: 120px; height: 80px; object-fit: contain; flex: none; }
+
+    /* Blog */
+    .ov-blog { padding: 75px 0; }
+    .ov-blog__head { text-align: center; margin-bottom: 26px; }
+    .ov-blog__head .eyebrow { display: inline-block; margin-bottom: 12px; background: linear-gradient(55deg, #00b5e6 35%, #03e886 65%); -webkit-background-clip: text; background-clip: text; }
+    .ov-blog__head h2 { font-family: var(--ov-medium); font-weight: 700; font-size: 40px; line-height: 48px; letter-spacing: -1px; }
+    .ov-blog__list { border: 1px solid #66666a; border-radius: 6px; margin-bottom: 32px; }
+    .ov-post { position: relative; height: 504px; }
+    .ov-post__tag { font-family: var(--ov-medium); font-weight: 600; font-size: 14px; line-height: 22.12px; letter-spacing: 2.1px; text-transform: uppercase; color: #35c8ff; margin-bottom: 12px; }
+    .ov-post__img { height: 190.5px; border-radius: 4px; background: #434348; margin-bottom: 12px; overflow: hidden; }
+    .ov-post__img img { width: 100%; height: 184px; object-fit: cover; }
+    .ov-post h3 { font-family: var(--ov-medium); font-weight: 600; font-size: 20px; line-height: 27.6px; letter-spacing: -0.1px; margin-bottom: 18px; min-height: 81px; }
+    .ov-post__excerpt { font-weight: 500; font-size: 17px; line-height: 27.2px; letter-spacing: 0.17px; color: rgba(188, 187, 191, 0.7); margin-bottom: 35px; min-height: 82px; }
+    .ov-author { display: flex; align-items: center; height: 52px; }
+    .ov-author__avatar { width: 52px; height: 52px; border-radius: 50%; background: #000; margin-right: 16px; display: flex; align-items: center; justify-content: center; }
+    .ov-author__name { font-size: 15px; font-weight: 600; line-height: 22.5px; letter-spacing: 0.075px; color: #fff; }
+    .ov-author__role { font-size: 15px; font-weight: 500; line-height: 22.5px; letter-spacing: 0.075px; color: rgba(188, 187, 191, 0.7); }
+
+    /* Explore solutions */
+    .ov-sol { margin: 0 -56px; padding: 100px 20px; background: #1a001b url('https://optiview.dolby.com/wp-content/uploads/2026/08/img_background_cards_productoverview_optiview.webp') center / cover no-repeat; }
+    .ov-sol__inner { max-width: 1312px; margin: 0 auto; padding: 30px 0; }
+    .ov-sol__head { max-width: 952px; margin: 0 auto; text-align: center; }
+    .ov-sol__head h2 { font-family: var(--ov-medium); font-weight: 700; font-size: 40px; line-height: 48px; letter-spacing: -1px; margin-bottom: 26px; }
+    .ov-sol__head p { font-weight: 500; font-size: 17px; line-height: 27.2px; letter-spacing: 0.17px; color: var(--ov-soft); margin-bottom: 30px; }
+    .ov-sol__cards { display: grid; grid-template-columns: repeat(4, 304px); justify-content: center; gap: 32px; margin-top: 50px; }
+    .ov-sol__card { height: 302px; padding: 21px 17px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: #14141a center / cover no-repeat; display: flex; flex-direction: column; }
+    .ov-sol__card h3 { font-family: var(--ov-medium); font-weight: 700; font-size: 15px; line-height: 22.5px; letter-spacing: -1px; text-transform: uppercase; max-width: 170px; margin: 20px 0 18px; padding-bottom: 6px; border-bottom: 2px solid var(--ov-purple); }
+    .ov-sol__card p { font-weight: 500; font-size: 17px; line-height: 27.2px; margin-top: -3px; flex: 1; }
+    .ov-sol__card .ov-btn-outline { align-self: flex-start; }
+
+    /* CTA */
+    .ov-cta { margin: 0 -56px; padding: 75px 24px 105px; text-align: center; background: #4a1530 url('https://optiview.dolby.com/wp-content/themes/generatepress_child/blocks/cta_block/cta_alternate_background.jpg') center / cover no-repeat; }
+    .ov-cta__inner { max-width: 864px; margin: 0 auto; }
+    .ov-cta .eye { font-family: var(--ov-medium); font-weight: 600; font-size: 16px; line-height: 25.28px; letter-spacing: 2.4px; text-transform: uppercase; margin-bottom: 12px; }
+    .ov-cta h2 { font-family: var(--ov-medium); font-weight: 700; font-size: 40px; line-height: 48px; letter-spacing: -1px; margin-bottom: 26px; }
+    .ov-cta p { font-weight: 400; font-size: 17px; line-height: 27.2px; letter-spacing: 0.17px; margin-bottom: 40px; }
+    .ov-cta .ov-btn { background: linear-gradient(99.69deg, #3e44fe -10.66%, #bb5cff 114.64%); border-color: transparent; padding: 12.5px 24px; }
+
+    /* Footer */
+    .ov-footer { margin: 0 56px; padding: 30px 24px 0; display: grid; grid-template-columns: 253px 274.74px 295.27px 210.48px 231.51px; }
+    .ov-footer__brand { grid-column: 1; grid-row: 1 / span 2; }
+    .ov-footer__brand .mark { margin: 40px 0; width: 90px; height: 67px; }
+    .ov-footer__legal { font-size: 14px; font-weight: 500; line-height: 21px; letter-spacing: 0.5px; color: var(--ov-faint); padding-right: 18px; }
+    .ov-footer__badge { margin: 40px 0; width: 90px; height: 107px; }
+    .ov-footer__news { grid-column: 2 / span 4; padding: 24px; border-left: 1px solid var(--ov-rule); border-bottom: 1px solid var(--ov-rule); }
+    .ov-footer__news .h { font-size: 32px; font-weight: 600; line-height: 32px; letter-spacing: 0.5px; margin-bottom: 30px; }
+    .ov-footer__news .s { font-size: 17px; font-weight: 500; line-height: 17px; letter-spacing: 0.5px; color: var(--ov-faint); margin-bottom: 30px; }
+    .ov-sub { display: flex; gap: 20px; align-items: center; }
+    .ov-sub input { width: 334px; height: 51px; padding: 0 12px; border: 1px solid #fff; border-radius: 4px; background: transparent; color: #fff; font-family: var(--ov-regular); font-size: 16px; }
+    .ov-sub input::placeholder { color: #fff; }
+    .ov-sub button { font-family: var(--ov-regular); font-weight: 600; font-size: 15px; letter-spacing: 0.75px; text-transform: uppercase; color: #fff; padding: 13.5px 24px; border-radius: 26px; border: 0; background: var(--ov-grad); cursor: pointer; }
+    .ov-footer__col { padding: 40px 25px 25px; border-left: 1px solid var(--ov-rule); border-bottom: 1px solid var(--ov-rule); }
+    .ov-footer__col .h { font-size: 17px; font-weight: 600; line-height: 17px; letter-spacing: 0.1px; text-transform: uppercase; margin-bottom: 12px; padding-bottom: 12px; }
+    .ov-footer__col ul { list-style: none; margin: 0; padding: 0; }
+    .ov-footer__col li a { display: block; font-size: 17px; font-weight: 500; line-height: 25.5px; color: var(--ov-faint); padding: 4px 0; }
+    .ov-footer__bottom { grid-column: 2 / span 4; display: grid; grid-template-columns: 274.74px 295.27px 210.48px 231.51px; border-left: 1px solid var(--ov-rule); }
+    .ov-footer__bottom > div { padding: 30px 25px; font-size: 17px; font-weight: 500; line-height: 17px; letter-spacing: 0.5px; color: var(--ov-faint); }
+    .ov-footer__bottom .social { display: flex; gap: 20px; align-items: center; }
+    .ov-footer__bottom .social img { height: 20px; width: auto; }
+
+    @media (max-width: 1024px) {
+      .ov-nav, .ov-aux { display: none; }
+      .ov-burger { display: flex; }
+    }
+    @media (max-width: 767px) {
+      .wrap { margin: 0 20px; }
+      .ov-header__inner { margin: 0 20px; padding: 0; height: 64px; }
+      .ov-header { height: 64px; }
+      .ov-logo { width: 161px; height: 20px; }
+      .ov-logo svg { width: 168px; height: 20px; }
+      .ov-hero { min-height: 0; padding: 70px 40px 40px; text-align: center; background-size: auto 659px; }
+      .ov-hero::after { height: 659px; background: linear-gradient(89deg, rgba(21, 20, 31, 0.97) 60%, rgba(81, 27, 138, 0.8) 100%), linear-gradient(180deg, rgba(20, 20, 26, 0) 70%, #14141a 100%); }
+      .ov-crumbs { margin: 0 0 14px; font-size: 13px; justify-content: flex-start; flex-wrap: wrap; }
+      .ov-hero h1 { margin-bottom: 12px; }
+      .ov-hero h2 { font-size: 36px; line-height: 43.2px; letter-spacing: -0.72px; padding-bottom: 12px; margin-bottom: 12px; }
+      .ov-hero p.lead { font-size: 15px; line-height: 21.9px; letter-spacing: 0.225px; }
+      .ov-form { text-align: left; }
+      .ov-form__grid { grid-template-columns: 1fr; }
+      .ov-form .ov-btn { width: 100%; font-size: 13px; letter-spacing: 1.3px; }
+      .ov-tabs { padding: 40px 0; }
+      .ov-tabs__head .title { font-size: 40px; line-height: 48px; }
+      .ov-tabs__body { flex-direction: column; gap: 24px; }
+      .ov-tabs__list { display: none; }
+      .ov-tabs__select { display: flex; align-items: center; justify-content: space-between; height: 48px; padding: 0 12px; border: 1px solid #66666a; border-radius: 8px; color: var(--ov-muted); font-size: 16px; margin: 0 8px; }
+      .ov-pane { padding: 16px 16px 20px; margin: 0 16px; }
+      .ov-pane img { height: auto; }
+      .ov-two { grid-template-columns: 1fr; grid-template-rows: auto; gap: 20px; padding: 40px 4px; }
+      .ov-two__heads, .ov-two.left .ov-two__heads, .ov-two__content, .ov-two.left .ov-two__content, .ov-two__media, .ov-two.left .ov-two__media { grid-column: 1; grid-row: auto; }
+      .ov-two__heads { order: 1; } .ov-two__media { order: 2; } .ov-two__content { order: 3; }
+      .ov-two__heads h2 { font-size: 28px; line-height: 32px; letter-spacing: -0.7px; padding-bottom: 0; }
+      .ov-sdk { padding: 40px 0; }
+      .ov-sdk h2 { font-size: 28px; line-height: 34px; }
+      .ov-sdk__grid { grid-template-columns: 1fr; gap: 40px; padding: 40px 4px 48px; }
+      .ov-sdk__card { height: 222px; }
+      .ov-cases { padding: 40px 0; }
+      .ov-cases__logos { justify-content: flex-start; overflow: hidden; margin: 0 -20px; }
+      .ov-cases__logos li { flex: none; width: 140px; padding-right: 16px; }
+      .ov-cases__list { margin: 16px -20px 0; }
+      .ov-case { flex-direction: column; padding: 24px; gap: 16px; }
+      .ov-case__img { flex: none; height: 206px; }
+      .ov-case h2 { font-size: 24px; line-height: 31.2px; }
+      .ov-blog { padding: 40px 0; }
+      .ov-blog__head h2 { font-size: 30px; line-height: 36px; }
+      .ov-blog__list { margin: 0 -20px 32px; }
+      .ov-trusted { padding: 0; }
+      .ov-trusted .eyebrow { font-size: 14px; line-height: 22px; letter-spacing: 1.4px; }
+      .ov-marquee { height: 54px; }
+      .ov-marquee__row { gap: 40px; transform: translateX(-60px); }
+      .ov-marquee__row img { width: 80px; height: 54px; }
+      .ov-post { height: auto; padding-bottom: 24px; }
+      .ov-post__img, .ov-post__img img { height: 150px; }
+      .ov-post h3, .ov-post__excerpt { min-height: 0; }
+      .ov-sol { margin: 0 -20px; padding: 60px 20px; }
+      .ov-sol__head h2 { font-size: 30px; line-height: 36px; margin-bottom: 16px; }
+      .ov-sol__cards { grid-template-columns: repeat(4, 148px); justify-content: start; gap: 18px; overflow: hidden; margin: 24px -12px 0; }
+      .ov-sol__card { height: 296px; padding: 16px 10px; }
+      .ov-sol__card p { font-size: 15px; line-height: 22px; }
+      .ov-cta { margin: 0 -20px; padding: 48px 24px 60px; }
+      .ov-cta h2 { font-size: 30px; line-height: 36px; }
+      .ov-footer { margin: 0 20px; padding: 30px 0 0; grid-template-columns: 1fr; }
+      .ov-footer__brand, .ov-footer__news, .ov-footer__col, .ov-footer__bottom { grid-column: 1; grid-row: auto; border-left: 0; }
+      .ov-footer__bottom { grid-template-columns: 1fr; }
+      .ov-sub { flex-direction: column; align-items: stretch; }
+      .ov-sub input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ov-top">
+  <header class="ov-header">
+    <div class="ov-header__inner">
+      <a class="ov-logo" href="#" aria-label="Dolby OptiView">
+        <svg viewBox="0 0 235 28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="#fff" d="M7 2h4.5a10 10 0 0 1 0 20H7z"/>
+          <path fill="#fff" d="M39 2h-4.5a10 10 0 0 0 0 20H39z"/>
+          <text x="43" y="22" fill="#fff" font-family="'Nunito Sans', sans-serif" font-weight="700" font-size="27" textLength="70" lengthAdjust="spacingAndGlyphs">Dolby</text>
+          <text x="119" y="22" fill="#fff" font-family="'Nunito Sans', sans-serif" font-weight="300" font-size="27" textLength="113" lengthAdjust="spacingAndGlyphs">OptiView</text>
+        </svg>
+      </a>
+      <ul class="ov-nav">
+        <li><a href="#">Solutions</a></li>
+        <li><a href="#">Industries</a></li>
+        <li><a href="#">Resources</a></li>
+        <li><a href="#">Developers</a></li>
+      </ul>
+      <ul class="ov-aux">
+        <li><a class="login" href="#">Log in</a></li>
+        <li><a class="ov-btn-contact" href="#">Contact Us</a></li>
+      </ul>
+      <button class="ov-burger" type="button" aria-label="Menu"><span></span></button>
+    </div>
+  </header>
+
+  <section class="ov-hero">
+    <ol class="ov-crumbs">
+      <li><a href="#">Home</a><svg class="sep" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" fill="none" stroke="#fff" stroke-width="1.4"/></svg></li>
+      <li><a href="#">Solutions</a><svg class="sep" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" fill="none" stroke="#fff" stroke-width="1.4"/></svg></li>
+      <li><span class="current">Dolby OptiView Player</span></li>
+    </ol>
+    <div class="ov-hero__text">
+      <h1>Premium video player</h1>
+      <h2>A premium playback experience for live sports</h2>
+      <p class="lead">Dolby OptiView Player helps service providers deliver premium live sports across devices, with reliable playback, broad platform support, and the flexibility to support Dolby Vision and Dolby Atmos experiences, low-latency streaming, and ad-supported viewing.</p>
+    </div>
+    <form id="provisionForm" class="ov-form">
+      <div class="ov-form__title">Add player licenses</div>
+      <div class="ov-form__grid">
+        <div class="ov-field full">
+          <label for="product">Player SDK</label>
+          <select id="product">
+            <option value="enterprise_suite">HTML5 / Tizen / webOS SDK</option>
+            <option value="devops_platform">Android / Android TV / Fire TV SDK</option>
+            <option value="analytics_cloud">iOS / tvOS SDK</option>
+            <option value="security_gateway">Roku SDK</option>
+          </select>
+        </div>
+        <div class="ov-field">
+          <label for="seats">Additional licenses</label>
+          <input type="number" id="seats" value="25" min="1">
+        </div>
+        <div class="ov-field">
+          <label for="planTier">License plan</label>
+          <select id="planTier">
+            <option value="enterprise">Enterprise</option>
+            <option value="business">Business</option>
+            <option value="starter">Starter</option>
+          </select>
+        </div>
+        <div class="ov-field full">
+          <label for="region">Delivery region</label>
+          <select id="region">
+            <option value="us-east">North America (East)</option>
+            <option value="us-west">North America (West)</option>
+            <option value="eu-west">Europe (West)</option>
+            <option value="ap-south">Asia Pacific</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="ov-btn" id="submitBtn">Add licenses</button>
+      <div id="result" class="result-box"></div>
+    </form>
+  </section>
+  </div>
+
+  <div class="wrap">
+    <section class="ov-tabs">
+      <div class="ov-tabs__head">
+        <p class="eyebrow">Accelerate your video strategy</p>
+        <span class="title">The playback layer for better live sports experiences</span>
+        <p>Dolby OptiView Player is where the fan experience comes to life. It helps service providers deliver more consistent, more immersive, and more reliable live sports experiences across platforms.</p>
+      </div>
+      <div class="ov-tabs__body">
+        <ul class="ov-tabs__list">
+          <li class="active"><a href="#">Cross-platform playback</a></li>
+          <li><a href="#">Connected ecosystem</a></li>
+          <li><a href="#">App frameworks</a></li>
+        </ul>
+        <div class="ov-tabs__select"><span>Cross-platform playback</span><svg width="12" height="8" viewBox="0 0 12 8"><path d="M1 1l5 5 5-5" fill="none" stroke="#b9b9ba" stroke-width="1.6"/></svg></div>
+        <div class="ov-tabs__panes">
+          <div class="ov-pane">
+            <img src="https://optiview.dolby.com/wp-content/uploads/2025/03/it_works_benefits_player_product_dolby.webp" alt="" onerror="this.style.visibility='hidden'">
+            <div class="ov-pane__desc"><b>Premium playback across the platforms that matter.</b><br>Dolby OptiView Player works across a wide range of platforms, helping improve playback quality, reduce startup time, and bring live sports experiences to more screens with confidence.</div>
+          </div>
+          <div class="ov-pane">
+            <img src="https://optiview.dolby.com/wp-content/uploads/2025/03/ecosystem_partners_benefits_player_product_dolby.webp" alt="" onerror="this.style.visibility='hidden'">
+            <div class="ov-pane__desc"><b>Fit into your existing video stack.</b><br>Open-source connectors help service providers integrate DRM, advertising, analytics, and other core services more quickly, so teams can stay focused on the experience they want to build.</div>
+          </div>
+          <div class="ov-pane">
+            <img src="https://optiview.dolby.com/wp-content/uploads/2026/05/React-Native-and-Flutter.webp" alt="" onerror="this.style.visibility='hidden'">
+            <div class="ov-pane__desc"><b>Move faster across platforms.</b><br>With strong <a href="#">React Native</a> and <a href="#">Flutter support</a> support, Dolby OptiView Player helps teams streamline cross-platform delivery and reduce duplicated effort.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ov-two">
+      <div class="ov-two__heads"><h3 class="eyebrow">Immersive playback</h3><h2>Bring premium picture and sound to live sports</h2></div>
+      <div class="ov-two__media"><img src="https://optiview.dolby.com/wp-content/uploads/2026/08/imag_sec3_monetize_optiview.webp" alt="" onerror="this.style.visibility='hidden'"></div>
+      <div class="ov-two__content"><p>Dolby OptiView Player supports Dolby Vision and Dolby Atmos playback in supported workflows and compatible environments, helping live sports look sharper, feel richer, and sound more like they should.</p></div>
+    </section>
+    <section class="ov-two left">
+      <div class="ov-two__heads"><h3 class="eyebrow">Ad-supported experiences</h3><h2>Support monetization without compromising the experience</h2></div>
+      <div class="ov-two__media"><video src="https://optiview.dolby.com/wp-content/uploads/2026/03/img_3-Personalized_Ads.webm" autoplay muted loop playsinline onerror="this.style.visibility='hidden'"></video></div>
+      <div class="ov-two__content">
+        <p>Dolby OptiView Player helps service providers support ad-supported live sports experiences across more devices, including older smart TVs, while enabling smoother transitions between content and ads.</p>
+        <ul class="ov-checks"><li>Expand reach across more monetizable platforms</li><li>Support smoother ad experiences across playback environments</li><li>Help keep the fan experience more consistent</li></ul>
+        <a class="ov-btn" href="#">Learn more</a>
+      </div>
+    </section>
+    <section class="ov-two">
+      <div class="ov-two__heads"><h3 class="eyebrow">Focus on differentiation</h3><h2>Free up resources for the work that sets you apart</h2></div>
+      <div class="ov-two__media"><img src="https://optiview.dolby.com/wp-content/uploads/2025/03/graph-core-business-player-product-dolby-1.webp" alt="" onerror="this.style.visibility='hidden'"></div>
+      <div class="ov-two__content"><p>Dolby OptiView Player helps teams spend less time managing playback complexity and more time building differentiated live sports experiences.</p><a class="ov-btn" href="#">Talk with our team</a></div>
+    </section>
+    <section class="ov-two left">
+      <div class="ov-two__heads"><h3 class="eyebrow">Low and consistent latency</h3><h2>Keep fans close to the live moment</h2></div>
+      <div class="ov-two__media"><img src="https://optiview.dolby.com/wp-content/uploads/2025/03/low_latency_player_product_dolby.webp" alt="" onerror="this.style.visibility='hidden'"></div>
+      <div class="ov-two__content"><p>Dolby OptiView Player supports LL-DASH and LL-HLS playback and works with Dolby OptiView Streaming to help keep live sports closer to the action and reduce spoiler effects.</p><a class="ov-btn" href="#">Dolby Real-Time Streaming</a></div>
+    </section>
+    <section class="ov-two">
+      <div class="ov-two__heads"><h3 class="eyebrow">Developer experience</h3><h2>Help developers move faster from day one</h2></div>
+      <div class="ov-two__media"><img src="https://optiview.dolby.com/wp-content/uploads/2025/03/visual_developer_player_product_dolby.webp" alt="" onerror="this.style.visibility='hidden'"></div>
+      <div class="ov-two__content"><p>Getting-started guides, sample apps, SDK controls, and open-source UI components help teams move faster with less friction.</p><a class="ov-btn" href="#">Download Datasheet</a></div>
+    </section>
+    <section class="ov-two left">
+      <div class="ov-two__heads"><h3 class="eyebrow">Open Video UI</h3><h2>Customize the player to match your brand</h2></div>
+      <div class="ov-two__media"><img src="https://optiview.dolby.com/wp-content/uploads/2025/07/customizable-ui-player-product-dolby.webp" alt="" onerror="this.style.visibility='hidden'"></div>
+      <div class="ov-two__content"><p>With Open Video UI, teams can tailor the player experience across platforms while keeping a consistent brand feel.</p><a class="ov-btn" href="#">Learn More</a></div>
+    </section>
+
+    <section class="ov-sdk">
+      <p class="eyebrow">Optimized for every platform</p>
+      <h2>Dolby OptiView Video Player SDKs</h2>
+      <p>6 highly optimized video playback SDKs power a world-class playback experience on all platforms</p>
+      <div class="ov-sdk__grid">
+        <a class="ov-sdk__card" href="#" style="background-image:url('https://optiview.dolby.com/wp-content/uploads/2025/03/HTML5-1-5x.png')"></a>
+        <a class="ov-sdk__card" href="#" style="background-image:url('https://optiview.dolby.com/wp-content/uploads/2025/03/sdk_default_react_player_product_dolby.webp')"></a>
+        <a class="ov-sdk__card" href="#" style="background-image:url('https://optiview.dolby.com/wp-content/uploads/2025/03/sdk_default_ios_player_product_dolby.webp')"></a>
+        <a class="ov-sdk__card" href="#" style="background-image:url('https://optiview.dolby.com/wp-content/uploads/2025/03/sdk_default_android_player_product_dolby.webp')"></a>
+        <a class="ov-sdk__card" href="#" style="background-image:url('https://optiview.dolby.com/wp-content/uploads/2025/03/sdk_default_roku_player_product_dolby.webp')"></a>
+        <a class="ov-sdk__card" href="#" style="background-image:url('https://optiview.dolby.com/wp-content/uploads/2025/03/sdk_default_flutter_player_product_dolby.webp')"></a>
+      </div>
+      <a class="ov-btn" href="#">See platform support</a>
+    </section>
+
+    <section class="ov-cases">
+      <p class="ov-cases__label">Customer Stories</p>
+      <ul class="ov-cases__logos">
+        <li><a href="#"><img src="https://optiview.dolby.com/wp-content/uploads/2025/03/logo-itv-customer-stories.svg" alt="ITV" onerror="this.style.visibility='hidden'"></a></li>
+        <li><a href="#"><img src="https://optiview.dolby.com/wp-content/uploads/2025/03/logo-nfl-customer-stories.svg" alt="NFL" onerror="this.style.visibility='hidden'"></a></li>
+        <li><a href="#"><img src="https://optiview.dolby.com/wp-content/uploads/2025/03/logo-nascar-customer-stories.svg" alt="NASCAR" onerror="this.style.visibility='hidden'"></a></li>
+        <li><a href="#"><img src="https://optiview.dolby.com/wp-content/uploads/2026/03/content-arena-white-logo-2.png" alt="Content Arena" onerror="this.style.visibility='hidden'"></a></li>
+        <li><a href="#"><img src="https://optiview.dolby.com/wp-content/uploads/2026/04/FZ-sports-logo-white-2.svg" alt="Fz Sports" onerror="this.style.visibility='hidden'"></a></li>
+      </ul>
+      <div class="ov-cases__list">
+        <article class="ov-case"><div class="ov-case__img"><img src="https://optiview.dolby.com/wp-content/uploads/2025/03/customer_stories_itv_dolby.webp" alt="" onerror="this.style.visibility='hidden'"></div><div class="ov-case__body"><h2>ITV Chooses Dolby OptiView Player After a Comprehensive Video Player Evaluation</h2><div class="ov-case__desc">ITV, a prominent and influential broadcasting network based in the United Kingdom, selected Dolby OptiView Player (formerly known as THEOplayer) after conducting an extensive testing and paper review of the top commercial video player options.</div><a class="ov-readmore" href="#">Read More <svg width="7" height="11" viewBox="0 0 7 11"><path d="M1 1l4.5 4.5L1 10" fill="none" stroke="#aa33ff" stroke-width="1.6"/></svg></a></div></article>
+        <article class="ov-case"><div class="ov-case__img"><img src="https://optiview.dolby.com/wp-content/uploads/2025/03/customer_stories_nfl_dolby.webp" alt="" onerror="this.style.visibility='hidden'"></div><div class="ov-case__body"><h2>How the NFL Delivers a Great Video Experience</h2><div class="ov-case__desc">This customer story highlights the NFL’s strategic decisions and real-world experiences in optimizing video playback and real-time monitoring, all with the goal of ensuring every streaming session delivers a touchdown-worthy experience for fans.</div><a class="ov-readmore" href="#">Read More <svg width="7" height="11" viewBox="0 0 7 11"><path d="M1 1l4.5 4.5L1 10" fill="none" stroke="#aa33ff" stroke-width="1.6"/></svg></a></div></article>
+        <article class="ov-case"><div class="ov-case__img"><img src="https://optiview.dolby.com/wp-content/uploads/2025/03/customer_stories_nascar_dolby.webp" alt="" onerror="this.style.visibility='hidden'"></div><div class="ov-case__body"><h2>NASCAR Partners with Dolby for Premium Cross-Platform Video Playback Experiences</h2><div class="ov-case__desc">This case study details how NASCAR adopted Dolby OptiView Player (formerly known as THEOplayer) to enhance viewer Quality of Experience (QoE), introduce advanced features, and improve analytics, resulting in better fan engagement and optimized monetization opportunities.</div><a class="ov-readmore" href="#">Read More <svg width="7" height="11" viewBox="0 0 7 11"><path d="M1 1l4.5 4.5L1 10" fill="none" stroke="#aa33ff" stroke-width="1.6"/></svg></a></div></article>
+        <article class="ov-case"><div class="ov-case__img"><img src="https://optiview.dolby.com/wp-content/uploads/2025/10/Customer-Story-visual-Content-Arena-1-1.jpg" alt="" onerror="this.style.visibility='hidden'"></div><div class="ov-case__body"><h2>Content Arena Collaborates with Dolby OptiView to Grow Revenue for Rightsholders and Sportsbooks</h2><div class="ov-case__desc">Content Arena is innovating how rightsholders and sportsbook operators connect, offering a smarter, more flexible way to buy and sell live sports content.</div><a class="ov-readmore" href="#">Read More <svg width="7" height="11" viewBox="0 0 7 11"><path d="M1 1l4.5 4.5L1 10" fill="none" stroke="#aa33ff" stroke-width="1.6"/></svg></a></div></article>
+        <article class="ov-case"><div class="ov-case__img"><img src="https://optiview.dolby.com/wp-content/uploads/2026/04/Fanatiz_Customer-story_cover-image-2.png" alt="" onerror="this.style.visibility='hidden'"></div><div class="ov-case__body"><h2>Fz Sports Enhances Viewer Satisfaction with Dolby OptiView in Just 6 Weeks</h2><div class="ov-case__desc">This customer story showcases how Fz Sports, a sports streaming platform, utilizes Dolby OptiView Player to provide a premium viewing experience. Thanks to its cross-platform compatibility and low-latency video playback, Fz Sports has expanded its reach to more sports fans and significantly enhanced viewer satisfaction.</div><a class="ov-readmore" href="#">Read More <svg width="7" height="11" viewBox="0 0 7 11"><path d="M1 1l4.5 4.5L1 10" fill="none" stroke="#aa33ff" stroke-width="1.6"/></svg></a></div></article>
+      </div>
+    </section>
+
+    <section class="ov-trusted">
+      <p class="eyebrow">Trusted by the best companies in the world</p>
+      <div class="ov-marquee"><div class="ov-marquee__row">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2026/05/content-arena-white-logo.png" alt="" onerror="this.style.visibility='hidden'">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2026/03/nascar-logo-white-@2x.svg" alt="" onerror="this.style.visibility='hidden'">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2026/03/NFL-logo-white.svg" alt="" onerror="this.style.visibility='hidden'">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2026/03/hudl-logo-white-@2x.svg" alt="" onerror="this.style.visibility='hidden'">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2026/05/Mediapro-logo-white.svg" alt="" onerror="this.style.visibility='hidden'">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2026/04/FZ-sports-logo-white-2.svg" alt="" onerror="this.style.visibility='hidden'">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2026/05/Texas-Sports-Productions-logo-white.svg" alt="" onerror="this.style.visibility='hidden'">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2026/05/Mid%E2%80%91Atlantic-Sports-Network-logo-white.svg" alt="" onerror="this.style.visibility='hidden'">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2026/05/content-arena-white-logo.png" alt="" onerror="this.style.visibility='hidden'">
+      </div></div>
+    </section>
+
+    <section class="ov-blog">
+      <div class="ov-blog__head"><div class="eyebrow">Resources</div><h2>Explore more content about Dolby OptiView Player</h2></div>
+      <div class="ov-blog__list">
+        <article class="ov-post"><div class="ov-post__tag">Playback</div><div class="ov-post__img"><img src="https://optiview.dolby.com/wp-content/uploads/2025/04/Blog-Build-vs.-Buy-white-paper-2-768x318.webp" alt="" onerror="this.style.visibility='hidden'"></div><h3>Build vs. Buy: Evaluating Open-Source vs Commercial Video Player Solutions</h3><p class="ov-post__excerpt">Media and entertainment companies face a critical decision in delivering exceptional video experiences to their audiences–should you …</p><div class="ov-author"><div class="ov-author__avatar"><svg width="28" height="20" viewBox="0 0 28 20"><path fill="#fff" d="M0 0h4.2a10 10 0 0 1 0 20H0z"/><path fill="#fff" d="M28 0h-4.2a10 10 0 0 0 0 20H28z"/></svg></div><div><div class="ov-author__name">Dolby OptiView Editorial Team</div><div class="ov-author__role">World-class streaming</div></div></div></article>
+        <article class="ov-post"><div class="ov-post__tag">Streaming</div><div class="ov-post__img"><img src="https://optiview.dolby.com/wp-content/uploads/2024/04/Dolby-How-to-Simplify-Your-OTT-App-Testing-Cross-Platform-2-768x318.webp" alt="" onerror="this.style.visibility='hidden'"></div><h3>Webinar recap: How to Simplify Your OTT App Testing Cross-Platform</h3><p class="ov-post__excerpt">Tune into our session where we discuss how to simplify the testing of your OTT app …</p><div class="ov-author"><div class="ov-author__avatar"><svg width="28" height="20" viewBox="0 0 28 20"><path fill="#fff" d="M0 0h4.2a10 10 0 0 1 0 20H0z"/><path fill="#fff" d="M28 0h-4.2a10 10 0 0 0 0 20H28z"/></svg></div><div><div class="ov-author__name">Dolby OptiView Editorial Team</div><div class="ov-author__role">World-class streaming</div></div></div></article>
+        <article class="ov-post"><div class="ov-post__tag">Playback</div><div class="ov-post__img"><img src="https://optiview.dolby.com/wp-content/uploads/2023/12/market-research-banner-bigger-768x318.png" alt="" onerror="this.style.visibility='hidden'"></div><h3>Market research: The State of Cross-Platform Video Playback</h3><p class="ov-post__excerpt">Latest insights on the state of cross-platform video playback We’ve put together this report to give you …</p><div class="ov-author"><div class="ov-author__avatar"><svg width="28" height="20" viewBox="0 0 28 20"><path fill="#fff" d="M0 0h4.2a10 10 0 0 1 0 20H0z"/><path fill="#fff" d="M28 0h-4.2a10 10 0 0 0 0 20H28z"/></svg></div><div><div class="ov-author__name">Dolby OptiView Editorial Team</div><div class="ov-author__role">World-class streaming</div></div></div></article>
+      </div>
+    </section>
+
+    <section class="ov-sol">
+      <div class="ov-sol__inner">
+        <div class="ov-sol__head"><h2>Explore the solutions</h2><p>Start with the area that matters most today. Each solution works on its own and gets stronger together.</p></div>
+        <div class="ov-sol__cards">
+          <a class="ov-sol__card" href="#" style="background-image:url('https://optiview.dolby.com/wp-content/uploads/2026/08/img-card-si-default.webp')"><h3>Sports Intelligence</h3><p>Understand what engages fans so you can build more relevant live experiences.</p><span class="ov-btn-outline">Learn More</span></a>
+          <a class="ov-sol__card" href="#" style="background-image:url('https://optiview.dolby.com/wp-content/uploads/2026/08/img-card-ads-default-1.webp')"><h3>Dolby OptiView Ads</h3><p>Increase ad revenue with premium ad experiences built for live sports.</p><span class="ov-btn-outline">Learn More</span></a>
+          <a class="ov-sol__card" href="#" style="background-image:url('https://optiview.dolby.com/wp-content/uploads/2026/08/img-card-adengine-default-1.webp')"><h3>Dolby OptiView Ad engine</h3><p>Power flexible, broadcast-quality ad insertion across modern live streams.</p><span class="ov-btn-outline">Learn More</span></a>
+          <a class="ov-sol__card" href="#" style="background-image:url('https://optiview.dolby.com/wp-content/uploads/2026/08/img-card-streaming-default-1.webp')"><h3>Dolby OptiView Streaming</h3><p>Deliver low-latency live sports that keep every fan in the same moment.</p><span class="ov-btn-outline">Learn More</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="ov-cta">
+      <div class="ov-cta__inner">
+        <div class="eye">Get started</div>
+        <h2>Experience superior playback with Dolby</h2>
+        <p>Ready to deliver an exceptional playback experience for your viewers? Accelerate your time-to-market and unlock new revenue opportunities with Dolby.</p>
+        <a class="ov-btn" href="#">Talk to an expert</a>
+      </div>
+    </section>
+  </div>
+
+  <footer class="ov-footer">
+    <div class="ov-footer__brand">
+      <svg class="mark" viewBox="0 0 90 67" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#fff" d="M0 0h10a33.5 33.5 0 0 1 0 67H0z"/><path fill="#fff" d="M90 0H80a33.5 33.5 0 0 0 0 67h10z"/></svg>
+      <p class="ov-footer__legal">Dolby, the double-D symbol, Dolby Atmos, Dolby Vision, and Dolby OptiView are trademarks or registered trademarks of Dolby Laboratories Licensing Corporation or its affiliates. Other trademarks remain the property of their respective owners.<br>© 2026 Dolby Laboratories, Inc. All rights reserved.</p>
+      <img class="ov-footer__badge" src="https://optiview.dolby.com/wp-content/uploads/2024/02/ISO-IEC-27001-2022-005.png" alt="" onerror="this.style.display='none'">
+    </div>
+    <div class="ov-footer__news">
+      <p class="h">Keep a good thing going</p>
+      <p class="s">Get the latest news, events, and product updates from the Dolby OptiView team.</p>
+      <div class="ov-sub"><input type="email" placeholder="Email address*" aria-label="Email address"><button type="button">Subscribe</button></div>
+    </div>
+    <div class="ov-footer__col"><p class="h">Solutions</p><ul><li><a href="#">Platform Overview</a></li><li><a href="#">Sports Intelligence</a></li><li><a href="#">Monetize</a></li><li><a href="#">Dolby OptiView Ads</a></li><li><a href="#">Ad Engine</a></li><li><a href="#">Streaming</a></li><li><a href="#">Playback</a></li></ul></div>
+    <div class="ov-footer__col"><p class="h">Industries</p><ul><li><a href="#">Live sports streaming</a></li><li><a href="#">Live sports betting</a></li><li><a href="#">Retail betting</a></li><li><a href="#">Horse race betting</a></li><li><a href="#">Esports</a></li></ul></div>
+    <div class="ov-footer__col"><p class="h" style="letter-spacing:1.7px">Company</p><ul><li><a href="#">Blog</a></li><li><a href="#">Customer stories</a></li><li><a href="#">Careers</a></li><li><a href="#">Newsroom</a></li><li><a href="#">Dolby.com</a></li></ul></div>
+    <div class="ov-footer__col"><p class="h">Getting started</p><ul><li><a href="#">Contact us</a></li><li><a href="#">Resources</a></li><li><a href="#">Documentation</a></li><li><a href="#">Customer support</a></li></ul></div>
+    <div class="ov-footer__bottom">
+      <div>© 2026 Dolby OptiView</div>
+      <div><a href="#">Policies and Terms</a> | <a href="#">Sitemap</a></div>
+      <div></div>
+      <div class="social">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2023/11/x-twitter.png" alt="X" onerror="this.style.display='none'">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2021/09/logo-youtube.png" alt="YouTube" onerror="this.style.display='none'">
+        <img src="https://optiview.dolby.com/wp-content/uploads/2021/09/logo-linkedin.png" alt="LinkedIn" onerror="this.style.display='none'">
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const productSelect = document.getElementById('product');
+      const sdkLabel = productSelect.options[productSelect.selectedIndex].text;
+      btn.disabled = true; btn.textContent = 'Adding licenses...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: productSelect.value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Licenses could not be added</div><div class="error-detail">${data.errorClass ? data.errorClass + ': ' : ''}${data.error || 'Please try again.'}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Player licenses added</div><div class="error-detail">${data.seatsAdded} licenses added to the ${sdkLabel} &mdash; annual total $${data.annualCost}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Add licenses'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
