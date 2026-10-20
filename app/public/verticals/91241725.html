@@ -43,7 +43,7 @@
     .burger span { position: absolute; left: 11px; right: 11px; height: 1px; background: var(--ink); }
     .burger span:nth-child(1) { top: 14px; }
     .burger span:nth-child(2) { top: 22px; }
-    .mobile-menu { display: none; position: fixed; inset: 74px 0 0 0; background: var(--white); z-index: 49; padding: 24px 6vw; }
+    .mobile-menu { display: none; position: fixed; top: 74px; left: 0; right: 0; bottom: 0; background: var(--white); z-index: 49; padding: 24px 6vw; }
     .mobile-menu.open { display: block; }
     .mobile-menu a { display: flex; align-items: center; min-height: 52px; font-size: 26px; text-decoration: none; color: var(--ink); }
 
@@ -331,11 +331,15 @@
     (function () {
       var burger = document.getElementById('burger');
       var menu = document.getElementById('mobileMenu');
+      var header = document.querySelector('.site-header');
+      function placeMenu() { menu.style.top = Math.max(0, header.getBoundingClientRect().bottom) + 'px'; }
       function setOpen(open) {
+        if (open) placeMenu();
         menu.classList.toggle('open', open);
         burger.setAttribute('aria-expanded', open ? 'true' : 'false');
         burger.setAttribute('aria-label', open ? 'Close Menu' : 'Open Menu');
       }
+      window.addEventListener('scroll', function () { if (menu.classList.contains('open')) placeMenu(); }, { passive: true });
       burger.addEventListener('click', function () { setOpen(!menu.classList.contains('open')); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu.classList.contains('open')) { setOpen(false); burger.focus(); } });
       menu.addEventListener('click', function (e) { if (e.target.tagName === 'A') setOpen(false); });
