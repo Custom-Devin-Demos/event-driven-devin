@@ -14,6 +14,7 @@ const { submitSampleOrder, PRESCRIBERS, PRODUCTS } = require('../services/oncall
 const { addToBag } = require('../services/oncall-verticals/apparel');
 const { addKitToCart } = require('../services/oncall-verticals/fluidanalysis');
 const { addToPickList } = require('../services/oncall-verticals/picklist');
+const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
@@ -721,6 +722,24 @@ router.post('/api/oncall/picklist/add', async (req, res) => {
       error: 'Unable to add this part to your Pick List.',
       errorClass: error.name,
       code: error.code || 'PICKLIST_ADD_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/wheretobuy/retailers — list distributors for a SKU
+ */
+router.post('/api/oncall/wheretobuy/retailers', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await findRetailers({ sku: body.sku || 'J6060B' }));
+  } catch (error) {
+    res.status(error.code === 'SKU_NOT_FOUND' ? 404 : 500).json({
+      success: false,
+      error: 'Unable to load retailers for this product.',
+      errorClass: error.name,
+      code: error.code || 'WHERE_TO_BUY_FAILED',
       requestId: req.requestId,
     });
   }
