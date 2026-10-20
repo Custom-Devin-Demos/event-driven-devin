@@ -2814,7 +2814,6 @@ const ONCALL_SKINS = {
     company: 'manabiba',
     brandMark: 'm',
     vertical: 'hightech',
-    alertDestination: 'slack',
     locale: 'ja',
     devinSession: {
       auto: true,
