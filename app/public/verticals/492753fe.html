@@ -267,8 +267,8 @@
 
     <div class="sec">
       <h2>Upgrades</h2>
-      <div class="card on"><img class="wide" alt="Autonomy+" src="https://media.rivian.com/image/upload/c_limit,w_1200,f_auto,q_auto/v1769027215/shop/PDP/modals/autonomy-platform/autonomycard_oqjvtr.jpg"><div class="bd"><span class="nm">Autonomy+ ⓘ</span><span>Enjoy every mile with an evolving set of advanced driver assistance features that let you focus on the journey.</span><span>Included with Launch Package³</span></div></div>
-      <div class="card row on"><div class="bd"><span><b style="font-weight:500">Tow Package ⓘ</b></span><span>Included with Launch Package</span></div><img alt="Tow Package" src="https://media.rivian.com/image/upload/c_limit,w_280,f_auto,q_auto/v1775068878/shop/Builder/Options/Upgrades/img_o5wjwz.jpg"></div>
+      <div class="card on" id="autonomyCard"><img class="wide" alt="Autonomy+" src="https://media.rivian.com/image/upload/c_limit,w_1200,f_auto,q_auto/v1769027215/shop/PDP/modals/autonomy-platform/autonomycard_oqjvtr.jpg"><div class="bd"><span class="nm">Autonomy+ ⓘ</span><span>Enjoy every mile with an evolving set of advanced driver assistance features that let you focus on the journey.</span><span class="js-launch-note">Included with Launch Package³</span></div></div>
+      <div class="card row on" id="towCard"><div class="bd"><span><b style="font-weight:500">Tow Package ⓘ</b></span><span class="js-launch-note">Included with Launch Package</span></div><img alt="Tow Package" src="https://media.rivian.com/image/upload/c_limit,w_280,f_auto,q_auto/v1775068878/shop/Builder/Options/Upgrades/img_o5wjwz.jpg"></div>
       <div class="card row" id="spareCard"><div class="bd"><span><b style="font-weight:500">Compact Spare Tire ⓘ</b><br>$755</span><button class="pill btn-add" type="button" id="spareBtn">Add</button></div><img alt="Compact Spare Tire" src="https://media.rivian.com/image/upload/c_limit,w_280,f_auto,q_auto/v1771545344/shop/Builder/Options/Upgrades/spare_kskxbe.jpg"></div>
     </div>
 
@@ -423,6 +423,8 @@
       if (PAINTS[state.paint].launchOnly && !t.launch) state.paint = 0;
       document.querySelectorAll('.trim').forEach(function (b) { b.classList.toggle('on', b.dataset.trim === state.trim); });
       $('launchBox').style.display = t.launch ? '' : 'none';
+      ['autonomyCard', 'towCard'].forEach(function (id) { $(id).classList.toggle('on', t.launch); });
+      document.querySelectorAll('.js-launch-note').forEach(function (el) { el.textContent = t.launch ? 'Included with Launch Package' : 'Available with R2 Performance Launch Package'; });
       var head = money(t.price) + ' · Est. lease $' + t.lease + '/mo';
       $('headPrice').textContent = head; $('stickyPrice').textContent = head;
       $('stickyTrim').textContent = t.name; $('sumTrim').textContent = t.name;
@@ -468,6 +470,7 @@
       $('rBuildOpts').textContent = [PAINTS[state.paint].name, WHEELS[state.wheel].name, INTERIORS[state.interior].name].join(' · ');
       $('rStatus').textContent = t.launch ? 'R2 deliveries have begun' : 'Join the ' + t.label + ' waitlist';
       $('rMsg').className = 'r-msg'; $('rMsg').innerHTML = '';
+      $('confirmBtn').disabled = false; $('confirmBtn').textContent = 'Confirm reservation';
       document.body.classList.add('reserving');
       window.scrollTo(0, 0);
     }
@@ -478,10 +481,22 @@
       e.preventDefault();
       var msg = $('rMsg');
       var required = ['firstName', 'lastName', 'email', 'phone', 'addr1', 'city', 'state', 'zip', 'cardName', 'cardNumber', 'exp', 'cvv'];
-      var missing = required.filter(function (id) { var el = $(id); var bad = !el.value.trim(); el.parentElement.classList.toggle('err', bad); return bad; });
+      var formats = {
+        email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        phone: /^[\d\s()+.-]{10,}$/,
+        zip: /^\d{5}(-\d{4})?$/,
+        cardNumber: /^(\d[\s-]?){13,19}$/,
+        exp: /^(0[1-9]|1[0-2])\s*\/\s*\d{2}$/,
+        cvv: /^\d{3,4}$/,
+      };
+      var missing = required.filter(function (id) {
+        var el = $(id); var v = el.value.trim();
+        var bad = !v || (formats[id] && !formats[id].test(v));
+        el.parentElement.classList.toggle('err', bad); return bad;
+      });
       if (missing.length || !$('agree').checked) {
         msg.className = 'r-msg err';
-        msg.innerHTML = '<b>Check your details</b>' + (missing.length ? 'Please complete the highlighted fields.' : 'Please accept the Reservation Agreement to continue.');
+        msg.innerHTML = '<b>Check your details</b>' + (missing.length ? 'Please complete or correct the highlighted fields.' : 'Please accept the Reservation Agreement to continue.');
         return;
       }
       var btn = $('confirmBtn');
@@ -502,7 +517,7 @@
         var data = await res.json().catch(function () { return {}; });
         if (!res.ok || data.success === false) throw new Error(data.error || 'Reservation failed');
         msg.className = 'r-msg ok';
-        msg.innerHTML = '<b>You\u2019re reserved.</b>Reservation ' + String(data.confirmationNumber || '').replace(/[^A-Z0-9-]/gi, '') + ' for your ' + TRIMS[state.trim].name + '. We\u2019ve emailed your receipt for the $100 refundable deposit.';
+        msg.innerHTML = '<b>You\u2019re reserved.</b>Reservation ' + String(data.confirmationNumber || '').replace(/[^A-Z0-9-]/gi, '') + ' for your ' + TRIMS[state.trim].name + '.';
         btn.textContent = 'Reserved';
       } catch (err) {
         msg.className = 'r-msg err';
