@@ -264,7 +264,9 @@ function openIncident(customer, error, requestId, reportId) {
   if (existing) {
     existing.occurrences += 1;
     existing.lastSeenAt = new Date().toISOString();
-    existing.timeline.push({ at: existing.lastSeenAt, event: `Recurred — report ${reportId} failed with the same error` });
+    existing.reportId = reportId;
+    existing.requestId = requestId;
+    existing.timeline.push({ at: existing.lastSeenAt, event: `Recurred — report ${reportId} (request ${requestId}) failed with the same error` });
     return existing;
   }
   incidentSequence += 1;
@@ -395,7 +397,7 @@ async function generateFleetHealthReport(data) {
       triggeredRule: '',
       promptAppendix: 'Fix the agent so a report completes for every customer whose fleet the Asset Records data product returns, under its current schema, without changing the data product itself. Add a regression test in tests/ that generates a Fleet Health report for each customer and asserts every engine row carries a numeric cyclesSinceShopVisit and a lastShopVisit summary, and verify the fix in the browser on /af1dce4f by viewing Fleet Health as Airline B and generating a report.',
     }).then((result) => {
-      if (incident && result && result.session && result.session.url) {
+      if (incident && !incident.session && result && result.session && result.session.url) {
         incident.session = { label: 'Devin session · live', url: result.session.url };
       }
     }).catch((err) => {

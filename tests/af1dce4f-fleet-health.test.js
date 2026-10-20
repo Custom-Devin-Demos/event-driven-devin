@@ -128,6 +128,7 @@ describe('af1dce4f incident de-duplication', () => {
     const overview = getOverview();
     expect(overview.summary.openIncidents).toBe(1);
     expect(overview.incidents[0].occurrences).toBe(2);
+    expect(overview.incidents[0].reportId).toBe(overview.runs[0].reportId);
     expect(overview.runs).toHaveLength(2);
     resetWorkbench();
   });
