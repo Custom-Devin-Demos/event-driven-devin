@@ -517,43 +517,30 @@
     var btn = document.getElementById('submitBtn');
 
     function money(v) { return '$' + Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
 
     function showError(message) {
       result.className = 'result-box error';
-      var title = document.createElement('p');
-      title.className = 'rb-title';
-      title.textContent = 'We couldn’t submit your claim';
-      var detail = document.createElement('p');
-      detail.textContent = message;
-      var contact = document.createElement('p');
-      contact.textContent = 'Please try again, or call our claims team at (855) 999-9746.';
-      result.replaceChildren(title, detail, contact);
+      result.innerHTML = '<p class="rb-title">We couldn’t submit your claim</p>' +
+        '<p>' + esc(message) + '</p>' +
+        '<p>Please try again, or call our claims team at (855) 999-9746.</p>';
     }
 
     function showSuccess(d) {
       var claimNo = 'HC-' + String(d.claimId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
       result.className = 'result-box success';
-      var title = document.createElement('p');
-      title.className = 'rb-title';
-      title.textContent = 'Your claim has been submitted';
-      var details = document.createElement('dl');
-      [
-        ['Claim number', claimNo],
-        ['Policy', policyId.value],
-        ['Estimated damage', money(d.claimAmount)],
-        ['Deductible', money(d.deductible)],
-      ].forEach(function (entry) {
-        var label = document.createElement('dt');
-        label.textContent = entry[0];
-        var value = document.createElement('dd');
-        value.textContent = entry[1];
-        details.appendChild(label);
-        details.appendChild(value);
-      });
-      var contact = document.createElement('p');
-      contact.style.marginTop = '8px';
-      contact.textContent = 'A Hippo claims advocate will reach out within 1 business day.';
-      result.replaceChildren(title, details, contact);
+      result.innerHTML = '<p class="rb-title">Your claim has been submitted</p>' +
+        '<dl>' +
+          '<dt>Claim number</dt><dd>' + esc(claimNo) + '</dd>' +
+          '<dt>Policy</dt><dd>' + esc(policyId.value) + '</dd>' +
+          '<dt>Estimated damage</dt><dd>' + money(d.claimAmount) + '</dd>' +
+          '<dt>Deductible</dt><dd>' + money(d.deductible) + '</dd>' +
+        '</dl>' +
+        '<p style="margin-top:8px">A Hippo claims advocate will reach out within 1 business day.</p>';
     }
 
     form.addEventListener('submit', async function (e) {
