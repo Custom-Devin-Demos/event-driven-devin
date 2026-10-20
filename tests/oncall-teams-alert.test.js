@@ -428,3 +428,42 @@ describe('isTeamsWebhookUrl', () => {
     null,
   ])('rejects %s', (url) => expect(isTeamsWebhookUrl(url)).toBe(false));
 });
+
+describe('On-Call Teams alert card locale', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    axios.post.mockResolvedValue({ status: 202 });
+  });
+
+  afterEach(() => {
+    ENV_KEYS.forEach((k) => {
+      if (savedEnv[k] === undefined) delete process.env[k];
+      else process.env[k] = savedEnv[k];
+    });
+  });
+
+  test('a Japanese skin (4875267e) gets a Japanese Teams card and no app-created session', async () => {
+    setEnv({ slack: true, teams: true });
+    const result = await postOncallAlert('hightech', { runRef: 'run-ja', skin: getOncallSkin('4875267e'), destination: 'teams' });
+    expect(result).toMatchObject({ ok: true, teams: true });
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(createDevinSession).not.toHaveBeenCalled();
+    const text = JSON.stringify(teamsCard());
+    expect(text).toContain('[発報] p95レイテンシ上昇中');
+    expect(text).toContain('メトリクス値');
+    expect(text).toContain('Datadogで表示');
+    expect(text).toContain('影響ページを開く');
+    expect(text).toContain('/oncall/c/4875267e');
+    expect(text).not.toContain('Metric value');
+  });
+
+  test('English skins keep the English Teams card text', async () => {
+    setEnv({ slack: true, teams: true });
+    await postOncallAlert('banking', { runRef: 'run-en', skin: LOANTRACK, destination: 'teams' });
+    const text = JSON.stringify(teamsCard());
+    expect(text).toContain('[Triggered]');
+    expect(text).toContain('Metric value');
+    expect(text).toContain('View in Datadog');
+    expect(text).toContain('Open affected page');
+  });
+});

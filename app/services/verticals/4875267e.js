@@ -124,7 +124,8 @@ async function registerAttendee(data) {
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: SERVICE,
-      verticalLabel: 'Event Registration',
+      verticalLabel: 'イベント参加登録',
+      locale: 'ja',
       tags: [
         { key: 'route', value: ROUTE },
         { key: 'service', value: SERVICE },

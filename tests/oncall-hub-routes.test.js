@@ -430,3 +430,19 @@ describe('on-call hub page contract', () => {
     expect(html).not.toContain('/oncall/report');
   });
 });
+
+describe('manabiba skin (4875267e) Japanese locale', () => {
+  const { getOncallSkin } = require('../config/oncall-skins');
+  const { ALERT_SCENARIOS, buildOncallSessionPrompt } = require('../app/services/oncall');
+
+  test('opts into Japanese alerts and a Japanese Devin session', () => {
+    const skin = getOncallSkin('4875267e');
+    expect(skin).toMatchObject({ vertical: 'hightech', locale: 'ja' });
+    expect(skin.alertDestination).toBeUndefined();
+    expect(skin.devinSession).toMatchObject({ auto: true, onCallIsTriggerer: true });
+    const prompt = buildOncallSessionPrompt(ALERT_SCENARIOS.hightech, skin, 'ref-1');
+    expect(prompt).toContain('p95レイテンシ上昇中');
+    expect(prompt).toContain('日本語で回答してください');
+    expect(prompt).toContain('POST /api/oncall/licenses/provision');
+  });
+});

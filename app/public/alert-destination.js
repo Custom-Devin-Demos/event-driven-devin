@@ -29,6 +29,26 @@
     return value === 'slack' || value === 'teams' ? value : null;
   }
 
+  function setLabelContent(el, value) {
+    el.textContent = '';
+    var text = String(value);
+    var boldPattern = /<b>([^<]*)<\/b>/gi;
+    var lastIndex = 0;
+    var match;
+    while ((match = boldPattern.exec(text))) {
+      if (match.index > lastIndex) {
+        el.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+      }
+      var bold = document.createElement('b');
+      bold.textContent = match[1];
+      el.appendChild(bold);
+      lastIndex = boldPattern.lastIndex;
+    }
+    if (lastIndex < text.length) {
+      el.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
+  }
+
   function writeCookie(value) {
     document.cookie = 'alert_destination=' + value + '; Path=/; Max-Age=31536000; SameSite=Lax'
       + (location.protocol === 'https:' ? '; Secure' : '');
@@ -75,17 +95,28 @@
     var teamsAvailable = opts.teamsAvailable !== false;
     var d = normalize(opts.defaultValue);
     if (d && !(d === 'teams' && !teamsAvailable)) pageDefault = d;
+    var labels = Object.assign({
+      title: 'Post alerts to',
+      slack: 'Slack',
+      teams: 'Microsoft Teams',
+      teamsUnavailable: 'Teams isn\'t set up on this server yet, so alerts still go to <b>Slack</b>.',
+      teamsSelected: 'Alerts post to <b>Microsoft Teams</b>. Nothing goes to Slack.',
+      slackSelected: 'Alerts post to <b>Slack</b>. Nothing goes to Teams.',
+    }, opts.labels || {});
     injectCss();
     el.innerHTML = ''
       + '<div class="adp">'
-      + '<div class="adp-title" id="adp-title">Post alerts to</div>'
+      + '<div class="adp-title" id="adp-title"></div>'
       + '<div class="adp-seg" role="radiogroup" aria-labelledby="adp-title">'
-      + '<button type="button" class="adp-opt" role="radio" data-value="slack">' + SLACK_ICON + 'Slack</button>'
-      + '<button type="button" class="adp-opt" role="radio" data-value="teams">' + TEAMS_ICON + 'Microsoft Teams</button>'
+      + '<button type="button" class="adp-opt" role="radio" data-value="slack">' + SLACK_ICON + '</button>'
+      + '<button type="button" class="adp-opt" role="radio" data-value="teams">' + TEAMS_ICON + '</button>'
       + '</div>'
       + '<div class="adp-summary" aria-live="polite"></div>'
       + '</div>';
+    el.querySelector('.adp-title').textContent = labels.title;
     var buttons = Array.prototype.slice.call(el.querySelectorAll('.adp-opt'));
+    buttons[0].appendChild(document.createTextNode(labels.slack));
+    buttons[1].appendChild(document.createTextNode(labels.teams));
     var summary = el.querySelector('.adp-summary');
 
     function render() {
@@ -99,11 +130,17 @@
       var warn = value === 'teams' && !teamsAvailable;
       summary.classList.toggle('warn', warn);
       if (warn) {
-        summary.innerHTML = 'Teams isn\'t set up on this server yet, so alerts still go to <b>Slack</b>.';
+        setLabelContent(summary, labels.teamsUnavailable);
       } else if (value === 'teams') {
-        summary.innerHTML = TEAMS_ICON + '<span>Alerts post to <b>Microsoft Teams</b>. Nothing goes to Slack.</span>';
+        summary.innerHTML = TEAMS_ICON;
+        var teamsLabel = document.createElement('span');
+        setLabelContent(teamsLabel, labels.teamsSelected);
+        summary.appendChild(teamsLabel);
       } else {
-        summary.innerHTML = SLACK_ICON + '<span>Alerts post to <b>Slack</b>. Nothing goes to Teams.</span>';
+        summary.innerHTML = SLACK_ICON;
+        var slackLabel = document.createElement('span');
+        setLabelContent(slackLabel, labels.slackSelected);
+        summary.appendChild(slackLabel);
       }
     }
 

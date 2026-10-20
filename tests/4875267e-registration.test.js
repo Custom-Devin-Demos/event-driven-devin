@@ -42,7 +42,8 @@ describe('event registration (4875267e)', () => {
 
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
-    expect(alert.verticalLabel).toBe('Event Registration');
+    expect(alert.verticalLabel).toBe('イベント参加登録');
+    expect(alert.locale).toBe('ja');
     expect(alert.service).toBe('event-registration-api');
     expect(alert.errorType).toBe('TypeError');
     expect(alert.culprit).toContain('app/services/verticals/4875267e.js');
