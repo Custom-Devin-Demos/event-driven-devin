@@ -8,12 +8,13 @@ const ROUTE = '/api/oncall/privatecloud/deployments';
 /**
  * Validated blueprints as published by the blueprint catalog. `storageCode`
  * is the storage array model the blueprint's desired-state plan is rendered
- * against.
+ * against — a single code, or one per supported server model for
+ * software-defined storage that lives on the nodes themselves.
  */
 const BLUEPRINTS = {
-  'dpc-vsphere': { name: 'Dell Private Cloud \u2014 VMware vSphere 8', version: '2.1.0', ecosystem: 'VMware', storageCode: 'PS-3200T-PRIME', minNodes: 4, maxNodes: 16, hardware: ['PowerEdge R760', 'PowerEdge R760xa'], targets: ['bare-metal', 'vcenter'] },
-  'dpc-openshift': { name: 'Dell Private Cloud \u2014 Red Hat OpenShift', version: '1.3.0', ecosystem: 'Red Hat', storageCode: 'PS-1200T', minNodes: 3, maxNodes: 16, hardware: ['PowerEdge R760', 'PowerEdge R760xa'], targets: ['bare-metal'] },
-  'dpc-nutanix': { name: 'Dell Private Cloud \u2014 Nutanix AHV', version: '1.0.2', ecosystem: 'Nutanix', storageCode: 'PF-R760', minNodes: 3, maxNodes: 16, hardware: ['PowerEdge R760', 'PowerEdge R760xa', 'PowerEdge XR8000'], targets: ['bare-metal'] },
+  'dpc-vsphere': { name: 'Dell Private Cloud \u2014 VMware vSphere 8', version: '2.1.0', ecosystem: 'VMware', storageCode: 'PS-3200T-PRIME', minNodes: 4, maxNodes: 16, hardware: ['PowerEdge R760', 'PowerEdge R760xa'], targets: ['bare-metal', 'vcenter'], policies: ['default', 'performance', 'capacity'] },
+  'dpc-openshift': { name: 'Dell Private Cloud \u2014 Red Hat OpenShift', version: '1.3.0', ecosystem: 'Red Hat', storageCode: 'PS-1200T', minNodes: 3, maxNodes: 16, hardware: ['PowerEdge R760', 'PowerEdge R760xa'], targets: ['bare-metal'], policies: ['default', 'performance', 'capacity'] },
+  'dpc-nutanix': { name: 'Dell Private Cloud \u2014 Nutanix AHV', version: '1.0.2', ecosystem: 'Nutanix', storageCode: { 'PowerEdge R760': 'PF-R760', 'PowerEdge R760xa': 'PF-R760', 'PowerEdge XR8000': 'PF-XR8000' }, minNodes: 3, maxNodes: 16, hardware: ['PowerEdge R760', 'PowerEdge R760xa', 'PowerEdge XR8000'], targets: ['bare-metal'], policies: ['default', 'capacity'] },
 };
 
 /**
@@ -36,13 +37,18 @@ const STORAGE_PROFILES = {
   'PS-3200T': { array: 'PowerStore 3200T', protocol: 'NVMe/TCP', datastoreTemplate: 'vvol-gold', mobility: true },
   'PS-1200T': { array: 'PowerStore 1200T', protocol: 'NVMe/TCP', datastoreTemplate: 'block-standard', mobility: true },
   'PF-R760': { array: 'PowerFlex on PowerEdge R760', protocol: 'SDC', datastoreTemplate: 'sds-replicated', mobility: false },
+  'PF-XR8000': { array: 'PowerFlex on PowerEdge XR8000', protocol: 'SDC', datastoreTemplate: 'sds-replicated-edge', mobility: false },
 };
+
+function storageCodeFor(blueprint, site) {
+  return typeof blueprint.storageCode === 'string' ? blueprint.storageCode : blueprint.storageCode[site.model];
+}
 
 /**
  * Onboarded sites with their endpoint pools.
  */
 const SITES = {
-  'rr-dc02': { name: 'Round Rock DC-02', endpoints: 24, model: 'PowerEdge R760' },
+  'rr-dc02': { name: 'Round Rock DC-02', endpoints: 24, model: 'PowerEdge R760', vcenter: 'vcsa-rr02.corp.local' },
   'hop-dc01': { name: 'Hopkinton DC-01', endpoints: 16, model: 'PowerEdge R760xa' },
   'lim-edge04': { name: 'Limerick EDGE-04', endpoints: 8, model: 'PowerEdge XR8000' },
 };
@@ -57,6 +63,7 @@ async function createDeployment(request, options = {}) {
   const blueprintKey = String(request.blueprintId || '').toLowerCase();
   const siteKey = String(request.siteId || '').toLowerCase();
   const nodeCount = Number(request.nodeCount);
+  const own = (table, key) => (Object.hasOwn(table, key) ? table[key] : undefined);
   const policyKey = String(request.storagePolicy || 'default').toLowerCase();
   const targetKey = String(request.target || 'bare-metal').toLowerCase();
   const secret = String(request.secret || SECRETS[0]);
@@ -66,8 +73,8 @@ async function createDeployment(request, options = {}) {
   });
 
   try {
-    const blueprint = BLUEPRINTS[blueprintKey];
-    const site = SITES[siteKey];
+    const blueprint = own(BLUEPRINTS, blueprintKey);
+    const site = own(SITES, siteKey);
     if (!blueprint || !site) {
       const error = new Error(`Unknown blueprint or site: ${blueprintKey} @ ${siteKey}`);
       error.code = 'INVALID_DEPLOYMENT';
@@ -83,13 +90,14 @@ async function createDeployment(request, options = {}) {
       error.code = 'INVALID_DEPLOYMENT';
       throw error;
     }
-    const policy = STORAGE_POLICIES[policyKey];
-    if (!policy || !blueprint.targets.includes(targetKey) || !SECRETS.includes(secret)) {
-      const error = new Error(`Unsupported deployment options for ${blueprint.name}: policy=${policyKey} target=${targetKey}`);
+    const policy = blueprint.policies.includes(policyKey) ? own(STORAGE_POLICIES, policyKey) : undefined;
+    const targetOk = blueprint.targets.includes(targetKey) && (targetKey !== 'vcenter' || Boolean(site.vcenter));
+    if (!policy || !targetOk || !SECRETS.includes(secret)) {
+      const error = new Error(`Unsupported deployment options for ${blueprint.name} at ${site.name}: policy=${policyKey} target=${targetKey}`);
       error.code = 'INVALID_DEPLOYMENT';
       throw error;
     }
-    const profile = STORAGE_PROFILES[blueprint.storageCode];
+    const profile = STORAGE_PROFILES[storageCodeFor(blueprint, site)];
     const storage = {
       array: profile.array,
       protocol: profile.protocol,
@@ -108,7 +116,7 @@ async function createDeployment(request, options = {}) {
       blueprint: `${blueprint.name} ${blueprint.version}`,
       site: site.name,
       nodes: `${nodeCount} \u00d7 ${site.model}`,
-      target: targetKey === 'vcenter' ? 'Existing vCenter \u00b7 vcsa-rr02.corp.local' : 'Bare metal (managed by orchestrator)',
+      target: targetKey === 'vcenter' ? `Existing vCenter \u00b7 ${site.vcenter}` : 'Bare metal (managed by orchestrator)',
       secret,
       storage,
       status: 'Creating deployments',

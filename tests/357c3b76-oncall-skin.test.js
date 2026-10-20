@@ -108,7 +108,7 @@ describe('357c3b76 Dell Automation Platform blueprint deploy on-call skin', () =
   test('Nutanix deploys to the XR8000 edge site but R760 blueprints do not', async () => {
     const ok = await post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-nutanix', siteId: 'lim-edge04', clusterName: 'dpc-lim04-prod-01', nodeCount: 3 });
     expect(ok.status).toBe(200);
-    expect(await ok.json()).toMatchObject({ success: true, nodes: '3 \u00d7 PowerEdge XR8000' });
+    expect(await ok.json()).toMatchObject({ success: true, nodes: '3 \u00d7 PowerEdge XR8000', storage: { array: 'PowerFlex on PowerEdge XR8000', protocol: 'SDC' } });
     const bad = await post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-openshift', siteId: 'lim-edge04', clusterName: 'dpc-lim04-prod-01', nodeCount: 3 });
     expect(bad.status).toBe(400);
     expect(await bad.json()).toMatchObject({ success: false, code: 'INVALID_DEPLOYMENT' });
@@ -121,6 +121,10 @@ describe('357c3b76 Dell Automation Platform blueprint deploy on-call skin', () =
       post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-nutanix', siteId: 'lim-edge04', nodeCount: 12 }),
       post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-openshift', siteId: 'rr-dc02', nodeCount: 4, target: 'vcenter' }),
       post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-openshift', siteId: 'rr-dc02', nodeCount: 4, storagePolicy: 'gold' }),
+      post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-openshift', siteId: 'rr-dc02', nodeCount: 4, storagePolicy: 'constructor' }),
+      post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-nutanix', siteId: 'rr-dc02', nodeCount: 4, storagePolicy: 'performance' }),
+      post('/api/oncall/privatecloud/deployments', { blueprintId: 'dpc-vsphere', siteId: 'hop-dc01', nodeCount: 4, target: 'vcenter' }),
+      post('/api/oncall/privatecloud/deployments', { blueprintId: 'constructor', siteId: 'rr-dc02', nodeCount: 4 }),
     ]);
     bad.forEach((res) => expect(res.status).toBe(400));
   });
