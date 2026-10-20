@@ -16,6 +16,7 @@ const { addKitToCart } = require('../services/oncall-verticals/fluidanalysis');
 const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
+const { createReservation } = require('../services/oncall-verticals/evreservation');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
@@ -740,6 +741,25 @@ router.post('/api/oncall/wheretobuy/retailers', async (req, res) => {
       error: 'Unable to load retailers for this product.',
       errorClass: error.name,
       code: error.code || 'WHERE_TO_BUY_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/evreservation/reservations — place a refundable R2
+ * reservation for the configured build
+ */
+router.post('/api/oncall/evreservation/reservations', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await createReservation({ trim: body.trim || 'performance', paint: body.paint }));
+  } catch (error) {
+    res.status(error.code === 'INVALID_CONFIGURATION' ? 400 : 500).json({
+      success: false,
+      error: 'We couldn\'t complete your reservation. Your card has not been charged.',
+      errorClass: error.name,
+      code: error.code || 'RESERVATION_FAILED',
       requestId: req.requestId,
     });
   }

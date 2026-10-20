@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Your Rivian R2 | Configurator | Rivian</title>
+<link rel="icon" href="https://rivian.com/configurations/assets/favicon.ico">
+<style>
+  @font-face { font-family: Adventure; font-weight: 300; font-display: swap; src: url("https://assets.rivian.com/2md5qhoeajym/7lwCDcju65UigB9HirCmLh/7273eb5dc032a541f3c63b32b49782a0/Adventure-Light.woff2") format("woff2"); }
+  @font-face { font-family: Adventure; font-weight: 400; font-display: swap; src: url("https://assets.rivian.com/2md5qhoeajym/1Dv0kej9t7tDsPaJlXKU1J/09735d831d661afd8335a2cf9d36310c/Adventure-Regular.woff2") format("woff2"); }
+  @font-face { font-family: Adventure; font-weight: 500 600; font-display: swap; src: url("https://assets.rivian.com/2md5qhoeajym/2KUubGptkAVAoZuBkZ01i8/8af6dfe3e22302422e0518934fc86679/Adventure-SemiBold.woff2") format("woff2"); }
+  @font-face { font-family: Adventure; font-weight: 700; font-display: swap; src: url("https://assets.rivian.com/2md5qhoeajym/1GZBTZWa4OkvJjUjmwgvhQ/67d662619d16ce12f75bcd7ca228538d/Adventure-Bold.woff2") format("woff2"); }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: Adventure, HelveticaNeue, "Helvetica Neue", Helvetica, Arial, sans-serif; color: #000; background: #fff; -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; color: inherit; }
+  a { color: inherit; }
+  .pill { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 40px; cursor: pointer; font-weight: 600; letter-spacing: -0.5px; white-space: nowrap; }
+  .pill-yellow { background: #ffac00; color: #000; }
+  .pill-yellow:hover { background: #f29f00; }
+  .pill-dark { background: #292929; color: #fff; }
+  .pill-grey { background: #f2f2f2; font-weight: 500; letter-spacing: -0.28px; font-size: 14px; line-height: 16px; padding: 8px 12px; }
+  .pill-grey:hover { background: #e6e6e6; }
+
+  /* nav */
+  .nav-root { position: fixed; top: var(--disclaimer-h, 0px); left: 0; right: 0; z-index: 50; padding: 12px; pointer-events: none; }
+  .nav { pointer-events: auto; height: 56px; max-width: 1416px; margin: 0 auto; background: #fff; border: 0.5px solid rgba(209,209,209,.5); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.15); display: flex; align-items: center; justify-content: space-between; padding: 0 20px 0 32px; }
+  .nav-logo img { height: 15px; display: block; }
+  .nav-links { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+  .nav-links button { background: none; border: 0; border-radius: 99999px; padding: 8px 12px; font-size: 14px; line-height: 16px; font-weight: 600; letter-spacing: -0.14px; cursor: pointer; }
+  .nav-links button:hover { background: #f2f2f2; }
+  .nav-icons { display: flex; gap: 8px; }
+  .nav-icon { width: 36px; height: 36px; border-radius: 50%; background: #f2f2f2; border: 0; display: inline-flex; align-items: center; justify-content: center; position: relative; cursor: pointer; }
+  .nav-icon .dot { position: absolute; top: 2px; right: 2px; width: 9px; height: 9px; border-radius: 50%; background: #f04a2a; }
+  .nav-burger { display: none; }
+
+  /* builder layout */
+  .builder { display: flex; gap: 32px; padding: 80px 20px 0; height: calc(100vh - var(--disclaimer-h, 0px)); }
+  .stage { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-top: 14px; }
+  .crumb { font-size: 14px; line-height: 16px; letter-spacing: -0.28px; padding-bottom: 8px; display: flex; gap: 4px; }
+  .crumb b { font-weight: 500; } .crumb span { color: #636363; }
+  .viewer { position: relative; flex: 1; min-height: 0; margin-top: 24px; border-radius: 12px; overflow: hidden; background: linear-gradient(#fcfcfc, #f4f4f4 60%, #e9e9e9); display: flex; align-items: center; justify-content: center; }
+  .viewer img { width: 100%; height: 100%; object-fit: contain; }
+  .viewer .v3d { position: absolute; top: 20px; right: 20px; height: 56px; padding: 16px 28px; gap: 12px; background: #f2f2f2; font-size: 16px; font-weight: 500; letter-spacing: -0.32px; }
+  .thumbs { display: flex; gap: 8px; justify-content: center; padding: 24px 0; }
+  .thumbs .grp { display: flex; gap: 8px; background: #f2f2f2; border-radius: 12px; padding: 8px; }
+  .thumbs button { width: 85px; height: 53px; border: 0; padding: 0; border-radius: 8px; overflow: hidden; background: #fff; cursor: pointer; box-shadow: 0 0 0 1px #e0e0e0; }
+  .thumbs button.on { box-shadow: 0 0 0 2px #000; }
+  .thumbs img { width: 100%; height: 100%; object-fit: cover; }
+
+  .panel { width: 394px; flex: none; overflow-y: auto; padding: 0 2px 140px; scrollbar-width: thin; }
+  .panel-top { display: flex; justify-content: flex-end; gap: 32px; font-size: 14px; font-weight: 600; letter-spacing: -0.28px; padding: 14px 0 10px; }
+  .panel-top span { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+  .model-row { display: flex; justify-content: space-between; align-items: flex-start; }
+  .model-row h1 { margin: 0; font-size: 72px; line-height: 80px; font-weight: 500; letter-spacing: -1.44px; }
+  .model-row .tools { display: flex; gap: 8px; padding-top: 10px; }
+  .chip { height: 36px; padding: 0 12px; border-radius: 40px; background: #f2f2f2; border: 0; font-size: 14px; font-weight: 500; display: inline-flex; gap: 6px; align-items: center; }
+  .chip.round { width: 40px; height: 40px; padding: 0; justify-content: center; border-radius: 50%; }
+  .stats { display: flex; gap: 40px; margin-top: 18px; }
+  .stats .v { font-size: 20px; font-weight: 500; letter-spacing: -0.4px; line-height: 24px; }
+  .stats .l { font-size: 14px; color: #494949; letter-spacing: -0.28px; margin-top: 4px; }
+  .price-row { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+  .price-row .p { font-size: 20px; letter-spacing: -0.4px; }
+  .price-row a { font-size: 12px; font-weight: 500; display: inline-flex; gap: 6px; align-items: center; }
+  .trims { display: flex; flex-direction: column; gap: 8px; margin-top: 44px; }
+  .trim { text-align: left; border: 0; background: #fff; border-radius: 12px; margin: 2px; padding: 16px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; box-shadow: 0 0 0 1px #d1d1d1; font-size: 14px; line-height: 20px; letter-spacing: -0.28px; }
+  .trim.on { box-shadow: 0 0 0 2.5px #000; }
+  .trim .hd { display: flex; justify-content: space-between; align-items: center; }
+  .trim .nm { font-size: 20px; font-weight: 500; line-height: 22px; letter-spacing: -0.4px; }
+  .badge { background: #ffaa00; border-radius: 8px; padding: 4px 8px; font-size: 12px; font-weight: 500; line-height: 14px; letter-spacing: -0.24px; }
+  .center { display: flex; justify-content: center; margin-top: 20px; }
+  .launch { margin-top: 40px; border: 3px solid #000; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 20px; letter-spacing: -0.28px; }
+  .launch .hd { display: flex; align-items: center; gap: 16px; font-size: 20px; font-weight: 500; line-height: 22px; letter-spacing: -0.4px; }
+  .launch .ic { width: 24px; height: 24px; border-radius: 50%; background: #ffaa00; display: inline-flex; align-items: center; justify-content: center; }
+  .launch ul { margin: 4px 0 0; padding-left: 20px; }
+  .sec { margin-top: 64px; }
+  .sec h2 { margin: 0 0 20px; font-size: 28px; line-height: 36px; font-weight: 500; letter-spacing: -0.28px; }
+  .sec .sub { display: flex; justify-content: space-between; font-size: 14px; letter-spacing: -0.28px; margin: -8px 0 20px; }
+  .opt { border-radius: 12px; padding: 16px; box-shadow: 0 0 0 2.5px #000; margin: 2px; font-size: 14px; letter-spacing: -0.28px; display: flex; flex-direction: column; gap: 12px; }
+  .opt .hd { display: flex; justify-content: space-between; }
+  .opt .nm { font-size: 20px; font-weight: 500; line-height: 22px; letter-spacing: -0.4px; }
+  .swatches { display: grid; grid-template-columns: repeat(4, 64px); gap: 20px 40px; padding: 4px; }
+  .sw { width: 64px; height: 64px; border-radius: 50%; border: 0; padding: 0; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1px #d1d1d1; }
+  .sw.on { box-shadow: 0 0 0 2.5px #000; }
+  .sw img { width: 56px; height: 56px; border-radius: 50%; display: block; }
+  .card { border-radius: 12px; box-shadow: 0 0 0 1px #d1d1d1; overflow: hidden; margin: 2px 2px 12px; font-size: 14px; letter-spacing: -0.28px; }
+  .card.on { box-shadow: 0 0 0 2.5px #000; }
+  .card img.wide { width: 100%; display: block; }
+  .card .bd { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .card .nm { font-size: 20px; font-weight: 500; letter-spacing: -0.4px; }
+  .card.row { display: flex; justify-content: space-between; }
+  .card.row .bd { justify-content: space-between; }
+  .card.row img { width: 140px; height: 140px; object-fit: cover; }
+  .btn-add { background: #000; color: #fff; padding: 8px 16px; font-size: 12px; font-weight: 600; line-height: 16px; letter-spacing: 0; align-self: flex-start; }
+  .acc { border-radius: 12px; box-shadow: 0 0 0 1px #d1d1d1; padding: 16px; margin: 2px; }
+  .acc .imgs { display: flex; gap: 8px; }
+  .acc .imgs img { width: 33%; height: 96px; object-fit: cover; border-radius: 8px; }
+  .acc .ft { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; font-size: 14px; font-weight: 500; }
+  .acc .ft .pill { background: #000; color: #fff; padding: 11px 24px; font-size: 14px; }
+  .summary h3 { margin: 0; font-size: 24px; line-height: 28px; font-weight: 500; letter-spacing: -0.48px; }
+  .sumrows { margin-top: 28px; font-size: 14px; line-height: 21px; }
+  .sumrows .r { display: flex; justify-content: space-between; padding: 4px 0; }
+  .sumrows .r.ind { padding-left: 16px; }
+  .sumrows .h { font-weight: 600; }
+  .sumrows hr { border: 0; border-top: 1px solid #e0e0e0; margin: 20px 0; }
+  .total { display: flex; justify-content: space-between; font-size: 16px; line-height: 18px; font-weight: 500; color: #212121; letter-spacing: -0.32px; margin-top: 24px; }
+  .total-note { font-size: 12px; color: #494949; margin-top: 6px; }
+  .waitlist { margin-top: 32px; background: #000; color: #fff; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px; font-size: 16px; line-height: 24px; letter-spacing: -0.32px; }
+  .waitlist .t { font-size: 20px; font-weight: 500; line-height: 24px; letter-spacing: -0.4px; }
+  .waitlist .acts { display: flex; justify-content: flex-end; gap: 12px; }
+  .waitlist .pill, .sticky .pill { padding: 11px 16px; font-size: 14px; line-height: 18px; height: 40px; }
+  .waitlist .pill-dark { width: 113px; }
+  .legal { font-size: 12px; line-height: 16px; color: #494949; margin-top: 24px; }
+  .legal ol { padding-left: 16px; }
+  .sticky { position: fixed; right: 42px; bottom: 22px; width: 400px; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,.12); padding: 16px 16px 16px 18px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
+  .sticky .t { font-size: 20px; font-weight: 500; letter-spacing: -0.4px; line-height: 24px; }
+  .sticky .s { font-size: 16px; font-weight: 500; letter-spacing: -0.32px; margin-top: 2px; }
+
+  /* reservation view */
+  .reserve { display: none; gap: 20px; max-width: 1920px; margin-right: 20px; }
+  body.reserving .builder, body.reserving .nav-root, body.reserving .sticky { display: none; }
+  body.reserving .reserve { display: flex; }
+  .r-hero { position: sticky; top: var(--disclaimer-h, 0px); height: calc(100vh - var(--disclaimer-h, 0px)); flex: 1; min-width: 0; padding: 20px 0 16px 20px; }
+  .r-hero .img { position: relative; height: 100%; border-radius: 12px; overflow: hidden; }
+  .r-hero img.bg { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .r-hero .logo { position: absolute; left: 20px; top: 20px; height: 14px; filter: brightness(0) invert(1); cursor: pointer; }
+  .r-col { width: 453px; min-width: 453px; margin-top: 20px; padding-bottom: 44px; }
+  .r-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 20px; }
+  .r-head h1 { margin: 0 0 8px; font-size: 44px; line-height: 48px; font-weight: 600; letter-spacing: -0.88px; }
+  .r-head a { font-size: 14px; font-weight: 500; display: inline-flex; gap: 4px; align-items: center; margin-top: 18px; }
+  .r-card { padding: 40px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .h5 { margin: 0; font-size: 24px; line-height: 28px; font-weight: 600; letter-spacing: -0.5px; }
+  .h5.t { color: #636363; }
+  .info { width: 24px; height: 24px; border-radius: 50%; background: #000; color: #fff; font: 700 14px/24px Georgia, serif; text-align: center; flex: none; }
+  .r-form { padding: 0 24px; }
+  .r-sec { padding: 24px 0; }
+  .r-sec h2 { margin-bottom: 16px; }
+  .fld { position: relative; border-radius: 12px; background: #f5f5f5; height: 56px; margin-bottom: 8px; flex: 1; min-width: 0; }
+  .fld input, .fld select { width: 100%; height: 56px; border: 0; background: transparent; border-radius: 12px; padding: 22px 12px 6px 16px; font: 400 16px/24px Adventure, Helvetica, Arial, sans-serif; letter-spacing: -0.512px; outline: none; -webkit-appearance: none; appearance: none; }
+  .fld input:focus { box-shadow: inset 0 0 0 2px #000; }
+  .fld label { position: absolute; left: 16px; top: 16px; font-size: 16px; line-height: 24px; color: #616161; letter-spacing: -0.512px; pointer-events: none; transition: all .15s; transform-origin: left top; }
+  .fld input:focus + label, .fld input:not(:placeholder-shown) + label, .fld select + label { top: 6px; transform: scale(.75); }
+  .fld.err { box-shadow: inset 0 0 0 1.5px #c8102e; }
+  .frow { display: flex; gap: 8px; }
+  .fld.cc { flex: 0 0 70px; }
+  .chk { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; line-height: 20px; margin: 12px 0; cursor: pointer; }
+  .chk input { width: 16px; height: 16px; margin: 2px 0 0; accent-color: #000; flex: none; }
+  .fine { font-size: 12px; line-height: 16px; color: #494949; margin: 0; }
+  .radio { display: flex; gap: 10px; align-items: center; font-size: 16px; line-height: 24px; margin: 8px 0; cursor: pointer; }
+  .radio input { width: 18px; height: 18px; accent-color: #000; margin: 0; }
+  .deposit { padding: 24px 0 8px; }
+  .deposit p { font-size: 16px; line-height: 24px; color: #4f4f4f; margin: 16px 0 0; }
+  .agree { font-size: 12px; line-height: 16px; color: #494949; }
+  .agree a { color: #494949; }
+  .confirm { width: 100%; height: 56px; font-size: 16px; font-weight: 500; line-height: 20px; margin-top: 24px; background: #ffaa00; }
+  .confirm[disabled] { opacity: .6; cursor: progress; }
+  .r-msg { display: none; margin-top: 16px; border-radius: 12px; padding: 16px; font-size: 14px; line-height: 20px; letter-spacing: -0.28px; }
+  .r-msg.err { display: block; background: #fdecea; color: #8a1c1c; }
+  .r-msg.ok { display: block; background: #eef7ee; color: #1d5b20; }
+  .r-msg b { display: block; font-size: 16px; margin-bottom: 4px; }
+  .r-build { display: flex; gap: 12px; align-items: center; padding: 0 24px 8px; font-size: 14px; color: #494949; }
+  .r-build img { width: 96px; height: 56px; object-fit: contain; background: #f4f4f4; border-radius: 8px; }
+  .r-build b { color: #000; font-weight: 500; display: block; }
+
+  @media (max-width: 1023px) {
+    .nav { padding: 0 12px 0 20px; }
+    .nav-links { display: none; }
+    .nav-burger { display: inline-flex; }
+    .builder { display: block; height: auto; padding: 80px 16px 0; }
+    .viewer { height: 56vw; flex: none; }
+    .thumbs button { width: 64px; height: 40px; }
+    .panel { width: auto; overflow: visible; padding-bottom: 120px; }
+    .panel-top { display: none; }
+    .swatches { grid-template-columns: repeat(4, 64px); gap: 20px; justify-content: space-between; }
+    .js-reserve { min-height: 44px; }
+    .sticky { left: 12px; right: 12px; width: auto; bottom: 84px; }
+    .panel { padding-bottom: 200px; }
+    .reserve { display: none; flex-direction: column; margin-right: 0; }
+    .r-hero { position: relative; top: 0; height: auto; padding: 20px 8px 0; }
+    .r-hero .img { aspect-ratio: 377/248; height: auto; }
+    .r-col { width: auto; min-width: 0; }
+    .r-head h1 { font-size: 32px; line-height: 36px; }
+  }
+</style>
+</head>
+<body>
+<div class="nav-root">
+  <nav class="nav">
+    <a class="nav-logo" href="#" aria-label="Rivian"><img src="https://media.rivian.com/rivian-dev/image/upload/v1709057326/rivian-com/global-nav/Rivian-Wordmark_ibovrz.svg" alt="Rivian"></a>
+    <ul class="nav-links">
+      <li><button type="button">Vehicles</button></li><li><button type="button">Charging</button></li><li><button type="button">Technology</button></li><li><button type="button">Discover</button></li><li><button type="button">Gear Shop</button></li>
+    </ul>
+    <div class="nav-icons">
+      <button class="nav-icon" type="button" aria-label="Have a question?"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.6"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg><span class="dot"></span></button>
+      <button class="nav-icon" type="button" aria-label="Account"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-6 8-6s7 1.5 8 6"/></svg></button>
+      <button class="nav-icon nav-burger" type="button" aria-label="Menu"><svg width="18" height="18" viewBox="0 0 24 24" stroke="#000" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </nav>
+</div>
+
+<main class="builder" id="builder">
+  <section class="stage">
+    <div class="crumb"><b>R2</b>/<span>Build</span></div>
+    <div class="viewer">
+      <img id="carImg" alt="Rivian R2" src="https://media.rivian.com/rivian-main/image/upload/f_auto/q_auto/c_limit,w_1600/v1/unreal-v2/r2/exterior/angle-0_bg-studio_bld-prf2_exp-esv_tow-001_whl-21b.webp">
+      <button class="pill v3d" type="button"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.6"><rect x="7" y="3" width="10" height="18" rx="3"/><path d="M3 9v6M21 9v6M10 7h4M10 17h4"/></svg>View in 3D</button>
+    </div>
+    <div class="thumbs">
+      <div class="grp" id="extThumbs"></div>
+      <div class="grp"><button type="button" data-view="driver"><img alt="" src="https://media.rivian.com/rivian-main/image/upload/f_auto/q_auto/c_limit,w_200/v1/unreal-v2/r2/driver/bg-studio_exp-esv_int-pbc.webp"></button></div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <div class="panel-top"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.6"><path d="M12 3v12M7 8l5-5 5 5M5 13v8h14v-8"/></svg>Share</span><span>Favorites</span></div>
+    <div class="model-row">
+      <h1>R2</h1>
+      <div class="tools"><span class="chip">US <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></span><span class="chip round"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.6"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span></div>
+    </div>
+    <div class="stats">
+      <div><div class="v" id="statRange">330 mi</div><div class="l">EPA est. range¹</div></div>
+      <div><div class="v" id="statAccel">3.6 sec</div><div class="l">0-60 mph¹</div></div>
+      <div><div class="v" id="statHp">656</div><div class="l">hp</div></div>
+    </div>
+    <div class="price-row"><span class="p" id="headPrice">$57,990 · Est. lease $829/mo</span><a href="#"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg><u>Calculate lease/loan</u></a></div>
+
+    <div class="trims" id="trims">
+      <button type="button" class="trim on" data-trim="performance"><div class="hd"><span class="nm">Performance</span><span class="badge">Available now</span></div><span>Starting at $57,990²</span></button>
+      <button type="button" class="trim" data-trim="premium"><div class="hd"><span class="nm">Premium</span><span>Coming late 2026</span></div><span>Starting at $53,990²</span></button>
+      <button type="button" class="trim" data-trim="standard"><div class="hd"><span class="nm">Standard</span><span>Coming spring 2027</span></div><span>Starting at $44,990²</span></button>
+    </div>
+    <div class="center"><button class="pill pill-grey" type="button">Compare</button></div>
+
+    <div class="launch" id="launchBox">
+      <div class="hd"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M9 20h6M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"/></svg></span>Launch Package</div>
+      <span>Included with R2 Performance for a limited time.³</span>
+      <ul><li>Autonomy+</li><li>Tow Package</li><li>Launch key fob</li><li>Access to Launch Green paint</li></ul>
+      <div class="center" style="margin-top:4px"><button class="pill pill-grey" type="button">Learn more</button></div>
+    </div>
+
+    <div class="sec">
+      <h2>Drive system</h2>
+      <div class="opt"><div class="hd"><span class="nm" id="driveName">All-Wheel Drive</span><span>Included</span></div><div class="hd"><span id="driveTrim">Performance</span><span id="driveRange">EPA est. range 330 mi¹</span></div></div>
+      <div class="center"><button class="pill pill-grey" type="button">Learn more</button></div>
+    </div>
+
+    <div class="sec">
+      <h2>Paint</h2>
+      <div class="sub"><span id="paintName">Esker Silver</span><span>Included</span></div>
+      <div class="swatches" id="paints"></div>
+      <div class="center"><button class="pill pill-grey" type="button">Learn more</button></div>
+    </div>
+
+    <div class="sec">
+      <h2>Wheels</h2>
+      <div class="sub"><span id="wheelName">21" Liquid Tungsten All-Season</span><span>Included</span></div>
+      <div class="swatches" id="wheels"></div>
+      <p class="fine" style="margin-top:16px;font-size:14px;line-height:20px;color:#000" id="wheelDesc">Sporty handling, on-road and off.</p>
+    </div>
+
+    <div class="sec">
+      <h2>Interior</h2>
+      <div class="sub"><span id="intName">Black Crater Signature</span><span>Included</span></div>
+      <div class="swatches" id="interiors"></div>
+      <div class="center"><button class="pill pill-grey" type="button">Learn more</button></div>
+    </div>
+
+    <div class="sec">
+      <h2>Upgrades</h2>
+      <div class="card on" id="autonomyCard"><img class="wide" alt="Autonomy+" src="https://media.rivian.com/image/upload/c_limit,w_1200,f_auto,q_auto/v1769027215/shop/PDP/modals/autonomy-platform/autonomycard_oqjvtr.jpg"><div class="bd"><span class="nm">Autonomy+ ⓘ</span><span>Enjoy every mile with an evolving set of advanced driver assistance features that let you focus on the journey.</span><span class="js-launch-note">Included with Launch Package³</span></div></div>
+      <div class="card row on" id="towCard"><div class="bd"><span><b style="font-weight:500">Tow Package ⓘ</b></span><span class="js-launch-note">Included with Launch Package</span></div><img alt="Tow Package" src="https://media.rivian.com/image/upload/c_limit,w_280,f_auto,q_auto/v1775068878/shop/Builder/Options/Upgrades/img_o5wjwz.jpg"></div>
+      <div class="card row" id="spareCard"><div class="bd"><span><b style="font-weight:500">Compact Spare Tire ⓘ</b><br>$755</span><button class="pill btn-add" type="button" id="spareBtn">Add</button></div><img alt="Compact Spare Tire" src="https://media.rivian.com/image/upload/c_limit,w_280,f_auto,q_auto/v1771545344/shop/Builder/Options/Upgrades/spare_kskxbe.jpg"></div>
+    </div>
+
+    <div class="sec">
+      <h2 style="margin-bottom:4px">Accessories</h2>
+      <p class="fine" style="font-size:14px;line-height:20px;margin-bottom:20px">Accessories are sold by our licensed dealer entity.</p>
+      <div class="acc"><div class="imgs"><img alt="Launch Key Fob" src="https://media.rivian.com/image/upload/v1774558945/shop/Builder/Options/Accessories/launchKeyFob_pdnpve.jpg"><img alt="Rivian Wall Charger" src="https://media.rivian.com/image/upload/c_fill,w_400,h_300/v1751048767/shop/Builder/Options/Accessories/NACS_Charger_jttsmy"><img alt="Cargo Crossbars" src="https://media.rivian.com/image/upload/v1775069023/shop/Builder/Options/Accessories/img_kzpccf.jpg"></div><div class="ft"><span>Add gear to your R2</span><button class="pill" type="button">View all</button></div></div>
+    </div>
+
+    <div class="sec summary">
+      <h2>Summary</h2>
+      <h3 id="sumTrim">R2 Performance</h3>
+      <div class="stats" style="margin-top:12px"><div><div class="v" id="sumRange">330 mi</div><div class="l">EPA est. range¹</div></div><div><div class="v" id="sumAccel">3.6 sec</div><div class="l">0-60 mph¹</div></div><div><div class="v" id="sumHp">656</div><div class="l">hp</div></div></div>
+      <div class="sumrows" id="sumRows"></div>
+      <div class="total"><span>Total</span><span id="sumTotal">$59,485</span></div>
+      <div class="total-note">Excludes est. taxes &amp; fees</div>
+      <div class="waitlist">
+        <span class="t">Reserve an R2 to join the waitlist</span>
+        <span>Already reserved yours? Sign in to view the status of your reservation.</span>
+        <div class="acts"><button class="pill pill-dark" type="button">Sign in</button><button class="pill pill-yellow js-reserve" type="button">Reserve</button></div>
+      </div>
+      <div class="legal">
+        <p>Vehicle build above is manufactured by Rivian Automotive, LLC.<br>Options are sold by our licensed dealer entity.</p>
+        <ol>
+          <li>Actual vehicle capability will depend on selected options and trim. Torque, horsepower and acceleration timing estimates vary based on battery, tire, drive modes, vehicle load and weather. Official EPA values are noted — some range estimates are preliminary estimates based on the EPA test cycle and are not official EPA values.</li>
+          <li>Pricing and options shown are subject to change at any time and may vary by state. Taxes and fees are subject to change. Excludes destination fee.</li>
+          <li>Launch Package available for a limited time on R2 Performance. Autonomy+ product features remain available during the lifetime of feature support for the hardware on the vehicle at delivery.</li>
+        </ol>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div class="sticky" id="sticky"><div><div class="t" id="stickyTrim">R2 Performance</div><div class="s" id="stickyPrice">$57,990 · Est. lease $829/mo</div></div><button class="pill pill-yellow js-reserve" type="button">Reserve</button></div>
+
+<main class="reserve" id="reserve">
+  <div class="r-hero"><div class="img"><img class="bg" alt="" src="https://media.rivian.com/image/upload/v1774459870/shop/Reservation/reseravtion-hero_dadx9p.webp"><img class="logo" id="backToBuild" alt="Rivian" src="https://media.rivian.com/rivian-dev/image/upload/v1709057326/rivian-com/global-nav/Rivian-Wordmark_ibovrz.svg"></div></div>
+  <div class="r-col">
+    <div class="r-head"><h1>Let's start your R2 reservation</h1><a href="#"><u>US</u> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></a></div>
+    <div class="r-build"><img id="rBuildImg" alt=""><div><b id="rBuildName">R2 Performance</b><span id="rBuildOpts">Esker Silver · 21" Liquid Tungsten All-Season · Black Crater Signature</span></div></div>
+    <div class="r-card"><div><h2 class="h5 t">Due today</h2><h2 class="h5">$100 USD</h2></div><span class="info">i</span></div>
+    <div class="r-card"><h2 class="h5" id="rStatus">R2 deliveries have begun</h2><span class="info">i</span></div>
+    <form class="r-form" id="reserveForm" novalidate>
+      <div class="r-sec">
+        <h2 class="h5">Contact information</h2>
+        <div class="frow"><div class="fld"><input id="firstName" placeholder=" " autocomplete="given-name" value="Alex"><label for="firstName">First name</label></div><div class="fld"><input id="lastName" placeholder=" " autocomplete="family-name" value="Morgan"><label for="lastName">Last name</label></div></div>
+        <div class="fld"><input id="email" type="email" placeholder=" " autocomplete="email" value="alex.morgan@example.com"><label for="email">Email</label></div>
+        <div class="frow"><div class="fld cc"><select id="cc" aria-label="Country code"><option>+1</option></select></div><div class="fld"><input id="phone" type="tel" placeholder=" " value="(415) 555-0142"><label for="phone">Phone</label></div></div>
+        <label class="chk"><input type="checkbox"> I would like to receive updates from Rivian via phone about product news and upcoming events.</label>
+        <p class="fine">Phone updates include automated texts and calls from Rivian to the number provided. Msg frequency varies. Msg and data rates may apply. Not a condition of purchase. Opt-out at any time by texting STOP.</p>
+      </div>
+      <div class="r-sec">
+        <h2 class="h5">Delivery address</h2>
+        <div class="fld"><input id="addr1" placeholder=" " value="1820 Market St"><label for="addr1">Address</label></div>
+        <div class="fld"><input id="addr2" placeholder=" "><label for="addr2">Company, C/O, Apt, Suite, Unit</label></div>
+        <div class="fld"><input id="city" placeholder=" " value="San Francisco"><label for="city">City</label></div>
+        <div class="frow"><div class="fld"><input id="state" placeholder=" " value="CA"><label for="state">State</label></div><div class="fld"><input id="zip" placeholder=" " value="94102"><label for="zip">ZIP</label></div></div>
+      </div>
+      <div class="r-sec">
+        <h2 class="h5">Payment</h2>
+        <div class="fld"><input id="cardName" placeholder=" " value="Alex Morgan"><label for="cardName">Name on card</label></div>
+        <div class="fld"><input id="cardNumber" placeholder=" " inputmode="numeric" value="4242 4242 4242 4242"><label for="cardNumber">Card number</label></div>
+        <div class="frow"><div class="fld"><input id="exp" placeholder=" " value="08 / 29"><label for="exp">Expiration date</label></div><div class="fld"><input id="cvv" placeholder=" " inputmode="numeric" value="123"><label for="cvv">CVV</label></div></div>
+        <label class="chk"><input type="checkbox"> Save payment method</label>
+      </div>
+      <div class="r-sec">
+        <h2 class="h5">Billing</h2>
+        <label class="radio"><input type="radio" name="billing" checked> Use my delivery address</label>
+        <label class="radio"><input type="radio" name="billing"> Enter a new address</label>
+      </div>
+      <div class="deposit">
+        <div style="display:flex;justify-content:space-between"><h2 class="h5 t">Refundable deposit</h2><h2 class="h5">$100 USD</h2></div>
+        <p>A reservation is your first step toward purchasing an R2. You'll finalize your order when it's time for production.</p>
+      </div>
+      <label class="chk agree"><input type="checkbox" id="agree" checked> <span>By confirming my reservation, I have read and I agree to the <a href="#">Reservation Agreement</a>, <a href="#">Rivian Terms</a>, <a href="#">Payment Terms</a> and <a href="#">Data Privacy Notice</a>. Pricing, available options and specs are subject to change until we build your actual vehicle.</span></label>
+      <button class="pill confirm" type="submit" id="confirmBtn">Confirm reservation</button>
+      <div class="r-msg" id="rMsg" role="alert"></div>
+    </form>
+  </div>
+</main>
+
+<script>
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+  function devinIdentity() {
+    return {
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || '',
+    };
+  }
+</script>
+<script>
+  (function () {
+    var MEDIA = 'https://media.rivian.com/image/upload/';
+    var RENDER = 'https://media.rivian.com/rivian-main/image/upload/f_auto/q_auto/';
+    var TRIMS = {
+      performance: { name: 'R2 Performance', label: 'Performance', price: 57990, lease: 829, range: 330, accel: '3.6', hp: 656, drive: 'All-Wheel Drive', bld: 'prf2', launch: true },
+      premium: { name: 'R2 Premium', label: 'Premium', price: 53990, lease: 749, range: 330, accel: '4.6', hp: 450, drive: 'All-Wheel Drive', bld: 'prf2', launch: false },
+      standard: { name: 'R2 Standard', label: 'Standard', price: 44990, lease: 629, range: 275, accel: '6.5', hp: 350, drive: 'Rear-Wheel Drive', bld: 'prf2', launch: false },
+    };
+    var PAINTS = [
+      { code: 'esv', name: 'Esker Silver', img: 'v1771371200/shop/Builder/Options/Paint/Swatches/EXP-ESV_u8khfg.png' },
+      { code: 'gwt', name: 'Glacier White', img: 'v1716329150/shop/Builder/Options/Paint/Swatches/EXP-GWT_lihrd5' },
+      { code: 'mdn', name: 'Midnight', img: 'v1716329150/shop/Builder/Options/Paint/Swatches/EXP-MDN_vptms4' },
+      { code: 'cbl', name: 'Catalina Cove', img: 'v1771371200/shop/Builder/Options/Paint/Swatches/EXP-CBL_vubvjb.png' },
+      { code: 'hmg', name: 'Half Moon Grey', img: 'v1771371200/shop/Builder/Options/Paint/Swatches/EXP-HMG_jcgojr.png' },
+      { code: 'lgr', name: 'Launch Green', img: 'v1716329150/shop/Builder/Options/Paint/Swatches/EXP-LGR_xpw314', launchOnly: true },
+      { code: 'bpr', name: 'Borealis', img: 'v1762878280/shop/Builder/Options/Paint/Swatches/EXP-BPR_ybod7z.png' },
+      { code: 'fgr-2', name: 'Forest Green', img: 'v1716329150/shop/Builder/Options/Paint/Swatches/EXP-FGR-2_p8mved' },
+    ];
+    var WHEELS = [
+      { code: '21b', name: '21" Liquid Tungsten All-Season', desc: 'Sporty handling, on-road and off.', img: 'v1771872482/shop/Builder/Options/Wheels/Swatches/21b_v3v9z0.png' },
+      { code: '20a', name: '20" Black Sand All-Terrain', desc: 'Extra grip for trails, sand and snow.', img: 'v1771872482/shop/Builder/Options/Wheels/Swatches/20a_emtwr0.png' },
+    ];
+    var INTERIORS = [
+      { code: 'pbc', name: 'Black Crater Signature', img: 'v1771371496/shop/Builder/Options/Interiors/Swatches/INT-BCEB_g5gogu.png' },
+      { code: 'pbc', name: 'Coastal Cloud Signature', img: 'v1771371497/shop/Builder/Options/Interiors/Swatches/INT-OCGB_hvutsk.png' },
+    ];
+    var ANGLES = [0, 305, 250];
+    var state = { trim: 'performance', paint: 0, wheel: 0, interior: 0, angle: 0, view: 'exterior', spare: false };
+    var DESTINATION = 1495;
+
+    function money(n) { return '$' + n.toLocaleString('en-US'); }
+    function $(id) { return document.getElementById(id); }
+    function extUrl(angle, w) {
+      return RENDER + 'c_limit,w_' + w + '/v1/unreal-v2/r2/exterior/angle-' + angle + '_bg-studio_bld-' + TRIMS[state.trim].bld + '_exp-' + PAINTS[state.paint].code + '_tow-001_whl-' + WHEELS[state.wheel].code + '.webp';
+    }
+    function driverUrl(w) { return RENDER + 'c_limit,w_' + w + '/v1/unreal-v2/r2/driver/bg-studio_exp-' + PAINTS[state.paint].code + '_int-pbc.webp'; }
+
+    function swatches(el, list, key) {
+      el.innerHTML = '';
+      list.forEach(function (o, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'sw' + (state[key] === i ? ' on' : '');
+        b.setAttribute('aria-label', o.name);
+        if (o.launchOnly && !TRIMS[state.trim].launch) { b.disabled = true; b.style.opacity = '.35'; b.style.cursor = 'not-allowed'; }
+        var image = document.createElement('img');
+        image.alt = o.name;
+        image.src = MEDIA + o.img;
+        b.appendChild(image);
+        b.addEventListener('click', function () { state[key] = i; if (key !== 'interior') state.view = 'exterior'; render(); });
+        el.appendChild(b);
+      });
+    }
+
+    function render() {
+      var t = TRIMS[state.trim];
+      if (PAINTS[state.paint].launchOnly && !t.launch) state.paint = 0;
+      document.querySelectorAll('.trim').forEach(function (b) { b.classList.toggle('on', b.dataset.trim === state.trim); });
+      $('launchBox').style.display = t.launch ? '' : 'none';
+      ['autonomyCard', 'towCard'].forEach(function (id) { $(id).classList.toggle('on', t.launch); });
+      document.querySelectorAll('.js-launch-note').forEach(function (el) { el.textContent = t.launch ? 'Included with Launch Package' : 'Available with R2 Performance Launch Package'; });
+      var head = money(t.price) + ' · Est. lease $' + t.lease + '/mo';
+      $('headPrice').textContent = head; $('stickyPrice').textContent = head;
+      $('stickyTrim').textContent = t.name; $('sumTrim').textContent = t.name;
+      ['statRange', 'sumRange'].forEach(function (id) { $(id).textContent = t.range + ' mi'; });
+      ['statAccel', 'sumAccel'].forEach(function (id) { $(id).textContent = t.accel + ' sec'; });
+      ['statHp', 'sumHp'].forEach(function (id) { $(id).textContent = t.hp; });
+      $('driveName').textContent = t.drive; $('driveTrim').textContent = t.label; $('driveRange').textContent = 'EPA est. range ' + t.range + ' mi¹';
+      $('paintName').textContent = PAINTS[state.paint].name;
+      $('wheelName').textContent = WHEELS[state.wheel].name; $('wheelDesc').textContent = WHEELS[state.wheel].desc;
+      $('intName').textContent = INTERIORS[state.interior].name;
+      swatches($('paints'), PAINTS, 'paint'); swatches($('wheels'), WHEELS, 'wheel'); swatches($('interiors'), INTERIORS, 'interior');
+      $('carImg').src = state.view === 'driver' ? driverUrl(1600) : extUrl(ANGLES[state.angle], 1600);
+      var thumbs = $('extThumbs'); thumbs.innerHTML = '';
+      ANGLES.forEach(function (a, i) {
+        var b = document.createElement('button'); b.type = 'button';
+        b.className = state.view === 'exterior' && state.angle === i ? 'on' : '';
+        var image = document.createElement('img');
+        image.alt = '';
+        image.src = extUrl(a, 200);
+        b.appendChild(image);
+        b.addEventListener('click', function () { state.view = 'exterior'; state.angle = i; render(); });
+        thumbs.appendChild(b);
+      });
+      var dv = document.querySelector('[data-view="driver"]');
+      dv.className = state.view === 'driver' ? 'on' : '';
+      dv.querySelector('img').src = driverUrl(200);
+      var rows = [['h', 'Vehicle subtotal', money(t.price + (state.spare ? 755 : 0))], ['', t.name, money(t.price)], ['', t.drive + ' ' + t.label, 'Included']];
+      if (t.launch) rows.push(['', 'Launch Package', 'Included'], ['ind', 'Autonomy+', 'Included'], ['ind', 'Tow Package', 'Included'], ['ind', 'Launch Key Fob', 'Included']);
+      rows.push(['', PAINTS[state.paint].name, 'Included'], ['', WHEELS[state.wheel].name, 'Included'], ['', INTERIORS[state.interior].name, 'Included']);
+      if (state.spare) rows.push(['', 'Compact Spare Tire', '$755']);
+      var summary = document.createDocumentFragment();
+      rows.forEach(function (r) {
+        var row = document.createElement('div');
+        row.className = 'r';
+        if (r[0]) row.classList.add(r[0]);
+        var label = document.createElement('span');
+        label.textContent = r[1];
+        var value = document.createElement('span');
+        value.textContent = r[2];
+        row.appendChild(label);
+        row.appendChild(value);
+        summary.appendChild(row);
+      });
+      var connectRow = document.createElement('div');
+      connectRow.className = 'r';
+      var connectLabel = document.createElement('u');
+      connectLabel.textContent = 'Connect+ 60-day trial';
+      connectRow.appendChild(connectLabel);
+      connectRow.appendChild(document.createElement('span'));
+      summary.appendChild(connectRow);
+      summary.appendChild(document.createElement('hr'));
+      var destinationRow = document.createElement('div');
+      destinationRow.className = 'r';
+      var destinationLabel = document.createElement('span');
+      destinationLabel.textContent = 'Destination fee';
+      var destinationValue = document.createElement('span');
+      destinationValue.textContent = money(DESTINATION);
+      destinationRow.appendChild(destinationLabel);
+      destinationRow.appendChild(destinationValue);
+      summary.appendChild(destinationRow);
+      $('sumRows').replaceChildren(summary);
+      $('sumTotal').textContent = money(t.price + DESTINATION + (state.spare ? 755 : 0));
+      $('spareBtn').textContent = state.spare ? 'Remove' : 'Add';
+      $('spareCard').classList.toggle('on', state.spare);
+    }
+
+    document.querySelectorAll('.trim').forEach(function (b) { b.addEventListener('click', function () { state.trim = b.dataset.trim; render(); }); });
+    document.querySelector('[data-view="driver"]').addEventListener('click', function () { state.view = 'driver'; render(); });
+    $('spareBtn').addEventListener('click', function () { state.spare = !state.spare; render(); });
+
+    function openReserve() {
+      var t = TRIMS[state.trim];
+      $('rBuildImg').src = extUrl(0, 400);
+      $('rBuildName').textContent = t.name;
+      $('rBuildOpts').textContent = [PAINTS[state.paint].name, WHEELS[state.wheel].name, INTERIORS[state.interior].name].join(' · ');
+      $('rStatus').textContent = t.launch ? 'R2 deliveries have begun' : 'Join the ' + t.label + ' waitlist';
+      $('rMsg').className = 'r-msg'; $('rMsg').replaceChildren();
+      $('confirmBtn').disabled = false; $('confirmBtn').textContent = 'Confirm reservation';
+      document.body.classList.add('reserving');
+      window.scrollTo(0, 0);
+    }
+    document.querySelectorAll('.js-reserve').forEach(function (b) { b.addEventListener('click', openReserve); });
+    $('backToBuild').addEventListener('click', function () { document.body.classList.remove('reserving'); });
+
+    $('reserveForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var msg = $('rMsg');
+      var required = ['firstName', 'lastName', 'email', 'phone', 'addr1', 'city', 'state', 'zip', 'cardName', 'cardNumber', 'exp', 'cvv'];
+      var formats = {
+        email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        phone: /^[\d\s()+.-]{10,}$/,
+        zip: /^\d{5}(-\d{4})?$/,
+        cardNumber: /^(\d[\s-]?){13,19}$/,
+        exp: /^(0[1-9]|1[0-2])\s*\/\s*(\d{2}|\d{4})$/,
+        cvv: /^\d{3,4}$/,
+      };
+      var missing = required.filter(function (id) {
+        var el = $(id); var v = el.value.trim();
+        var bad = !v || (!!formats[id] && !formats[id].test(v));
+        el.parentElement.classList.toggle('err', bad); return bad;
+      });
+      if (missing.length || !$('agree').checked) {
+        msg.className = 'r-msg err';
+        var validationTitle = document.createElement('b');
+        validationTitle.textContent = 'Check your details';
+        msg.replaceChildren(
+          validationTitle,
+          document.createTextNode(missing.length ? 'Please complete or correct the highlighted fields.' : 'Please accept the Reservation Agreement to continue.'),
+        );
+        return;
+      }
+      var btn = $('confirmBtn');
+      btn.disabled = true; btn.textContent = 'Confirming…';
+      msg.className = 'r-msg'; msg.replaceChildren();
+      try {
+        var res = await fetch('/api/492753fe/reservations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({
+            trim: state.trim,
+            paint: PAINTS[state.paint].code,
+            wheels: WHEELS[state.wheel].code,
+            interior: INTERIORS[state.interior].name,
+            zip: $('zip').value.trim(),
+          }, devinIdentity())),
+        });
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok || data.success === false) throw new Error(data.error || 'Reservation failed');
+        msg.className = 'r-msg ok';
+        var confirmationTitle = document.createElement('b');
+        confirmationTitle.textContent = 'You’re reserved.';
+        msg.replaceChildren(
+          confirmationTitle,
+          document.createTextNode('Reservation ' + String(data.confirmationNumber || '').replace(/[^A-Z0-9-]/gi, '') + ' for your ' + TRIMS[state.trim].name + '.'),
+        );
+        btn.textContent = 'Reserved';
+      } catch (err) {
+        msg.className = 'r-msg err';
+        msg.innerHTML = '<b>Something went wrong</b>We couldn\u2019t complete your reservation. Your card has not been charged. Please try again in a few minutes.';
+        btn.disabled = false; btn.textContent = 'Confirm reservation';
+      }
+    });
+
+    render();
+  })();
+</script>
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    var bar = document.body.firstElementChild;
+    if (!bar || bar.classList.contains('nav-root')) return;
+    bar.style.position = 'sticky'; bar.style.top = '0'; bar.style.zIndex = '60';
+    document.documentElement.style.setProperty('--disclaimer-h', bar.offsetHeight + 'px');
+  });
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>
