@@ -38,7 +38,7 @@
     .navrow { max-width: 1320px; margin: 0 auto; display: flex; gap: 6px; padding: 0 20px 8px; align-items: stretch; }
     .search { flex: 1 1 260px; display: flex; border: 2px solid var(--magenta); border-radius: 4px; overflow: hidden; min-height: 56px; }
     .search input { flex: 1; border: 0; padding: 0 12px; font-size: 14px; min-width: 0; outline: none; }
-    .search button { width: 40px; border: 0; background: var(--magenta); color: #fff; cursor: pointer; }
+    .search button { width: 48px; border: 0; background: var(--magenta); color: #fff; cursor: pointer; }
     .tile { flex: 0 1 92px; background: var(--tile); color: #fff; border-radius: 6px 6px 0 0; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; min-height: 56px; gap: 2px; }
     .tile.mg { background: var(--magenta); flex-basis: 130px; font-weight: 700; }
     .tile svg { width: 14px; height: 14px; }
@@ -47,7 +47,7 @@
     .cartmini .go { margin-left: auto; background: var(--magenta); color: #fff; border-radius: 4px; padding: 0 12px; min-height: 44px; display: inline-flex; align-items: center; font-weight: 700; text-decoration: none; }
     .magline { height: 3px; background: var(--magenta); }
     .crumbs { max-width: 1320px; margin: 0 auto; padding: 0 20px; font-size: 12px; color: var(--sub); }
-    .crumbs a { color: var(--magenta); display: inline-flex; align-items: center; min-height: 44px; }
+    .crumbs a { color: var(--magenta); display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
 
     main { max-width: 1320px; margin: 0 auto; padding: 4px 20px 48px; }
     h1 { font-size: 22px; font-weight: 700; border-left: 5px solid var(--magenta); padding-left: 10px; margin: 6px 0 16px; }
@@ -179,7 +179,7 @@
             <div class="field"><label for="fromAccount">お支払い方法</label>
               <select id="fromAccount"><option value="ACCT-1001">イオンカード（クレジット） **** 1001</option><option value="ACCT-1005">クレジットカード **** 2231</option><option value="ACCT-1006">代金引換</option></select></div>
             <div class="field"><label for="accountTier">会員区分</label>
-              <select id="accountTier"><option value="standard">イオンネットスーパー会員</option><option value="premium">イオンカード会員（G.G）</option><option value="basic">ゲスト</option></select></div>
+              <select id="accountTier"><option value="standard">イオンネットスーパー会員</option><option value="basic">ゲスト</option></select></div>
             <div class="field"><label for="amount">お支払い金額（税込・円）</label>
               <input type="number" id="amount" min="1" step="1" readonly inputmode="numeric">
               <div class="note">ご注文の商品・配送料から自動で計算されます。</div></div>
@@ -237,10 +237,13 @@
       const $ = (id) => document.getElementById(id);
 
       function recalc() {
-        let sub = 0; let count = 0;
-        qtys.forEach((q) => { const n = Number(q.value); sub += n * Number(q.dataset.price); count += n; });
-        const tax = Math.floor(sub * 0.08);
-        const total = count > 0 ? sub + tax + SHIPPING : 0;
+        let sub = 0; let incl = 0; let count = 0;
+        qtys.forEach((q) => {
+          const n = Number(q.value); const price = Number(q.dataset.price);
+          sub += n * price; incl += n * Math.floor(price * (100 + Number(q.dataset.rate)) / 100); count += n;
+        });
+        const tax = incl - sub;
+        const total = count > 0 ? incl + SHIPPING : 0;
         $('sumSub').textContent = yen(sub);
         $('sumTax').textContent = yen(tax);
         $('sumShip').textContent = yen(count > 0 ? SHIPPING : 0);
@@ -290,9 +293,10 @@
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok || !data.success) throw new Error('order failed');
+          const paid = Number((data.receipt && data.receipt.amount) || amount);
           const orderNo = String(data.transferId || '').replace(/-/g, '').slice(0, 10).toUpperCase();
           show('success', 'ご注文を承りました',
-            (orderNo ? 'ご注文番号: ' + orderNo + '　' : '') + 'お届け日時: ' + slot + '　お支払い金額: ' + yen(amount) + '（税込）');
+            (orderNo ? 'ご注文番号: ' + orderNo + '　' : '') + 'お届け日時: ' + slot + '　お支払い金額: ' + yen(paid) + '（税込）');
         } catch (_err) {
           show('error', 'ご注文を確定できませんでした', '恐れ入りますが、時間をおいて再度お試しください。');
         } finally {
