@@ -2818,6 +2818,17 @@ const ONCALL_SKINS = {
     company: 'manabiba',
     brandMark: 'm',
     vertical: 'hightech',
+    locale: 'ja',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        '顧客コンテキスト: このアラートは上記リンクの manabiba イベントページ「Fukuoka.go #27」の参加登録フォームから発生しています。「このイベントに申し込む」ボタンは上記エンドポイントに参加登録を送信するため、そのエンドポイントがこのインシデントのバックエンドです。',
+        'スレッド上のインシデント表示は「p95レイテンシ上昇中 \u2014 イベント参加登録」、担当チーム event-registration-oncall です。参加登録の送信は遅く、リクエストのたびにさらに遅くなります。',
+        'コードを読む前にテレメトリ（モニター、APMトレース、インシデント参照前後のログ）から調査し、確認したシグナル、除外した仮説、根本原因、影響をまとめた根拠ベースの調査サマリーを書いてください。',
+        'スレッドへの返信、PRのタイトル、PRの説明では「manabiba」「イベント参加登録」「このイベントに申し込む」という表現を使ってください。デプロイやマージは行わないでください。',
+      ].join('\n'),
+    },
     page: {
       // Natively branded Japanese event page under the fictional brand
       // "manabiba" (an original mark and name, not a clone of any real event
@@ -2839,10 +2850,13 @@ const ONCALL_SKINS = {
       '--chrome-text': '#ffffff',
     },
     alertCard: {
-      title: 'p95 latency trending up — event registration submissions',
+      title: 'p95レイテンシ上昇中 \u2014 イベント参加登録',
       team: 'event-registration-oncall',
-      symptom: 'Event registration submissions are slow and get slower with every request. Process RSS trends up alongside it.',
-      impact: 'Every attendee registering for an event waits longer with each submission; first-come-first-served slots that open at a fixed time are hit hardest.',
+      metricValue: '6.8秒（上昇中）',
+      threshold: '> 2秒',
+      baseline: '~350ms（7日間p95）',
+      symptom: 'イベントの参加登録の送信が遅く、リクエストのたびにさらに遅くなっています。プロセスのRSSも同時に増加しています。',
+      impact: 'イベントに参加登録するすべての参加者が、送信のたびに長く待たされています。決まった時刻に受付が始まる先着順の参加枠が最も大きな影響を受けています。',
     },
     disclaimer: 'NOT ACTUALLY A MANABIBA SITE — manabiba is a fictional brand; demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・デモ用）。',
   },

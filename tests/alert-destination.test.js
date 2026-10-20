@@ -19,8 +19,11 @@ function createAlertDestination(initialStorage = {}) {
     getElementById() {
       return null;
     },
-    createElement() {
-      return {};
+    createElement(tagName) {
+      return createMockElement(tagName);
+    },
+    createTextNode(text) {
+      return { textContent: String(text) };
     },
     head: {
       appendChild() {},
@@ -34,6 +37,26 @@ function createAlertDestination(initialStorage = {}) {
   return { document, localStorage, api: window.AlertDestination };
 }
 
+function createMockElement(tagName) {
+  return {
+    tagName,
+    children: [],
+    classList: {
+      toggle() {},
+    },
+    appendChild(node) {
+      this.children.push(node);
+    },
+    set textContent(value) {
+      this._textContent = String(value);
+      this.children = [];
+    },
+    get textContent() {
+      return this._textContent || this.children.map((node) => node.textContent || '').join('');
+    },
+  };
+}
+
 function createPicker() {
   const buttons = ['slack', 'teams'].map((value) => {
     const attributes = {};
@@ -44,6 +67,7 @@ function createPicker() {
       classList: {
         toggle() {},
       },
+      children: [],
       getAttribute(name) {
         return name === 'data-value' ? value : null;
       },
@@ -53,16 +77,29 @@ function createPicker() {
       addEventListener(name, handler) {
         handlers[name] = handler;
       },
+      appendChild(node) {
+        this.children.push(node);
+      },
       focus() {},
     };
   });
-  const summary = {
-    classList: {
-      toggle() {},
+  const title = createMockElement('div');
+  const summary = createMockElement('div');
+  summary.innerHTML = '';
+  summary.classList = { toggle() {} };
+  Object.defineProperty(summary, 'innerHTML', {
+    get() {
+      return this._innerHTML;
     },
-  };
+    set(value) {
+      this._innerHTML = value;
+      this.children = [];
+    },
+  });
   return {
     buttons,
+    summary,
+    title,
     element: {
       set innerHTML(value) {
         this.html = value;
@@ -70,8 +107,8 @@ function createPicker() {
       querySelectorAll() {
         return buttons;
       },
-      querySelector() {
-        return summary;
+      querySelector(selector) {
+        return selector === '.adp-title' ? title : summary;
       },
     },
   };
@@ -118,5 +155,25 @@ describe('browser alert destination defaults', () => {
     expect(runtime.api.get()).toBe('slack');
     expect(runtime.localStorage.getItem('alertDestination')).not.toBe('teams');
     expect(picker.buttons[1].attributes['aria-checked']).toBe('false');
+  });
+
+  test('escapes custom labels while preserving bold summary text', () => {
+    const runtime = createAlertDestination();
+    const picker = createPicker();
+
+    runtime.api.mount(picker.element, {
+      labels: {
+        title: '<img src=x onerror="alert(1)">',
+        slack: '<img src=x>',
+        slackSelected: 'Alerts <b>Slack</b> <img src=x>',
+      },
+    });
+
+    expect(picker.element.html).not.toContain('<img');
+    expect(picker.title.textContent).toBe('<img src=x onerror="alert(1)">');
+    expect(picker.buttons[0].children[0].textContent).toBe('<img src=x>');
+    expect(picker.summary.children[0].children.some((node) => node.tagName === 'b' && node.textContent === 'Slack')).toBe(true);
+    expect(picker.summary.children[0].children.map((node) => node.textContent).join('')).toContain('<img src=x>');
+    expect(picker.summary.children[0].children.some((node) => node.tagName === 'img')).toBe(false);
   });
 });
