@@ -4682,6 +4682,30 @@ const ONCALL_SKINS = {
     page: { file: '959dc0b3.html', title: 'Hippo Home Insurance - affordable, tailored quotes in under 60 seconds' },
     disclaimer: 'NOT ACTUALLY A HIPPO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Hippo product.',
   },
+  '106675ec': {
+    slug: '106675ec',
+    company: 'Builders FirstSource',
+    brandMark: 'B',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '106675ec.html', title: 'Submit Order | myBLDR \u2014 Builders FirstSource' },
+    theme: {
+      '--accent': '#C8102E',
+      '--ink': '#002058',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#002058',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Builders FirstSource Support',
+    alertCard: {
+      title: 'p95 latency \u2014 Materials order submissions',
+      release: 'materials-web@2026.10.2',
+      baseline: '~300ms (7-day p95, before materials-web@2026.10.2)',
+      symptom: 'Submit order hangs ~9s before the order confirmation returns. Error rate is normal \u2014 orders eventually submit.',
+      impact: 'Builders submitting orders from a quote wait ~9 seconds for a confirmation; some click Submit order again and call their sales representative about duplicate orders.',
+    },
+    disclaimer: 'NOT ACTUALLY A BUILDERS FIRSTSOURCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Builders FirstSource product.',
+  },
 };
 
 function getOncallSkin(slug) {

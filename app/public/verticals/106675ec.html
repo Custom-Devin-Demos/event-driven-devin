@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Submit Order | myBLDR — Builders FirstSource</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #C8102E;
+      --ink: #002058;
+      --surface: #FFFFFF;
+      --chrome-bg: #002058;
+      --chrome-text: #FFFFFF;
+      --royal: #003087;
+      --page: #F0F0F0;
+      --line: #E9E9E9;
+      --muted: #555555;
+      --steel: #75787B;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 18px/1.45 "Archivo", "Acumin Pro", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: var(--royal); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1320px; margin: auto; padding: 0 60px; }
+    .display { font-family: "Barlow Condensed", "Apotek Extra Condensed", Impact, sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
+    .site-header { background: var(--chrome-bg); color: var(--chrome-text); }
+    .site-header .wrap { display: flex; align-items: center; min-height: 100px; gap: 32px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--chrome-text); text-decoration: none; }
+    .brand-mark { width: 42px; height: 42px; flex: none; display: grid; place-items: center; background: var(--accent); color: #fff; font: 700 28px/1 "Barlow Condensed", Impact, sans-serif; clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 100%, 0 100%); }
+    .brand-name { display: flex; flex-direction: column; font-weight: 700; font-size: 17px; line-height: 1.05; letter-spacing: -.01em; }
+    .brand-app { margin-left: 4px; padding-left: 14px; border-left: 1px solid color-mix(in srgb, var(--chrome-text) 35%, transparent); font-weight: 700; font-size: 19px; }
+    .brand-app b { color: #fff; font-weight: 700; }
+    .site-nav { display: flex; gap: 28px; font-size: 16px; }
+    .site-nav a, .header-actions a { color: var(--chrome-text); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+    .header-actions { margin-left: auto; display: flex; align-items: center; gap: 24px; font-size: 16px; }
+    .quote-btn { padding: 0 18px; background: var(--accent); }
+    .modules { background: #1F1F1F; color: #fff; }
+    .modules .wrap { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+    .modules a { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; min-width: 96px; min-height: 64px; padding: 8px 14px; color: #D9D9D9; text-decoration: none; font-size: 13px; border-bottom: 4px solid transparent; white-space: nowrap; }
+    .modules a svg { width: 22px; height: 22px; margin-bottom: 4px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    .modules a.current { color: #fff; background: #307FE2; border-bottom-color: #fff; font-weight: 600; }
+    .page-head { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .page-head .wrap { padding: 28px 60px 26px; }
+    .crumbs { margin: 0 0 4px; font-size: 15px; color: var(--muted); }
+    .crumbs a { color: var(--royal); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+    .crumbs span { margin: 0 8px; }
+    h1 { margin: 0; font-size: 52px; line-height: 1; color: var(--ink); }
+    .page-head p { margin: 10px 0 0; max-width: 820px; }
+    main { background: var(--page); }
+    main .wrap { padding: 40px 60px 64px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr); gap: 28px; align-items: start; }
+    .card { background: var(--surface); border: 1px solid var(--line); padding: 32px 36px 36px; }
+    .card h2 { margin: 0 0 6px; font-size: 34px; line-height: 1.05; }
+    .card .sub { margin: 0 0 26px; color: var(--muted); font-size: 16px; }
+    .field { margin-bottom: 22px; }
+    .field label, .field-label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 16px; }
+    .field input, .field select { width: 100%; min-height: 50px; padding: 10px 14px; border: 1px solid #9A9A9A; border-radius: 0; background: var(--surface); color: var(--ink); font-size: 17px; }
+    .field select { appearance: none; -webkit-appearance: none; padding-right: 44px; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 22px) 50%, calc(100% - 16px) 50%; background-size: 6px 6px; background-repeat: no-repeat; }
+    .field input[readonly] { background: var(--page); border-color: var(--line); font-weight: 700; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid #307FE2; outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 14px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; }
+    .money { position: relative; }
+    .money::before { content: "$"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 700; }
+    .money input { padding-left: 28px; }
+    .review { margin: 6px 0 22px; padding: 18px 20px; background: var(--page); display: grid; gap: 10px; font-size: 16px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .fine { margin: -6px 0 24px; color: var(--muted); font-size: 14px; }
+    .actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .submit-btn { min-height: 50px; padding: 10px 32px; border: 0; border-radius: 0; background: var(--accent); color: #fff; font-size: 18px; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 85%, var(--chrome-bg)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .cancel-btn { min-height: 50px; padding: 10px 26px; border: 2px solid var(--ink); border-radius: 0; background: transparent; color: var(--ink); font-size: 18px; }
+    .cancel-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .status { margin: 14px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-left: 4px solid; font-size: 16px; }
+    .result-box.success { display: block; background: #EAF6EF; border-color: #1E7B46; color: #14532F; }
+    .result-box.notice { display: block; background: #FDF1F2; border-color: var(--accent); color: var(--ink); }
+    aside .card { padding: 26px 28px; }
+    aside .card + .card { margin-top: 24px; }
+    aside h3 { margin: 0 0 4px; font-size: 26px; line-height: 1.1; }
+    aside .meta { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+    .lines { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .lines th { text-align: left; font-weight: 700; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; padding: 0 0 8px; border-bottom: 2px solid var(--ink); }
+    .lines td { padding: 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .lines td.num, .lines th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; padding-left: 12px; }
+    .lines tfoot td { border-bottom: 0; padding-top: 14px; font-weight: 700; font-size: 17px; }
+    .lines .qty { display: block; color: var(--muted); font-size: 13px; }
+    .promo img { display: block; width: 100%; height: auto; margin: 0 0 16px; border: 1px solid var(--line); }
+    .promo .promo-fallback { display: none; height: 120px; margin: 0 0 16px; background: var(--chrome-bg); color: #fff; place-items: center; font-size: 30px; }
+    .promo.no-img img { display: none; }
+    .promo.no-img .promo-fallback { display: grid; }
+    .promo p, .rep p { margin: 0 0 14px; font-size: 16px; }
+    .text-btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0 22px; background: var(--accent); color: #fff; text-decoration: none; font-size: 16px; }
+    .rep strong { display: block; font-size: 17px; }
+    .rep a { display: inline-flex; align-items: center; min-height: 44px; }
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); font-size: 15px; }
+    .site-footer .wrap { padding: 48px 60px 40px; }
+    .footer-top { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 24px; padding-bottom: 32px; border-bottom: 1px solid color-mix(in srgb, var(--chrome-text) 30%, transparent); }
+    .footer-top h2 { margin: 0 0 14px; font-size: 30px; }
+    .footer-top address { font-style: normal; line-height: 1.6; }
+    .site-footer a { color: var(--chrome-text); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+    .footer-col { display: flex; flex-direction: column; }
+    .footer-access { display: flex; justify-content: flex-end; gap: 32px; flex-wrap: wrap; align-items: flex-start; }
+    .legal-links { display: flex; flex-wrap: wrap; gap: 0 18px; margin: 18px 0 10px; font-size: 13px; }
+    .footer-legal { margin: 0 0 6px; font-size: 13px; }
+    @media (max-width: 1100px) {
+      .site-nav { display: none; }
+    }
+    @media (max-width: 860px) {
+      .wrap, .page-head .wrap, main .wrap, .site-footer .wrap { padding-left: 16px; padding-right: 16px; }
+      .site-header .wrap { min-height: 72px; gap: 12px; }
+      .brand-name { font-size: 15px; }
+      .brand-mark { width: 36px; height: 36px; font-size: 24px; }
+      .brand-app { font-size: 16px; padding-left: 10px; }
+      .header-actions { gap: 12px; }
+      .header-actions .hide-sm { display: none; }
+      .modules a { min-width: 82px; padding: 8px 10px; }
+      h1 { font-size: 38px; }
+      .page-head .wrap { padding-top: 20px; padding-bottom: 20px; }
+      main .wrap { padding-top: 20px; padding-bottom: 40px; }
+      .layout { grid-template-columns: 1fr; }
+      .card { padding: 24px 18px; }
+      aside .card { padding: 22px 18px; }
+      .card h2 { font-size: 30px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .actions .submit-btn, .actions .cancel-btn { width: 100%; }
+      .footer-top { grid-template-columns: 1fr; }
+      .footer-access { justify-content: flex-start; gap: 0 24px; }
+      .site-footer .wrap { padding-bottom: 80px; }
+    }
+    @media (max-width: 420px) {
+      .brand-app { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="#materials" aria-label="myBLDR by Builders FirstSource">
+        <span class="brand-mark" aria-hidden="true">B</span>
+        <span class="brand-name"><span>Builders</span><span>FirstSource</span></span>
+        <span class="brand-app">my<b>BLDR</b></span>
+      </a>
+      <nav class="site-nav" aria-label="Builders FirstSource">
+        <a href="https://www.bldr.com/products">Products</a>
+        <a href="https://www.bldr.com/services">Services</a>
+        <a href="https://www.bldr.com/digital-tools/mybldr">Digital Solutions</a>
+        <a href="https://www.bldr.com/resources">Resources</a>
+      </nav>
+      <div class="header-actions">
+        <a class="hide-sm" href="#materials">Harbor Ridge Homes</a>
+        <a class="quote-btn" href="https://www.bldr.com/contact/request-quote">Get a Quote</a>
+      </div>
+    </div>
+  </header>
+  <nav class="modules" aria-label="myBLDR modules">
+    <div class="wrap">
+      <a href="#materials"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg>Projects</a>
+      <a href="#materials"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></svg>Documents</a>
+      <a href="#materials" class="current" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l9-5 9 5-9 5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>Materials</a>
+      <a href="#materials"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Schedule</a>
+      <a href="#materials"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Budget</a>
+      <a href="#materials"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 20c0-2.5 1.6-4.5 4-4.5"/></svg>Crews</a>
+    </div>
+  </nav>
+  <section class="page-head">
+    <div class="wrap">
+      <p class="crumbs"><a href="#materials">Projects</a><span>&rsaquo;</span><a href="#materials">Lot 84 Coosaw Point</a><span>&rsaquo;</span>Materials</p>
+      <h1 class="display">Lot 84 Coosaw Point</h1>
+      <p>Review the quotes your Builders FirstSource sales representative delivered for this lot, then submit an order and request a delivery date.</p>
+    </div>
+  </section>
+  <main id="materials">
+    <div class="wrap">
+      <div class="layout">
+        <section class="card" aria-labelledby="form-title">
+          <h2 id="form-title" class="display">Submit order</h2>
+          <p class="sub">Choose a quote and the account to bill. Quote quantities and prices are set by your sales representative.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="toAccount">Quote</label>
+              <select id="toAccount">
+                <option value="ACCT-1002" data-name="Framing Package" data-num="Q-2026-118402">Q-2026-118402 &middot; Framing Package</option>
+                <option value="ACCT-1003" data-name="Exterior Trim &amp; Siding" data-num="Q-2026-118417">Q-2026-118417 &middot; Exterior Trim &amp; Siding</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fromAccount">Bill to</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Harbor Ridge Homes charge account" data-num="&bull;&bull;4471">Harbor Ridge Homes &middot; Charge account &bull;&bull;4471</option>
+                <option value="ACCT-1004" data-name="Harbor Ridge Homes job account" data-num="&bull;&bull;2290">Harbor Ridge Homes &middot; Job account &bull;&bull;2290</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Order total</label>
+                <div class="money"><input type="number" id="amount" min="0.01" step="0.01" value="26753.80" inputmode="decimal" readonly aria-describedby="amountHelp"></div>
+                <small id="amountHelp">From your quote, before tax.</small>
+              </div>
+              <div class="field">
+                <label for="accountTier">Order type</label>
+                <select id="accountTier">
+                  <option value="standard">Individual order</option>
+                </select>
+                <small>Multi-pack orders are submitted from the Materials list.</small>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="deliveryDate">Requested delivery date</label>
+                <input type="date" id="deliveryDate" required>
+              </div>
+              <div class="field">
+                <span class="field-label">Deliver to</span>
+                <input type="text" value="Lot 84 Coosaw Point" readonly aria-label="Deliver to">
+              </div>
+            </div>
+            <dl class="review" aria-label="Order summary">
+              <div><dt>Quote</dt><dd id="reviewQuote">&mdash;</dd></div>
+              <div><dt>Bill to</dt><dd id="reviewBill">&mdash;</dd></div>
+              <div><dt>Order total</dt><dd id="reviewTotal">&mdash;</dd></div>
+              <div><dt>Requested delivery</dt><dd id="reviewDate">&mdash;</dd></div>
+            </dl>
+            <p class="fine">Your sales representative confirms the delivery date after the order is submitted. Delivered product photos appear in Materials once the order arrives on site.</p>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Submit order</button>
+              <button type="reset" id="cancelBtn" class="cancel-btn">Cancel</button>
+            </div>
+            <p class="status" id="orderStatus" role="status" aria-live="polite">Sample project data. No order is placed on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="card" aria-labelledby="quote-title">
+            <h3 id="quote-title" class="display">Quote details</h3>
+            <p class="meta" id="quoteMeta">&mdash;</p>
+            <table class="lines">
+              <thead><tr><th scope="col">Product</th><th scope="col" class="num">Extended</th></tr></thead>
+              <tbody id="quoteLines"></tbody>
+              <tfoot><tr><td>Quote total</td><td class="num" id="quoteTotal">&mdash;</td></tr></tfoot>
+            </table>
+          </div>
+          <div class="card promo" id="fulfillment">
+            <img src="https://cdn.media.amplience.net/i/stock/BLDR_myBLDR_Better_Way_Transparency_through_Fulfillment_v1?fmt=auto&amp;qlt=60" alt="" width="1200" height="675" onerror="this.closest('.promo').classList.add('no-img')">
+            <div class="promo-fallback display" aria-hidden="true">myBLDR</div>
+            <h3 class="display">Track your deliveries</h3>
+            <p>After you submit an order, follow it through fulfillment and see delivered product photos from your job site.</p>
+            <a class="text-btn" href="https://www.bldr.com/digital-tools/mybldr">Learn More About myBLDR</a>
+          </div>
+          <div class="card rep">
+            <h3 class="display">Questions?</h3>
+            <p>Contact your sales representative about quote quantities, pricing, or delivery windows.</p>
+            <strong>Dana Whitfield</strong>
+            <a href="https://www.bldr.com/contact/request-quote">Request a quote</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <div>
+          <h2 class="display">Contact Us</h2>
+          <address>Builders FirstSource</address>
+        </div>
+        <div class="footer-col">
+          <a href="https://www.bldr.com/location-finder">Find a Location</a>
+          <a href="https://www.bldr.com/resources">Resources</a>
+        </div>
+        <div class="footer-access">
+          <a href="https://investors.bldr.com/">Investors</a>
+          <a href="https://www.bldr.com/portal-login">myBLDR Access</a>
+        </div>
+      </div>
+      <div class="legal-links">
+        <a href="https://www.bldr.com/privacy-policy">Privacy Policy</a>
+        <a href="https://www.bldr.com/terms-of-use">Terms of Use</a>
+        <a href="https://www.bldr.com/customer-terms-conditions">Customer Terms &amp; Conditions</a>
+        <a href="https://www.bldr.com/accessibility-statement">Accessibility Statement</a>
+      </div>
+      <p class="footer-legal">Example myBLDR experience. Projects, quotes, accounts, and orders shown here are sample data.</p>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const QUOTES = {
+      'ACCT-1002': {
+        meta: 'Q-2026-118402 \u00b7 Framing Package \u00b7 Valid through Nov 14, 2026',
+        lines: [
+          ['2x4x92-5/8 SPF Stud', '640 pcs @ $4.62', 2956.80],
+          ['2x6x16 #2 Southern Yellow Pine', '180 pcs @ $14.85', 2673.00],
+          ['7/16 in. 4x8 OSB Sheathing', '210 sheets @ $18.40', 3864.00],
+          ['READY-FRAME\u00ae wall package', '1 package', 9840.00],
+          ['Floor trusses', '1 lot', 7420.00],
+        ],
+      },
+      'ACCT-1003': {
+        meta: 'Q-2026-118417 \u00b7 Exterior Trim & Siding \u00b7 Valid through Nov 14, 2026',
+        lines: [
+          ['5/4x6x16 PVC trim board', '48 pcs @ $41.20', 1977.60],
+          ['Fiber cement lap siding 8.25 in. x 12 ft', '420 pcs @ $11.35', 4767.00],
+          ['Vented soffit panel 12 in. x 12 ft', '36 pcs @ $28.90', 1040.40],
+        ],
+      },
+    };
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('orderStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const tierSelect = document.getElementById('accountTier');
+    const deliveryDate = document.getElementById('deliveryDate');
+    const quoteMeta = document.getElementById('quoteMeta');
+    const quoteLines = document.getElementById('quoteLines');
+    const quoteTotal = document.getElementById('quoteTotal');
+    const reviewQuote = document.getElementById('reviewQuote');
+    const reviewBill = document.getElementById('reviewBill');
+    const reviewTotal = document.getElementById('reviewTotal');
+    const reviewDate = document.getElementById('reviewDate');
+    const orderFields = [fromAccount, toAccount, tierSelect, deliveryDate];
+    const IDLE_STATUS = 'Sample project data. No order is placed on this page.';
+    const IDLE_LABEL = 'Submit order';
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const dateFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+    let pending = false;
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function label(select) { const d = selected(select).dataset; return `${d.name} ${d.num}`; }
+    function isoDay(offset) {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+    function quoteSum(quote) {
+      return Math.round(quote.lines.reduce((sum, line) => sum + line[2], 0) * 100) / 100;
+    }
+    function formatDay(value) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
+      const d = new Date(`${value}T00:00:00Z`);
+      return Number.isNaN(d.getTime()) ? '' : dateFmt.format(d);
+    }
+    function resetDelivery() {
+      deliveryDate.min = isoDay(1);
+      deliveryDate.value = isoDay(3);
+    }
+    function renderQuote() {
+      const quote = QUOTES[toAccount.value];
+      quoteMeta.textContent = quote.meta;
+      quoteLines.replaceChildren(...quote.lines.map(([name, qty, ext]) => {
+        const tr = document.createElement('tr');
+        const product = document.createElement('td');
+        product.textContent = name;
+        const q = document.createElement('span');
+        q.className = 'qty';
+        q.textContent = qty;
+        product.appendChild(q);
+        const amount = document.createElement('td');
+        amount.className = 'num';
+        amount.textContent = usd.format(ext);
+        tr.append(product, amount);
+        return tr;
+      }));
+      const total = quoteSum(quote);
+      quoteTotal.textContent = usd.format(total);
+      amountInput.value = total.toFixed(2);
+    }
+    function renderReview() {
+      const amount = parseFloat(amountInput.value);
+      reviewQuote.textContent = label(toAccount);
+      reviewBill.textContent = label(fromAccount);
+      reviewTotal.textContent = Number.isFinite(amount) && amount > 0 ? usd.format(amount) : '\u2014';
+      reviewDate.textContent = formatDay(deliveryDate.value) || '\u2014';
+    }
+    toAccount.addEventListener('change', () => { renderQuote(); renderReview(); });
+    fromAccount.addEventListener('change', renderReview);
+    deliveryDate.addEventListener('input', renderReview);
+    deliveryDate.addEventListener('change', renderReview);
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        resetDelivery();
+        renderQuote();
+        renderReview();
+      });
+    });
+    resetDelivery();
+    renderQuote();
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const requested = deliveryDate.value;
+      if (!formatDay(requested) || requested < deliveryDate.min) {
+        result.className = 'result-box notice';
+        result.textContent = `Choose a requested delivery date on or after ${formatDay(deliveryDate.min)}.`;
+        status.textContent = IDLE_STATUS;
+        deliveryDate.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      cancelBtn.disabled = true;
+      orderFields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Submitting\u2026';
+      status.textContent = 'Submitting your order\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const quoteLabel = label(toAccount);
+      const billLabel = label(fromAccount);
+      const deliveryLabel = formatDay(requested);
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: tierSelect.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Order not submitted.');
+        if (!data || !data.receipt) throw new Error('Order outcome unknown.');
+        const submittedAt = new Date(data.receipt.timestamp);
+        result.className = 'result-box success';
+        result.textContent = `Order submitted at ${timeFmt.format(submittedAt)}. ${quoteLabel}, ${usd.format(Number(data.receipt.amount))} billed to ${billLabel}. Requested delivery ${deliveryLabel}. Order confirmation ${data.receipt.receiptId}. Your sales representative will confirm the delivery date.`;
+        status.textContent = 'Order submitted.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'We couldn\u2019t submit your order right now. Nothing has been ordered. Please try again or contact your sales representative.';
+          status.textContent = 'Order not submitted.';
+        } else {
+          result.textContent = 'We couldn\u2019t confirm your order. Check Materials for the order status before submitting again so you don\u2019t order twice.';
+          status.textContent = 'Order not confirmed.';
+        }
+      } finally {
+        orderFields.forEach((el) => { el.disabled = false; });
+        pending = false;
+        button.disabled = false;
+        cancelBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
