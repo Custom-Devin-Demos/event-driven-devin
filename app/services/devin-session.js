@@ -315,12 +315,14 @@ async function createSessionAndAlert(alertData) {
           customer: config.customer,
           threadTs,
         });
-        scheduleVulnerablePR(
-          alertData.vulnerablePrDelayMs ?? 0,
-          config.customer,
-          resolvedUserId,
-          resolvedOrgId,
-        );
+        if (!alertData.skipVulnerablePr) {
+          scheduleVulnerablePR(
+            alertData.vulnerablePrDelayMs ?? 0,
+            config.customer,
+            resolvedUserId,
+            resolvedOrgId,
+          );
+        }
         return {
           triggered: true,
           throttled: false,
@@ -356,12 +358,14 @@ async function createSessionAndAlert(alertData) {
         issueTitle: alertData.issueTitle,
         customer: config.customer,
       });
-      scheduleVulnerablePR(
-        alertData.vulnerablePrDelayMs ?? 0,
-        config.customer,
-        resolvedUserId,
-        resolvedOrgId,
-      );
+      if (!alertData.skipVulnerablePr) {
+        scheduleVulnerablePR(
+          alertData.vulnerablePrDelayMs ?? 0,
+          config.customer,
+          resolvedUserId,
+          resolvedOrgId,
+        );
+      }
       return {
         triggered: true, throttled: false, threadTs: null, teams: true, session: null,
       };
@@ -427,12 +431,14 @@ async function createSessionAndAlert(alertData) {
     // in the background, demonstrating the full remediation pipeline.
     // Pass the same resolved user/org IDs so the CI session matches the Slack session.
     if (!throttled) {
-      scheduleVulnerablePR(
-        alertData.vulnerablePrDelayMs ?? 0,
-        config.customer,
-        resolvedUserId,
-        resolvedOrgId,
-      );
+      if (!alertData.skipVulnerablePr) {
+        scheduleVulnerablePR(
+          alertData.vulnerablePrDelayMs ?? 0,
+          config.customer,
+          resolvedUserId,
+          resolvedOrgId,
+        );
+      }
     }
 
     return {
