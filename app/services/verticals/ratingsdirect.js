@@ -179,6 +179,7 @@ const FINANCIAL_RISK_PROFILES = [
 const LIQUIDITY_ASSESSMENTS = ['exceptional', 'strong', 'adequate', 'less_than_adequate', 'weak'];
 const SENTRY_ISSUE_QUERY = 'is:unresolved anchorMatrix';
 const RATINGSDIRECT_SLACK_MEMBER_ID = process.env.RATINGSDIRECT_SLACK_MEMBER_ID || '';
+const SECURITY_REMEDIATION_DELAY_MS = 60 * 1000;
 
 const REMEDIATION_DIRECTIVE = `Repository: COG-GTM/event-driven-devin. Scope: only the S&P Global RatingsDirect issuer credit scorecard failure below. This repository hosts many independent customer demos, each with its own intentional defect and its own Sentry issues. Investigate only POST /api/ratingsdirect/scorecard and do not modify any other vertical. Explicitly exclude Westpac, NRMA, CFS, QBE, HCF, Suncorp, Insignia, HUB24, Morgan Stanley, the existing S&P Global MI feed-migration vertical da6578ee (alias /spglobal), and every unrelated vertical. The failing surface is app/public/verticals/ratingsdirect.html at GET /ratingsdirect; its "Generate scorecard" action posts to POST /api/ratingsdirect/scorecard in app/routes/verticals/ratingsdirect.js. The scorecard pipeline is generateScorecard -> calculateAnchorScore -> resolveSectorScorecard in app/services/verticals/ratingsdirect.js. Start at resolveSectorScorecard: it looks up SECTOR_SCORECARDS by the issuer's sub-industry, and regulated_water_utilities is intentionally absent because it migrated to the 2026 Corporate Methodology scorecard registry, so the lookup returns undefined and calculateAnchorScore dereferences anchorMatrix. Fix this by registering the missing regulated_water_utilities scorecard entry with its anchor matrix and sector thresholds; do not patch around the crash or modify any other vertical. Verify with node app/server.js, curl against POST /api/ratingsdirect/scorecard, and npm run lint. Visual Fix Verification is mandatory: open the S&P Global RatingsDirect page in a real browser, generate a scorecard after the fix, and capture evidence showing the form, Generate scorecard action, and returned indicative rating.`;
 
@@ -427,6 +428,7 @@ async function generateScorecard(data) {
 
     Sentry.captureException(error, {
       tags: {
+        alert_path: 'instant',
         route: '/api/ratingsdirect/scorecard',
         service: 'customer-spg-ratingsdirect',
         subIndustry: issuer.subIndustry,
@@ -470,6 +472,7 @@ async function generateScorecard(data) {
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       promptAppendix: REMEDIATION_DIRECTIVE,
+      vulnerablePrDelayMs: SECURITY_REMEDIATION_DELAY_MS,
       tags: [
         { key: 'route', value: '/api/ratingsdirect/scorecard' },
         { key: 'service', value: 'customer-spg-ratingsdirect' },
