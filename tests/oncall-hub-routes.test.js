@@ -143,6 +143,35 @@ describe('on-call hub routes', () => {
     if (legacy.status === 200) expect(await legacy.text()).not.toContain('oncall-ribbon');
   });
 
+  test('a Japanese skin serves its native page with Japanese ribbon copy and a Japanese Devin prompt', async () => {
+    const { ALERT_SCENARIOS, buildOncallSessionPrompt } = require('../app/services/oncall');
+    const skin = getOncallSkin('eb976748');
+    expect(skin).toMatchObject({
+      vertical: 'banking', locale: 'ja', alertDestination: 'slack',
+      page: { file: 'eb976748.html' },
+      devinSession: { auto: true, onCallIsTriggerer: true },
+    });
+    expect(skin.disclaimer).toMatch(/^NOT ACTUALLY AN? [A-Z ]+ SITE/);
+    const [skinned, report, incident, wrong] = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/eb976748`),
+      fetch(`${baseUrl}/oncall/c/eb976748/report`),
+      fetch(`${baseUrl}/oncall/c/eb976748/incident`),
+      fetch(`${baseUrl}/oncall/c/eb976749`),
+    ]);
+    expect([skinned.status, report.status, incident.status, wrong.status]).toEqual([200, 404, 404, 404]);
+    const html = await skinned.text();
+    expect(html).toContain('/api/oncall/banking/transfer');
+    expect(html).toContain('アラート投稿先: ');
+    expect(html).toContain('Devin オンコールデモ');
+    expect(html).toContain("devinEmail: localStorage.getItem('devinEmail') || ''");
+    expect(html).not.toContain('All Demos');
+    const prompt = buildOncallSessionPrompt(ALERT_SCENARIOS.banking, skin, 'ref-1');
+    expect(prompt).toContain('日本語で回答してください');
+    expect(prompt).toContain('原因を調査し、修正のPRを作成してください');
+    const english = buildOncallSessionPrompt(ALERT_SCENARIOS.banking, { ...skin, locale: undefined, devinSession: undefined }, 'ref-1');
+    expect(english).not.toContain('日本語');
+  });
+
   test('the Egencia skin is served shimmed at its slug, friendly aliases and direct page URL, forcing Slack', async () => {
     const [skinned, alias, friendly, direct] = await Promise.all([
       fetch(`${baseUrl}/oncall/c/e7a1c4d9`),

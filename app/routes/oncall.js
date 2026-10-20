@@ -315,10 +315,19 @@ const RIBBON_STRINGS = {
     skipped: 'Alerta omitida — no llegó ninguna alerta a Slack',
     failed: 'No se pudo publicar la alerta',
   },
+  ja: {
+    title: 'Devin オンコールデモ',
+    unique: '実行ごとに一意',
+    posted: 'アラート投稿先: ',
+    skipped: 'アラート投稿をスキップ — Slackには届いていません',
+    failed: 'アラートの投稿に失敗しました',
+  },
 };
 
 function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
-  const r = skin && skin.locale === 'es' ? RIBBON_STRINGS.es : RIBBON_STRINGS.en;
+  const r = skin && Object.prototype.hasOwnProperty.call(RIBBON_STRINGS, skin.locale)
+    ? RIBBON_STRINGS[skin.locale]
+    : RIBBON_STRINGS.en;
   const ribbonSide = skin && skin.ribbonSide === 'left' ? 'left' : 'right';
   const ribbonYieldTo = skin && typeof skin.ribbonYieldTo === 'string' && /^[^<>{}`$\\]+$/.test(skin.ribbonYieldTo)
     ? skin.ribbonYieldTo

@@ -4587,6 +4587,45 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A DIGITAL AGENCY (デジタル庁 / マイナポータル) SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Government of Japan service.',
   },
+  'eb976748': {
+    slug: 'eb976748',
+    company: 'イオンネットスーパー',
+    brandMark: 'A',
+    vertical: 'banking',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    locale: 'ja',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        '顧客コンテキスト: このアラートは上記リンクのイオンネットスーパー「ご注文内容の確認」画面から発生しています。「注文を確定する」ボタンは上記エンドポイントに注文確定を送信するため、そのエンドポイントがこのインシデントのバックエンドです。',
+        'スレッド上のインシデント表示は「p95レイテンシ急上昇 \u2014 注文確定（ご注文内容の確認）」、リリース netsuper-checkout@1.0.3、担当チーム netsuper-checkout-oncall です。注文確定のたびに「処理中…」のまま約10秒止まってから完了し、エラー率は正常です。',
+        'コードを読む前にテレメトリ（モニター、APMトレース、インシデント参照前後のログ）から調査し、確認したシグナル、除外した仮説、根本原因、影響をまとめた根拠ベースの調査サマリーを書いてください。',
+        'スレッドへの返信、PRのタイトル、PRの説明では「イオンネットスーパー」「ご注文内容の確認」「注文を確定する」という表現を使ってください。デプロイやマージは行わないでください。',
+      ].join('\n'),
+    },
+    page: { file: 'eb976748.html', title: 'ご注文内容の確認 | イオンネットスーパー' },
+    theme: {
+      '--accent': '#B90C87',
+      '--ink': '#333333',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1E1E1E',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: 'p95レイテンシ急上昇 \u2014 注文確定（ご注文内容の確認）',
+      release: 'netsuper-checkout@1.0.3',
+      team: 'netsuper-checkout-oncall',
+      metricValue: '9.6s',
+      threshold: '> 1.5s',
+      baseline: '~280ms（7日間p95）',
+      symptom: '「注文を確定する」を押すと「処理中…」のまま約10秒止まってから完了します。エラー率は正常で、注文は最終的に確定します。',
+      impact: 'ネットスーパーで注文を確定するすべてのお客さまが約10秒待たされています。お客さまセンターへの問い合わせが増えており、確定できたか分からず再操作するお客さまも出ています。',
+    },
+    supportCenter: 'イオンネットスーパー お客さまセンター',
+    disclaimer: 'NOT ACTUALLY AN AEON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real AEON product. ／ イオンネットスーパーの実際のサイトではありません（社内デモ用）。',
+  },
 };
 
 function getOncallSkin(slug) {
