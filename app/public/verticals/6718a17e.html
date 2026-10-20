@@ -160,11 +160,11 @@
       <div>
         <p class="crumbs"><a href="#transfer">Move Money</a><span>&rsaquo;</span>Transfer</p>
         <h1 class="display">Transfer</h1>
-        <p class="lede">Move money between your Chime Checking Account and Savings Account. Transfers between your own accounts are instant and free.</p>
+        <p class="lede">Move money between your Chime Checking Account and Savings Account. Transfers between your own accounts post instantly.</p>
       </div>
       <div class="balance" aria-label="Checking balance">
         <p class="label">Checking &middot; Available</p>
-        <p class="value display" id="heroBalance">$2,346.91</p>
+        <p class="value display" id="heroBalance" data-balance-for="ACCT-1001">$2,346.91</p>
         <p class="spot">$200 SpotMe&reg; &rsaquo;</p>
       </div>
     </div>
@@ -206,15 +206,16 @@
               <div class="field">
                 <label for="accountTier">Transfer speed</label>
                 <select id="accountTier">
-                  <option value="standard">Instant &middot; Free</option>
+                  <option value="standard">Instant</option>
                 </select>
-                <small>Transfers between your Checking and Savings post right away.</small>
+                <small>Transfers between your Checking and Savings post right away. Any transfer fee is shown on your confirmation.</small>
               </div>
             </div>
             <dl class="review" aria-label="Transfer summary">
               <div><dt>From</dt><dd id="reviewFrom">&mdash;</dd></div>
               <div><dt>To</dt><dd id="reviewTo">&mdash;</dd></div>
               <div><dt>Amount</dt><dd id="reviewAmount">&mdash;</dd></div>
+              <div><dt>Fee</dt><dd id="reviewFee">Shown on confirmation</dd></div>
               <div><dt>When</dt><dd id="reviewDate">&mdash;</dd></div>
             </dl>
             <p class="fine">Your Savings Account earns 4.00% APY. Money you move today starts earning right away.</p>
@@ -231,8 +232,8 @@
           <div class="card" id="accounts">
             <h3 class="display">Your accounts</h3>
             <ul class="accounts">
-              <li><span><span class="acct-name">Checking Account</span><span class="acct-num">...4821</span></span><span class="acct-bal">$2,346.91<small>$200 SpotMe limit</small></span></li>
-              <li><span><span class="acct-name">Savings Account</span><span class="acct-num">...7730</span></span><span class="acct-bal">$5,821.45<small>4.00% APY</small></span></li>
+              <li><span><span class="acct-name">Checking Account</span><span class="acct-num">...4821</span></span><span class="acct-bal"><span data-balance-for="ACCT-1001">$2,346.91</span><small>$200 SpotMe limit</small></span></li>
+              <li><span><span class="acct-name">Savings Account</span><span class="acct-num">...7730</span></span><span class="acct-bal"><span data-balance-for="ACCT-1002">$5,821.45</span><small>4.00% APY</small></span></li>
               <li><span><span class="acct-name">Credit Builder</span><span class="acct-num">...2210</span></span><span class="acct-bal">$115.00<small>Secured balance</small></span></li>
             </ul>
           </div>
@@ -290,6 +291,7 @@
     const reviewTo = document.getElementById('reviewTo');
     const reviewAmount = document.getElementById('reviewAmount');
     const reviewDate = document.getElementById('reviewDate');
+    const reviewFee = document.getElementById('reviewFee');
     const transferFields = [fromAccount, toAccount, amountInput, document.getElementById('accountTier')];
     const timer = document.getElementById('sendTimer');
     const timerValue = document.getElementById('sendTimerValue');
@@ -302,7 +304,31 @@
     const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
     const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+    const FEE_PENDING = 'Shown on confirmation';
+    const balances = {};
+    Array.from(fromAccount.options).forEach((opt) => { balances[opt.value] = Number(opt.dataset.balance); });
     function selected(select) { return select.options[select.selectedIndex]; }
+    function renderBalances() {
+      [fromAccount, toAccount].forEach((select) => {
+        Array.from(select.options).forEach((opt) => {
+          const balance = balances[opt.value];
+          opt.dataset.balance = balance.toFixed(2);
+          opt.textContent = `${opt.dataset.name} ${opt.dataset.num} · ${usd.format(balance)}`;
+        });
+      });
+      document.querySelectorAll('[data-balance-for]').forEach((el) => {
+        el.textContent = usd.format(balances[el.dataset.balanceFor]);
+      });
+      renderReview();
+    }
+    function applyReceipt(receipt) {
+      const amount = Number(receipt.amount);
+      const debit = Number(receipt.totalDebit);
+      if (!Number.isFinite(amount) || !Number.isFinite(debit)) return;
+      if (receipt.from in balances) balances[receipt.from] -= debit;
+      if (receipt.to in balances) balances[receipt.to] += amount;
+      renderBalances();
+    }
     function label(select) { const d = selected(select).dataset; return `${d.name} ${d.num}`; }
     function parsedAmount() {
       const raw = amountInput.value.trim();
@@ -331,6 +357,7 @@
       reviewTo.textContent = label(toAccount);
       reviewAmount.textContent = valid ? usd.format(amount) : '—';
       reviewDate.textContent = `Today, ${dateFmt.format(new Date())} · Instant`;
+      reviewFee.textContent = FEE_PENDING;
     }
     [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
     amountInput.addEventListener('input', renderReview);
@@ -408,8 +435,15 @@
         if (!response.ok) throw new Error('Transfer not completed.');
         if (!data || !data.receipt) throw new Error('Transfer outcome unknown.');
         const completedAt = new Date(data.receipt.timestamp);
+        const fee = Number(data.receipt.fee);
+        const debit = Number(data.receipt.totalDebit);
+        applyReceipt(data.receipt);
+        reviewFee.textContent = Number.isFinite(fee) ? usd.format(fee) : FEE_PENDING;
+        const feeCopy = Number.isFinite(fee) && fee > 0
+          ? ` Transfer fee ${usd.format(fee)}; ${usd.format(debit)} debited from ${fromLabel}.`
+          : ' No transfer fee.';
         result.className = 'result-box success';
-        result.textContent = `Transfer complete at ${timeFmt.format(completedAt)}. ${usd.format(Number(data.receipt.amount))} moved from ${fromLabel} to ${toLabel}. Confirmation ${data.receipt.receiptId}. Your balances update right away.`;
+        result.textContent = `Transfer complete at ${timeFmt.format(completedAt)}. ${usd.format(Number(data.receipt.amount))} moved from ${fromLabel} to ${toLabel}.${feeCopy} Confirmation ${data.receipt.receiptId}. Your balances are updated.`;
         status.textContent = 'Transfer complete.';
       } catch (_error) {
         result.className = 'result-box notice';
