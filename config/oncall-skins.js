@@ -4760,6 +4760,44 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BASE POWER SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Base Power Company product.',
   },
+  'acf439e6': {
+    slug: 'acf439e6',
+    company: 'Revolut',
+    brandMark: 'R',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'acf439e6.html', title: 'Transfers | Revolut' },
+    theme: {
+      '--accent': '#1F1F1F',
+      '--ink': '#1F1F1F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#191C1F',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Revolut Help Center',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Demo investigation requirements:',
+        '1. Reproduce the symptom in a browser on this machine against a local run of the repo, and time the request before any change.',
+        '2. Find the root cause from the code and telemetry. Implement the fix.',
+        '3. Add a regression test that fails before the fix and passes after it.',
+        '4. Record as much as you can; recordings are what the demo audience watches. At minimum: BEFORE on the live page (real ~9s hang), AFTER on a local run of the fix branch (the fix is not deployed, so the live page still hangs), and the regression test failing then passing. Same flow, same clicks, a visible timer in each.',
+        '5. Open a PR with the investigation summary, the fix, the test, and every recording embedded. Request Devin Review. Do not merge; stop for human approval.',
+        '6. Post the root cause, the PR link, and the recordings in the Slack alert thread.',
+        'Split the work across child sessions where that is faster, and coordinate their results.',
+      ].join('\n'),
+    },
+    alertCard: {
+      title: 'p95 latency \u2014 Transfers between accounts',
+      release: 'transfers-web@2026.10.3',
+      baseline: '~300ms (7-day p95, before transfers-web@2026.10.3)',
+      symptom: 'Transfer hangs ~9s before the confirmation returns. Error rate is normal \u2014 transfers eventually complete.',
+      impact: 'Customers moving money between their accounts wait ~9 seconds for a confirmation; some tap Transfer again and contact support about duplicate transfers.',
+    },
+    disclaimer: 'NOT ACTUALLY A REVOLUT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Revolut product.',
+  },
 };
 
 function getOncallSkin(slug) {

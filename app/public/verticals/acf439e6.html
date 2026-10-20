@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transfers | Revolut</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1F1F1F;
+      --ink: #1F1F1F;
+      --surface: #FFFFFF;
+      --chrome-bg: #191C1F;
+      --chrome-text: #FFFFFF;
+      --panel: #F7F7F7;
+      --line: rgba(31, 31, 31, .12);
+      --muted: #6B6F76;
+      --sky-top: #5E9BD8;
+      --sky-bottom: #8CBCE8;
+      --ok: #1D7A46;
+      --ok-bg: #E9F6EE;
+      --warn-bg: #FFF1EE;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 16px/1.5 "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1216px; margin: auto; padding: 0 24px; }
+    .top { background: var(--chrome-bg); color: var(--chrome-text); }
+    .top .wrap { display: flex; align-items: center; min-height: 72px; gap: 32px; }
+    .wordmark { display: inline-flex; align-items: center; min-height: 44px; color: var(--chrome-text); text-decoration: none; font-size: 26px; font-weight: 600; letter-spacing: -1.1px; line-height: 1; }
+    .wordmark span { display: inline-block; position: relative; }
+    .wordmark span::after { content: ""; position: absolute; left: 1px; right: 1px; bottom: 2px; height: 2px; background: currentColor; opacity: 0; }
+    .top-nav { display: flex; align-items: center; gap: 28px; }
+    .top-nav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--chrome-text); text-decoration: none; font-weight: 500; opacity: .9; }
+    .top-nav a.current { opacity: 1; }
+    .top-utility { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .top-utility a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; color: var(--chrome-text); text-decoration: none; font-weight: 500; }
+    .pill { border-radius: 9999px; }
+    .top-utility .pill { background: var(--surface); color: var(--ink); min-height: 44px; }
+    .hero { background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%); color: var(--chrome-text); }
+    .hero .wrap { padding: 44px 24px 40px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr); gap: 32px; align-items: end; }
+    .eyebrow { margin: 0 0 8px; font-size: 18px; font-weight: 400; opacity: .9; }
+    h1 { margin: 0; font-size: 56px; font-weight: 500; letter-spacing: -1.2px; line-height: 1.02; }
+    .hero p.lead { margin: 16px 0 0; font-size: 18px; line-height: 24px; max-width: 560px; }
+    .balance { justify-self: end; text-align: center; min-width: 260px; padding: 22px 28px 24px; border: 1px solid rgba(255, 255, 255, .55); border-radius: 24px; backdrop-filter: blur(2px); }
+    .balance .label { margin: 0; font-size: 18px; opacity: .9; }
+    .balance .amount { margin: 2px 0 14px; font-size: 44px; font-weight: 600; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; }
+    .balance a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 24px; background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 500; }
+    main .wrap { padding: 40px 24px 64px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .9fr); gap: 24px; align-items: start; }
+    .panel { background: var(--panel); border-radius: 20px; padding: 28px 28px 32px; }
+    .panel h2 { margin: 0 0 4px; font-size: 24px; font-weight: 500; letter-spacing: -.24px; line-height: 28px; }
+    .panel .sub { margin: 0 0 24px; color: var(--muted); }
+    .field { margin-bottom: 20px; }
+    .field label, .field-label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: var(--muted); }
+    .field input, .field select { width: 100%; min-height: 52px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); font-size: 16px; font-weight: 500; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 22px) 23px, calc(100% - 16px) 23px; background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 44px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--sky-top); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: "$"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 500; color: var(--ink); }
+    .amount-wrap input { padding-left: 30px; }
+    .review { margin: 4px 0 24px; padding: 16px 18px; border-radius: 14px; background: var(--surface); display: grid; gap: 10px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .fine { margin: -8px 0 24px; color: var(--muted); font-size: 13px; }
+    .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .submit-btn { min-height: 48px; padding: 10px 28px; border: 0; border-radius: 9999px; background: var(--accent); color: var(--chrome-text); font-size: 16px; font-weight: 500; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 82%, var(--surface)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .cancel-btn { min-height: 48px; padding: 10px 24px; border: 1px solid var(--ink); border-radius: 9999px; background: transparent; color: var(--ink); font-size: 16px; font-weight: 500; }
+    .cancel-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-size: 22px; font-weight: 600; }
+    .status { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 14px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: #10452A; }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); }
+    aside .panel { padding: 22px 24px; }
+    aside .panel + .panel { margin-top: 20px; }
+    aside h3 { margin: 0 0 12px; font-size: 18px; font-weight: 500; letter-spacing: -.2px; }
+    .accounts { list-style: none; margin: 0; padding: 0; }
+    .accounts li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+    .accounts li:first-child { border-top: 0; padding-top: 0; }
+    .acct { display: flex; align-items: center; gap: 12px; }
+    .acct-dot { width: 40px; height: 40px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); display: grid; place-items: center; font-weight: 600; font-size: 14px; }
+    .acct-name { display: block; font-weight: 500; }
+    .acct-num { display: block; color: var(--muted); font-size: 13px; }
+    .acct-bal { font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+    .acct-bal small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+    .promo { background: var(--chrome-bg); color: var(--chrome-text); overflow: hidden; }
+    .promo img { display: block; width: calc(100% + 48px); margin: -22px -24px 16px; height: 170px; object-fit: cover; object-position: center top; }
+    .promo .promo-fallback { display: none; height: 120px; margin: -22px -24px 16px; background: linear-gradient(135deg, var(--sky-top), var(--sky-bottom)); }
+    .promo.no-img img { display: none; }
+    .promo.no-img .promo-fallback { display: block; }
+    .promo h3 { color: var(--chrome-text); }
+    .promo p { margin: 0 0 14px; color: rgba(255, 255, 255, .82); }
+    .promo a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 22px; border-radius: 9999px; background: var(--surface); color: var(--ink); font-weight: 500; text-decoration: none; }
+    .note p { margin: 0 0 10px; }
+    .note a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 500; }
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); font-size: 14px; }
+    .site-footer .wrap { padding: 36px 24px 44px; }
+    .footer-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin-bottom: 28px; }
+    .footer-cols h4 { margin: 0 0 8px; font-size: 16px; font-weight: 500; }
+    .footer-cols a { display: flex; align-items: center; min-height: 44px; color: rgba(255, 255, 255, .78); text-decoration: none; }
+    .footer-legal { margin: 0 0 10px; color: rgba(255, 255, 255, .7); line-height: 1.5; }
+    .footer-legal.copy { color: var(--chrome-text); }
+    @media (max-width: 900px) {
+      .wrap { padding: 0 16px; }
+      .top .wrap { gap: 16px; }
+      .top-nav { display: none; }
+      .top-utility a:not(.pill) { padding: 0 8px; }
+      .hero .wrap { grid-template-columns: 1fr; padding: 28px 16px 28px; gap: 20px; }
+      h1 { font-size: 40px; }
+      .balance { justify-self: stretch; min-width: 0; }
+      .balance .amount { font-size: 38px; }
+      main .wrap { padding: 24px 16px 40px; }
+      .layout { grid-template-columns: 1fr; }
+      .panel { padding: 22px 18px 24px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .actions .submit-btn, .actions .cancel-btn { width: 100%; }
+      .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .site-footer .wrap { padding-bottom: 80px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="wordmark" href="#transfer" aria-label="Revolut"><span>Revolut</span></a>
+      <nav class="top-nav" aria-label="Primary">
+        <a href="#transfer" class="current" aria-current="page">Personal</a>
+        <a href="https://www.revolut.com/en-US/business/" target="_blank" rel="noopener noreferrer">Business</a>
+        <a href="https://www.revolut.com/en-US/kids-teens/" target="_blank" rel="noopener noreferrer">Kids &amp; Teens</a>
+        <a href="https://www.revolut.com/en-US/about-us/" target="_blank" rel="noopener noreferrer">Company</a>
+      </nav>
+      <div class="top-utility">
+        <a href="https://help.revolut.com/en-US/" target="_blank" rel="noopener noreferrer">Help</a>
+        <a class="pill" href="#accounts">Accounts</a>
+      </div>
+    </div>
+  </header>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Transfers</p>
+        <h1 id="hero-title">Move money, fast</h1>
+        <p class="lead">Transfer between your Revolut accounts in seconds, for $0. Your available balance updates as soon as the transfer completes.</p>
+      </div>
+      <div class="balance">
+        <p class="label">Personal</p>
+        <p class="amount" id="heroBalance">$6,012.40</p>
+        <a class="pill" href="#accounts">Accounts</a>
+      </div>
+    </div>
+  </section>
+  <main id="transfer">
+    <div class="wrap">
+      <div class="layout">
+        <section class="panel" aria-labelledby="form-title">
+          <h2 id="form-title">Transfer between your accounts</h2>
+          <p class="sub">Choose where the money comes from and where it goes.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Personal" data-num="USD &middot; 2841" data-balance="6012.40">Personal &middot; USD &middot; $6,012.40</option>
+                <option value="ACCT-1004" data-name="Joint" data-num="USD &middot; 7730" data-balance="2340.18">Joint &middot; USD &middot; $2,340.18</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">To</label>
+              <select id="toAccount">
+                <option value="ACCT-1002" data-name="Savings" data-num="High-Yield &middot; 3.75% APY">Savings &middot; High-Yield &middot; $18,250.00</option>
+                <option value="ACCT-1004" data-name="Joint" data-num="USD &middot; 7730">Joint &middot; USD &middot; $2,340.18</option>
+                <option value="ACCT-1001" data-name="Personal" data-num="USD &middot; 2841">Personal &middot; USD &middot; $6,012.40</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Amount</label>
+                <div class="amount-wrap"><input type="number" id="amount" min="0.01" step="0.01" value="300.00" inputmode="decimal" required aria-describedby="amountHelp"></div>
+                <small id="amountHelp">Available: $6,012.40</small>
+              </div>
+              <div class="field">
+                <label for="accountTier">When</label>
+                <select id="accountTier">
+                  <option value="standard">Now</option>
+                </select>
+                <small>Recurring transfers are set up from Savings &rsaquo; Automate.</small>
+              </div>
+            </div>
+            <dl class="review" aria-label="Transfer summary">
+              <div><dt>From</dt><dd id="reviewFrom">&mdash;</dd></div>
+              <div><dt>To</dt><dd id="reviewTo">&mdash;</dd></div>
+              <div><dt>Amount</dt><dd id="reviewAmount">&mdash;</dd></div>
+              <div><dt>Fee</dt><dd>$0.00</dd></div>
+              <div><dt>Arrives</dt><dd id="reviewDate">&mdash;</dd></div>
+            </dl>
+            <p class="fine">Transfers between your own Revolut accounts are free and usually arrive instantly.</p>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Transfer</button>
+              <button type="reset" id="cancelBtn" class="cancel-btn">Cancel</button>
+            </div>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Sample accounts. No money moves on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="panel" id="accounts">
+            <h3>Accounts</h3>
+            <ul class="accounts">
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">$</span><span><span class="acct-name">Personal</span><span class="acct-num">USD &middot; 2841</span></span></span><span class="acct-bal">$6,012.40<small>Available</small></span></li>
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">J</span><span><span class="acct-name">Joint</span><span class="acct-num">USD &middot; 7730</span></span></span><span class="acct-bal">$2,340.18<small>Available</small></span></li>
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">%</span><span><span class="acct-name">Savings</span><span class="acct-num">High-Yield &middot; 3.75% APY</span></span></span><span class="acct-bal">$18,250.00<small>Balance</small></span></li>
+            </ul>
+          </div>
+          <div class="panel promo">
+            <img src="https://assets.revolut.com/published-assets-v3/a8485289-dcc4-41a4-8656-e6404cf4e88a/e1916bd0-9429-48a0-9786-5feb826a18dd.png" alt="" width="632" height="750" loading="lazy" onerror="this.closest('.promo').classList.add('no-img')">
+            <div class="promo-fallback" aria-hidden="true"></div>
+            <h3>Your money, protected</h3>
+            <p>If a transfer looks high-risk, we&rsquo;ll alert you before it goes out. Trusted with $19 billion in customer funds.</p>
+            <a href="https://www.revolut.com/en-US/how-we-keep-your-money-safe/" target="_blank" rel="noopener noreferrer">How we protect your money</a>
+          </div>
+          <div class="panel note">
+            <h3>Send to friends instead?</h3>
+            <p>Both on Revolut? Search their name or Revtag in the app and tap Send. No fees, arrives in seconds.</p>
+            <a href="https://www.revolut.com/en-US/send-and-receive/" target="_blank" rel="noopener noreferrer">Send &amp; Receive</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-cols">
+        <div><h4>Daily Finances</h4><a href="https://www.revolut.com/en-US/cards/">Cards</a><a href="https://www.revolut.com/en-US/international-transfers/">International Transfers</a><a href="https://www.revolut.com/en-US/send-and-receive/">Send &amp; Receive</a></div>
+        <div><h4>Savings &amp; Funds</h4><a href="https://www.revolut.com/en-US/savings/">High Yield Savings</a><a href="https://www.revolut.com/en-US/stocks/">Stocks</a><a href="https://www.revolut.com/en-US/plans/">Compare Plans</a></div>
+        <div><h4>Security &amp; Protection</h4><a href="https://www.revolut.com/en-US/how-we-keep-your-money-safe/">How We Protect Your Money</a><a href="https://www.revolut.com/en-US/fraud-and-scams/">Learn About Fraud &amp; Scams</a><a href="https://status.revolut.com/">System Status</a></div>
+        <div><h4>Help</h4><a href="https://help.revolut.com/en-US/">Help Center</a><a href="https://www.revolut.com/en-US/legal/">Legal Agreements</a><a href="https://www.revolut.com/en-US/privacy/">Privacy Portal</a></div>
+      </div>
+      <p class="footer-legal copy">&copy; Revolut Technologies Inc. 2026</p>
+      <p class="footer-legal">Example Transfers experience. Accounts, balances, and transfers shown here are sample data.</p>
+      <p class="footer-legal">Revolut Technologies Inc. is a technology services provider and program manager of the card program. Banking services offered through the Revolut Prepaid Card are provided by Lead Bank, Member FDIC. Savings Vaults are provided by Cross River Bank, Member FDIC.</p>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const amountHelp = document.getElementById('amountHelp');
+    const reviewFrom = document.getElementById('reviewFrom');
+    const reviewTo = document.getElementById('reviewTo');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewDate = document.getElementById('reviewDate');
+    const transferFields = [fromAccount, toAccount, amountInput, document.getElementById('accountTier')];
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    const IDLE_STATUS = 'Sample accounts. No money moves on this page.';
+    const IDLE_LABEL = 'Transfer';
+    let timerHandle = null;
+    let pending = false;
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function label(select) { const d = selected(select).dataset; return `${d.name} \u00b7 ${d.num}`; }
+    function parsedAmount() {
+      const raw = amountInput.value.trim();
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw);
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function renderReview() {
+      const available = Number(selected(fromAccount).dataset.balance);
+      const amount = parsedAmount();
+      const valid = Number.isFinite(amount) && amount > 0 && amount <= available;
+      amountHelp.textContent = `Available: ${usd.format(available)}`;
+      reviewFrom.textContent = label(fromAccount);
+      reviewTo.textContent = label(toAccount);
+      reviewAmount.textContent = valid ? usd.format(amount) : '\u2014';
+      reviewDate.textContent = 'Instantly';
+    }
+    [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
+    amountInput.addEventListener('input', renderReview);
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        renderReview();
+      });
+    });
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const amount = parsedAmount();
+      const available = Number(selected(fromAccount).dataset.balance);
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choose a different account to transfer to. Money can\u2019t be moved into the account it comes from.';
+        status.textContent = IDLE_STATUS;
+        toAccount.focus();
+        return;
+      }
+      if (!Number.isFinite(amount) || amount <= 0 || amount > available) {
+        result.className = 'result-box notice';
+        result.textContent = `Enter an amount between $0.01 and ${usd.format(available)}.`;
+        status.textContent = IDLE_STATUS;
+        amountInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      cancelBtn.disabled = true;
+      transferFields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Transferring\u2026';
+      status.textContent = 'Transferring\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const fromLabel = label(fromAccount);
+      const toLabel = label(toAccount);
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Transfer not completed.');
+        if (!data || !data.receipt) throw new Error('Transfer outcome unknown.');
+        const completedAt = new Date(data.receipt.timestamp);
+        result.className = 'result-box success';
+        result.textContent = `Transfer complete at ${timeFmt.format(completedAt)}. ${usd.format(Number(data.receipt.amount))} moved from ${fromLabel} to ${toLabel}. Reference ${data.receipt.receiptId}. It\u2019s in your transactions now.`;
+        status.textContent = 'Transfer complete.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'Something went wrong and the transfer didn\u2019t go through. No money has moved. Please try again in a moment.';
+          status.textContent = 'Transfer not completed.';
+        } else {
+          result.textContent = 'We couldn\u2019t confirm this transfer. Check your transactions before trying again so it isn\u2019t sent twice.';
+          status.textContent = 'Transfer not confirmed.';
+        }
+      } finally {
+        transferFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        cancelBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
