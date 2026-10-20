@@ -344,7 +344,8 @@ describe('manabiba skin (4875267e) Japanese locale', () => {
 
   test('opts into Japanese alerts and a Japanese Devin session', () => {
     const skin = getOncallSkin('4875267e');
-    expect(skin).toMatchObject({ vertical: 'hightech', locale: 'ja', alertDestination: 'slack' });
+    expect(skin).toMatchObject({ vertical: 'hightech', locale: 'ja' });
+    expect(skin.alertDestination).toBeUndefined();
     expect(skin.devinSession).toMatchObject({ auto: true, onCallIsTriggerer: true });
     const prompt = buildOncallSessionPrompt(ALERT_SCENARIOS.hightech, skin, 'ref-1');
     expect(prompt).toContain('p95レイテンシ上昇中');
