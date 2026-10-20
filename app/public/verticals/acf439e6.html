@@ -154,7 +154,7 @@
       <div>
         <p class="eyebrow">Transfers</p>
         <h1 id="hero-title">Move money, fast</h1>
-        <p class="lead">Transfer between your Revolut accounts in seconds, for $0. Your available balance updates as soon as the transfer completes.</p>
+        <p class="lead">Transfer between your Revolut accounts in seconds. Any fee and your updated balance are shown as soon as the transfer completes.</p>
       </div>
       <div class="balance">
         <p class="label">Personal</p>
@@ -173,8 +173,8 @@
             <div class="field">
               <label for="fromAccount">From</label>
               <select id="fromAccount">
-                <option value="ACCT-1001" data-name="Personal" data-num="USD &middot; 2841" data-balance="6012.40">Personal &middot; USD &middot; $6,012.40</option>
-                <option value="ACCT-1004" data-name="Joint" data-num="USD &middot; 7730" data-balance="2340.18">Joint &middot; USD &middot; $2,340.18</option>
+                <option value="ACCT-1001" data-name="Personal" data-num="USD &middot; 2841">Personal &middot; USD &middot; $6,012.40</option>
+                <option value="ACCT-1004" data-name="Joint" data-num="USD &middot; 7730">Joint &middot; USD &middot; $2,340.18</option>
               </select>
             </div>
             <div class="field">
@@ -203,10 +203,10 @@
               <div><dt>From</dt><dd id="reviewFrom">&mdash;</dd></div>
               <div><dt>To</dt><dd id="reviewTo">&mdash;</dd></div>
               <div><dt>Amount</dt><dd id="reviewAmount">&mdash;</dd></div>
-              <div><dt>Fee</dt><dd>$0.00</dd></div>
+              <div><dt>Fee</dt><dd id="reviewFee">Shown on confirmation</dd></div>
               <div><dt>Arrives</dt><dd id="reviewDate">&mdash;</dd></div>
             </dl>
-            <p class="fine">Transfers between your own Revolut accounts are free and usually arrive instantly.</p>
+            <p class="fine">Transfers between your own Revolut accounts usually arrive instantly. Any fee is shown on your confirmation and in your transactions.</p>
             <div class="actions">
               <button type="submit" id="submitBtn" class="submit-btn">Transfer</button>
               <button type="reset" id="cancelBtn" class="cancel-btn">Cancel</button>
@@ -220,9 +220,9 @@
           <div class="panel" id="accounts">
             <h3>Accounts</h3>
             <ul class="accounts">
-              <li><span class="acct"><span class="acct-dot" aria-hidden="true">$</span><span><span class="acct-name">Personal</span><span class="acct-num">USD &middot; 2841</span></span></span><span class="acct-bal">$6,012.40<small>Available</small></span></li>
-              <li><span class="acct"><span class="acct-dot" aria-hidden="true">J</span><span><span class="acct-name">Joint</span><span class="acct-num">USD &middot; 7730</span></span></span><span class="acct-bal">$2,340.18<small>Available</small></span></li>
-              <li><span class="acct"><span class="acct-dot" aria-hidden="true">%</span><span><span class="acct-name">Savings</span><span class="acct-num">High-Yield &middot; 3.75% APY</span></span></span><span class="acct-bal">$18,250.00<small>Balance</small></span></li>
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">$</span><span><span class="acct-name">Personal</span><span class="acct-num">USD &middot; 2841</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1001">$6,012.40</span><small>Available</small></span></li>
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">J</span><span><span class="acct-name">Joint</span><span class="acct-num">USD &middot; 7730</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1004">$2,340.18</span><small>Available</small></span></li>
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">%</span><span><span class="acct-name">Savings</span><span class="acct-num">High-Yield &middot; 3.75% APY</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1002">$18,250.00</span><small>Balance</small></span></li>
             </ul>
           </div>
           <div class="panel promo">
@@ -276,6 +276,8 @@
     const reviewFrom = document.getElementById('reviewFrom');
     const reviewTo = document.getElementById('reviewTo');
     const reviewAmount = document.getElementById('reviewAmount');
+    const reviewFee = document.getElementById('reviewFee');
+    const heroBalance = document.getElementById('heroBalance');
     const reviewDate = document.getElementById('reviewDate');
     const transferFields = [fromAccount, toAccount, amountInput, document.getElementById('accountTier')];
     const timer = document.getElementById('sendTimer');
@@ -286,7 +288,19 @@
     let pending = false;
     const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
     const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+    const balances = { 'ACCT-1001': 6012.40, 'ACCT-1004': 2340.18, 'ACCT-1002': 18250.00 };
+    const FEE_PENDING = 'Shown on confirmation';
     function selected(select) { return select.options[select.selectedIndex]; }
+    function available() { return balances[fromAccount.value] || 0; }
+    function renderBalances() {
+      [fromAccount, toAccount].forEach((select) => {
+        Array.from(select.options).forEach((opt) => {
+          opt.textContent = `${opt.dataset.name} \u00b7 ${opt.dataset.num.replace('&middot;', '\u00b7')} \u00b7 ${usd.format(balances[opt.value] || 0)}`;
+        });
+      });
+      document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = usd.format(balances[el.dataset.balanceFor] || 0); });
+      heroBalance.textContent = usd.format(balances['ACCT-1001']);
+    }
     function label(select) { const d = selected(select).dataset; return `${d.name} \u00b7 ${d.num}`; }
     function parsedAmount() {
       const raw = amountInput.value.trim();
@@ -307,13 +321,13 @@
       timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
     }
     function renderReview() {
-      const available = Number(selected(fromAccount).dataset.balance);
       const amount = parsedAmount();
-      const valid = Number.isFinite(amount) && amount > 0 && amount <= available;
-      amountHelp.textContent = `Available: ${usd.format(available)}`;
+      const valid = Number.isFinite(amount) && amount > 0 && amount <= available();
+      amountHelp.textContent = `Available: ${usd.format(available())}`;
       reviewFrom.textContent = label(fromAccount);
       reviewTo.textContent = label(toAccount);
       reviewAmount.textContent = valid ? usd.format(amount) : '\u2014';
+      reviewFee.textContent = FEE_PENDING;
       reviewDate.textContent = 'Instantly';
     }
     [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
@@ -327,12 +341,13 @@
         renderReview();
       });
     });
+    renderBalances();
     renderReview();
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (pending) return;
       const amount = parsedAmount();
-      const available = Number(selected(fromAccount).dataset.balance);
+      const availableNow = available();
       if (fromAccount.value === toAccount.value) {
         result.className = 'result-box notice';
         result.textContent = 'Choose a different account to transfer to. Money can\u2019t be moved into the account it comes from.';
@@ -340,9 +355,9 @@
         toAccount.focus();
         return;
       }
-      if (!Number.isFinite(amount) || amount <= 0 || amount > available) {
+      if (!Number.isFinite(amount) || amount <= 0 || amount > availableNow) {
         result.className = 'result-box notice';
-        result.textContent = `Enter an amount between $0.01 and ${usd.format(available)}.`;
+        result.textContent = `Enter an amount between $0.01 and ${usd.format(availableNow)}.`;
         status.textContent = IDLE_STATUS;
         amountInput.focus();
         return;
@@ -357,6 +372,8 @@
       result.textContent = '';
       const fromLabel = label(fromAccount);
       const toLabel = label(toAccount);
+      const fromId = fromAccount.value;
+      const toId = toAccount.value;
       const started = startTimer();
       let response;
       try {
@@ -377,8 +394,16 @@
         if (!response.ok) throw new Error('Transfer not completed.');
         if (!data || !data.receipt) throw new Error('Transfer outcome unknown.');
         const completedAt = new Date(data.receipt.timestamp);
+        const moved = Number(data.receipt.amount);
+        const fee = Number(data.fee ?? data.receipt.fee ?? 0);
+        const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? moved + fee);
+        balances[fromId] = Math.max(0, (balances[fromId] || 0) - debited);
+        balances[toId] = (balances[toId] || 0) + moved;
+        renderBalances();
+        renderReview();
+        reviewFee.textContent = usd.format(fee);
         result.className = 'result-box success';
-        result.textContent = `Transfer complete at ${timeFmt.format(completedAt)}. ${usd.format(Number(data.receipt.amount))} moved from ${fromLabel} to ${toLabel}. Reference ${data.receipt.receiptId}. It\u2019s in your transactions now.`;
+        result.textContent = `Transfer complete at ${timeFmt.format(completedAt)}. ${usd.format(moved)} moved from ${fromLabel} to ${toLabel}. Fee ${usd.format(fee)}; ${usd.format(debited)} debited from ${fromLabel}. Reference ${data.receipt.receiptId}. It\u2019s in your transactions now.`;
         status.textContent = 'Transfer complete.';
       } catch (_error) {
         result.className = 'result-box notice';
