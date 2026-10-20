@@ -2,12 +2,16 @@
 jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn().mockResolvedValue({ triggered: true }),
 }));
+jest.mock('../app/services/security-remediation-session', () => ({
+  scheduleSecuritySession: jest.fn(),
+}));
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: { captureException: jest.fn() },
 }));
 
 const { Sentry } = require('../app/telemetry/sentry');
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { scheduleSecuritySession } = require('../app/services/security-remediation-session');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const {
   generateScorecard,
@@ -35,10 +39,11 @@ const failingScorecard = {
 describe('RatingsDirect security remediation timing', () => {
   beforeEach(() => {
     createSessionAndAlert.mockClear();
+    scheduleSecuritySession.mockClear();
     Sentry.captureException.mockClear();
   });
 
-  test('delays the separate remediation flow by one minute', async () => {
+  test('skips the Sonar PR chain and schedules the direct security session', async () => {
     await expect(generateScorecard(failingScorecard)).rejects.toThrow(
       "Cannot read properties of undefined (reading 'anchorMatrix')",
     );
@@ -46,12 +51,15 @@ describe('RatingsDirect security remediation timing', () => {
     expect(createSessionAndAlert).toHaveBeenCalledWith(
       expect.objectContaining({
         customer: 'ratingsdirect',
-        vulnerablePrDelayMs: 60000,
+        skipVulnerablePr: true,
         devinUserId: 'user-123',
         devinOrgId: 'org-123',
         devinEmail: 'presenter@example.com',
       }),
     );
+    expect(scheduleSecuritySession).toHaveBeenCalledWith({
+      customer: 'ratingsdirect', devinUserId: 'user-123', devinOrgId: 'org-123',
+    });
   });
 
   test('does not start an alert or remediation flow for a healthy issuer', async () => {
@@ -64,6 +72,7 @@ describe('RatingsDirect security remediation timing', () => {
     });
 
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(scheduleSecuritySession).not.toHaveBeenCalled();
   });
 
   test('tags the Sentry event so the issue webhook does not alert a second time', async () => {
