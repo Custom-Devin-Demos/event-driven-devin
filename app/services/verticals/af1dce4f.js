@@ -9,9 +9,9 @@ const SERVICE = 'af1dce4f-api';
 const ROUTE = '/api/af1dce4f/fleet-health/report';
 
 const CUSTOMERS = [
-  { id: 'AIR-A', name: 'Airline A', type: 'Airline', region: 'North America', fleet: 'LEAP-1B · GEnx-1B', engines: 6, apps: ['fleet-health', 'shop-visit-planner'] },
-  { id: 'AIR-B', name: 'Airline B', type: 'Airline', region: 'Europe', fleet: 'LEAP-1B · GE90-115B', engines: 8, apps: ['fleet-health', 'parts-desk'] },
-  { id: 'LES-C', name: 'Lessor C', type: 'Lessor', region: 'Ireland', fleet: 'LEAP-1B · CF34-8E · GEnx-1B', engines: 6, apps: ['fleet-health', 'shop-visit-planner'] },
+  { id: 'AIR-A', name: 'Airline A', type: 'Airline', region: 'North America', fleet: 'LEAP-1B · NX-1B', engines: 6, apps: ['fleet-health', 'shop-visit-planner'] },
+  { id: 'AIR-B', name: 'Airline B', type: 'Airline', region: 'Europe', fleet: 'LEAP-1B · NX-115B', engines: 8, apps: ['fleet-health', 'parts-desk'] },
+  { id: 'LES-C', name: 'Lessor C', type: 'Lessor', region: 'Ireland', fleet: 'LEAP-1B · RJ-8E · NX-1B', engines: 6, apps: ['fleet-health', 'shop-visit-planner'] },
 ];
 
 const AGENTS = [
