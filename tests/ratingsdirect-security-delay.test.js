@@ -81,6 +81,10 @@ describe('RatingsDirect security remediation timing', () => {
       tags: [],
     })).toBe(true);
     expect(isInstantPathEvent({
+      culprit: 'calculateAnchorScore(app.services.verticals.ratingsdirect)',
+      tags: [],
+    })).toBe(true);
+    expect(isInstantPathEvent({
       culprit: '',
       tags: [{ key: 'alert_path', value: 'instant' }, { key: 'route', value: '/api/ratingsdirect/scorecard' }],
     })).toBe(true);
