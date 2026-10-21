@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ordre de virement | BDFdirect — Banque de France</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #006FD8;
+      --ink: #212529;
+      --surface: #FFFFFF;
+      --chrome-bg: #001E60;
+      --chrome-text: #FFFFFF;
+      --navy-deep: #001136;
+      --navy-mid: #061B4A;
+      --royal: #003DA5;
+      --sky: #EEF6F8;
+      --mist: #E8F0F9;
+      --line: #C1C7D0;
+      --muted: #647688;
+      --rouge: #E20D38;
+      --ok: #004F59;
+      --ok-bg: #E6F4F1;
+      --warn-bg: #FBE7EB;
+      --radius: 16px;
+      --shadow: 0 2px 12px rgba(0, 17, 54, .08);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 16px/1.5 "Inter", "Segoe UI", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1320px; margin: auto; padding: 0 24px; }
+    .topbar { background: var(--navy-deep); color: var(--chrome-text); font-size: 14px; }
+    .topbar .wrap { display: flex; align-items: center; justify-content: flex-end; gap: 28px; min-height: 40px; }
+    .topbar a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; color: var(--chrome-text); opacity: .9; }
+    .topbar a:hover { opacity: 1; text-decoration: underline; }
+    .topbar .lang { font-weight: 600; letter-spacing: .04em; }
+    .gnav { background: var(--surface); border-bottom: 1px solid #E4E4E4; }
+    .gnav .wrap { display: flex; align-items: center; min-height: 96px; gap: 32px; }
+    .logo { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; text-decoration: none; color: var(--chrome-bg); }
+    .logo .mark { width: 48px; height: 48px; border-radius: 6px; background: var(--chrome-bg); display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 26px; letter-spacing: -.04em; position: relative; overflow: hidden; }
+    .logo .mark::after { content: ""; position: absolute; right: -10px; bottom: -10px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); opacity: .9; }
+    .logo .words { display: flex; flex-direction: column; line-height: 1.05; }
+    .logo .words strong { font-size: 19px; font-weight: 700; letter-spacing: -.01em; }
+    .logo .words span { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-top: 3px; }
+    .gnav-links { display: flex; align-items: center; gap: 28px; margin-left: 8px; }
+    .gnav-links a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-size: 15px; font-weight: 600; color: var(--navy-deep); border-bottom: 3px solid transparent; }
+    .gnav-links a.current, .gnav-links a:hover { border-bottom-color: var(--accent); }
+    .gnav-cta { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 10px 24px; border-radius: 32px; font-size: 16px; font-weight: 600; text-decoration: none; border: 1px solid var(--accent); line-height: 1.2; }
+    .btn-fill { background: var(--accent); color: var(--chrome-text); }
+    .btn-fill:hover { background: color-mix(in srgb, var(--accent) 85%, var(--navy-deep)); border-color: color-mix(in srgb, var(--accent) 85%, var(--navy-deep)); }
+    .btn-ghost { background: transparent; color: var(--accent); }
+    .btn-ghost:hover { background: var(--mist); }
+    .portal { background: var(--chrome-bg); color: var(--chrome-text); }
+    .portal .wrap { display: flex; align-items: center; gap: 28px; min-height: 56px; font-size: 15px; }
+    .portal .brand { font-weight: 700; letter-spacing: .02em; display: inline-flex; align-items: center; gap: 10px; }
+    .portal .brand small { font-weight: 500; opacity: .75; }
+    .portal nav { display: flex; gap: 24px; }
+    .portal nav a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; opacity: .85; font-weight: 500; }
+    .portal nav a.current, .portal nav a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 6px; }
+    .portal .who { margin-left: auto; opacity: .85; font-size: 14px; }
+    .hero { background: linear-gradient(110deg, var(--navy-deep) 0%, var(--chrome-bg) 48%, var(--royal) 100%); color: var(--chrome-text); position: relative; overflow: hidden; }
+    .hero::after { content: ""; position: absolute; right: -120px; top: -160px; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(0, 111, 216, .55), rgba(0, 111, 216, 0) 70%); pointer-events: none; }
+    .hero .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 32px; padding-top: 44px; padding-bottom: 44px; }
+    .crumbs { margin: 0 0 14px; font-size: 14px; opacity: .85; display: flex; flex-wrap: wrap; gap: 8px; }
+    .crumbs a { text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; margin: -12px 0; }
+    .crumbs a:hover { text-decoration: underline; }
+    h1 { margin: 0; font-size: 40px; font-weight: 700; line-height: 1.15; letter-spacing: -.01em; }
+    .hero p.lead { margin: 12px 0 0; font-size: 17px; max-width: 640px; opacity: .92; }
+    .hero-total { background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .25); border-radius: var(--radius); padding: 18px 24px; min-width: 280px; }
+    .hero-total small { display: block; font-size: 13px; opacity: .8; }
+    .hero-total strong { display: block; font-size: 28px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .hero-total em { display: block; font-style: normal; font-size: 13px; opacity: .8; margin-top: 4px; }
+    main { background: var(--sky); padding: 40px 0 64px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: 28px; align-items: start; }
+    .panel { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px; }
+    .panel h2 { margin: 0; font-size: 26px; font-weight: 700; color: var(--navy-deep); }
+    .panel h3 { margin: 0 0 12px; font-size: 18px; font-weight: 700; color: var(--navy-deep); }
+    .panel .sub { margin: 8px 0 24px; color: var(--muted); }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+    .field label { font-weight: 600; font-size: 15px; color: var(--navy-deep); }
+    .field select, .field input { min-height: 48px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); width: 100%; }
+    .field select:focus, .field input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+    .field small { color: var(--muted); font-size: 13px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap input { padding-right: 44px; font-variant-numeric: tabular-nums; }
+    .amount-wrap::after { content: "€"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 600; }
+    .review { margin: 8px 0 20px; padding: 18px 20px; border-radius: 12px; background: var(--mist); display: grid; gap: 10px; }
+    .review > div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+    .review dt { color: var(--muted); font-weight: 500; }
+    .review dd { margin: 0; font-weight: 600; text-align: right; color: var(--navy-deep); font-variant-numeric: tabular-nums; }
+    .fine { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .submit-btn { min-height: 52px; padding: 12px 32px; border-radius: 32px; border: 1px solid var(--accent); background: var(--accent); color: var(--chrome-text); font-weight: 600; font-size: 16px; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 85%, var(--navy-deep)); }
+    .submit-btn:disabled { opacity: .7; cursor: progress; }
+    .cancel-btn { min-height: 52px; padding: 12px 24px; border-radius: 32px; border: 1px solid var(--line); background: #fff; color: var(--navy-deep); font-weight: 600; }
+    .cancel-btn:hover { background: var(--mist); }
+    .stopwatch { display: none; margin-top: 18px; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 10px; border: 1px dashed var(--line); font-size: 14px; color: var(--muted); }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-value { font-weight: 700; font-size: 20px; color: var(--navy-deep); font-variant-numeric: tabular-nums; }
+    .status { margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+    .result-box { margin-top: 16px; padding: 0; border-radius: 12px; font-size: 15px; line-height: 1.5; }
+    .result-box:not(:empty) { padding: 16px 18px; }
+    .result-box.success { background: var(--ok-bg); color: var(--ok); border: 1px solid color-mix(in srgb, var(--ok) 30%, #fff); }
+    .result-box.notice { background: var(--warn-bg); color: #7A0A20; border: 1px solid color-mix(in srgb, var(--rouge) 30%, #fff); }
+    aside { display: grid; gap: 20px; }
+    .accounts { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+    .accounts li { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; border-top: 1px solid #E4E4E4; }
+    .accounts li:first-child { border-top: 0; padding-top: 0; }
+    .acct { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .acct-dot { width: 40px; height: 40px; border-radius: 10px; background: var(--chrome-bg); color: #fff; display: grid; place-items: center; font-weight: 700; flex: none; }
+    .acct-dot.reserve { background: var(--accent); }
+    .acct-name { display: block; font-weight: 600; color: var(--navy-deep); }
+    .acct-num { display: block; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .acct-bal { text-align: right; flex: none; }
+    .acct-bal span { display: block; font-weight: 700; color: var(--navy-deep); font-variant-numeric: tabular-nums; }
+    .acct-bal small { color: var(--muted); font-size: 12px; }
+    .info { border-left: 4px solid var(--accent); }
+    .info p { margin: 0 0 10px; font-size: 15px; }
+    .info p:last-child { margin: 0; }
+    .info a { color: var(--accent); font-weight: 600; display: inline-flex; align-items: center; min-height: 44px; margin: -12px 0; }
+    .contact dl { margin: 0; display: grid; gap: 10px; }
+    .contact dt { font-size: 13px; color: var(--muted); }
+    .contact dd { margin: 0; font-weight: 600; color: var(--navy-deep); }
+    footer { background: var(--chrome-bg); color: var(--chrome-text); }
+    .newsletter { border-bottom: 1px solid rgba(255, 255, 255, .25); }
+    .newsletter .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; padding-top: 36px; padding-bottom: 36px; }
+    .newsletter p { margin: 0; font-size: 20px; font-weight: 600; max-width: 620px; }
+    .foot-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; padding: 44px 0 36px; }
+    .foot-cols h4 { margin: 0 0 14px; font-size: 14px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .8; }
+    .foot-cols ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+    .foot-cols a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-size: 15px; opacity: .9; }
+    .foot-cols a:hover { opacity: 1; text-decoration: underline; }
+    .legal-band { background: var(--navy-deep); color: var(--chrome-text); font-size: 13px; }
+    .legal-band .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; min-height: 56px; padding-top: 10px; padding-bottom: 10px; }
+    .legal-band a { text-decoration: none; opacity: .85; margin-right: 20px; display: inline-flex; align-items: center; min-height: 44px; }
+    .legal-band a:hover { opacity: 1; text-decoration: underline; }
+    @media (max-width: 1080px) {
+      .gnav-links { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      .hero .wrap { grid-template-columns: 1fr; align-items: start; }
+      .foot-cols { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .wrap { padding: 0 16px; }
+      .topbar .wrap { justify-content: space-between; gap: 12px; }
+      .topbar a.hide-sm { display: none; }
+      .gnav .wrap { min-height: 76px; gap: 12px; }
+      .gnav-cta .btn-ghost { display: none; }
+      .portal .wrap { flex-wrap: wrap; gap: 4px 20px; padding-top: 8px; padding-bottom: 8px; }
+      .portal nav { gap: 16px; }
+      .portal .who { display: none; }
+      h1 { font-size: 30px; }
+      .hero .wrap { padding-top: 28px; padding-bottom: 28px; }
+      .hero-total { min-width: 0; width: 100%; }
+      main { padding: 20px 0 40px; }
+      .panel { padding: 20px; border-radius: 12px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .actions .submit-btn, .actions .cancel-btn { width: 100%; }
+      .foot-cols { grid-template-columns: 1fr; gap: 20px; padding: 28px 0; }
+      .newsletter p { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="wrap">
+      <a href="https://www.banque-france.fr/fr/nous-contacter" target="_blank" rel="noopener noreferrer">Nous contacter</a>
+      <a class="hide-sm" href="https://www.banque-france.fr/fr/nous-trouver" target="_blank" rel="noopener noreferrer">Nous trouver</a>
+      <a class="lang" href="#" aria-label="Langue : français">FR</a>
+    </div>
+  </div>
+  <header class="gnav">
+    <div class="wrap">
+      <a class="logo" href="https://www.banque-france.fr/fr" target="_blank" rel="noopener noreferrer" aria-label="Banque de France — Eurosystème">
+        <span class="mark" aria-hidden="true">B</span>
+        <span class="words"><strong>Banque de France</strong><span>Eurosystème</span></span>
+      </a>
+      <nav class="gnav-links" aria-label="Navigation principale">
+        <a href="https://www.banque-france.fr/fr/la-banque-de-france" target="_blank" rel="noopener noreferrer">La Banque de France</a>
+        <a class="current" href="https://www.banque-france.fr/fr/a-votre-service/banques-centrales-et-institutions-publiques/compte-especes-moyens-paiement" target="_blank" rel="noopener noreferrer">À votre service</a>
+        <a href="https://www.banque-france.fr/fr/strategie-monetaire" target="_blank" rel="noopener noreferrer">Stratégie monétaire</a>
+        <a href="https://www.banque-france.fr/fr/stabilite-financiere" target="_blank" rel="noopener noreferrer">Stabilité financière</a>
+        <a href="https://www.banque-france.fr/fr/publications-et-statistiques" target="_blank" rel="noopener noreferrer">Statistiques</a>
+      </nav>
+      <div class="gnav-cta">
+        <a class="btn btn-ghost" href="https://www.banque-france.fr/fr/a-votre-service/banques-centrales-et-institutions-publiques/compte-especes-moyens-paiement" target="_blank" rel="noopener noreferrer">Services bancaires</a>
+        <a class="btn btn-fill" href="#virement">BDFdirect</a>
+      </div>
+    </div>
+  </header>
+  <div class="portal">
+    <div class="wrap">
+      <span class="brand">BDFdirect <small>Services bancaires</small></span>
+      <nav aria-label="BDFdirect">
+        <a href="#comptes">Comptes</a>
+        <a class="current" href="#virement">Virements</a>
+        <a href="#comptes">Relevés</a>
+      </nav>
+      <span class="who">Utilisateur habilité · Trésorerie</span>
+    </div>
+  </div>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="crumbs"><a href="#virement">BDFdirect</a><span>›</span><a href="#virement">Virements</a><span>›</span><span>Nouvel ordre</span></p>
+        <h1>Ordre de virement</h1>
+        <p class="lead">Transférez des fonds entre les comptes espèces tenus par la Banque de France au nom de votre institution. Les ordres passés aux heures d’ouverture du service sont exécutés immédiatement.</p>
+      </div>
+      <div class="hero-total">
+        <small>Solde total des comptes espèces</small>
+        <strong id="heroBalance">0,00 €</strong>
+        <em>Mis à jour en temps réel</em>
+      </div>
+    </div>
+  </section>
+  <main id="virement">
+    <div class="wrap">
+      <div class="layout">
+        <section class="panel" aria-labelledby="form-title">
+          <h2 id="form-title">Nouvel ordre de virement</h2>
+          <p class="sub">Choisissez le compte à débiter, le compte à créditer et le montant.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">Compte à débiter</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Compte espèces principal" data-num="FR76 3000 1007 ···· 4471">Compte espèces principal</option>
+                <option value="ACCT-1002" data-name="Compte espèces de réserve" data-num="FR76 3000 1007 ···· 8832">Compte espèces de réserve</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">Compte à créditer</label>
+              <select id="toAccount">
+                <option value="ACCT-1002" data-name="Compte espèces de réserve" data-num="FR76 3000 1007 ···· 8832">Compte espèces de réserve</option>
+                <option value="ACCT-1001" data-name="Compte espèces principal" data-num="FR76 3000 1007 ···· 4471">Compte espèces principal</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Montant</label>
+                <div class="amount-wrap"><input type="number" id="amount" min="0.01" step="0.01" value="25000.00" inputmode="decimal" required aria-describedby="amountHelp"></div>
+                <small id="amountHelp">Disponible : 0,00 €</small>
+              </div>
+              <div class="field">
+                <label for="accountTier">Exécution</label>
+                <select id="accountTier">
+                  <option value="standard">Immédiate</option>
+                </select>
+                <small>Les ordres différés se programment depuis l’onglet Virements.</small>
+              </div>
+            </div>
+            <dl class="review" aria-label="Récapitulatif de l’ordre">
+              <div><dt>Compte à débiter</dt><dd id="reviewFrom">—</dd></div>
+              <div><dt>Compte à créditer</dt><dd id="reviewTo">—</dd></div>
+              <div><dt>Montant</dt><dd id="reviewAmount">—</dd></div>
+              <div><dt>Commission</dt><dd id="reviewFee">Indiquée sur l’avis d’exécution</dd></div>
+              <div><dt>Date d’exécution</dt><dd id="reviewDate">—</dd></div>
+            </dl>
+            <p class="fine">La commission applicable à votre convention de services bancaires figure sur l’avis d’exécution et sur votre relevé de compte.</p>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Valider l’ordre</button>
+              <button type="reset" id="cancelBtn" class="cancel-btn">Annuler</button>
+            </div>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Délai de confirmation</span><span class="sw-value" id="sendTimerValue">0,0 s</span></div>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Comptes de démonstration. Aucun fonds n’est déplacé depuis cette page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="panel" id="comptes">
+            <h3>Vos comptes espèces</h3>
+            <ul class="accounts">
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">P</span><span><span class="acct-name">Compte espèces principal</span><span class="acct-num">FR76 3000 1007 ···· 4471</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1001">0,00 €</span><small>Disponible</small></span></li>
+              <li><span class="acct"><span class="acct-dot reserve" aria-hidden="true">R</span><span><span class="acct-name">Compte espèces de réserve</span><span class="acct-num">FR76 3000 1007 ···· 8832</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1002">0,00 €</span><small>Disponible</small></span></li>
+            </ul>
+          </div>
+          <div class="panel info">
+            <h3>Compte espèces et moyens de paiement</h3>
+            <p>Banquier de l’État et de clients institutionnels, la Banque de France tient vos comptes espèces et exécute vos ordres de virement depuis ses sites actif-actif de Paris et de Poitiers.</p>
+            <p><a href="https://www.banque-france.fr/fr/a-votre-service/banques-centrales-et-institutions-publiques/compte-especes-moyens-paiement" target="_blank" rel="noopener noreferrer">Connaître l’offre de services bancaires</a></p>
+          </div>
+          <div class="panel contact">
+            <h3>Support technique BDFdirect</h3>
+            <dl>
+              <div><dt>Par téléphone</dt><dd>01 42 92 62 62</dd></div>
+              <div><dt>Par mail</dt><dd>Contacter le service</dd></div>
+              <div><dt>Habilitations</dt><dd>Formulaires BDFdirect n°3 et n°5</dd></div>
+            </dl>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="newsletter">
+      <div class="wrap">
+        <p>Inscrivez-vous à notre lettre d’information et abonnez-vous aux dernières alertes de publication</p>
+        <a class="btn btn-ghost" style="border-color:#fff;color:#fff" href="https://www.banque-france.fr/fr" target="_blank" rel="noopener noreferrer">S’inscrire</a>
+      </div>
+    </div>
+    <div class="wrap foot-cols">
+      <div>
+        <h4>La Banque de France</h4>
+        <ul>
+          <li><a href="https://www.banque-france.fr/fr/la-banque-de-france" target="_blank" rel="noopener noreferrer">La Banque de France</a></li>
+          <li><a href="https://www.banque-france.fr/fr/a-votre-service" target="_blank" rel="noopener noreferrer">À votre service</a></li>
+          <li><a href="https://www.banque-france.fr/fr/strategie-monetaire" target="_blank" rel="noopener noreferrer">Stratégie monétaire</a></li>
+          <li><a href="https://www.banque-france.fr/fr/stabilite-financiere" target="_blank" rel="noopener noreferrer">Stabilité financière</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Publications et statistiques</h4>
+        <ul>
+          <li><a href="https://www.banque-france.fr/fr/publications-et-statistiques" target="_blank" rel="noopener noreferrer">Publications et recherche</a></li>
+          <li><a href="https://www.banque-france.fr/fr/publications-et-statistiques" target="_blank" rel="noopener noreferrer">Statistiques</a></li>
+          <li><a href="https://www.banque-france.fr/fr/actualites-et-evenements" target="_blank" rel="noopener noreferrer">Actualités et événements</a></li>
+          <li><a href="https://www.banque-france.fr/fr/nous-rejoindre" target="_blank" rel="noopener noreferrer">Nous rejoindre</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Nous contacter</h4>
+        <ul>
+          <li><a href="https://www.banque-france.fr/fr/nous-contacter" target="_blank" rel="noopener noreferrer">Nous contacter</a></li>
+          <li><a href="https://www.banque-france.fr/fr/espace-presse" target="_blank" rel="noopener noreferrer">Espace presse</a></li>
+          <li><a href="https://www.banque-france.fr/fr/glossaire" target="_blank" rel="noopener noreferrer">Glossaire</a></li>
+          <li><a href="https://www.banque-france.fr/fr/faqs" target="_blank" rel="noopener noreferrer">FAQs</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="legal-band">
+      <div class="wrap">
+        <span><a href="https://www.banque-france.fr/fr/mentions-legales" target="_blank" rel="noopener noreferrer">Mentions légales</a><a href="https://www.banque-france.fr/fr/accessibilite" target="_blank" rel="noopener noreferrer">Accessibilité : partiellement conforme</a><a href="https://www.banque-france.fr/fr/protection-des-donnees" target="_blank" rel="noopener noreferrer">Protection des données</a><a href="https://www.banque-france.fr/fr/plan-du-site" target="_blank" rel="noopener noreferrer">Plan du site</a></span>
+        <span>©2026 Banque de France</span>
+      </div>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const amountHelp = document.getElementById('amountHelp');
+    const reviewFrom = document.getElementById('reviewFrom');
+    const reviewTo = document.getElementById('reviewTo');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewFee = document.getElementById('reviewFee');
+    const reviewDate = document.getElementById('reviewDate');
+    const heroBalance = document.getElementById('heroBalance');
+    const transferFields = [fromAccount, toAccount, amountInput, document.getElementById('accountTier')];
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    const IDLE_STATUS = 'Comptes de démonstration. Aucun fonds n’est déplacé depuis cette page.';
+    const IDLE_LABEL = 'Valider l’ordre';
+    const FEE_PENDING = 'Indiquée sur l’avis d’exécution';
+    const FEE_RATE = 0.001;
+    const FEE_MIN_CENTS = 250;
+    let timerHandle = null;
+    let pending = false;
+    const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+    const timeFmt = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const dateFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const balanceCents = { 'ACCT-1001': 128435000, 'ACCT-1002': 465000000 };
+    function fromCents(cents) { return eur.format(cents / 100); }
+    function toCents(value) { return Math.round(value * 100); }
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function availableCents() { return balanceCents[fromAccount.value] || 0; }
+    function feeCentsFor(amountCents) { return Math.max(Math.round(amountCents * FEE_RATE), FEE_MIN_CENTS); }
+    function covered(amountCents) { return amountCents + feeCentsFor(amountCents) <= availableCents(); }
+    function maxMoveCents() {
+      const funds = availableCents();
+      const flatCap = funds - FEE_MIN_CENTS;
+      if (flatCap <= 0) return 0;
+      if (covered(flatCap)) return flatCap;
+      let cap = Math.floor(funds / (1 + FEE_RATE));
+      while (cap > 0 && !covered(cap)) cap -= 1;
+      return cap;
+    }
+    function label(select) { return selected(select).dataset.name; }
+    function renderBalances() {
+      [fromAccount, toAccount].forEach((select) => {
+        Array.from(select.options).forEach((opt) => {
+          opt.textContent = `${opt.dataset.name} · ${fromCents(balanceCents[opt.value] || 0)}`;
+        });
+      });
+      document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = fromCents(balanceCents[el.dataset.balanceFor] || 0); });
+      heroBalance.textContent = fromCents(Object.values(balanceCents).reduce((sum, value) => sum + (value || 0), 0));
+    }
+    function parsedAmount() {
+      const raw = amountInput.value.trim();
+      if (!/^\d+([.,]\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw.replace(',', '.'));
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0,0 s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1).replace('.', ',')} s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1).replace('.', ',')} s`;
+    }
+    function renderReview() {
+      const amount = parsedAmount();
+      const amountCents = Number.isFinite(amount) ? toCents(amount) : 0;
+      const valid = amountCents > 0 && covered(amountCents);
+      amountHelp.textContent = `Disponible : ${fromCents(availableCents())} · virement possible jusqu’à ${fromCents(maxMoveCents())}, commission comprise`;
+      reviewFrom.textContent = label(fromAccount);
+      reviewTo.textContent = label(toAccount);
+      reviewAmount.textContent = valid ? fromCents(amountCents) : '—';
+      reviewFee.textContent = valid ? `${fromCents(feeCentsFor(amountCents))} estimée` : FEE_PENDING;
+      reviewDate.textContent = `Immédiate · ${dateFmt.format(new Date())}`;
+    }
+    [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
+    amountInput.addEventListener('input', renderReview);
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        renderReview();
+      });
+    });
+    renderBalances();
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const amount = parsedAmount();
+      const amountCents = Number.isFinite(amount) ? toCents(amount) : 0;
+      const maxNow = maxMoveCents();
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choisissez un compte à créditer différent du compte à débiter.';
+        status.textContent = IDLE_STATUS;
+        toAccount.focus();
+        return;
+      }
+      if (amountCents <= 0 || !covered(amountCents)) {
+        result.className = 'result-box notice';
+        result.textContent = maxNow > 0
+          ? `Saisissez un montant compris entre 0,01 € et ${fromCents(maxNow)}, afin que la commission soit couverte.`
+          : `Le solde du ${label(fromAccount)} ne permet pas de couvrir un virement et sa commission.`;
+        status.textContent = IDLE_STATUS;
+        amountInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      cancelBtn.disabled = true;
+      transferFields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Exécution en cours…';
+      status.textContent = 'Ordre transmis, en attente de confirmation…';
+      result.className = 'result-box';
+      result.textContent = '';
+      const fromLabel = label(fromAccount);
+      const toLabel = label(toAccount);
+      const fromId = fromAccount.value;
+      const toId = toAccount.value;
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Ordre non exécuté.');
+        if (!data || !data.receipt) throw new Error('Résultat inconnu.');
+        const completedAt = new Date(data.receipt.timestamp || data.processedAt || Date.now());
+        const movedCents = toCents(Number(data.receipt.amount));
+        const feeCents = toCents(Number(data.fee ?? data.receipt.fee ?? 0));
+        const debitedCents = toCents(Number(data.debitAmount ?? data.receipt.totalDebit ?? 0)) || movedCents + feeCents;
+        if (data.duplicate) {
+          result.className = 'result-box success';
+          result.textContent = `Cet ordre avait déjà été exécuté : ${fromCents(movedCents)} du ${fromLabel} vers le ${toLabel}, référence ${data.receipt.receiptId}. Aucun second débit n’a été effectué ; vos soldes sont inchangés.`;
+          status.textContent = 'Ordre déjà exécuté.';
+          return;
+        }
+        balanceCents[fromId] = (balanceCents[fromId] || 0) - debitedCents;
+        balanceCents[toId] = (balanceCents[toId] || 0) + movedCents;
+        renderBalances();
+        renderReview();
+        reviewFee.textContent = fromCents(feeCents);
+        result.className = 'result-box success';
+        result.textContent = `Ordre exécuté à ${timeFmt.format(completedAt)}. ${fromCents(movedCents)} virés du ${fromLabel} vers le ${toLabel}. Commission ${fromCents(feeCents)} ; ${fromCents(debitedCents)} débités du ${fromLabel}. Référence ${data.receipt.receiptId}. L’opération figure dès maintenant sur votre relevé.`;
+        status.textContent = 'Ordre exécuté.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'L’ordre n’a pas pu être exécuté et aucun fonds n’a été déplacé. Vos soldes sont inchangés. Veuillez réessayer dans un instant.';
+          status.textContent = 'Ordre non exécuté.';
+        } else {
+          result.textContent = 'Nous n’avons pas pu confirmer cet ordre. Consultez votre relevé avant de le soumettre à nouveau afin d’éviter un double virement.';
+          status.textContent = 'Ordre non confirmé.';
+        }
+      } finally {
+        transferFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        cancelBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
