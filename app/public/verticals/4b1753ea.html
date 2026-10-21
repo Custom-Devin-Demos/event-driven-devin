@@ -348,10 +348,13 @@
     const balances = { 'ACCT-1001': 2418.62, 'ACCT-1002': 1250.00, 'ACCT-1003': 340.00 };
     function selected(select) { return select.options[select.selectedIndex]; }
     function available() { return balances[fromAccount.value] || 0; }
-    function estimatedFee(amount) { return Math.max(FEE_RATE * amount, FEE_MINIMUM); }
+    function toPence(value) { return Math.round(value * 100); }
+    function estimatedFeePence(amountPence) { return Math.max(Math.round(FEE_RATE * amountPence), toPence(FEE_MINIMUM)); }
     function maxMove() {
-      const limit = Math.max(0, available() - FEE_MINIMUM);
-      return Math.floor(Math.min(limit, available() / (1 + FEE_RATE)) * 100) / 100;
+      const availablePence = toPence(available());
+      let pence = Math.max(0, availablePence - toPence(FEE_MINIMUM));
+      while (pence > 0 && pence + estimatedFeePence(pence) > availablePence) pence -= 1;
+      return pence / 100;
     }
     function label(select) { return selected(select).dataset.name; }
     function renderBalances() {
@@ -368,7 +371,11 @@
       if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
       return parseFloat(raw);
     }
-    function covered(amount) { return Number.isFinite(amount) && amount > 0 && amount + estimatedFee(amount) <= available(); }
+    function covered(amount) {
+      if (!Number.isFinite(amount) || amount <= 0) return false;
+      const pence = toPence(amount);
+      return pence + estimatedFeePence(pence) <= toPence(available());
+    }
     function startTimer() {
       const started = performance.now();
       timer.className = 'stopwatch on';
