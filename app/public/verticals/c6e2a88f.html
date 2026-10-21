@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture Review Hub · Cigna Enterprise Architecture</title>
+  <link rel="icon" href="/verticals/c6e2a88f-assets/cigna-logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cg-blue: #0033FF; --cg-blue-dark: #001F99; --cg-blue-deep: #1900BF; --cg-indigo: #110081; --cg-pale: #E6EBFF;
+      --cg-black: #000000; --cg-text: #333333; --cg-muted: #5C5C5C; --cg-input: #696969; --cg-border: #D6D6D6; --cg-band: #F4F4F4; --cg-white: #FFFFFF;
+      --font-sans: "ValueSans-Regular-Pro", "Value Sans Pro", "Inter", system-ui, sans-serif;
+      --font-serif: "ValueSerif-Bold-Pro", "Value Serif Pro", "Source Serif 4", Georgia, serif;
+      --container: 1320px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; overflow-x: hidden; }
+    body { font-family: var(--font-sans); font-size: 16px; line-height: 24px; color: var(--cg-black); background: var(--cg-white); -webkit-font-smoothing: antialiased; }
+    a { color: var(--cg-blue); }
+    button { font: inherit; cursor: pointer; }
+    .container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 60px; }
+    @media (min-width: 1440px) { .container { padding: 0; } }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* Utility row — 114px white */
+    .utility { height: 114px; background: var(--cg-white); }
+    .utility .container { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .utility .logo img { width: 122px; height: 66px; display: block; }
+    .utility-links { display: flex; align-items: center; gap: 24px; list-style: none; margin: 0; padding: 0; font-weight: 600; color: var(--cg-blue); }
+    .utility-links li { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+    .utility-links .prefix { font-weight: 400; color: var(--cg-black); }
+    .utility-links a { text-decoration: none; color: var(--cg-blue); font-weight: 600; }
+    .utility-links a:hover { color: var(--cg-indigo); }
+    .utility-links .divider { width: 1px; height: 18px; background: var(--cg-muted); }
+    .chev { width: 20px; height: 20px; display: inline-block; flex: none; }
+    .chev-16 { width: 16px; height: 16px; }
+
+    /* Primary nav — 76px #0033FF with 4px active underline */
+    .primary-nav { height: 76px; background: var(--cg-blue); color: var(--cg-white); }
+    .primary-nav .container { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .nav-items { display: flex; align-items: stretch; height: 76px; list-style: none; margin: 0; padding: 0; }
+    .nav-items li { position: relative; display: flex; align-items: center; }
+    .nav-items a { display: flex; align-items: center; gap: 6px; height: 76px; padding: 0 16px; color: var(--cg-white); font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .nav-items li.active::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 4px; background: var(--cg-white); }
+    .user-pill { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 160px; height: 44px; border-radius: 900px; border: 2px solid var(--cg-white); background: var(--cg-white); color: var(--cg-blue); font-weight: 600; text-decoration: none; box-shadow: 0 4px 4px 0 var(--cg-blue); }
+    .user-pill:hover { background: var(--cg-pale); border-color: var(--cg-pale); }
+    .menu-toggle { display: none; }
+
+    /* Breadcrumb — 72px */
+    .breadcrumb { height: 72px; }
+    .breadcrumb .container { height: 100%; display: flex; align-items: center; gap: 12px; }
+    .breadcrumb a { font-weight: 600; text-decoration: none; }
+    .breadcrumb .chev-16 { transform: rotate(-90deg); }
+    .breadcrumb span[aria-current] { color: var(--cg-black); }
+
+    /* Body — rail + main */
+    .body .container { display: flex; align-items: stretch; gap: 24px; }
+    .rail { flex: none; width: 280px; background: var(--cg-blue-dark); padding: 24px 0 48px 24px; border-radius: 0 0 0 30px; color: var(--cg-white); }
+    .rail-group { font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: 1px; opacity: 0.72; text-transform: uppercase; padding: 0 16px; margin: 0 0 8px; }
+    .rail-group + .rail-group { margin-top: 24px; }
+    .rail ul { list-style: none; margin: 0 0 16px; padding: 0; }
+    .rail li a { display: flex; align-items: center; height: 48px; padding: 0 16px; color: var(--cg-white); font-weight: 700; text-decoration: none; border-radius: 8px 0 0 8px; }
+    .rail li a:hover { background: rgba(255,255,255,0.08); }
+    .rail li.active a { background: var(--cg-white); color: var(--cg-blue); }
+    main { flex: 1 1 auto; min-width: 0; padding: 24px 0 48px; }
+
+    /* Page header */
+    .page-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+    .eyebrow { font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: 1px; color: var(--cg-text); text-transform: uppercase; margin: 0 0 8px; }
+    h1 { font-family: var(--font-serif); font-weight: 700; font-size: 40px; line-height: 46px; letter-spacing: -0.4px; color: var(--cg-indigo); margin: 0 0 8px; }
+    .lede { color: var(--cg-text); margin: 0; max-width: 720px; }
+    .actions { display: flex; gap: 16px; flex: none; }
+
+    /* Pills */
+    .pill { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 24px; border-radius: 900px; border: 2px solid var(--cg-blue); font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .pill-primary { background: var(--cg-blue); color: var(--cg-white); }
+    .pill-primary:hover { background: var(--cg-blue-dark); border-color: var(--cg-blue-dark); }
+    .pill-secondary { background: transparent; color: var(--cg-blue); }
+    .pill-secondary:hover { background: var(--cg-pale); }
+    .pill[disabled] { opacity: 0.6; cursor: progress; }
+    .pill:focus-visible, .rail a:focus-visible, .nav-items a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--cg-blue); outline-offset: 2px; }
+
+    /* Cards */
+    .record-grid > *, .stack, .side-stack, .card, main { min-width: 0; }
+    .card { background: var(--cg-white); border: 2px solid var(--cg-border); border-radius: 30px; padding: 24px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 24px; }
+    .stat .label { font-size: 20px; line-height: 27px; font-weight: 500; color: var(--cg-blue); margin: 0 0 8px; }
+    .stat .value { font-family: var(--font-serif); font-size: 40px; line-height: 46px; color: var(--cg-indigo); margin: 0 0 8px; }
+    .stat .note { color: var(--cg-text); margin: 0; }
+    .card-title { font-size: 20px; line-height: 27px; font-weight: 500; color: var(--cg-blue); margin: 0 0 16px; }
+    .stack > .card + .card { margin-top: 24px; }
+
+    /* Filter bar */
+    .filter-bar { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+    .search { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px 0 24px; border: 2px solid var(--cg-input); border-radius: 900px; width: 340px; max-width: 100%; }
+    .search input { border: 0; outline: 0; flex: 1; min-width: 0; font: inherit; color: var(--cg-black); background: transparent; }
+    .search input::placeholder { color: var(--cg-input); }
+    .filter { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border: 2px solid var(--cg-blue); border-radius: 900px; background: transparent; color: var(--cg-blue); font-weight: 600; }
+    .filter-bar .clear { margin-left: auto; font-weight: 600; }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; margin: 0 -24px; padding: 0 24px; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { height: 48px; background: var(--cg-band); color: var(--cg-indigo); font-weight: 600; text-align: left; padding: 0 12px; white-space: nowrap; }
+    thead th:first-child { border-radius: 8px 0 0 8px; padding-left: 16px; }
+    thead th:last-child { border-radius: 0 8px 8px 0; }
+    tbody td { padding: 16px 12px; border-bottom: 2px solid var(--cg-band); vertical-align: middle; color: var(--cg-black); }
+    tbody td:first-child { padding-left: 16px; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr { min-height: 56px; }
+    td.ref a { font-weight: 500; }
+    .num { font-variant-numeric: tabular-nums; }
+    .table-foot { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; color: var(--cg-text); }
+    .pager { display: flex; gap: 8px; list-style: none; margin: 0; padding: 0; }
+    .pager button { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--cg-blue); background: transparent; color: var(--cg-blue); font-weight: 600; font-size: 14px; }
+    .pager button.current { background: var(--cg-blue); color: var(--cg-white); }
+
+    /* Status chips */
+    .chip { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 900px; font-size: 14px; line-height: 20px; font-weight: 600; white-space: nowrap; }
+    .chip-success { background: #A1F7A1; color: #00874D; }
+    .chip-warning { background: #FAD6BD; color: #8A2B00; }
+    .chip-danger { background: #F1CCCC; color: #BA0000; }
+    .chip-info { background: var(--cg-pale); color: var(--cg-indigo); }
+    .chip-neutral { background: var(--cg-band); color: var(--cg-text); border: 1px solid var(--cg-border); }
+
+    /* Decision record */
+    .record-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+    .record-head .meta { display: flex; gap: 24px; flex-wrap: wrap; color: var(--cg-text); }
+    .record-head .meta b { color: var(--cg-indigo); margin-right: 6px; }
+    .record-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; align-items: start; }
+    .record-grid .card p { margin: 0 0 12px; color: var(--cg-black); }
+    .record-grid .card p:last-child { margin-bottom: 0; }
+    .numbered { list-style: none; margin: 12px 0 0; padding: 0; }
+    .numbered li { display: flex; gap: 12px; margin-bottom: 8px; }
+    .numbered li span { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--cg-blue); color: var(--cg-white); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+    .details dl { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; }
+    .details dt { font-weight: 600; color: var(--cg-blue); }
+    .details dd { margin: 0; color: var(--cg-text); }
+    .details .pill { width: 100%; margin-top: 8px; }
+    .side-stack .card + .card { margin-top: 24px; }
+
+    /* Form controls */
+    .field { margin-bottom: 20px; }
+    .field label { display: block; font-weight: 600; color: var(--cg-indigo); margin-bottom: 8px; }
+    .field input, .field select { width: 100%; height: 44px; padding: 0 24px; border: 2px solid var(--cg-input); border-radius: 900px; font: inherit; color: var(--cg-black); background: var(--cg-white); }
+    .field select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M4 7.6L10 13.6L16 7.6' stroke='%230033FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 20px center; }
+    .field textarea { width: 100%; min-height: 112px; padding: 16px 24px; border: 2px solid var(--cg-input); border-radius: 30px; font: inherit; color: var(--cg-black); resize: vertical; }
+    .field .help { font-size: 14px; line-height: 20px; color: var(--cg-text); margin: 8px 0 0; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .form-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+    .form-actions .state { color: var(--cg-text); }
+    .alert { border: 2px solid #BA0000; background: #F1CCCC; color: #BA0000; border-radius: 20px 0; padding: 16px 24px; margin-bottom: 24px; }
+    .alert code { font-size: 14px; color: #BA0000; }
+    .alert-success { border-color: #00874D; background: #A1F7A1; color: #00874D; }
+
+    /* Footer */
+    footer { margin-top: 24px; }
+    .footer-top { background: var(--cg-band); padding: 48px 0; }
+    .footer-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .footer-cols h2 { font-size: 16px; line-height: 24px; font-weight: 600; margin: 0 0 8px; color: var(--cg-black); }
+    .footer-cols ul { list-style: none; margin: 0; padding: 0; }
+    .footer-cols li { line-height: 32px; }
+    .footer-cols a { font-weight: 500; text-decoration: underline; }
+    .footer-cols a:hover { color: var(--cg-blue-deep); }
+    .footer-wave { height: 80px; background: var(--cg-indigo); overflow: hidden; }
+    .footer-wave svg { display: block; width: 100%; height: 160px; margin-top: -80px; }
+    .footer-legal { background: var(--cg-indigo); color: var(--cg-white); padding: 0 0 48px; }
+    .footer-legal .copy { margin: 0 0 24px; }
+    .legal-grid { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 24px; }
+    .legal-grid ul { list-style: none; margin: 0; padding: 0; }
+    .legal-grid li { line-height: 42px; }
+    .legal-grid a { color: var(--cg-white); font-weight: 400; text-decoration: underline; }
+    .follow h2 { font-size: 16px; font-weight: 600; margin: 0 0 12px; }
+    .follow .social { display: flex; gap: 12px; }
+    .follow .social span { width: 32px; height: 32px; border: 2px solid var(--cg-white); border-radius: 50%; display: block; }
+    .legal-rule { border: 0; border-top: 1px solid var(--cg-white); margin: 32px 0; }
+    .legal-strip { display: flex; justify-content: space-between; align-items: flex-end; gap: 48px; }
+    .legal-strip p { margin: 0; font-size: 12px; line-height: 18px; max-width: 900px; }
+    .legal-strip p b { display: block; font-size: 16px; line-height: 24px; margin-bottom: 8px; }
+    .legal-strip img { width: 101px; height: 53px; flex: none; }
+
+    /* Toast */
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 50; min-width: 320px; max-width: 480px; background: var(--cg-white); border-radius: 20px 0; box-shadow: 0 8px 6px 0 rgba(0,0,0,.1); padding: 16px 24px; border-left: 6px solid var(--cg-blue); transform: translateY(24px); opacity: 0; transition: all .25s ease; pointer-events: none; }
+    .toast.show { transform: none; opacity: 1; }
+    .toast.error { border-left-color: #BA0000; }
+    .toast.success { border-left-color: #00874D; }
+    .toast b { display: block; color: var(--cg-indigo); font-size: 20px; line-height: 27px; margin-bottom: 4px; }
+    .toast p { margin: 0; color: var(--cg-text); font-size: 16px; line-height: 21px; }
+    .hidden { display: none !important; }
+
+    /* Mobile ≤ 991 */
+    @media (max-width: 991px) {
+      .container { padding: 0 16px; }
+      .utility { height: 98px; }
+      .utility .logo img { width: 96px; height: 52px; }
+      .utility-links li:not(.keep) { display: none; }
+      .utility-links { gap: 16px; }
+      .nav-items { display: none; }
+      .nav-items.open { display: block; position: absolute; left: 0; right: 0; top: 174px; height: auto; background: var(--cg-white); z-index: 40; box-shadow: 0 8px 6px rgba(0,0,0,.1); padding: 8px 0 16px; }
+      .nav-items.open li { display: block; }
+      .nav-items.open a { height: 48px; color: var(--cg-blue); }
+      .nav-items.open li.active::after { display: none; }
+      .nav-items.open li.active a { background: var(--cg-pale); }
+      .primary-nav .container { position: static; }
+      .menu-toggle { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 900px; border: 2px solid var(--cg-white); background: transparent; color: var(--cg-white); font-weight: 600; }
+      .user-pill { width: auto; padding: 0 16px; }
+      .breadcrumb { height: auto; padding: 16px 0; }
+      .breadcrumb .container { flex-wrap: wrap; row-gap: 4px; }
+      .body .container { flex-direction: column; gap: 16px; }
+      .rail { width: auto; border-radius: 0 0 20px 20px; padding: 16px 0 16px 16px; display: flex; gap: 16px; overflow-x: auto; }
+      .rail-group { display: none; }
+      .rail ul { display: flex; gap: 8px; margin: 0; padding-right: 16px; }
+      .rail li a { height: 40px; border-radius: 900px; white-space: nowrap; }
+      main { padding: 8px 0 32px; }
+      .page-header { flex-direction: column; align-items: stretch; }
+      h1 { font-size: 32px; line-height: 38px; }
+      .actions { flex-wrap: wrap; }
+      .actions .pill { flex: 1 1 auto; }
+      .stat-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+      .stat .value { font-size: 32px; line-height: 38px; }
+      .card { padding: 16px; border-radius: 20px; }
+      .table-wrap { margin: 0 -16px; padding: 0 16px; }
+      table { min-width: 720px; }
+      .record-grid { grid-template-columns: 1fr; }
+      .record-head { flex-direction: column; }
+      .record-head .actions .pill { flex: 1 1 auto; }
+      .field-row { grid-template-columns: 1fr; }
+      .footer-cols { grid-template-columns: 1fr 1fr; }
+      .legal-grid { grid-template-columns: 1fr; }
+      .legal-strip { flex-direction: column; align-items: flex-start; gap: 24px; }
+      .toast { left: 16px; right: 16px; bottom: 16px; min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <a class="sr-only" href="#main">Skip to content</a>
+  <header>
+    <div class="utility">
+      <div class="container">
+        <a class="logo" href="#review-queue" aria-label="Cigna Healthcare — Architecture Review Hub"><img src="/verticals/c6e2a88f-assets/cigna-logo.svg" alt="Cigna Healthcare" width="122" height="66"></a>
+        <ul class="utility-links">
+          <li><span class="prefix">For</span> <a href="#review-queue">Submitters</a></li>
+          <li><span class="prefix">For</span> <a href="#review-queue">Reviewers</a><svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="#0033FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></li>
+          <li class="divider" role="separator"></li>
+          <li class="keep"><a href="#review-queue">Search</a><svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M12 7C12 9.76 9.76 12 7 12C4.24 12 2 9.76 2 7C2 4.24 4.24 2 7 2C9.76 2 12 4.24 12 7Z" stroke="#0033FF" stroke-width="2"/><path d="M12.4 12.4L18.4 18.4" stroke="#0033FF" stroke-width="2" stroke-linecap="round"/></svg></li>
+          <li><a href="#review-queue">Help centre</a></li>
+          <li class="keep"><a href="#review-queue">English</a><svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="#0033FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></li>
+        </ul>
+      </div>
+    </div>
+    <nav class="primary-nav" aria-label="Primary">
+      <div class="container">
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="navItems" id="menuToggle">Menu <svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <ul class="nav-items" id="navItems">
+          <li data-nav="submissions"><a href="#review-queue">Submissions <svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+          <li data-nav="review"><a href="#review-queue">Review queue</a></li>
+          <li data-nav="decisions"><a href="#decision/ARB-2026-0142">Decisions <svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+          <li data-nav="standards"><a href="#exceptions">Standards <svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+          <li data-nav="portfolio"><a href="#review-queue">Portfolio <svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
+        </ul>
+        <a class="user-pill" href="#review-queue" id="userPill">Elena M. <svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="#0033FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+    </nav>
+  </header>
+
+  <nav class="breadcrumb" aria-label="Breadcrumb"><div class="container" id="crumbs"></div></nav>
+
+  <div class="body">
+    <div class="container">
+      <aside class="rail" aria-label="Section navigation">
+        <p class="rail-group">Submissions</p>
+        <ul>
+          <li data-rail="my-submissions"><a href="#review-queue">My submissions</a></li>
+          <li data-rail="new-submission"><a href="#review-queue">New submission</a></li>
+        </ul>
+        <p class="rail-group">Review</p>
+        <ul>
+          <li data-rail="review-queue"><a href="#review-queue">Review queue</a></li>
+          <li data-rail="scoring"><a href="#review-queue">Scoring</a></li>
+        </ul>
+        <p class="rail-group">Board</p>
+        <ul>
+          <li data-rail="decisions"><a href="#decision/ARB-2026-0142">Decisions</a></li>
+          <li data-rail="exceptions"><a href="#exceptions">Exception register</a></li>
+          <li data-rail="standards"><a href="#exceptions">Standards catalogue</a></li>
+        </ul>
+        <p class="rail-group">Portfolio</p>
+        <ul>
+          <li data-rail="dashboard"><a href="#review-queue">Dashboard</a></li>
+        </ul>
+      </aside>
+
+      <main id="main">
+        <!-- Review queue -->
+        <section id="screen-review-queue" class="screen" aria-labelledby="rq-title">
+          <div class="page-header">
+            <div>
+              <p class="eyebrow">Review</p>
+              <h1 id="rq-title">Review queue</h1>
+              <p class="lede">Submissions waiting for your scoring, scheduled for a board session or pending a decision.</p>
+            </div>
+            <div class="actions">
+              <button class="pill pill-secondary" type="button" data-toast="Queue export started. You will receive a link when the file is ready.">Export queue</button>
+              <a class="pill pill-primary" href="#decision/ARB-2026-0151">Start scoring</a>
+            </div>
+          </div>
+          <div class="stat-grid" id="rqStats"></div>
+          <div class="card">
+            <div class="filter-bar">
+              <label class="search"><span class="sr-only">Search reference or application</span><input id="rqSearch" type="search" placeholder="Search reference or application"><svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M12 7C12 9.76 9.76 12 7 12C4.24 12 2 9.76 2 7C2 4.24 4.24 2 7 2C9.76 2 12 4.24 12 7Z" stroke="#0033FF" stroke-width="2"/><path d="M12.4 12.4L18.4 18.4" stroke="#0033FF" stroke-width="2" stroke-linecap="round"/></svg></label>
+              <button class="filter" type="button">Domain <svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="#0033FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="filter" type="button">Status <svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="#0033FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="filter" type="button">Age <svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="#0033FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <a class="clear" href="#review-queue" id="rqClear">Clear filters</a>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Reference</th><th>Application</th><th>Domains</th><th>Submitted</th><th>Age (days)</th><th>Target date</th><th>Status</th><th>Reviewer</th></tr></thead>
+                <tbody id="rqRows"></tbody>
+              </table>
+            </div>
+            <div class="table-foot"><span id="rqCount">Showing 1–7 of 31 submissions</span>
+              <ul class="pager" aria-label="Pagination"><li><button type="button" aria-label="Previous page">‹</button></li><li><button type="button" class="current" aria-current="page">1</button></li><li><button type="button">2</button></li><li><button type="button">3</button></li><li><button type="button">4</button></li><li><button type="button">5</button></li><li><button type="button" aria-label="Next page">›</button></li></ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Decision record -->
+        <section id="screen-decision" class="screen hidden" aria-labelledby="dr-title">
+          <div id="drBody"></div>
+        </section>
+
+        <!-- Exception register -->
+        <section id="screen-exceptions" class="screen hidden" aria-labelledby="ex-title">
+          <div class="page-header">
+            <div>
+              <p class="eyebrow">Board</p>
+              <h1 id="ex-title">Exception register</h1>
+              <p class="lede">Time-limited exceptions to published standards, their compensating controls and review dates.</p>
+            </div>
+            <div class="actions">
+              <button class="pill pill-secondary" type="button" data-toast="Register export started. You will receive a link when the file is ready.">Export register</button>
+              <button class="pill pill-primary" type="button" data-toast="Exception intake opens in the Standards catalogue for the standard being excepted.">Record exception</button>
+            </div>
+          </div>
+          <div class="stat-grid" id="exStats"></div>
+          <div class="card">
+            <div class="filter-bar">
+              <label class="search"><span class="sr-only">Search exceptions</span><input id="exSearch" type="search" placeholder="Search exceptions"><svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M12 7C12 9.76 9.76 12 7 12C4.24 12 2 9.76 2 7C2 4.24 4.24 2 7 2C9.76 2 12 4.24 12 7Z" stroke="#0033FF" stroke-width="2"/><path d="M12.4 12.4L18.4 18.4" stroke="#0033FF" stroke-width="2" stroke-linecap="round"/></svg></label>
+              <button class="filter" type="button">Standard <svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="#0033FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="filter" type="button">Status <svg class="chev" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="#0033FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <a class="clear" href="#exceptions" id="exClear">Clear filters</a>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Exception id</th><th>Standard</th><th>Application</th><th>Owner</th><th>Compensating control</th><th>Review date</th><th>Expiry</th><th>Status</th></tr></thead>
+                <tbody id="exRows"></tbody>
+              </table>
+            </div>
+            <div class="table-foot"><span id="exCount">Showing 1–8 of 23 exceptions</span>
+              <ul class="pager" aria-label="Pagination"><li><button type="button" aria-label="Previous page">‹</button></li><li><button type="button" class="current" aria-current="page">1</button></li><li><button type="button">2</button></li><li><button type="button">3</button></li><li><button type="button" aria-label="Next page">›</button></li></ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-top"><div class="container footer-cols">
+      <div><h2>Submissions</h2><ul><li><a href="#review-queue">New submission</a></li><li><a href="#review-queue">My submissions</a></li><li><a href="#review-queue">Intake guide</a></li><li><a href="#review-queue">Templates</a></li></ul></div>
+      <div><h2>Review</h2><ul><li><a href="#review-queue">Review queue</a></li><li><a href="#review-queue">Scoring</a></li><li><a href="#review-queue">Scoring rubric</a></li><li><a href="#review-queue">Reviewer guide</a></li></ul></div>
+      <div><h2>Board</h2><ul><li><a href="#decision/ARB-2026-0142">Decisions</a></li><li><a href="#exceptions">Exception register</a></li><li><a href="#exceptions">Standards catalogue</a></li><li><a href="#review-queue">Board calendar</a></li></ul></div>
+      <div><h2>Support</h2><ul><li><a href="#review-queue">Help centre</a></li><li><a href="#review-queue">Contact Enterprise Architecture</a></li><li><a href="#review-queue">Release notes</a></li><li><a href="#review-queue">Accessibility statement</a></li></ul></div>
+    </div></div>
+    <div class="footer-wave" aria-hidden="true"><svg viewBox="0 0 2400 260" preserveAspectRatio="none"><ellipse cx="1200" cy="130" rx="1200" ry="130" fill="#F4F4F4"/></svg></div>
+    <div class="footer-legal"><div class="container">
+      <p class="copy">© 2026 Cigna Healthcare. All rights reserved.</p>
+      <div class="legal-grid">
+        <ul><li><a href="#review-queue">Accessibility</a></li><li><a href="#review-queue">Privacy notice</a></li><li><a href="#review-queue">Terms of use</a></li></ul>
+        <ul><li><a href="#review-queue">Data classification policy</a></li><li><a href="#review-queue">Record retention</a></li><li><a href="#review-queue">Information security</a></li></ul>
+        <ul><li><a href="#review-queue">Architecture governance charter</a></li><li><a href="#exceptions">Standards catalogue</a></li><li><a href="#review-queue">Contact Enterprise Architecture</a></li></ul>
+        <div class="follow"><h2>Follow us</h2><div class="social" aria-label="Social links"><span></span><span></span><span></span><span></span></div></div>
+      </div>
+      <hr class="legal-rule">
+      <div class="legal-strip">
+        <p><b>Cigna Enterprise Architecture · Internal use only</b>This application is provided to Cigna Healthcare employees and contracted reviewers for architecture governance. Content is classified Internal. Do not store protected health information or member data in intake records, attachments or comments. Product names referenced in submissions are the property of their respective owners.</p>
+        <img src="/verticals/c6e2a88f-assets/cigna-logo-white.svg" alt="Cigna Healthcare" width="101" height="53">
+      </div>
+    </div></div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><b id="toastTitle"></b><p id="toastBody"></p></div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const API = '/api/c6e2a88f';
+    const $ = (sel, root) => (root || document).querySelector(sel);
+    const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fmtDate = (iso) => { if (!iso) return ''; const [y, m, d] = iso.split('-').map(Number); return `${d} ${MONTHS[m - 1]} ${y}`; };
+    const CHIP_TONE = {
+      'Waiting on me': 'warning', 'In review': 'info', 'Board scheduled': 'info', 'Overdue': 'danger', 'Decided': 'success', 'Scoring': 'info',
+      'Approved': 'success', 'Approved with conditions': 'success', 'Rejected': 'danger', 'Deferred': 'neutral',
+      'Active': 'success', 'Expiring': 'warning', 'Review overdue': 'danger', 'Open': 'warning', 'Addressed': 'success', 'Published': 'success', 'Draft': 'neutral',
+    };
+    const chip = (label) => `<span class="chip chip-${CHIP_TONE[label] || 'neutral'}">${esc(label)}</span>`;
+    const identity = () => ({
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || '',
+    });
+
+    let toastTimer;
+    function toast(title, body, tone) {
+      const el = $('#toast');
+      $('#toastTitle').textContent = title;
+      $('#toastBody').textContent = body || '';
+      el.className = 'toast show' + (tone ? ' ' + tone : '');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.className = 'toast'; }, 6500);
+    }
+    document.addEventListener('click', (e) => {
+      const t = e.target.closest('[data-toast]');
+      if (t) toast(t.textContent.trim(), t.getAttribute('data-toast'));
+    });
+    $('#menuToggle').addEventListener('click', () => {
+      const open = $('#navItems').classList.toggle('open');
+      $('#menuToggle').setAttribute('aria-expanded', String(open));
+    });
+
+    function statCard(label, stat) {
+      return `<div class="card stat"><p class="label">${esc(label)}</p><p class="value">${esc(stat.value)}</p><p class="note">${esc(stat.note)}</p></div>`;
+    }
+
+    /* ---------- Review queue ---------- */
+    let queueRows = [];
+    function renderQueueRows(filter) {
+      const q = (filter || '').trim().toLowerCase();
+      const rows = queueRows.filter((r) => !q || r.reference.toLowerCase().includes(q) || r.application.toLowerCase().includes(q));
+      $('#rqRows').innerHTML = rows.map((r) => `<tr>
+        <td class="ref"><a href="#decision/${esc(r.reference)}">${esc(r.reference)}</a></td>
+        <td>${esc(r.application)}</td>
+        <td>${esc(r.domains.join(', '))}</td>
+        <td>${esc(fmtDate(r.submittedAt))}</td>
+        <td class="num">${esc(r.ageDays)}</td>
+        <td>${esc(fmtDate(r.targetDate))}</td>
+        <td>${chip(r.status)}</td>
+        <td>${esc(r.reviewer)}</td>
+      </tr>`).join('') || '<tr><td colspan="8">No submissions match this search.</td></tr>';
+      $('#rqCount').textContent = q ? `Showing ${rows.length} of 31 submissions` : 'Showing 1–7 of 31 submissions';
+    }
+    async function loadQueue() {
+      const data = await (await fetch(`${API}/review-queue`)).json();
+      queueRows = data.rows;
+      $('#rqStats').innerHTML = statCard('Waiting on me', data.summary.waitingOnMe) + statCard('Due this week', data.summary.dueThisWeek)
+        + statCard('Overdue', data.summary.overdue) + statCard('Decided this month', data.summary.decidedThisMonth);
+      renderQueueRows($('#rqSearch').value);
+    }
+    $('#rqSearch').addEventListener('input', (e) => renderQueueRows(e.target.value));
+    $('#rqClear').addEventListener('click', () => { $('#rqSearch').value = ''; renderQueueRows(''); });
+
+    /* ---------- Exception register ---------- */
+    let exRows = [];
+    function renderExRows(filter) {
+      const q = (filter || '').trim().toLowerCase();
+      const rows = exRows.filter((r) => !q || [r.id, r.standard, r.application, r.owner, r.compensatingControl].join(' ').toLowerCase().includes(q));
+      $('#exRows').innerHTML = rows.map((r) => `<tr>
+        <td class="ref"><a href="#exceptions">${esc(r.id)}</a></td>
+        <td>${esc(r.standard)}</td>
+        <td>${esc(r.application)}</td>
+        <td>${esc(r.owner)}</td>
+        <td>${esc(r.compensatingControl)}</td>
+        <td>${esc(fmtDate(r.reviewDate))}</td>
+        <td>${esc(fmtDate(r.expiresAt))}</td>
+        <td>${chip(r.status)}</td>
+      </tr>`).join('') || '<tr><td colspan="8">No exceptions match this search.</td></tr>';
+      $('#exCount').textContent = q ? `Showing ${rows.length} of 23 exceptions` : 'Showing 1–8 of 23 exceptions';
+    }
+    async function loadExceptions() {
+      const data = await (await fetch(`${API}/exceptions`)).json();
+      exRows = data.rows;
+      $('#exStats').innerHTML = statCard('Expiring in 30 days', data.summary.expiring30) + statCard('Expiring in 60 days', data.summary.expiring60)
+        + statCard('Expiring in 90 days', data.summary.expiring90) + statCard('Overdue review', data.summary.overdueReview);
+      renderExRows($('#exSearch').value);
+    }
+    $('#exSearch').addEventListener('input', (e) => renderExRows(e.target.value));
+    $('#exClear').addEventListener('click', () => { $('#exSearch').value = ''; renderExRows(''); });
+
+    /* ---------- Decision record ---------- */
+    function relatedDecisionsCard(rows) {
+      return `<div class="card">
+        <p class="card-title">Related decisions</p>
+        <div class="filter-bar">
+          <label class="search"><span class="sr-only">Search decision records</span><input type="search" placeholder="Search decision records"></label>
+          <button class="filter" type="button">Outcome</button><button class="filter" type="button">Domain</button><button class="filter" type="button">Year</button>
+          <a class="clear" href="#">Clear filters</a>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>ADR</th><th>Title</th><th>Decided</th><th>Chair</th><th>Outcome</th></tr></thead>
+          <tbody>${rows.map((d) => `<tr><td class="ref"><a href="#decision/ARB-2026-0142">${esc(d.id)}</a></td><td>${esc(d.title)}</td><td>${esc(fmtDate(d.decidedAt))}</td><td>${esc(d.chair)}</td><td>${chip(d.outcome)}</td></tr>`).join('')}</tbody>
+        </table></div>
+        <div class="table-foot"><span>Showing 1–${rows.length} of 12 related decisions</span>
+          <ul class="pager" aria-label="Pagination"><li><button type="button" aria-label="Previous page">‹</button></li><li><button type="button" class="current" aria-current="page">1</button></li><li><button type="button">2</button></li><li><button type="button">3</button></li><li><button type="button" aria-label="Next page">›</button></li></ul>
+        </div>
+      </div>`;
+    }
+
+    function publishedRecord(rec) {
+      const d = rec.decision; const s = rec.submission;
+      return `<div class="record-head">
+          <div>
+            <p class="eyebrow">${esc(d.id)} · Architecture decision record &nbsp; ${chip(d.outcome)}</p>
+            <h1 id="dr-title">${esc(d.title)}</h1>
+            <p class="lede">Decision for submission ${esc(s.reference)}, ${esc(s.application)}.</p>
+            <div class="meta"><span><b>Decision date</b>${esc(fmtDate(d.decidedAt))}</span><span><b>Chair</b>${esc(d.chair)}</span><span><b>Board session</b>${esc(d.boardSession)}</span></div>
+          </div>
+          <div class="actions"><button class="pill pill-secondary" type="button" data-toast="Link copied to your clipboard.">Copy link</button><button class="pill pill-secondary" type="button" data-toast="PDF export started. You will receive a link when the file is ready.">Export PDF</button></div>
+        </div>
+        <div class="record-grid">
+          <div class="stack">
+            <div class="card"><p class="card-title">Context</p>${d.context.map((p) => `<p>${esc(p)}</p>`).join('')}</div>
+            <div class="card"><p class="card-title">Decision</p><p>${esc(d.decision)}</p>
+              <ol class="numbered">${d.decisionPoints.map((p, i) => `<li><span>${i + 1}</span><div>${esc(p)}</div></li>`).join('')}</ol></div>
+            <div class="card"><p class="card-title">Conditions</p><div class="table-wrap"><table>
+              <thead><tr><th>Condition</th><th>Standard</th><th>Due</th><th>Status</th></tr></thead>
+              <tbody>${d.conditions.map((c) => `<tr><td>${esc(c.text)}</td><td>${esc(c.standard)}</td><td>${esc(fmtDate(c.due))}</td><td>${chip(c.status)}</td></tr>`).join('')}</tbody></table></div></div>
+            <div class="card"><p class="card-title">Consequences</p>${d.consequences.map((p) => `<p>${esc(p)}</p>`).join('')}</div>
+            <div class="card"><p class="card-title">Linked exceptions</p><div class="table-wrap"><table>
+              <thead><tr><th>Exception</th><th>Standard</th><th>Expiry</th><th>Status</th></tr></thead>
+              <tbody>${d.linkedExceptions.map((x) => `<tr><td class="ref"><a href="#exceptions">${esc(x.id)}</a></td><td>${esc(x.description || x.standard)}</td><td>${esc(fmtDate(x.expiresAt))}</td><td>${chip(x.status)}</td></tr>`).join('')}</tbody></table></div></div>
+            <div class="card"><p class="card-title">Related submissions</p><div class="table-wrap"><table>
+              <thead><tr><th>Reference</th><th>Application</th><th>Decided</th><th>Outcome</th></tr></thead>
+              <tbody>${d.relatedSubmissions.map((r) => `<tr><td class="ref"><a href="#decision/${esc(r.reference)}">${esc(r.reference)}</a></td><td>${esc(r.application)}</td><td>${esc(fmtDate(r.decidedAt))}</td><td>${chip(r.outcome)}</td></tr>`).join('')}</tbody></table></div></div>
+            ${relatedDecisionsCard(d.relatedDecisions)}
+          </div>
+          <div class="side-stack">
+            <div class="card details"><p class="card-title">Record details</p><dl>
+              <dt>Status</dt><dd>${esc(d.status)}</dd><dt>Decision date</dt><dd>${esc(fmtDate(d.decidedAt))}</dd><dt>Chair</dt><dd>${esc(d.chair)}</dd>
+              <dt>Submission</dt><dd><a href="#decision/${esc(s.reference)}">${esc(s.reference)}</a></dd><dt>Domains</dt><dd>${esc(s.domains.join(', '))}</dd>
+              <dt>Standards version</dt><dd>v${esc(d.catalogueVersion)}</dd><dt>Owner</dt><dd>${esc(d.owner)}</dd><dt>Last updated</dt><dd>${esc(fmtDate(d.updatedAt))}</dd></dl>
+              <button class="pill pill-secondary" type="button" data-toast="Link copied to your clipboard.">Copy link</button><button class="pill pill-secondary" type="button" data-toast="PDF export started. You will receive a link when the file is ready.">Export PDF</button></div>
+            ${d.supersedes ? `<div class="card"><p class="card-title">Supersedes</p><p><a href="#decision/ARB-2026-0142">${esc(d.supersedes.id)}</a></p><p class="help" style="font-size:14px;line-height:20px;color:var(--cg-text)">${esc(d.supersedes.title)}</p></div>` : ''}
+          </div>
+        </div>`;
+    }
+
+    function openRecord(rec) {
+      const s = rec.submission;
+      return `<div class="record-head">
+          <div>
+            <p class="eyebrow">${esc(s.reference)} · Architecture decision record &nbsp; ${chip('Draft')}</p>
+            <h1 id="dr-title">${esc(s.application)}</h1>
+            <p class="lede">${esc(s.summary)}</p>
+            <div class="meta"><span><b>Submitted</b>${esc(fmtDate(s.submittedAt))}</span><span><b>Architect</b>${esc(s.architect)}</span><span><b>Team</b>${esc(s.team)}</span><span><b>Board session</b>October 2026</span></div>
+          </div>
+          <div class="actions"><a class="pill pill-secondary" href="#review-queue">Back to queue</a></div>
+        </div>
+        <div class="record-grid">
+          <div class="stack">
+            <div class="card">
+              <p class="card-title">Record decision</p>
+              <div id="drAlert"></div>
+              <form id="decisionForm" novalidate>
+                <div class="field-row">
+                  <div class="field"><label for="outcome">Outcome</label><select id="outcome" name="outcome" required>${rec.outcomes.map((o) => `<option${o === 'Approved with conditions' ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select></div>
+                  <div class="field"><label for="chair">Chair</label><input id="chair" name="chair" value="Elena Moreau"></div>
+                </div>
+                <div class="field"><label for="title">Decision title</label><input id="title" name="title" value="${esc(defaultTitle(s))}"><p class="help">Written as the outcome, in the present tense, so the record reads as a standing decision.</p></div>
+                <div class="field"><label for="rationale">Decision</label><textarea id="rationale" name="rationale">${esc(defaultRationale(s))}</textarea></div>
+                <div class="field"><label for="conditions">Conditions (one per line)</label><textarea id="conditions" name="conditions">${esc(defaultConditions(s))}</textarea><p class="help">Each condition is pinned to the standard and catalogue version in force when the submission was made (catalogue ${esc(s.catalogueVersion)}).</p></div>
+                <div class="form-actions"><button class="pill pill-primary" type="submit" id="recordBtn">Record decision</button><a class="pill pill-secondary" href="#review-queue">Cancel</a><span class="state" id="drState"></span></div>
+              </form>
+            </div>
+            ${relatedDecisionsCard(rec.relatedDecisions)}
+          </div>
+          <div class="side-stack">
+            <div class="card details"><p class="card-title">Record details</p><dl>
+              <dt>Status</dt><dd>${esc(s.status)}</dd><dt>Submitted</dt><dd>${esc(fmtDate(s.submittedAt))}</dd><dt>Architect</dt><dd>${esc(s.architect)}</dd>
+              <dt>Submission</dt><dd>${esc(s.reference)}</dd><dt>Domains</dt><dd>${esc(s.domains.join(', '))}</dd>
+              <dt>Standards version</dt><dd>v${esc(s.catalogueVersion)}</dd><dt>Owner</dt><dd>Enterprise Architecture</dd><dt>Team</dt><dd>${esc(s.team)}</dd></dl></div>
+          </div>
+        </div>`;
+    }
+    function defaultTitle(s) {
+      return ({
+        'ARB-2026-0151': 'Adopt a shared API gateway for pharmacy benefit services',
+        'ARB-2026-0149': 'Move provider directory search to the managed search platform',
+        'ARB-2026-0147': 'Federate member portal sign-in to the enterprise identity provider',
+        'ARB-2026-0145': 'Stream care plan updates through the shared streaming platform',
+        'ARB-2026-0144': 'Render broker quote documents in the managed document service',
+        'ARB-2026-0140': 'Consolidate dental claim images into the enterprise object archive',
+      })[s.reference] || `Decision on ${s.application}`;
+    }
+    function defaultRationale(s) {
+      return `The board reviewed ${s.application} against the ${s.domains.join(' and ')} standards in force at submission. The design meets the published patterns with the conditions below.`;
+    }
+    function defaultConditions(s) {
+      return ({
+        'ARB-2026-0151': 'Partner credentials issued through the enterprise identity provider before go-live (SEC-012)\nSecret rotation evidenced per change ticket until automated rotation lands (SEC-014)',
+        'ARB-2026-0149': 'Cached provider records purged nightly (DAT-019)',
+        'ARB-2026-0147': 'Warm standby exercised before the portal-local credential store is retired (CLD-012)',
+        'ARB-2026-0145': 'Schemas registered in the enterprise schema registry (INT-007)',
+        'ARB-2026-0144': 'Retention store classified and encrypted (DAT-011)',
+        'ARB-2026-0140': 'Lifecycle tiering policy reviewed with Records Management (DAT-019)',
+      })[s.reference] || '';
+    }
+
+    async function loadDecision(reference) {
+      const body = $('#drBody');
+      body.innerHTML = '<p class="lede">Loading decision record…</p>';
+      const res = await fetch(`${API}/decisions/${encodeURIComponent(reference)}`);
+      const rec = await res.json();
+      if (!res.ok) { body.innerHTML = `<div class="alert">${esc(rec.error || 'Decision record unavailable.')}</div>`; return; }
+      setCrumbs([['Home', '#review-queue'], ['Decisions', '#decision/ARB-2026-0142'], [rec.decision ? rec.decision.id : reference]]);
+      body.innerHTML = rec.decision ? publishedRecord(rec) : openRecord(rec);
+      const form = $('#decisionForm');
+      if (form) form.addEventListener('submit', (e) => submitDecision(e, rec));
+    }
+
+    async function submitDecision(e, rec) {
+      e.preventDefault();
+      const form = e.target; const btn = $('#recordBtn'); const state = $('#drState'); const alertBox = $('#drAlert');
+      btn.disabled = true; state.textContent = 'Recording…'; alertBox.innerHTML = '';
+      const payload = Object.assign({
+        reference: rec.submission.reference,
+        outcome: form.outcome.value,
+        chair: form.chair.value,
+        title: form.title.value,
+        rationale: form.rationale.value,
+        conditions: form.conditions.value.split('\n').map((c) => c.trim()).filter(Boolean),
+      }, identity());
+      try {
+        const res = await fetch(`${API}/decisions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alertBox.innerHTML = `<div class="alert" role="alert"><b>We couldn't record this decision.</b> ${esc(data.error || 'Unexpected error.')}<br><code>${esc(data.errorClass || 'Error')} · ${esc(rec.submission.reference)} · catalogue ${esc(rec.submission.catalogueVersion)}${data.requestId ? ' · request ' + esc(data.requestId) : ''}</code><br>The Enterprise Architecture platform team has been notified. Your draft has been kept.</div>`;
+          toast('Decision not recorded', `${data.errorClass || 'Error'} on ${rec.submission.reference}. The EA platform team has been notified.`, 'error');
+          state.textContent = '';
+          return;
+        }
+        toast('Decision recorded', `${data.decision.id} · ${data.decision.outcome} · pinned to catalogue ${data.decision.catalogueVersion}.`, 'success');
+        alertBox.innerHTML = `<div class="alert alert-success" role="status"><b>${esc(data.decision.id)} recorded.</b> ${esc(data.decision.outcome)} · ${data.decision.standards.map(esc).join(', ')}</div>`;
+        state.textContent = `Recorded as ${data.decision.id}`;
+      } catch (err) {
+        alertBox.innerHTML = `<div class="alert" role="alert"><b>We couldn't reach the decision service.</b> ${esc(err.message)}</div>`;
+        toast('Decision not recorded', err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    /* ---------- Routing ---------- */
+    function setCrumbs(items) {
+      $('#crumbs').innerHTML = items.map((c, i) => (i < items.length - 1
+        ? `<a href="${esc(c[1])}">${esc(c[0])}</a><svg class="chev chev-16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="#0033FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+        : `<span aria-current="page">${esc(c[0])}</span>`)).join('');
+    }
+    function activate(nav, rail) {
+      document.querySelectorAll('.nav-items li').forEach((li) => li.classList.toggle('active', li.dataset.nav === nav));
+      document.querySelectorAll('.rail li').forEach((li) => li.classList.toggle('active', li.dataset.rail === rail));
+      $('#navItems').classList.remove('open');
+      $('#menuToggle').setAttribute('aria-expanded', 'false');
+    }
+    function show(id) {
+      document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('hidden', s.id !== `screen-${id}`));
+      window.scrollTo({ top: 0 });
+    }
+    function route() {
+      const hash = location.hash.replace(/^#/, '') || 'review-queue';
+      if (hash.startsWith('decision/')) {
+        const reference = decodeURIComponent(hash.slice('decision/'.length));
+        activate('decisions', 'decisions'); show('decision');
+        $('#userPill').firstChild.textContent = 'Elena M. ';
+        loadDecision(reference);
+      } else if (hash === 'exceptions') {
+        activate('decisions', 'exceptions'); show('exceptions');
+        setCrumbs([['Home', '#review-queue'], ['Board', '#exceptions'], ['Exception register']]);
+        $('#userPill').firstChild.textContent = 'Elena M. ';
+        loadExceptions();
+      } else {
+        activate('review', 'review-queue'); show('review-queue');
+        setCrumbs([['Home', '#review-queue'], ['Review', '#review-queue'], ['Review queue']]);
+        $('#userPill').firstChild.textContent = 'Jordan P. ';
+        loadQueue();
+      }
+    }
+    window.addEventListener('hashchange', route);
+    route();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
