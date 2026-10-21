@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Corvane Therapeutics | HCP Sample Portal Demo</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #176B63;
+      --ink: #132B36;
+      --surface: #FFFFFF;
+      --chrome-bg: #12343B;
+      --chrome-text: #FFFFFF;
+      --paper: color-mix(in srgb, var(--ink) 3%, var(--surface));
+      --rule: color-mix(in srgb, var(--ink) 14%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 62%, var(--surface));
+      --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--surface));
+      --danger: #B42318;
+      --danger-soft: #FEF3F2;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, -apple-system, 'Segoe UI', Roboto, sans-serif; color: var(--ink); background: var(--paper); font-size: 15px; line-height: 1.5; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+    .chrome { background: var(--chrome-bg); color: var(--chrome-text); }
+    .chrome .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 8px; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; }
+    .brand small { display: block; font-weight: 500; font-size: 12px; opacity: 0.75; letter-spacing: 0; }
+    .chrome nav { display: flex; gap: 18px; font-size: 14px; }
+    .chrome nav a { color: var(--chrome-text); text-decoration: none; opacity: 0.85; }
+    .chrome nav a[aria-current] { opacity: 1; border-bottom: 2px solid #85CBB8; padding-bottom: 2px; }
+    .provider-bar { background: var(--surface); border-bottom: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+    .provider-bar .wrap { display: flex; flex-wrap: wrap; gap: 6px 24px; padding-top: 10px; padding-bottom: 10px; }
+    .provider-bar strong { color: var(--ink); font-weight: 600; }
+    main { padding: 28px 0 48px; }
+    .page-head h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.02em; }
+    .page-head p { margin: 0 0 22px; color: var(--muted); max-width: 720px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 22px; align-items: start; }
+    .layout > * { min-width: 0; }
+    .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; margin-bottom: 18px; min-width: 0; }
+    .card h2 { margin: 0 0 14px; font-size: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 600; }
+    .hint { font-size: 12px; color: var(--muted); }
+    input, select { width: 100%; min-width: 0; font: inherit; padding: 9px 11px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); color: var(--ink); min-height: 40px; }
+    input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+    input[readonly] { background: var(--paper); color: var(--muted); }
+    .products { display: grid; gap: 12px; }
+    .product-row { display: grid; grid-template-columns: minmax(0, 1fr) 118px; gap: 10px 14px; padding: 14px; border: 1px solid var(--rule); border-radius: 8px; min-width: 0; }
+    .product-details { min-width: 0; }
+    .product-name { display: block; font-weight: 600; }
+    .product-meta { color: var(--muted); font-size: 12px; }
+    .signature-box { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    .attestation { display: flex; align-items: flex-start; gap: 9px; font-weight: 400; }
+    .attestation input { flex: 0 0 18px; width: 18px; min-height: 18px; margin: 2px 0 0; }
+    .summary dl { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; font-size: 14px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; text-align: right; font-weight: 500; overflow-wrap: anywhere; }
+    .summary .total { border-top: 1px solid var(--rule); padding-top: 10px; font-weight: 700; color: var(--ink); }
+    .actions { display: flex; gap: 10px; margin-top: 16px; }
+    button { font: inherit; font-weight: 600; border-radius: 6px; padding: 11px 18px; min-height: 44px; cursor: pointer; border: 1px solid transparent; }
+    .primary { background: var(--accent); color: #fff; flex: 1; }
+    .primary:disabled { opacity: 0.7; cursor: progress; }
+    .secondary { background: var(--surface); color: var(--ink); border-color: var(--rule); }
+    .status { font-size: 13px; color: var(--muted); margin-top: 10px; min-height: 20px; }
+    .result-box { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 6px; font-size: 14px; overflow-wrap: anywhere; }
+    .result-box.success { display: block; background: var(--accent-soft); border: 1px solid var(--accent); }
+    .result-box.notice { display: block; background: var(--danger-soft); border: 1px solid var(--danger); color: var(--danger); }
+    footer { border-top: 1px solid var(--rule); background: var(--surface); font-size: 13px; color: var(--muted); }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding-top: 16px; padding-bottom: 16px; }
+    footer a { color: var(--muted); margin-right: 14px; }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      .chrome nav { display: none; }
+    }
+    @media (max-width: 520px) {
+      .grid { grid-template-columns: minmax(0, 1fr); }
+      .page-head h1 { font-size: 22px; }
+      .product-row { grid-template-columns: minmax(0, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header class="chrome">
+    <div class="wrap">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">C</span><span>Corvane Therapeutics<small>HCP Sample Portal</small></span></div>
+      <nav aria-label="Primary">
+        <a href="#" onclick="return false;">Dashboard</a>
+        <a href="#" onclick="return false;" aria-current="page">Sample Orders</a>
+        <a href="#" onclick="return false;">Products</a>
+        <a href="#" onclick="return false;">Resources</a>
+        <a href="#" onclick="return false;">Support</a>
+      </nav>
+    </div>
+  </header>
+  <div class="provider-bar">
+    <div class="wrap">
+      <span>Prescriber: <strong id="providerName">Marcus Oyelaran, MD</strong></span>
+      <span>NPI: <strong id="providerNpiLabel">1902846157</strong></span>
+      <span>Specialty: <strong id="providerSpecialty">Internal Medicine</strong></span>
+    </div>
+  </div>
+
+  <main id="main">
+    <div class="wrap">
+      <div class="page-head">
+        <h1>Request product samples</h1>
+        <p>Choose a registered prescriber, practice address and sample products. Confirm the request with your typed signature.</p>
+      </div>
+
+      <form id="sampleOrderForm" class="layout" novalidate>
+        <div>
+          <section class="card" aria-labelledby="prescriberHead">
+            <h2 id="prescriberHead">Prescriber and ship-to</h2>
+            <div class="grid">
+              <div class="field full">
+                <label for="hcpNpi">Prescriber</label>
+                <select id="hcpNpi" name="hcpNpi">
+                  <option value="1902846157">Marcus Oyelaran, MD — Internal Medicine</option>
+                  <option value="1928465018">Sofia Chen, DO — Family Medicine</option>
+                  <option value="1938576149">Nadia Brooks, MD — Pediatrics</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="stateLicense">State license</label>
+                <input id="stateLicense" name="stateLicense" type="text" readonly value="NY-2468013">
+              </div>
+              <div class="field">
+                <label for="shipToAddressId">Ship-to address</label>
+                <select id="shipToAddressId" name="shipToAddressId"></select>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="productsHead">
+            <h2 id="productsHead">Sample products</h2>
+            <div class="products">
+              <div class="product-row">
+                <div class="product-details"><span class="product-name">Corvane Auralis</span><span class="product-meta">18 mg · capsules</span></div>
+                <div class="field"><label for="quantity1">Quantity</label><input id="quantity1" class="quantity" type="number" min="1" max="8" value="4"></div>
+                <div class="field full"><label for="product1">Product</label><select id="product1" class="product-select"><option value="CVT-1024" selected>Corvane Auralis · 18 mg</option><option value="CVT-2048">Corvane Velorin · 24 mg</option><option value="CVT-3072">Corvane Novera · 12 mg/mL</option><option value="CVT-4096">Corvane Selvaris · 30 mg</option></select></div>
+              </div>
+              <div class="product-row">
+                <div class="product-details"><span class="product-name">Corvane Velorin</span><span class="product-meta">24 mg · tablets</span></div>
+                <div class="field"><label for="quantity2">Quantity</label><input id="quantity2" class="quantity" type="number" min="1" max="8" value="4"></div>
+                <div class="field full"><label for="product2">Product</label><select id="product2" class="product-select"><option value="CVT-1024">Corvane Auralis · 18 mg</option><option value="CVT-2048" selected>Corvane Velorin · 24 mg</option><option value="CVT-3072">Corvane Novera · 12 mg/mL</option><option value="CVT-4096">Corvane Selvaris · 30 mg</option></select></div>
+              </div>
+              <div class="product-row">
+                <div class="product-details"><span class="product-name">Corvane Novera</span><span class="product-meta">12 mg/mL · single-use vial</span></div>
+                <div class="field"><label for="quantity3">Quantity</label><input id="quantity3" class="quantity" type="number" min="1" max="6" value="4"></div>
+                <div class="field full"><label for="product3">Product</label><select id="product3" class="product-select"><option value="CVT-1024">Corvane Auralis · 18 mg</option><option value="CVT-2048">Corvane Velorin · 24 mg</option><option value="CVT-3072" selected>Corvane Novera · 12 mg/mL</option><option value="CVT-4096">Corvane Selvaris · 30 mg</option></select></div>
+              </div>
+              <div class="product-row">
+                <div class="product-details"><span class="product-name">Corvane Auralis</span><span class="product-meta">18 mg · capsules</span></div>
+                <div class="field"><label for="quantity4">Quantity</label><input id="quantity4" class="quantity" type="number" min="1" max="8" value="4"></div>
+                <div class="field full"><label for="product4">Product</label><select id="product4" class="product-select"><option value="CVT-1024" selected>Corvane Auralis · 18 mg</option><option value="CVT-2048">Corvane Velorin · 24 mg</option><option value="CVT-3072">Corvane Novera · 12 mg/mL</option><option value="CVT-4096">Corvane Selvaris · 30 mg</option></select></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="attestationHead">
+            <h2 id="attestationHead">Prescriber attestation</h2>
+            <div class="signature-box">
+              <label class="attestation" for="attestation">
+                <input id="attestation" name="attestation" type="checkbox" checked>
+                <span>I confirm these samples are requested for an eligible patient-care purpose and will be handled according to applicable requirements.</span>
+              </label>
+              <div class="field">
+                <label for="signature">Typed signature</label>
+                <input id="signature" name="signature" type="text" value="Marcus Oyelaran" autocomplete="off">
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside>
+          <section class="card summary" aria-labelledby="summaryHead">
+            <h2 id="summaryHead">Request summary</h2>
+            <dl>
+              <dt>Prescriber</dt><dd id="summaryPrescriber"></dd>
+              <dt>Ship-to</dt><dd id="summaryAddress"></dd>
+              <dt>Product lines</dt><dd id="summaryLines">4</dd>
+              <dt>Sample units</dt><dd id="summaryUnits">16</dd>
+              <dt class="total">Attestation</dt><dd class="total" id="summaryAttestation">Confirmed</dd>
+            </dl>
+            <div class="actions">
+              <button type="submit" class="primary" id="submitBtn">Submit Sample Request</button>
+              <button type="reset" class="secondary">Clear</button>
+            </div>
+            <div class="status" id="status" role="status" aria-live="polite"></div>
+            <div class="result-box" id="result" aria-live="polite"></div>
+          </section>
+        </aside>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div>
+        <a href="#" onclick="return false;">HCP Resources</a>
+        <a href="#" onclick="return false;">Product Information</a>
+        <a href="#" onclick="return false;">Privacy</a>
+      </div>
+      <div>Corvane Therapeutics is a fictional demo brand. Product names are fictional.</div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.defaultUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.defaultOrgId && !localStorage.getItem('devinOrgId')) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const prescribers = {
+        '1902846157': {
+          name: 'Marcus Oyelaran, MD',
+          license: 'NY-2468013',
+          specialty: 'Internal Medicine',
+          addresses: [
+            { id: 'SHIP-1001', label: 'Oyelaran Medical Group · 480 Park Avenue, Suite 300, New York, NY 10022' },
+            { id: 'SHIP-1002', label: 'Oyelaran Medical Group · 22 West 19th Street, New York, NY 10011' },
+          ],
+        },
+        '1928465018': {
+          name: 'Sofia Chen, DO',
+          license: 'CA-5938214',
+          specialty: 'Family Medicine',
+          addresses: [
+            { id: 'SHIP-2001', label: 'North Shore Family Care · 840 Market Street, San Francisco, CA 94102' },
+          ],
+        },
+        '1938576149': {
+          name: 'Nadia Brooks, MD',
+          license: 'IL-3819472',
+          specialty: 'Pediatrics',
+          addresses: [
+            { id: 'SHIP-3001', label: 'Brooks Pediatric Center · 1500 Lake Shore Drive, Chicago, IL 60611' },
+          ],
+        },
+      };
+      const form = document.getElementById('sampleOrderForm');
+      const hcpNpi = document.getElementById('hcpNpi');
+      const stateLicense = document.getElementById('stateLicense');
+      const shipToAddress = document.getElementById('shipToAddressId');
+      const attestation = document.getElementById('attestation');
+      const signature = document.getElementById('signature');
+      const submitBtn = document.getElementById('submitBtn');
+      const status = document.getElementById('status');
+      const result = document.getElementById('result');
+      const rows = Array.from(form.querySelectorAll('.product-row'));
+      let signatureEdited = false;
+
+      function selected(select) { return select.options[select.selectedIndex]; }
+      function clearResult() {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = '';
+      }
+      function renderPrescriber() {
+        const prescriber = prescribers[hcpNpi.value];
+        stateLicense.value = prescriber.license;
+        if (!signatureEdited) signature.value = prescriber.name.replace(/, (MD|DO)$/, '');
+        document.getElementById('providerName').textContent = prescriber.name;
+        document.getElementById('providerNpiLabel').textContent = hcpNpi.value;
+        document.getElementById('providerSpecialty').textContent = prescriber.specialty;
+        shipToAddress.replaceChildren();
+        prescriber.addresses.forEach((address) => {
+          const option = document.createElement('option');
+          option.value = address.id;
+          option.textContent = address.label;
+          shipToAddress.options.add(option);
+        });
+      }
+      function renderSummary() {
+        rows.forEach((row) => {
+          const productOption = selected(row.querySelector('.product-select'));
+          const [productName, strength] = productOption.textContent.split(' · ');
+          row.querySelector('.product-name').textContent = productName;
+          row.querySelector('.product-meta').textContent = strength;
+        });
+        document.getElementById('summaryPrescriber').textContent = prescribers[hcpNpi.value].name;
+        document.getElementById('summaryAddress').textContent = selected(shipToAddress).textContent;
+        document.getElementById('summaryLines').textContent = String(rows.length);
+        document.getElementById('summaryUnits').textContent = String(rows.reduce((total, row) => {
+          return total + Math.max(0, Number(row.querySelector('.quantity').value) || 0);
+        }, 0));
+        document.getElementById('summaryAttestation').textContent = attestation.checked ? 'Confirmed' : 'Required';
+      }
+
+      hcpNpi.addEventListener('change', () => {
+        clearResult();
+        renderPrescriber();
+        renderSummary();
+      });
+      signature.addEventListener('input', () => { signatureEdited = true; });
+      form.addEventListener('input', () => { clearResult(); renderSummary(); });
+      form.addEventListener('change', () => { clearResult(); renderSummary(); });
+      form.addEventListener('reset', () => {
+        clearResult();
+        setTimeout(() => {
+          signatureEdited = false;
+          renderPrescriber();
+          renderSummary();
+        }, 0);
+      });
+      renderPrescriber();
+      renderSummary();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const startedAt = Date.now();
+        clearResult();
+        if (!attestation.checked) {
+          result.className = 'result-box notice';
+          result.textContent = 'Please confirm the prescriber attestation before submitting.';
+          status.textContent = 'Request not submitted.';
+          return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting…';
+        status.textContent = 'Submitting sample request to Corvane Therapeutics…';
+        try {
+          const items = rows.map((row) => ({
+            productId: row.querySelector('.product-select').value,
+            quantity: Number(row.querySelector('.quantity').value),
+          }));
+          const response = await fetch('/api/samples/order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              hcpNpi: hcpNpi.value,
+              stateLicense: stateLicense.value,
+              shipToAddressId: shipToAddress.value,
+              items,
+              signature: signature.value.trim(),
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) throw new Error(data.error || 'The sample request could not be submitted.');
+          const elapsedMs = Number.isFinite(data.durationMs) ? data.durationMs : Date.now() - startedAt;
+          const elapsed = (elapsedMs / 1000).toFixed(1);
+          result.className = 'result-box success';
+          result.textContent = 'Sample order ' + data.orderId + ' confirmed. Estimated delivery '
+            + new Date(data.estimatedDelivery).toLocaleDateString() + '. Returned in ' + elapsed + 's.';
+          status.textContent = 'Sample request submitted.';
+        } catch (error) {
+          const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+          result.className = 'result-box notice';
+          result.textContent = error.message + ' Response received in ' + elapsed + 's.';
+          status.textContent = 'Request not submitted.';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Sample Request';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
