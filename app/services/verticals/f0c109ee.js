@@ -184,7 +184,7 @@ function calculateBenefit(line, claim) {
   };
 }
 
-async function submitClaim(data) {
+async function submitClaim(data, { shouldAlert = () => true } = {}) {
   const claimId = uuidv4();
   const startTime = Date.now();
   let claim;
@@ -247,7 +247,7 @@ async function submitClaim(data) {
       },
     });
 
-    createSessionAndAlert({
+    if (shouldAlert()) createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
       culprit: 'app/services/verticals/f0c109ee.js — calculateBenefit',

@@ -1,7 +1,34 @@
 const express = require('express');
 const { submitClaim, ValidationError, MEMBER, POLICIES } = require('../../services/verticals/f0c109ee');
 
+const logger = require('../../telemetry/logger');
+
 const router = express.Router();
+
+// Per-IP sliding-hour cap: each alert posts to Slack and can start a Devin session.
+const ALERT_HOURLY_CAP = 50;
+const ALERT_WINDOW_MS = 60 * 60 * 1000;
+const alertWindows = new Map();
+
+function alertAllowed(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' && forwarded.trim()
+    ? forwarded.split(',').pop().trim()
+    : (req.socket.remoteAddress || 'unknown');
+  const now = Date.now();
+  for (const [key, window] of alertWindows) {
+    while (window.length && window[0] <= now - ALERT_WINDOW_MS) window.shift();
+    if (!window.length) alertWindows.delete(key);
+  }
+  const window = alertWindows.get(ip) || [];
+  if (window.length >= ALERT_HOURLY_CAP) {
+    logger.warn('Benefits claim alert skipped — hourly cap hit', { ip, limit: ALERT_HOURLY_CAP });
+    return false;
+  }
+  window.push(now);
+  alertWindows.set(ip, window);
+  return true;
+}
 
 router.get('/api/f0c109ee/coverage', (_req, res) => {
   res.json({
@@ -28,7 +55,7 @@ router.post('/api/f0c109ee/claims', async (req, res) => {
       devinUserId: body.devinUserId,
       devinOrgId: body.devinOrgId,
       devinEmail: body.devinEmail,
-    }));
+    }, { shouldAlert: () => alertAllowed(req) }));
   } catch (error) {
     const status = error instanceof ValidationError ? 400 : 500;
     res.status(status).json({
@@ -42,3 +69,4 @@ router.post('/api/f0c109ee/claims', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.ALERT_HOURLY_CAP = ALERT_HOURLY_CAP;
