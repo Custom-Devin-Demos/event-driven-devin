@@ -9,6 +9,8 @@ const { processQuote } = require('../services/oncall-verticals/industrials');
 const { addToCart } = require('../services/oncall-verticals/marketplace');
 const { submitOrder } = require('../services/oncall-verticals/vaccines');
 const { submitClaim } = require('../services/oncall-verticals/pbm');
+const { submitPriorAuth } = require('../services/oncall-verticals/priorauth');
+const { submitSampleOrder, PRESCRIBERS, PRODUCTS } = require('../services/oncall-verticals/samples');
 const { addToBag } = require('../services/oncall-verticals/apparel');
 const { addKitToCart } = require('../services/oncall-verticals/fluidanalysis');
 const { addToPickList } = require('../services/oncall-verticals/picklist');
@@ -376,6 +378,74 @@ router.post('/api/oncall/pbm/claim', async (req, res) => {
         : error.message,
       errorClass: error.name,
       code: error.code || 'CLAIM_SUBMIT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/payer/prior-auth — submit a prior-authorization request
+ */
+router.post('/api/oncall/payer/prior-auth', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await submitPriorAuth({
+      memberId: body.memberId || 'LSHP-100245-01',
+      providerNpi: body.providerNpi || '1316024598',
+      cptCode: body.cptCode || '70553',
+      icd10: body.icd10 || 'G43.909',
+      serviceDate: body.serviceDate || new Date().toISOString().slice(0, 10),
+      urgency: body.urgency || 'standard',
+      clinicalNotes: typeof body.clinicalNotes === 'string' ? body.clinicalNotes.slice(0, 2000) : '',
+    });
+    res.json(result);
+  } catch (error) {
+    const statusCode = ['MEMBER_NOT_ELIGIBLE', 'PROCEDURE_NOT_FOUND'].includes(error.code) ? 422 : 500;
+    res.status(statusCode).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'PRIOR_AUTH_SUBMIT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/lifesciences/sample-order — request HCP drug samples
+ */
+router.post('/api/oncall/lifesciences/sample-order', async (req, res) => {
+  const body = req.body || {};
+  const defaultPrescriber = PRESCRIBERS.find((prescriber) => prescriber.hcpNpi === body.hcpNpi) || PRESCRIBERS[0];
+  const defaultItems = [
+    { productId: PRODUCTS[0].productId, quantity: 4 },
+    { productId: PRODUCTS[1].productId, quantity: 4 },
+    { productId: PRODUCTS[2].productId, quantity: 4 },
+    { productId: PRODUCTS[0].productId, quantity: 4 },
+  ];
+  try {
+    const result = await submitSampleOrder({
+      hcpNpi: body.hcpNpi || defaultPrescriber.hcpNpi,
+      stateLicense: body.stateLicense || defaultPrescriber.stateLicense,
+      shipToAddressId: body.shipToAddressId || defaultPrescriber.shipToAddresses[0].addressId,
+      items: body.items === undefined ? defaultItems : body.items,
+      signature: body.signature === undefined ? defaultPrescriber.name : body.signature,
+    });
+    res.json(result);
+  } catch (error) {
+    const validationCodes = [
+      'LICENSE_NOT_VALID',
+      'PRODUCT_NOT_SAMPLEABLE',
+      'QUANTITY_LIMIT_EXCEEDED',
+      'SIGNATURE_REQUIRED',
+      'INVALID_ORDER',
+      'SHIP_TO_ADDRESS_NOT_FOUND',
+    ];
+    res.status(validationCodes.includes(error.code) ? 422 : 500).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'SAMPLE_ORDER_FAILED',
       requestId: req.requestId,
     });
   }
