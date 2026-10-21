@@ -193,7 +193,7 @@
   <div class="hdr">
     <a href="#/" class="logo" aria-label="Accueil Carrefour"><svg aria-label="Logo Carrefour"><use href="#cf-logo"/></svg><span>Carrefour</span></a>
     <button class="menu-btn" data-jump="all" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>Menu</button>
-    <form class="search" onsubmit="return false" role="search"><input type="search" placeholder="Rechercher un produit, une marque..." aria-label="Rechercher parmi le contenu du site"><button type="submit" aria-label="Rechercher"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button></form>
+    <form class="search" id="searchForm" role="search"><input type="search" id="searchInput" placeholder="Rechercher un produit, une marque..." aria-label="Rechercher parmi le contenu du site"><button type="submit" aria-label="Rechercher"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button></form>
     <div class="store"><svg viewBox="0 0 24 24"><path d="M3 10l1.5-5h15L21 10M4 10v10h16V10M3 10h18M9 20v-6h6v6"/></svg><div>Drive<b>Carrefour Paris Auteuil</b></div></div>
     <div class="acct"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/></svg>Mon compte</div>
     <a href="#/bag" class="cart" id="bagIcon" aria-label="Voir le panier"><svg viewBox="0 0 24 24"><path d="M3 4h2.5l2.2 11h10.6L20.5 7H6.4"/><circle cx="9.5" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></svg><span class="bag-count" id="bagCount">0</span><span id="cartTotal">0,00 €</span></a>
@@ -434,7 +434,7 @@
     document.querySelectorAll('#nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-cat') === cat); });
     var list = (catalog ? catalog.products : []).filter(function (p) { return !c.skus || c.skus.indexOf(p.sku) !== -1; });
     if (!list.length) {
-      $('grid').innerHTML = '<div class="empty">Le rayon ' + esc(c.title) + ' arrive bientôt dans cette boutique de démonstration. <a href="#shop" data-jump="all">Voir la sélection du moment</a></div>';
+      $('grid').innerHTML = '<div class="empty">' + (cat === 'search' ? 'Aucun produit ne correspond à votre recherche.' : 'Le rayon ' + esc(c.title) + ' arrive bientôt dans cette boutique de démonstration.') + ' <a href="#shop" data-jump="all">Voir la sélection du moment</a></div>';
       return;
     }
     $('grid').innerHTML = list.map(function (p) {
@@ -612,6 +612,18 @@
   });
   $('placeOrder').addEventListener('click', function () { submit(buildRequest(selectedPay())); });
   $('tryAgain').addEventListener('click', function () { if (lastRequest) submit(lastRequest); });
+  function norm(v) { return String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  $('searchForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var q = $('searchInput').value.trim();
+    if (!q) return jump('all');
+    var nq = norm(q);
+    var skus = (catalog ? catalog.products : []).filter(function (p) {
+      return norm(p.name + ' ' + (BRAND[p.sku] || '')).indexOf(nq) !== -1;
+    }).map(function (p) { return p.sku; });
+    CATS.search = { eyebrow: 'Tout voir', title: 'R\u00e9sultats pour \u00ab\u00a0' + q + '\u00a0\u00bb', sub: skus.length + ' produit' + (skus.length > 1 ? 's' : ''), skus: skus };
+    jump('search');
+  });
   window.addEventListener('hashchange', route);
 
   if (!(localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId'))) {
