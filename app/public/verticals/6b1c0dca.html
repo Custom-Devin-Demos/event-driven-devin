@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transfer to savings | Varo Bank</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Barlow+Condensed:wght@700&family=Nunito:wght@900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #8C58D0;
+      --ink: #1C1C1C;
+      --surface: #FFFFFF;
+      --chrome-bg: #1C1C1C;
+      --chrome-text: #FFFFFF;
+      --page: #FFFFFF;
+      --lilac: #EDE6FD;
+      --lilac-deep: #CDB0FA;
+      --plum: #42185F;
+      --coral: #F2A295;
+      --cream: #FAEFDC;
+      --lime: #D4E84B;
+      --forest: #183428;
+      --line: #D9D9DE;
+      --muted: #6D7176;
+      --ok: #183428;
+      --ok-bg: #EAF3D7;
+      --warn-bg: #FADFDC;
+      --display: "Barlow Condensed", "Inter", Arial, sans-serif;
+      --mark: "Nunito", "Inter", Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.45 "Inter", "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1480px; margin: auto; padding: 0 32px; }
+    .gnav { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .gnav .wrap { display: flex; align-items: center; height: 88px; gap: 40px; }
+    .wordmark { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; color: var(--accent); }
+    .wordmark svg { display: block; height: 32px; width: auto; }
+    .gnav-links { display: flex; align-items: center; gap: 40px; margin-left: 32px; }
+    .gnav-links a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-size: 18px; font-weight: 500; color: var(--ink); }
+    .gnav-links a.current { color: var(--accent); }
+    .gnav-cta { display: flex; align-items: center; gap: 32px; margin-left: auto; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 12px 32px; border-radius: 4px; font-size: 18px; font-weight: 500; text-decoration: none; border: 1px solid transparent; }
+    .btn-text { padding: 12px 0; color: var(--accent); }
+    .btn-fill { background: var(--accent); color: var(--chrome-text); }
+    .btn-fill:hover { background: color-mix(in srgb, var(--accent) 88%, var(--ink)); }
+    .btn-plum { background: var(--plum); color: var(--chrome-text); }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: var(--lilac); }
+    .hero-copy { padding: 96px 64px 88px; display: flex; flex-direction: column; justify-content: center; }
+    .hero-copy .inner { max-width: 640px; margin-left: auto; width: 100%; }
+    .eyebrow { margin: 0 0 24px; font-size: 18px; font-weight: 500; letter-spacing: .36px; color: var(--plum); }
+    h1 { margin: 0; font-family: var(--display); font-size: 96px; font-weight: 700; text-transform: uppercase; line-height: .9; color: var(--plum); }
+    .hero p.lead { margin: 28px 0 0; font-size: 18px; line-height: 1.5; color: var(--ink); max-width: 560px; }
+    .hero .hero-cta { margin-top: 32px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+    .hero-media { position: relative; min-height: 520px; background: var(--plum); }
+    .hero-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    .hero-media.no-img img { display: none; }
+    .hero-media .balance { position: absolute; left: 48px; bottom: 48px; width: calc(100% - 96px); max-width: 420px; background: var(--surface); color: var(--ink); border-radius: 8px; padding: 24px 28px 22px; box-shadow: 0 24px 48px rgba(28, 28, 28, .25); }
+    .balance .label { margin: 0; font-size: 14px; font-weight: 500; color: var(--muted); }
+    .balance .amount { margin: 6px 0 18px; font-family: var(--display); font-size: 52px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: var(--plum); }
+    .balance .lines { display: grid; gap: 10px; margin: 0; padding: 16px 0 0; border-top: 1px solid var(--line); }
+    .balance .lines div { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
+    .balance .lines dt { margin: 0; color: var(--muted); }
+    .balance .lines dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .balance .chip { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 6px 12px; border-radius: 4px; background: var(--lilac); color: var(--plum); font-size: 13px; font-weight: 600; }
+    .ticker { background: var(--accent); color: var(--coral); overflow: hidden; }
+    .ticker .wrap { display: flex; gap: 32px; align-items: center; height: 92px; white-space: nowrap; overflow: hidden; }
+    .ticker span { font-family: var(--display); font-size: 48px; font-weight: 700; text-transform: uppercase; line-height: 1; flex: none; }
+    main .wrap { padding: 72px 32px 96px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .9fr); gap: 32px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 40px; }
+    .panel h2 { margin: 0 0 8px; font-family: var(--display); font-size: 48px; font-weight: 700; text-transform: uppercase; line-height: .95; color: var(--ink); }
+    .panel .sub { margin: 0 0 28px; color: var(--muted); }
+    .field { margin-bottom: 22px; }
+    .field label, .field-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
+    .field input, .field select { width: 100%; min-height: 56px; padding: 12px 16px; border: 1px solid #93939A; border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 16px; font-weight: 400; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 22px) 25px, calc(100% - 16px) 25px; background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 44px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: "$"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 500; }
+    .amount-wrap input { padding-left: 30px; }
+    .review { margin: 4px 0 24px; padding: 18px 20px; border-radius: 8px; background: var(--lilac); display: grid; gap: 10px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; }
+    .review dt { margin: 0; color: var(--plum); }
+    .review dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .fine { margin: -8px 0 24px; color: var(--muted); font-size: 13px; }
+    .actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .submit-btn { min-height: 52px; padding: 12px 32px; border: 1px solid transparent; border-radius: 4px; background: var(--accent); color: var(--chrome-text); font-size: 18px; font-weight: 500; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 88%, var(--ink)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .cancel-btn { min-height: 52px; padding: 12px 24px; border: 1px solid var(--ink); border-radius: 4px; background: transparent; color: var(--ink); font-size: 18px; font-weight: 500; }
+    .cancel-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-family: var(--display); font-size: 28px; font-weight: 700; }
+    .status { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 20px; border-radius: 8px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); }
+    aside .panel { padding: 28px; }
+    aside .panel + .panel { margin-top: 24px; }
+    aside h3 { margin: 0 0 12px; font-family: var(--display); font-size: 30px; font-weight: 700; text-transform: uppercase; line-height: 1; color: var(--ink); }
+    .accounts { list-style: none; margin: 0; padding: 0; }
+    .accounts li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+    .accounts li:first-child { border-top: 0; padding-top: 0; }
+    .acct { display: flex; align-items: center; gap: 12px; }
+    .acct-dot { width: 40px; height: 40px; border-radius: 4px; background: var(--accent); color: var(--chrome-text); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+    .acct-dot.savings { background: var(--lime); color: var(--forest); }
+    .acct-name { display: block; font-weight: 500; }
+    .acct-num { display: block; color: var(--muted); font-size: 13px; }
+    .acct-bal { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+    .acct-bal small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+    .promo { background: var(--plum); color: var(--chrome-text); border-color: var(--plum); overflow: hidden; }
+    .promo img { display: block; width: calc(100% + 58px); margin: -29px -29px 18px; height: 200px; object-fit: cover; object-position: center 40%; }
+    .promo .promo-fallback { display: none; height: 120px; margin: -29px -29px 18px; background: linear-gradient(135deg, var(--accent), var(--plum)); }
+    .promo.no-img img { display: none; }
+    .promo.no-img .promo-fallback { display: block; }
+    .promo h3 { color: var(--lime); }
+    .promo p { margin: 0 0 16px; color: rgba(255, 255, 255, .88); }
+    .promo a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 4px; background: var(--surface); color: var(--plum); font-weight: 500; text-decoration: none; }
+    .note { background: var(--cream); border-color: var(--cream); }
+    .note p { margin: 0 0 10px; }
+    .note a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 500; color: var(--plum); }
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); font-size: 15px; }
+    .site-footer .wrap { padding: 72px 32px 40px; }
+    .footer-top { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 48px; }
+    .footer-top .wordmark svg { height: 36px; }
+    .footer-cols { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; margin-bottom: 48px; }
+    .footer-cols h4 { margin: 0 0 8px; font-size: 15px; font-weight: 600; }
+    .footer-cols a { display: flex; align-items: center; min-height: 44px; color: rgba(255, 255, 255, .85); text-decoration: none; font-weight: 400; }
+    .footer-legal { margin: 0 0 12px; color: rgba(255, 255, 255, .7); line-height: 1.55; font-size: 13px; }
+    .legal-band { background: var(--chrome-bg); color: var(--chrome-text); font-size: 13px; border-top: 1px solid rgba(255, 255, 255, .15); }
+    .legal-band .wrap { padding: 8px 32px 24px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+    .legal-band a { color: var(--chrome-text); text-decoration: none; margin-right: 24px; display: inline-flex; align-items: center; min-height: 44px; }
+    @media (max-width: 1180px) {
+      .gnav-links { gap: 24px; margin-left: 8px; }
+      .gnav-links a:nth-child(n+5) { display: none; }
+      h1 { font-size: 72px; }
+      .hero-copy { padding: 64px 40px; }
+    }
+    @media (max-width: 900px) {
+      .wrap { padding: 0 16px; }
+      .gnav .wrap { gap: 12px; height: 72px; }
+      .gnav-links { display: none; }
+      .gnav-cta { gap: 12px; }
+      .gnav-cta .btn-text { display: none; }
+      .gnav-cta .btn { padding: 0 16px; min-height: 44px; font-size: 16px; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-copy { padding: 40px 16px 36px; }
+      h1 { font-size: 56px; }
+      .hero p.lead { font-size: 17px; }
+      .hero .hero-cta .btn { width: 100%; }
+      .hero-media { min-height: 420px; }
+      .hero-media .balance { left: 16px; bottom: 16px; width: calc(100% - 32px); max-width: none; padding: 20px; }
+      .balance .amount { font-size: 42px; }
+      .ticker .wrap { height: 64px; gap: 20px; }
+      .ticker span { font-size: 30px; }
+      main .wrap { padding: 32px 16px 48px; }
+      .layout { grid-template-columns: 1fr; gap: 20px; }
+      .panel { padding: 24px 18px; }
+      .panel h2 { font-size: 38px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .actions .submit-btn, .actions .cancel-btn { width: 100%; }
+      .site-footer .wrap { padding: 40px 16px 24px; }
+      .footer-top { flex-direction: column; align-items: flex-start; margin-bottom: 32px; }
+      .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .legal-band .wrap { padding: 8px 16px 72px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="gnav">
+    <div class="wrap">
+      <a class="wordmark" href="#transfer" aria-label="Varo">
+        <svg viewBox="0 0 120 44" role="img" aria-hidden="true" focusable="false"><text x="0" y="36" font-family="Nunito, Inter, Arial, sans-serif" font-size="44" font-weight="900" letter-spacing="-1.5" fill="currentColor">Varo</text></svg>
+      </a>
+      <nav class="gnav-links" aria-label="Primary">
+        <a href="https://www.varomoney.com/bank-account/" target="_blank" rel="noopener noreferrer">Manage Money</a>
+        <a href="https://www.varomoney.com/cash-advance/" target="_blank" rel="noopener noreferrer">Borrow</a>
+        <a href="https://www.varomoney.com/credit-builder/" target="_blank" rel="noopener noreferrer">Build Credit</a>
+        <a href="#transfer" class="current" aria-current="page">Save</a>
+        <a href="https://www.varomoney.com/money-101/" target="_blank" rel="noopener noreferrer">Learn</a>
+        <a href="https://support.varomoney.com/hc/en-us" target="_blank" rel="noopener noreferrer">Help</a>
+      </nav>
+      <div class="gnav-cta">
+        <a class="btn btn-text" href="#accounts">Your accounts</a>
+        <a class="btn btn-fill" href="#transfer">Transfer</a>
+      </div>
+    </div>
+  </header>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <div class="inner">
+        <p class="eyebrow">Transfer to savings</p>
+        <h1 id="hero-title">Move money to savings in a snap.</h1>
+        <p class="lead">Move money from your Varo Bank Account into your Varo Savings Account whenever you like. No minimum balance, no monthly fees, and your updated balances show right away.</p>
+        <div class="hero-cta"><a class="btn btn-fill" href="#transfer">Transfer now</a><a class="btn btn-text" href="https://www.varomoney.com/savings-account/" target="_blank" rel="noopener noreferrer">About the Varo Savings Account</a></div>
+      </div>
+    </div>
+    <div class="hero-media" aria-hidden="false">
+      <img src="https://images.ctfassets.net/x6cbfr3jz6wz/4kjKGf1LWKeYW5y2p20g7W/5701f07a097c55c32dea5a3b7408b649/Rectangle_7415.webp?w=1200&amp;q=75" alt="" width="1200" height="900" onerror="this.closest('.hero-media').classList.add('no-img')">
+      <div class="balance" aria-live="polite">
+        <p class="label">Total across your Varo accounts</p>
+        <p class="amount" id="heroBalance">$0.00</p>
+        <dl class="lines">
+          <div><dt>Varo Bank Account</dt><dd data-balance-for="ACCT-1001">$0.00</dd></div>
+          <div><dt>Varo Savings Account</dt><dd data-balance-for="ACCT-1002">$0.00</dd></div>
+        </dl>
+        <span class="chip">Varo Visa&reg; Debit Card &middot; active</span>
+      </div>
+    </div>
+  </section>
+  <div class="ticker" aria-hidden="true">
+    <div class="wrap">
+      <span>No monthly fees &bull;</span><span>No minimum balance &bull;</span><span>Up to 3.75% APY on your first $5,000 &bull;</span><span>Save Your Pay&reg; &bull;</span><span>Save Your Change &bull;</span>
+    </div>
+  </div>
+  <main id="transfer">
+    <div class="wrap">
+      <div class="layout">
+        <section class="panel" aria-labelledby="form-title">
+          <h2 id="form-title">Transfer money</h2>
+          <p class="sub">Choose the account the money comes from and the account it goes to.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Varo Bank Account" data-num="Checking &middot;&middot;4471">Varo Bank Account</option>
+                <option value="ACCT-1002" data-name="Varo Savings Account" data-num="Savings &middot;&middot;8832">Varo Savings Account</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">To</label>
+              <select id="toAccount">
+                <option value="ACCT-1002" data-name="Varo Savings Account" data-num="Savings &middot;&middot;8832">Varo Savings Account</option>
+                <option value="ACCT-1001" data-name="Varo Bank Account" data-num="Checking &middot;&middot;4471">Varo Bank Account</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Amount</label>
+                <div class="amount-wrap"><input type="number" id="amount" min="0.01" step="0.01" value="250.00" inputmode="decimal" required aria-describedby="amountHelp"></div>
+                <small id="amountHelp">Available: $0.00</small>
+              </div>
+              <div class="field">
+                <label for="accountTier">When</label>
+                <select id="accountTier">
+                  <option value="standard">Now</option>
+                </select>
+                <small>Save Your Pay&reg; and Save Your Change are set up in the Varo app.</small>
+              </div>
+            </div>
+            <dl class="review" aria-label="Transfer summary">
+              <div><dt>From</dt><dd id="reviewFrom">&mdash;</dd></div>
+              <div><dt>To</dt><dd id="reviewTo">&mdash;</dd></div>
+              <div><dt>Amount</dt><dd id="reviewAmount">&mdash;</dd></div>
+              <div><dt>Fee</dt><dd id="reviewFee">Shown on confirmation</dd></div>
+              <div><dt>Arrives</dt><dd id="reviewDate">&mdash;</dd></div>
+            </dl>
+            <p class="fine">Transfers between your Varo Bank Account and Varo Savings Account usually arrive right away. Any fee is shown on your confirmation and in your account activity.</p>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Transfer</button>
+              <button type="reset" id="cancelBtn" class="cancel-btn">Cancel</button>
+            </div>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Sample accounts. No money moves on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="panel" id="accounts">
+            <h3>Your accounts</h3>
+            <ul class="accounts">
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">V</span><span><span class="acct-name">Varo Bank Account</span><span class="acct-num">Checking &middot;&middot;4471</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1001">$0.00</span><small>Available</small></span></li>
+              <li><span class="acct"><span class="acct-dot savings" aria-hidden="true">S</span><span><span class="acct-name">Varo Savings Account</span><span class="acct-num">Savings &middot;&middot;8832</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1002">$0.00</span><small>Saved</small></span></li>
+            </ul>
+          </div>
+          <div class="panel promo">
+            <img src="https://images.ctfassets.net/x6cbfr3jz6wz/4aWvP6oIbzZ2fKiIZIzrZX/3c407afc6b68d59a040d1238324e5e38/POOL_0050.webp?w=1200&amp;q=75" alt="" width="1200" height="800" loading="lazy" onerror="this.closest('.promo').classList.add('no-img')">
+            <div class="promo-fallback" aria-hidden="true"></div>
+            <h3>Put your money to work without lifting a finger</h3>
+            <p>Save Your Pay&reg; moves part of every direct deposit into savings. Save Your Change rounds up purchases and saves the difference.</p>
+            <a href="https://www.varomoney.com/automatic-savings-tools/" target="_blank" rel="noopener noreferrer">Auto-savings tools</a>
+          </div>
+          <div class="panel note">
+            <h3>Sending money to someone else?</h3>
+            <p>Pay friends and family with Zelle&reg;, or use Varo to Anyone to send money to people who don&rsquo;t bank with Varo.</p>
+            <a href="https://www.varomoney.com/transfer-money/" target="_blank" rel="noopener noreferrer">Send and receive money</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <a class="wordmark" href="#transfer" aria-label="Varo"><svg viewBox="0 0 120 44" role="img" aria-hidden="true" focusable="false"><text x="0" y="36" font-family="Nunito, Inter, Arial, sans-serif" font-size="44" font-weight="900" letter-spacing="-1.5" fill="currentColor">Varo</text></svg></a>
+        <a class="btn btn-fill" href="https://bank.varomoney.com/signup" target="_blank" rel="noopener noreferrer">Get Varo</a>
+      </div>
+      <div class="footer-cols">
+        <div><h4>Products</h4><a href="https://www.varomoney.com/bank-account/">Online Bank Account</a><a href="https://www.varomoney.com/savings-account/">High-Yield Savings Account</a><a href="https://www.varomoney.com/credit-builder/">Believe Credit-Builder Card</a><a href="https://www.varomoney.com/cash-advance/">Quick Cash Advance</a><a href="https://www.varomoney.com/line-of-credit/">Personal Line of Credit</a></div>
+        <div><h4>Manage Money</h4><a href="https://www.varomoney.com/no-hidden-fee-bank-account/">No Hidden Fees</a><a href="https://www.varomoney.com/transfer-money/">Move Money</a><a href="https://www.varomoney.com/early-direct-deposit/">Early Payday</a><a href="https://www.varomoney.com/security-and-control/">Security and Control</a><a href="https://www.varomoney.com/mobile-banking/">Mobile App</a></div>
+        <div><h4>Save</h4><a href="https://www.varomoney.com/high-yield-savings-account/">High APY Savings</a><a href="https://www.varomoney.com/automatic-savings-tools/">Auto-Savings Tools</a><h4>Build Credit</h4><a href="https://www.varomoney.com/easy-credit-building/">Easy Credit Building</a><a href="https://www.varomoney.com/stress-free-credit-building/">Stress Free Credit</a></div>
+        <div><h4>Learn</h4><a href="https://www.varomoney.com/money-101/">Money 101</a><a href="https://www.varomoney.com/blog/">Blog</a><a href="https://www.varomoney.com/product-and-design/">Product &amp; Design</a><a href="https://www.varomoney.com/job-seeker-hub/">Job Seeker Hub</a></div>
+        <div><h4>Support</h4><a href="https://support.varomoney.com/hc/en-us">Help</a><a href="https://www.varomoney.com/contact-us/">Contact Us</a><a href="https://www.varomoney.com/accessibility/">Accessibility</a><a href="https://www.varomoney.com/newsroom/">Newsroom</a></div>
+      </div>
+      <p class="footer-legal">Example Transfer to savings experience. The accounts, balances, and transfers shown here are sample data.</p>
+      <p class="footer-legal">&copy; 2026 Varo Bank, N.A. All Rights Reserved. Member FDIC. The Varo Visa&reg; Debit Card is issued by Varo Bank, N.A. pursuant to a license from Visa U.S.A. Inc. Every cent deposited in your Varo Savings Account and Bank Account is insured by the FDIC up to $250,000.</p>
+    </div>
+  </footer>
+  <div class="legal-band">
+    <div class="wrap">
+      <span><a href="https://www.varomoney.com/legal/">Terms &amp; Conditions</a><a href="https://www.varomoney.com/privacy-policy/">Privacy Policy</a><a href="https://www.varomoney.com/legal/">Legal Documents</a></span>
+      <span>&copy; 2026 Varo Bank, N.A.</span>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const amountHelp = document.getElementById('amountHelp');
+    const reviewFrom = document.getElementById('reviewFrom');
+    const reviewTo = document.getElementById('reviewTo');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewFee = document.getElementById('reviewFee');
+    const reviewDate = document.getElementById('reviewDate');
+    const heroBalance = document.getElementById('heroBalance');
+    const transferFields = [fromAccount, toAccount, amountInput, document.getElementById('accountTier')];
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    const IDLE_STATUS = 'Sample accounts. No money moves on this page.';
+    const IDLE_LABEL = 'Transfer';
+    const FEE_PENDING = 'Shown on confirmation';
+    const FEE_RATE = 0.001;
+    const FEE_MIN = 2.50;
+    let timerHandle = null;
+    let pending = false;
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+    const balances = { 'ACCT-1001': 2184.37, 'ACCT-1002': 4650.00 };
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function available() { return balances[fromAccount.value] || 0; }
+    function feeFor(amount) { return Number(Math.max(amount * FEE_RATE, FEE_MIN).toFixed(2)); }
+    function maxMove() {
+      const funds = available();
+      const cap = funds - FEE_MIN <= FEE_MIN / FEE_RATE ? funds - FEE_MIN : funds / (1 + FEE_RATE);
+      return Math.max(0, Math.floor(cap * 100) / 100);
+    }
+    function label(select) { return selected(select).dataset.name; }
+    function renderBalances() {
+      [fromAccount, toAccount].forEach((select) => {
+        Array.from(select.options).forEach((opt) => {
+          opt.textContent = `${opt.dataset.name} \u00b7 ${usd.format(balances[opt.value] || 0)}`;
+        });
+      });
+      document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = usd.format(balances[el.dataset.balanceFor] || 0); });
+      heroBalance.textContent = usd.format(Object.values(balances).reduce((sum, value) => sum + (value || 0), 0));
+    }
+    function parsedAmount() {
+      const raw = amountInput.value.trim();
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw);
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function renderReview() {
+      const amount = parsedAmount();
+      const valid = Number.isFinite(amount) && amount > 0 && amount <= maxMove();
+      amountHelp.textContent = `Available: ${usd.format(available())} \u00b7 transfer up to ${usd.format(maxMove())} including any fee`;
+      reviewFrom.textContent = label(fromAccount);
+      reviewTo.textContent = label(toAccount);
+      reviewAmount.textContent = valid ? usd.format(amount) : '\u2014';
+      reviewFee.textContent = valid ? `${usd.format(feeFor(amount))} estimated` : FEE_PENDING;
+      reviewDate.textContent = 'Right away';
+    }
+    [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
+    amountInput.addEventListener('input', renderReview);
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        renderReview();
+      });
+    });
+    renderBalances();
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const amount = parsedAmount();
+      const maxNow = maxMove();
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choose a different account to transfer to. Money can\u2019t be moved into the account it comes from.';
+        status.textContent = IDLE_STATUS;
+        toAccount.focus();
+        return;
+      }
+      if (!Number.isFinite(amount) || amount <= 0 || amount > maxNow) {
+        result.className = 'result-box notice';
+        result.textContent = maxNow > 0
+          ? `Enter an amount between $0.01 and ${usd.format(maxNow)}, so any fee is covered too.`
+          : `There isn\u2019t enough in your ${label(fromAccount)} to cover a transfer and its fee.`;
+        status.textContent = IDLE_STATUS;
+        amountInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      cancelBtn.disabled = true;
+      transferFields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Transferring\u2026';
+      status.textContent = 'Transferring\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const fromLabel = label(fromAccount);
+      const toLabel = label(toAccount);
+      const fromId = fromAccount.value;
+      const toId = toAccount.value;
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Transfer not completed.');
+        if (!data || !data.receipt) throw new Error('Transfer outcome unknown.');
+        const completedAt = new Date(data.receipt.timestamp);
+        const moved = Number(data.receipt.amount);
+        const fee = Number(data.fee ?? data.receipt.fee ?? 0);
+        const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? moved + fee);
+        balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+        balances[toId] = Math.round(((balances[toId] || 0) + moved) * 100) / 100;
+        renderBalances();
+        renderReview();
+        reviewFee.textContent = usd.format(fee);
+        result.className = 'result-box success';
+        result.textContent = `Done at ${timeFmt.format(completedAt)}. ${usd.format(moved)} moved from your ${fromLabel} to your ${toLabel}. Fee ${usd.format(fee)}; ${usd.format(debited)} taken from your ${fromLabel}. Confirmation ${data.receipt.receiptId}. It\u2019s in your account activity now.`;
+        status.textContent = 'Transfer complete.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'Something went wrong and the money didn\u2019t move. Your balances haven\u2019t changed. Please try again in a moment.';
+          status.textContent = 'Transfer not completed.';
+        } else {
+          result.textContent = 'We couldn\u2019t confirm this transfer. Check your account activity before trying again so the same amount isn\u2019t moved twice.';
+          status.textContent = 'Transfer not confirmed.';
+        }
+      } finally {
+        transferFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        cancelBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
