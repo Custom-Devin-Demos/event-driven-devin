@@ -56,6 +56,82 @@ const DEFAULT_BASKET = {
   ],
 };
 
+// Carrefour grocery skin (/f63013c0/rb/carrefour): same checkout code path and
+// PSP incident, with its own catalog, account, currency and alert label.
+const CARREFOUR_CATALOG = [
+  { sku: 'CF-FL-001', name: 'Fraises Gariguette', price: 4.99, category: 'Fruits et légumes', giftBoxEligible: true },
+  { sku: 'CF-PO-014', name: 'Saumon fumé d’Écosse Label Rouge, 4 tranches', price: 6.49, category: 'Viandes et poissons', giftBoxEligible: true },
+  { sku: 'CF-PA-102', name: 'Baguette de tradition française', price: 1.15, category: 'Pains et pâtisseries', giftBoxEligible: false },
+  { sku: 'CF-CR-220', name: 'Lait demi-écrémé bio, pack 6 x 1 L', price: 7.14, category: 'Crèmerie', giftBoxEligible: false },
+  { sku: 'CF-EP-031', name: 'Café en grains pur arabica', price: 12.49, category: 'Epicerie', giftBoxEligible: false },
+  { sku: 'CF-BO-044', name: 'Jus d’orange 100% pressé', price: 3.29, category: 'Boissons', giftBoxEligible: false },
+  { sku: 'CF-CR-301', name: 'Camembert de Normandie AOP au lait cru', price: 2.89, category: 'Crèmerie', giftBoxEligible: true },
+  { sku: 'CF-VI-118', name: 'Poulet fermier jaune Label Rouge', price: 11.9, category: 'Viandes et poissons', giftBoxEligible: true },
+];
+
+const CARREFOUR_ACCOUNT = {
+  id: 'cus_claire_fr',
+  name: 'Claire Martin',
+  email: 'claire.martin@example.fr',
+  address: {
+    id: 'addr_claire_paris',
+    line1: '12 rue de Rivoli',
+    line2: '',
+    city: 'Paris',
+    zip: '75004',
+    country: 'France',
+  },
+  card: {
+    token: 'tok_claire_fr_visa_4242',
+    brand: 'Visa',
+    last4: '4242',
+    exp: '08/29',
+  },
+  cartId: 'bsk_claire_fr',
+};
+
+const CARREFOUR_BASKET = {
+  cartId: 'bsk_claire_fr',
+  lines: [
+    { sku: 'CF-FL-001', qty: 1 },
+    { sku: 'CF-PO-014', qty: 1, giftBox: true },
+  ],
+};
+
+const BRANDS = {
+  rl: {
+    key: 'rl',
+    label: VERTICAL_LABEL,
+    site: 'ralphlauren.com',
+    catalog: CATALOG,
+    account: ACCOUNT,
+    basket: DEFAULT_BASKET,
+    giftBoxFee: GIFT_BOX_FEE,
+    currency: 'USD',
+    descriptor: 'RALPH LAUREN',
+  },
+  carrefour: {
+    key: 'carrefour',
+    label: 'Carrefour — Courses en ligne Checkout',
+    site: 'carrefour.fr',
+    catalog: CARREFOUR_CATALOG,
+    account: CARREFOUR_ACCOUNT,
+    basket: CARREFOUR_BASKET,
+    giftBoxFee: 0.5,
+    currency: 'EUR',
+    descriptor: 'CARREFOUR',
+  },
+};
+
+function brandOf(key) {
+  return BRANDS[key] || BRANDS.rl;
+}
+
+function formatShipTo(addr) {
+  if (addr.state) return `${addr.line1}${addr.line2 ? `, ${addr.line2}` : ''}, ${addr.city}, ${addr.state} ${addr.zip}`;
+  return `${addr.line1}${addr.line2 ? `, ${addr.line2}` : ''}, ${addr.zip} ${addr.city}${addr.country ? `, ${addr.country}` : ''}`;
+}
+
 const SYNTHETIC_CUSTOMERS = Array.from({ length: 40 }, (_, i) => {
   const n = String(i + 1).padStart(2, '0');
   return {
@@ -97,18 +173,21 @@ function getAccount() {
   return ACCOUNT;
 }
 
-function getCatalog() {
+function getCatalog(brandKey) {
+  const brand = brandOf(brandKey);
   return {
-    products: CATALOG,
-    customer: ACCOUNT,
-    basket: DEFAULT_BASKET,
-    giftBoxFee: GIFT_BOX_FEE,
+    products: brand.catalog,
+    customer: brand.account,
+    basket: brand.basket,
+    giftBoxFee: brand.giftBoxFee,
+    currency: brand.currency,
     pspApiVersion: psp.getVersion(),
   };
 }
 
-function resolveCustomer(data, synthetic) {
-  const customerId = data.customerId || (synthetic ? undefined : ACCOUNT.id);
+function resolveCustomer(data, synthetic, brand = BRANDS.rl) {
+  const account = brand.account;
+  const customerId = data.customerId || (synthetic ? undefined : account.id);
   if (synthetic) {
     const syn = SYNTHETIC_CUSTOMERS.find((c) => c.customerId === customerId);
     if (!syn) throw validationError('Unknown customer.');
@@ -122,27 +201,26 @@ function resolveCustomer(data, synthetic) {
       shipTo: 'Synthetic customer',
     };
   }
-  if (customerId !== ACCOUNT.id) {
+  if (customerId !== account.id) {
     throw validationError('Unknown customer.', 'UNKNOWN_CUSTOMER');
   }
-  if (data.paymentMethod === 'card' && data.cardToken !== ACCOUNT.card.token) {
+  if (data.paymentMethod === 'card' && data.cardToken !== account.card.token) {
     throw validationError('Saved card could not be found.', 'UNKNOWN_CARD');
   }
-  const addr = ACCOUNT.address;
   return {
-    id: ACCOUNT.id,
-    cartId: data.cartId || ACCOUNT.cartId,
-    cardToken: ACCOUNT.card.token,
-    shipTo: `${addr.line1}${addr.line2 ? `, ${addr.line2}` : ''}, ${addr.city}, ${addr.state} ${addr.zip}`,
+    id: account.id,
+    cartId: data.cartId || account.cartId,
+    cardToken: account.card.token,
+    shipTo: formatShipTo(account.address),
   };
 }
 
-function priceLines(lines) {
+function priceLines(lines, brand = BRANDS.rl) {
   if (!Array.isArray(lines) || !lines.length) {
     throw validationError('Your bag is empty.', 'EMPTY_BAG');
   }
   return lines.map((line) => {
-    const product = CATALOG.find((p) => p.sku === String(line.sku));
+    const product = brand.catalog.find((p) => p.sku === String(line.sku));
     if (!product) {
       throw validationError(`Item ${line.sku} is no longer available.`, 'ITEM_UNAVAILABLE');
     }
@@ -154,7 +232,7 @@ function priceLines(lines) {
     if (giftBox && !product.giftBoxEligible) {
       throw validationError(`Gift boxing is not available for ${product.name}.`, 'GIFT_BOX_UNAVAILABLE');
     }
-    const lineTotal = Math.round((product.price * qty + (giftBox ? GIFT_BOX_FEE : 0)) * 100) / 100;
+    const lineTotal = Math.round((product.price * qty + (giftBox ? brand.giftBoxFee : 0)) * 100) / 100;
     return {
       sku: product.sku,
       name: product.name,
@@ -230,22 +308,23 @@ function alertSuppressed() {
   return metrics.lastAlertAt && Date.now() - metrics.lastAlertAt < ALERT_SUPPRESSION_MS;
 }
 
-function buildPromptContext(error) {
+function buildPromptContext(error, brand = BRANDS.rl) {
   const m = getMetrics();
   const pct = Math.round(m.orderSuccessRate * 100);
   return `Success rate ${pct}% over last 60s (${m.attempts} attempts). Top error: ${error.message}. `
-    + 'Customers on ralphlauren.com are being charged without an order being created — every "Try again" retry adds another pending card authorization.';
+    + `Customers on ${brand.site} are being charged without an order being created — every "Try again" retry adds another pending card authorization.`;
 }
 
 const PROMPT_APPENDIX = 'Follow docs/f63013c0/RUNBOOK.md. The fix must satisfy docs/f63013c0/ENGINEERING_STANDARDS.md (schema validation + contract test from the vendor\'s published example, Idempotency-Key derived from the order reference, regression test). Keep the customer-facing PAYMENT_FAILED message unchanged; internally distinguish PSP_SCHEMA_MISMATCH. In the PR description include root cause, blast radius from GET /api/f63013c0/metrics, and a rollout note. After the fix is deployed, run `node scripts/f63013c0-reconcile-authorizations.js --base-url https://devindemos.com` and post its summary to the alert thread.';
 
 function fireAlert(error, ctx) {
+  const brand = brandOf(ctx.brand);
   metrics.lastAlertAt = Date.now();
   metrics.alertFiredAt = new Date().toISOString();
 
   Sentry.captureException(error, {
     tags: {
-      route: ROUTE, service: SERVICE, customer: CUSTOMER, alert_path: ctx.alertPath,
+      route: ROUTE, service: SERVICE, customer: CUSTOMER, alert_path: ctx.alertPath, brand: brand.key,
     },
     extra: { orderId: ctx.orderId, requestId: ctx.requestId, apiVersion: ctx.apiVersion },
   });
@@ -261,7 +340,7 @@ function fireAlert(error, ctx) {
     devinOrgId: ctx.devinOrgId,
     customer: CUSTOMER,
     service: SERVICE,
-    verticalLabel: VERTICAL_LABEL,
+    verticalLabel: brand.label,
     tags: [
       { key: 'route', value: ROUTE },
       { key: 'service', value: SERVICE },
@@ -273,7 +352,7 @@ function fireAlert(error, ctx) {
       requestId: ctx.requestId,
       apiVersion: ctx.apiVersion,
       responseKeys: (ctx.responseKeys || []).join(','),
-      promptContext: buildPromptContext(error),
+      promptContext: buildPromptContext(error, brand),
       promptAppendix: PROMPT_APPENDIX,
     },
     level: 'error',
@@ -312,6 +391,7 @@ function evaluateAlertRule() {
       devinUserId: failure.devinUserId,
       devinOrgId: failure.devinOrgId,
       devinEmail: failure.devinEmail,
+      brand: failure.brand,
     });
   }
 }
@@ -392,8 +472,9 @@ function walletAuthorize() {
 async function checkout(data, { synthetic = false } = {}) {
   const requestId = uuidv4();
   const paymentMethod = data.paymentMethod === 'paypal' ? 'paypal' : 'card';
-  const customer = resolveCustomer(data, synthetic);
-  const lines = priceLines(data.lines);
+  const brand = synthetic ? BRANDS.rl : brandOf(data.brand);
+  const customer = resolveCustomer(data, synthetic, brand);
+  const lines = priceLines(data.lines, brand);
   const total = Math.round(lines.reduce((s, l) => s + l.lineTotal, 0) * 100) / 100;
 
   const order = orderStore.createPending({
@@ -413,7 +494,8 @@ async function checkout(data, { synthetic = false } = {}) {
     } else {
       const pspResponse = await meridian.authorize({
         amount: total,
-        currency: 'USD',
+        currency: brand.currency,
+        descriptor: brand.descriptor,
         cardToken: data.cardToken,
         reference: order.id,
       });
@@ -441,6 +523,7 @@ async function checkout(data, { synthetic = false } = {}) {
         id: order.id,
         status: 'confirmed',
         total,
+        currency: brand.currency,
         paymentMethod,
         lines,
         shipTo: customer.shipTo,
@@ -460,6 +543,7 @@ async function checkout(data, { synthetic = false } = {}) {
       apiVersion: error.apiVersion,
       responseKeys: (error.responseKeys || []).join(','),
       synthetic,
+      brand: brand.key,
     });
 
     metrics.lastFailure = {
@@ -472,6 +556,7 @@ async function checkout(data, { synthetic = false } = {}) {
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
       devinEmail: data.devinEmail,
+      brand: brand.key,
     };
 
     if (!synthetic && !traffic.running && !alertSuppressed()) {
@@ -485,6 +570,7 @@ async function checkout(data, { synthetic = false } = {}) {
         devinUserId: data.devinUserId,
         devinOrgId: data.devinOrgId,
         devinEmail: data.devinEmail,
+        brand: brand.key,
       });
     }
 
@@ -550,6 +636,8 @@ module.exports = {
   ACCOUNT,
   DEFAULT_BASKET,
   GIFT_BOX_FEE,
+  CARREFOUR_CATALOG,
+  CARREFOUR_ACCOUNT,
   SYNTHETIC_CUSTOMERS,
   getAccount,
   getCatalog,
