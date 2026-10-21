@@ -29,6 +29,7 @@ const { runWithAlertDestination } = require('../services/alert-destination');
 const logger = require('../telemetry/logger');
 const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
 const { getAvailability, confirmBooking } = require('../services/oncall-verticals/examscheduling');
+const { dispatchResponsePlan } = require('../services/oncall-verticals/emergencydispatch');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
@@ -848,6 +849,30 @@ router.post('/api/oncall/examscheduling/appointments', async (req, res) => {
         : error.message,
       errorClass: isTimeout ? 'GatewayTimeout' : error.name,
       code: error.code || 'BOOKING_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+router.post('/api/oncall/emergencydispatch/dispatch', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await dispatchResponsePlan({
+      incidentId: body.incidentId,
+      resources: body.resources,
+      approvedBy: body.approvedBy,
+    }));
+  } catch (error) {
+    const isTimeout = error.code === 'DISPATCH_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_DISPATCH' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'Resource tasking timed out before every agency confirmed. No units were tasked — retry or task by radio.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'DISPATCH_FAILED',
+      dispatchId: error.dispatchId,
       requestId: req.requestId,
     });
   }
