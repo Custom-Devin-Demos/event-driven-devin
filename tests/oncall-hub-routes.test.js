@@ -8,6 +8,7 @@ const { stopGateway } = require('../app/services/oncall-verticals/industrials-ed
 
 const oncallRoutes = require('../app/routes/oncall');
 const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
+const { ALERT_SCENARIOS } = require('../app/services/oncall');
 const { getOncallSkin } = require('../config/oncall-skins');
 
 let server;
@@ -38,6 +39,49 @@ describe('on-call hub routes', () => {
 
     const branded = await fetch(`${baseUrl}/oncall/branded`);
     expect(branded.status).toBe(404);
+  });
+
+  test('the healthcare page lists grouped scenarios and defaults its picker to Teams', async () => {
+    const [pageResponse, groupedResponse, defaultResponse] = await Promise.all([
+      fetch(`${baseUrl}/oncall/healthcare`),
+      fetch(`${baseUrl}/api/oncall/scenarios?group=healthcare`),
+      fetch(`${baseUrl}/api/oncall/scenarios`),
+    ]);
+    expect(pageResponse.status).toBe(200);
+    const html = await pageResponse.text();
+    expect(html).toContain('<title>Devin On-Call | Healthcare</title>');
+    expect(html).toContain('<h1>Healthcare on-call demos</h1>');
+    expect(html).toContain('Alert cards use Splunk searches and Dynatrace problems.');
+    expect(html).toContain('/api/oncall/scenarios?group=healthcare');
+    expect(html).toContain("defaultValue: 'teams'");
+    expect(html).toContain('No healthcare demos are available yet.');
+    expect(html).not.toContain('SEV-1 demo incident');
+
+    const { scenarios: grouped } = await groupedResponse.json();
+    const pbm = grouped.find((scenario) => scenario.id === 'pbm');
+    expect(pbm).toMatchObject({
+      group: 'healthcare',
+      summary: 'Submit a pharmacy claim. It hangs ~8s, then returns a 504.',
+    });
+    const { scenarios: defaults } = await defaultResponse.json();
+    expect(defaults.map((scenario) => scenario.id)).not.toContain('pbm');
+    expect(defaults.find((scenario) => scenario.id === 'banking')).toMatchObject({ group: null, summary: null });
+    expect(Object.keys(ALERT_SCENARIOS)).not.toContain('healthcare');
+  });
+
+  test('scenario oncallOnly pages are shimmed at both /oncall/pbm and /pbm', async () => {
+    const [oncallResponse, directResponse] = await Promise.all([
+      fetch(`${baseUrl}/oncall/pbm`),
+      fetch(`${baseUrl}/pbm`),
+    ]);
+    expect(oncallResponse.status).toBe(200);
+    expect(directResponse.status).toBe(200);
+    const html = await oncallResponse.text();
+    expect(await directResponse.text()).toEqual(html);
+    expect(html).toContain("fetch('/api/pbm/claim'");
+    expect(html).toContain('const oncallApiPath = "/api/oncall/pbm/claim"');
+    expect(html).toContain('var scenarioAlertDestination = "teams"');
+    expect(html).toContain("localStorage.getItem('alertDestinationExplicit') !== '1'");
   });
 
   test('toy SEV-1 incident routes are gone', async () => {
@@ -326,7 +370,8 @@ test('a skin alertDestination overrides the presenter\'s saved choice', async ()
   ]);
   expect(slack).toContain('var skinAlertDestination = "slack";');
   expect(teams).toContain('var skinAlertDestination = "teams";');
-  expect(slack).toContain("var alertDestination = skinAlertDestination || (localStorage.getItem('alertDestination')");
+  expect(slack).toContain("var alertDestination = skinAlertDestination || (");
+  expect(slack).toContain("localStorage.getItem('alertDestinationExplicit') !== '1' && scenarioAlertDestination");
 });
 
 describe('on-call hub page contract', () => {

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devin On-Call | Healthcare</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="stylesheet" href="/cognition-brand.css">
+</head>
+<body>
+
+  <nav class="cg-nav">
+    <div class="cg-nav-inner">
+      <a href="/" class="cg-brand">
+        <img src="/brand/COGNITION_LOCKUP_HORIZONTAL_WHITE.svg" alt="Cognition">
+        <span class="cg-brand-sep" aria-hidden="true"></span>
+        <span class="cg-brand-name">On-Call</span>
+      </a>
+      <div class="cg-nav-right">
+        <ul class="cg-nav-links">
+          <li class="cg-hide-sm"><a href="https://docs.devin.ai" target="_blank" rel="noopener">Docs</a></li>
+        </ul>
+        <a class="cg-btn cg-btn-ghost cg-btn-sm" id="nav-cta" href="/oncall">&larr; All on-call demos</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="cg-main">
+    <section class="cg-section cg-hero">
+      <h1>Healthcare on-call demos</h1>
+      <p class="cg-prose cg-lede">Open a demo and submit its main action. An alert posts to <span id="hero-dest"><code>#oncall-alerts</code></span> and Devin investigates in the alert thread. Alert cards use Splunk searches and Dynatrace problems. Join the channel before you start.</p>
+      <div class="cg-hero-row">
+        <div id="dest-picker"></div>
+      </div>
+    </section>
+
+    <section class="cg-section cg-section-flush" id="alerts">
+      <div class="cg-table" id="alert-grid"></div>
+      <p class="cg-footnote" id="retry-note"></p>
+    </section>
+  </main>
+
+  <footer class="cg-footer">
+    <div class="cg-footer-inner">
+      <div class="cg-footer-left">
+        <img src="/brand/COGNITION_LOCKUP_HORIZONTAL_WHITE.svg" alt="Cognition">
+        <span>Event-Driven Devin &copy; 2026</span>
+      </div>
+      <div class="cg-footer-links">
+        <a href="https://devin.ai" target="_blank" rel="noopener">devin.ai</a>
+        <a href="https://docs.devin.ai" target="_blank" rel="noopener">Documentation</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/alert-destination.js"></script>
+  <script>
+    function renderRetryNote(scenarios) {
+      const el = document.getElementById('retry-note');
+      const climbing = scenarios.filter((s) => s.retryWindow)
+        .map((s) => s.brand.replace(/ \(.*\)$/, ''));
+      if (!climbing.length) {
+        el.textContent = '';
+        return;
+      }
+      el.textContent = 'On ' + climbing.join(', ') + ', repeat submits within 60 seconds ' +
+        'join the same incident and show the latency climbing.';
+    }
+
+    async function init() {
+      const res = await fetch('/api/oncall/scenarios?group=healthcare');
+      const { scenarios, teamsDefaultWebhook } = await res.json();
+      var destPicker = document.getElementById('dest-picker');
+      window.AlertDestination.mount(destPicker, {
+        teamsAvailable: Boolean(teamsDefaultWebhook),
+        defaultValue: 'teams',
+      });
+      function renderDestLabel(dest) {
+        var teams = dest === 'teams' && teamsDefaultWebhook;
+        var label = document.getElementById('hero-dest');
+        var destination = document.createElement('code');
+        destination.textContent = teams ? 'oncall-demo' : '#oncall-alerts';
+        label.replaceChildren();
+        if (teams) label.appendChild(document.createTextNode('Teams '));
+        label.appendChild(destination);
+      }
+      window.AlertDestination.onChange(renderDestLabel);
+      renderDestLabel(window.AlertDestination.get());
+
+      const grid = document.getElementById('alert-grid');
+      renderRetryNote(scenarios);
+      if (!scenarios.length) {
+        const emptyState = document.createElement('p');
+        emptyState.className = 'cg-footnote';
+        emptyState.textContent = 'No healthcare demos are available yet.';
+        grid.replaceChildren(emptyState);
+        return;
+      }
+      const header = document.createElement('div');
+      header.className = 'cg-thead';
+      header.setAttribute('aria-hidden', 'true');
+      ['Demo', 'What to do', 'Path'].forEach((label) => {
+        const cell = document.createElement('span');
+        cell.textContent = label;
+        header.appendChild(cell);
+      });
+      grid.replaceChildren(header);
+      scenarios.forEach((s) => {
+        const link = document.createElement('a');
+        link.className = 'cg-row';
+        link.href = '/oncall/' + encodeURIComponent(s.id);
+        [
+          ['cg-row-name', s.brand.replace(/ \(.*\)$/, '')],
+          ['cg-row-desc', s.summary || ''],
+          ['cg-row-path', '/oncall/' + s.id],
+        ].forEach(([className, text]) => {
+          const cell = document.createElement('span');
+          cell.className = className;
+          cell.textContent = text;
+          link.appendChild(cell);
+        });
+        grid.appendChild(link);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

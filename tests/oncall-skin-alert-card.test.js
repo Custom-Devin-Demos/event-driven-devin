@@ -100,6 +100,21 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
     expect(blocks).toContain(scenario.release);
   });
 
+  test('PBM scenario card uses Splunk/Dynatrace wording', async () => {
+    await postOncallAlert('pbm', { runRef: 'run-pbm', destination: 'slack' });
+    const [, , text, blockValues] = postMessage.mock.calls[postMessage.mock.calls.length - 1];
+    const blocks = JSON.stringify(blockValues);
+    const query = 'index=prod sourcetype=claims service:pbm-claims-api http.status=504 | timechart span=5m count';
+    expect(text).toContain('[OPEN Problem] Response time degradation — pbm-claims-api');
+    expect(text).toContain('*Splunk search:*');
+    expect(text).toContain(query);
+    expect(blocks).toContain('Splunk search');
+    expect(blocks).toContain(query);
+    expect(`${text}\n${blocks}`).not.toMatch(/Datadog|sum:trace|Monitor query|Triggered|View in Datadog/);
+    const renderedQuery = text.match(/\*Splunk search:\* `([^`]+)`/)[1];
+    expect(renderedQuery).not.toMatch(/Fernway/i);
+  });
+
   test('partial alertCard overrides only the given fields', async () => {
     const base = getOncallSkin('cb84fd21');
     const scenario = ALERT_SCENARIOS.banking;

@@ -63,6 +63,10 @@
  * call goes through the legacy automated alert (createSessionAndAlert: Sentry-style
  * card in SLACK_CHANNEL_ID plus a Devin session). The on-call route must support it.
  *
+ * A skin or scenario may set telemetryBrand: 'splunk-dynatrace' to word its
+ * alert cards and Devin prompt as Splunk searches and Dynatrace problems
+ * (without a Datadog button); telemetry still flows to Sentry/Datadog underneath.
+ *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
  * ribbonSide: 'left' docks the ribbon bottom-left instead, and ribbonYieldTo: '<css selector>'

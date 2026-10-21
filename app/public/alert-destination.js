@@ -1,11 +1,12 @@
 /* global document, location, localStorage, window */
 /* Per-browser "Send my demo alerts to: Slack / Teams" choice, shared by the
- * demo hub (/) and the On-Call hub (/oncall). Saved in localStorage and
- * mirrored into the alert_destination cookie so every demo page's API request
- * carries it to the server. It only affects this browser. */
+ * demo hub (/) and the On-Call hub (/oncall). Explicit choices are saved in
+ * localStorage and mirrored into the alert_destination cookie so every demo
+ * page's API request carries it to the server. It only affects this browser. */
 (function () {
   var KEY = 'alertDestination';
   var EXPLICIT_KEY = 'alertDestinationExplicit'; // set only when the presenter clicks the picker
+  var pageDefault = null;
   var listeners = [];
 
   var SLACK_ICON = '<svg viewBox="0 0 54 54" aria-hidden="true"><path fill="#36C5F0" d="M19.7.1a5.4 5.4 0 0 0 0 10.8h5.4V5.5A5.4 5.4 0 0 0 19.7.1m0 14.4H5.4a5.4 5.4 0 0 0 0 10.8h14.3a5.4 5.4 0 0 0 0-10.8"/><path fill="#2EB67D" d="M53.8 19.9a5.4 5.4 0 0 0-10.8 0v5.4h5.4a5.4 5.4 0 0 0 5.4-5.4m-14.4 0V5.5a5.4 5.4 0 0 0-10.8 0v14.4a5.4 5.4 0 0 0 10.8 0"/><path fill="#ECB22E" d="M34 54a5.4 5.4 0 0 0 0-10.8h-5.4v5.4A5.4 5.4 0 0 0 34 54m0-14.4h14.4a5.4 5.4 0 0 0 0-10.8H34a5.4 5.4 0 0 0 0 10.8"/><path fill="#E01E5A" d="M0 34.2a5.4 5.4 0 0 0 10.8 0v-5.4H5.4A5.4 5.4 0 0 0 0 34.2m14.3 0v14.4a5.4 5.4 0 0 0 10.8 0V34.2a5.4 5.4 0 0 0-10.8 0"/></svg>';
@@ -28,12 +29,33 @@
     return value === 'slack' || value === 'teams' ? value : null;
   }
 
+  function setLabelContent(el, value) {
+    el.textContent = '';
+    var text = String(value);
+    var boldPattern = /<b>([^<]*)<\/b>/gi;
+    var lastIndex = 0;
+    var match;
+    while ((match = boldPattern.exec(text))) {
+      if (match.index > lastIndex) {
+        el.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+      }
+      var bold = document.createElement('b');
+      bold.textContent = match[1];
+      el.appendChild(bold);
+      lastIndex = boldPattern.lastIndex;
+    }
+    if (lastIndex < text.length) {
+      el.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
+  }
+
   function writeCookie(value) {
     document.cookie = 'alert_destination=' + value + '; Path=/; Max-Age=31536000; SameSite=Lax'
       + (location.protocol === 'https:' ? '; Secure' : '');
   }
 
   function get() {
+    if (pageDefault && localStorage.getItem(EXPLICIT_KEY) !== '1') return pageDefault;
     return normalize(localStorage.getItem(KEY)) || 'slack';
   }
 
@@ -71,6 +93,8 @@
   function mount(el, opts) {
     opts = opts || {};
     var teamsAvailable = opts.teamsAvailable !== false;
+    var d = normalize(opts.defaultValue);
+    if (d && !(d === 'teams' && !teamsAvailable)) pageDefault = d;
     var labels = Object.assign({
       title: 'Post alerts to',
       slack: 'Slack',
@@ -82,14 +106,17 @@
     injectCss();
     el.innerHTML = ''
       + '<div class="adp">'
-      + '<div class="adp-title" id="adp-title">' + labels.title + '</div>'
+      + '<div class="adp-title" id="adp-title"></div>'
       + '<div class="adp-seg" role="radiogroup" aria-labelledby="adp-title">'
-      + '<button type="button" class="adp-opt" role="radio" data-value="slack">' + SLACK_ICON + labels.slack + '</button>'
-      + '<button type="button" class="adp-opt" role="radio" data-value="teams">' + TEAMS_ICON + labels.teams + '</button>'
+      + '<button type="button" class="adp-opt" role="radio" data-value="slack">' + SLACK_ICON + '</button>'
+      + '<button type="button" class="adp-opt" role="radio" data-value="teams">' + TEAMS_ICON + '</button>'
       + '</div>'
       + '<div class="adp-summary" aria-live="polite"></div>'
       + '</div>';
+    el.querySelector('.adp-title').textContent = labels.title;
     var buttons = Array.prototype.slice.call(el.querySelectorAll('.adp-opt'));
+    buttons[0].appendChild(document.createTextNode(labels.slack));
+    buttons[1].appendChild(document.createTextNode(labels.teams));
     var summary = el.querySelector('.adp-summary');
 
     function render() {
@@ -103,11 +130,17 @@
       var warn = value === 'teams' && !teamsAvailable;
       summary.classList.toggle('warn', warn);
       if (warn) {
-        summary.innerHTML = labels.teamsUnavailable;
+        setLabelContent(summary, labels.teamsUnavailable);
       } else if (value === 'teams') {
-        summary.innerHTML = TEAMS_ICON + '<span>' + labels.teamsSelected + '</span>';
+        summary.innerHTML = TEAMS_ICON;
+        var teamsLabel = document.createElement('span');
+        setLabelContent(teamsLabel, labels.teamsSelected);
+        summary.appendChild(teamsLabel);
       } else {
-        summary.innerHTML = SLACK_ICON + '<span>' + labels.slackSelected + '</span>';
+        summary.innerHTML = SLACK_ICON;
+        var slackLabel = document.createElement('span');
+        setLabelContent(slackLabel, labels.slackSelected);
+        summary.appendChild(slackLabel);
       }
     }
 
