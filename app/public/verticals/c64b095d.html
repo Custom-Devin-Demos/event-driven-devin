@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pay for your booking | British Airways</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #3468AD;
+      --ink: #021B41;
+      --surface: #FFFFFF;
+      --chrome-bg: #01122C;
+      --chrome-text: #FFFFFF;
+      --page: #F9F9FA;
+      --line: #E7E8EC;
+      --line-strong: #CFD0D9;
+      --muted: #70758F;
+      --blue-700: #234776;
+      --blue-200: #DFE7F2;
+      --red: #CE210F;
+      --ok: #008058;
+      --ok-bg: #D6EBE4;
+      --warn-bg: #F7DBD9;
+      --font: "Open Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/24px var(--font); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1296px; margin: auto; padding: 0 32px; }
+    .gnav { background: var(--chrome-bg); color: var(--chrome-text); }
+    .gnav .wrap { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 80px; gap: 16px; }
+    .gnav-links { display: flex; align-items: center; gap: 32px; }
+    .gnav-links a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; text-decoration: none; color: var(--chrome-text); }
+    .gnav-links a.current { box-shadow: inset 0 -2px 0 var(--chrome-text); }
+    .wordmark { display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; min-height: 44px; text-decoration: none; color: var(--chrome-text); }
+    .wordmark svg { display: block; width: 72px; height: 16px; margin-left: 112px; }
+    .wordmark span { font-size: 19px; font-weight: 600; letter-spacing: 1.6px; line-height: 1; text-transform: uppercase; margin-top: -4px; }
+    .gnav-cta { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 24px; border-radius: 8px; text-decoration: none; border: 1px solid transparent; font-weight: 400; }
+    .btn-outline { border-color: var(--chrome-text); color: var(--chrome-text); background: transparent; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; font-size: 13px; font-weight: 600; }
+    .steps { background: var(--chrome-bg); color: var(--chrome-text); border-top: 1px solid rgba(255, 255, 255, .12); }
+    .steps ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; height: 56px; align-items: center; }
+    .steps li { display: inline-flex; align-items: center; gap: 10px; padding: 0 16px 0 0; font-size: 15px; color: rgba(255, 255, 255, .72); }
+    .steps li + li::before { content: ""; width: 24px; height: 1px; background: rgba(255, 255, 255, .3); margin-right: 8px; }
+    .steps .num { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .55); display: grid; place-items: center; font-size: 13px; }
+    .steps li.done .num { background: var(--chrome-text); color: var(--chrome-bg); border-color: var(--chrome-text); }
+    .steps li.current { color: var(--chrome-text); font-weight: 600; }
+    .steps li.current .num { background: var(--accent); border-color: var(--accent); }
+    .hero { background: var(--chrome-bg); color: var(--chrome-text); }
+    .hero .wrap { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding: 32px 32px 40px; }
+    .hero h1 { margin: 0; font-size: 40px; font-weight: 300; line-height: 48px; letter-spacing: -.2px; }
+    .hero p { margin: 8px 0 0; font-size: 18px; font-weight: 300; color: rgba(255, 255, 255, .85); }
+    .hold { text-align: right; font-size: 14px; color: rgba(255, 255, 255, .8); }
+    .hold strong { display: block; font-size: 22px; font-weight: 400; color: var(--chrome-text); font-variant-numeric: tabular-nums; }
+    main .wrap { padding: 32px 32px 72px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .85fr); gap: 24px; align-items: start; }
+    .card { background: var(--surface); border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 2px 8px rgba(2, 27, 65, .06); padding: 32px; }
+    .card h2 { margin: 0 0 4px; font-size: 28px; font-weight: 300; line-height: 36px; color: var(--ink); }
+    .card .sub { margin: 0 0 24px; color: var(--blue-700); font-weight: 300; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+    .field input, .field select { width: 100%; min-height: 52px; padding: 12px 16px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font-size: 16px; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 22px) 23px, calc(100% - 16px) 23px; background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 44px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 18px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: "\00a3"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+    .amount-wrap input { padding-left: 30px; font-variant-numeric: tabular-nums; }
+    .review { margin: 4px 0 20px; padding: 16px 20px; border-radius: 8px; background: var(--page); border: 1px solid var(--line); display: grid; gap: 8px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .review dd.money { white-space: nowrap; }
+    .review div.total { padding-top: 8px; border-top: 1px solid var(--line); font-size: 17px; }
+    .fine { margin: 0 0 24px; color: var(--muted); font-size: 13px; line-height: 19px; }
+    .fine a { color: var(--accent); }
+    .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .submit-btn { min-height: 52px; padding: 12px 32px; border: 1px solid transparent; border-radius: 8px; background: var(--accent); color: var(--chrome-text); font-size: 16px; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 85%, var(--ink)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .cancel-btn { min-height: 52px; padding: 12px 24px; border: 1px solid var(--accent); border-radius: 8px; background: transparent; color: var(--accent); font-size: 16px; }
+    .cancel-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-size: 22px; font-weight: 600; }
+    .status { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 20px; border-radius: 8px; border-left: 4px solid transparent; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ink); border-left-color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); border-left-color: var(--red); }
+    aside .card { padding: 24px; }
+    aside .card + .card { margin-top: 20px; }
+    aside h3 { margin: 0 0 16px; font-size: 20px; font-weight: 300; color: var(--accent); }
+    .leg { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 14px 0; border-top: 1px solid var(--line); }
+    .leg:first-of-type { border-top: 0; padding-top: 0; }
+    .leg .code { font-size: 22px; font-weight: 600; letter-spacing: .5px; }
+    .leg .city { display: block; font-size: 13px; color: var(--muted); }
+    .leg .line { position: relative; height: 1px; background: var(--line-strong); }
+    .leg .line::after { content: ""; position: absolute; right: -1px; top: -4px; width: 0; height: 0; border-left: 8px solid var(--line-strong); border-top: 4.5px solid transparent; border-bottom: 4.5px solid transparent; }
+    .leg .meta { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--muted); margin-top: -6px; }
+    .trip-tags { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 16px; }
+    .tag { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: 6px; background: var(--blue-200); color: var(--blue-700); font-size: 13px; font-weight: 600; }
+    .fare { margin: 0; display: grid; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .fare div { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
+    .fare dt { margin: 0; color: var(--muted); }
+    .fare dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .fare div.total { padding-top: 8px; border-top: 1px solid var(--line); font-size: 17px; }
+    .fare div.total dt { color: var(--ink); font-weight: 600; }
+    .promo { overflow: hidden; }
+    .promo img { display: block; width: calc(100% + 48px); margin: -24px -24px 16px; height: 180px; object-fit: cover; }
+    .promo .promo-fallback { display: none; height: 120px; margin: -24px -24px 16px; background: linear-gradient(135deg, var(--accent), var(--chrome-bg)); }
+    .promo.no-img img { display: none; }
+    .promo.no-img .promo-fallback { display: block; }
+    .promo p { margin: 0 0 12px; color: var(--blue-700); font-weight: 300; }
+    .promo a, .note a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--accent); font-weight: 400; text-decoration: underline; text-underline-offset: 3px; }
+    .note p { margin: 0 0 8px; color: var(--blue-700); font-weight: 300; }
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); font-size: 16px; }
+    .site-footer .wrap { padding: 56px 32px 32px; }
+    .footer-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; padding-bottom: 32px; border-bottom: 1px solid rgba(255, 255, 255, .25); }
+    .footer-cols h4 { margin: 0 0 12px; font-size: 16px; font-weight: 400; }
+    .footer-cols a { display: flex; align-items: center; min-height: 40px; color: var(--chrome-text); text-decoration: none; font-weight: 300; }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 24px; }
+    .footer-bottom .mark svg { display: block; width: 104px; height: 24px; }
+    .footer-legal { margin: 8px 0 0; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 15px; font-weight: 300; }
+    .footer-legal a { color: var(--chrome-text); display: inline-flex; align-items: center; min-height: 44px; }
+    .footer-note { margin: 12px 0 0; font-size: 13px; color: rgba(255, 255, 255, .65); font-weight: 300; }
+    @media (max-width: 1100px) {
+      .gnav-links { gap: 20px; }
+      .gnav-links a:nth-child(n+4) { display: none; }
+    }
+    @media (max-width: 900px) {
+      .wrap { padding: 0 16px; }
+      .gnav .wrap { grid-template-columns: auto 1fr auto; height: 64px; gap: 8px; }
+      .gnav-links { display: none; }
+      .wordmark { justify-self: start; }
+      .wordmark svg { width: 56px; height: 12px; margin-left: 86px; }
+      .wordmark span { font-size: 15px; letter-spacing: 1.2px; }
+      .gnav-cta .btn { min-height: 44px; padding: 0 16px; }
+      .gnav-cta .avatar { display: none; }
+      .steps ol { height: auto; padding: 12px 0; flex-wrap: wrap; gap: 6px 4px; }
+      .steps li { font-size: 13px; padding-right: 6px; }
+      .steps li + li::before { width: 10px; margin-right: 4px; }
+      .hero .wrap { flex-direction: column; align-items: flex-start; padding: 24px 16px 28px; }
+      .hero h1 { font-size: 30px; line-height: 38px; }
+      .hero p { font-size: 16px; }
+      .hold { text-align: left; }
+      main .wrap { padding: 20px 16px 48px; }
+      .layout { grid-template-columns: 1fr; }
+      .card { padding: 20px 16px 24px; }
+      .card h2 { font-size: 24px; line-height: 32px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .actions .submit-btn, .actions .cancel-btn { width: 100%; }
+      .site-footer .wrap { padding: 36px 16px 24px; }
+      .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <header class="gnav">
+    <div class="wrap">
+      <nav class="gnav-links" aria-label="Primary">
+        <a href="https://www.britishairways.com/travel/home/public/en_gb/" target="_blank" rel="noopener noreferrer">Discover</a>
+        <a href="#payment" class="current" aria-current="page">Book</a>
+        <a href="https://www.britishairways.com/travel/managebooking/public/en_gb" target="_blank" rel="noopener noreferrer">Manage</a>
+        <a href="https://www.britishairways.com/content/information/help" target="_blank" rel="noopener noreferrer">Help</a>
+        <a href="https://www.britishairways.com/travel/home/public/en_gb/" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">&#9906;</span>Search</a>
+      </nav>
+      <a class="wordmark" href="#payment" aria-label="British Airways">
+        <svg viewBox="0 0 72 16" aria-hidden="true" focusable="false"><path d="M2 14 C 20 4, 44 0, 70 2 C 50 4, 30 9, 14 15 Z" fill="#CE210F"/><path d="M8 15 C 24 9, 44 5, 66 4 C 48 7, 30 11, 16 15.5 Z" fill="#FFFFFF" opacity=".85"/></svg>
+        <span>British Airways</span>
+      </a>
+      <div class="gnav-cta">
+        <a class="btn btn-outline" href="https://www.britishairways.com/travel/loginr/public/en_gb" target="_blank" rel="noopener noreferrer">Log in</a>
+        <span class="avatar" aria-hidden="true">JD</span>
+      </div>
+    </div>
+  </header>
+  <div class="steps" aria-label="Booking progress">
+    <div class="wrap">
+      <ol>
+        <li class="done"><span class="num" aria-hidden="true">&#10003;</span>Flights</li>
+        <li class="done"><span class="num" aria-hidden="true">&#10003;</span>Passengers</li>
+        <li class="done"><span class="num" aria-hidden="true">&#10003;</span>Extras</li>
+        <li class="current" aria-current="step"><span class="num" aria-hidden="true">4</span>Payment</li>
+        <li><span class="num" aria-hidden="true">5</span>Confirmation</li>
+      </ol>
+    </div>
+  </div>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div>
+        <h1 id="hero-title">Pay for your booking</h1>
+        <p>Your flights are held at this price while you pay. Check the details, choose a card and confirm.</p>
+      </div>
+      <div class="hold" aria-live="polite">Total to pay<strong id="heroTotal">&pound;0.00</strong><span id="heroRef">Booking reference &mdash;</span></div>
+    </div>
+  </section>
+  <main id="payment">
+    <div class="wrap">
+      <div class="layout">
+        <section class="card" aria-labelledby="form-title">
+          <h2 id="form-title">Payment details</h2>
+          <p class="sub">Choose how you&rsquo;d like to pay. Your booking is confirmed as soon as the payment goes through.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="toAccount">Booking</label>
+              <select id="toAccount">
+                <option value="PNR-Q7X4LM" data-ref="Q7X4LM" data-from="LHR" data-from-city="London Heathrow" data-to="JFK" data-to-city="New York JFK" data-out="BA117 &middot; Sat 14 Nov 2026 &middot; 08:25 &ndash; 11:20" data-back="BA178 &middot; Sat 21 Nov 2026 &middot; 18:30 &ndash; 06:25+1" data-cabin="World Traveller" data-pax="2 adults" data-fare="818.00" data-taxes="428.52" data-seats="0.00">Q7X4LM &middot; London Heathrow to New York JFK &middot; 2 adults</option>
+                <option value="PNR-M3K8PD" data-ref="M3K8PD" data-from="LGW" data-from-city="London Gatwick" data-to="AGP" data-to-city="M&aacute;laga" data-out="BA2716 &middot; Fri 5 Dec 2026 &middot; 07:10 &ndash; 11:00" data-back="BA2717 &middot; Mon 8 Dec 2026 &middot; 11:50 &ndash; 13:45" data-cabin="Euro Traveller" data-pax="1 adult" data-fare="126.00" data-taxes="42.40" data-seats="18.00">M3K8PD &middot; London Gatwick to M&aacute;laga &middot; 1 adult</option>
+                <option value="PNR-H9T2WC" data-ref="H9T2WC" data-from="LHR" data-from-city="London Heathrow" data-to="DXB" data-to-city="Dubai" data-out="BA107 &middot; Thu 18 Feb 2027 &middot; 13:05 &ndash; 23:55" data-back="BA106 &middot; Thu 25 Feb 2027 &middot; 02:20 &ndash; 06:30" data-cabin="Club World" data-pax="2 adults" data-fare="2984.00" data-taxes="612.76" data-seats="0.00">H9T2WC &middot; London Heathrow to Dubai &middot; 2 adults</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fromAccount">Pay with</label>
+              <select id="fromAccount">
+                <option value="CARD-VISA-4471" data-name="Visa Debit ending 4471">Visa Debit ending 4471</option>
+                <option value="CARD-MC-8821" data-name="Mastercard ending 8821">Mastercard ending 8821</option>
+                <option value="CARD-AMEX-1005" data-name="British Airways American Express ending 1005">British Airways American Express ending 1005</option>
+              </select>
+              <small>Saved to your account. The card is charged in pounds sterling.</small>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Amount to pay today</label>
+                <div class="amount-wrap"><input type="number" id="amount" min="0.01" step="0.01" inputmode="decimal" required aria-describedby="amountHelp"></div>
+                <small id="amountHelp">Total to pay: &pound;0.00</small>
+              </div>
+              <div class="field">
+                <label for="accountTier">Payment option</label>
+                <select id="accountTier">
+                  <option value="standard">Pay in full now</option>
+                </select>
+                <small>Part-pay with Avios from Manage My Booking after you have paid.</small>
+              </div>
+            </div>
+            <dl class="review" aria-label="Payment summary">
+              <div><dt>Booking</dt><dd id="reviewBooking">&mdash;</dd></div>
+              <div><dt>Card</dt><dd id="reviewCard">&mdash;</dd></div>
+              <div><dt>Paying today</dt><dd class="money" id="reviewAmount">&mdash;</dd></div>
+              <div class="total"><dt>Left to pay after this payment</dt><dd class="money" id="reviewRemaining">&mdash;</dd></div>
+            </dl>
+            <p class="fine">By paying you accept the <a href="https://www.britishairways.com/content/information/legal/fare-conditions" target="_blank" rel="noopener noreferrer">fare conditions</a> and our <a href="https://www.britishairways.com/content/information/legal/conditions-of-carriage" target="_blank" rel="noopener noreferrer">General Conditions of Carriage</a>. Your e-ticket receipt is emailed once payment is confirmed.</p>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Pay now</button>
+              <button type="reset" id="cancelBtn" class="cancel-btn">Clear</button>
+            </div>
+            <div class="stopwatch" id="payTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="payTimerValue">0.0s</span></div>
+            <p class="status" id="paymentStatus" role="status" aria-live="polite">Sample bookings and cards. No payment is taken on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="card" id="trip">
+            <h3>Your trip</h3>
+            <div class="leg">
+              <div><span class="code" id="outFrom">&mdash;</span><span class="city" id="outFromCity"></span></div>
+              <div class="line" aria-hidden="true"></div>
+              <div><span class="code" id="outTo">&mdash;</span><span class="city" id="outToCity"></span></div>
+              <div class="meta"><span>Outbound</span><span id="outDetail">&mdash;</span></div>
+            </div>
+            <div class="leg">
+              <div><span class="code" id="backFrom">&mdash;</span><span class="city" id="backFromCity"></span></div>
+              <div class="line" aria-hidden="true"></div>
+              <div><span class="code" id="backTo">&mdash;</span><span class="city" id="backToCity"></span></div>
+              <div class="meta"><span>Return</span><span id="backDetail">&mdash;</span></div>
+            </div>
+            <div class="trip-tags"><span class="tag" id="tagCabin">&mdash;</span><span class="tag" id="tagPax">&mdash;</span><span class="tag">Return</span></div>
+            <dl class="fare" aria-label="Fare breakdown">
+              <div><dt>Fare</dt><dd id="fareBase">&mdash;</dd></div>
+              <div><dt>Taxes, fees and carrier charges</dt><dd id="fareTaxes">&mdash;</dd></div>
+              <div><dt>Seat selection</dt><dd id="fareSeats">&mdash;</dd></div>
+              <div class="total"><dt>Total</dt><dd id="fareTotal">&mdash;</dd></div>
+            </dl>
+          </div>
+          <div class="card promo">
+            <img src="https://ba.scene7.com/is/image/ba/airbus-a350-1000-inflight-countryside:16-9?wid=1200&amp;hei=672&amp;fit=crop&amp;fmt=webp&amp;qlt=75" alt="" width="1200" height="672" loading="lazy" onerror="this.closest('.promo').classList.add('no-img')">
+            <div class="promo-fallback" aria-hidden="true"></div>
+            <h3>Collect Avios on this booking</h3>
+            <p>Members of The British Airways Club collect Avios and tier points on every flight. Add your membership number in Manage My Booking.</p>
+            <a href="https://www.britishairways.com/content/the-british-airways-club" target="_blank" rel="noopener noreferrer">About the Club <span aria-hidden="true">&rarr;</span></a>
+          </div>
+          <div class="card note">
+            <h3>Need to change something?</h3>
+            <p>Seats, bags and passenger details can be updated in Manage My Booking once your payment is confirmed.</p>
+            <a href="https://www.britishairways.com/travel/managebooking/public/en_gb" target="_blank" rel="noopener noreferrer">Manage booking <span aria-hidden="true">&rarr;</span></a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-cols">
+        <div><h4>About British Airways</h4><a href="https://www.britishairways.com/content/information/about-ba" target="_blank" rel="noopener noreferrer">About BA</a><a href="https://www.britishairways.com/content/information/about-ba/ba-better-world" target="_blank" rel="noopener noreferrer">Sustainability</a><a href="https://careers.ba.com/" target="_blank" rel="noopener noreferrer">Careers</a></div>
+        <div><h4>Support</h4><a href="https://www.britishairways.com/content/information/help" target="_blank" rel="noopener noreferrer">Help and contacts</a><a href="https://www.britishairways.com/content/information/customer-commitment" target="_blank" rel="noopener noreferrer">Customer Commitment</a><a href="https://www.britishairways.com/content/information/accessibility" target="_blank" rel="noopener noreferrer">Accessibility and site help</a></div>
+        <div><h4>Policies</h4><a href="https://www.britishairways.com/content/information/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a><a href="https://www.britishairways.com/content/information/legal" target="_blank" rel="noopener noreferrer">Legal</a><a href="https://www.britishairways.com/content/information/legal/cookie-policy" target="_blank" rel="noopener noreferrer">Cookie policy</a></div>
+        <div><h4>More</h4><a href="https://www.britishairways.com/en-gb/flights" target="_blank" rel="noopener noreferrer">Flights</a><a href="https://www.britishairways.com/en-gb/holidays" target="_blank" rel="noopener noreferrer">Holidays</a><a href="https://www.britishairways.com/content/the-british-airways-club" target="_blank" rel="noopener noreferrer">The British Airways Club</a></div>
+      </div>
+      <div class="footer-bottom">
+        <span class="mark" aria-hidden="true"><svg viewBox="0 0 72 16"><path d="M2 14 C 20 4, 44 0, 70 2 C 50 4, 30 9, 14 15 Z" fill="#CE210F"/><path d="M8 15 C 24 9, 44 5, 66 4 C 48 7, 30 11, 16 15.5 Z" fill="#FFFFFF" opacity=".85"/></svg></span>
+        <span>&copy; British Airways - all rights reserved</span>
+      </div>
+      <p class="footer-legal"><span>Example payment experience. The bookings, cards, fares and payments shown here are sample data.</span><a href="https://www.britishairways.com/travel/home/public/en_gb/" target="_blank" rel="noopener noreferrer">United Kingdom - English</a></p>
+      <p class="footer-note">ATOL Protected holidays | Prices shown include taxes, fees and carrier charges | Terms and Conditions apply</p>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('paymentStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const amountHelp = document.getElementById('amountHelp');
+    const tierSelect = document.getElementById('accountTier');
+    const paymentFields = [fromAccount, toAccount, amountInput, tierSelect];
+    const timer = document.getElementById('payTimer');
+    const timerValue = document.getElementById('payTimerValue');
+    const text = (id, value) => { document.getElementById(id).textContent = value; };
+    const IDLE_STATUS = 'Sample bookings and cards. No payment is taken on this page.';
+    const IDLE_LABEL = 'Pay now';
+    let timerHandle = null;
+    let pending = false;
+    const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
+    const timeFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
+    function booking() { return toAccount.options[toAccount.selectedIndex].dataset; }
+    function cardName() { return fromAccount.options[fromAccount.selectedIndex].dataset.name; }
+    function money(value) { return Math.round(Number(value) * 100) / 100; }
+    function bookingTotal(b) { return money(Number(b.fare) + Number(b.taxes) + Number(b.seats)); }
+    function outstanding() { return bookingTotal(booking()); }
+    function parsedAmount() {
+      const raw = amountInput.value.trim();
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw);
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function renderTrip() {
+      const b = booking();
+      text('outFrom', b.from); text('outFromCity', b.fromCity); text('outTo', b.to); text('outToCity', b.toCity); text('outDetail', b.out);
+      text('backFrom', b.to); text('backFromCity', b.toCity); text('backTo', b.from); text('backToCity', b.fromCity); text('backDetail', b.back);
+      text('tagCabin', b.cabin); text('tagPax', b.pax);
+      text('fareBase', gbp.format(Number(b.fare)));
+      text('fareTaxes', gbp.format(Number(b.taxes)));
+      text('fareSeats', Number(b.seats) > 0 ? gbp.format(Number(b.seats)) : 'Included');
+      text('fareTotal', gbp.format(bookingTotal(b)));
+      text('heroRef', `Booking reference ${b.ref}`);
+    }
+    function renderReview() {
+      const b = booking();
+      const due = outstanding();
+      const amount = parsedAmount();
+      const valid = Number.isFinite(amount) && amount > 0 && amount <= due;
+      text('heroTotal', gbp.format(due));
+      amountHelp.textContent = `Total to pay: ${gbp.format(due)}`;
+      text('reviewBooking', `${b.ref} \u00b7 ${b.fromCity} to ${b.toCity}`);
+      text('reviewCard', cardName());
+      text('reviewAmount', valid ? gbp.format(amount) : '\u2014');
+      text('reviewRemaining', valid ? gbp.format(money(due - amount)) : gbp.format(due));
+    }
+    function fillAmount() {
+      const due = outstanding();
+      amountInput.value = due.toFixed(2);
+    }
+    toAccount.addEventListener('change', () => { renderTrip(); fillAmount(); renderReview(); });
+    fromAccount.addEventListener('change', renderReview);
+    amountInput.addEventListener('input', renderReview);
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        renderTrip();
+        fillAmount();
+        renderReview();
+      });
+    });
+    renderTrip();
+    fillAmount();
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const amount = parsedAmount();
+      const due = outstanding();
+      if (!Number.isFinite(amount) || amount <= 0 || amount > due) {
+        result.className = 'result-box notice';
+        result.textContent = `Enter an amount between \u00a30.01 and ${gbp.format(due)}.`;
+        status.textContent = IDLE_STATUS;
+        amountInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      cancelBtn.disabled = true;
+      paymentFields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Taking payment\u2026';
+      status.textContent = 'Taking payment\u2026 Please don\u2019t refresh or press back.';
+      result.className = 'result-box';
+      result.textContent = '';
+      const ref = booking().ref;
+      const card = cardName();
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: tierSelect.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Payment not taken.');
+        if (!data || !data.receipt) throw new Error('Payment outcome unknown.');
+        const charged = money(data.receipt.amount);
+        const completedAt = new Date(data.receipt.timestamp);
+        const left = money(due - charged);
+        result.className = 'result-box success';
+        result.textContent = left > 0
+          ? `Payment received at ${timeFmt.format(completedAt)}. ${gbp.format(charged)} charged to ${card}. ${gbp.format(left)} is still to pay on booking ${ref}. Payment reference ${data.receipt.receiptId}.`
+          : `Payment received at ${timeFmt.format(completedAt)}. ${gbp.format(charged)} charged to ${card}. Booking ${ref} is confirmed and your e-ticket receipt is on its way by email. Payment reference ${data.receipt.receiptId}.`;
+        status.textContent = left > 0 ? 'Payment received.' : 'Booking confirmed.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'We couldn\u2019t take your payment. Your card hasn\u2019t been charged and your booking is still held. Please try again.';
+          status.textContent = 'Payment not taken.';
+        } else {
+          result.textContent = 'We couldn\u2019t confirm your payment. Check Manage My Booking before trying again so your card isn\u2019t charged twice.';
+          status.textContent = 'Payment not confirmed.';
+        }
+      } finally {
+        paymentFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        cancelBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

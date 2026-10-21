@@ -5085,6 +5085,30 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A MONZO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Monzo product.',
   },
+  'c64b095d': {
+    slug: 'c64b095d',
+    company: 'British Airways',
+    brandMark: 'BA',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'c64b095d.html', title: 'Pay for your booking | British Airways' },
+    theme: {
+      '--accent': '#3468AD',
+      '--ink': '#021B41',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#01122C',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'British Airways Customer Services',
+    alertCard: {
+      title: 'p95 latency \u2014 Pay for your booking (card payment)',
+      release: 'payments-web@2026.10.3',
+      baseline: '~300ms (7-day p95, before payments-web@2026.10.3)',
+      symptom: 'Card payments on the Pay for your booking step hang ~9s before the confirmation returns. Error rate is normal \u2014 payments eventually go through and bookings confirm.',
+      impact: 'Every customer paying for a booking by card waits ~9 seconds on Taking payment\u2026 before the booking confirms; some press Pay now again or call Customer Services to check whether their card was charged twice.',
+    },
+    disclaimer: 'NOT ACTUALLY A BRITISH AIRWAYS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real British Airways product.',
+  },
 };
 
 function getOncallSkin(slug) {
