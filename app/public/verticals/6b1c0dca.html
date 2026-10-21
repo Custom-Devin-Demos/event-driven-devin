@@ -352,8 +352,9 @@
     const timerValue = document.getElementById('sendTimerValue');
     const IDLE_STATUS = 'Sample accounts. No money moves on this page.';
     const IDLE_LABEL = 'Transfer';
-    const FEE_PENDING = 'Up to $2.50, shown on confirmation';
-    const FEE_RESERVE = 2.50;
+    const FEE_PENDING = 'Shown on confirmation';
+    const FEE_RATE = 0.001;
+    const FEE_MIN = 2.50;
     let timerHandle = null;
     let pending = false;
     const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -361,7 +362,12 @@
     const balances = { 'ACCT-1001': 2184.37, 'ACCT-1002': 4650.00 };
     function selected(select) { return select.options[select.selectedIndex]; }
     function available() { return balances[fromAccount.value] || 0; }
-    function maxMove() { return Math.max(0, Math.round((available() - FEE_RESERVE) * 100) / 100); }
+    function feeFor(amount) { return Math.max(amount * FEE_RATE, FEE_MIN); }
+    function maxMove() {
+      const funds = available();
+      const cap = funds - FEE_MIN <= FEE_MIN / FEE_RATE ? funds - FEE_MIN : funds / (1 + FEE_RATE);
+      return Math.max(0, Math.floor(cap * 100) / 100);
+    }
     function label(select) { return selected(select).dataset.name; }
     function renderBalances() {
       [fromAccount, toAccount].forEach((select) => {
@@ -397,7 +403,7 @@
       reviewFrom.textContent = label(fromAccount);
       reviewTo.textContent = label(toAccount);
       reviewAmount.textContent = valid ? usd.format(amount) : '\u2014';
-      reviewFee.textContent = FEE_PENDING;
+      reviewFee.textContent = valid ? `${usd.format(feeFor(amount))} estimated` : FEE_PENDING;
       reviewDate.textContent = 'Right away';
     }
     [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
