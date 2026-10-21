@@ -684,6 +684,7 @@ function makeRunRef() {
 }
 
 const DD_URL = () => process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com';
+const SPLUNK_URL = () => process.env.ONCALL_SPLUNK_URL || `${DEMO_BASE_URL()}/oncall/splunk`;
 
 /**
  * Card, thread-reply and session-prompt copy. A skin opts into Spanish with
@@ -804,6 +805,7 @@ const TELEMETRY_BRAND_STRINGS = {
       metricValue: 'Search result',
       monitorQuery: 'Splunk search',
       viewDatadog: null,
+      viewSplunk: 'View in Splunk',
       promptIntro: (service) => `A Dynatrace problem is open on ${service}. Investigate it and open a PR with the fix.`,
       monitor: 'Dynatrace problem',
       promptState: 'OPEN',
@@ -815,6 +817,7 @@ const TELEMETRY_BRAND_STRINGS = {
       metricValue: 'Resultado de búsqueda',
       monitorQuery: 'Búsqueda de Splunk',
       viewDatadog: null,
+      viewSplunk: 'Ver en Splunk',
       promptIntro: (service) => `Hay un problema abierto de Dynatrace en ${service}. Investígalo y abre un PR con la solución.`,
       monitor: 'Problema de Dynatrace',
       promptState: 'ABIERTO',
@@ -829,8 +832,17 @@ function oncallStrings(skin, scenario) {
     ? skin.locale
     : 'en';
   const telemetryBrand = (skin && skin.telemetryBrand) || (scenario && scenario.telemetryBrand) || 'datadog';
-  const overlay = TELEMETRY_BRAND_STRINGS[telemetryBrand] && TELEMETRY_BRAND_STRINGS[telemetryBrand][locale];
-  return overlay ? { ...ONCALL_STRINGS[locale], ...overlay } : ONCALL_STRINGS[locale];
+  const brandStrings = TELEMETRY_BRAND_STRINGS[telemetryBrand];
+  const overlay = brandStrings && brandStrings[locale];
+  const fallbackOverlay = brandStrings && brandStrings.en;
+  return {
+    ...ONCALL_STRINGS[locale],
+    ...(overlay || {}),
+    ...(!overlay && fallbackOverlay ? {
+      viewDatadog: fallbackOverlay.viewDatadog,
+      viewSplunk: fallbackOverlay.viewSplunk,
+    } : {}),
+  };
 }
 
 /**
@@ -1187,6 +1199,7 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
     ],
     actions: [
       t.viewDatadog ? { title: t.viewDatadog, url: DD_URL() } : null,
+      t.viewSplunk ? { title: t.viewSplunk, url: SPLUNK_URL() } : null,
       demoPath ? { title: t.openAffectedPage, url: `${DEMO_BASE_URL()}${demoPath}` } : null,
     ],
     footer: [
