@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Situational Awareness | IndraMind Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#004254; --ink-2:#002532; --deep:#001923; --cyan:#00B0BD; --cyan-2:#B2E7EB; --cyan-3:#E6F6F7;
+    --sand:#E3E2DA; --sand-2:#F1F1ED; --stone:#646459; --stone-2:#AAAA9F; --line:#DCDBD2;
+    --red:#D9372B; --orange:#EE7B22; --amber:#F2B233; --green:#2E9E6B; --white:#fff;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Outfit',system-ui,sans-serif;color:var(--ink);background:var(--sand-2);font-size:14px;overflow:hidden}
+  button{font:inherit;cursor:pointer}
+  .app{display:grid;grid-template-columns:64px 1fr;grid-template-rows:56px 1fr;height:100vh}
+
+  /* top bar */
+  .top{grid-column:1/3;display:flex;align-items:center;gap:20px;padding:0 20px 0 0;background:var(--white);border-bottom:1px solid var(--line)}
+  .brand{width:64px;height:56px;display:grid;place-items:center;background:var(--deep)}
+  .brand svg{width:28px}
+  .logo{height:22px}
+  .divider{width:1px;height:24px;background:var(--line)}
+  .ws{display:flex;flex-direction:column;line-height:1.15}
+  .ws small{font-size:11px;color:var(--stone);letter-spacing:.04em;text-transform:uppercase}
+  .ws b{font-weight:500;font-size:14px;white-space:nowrap}
+  .ws b span{color:var(--stone);font-weight:400}
+  .top .grow{flex:1}
+  .search{display:flex;align-items:center;gap:8px;width:260px;flex-shrink:1;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:4px;color:var(--stone);background:var(--sand-2);font-size:13px}
+  .search kbd{margin-left:auto;font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-radius:3px;padding:0 5px;background:#fff}
+  .clock{white-space:nowrap;font-family:var(--mono);font-size:13px;text-align:right;line-height:1.2}
+  .clock small{display:block;font-family:'Outfit';font-size:11px;color:var(--stone)}
+  .status-pill{white-space:nowrap;display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:999px;background:var(--cyan-3);color:var(--ink)}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+  .user{display:flex;align-items:center;gap:10px}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:500}
+  .user div{line-height:1.15;font-size:13px;white-space:nowrap}
+  .user small{color:var(--stone);font-size:11px}
+
+  /* rail */
+  .rail{background:var(--deep);display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:4px}
+  .rail a{width:44px;height:44px;border-radius:6px;display:grid;place-items:center;color:#8FB3BC;position:relative}
+  .rail a.on{background:rgba(0,176,189,.16);color:#fff}
+  .rail a.on::before{content:"";position:absolute;left:-10px;top:10px;bottom:10px;width:3px;background:var(--cyan);border-radius:2px}
+  .rail a:hover{color:#fff}
+  .rail svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5}
+  .rail .sep{width:28px;height:1px;background:#1E3A44;margin:6px 0}
+  .rail .badge{position:absolute;top:6px;right:5px;min-width:16px;height:16px;border-radius:8px;background:var(--red);color:#fff;font-size:10px;display:grid;place-items:center;padding:0 4px}
+
+  /* main */
+  .main{display:grid;grid-template-columns:1fr 400px;grid-template-rows:auto 1fr 210px;min-height:0}
+  .crumbs{grid-column:1/3;display:flex;align-items:center;gap:14px;padding:12px 20px;background:var(--white);border-bottom:1px solid var(--line)}
+  .crumbs h1{font-weight:400;font-size:20px;letter-spacing:-.01em}
+  .crumbs .path{font-size:12px;color:var(--stone)}
+  .tabs{display:flex;gap:2px;margin-left:24px}
+  .tabs button{border:0;background:none;padding:6px 12px;color:var(--stone);border-bottom:2px solid transparent;font-size:13px}
+  .tabs button.on{color:var(--ink);border-color:var(--cyan)}
+  .crumbs .grow{flex:1}
+  .btn{height:32px;padding:0 14px;border-radius:4px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:13px;display:inline-flex;align-items:center;gap:6px}
+  .btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+  .btn.primary:hover{background:var(--ink-2)}
+  .btn.cta{background:var(--cyan);border-color:var(--cyan);color:var(--deep);font-weight:500}
+
+  /* map */
+  .map{position:relative;overflow:hidden;background:#E9ECE4;border-right:1px solid var(--line)}
+  .map svg.terrain{position:absolute;inset:0;width:100%;height:100%}
+  .layers{position:absolute;top:14px;left:14px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;width:210px;box-shadow:0 1px 2px rgba(0,25,35,.06)}
+  .layers h4,.legend h4{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--stone);margin-bottom:8px}
+  .layers label{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0}
+  .layers label span{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--stone)}
+  .layers input{accent-color:var(--ink)}
+  .legend{position:absolute;left:14px;bottom:14px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-size:12px;display:grid;grid-template-columns:auto auto;gap:5px 16px}
+  .legend h4{grid-column:1/3;margin-bottom:2px}
+  .legend i{display:inline-block;width:18px;height:0;margin-right:6px;vertical-align:middle}
+  .mapctl{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:6px}
+  .mapctl button{width:34px;height:34px;border:0;background:none;color:var(--ink);font-size:16px}
+  .mapctl button+button{border-top:1px solid var(--line)}
+  .wx{position:absolute;right:62px;top:14px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px 12px;display:flex;gap:18px;font-size:12px}
+  .wx b{display:block;font-family:var(--mono);font-weight:500;font-size:14px}
+  .wx small{color:var(--stone)}
+  .scale{position:absolute;right:14px;bottom:14px;font-family:var(--mono);font-size:11px;color:var(--stone);background:rgba(255,255,255,.85);padding:4px 8px;border-radius:4px}
+  .timeline{position:absolute;left:350px;right:250px;bottom:14px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px 14px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .timeline .bar{flex:1;height:4px;background:var(--sand);border-radius:2px;position:relative}
+  .timeline .bar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:58%;background:var(--ink);border-radius:2px}
+  .timeline .bar::after{content:"";position:absolute;left:58%;top:0;bottom:0;right:0;background:repeating-linear-gradient(90deg,var(--orange) 0 6px,transparent 6px 10px);opacity:.7}
+  .timeline .now{position:absolute;left:58%;top:-6px;width:2px;height:16px;background:var(--ink)}
+  .timeline span{font-family:var(--mono);color:var(--stone)}
+
+  /* side panel */
+  .side{background:#fff;overflow:auto;grid-row:2/4;grid-column:2;display:flex;flex-direction:column}
+  .inc{padding:18px 20px;border-bottom:1px solid var(--line)}
+  .inc .id{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--stone)}
+  .sev{font-family:'Outfit';font-size:11px;font-weight:500;padding:2px 8px;border-radius:3px;background:#FBE4E1;color:var(--red)}
+  .inc h2{font-size:20px;font-weight:400;margin:6px 0 2px;line-height:1.25}
+  .inc p.loc{color:var(--stone);font-size:13px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);margin-top:14px;border:1px solid var(--line);border-radius:6px}
+  .kpis div{padding:8px 10px}
+  .kpis div+div{border-left:1px solid var(--line)}
+  .kpis small{display:block;font-size:11px;color:var(--stone)}
+  .kpis b{font-family:var(--mono);font-weight:500;font-size:16px}
+  .kpis b.up{color:var(--red)}
+  .sec{padding:16px 20px;border-bottom:1px solid var(--line)}
+  .sec h3{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--stone);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .sec h3 .tag{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400;font-size:11px;color:var(--ink);background:var(--cyan-3);padding:2px 8px;border-radius:3px}
+  .agent{border:1px solid var(--cyan-2);background:var(--cyan-3);border-radius:6px;padding:12px 14px}
+  .agent .who{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);font-weight:500}
+  .agent .who svg{width:18px}
+  .agent .who span{margin-left:auto;font-weight:400;color:var(--stone);font-family:var(--mono);font-size:11px}
+  .agent p{margin-top:8px;font-size:13px;line-height:1.45}
+  .agent ul{margin:8px 0 0 16px;font-size:13px;line-height:1.5}
+  .agent .conf{margin-top:10px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--stone)}
+  .agent .conf .m{flex:1;height:4px;border-radius:2px;background:#fff;position:relative}
+  .agent .conf .m::before{content:"";position:absolute;inset:0;width:84%;background:var(--cyan);border-radius:2px}
+  .res{display:flex;flex-direction:column}
+  .res label{display:grid;grid-template-columns:18px 30px 1fr auto;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--sand-2);font-size:13px}
+  .res label:first-child{border-top:0}
+  .res input{accent-color:var(--ink)}
+  .res .ic{width:30px;height:30px;border-radius:4px;background:var(--sand-2);display:grid;place-items:center}
+  .res .ic svg{width:16px;height:16px;stroke:var(--ink);fill:none;stroke-width:1.5}
+  .res .nm b{font-weight:500;display:block}
+  .res .nm small{color:var(--stone);font-size:12px}
+  .res .eta{font-family:var(--mono);font-size:12px;text-align:right}
+  .res .eta small{display:block;color:var(--stone);font-family:'Outfit';font-size:11px}
+  .actions{padding:16px 20px;display:flex;flex-direction:column;gap:10px;position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);margin-top:auto}
+  .actions .row{display:flex;gap:8px}
+  .actions .row .btn{flex:1;justify-content:center;height:40px}
+  .actions .note{font-size:12px;color:var(--stone);display:flex;gap:6px;align-items:center}
+  .btn.primary[disabled]{opacity:.85;cursor:progress}
+  .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:s 0.8s linear infinite;display:none}
+  .busy .spin{display:inline-block}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .progress{display:none;font-size:12px;color:var(--stone)}
+  .progress.show{display:block}
+  .progress ol{list-style:none;margin-top:6px}
+  .progress li{display:flex;gap:8px;align-items:center;padding:2px 0;font-family:var(--mono);font-size:11px}
+  .progress li i{width:8px;height:8px;border-radius:50%;background:var(--sand)}
+  .progress li.ok i{background:var(--green)}
+  .progress li.wait i{background:var(--amber);animation:p 1s ease-in-out infinite}
+  @keyframes p{50%{opacity:.3}}
+
+  /* bottom feeds */
+  .feeds{display:grid;grid-template-columns:1.3fr 1fr;border-top:1px solid var(--line);background:#fff;min-height:0;border-right:1px solid var(--line)}
+  .feed{overflow:auto;padding:12px 20px}
+  .feed+.feed{border-left:1px solid var(--line)}
+  .feed h3{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--stone);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .feed h3 .live{display:flex;align-items:center;gap:5px;text-transform:none;letter-spacing:0;color:var(--green);font-weight:400}
+  .feed h3 .live .dot{animation:p 1.6s infinite}
+  .sig{display:grid;grid-template-columns:62px 92px 1fr auto;gap:10px;padding:6px 0;border-top:1px solid var(--sand-2);font-size:13px;align-items:baseline}
+  .sig time{font-family:var(--mono);font-size:11px;color:var(--stone)}
+  .src{font-size:11px;padding:1px 6px;border-radius:3px;background:var(--sand-2);color:var(--stone);text-align:center}
+  .src.sat{background:#FDEBD9;color:#9A4A0B}.src.c112{background:#FBE4E1;color:#A3271E}.src.iot{background:var(--cyan-3);color:var(--ink)}.src.uav{background:#E8E6F6;color:#3D3591}
+  .sig em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--stone)}
+  .agencies{display:grid;grid-template-columns:1fr auto auto;gap:6px 14px;font-size:13px;align-items:center}
+  .agencies .h{font-size:11px;color:var(--stone)}
+  .agencies .st{display:flex;align-items:center;gap:6px;font-size:12px}
+  .agencies .st.amb .dot{background:var(--amber)}
+  .agencies em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--stone);text-align:right}
+
+  .toast{position:fixed;left:50%;top:70px;transform:translate(-50%,-20px);opacity:0;transition:.25s;background:#fff;border:1px solid var(--line);border-left:4px solid var(--red);border-radius:6px;padding:12px 16px;box-shadow:0 8px 24px rgba(0,25,35,.14);max-width:520px;font-size:13px;pointer-events:none;z-index:20}
+  .toast b{display:block;font-weight:500;margin-bottom:2px}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.ok{border-left-color:var(--green)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand" title="IndraMind">
+      <svg viewBox="0 0 25 14" fill="none"><path d="M0 12.96l.74.19s8.99-2.7 11.73-11.06C15.2 10.45 24.2 13.15 24.2 13.15l.74-.19C17.5 9.6 14.2 4.5 12.47 0 10.74 4.5 7.44 9.6 0 12.96z" fill="#fff"/></svg>
+    </div>
+    <img class="logo" src="/verticals/assets/eba2e983/indramind-logo-dark.svg" alt="IndraMind">
+    <div class="divider"></div>
+    <div class="ws"><small>Intelligence Platform</small><b>Emergency Management <span>· CECOP Madrid</span></b></div>
+    <div class="grow"></div>
+    <div class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search incidents, assets, places<kbd>/</kbd></div>
+    <div class="status-pill"><span class="dot"></span>214 feeds live</div>
+    <div class="clock" id="clock">14:32:07 CEST<small>21 Oct 2026 · Day shift</small></div>
+    <div class="divider"></div>
+    <div class="user"><div class="avatar" id="avInit">LM</div><div><span id="avName">Lucía Martín</span><br><small>Duty Operations Officer</small></div></div>
+  </header>
+
+  <nav class="rail">
+    <a class="on" title="Situational awareness"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></a>
+    <a title="Incidents"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg><span class="badge">7</span></a>
+    <a title="Assets & resources"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="10" rx="1"/><path d="M16 10h3l2 3v4h-5"/><circle cx="7" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></svg></a>
+    <a title="Sensors & feeds"><svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 0114 0M8 12a4 4 0 018 0"/><circle cx="12" cy="12" r="1"/><path d="M12 13v8"/></svg></a>
+    <a title="AI agents"><svg viewBox="0 0 24 24"><rect x="5" y="7" width="14" height="11" rx="2"/><path d="M12 3v4M9 12h.01M15 12h.01M9 15h6"/></svg></a>
+    <a title="Simulation"><svg viewBox="0 0 24 24"><path d="M3 17c3-6 6 2 9-4s6 0 9-6"/><path d="M3 21h18"/></svg></a>
+    <div class="sep"></div>
+    <a title="Governance & audit"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></a>
+    <a title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></a>
+  </nav>
+
+  <main class="main">
+    <div class="crumbs">
+      <div>
+        <div class="path">Situational awareness / Active incidents / INC-26-10-0471</div>
+        <h1>Common operational picture</h1>
+      </div>
+      <div class="tabs"><button class="on">Map</button><button>Timeline</button><button>Resources</button><button>Communications</button><button>Audit log</button></div>
+      <div class="grow"></div>
+      <button class="btn">Share view</button>
+      <button class="btn">Run what-if simulation</button>
+    </div>
+
+    <section class="map">
+      <svg class="terrain" viewBox="0 0 900 560" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <pattern id="burn" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#F4C6C0"/><line x1="0" y1="0" x2="0" y2="7" stroke="#D9372B" stroke-width="2"/></pattern>
+          <radialGradient id="hot"><stop offset="0" stop-color="#D9372B" stop-opacity=".55"/><stop offset="1" stop-color="#D9372B" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect width="900" height="560" fill="#E9ECE4"/>
+        <!-- forest -->
+        <path d="M0 0h520c-30 60-90 90-80 160s-40 120-120 150-180 40-320 30z" fill="#D6E0CF"/>
+        <path d="M620 0h280v240c-60 10-120-20-160-70s-90-90-120-170z" fill="#DCE4D4"/>
+        <!-- contours -->
+        <g fill="none" stroke="#C9CFBF" stroke-width="1">
+          <path d="M-20 80c120-20 200 40 300 20s170-90 260-60 160 80 380 40"/>
+          <path d="M-20 140c140-10 220 50 320 30s160-70 250-40 170 90 370 60"/>
+          <path d="M-20 200c150 0 230 60 330 40s150-60 240-30 180 100 360 80"/>
+          <path d="M-20 270c160 10 240 60 340 50s150-40 240-20 180 110 360 100"/>
+          <path d="M-20 340c170 20 250 60 350 60s150-30 240-10 180 100 360 110"/>
+          <path d="M-20 420c180 20 260 40 360 50s150-10 240 0 180 80 360 100"/>
+          <path d="M160 110c40-30 110-30 140 0s10 70-40 80-120-50-100-80z"/>
+          <path d="M190 120c25-15 65-12 80 6s0 40-25 44-70-30-55-50z"/>
+        </g>
+        <!-- reservoir -->
+        <path d="M640 330c30-20 80-15 100 10s10 60-30 70-90-5-95-35 0-35 25-45z" fill="#BFDDE6" stroke="#9CC8D5"/>
+        <text x="662" y="378" font-size="10" fill="#4C8798" font-family="Outfit">Embalse de Navacerrada</text>
+        <!-- roads -->
+        <g fill="none" stroke-linecap="round">
+          <path d="M-10 470C160 440 300 430 420 400s250-60 490-40" stroke="#fff" stroke-width="7"/>
+          <path d="M-10 470C160 440 300 430 420 400s250-60 490-40" stroke="#E8B04A" stroke-width="3"/>
+          <path d="M420 400C430 320 470 250 520 200s80-140 70-210" stroke="#fff" stroke-width="5"/>
+          <path d="M420 400C430 320 470 250 520 200s80-140 70-210" stroke="#B9B5A4" stroke-width="2.2"/>
+          <path d="M520 200c70 30 130 60 210 60s120 40 180 50" stroke="#fff" stroke-width="5"/>
+          <path d="M520 200c70 30 130 60 210 60s120 40 180 50" stroke="#B9B5A4" stroke-width="2.2"/>
+          <path d="M260 560c20-60 60-110 160-160" stroke="#B9B5A4" stroke-width="2" stroke-dasharray="1 0"/>
+          <path d="M0 300c80 10 160 30 250 20s130-30 170-20" stroke="#8E8A7C" stroke-width="1.4" stroke-dasharray="6 4"/>
+        </g>
+        <g font-family="JetBrains Mono" font-size="10" fill="#7A776A">
+          <rect x="120" y="446" width="34" height="15" rx="2" fill="#fff" stroke="#E8B04A"/><text x="127" y="457">AP-6</text>
+          <rect x="474" y="274" width="38" height="15" rx="2" fill="#fff" stroke="#B9B5A4"/><text x="479" y="285">M-601</text>
+          <rect x="700" y="245" width="38" height="15" rx="2" fill="#fff" stroke="#B9B5A4"/><text x="705" y="256">M-614</text>
+          <text x="40" y="293" font-family="Outfit" font-size="10">Renfe C-8 Cercanías</text>
+        </g>
+        <!-- predicted spread -->
+        <path d="M250 260c40-80 140-140 240-130s170 70 150 140-120 110-220 100-200-30-170-110z" fill="#F2B233" fill-opacity=".10" stroke="#F2B233" stroke-width="1.6" stroke-dasharray="7 5"/>
+        <path d="M290 250c40-55 110-90 180-80s110 50 100 100-80 80-150 75-160-40-130-95z" fill="#EE7B22" fill-opacity=".12" stroke="#EE7B22" stroke-width="1.6" stroke-dasharray="7 5"/>
+        <text x="610" y="190" font-size="11" fill="#B07A0B" font-family="JetBrains Mono">T+3h</text>
+        <text x="546" y="214" font-size="11" fill="#C0601A" font-family="JetBrains Mono">T+1h</text>
+        <!-- fire perimeter -->
+        <circle cx="390" cy="265" r="90" fill="url(#hot)"/>
+        <path d="M335 255c10-30 50-55 85-48s50 30 45 55-40 45-75 40-65-17-55-47z" fill="url(#burn)" stroke="#D9372B" stroke-width="2"/>
+        <g fill="#D9372B"><circle cx="418" cy="230" r="3"/><circle cx="455" cy="262" r="3"/><circle cx="440" cy="290" r="3"/></g>
+        <text x="352" y="322" font-size="11" fill="#A3271E" font-family="Outfit" font-weight="500">Active perimeter · 312 ha</text>
+        <!-- wind -->
+        <g transform="translate(480 120) rotate(-28)" stroke="#004254" stroke-width="1.6" fill="none"><path d="M-40 0H40"/><path d="M28-8L40 0 28 8"/></g>
+        <text x="455" y="104" font-size="10" fill="#004254" font-family="JetBrains Mono">WSW 34 km/h</text>
+        <!-- towns -->
+        <g font-family="Outfit" font-size="12" fill="#002532">
+          <circle cx="300" cy="380" r="4" fill="#fff" stroke="#004254" stroke-width="2"/><text x="309" y="384">Cercedilla</text>
+          <circle cx="560" cy="300" r="4" fill="#fff" stroke="#004254" stroke-width="2"/><text x="569" y="304">Navacerrada</text>
+          <circle cx="170" cy="500" r="4" fill="#fff" stroke="#004254" stroke-width="2"/><text x="179" y="504">Guadarrama</text>
+          <circle cx="430" cy="470" r="4" fill="#fff" stroke="#004254" stroke-width="2"/><text x="439" y="474">Collado Mediano</text>
+          <circle cx="210" cy="420" r="4" fill="#fff" stroke="#004254" stroke-width="2"/><text x="219" y="424">Los Molinos</text>
+        </g>
+        <!-- evacuation sector -->
+        <path d="M520 255l90-15 30 80-90 20z" fill="#D9372B" fill-opacity=".05" stroke="#D9372B" stroke-dasharray="3 3"/>
+        <text x="575" y="272" font-size="10" fill="#A3271E" font-family="JetBrains Mono">Sector B</text>
+        <!-- units -->
+        <g font-family="JetBrains Mono" font-size="9" fill="#002532">
+          <g transform="translate(250 200)"><rect x="-11" y="-11" width="22" height="22" rx="3" fill="#004254"/><path d="M-6 2l12-6-3 9-3-3z" fill="#fff"/></g><text x="230" y="225">HU-401</text>
+          <g transform="translate(610 130)"><rect x="-11" y="-11" width="22" height="22" rx="3" fill="#004254"/><path d="M-6 2l12-6-3 9-3-3z" fill="#fff"/></g><text x="590" y="155">ACO-23</text>
+          <g transform="translate(330 420)"><rect x="-9" y="-9" width="18" height="18" rx="2" fill="#fff" stroke="#004254" stroke-width="2"/><rect x="-4" y="-3" width="8" height="6" fill="#004254"/></g><text x="314" y="442">BF-12</text>
+          <g transform="translate(470 330)"><rect x="-9" y="-9" width="18" height="18" rx="2" fill="#fff" stroke="#004254" stroke-width="2"/><rect x="-4" y="-3" width="8" height="6" fill="#004254"/></g><text x="454" y="352">BF-07</text>
+          <g transform="translate(520 430)"><rect x="-9" y="-9" width="18" height="18" rx="2" fill="#fff" stroke="#2E9E6B" stroke-width="2"/><path d="M-4 0h8M0-4v8" stroke="#2E9E6B" stroke-width="2"/></g><text x="504" y="452">SUM-3</text>
+        </g>
+        <!-- sensors -->
+        <g fill="#00B0BD" stroke="#fff" stroke-width="1.5">
+          <circle cx="200" cy="160" r="4.5"/><circle cx="360" cy="140" r="4.5"/><circle cx="520" cy="160" r="4.5"/><circle cx="270" cy="300" r="4.5"/><circle cx="620" cy="220" r="4.5"/><circle cx="410" cy="360" r="4.5"/><circle cx="160" cy="330" r="4.5"/>
+        </g>
+        <!-- drone -->
+        <g transform="translate(470 230)"><circle r="7" fill="#fff" stroke="#3D3591" stroke-width="2"/><circle r="2" fill="#3D3591"/></g>
+        <path d="M470 230c-30 20-60 30-90 30" stroke="#3D3591" stroke-width="1" stroke-dasharray="2 3" fill="none"/>
+      </svg>
+
+      <div class="layers">
+        <h4>Layers</h4>
+        <label><input type="checkbox" checked> Fire perimeter <span>VIIRS</span></label>
+        <label><input type="checkbox" checked> Spread prediction <span>AI</span></label>
+        <label><input type="checkbox" checked> Units &amp; aircraft <span>AVL</span></label>
+        <label><input type="checkbox" checked> IoT sensors <span>186</span></label>
+        <label><input type="checkbox" checked> Drone feeds <span>2</span></label>
+        <label><input type="checkbox"> 112 calls heatmap</label>
+        <label><input type="checkbox"> Critical infrastructure</label>
+      </div>
+      <div class="wx"><div><small>Wind</small><b>34 km/h WSW</b></div><div><small>Gusts</small><b>52 km/h</b></div><div><small>RH</small><b>18%</b></div><div><small>Temp</small><b>29 °C</b></div><div><small>FWI</small><b style="color:var(--red)">Extreme</b></div></div>
+      <div class="mapctl"><button>+</button><button>−</button><button title="Recentre">◎</button></div>
+      <div class="legend">
+        <h4>Legend</h4>
+        <div><i style="border-top:2px solid #D9372B"></i>Active fire</div>
+        <div><i style="border-top:2px dashed #EE7B22"></i>Spread T+1h</div>
+        <div><i style="border-top:2px dashed #F2B233"></i>Spread T+3h</div>
+        <div><i style="border-top:2px dashed #D9372B;opacity:.6"></i>Evacuation sector</div>
+      </div>
+      <div class="timeline"><span>12:48</span><div class="bar"><div class="now"></div></div><span>T+3h 17:32</span></div>
+      <div class="scale">1 km ▬▬▬ · 40.73°N 4.04°W</div>
+    </section>
+
+    <aside class="side">
+      <div class="inc">
+        <div class="id">INC-26-10-0471 <span class="sev">Level 2 · Escalating</span></div>
+        <h2>Wildfire — Sierra de Guadarrama, Cercedilla</h2>
+        <p class="loc">Detected 12:48 by VIIRS hotspot + 112 calls · INFOMA plan activated 13:05</p>
+        <div class="kpis">
+          <div><small>Burned</small><b>312 ha</b></div>
+          <div><small>Rate</small><b class="up">+46/h</b></div>
+          <div><small>At risk</small><b>2,140</b></div>
+          <div><small>Contained</small><b>8%</b></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h3>Recommended response <span class="tag">Fire behaviour agent</span></h3>
+        <div class="agent">
+          <div class="who"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="7" width="14" height="11" rx="2"/><path d="M12 3v4M9 12h.01M15 12h.01"/></svg>IndraMind Decision Support<span>updated 14:31</span></div>
+          <p>With WSW wind and RH 18%, the head of the fire reaches the M-601 corridor in <b>~2 h 10 min</b> and Navacerrada Sector B in ~3 h.</p>
+          <ul>
+            <li>Dispatch 2 aerial units to anchor the north flank</li>
+            <li>Commit 2 forest brigades to M-601 firebreak</li>
+            <li>Pre-alert evacuation of Sector B (≈640 residents)</li>
+          </ul>
+          <div class="conf">Model confidence <div class="m"></div> 84%</div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h3>Response plan · resources</h3>
+        <div class="res" id="res">
+          <label><input type="checkbox" name="resource" value="HU-401" checked><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 13l18-8-5 14-4-5z"/></svg></span><span class="nm"><b>HU-401 · Helicopter Kamov</b><small>Madrid Forest Agents · Base Collado Villalba</small></span><span class="eta">12 min<small>ETA</small></span></label>
+          <label><input type="checkbox" name="resource" value="ACO-23" checked><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 13l18-8-5 14-4-5z"/></svg></span><span class="nm"><b>ACO-23 · Canadair CL-415</b><small>MITECO · Torrejón air base</small></span><span class="eta">21 min<small>ETA</small></span></label>
+          <label><input type="checkbox" name="resource" value="BF-07" checked><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="13" height="9" rx="1"/><path d="M16 11h3l2 3v3h-5"/></svg></span><span class="nm"><b>BF-07 · Forest brigade (8)</b><small>Bomberos CM · Navacerrada</small></span><span class="eta">9 min<small>ETA</small></span></label>
+          <label><input type="checkbox" name="resource" value="BF-12" checked><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="13" height="9" rx="1"/><path d="M16 11h3l2 3v3h-5"/></svg></span><span class="nm"><b>BF-12 · Forest brigade (6)</b><small>Bomberos CM · Guadarrama</small></span><span class="eta">14 min<small>ETA</small></span></label>
+          <label><input type="checkbox" name="resource" value="SUM-3"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span class="nm"><b>SUM-3 · Advanced life support</b><small>SUMMA 112 · Collado Mediano</small></span><span class="eta">11 min<small>ETA</small></span></label>
+          <label><input type="checkbox" name="resource" value="PC-SECTOR-B" checked><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 18h16M6 18V9l6-4 6 4v9"/></svg></span><span class="nm"><b>Pre-alert · Sector B evacuation</b><small>Civil Protection · ES-Alert cell broadcast</small></span><span class="eta">640<small>residents</small></span></label>
+        </div>
+      </div>
+
+      <div class="actions">
+        <div class="progress" id="progress">Confirming resource availability with responding agencies…
+          <ol id="steps"></ol>
+        </div>
+        <div class="row">
+          <button class="btn">Edit plan</button>
+          <button class="btn primary" id="dispatch"><span class="spin"></span><span id="dispatchLabel">Approve &amp; dispatch</span></button>
+        </div>
+        <div class="note"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Human approval required · decision is logged to the audit trail</div>
+      </div>
+    </aside>
+
+    <div class="feeds">
+      <div class="feed">
+        <h3>Signal feed <span class="live"><span class="dot"></span>Live</span></h3>
+        <div class="sig"><time>14:31:52</time><span class="src iot">IoT sensor</span><span>Smoke/CO₂ threshold exceeded · station GU-114, Puerto de Navacerrada</span><em>conf .92</em></div>
+        <div class="sig"><time>14:30:18</time><span class="src uav">Drone</span><span>UAV-02 thermal: new spot fire 380 m ahead of NE flank</span><em>conf .88</em></div>
+        <div class="sig"><time>14:28:40</time><span class="src c112">112 call</span><span>Caller reports flames visible from Camino de las Dehesas, Cercedilla</span><em>#3 related</em></div>
+        <div class="sig"><time>14:26:03</time><span class="src sat">Satellite</span><span>Sentinel-2 / VIIRS pass: perimeter updated, +38 ha since 13:50</span><em>conf .95</em></div>
+        <div class="sig"><time>14:21:47</time><span class="src">OSINT</span><span>Social media cluster “incendio Cercedilla” — 412 posts / 15 min, 2 flagged as misleading</span><em>monitor</em></div>
+      </div>
+      <div class="feed">
+        <h3>Responding agencies</h3>
+        <div class="agencies">
+          <span class="h">Agency</span><span class="h">Link</span><span class="h">Last ack</span>
+          <span>Bomberos Comunidad de Madrid</span><span class="st"><span class="dot"></span>Connected</span><em>14:31</em>
+          <span>Agentes Forestales CM</span><span class="st"><span class="dot"></span>Connected</span><em>14:30</em>
+          <span>SUMMA 112</span><span class="st"><span class="dot"></span>Connected</span><em>14:31</em>
+          <span>MITECO · Medios aéreos</span><span class="st"><span class="dot"></span>Connected</span><em>14:29</em>
+          <span>Guardia Civil · SEPRONA</span><span class="st amb"><span class="dot"></span>Degraded</span><em>14:12</em>
+          <span>UME (Military Emergencies)</span><span class="st"><span class="dot"></span>Standby</span><em>13:58</em>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+  (function () {
+    const clock = document.getElementById('clock');
+    const start = Date.now(), base = 14 * 3600 + 32 * 60 + 7;
+    const pad = function (n) { return String(n).padStart(2, '0'); };
+    setInterval(function () {
+      const t = base + Math.floor((Date.now() - start) / 1000);
+      clock.firstChild.nodeValue = pad(Math.floor(t / 3600) % 24) + ':' + pad(Math.floor(t / 60) % 60) + ':' + pad(t % 60) + ' CEST';
+    }, 1000);
+
+    (function bootstrapIdentity() {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    // The duty officer is whoever is presenting: their devindemos.com email
+    // is also the On-Call person and the Devin session owner.
+    const officerName = (function () {
+      const email = (localStorage.getItem('devinEmail') || '').trim();
+      const local = email.split('@')[0];
+      if (!local) return 'Lucía Martín';
+      return local.split(/[._-]+/).filter(Boolean).map(function (p) { return p.charAt(0).toUpperCase() + p.slice(1); }).join(' ');
+    })();
+    document.getElementById('avName').textContent = officerName;
+    document.getElementById('avInit').textContent = officerName.split(' ').map(function (p) { return p.charAt(0); }).join('').slice(0, 2).toUpperCase();
+
+    const btn = document.getElementById('dispatch');
+    const label = document.getElementById('dispatchLabel');
+    const prog = document.getElementById('progress');
+    const steps = document.getElementById('steps');
+    const toast = document.getElementById('toast');
+    const AGENCY_OF = {
+      'HU-401': 'Agentes Forestales CM', 'ACO-23': 'MITECO Medios aéreos', 'BF-07': 'Bomberos CM',
+      'BF-12': 'Bomberos CM', 'SUM-3': 'SUMMA 112', 'PC-SECTOR-B': 'Protección Civil ES-Alert',
+    };
+    let toastTimer = null;
+
+    function showToast(title, body, ok) {
+      toast.className = 'toast show' + (ok ? ' ok' : '');
+      toast.innerHTML = '';
+      const b = document.createElement('b');
+      b.textContent = title;
+      toast.appendChild(b);
+      toast.appendChild(document.createTextNode(body));
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.className = 'toast'; }, 9000);
+    }
+
+    function selectedResources() {
+      return Array.prototype.map.call(document.querySelectorAll('input[name="resource"]:checked'), function (el) { return el.value; });
+    }
+
+    function postJson(url, body) {
+      return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }).then(function (response) {
+        return response.json().catch(function () { return {}; }).then(function (data) {
+          return { ok: response.ok, status: response.status, data: data };
+        });
+      });
+    }
+
+    btn.addEventListener('click', function () {
+      const resources = selectedResources();
+      if (!resources.length) {
+        showToast('Nothing to dispatch', 'Select at least one resource in the response plan.');
+        return;
+      }
+      const agencies = [];
+      resources.forEach(function (id) { if (agencies.indexOf(AGENCY_OF[id]) < 0) agencies.push(AGENCY_OF[id]); });
+      agencies.push('Guardia Civil SEPRONA');
+
+      btn.disabled = true; btn.classList.add('busy'); label.textContent = 'Dispatching…';
+      prog.classList.add('show');
+      steps.innerHTML = '';
+      agencies.forEach(function (a) {
+        const li = document.createElement('li');
+        li.appendChild(document.createElement('i'));
+        li.appendChild(document.createTextNode(a));
+        steps.appendChild(li);
+      });
+      const items = steps.querySelectorAll('li');
+      let i = 0;
+      items[0].className = 'wait';
+      const tick = setInterval(function () {
+        if (i + 1 >= items.length) return;
+        items[i].className = 'ok';
+        i++;
+        items[i].className = 'wait';
+      }, 1900);
+      const startedAt = Date.now();
+
+      function done() {
+        clearInterval(tick);
+        btn.disabled = false; btn.classList.remove('busy'); label.textContent = 'Approve & dispatch';
+        prog.classList.remove('show');
+      }
+
+      postJson('/api/cop-dispatch/dispatch', {
+        action: 'approve-dispatch',
+        incidentId: 'INC-26-10-0471',
+        resources: resources,
+        approvedBy: officerName,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      }).then(function (res) {
+        done();
+        const secs = ((Date.now() - startedAt) / 1000).toFixed(1);
+        if (res.ok && res.data && res.data.success) {
+          showToast('Response plan dispatched', res.data.agenciesConfirmed + ' agencies confirmed tasking in ' + secs + ' s. Ref ' + res.data.dispatch.id, true);
+          return;
+        }
+        const ref = (res.data && (res.data.dispatchId || res.data.requestId)) || '—';
+        if (res.status === 504) {
+          showToast('Dispatch not confirmed', 'Resource tasking timed out after ' + secs + ' s (504). No units were tasked — retry or task by radio. Ref ' + ref);
+        } else {
+          showToast('Dispatch failed', ((res.data && res.data.error) || 'Unexpected error (' + res.status + ').') + ' Ref ' + ref);
+        }
+      }).catch(function () {
+        done();
+        showToast('Dispatch failed', 'The platform could not be reached. Task resources by radio.');
+      });
+    });
+  })();
+</script>
+</body>
+</html>

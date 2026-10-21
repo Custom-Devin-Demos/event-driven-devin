@@ -4895,6 +4895,45 @@ const ONCALL_SKINS = {
     page: { file: '9b7f0d70.html', title: 'Book Now | UTA Speakers' },
     disclaimer: 'NOT ACTUALLY A UTA SPEAKERS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real UTA Speakers product.',
   },
+  'eba2e983': {
+    slug: 'eba2e983',
+    company: 'IndraMind',
+    vertical: 'emergencydispatch',
+    paths: ['/indramind-oncall'],
+    oncallOnly: true,
+    alertDestination: 'slack',
+    ribbonSide: 'left',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Customer context: this alert comes from the IndraMind Intelligence Platform, Emergency Management workspace (CECOP Madrid), linked above. The duty officer approved the wildfire response plan for incident INC-26-10-0471 (Sierra de Guadarrama, Cercedilla) with "Approve & dispatch", which posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'In the thread the incident reads "Approve & dispatch timing out — wildfire response plan", release cop-dispatch@3.14.0, owning team cop-dispatch-oncall: dispatching hangs ~9s while confirming tasking with the responding agencies and then returns 504, so no aerial or ground units are tasked; the operational picture and signal feed load normally.',
+        'Start with telemetry (monitor, APM traces and logs around the Incident Ref) before reading code, and write an evidence-based investigation summary: signals reviewed, hypotheses ruled out, root cause and impact.',
+        'Use "IndraMind", "Intelligence Platform" and "Approve & dispatch" in your thread replies, the PR title and the PR description. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    page: { file: 'eba2e983.html', title: 'Situational Awareness | IndraMind Intelligence Platform' },
+    alertCard: {
+      title: 'Approve & dispatch timing out — wildfire response plan',
+      service: 'cop-dispatch-api',
+      release: 'cop-dispatch@3.14.0',
+      team: 'cop-dispatch-oncall',
+      metricValue: '9.0s (504 on every response-plan dispatch)',
+      threshold: '> 3s',
+      baseline: '~1.2s (7-day p95)',
+      symptom: 'Approve & dispatch hangs ~9s confirming tasking with the responding agencies, then returns 504. The operational picture, signal feed and AI recommendation load normally.',
+      impact: 'Duty officers at CECOP cannot task aircraft or forest brigades from the wildfire response plan; no units are dispatched and the centre falls back to radio tasking while the fire spreads.',
+    },
+    theme: {
+      '--accent': '#004254',
+      '--ink': '#004254',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#004254',
+      '--chrome-text': '#FFFFFF',
+    },
+    disclaimer: 'NOT ACTUALLY AN INDRAMIND PRODUCT \u2014 internal demo only, not affiliated with, endorsed by, or a real Indra Group or IndraMind product. All incidents, units and data are fictitious.',
+  },
 };
 
 function getOncallSkin(slug) {
