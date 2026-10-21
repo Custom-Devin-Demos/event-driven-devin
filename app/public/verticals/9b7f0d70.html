@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Now | UTA Speakers</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #000000;
+      --white: #ffffff;
+      --card: #141414;
+      --paper: #f8f8f5;
+      --ink: #141414;
+      --required: #a4002c;
+      --placeholder: rgba(74, 68, 67, 0.64);
+      --submit: #afa59e;
+      --sans: 'AktivGrotesk-Regular', 'Archivo', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      --sans-ex: 'AktivGroteskEx-XBold', 'Archivo', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      --form-font: Helvetica, 'Helvetica Neue', Arial, 'Liberation Sans', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--black); }
+    body { font-family: var(--sans); background: var(--black); color: var(--white); font-size: 16px; line-height: 24px; -webkit-font-smoothing: antialiased; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+
+    .uta-container { width: 95%; margin: 0 auto; }
+    @media (min-width: 768px) { .uta-container { width: 87%; max-width: 1240px; } }
+
+    /* ---------- header ---------- */
+    header { position: relative; z-index: 50; background: var(--black); }
+    .nav-bar { display: flex; align-items: center; justify-content: space-between; height: 65px; }
+    @media (min-width: 768px) { .nav-bar { height: 102px; padding: 16px 0; } }
+    .logo { display: block; width: 111px; height: 49px; margin-bottom: 0; }
+    .logo svg { display: block; width: 100%; height: 100%; }
+    @media (min-width: 768px) { .logo { width: 149px; height: 66px; margin-bottom: 4px; } }
+
+    .nav-desktop { display: none; }
+    .nav-mobile { display: flex; align-items: center; gap: 24px; height: 48px; }
+    .nav-mobile .nav-item { height: 48px; }
+    @media (min-width: 768px) {
+      .nav-desktop { display: flex; align-items: center; height: 35px; }
+      .nav-mobile { display: none; }
+    }
+    .nav-item { display: flex; align-items: center; font-family: var(--sans-ex); font-stretch: 125%; font-weight: 800; font-size: 14px; line-height: 20px; letter-spacing: 0.7px; color: var(--white); }
+    .nav-item svg { display: block; margin-left: 8px; fill: currentColor; }
+    .nav-item.categories { padding-right: 28px; }
+    .nav-item.search { margin-right: 24px; }
+    .nav-item.login { margin-right: 24px; }
+    .book-now { display: inline-flex; align-items: center; height: 30px; white-space: nowrap; text-align: center; font-family: var(--sans-ex); font-stretch: 118%; font-weight: 800; font-size: 12px; line-height: 16px; letter-spacing: 0.2px; padding: 0 24px; background: var(--white); color: var(--black); border: 1px solid #e5e7eb; }
+    .hamburger { display: block; width: 32px; height: 48px; color: var(--white); }
+    .hamburger svg { display: block; width: 32px; height: 48px; fill: currentColor; }
+
+    /* categories mega menu (desktop) */
+    .mega { display: none; position: absolute; left: 0; right: 0; top: 102px; background: var(--black); padding: 19px 0 24px; }
+    .mega.open { display: block; }
+    .mega-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .mega-col { padding: 0 8px; }
+    .mega-group { break-inside: avoid; margin-bottom: 24px; padding: 0 8px; }
+    .mega-group h4 { font-family: var(--sans-ex); font-stretch: 125%; font-weight: 700; font-size: 14px; line-height: 20px; letter-spacing: 1px; padding: 8px 0; color: var(--white); }
+    .mega-group ul { list-style: none; margin-bottom: 12px; }
+    .mega-group li a { display: block; font-size: 16px; line-height: 25px; color: #e5e5e5; }
+    .mega-group li a:hover { color: var(--white); text-decoration: underline; }
+
+    /* mobile drawer */
+    .drawer { display: none; background: var(--black); border-top: 1px solid #222; padding: 8px 0 24px; }
+    .drawer.open { display: block; }
+    .drawer a, .drawer button { display: block; width: 100%; text-align: left; padding: 14px 0; font-family: var(--sans-ex); font-stretch: 125%; font-weight: 800; font-size: 14px; letter-spacing: 0.7px; line-height: 20px; border-bottom: 1px solid #1f1f1f; min-height: 48px; }
+    .drawer .drawer-cats { display: none; list-style: none; padding: 4px 0 8px 12px; }
+    .drawer .drawer-cats.open { display: block; }
+    .drawer .drawer-cats li a { font-family: var(--sans); font-stretch: 100%; font-weight: 400; font-size: 16px; letter-spacing: 0; border: 0; padding: 10px 0; min-height: 44px; }
+    @media (min-width: 768px) { .drawer { display: none !important; } }
+
+    /* ---------- request form card ---------- */
+    main { display: block; }
+    .request-card { width: 100%; margin: 0 auto; background: var(--card); font-family: var(--form-font); color: var(--paper); line-height: normal; }
+    @media (min-width: 768px) { .request-card { width: 50%; } }
+    .request-card__content { padding: 40px; }
+    .rich { display: flow-root; margin-bottom: 20px; }
+    .rich p { margin: 16px 0; font-size: 16px; }
+    .rich h1 { font-size: 30px; font-weight: 700; margin: 16px 0; line-height: normal; }
+    .rich a { color: var(--paper); text-decoration: none; }
+
+    .row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px 30px; margin-bottom: 20px; }
+    @media (min-width: 768px) { .row.two { grid-template-columns: 1fr 1fr; } }
+    .field label { display: block; font-size: 16px; margin-bottom: 10px; line-height: normal; }
+    .field label .req { color: var(--required); }
+    .field input[type="text"], .field input[type="email"], .field input[type="tel"], .field select, .field textarea {
+      display: block; width: 100%; height: 34.5px; padding: 8px; border: 0; border-radius: 1px; background: var(--paper); color: var(--ink);
+      font-family: var(--form-font); font-size: 16px; line-height: normal; outline: none; appearance: none; -webkit-appearance: none;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { box-shadow: 0 0 0 2px rgba(248, 248, 245, 0.35); }
+    .field textarea { height: 53px; resize: vertical; margin-bottom: 4px; }
+    .date-wrap input { margin-bottom: 10px; }
+    .field ::placeholder { color: var(--placeholder); opacity: 1; }
+    .field select { padding-right: 52px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='5' viewBox='0 0 10 5'%3E%3Cpath d='M0 0h10L5 5z' fill='%23141414'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 21px center; cursor: pointer; }
+    .phone { display: flex; }
+    .phone .cc { flex: none; display: flex; align-items: center; gap: 6px; width: 50px; height: 34.5px; padding: 0 8px; background: var(--paper); color: var(--ink); border-radius: 1px 0 0 1px; font-size: 14px; }
+    .phone .cc svg { width: 8px; height: 4px; fill: #141414; }
+    .phone input[type="tel"] { border-radius: 0 1px 1px 0; }
+    .date-wrap { position: relative; }
+
+    .legal p { margin: 0; font-size: 16px; }
+    .legal .privacy-link { color: #0000ee; text-decoration: underline; }
+    .consent { display: flex; align-items: flex-start; gap: 8px; font-size: 16px; line-height: normal; cursor: pointer; margin: 0 0 20px; }
+    .consent input { appearance: none; -webkit-appearance: none; flex: none; width: 16px; height: 16px; margin-top: 1px; border-radius: 2px; background: var(--paper); border: 0; display: grid; place-content: center; cursor: pointer; }
+    .consent input::before { content: ""; width: 10px; height: 10px; transform: scale(0); background: var(--ink); clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); }
+    .consent input:checked::before { transform: scale(1); }
+    .row.last-legal { margin-bottom: 40px; }
+    .recaptcha { display: flex; width: 256px; height: 60px; margin: 0; border-radius: 1px; overflow: hidden; background: #f9f9f9; }
+    .recaptcha-text { flex: none; width: 186px; display: flex; align-items: center; padding: 0 16px; background: #1a73e8; color: #fff; font-size: 13px; line-height: 20px; }
+    .recaptcha-text strong { font-weight: 700; }
+    .recaptcha-mark { flex: 1; display: flex; align-items: center; justify-content: center; }
+    .recaptcha-mark svg { width: 48px; height: 48px; }
+    .actions { display: flex; justify-content: flex-end; margin-top: 40px; }
+    .btn-submit { position: relative; display: block; width: 100%; padding: 12px 36px; background: var(--submit); color: var(--paper); font-family: var(--form-font); font-size: 16px; font-weight: 700; line-height: normal; border: 0; border-radius: 1px; cursor: pointer; }
+    .btn-submit::before { content: ''; position: absolute; left: 0; right: 0; top: -1px; bottom: -1px; }
+    .btn-submit:hover { background: #bcb3ad; }
+    .btn-submit:disabled { opacity: 0.75; cursor: default; }
+    @media (min-width: 768px) { .btn-submit { width: auto; } }
+
+    .result-box { display: none; margin: 40px 0 0; padding: 12px 16px; border-radius: 1px; font-size: 16px; line-height: normal; }
+    .result-box.error { display: block; background: rgba(164, 0, 44, 0.18); border: 1px solid var(--required); color: var(--paper); }
+    .result-box.success { display: block; background: rgba(175, 165, 158, 0.18); border: 1px solid var(--submit); color: var(--paper); }
+    .result-box .result-title { font-weight: 700; margin-bottom: 4px; }
+    .result-box .result-detail { font-size: 14px; opacity: 0.9; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="uta-container">
+      <div class="nav-bar">
+        <a href="#" class="logo" aria-label="UTA Speakers home">
+          <svg viewBox="0 0 111 49" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M23.5 3.2 4.1 10.3v24.2l19.4 11.3 19.4-11.3V10.3L23.5 3.2Z" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+            <text x="23.5" y="27.6" text-anchor="middle" font-family="'Archivo', Arial, sans-serif" font-weight="800" font-size="11.4" letter-spacing="0.4" fill="#fff" style="font-stretch:115%">UTA</text>
+            <text x="51" y="28.3" font-family="'Archivo', Arial, sans-serif" font-weight="700" font-size="11.8" letter-spacing="-0.1" fill="#fff">Speakers</text>
+          </svg>
+        </a>
+
+        <nav class="nav-desktop" aria-label="Primary">
+          <button type="button" class="nav-item categories" id="catsBtn" aria-expanded="false" aria-controls="megaMenu">
+            Categories
+            <svg width="16" height="14" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+          </button>
+          <button type="button" class="nav-item search" id="searchBtn">
+            Search
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>
+          </button>
+          <a href="#" class="nav-item login">Login</a>
+          <a href="#request" class="book-now">Book Now</a>
+        </nav>
+
+        <div class="nav-mobile">
+          <button type="button" class="nav-item" id="catsBtnMobile" aria-expanded="false" aria-controls="drawer">
+            Categories
+            <svg width="16" height="14" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+          </button>
+          <button type="button" class="hamburger" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+            <svg viewBox="0 0 512 512" aria-hidden="true"><path d="M432 176H80c-8.8 0-16-7.2-16-16s7.2-16 16-16h352c8.8 0 16 7.2 16 16s-7.2 16-16 16zM432 272H80c-8.8 0-16-7.2-16-16s7.2-16 16-16h352c8.8 0 16 7.2 16 16s-7.2 16-16 16zM432 368H80c-8.8 0-16-7.2-16-16s7.2-16 16-16h352c8.8 0 16 7.2 16 16s-7.2 16-16 16z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="drawer" id="drawer">
+        <button type="button" id="drawerCatsBtn" aria-expanded="false">Categories</button>
+        <ul class="drawer-cats" id="drawerCats"></ul>
+        <a href="#">Search</a>
+        <a href="#">Login</a>
+        <a href="#request">Book Now</a>
+      </div>
+    </div>
+
+    <div class="mega" id="megaMenu">
+      <div class="uta-container">
+        <div class="mega-grid" id="megaGrid"></div>
+      </div>
+    </div>
+  </header>
+
+  <main id="request">
+    <div class="request-card">
+      <div class="request-card__content">
+        <div class="rich">
+          <h1>Request a Speaker</h1>
+        </div>
+        <div class="rich">
+          <p>Thanks for reaching out! A member of our team will be in touch within one business day to help you find the right speaker for your event.</p>
+          <p>If you're a speaker looking for representation, please connect with us directly at <a href="mailto:representation@utaspeakers.com">representation@utaspeakers.com</a>.</p>
+        </div>
+
+        <form id="claimForm" novalidate>
+          <input type="hidden" id="policyId" value="POL-5001">
+          <input type="hidden" id="claimType" value="collision">
+
+          <div class="row two">
+            <div class="field"><label for="firstName">First Name<span class="req">*</span></label><input type="text" id="firstName" name="firstName" value="Jordan" autocomplete="given-name"></div>
+            <div class="field"><label for="lastName">Last Name<span class="req">*</span></label><input type="text" id="lastName" name="lastName" value="Alvarez" autocomplete="family-name"></div>
+          </div>
+          <div class="row two">
+            <div class="field"><label for="email">Email<span class="req">*</span></label><input type="email" id="email" name="email" value="jordan.alvarez@northwindevents.com" autocomplete="email"></div>
+            <div class="field"><label for="phone">Phone Number</label>
+              <div class="phone">
+                <span class="cc" aria-hidden="true"><span>🇺🇸</span><svg viewBox="0 0 8 4"><path d="M0 0h8L4 4z"/></svg></span>
+                <input type="tel" id="phone" name="phone" value="+1 512 555 0147" autocomplete="tel">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field"><label for="company">Company name<span class="req">*</span></label><input type="text" id="company" name="company" value="Northwind Events" autocomplete="organization"></div>
+          </div>
+          <div class="row two">
+            <div class="field"><label for="amount">Budget<span class="req">*</span></label>
+              <select id="amount" name="amount">
+                <option value="7500">Under $10,000</option>
+                <option value="12500">$10,000-$15,000</option>
+                <option value="20000">$15,000-$25,000</option>
+                <option value="32500" selected>$25,000-$40,000</option>
+                <option value="55000">$40,000-$70,000</option>
+                <option value="85000">$70,000-$100,000</option>
+                <option value="125000">Over $100,000</option>
+                <option value="0">Pro-Bono</option>
+              </select>
+            </div>
+            <div class="field"><label for="eventDate">Event Date<span class="req">*</span></label><div class="date-wrap"><input type="text" id="eventDate" name="eventDate" placeholder="MM - DD - YYYY" value="03 - 12 - 2027" inputmode="numeric"></div></div>
+          </div>
+          <div class="row">
+            <div class="field"><label for="description">Which speaker(s) are you interested in?<span class="req">*</span></label><textarea id="description" name="description" placeholder="Examples: Michael Lewis, Malala Yousafzai, Dr. Fei-Fei Li">Dr. Fei-Fei Li, Esther Perel</textarea></div>
+          </div>
+          <div class="row">
+            <div class="field"><label for="eventGoals">Event Goals</label><textarea id="eventGoals" name="eventGoals">Opening keynote for our annual leadership summit (1,200 attendees).</textarea></div>
+          </div>
+          <div class="row two">
+            <div class="field"><label for="eventCity">Event City</label><input type="text" id="eventCity" name="eventCity" value="Austin"></div>
+            <div class="field"><label for="eventState">Event State</label><input type="text" id="eventState" name="eventState" value="TX"></div>
+          </div>
+          <div class="row">
+            <div class="field"><label for="eventCountry">Event Country</label><input type="text" id="eventCountry" name="eventCountry" value="United States"></div>
+          </div>
+
+          <div class="row">
+            <div class="legal">
+              <p>At United Talent Agency, we are committed to safeguarding your personal information. We use the details you provide solely to manage your account and deliver the services or content you’ve requested. From time to time, we may wish to contact you with information about our services, updates, or other content that may be relevant to your interests. If you’d like to hear from us, please indicate your communication preferences below:</p>
+            </div>
+          </div>
+          <label class="consent"><input type="checkbox" id="consent" name="consent" checked><span>I agree to receive communications from United Talent Agency.<span class="req" style="color:var(--required)">*</span></span></label>
+          <div class="row">
+            <div class="legal"><p>You may unsubscribe from these communications at any time. For details on how to opt out, how we handle your personal information, and our commitment to your privacy, please refer to our <a href="#" class="privacy-link">Privacy Policy</a>.</p></div>
+          </div>
+          <div class="row last-legal">
+            <div class="legal"><p>By clicking “Submit,” you acknowledge and consent to United Talent Agency storing and processing your personal information for the purpose of fulfilling your request.</p></div>
+          </div>
+          <div class="recaptcha" aria-label="protected by reCAPTCHA"><span class="recaptcha-text"><span>protected by <strong>reCAPTCHA</strong></span></span><span class="recaptcha-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 8a16 16 0 1 1-11.3 4.7" fill="none" stroke="#9aa0a6" stroke-width="5"/><path d="M8 6v10h10z" fill="#9aa0a6"/><circle cx="24" cy="24" r="4" fill="#9aa0a6"/></svg></span></div>
+
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <div class="actions">
+            <button type="submit" class="btn-submit" id="submitBtn">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var columns = [
+        [
+          ['Popular & Trending', ['Artificial Intelligence', 'Bestselling Authors', 'College & University', 'Content Creation', 'MCs & Moderators', 'New Speakers']],
+          ['Unique Programs', ['Interactive Events', 'Joint Program']],
+          ['Technology', ['Blockchain & Cryptocurrency', 'Cybersecurity', 'Emerging Technology & Trends', 'STEM Speakers']],
+          ['Women', ['Influential Women', 'Women in Leadership', 'Women In Sports', 'Women in Tech', "Women's Health"]]
+        ],
+        [
+          ['Health & Wellness', ['Addiction & Recovery', 'Fitness & Nutrition', 'Future of Healthcare', 'Global Health Issues', 'Healthcare Stories', 'Mental Health & Wellness']],
+          ['Inspiration & Motivation', ['Athletes', 'Military & Public Service', 'Overcoming Adversity', 'Peak Performance', 'Self Improvement', 'Sports']],
+          ['News & Events', ['Climate Change & Sustainability', 'Current Events', 'Geopolitics & International Relations', 'Journalism', 'Politics', 'True Crime']]
+        ],
+        [
+          ['Belonging & Inclusion', ['Accessibility & Disability', 'Asian & Pacific Islander Voices', 'Black Voices', 'Civil Rights', 'Combating Antisemitism', 'Hispanic & Latin Voices', 'Jewish Voices', 'LGBTQIA+ & Allies', 'Racial & Gender Equity']],
+          ['Entertainment & Culture', ['Celebrity', 'Comedians', 'Comic Cons, Fandom Events & Appearances', 'Culinary', 'Education', 'Faith, Religion & Spirituality', 'Film, TV & Music', 'Podcasts', 'Political Satire', 'Social Justice & Activism']]
+        ],
+        [
+          ['Business', ['CEOs', 'Change Management', 'Corporate Culture', 'Creativity & Innovation', 'Data & Analytics', 'Entrepreneurship', 'Finance & Economics', 'Future Of Work', 'Leadership', 'Productivity', 'Sales & Marketing', 'Storytelling & Branding', 'Teamwork']]
+        ]
+      ];
+      var grid = document.getElementById('megaGrid');
+      var drawerCats = document.getElementById('drawerCats');
+      columns.forEach(function (groups) {
+        var col = document.createElement('div');
+        col.className = 'mega-col';
+        groups.forEach(function (g) {
+          var wrap = document.createElement('div');
+          wrap.className = 'mega-group';
+          var h = document.createElement('h4');
+          h.textContent = g[0];
+          var ul = document.createElement('ul');
+          g[1].forEach(function (name) {
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.href = '#';
+            a.textContent = name;
+            li.appendChild(a);
+            ul.appendChild(li);
+            var mli = document.createElement('li');
+            var ma = document.createElement('a');
+            ma.href = '#';
+            ma.textContent = name;
+            mli.appendChild(ma);
+            drawerCats.appendChild(mli);
+          });
+          wrap.appendChild(h);
+          wrap.appendChild(ul);
+          col.appendChild(wrap);
+        });
+        grid.appendChild(col);
+      });
+
+      var mega = document.getElementById('megaMenu');
+      var catsBtn = document.getElementById('catsBtn');
+      catsBtn.addEventListener('click', function () {
+        var open = !mega.classList.contains('open');
+        mega.classList.toggle('open', open);
+        catsBtn.setAttribute('aria-expanded', String(open));
+      });
+      document.addEventListener('click', function (e) {
+        if (!mega.classList.contains('open')) return;
+        if (mega.contains(e.target) || catsBtn.contains(e.target)) return;
+        mega.classList.remove('open');
+        catsBtn.setAttribute('aria-expanded', 'false');
+      });
+      document.getElementById('searchBtn').addEventListener('click', function () {
+        document.getElementById('description').focus();
+      });
+
+      var drawer = document.getElementById('drawer');
+      var menuBtn = document.getElementById('menuBtn');
+      var catsBtnMobile = document.getElementById('catsBtnMobile');
+      var drawerCatsBtn = document.getElementById('drawerCatsBtn');
+      function setDrawer(open) {
+        drawer.classList.toggle('open', open);
+        menuBtn.setAttribute('aria-expanded', String(open));
+        catsBtnMobile.setAttribute('aria-expanded', String(open));
+      }
+      function setDrawerCats(open) {
+        drawerCats.classList.toggle('open', open);
+        drawerCatsBtn.setAttribute('aria-expanded', String(open));
+      }
+      menuBtn.addEventListener('click', function () { setDrawer(!drawer.classList.contains('open')); });
+      catsBtnMobile.addEventListener('click', function () {
+        var open = !(drawer.classList.contains('open') && drawerCats.classList.contains('open'));
+        setDrawer(open);
+        setDrawerCats(open);
+      });
+      drawerCatsBtn.addEventListener('click', function () { setDrawerCats(!drawerCats.classList.contains('open')); });
+    })();
+  </script>
+  <script>
+    document.getElementById('claimForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const setResult = (cls, title, detail) => {
+        result.textContent = '';
+        const t = document.createElement('div'); t.className = 'result-title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'result-detail'; d.textContent = detail;
+        result.appendChild(t); result.appendChild(d);
+        result.className = 'result-box ' + cls;
+      };
+      btn.disabled = true; btn.textContent = 'Submitting...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/insurance/claim', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount: parseFloat(document.getElementById('amount').value), description: document.getElementById('description').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setResult('error', 'Your request could not be submitted', `${data.errorClass}: ${data.error}`);
+        } else {
+          setResult('success', 'Request received', `Reference ${String(data.claimId).slice(0, 8).toUpperCase()} — a member of our team will be in touch within one business day.`);
+        }
+      } catch (err) {
+        setResult('error', 'Network error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Submit'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
