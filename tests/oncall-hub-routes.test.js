@@ -15,6 +15,26 @@ const { getOncallSkin } = require('../config/oncall-skins');
 let server;
 let baseUrl;
 
+const withTeamsWebhookEnv = async (values, fn) => {
+  const names = ['ONCALL_TEAMS_WEBHOOK_URL', 'ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE'];
+  const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  names.forEach((name) => {
+    if (values[name]) process.env[name] = values[name];
+    else delete process.env[name];
+  });
+  try {
+    await fn();
+  } finally {
+    names.forEach((name) => {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    });
+  }
+};
+
+const HEALTHCARE_TEAMS_URL =
+  'https://prod-12.westus.logic.azure.com/workflows/healthcare/triggers/manual/paths/invoke?sig=x';
+
 beforeAll((done) => {
   const app = express();
   app.use(express.json());
@@ -80,6 +100,50 @@ describe('on-call hub routes', () => {
     expect(defaults.map((scenario) => scenario.id)).not.toEqual(expect.arrayContaining(['pbm', 'payer', 'lifesciences']));
     expect(defaults.find((scenario) => scenario.id === 'banking')).toMatchObject({ group: null, summary: null });
     expect(Object.keys(ALERT_SCENARIOS)).not.toContain('healthcare');
+  });
+
+  test('healthcare scenario response enables Teams for a valid dedicated webhook', async () => {
+    await withTeamsWebhookEnv({ ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE: HEALTHCARE_TEAMS_URL }, async () => {
+      const response = await fetch(`${baseUrl}/api/oncall/scenarios?group=healthcare`);
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({
+        teamsDefaultWebhook: true,
+        teamsChannel: 'HC-oncall-alerts',
+      });
+    });
+  });
+
+  test('healthcare scenario response uses the shared channel when only the shared webhook is set', async () => {
+    await withTeamsWebhookEnv({ ONCALL_TEAMS_WEBHOOK_URL: 'https://teams.example.test/workflows/hook' }, async () => {
+      const response = await fetch(`${baseUrl}/api/oncall/scenarios?group=healthcare`);
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({
+        teamsDefaultWebhook: true,
+        teamsChannel: 'oncall-demo',
+      });
+    });
+  });
+
+  test('healthcare scenario response ignores an invalid dedicated webhook when shared Teams is enabled', async () => {
+    await withTeamsWebhookEnv({
+      ONCALL_TEAMS_WEBHOOK_URL: 'https://teams.example.test/workflows/hook',
+      ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE: 'https://attacker.example.com/hook',
+    }, async () => {
+      const response = await fetch(`${baseUrl}/api/oncall/scenarios?group=healthcare`);
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({
+        teamsDefaultWebhook: true,
+        teamsChannel: 'oncall-demo',
+      });
+    });
+  });
+
+  test('scenarios without a group keep the existing response shape', async () => {
+    await withTeamsWebhookEnv({ ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE: HEALTHCARE_TEAMS_URL }, async () => {
+      const response = await fetch(`${baseUrl}/api/oncall/scenarios`);
+      expect(response.status).toBe(200);
+      expect(await response.json()).not.toHaveProperty('teamsChannel');
+    });
   });
 
   test('the Splunk placeholder is available without changing healthcare pages', async () => {
