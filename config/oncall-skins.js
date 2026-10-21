@@ -4973,6 +4973,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN INDRAMIND PRODUCT \u2014 internal demo only, not affiliated with, endorsed by, or a real Indra Group or IndraMind product. All incidents, units and data are fictitious.',
   },
+  'e827989e': {
+    slug: 'e827989e',
+    company: 'OtterWorks',
+    vertical: 'hightech',
+    page: {
+      file: 'e827989e.html',
+      title: 'OtterWorks',
+    },
+    disclaimer: 'NOT ACTUALLY AN OTTERWORKS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OtterWorks product.',
+  },
 };
 
 function getOncallSkin(slug) {

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OtterWorks</title>
+  <style>
+    :root {
+      --otter-50: #f4f5f7; --otter-100: #e7eaef; --otter-300: #a1b0c4; --otter-600: #1f3a5f; --otter-700: #1a3252; --otter-800: #152a45;
+      --accent-500: #c9862b; --accent-600: #a96e1f;
+      --gray-200: #e5e7eb; --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937; --gray-900: #111827;
+      --container: 1152px; --font: "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+    *, ::before, ::after { box-sizing: border-box; border: 0 solid var(--gray-200); }
+    html { line-height: 1.5; -webkit-text-size-adjust: 100%; }
+    body { margin: 0; font-family: var(--font); font-size: 13.5px; line-height: inherit; background: var(--otter-50); color: #212529; -webkit-font-smoothing: antialiased; }
+    h1, h2, h3, p, ul { margin: 0; }
+    h1, h2, h3 { font-size: inherit; font-weight: inherit; }
+    ul { list-style: none; padding: 0; }
+    a { color: inherit; text-decoration: inherit; }
+    svg { display: block; flex-shrink: 0; }
+    table { border-collapse: collapse; text-indent: 0; border-color: inherit; }
+    button, input, select { font-family: inherit; font-size: 100%; font-weight: inherit; line-height: inherit; color: inherit; margin: 0; }
+
+    main { min-height: 100vh; background: var(--otter-50); color: var(--gray-800); }
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 16px; }
+
+    /* Top utility bar */
+    .topbar { background: #fff; border-bottom: 1px solid var(--gray-300); }
+    .topbar .container { height: 56px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-name { display: block; font-weight: 600; color: var(--gray-900); line-height: 1.25; }
+    .brand-tag { display: block; font-size: 11px; line-height: 16.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500); }
+    .topnav { display: flex; align-items: center; gap: 8px; }
+    .btn-sm { position: relative; padding: 6px 16px; font-size: 14px; line-height: 20px; font-weight: 500; border-radius: 2px; transition: background-color .15s; }
+    .btn-sm::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; min-height: 44px; height: 100%; transform: translateY(-50%); }
+    .btn-outline { color: var(--otter-600); border: 1px solid var(--otter-600); }
+    .btn-outline:hover { background: var(--otter-50); }
+    .btn-solid { background: var(--otter-600); color: #fff; }
+    .btn-solid:hover { background: var(--otter-700); }
+
+    /* Hero */
+    .hero { background: var(--otter-700); }
+    .hero .container { padding-top: 64px; padding-bottom: 64px; text-align: center; }
+    .hero-mark { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px; }
+    .hero-mark .logo-box { background: #fff; padding: 4px; border-radius: 1px; }
+    .hero h1 { font-size: 36px; line-height: 40px; font-weight: 700; color: #fff; }
+    .hero-lede { font-size: 18px; line-height: 28px; color: var(--otter-100); max-width: 672px; margin: 0 auto 8px; }
+    .hero-fine { font-size: 12px; line-height: 16px; color: var(--otter-300); margin-bottom: 32px; }
+
+    .seat-card { max-width: 672px; margin: 0 auto; background: #fff; border: 1px solid var(--gray-300); border-radius: 2px; padding: 20px; text-align: left; }
+    .seat-card h2 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--gray-900); margin-bottom: 6px; }
+    .seat-card .sub { font-size: 12px; line-height: 19.5px; color: var(--gray-500); margin-bottom: 16px; }
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+    .field.wide { grid-column: 1 / -1; }
+    .field label { display: block; font-size: 12px; line-height: 16px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--gray-600); margin-bottom: 6px; }
+    .field input, .field select { display: block; width: 100%; height: 44px; padding: 0 12px; font-size: 14px; color: var(--gray-900); background: #fff; border: 1px solid var(--gray-300); border-radius: 2px; }
+    .field input:focus, .field select:focus { outline: 2px solid var(--otter-600); outline-offset: -1px; border-color: var(--otter-600); }
+    .form-actions { display: flex; align-items: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    .btn-accent { min-height: 44px; padding: 10px 32px; font-size: 14px; line-height: 20px; font-weight: 600; color: #fff; background: var(--accent-500); border-radius: 2px; cursor: pointer; transition: background-color .15s; }
+    .btn-accent:hover { background: var(--accent-600); }
+    .btn-accent:disabled { opacity: .7; cursor: progress; }
+    .req-status { font-size: 12px; line-height: 16px; color: var(--gray-500); }
+    .result-box { display: none; margin-top: 16px; padding: 12px 16px; border-radius: 2px; font-size: 14px; line-height: 20px; }
+    .result-box.success { display: block; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .result-box.error { display: block; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+    .result-box .r-title { font-weight: 600; }
+    .result-box .r-detail { font-size: 12px; line-height: 18px; }
+
+    /* Sections */
+    section { background: var(--otter-50); }
+    section.alt { background: #fff; }
+    section .container { padding-top: 56px; padding-bottom: 56px; }
+    section h2.sec-title { font-size: 20px; line-height: 28px; font-weight: 700; color: var(--gray-900); text-align: center; margin-bottom: 8px; }
+    .rule { width: 40px; height: 2px; background: var(--accent-500); margin: 0 auto 32px; }
+    .narrow { max-width: 768px; margin: 0 auto; }
+    .story p { font-size: 14px; line-height: 1.625; color: var(--gray-600); }
+    .story p + p { margin-top: 16px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .card { padding: 20px; background: #fff; border-radius: 2px; border: 1px solid var(--gray-300); }
+    .card h3 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--gray-900); margin-bottom: 6px; }
+    .card p { font-size: 12px; line-height: 1.625; color: var(--gray-500); }
+    .avatar { width: 40px; height: 40px; border-radius: 9999px; background: var(--otter-600); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 20px; font-weight: 600; margin-bottom: 12px; }
+    .leader h3 { margin-bottom: 0; }
+    .leader .role { font-size: 12px; line-height: 16px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-600); margin-bottom: 8px; }
+    .table-wrap { overflow-x: auto; }
+    table.depts { width: 100%; background: #fff; border: 1px solid var(--gray-300); font-size: 14px; line-height: 20px; }
+    table.depts thead tr { background: var(--otter-50); text-align: left; }
+    table.depts th { padding: 8px 16px; border-bottom: 1px solid var(--gray-300); font-size: 12px; line-height: 16px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-600); font-weight: 700; }
+    table.depts td { padding: 8px 16px; color: var(--gray-600); }
+    table.depts td:first-child { font-weight: 500; color: var(--gray-900); white-space: nowrap; }
+    table.depts tbody tr { border-bottom: 1px solid var(--gray-200); }
+    table.depts tbody tr:last-child { border-bottom: 0; }
+    .press { background: #fff; border: 1px solid var(--gray-300); border-radius: 2px; }
+    .press li { padding: 12px 20px; }
+    .press li + li { border-top: 1px solid var(--gray-200); }
+    .press .date { font-size: 12px; line-height: 16px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-400); }
+    .press .headline { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--gray-900); }
+    .careers-intro { text-align: center; font-size: 14px; line-height: 20px; color: var(--gray-600); margin: 0 auto 24px; max-width: 672px; }
+    .job { padding: 16px; background: #fff; border-radius: 2px; border: 1px solid var(--gray-300); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .job h3 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--gray-900); }
+    .job p { font-size: 12px; line-height: 16px; color: var(--gray-500); }
+    .job .open { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--otter-600); border: 1px solid var(--otter-600); border-radius: 2px; padding: 4px 12px; white-space: nowrap; }
+    .hq { background: #fff; border-top: 1px solid var(--gray-300); padding: 24px 0; text-align: center; }
+    .hq p { font-size: 12px; line-height: 16px; color: var(--gray-400); }
+    footer { border-top: 1px solid var(--gray-300); background: #fff; }
+    footer .inner { max-width: 1280px; margin: 0 auto; height: 40px; padding: 0 16px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; line-height: 16px; color: var(--gray-500); }
+    footer a:hover { color: var(--otter-600); text-decoration: underline; }
+
+    @media (min-width: 640px) {
+      .grid.cols-2, .grid.cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (min-width: 1024px) {
+      .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 520px) {
+      .fields { grid-template-columns: 1fr; }
+      .btn-accent { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="topbar">
+      <div class="container">
+        <div class="brand">
+          <svg class="logo" width="36" height="36" viewBox="0 0 32 32" role="img" aria-label="OtterWorks logo">
+            <ellipse cx="13" cy="27" rx="11" ry="9" fill="#e9a457" stroke="#3a2a1c" stroke-width="1"/>
+            <circle cx="8.2" cy="6.4" r="2.2" fill="#e9a457" stroke="#3a2a1c" stroke-width="1"/>
+            <circle cx="21.2" cy="6" r="2.2" fill="#e9a457" stroke="#3a2a1c" stroke-width="1"/>
+            <ellipse cx="14.8" cy="13" rx="9.2" ry="8" fill="#eeb066" stroke="#3a2a1c" stroke-width="1"/>
+            <ellipse cx="15" cy="16.6" rx="4.6" ry="2.6" fill="#fff"/>
+            <circle cx="11.4" cy="12.2" r="1.3" fill="#1b1b1b"/>
+            <circle cx="18.6" cy="12" r="1.3" fill="#1b1b1b"/>
+            <ellipse cx="15" cy="15" rx="1.4" ry="1" fill="#1b1b1b"/>
+            <path d="M15.5 20.5 L28 19 L28.6 28 L16.2 29.5 Z" fill="#e5e7eb" stroke="#4b5563" stroke-width="1"/>
+            <path d="M13.5 29.5 L16.2 29.5 L28.6 28 L29.5 29.6 L14 31 Z" fill="#9ca3af" stroke="#4b5563" stroke-width=".8"/>
+            <circle cx="22" cy="24.4" r="1.7" fill="none" stroke="#4b5563" stroke-width=".9"/>
+            <ellipse cx="9" cy="22.6" rx="2.4" ry="1.6" fill="#e9a457" stroke="#3a2a1c" stroke-width=".8"/>
+          </svg>
+          <div>
+            <span class="brand-name">OtterWorks, Inc.</span>
+            <span class="brand-tag">Enterprise retail products for otters</span>
+          </div>
+        </div>
+        <nav class="topnav">
+          <a href="#" class="btn-sm btn-outline">Sign In</a>
+          <a href="#" class="btn-sm btn-solid">Create Account</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="hero">
+      <div class="container">
+        <div class="hero-mark">
+          <div class="logo-box">
+            <svg width="56" height="56" viewBox="0 0 32 32" role="img" aria-label="OtterWorks logo">
+              <ellipse cx="13" cy="27" rx="11" ry="9" fill="#e9a457" stroke="#3a2a1c" stroke-width="1"/>
+              <circle cx="8.2" cy="6.4" r="2.2" fill="#e9a457" stroke="#3a2a1c" stroke-width="1"/>
+              <circle cx="21.2" cy="6" r="2.2" fill="#e9a457" stroke="#3a2a1c" stroke-width="1"/>
+              <ellipse cx="14.8" cy="13" rx="9.2" ry="8" fill="#eeb066" stroke="#3a2a1c" stroke-width="1"/>
+              <ellipse cx="15" cy="16.6" rx="4.6" ry="2.6" fill="#fff"/>
+              <circle cx="11.4" cy="12.2" r="1.3" fill="#1b1b1b"/>
+              <circle cx="18.6" cy="12" r="1.3" fill="#1b1b1b"/>
+              <ellipse cx="15" cy="15" rx="1.4" ry="1" fill="#1b1b1b"/>
+              <path d="M15.5 20.5 L28 19 L28.6 28 L16.2 29.5 Z" fill="#e5e7eb" stroke="#4b5563" stroke-width="1"/>
+              <path d="M13.5 29.5 L16.2 29.5 L28.6 28 L29.5 29.6 L14 31 Z" fill="#9ca3af" stroke="#4b5563" stroke-width=".8"/>
+              <circle cx="22" cy="24.4" r="1.7" fill="none" stroke="#4b5563" stroke-width=".9"/>
+              <ellipse cx="9" cy="22.6" rx="2.4" ry="1.6" fill="#e9a457" stroke="#3a2a1c" stroke-width=".8"/>
+            </svg>
+          </div>
+          <h1>OtterWorks</h1>
+        </div>
+        <p class="hero-lede">Enterprise retail products for otters. Dependable systems of record for every den — secure file storage, collaborative documents, and retail operations since 1987.</p>
+        <p class="hero-fine">OtterWorks, Inc. is a fictional company. All people, places, products, and events described here are invented.</p>
+
+        <div class="seat-card">
+          <h2>Add seats to your workspace</h2>
+          <p class="sub">Add users to your OtterWorks subscription. New seats are assigned from OtterWorks Admin once provisioning completes.</p>
+          <form id="provisionForm">
+            <div class="fields">
+              <div class="field wide">
+                <label for="product">Product</label>
+                <select id="product">
+                  <option value="enterprise_suite">OtterWorks Drive</option>
+                  <option value="devops_platform">OtterWorks Docs</option>
+                  <option value="analytics_cloud">OtterWorks Search</option>
+                  <option value="security_gateway">OtterWorks Admin</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="seats">Additional seats</label>
+                <input type="number" id="seats" value="25" min="1" inputmode="numeric">
+              </div>
+              <div class="field">
+                <label for="planTier">Plan</label>
+                <select id="planTier">
+                  <option value="enterprise">Enterprise</option>
+                  <option value="business">Business</option>
+                  <option value="starter">Starter</option>
+                </select>
+              </div>
+              <div class="field wide">
+                <label for="region">Data region</label>
+                <select id="region">
+                  <option value="us-east">US East</option>
+                  <option value="us-west">US West</option>
+                  <option value="eu-west">EU West</option>
+                  <option value="ap-south">AP South</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-accent" id="submitBtn">Add seats</button>
+              <span class="req-status" id="requestStatus" role="status" aria-live="polite"></span>
+            </div>
+          </form>
+          <div id="result" class="result-box" role="alert"></div>
+        </div>
+      </div>
+    </div>
+
+    <section id="story">
+      <div class="container">
+        <h2 class="sec-title">Our Story</h2>
+        <div class="rule"></div>
+        <div class="narrow story">
+          <p>OtterWorks was founded in 1987 on the banks of the Silverstream, when a small raft of entrepreneurial otters grew tired of losing their favorite clams, tools, and pebble collections to the current. What began as a waterproof ledger for tracking inventory between dens grew into the leading enterprise platform for otter-run retail operations.</p>
+          <p>Through the Great Kelp Shortage of 1994 and the River Delta expansion of 2003, OtterWorks kept one principle constant: every otter business, from a single clam cart to a thousand-den retail network, deserves dependable systems of record.</p>
+          <p>Today OtterWorks serves over 12,000 fictional storefronts across forty waterways, processing millions of documents, files, and inventory records every day — securely, collaboratively, and always afloat.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="products" class="alt">
+      <div class="container">
+        <h2 class="sec-title">Products</h2>
+        <div class="rule"></div>
+        <div class="grid cols-2">
+          <div class="card"><h3>OtterWorks Drive</h3><p>Secure file storage and sharing with folder trees, version history, and instant preview.</p></div>
+          <div class="card"><h3>OtterWorks Docs</h3><p>Rich-text documents with real-time collaborative editing and change tracking.</p></div>
+          <div class="card"><h3>OtterWorks Search</h3><p>Full-text search across every file and document with smart filters.</p></div>
+          <div class="card"><h3>OtterWorks Admin</h3><p>Fleet-wide administration: users, quotas, audit logs, and system health.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="leadership">
+      <div class="container">
+        <h2 class="sec-title">Leadership</h2>
+        <div class="rule"></div>
+        <div class="grid cols-3">
+          <div class="card leader"><div class="avatar">ML</div><h3>Marina Lutra</h3><p class="role">Chief Executive Officer</p><p>Co-founded OtterWorks after a decade running the Silverstream Clam Exchange. Believes every den deserves enterprise-grade tooling.</p></div>
+          <div class="card leader"><div class="avatar">PH</div><h3>Pebble Holt</h3><p class="role">Chief Technology Officer</p><p>Architect of the original waterproof ledger. Leads platform engineering across all eleven product services.</p></div>
+          <div class="card leader"><div class="avatar">WR</div><h3>Wren Riverstone</h3><p class="role">Chief Financial Officer</p><p>Former treasurer of the Estuary Bay Merchants Guild. Keeps OtterWorks profitable through every tide.</p></div>
+          <div class="card leader"><div class="avatar">CW</div><h3>Cobble Whiskerton</h3><p class="role">Chief Operating Officer</p><p>Scaled OtterWorks from three dens to forty waterways. Obsessed with reliable logistics and tidy burrows.</p></div>
+          <div class="card leader"><div class="avatar">SB</div><h3>Sedge Brookmarsh</h3><p class="role">VP of Product</p><p>Champions table-first design and dense, useful interfaces for working otters everywhere.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="departments" class="alt">
+      <div class="container">
+        <h2 class="sec-title">Departments</h2>
+        <div class="rule"></div>
+        <div class="table-wrap">
+          <table class="depts">
+            <thead><tr><th>Department</th><th>Charter</th></tr></thead>
+            <tbody>
+              <tr><td>Platform Engineering</td><td>Builds and operates the core file, document, and collaboration services.</td></tr>
+              <tr><td>Retail Solutions</td><td>Point-of-sale, inventory, and merchandising products for otter storefronts.</td></tr>
+              <tr><td>Trust &amp; Compliance</td><td>Audit, security, and regulatory tooling for waterway commerce.</td></tr>
+              <tr><td>Customer Success</td><td>Onboarding, training, and support for every den, large or small.</td></tr>
+              <tr><td>Corporate Services</td><td>Finance, legal, people operations, and facilities across our riverbank campuses.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="press">
+      <div class="container">
+        <h2 class="sec-title">Newsroom</h2>
+        <div class="rule"></div>
+        <ul class="narrow press">
+          <li><p class="date">March 2026</p><p class="headline">OtterWorks announces the Riverbend Data Center, its fifth flood-proof facility</p></li>
+          <li><p class="date">November 2025</p><p class="headline">OtterWorks Drive surpasses 2 billion stored pebble-inventory records</p></li>
+          <li><p class="date">June 2025</p><p class="headline">OtterWorks named 'Most Dependable Platform' by the Waterway Commerce Journal</p></li>
+          <li><p class="date">January 2025</p><p class="headline">OtterWorks opens its Estuary Bay engineering campus to 400 new hires</p></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="careers" class="alt">
+      <div class="container">
+        <h2 class="sec-title">Careers</h2>
+        <div class="rule"></div>
+        <p class="careers-intro">Join a company where every otter counts. Open roles across our riverbank campuses (all positions fictional).</p>
+        <div class="grid cols-2">
+          <div class="job"><div><h3>Senior Platform Engineer</h3><p>Platform Engineering · Riverbend Plaza HQ</p></div><span class="open">Open</span></div>
+          <div class="job"><div><h3>Enterprise Account Manager</h3><p>Retail Solutions · Delta District Office</p></div><span class="open">Open</span></div>
+          <div class="job"><div><h3>Compliance Analyst</h3><p>Trust &amp; Compliance · Remote (any waterway)</p></div><span class="open">Open</span></div>
+          <div class="job"><div><h3>Support Specialist</h3><p>Customer Success · Estuary Bay Campus</p></div><span class="open">Open</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="hq">
+      <p>OtterWorks, Inc. · Headquartered at Riverbend Plaza, Clamshell City, Estuary Bay · Founded 1987</p>
+    </div>
+
+    <footer>
+      <div class="inner">
+        <span>© OtterWorks, Inc.</span>
+        <span aria-hidden="true">·</span>
+        <span>v0.1.0</span>
+        <span aria-hidden="true">·</span>
+        <a href="#">Terms</a>
+        <span aria-hidden="true">·</span>
+        <a href="#">Privacy</a>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('provisionForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const status = document.getElementById('requestStatus');
+      const productSelect = document.getElementById('product');
+      const productLabel = productSelect.options[productSelect.selectedIndex].text;
+      const seats = Number(document.getElementById('seats').value);
+      const started = performance.now();
+      const elapsed = () => ((performance.now() - started) / 1000).toFixed(1);
+      const show = (kind, title, detail) => {
+        result.className = 'result-box ' + kind;
+        result.textContent = '';
+        const t = document.createElement('div'); t.className = 'r-title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'r-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
+      button.disabled = true;
+      button.textContent = 'Adding seats…';
+      form.setAttribute('aria-busy', 'true');
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = 'Provisioning…';
+      const timer = setInterval(() => { status.textContent = `Provisioning · ${elapsed()}s`; }, 100);
+      try {
+        const response = await fetch('/api/licenses/provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: productSelect.value,
+            planName: document.getElementById('planTier').value,
+            seats,
+            billingCycle: 'annual',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'The request could not be completed. Please try again.');
+        const added = data.seatsAdded || seats;
+        const cost = typeof data.annualCost === 'number' ? ` · $${data.annualCost.toLocaleString('en-US')}/yr billed annually` : '';
+        show('success', 'Seats added', `${added} seats added to ${productLabel}${cost}`);
+      } catch (error) {
+        show('error', 'Seats could not be added', error.message);
+      } finally {
+        clearInterval(timer);
+        status.textContent = `Completed in ${elapsed()}s`;
+        form.removeAttribute('aria-busy');
+        button.disabled = false;
+        button.textContent = 'Add seats';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
