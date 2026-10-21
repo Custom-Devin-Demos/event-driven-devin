@@ -5007,6 +5007,45 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN OTTERWORKS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OtterWorks product.',
   },
+  'fb89aa75': {
+    slug: 'fb89aa75',
+    company: 'SoFi',
+    brandMark: 'S',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'fb89aa75.html', title: 'Transfer | SoFi Checking and Savings' },
+    theme: {
+      '--accent': '#00A2C7',
+      '--ink': '#212121',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1F1645',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'SoFi Support',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Demo investigation requirements:',
+        '1. Reproduce the symptom in a browser on this machine against a local run of the repo, and time the request before any change.',
+        '2. Find the root cause from the code and telemetry. Implement the fix.',
+        '3. Add a regression test that fails before the fix and passes after it.',
+        '4. Record as much as you can; recordings are what the demo audience watches. At minimum three separate recordings: BEFORE on the live page (real ~9s hang), AFTER on a local run of the fix branch (the fix is not deployed, so the live page still hangs), and the regression test failing then passing. Same flow, same clicks, a visible timer in each.',
+        '5. Label every recording for a non-technical viewer. Title it with the step ("BEFORE: live transfer hangs 9s", "AFTER: fix branch, 0.9s", "REGRESSION TEST: fails on main, passes on fix"), add a chapter per action, and add a pass/fail check that states what should happen and what did ("It should confirm in under 1.5s \u2014 failed: 9.5s"). An unlabeled recording does not count.',
+        '6. Open a PR with the investigation summary, the fix, the test, and every recording embedded. Request Devin Review. Do not merge; stop for human approval.',
+        '7. Post the root cause, the PR link, and the recordings in the Slack alert thread.',
+        'Split the work across child sessions where that is faster, and coordinate their results.',
+      ].join('\n'),
+    },
+    alertCard: {
+      title: 'p95 latency \u2014 Transfers between Checking and Savings',
+      release: 'money-movement-web@2026.10.3',
+      baseline: '~300ms (7-day p95, before money-movement-web@2026.10.3)',
+      symptom: 'Transfers between a member\u2019s SoFi Checking and Savings accounts hang ~9s before the confirmation returns. Error rate is normal \u2014 transfers eventually post.',
+      impact: 'Members moving money between Checking, Savings, and Vaults wait ~9 seconds for a confirmation; some tap Transfer again and contact support about duplicate transfers.',
+    },
+    disclaimer: 'NOT ACTUALLY A SOFI SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real SoFi product.',
+  },
 };
 
 function getOncallSkin(slug) {
