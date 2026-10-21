@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transfer | SoFi Checking and Savings</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #00A2C7;
+      --ink: #212121;
+      --surface: #FFFFFF;
+      --chrome-bg: #1F1645;
+      --chrome-text: #FFFFFF;
+      --page: #FAFAFA;
+      --sand: #F0EEEB;
+      --line: #D9D6D1;
+      --muted: #706F6E;
+      --link: #00819D;
+      --gold: #FED881;
+      --ok: #0F6B3F;
+      --ok-bg: #E6F4EC;
+      --warn-bg: #FFF1EE;
+      --heading: "Plus Jakarta Sans", "Figtree", Helvetica, Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.5 "Figtree", Helvetica, Arial, "Lucida Grande", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1360px; margin: auto; padding: 0 40px; }
+    .utility { background: var(--sand); font-size: 16px; }
+    .utility .wrap { display: flex; align-items: center; height: 36px; }
+    .utility a { display: inline-flex; align-items: center; height: 36px; padding: 0 16px; text-decoration: none; font-weight: 500; border-radius: 12px 12px 0 0; }
+    .utility a.current { background: var(--surface); font-weight: 700; }
+    .utility .support { margin-left: auto; padding-right: 0; }
+    .gnav { background: var(--surface); box-shadow: 0 1px 0 var(--line); }
+    .gnav .wrap { display: flex; align-items: center; height: 76px; gap: 40px; }
+    .wordmark { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; text-decoration: none; color: var(--accent); font-family: var(--heading); font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+    .wordmark .glyph { width: 26px; height: 26px; border-radius: 6px; background: radial-gradient(circle, var(--accent) 36%, transparent 40%) 0 0 / 8.67px 8.67px; }
+    .gnav-links { display: flex; align-items: center; gap: 36px; margin-left: auto; }
+    .gnav-links a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-weight: 500; color: var(--ink); }
+    .gnav-links a.current { box-shadow: inset 0 -3px 0 var(--accent); }
+    .gnav-cta { display: flex; align-items: center; gap: 12px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 12px; font-weight: 700; text-decoration: none; border: 2px solid transparent; }
+    .btn-outline { border-color: var(--accent); color: var(--accent); background: var(--surface); }
+    .btn-fill { background: var(--accent); color: var(--chrome-text); }
+    .hero { background: var(--accent); color: var(--chrome-text); position: relative; overflow: hidden; }
+    .hero::after { content: ""; position: absolute; right: -140px; top: -120px; width: 620px; height: 620px; border-radius: 50%; background: var(--gold); opacity: .92; }
+    .hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(300px, .8fr); gap: 40px; align-items: center; padding: 64px 40px 72px; }
+    .eyebrow { margin: 0 0 12px; font-size: 18px; font-weight: 700; letter-spacing: .54px; text-transform: uppercase; color: var(--gold); }
+    h1 { margin: 0; font-family: var(--heading); font-size: 56px; font-weight: 800; letter-spacing: -1.6px; line-height: 1.12; color: var(--chrome-bg); }
+    .hero p.lead { margin: 20px 0 0; font-size: 22px; line-height: 1.5; max-width: 600px; }
+    .balance { justify-self: end; width: 100%; max-width: 380px; background: var(--chrome-bg); color: var(--chrome-text); border-radius: 20px; padding: 24px 26px 22px; box-shadow: 0 18px 40px rgba(31, 22, 69, .28); }
+    .balance .label { margin: 0; font-size: 14px; opacity: .8; }
+    .balance .amount { margin: 4px 0 18px; font-family: var(--heading); font-size: 42px; font-weight: 800; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; }
+    .balance .lines { display: grid; gap: 10px; margin: 0; padding: 14px 0 0; border-top: 1px solid rgba(255, 255, 255, .18); }
+    .balance .lines div { display: flex; justify-content: space-between; font-size: 15px; }
+    .balance .lines dt { margin: 0; opacity: .85; }
+    .balance .lines dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .perks { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .perks .wrap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; padding: 28px 40px; }
+    .perk { display: flex; gap: 14px; align-items: flex-start; }
+    .perk .ico { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--chrome-bg); color: var(--chrome-text); display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+    .perk strong { display: block; font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+    .perk span { color: var(--muted); font-size: 14px; line-height: 1.45; }
+    main .wrap { padding: 48px 40px 72px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .9fr); gap: 28px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 32px; }
+    .panel h2 { margin: 0 0 6px; font-family: var(--heading); font-size: 30px; font-weight: 800; letter-spacing: -.8px; line-height: 1.2; color: var(--chrome-bg); }
+    .panel .sub { margin: 0 0 26px; color: var(--muted); }
+    .field { margin-bottom: 20px; }
+    .field label, .field-label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 700; }
+    .field input, .field select { width: 100%; min-height: 52px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); font-size: 16px; font-weight: 500; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 22px) 23px, calc(100% - 16px) 23px; background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 44px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: "$"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 700; }
+    .amount-wrap input { padding-left: 30px; }
+    .review { margin: 4px 0 24px; padding: 16px 18px; border-radius: 12px; background: var(--sand); display: grid; gap: 10px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .fine { margin: -8px 0 24px; color: var(--muted); font-size: 13px; }
+    .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .submit-btn { min-height: 48px; padding: 10px 28px; border: 2px solid transparent; border-radius: 12px; background: var(--accent); color: var(--chrome-text); font-size: 16px; font-weight: 700; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 85%, var(--ink)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .cancel-btn { min-height: 48px; padding: 10px 24px; border: 2px solid var(--accent); border-radius: 12px; background: transparent; color: var(--accent); font-size: 16px; font-weight: 700; }
+    .cancel-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-size: 22px; font-weight: 700; }
+    .status { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 12px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); }
+    aside .panel { padding: 24px; }
+    aside .panel + .panel { margin-top: 20px; }
+    aside h3 { margin: 0 0 12px; font-family: var(--heading); font-size: 20px; font-weight: 800; letter-spacing: -.4px; color: var(--chrome-bg); }
+    .accounts { list-style: none; margin: 0; padding: 0; }
+    .accounts li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+    .accounts li:first-child { border-top: 0; padding-top: 0; }
+    .acct { display: flex; align-items: center; gap: 12px; }
+    .acct-dot { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--chrome-text); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+    .acct-name { display: block; font-weight: 700; }
+    .acct-num { display: block; color: var(--muted); font-size: 13px; }
+    .acct-bal { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+    .acct-bal small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+    .promo { background: var(--accent); color: var(--chrome-text); border-color: var(--accent); overflow: hidden; }
+    .promo img { display: block; width: calc(100% + 48px); margin: -24px -24px 16px; height: 180px; object-fit: cover; object-position: center 20%; }
+    .promo .promo-fallback { display: none; height: 120px; margin: -24px -24px 16px; background: linear-gradient(135deg, var(--chrome-bg), var(--accent)); }
+    .promo.no-img img { display: none; }
+    .promo.no-img .promo-fallback { display: block; }
+    .promo h3 { color: var(--chrome-text); }
+    .promo p { margin: 0 0 14px; color: rgba(255, 255, 255, .9); }
+    .promo a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 12px; background: var(--surface); color: var(--accent); font-weight: 700; text-decoration: none; }
+    .note p { margin: 0 0 10px; }
+    .note a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; color: var(--link); }
+    .site-footer { background: var(--sand); color: var(--ink); font-size: 14px; }
+    .site-footer .wrap { padding: 40px 40px 32px; }
+    .footer-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin-bottom: 28px; }
+    .footer-cols h4 { margin: 0 0 6px; font-size: 14px; font-weight: 700; }
+    .footer-cols a { display: flex; align-items: center; min-height: 44px; color: var(--ink); text-decoration: none; }
+    .footer-legal { margin: 0 0 10px; color: var(--muted); line-height: 1.5; font-size: 13px; }
+    .legal-band { background: var(--chrome-bg); color: var(--chrome-text); font-size: 13px; }
+    .legal-band .wrap { padding: 16px 40px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .legal-band a { color: var(--chrome-text); text-decoration: none; margin-right: 20px; display: inline-flex; align-items: center; min-height: 44px; }
+    @media (max-width: 1100px) {
+      .gnav-links { gap: 22px; }
+      .gnav-links a:nth-child(n+6) { display: none; }
+    }
+    @media (max-width: 900px) {
+      .wrap { padding: 0 16px; }
+      .utility .wrap { height: 44px; }
+      .utility a { height: 44px; }
+      .utility a:not(.current):not(.support) { display: none; }
+      .gnav .wrap { gap: 16px; }
+      .gnav-links { display: none; }
+      .gnav-cta { margin-left: auto; }
+      .gnav-cta .btn { padding: 0 14px; }
+      .hero::after { width: 360px; height: 360px; right: -160px; top: auto; bottom: -120px; }
+      .hero .wrap { grid-template-columns: 1fr; padding: 36px 16px 40px; gap: 24px; }
+      h1 { font-size: 38px; letter-spacing: -1px; }
+      .hero p.lead { font-size: 18px; }
+      .balance { justify-self: stretch; max-width: none; }
+      .balance .amount { font-size: 36px; }
+      .perks .wrap { grid-template-columns: 1fr; gap: 16px; padding: 20px 16px; }
+      main .wrap { padding: 24px 16px 40px; }
+      .layout { grid-template-columns: 1fr; }
+      .panel { padding: 22px 18px 24px; }
+      .panel h2 { font-size: 26px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .actions .submit-btn, .actions .cancel-btn { width: 100%; }
+      .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .site-footer .wrap { padding: 28px 16px 24px; }
+      .legal-band .wrap { padding: 12px 16px 72px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility">
+    <div class="wrap">
+      <a href="#transfer" class="current" aria-current="page">Personal</a>
+      <a href="https://www.sofi.com/business/" target="_blank" rel="noopener noreferrer">Business</a>
+      <a href="https://www.sofi.com/at-work/" target="_blank" rel="noopener noreferrer">At Work</a>
+      <a class="support" href="https://support.sofi.com/" target="_blank" rel="noopener noreferrer">Support</a>
+    </div>
+  </div>
+  <header class="gnav">
+    <div class="wrap">
+      <a class="wordmark" href="#transfer" aria-label="SoFi"><span>SoFi</span><span class="glyph" aria-hidden="true"></span></a>
+      <nav class="gnav-links" aria-label="Primary">
+        <a href="#transfer" class="current" aria-current="page">Bank</a>
+        <a href="https://www.sofi.com/credit-card/" target="_blank" rel="noopener noreferrer">Cards</a>
+        <a href="https://www.sofi.com/invest/" target="_blank" rel="noopener noreferrer">Invest</a>
+        <a href="https://www.sofi.com/personal-loans/" target="_blank" rel="noopener noreferrer">Loans</a>
+        <a href="https://www.sofi.com/invest/crypto/" target="_blank" rel="noopener noreferrer">Crypto</a>
+        <a href="https://www.sofi.com/insurance/" target="_blank" rel="noopener noreferrer">Insurance</a>
+        <a href="https://www.sofi.com/sofi-plus/" target="_blank" rel="noopener noreferrer">SoFi Plus</a>
+      </nav>
+      <div class="gnav-cta">
+        <a class="btn btn-outline" href="#accounts">Accounts</a>
+        <a class="btn btn-fill" href="#transfer">Transfer</a>
+      </div>
+    </div>
+  </header>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">SoFi Checking and Savings</p>
+        <h1 id="hero-title">Transfer money between your SoFi accounts.</h1>
+        <p class="lead">Move money between Checking, Savings, and your Vaults. Your updated balances show as soon as the transfer completes.</p>
+      </div>
+      <div class="balance" aria-live="polite">
+        <p class="label">Total available balance</p>
+        <p class="amount" id="heroBalance">$0.00</p>
+        <dl class="lines">
+          <div><dt>Checking</dt><dd data-balance-for="ACCT-1001">$0.00</dd></div>
+          <div><dt>Savings</dt><dd data-balance-for="ACCT-1002">$0.00</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+  <section class="perks" aria-label="Account highlights">
+    <div class="wrap">
+      <div class="perk"><span class="ico" aria-hidden="true">$</span><div><strong>No monthly account fees</strong><span>No monthly, minimum balance, or overdraft fees on Checking and Savings.</span></div></div>
+      <div class="perk"><span class="ico" aria-hidden="true">2</span><div><strong>Up to 2-day early paycheck</strong><span>Set up direct deposit and get paid up to two days early.</span></div></div>
+      <div class="perk"><span class="ico" aria-hidden="true">&#9679;</span><div><strong>24/7 banking security</strong><span>Around-the-clock fraud monitoring and instant card freeze in the app.</span></div></div>
+      <div class="perk"><span class="ico" aria-hidden="true">V</span><div><strong>Vaults for every goal</strong><span>Set money aside in Vaults inside your Savings account.</span></div></div>
+    </div>
+  </section>
+  <main id="transfer">
+    <div class="wrap">
+      <div class="layout">
+        <section class="panel" aria-labelledby="form-title">
+          <h2 id="form-title">Transfer</h2>
+          <p class="sub">Choose where the money comes from and where it goes.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Checking" data-num="&middot;&middot;2841">Checking</option>
+                <option value="ACCT-1002" data-name="Savings" data-num="&middot;&middot;7730">Savings</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">To</label>
+              <select id="toAccount">
+                <option value="ACCT-1002" data-name="Savings" data-num="&middot;&middot;7730">Savings</option>
+                <option value="ACCT-1003" data-name="Vault &middot; Emergency Fund" data-num="Savings">Vault</option>
+                <option value="ACCT-1001" data-name="Checking" data-num="&middot;&middot;2841">Checking</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Amount</label>
+                <div class="amount-wrap"><input type="number" id="amount" min="0.01" step="0.01" value="250.00" inputmode="decimal" required aria-describedby="amountHelp"></div>
+                <small id="amountHelp">Available: $0.00</small>
+              </div>
+              <div class="field">
+                <label for="accountTier">When</label>
+                <select id="accountTier">
+                  <option value="standard">Now</option>
+                </select>
+                <small>Recurring transfers are set up from Autopilot in the SoFi app.</small>
+              </div>
+            </div>
+            <dl class="review" aria-label="Transfer summary">
+              <div><dt>From</dt><dd id="reviewFrom">&mdash;</dd></div>
+              <div><dt>To</dt><dd id="reviewTo">&mdash;</dd></div>
+              <div><dt>Amount</dt><dd id="reviewAmount">&mdash;</dd></div>
+              <div><dt>Transfer fee</dt><dd id="reviewFee">Shown on confirmation</dd></div>
+              <div><dt>Posts</dt><dd id="reviewDate">&mdash;</dd></div>
+            </dl>
+            <p class="fine">Transfers between your SoFi accounts usually post right away. Any transfer fee is shown on your confirmation and in your activity.</p>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Transfer</button>
+              <button type="reset" id="cancelBtn" class="cancel-btn">Cancel</button>
+            </div>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Sample accounts. No money moves on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="panel" id="accounts">
+            <h3>Your accounts</h3>
+            <ul class="accounts">
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">C</span><span><span class="acct-name">Checking</span><span class="acct-num">&middot;&middot;2841</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1001">$0.00</span><small>Available</small></span></li>
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">S</span><span><span class="acct-name">Savings</span><span class="acct-num">&middot;&middot;7730</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1002">$0.00</span><small>Available</small></span></li>
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">V</span><span><span class="acct-name">Vault &middot; Emergency Fund</span><span class="acct-num">Inside Savings</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1003">$0.00</span><small>Set aside</small></span></li>
+            </ul>
+          </div>
+          <div class="panel promo">
+            <img src="https://d32ijn7u0aqfv4.cloudfront.net/wp/wp-content/uploads/raw/freeze-debit-card-v2.webp" alt="" width="1560" height="880" loading="lazy" onerror="this.closest('.promo').classList.add('no-img')">
+            <div class="promo-fallback" aria-hidden="true"></div>
+            <h3>Security &amp; Control</h3>
+            <p>Freeze your debit card, set spending limits, and get instant alerts for every transaction in the SoFi app.</p>
+            <a href="https://www.sofi.com/banking/checking-account/" target="_blank" rel="noopener noreferrer">Explore banking security</a>
+          </div>
+          <div class="panel note">
+            <h3>Sending money somewhere else?</h3>
+            <p>Pay bills, send to friends, or move money to another bank from the Banking tab in the SoFi app.</p>
+            <a href="https://www.sofi.com/banking/" target="_blank" rel="noopener noreferrer">SoFi Checking and Savings</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-cols">
+        <div><h4>SoFi Products</h4><a href="https://www.sofi.com/banking/">Bank</a><a href="https://www.sofi.com/credit-card/">Credit Cards</a><a href="https://www.sofi.com/invest/">Invest</a><a href="https://www.sofi.com/personal-loans/">Personal Loans</a></div>
+        <div><h4>Financial Resources</h4><a href="https://www.sofi.com/learn/">SoFi Learn</a><a href="https://www.sofi.com/calculators/">Tools &amp; Calculators</a><a href="https://www.sofi.com/banking/apy-calculator/">APY Calculator</a></div>
+        <div><h4>About SoFi</h4><a href="https://www.sofi.com/about/">About Us</a><a href="https://www.sofi.com/member-benefits/">Member Benefits</a><a href="https://support.sofi.com/">Contact Us</a><a href="https://www.sofi.com/faq/">FAQs</a></div>
+        <div><h4>Legal</h4><a href="https://www.sofi.com/legal/">Privacy &amp; Security</a><a href="https://www.sofi.com/legal/terms-of-use/">Terms of Use</a><a href="https://www.sofi.com/legal/">Disclosures</a></div>
+      </div>
+      <p class="footer-legal">Example Transfer experience. Accounts, balances, and transfers shown here are sample data.</p>
+      <p class="footer-legal">SoFi Checking and Savings is offered through SoFi Bank, N.A. Member FDIC. Vaults are a feature of the SoFi Savings account. Transfers between your own SoFi accounts post when the transfer completes; see your account agreement for details.</p>
+    </div>
+  </footer>
+  <div class="legal-band">
+    <div class="wrap">
+      <span><a href="https://www.sofi.com/legal/">Licenses</a><a href="https://www.sofi.com/legal/">NMLS Access</a><a href="https://www.sofi.com/ada-accessibility/">ADA Accessibility</a></span>
+      <span>&copy; 2026 Social Finance, LLC. All rights reserved.</span>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const amountHelp = document.getElementById('amountHelp');
+    const reviewFrom = document.getElementById('reviewFrom');
+    const reviewTo = document.getElementById('reviewTo');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewFee = document.getElementById('reviewFee');
+    const reviewDate = document.getElementById('reviewDate');
+    const heroBalance = document.getElementById('heroBalance');
+    const transferFields = [fromAccount, toAccount, amountInput, document.getElementById('accountTier')];
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    const IDLE_STATUS = 'Sample accounts. No money moves on this page.';
+    const IDLE_LABEL = 'Transfer';
+    const FEE_PENDING = 'Shown on confirmation';
+    let timerHandle = null;
+    let pending = false;
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+    const balances = { 'ACCT-1001': 4310.58, 'ACCT-1002': 12502.21, 'ACCT-1003': 3000.00 };
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function available() { return balances[fromAccount.value] || 0; }
+    function label(select) { const d = selected(select).dataset; return `${d.name} ${d.num}`; }
+    function renderBalances() {
+      [fromAccount, toAccount].forEach((select) => {
+        Array.from(select.options).forEach((opt) => {
+          opt.textContent = `${opt.dataset.name} ${opt.dataset.num} \u00b7 ${usd.format(balances[opt.value] || 0)}`;
+        });
+      });
+      document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = usd.format(balances[el.dataset.balanceFor] || 0); });
+      heroBalance.textContent = usd.format((balances['ACCT-1001'] || 0) + (balances['ACCT-1002'] || 0));
+    }
+    function parsedAmount() {
+      const raw = amountInput.value.trim();
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw);
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function renderReview() {
+      const amount = parsedAmount();
+      const valid = Number.isFinite(amount) && amount > 0 && amount <= available();
+      amountHelp.textContent = `Available: ${usd.format(available())}`;
+      reviewFrom.textContent = label(fromAccount);
+      reviewTo.textContent = label(toAccount);
+      reviewAmount.textContent = valid ? usd.format(amount) : '\u2014';
+      reviewFee.textContent = FEE_PENDING;
+      reviewDate.textContent = 'Right away';
+    }
+    [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
+    amountInput.addEventListener('input', renderReview);
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        renderReview();
+      });
+    });
+    renderBalances();
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const amount = parsedAmount();
+      const availableNow = available();
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choose a different account to transfer to. Money can\u2019t be moved into the account it comes from.';
+        status.textContent = IDLE_STATUS;
+        toAccount.focus();
+        return;
+      }
+      if (!Number.isFinite(amount) || amount <= 0 || amount > availableNow) {
+        result.className = 'result-box notice';
+        result.textContent = `Enter an amount between $0.01 and ${usd.format(availableNow)}.`;
+        status.textContent = IDLE_STATUS;
+        amountInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      cancelBtn.disabled = true;
+      transferFields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Transferring\u2026';
+      status.textContent = 'Transferring\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const fromLabel = label(fromAccount);
+      const toLabel = label(toAccount);
+      const fromId = fromAccount.value;
+      const toId = toAccount.value;
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Transfer not completed.');
+        if (!data || !data.receipt) throw new Error('Transfer outcome unknown.');
+        const completedAt = new Date(data.receipt.timestamp);
+        const moved = Number(data.receipt.amount);
+        const fee = Number(data.fee ?? data.receipt.fee ?? 0);
+        const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? moved + fee);
+        balances[fromId] = Math.max(0, (balances[fromId] || 0) - debited);
+        balances[toId] = (balances[toId] || 0) + moved;
+        renderBalances();
+        renderReview();
+        reviewFee.textContent = usd.format(fee);
+        result.className = 'result-box success';
+        result.textContent = `Transfer complete at ${timeFmt.format(completedAt)}. ${usd.format(moved)} moved from ${fromLabel} to ${toLabel}. Transfer fee ${usd.format(fee)}; ${usd.format(debited)} debited from ${fromLabel}. Reference ${data.receipt.receiptId}. It\u2019s in your activity now.`;
+        status.textContent = 'Transfer complete.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'Something went wrong and the transfer didn\u2019t go through. No money has moved. Please try again in a moment.';
+          status.textContent = 'Transfer not completed.';
+        } else {
+          result.textContent = 'We couldn\u2019t confirm this transfer. Check your activity before trying again so it isn\u2019t sent twice.';
+          status.textContent = 'Transfer not confirmed.';
+        }
+      } finally {
+        transferFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        cancelBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
