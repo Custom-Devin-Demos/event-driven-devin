@@ -79,7 +79,9 @@
  * URL is served with the shim instead of as a bare page whose action 404s.
  *
  * Skins are direct-URL only: the stock /oncall hub never lists customers,
- * and each skin is reachable solely by its own /oncall/c/<slug> URL.
+ * and each skin is reachable solely by its own /oncall/c/<slug> URL. Skins on a
+ * healthcare template (vertical 'pbm' | 'payer' | 'lifesciences') are also
+ * served at /oncall/healthcare/<vertical>/<slug>, the URL shared for healthcare demos.
  */
 
 const ONCALL_SKINS = {

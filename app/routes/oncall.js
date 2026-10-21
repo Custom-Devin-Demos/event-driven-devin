@@ -305,6 +305,25 @@ for (const skin of Object.values(ONCALL_SKINS)) {
 }
 
 /**
+ * Healthcare templates (pbm, payer, lifesciences) are also served under the
+ * healthcare hub: /oncall/healthcare/<template> is the template page, and
+ * /oncall/healthcare/<template>/:slug is a skin built on that template (the
+ * same page as /oncall/c/:slug). Non-healthcare demos get no new URLs.
+ */
+const HEALTHCARE_TEMPLATES = Object.keys(ALERT_SCENARIOS)
+  .filter((key) => ALERT_SCENARIOS[key].group === 'healthcare');
+for (const template of HEALTHCARE_TEMPLATES) {
+  router.get(`/oncall/healthcare/${template}`, (_req, res, next) => (
+    serveOncallScenarioPage(ALERT_SCENARIOS[template], res, next)
+  ));
+  router.get(`/oncall/healthcare/${template}/:slug`, (req, res, next) => {
+    const skin = getOncallSkin(req.params.slug);
+    if (!skin || skin.vertical !== template) return next();
+    serveSkinPage(skin, res, next);
+  });
+}
+
+/**
  * GET /oncall — On-Call demo control page.
  */
 const ONCALL_HUB_PAGE = path.join(__dirname, '..', 'public', 'oncall.html');
