@@ -14,6 +14,7 @@ const {
 } = require('../services/oncall');
 const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 const { normalizeAlertDestination } = require('../services/alert-destination');
+const { isTeamsWebhookUrl } = require('../services/teams');
 const {
   FLEET,
   isFleetReport,
@@ -830,6 +831,16 @@ router.get('/api/oncall/scenarios', (req, res) => {
       group: s.group || null,
       summary: s.summary || null,
     }));
+
+  if (group === 'healthcare') {
+    const healthcareTeams = isTeamsWebhookUrl(process.env.ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE);
+    return res.json({
+      scenarios,
+      teamsDefaultWebhook: Boolean(process.env.ONCALL_TEAMS_WEBHOOK_URL) || healthcareTeams,
+      teamsChannel: healthcareTeams ? 'HC-oncall-alerts' : 'oncall-demo',
+    });
+  }
+
   res.json({ scenarios, teamsDefaultWebhook: Boolean(process.env.ONCALL_TEAMS_WEBHOOK_URL) });
 });
 

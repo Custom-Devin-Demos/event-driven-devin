@@ -26,7 +26,8 @@ const { getOncallSkin } = require('../config/oncall-skins');
 const LOANTRACK = getOncallSkin('9ecaa5d1');
 const TEAMS_URL = 'https://teams.example.test/workflows/hook';
 const USER_TEAMS_URL = 'https://default8019.65.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/abc/triggers/manual/paths/invoke?sig=x';
-const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL', 'ONCALL_TEAMS_ALL_ALERTS', 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI', 'ONCALL_SPLUNK_URL'];
+const HEALTHCARE_TEAMS_URL = 'https://prod-12.westus.logic.azure.com/workflows/healthcare/triggers/manual/paths/invoke?sig=x';
+const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL', 'ONCALL_TEAMS_ALL_ALERTS', 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI', 'ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE', 'ONCALL_SPLUNK_URL'];
 const savedEnv = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
 
 function setEnv({ slack, teams }) {
@@ -276,6 +277,67 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
   });
 
   const channelSkin = () => ({ ...getOncallSkin('99defdc4'), teamsAlerts: true, teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI' });
+
+  test('a healthcare scenario posts to its dedicated Teams channel', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE = HEALTHCARE_TEAMS_URL;
+    const result = await postOncallAlert('pbm', { runRef: 'run-healthcare', destination: 'teams' });
+    expect(result).toEqual({ ok: true, teams: true });
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(axios.post.mock.calls[0][0]).toBe(HEALTHCARE_TEAMS_URL);
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  test('an unset healthcare webhook falls back to the shared Teams channel', async () => {
+    setEnv({ slack: true, teams: true });
+    const result = await postOncallAlert('pbm', { runRef: 'run-healthcare', destination: 'teams' });
+    expect(result).toEqual({ ok: true, teams: true });
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  test('an invalid healthcare webhook falls back to the shared Teams channel', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE = 'https://attacker.example.com/hook';
+    const result = await postOncallAlert('pbm', { runRef: 'run-healthcare', destination: 'teams' });
+    expect(result).toEqual({ ok: true, teams: true });
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  test('the healthcare webhook does not change other scenarios', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE = HEALTHCARE_TEAMS_URL;
+    const result = await postOncallAlert('banking', { runRef: 'run-banking', destination: 'teams' });
+    expect(result).toEqual({ ok: true, teams: true });
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(axios.post.mock.calls[0][0]).toBe(TEAMS_URL);
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  test('a healthcare Teams webhook works without the shared webhook', async () => {
+    setEnv({ slack: false, teams: false });
+    process.env.ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE = HEALTHCARE_TEAMS_URL;
+    const result = await postOncallAlert('pbm', { runRef: 'run-healthcare', destination: 'teams' });
+    expect(result).toEqual({ ok: true, teams: true });
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(axios.post.mock.calls[0][0]).toBe(HEALTHCARE_TEAMS_URL);
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  test('a valid per-skin Teams webhook takes priority over the healthcare webhook', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE = HEALTHCARE_TEAMS_URL;
+    process.env.ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI = USER_TEAMS_URL;
+    const skin = { ...channelSkin(), vertical: 'pbm' };
+    const result = await postOncallAlert('pbm', { runRef: 'run-healthcare', skin, destination: 'teams' });
+    expect(result).toEqual({ ok: true, teams: true });
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(axios.post.mock.calls[0][0]).toBe(USER_TEAMS_URL);
+    expect(postMessage).not.toHaveBeenCalled();
+  });
 
   test('a skin with teamsWebhookEnv posts to its own Teams channel', async () => {
     setEnv({ slack: true, teams: true });
