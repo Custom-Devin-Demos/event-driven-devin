@@ -116,6 +116,28 @@ const GATEWAY_TRANSIENT_FAILURE_RATE = 0.002;
 const GATEWAY_SYNTHETIC_FAILURE_RATE = 0.08;
 
 /**
+ * Duplicate-submission guard for the transfer ledger. A transfer that matches
+ * a recently settled one (same user, source, destination and amount) is
+ * answered from the ledger instead of being settled a second time.
+ *
+ * Change log:
+ *  - apex-bank@1.0.1: dedupeWindowMs 30000 — covers the submit → confirmation
+ *    round trip at p99 with headroom.
+ *  - PAY-3311 (June gateway brownouts): settled entries outlived their gateway
+ *    confirmations and blocked legitimate re-submits after timeouts, so the
+ *    window was set to 0 "until the gateway stabilises". The gateway work
+ *    closed in July; the window was never restored.
+ */
+const TRANSFER_IDEMPOTENCY = {
+  dedupeWindowMs: process.env.TRANSFER_DEDUPE_WINDOW_MS !== undefined
+    && Number(process.env.TRANSFER_DEDUPE_WINDOW_MS) >= 0
+    ? Math.floor(Number(process.env.TRANSFER_DEDUPE_WINDOW_MS))
+    : 0,
+};
+const SETTLED_TRANSFERS_MAX_ENTRIES = 1000;
+const settledTransfers = new Map();
+
+/**
  * Transfer fee tiers by account type
  */
 const FEE_TIERS = {
@@ -223,6 +245,31 @@ async function submitToPaymentsGateway(transfer, { synthetic = false } = {}) {
   throw lastError;
 }
 
+function transferDedupeKey(data) {
+  return [data.userId || 'anonymous', data.fromAccount, data.toAccount, Number(data.amount) || 0].join(':');
+}
+
+/**
+ * Return the settled result for a matching transfer inside the dedupe window.
+ */
+function findSettledTransfer(data) {
+  const key = transferDedupeKey(data);
+  const entry = settledTransfers.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.settledAt >= TRANSFER_IDEMPOTENCY.dedupeWindowMs) {
+    settledTransfers.delete(key);
+    return null;
+  }
+  return entry.result;
+}
+
+function rememberSettledTransfer(data, result) {
+  if (settledTransfers.size >= SETTLED_TRANSFERS_MAX_ENTRIES) {
+    settledTransfers.delete(settledTransfers.keys().next().value);
+  }
+  settledTransfers.set(transferDedupeKey(data), { settledAt: Date.now(), result });
+}
+
 /**
  * Resolve the fee structure for a given account tier.
  */
@@ -243,9 +290,10 @@ function calculateTransferFee(tier, amount) {
 /**
  * Format a transfer receipt for the response.
  */
-function formatReceipt(transfer, feeBreakdown) {
+function formatReceipt(transfer, feeBreakdown, settlement) {
   return {
     receiptId: `RCP-${Date.now()}`,
+    gatewayRef: settlement.gatewayRef,
     from: transfer.fromAccount,
     to: transfer.toAccount,
     amount: transfer.amount,
@@ -272,6 +320,16 @@ async function processTransfer(data, options = {}) {
   });
 
   try {
+    const settled = findSettledTransfer(data);
+    if (settled) {
+      incrementMetric('transfer.duplicate_suppressed', { route: '/api/oncall/banking/transfer' });
+      logger.info('Duplicate transfer answered from ledger', {
+        transferId: settled.transferId,
+        service: 'banking-api',
+      });
+      return { ...settled, duplicate: true };
+    }
+
     const stepStart1 = Date.now();
     await scoreTransferRisk(data.fromAccount, data.amount);
     const riskMs = Date.now() - stepStart1;
@@ -281,13 +339,13 @@ async function processTransfer(data, options = {}) {
     const screeningMs = Date.now() - stepStart2;
 
     const stepStart3 = Date.now();
-    await submitToPaymentsGateway(data, { synthetic: Boolean(options.synthetic) });
+    const settlement = await submitToPaymentsGateway(data, { synthetic: Boolean(options.synthetic) });
     const gatewayMs = Date.now() - stepStart3;
 
     const tier = resolveFeeTier(data.accountTier);
     const fee = calculateTransferFee(tier, data.amount);
     const totalDebit = data.amount + fee;
-    const receipt = formatReceipt(data, { fee, totalDebit });
+    const receipt = formatReceipt(data, { fee, totalDebit }, settlement);
 
     const duration = Date.now() - startTime;
 
@@ -306,7 +364,7 @@ async function processTransfer(data, options = {}) {
       ...(options.debugTimings ? { stepTimings: { riskMs, screeningMs, gatewayMs } } : {}),
     });
 
-    return {
+    const result = {
       success: true,
       transferId,
       receipt,
@@ -315,6 +373,8 @@ async function processTransfer(data, options = {}) {
       status: 'completed',
       processedAt: new Date().toISOString(),
     };
+    rememberSettledTransfer(data, result);
+    return result;
   } catch (error) {
     const duration = Date.now() - startTime;
 
@@ -351,4 +411,4 @@ async function processTransfer(data, options = {}) {
   }
 }
 
-module.exports = { processTransfer, ACCOUNTS, COMPLIANCE_CONFIG };
+module.exports = { processTransfer, ACCOUNTS, COMPLIANCE_CONFIG, TRANSFER_IDEMPOTENCY };
