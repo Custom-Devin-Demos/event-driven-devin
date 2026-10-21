@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Submit a claim | Oscar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --accent: #4f50ff;
+        --ink: #1f0d05;
+        --surface: #f7f5eb;
+        --chrome-bg: #4f50ff;
+        --chrome-text: #ffffff;
+        --muted: #6b5d55;
+        --line: #ccc3ba;
+        --card: #ffffff;
+        --tint: #ecebff;
+        --sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+        --display: "Instrument Serif", ui-serif, Georgia, serif;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        overflow-x: hidden;
+      }
+      body {
+        margin: 0;
+        background: var(--surface);
+        color: var(--ink);
+        font: 16px/1.5 var(--sans);
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      header a,
+      footer a,
+      .tabs a {
+        color: inherit;
+      }
+      .wrap {
+        max-width: 1376px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+
+      /* Header */
+      .header {
+        position: relative;
+        background: var(--surface);
+      }
+      .header-row {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        gap: 40px;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        color: var(--accent) !important;
+        font-weight: 600;
+        font-size: 26px;
+        letter-spacing: -0.02em;
+        flex-shrink: 0;
+      }
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 4px solid var(--accent);
+        display: grid;
+        place-items: center;
+        font-size: 0;
+      }
+      .brand-mark::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+      }
+      .nav a,
+      .util a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 44px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 16px;
+      }
+      .nav a:hover,
+      .util a:hover {
+        background: rgba(31, 13, 5, 0.06);
+      }
+      .nav svg {
+        width: 14px;
+        height: 14px;
+      }
+      .util {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--tint);
+        color: var(--accent);
+        display: grid;
+        place-items: center;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .menu-btn {
+        display: none;
+        width: 44px;
+        height: 44px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+      }
+
+      /* Member tabs */
+      .tabs {
+        border-bottom: 1px solid var(--line);
+      }
+      .tabs .wrap {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .tabs a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 48px;
+        padding: 0 14px;
+        font-weight: 500;
+        color: var(--muted);
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+      }
+      .tabs a[aria-current="page"] {
+        color: var(--ink);
+        border-bottom-color: var(--accent);
+      }
+
+      /* Hero */
+      .hero {
+        padding: 56px 0 40px;
+      }
+      .hero .wrap {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 48px;
+        align-items: center;
+      }
+      .eyebrow {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--accent);
+        margin: 0 0 12px;
+      }
+      h1 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 84px;
+        line-height: 1;
+        letter-spacing: -0.01em;
+        margin: 0 0 20px;
+      }
+      h1 em {
+        color: var(--accent);
+      }
+      .lede {
+        font-size: 18px;
+        color: var(--muted);
+        max-width: 520px;
+        margin: 0;
+      }
+      .hero-img {
+        width: 100%;
+        aspect-ratio: 3 / 2;
+        object-fit: cover;
+        border-radius: 24px;
+        display: block;
+        background: var(--tint);
+      }
+
+      /* Main */
+      .main {
+        padding: 8px 0 80px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+      }
+      .card {
+        background: var(--card);
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 1px 2px rgba(31, 13, 5, 0.06);
+      }
+      .card h2 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 40px;
+        line-height: 1.05;
+        margin: 0 0 8px;
+      }
+      .card-intro {
+        color: var(--muted);
+        margin: 0 0 28px;
+      }
+      .field {
+        margin-bottom: 20px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      label {
+        display: block;
+        font-weight: 500;
+        font-size: 15px;
+        margin-bottom: 8px;
+      }
+      .hint {
+        display: block;
+        font-weight: 400;
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+      select,
+      input,
+      textarea {
+        width: 100%;
+        min-height: 48px;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+      }
+      textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+      select:focus,
+      input:focus,
+      textarea:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+        border-color: var(--accent);
+      }
+      .money {
+        position: relative;
+      }
+      .money span {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+      }
+      .money input {
+        padding-left: 28px;
+      }
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      .btn {
+        min-height: 48px;
+        padding: 12px 24px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fff;
+        font: 600 16px/1 var(--sans);
+        cursor: pointer;
+      }
+      .btn:hover {
+        background: #3d3ee6;
+      }
+      .btn:disabled {
+        opacity: 0.7;
+        cursor: progress;
+      }
+      .btn-link {
+        min-height: 48px;
+        padding: 0 8px;
+        border: 0;
+        background: none;
+        color: var(--accent);
+        font: 500 16px var(--sans);
+        cursor: pointer;
+      }
+      .result-box {
+        display: none;
+        margin-top: 20px;
+        padding: 14px 16px;
+        border-radius: 8px;
+        font-size: 15px;
+      }
+      .result-box.success {
+        display: block;
+        background: #e8f5ec;
+        color: #14532d;
+      }
+      .result-box.error {
+        display: block;
+        background: #fdecea;
+        color: #8a1c12;
+      }
+
+      /* Aside */
+      .aside h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 16px;
+      }
+      .steps {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 24px;
+      }
+      .steps li {
+        display: flex;
+        gap: 14px;
+        padding: 12px 0;
+        border-top: 1px solid var(--line);
+      }
+      .steps li:first-child {
+        border-top: 0;
+      }
+      .step-num {
+        flex: 0 0 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--tint);
+        color: var(--accent);
+        display: grid;
+        place-items: center;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .steps strong {
+        display: block;
+        font-weight: 600;
+      }
+      .steps span.sub {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .summary {
+        background: var(--surface);
+        border-radius: 12px;
+        padding: 20px;
+      }
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 6px 0;
+        font-size: 15px;
+      }
+      .summary-row span:first-child {
+        color: var(--muted);
+      }
+      .summary-row span:last-child {
+        text-align: right;
+        font-weight: 500;
+      }
+      .help {
+        margin-top: 24px;
+        padding: 20px;
+        border-radius: 12px;
+        background: var(--tint);
+      }
+      .help p {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+
+      /* Footer */
+      .footer {
+        background: var(--chrome-bg);
+        color: var(--chrome-text);
+        padding: 40px 0 32px;
+      }
+      .footer-top {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr 1fr 1fr;
+        gap: 32px;
+      }
+      .footer-tag {
+        font-family: var(--display);
+        font-size: 64px;
+        line-height: 1;
+        margin: 0;
+      }
+      .footer-col strong {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+      .footer-col a {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+      }
+      .footer-bottom {
+        margin-top: 56px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 14px;
+      }
+      .footer-bottom nav {
+        display: flex;
+        gap: 0 20px;
+        flex-wrap: wrap;
+      }
+      .footer-bottom nav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+      }
+      .footer-word {
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+
+      @media (max-width: 1100px) {
+        .nav {
+          display: none;
+        }
+        .header-row {
+          justify-content: space-between;
+        }
+        .menu-btn {
+          display: inline-grid;
+          place-items: center;
+        }
+        .header.nav-open .nav {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 0;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          z-index: 20;
+          padding: 8px 16px 16px;
+          background: var(--surface);
+          border-bottom: 1px solid rgba(31, 13, 5, 0.12);
+        }
+        .header.nav-open .nav a {
+          justify-content: space-between;
+        }
+        .util .hide-sm {
+          display: none;
+        }
+      }
+      @media (max-width: 900px) {
+        .hero .wrap,
+        .layout,
+        .footer-top {
+          grid-template-columns: 1fr;
+        }
+        h1 {
+          font-size: 56px;
+        }
+        .hero {
+          padding: 32px 0 28px;
+        }
+      }
+      @media (max-width: 560px) {
+        .wrap {
+          padding: 0 16px;
+        }
+        .row {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .card {
+          padding: 24px 18px;
+        }
+        h1 {
+          font-size: 48px;
+        }
+        .card h2 {
+          font-size: 34px;
+        }
+        .footer-tag {
+          font-size: 44px;
+        }
+        .btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="wrap header-row">
+        <a class="brand" href="#" aria-label="Oscar home"><span class="brand-mark">O</span>oscar</a>
+        <nav class="nav" id="primaryNav" aria-label="Primary">
+          <a href="#">Get Coverage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></a>
+          <a href="#">For Members <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></a>
+          <a href="#">For Employers <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></a>
+          <a href="#">For Brokers <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></a>
+          <a href="#">For Providers <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></a>
+        </nav>
+        <div class="util">
+          <a href="#" class="hide-sm">Find Doctors &amp; Drugs</a>
+          <a href="#" aria-label="Account"><span class="avatar">JR</span><span class="hide-sm">Jordan</span></a>
+          <button class="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+    <nav class="tabs" aria-label="Account">
+      <div class="wrap">
+        <a href="#">Home</a>
+        <a href="#" aria-current="page">Claims</a>
+        <a href="#">Care Team</a>
+        <a href="#">Prescriptions</a>
+        <a href="#">Plan &amp; Benefits</a>
+        <a href="#">Member Rewards</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="wrap">
+        <div>
+          <p class="eyebrow">Claims</p>
+          <h1>Submit a claim for <em>reimbursement</em></h1>
+          <p class="lede">
+            Paid for care out of pocket? Send us the details and we&rsquo;ll review it against your plan
+            benefits.
+          </p>
+        </div>
+        <img
+          class="hero-img"
+          src="https://cdn.sanity.io/images/jnbz686p/hioscar_production/95467783f183da1cb6bf90cdab98c95905799347-2880x1920.jpg?w=1200&auto=format"
+          alt=""
+          onerror="this.style.display='none'"
+        />
+      </div>
+    </section>
+
+    <main class="main">
+      <div class="wrap layout">
+        <section class="card">
+          <h2>Claim details</h2>
+          <p class="card-intro">Tell us who got care, what it was for, and what you paid.</p>
+          <form id="claimForm">
+            <div class="field">
+              <label for="policyId">Who received care</label>
+              <select id="policyId">
+                <option value="POL-5001">Jordan Rivera (you) &middot; Member ID OSC-5001</option>
+                <option value="POL-5002">Sam Rivera (dependent) &middot; Member ID OSC-5002</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="claimType">Type of care</label>
+                <select id="claimType">
+                  <option value="medical">Doctor visit</option>
+                  <option value="urgent_care">Urgent care</option>
+                  <option value="lab">Lab work</option>
+                  <option value="prescription">Prescription</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="amount">Amount you paid</label>
+                <div class="money">
+                  <span aria-hidden="true">$</span>
+                  <input type="number" id="amount" value="240" min="1" step="0.01" required />
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="description">Provider and reason for visit</label>
+              <textarea id="description" required>Urgent care visit for a sprained ankle. Paid in full at the clinic.</textarea>
+              <span class="hint">Include the provider name so we can match your itemized bill.</span>
+            </div>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="btn">Submit claim</button>
+              <button type="reset" class="btn-link">Start over</button>
+            </div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <aside class="card aside">
+          <h3>What happens next</h3>
+          <ol class="steps">
+            <li>
+              <span class="step-num">1</span>
+              <div><strong>We receive your claim</strong><span class="sub">You get a claim reference right away.</span></div>
+            </li>
+            <li>
+              <span class="step-num">2</span>
+              <div><strong>We review it</strong><span class="sub">We check it against your plan benefits.</span></div>
+            </li>
+            <li>
+              <span class="step-num">3</span>
+              <div><strong>You get reimbursed</strong><span class="sub">Approved amounts are paid to you.</span></div>
+            </li>
+          </ol>
+          <div class="summary" aria-live="polite">
+            <h3>Claim summary</h3>
+            <div class="summary-row"><span>Member</span><span id="summaryMember"></span></div>
+            <div class="summary-row"><span>Type of care</span><span id="summaryType"></span></div>
+            <div class="summary-row"><span>Amount paid</span><span id="summaryAmount"></span></div>
+          </div>
+          <div class="help">
+            <p><strong>Questions about a claim?</strong></p>
+            <p>Your Care Team can help. Message them in the Oscar app or call Member Services.</p>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap">
+        <div class="footer-top">
+          <p class="footer-tag">Health insurance<br />made for real life</p>
+          <div class="footer-col">
+            <strong>Shop</strong>
+            <a href="#">Get Coverage</a>
+            <a href="#">Find Doctors &amp; Drugs</a>
+            <a href="#">Oscar Formulary</a>
+          </div>
+          <div class="footer-col">
+            <strong>Members</strong>
+            <a href="#">Log in</a>
+            <a href="#">Find Care</a>
+            <a href="#">Care Team</a>
+            <a href="#">Virtual Urgent Care</a>
+            <a href="#">Oscar App</a>
+          </div>
+          <div class="footer-col">
+            <strong>Company</strong>
+            <a href="#">Employers</a>
+            <a href="#">Brokers</a>
+            <a href="#">Providers</a>
+            <a href="#">About Oscar</a>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span class="footer-word">oscar</span>
+          <nav aria-label="Legal">
+            <a href="#">Privacy</a>
+            <a href="#">Terms of Use</a>
+            <a href="#">Nondiscrimination Notice</a>
+            <a href="#">Accessibility</a>
+          </nav>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+    </script>
+    <script>
+      const form = document.getElementById("claimForm");
+      const policyId = document.getElementById("policyId");
+      const claimType = document.getElementById("claimType");
+      const amount = document.getElementById("amount");
+      const description = document.getElementById("description");
+      const result = document.getElementById("result");
+      const summaryMember = document.getElementById("summaryMember");
+      const summaryType = document.getElementById("summaryType");
+      const summaryAmount = document.getElementById("summaryAmount");
+
+      function updateSummary() {
+        summaryMember.textContent = policyId.options[policyId.selectedIndex].textContent.split(" \u00b7 ")[0];
+        summaryType.textContent = claimType.options[claimType.selectedIndex].textContent;
+        const value = parseFloat(amount.value);
+        summaryAmount.textContent = Number.isFinite(value)
+          ? value.toLocaleString("en-US", { style: "currency", currency: "USD" })
+          : "\u2014";
+      }
+
+      const header = document.querySelector(".header");
+      const menuBtn = document.querySelector(".menu-btn");
+      menuBtn.addEventListener("click", () => {
+        const open = header.classList.toggle("nav-open");
+        menuBtn.setAttribute("aria-expanded", String(open));
+      });
+
+      let submission = 0;
+      const submitBtn = document.getElementById("submitBtn");
+
+      form.addEventListener("input", updateSummary);
+      form.addEventListener("reset", () => {
+        submission++;
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit claim";
+        result.className = "result-box";
+        result.textContent = "";
+        requestAnimationFrame(updateSummary);
+      });
+      updateSummary();
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const current = ++submission;
+        const btn = submitBtn;
+        btn.disabled = true;
+        btn.textContent = "Submitting claim\u2026";
+        result.className = "result-box";
+        result.textContent = "";
+        try {
+          const res = await fetch("/api/insurance/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              policyId: policyId.value,
+              claimType: claimType.value,
+              amount: parseFloat(amount.value),
+              description: description.value,
+              devinUserId: localStorage.getItem("devinUserId") || "",
+              devinOrgId: localStorage.getItem("devinOrgId") || "",
+              devinEmail: localStorage.getItem("devinEmail") || "",
+            }),
+          });
+          let d = {};
+          try {
+            d = await res.json();
+          } catch (_) {}
+          if (current !== submission) return;
+          if (!res.ok) {
+            result.className = "result-box error";
+            result.textContent =
+              "We couldn\u2019t submit your claim right now. Please try again in a few minutes. If this keeps happening, contact Oscar Member Services.";
+          } else {
+            result.className = "result-box success";
+            result.textContent = `Claim submitted. Your reference is ${d.claimId}. We\u2019ll review it and let you know the outcome.`;
+          }
+        } catch (_) {
+          if (current !== submission) return;
+          result.className = "result-box error";
+          result.textContent =
+            "We couldn\u2019t submit your claim right now. Please try again in a few minutes. If this keeps happening, contact Oscar Member Services.";
+        } finally {
+          if (current !== submission) return;
+          btn.disabled = false;
+          btn.textContent = "Submit claim";
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
