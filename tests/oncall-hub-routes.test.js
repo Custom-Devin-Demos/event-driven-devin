@@ -82,6 +82,16 @@ describe('on-call hub routes', () => {
     expect(Object.keys(ALERT_SCENARIOS)).not.toContain('healthcare');
   });
 
+  test('the Splunk placeholder is available without changing healthcare pages', async () => {
+    const [splunkResponse, pbmResponse] = await Promise.all([
+      fetch(`${baseUrl}/oncall/splunk`),
+      fetch(`${baseUrl}/oncall/pbm`),
+    ]);
+    expect(splunkResponse.status).toBe(200);
+    expect(await splunkResponse.text()).toContain('Splunk not connected yet');
+    expect(pbmResponse.status).toBe(200);
+  });
+
   test('payer prior-auth pages are shimmed while legacy /payer remains unchanged', async () => {
     const [oncallResponse, directResponse, legacyResponse] = await Promise.all([
       fetch(`${baseUrl}/oncall/payer`),

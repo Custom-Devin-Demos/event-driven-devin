@@ -26,7 +26,7 @@ const { getOncallSkin } = require('../config/oncall-skins');
 const LOANTRACK = getOncallSkin('9ecaa5d1');
 const TEAMS_URL = 'https://teams.example.test/workflows/hook';
 const USER_TEAMS_URL = 'https://default8019.65.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/abc/triggers/manual/paths/invoke?sig=x';
-const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL', 'ONCALL_TEAMS_ALL_ALERTS', 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI'];
+const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL', 'ONCALL_TEAMS_ALL_ALERTS', 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI', 'ONCALL_SPLUNK_URL'];
 const savedEnv = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
 
 function setEnv({ slack, teams }) {
@@ -44,6 +44,10 @@ function teamsCard() {
   expect(payload.type).toBe('message');
   expect(payload.attachments[0].contentType).toBe('application/vnd.microsoft.card.adaptive');
   return payload.attachments[0].content;
+}
+
+function demoBaseUrl() {
+  return (process.env.ONCALL_DEMO_BASE_URL || `https://${process.env.DOMAIN_NAME || 'devindemos.com'}`).replace(/\/$/, '');
 }
 
 describe('On-Call alerts routed to Microsoft Teams', () => {
@@ -81,7 +85,10 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(cardText).toContain(query);
     expect(cardText).toContain('Dynatrace');
     expect(cardText).not.toMatch(/Datadog|sum:trace|Monitor query|Triggered|View in Datadog/);
-    expect(card.actions.map((action) => action.title)).toEqual(['Open affected page']);
+    expect(card.actions.map((action) => action.title)).toEqual(['View in Splunk', 'Open affected page']);
+    expect(card.actions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: 'View in Splunk', url: `${demoBaseUrl()}/oncall/splunk` }),
+    ]));
 
     const plainTeamsText = axios.post.mock.calls[0][1].text;
     expect(plainTeamsText).toContain('Splunk search');
@@ -94,6 +101,22 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(JSON.stringify(slackBlocks)).toContain('Splunk search');
     expect(JSON.stringify(slackBlocks)).toContain(query);
     expect(`${slackText}\n${JSON.stringify(slackBlocks)}`).not.toMatch(/Datadog|sum:trace|Monitor query|Triggered|View in Datadog/);
+  });
+
+  test('Splunk/Dynatrace Teams action uses ONCALL_SPLUNK_URL when configured', async () => {
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_ALL_ALERTS = 'true';
+    process.env.ONCALL_SPLUNK_URL = 'https://splunk.example.test/search';
+
+    const result = await postOncallAlert('pbm', { runRef: 'run-pbm-url' });
+
+    expect(result).toMatchObject({ ok: true, channel: 'C0TEST', teams: true });
+    expect(teamsCard().actions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        title: 'View in Splunk',
+        url: 'https://splunk.example.test/search',
+      }),
+    ]));
   });
 
   test('payer prior-auth branding reaches Slack and Teams without Datadog wording', async () => {
@@ -110,7 +133,7 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(cardText).toContain(query);
     expect(cardText).toContain('Dynatrace');
     expect(cardText).not.toMatch(/Datadog|sum:trace|p95:trace|Monitor query|Triggered|View in Datadog/);
-    expect(card.actions.map((action) => action.title)).toEqual(['Open affected page']);
+    expect(card.actions.map((action) => action.title)).toEqual(['View in Splunk', 'Open affected page']);
 
     const plainTeamsText = axios.post.mock.calls[0][1].text;
     expect(plainTeamsText).toContain('Splunk search');
@@ -139,7 +162,7 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(cardText).toContain(query);
     expect(cardText).toContain('Dynatrace');
     expect(cardText).not.toMatch(/Datadog|sum:trace|p95:trace|Monitor query|Triggered|View in Datadog/);
-    expect(card.actions.map((action) => action.title)).toEqual(['Open affected page']);
+    expect(card.actions.map((action) => action.title)).toEqual(['View in Splunk', 'Open affected page']);
 
     const plainTeamsText = axios.post.mock.calls[0][1].text;
     expect(plainTeamsText).toContain('Splunk search');
@@ -464,6 +487,23 @@ describe('On-Call Teams alert card locale', () => {
     expect(text).toContain('[Triggered]');
     expect(text).toContain('Metric value');
     expect(text).toContain('View in Datadog');
+    expect(text).not.toContain('View in Splunk');
+    expect(teamsCard().actions.map((action) => action.title)).toEqual(['View in Datadog', 'Open affected page']);
     expect(text).toContain('Open affected page');
+  });
+
+  test('a Japanese Splunk/Dynatrace skin gets an English Splunk action', async () => {
+    setEnv({ slack: true, teams: true });
+    const skin = { ...LOANTRACK, locale: 'ja', telemetryBrand: 'splunk-dynatrace' };
+
+    const result = await postOncallAlert('banking', { runRef: 'run-ja-splunk', skin, destination: 'teams' });
+
+    expect(result).toMatchObject({ ok: true, teams: true });
+    expect(teamsCard().actions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        title: 'View in Splunk',
+        url: `${demoBaseUrl()}/oncall/splunk`,
+      }),
+    ]));
   });
 });

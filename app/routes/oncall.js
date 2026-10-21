@@ -316,6 +316,23 @@ router.get('/oncall/healthcare', (_req, res) => {
   res.sendFile(HEALTHCARE_HUB_PAGE);
 });
 
+router.get('/oncall/splunk', (_req, res) => {
+  res.type('html').send(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Splunk not connected</title>
+  </head>
+  <body>
+    <h1>Splunk not connected yet</h1>
+    <p>This demo's Splunk workspace hasn't been linked. Set ONCALL_SPLUNK_URL to point the Teams button at it.</p>
+    <a href="/oncall/healthcare">Back to healthcare on-call demos</a>
+  </body>
+</html>`);
+});
+
 /**
  * On-call shim injected into the real branded vertical pages served at
  * /oncall/<vertical>. It reroutes the page's primary action to the on-call

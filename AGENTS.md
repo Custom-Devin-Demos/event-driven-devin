@@ -738,6 +738,7 @@ Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of wha
 | `SCREENING_CONCURRENCY` | Parallel screening-partner calls per batch on the on-call banking transfer path (default 1; the screening partner's per-client ceiling is 32 since VendorOps VO-8821 closed) | No |
 | `ONCALL_REPO_URL` | Repo URL embedded in on-call Slack cards for responders to investigate (defaults to this repo) | No |
 | `ONCALL_DEMO_BASE_URL` | Base URL for branded demo-page links in skinned on-call alerts (defaults to `https://$DOMAIN_NAME`, then devindemos.com) | No |
+| `ONCALL_SPLUNK_URL` | Link for the Teams "View in Splunk" button on Splunk/Dynatrace on-call cards; defaults to the `/oncall/splunk` placeholder | No |
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
 | `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For slack mode |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |
