@@ -5187,7 +5187,7 @@ const ONCALL_SKINS = {
         '2. Find every root cause from the code and telemetry: the slow request, and anything else the alert names (the impact line often names a second problem, for example duplicate transfers from customers submitting again). Fix all of them.',
         '3. Add a regression test per root cause that fails before the fix and passes after it.',
         '4. Record as much as you can; recordings are what the demo audience watches. At minimum three separate recordings: BEFORE on the live page (real ~9s hang), AFTER on a local run of the fix branch (the fix is not deployed, so the live page still hangs), and the regression test failing then passing. Same flow, same clicks, a visible timer in each.',
-        '5. Label every recording inside the recording tool, not only in the message that attaches it: a title naming the step ("BEFORE: live transfer hangs 9s", "AFTER: fix branch, 0.9s", "REGRESSION TEST: fails on main, passes on fix"), one chapter per action, and one pass/fail check annotation stating what should happen and what did ("It should confirm in under 1.5s \u2014 failed: 9.5s"). The labels must be in the recording\u2019s *-annotations.json sidecar and burned into the edited video. A label that exists only in a PR comment, chat message, or filename does not count.',
+        '5. Label every recording inside the recording tool, not only in the message that attaches it: a title naming the step ("BEFORE: live transfer hangs 9s", "AFTER: fix branch, 0.9s", "REGRESSION TEST: fails on main, passes on fix"), one chapter per action, and one pass/fail check annotation stating what should happen and what did ("It should confirm in under 1.5s — failed: 9.5s"). The labels must be in the recording’s *-annotations.json sidecar and burned into the edited video. A label that exists only in a PR comment, chat message, or filename does not count.',
         '6. Gate before posting: for every recording, open its *-annotations.json and confirm it has a title, at least one chapter, and a pass/fail check. If any is missing, re-annotate or re-record before embedding it anywhere. Never embed or post an unlabeled recording in the PR, the Slack thread, or the handover; list it as "missing: <step>" instead.',
         '7. When you hand recording work to a child session or your testing agent, paste requirements 4, 5 and 6 verbatim into its prompt, and run the step-6 check on its deliverable before accepting it.',
         '8. Open a PR with the investigation summary, the fix, the test, and every recording that passed step 6 embedded. Request Devin Review. Do not merge; stop for human approval.',
@@ -5196,13 +5196,13 @@ const ONCALL_SKINS = {
       ].join('\n'),
     },
     alertCard: {
-      title: 'p95 latency \u2014 Transfers from the N26 main account into Spaces',
+      title: 'p95 latency — Transfers between the N26 main account and Spaces',
       release: 'spaces-transfer-web@2026.10.4',
       baseline: '~300ms (7-day p95, before spaces-transfer-web@2026.10.4)',
-      symptom: 'Moving money from a customer\u2019s main account into one of their Spaces hangs ~9s before the confirmation returns. Error rate is normal \u2014 the money eventually lands in the Space.',
-      impact: 'Customers moving money into a Space wait ~9 seconds for a confirmation; some tap Move money again and contact Customer Support about the same amount being moved twice.',
+      symptom: 'Moving money between a customer’s main account and their Spaces (either direction, or Space to Space) hangs ~9s before the confirmation returns. Error rate is normal — the money eventually lands in the destination account.',
+      impact: 'Customers moving money between their main account and Spaces wait ~9 seconds for a confirmation; some tap Move money again and contact Customer Support about the same amount being moved twice.',
     },
-    disclaimer: 'NOT ACTUALLY AN N26 SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real N26 product.',
+    disclaimer: 'NOT ACTUALLY AN N26 SITE — internal demo only, not affiliated with, endorsed by, or a real N26 product.',
   },
 };
 
