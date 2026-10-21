@@ -45,6 +45,7 @@ describe('357c3b76 Dell Automation Platform blueprint deploy on-call skin', () =
     const skin = getOncallSkin('357c3b76');
     expect(skin).toMatchObject({ vertical: 'privatecloud', oncallOnly: true, alertDestination: 'slack', page: { file: '357c3b76.html', title: TITLE } });
     expect(skin.devinSession).toMatchObject({ auto: true, onCallIsTriggerer: true });
+    expect(skin).toMatchObject({ slackChannelId: 'C0CAX4SHG6M', slackChannelName: '#dell-oncall' });
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();
     expect(skin.disclaimer).toMatch(/^NOT ACTUALLY A DELL TECHNOLOGIES SITE/);
@@ -69,6 +70,7 @@ describe('357c3b76 Dell Automation Platform blueprint deploy on-call skin', () =
     expect(html).toContain('const oncallApiPath = "/api/oncall/privatecloud/deployments"');
     expect(html).toContain('const triggerWhen = {"blueprintId":"dpc-vsphere"}');
     expect(html).toContain('NOT ACTUALLY A DELL TECHNOLOGIES SITE');
+    expect(html).toContain('"#dell-oncall"');
     expect(html).not.toMatch(/<base |<script[^>]+src="https?:/);
   });
 

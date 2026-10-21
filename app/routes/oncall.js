@@ -460,7 +460,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
               devinOrgId: localStorage.getItem('devinOrgId') || '',
               alertDestination: alertDestination,
           };
-          var postedMsg = ${JSON.stringify(r.posted)} + ${JSON.stringify(ALERTS_CHANNEL_LABEL)};
+          var postedMsg = ${JSON.stringify(r.posted)} + ${JSON.stringify((skin && skin.slackChannelName) || ALERTS_CHANNEL_LABEL)};
           var skippedMsg = ${JSON.stringify(r.skipped)};
           var failedMsg = ${JSON.stringify(r.failed)};
           origFetch(triggerUrl, {
