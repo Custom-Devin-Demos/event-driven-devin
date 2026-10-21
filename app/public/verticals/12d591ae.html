@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Move money to a Space | N26</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,400;125,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #003B39;
+      --ink: #1B1B1B;
+      --surface: #FFFFFF;
+      --chrome-bg: #1B1B1B;
+      --chrome-text: #FFFFFF;
+      --page: #FFFFFF;
+      --sand: #FAF8F5;
+      --sand-deep: #EDE7E0;
+      --sand-25: rgba(198, 178, 159, .25);
+      --teal: #088177;
+      --teal-deep: #045E58;
+      --line: #E9E9E9;
+      --muted: #6D6D6D;
+      --ok-bg: #E4F1EE;
+      --warn-bg: #F7E8E4;
+      --display: "Archivo", "Inter", Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.5 "Inter", Arial, sans-serif; letter-spacing: .3px; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; letter-spacing: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1440px; margin: auto; padding: 0 80px; }
+    .gnav { background: var(--sand); position: sticky; top: 0; z-index: 5; }
+    .gnav .wrap { display: flex; align-items: center; min-height: 72px; gap: 56px; }
+    .wordmark { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; color: var(--ink); font-family: var(--display); font-weight: 500; font-size: 28px; letter-spacing: -.5px; line-height: 1; }
+    .wordmark svg { display: block; height: 30px; width: auto; }
+    .gnav-links { display: flex; align-items: center; gap: 24px; }
+    .gnav-links a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-size: 18px; letter-spacing: normal; color: var(--ink); }
+    .gnav-links a.current { color: var(--accent); font-weight: 500; }
+    .gnav-cta { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 24px; border-radius: 24px; font-size: 16px; font-weight: 500; text-decoration: none; border: 0; }
+    .pill-sand { background: var(--sand-25); color: var(--accent); }
+    .pill-sand:hover { background: rgba(198, 178, 159, .4); }
+    .pill-fill { background: var(--accent); color: var(--chrome-text); }
+    .pill-fill:hover { background: var(--teal-deep); }
+    .pill-white { background: var(--surface); color: var(--ink); }
+    .pill-white:hover { background: var(--sand-deep); }
+    .lang { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; letter-spacing: normal; }
+    .lang i { width: 12px; height: 12px; border-radius: 50%; background: #3F51B5; display: inline-block; }
+    .hero { position: relative; min-height: 640px; display: grid; place-items: center; text-align: center; color: var(--chrome-text); background: var(--accent); overflow: hidden; }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+    .hero.no-img img { display: none; }
+    .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, .55), rgba(0, 0, 0, .35) 45%, rgba(0, 0, 0, .6)); }
+    .hero-copy { position: relative; z-index: 1; padding: 96px 24px 64px; max-width: 980px; }
+    .eyebrow { margin: 0 0 20px; font-size: 16px; font-weight: 500; }
+    h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 80px; line-height: 1.1; letter-spacing: -.5px; }
+    .hero p.lead { margin: 20px auto 0; font-size: 20px; line-height: 1.5; color: rgba(255, 255, 255, .85); max-width: 700px; }
+    .hero .hero-cta { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .hero .balance { position: relative; z-index: 1; margin: 0 24px 56px; width: min(100% - 48px, 520px); background: var(--surface); color: var(--ink); border-radius: 24px; padding: 24px 28px 22px; text-align: left; box-shadow: 0 24px 48px rgba(0, 0, 0, .25); }
+    .balance .label { margin: 0; font-size: 14px; color: var(--muted); }
+    .balance .amount { margin: 6px 0 18px; font-family: var(--display); font-size: 44px; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+    .balance .lines { display: grid; gap: 10px; margin: 0; padding: 16px 0 0; border-top: 1px solid var(--line); }
+    .balance .lines div { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
+    .balance .lines dt { margin: 0; color: var(--muted); }
+    .balance .lines dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .balance .chip { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 6px 12px; border-radius: 16px; background: var(--sand-25); color: var(--accent); font-size: 13px; font-weight: 500; }
+    .strip { background: var(--sand); }
+    .strip .wrap { display: flex; gap: 48px; align-items: center; min-height: 72px; flex-wrap: wrap; font-size: 15px; color: var(--muted); }
+    .strip strong { color: var(--ink); font-weight: 500; }
+    main .wrap { padding: 72px 80px 96px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, .9fr); gap: 32px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 40px; }
+    .panel h2 { margin: 0 0 8px; font-family: var(--display); font-weight: 400; font-size: 40px; line-height: 1.15; letter-spacing: -.5px; }
+    .panel .sub { margin: 0 0 28px; color: var(--muted); }
+    .field { margin-bottom: 22px; }
+    .field label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
+    .field input, .field select { width: 100%; min-height: 56px; padding: 12px 16px; border: 1px solid #C9C9C9; border-radius: 12px; background: var(--surface); color: var(--ink); font-size: 16px; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 22px) 25px, calc(100% - 16px) 25px; background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 44px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: "\20AC"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 500; }
+    .amount-wrap input { padding-left: 32px; }
+    .review { margin: 4px 0 24px; padding: 18px 20px; border-radius: 16px; background: var(--sand); display: grid; gap: 10px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .fine { margin: -8px 0 24px; color: var(--muted); font-size: 13px; }
+    .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .submit-btn { min-height: 48px; padding: 12px 24px; border: 0; border-radius: 24px; background: var(--accent); color: var(--chrome-text); font-size: 16px; font-weight: 500; }
+    .submit-btn:hover { background: var(--teal-deep); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .cancel-btn { min-height: 48px; padding: 12px 24px; border: 0; border-radius: 24px; background: var(--sand-25); color: var(--accent); font-size: 16px; font-weight: 500; }
+    .cancel-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-family: var(--display); font-size: 28px; }
+    .status { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 20px; border-radius: 16px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--accent); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); }
+    aside .panel { padding: 28px; }
+    aside .panel + .panel { margin-top: 24px; }
+    aside h3 { margin: 0 0 12px; font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1.2; letter-spacing: -.3px; }
+    .spaces-panel { background: var(--sand); border-color: var(--sand); }
+    .accounts { list-style: none; margin: 0; padding: 0; }
+    .accounts li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(27, 27, 27, .1); }
+    .accounts li:first-child { border-top: 0; padding-top: 0; }
+    .acct { display: flex; align-items: center; gap: 12px; }
+    .acct-dot { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--chrome-text); display: grid; place-items: center; font-weight: 600; font-size: 14px; }
+    .acct-dot.space { background: var(--teal); }
+    .acct-name { display: block; font-weight: 500; }
+    .acct-num { display: block; color: var(--muted); font-size: 13px; }
+    .acct-bal { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+    .acct-bal small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+    .promo { background: radial-gradient(120% 120% at 100% 0%, var(--teal) 0%, var(--accent) 55%, #0B2422 100%); color: var(--chrome-text); border-color: var(--accent); overflow: hidden; }
+    .promo img { display: block; width: calc(100% + 58px); margin: -29px -29px 18px; height: 220px; object-fit: cover; object-position: center 20%; }
+    .promo .promo-fallback { display: none; height: 120px; margin: -29px -29px 18px; background: linear-gradient(135deg, var(--teal), var(--accent)); }
+    .promo.no-img img { display: none; }
+    .promo.no-img .promo-fallback { display: block; }
+    .promo p { margin: 0 0 16px; color: rgba(255, 255, 255, .85); }
+    .promo a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 22px; background: var(--surface); color: var(--ink); font-weight: 500; text-decoration: none; }
+    .note p { margin: 0 0 10px; }
+    .note a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 500; color: var(--accent); }
+    .site-footer { background: var(--sand-deep); color: var(--ink); font-size: 14px; border-radius: 24px 24px 0 0; }
+    .site-footer .wrap { padding: 72px 80px 40px; }
+    .footer-grid { display: grid; grid-template-columns: 1fr repeat(5, minmax(0, 1.2fr)); gap: 24px; margin-bottom: 48px; }
+    .footer-grid h4 { margin: 0 0 8px; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+    .footer-grid a { display: flex; align-items: center; min-height: 32px; color: var(--ink); text-decoration: none; }
+    .footer-legal { margin: 0 0 12px; color: var(--muted); line-height: 1.55; font-size: 13px; }
+    .legal-band { background: var(--sand-deep); font-size: 13px; }
+    .legal-band .wrap { padding: 8px 80px 24px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; border-top: 1px solid rgba(27, 27, 27, .1); }
+    .legal-band a { color: var(--ink); text-decoration: none; margin-right: 24px; display: inline-flex; align-items: center; min-height: 44px; }
+    @media (max-width: 1180px) {
+      .wrap, main .wrap, .site-footer .wrap { padding-left: 40px; padding-right: 40px; }
+      .legal-band .wrap { padding-left: 40px; padding-right: 40px; }
+      .gnav .wrap { gap: 32px; }
+      h1 { font-size: 56px; }
+      .footer-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 900px) {
+      .wrap, main .wrap, .site-footer .wrap, .legal-band .wrap { padding-left: 16px; padding-right: 16px; }
+      .gnav .wrap { gap: 12px; min-height: 64px; }
+      .gnav-links, .lang { display: none; }
+      .gnav-cta { gap: 8px; }
+      .gnav-cta .pill-sand { display: none; }
+      .gnav-cta .pill { padding: 0 16px; min-height: 44px; }
+      .hero { min-height: 0; }
+      .hero-copy { padding: 56px 16px 32px; }
+      h1 { font-size: 40px; }
+      .hero p.lead { font-size: 17px; }
+      .hero .hero-cta .pill { width: 100%; }
+      .hero .balance { margin: 0 16px 32px; width: calc(100% - 32px); padding: 20px; }
+      .balance .amount { font-size: 36px; }
+      .strip .wrap { gap: 12px; padding-top: 12px; padding-bottom: 12px; }
+      main .wrap { padding-top: 32px; padding-bottom: 48px; }
+      .layout { grid-template-columns: 1fr; gap: 20px; }
+      .panel { padding: 24px 18px; }
+      .panel h2 { font-size: 30px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .actions .submit-btn, .actions .cancel-btn { width: 100%; }
+      .site-footer .wrap { padding-top: 40px; padding-bottom: 24px; }
+      .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 32px; }
+      .legal-band .wrap { padding-bottom: 72px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="gnav">
+    <div class="wrap">
+      <a class="wordmark" href="#transfer" aria-label="N26">
+        <svg viewBox="0 0 64 30" role="img" aria-hidden="true" focusable="false"><text x="0" y="26" font-family="Archivo, Inter, Arial, sans-serif" font-size="30" font-weight="500" font-stretch="125%" letter-spacing="-1" fill="currentColor">N26</text></svg>
+      </a>
+      <nav class="gnav-links" aria-label="Primary">
+        <a href="https://n26.com/en-eu/plans" target="_blank" rel="noopener noreferrer">Plans</a>
+        <a href="https://n26.com/en-eu/bank-account" target="_blank" rel="noopener noreferrer">Bank</a>
+        <a href="#transfer" class="current" aria-current="page">Save</a>
+        <a href="https://n26.com/en-eu/investment-options" target="_blank" rel="noopener noreferrer">Invest</a>
+        <a href="https://n26.com/en-eu/you-bank-account-with-travel-insurance" target="_blank" rel="noopener noreferrer">Travel</a>
+      </nav>
+      <div class="gnav-cta">
+        <a class="pill pill-sand" href="#spaces">Your Spaces</a>
+        <a class="pill pill-fill" href="#transfer">Move money</a>
+        <span class="lang" aria-label="Language: English"><i aria-hidden="true"></i>EN</span>
+      </div>
+    </div>
+  </header>
+  <section class="hero" aria-labelledby="hero-title">
+    <img src="https://n26.bynder.com/transform/54968dd6-41d5-4019-962a-6454397f91f9/CRST-18128_PulseSoft_-Home-_LP0-Desktop_1728x1117?format=webp&amp;io=transform%3Afill%2Cwidth%3A1464%2Cheight%3A946&amp;quality=80" alt="" width="1464" height="946" onerror="this.closest('.hero').classList.add('no-img')">
+    <div class="hero-copy">
+      <p class="eyebrow">Spaces sub-accounts</p>
+      <h1 id="hero-title">Every cent in its Space</h1>
+      <p class="lead">Move money from your main account into a Space whenever you like. Set a goal, keep your rent apart from your spending money, and watch your balances update right away.</p>
+      <div class="hero-cta"><a class="pill pill-white" href="#transfer">Move money</a><a class="pill pill-sand" href="https://n26.com/en-eu/spaces" target="_blank" rel="noopener noreferrer" style="color:#fff">About Spaces</a></div>
+    </div>
+    <div class="balance" aria-live="polite">
+      <p class="label">Total across your main account and Spaces</p>
+      <p class="amount" id="heroBalance">&euro;0.00</p>
+      <dl class="lines">
+        <div><dt>Main account</dt><dd data-balance-for="ACCT-1001">&euro;0.00</dd></div>
+        <div><dt>Rainy day &middot; Space</dt><dd data-balance-for="ACCT-1002">&euro;0.00</dd></div>
+        <div><dt>Holiday &middot; Space</dt><dd data-balance-for="ACCT-1003">&euro;0.00</dd></div>
+      </dl>
+      <span class="chip">N26 Smart &middot; Mastercard active</span>
+    </div>
+  </section>
+  <div class="strip" aria-hidden="true">
+    <div class="wrap">
+      <span><strong>Up to 10 Spaces</strong> on N26 Smart</span>
+      <span><strong>Round-ups</strong> save your spare change</span>
+      <span><strong>Shared Spaces</strong> for plans with others</span>
+      <span><strong>Pay from a Space</strong> with its own IBAN</span>
+    </div>
+  </div>
+  <main id="transfer">
+    <div class="wrap">
+      <div class="layout">
+        <section class="panel" aria-labelledby="form-title">
+          <h2 id="form-title">Move money to a Space</h2>
+          <p class="sub">Choose where the money comes from and the Space it goes to.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Main account">Main account</option>
+                <option value="ACCT-1002" data-name="Rainy day Space">Rainy day Space</option>
+                <option value="ACCT-1003" data-name="Holiday Space">Holiday Space</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">To</label>
+              <select id="toAccount">
+                <option value="ACCT-1002" data-name="Rainy day Space">Rainy day Space</option>
+                <option value="ACCT-1003" data-name="Holiday Space">Holiday Space</option>
+                <option value="ACCT-1001" data-name="Main account">Main account</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Amount</label>
+                <div class="amount-wrap"><input type="number" id="amount" min="0.01" step="0.01" value="150.00" inputmode="decimal" required aria-describedby="amountHelp"></div>
+                <small id="amountHelp">Available: &euro;0.00</small>
+              </div>
+              <div class="field">
+                <label for="accountTier">When</label>
+                <select id="accountTier">
+                  <option value="standard">Now</option>
+                </select>
+                <small>Rules and round-ups for this Space are set up in the N26 app.</small>
+              </div>
+            </div>
+            <dl class="review" aria-label="Transfer summary">
+              <div><dt>From</dt><dd id="reviewFrom">&mdash;</dd></div>
+              <div><dt>To</dt><dd id="reviewTo">&mdash;</dd></div>
+              <div><dt>Amount</dt><dd id="reviewAmount">&mdash;</dd></div>
+              <div><dt>Fee</dt><dd id="reviewFee">Shown on confirmation</dd></div>
+              <div><dt>Arrives</dt><dd id="reviewDate">&mdash;</dd></div>
+            </dl>
+            <p class="fine">Transfers between your main account and your Spaces usually arrive right away. Any fee is shown on your confirmation and in your transaction history.</p>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Move money</button>
+              <button type="reset" id="cancelBtn" class="cancel-btn">Cancel</button>
+            </div>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Sample accounts. No money moves on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="panel spaces-panel" id="spaces">
+            <h3>Your Spaces</h3>
+            <ul class="accounts">
+              <li><span class="acct"><span class="acct-dot" aria-hidden="true">N</span><span><span class="acct-name">Main account</span><span class="acct-num">DE &middot;&middot;&middot;&middot; 4471</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1001">&euro;0.00</span><small>Available</small></span></li>
+              <li><span class="acct"><span class="acct-dot space" aria-hidden="true">R</span><span><span class="acct-name">Rainy day</span><span class="acct-num">Space &middot; goal &euro;3,000</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1002">&euro;0.00</span><small>Saved</small></span></li>
+              <li><span class="acct"><span class="acct-dot space" aria-hidden="true">H</span><span><span class="acct-name">Holiday</span><span class="acct-num">Space &middot; goal &euro;1,200</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1003">&euro;0.00</span><small>Saved</small></span></li>
+            </ul>
+          </div>
+          <div class="panel promo">
+            <img src="https://n26.bynder.com/transform/ed5f2ad6-555c-4dff-a14d-8b74b2db933b/CRST-18128_PulseSoft_-Home-_LP1b-Desktop-732x886_EN?format=webp&amp;io=transform%3Afill%2Cwidth%3A732%2Cheight%3A886&amp;quality=80" alt="" width="732" height="886" loading="lazy" onerror="this.closest('.promo').classList.add('no-img')">
+            <div class="promo-fallback" aria-hidden="true"></div>
+            <h3>Budget without the mental math</h3>
+            <p>Set a goal for each Space, add rules to move money automatically, and round up card payments so the spare change saves itself.</p>
+            <a href="https://n26.com/en-eu/spaces" target="_blank" rel="noopener noreferrer">How Spaces work</a>
+          </div>
+          <div class="panel note">
+            <h3>Earn interest while you save</h3>
+            <p>Instant Savings pays interest on your balance with no lock-in, right alongside your Spaces.</p>
+            <a href="https://n26.com/en-eu/savings-account" target="_blank" rel="noopener noreferrer">About Instant Savings</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div><a class="wordmark" href="#transfer" aria-label="N26"><svg viewBox="0 0 64 30" role="img" aria-hidden="true" focusable="false"><text x="0" y="26" font-family="Archivo, Inter, Arial, sans-serif" font-size="30" font-weight="500" font-stretch="125%" letter-spacing="-1" fill="currentColor">N26</text></svg></a></div>
+        <div><h4>Company</h4><a href="https://n26.com/en-eu/about-n26">About us</a><a href="https://n26.com/en-eu/team">Leadership Team</a><a href="https://n26.com/en-eu/careers">Careers</a><a href="https://n26.com/en-eu/press">Press</a><a href="https://n26.com/en-eu/affiliate">Affiliate program</a></div>
+        <div><h4>Help</h4><a href="https://support.n26.com/en-eu">Customer Support</a><a href="https://n26.com/en-eu/sitemap/blog-posts">Sitemap</a><a href="https://n26.com/en-eu/policy-statements">Financial crime policies</a></div>
+        <div><h4>Learn</h4><a href="https://n26.com/en-eu/blog">Blog</a><a href="https://n26.com/en-eu/banking-terms">Banking basics</a><a href="https://n26.com/en-eu/trading-glossary">Trading glossary</a><a href="https://n26.com/en-eu/studies-and-research">Studies and research</a></div>
+        <div><h4>Money tools</h4><a href="https://n26.com/en-eu/online-financial-calculators">Financial calculators</a><a href="https://n26.com/en-eu/monthly-budget-calculator">Budget calculator</a><a href="https://n26.com/en-eu/50-30-20-calculator">50-30-20 calculator</a><a href="https://n26.com/en-eu/interest-calculator">Interest calculator</a></div>
+        <div><h4>More</h4><a href="https://n26.com/en-eu/student-bank-accounts">Student bank account</a><a href="https://n26.com/en-eu/salary-account">Salary account</a><a href="https://n26.com/en-eu/security">Security</a><a href="https://n26.com/en-eu/invite-friends">Refer a friend</a><a href="https://n26.com/en-eu/international-money-transfer">International money transfers</a></div>
+      </div>
+      <p class="footer-legal">Example Move money to a Space experience. The accounts, Spaces, balances, and transfers shown here are sample data.</p>
+      <p class="footer-legal">&copy; N26 2026. N26 is a bank licensed in Germany; deposits are protected by the German deposit guarantee scheme up to &euro;100,000. Spaces are sub-accounts of your N26 account.</p>
+    </div>
+  </footer>
+  <div class="legal-band">
+    <div class="wrap">
+      <span><a href="https://n26.com/en-eu/legal-documents">Legal Documents</a><a href="https://docs.n26.com/legal/06+EU/03+Privacy%20Policy/en/01privacy-policy-en.pdf">Privacy Policy</a><a href="https://n26.com/en-eu/imprint">Imprint</a></span>
+      <span>&copy; N26 2026</span>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const amountHelp = document.getElementById('amountHelp');
+    const reviewFrom = document.getElementById('reviewFrom');
+    const reviewTo = document.getElementById('reviewTo');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewFee = document.getElementById('reviewFee');
+    const reviewDate = document.getElementById('reviewDate');
+    const heroBalance = document.getElementById('heroBalance');
+    const transferFields = [fromAccount, toAccount, amountInput, document.getElementById('accountTier')];
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    const IDLE_STATUS = 'Sample accounts. No money moves on this page.';
+    const IDLE_LABEL = 'Move money';
+    const FEE_PENDING = 'Shown on confirmation';
+    const FEE_RATE_BPS = 10;
+    const FEE_MIN_CENTS = 250;
+    let timerHandle = null;
+    let pending = false;
+    const eur = new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' });
+    const timeFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
+    const balanceCents = { 'ACCT-1001': 324118, 'ACCT-1002': 185000, 'ACCT-1003': 62040 };
+    function money(cents) { return eur.format(cents / 100); }
+    function toCents(value) { return Math.round(Number(value) * 100); }
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function label(select) { return selected(select).dataset.name; }
+    function availableCents() { return balanceCents[fromAccount.value] || 0; }
+    function feeCents(amountCents) { return Math.max(Math.round(amountCents * FEE_RATE_BPS / 10000), FEE_MIN_CENTS); }
+    function maxMoveCents() {
+      const funds = availableCents();
+      let cap = Math.max(0, funds - FEE_MIN_CENTS);
+      while (cap > 0 && cap + feeCents(cap) > funds) cap -= 1;
+      return cap;
+    }
+    function renderBalances() {
+      [fromAccount, toAccount].forEach((select) => {
+        Array.from(select.options).forEach((opt) => {
+          opt.textContent = `${opt.dataset.name} \u00b7 ${money(balanceCents[opt.value] || 0)}`;
+        });
+      });
+      document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = money(balanceCents[el.dataset.balanceFor] || 0); });
+      heroBalance.textContent = money(Object.values(balanceCents).reduce((sum, value) => sum + (value || 0), 0));
+    }
+    function parsedCents() {
+      const raw = amountInput.value.trim();
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return toCents(raw);
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function renderReview() {
+      const cents = parsedCents();
+      const valid = Number.isFinite(cents) && cents > 0 && cents <= maxMoveCents();
+      amountHelp.textContent = `Available: ${money(availableCents())} \u00b7 move up to ${money(maxMoveCents())} including any fee`;
+      reviewFrom.textContent = label(fromAccount);
+      reviewTo.textContent = label(toAccount);
+      reviewAmount.textContent = valid ? money(cents) : '\u2014';
+      reviewFee.textContent = valid ? `${money(feeCents(cents))} estimated` : FEE_PENDING;
+      reviewDate.textContent = 'Right away';
+    }
+    [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
+    amountInput.addEventListener('input', renderReview);
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        renderReview();
+      });
+    });
+    renderBalances();
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const cents = parsedCents();
+      const maxNow = maxMoveCents();
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choose a different Space or account to move the money to. Money can\u2019t be moved into the account it comes from.';
+        status.textContent = IDLE_STATUS;
+        toAccount.focus();
+        return;
+      }
+      if (!Number.isFinite(cents) || cents <= 0 || cents > maxNow) {
+        result.className = 'result-box notice';
+        result.textContent = maxNow > 0
+          ? `Enter an amount between \u20ac0.01 and ${money(maxNow)}, so any fee is covered too.`
+          : `There isn\u2019t enough in your ${label(fromAccount)} to cover a transfer and its fee.`;
+        status.textContent = IDLE_STATUS;
+        amountInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      cancelBtn.disabled = true;
+      transferFields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Moving\u2026';
+      status.textContent = 'Moving money\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const fromLabel = label(fromAccount);
+      const toLabel = label(toAccount);
+      const fromId = fromAccount.value;
+      const toId = toAccount.value;
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Transfer not completed.');
+        if (!data || !data.receipt) throw new Error('Transfer outcome unknown.');
+        const completedAt = new Date(data.receipt.timestamp);
+        const movedCents = toCents(data.receipt.amount);
+        const feeCentsPaid = toCents(data.fee ?? data.receipt.fee ?? 0);
+        const debitedCents = toCents(data.debitAmount ?? data.receipt.totalDebit ?? (movedCents + feeCentsPaid) / 100);
+        if (data.duplicate) {
+          result.className = 'result-box notice';
+          result.textContent = `This transfer was already made at ${timeFmt.format(completedAt)}: ${money(movedCents)} from your ${fromLabel} to your ${toLabel} (confirmation ${data.receipt.receiptId}). It wasn\u2019t moved again and your balances haven\u2019t changed.`;
+          status.textContent = 'Already moved.';
+          return;
+        }
+        balanceCents[fromId] = (balanceCents[fromId] || 0) - debitedCents;
+        balanceCents[toId] = (balanceCents[toId] || 0) + movedCents;
+        renderBalances();
+        renderReview();
+        reviewFee.textContent = money(feeCentsPaid);
+        result.className = 'result-box success';
+        result.textContent = `Done at ${timeFmt.format(completedAt)}. ${money(movedCents)} moved from your ${fromLabel} to your ${toLabel}. Fee ${money(feeCentsPaid)}; ${money(debitedCents)} taken from your ${fromLabel}. Confirmation ${data.receipt.receiptId}. It\u2019s in your transaction history now.`;
+        status.textContent = 'Money moved.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'Something went wrong and the money didn\u2019t move. Your balances haven\u2019t changed. Please try again in a moment.';
+          status.textContent = 'Transfer not completed.';
+        } else {
+          result.textContent = 'We couldn\u2019t confirm this transfer. Check your transaction history before trying again so the same amount isn\u2019t moved twice.';
+          status.textContent = 'Transfer not confirmed.';
+        }
+      } finally {
+        transferFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        cancelBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

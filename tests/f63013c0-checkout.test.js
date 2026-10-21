@@ -145,6 +145,58 @@ describe('Ralph Lauren checkout (f63013c0)', () => {
   });
 });
 
+const CARREFOUR_ORDER = {
+  brand: 'carrefour',
+  customerId: 'cus_claire_fr',
+  cartId: 'bsk_claire_fr',
+  addressId: 'addr_claire_paris',
+  lines: [
+    { sku: 'CF-FL-001', qty: 1 },
+    { sku: 'CF-PO-014', qty: 1, giftBox: true },
+  ],
+  paymentMethod: 'card',
+  cardToken: 'tok_claire_fr_visa_4242',
+};
+
+describe('Carrefour skin (brand=carrefour)', () => {
+  test('catalog serves the grocery catalog in EUR; default catalog stays Ralph Lauren', async () => {
+    const cf = await (await fetch(`${base}/api/f63013c0/catalog?brand=carrefour`)).json();
+    expect(cf.currency).toBe('EUR');
+    expect(cf.customer.id).toBe('cus_claire_fr');
+    expect(cf.products.every((p) => p.sku.startsWith('CF-'))).toBe(true);
+    const rl = await (await fetch(`${base}/api/f63013c0/catalog`)).json();
+    expect(rl.currency).toBe('USD');
+    expect(rl.products[0].sku).toBe('RL-KN-001');
+  });
+
+  test('card checkout authorizes in EUR as CARREFOUR and ships to Paris', async () => {
+    psp.setVersion('2025-06');
+    const res = await post('/api/f63013c0/checkout', CARREFOUR_ORDER);
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.order.total).toBe(11.98);
+    expect(body.order.currency).toBe('EUR');
+    expect(body.order.shipTo).toBe('12 rue de Rivoli, 75004 Paris, France');
+    const auth = psp.listAuthorizations({ cardToken: 'tok_claire_fr_visa_4242' })[0];
+    expect(auth).toMatchObject({ amount: 11.98, currency: 'EUR', descriptor: 'CARREFOUR' });
+  });
+
+  test('card failure alerts with the Carrefour label', async () => {
+    const res = await post('/api/f63013c0/checkout', CARREFOUR_ORDER);
+    expect(res.status).toBe(502);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.verticalLabel).toBe('Carrefour — Courses en ligne Checkout');
+    expect(alert.customer).toBe('f63013c0');
+    expect(alert.extra.promptContext).toContain('carrefour.fr');
+  });
+
+  test('Ralph Lauren SKUs are rejected on the Carrefour catalog', async () => {
+    const res = await post('/api/f63013c0/checkout', { ...CARREFOUR_ORDER, lines: [{ sku: 'RL-KN-001', qty: 1 }] });
+    expect(res.status).toBe(400);
+  });
+});
+
 describe('reconciliation planning', () => {
   const auth = (id, reference, status = 'AUTHORISED') => ({
     id, reference, status, createdAt: '2026-10-05T14:00:00Z', voidedAt: status === 'VOIDED' ? '2026-10-05T15:00:00Z' : null,
