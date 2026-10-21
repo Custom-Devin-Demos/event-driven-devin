@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prior Authorization | Larkspur Health Plan</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #0F766E;
+      --ink: #0B1F33;
+      --surface: #FFFFFF;
+      --chrome-bg: #0B1F33;
+      --chrome-text: #FFFFFF;
+      --paper: color-mix(in srgb, var(--ink) 3%, var(--surface));
+      --rule: color-mix(in srgb, var(--ink) 14%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 62%, var(--surface));
+      --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--surface));
+      --danger: #B42318;
+      --danger-soft: #FEF3F2;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, -apple-system, 'Segoe UI', Roboto, sans-serif; color: var(--ink); background: var(--paper); font-size: 15px; line-height: 1.5; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+    .chrome { background: var(--chrome-bg); color: var(--chrome-text); }
+    .chrome .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 8px; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; }
+    .brand small { display: block; font-weight: 500; font-size: 12px; opacity: 0.75; letter-spacing: 0; }
+    .chrome nav { display: flex; gap: 18px; font-size: 14px; }
+    .chrome nav a { color: var(--chrome-text); text-decoration: none; opacity: 0.85; }
+    .chrome nav a[aria-current] { opacity: 1; border-bottom: 2px solid var(--accent); padding-bottom: 2px; }
+    .provider-bar { background: var(--surface); border-bottom: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+    .provider-bar .wrap { display: flex; flex-wrap: wrap; gap: 6px 24px; padding-top: 10px; padding-bottom: 10px; }
+    .provider-bar strong { color: var(--ink); font-weight: 600; }
+    main { padding: 28px 0 48px; }
+    .page-head h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.02em; }
+    .page-head p { margin: 0 0 22px; color: var(--muted); max-width: 720px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; align-items: start; }
+    .layout > * { min-width: 0; }
+    .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; margin-bottom: 18px; }
+    .card h2 { margin: 0 0 14px; font-size: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 600; }
+    .hint { font-size: 12px; color: var(--muted); }
+    input, select, textarea { width: 100%; min-width: 0; font: inherit; padding: 9px 11px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); color: var(--ink); }
+    input, select { min-height: 40px; }
+    textarea { min-height: 110px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+    .summary dl { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; font-size: 14px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; text-align: right; font-weight: 500; overflow-wrap: anywhere; }
+    .summary .total { border-top: 1px solid var(--rule); padding-top: 10px; font-weight: 700; color: var(--ink); }
+    .actions { display: flex; gap: 10px; margin-top: 16px; }
+    button { font: inherit; font-weight: 600; border-radius: 6px; padding: 11px 18px; min-height: 44px; cursor: pointer; border: 1px solid transparent; }
+    .primary { background: var(--accent); color: #fff; flex: 1; }
+    .primary:disabled { opacity: 0.7; cursor: progress; }
+    .secondary { background: var(--surface); color: var(--ink); border-color: var(--rule); }
+    .status { font-size: 13px; color: var(--muted); margin-top: 10px; min-height: 20px; }
+    .result-box { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 6px; font-size: 14px; }
+    .result-box.success { display: block; background: var(--accent-soft); border: 1px solid var(--accent); }
+    .result-box.notice { display: block; background: var(--danger-soft); border: 1px solid var(--danger); color: var(--danger); }
+    footer { border-top: 1px solid var(--rule); background: var(--surface); font-size: 13px; color: var(--muted); }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding-top: 16px; padding-bottom: 16px; }
+    footer a { color: var(--muted); margin-right: 14px; }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      .chrome nav { display: none; }
+    }
+    @media (max-width: 520px) {
+      .grid { grid-template-columns: minmax(0, 1fr); }
+      .page-head h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="chrome">
+    <div class="wrap">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">L</span><span>Larkspur Health Plan<small>Provider Portal</small></span></div>
+      <nav aria-label="Primary">
+        <a href="#" onclick="return false;">Dashboard</a>
+        <a href="#" onclick="return false;" aria-current="page">Authorizations</a>
+        <a href="#" onclick="return false;">Eligibility</a>
+        <a href="#" onclick="return false;">Provider Resources</a>
+        <a href="#" onclick="return false;">Support</a>
+      </nav>
+    </div>
+  </header>
+  <div class="provider-bar">
+    <div class="wrap">
+      <span>Provider: <strong>Maple Street Neurology</strong></span>
+      <span>NPI: <strong>1316024598</strong></span>
+      <span>Utilization review: <strong>1-800-555-0162</strong></span>
+    </div>
+  </div>
+
+  <main id="main">
+    <div class="wrap">
+      <div class="page-head">
+        <h1>Submit Prior Authorization</h1>
+        <p>Request a coverage decision for a planned service. Provide the member, procedure, diagnosis, service date and clinical notes for utilization review.</p>
+      </div>
+
+      <form id="priorAuthForm" class="layout">
+        <div>
+          <section class="card" aria-labelledby="memberHead">
+            <h2 id="memberHead">Member and provider</h2>
+            <div class="grid">
+              <div class="field full">
+                <label for="memberId">Member ID</label>
+                <select id="memberId" name="memberId" required>
+                  <option value="LSHP-100245-01">LSHP-100245-01 — Alex Moreno · Larkspur Choice PPO</option>
+                  <option value="LSHP-100245-02">LSHP-100245-02 — Jamie Moreno · Larkspur Choice PPO</option>
+                  <option value="LSHP-208871-01">LSHP-208871-01 — Ruth Callahan · Larkspur Medicare Advantage</option>
+                  <option value="LSHP-311902-01">LSHP-311902-01 — Morgan Ellis · Larkspur Select HMO</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="providerNpi">Provider NPI</label>
+                <input id="providerNpi" name="providerNpi" type="text" inputmode="numeric" value="1316024598" maxlength="10" autocomplete="off" required>
+                <span class="hint">Enter the 10-digit billing provider identifier.</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="serviceHead">
+            <h2 id="serviceHead">Requested service</h2>
+            <div class="grid">
+              <div class="field full">
+                <label for="cptCode">Procedure (CPT)</label>
+                <select id="cptCode" name="cptCode" required>
+                  <option value="70553">70553 — MRI brain without and with contrast</option>
+                  <option value="27447">27447 — Total knee arthroplasty</option>
+                  <option value="97110">97110 — Therapeutic exercises</option>
+                  <option value="95810">95810 — Polysomnography sleep study</option>
+                  <option value="99213">99213 — Established patient office visit</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="icd10">Diagnosis (ICD-10)</label>
+                <input id="icd10" name="icd10" type="text" value="G43.909" autocomplete="off" required>
+              </div>
+              <div class="field">
+                <label for="serviceDate">Service date</label>
+                <input id="serviceDate" name="serviceDate" type="date" required>
+              </div>
+              <div class="field full">
+                <label for="urgency">Review urgency</label>
+                <select id="urgency" name="urgency">
+                  <option value="standard">Standard</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+                <span class="hint">Select urgent when the member’s clinical condition requires an expedited decision.</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="clinicalHead">
+            <h2 id="clinicalHead">Clinical information</h2>
+            <div class="field">
+              <label for="clinicalNotes">Clinical notes</label>
+              <textarea id="clinicalNotes" name="clinicalNotes" maxlength="2000" placeholder="Include relevant history, findings and prior treatment."></textarea>
+            </div>
+          </section>
+        </div>
+
+        <aside>
+          <section class="card summary" aria-labelledby="summaryHead">
+            <h2 id="summaryHead">Request summary</h2>
+            <dl>
+              <dt>Member</dt><dd id="summaryMember"></dd>
+              <dt>Procedure</dt><dd id="summaryProcedure"></dd>
+              <dt>Diagnosis</dt><dd id="summaryDiagnosis"></dd>
+              <dt>Service date</dt><dd id="summaryDate"></dd>
+              <dt class="total">Review</dt><dd class="total" id="summaryUrgency"></dd>
+            </dl>
+            <div class="actions">
+              <button type="submit" class="primary" id="submitBtn">Submit Request</button>
+              <button type="reset" class="secondary">Clear</button>
+            </div>
+            <div class="status" id="status" role="status" aria-live="polite"></div>
+            <div class="result-box" id="result" aria-live="polite"></div>
+          </section>
+        </aside>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div>
+        <a href="#" onclick="return false;">Provider Manual</a>
+        <a href="#" onclick="return false;">Coverage Policies</a>
+        <a href="#" onclick="return false;">Privacy</a>
+      </div>
+      <div>Larkspur Health Plan is a fictional demo brand.</div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.defaultUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.defaultOrgId && !localStorage.getItem('devinOrgId')) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const form = document.getElementById('priorAuthForm');
+      const member = document.getElementById('memberId');
+      const providerNpi = document.getElementById('providerNpi');
+      const cptCode = document.getElementById('cptCode');
+      const icd10 = document.getElementById('icd10');
+      const serviceDate = document.getElementById('serviceDate');
+      const urgency = document.getElementById('urgency');
+      const submitBtn = document.getElementById('submitBtn');
+      const status = document.getElementById('status');
+      const result = document.getElementById('result');
+
+      function selected(select) { return select.options[select.selectedIndex]; }
+      function renderSummary() {
+        document.getElementById('summaryMember').textContent = selected(member).textContent.split(' — ')[0];
+        document.getElementById('summaryProcedure').textContent = selected(cptCode).textContent.split(' — ')[0];
+        document.getElementById('summaryDiagnosis').textContent = icd10.value;
+        document.getElementById('summaryDate').textContent = serviceDate.value;
+        document.getElementById('summaryUrgency').textContent = selected(urgency).textContent;
+      }
+      function clearResult() {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = '';
+      }
+
+      serviceDate.value = new Date().toISOString().slice(0, 10);
+      form.addEventListener('input', () => { clearResult(); renderSummary(); });
+      form.addEventListener('change', () => { clearResult(); renderSummary(); });
+      form.addEventListener('reset', () => {
+        clearResult();
+        setTimeout(() => {
+          serviceDate.value = new Date().toISOString().slice(0, 10);
+          renderSummary();
+        }, 0);
+      });
+      renderSummary();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const startedAt = Date.now();
+        clearResult();
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting…';
+        status.textContent = 'Sending request to Larkspur Health Plan…';
+        try {
+          const response = await fetch('/api/priorauth/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              memberId: member.value,
+              providerNpi: providerNpi.value.trim(),
+              cptCode: cptCode.value,
+              icd10: icd10.value.trim(),
+              serviceDate: serviceDate.value,
+              urgency: urgency.value,
+              clinicalNotes: document.getElementById('clinicalNotes').value.trim(),
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) throw new Error(data.error || 'The request could not be submitted.');
+          const elapsedMs = Number.isFinite(data.durationMs) ? data.durationMs : Date.now() - startedAt;
+          const elapsed = (elapsedMs / 1000).toFixed(1);
+          result.className = 'result-box success';
+          result.textContent = data.status === 'NOT_REQUIRED'
+            ? 'Authorization is not required for CPT ' + data.cptCode + '. Decision returned in ' + elapsed + 's.'
+            : 'Authorization ' + data.authId + ': ' + data.status.replace(/_/g, ' ').toLowerCase()
+              + '. Decision returned in ' + elapsed + 's.';
+          status.textContent = 'Request submitted.';
+        } catch (error) {
+          const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+          result.className = 'result-box notice';
+          result.textContent = error.message + ' Response received in ' + elapsed + 's.';
+          status.textContent = 'Request not submitted.';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Request';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

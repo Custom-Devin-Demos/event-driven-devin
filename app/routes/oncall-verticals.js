@@ -9,6 +9,7 @@ const { processQuote } = require('../services/oncall-verticals/industrials');
 const { addToCart } = require('../services/oncall-verticals/marketplace');
 const { submitOrder } = require('../services/oncall-verticals/vaccines');
 const { submitClaim } = require('../services/oncall-verticals/pbm');
+const { submitPriorAuth } = require('../services/oncall-verticals/priorauth');
 const { addToBag } = require('../services/oncall-verticals/apparel');
 const { addKitToCart } = require('../services/oncall-verticals/fluidanalysis');
 const { addToPickList } = require('../services/oncall-verticals/picklist');
@@ -376,6 +377,34 @@ router.post('/api/oncall/pbm/claim', async (req, res) => {
         : error.message,
       errorClass: error.name,
       code: error.code || 'CLAIM_SUBMIT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/payer/prior-auth — submit a prior-authorization request
+ */
+router.post('/api/oncall/payer/prior-auth', async (req, res) => {
+  const body = req.body || {};
+  try {
+    const result = await submitPriorAuth({
+      memberId: body.memberId || 'LSHP-100245-01',
+      providerNpi: body.providerNpi || '1316024598',
+      cptCode: body.cptCode || '70553',
+      icd10: body.icd10 || 'G43.909',
+      serviceDate: body.serviceDate || new Date().toISOString().slice(0, 10),
+      urgency: body.urgency || 'standard',
+      clinicalNotes: typeof body.clinicalNotes === 'string' ? body.clinicalNotes.slice(0, 2000) : '',
+    });
+    res.json(result);
+  } catch (error) {
+    const statusCode = ['MEMBER_NOT_ELIGIBLE', 'PROCEDURE_NOT_FOUND'].includes(error.code) ? 422 : 500;
+    res.status(statusCode).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'PRIOR_AUTH_SUBMIT_FAILED',
       requestId: req.requestId,
     });
   }
