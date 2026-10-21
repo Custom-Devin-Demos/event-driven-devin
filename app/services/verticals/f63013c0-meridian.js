@@ -13,11 +13,11 @@ function baseUrl() {
     || `http://127.0.0.1:${process.env.PORT || 3000}/api/f63013c0/psp`;
 }
 
-async function authorize({ amount, currency, cardToken, reference }) {
+async function authorize({ amount, currency, descriptor, cardToken, reference }) {
   const res = await fetch(`${baseUrl()}/v1/payments`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount, currency, cardToken, reference }),
+    body: JSON.stringify({ amount, currency, descriptor, cardToken, reference }),
   });
   const apiVersion = res.headers.get('meridian-version');
   const body = await res.json();

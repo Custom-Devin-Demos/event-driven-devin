@@ -11,6 +11,7 @@ const router = express.Router();
 const PAGES = {
   retail: 'retail.html',
   ysl: 'ysl.html',
+  carrefour: 'carrefour.html',
 };
 const PAGES_DIR = path.join(__dirname, '..', '..', 'public', 'verticals', 'f63013c0', 'rb');
 for (const [key, file] of Object.entries(PAGES)) {
@@ -25,8 +26,8 @@ router.get('/api/f63013c0/account', (_req, res) => {
   res.json({ success: true, ...service.getAccount() });
 });
 
-router.get('/api/f63013c0/catalog', (_req, res) => {
-  res.json({ success: true, ...service.getCatalog() });
+router.get('/api/f63013c0/catalog', (req, res) => {
+  res.json({ success: true, ...service.getCatalog(text(req.query.brand, 16)) });
 });
 
 router.get('/api/f63013c0/metrics', (_req, res) => {
@@ -52,6 +53,7 @@ router.post('/api/f63013c0/checkout', verifySessionSecret, async (req, res) => {
       devinUserId: text(body.devinUserId, 128) || undefined,
       devinOrgId: text(body.devinOrgId, 128) || undefined,
       devinEmail: text(body.devinEmail, 254) || undefined,
+      brand: text(body.brand, 16) || undefined,
     });
     return res.json({ success: true, ...result });
   } catch (error) {
@@ -108,6 +110,7 @@ router.post('/api/f63013c0/psp/v1/payments', (req, res) => {
   const { status, headers, body: responseBody } = psp.createPayment({
     amount: body.amount,
     currency: body.currency || 'USD',
+    descriptor: text(body.descriptor, 22) || undefined,
     cardToken: text(body.cardToken, 128),
     reference: text(body.reference, 128),
   }, { idempotencyKey: text(req.headers['idempotency-key'], 255) || undefined });
