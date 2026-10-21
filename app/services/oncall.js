@@ -1100,7 +1100,10 @@ async function postOncallAlert(scenarioId, options = {}) {
 
   const skin = options.skin || null;
   const env = resolveOncallEnv();
-  const { token, alertsChannel } = env;
+  const { token } = env;
+  // A skin may own its alerts channel (e.g. a customer-specific #<brand>-oncall)
+  // instead of the shared SLACK_ONCALL_ALERTS_CHANNEL_ID.
+  const alertsChannel = (skin && skin.slackChannelId) || env.alertsChannel;
   const skinWebhookUrl = skin && skin.teamsWebhookEnv ? process.env[skin.teamsWebhookEnv] : null;
   const teamsWebhook = (isTeamsWebhookUrl(skinWebhookUrl) && skinWebhookUrl) || env.teamsWebhookUrl;
   // destination: 'slack' | 'teams' from the presenter's hub choice. Teams skips

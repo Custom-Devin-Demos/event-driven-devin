@@ -4716,6 +4716,8 @@ const ONCALL_SKINS = {
     vertical: 'privatecloud',
     oncallOnly: true,
     alertDestination: 'slack',
+    slackChannelId: 'C0CAX4SHG6M',
+    slackChannelName: '#dell-oncall',
     paths: ['/dell', '/dap', '/dell-dap'],
     ribbonSide: 'left',
     devinSession: {
