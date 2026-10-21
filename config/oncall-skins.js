@@ -5163,6 +5163,14 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A VARO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Varo product.',
   },
+  '3522ef90': {
+    slug: '3522ef90',
+    company: 'Baseten',
+    vertical: 'inference',
+    oncallOnly: true,
+    page: { file: '3522ef90.html', title: 'DeepSeek V4 Pro 0813 | Model library' },
+    disclaimer: 'NOT ACTUALLY A BASETEN SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Baseten product.',
+  },
   '12d591ae': {
     slug: '12d591ae',
     company: 'N26',
