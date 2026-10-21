@@ -69,7 +69,7 @@
 
     async function init() {
       const res = await fetch('/api/oncall/scenarios?group=healthcare');
-      const { scenarios, teamsDefaultWebhook } = await res.json();
+      const { scenarios, teamsDefaultWebhook, teamsChannel } = await res.json();
       var destPicker = document.getElementById('dest-picker');
       window.AlertDestination.mount(destPicker, {
         teamsAvailable: Boolean(teamsDefaultWebhook),
@@ -79,7 +79,7 @@
         var teams = dest === 'teams' && teamsDefaultWebhook;
         var label = document.getElementById('hero-dest');
         var destination = document.createElement('code');
-        destination.textContent = teams ? 'oncall-demo' : '#oncall-alerts';
+        destination.textContent = teams ? (teamsChannel || 'oncall-demo') : '#oncall-alerts';
         label.replaceChildren();
         if (teams) label.appendChild(document.createTextNode('Teams '));
         label.appendChild(destination);

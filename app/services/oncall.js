@@ -28,6 +28,8 @@ const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/b
  *   SLACK_ONCALL_BOT_TOKEN         — bot token override (default: SLACK_BOT_TOKEN)
  *   ONCALL_TEAMS_WEBHOOK_URL       — optional Teams Workflows webhook; alert cards
  *     from skins with `teamsAlerts: true` are also posted there as Adaptive Cards
+ *   ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE — scenario-level `teamsWebhookEnv` for
+ *     healthcare alerts, after any valid per-skin `teamsWebhookEnv` override
  *   <skin.teamsWebhookEnv>         — optional per-skin Teams webhook env var name;
  *     when set to a valid Teams webhook URL, that skin's cards post there instead
  *   ONCALL_TEAMS_ALL_ALERTS=true   — post every alert card to that webhook, not
@@ -506,6 +508,7 @@ const ALERT_SCENARIOS = {
     impact: 'Pharmacies cannot adjudicate claims at point of sale; members are leaving the counter without their prescriptions and the pharmacy help desk is reporting rising call volume.',
     telemetryBrand: 'splunk-dynatrace',
     group: 'healthcare',
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE',
     summary: 'Submit a pharmacy claim. It hangs ~8s, then returns a 504.',
     defaultAlertDestination: 'teams',
     oncallOnly: true,
@@ -531,6 +534,7 @@ const ALERT_SCENARIOS = {
     impact: 'Provider offices are waiting on the portal for authorization decisions; staff are resubmitting and calling the provider services line.',
     telemetryBrand: 'splunk-dynatrace',
     group: 'healthcare',
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE',
     summary: 'Submit a prior authorization. Each submission is slower than the last.',
     defaultAlertDestination: 'teams',
     retryWindow: true,
@@ -557,6 +561,7 @@ const ALERT_SCENARIOS = {
     impact: 'Prescriber offices are waiting on the portal to confirm sample requests; field reps are reporting abandoned orders and calls to the sample fulfillment line.',
     telemetryBrand: 'splunk-dynatrace',
     group: 'healthcare',
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE',
     summary: 'Order drug samples as a prescriber. It hangs ~10s, then confirms.',
     defaultAlertDestination: 'teams',
     oncallOnly: true,
@@ -1270,8 +1275,13 @@ async function postOncallAlert(scenarioId, options = {}) {
   // A skin may own its alerts channel (e.g. a customer-specific #<brand>-oncall)
   // instead of the shared SLACK_ONCALL_ALERTS_CHANNEL_ID.
   const alertsChannel = (skin && skin.slackChannelId) || env.alertsChannel;
-  const skinWebhookUrl = skin && skin.teamsWebhookEnv ? process.env[skin.teamsWebhookEnv] : null;
-  const teamsWebhook = (isTeamsWebhookUrl(skinWebhookUrl) && skinWebhookUrl) || env.teamsWebhookUrl;
+  const webhookFromEnv = (name) => {
+    const url = name ? process.env[name] : null;
+    return isTeamsWebhookUrl(url) ? url : null;
+  };
+  const teamsWebhook = webhookFromEnv(skin && skin.teamsWebhookEnv)
+    || webhookFromEnv(scenario.teamsWebhookEnv)
+    || env.teamsWebhookUrl;
   // destination: 'slack' | 'teams' from the presenter's hub choice. Teams skips
   // Slack so one demo is never investigated by both the Slack and the Teams
   // responder; with no Teams webhook configured it falls back to Slack.

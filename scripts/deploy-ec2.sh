@@ -107,6 +107,7 @@ cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 # lines are logged and skipped; a file with more lines than allowlisted keys is
 # ignored entirely (deploy continues with the current .env).
 ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL AUTOMATIONS_TEAMS_WEBHOOK_URL ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI
+  ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE
   FCTO_SLACK_SIGNING_SECRET FCTO_SLACK_BOT_TOKEN FCTO_CHANNEL_ID)
 env_sync_value_ok() {
   case "$1" in
