@@ -4885,6 +4885,7 @@ const ONCALL_SKINS = {
     slug: '9b7f0d70',
     company: 'UTA Speakers',
     vertical: 'insurance',
+    oncallOnly: true,
     page: { file: '9b7f0d70.html', title: 'Book Now | UTA Speakers' },
     disclaimer: 'NOT ACTUALLY A UTA SPEAKERS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real UTA Speakers product.',
   },
