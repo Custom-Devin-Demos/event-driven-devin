@@ -466,6 +466,31 @@ const ALERT_SCENARIOS = {
     impact: 'Practices cannot place vaccine orders; every submission sits on a spinner and then errors. The Vaccine Service Center is reporting rising call volume.',
     unlisted: true,
   },
+  pbm: {
+    vertical: 'pbm',
+    page: 'pbm.html',
+    apiPath: '/api/pbm/claim',
+    oncallApiPath: '/api/oncall/pbm/claim',
+    owner: 'Dana Whitfield (claims-adjudication-oncall)',
+    brand: 'Fernway Rx (Pharmacy Claims)',
+    service: 'pbm-claims-api',
+    endpoint: 'POST /api/oncall/pbm/claim',
+    monitor: 'Response time degradation — pbm-claims-api',
+    metricQuery: 'index=prod sourcetype=claims service:pbm-claims-api http.status=504 | timechart span=5m count',
+    demoPage: '/oncall/pbm',
+    metricValue: '504s on ~100% of claim submissions over 15m',
+    threshold: 'count > 25 per 5m span',
+    baseline: '0–2 per 5m span (7-day search)',
+    release: 'pbm-claims-api@3.8.2',
+    symptom: 'Claim submissions hang ~8s and then fail with 504 Gateway Timeout. Dynatrace attributes the response time degradation to calls to the delegated utilization-management partners.',
+    impact: 'Pharmacies cannot adjudicate claims at point of sale; members are leaving the counter without their prescriptions and the pharmacy help desk is reporting rising call volume.',
+    telemetryBrand: 'splunk-dynatrace',
+    group: 'healthcare',
+    summary: 'Submit a pharmacy claim. It hangs ~8s, then returns a 504.',
+    defaultAlertDestination: 'teams',
+    oncallOnly: true,
+    unlisted: true,
+  },
   evreservation: {
     vertical: 'evreservation',
     page: '492753fe.html',
@@ -721,10 +746,40 @@ const ONCALL_STRINGS = {
   },
 };
 
-function oncallStrings(skin) {
-  return skin && Object.prototype.hasOwnProperty.call(ONCALL_STRINGS, skin.locale)
-    ? ONCALL_STRINGS[skin.locale]
-    : ONCALL_STRINGS.en;
+const TELEMETRY_BRAND_STRINGS = {
+  'splunk-dynatrace': {
+    en: {
+      triggered: 'OPEN Problem',
+      metricValue: 'Search result',
+      monitorQuery: 'Splunk search',
+      viewDatadog: null,
+      promptIntro: (service) => `A Dynatrace problem is open on ${service}. Investigate it and open a PR with the fix.`,
+      monitor: 'Dynatrace problem',
+      promptState: 'OPEN',
+      query: 'Splunk search',
+      promptTelemetry: 'Start from the Splunk search above and the Dynatrace problem (the affected service and the response-time breakdown of its downstream calls), then confirm the cause in the repository before changing it.',
+    },
+    es: {
+      triggered: 'Problema ABIERTO',
+      metricValue: 'Resultado de búsqueda',
+      monitorQuery: 'Búsqueda de Splunk',
+      viewDatadog: null,
+      promptIntro: (service) => `Hay un problema abierto de Dynatrace en ${service}. Investígalo y abre un PR con la solución.`,
+      monitor: 'Problema de Dynatrace',
+      promptState: 'ABIERTO',
+      query: 'Búsqueda de Splunk',
+      promptTelemetry: 'Empieza con la búsqueda de Splunk anterior y el problema de Dynatrace (el servicio afectado y el desglose del tiempo de respuesta de sus llamadas posteriores); luego confirma la causa en el repositorio antes de cambiarlo.',
+    },
+  },
+};
+
+function oncallStrings(skin, scenario) {
+  const locale = skin && Object.prototype.hasOwnProperty.call(ONCALL_STRINGS, skin.locale)
+    ? skin.locale
+    : 'en';
+  const telemetryBrand = (skin && skin.telemetryBrand) || (scenario && scenario.telemetryBrand) || 'datadog';
+  const overlay = TELEMETRY_BRAND_STRINGS[telemetryBrand] && TELEMETRY_BRAND_STRINGS[telemetryBrand][locale];
+  return overlay ? { ...ONCALL_STRINGS[locale], ...overlay } : ONCALL_STRINGS[locale];
 }
 
 /**
@@ -811,7 +866,7 @@ function demoPagePath(scenario, skin) {
 
 function demoPageLine(scenario, skin) {
   const path = demoPagePath(scenario, skin);
-  return path ? `*${oncallStrings(skin).affectedPage}:* ${DEMO_BASE_URL()}${path}` : null;
+  return path ? `*${oncallStrings(skin, scenario).affectedPage}:* ${DEMO_BASE_URL()}${path}` : null;
 }
 
 /**
@@ -844,7 +899,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
 
   const card = resolveAlertCard(scenario, skin);
   const brand = skin ? skin.company : scenario.brand;
-  const t = oncallStrings(skin);
+  const t = oncallStrings(skin, scenario);
   const lines = [
     `:rotating_light: *[${t.triggered}] ${card.monitor}*`,
     '',
@@ -887,13 +942,13 @@ function notifySlackMemberParagraph(memberId, channel, threadTs, t = ONCALL_STRI
 }
 
 function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, onCallMemberId } = {}) {
-  const t = oncallStrings(skin);
+  const t = oncallStrings(skin, scenario);
   // Monitor facts match the skin's Slack card; service/endpoint stay real so the session can find the code.
   const card = { ...resolveAlertCard(scenario, skin), service: scenario.service, endpoint: scenario.endpoint };
   const lines = [
     t.promptIntro(card.service),
     '',
-    `*${t.monitor}:* ${card.monitor} — ${t.triggered}`,
+    `*${t.monitor}:* ${card.monitor} — ${t.promptState || t.triggered}`,
     `*${t.query}:* \`${card.metricQuery}\``,
     `*${t.endpoint}:* ${card.endpoint}`,
     `*${t.metricValue}:* ${t.metricLine(card)}`,
@@ -904,6 +959,11 @@ function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, o
     '',
     t.reproduce(`${DEMO_BASE_URL()}/oncall/c/${skin.slug}`, REPO_URL),
   ].filter((l) => l !== null);
+
+  if (t.promptTelemetry) {
+    lines.push('');
+    lines.push(t.promptTelemetry);
+  }
 
   if (
     skin.devinSession
@@ -998,7 +1058,7 @@ async function triggerSkinDevinSession(
     session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, onCallMemberId }), {
       ...resolveSessionIdentity(requester, config),
       apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
-      title: oncallStrings(skin).sessionTitle(resolveAlertCard(scenario, skin).monitor),
+      title: oncallStrings(skin, scenario).sessionTitle(resolveAlertCard(scenario, skin).monitor),
     });
   } catch (error) {
     logger.error('On-Call skin Devin session failed', { skin: skin.slug, error: error.message });
@@ -1016,7 +1076,7 @@ async function triggerSkinDevinSession(
   });
 
   try {
-    const t = oncallStrings(skin);
+    const t = oncallStrings(skin, scenario);
     await postThreadReply(token, channel, threadTs, t.investigatingText(session.url), [
       mrkdwnSection(t.investigatingBlock(session.url)),
     ]);
@@ -1052,12 +1112,13 @@ function validEmail(email) {
  */
 async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef, events, firstSeen, triggeredByEmail }) {
   const demoPath = demoPagePath(scenario, skin);
-  const t = oncallStrings(skin);
+  const t = oncallStrings(skin, scenario);
   const teamsCard = buildTeamsAlertCard({
     title: `\u{1F6A8} [${t.triggered}] ${card.monitor}`,
     facts: [
       [t.service, `${card.service} (${brand})`],
       [t.endpoint, card.endpoint],
+      ...(t.promptState ? [[t.monitor, `${card.monitor} — ${t.promptState}`]] : []),
       [t.metricValue, card.metricValue],
       [t.threshold, card.threshold],
       [t.baseline, card.baseline],
@@ -1066,6 +1127,7 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
       [t.triggeredBy, triggeredByEmail],
     ],
     monitorQuery: card.metricQuery,
+    codeTitle: t.monitorQuery,
     // Top-level TextBlocks: the Teams responder drops FactSet rows.
     body: [
       `**${t.owner}:** ${ownerRotation(card.owner)}`,
@@ -1073,7 +1135,7 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
       `Repo: ${REPO_URL}`,
     ],
     actions: [
-      { title: t.viewDatadog, url: DD_URL() },
+      t.viewDatadog ? { title: t.viewDatadog, url: DD_URL() } : null,
       demoPath ? { title: t.openAffectedPage, url: `${DEMO_BASE_URL()}${demoPath}` } : null,
     ],
     footer: [
@@ -1134,7 +1196,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   // When the presenter is paged as On-Call, a separate "Triggered by" would
   // only repeat the same person.
   const triggeredByLine = onCall ? null : triggeredBy;
-  const t = oncallStrings(skin);
+  const t = oncallStrings(skin, scenario);
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
   const events = 3 + Math.floor(Math.random() * 12);
@@ -1160,7 +1222,7 @@ async function postOncallAlert(scenarioId, options = {}) {
       (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
-    datadogActions(t),
+    ...(t.viewDatadog ? [datadogActions(t)] : []),
     contextBlock(card.service, triggeredByLine, null, t),
   ];
   const teamsDelivery = teamsWebhookUrl

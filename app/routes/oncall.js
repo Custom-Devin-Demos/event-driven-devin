@@ -45,6 +45,26 @@ const {
 } = require('../services/oncall-verticals/account-opening');
 
 const router = express.Router();
+const VERTICALS_DIR = path.resolve(__dirname, '..', 'public', 'verticals');
+
+function verticalPagePath(file) {
+  if (typeof file !== 'string' || !file.endsWith('.html')) return null;
+  const resolved = path.resolve(VERTICALS_DIR, file);
+  return resolved.startsWith(VERTICALS_DIR + path.sep) ? resolved : null;
+}
+
+const SCENARIO_PAGE_PATHS = Object.create(null);
+for (const scenario of Object.values(ALERT_SCENARIOS)) {
+  const pagePath = verticalPagePath(scenario.page);
+  if (pagePath) SCENARIO_PAGE_PATHS[scenario.vertical] = pagePath;
+}
+const SKIN_PAGE_PATHS = Object.create(null);
+for (const skin of Object.values(ONCALL_SKINS)) {
+  const scenario = ALERT_SCENARIOS[skin.vertical];
+  const pageFile = (skin.page && skin.page.file) || (scenario && scenario.page);
+  const pagePath = verticalPagePath(pageFile);
+  if (pagePath) SKIN_PAGE_PATHS[skin.slug] = pagePath;
+}
 
 /**
  * Per-IP hourly caps on the on-call mutation endpoints. These endpoints
@@ -183,20 +203,6 @@ function jsLiteral(value) {
 }
 
 /**
- * Serve an on-call page with a customer skin injected as window.ONCALL_SKIN.
- * The pages apply the skin client-side (branding, copy, portal products);
- * all mechanics stay shared code.
- */
-function sendSkinnedPage(res, next, page, skin) {
-  const pagePath = path.join(__dirname, '..', 'public', page);
-  fs.readFile(pagePath, 'utf8', (err, html) => {
-    if (err) return next(err);
-    const inject = `<script>window.ONCALL_SKIN = ${jsLiteral(skin)};</script>`;
-    res.type('html').send(html.replace('</head>', () => `${inject}\n</head>`));
-  });
-}
-
-/**
  * Rebrand a served vertical page with a skin's company name, mark, title,
  * and theme variables, and hide the demo-hub back link. Applied on top of
  * the on-call shim so the shared URL looks like the customer's own product.
@@ -247,8 +253,8 @@ function buildSkinBrandShim(skin) {
 function serveSkinPage(skin, res, next) {
   const scenario = ALERT_SCENARIOS[skin.vertical];
   if (!scenario) return next();
-  const pageFile = (skin.page && skin.page.file) || scenario.page;
-  const pagePath = path.join(__dirname, '..', 'public', 'verticals', pageFile);
+  const pagePath = SKIN_PAGE_PATHS[skin.slug];
+  if (!pagePath) return next();
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
     res.type('html').send(
@@ -274,6 +280,22 @@ for (const skin of Object.values(ONCALL_SKINS)) {
   router.get(`/${path.basename(skin.page.file, '.html')}`, (_req, res, next) => serveSkinPage(skin, res, next));
 }
 
+function serveOncallScenarioPage(scenario, res, next) {
+  const pagePath = SCENARIO_PAGE_PATHS[scenario.vertical];
+  if (!pagePath) return next();
+  fs.readFile(pagePath, 'utf8', (err, html) => {
+    if (err) return next(err);
+    res.type('html').send(html.replace('</body>', `${buildOncallShim(scenario)}\n</body>`));
+  });
+}
+
+for (const scenario of Object.values(ALERT_SCENARIOS)) {
+  if (!scenario.oncallOnly || !scenario.page) continue;
+  router.get(`/${path.basename(scenario.page, '.html')}`, (_req, res, next) => (
+    serveOncallScenarioPage(scenario, res, next)
+  ));
+}
+
 // Friendly direct URLs (skin.paths, e.g. /coppel-oncall), served like /oncall/c/:slug.
 for (const skin of Object.values(ONCALL_SKINS)) {
   for (const urlPath of skin.paths || []) {
@@ -287,6 +309,11 @@ for (const skin of Object.values(ONCALL_SKINS)) {
 const ONCALL_HUB_PAGE = path.join(__dirname, '..', 'public', 'oncall.html');
 router.get('/oncall', (_req, res) => {
   res.sendFile(ONCALL_HUB_PAGE);
+});
+
+const HEALTHCARE_HUB_PAGE = path.join(__dirname, '..', 'public', 'oncall-healthcare.html');
+router.get('/oncall/healthcare', (_req, res) => {
+  res.sendFile(HEALTHCARE_HUB_PAGE);
 });
 
 /**
@@ -351,6 +378,11 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       const skinSlug = ${JSON.stringify(skinSlug || null)};
       const automatedAlertPath = ${JSON.stringify(Boolean(skin && skin.alertPath === 'automated'))};
       var skinAlertDestination = ${JSON.stringify(skin && (skin.alertDestination === 'teams' || skin.alertDestination === 'slack') ? skin.alertDestination : null)};
+      var scenarioAlertDestination = ${JSON.stringify(
+    scenario.defaultAlertDestination === 'teams' || scenario.defaultAlertDestination === 'slack'
+      ? scenario.defaultAlertDestination
+      : null
+  )};
       // Only climbing-latency scenarios keep a retry window: repeat submits
       // demonstrate the per-request growth, so they join the open incident.
       // Every other scenario posts a fresh incident on every submit.
@@ -450,7 +482,11 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
           alertPostedAt = postedAt;
           if (ribbonCollapsed) expandRibbon();
           const unique = document.getElementById('oncall-unique').checked;
-          var alertDestination = skinAlertDestination || (localStorage.getItem('alertDestination') === 'teams' ? 'teams' : 'slack');
+          var alertDestination = skinAlertDestination || (
+            localStorage.getItem('alertDestinationExplicit') !== '1' && scenarioAlertDestination
+              ? scenarioAlertDestination
+              : (localStorage.getItem('alertDestination') === 'teams' ? 'teams' : 'slack')
+          );
           var triggerUrl = '/api/oncall/trigger/' + vertical;
           var triggerBody = {
               unique: unique,
@@ -509,11 +545,7 @@ router.get('/oncall/:vertical', (req, res, next) => {
   const scenario = ALERT_SCENARIOS[req.params.vertical];
   if (!scenario) return next();
 
-  const pagePath = path.join(__dirname, '..', 'public', 'verticals', scenario.page);
-  fs.readFile(pagePath, 'utf8', (err, html) => {
-    if (err) return next(err);
-    res.type('html').send(html.replace('</body>', `${buildOncallShim(scenario)}\n</body>`));
-  });
+  serveOncallScenarioPage(scenario, res, next);
 });
 
 /**
@@ -767,9 +799,10 @@ router.post(ACCOUNT_OPENING_FAILURE_PATH, (req, res, next) => {
 /**
  * GET /api/oncall/scenarios — available alert scenarios
  */
-router.get('/api/oncall/scenarios', (_req, res) => {
+router.get('/api/oncall/scenarios', (req, res) => {
+  const group = typeof req.query.group === 'string' && req.query.group ? req.query.group : null;
   const scenarios = Object.entries(ALERT_SCENARIOS)
-    .filter(([, s]) => !s.unlisted)
+    .filter(([, scenario]) => (group ? scenario.group === group : !scenario.unlisted))
     .map(([id, s]) => ({
       id,
       brand: s.brand,
@@ -777,6 +810,8 @@ router.get('/api/oncall/scenarios', (_req, res) => {
       monitor: s.monitor,
       symptom: s.symptom,
       retryWindow: Boolean(s.retryWindow),
+      group: s.group || null,
+      summary: s.summary || null,
     }));
   res.json({ scenarios, teamsDefaultWebhook: Boolean(process.env.ONCALL_TEAMS_WEBHOOK_URL) });
 });

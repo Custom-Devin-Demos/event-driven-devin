@@ -1,5 +1,6 @@
 const {
   buildOncallSessionPrompt,
+  ALERT_SCENARIOS,
 } = require('../app/services/oncall');
 
 const SCENARIO = {
@@ -58,6 +59,40 @@ describe('on-call skin session prompt appendix', () => {
     );
 
     expect(prompt.endsWith(`\n\n${appendix}`)).toBe(true);
+  });
+});
+
+describe('scenario telemetry branding in session prompts', () => {
+  test('inherits Splunk/Dynatrace wording from the PBM scenario without a skin override', () => {
+    const skin = { slug: 'demo' };
+    const prompt = buildOncallSessionPrompt(ALERT_SCENARIOS.pbm, skin, 'run-1');
+
+    expect(prompt.startsWith('A Dynatrace problem is open on pbm-claims-api.')).toBe(true);
+    expect(prompt).toContain('*Dynatrace problem:* Response time degradation — pbm-claims-api — OPEN');
+    expect(prompt).toContain('*Splunk search:* `index=prod sourcetype=claims');
+    expect(prompt).toContain('Start from the Splunk search above and the Dynatrace problem');
+    expect(prompt).not.toMatch(/Datadog|sum:trace|Monitor query|Triggered/);
+  });
+
+  test('supports a skin telemetry override and localized Spanish overlay', () => {
+    const datadogPrompt = buildOncallSessionPrompt(
+      ALERT_SCENARIOS.pbm,
+      { slug: 'demo', telemetryBrand: 'datadog' },
+      'run-1',
+    );
+    expect(datadogPrompt).toContain('A Datadog monitor is firing on pbm-claims-api.');
+    expect(datadogPrompt).toContain('*Monitor:* Response time degradation — pbm-claims-api — Triggered');
+
+    const spanishPrompt = buildOncallSessionPrompt(
+      ALERT_SCENARIOS.pbm,
+      { slug: 'demo', locale: 'es' },
+      'run-1',
+    );
+    expect(spanishPrompt).toContain('Hay un problema abierto de Dynatrace en pbm-claims-api.');
+    expect(spanishPrompt).toContain('*Problema de Dynatrace:* Response time degradation — pbm-claims-api — ABIERTO');
+    expect(spanishPrompt).toContain('*Búsqueda de Splunk:* `index=prod sourcetype=claims');
+    expect(spanishPrompt).toContain('Empieza con la búsqueda de Splunk anterior');
+    expect(spanishPrompt).not.toMatch(/Datadog|sum:trace|Monitor query|Triggered/);
   });
 });
 

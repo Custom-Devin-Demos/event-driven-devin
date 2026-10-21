@@ -5,6 +5,7 @@ jest.mock('../app/telemetry/sentry', () => ({
 
 const express = require('express');
 const http = require('http');
+const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 
 const oncallRoutes = require('../app/routes/oncall');
 const oncallVerticalRoutes = require('../app/routes/oncall-verticals');
@@ -27,7 +28,8 @@ beforeAll((done) => {
 });
 
 afterAll((done) => {
-  server.close(done);
+  server.closeAllConnections();
+  server.close(() => stopGateway().then(() => done()));
 });
 
 function post(path, body) {
