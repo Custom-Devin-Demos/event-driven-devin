@@ -46,7 +46,7 @@ function shapeForVersion(auth, version) {
   return { ...base, paymentId: auth.id };
 }
 
-function createPayment({ amount, currency, cardToken, reference }, { idempotencyKey } = {}) {
+function createPayment({ amount, currency, descriptor, cardToken, reference }, { idempotencyKey } = {}) {
   if (idempotencyKey && state.idempotency.has(idempotencyKey)) {
     const existing = state.idempotency.get(idempotencyKey);
     return {
@@ -64,7 +64,7 @@ function createPayment({ amount, currency, cardToken, reference }, { idempotency
     currency,
     cardToken,
     reference,
-    descriptor: DESCRIPTOR,
+    descriptor: descriptor || DESCRIPTOR,
     createdAt: new Date().toISOString(),
     voidedAt: null,
   };
