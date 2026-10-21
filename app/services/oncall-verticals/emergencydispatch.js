@@ -37,15 +37,16 @@ const RESOURCES = {
 };
 
 /**
- * Agency tasking endpoints. Every agency gateway also receives the
- * perimeter-security notice (SEPRONA) once anything is tasked.
+ * Agency tasking endpoints. Under an INFOMA level-2 activation every
+ * coordinating agency must acknowledge a dispatch, not just the agencies
+ * that own the tasked resources.
  */
 const TASKING_ENDPOINTS = {
   'v1/tasking-sync': { latencyMs: [1850, 2000], deprecated: true },
   'v2/tasking': { latencyMs: [60, 140], deprecated: false },
 };
 const TASKING_ENDPOINT = 'v1/tasking-sync';
-const NOTIFY_ALWAYS = ['gc-seprona'];
+const NOTIFY_ALWAYS = Object.keys(AGENCIES);
 const DISPATCH_DEADLINE_MS = 9000;
 
 const delay = ([minMs, maxMs]) => new Promise((resolve) => {

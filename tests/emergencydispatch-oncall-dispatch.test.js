@@ -77,9 +77,10 @@ describe('IndraMind emergency dispatch on-call vertical', () => {
     const taskingLogs = logger.info.mock.calls
       .filter(([message]) => message === 'Agency tasking confirmation')
       .map(([, fields]) => fields);
-    expect(taskingLogs.map((f) => f.agency)).toEqual(['forestales-cm', 'miteco-aereos', 'bomberos-cm', 'proteccion-civil', 'gc-seprona']);
+    expect(taskingLogs.map((f) => f.agency)).toEqual(['forestales-cm', 'miteco-aereos', 'bomberos-cm', 'proteccion-civil', 'summa-112']);
     expect(taskingLogs.every((f) => f.endpoint === 'v1/tasking-sync' && f.deprecatedEndpoint === true)).toBe(true);
     expect(taskingLogs[4].taskingStatus).toBe('timed_out');
+    expect(taskingLogs.slice(0, 4).every((f) => !f.taskingStatus)).toBe(true);
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(Sentry.captureException.mock.calls[0][1].tags).toEqual({
       route: '/api/oncall/emergencydispatch/dispatch',
@@ -87,14 +88,11 @@ describe('IndraMind emergency dispatch on-call vertical', () => {
     });
   });
 
-  test('a small plan confirms within the deadline', async () => {
-    const result = await dispatchResponsePlan({ incidentId: INCIDENT, resources: ['HU-401', 'BF-07'], approvedBy: 'Antonio Ruiz' });
-    expect(result).toMatchObject({ success: true, agenciesConfirmed: 3, dispatch: { incidentId: INCIDENT, approvedBy: 'Antonio Ruiz' } });
-    expect(Sentry.captureException).not.toHaveBeenCalled();
-  });
-
-  test('every tasked plan also notifies SEPRONA, and agencies are de-duplicated', () => {
-    expect(agenciesFor([RESOURCES['BF-07'], RESOURCES['BF-12']]).map((a) => a.id)).toEqual(['bomberos-cm', 'gc-seprona']);
+  test('every valid plan confirms with all coordinating agencies, so even a one-resource plan times out', async () => {
+    expect(agenciesFor([RESOURCES['BF-07'], RESOURCES['BF-12']]).map((a) => a.id))
+      .toEqual(['bomberos-cm', 'forestales-cm', 'miteco-aereos', 'summa-112', 'gc-seprona', 'proteccion-civil']);
+    await expect(dispatchResponsePlan({ incidentId: INCIDENT, resources: ['BF-07'], approvedBy: 'Antonio Ruiz' }))
+      .rejects.toMatchObject({ code: 'DISPATCH_TIMEOUT' });
   });
 
   test('invalid plans are a 400 without Sentry', async () => {
