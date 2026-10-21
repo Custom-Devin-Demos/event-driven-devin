@@ -344,7 +344,8 @@
     const timerValue = document.getElementById('sendTimerValue');
     const IDLE_STATUS = 'Sample account and Pots. No money moves on this page.';
     const IDLE_LABEL = 'Move money';
-    const FEE_PENDING = 'Shown on confirmation';
+    const FEE_PENDING = 'Up to \u00a32.50, shown on confirmation';
+    const FEE_RESERVE = 2.50;
     let timerHandle = null;
     let pending = false;
     const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
@@ -352,6 +353,7 @@
     const balances = { 'ACCT-1001': 2184.37, 'ACCT-1002': 6450.00, 'ACCT-1003': 820.50 };
     function selected(select) { return select.options[select.selectedIndex]; }
     function available() { return balances[fromAccount.value] || 0; }
+    function maxMove() { return Math.max(0, Math.round((available() - FEE_RESERVE) * 100) / 100); }
     function label(select) { return selected(select).dataset.name; }
     function renderBalances() {
       [fromAccount, toAccount].forEach((select) => {
@@ -382,8 +384,8 @@
     }
     function renderReview() {
       const amount = parsedAmount();
-      const valid = Number.isFinite(amount) && amount > 0 && amount <= available();
-      amountHelp.textContent = `Available: ${gbp.format(available())}`;
+      const valid = Number.isFinite(amount) && amount > 0 && amount <= maxMove();
+      amountHelp.textContent = `Available: ${gbp.format(available())} \u00b7 move up to ${gbp.format(maxMove())} including the fee`;
       reviewFrom.textContent = label(fromAccount);
       reviewTo.textContent = label(toAccount);
       reviewAmount.textContent = valid ? gbp.format(amount) : '\u2014';
@@ -407,7 +409,7 @@
       event.preventDefault();
       if (pending) return;
       const amount = parsedAmount();
-      const availableNow = available();
+      const maxNow = maxMove();
       if (fromAccount.value === toAccount.value) {
         result.className = 'result-box notice';
         result.textContent = 'Choose a different Pot or account to move money to. Money can\u2019t be moved into the place it comes from.';
@@ -415,9 +417,11 @@
         toAccount.focus();
         return;
       }
-      if (!Number.isFinite(amount) || amount <= 0 || amount > availableNow) {
+      if (!Number.isFinite(amount) || amount <= 0 || amount > maxNow) {
         result.className = 'result-box notice';
-        result.textContent = `Enter an amount between \u00a30.01 and ${gbp.format(availableNow)}.`;
+        result.textContent = maxNow > 0
+          ? `Enter an amount between \u00a30.01 and ${gbp.format(maxNow)}, so the fee is covered too.`
+          : `There isn\u2019t enough in ${label(fromAccount)} to cover a move and its fee.`;
         status.textContent = IDLE_STATUS;
         amountInput.focus();
         return;
@@ -457,7 +461,7 @@
         const moved = Number(data.receipt.amount);
         const fee = Number(data.fee ?? data.receipt.fee ?? 0);
         const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? moved + fee);
-        balances[fromId] = (balances[fromId] || 0) - debited;
+        balances[fromId] = Math.max(0, Math.round(((balances[fromId] || 0) - debited) * 100) / 100);
         balances[toId] = (balances[toId] || 0) + moved;
         renderBalances();
         renderReview();
