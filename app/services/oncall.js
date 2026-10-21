@@ -28,7 +28,7 @@ const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/b
  *   SLACK_ONCALL_BOT_TOKEN         — bot token override (default: SLACK_BOT_TOKEN)
  *   ONCALL_TEAMS_WEBHOOK_URL       — optional Teams Workflows webhook; alert cards
  *     from skins with `teamsAlerts: true` are also posted there as Adaptive Cards
- *   ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE — optional scenario-level webhook for
+ *   ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE — scenario-level `teamsWebhookEnv` for
  *     healthcare alerts, after any valid per-skin `teamsWebhookEnv` override
  *   <skin.teamsWebhookEnv>         — optional per-skin Teams webhook env var name;
  *     when set to a valid Teams webhook URL, that skin's cards post there instead
