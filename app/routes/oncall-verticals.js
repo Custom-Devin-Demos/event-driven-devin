@@ -18,6 +18,7 @@ const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { createReservation } = require('../services/oncall-verticals/evreservation');
 const { createDeployment } = require('../services/oncall-verticals/privatecloud');
+const { filterPortfolio } = require('../services/oncall-verticals/portfoliofilter');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
@@ -789,6 +790,26 @@ router.post('/api/oncall/privatecloud/deployments', async (req, res) => {
       error: 'The deployment could not be started. No changes were made to the selected endpoints.',
       errorClass: error.name,
       code: error.code || 'DEPLOYMENT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/portfoliofilter/companies — filter the public portfolio
+ * by sector, investment status and geography
+ */
+router.post('/api/oncall/portfoliofilter/companies', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await filterPortfolio({ sector: body.sector, status: body.status, geography: body.geography }));
+  } catch (error) {
+    const status = error.code === 'INVALID_FILTER' ? 400 : error.code === 'PORTFOLIO_TIMEOUT' ? 504 : 500;
+    res.status(status).json({
+      success: false,
+      error: 'The portfolio could not be loaded.',
+      errorClass: error.name,
+      code: error.code || 'PORTFOLIO_FILTER_FAILED',
       requestId: req.requestId,
     });
   }

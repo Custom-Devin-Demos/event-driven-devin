@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Our Portfolio - Hellman & Friedman</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --orange: #b95e02;
+        --teal: #3d5b63;
+        --ink: #000000;
+        --text: #1a1a1a;
+        --nav: #353535;
+        --muted: #4a4a4a;
+        --dim: #7a7a7a;
+        --rule: #d9d9d9;
+        --rule-soft: #e6e6e6;
+        --menu: #f1f0ef;
+        --mark: #4d4d4d;
+        --serif: 'Source Serif 4', 'Times New Roman', Georgia, serif;
+        --sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body { background: #fff; color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+      a { color: inherit; text-decoration: none; }
+      button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; padding: 0; }
+      .wrap { width: 76%; max-width: 1240px; margin: 0 auto; }
+      @media (max-width: 900px) { .wrap { width: auto; padding: 0 20px; } }
+
+      /* Header */
+      .site-header { position: sticky; top: 0; z-index: 40; background: #fff; border-bottom: 1px solid var(--rule-soft); }
+      .site-header .wrap { display: flex; align-items: center; justify-content: space-between; height: 88px; }
+      .wordmark { font-family: var(--serif); font-weight: 500; font-size: 26px; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; }
+      .wordmark .amp { font-weight: 400; margin: 0 2px; }
+      .site-nav { display: flex; align-items: center; gap: 30px; list-style: none; margin: 0; padding: 0; font-size: 13px; font-weight: 500; color: var(--nav); }
+      .site-nav a { display: inline-flex; align-items: center; gap: 5px; padding: 6px 0; }
+      .site-nav a.active { color: var(--orange); }
+      .site-nav svg { width: 10px; height: 10px; }
+      .search { width: 16px; height: 16px; margin-left: 6px; }
+      @media (max-width: 1000px) { .site-nav li.secondary { display: none; } }
+
+      /* Hero */
+      .hero { padding: 72px 0 40px; }
+      .eyebrow { color: var(--orange); font-size: 14px; font-weight: 500; margin: 0 0 18px; }
+      .hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 6.3vw, 88px); line-height: 1.02; letter-spacing: -0.015em; margin: 0 0 28px; color: var(--ink); }
+      .hero h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 2.9vw, 40px); line-height: 1.18; color: var(--teal); margin: 0; max-width: 72%; }
+
+      /* Filter bar */
+      .filters { position: sticky; top: 88px; z-index: 30; background: #fff; }
+      .filters .wrap { display: flex; align-items: center; gap: 48px; height: 44px; border-bottom: 1px solid var(--rule); position: relative; }
+      .filter { position: relative; }
+      .filter > button { display: inline-flex; align-items: center; gap: 14px; font-size: 12px; font-weight: 700; color: var(--text); letter-spacing: 0.01em; height: 44px; }
+      .filter > button svg { width: 10px; height: 10px; transition: transform 0.15s; }
+      .filter.open > button, .filter.active > button { color: var(--orange); }
+      .filter.open > button svg { transform: rotate(180deg); }
+      .filter .menu { display: none; position: absolute; top: 44px; left: 0; min-width: 180px; background: var(--menu); padding: 10px 0 12px; z-index: 35; }
+      .filter.open .menu { display: block; }
+      .filter .menu button { display: block; width: 100%; text-align: left; padding: 7px 14px 7px 12px; font-size: 12px; color: #2b2b2b; white-space: nowrap; }
+      .filter .menu button:hover, .filter .menu button.selected { color: var(--orange); }
+      .filter .menu button.selected { font-weight: 700; }
+      .count { margin-left: auto; font-size: 12px; color: var(--dim); white-space: nowrap; }
+      .count.busy { color: var(--orange); }
+      @media (max-width: 700px) { .filters .wrap { gap: 20px; } .count { display: none; } }
+
+      /* Portfolio sections */
+      .portfolio { padding-bottom: 32px; min-height: 420px; }
+      .section-title { font-weight: 300; font-size: 34px; letter-spacing: -0.01em; margin: 44px 0 22px 4px; color: var(--ink); }
+      .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      @media (max-width: 1000px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+      @media (max-width: 700px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      .cell { height: 128px; display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule); padding: 0 18px; text-align: center; }
+      .grid .cell:nth-child(4n) { border-right: 0; }
+      @media (max-width: 1000px) { .grid .cell:nth-child(4n) { border-right: 1px solid var(--rule-soft); } .grid .cell:nth-child(3n) { border-right: 0; } }
+      @media (max-width: 700px) { .grid .cell:nth-child(3n) { border-right: 1px solid var(--rule-soft); } .grid .cell:nth-child(2n) { border-right: 0; } }
+      .mark { color: var(--mark); font-size: 19px; letter-spacing: -0.01em; line-height: 1.1; transition: color 0.15s; }
+      .cell:hover .mark { color: var(--ink); }
+      .mark.bold { font-weight: 700; }
+      .mark.heavy { font-weight: 900; font-size: 21px; letter-spacing: 0.02em; }
+      .mark.heavy-italic { font-weight: 900; font-style: italic; text-transform: uppercase; font-size: 20px; letter-spacing: 0.04em; }
+      .mark.light { font-weight: 300; font-size: 21px; }
+      .mark.wide { font-weight: 600; text-transform: uppercase; letter-spacing: 0.22em; font-size: 15px; }
+      .mark.caps { font-weight: 500; text-transform: uppercase; letter-spacing: 0.18em; font-size: 12px; line-height: 1.5; }
+      .mark.serif { font-family: var(--serif); font-weight: 500; font-size: 23px; font-style: italic; }
+      .mark.mono { font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-weight: 700; font-size: 17px; }
+      .mark.badge { background: var(--mark); color: #fff; padding: 6px 12px; border-radius: 3px; font-weight: 700; font-size: 14px; }
+      .cell:hover .mark.badge { background: var(--ink); color: #fff; }
+      .mark.regular { font-weight: 400; font-size: 20px; }
+
+      .notice { margin: 48px 0 0; border: 1px solid var(--rule); padding: 40px 36px; }
+      .notice h3 { font-family: var(--serif); font-weight: 400; font-size: 28px; margin: 0 0 12px; color: var(--ink); }
+      .notice p { margin: 0 0 18px; color: var(--muted); max-width: 64ch; }
+      .notice .ref { font-size: 12px; color: var(--dim); }
+      .notice.error { border-color: var(--orange); }
+      .notice.error h3 { color: var(--orange); }
+      .notice button { color: var(--orange); font-weight: 700; font-size: 13px; border-bottom: 1px solid currentColor; }
+      .pending { opacity: 0.45; pointer-events: none; }
+      .skeleton .cell span { display: block; width: 46%; height: 14px; border-radius: 2px; background: #ececec; animation: pulse 1.4s ease-in-out infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+      .notice.outage { border-width: 2px; padding: 56px 40px; text-align: center; }
+      .notice.outage h3 { font-size: 36px; }
+      .notice.outage p { margin-left: auto; margin-right: auto; }
+      .notice.outage .retry { display: inline-block; margin-top: 6px; padding: 12px 26px; border: 2px solid var(--orange); border-radius: 0; color: var(--orange); font-weight: 700; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
+      .notice.outage .retry:hover { background: var(--orange); color: #fff; }
+
+      .note { font-size: 11px; line-height: 1.5; color: #333; margin: 20px 0 56px; }
+      .note p { margin: 0; }
+
+      /* Footer */
+      .site-footer { background: #000; color: #fff; padding: 64px 0 44px; }
+      .foot-top { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+      .site-footer .wordmark { color: #fff; }
+      .foot-nav { display: flex; align-items: center; gap: 26px; list-style: none; margin: 0; padding: 0; font-size: 13px; font-weight: 500; flex-wrap: wrap; }
+      .foot-nav svg { width: 14px; height: 14px; }
+      .foot-legal { display: flex; justify-content: flex-end; gap: 16px; list-style: none; margin: 30px 0 0; padding: 0; font-size: 10px; flex-wrap: wrap; }
+      .foot-legal a { text-decoration: underline; }
+      .foot-rule { border: 0; border-top: 1px solid rgba(255, 255, 255, 0.5); margin: 26px 0 30px; }
+      .foot-bottom { display: flex; justify-content: space-between; gap: 16px; font-size: 10px; flex-wrap: wrap; }
+      .foot-bottom .links { display: flex; gap: 12px; }
+      .foot-bottom .links a { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="wordmark" href="#" aria-label="Hellman & Friedman home">Hellman<span class="amp">&amp;</span>Friedman</a>
+        <nav aria-label="Primary">
+          <ul class="site-nav">
+            <li class="secondary"><a href="#">About <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 3l4 4 4-4"/></svg></a></li>
+            <li class="secondary"><a href="#">Our Approach <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 3l4 4 4-4"/></svg></a></li>
+            <li><a href="#">People</a></li>
+            <li><a href="#" class="active" aria-current="page">Portfolio</a></li>
+            <li><a href="#">News</a></li>
+            <li><a href="#">Contact</a></li>
+            <li class="secondary"><a href="#">Login <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 3l4 4 4-4"/></svg></a></li>
+            <li><a href="#" aria-label="Search"><svg class="search" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="M11 11l4 4"/></svg></a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Portfolio</p>
+        <h1>Our portfolio companies are in very good company.</h1>
+        <h2>We have been privileged to invest in many market leaders in developed markets around the globe.</h2>
+      </div>
+    </section>
+
+    <div class="filters" id="filters">
+      <div class="wrap">
+        <div class="filter" data-facet="sector" id="filter-sector">
+          <button type="button" aria-haspopup="true" aria-expanded="false"><span class="label">Sector</span><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 3l4 4 4-4"/></svg></button>
+          <div class="menu" role="menu">
+            <button type="button" data-value="" class="selected">View All</button>
+            <button type="button" data-value="technology">Technology</button>
+            <button type="button" data-value="healthcare">Healthcare</button>
+            <button type="button" data-value="consumer-services-retail">Consumer Services &amp; Retail</button>
+            <button type="button" data-value="financial-services">Financial Services</button>
+            <button type="button" data-value="information-content-business-services">Information, Content &amp; Business Services</button>
+          </div>
+        </div>
+        <div class="filter" data-facet="status" id="filter-status">
+          <button type="button" aria-haspopup="true" aria-expanded="false"><span class="label">Status</span><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 3l4 4 4-4"/></svg></button>
+          <div class="menu" role="menu">
+            <button type="button" data-value="" class="selected">View All</button>
+            <button type="button" data-value="current">Current</button>
+            <button type="button" data-value="past">Past</button>
+          </div>
+        </div>
+        <div class="filter" data-facet="geography" id="filter-geography">
+          <button type="button" aria-haspopup="true" aria-expanded="false"><span class="label">Geography</span><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 3l4 4 4-4"/></svg></button>
+          <div class="menu" role="menu">
+            <button type="button" data-value="" class="selected">View All</button>
+            <button type="button" data-value="north-america">North America</button>
+            <button type="button" data-value="europe">Europe</button>
+          </div>
+        </div>
+        <div class="count" id="count" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <main class="portfolio">
+      <div class="wrap">
+        <div id="results" aria-live="polite"></div>
+        <div class="note">
+          <p>Note: Includes all investments in which Hellman &amp; Friedman invested $100 million or more, with the exception of one investment in the telecommunications sector made in 1993.</p>
+          <p>H&amp;F&rsquo;s categorization of whether an investment pertains to a particular sector or sectors is subjective and subject to change.</p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <div class="foot-top">
+          <a class="wordmark" href="#">Hellman<span class="amp">&amp;</span>Friedman</a>
+          <ul class="foot-nav">
+            <li><a href="#">About</a></li>
+            <li><a href="#">Our Approach</a></li>
+            <li><a href="#">Our People</a></li>
+            <li><a href="#">Portfolio</a></li>
+            <li><a href="#">News</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">LP Login</a></li>
+            <li><a href="#">GP Login</a></li>
+            <li><a href="#" aria-label="LinkedIn"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 1h14v14H1z" fill="none" stroke="currentColor"/><path d="M4 6.5h1.8V12H4zM4.9 3.6a1 1 0 110 2 1 1 0 010-2zM7 6.5h1.7v.8c.3-.5 1-1 2-1 2 0 2.3 1.3 2.3 2.9V12h-1.8V9.6c0-.8 0-1.7-1-1.7s-1.2.8-1.2 1.6V12H7z"/></svg></a></li>
+          </ul>
+        </div>
+        <ul class="foot-legal">
+          <li><a href="#">Sustainability Disclosures</a></li>
+          <li><a href="#">UK Modern Slavery Statement</a></li>
+          <li><a href="#">Transparency in Coverage</a></li>
+          <li><a href="#">Know Your California Rights</a></li>
+          <li><a href="#">Cookie Preferences</a></li>
+        </ul>
+        <hr class="foot-rule" />
+        <div class="foot-bottom">
+          <div class="links"><span>&copy;2026 HELLMAN &amp; FRIEDMAN LLC</span><a href="#">Terms of Use</a><a href="#">Privacy Policy</a></div>
+          <div>Warren Hellman homepage image: SFChronicle/Frederic Larson</div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      try { if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return; } catch (_) { return; }
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+    (function () {
+      function $(id) { return document.getElementById(id); }
+      function getStore(key) { try { return localStorage.getItem(key) || ''; } catch (_) { return ''; } }
+      var FACETS = ['sector', 'status', 'geography'];
+      var DEFAULT_LABEL = { sector: 'Sector', status: 'Status', geography: 'Geography' };
+      var state = { sector: '', status: '', geography: '', pending: false, requestSeq: 0 };
+      var results = $('results');
+      var count = $('count');
+
+      function esc(text) {
+        return String(text).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function closeMenus(except) {
+        FACETS.forEach(function (facet) {
+          var el = $('filter-' + facet);
+          if (el !== except) { el.classList.remove('open'); el.querySelector('button').setAttribute('aria-expanded', 'false'); }
+        });
+      }
+
+      function renderSections(data) {
+        if (!data.sections.length) {
+          results.innerHTML = '<div class="notice"><h3>No portfolio companies match the selected filters.</h3>'
+            + '<p>Try a different combination of sector, status and geography.</p>'
+            + '<button type="button" id="clearFilters">Clear filters</button></div>';
+          return;
+        }
+        results.innerHTML = data.sections.map(function (section) {
+          return '<h2 class="section-title">' + esc(section.label) + '</h2><div class="grid">'
+            + section.companies.map(function (company) {
+              return '<div class="cell" title="' + esc(company.name) + ' \u00b7 ' + esc(company.sectors.join(', ')) + ' \u00b7 ' + esc(company.geography) + '">'
+                + '<span class="mark ' + esc(company.mark) + '">' + esc(company.name) + '</span></div>';
+            }).join('')
+            + '</div>';
+        }).join('');
+      }
+
+      function renderError(data, elapsedMs) {
+        var seconds = (elapsedMs / 1000).toFixed(1);
+        results.innerHTML = '<div class="notice error outage" role="alert"><h3>Our portfolio is temporarily unavailable.</h3>'
+          + '<p>We couldn\u2019t load the portfolio companies' + (elapsedMs ? ' (gave up after ' + seconds + 's)' : '') + '. Please try again in a moment, or contact Hellman &amp; Friedman Investor Relations if the problem continues.</p>'
+          + (data && data.requestId ? '<p class="ref">Reference ' + esc(data.requestId) + '</p>' : '')
+          + '<button type="button" class="retry" id="retryLoad">Retry</button></div>';
+      }
+
+      function renderSkeleton() {
+        var cells = '';
+        for (var i = 0; i < 12; i += 1) cells += '<div class="cell"><span></span></div>';
+        results.innerHTML = '<div class="skeleton"><h2 class="section-title">Current</h2><div class="grid">' + cells + '</div></div>';
+      }
+
+      function activeFilters() {
+        var body = {};
+        FACETS.forEach(function (facet) { if (state[facet]) body[facet] = state[facet]; });
+        return body;
+      }
+
+      var loadTimer = null;
+      function stopLoadTimer() { if (loadTimer) { clearInterval(loadTimer); loadTimer = null; } }
+
+      async function load() {
+        var seq = ++state.requestSeq;
+        var body = activeFilters();
+        body.devinUserId = getStore('devinUserId');
+        body.devinOrgId = getStore('devinOrgId');
+        body.devinEmail = getStore('devinEmail');
+        var started = Date.now();
+        renderSkeleton();
+        count.classList.add('busy');
+        count.textContent = 'Loading portfolio\u2026';
+        stopLoadTimer();
+        loadTimer = setInterval(function () {
+          count.textContent = 'Loading portfolio\u2026 ' + ((Date.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+        try {
+          var res = await fetch('/api/fd157043/portfolio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          var data = await res.json().catch(function () { return null; });
+          if (seq !== state.requestSeq) return;
+          stopLoadTimer();
+          count.classList.remove('busy');
+          if (!res.ok || !data || data.success !== true) {
+            count.textContent = 'Portfolio unavailable';
+            renderError(data, Date.now() - started);
+            return;
+          }
+          count.textContent = data.total + (data.total === 1 ? ' company' : ' companies');
+          renderSections(data);
+        } catch (err) {
+          if (seq !== state.requestSeq) return;
+          stopLoadTimer();
+          count.classList.remove('busy');
+          count.textContent = 'Portfolio unavailable';
+          renderError(null, Date.now() - started);
+        }
+      }
+
+      function select(facet, value, label) {
+        state[facet] = value;
+        var el = $('filter-' + facet);
+        el.querySelector('.label').textContent = value ? label : DEFAULT_LABEL[facet];
+        el.classList.toggle('active', Boolean(value));
+        Array.prototype.forEach.call(el.querySelectorAll('.menu button'), function (b) { b.classList.toggle('selected', b.dataset.value === value); });
+        closeMenus();
+        load();
+      }
+
+      FACETS.forEach(function (facet) {
+        var el = $('filter-' + facet);
+        var toggle = el.querySelector(':scope > button');
+        toggle.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var open = !el.classList.contains('open');
+          closeMenus(el);
+          el.classList.toggle('open', open);
+          toggle.setAttribute('aria-expanded', String(open));
+        });
+        Array.prototype.forEach.call(el.querySelectorAll('.menu button'), function (b) {
+          b.addEventListener('click', function (e) { e.stopPropagation(); select(facet, b.dataset.value, b.textContent); });
+        });
+      });
+      document.addEventListener('click', function () { closeMenus(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenus(); });
+      results.addEventListener('click', function (e) {
+        if (e.target && e.target.id === 'retryLoad') { load(); return; }
+        if (e.target && e.target.id === 'clearFilters') {
+          FACETS.forEach(function (facet) {
+            state[facet] = '';
+            var el = $('filter-' + facet);
+            el.querySelector('.label').textContent = DEFAULT_LABEL[facet];
+            el.classList.remove('active');
+            Array.prototype.forEach.call(el.querySelectorAll('.menu button'), function (b) { b.classList.toggle('selected', b.dataset.value === ''); });
+          });
+          load();
+        }
+      });
+
+      // The first query waits for the document to finish parsing so a page
+      // served with a fetch shim appended after this script is routed by it.
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
+      else load();
+    })();
+    </script>
+  </body>
+</html>
