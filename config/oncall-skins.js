@@ -4874,6 +4874,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A CHIME SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Chime product.',
   },
+  '91241725': {
+    slug: '91241725',
+    company: 'Applied Data Finance',
+    vertical: 'banking',
+    page: { file: '91241725.html', title: 'Applied Data Finance: AI-Driven Credit & Fintech Lending Platform' },
+    disclaimer: 'NOT ACTUALLY AN APPLIED DATA FINANCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Applied Data Finance product.',
+  },
 };
 
 function getOncallSkin(slug) {
