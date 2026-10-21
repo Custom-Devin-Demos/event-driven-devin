@@ -61,7 +61,7 @@ const ALERT_SCENARIOS = {
     baseline: '~280ms (7-day p95)',
     release: 'apex-bank@1.0.3',
     symptom: 'Transfer submissions hang ~10s before completing. Error rate is normal — requests eventually succeed.',
-    impact: 'Every outgoing transfer sits on a spinner for ~10 seconds; support is reporting rising complaint volume.',
+    impact: 'Every outgoing transfer sits on a spinner for ~10 seconds; some customers submit again, and support is taking calls about duplicate transfers.',
   },
   insurance: {
     vertical: 'insurance',
