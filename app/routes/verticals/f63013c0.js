@@ -11,6 +11,7 @@ const router = express.Router();
 const PAGES = {
   retail: 'retail.html',
   ysl: 'ysl.html',
+  carrefour: 'carrefour.html',
 };
 const PAGES_DIR = path.join(__dirname, '..', '..', 'public', 'verticals', 'f63013c0', 'rb');
 for (const [key, file] of Object.entries(PAGES)) {
