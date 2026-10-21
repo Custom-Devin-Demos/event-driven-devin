@@ -5163,6 +5163,14 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A VARO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Varo product.',
   },
+  'ccfafac1': {
+    slug: 'ccfafac1',
+    company: 'Handshake',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'ccfafac1.html', title: 'Payments | Handshake AI' },
+    disclaimer: 'NOT ACTUALLY A HANDSHAKE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Handshake product.',
+  },
 };
 
 function getOncallSkin(slug) {
