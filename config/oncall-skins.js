@@ -5210,6 +5210,7 @@ const ONCALL_SKINS = {
     brandMark: 'B',
     vertical: 'banking',
     oncallOnly: true,
+    alertDestination: 'slack',
     page: { file: '380c2514.html', title: 'Ordre de virement | BDFdirect \u2014 Banque de France' },
     theme: {
       '--accent': '#006FD8',
