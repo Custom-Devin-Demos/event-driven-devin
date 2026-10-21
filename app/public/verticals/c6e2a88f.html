@@ -405,6 +405,13 @@
     })();
   </script>
   <script>
+    Object.defineProperty(Element.prototype, 'safeHtml', {
+      set(markup) {
+        const inTable = this.tagName === 'TBODY';
+        const doc = new DOMParser().parseFromString(inTable ? `<table><tbody>${markup}</tbody></table>` : markup, 'text/html');
+        this.replaceChildren(...(inTable ? doc.querySelector('tbody') : doc.body).childNodes);
+      },
+    });
     const API = '/api/c6e2a88f';
     const $ = (sel, root) => (root || document).querySelector(sel);
     const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -449,7 +456,7 @@
     function renderQueueRows(filter) {
       const q = (filter || '').trim().toLowerCase();
       const rows = queueRows.filter((r) => !q || r.reference.toLowerCase().includes(q) || r.application.toLowerCase().includes(q));
-      $('#rqRows').innerHTML = rows.map((r) => `<tr>
+      $('#rqRows').safeHtml = rows.map((r) => `<tr>
         <td class="ref"><a href="#decision/${esc(r.reference)}">${esc(r.reference)}</a></td>
         <td>${esc(r.application)}</td>
         <td>${esc(r.domains.join(', '))}</td>
@@ -464,7 +471,7 @@
     async function loadQueue() {
       const data = await (await fetch(`${API}/review-queue`)).json();
       queueRows = data.rows;
-      $('#rqStats').innerHTML = statCard('Waiting on me', data.summary.waitingOnMe) + statCard('Due this week', data.summary.dueThisWeek)
+      $('#rqStats').safeHtml = statCard('Waiting on me', data.summary.waitingOnMe) + statCard('Due this week', data.summary.dueThisWeek)
         + statCard('Overdue', data.summary.overdue) + statCard('Decided this month', data.summary.decidedThisMonth);
       renderQueueRows($('#rqSearch').value);
     }
@@ -476,7 +483,7 @@
     function renderExRows(filter) {
       const q = (filter || '').trim().toLowerCase();
       const rows = exRows.filter((r) => !q || [r.id, r.standard, r.application, r.owner, r.compensatingControl].join(' ').toLowerCase().includes(q));
-      $('#exRows').innerHTML = rows.map((r) => `<tr>
+      $('#exRows').safeHtml = rows.map((r) => `<tr>
         <td class="ref"><a href="#exceptions">${esc(r.id)}</a></td>
         <td>${esc(r.standard)}</td>
         <td>${esc(r.application)}</td>
@@ -491,7 +498,7 @@
     async function loadExceptions() {
       const data = await (await fetch(`${API}/exceptions`)).json();
       exRows = data.rows;
-      $('#exStats').innerHTML = statCard('Expiring in 30 days', data.summary.expiring30) + statCard('Expiring in 60 days', data.summary.expiring60)
+      $('#exStats').safeHtml = statCard('Expiring in 30 days', data.summary.expiring30) + statCard('Expiring in 60 days', data.summary.expiring60)
         + statCard('Expiring in 90 days', data.summary.expiring90) + statCard('Overdue review', data.summary.overdueReview);
       renderExRows($('#exSearch').value);
     }
@@ -619,12 +626,12 @@
 
     async function loadDecision(reference) {
       const body = $('#drBody');
-      body.innerHTML = '<p class="lede">Loading decision record…</p>';
+      body.safeHtml = '<p class="lede">Loading decision record…</p>';
       const res = await fetch(`${API}/decisions/${encodeURIComponent(reference)}`);
       const rec = await res.json();
-      if (!res.ok) { body.innerHTML = `<div class="alert">${esc(rec.error || 'Decision record unavailable.')}</div>`; return; }
+      if (!res.ok) { body.safeHtml = `<div class="alert">${esc(rec.error || 'Decision record unavailable.')}</div>`; return; }
       setCrumbs([['Home', '#review-queue'], ['Decisions', '#decision/ARB-2026-0142'], [rec.decision ? rec.decision.id : reference]]);
-      body.innerHTML = rec.decision ? publishedRecord(rec) : openRecord(rec);
+      body.safeHtml = rec.decision ? publishedRecord(rec) : openRecord(rec);
       const form = $('#decisionForm');
       if (form) form.addEventListener('submit', (e) => submitDecision(e, rec));
     }
@@ -632,7 +639,7 @@
     async function submitDecision(e, rec) {
       e.preventDefault();
       const form = e.target; const btn = $('#recordBtn'); const state = $('#drState'); const alertBox = $('#drAlert');
-      btn.disabled = true; state.textContent = 'Recording…'; alertBox.innerHTML = '';
+      btn.disabled = true; state.textContent = 'Recording…'; alertBox.safeHtml = '';
       const payload = Object.assign({
         reference: rec.submission.reference,
         outcome: form.outcome.value,
@@ -645,16 +652,16 @@
         const res = await fetch(`${API}/decisions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         const data = await res.json();
         if (!res.ok || !data.success) {
-          alertBox.innerHTML = `<div class="alert" role="alert"><b>We couldn't record this decision.</b> ${esc(data.error || 'Unexpected error.')}<br><code>${esc(data.errorClass || 'Error')} · ${esc(rec.submission.reference)} · catalogue ${esc(rec.submission.catalogueVersion)}${data.requestId ? ' · request ' + esc(data.requestId) : ''}</code><br>The Enterprise Architecture platform team has been notified. Your draft has been kept.</div>`;
+          alertBox.safeHtml = `<div class="alert" role="alert"><b>We couldn't record this decision.</b> ${esc(data.error || 'Unexpected error.')}<br><code>${esc(data.errorClass || 'Error')} · ${esc(rec.submission.reference)} · catalogue ${esc(rec.submission.catalogueVersion)}${data.requestId ? ' · request ' + esc(data.requestId) : ''}</code><br>The Enterprise Architecture platform team has been notified. Your draft has been kept.</div>`;
           toast('Decision not recorded', `${data.errorClass || 'Error'} on ${rec.submission.reference}. The EA platform team has been notified.`, 'error');
           state.textContent = '';
           return;
         }
         toast('Decision recorded', `${data.decision.id} · ${data.decision.outcome} · pinned to catalogue ${data.decision.catalogueVersion}.`, 'success');
-        alertBox.innerHTML = `<div class="alert alert-success" role="status"><b>${esc(data.decision.id)} recorded.</b> ${esc(data.decision.outcome)} · ${data.decision.standards.map(esc).join(', ')}</div>`;
+        alertBox.safeHtml = `<div class="alert alert-success" role="status"><b>${esc(data.decision.id)} recorded.</b> ${esc(data.decision.outcome)} · ${data.decision.standards.map(esc).join(', ')}</div>`;
         state.textContent = `Recorded as ${data.decision.id}`;
       } catch (err) {
-        alertBox.innerHTML = `<div class="alert" role="alert"><b>We couldn't reach the decision service.</b> ${esc(err.message)}</div>`;
+        alertBox.safeHtml = `<div class="alert" role="alert"><b>We couldn't reach the decision service.</b> ${esc(err.message)}</div>`;
         toast('Decision not recorded', err.message, 'error');
       } finally {
         btn.disabled = false;
@@ -663,7 +670,7 @@
 
     /* ---------- Routing ---------- */
     function setCrumbs(items) {
-      $('#crumbs').innerHTML = items.map((c, i) => (i < items.length - 1
+      $('#crumbs').safeHtml = items.map((c, i) => (i < items.length - 1
         ? `<a href="${esc(c[1])}">${esc(c[0])}</a><svg class="chev chev-16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6L10 13.6L16 7.6" stroke="#0033FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
         : `<span aria-current="page">${esc(c[0])}</span>`)).join('');
     }
