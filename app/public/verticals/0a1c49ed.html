@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Make a payment | TSB</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #053DA6;
+      --ink: #00012E;
+      --surface: #F4F5F7;
+      --chrome-bg: #002186;
+      --chrome-text: #FFFFFF;
+      --white: #FFFFFF;
+      --splash: #D4EEF8;
+      --tile: #006394;
+      --line: #DFE1E6;
+      --muted: #6C7386;
+      --ok: #0B6B3A;
+      --ok-bg: #E7F5EC;
+      --warn: #BC451A;
+      --warn-bg: #FCEFE9;
+      --head: Nunito, "Quicksand", "DM Sans", Arial, sans-serif;
+      --text: "DM Sans", Arial, Helvetica, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--white); color: var(--ink); font: 400 16px/24px var(--text); -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+
+    .utility { background: var(--surface); font-size: 14px; }
+    .utility .wrap { display: flex; align-items: stretch; height: 46px; }
+    .tabs { display: flex; align-items: stretch; }
+    .tabs a { display: inline-flex; align-items: center; padding: 0 18px; color: var(--ink); text-decoration: none; }
+    .tabs a.current { background: var(--white); font-weight: 700; }
+    .util-links { display: flex; align-items: center; gap: 24px; margin-left: auto; padding-right: 24px; }
+    .util-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); text-decoration: none; }
+    .login-block { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 120px; padding: 0 16px; background: var(--accent); color: var(--chrome-text); text-decoration: none; }
+    .login-block a { color: var(--chrome-text); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+
+    .mainnav { background: var(--white); border-bottom: 1px solid var(--line); }
+    .mainnav .wrap { display: flex; align-items: center; gap: 32px; height: 68px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 22px; letter-spacing: .2px; }
+    .brand svg { width: 34px; height: 34px; flex: none; }
+    .nav-links { display: flex; align-items: center; gap: 26px; }
+    .nav-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); text-decoration: none; font-size: 16px; }
+    .search-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border: 1px solid var(--accent); border-radius: 999px; background: var(--white); color: var(--chrome-bg); font-size: 16px; }
+
+    .ib-bar { background: var(--chrome-bg); color: var(--chrome-text); font-size: 14px; }
+    .ib-bar .wrap { display: flex; align-items: center; gap: 24px; min-height: 48px; flex-wrap: wrap; }
+    .ib-bar strong { font-weight: 700; }
+    .ib-bar nav { display: flex; gap: 22px; margin-left: auto; }
+    .ib-bar nav a { color: var(--chrome-text); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+    .ib-bar nav a.current { font-weight: 700; box-shadow: inset 0 -3px 0 var(--splash); }
+
+    .crumbs { font-size: 13px; padding: 14px 0; color: var(--ink); }
+    .crumbs a { color: var(--ink); text-decoration: none; }
+    .crumbs span[aria-current] { color: var(--accent); font-weight: 700; }
+    .crumbs .sep { margin: 0 8px; color: var(--muted); }
+
+    .hero { position: relative; background: var(--splash); overflow: hidden; }
+    .hero::after { content: ""; position: absolute; left: -10%; right: -10%; bottom: -60px; height: 120px; background: var(--white); border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+    .hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 32px; align-items: center; padding-top: 28px; padding-bottom: 76px; }
+    .eyebrow { margin: 0 0 8px; font-size: 16px; font-weight: 700; color: var(--accent); }
+    h1 { margin: 0; font-family: var(--head); font-weight: 900; font-size: 42px; line-height: 54px; letter-spacing: .26px; }
+    .lead { margin: 12px 0 0; font-size: 18px; line-height: 27px; max-width: 560px; }
+    .hero-art { position: relative; height: 230px; display: grid; place-items: center; }
+    .hero-art img { max-width: 100%; max-height: 230px; object-fit: contain; }
+    .hero-art .art-fallback { display: none; width: 180px; height: 180px; border-radius: 40px; background: linear-gradient(140deg, var(--accent), var(--tile)); }
+    .hero-art.no-img img { display: none; }
+    .hero-art.no-img .art-fallback { display: block; }
+
+    main .wrap { padding-top: 8px; padding-bottom: 64px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr); gap: 28px; align-items: start; }
+    .card { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 32px; }
+    .card h2 { margin: 0 0 4px; font-family: var(--head); font-weight: 800; font-size: 32px; line-height: 40px; letter-spacing: .26px; }
+    .card .sub { margin: 0 0 24px; color: var(--muted); }
+    .steps { display: flex; gap: 8px; margin: 0 0 28px; padding: 0; list-style: none; flex-wrap: wrap; }
+    .steps li { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--surface); font-size: 14px; font-weight: 500; }
+    .steps li b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; background: var(--accent); color: var(--chrome-text); font-size: 13px; }
+    .field { margin-bottom: 22px; }
+    .field label { display: block; margin-bottom: 8px; font-size: 16px; font-weight: 700; }
+    .field input, .field select { width: 100%; min-height: 52px; padding: 12px 16px; border: 1px solid var(--muted); border-radius: 12px; background: var(--white); color: var(--ink); font-size: 16px; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--accent) 50%), linear-gradient(135deg, var(--accent) 50%, transparent 50%); background-position: calc(100% - 22px) 23px, calc(100% - 16px) 23px; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 44px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 14px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: "\00A3"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 700; }
+    .amount-wrap input { padding-left: 32px; }
+    .summary { margin: 4px 0 24px; padding: 18px 20px; border-radius: 16px; background: var(--surface); display: grid; gap: 10px; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+    .summary dt { margin: 0; color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 12px 28px; border-radius: 999px; font-size: 18px; font-weight: 700; border: 1px solid var(--accent); }
+    .btn-primary { background: var(--accent); color: var(--chrome-text); }
+    .btn-primary:hover { background: var(--chrome-bg); }
+    .btn-primary:disabled { opacity: .7; cursor: wait; }
+    .btn-secondary { background: var(--white); color: var(--chrome-bg); }
+    .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
+    .status { margin: 14px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 20px; border-radius: 16px; font-size: 16px; line-height: 24px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); border-left: 4px solid var(--warn); }
+
+    aside .card { padding: 24px; }
+    aside .card + .card { margin-top: 16px; }
+    aside h3 { margin: 0 0 12px; font-family: var(--head); font-weight: 800; font-size: 22px; line-height: 28px; }
+    .accounts { list-style: none; margin: 0; padding: 0; }
+    .accounts li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+    .accounts li:first-child { border-top: 0; padding-top: 0; }
+    .acct { display: flex; align-items: center; gap: 12px; }
+    .acct-icon { flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--splash); display: grid; place-items: center; }
+    .acct-icon img { width: 26px; height: 26px; }
+    .acct-icon.no-img img { display: none; }
+    .acct-icon.no-img::after { content: "\00A3"; font-weight: 700; color: var(--accent); }
+    .acct-name { display: block; font-weight: 700; }
+    .acct-num { display: block; color: var(--muted); font-size: 14px; }
+    .acct-bal { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+    .acct-bal small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+    .help { background: var(--surface); border-color: var(--surface); }
+    .help .row { display: flex; gap: 14px; align-items: flex-start; }
+    .help img { width: 44px; height: 44px; flex: none; }
+    .help img.no-img { display: none; }
+    .help p { margin: 0 0 10px; font-size: 15px; line-height: 22px; }
+    .help a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+    .quick { background: var(--tile); border-color: var(--tile); color: var(--chrome-text); }
+    .quick h3 { color: var(--chrome-text); }
+    .quick p { margin: 0 0 10px; font-size: 15px; line-height: 22px; }
+    .quick a { color: var(--chrome-text); font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; }
+
+    .site-footer { background: var(--surface); font-size: 16px; }
+    .site-footer .wrap { padding-top: 44px; padding-bottom: 28px; }
+    .foot-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(200px, .8fr); gap: 24px; }
+    .foot-grid a { display: flex; align-items: center; min-height: 40px; color: var(--accent); text-decoration: none; font-size: 17px; }
+    .foot-mark { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .foot-mark .brand { font-size: 20px; }
+    .foot-mark .line { color: var(--muted); font-size: 15px; }
+    .legal { margin: 28px 0 0; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14px; line-height: 21px; }
+    .legal p { margin: 0 0 8px; }
+    .ib-foot { background: var(--chrome-bg); color: var(--chrome-text); font-size: 14px; }
+    .ib-foot .wrap { display: flex; gap: 20px; align-items: center; min-height: 48px; flex-wrap: wrap; }
+    .ib-foot a { color: var(--chrome-text); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+
+    @media (max-width: 1080px) {
+      .nav-links { gap: 16px; }
+      .util-links a.opt { display: none; }
+    }
+    @media (max-width: 900px) {
+      .wrap { padding: 0 16px; }
+      .tabs a { padding: 0 12px; }
+      .util-links { display: none; }
+      .login-block { margin-left: auto; }
+      .mainnav .wrap { height: 60px; gap: 12px; }
+      .nav-links { display: none; }
+      .search-btn { padding: 0 16px; }
+      .ib-bar nav { display: none; }
+      .hero .wrap { grid-template-columns: 1fr; padding-bottom: 64px; }
+      .hero-art { order: -1; height: 150px; }
+      .hero-art img { max-height: 150px; }
+      h1 { font-size: 32px; line-height: 40px; }
+      .lead { font-size: 16px; line-height: 24px; }
+      .layout { grid-template-columns: 1fr; }
+      .card { padding: 22px; }
+      .card h2 { font-size: 26px; line-height: 32px; }
+      .actions .btn { width: 100%; }
+      .foot-grid { grid-template-columns: 1fr; gap: 0; }
+      .foot-mark { margin-top: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="utility">
+      <div class="wrap">
+        <nav class="tabs" aria-label="Customer type"><a href="#" class="current" aria-current="page">Personal</a><a href="#">Business</a></nav>
+        <nav class="util-links" aria-label="Utility"><a href="#">Help &amp; Support</a><a href="#" class="opt">Get the app</a><a href="#" class="opt">My TSB Rewards</a><a href="#" class="opt">Money Confidence</a></nav>
+        <div class="login-block"><a href="#">Log off</a></div>
+      </div>
+    </div>
+    <div class="mainnav">
+      <div class="wrap">
+        <a class="brand" href="#" aria-label="TSB home">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#053DA6"/><path d="M24 0h8v8a8 8 0 0 0-8-8z" fill="#D4EEF8"/><text x="16" y="23" text-anchor="middle" font-family="Nunito, Arial, sans-serif" font-weight="900" font-size="20" fill="#fff">T</text></svg>
+          <span>TSB</span>
+        </a>
+        <nav class="nav-links" aria-label="Products"><a href="#">Current Accounts</a><a href="#">Save &amp; Invest</a><a href="#">Mortgages</a><a href="#">Insurance</a><a href="#">Loans</a><a href="#">Credit Cards</a></nav>
+        <button type="button" class="search-btn">Search</button>
+      </div>
+    </div>
+    <div class="ib-bar">
+      <div class="wrap">
+        <span><strong>Internet Banking</strong> &middot; Good afternoon, Alex</span>
+        <nav aria-label="Internet Banking"><a href="#">My accounts</a><a href="#" class="current" aria-current="page">Move money</a><a href="#">My recipients</a><a href="#">Payments to approve</a></nav>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero" aria-labelledby="page-title">
+    <div class="wrap">
+      <div>
+        <div class="crumbs"><a href="#">Internet Banking</a><span class="sep">|</span><a href="#">Move money</a><span class="sep">|</span><span aria-current="page">Make a payment</span></div>
+        <p class="eyebrow">Move money</p>
+        <h1 id="page-title">Make a payment</h1>
+        <p class="lead">Pay an existing recipient from your Spend &amp; Save account. Check the details, then select Confirm.</p>
+      </div>
+      <div class="hero-art">
+        <img src="https://www.tsb.co.uk/current-accounts/ways-to-pay/_jcr_content/root/container/container/container_copy_copy_/container/hero.coreimg.85.1600.png/1711381710357/padlock-with-orbs.png" alt="" onerror="this.parentElement.classList.add('no-img')">
+        <div class="art-fallback" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <main id="payment">
+    <div class="wrap">
+      <div class="layout">
+        <section class="card" aria-labelledby="form-title">
+          <h2 id="form-title">Pay existing or new payee</h2>
+          <p class="sub">Choose the account to pay from, choose a recipient and enter the amount.</p>
+          <ol class="steps" aria-label="Steps"><li><b>1</b>From</li><li><b>2</b>To</li><li><b>3</b>Amount</li><li><b>4</b>Confirm</li></ol>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount">
+                <option value="ACCT-1002" data-name="Spend &amp; Save" data-number="12-34-56 | 98765432" data-tier="standard">Spend &amp; Save</option>
+                <option value="ACCT-1001" data-name="Spend &amp; Save Plus" data-number="12-34-56 | 41827365" data-tier="premium">Spend &amp; Save Plus</option>
+              </select>
+              <small id="fromHelp">Available balance: &pound;0.00</small>
+              <input type="hidden" id="accountTier" value="standard">
+            </div>
+            <div class="field">
+              <label for="toAccount">To</label>
+              <select id="toAccount">
+                <option value="" disabled selected>Choose a recipient</option>
+                <option value="PAYEE-546897" data-name="Harbour Lettings" data-number="54-68-97 | 13356652" data-ref="Rent">Harbour Lettings &middot; 54-68-97 | 13356652</option>
+                <option value="PAYEE-301142" data-name="J Morgan" data-number="30-11-42 | 70219984" data-ref="Football club">J Morgan &middot; 30-11-42 | 70219984</option>
+                <option value="PAYEE-772018" data-name="Northfield Energy" data-number="77-20-18 | 55120387" data-ref="Account 8841207">Northfield Energy &middot; 77-20-18 | 55120387</option>
+              </select>
+              <small id="toHelp">My recipients</small>
+            </div>
+            <div class="field">
+              <label for="amount">Amount</label>
+              <div class="amount-wrap"><input type="text" id="amount" inputmode="decimal" autocomplete="off" placeholder="Enter amount" aria-describedby="amountHelp"></div>
+              <small id="amountHelp">Pay up to &pound;0.00</small>
+            </div>
+            <dl class="summary" aria-label="Payment summary">
+              <div><dt>From</dt><dd id="sumFrom">&mdash;</dd></div>
+              <div><dt>To</dt><dd id="sumTo">&mdash;</dd></div>
+              <div><dt>Reference</dt><dd id="sumRef">&mdash;</dd></div>
+              <div><dt>Amount</dt><dd id="sumAmount">&mdash;</dd></div>
+              <div><dt>When</dt><dd>Today</dd></div>
+            </dl>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="btn btn-primary">Confirm</button>
+              <button type="reset" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+            <p class="status" id="paymentStatus" role="status" aria-live="polite">Sample accounts and recipients. No real money moves on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="card">
+            <h3>My accounts</h3>
+            <ul class="accounts">
+              <li><span class="acct"><span class="acct-icon"><img src="https://www.tsb.co.uk/content/dam/tsb-public/images/business/icons/icon-money-wallet-open.svg" alt="" onerror="this.parentElement.classList.add('no-img')"></span><span><span class="acct-name">Spend &amp; Save</span><span class="acct-num">12-34-56 | 98765432</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1002">&pound;0.00</span><small>Available balance</small></span></li>
+              <li><span class="acct"><span class="acct-icon"><img src="https://www.tsb.co.uk/content/dam/tsb-public/images/business/icons/icon-money-wallet-open.svg" alt="" onerror="this.parentElement.classList.add('no-img')"></span><span><span class="acct-name">Spend &amp; Save Plus</span><span class="acct-num">12-34-56 | 41827365</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1001">&pound;0.00</span><small>Available balance</small></span></li>
+              <li><span class="acct"><span class="acct-icon"><img src="https://www.tsb.co.uk/content/dam/tsb-public/images/icons/icon-savings.svg" alt="" onerror="this.parentElement.classList.add('no-img')"></span><span><span class="acct-name">Saving Pot 1</span><span class="acct-num">Savings Pots</span></span></span><span class="acct-bal"><span>&pound;850.00</span><small>Balance</small></span></li>
+            </ul>
+          </div>
+          <div class="card quick">
+            <h3>Moving money between your accounts?</h3>
+            <p>Use Make a quick transfer to move money to the accounts you have under my accounts.</p>
+            <a href="#">Make a quick transfer</a>
+          </div>
+          <div class="card help">
+            <div class="row">
+              <img src="https://www.tsb.co.uk/content/dam/tsb-public/images/business/icons/help-and-support-icon.png" alt="" onerror="this.classList.add('no-img')">
+              <div>
+                <h3>Need help?</h3>
+                <p>Find out how to pay a new or existing payee, or delete a recipient, in our how-to guides.</p>
+                <a href="#">Help &amp; Support</a>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div><a href="#">Legal</a><a href="#">Contact us</a><a href="#">Branch Locator</a><a href="#">Fraud Prevention Centre</a></div>
+        <div><a href="#">Service status</a><a href="#">Accessibility</a><a href="#">Privacy</a><a href="#">Careers</a></div>
+        <div><a href="#">Cookies</a><a href="#">Press and Media</a><a href="#">Investor Relations</a><a href="#">Sitemap</a></div>
+        <div class="foot-mark">
+          <span class="brand" aria-hidden="true"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#053DA6"/><path d="M24 0h8v8a8 8 0 0 0-8-8z" fill="#D4EEF8"/><text x="16" y="23" text-anchor="middle" font-family="Nunito, Arial, sans-serif" font-weight="900" font-size="20" fill="#fff">T</text></svg><span>TSB</span></span>
+          <span class="line">Internet Banking</span>
+        </div>
+      </div>
+      <div class="legal">
+        <p>Sample Internet Banking experience. The accounts, recipients, balances and payments shown here are example data.</p>
+      </div>
+    </div>
+    <div class="ib-foot"><div class="wrap"><a href="#">Legal</a><a href="#">Privacy</a><a href="#">Security</a><a href="#">Rates and Charges</a></div></div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('paymentStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const accountTier = document.getElementById('accountTier');
+    const fromHelp = document.getElementById('fromHelp');
+    const toHelp = document.getElementById('toHelp');
+    const amountHelp = document.getElementById('amountHelp');
+    const sumFrom = document.getElementById('sumFrom');
+    const sumTo = document.getElementById('sumTo');
+    const sumRef = document.getElementById('sumRef');
+    const sumAmount = document.getElementById('sumAmount');
+    const fields = [fromAccount, toAccount, amountInput];
+    const IDLE_STATUS = 'Sample accounts and recipients. No real money moves on this page.';
+    const IDLE_LABEL = 'Confirm';
+    const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
+    const timeFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
+    const STARTING_BALANCES = { 'ACCT-1002': 2418.36, 'ACCT-1001': 5162.90 };
+    let balances = { ...STARTING_BALANCES };
+    let pending = false;
+
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function available() { return balances[fromAccount.value] || 0; }
+    function parsedAmount() {
+      const raw = amountInput.value.trim().replace(/,/g, '');
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw);
+    }
+    function recipient() { return toAccount.value ? selected(toAccount) : null; }
+    function renderBalances() {
+      document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = gbp.format(balances[el.dataset.balanceFor] || 0); });
+    }
+    function render() {
+      const from = selected(fromAccount);
+      const to = recipient();
+      const amount = parsedAmount();
+      accountTier.value = from.dataset.tier;
+      fromHelp.textContent = `${from.dataset.number} \u00b7 Available balance: ${gbp.format(available())}`;
+      toHelp.textContent = to ? `${to.dataset.number} \u00b7 Reference: ${to.dataset.ref}` : 'My recipients';
+      amountHelp.textContent = `Pay up to ${gbp.format(available())}`;
+      sumFrom.textContent = from.dataset.name;
+      sumTo.textContent = to ? to.dataset.name : '\u2014';
+      sumRef.textContent = to ? to.dataset.ref : '\u2014';
+      sumAmount.textContent = Number.isFinite(amount) && amount > 0 ? gbp.format(amount) : '\u2014';
+    }
+    function notice(message, focusEl) {
+      result.className = 'result-box notice';
+      result.textContent = message;
+      status.textContent = IDLE_STATUS;
+      if (focusEl) focusEl.focus();
+    }
+
+    fromAccount.addEventListener('change', render);
+    toAccount.addEventListener('change', render);
+    amountInput.addEventListener('input', render);
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        balances = { ...STARTING_BALANCES };
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        renderBalances();
+        render();
+      });
+    });
+    renderBalances();
+    render();
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const to = recipient();
+      const amount = parsedAmount();
+      if (!to) { notice('Choose a recipient to pay.', toAccount); return; }
+      if (!Number.isFinite(amount) || amount <= 0) { notice('Enter an amount, for example 25.00.', amountInput); return; }
+      if (amount > available()) { notice(`Enter an amount up to ${gbp.format(available())}, the available balance in ${selected(fromAccount).dataset.name}.`, amountInput); return; }
+
+      pending = true;
+      button.disabled = true;
+      cancelBtn.disabled = true;
+      fields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Sending\u2026';
+      status.textContent = 'Sending your payment\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const fromId = fromAccount.value;
+      const fromName = selected(fromAccount).dataset.name;
+      const toName = to.dataset.name;
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
+            accountTier: accountTier.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Payment not sent.');
+        if (!data || !data.receipt) throw new Error('Payment outcome unknown.');
+        const at = timeFmt.format(new Date(data.receipt.timestamp));
+        const paid = Number(data.receipt.amount);
+        const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
+        if (data.duplicate) {
+          result.className = 'result-box notice';
+          result.textContent = `This payment was already sent at ${at}: ${gbp.format(paid)} to ${toName} from ${fromName}, reference ${data.receipt.receiptId}. It hasn\u2019t been sent again.`;
+          status.textContent = 'Already sent.';
+          return;
+        }
+        balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+        renderBalances();
+        render();
+        const charge = debited - paid > 0.004 ? ` ${gbp.format(debited)} has been taken from ${fromName}, including a ${gbp.format(debited - paid)} charge.` : '';
+        result.className = 'result-box success';
+        result.textContent = `Payment sent at ${at}. ${gbp.format(paid)} to ${toName} from ${fromName}.${charge} Reference ${data.receipt.receiptId}.`;
+        status.textContent = 'Payment sent.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'Sorry, we couldn\u2019t send this payment. No money has left your account. Please try again in a moment.';
+          status.textContent = 'Payment not sent.';
+        } else {
+          result.textContent = 'We couldn\u2019t confirm this payment. Check your recent transactions before trying again so the same payment isn\u2019t sent twice.';
+          status.textContent = 'Payment not confirmed.';
+        }
+      } finally {
+        fields.forEach((el) => { el.disabled = false; });
+        pending = false;
+        button.disabled = false;
+        cancelBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
