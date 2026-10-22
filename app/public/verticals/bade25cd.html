@@ -319,6 +319,7 @@
       const PIPELINES = [
         {
           id: 'maz-demand', name: 'poc-weekly-demand-forecast', group: 'Demand forecasting', zone: 'Middle Americas', schedule: 'Mon 02:00 CST',
+          output: 'forecast', publishSub: 'Replenishment suggestions',
           lastRun: '2h ago', duration: '41m 08s', status: { text: 'Succeeded', cls: 'ok' },
           model: 'demand-gbm', version: 'v14.2', features: 'poc_sku_weekly_v9', horizon: '8 wks', pocs: '1,184,300', skus: '412',
           health: [['wMAPE (holdout)', '8.4%'], ['Bias', '−0.6%'], ['Feature drift (PSI)', '0.04'], ['POC coverage', '99.2%']],
@@ -334,6 +335,7 @@
         },
         {
           id: 'saz-demand', name: 'poc-weekly-demand-forecast', group: 'Demand forecasting', zone: 'South America', schedule: 'Mon 03:00 BRT',
+          output: 'forecast', publishSub: 'Replenishment suggestions',
           lastRun: '1h ago', duration: '52m 30s', status: { text: 'Succeeded', cls: 'ok' },
           model: 'demand-gbm', version: 'v14.2', features: 'poc_sku_weekly_v9', horizon: '8 wks', pocs: '1,962,750', skus: '538',
           health: [['wMAPE (holdout)', '9.1%'], ['Bias', '+0.4%'], ['Feature drift (PSI)', '0.06'], ['POC coverage', '98.7%']],
@@ -349,6 +351,7 @@
         },
         {
           id: 'naz-promo', name: 'promo-uplift-scoring', group: 'Revenue management', zone: 'North America', schedule: 'Daily 04:30 ET',
+          output: 'uplift scores', publishSub: 'Promo recommendations',
           lastRun: '5h ago', duration: '18m 47s', status: { text: 'Succeeded', cls: 'ok' },
           model: 'uplift-tlearner', version: 'v6.0', features: 'promo_calendar_v4', horizon: '6 wks', pocs: '412,900', skus: '219',
           health: [['Qini (holdout)', '0.31'], ['Uplift bias', '+1.2%'], ['Feature drift (PSI)', '0.03'], ['Retailer coverage', '97.9%']],
@@ -363,6 +366,7 @@
         },
         {
           id: 'afr-oos', name: 'oos-risk-nightly', group: 'Supply', zone: 'Africa', schedule: 'Daily 01:00 SAST',
+          output: 'OOS risk scores', publishSub: 'Depot alerts',
           lastRun: '15h ago', duration: '22m 15s', status: { text: 'Succeeded', cls: 'ok' },
           model: 'oos-classifier', version: 'v3.8', features: 'depot_stock_daily_v5', horizon: '7 days', pocs: '318,400', skus: '164',
           health: [['AUC (holdout)', '0.87'], ['Precision @ top 5%', '0.62'], ['Feature drift (PSI)', '0.05'], ['Depot coverage', '99.6%']],
@@ -377,7 +381,8 @@
         },
         {
           id: 'eur-churn', name: 'poc-churn-propensity', group: 'Customer', zone: 'Europe', schedule: 'Sun 22:00 CET',
-          lastRun: '3d ago', duration: '27m 39s', status: { text: 'Paused', cls: 'idle' }, paused: true,
+          output: 'churn scores', publishSub: 'Retention lists',
+          lastRun: '3d ago', duration: '27m 39s', status: { text: 'Succeeded', cls: 'ok' }, paused: true,
           model: 'churn-lgbm', version: 'v9.1', features: 'poc_engagement_v7', horizon: '12 wks', pocs: '276,150', skus: '—',
           health: [['AUC (holdout)', '0.81'], ['Calibration (ECE)', '0.018'], ['Feature drift (PSI)', '0.09'], ['POC coverage', '96.4%']],
           ingest: 'BEES sessions + orders · 3.3M rows', unit: 'POCs flagged',
@@ -394,13 +399,19 @@
       const state = { selectedId: PIPELINES[0].id, inFlight: false, lastResult: {}, stages: {}, seq: 0, runNo: {} };
 
       function current() { return PIPELINES.find((p) => p.id === state.selectedId) || PIPELINES[0]; }
+      function detailSub(p) { return `Last run ${p.lastRun}${p.paused ? ' · schedule paused' : ''}`; }
+      function nextRunLabel(p) {
+        state.runNo[p.id] = (state.runNo[p.id] || parseInt(p.runs[0][0].slice(1), 10)) + 1;
+        return '#' + state.runNo[p.id];
+      }
+      function outputLabel(p) { return p.output.charAt(0).toUpperCase() + p.output.slice(1); }
       function baseStages(p) {
         return [
           { name: 'Ingest', sub: p.ingest, st: 'idle', label: 'Not started' },
           { name: 'Build features', sub: p.features, st: 'idle', label: 'Not started' },
           { name: 'Validate drift', sub: 'PSI < 0.20 · schema check', st: 'idle', label: 'Not started' },
           { name: 'Batch score', sub: `${p.model} ${p.version} · ${$('maxTokens').value} batches`, st: 'idle', label: 'Not started' },
-          { name: 'Publish to BEES', sub: 'Replenishment suggestions', st: 'idle', label: 'Not started' },
+          { name: 'Publish to BEES', sub: p.publishSub, st: 'idle', label: 'Not started' },
         ];
       }
       const DOT = { idle: '', ok: 'ok', warn: 'warn', danger: 'danger', run: 'run', held: 'held' };
@@ -429,10 +440,10 @@
             <td>${esc(p.paused ? 'Paused' : p.schedule)}</td>
             <td class="num">${esc(p.lastRun)}</td>
             <td class="num r">${esc(p.duration)}</td>
-            <td><span class="chip ${p.status.cls}">${esc(p.status.text)}</span></td>
+            <td><span class="chip ${p.status.cls}">${esc(p.status.text)}</span>${p.paused ? ' <span class="chip idle">Paused</span>' : ''}</td>
             <td><button type="button" class="btn sm" data-id="${p.id}" ${state.inFlight ? 'disabled' : ''}>Open</button></td>
           </tr>`).join('');
-        const healthy = PIPELINES.filter((p) => p.status.cls === 'ok').length;
+        const healthy = PIPELINES.filter((p) => p.status.cls === 'ok' && !p.paused).length;
         $('plCount').textContent = PIPELINES.length;
         $('plSub').textContent = `${healthy} healthy · ${PIPELINES.length - healthy} need attention`;
       }
@@ -462,7 +473,7 @@
         $('detailTitle').textContent = `${p.name} · ${p.zone}`;
         $('detailChip').textContent = p.status.text;
         $('detailChip').className = 'chip ' + p.status.cls;
-        $('detailSub').textContent = `Last run ${p.lastRun}`;
+        $('detailSub').textContent = detailSub(p);
         $('params').innerHTML = [['Model', `${p.model} ${p.version}`], ['Feature view', p.features], ['Horizon', p.horizon], ['POCs', p.pocs], ['SKUs', p.skus], ['Mode', 'Incremental · latest ISO week']]
           .map(([k, v]) => `<span class="param"><b>${esc(k)}</b>${esc(v)}</span>`).join('');
         $('prompt').value = promptFor(p);
@@ -478,11 +489,11 @@
         if (state.lastResult[p.id]) showResult(p, state.lastResult[p.id]);
       }
 
-      const PREVIEW_NOTE = 'Forecast preview rows are illustrative for this pipeline; timings and batch counts are measured from this run.';
       function renderPreview(p, revealed) {
         const rows = p.rows.slice(0, revealed).map((r) => `<tr><td class="name">${esc(r.sku)}</td><td>${esc(r.brand)}</td><td>${esc(r.pack)}</td><td class="num r">${esc(r.fcst.toLocaleString('en-US'))}</td><td class="num r">${esc(pct(r.ly))}</td></tr>`);
         const pending = p.rows.slice(revealed).map(() => '<tr class="pending-row"><td colspan="5">Waiting for the next scored batch…</td></tr>');
-        $('resultTable').innerHTML = `<p class="preview-note">${esc(PREVIEW_NOTE)}</p><div class="table-wrap"><table aria-label="Forecast preview">
+        const previewNote = `${outputLabel(p)} preview rows are illustrative for this pipeline; timings and batch counts are measured from this run.`;
+        $('resultTable').innerHTML = `<p class="preview-note">${esc(previewNote)}</p><div class="table-wrap"><table aria-label="${esc(outputLabel(p))} preview">
           <thead><tr><th>SKU</th><th>Brand</th><th>Pack / segment</th><th class="r">Wk+1 (${esc(p.unit)})</th><th class="r">vs LY</th></tr></thead>
           <tbody>${rows.concat(pending).join('')}</tbody></table></div>`;
       }
@@ -491,7 +502,7 @@
         const degraded = res.ttftMs > SLA_MS;
         const box = $('result');
         box.className = 'result-box show ' + (degraded ? 'degraded' : 'success');
-        box.innerHTML = `<h3>${degraded ? 'Run degraded — scoring SLA breached. Publish to BEES held.' : 'Run succeeded. Forecast published to BEES.'}</h3>
+        box.innerHTML = `<h3>${degraded ? 'Run degraded — scoring SLA breached. Publish to BEES held.' : 'Run succeeded. ' + outputLabel(p) + ' published to BEES.'}</h3>
           <div class="timing">Run ${esc(res.runLabel)} · first scored batch after <b>${esc(fmtS(res.ttftMs))}</b> (SLA ${esc(fmtS(SLA_MS))}) · ${esc(res.batches)} batches in ${esc(fmtS(res.totalMs))}</div>
           <div class="kpis">
             <div class="kpi"><div class="lbl">First scored batch</div><div class="val ${degraded ? 'bad' : ''}">${esc(fmtS(res.ttftMs))}</div></div>
@@ -532,8 +543,6 @@
       $('pauseBtn').addEventListener('click', () => {
         const p = current();
         p.paused = !p.paused;
-        if (p.paused) p.status = { text: 'Paused', cls: 'idle' };
-        else if (p.status.cls === 'idle') p.status = { text: 'Succeeded', cls: 'ok' };
         renderRows();
         renderDetail();
         toast(p.paused ? `${p.name} · ${p.zone} schedule paused.` : `${p.name} · ${p.zone} schedule resumed (${p.schedule}).`);
@@ -635,8 +644,7 @@
           setStage(4, degraded ? { st: 'held', label: 'Held · SLA breach' } : { st: 'ok', label: 'Published', time: '0.2 s' });
           $('progressBar').style.width = degraded ? '90%' : '100%';
           const totalMs = Date.now() - started;
-          state.runNo[p.id] = (state.runNo[p.id] || parseInt(p.runs[0][0].slice(1), 10)) + 1;
-          const runLabel = '#' + state.runNo[p.id];
+          const runLabel = nextRunLabel(p);
           const summary = { runLabel, ttftMs, totalMs, batches };
           state.lastResult[p.id] = summary;
           p.runs = [[runLabel, 'manual', fmtS(totalMs), degraded ? 'warn' : 'ok']].concat(p.runs).slice(0, 6);
@@ -644,25 +652,32 @@
           p.duration = fmtS(totalMs);
           p.status = degraded ? { text: 'Degraded', cls: 'warn' } : { text: 'Succeeded', cls: 'ok' };
           status.innerHTML = degraded
-            ? `Completed in <b>${esc(fmtS(totalMs))}</b>. Batch score returned its first batch after <b>${esc(fmtS(ttftMs))}</b>, over the ${esc(fmtS(SLA_MS))} SLA. Suggestions in BEES keep last week's forecast until a run passes.`
+            ? `Completed in <b>${esc(fmtS(totalMs))}</b>. Batch score returned its first batch after <b>${esc(fmtS(ttftMs))}</b>, over the ${esc(fmtS(SLA_MS))} SLA. ${esc(p.publishSub)} in BEES keep last week's ${esc(p.output)} until a run passes.`
             : `Completed in <b>${esc(fmtS(totalMs))}</b>.`;
           $('detailChip').textContent = p.status.text;
           $('detailChip').className = 'chip ' + p.status.cls;
-          $('detailSub').textContent = 'Last run just now';
+          $('detailSub').textContent = detailSub(p);
           showResult(p, summary);
           renderSide(p);
         } catch (err) {
           clearInterval(tick);
           setStage(3, { st: 'danger', label: 'Failed', time: fmtS(Date.now() - scoreStart) });
           setStage(4, { st: 'held', label: 'Not run' });
+          const totalMs = Date.now() - started;
+          const runLabel = nextRunLabel(p);
+          p.runs = [[runLabel, 'manual', fmtS(totalMs), 'danger']].concat(p.runs).slice(0, 6);
           p.status = { text: 'Failed', cls: 'danger' };
           p.lastRun = 'just now';
+          p.duration = fmtS(totalMs);
+          delete state.lastResult[p.id];
           $('detailChip').textContent = 'Failed';
           $('detailChip').className = 'chip danger';
+          $('detailSub').textContent = detailSub(p);
           $('resultTable').innerHTML = '';
           $('result').className = 'result-box show error';
-          $('result').innerHTML = `<h3>Batch score did not complete.</h3><div class="timing">No forecast was published${err.status ? ` (HTTP ${esc(err.status)})` : ''}. The previous forecast stays active in BEES. Retry the run or contact ML Platform Support.</div>`;
+          $('result').innerHTML = `<h3>Batch score did not complete.</h3><div class="timing">No ${esc(p.output)} was published${err.status ? ` (HTTP ${esc(err.status)})` : ''}. The previous ${esc(p.output)} stays active in BEES. Retry the run or contact ML Platform Support.</div>`;
           status.textContent = 'Not completed.';
+          renderSide(p);
         } finally {
           lock(false);
           renderRows();
