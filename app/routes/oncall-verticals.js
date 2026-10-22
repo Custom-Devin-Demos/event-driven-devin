@@ -31,6 +31,7 @@ const logger = require('../telemetry/logger');
 const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
 const { getAvailability, confirmBooking } = require('../services/oncall-verticals/examscheduling');
 const { dispatchResponsePlan } = require('../services/oncall-verticals/emergencydispatch');
+const { createSession: createMemberSession } = require('../services/oncall-verticals/memberlogin');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
@@ -894,6 +895,26 @@ router.post('/api/oncall/emergencydispatch/dispatch', async (req, res) => {
       errorClass: isTimeout ? 'GatewayTimeout' : error.name,
       code: error.code || 'DISPATCH_FAILED',
       dispatchId: error.dispatchId,
+      requestId: req.requestId,
+    });
+  }
+});
+
+router.post('/api/oncall/memberlogin/session', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await createMemberSession({
+      userId: body.userId,
+      password: body.password,
+      accountType: body.accountType,
+    }));
+  } catch (error) {
+    const expired = error.code === 'SESSION_EXPIRED';
+    const status = expired ? 401 : error.code === 'INVALID_LOGIN' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: expired ? 'Your session has expired. Please log in again.' : status === 400 ? error.message : 'We could not log you in. Please try again.',
+      code: error.code || 'LOGIN_FAILED',
       requestId: req.requestId,
     });
   }
