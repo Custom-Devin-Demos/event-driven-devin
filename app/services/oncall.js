@@ -786,19 +786,25 @@ function recentSkinAlert(skin, now = Date.now()) {
 function reserveSkinAlert(skin, runRef) {
   if (!skin || !skin.slug || !runRef || skinRepeatWindowMs(skin) <= 0) return null;
   let resolve;
+  let resolvePosted;
   const entry = {
     at: Date.now(),
     runRef,
     sessionUrl: null,
+    // true once the owner's card is in Slack, false if it never got there.
+    posted: new Promise((r) => { resolvePosted = r; }),
     settled: new Promise((r) => { resolve = r; }),
     retry: null,
   };
+  entry.markPosted = () => resolvePosted(true);
   entry.settle = (sessionUrl) => {
     entry.sessionUrl = sessionUrl || null;
+    resolvePosted(true);
     resolve(entry.sessionUrl);
   };
   entry.release = () => {
     if (recentSkinAlerts.get(skin.slug) === entry) recentSkinAlerts.delete(skin.slug);
+    resolvePosted(false);
     resolve(null);
   };
   recentSkinAlerts.set(skin.slug, entry);
@@ -1404,7 +1410,10 @@ async function postOncallAlert(scenarioId, options = {}) {
   // Incident grouping is Slack-owned: a Teams-only alert keeps its own ref and
   // never claims the skin's slot, so a Slack alert after it opens its own incident.
   const groupable = slackReady && !options.runRef && options.unique !== false;
-  const repeat = groupable ? recentSkinAlert(skin) : null;
+  let repeat = groupable ? recentSkinAlert(skin) : null;
+  // A repeat only drops its ref once the owner's card is actually in Slack; if
+  // that delivery fails, the slot is released and this alert takes it over.
+  while (repeat && !(await repeat.posted)) repeat = recentSkinAlert(skin);
   const runRef = options.runRef || (options.unique !== false && !repeat ? makeRunRef() : null);
   const reservation = groupable && !repeat ? reserveSkinAlert(skin, runRef) : null;
   const triggeredBy = slackReady ? await resolveTriggeredBy(token, options.devinEmail) : null;
@@ -1454,6 +1463,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   if (slackReady) {
     try {
       ts = await postMessage(token, alertsChannel, text, blocks);
+      if (reservation) reservation.markPosted();
       logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
     } catch (error) {
       if (!(await teamsDelivery)) {

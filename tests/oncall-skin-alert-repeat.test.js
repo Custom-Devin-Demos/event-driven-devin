@@ -112,6 +112,24 @@ describe('repeat alerts from one skin group into the open incident', () => {
     expect(texts.filter((text) => text.includes('Incident Ref'))).toHaveLength(1);
   });
 
+  test('when the first of two concurrent alerts fails to post, the second takes over the incident', async () => {
+    postMessage.mockRejectedValueOnce(new Error('slack down'));
+    const [first, second] = await Promise.allSettled([
+      postOncallAlert(SKIN.vertical, { skin: SKIN }),
+      postOncallAlert(SKIN.vertical, { skin: SKIN }),
+    ]);
+    expect(first.status).toBe('rejected');
+    expect(second.status).toBe('fulfilled');
+    expect(second.value.grouped).toBeUndefined();
+    expect(second.value.sessionUrl).toBe('https://app.devin.ai/sessions/s1');
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(lastAlertText()).toMatch(/\*Incident Ref:\* run-[0-9a-f]{12}/);
+
+    const third = await postOncallAlert(SKIN.vertical, { skin: SKIN });
+    expect(third.grouped).toBe(true);
+    expect(third.sessionUrl).toBe('https://app.devin.ai/sessions/s1');
+  });
+
   test('a grouped alert retries the session when the first one never started', async () => {
     createDevinSession.mockRejectedValueOnce(new Error('503 from Devin'));
     const first = await postOncallAlert(SKIN.vertical, { skin: SKIN });
