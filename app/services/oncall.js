@@ -777,9 +777,52 @@ function recentSkinAlert(skin, now = Date.now()) {
   return entry;
 }
 
-function rememberSkinAlert(skin, entry) {
-  if (!skin || !skin.slug || skinRepeatWindowMs(skin) <= 0) return;
-  recentSkinAlerts.set(skin.slug, { at: Date.now(), ...entry });
+/**
+ * Claim the skin's incident slot synchronously, before the first await, so
+ * two alerts landing together cannot both become fresh incidents. The caller
+ * settles the entry with the session it started (or null), or releases it
+ * when the alert was never delivered.
+ */
+function reserveSkinAlert(skin, runRef) {
+  if (!skin || !skin.slug || !runRef || skinRepeatWindowMs(skin) <= 0) return null;
+  let resolve;
+  const entry = {
+    at: Date.now(),
+    runRef,
+    sessionUrl: null,
+    settled: new Promise((r) => { resolve = r; }),
+    retry: null,
+  };
+  entry.settle = (sessionUrl) => {
+    entry.sessionUrl = sessionUrl || null;
+    resolve(entry.sessionUrl);
+  };
+  entry.release = () => {
+    if (recentSkinAlerts.get(skin.slug) === entry) recentSkinAlerts.delete(skin.slug);
+    resolve(null);
+  };
+  recentSkinAlerts.set(skin.slug, entry);
+  return entry;
+}
+
+/**
+ * Resolve the session a grouped alert should point at: the one the incident's
+ * first alert started, or — when that never started (Devin error, throttle) —
+ * one retry under the incident's original ref, shared by concurrent repeats.
+ */
+async function joinSkinIncident(scenario, skin, entry, sessionArgs) {
+  const existing = entry.sessionUrl || await entry.settled;
+  if (existing) return { url: existing, fresh: false };
+  if (!entry.retry) {
+    entry.retry = triggerSkinDevinSession(scenario, skin, { ...sessionArgs, runRef: entry.runRef })
+      .then((session) => {
+        const url = session ? session.url : null;
+        if (url) entry.sessionUrl = url;
+        return url;
+      })
+      .finally(() => { entry.retry = null; });
+  }
+  return { url: await entry.retry, fresh: true };
 }
 
 function resetSkinAlertMemory() {
@@ -1358,8 +1401,9 @@ async function postOncallAlert(scenarioId, options = {}) {
     return { ok: false, skipped: true, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
-  const repeat = options.runRef ? null : recentSkinAlert(skin);
+  const repeat = options.runRef || options.unique === false ? null : recentSkinAlert(skin);
   const runRef = options.runRef || (options.unique !== false && !repeat ? makeRunRef() : null);
+  const reservation = options.runRef || repeat ? null : reserveSkinAlert(skin, runRef);
   const triggeredBy = slackReady ? await resolveTriggeredBy(token, options.devinEmail) : null;
   // onCallIsTriggerer: the presenter who triggered the alert is paged as On-Call.
   const onCallMemberId = skin && skin.devinSession && skin.devinSession.onCallIsTriggerer
@@ -1409,12 +1453,16 @@ async function postOncallAlert(scenarioId, options = {}) {
       ts = await postMessage(token, alertsChannel, text, blocks);
       logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
     } catch (error) {
-      if (!(await teamsDelivery)) throw error;
+      if (!(await teamsDelivery)) {
+        if (reservation) reservation.release();
+        throw error;
+      }
       logger.warn('On-Call Slack alert post failed; alert delivered to Teams', { error: error.message });
     }
   }
   const teams = await teamsDelivery;
   if (!ts && !teams) {
+    if (reservation) reservation.release();
     return { ok: false, error: 'Teams alert post failed' };
   }
   // Non-unique runs group into one alert thread, so only unique runs open an incident.
@@ -1434,23 +1482,27 @@ async function postOncallAlert(scenarioId, options = {}) {
   // already investigates the alert, and a second session would duplicate it.
   let session = null;
   if (skin && ts && repeat) {
-    if (repeat.sessionUrl) {
-      session = { url: repeat.sessionUrl };
-      try {
-        await postThreadReply(token, alertsChannel, ts, t.investigatingText(repeat.sessionUrl), [
-          mrkdwnSection(t.investigatingBlock(repeat.sessionUrl)),
-        ]);
-      } catch (error) {
-        logger.error('On-Call skin grouped-alert session link reply failed', { skin: skin.slug, error: error.message });
+    const sessionArgs = { token, channel: alertsChannel, threadTs: ts, requester, onCallMemberId };
+    const joined = await joinSkinIncident(scenario, skin, repeat, sessionArgs);
+    if (joined.url) {
+      session = { url: joined.url };
+      if (!joined.fresh) {
+        try {
+          await postThreadReply(token, alertsChannel, ts, t.investigatingText(joined.url), [
+            mrkdwnSection(t.investigatingBlock(joined.url)),
+          ]);
+        } catch (error) {
+          logger.error('On-Call skin grouped-alert session link reply failed', { skin: skin.slug, error: error.message });
+        }
       }
     }
-    logger.info('On-Call skin alert grouped into open incident', { skin: skin.slug, sessionUrl: repeat.sessionUrl || null });
+    logger.info('On-Call skin alert grouped into open incident', { skin: skin.slug, sessionUrl: joined.url || null });
   } else if (skin && ts) {
     session = await triggerSkinDevinSession(scenario, skin, {
       token, channel: alertsChannel, threadTs: ts, runRef, requester, onCallMemberId,
     });
-    rememberSkinAlert(skin, { runRef, sessionUrl: session ? session.url : null });
   }
+  if (reservation) reservation.settle(session ? session.url : null);
   const sonarPR = repeat ? false : triggerSkinSonarPR(skin, requester);
   return {
     ok: true,

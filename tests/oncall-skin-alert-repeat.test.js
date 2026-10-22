@@ -99,6 +99,56 @@ describe('repeat alerts from one skin group into the open incident', () => {
     expect(createDevinSession).toHaveBeenCalledTimes(4);
   });
 
+  test('two alerts landing together share one incident and one session', async () => {
+    const [first, second] = await Promise.all([
+      postOncallAlert(SKIN.vertical, { skin: SKIN }),
+      postOncallAlert(SKIN.vertical, { skin: SKIN }),
+    ]);
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect([first.grouped, second.grouped].filter(Boolean)).toHaveLength(1);
+    expect(first.sessionUrl).toBe('https://app.devin.ai/sessions/s1');
+    expect(second.sessionUrl).toBe('https://app.devin.ai/sessions/s1');
+    const texts = postMessage.mock.calls.map((call) => call[2]);
+    expect(texts.filter((text) => text.includes('Incident Ref'))).toHaveLength(1);
+  });
+
+  test('a grouped alert retries the session when the first one never started', async () => {
+    createDevinSession.mockRejectedValueOnce(new Error('503 from Devin'));
+    const first = await postOncallAlert(SKIN.vertical, { skin: SKIN });
+    expect(first.sessionUrl).toBeUndefined();
+    const firstRef = lastAlertText().match(/\*Incident Ref:\* (run-[0-9a-f]{12})/)[1];
+
+    jest.setSystemTime(NOW.getTime() + 60 * 1000);
+    const second = await postOncallAlert(SKIN.vertical, { skin: SKIN });
+    expect(second.grouped).toBe(true);
+    expect(second.sessionUrl).toBe('https://app.devin.ai/sessions/s1');
+    expect(createDevinSession).toHaveBeenCalledTimes(2);
+    expect(createDevinSession.mock.calls[1][0]).toContain(firstRef);
+    expect(lastAlertText()).not.toContain('Incident Ref');
+
+    jest.setSystemTime(NOW.getTime() + 120 * 1000);
+    const third = await postOncallAlert(SKIN.vertical, { skin: SKIN });
+    expect(third.sessionUrl).toBe('https://app.devin.ai/sessions/s1');
+    expect(createDevinSession).toHaveBeenCalledTimes(2);
+  });
+
+  test('a non-unique run neither groups nor suppresses the next unique run', async () => {
+    const loose = await postOncallAlert(SKIN.vertical, { skin: SKIN, unique: false });
+    expect(loose.grouped).toBeUndefined();
+    expect(lastAlertText()).not.toContain('Incident Ref');
+
+    const strict = await postOncallAlert(SKIN.vertical, { skin: SKIN });
+    expect(strict.grouped).toBeUndefined();
+    expect(strict.sessionUrl).toBe('https://app.devin.ai/sessions/s2');
+    expect(lastAlertText()).toMatch(/\*Incident Ref:\* run-[0-9a-f]{12}/);
+
+    const repeatOfStrict = await postOncallAlert(SKIN.vertical, { skin: SKIN });
+    expect(repeatOfStrict.grouped).toBe(true);
+    const looseAgain = await postOncallAlert(SKIN.vertical, { skin: SKIN, unique: false });
+    expect(looseAgain.grouped).toBeUndefined();
+    expect(createDevinSession).toHaveBeenCalledTimes(3);
+  });
+
   test('an explicit runRef is always honoured as its own incident', async () => {
     await postOncallAlert(SKIN.vertical, { skin: SKIN });
     const explicit = await postOncallAlert(SKIN.vertical, { skin: SKIN, runRef: 'run-explicit' });

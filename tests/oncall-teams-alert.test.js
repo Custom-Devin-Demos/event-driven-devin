@@ -19,7 +19,7 @@ jest.mock('../app/services/sonar-pr-trigger', () => ({ scheduleVulnerablePR: jes
 const axios = require('axios');
 const { postMessage, postThreadReply } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
-const { postOncallAlert } = require('../app/services/oncall');
+const { postOncallAlert, resetSkinAlertMemory } = require('../app/services/oncall');
 const { isTeamsWebhookUrl } = require('../app/services/teams');
 const { getOncallSkin } = require('../config/oncall-skins');
 
@@ -53,6 +53,7 @@ function demoBaseUrl() {
 
 describe('On-Call alerts routed to Microsoft Teams', () => {
   beforeEach(() => {
+    resetSkinAlertMemory();
     jest.clearAllMocks();
     axios.post.mockResolvedValue({ status: 202 });
   });
@@ -396,6 +397,7 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
 
 describe('per-user alert destination (Slack or Teams, hub-local setting)', () => {
   beforeEach(() => {
+    resetSkinAlertMemory();
     jest.clearAllMocks();
     axios.post.mockResolvedValue({ status: 202 });
   });
@@ -516,6 +518,7 @@ describe('isTeamsWebhookUrl', () => {
 
 describe('On-Call Teams alert card locale', () => {
   beforeEach(() => {
+    resetSkinAlertMemory();
     jest.clearAllMocks();
     axios.post.mockResolvedValue({ status: 202 });
   });
