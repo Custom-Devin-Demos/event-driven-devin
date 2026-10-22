@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transfer between your accounts | NetBank - CommBank</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #FFCC00;
+      --ink: #1E1E1E;
+      --surface: #FFFFFF;
+      --chrome-bg: #231F20;
+      --chrome-text: #FFFFFF;
+      --page: #F4F4F4;
+      --ink-2: #231F20;
+      --line: #E9E9E9;
+      --muted: #5E5B5C;
+      --link: #1175B5;
+      --hero-blue: #1A6FD1;
+      --ok: #0B6B3A;
+      --ok-bg: #E7F4EC;
+      --warn-bg: #FFF7D6;
+      --font: "CBABeaconSans", Figtree, helvetica, arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 400 16px/24px var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1328px; margin: 0 auto; padding: 0 32px; }
+    .site-header { position: relative; z-index: 2; height: 80px; background: var(--surface); box-shadow: rgba(35, 31, 32, .2) 0 1px 1px 0; display: flex; align-items: stretch; }
+    .logo { display: flex; align-items: center; padding: 0 32px; min-width: 44px; text-decoration: none; }
+    .logo svg { display: block; width: 40px; height: 40px; }
+    .main-nav { display: flex; align-items: stretch; gap: 32px; }
+    .main-nav a { display: flex; align-items: center; text-decoration: none; font-weight: 800; font-size: 16px; color: var(--ink-2); }
+    .header-right { margin-left: auto; display: flex; align-items: stretch; }
+    .netbank-user { display: flex; align-items: center; gap: 10px; padding: 0 24px; border-left: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+    .netbank-user strong { color: var(--ink-2); font-weight: 800; }
+    .logoff { display: flex; align-items: center; gap: 8px; padding: 0 24px; min-width: 114px; background: var(--accent); color: var(--ink-2); font-weight: 800; text-decoration: none; }
+    .subnav { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .subnav .wrap { display: flex; gap: 28px; overflow-x: auto; scrollbar-width: none; }
+    .subnav a { display: inline-flex; align-items: center; min-height: 52px; white-space: nowrap; text-decoration: none; font-size: 15px; font-weight: 500; color: var(--ink-2); border-bottom: 3px solid transparent; }
+    .subnav a.current { font-weight: 800; border-bottom-color: var(--accent); }
+    .hero { position: relative; background: var(--hero-blue); overflow: hidden; }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% 30%; }
+    .hero.no-img img { display: none; }
+    .hero.no-img { background: linear-gradient(120deg, #0F5AB8, #3D93E8 60%, #8CC4F2); }
+    .hero .wrap { position: relative; padding-top: 56px; padding-bottom: 56px; }
+    .hero-card { position: relative; max-width: 664px; background: var(--surface); padding: 48px 56px 48px 64px; }
+    .hero-card::before { content: ""; position: absolute; left: 0; top: 48px; bottom: 48px; width: 16px; background: var(--accent); }
+    .crumb { margin: 0 0 16px; font-size: 14px; color: var(--muted); }
+    .crumb a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+    h1 { margin: 0; font-size: 40px; font-weight: 800; line-height: 48px; color: var(--ink); }
+    .hero-card p.lead { margin: 20px 0 0; font-size: 16px; line-height: 24px; }
+    .hero-cta { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 40px; border-radius: 24px; border: 1px solid var(--ink-2); font-size: 16px; font-weight: 400; text-decoration: none; color: var(--ink-2); background: transparent; }
+    .btn-primary { background: var(--accent); border-color: var(--accent); }
+    .btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, var(--ink)); }
+    main .wrap { padding-top: 40px; padding-bottom: 72px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, .95fr); gap: 24px; align-items: start; }
+    .panel { background: var(--surface); padding: 40px; }
+    .panel h2 { margin: 0 0 4px; font-size: 32px; font-weight: 800; line-height: 40px; }
+    .panel .sub { margin: 0 0 28px; color: var(--muted); }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+    .field input, .field select { width: 100%; min-height: 52px; padding: 12px 16px; border: 1px solid #8A8788; border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 16px; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 22px) 23px, calc(100% - 16px) 23px; background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 44px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--link); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 20px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: "$"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 700; }
+    .amount-wrap input { padding-left: 30px; }
+    .review { margin: 4px 0 24px; padding: 18px 20px; background: var(--page); border-left: 4px solid var(--accent); display: grid; gap: 10px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .fine { margin: -8px 0 24px; color: var(--muted); font-size: 13px; line-height: 20px; }
+    .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .submit-btn { min-height: 48px; padding: 0 40px; border: 1px solid var(--accent); border-radius: 24px; background: var(--accent); color: var(--ink-2); font-size: 16px; font-weight: 700; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 88%, var(--ink)); }
+    .submit-btn:disabled { cursor: wait; opacity: .7; }
+    .cancel-btn { min-height: 48px; padding: 0 32px; border: 1px solid var(--ink-2); border-radius: 24px; background: transparent; color: var(--ink-2); font-size: 16px; }
+    .cancel-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { color: var(--muted); font-size: 14px; }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 800; }
+    .status { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 20px; font-size: 15px; line-height: 22px; border-left: 4px solid transparent; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); border-left-color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); border-left-color: var(--accent); }
+    aside .panel { padding: 28px; }
+    aside .panel + .panel { margin-top: 16px; }
+    aside h3 { margin: 0 0 12px; font-size: 22px; font-weight: 800; line-height: 28px; }
+    .accounts { list-style: none; margin: 0; padding: 0; }
+    .accounts li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+    .accounts li:first-child { border-top: 0; padding-top: 0; }
+    .acct { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .acct img { flex: none; width: 40px; height: 40px; }
+    .acct-dot { flex: none; display: none; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--ink-2); place-items: center; font-weight: 800; }
+    .acct.no-img img { display: none; }
+    .acct.no-img .acct-dot { display: grid; }
+    .acct-name { display: block; font-weight: 700; font-size: 15px; }
+    .acct-num { display: block; color: var(--muted); font-size: 13px; }
+    .acct-bal { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; font-size: 15px; }
+    .acct-bal small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+    .acct-total { display: flex; justify-content: space-between; margin-top: 4px; padding-top: 14px; border-top: 2px solid var(--ink-2); font-weight: 800; font-variant-numeric: tabular-nums; }
+    .promo { padding: 0 !important; overflow: hidden; }
+    .promo img { display: block; width: 100%; height: 180px; object-fit: cover; }
+    .promo .promo-fallback { display: none; height: 110px; background: linear-gradient(135deg, var(--accent), #F7A600); }
+    .promo.no-img img { display: none; }
+    .promo.no-img .promo-fallback { display: block; }
+    .promo .promo-body { padding: 24px 28px 20px; }
+    .promo p, .note p { margin: 0 0 8px; color: var(--muted); font-size: 15px; line-height: 22px; }
+    .tlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--link); font-size: 15px; text-decoration: none; }
+    .tlink::after { content: "\203A"; margin-left: 8px; font-size: 20px; }
+    .help { background: var(--chrome-bg); color: var(--chrome-text); }
+    .help .wrap { padding-top: 48px; padding-bottom: 48px; }
+    .help h2 { margin: 0 0 24px; font-size: 32px; font-weight: 800; line-height: 40px; }
+    .help-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+    .help-item { display: flex; gap: 16px; align-items: flex-start; }
+    .help-item img { flex: none; width: 48px; height: 48px; }
+    .help-item strong { display: block; font-size: 18px; font-weight: 800; }
+    .help-item span { display: block; margin-top: 4px; color: rgba(255, 255, 255, .85); font-size: 15px; line-height: 22px; }
+    .help-item a { display: inline-flex; align-items: center; min-height: 44px; color: var(--chrome-text); text-decoration: none; }
+    .site-footer { background: var(--surface); font-size: 16px; }
+    .site-footer .wrap { padding-top: 32px; padding-bottom: 32px; }
+    .footer-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; padding: 0 0 24px; border-bottom: 1px solid var(--line); }
+    .footer-cols h4 { margin: 0 0 4px; font-size: 16px; font-weight: 800; text-transform: uppercase; }
+    .footer-cols a { display: flex; align-items: center; min-height: 44px; color: var(--ink); text-decoration: none; font-size: 15px; }
+    .footer-legal { margin: 20px 0 0; color: var(--muted); font-size: 13px; line-height: 20px; }
+    @media (max-width: 1100px) {
+      .main-nav { gap: 20px; }
+      .netbank-user { display: none; }
+    }
+    @media (max-width: 900px) {
+      .wrap { padding: 0 16px; }
+      .site-header { height: 64px; }
+      .logo { padding: 0 16px; }
+      .main-nav { display: none; }
+      .logoff { min-width: 0; padding: 0 16px; }
+      .subnav .wrap { gap: 20px; }
+      .hero .wrap { padding-top: 160px; padding-bottom: 0; }
+      .hero-card { padding: 28px 20px 28px 32px; margin: 0 -16px; }
+      .hero-card::before { top: 28px; bottom: 28px; width: 10px; }
+      h1 { font-size: 30px; line-height: 36px; }
+      .hero-cta .btn { width: 100%; }
+      main .wrap { padding-top: 24px; padding-bottom: 48px; }
+      .layout { grid-template-columns: 1fr; }
+      .panel { padding: 24px 18px; }
+      .panel h2 { font-size: 26px; line-height: 32px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      .actions .submit-btn, .actions .cancel-btn { width: 100%; }
+      .help-grid, .footer-cols { grid-template-columns: 1fr; gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="#transfer" aria-label="CommBank NetBank">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 38 20 20 38 2 20Z" fill="#FFCC00"/><path d="M20 2 38 20 20 20Z" fill="#E6B800"/><path d="M20 20 38 20 20 38Z" fill="#F2C200"/></svg>
+    </a>
+    <nav class="main-nav" aria-label="Primary">
+      <a href="https://www.commbank.com.au/banking.html" target="_blank" rel="noopener noreferrer">Banking</a>
+      <a href="https://www.commbank.com.au/home-loans.html" target="_blank" rel="noopener noreferrer">Home loans</a>
+      <a href="https://www.commbank.com.au/insurance.html" target="_blank" rel="noopener noreferrer">Insurance</a>
+      <a href="https://www.commbank.com.au/investing-and-super.html" target="_blank" rel="noopener noreferrer">Investing &amp; Super</a>
+      <a href="https://www.commbank.com.au/business.html" target="_blank" rel="noopener noreferrer">Business</a>
+      <a href="https://www.commbank.com.au/yello.html" target="_blank" rel="noopener noreferrer">CommBank Yello</a>
+    </nav>
+    <div class="header-right">
+      <span class="netbank-user">NetBank &middot; <strong>Sam Taylor</strong></span>
+      <a class="logoff" href="#accounts">
+        <svg width="16" height="20" viewBox="0 0 16 20" aria-hidden="true"><path d="M3 8V5a5 5 0 0 1 10 0v3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="1" y="8" width="14" height="11" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        Log off
+      </a>
+    </div>
+  </header>
+  <nav class="subnav" aria-label="NetBank">
+    <div class="wrap">
+      <a href="#accounts">Home</a>
+      <a href="#accounts">View accounts</a>
+      <a href="#transfer" class="current" aria-current="page">Transfer &amp; BPAY</a>
+      <a href="#accounts">Cards</a>
+      <a href="#accounts">Settings</a>
+      <a href="#help">Messages</a>
+    </div>
+  </nav>
+  <section class="hero" id="heroBand" aria-labelledby="hero-title">
+    <img src="https://www.commbank.com.au/content/dam/dynamic-media/homepage/2026/Tech_Retail_1956x1216-hp.png.transform/1956x1216/image.jpg" alt="" loading="eager" onerror="document.getElementById('heroBand').classList.add('no-img')">
+    <div class="wrap">
+      <div class="hero-card">
+        <p class="crumb"><a href="#accounts">NetBank</a> / Transfer &amp; BPAY</p>
+        <h1 id="hero-title">Transfer between your accounts</h1>
+        <p class="lead">Move money between your Everyday Smart Access account, NetBank Saver and GoalSaver. Transfers between your own CommBank accounts are usually instant, any day of the week.</p>
+        <div class="hero-cta"><a class="btn btn-primary" href="#transfer">Transfer money</a><a class="btn" href="https://www.commbank.com.au/digital-banking/netbank.html" target="_blank" rel="noopener noreferrer">About NetBank</a></div>
+      </div>
+    </div>
+  </section>
+  <main id="transfer">
+    <div class="wrap">
+      <div class="layout">
+        <section class="panel" aria-labelledby="form-title">
+          <h2 id="form-title">Transfer money</h2>
+          <p class="sub">Choose the account to transfer from and the account to transfer to.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Smart Access">Smart Access</option>
+                <option value="ACCT-1002" data-name="NetBank Saver">NetBank Saver</option>
+                <option value="ACCT-1003" data-name="GoalSaver">GoalSaver</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">To</label>
+              <select id="toAccount">
+                <option value="ACCT-1002" data-name="NetBank Saver">NetBank Saver</option>
+                <option value="ACCT-1003" data-name="GoalSaver">GoalSaver</option>
+                <option value="ACCT-1001" data-name="Smart Access">Smart Access</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Amount</label>
+                <div class="amount-wrap"><input type="number" id="amount" min="0.01" step="0.01" value="250.00" inputmode="decimal" required aria-describedby="amountHelp"></div>
+                <small id="amountHelp">Available funds: $0.00</small>
+              </div>
+              <div class="field">
+                <label for="accountTier">When</label>
+                <select id="accountTier">
+                  <option value="standard">Now</option>
+                </select>
+                <small>Future-dated and recurring transfers are set up in the CommBank app.</small>
+              </div>
+            </div>
+            <dl class="review" aria-label="Transfer summary">
+              <div><dt>From</dt><dd id="reviewFrom">&mdash;</dd></div>
+              <div><dt>To</dt><dd id="reviewTo">&mdash;</dd></div>
+              <div><dt>Amount</dt><dd id="reviewAmount">&mdash;</dd></div>
+              <div><dt>Fee</dt><dd id="reviewFee">Shown on receipt</dd></div>
+              <div><dt>Arrives</dt><dd id="reviewDate">&mdash;</dd></div>
+            </dl>
+            <p class="fine">Transfers between your own CommBank accounts usually arrive straight away. Any fee is shown on your receipt and in your transaction history.</p>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="submit-btn">Transfer now</button>
+              <button type="reset" id="cancelBtn" class="cancel-btn">Cancel</button>
+            </div>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to receipt</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Sample accounts. No money moves on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="panel" id="accounts">
+            <h3>Your accounts</h3>
+            <ul class="accounts">
+              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">S</span><span><span class="acct-name">Smart Access</span><span class="acct-num">06 2000 1234 5678</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1001">$0.00</span><small>Available</small></span></li>
+              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">N</span><span><span class="acct-name">NetBank Saver</span><span class="acct-num">06 2000 8765 4321</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1002">$0.00</span><small>Available</small></span></li>
+              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">G</span><span><span class="acct-name">GoalSaver</span><span class="acct-num">06 2000 5566 7788</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1003">$0.00</span><small>Available</small></span></li>
+            </ul>
+            <div class="acct-total"><span>Total</span><span id="totalBalance">$0.00</span></div>
+          </div>
+          <div class="panel promo no-img">
+            <div class="promo-fallback" aria-hidden="true"></div>
+            <div class="promo-body">
+              <h3>Grow your savings with GoalSaver</h3>
+              <p>Earn bonus interest each month you grow your GoalSaver balance and make no withdrawals.</p>
+              <a class="tlink" href="https://www.commbank.com.au/banking/savings-accounts.html" target="_blank" rel="noopener noreferrer">Learn more</a>
+            </div>
+          </div>
+          <div class="panel note">
+            <h3>Paying someone else?</h3>
+            <p>Use Pay anyone to send money to another person or business by PayID or BSB and account number.</p>
+            <a class="tlink" href="https://www.commbank.com.au/digital-banking/netbank.html" target="_blank" rel="noopener noreferrer">Ways to pay in NetBank</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <section class="help" id="help" aria-labelledby="help-title">
+    <div class="wrap">
+      <h2 id="help-title">We&rsquo;re here to help</h2>
+      <div class="help-grid">
+        <div class="help-item"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/ds_pictogram_support2.svg" alt="" loading="lazy" onerror="this.style.display='none'"><div><a href="https://www.commbank.com.au/support.html" target="_blank" rel="noopener noreferrer"><strong>Support &amp; FAQs</strong></a><span>Cancel a pending transaction, dispute a transaction or check service updates &amp; availability.</span></div></div>
+        <div class="help-item"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/mobile_call_us_pictograms.svg" alt="" loading="lazy" onerror="this.style.display='none'"><div><a href="https://www.commbank.com.au/contact-us.html" target="_blank" rel="noopener noreferrer"><strong>Contact us</strong></a><span>Message us, ask our virtual assistant or call to connect to the right help.</span></div></div>
+        <div class="help-item"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/branch_pictograms.svg" alt="" loading="lazy" onerror="this.style.display='none'"><div><a href="https://www.commbank.com.au/locate-us.html" target="_blank" rel="noopener noreferrer"><strong>Locate us</strong></a><span>Find a branch, ATM or specialist near you.</span></div></div>
+      </div>
+    </div>
+  </section>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-cols">
+        <div><h4>Quick links</h4><a href="https://www.commbank.com.au/support/security.html">Security &amp; scams</a><a href="https://www.commbank.com.au/support.html">Help &amp; support</a><a href="https://www.commbank.com.au/support/financial-support/financial-hardship.html">Financial assistance</a><a href="https://www.commbank.com.au/about-us/accessibility.html">Accessibility</a></div>
+        <div><h4>About us</h4><a href="https://www.commbank.com.au/about-us.html">About CommBank</a><a href="https://www.commbank.com.au/about-us/careers.html">Careers at CommBank</a><a href="https://www.commbank.com.au/newsroom.html">Newsroom</a><a href="https://www.commbank.com.au/about-us/investors.html">Investor centre</a></div>
+        <div><h4>Important information</h4><a href="https://www.commbank.com.au/important-info.html">Important documents</a><a href="https://www.commbank.com.au/important-info/cookies.html">Cookies policy</a><a href="https://www.commbank.com.au/support/privacy.html">Privacy statement</a><a href="https://www.commbank.com.au/about-us/opportunity-initiatives/policies-and-practices/banking-code-of-practice.html">Banking Code of Practice</a></div>
+      </div>
+      <p class="footer-legal">Example NetBank transfer experience. The accounts, balances and transfers shown here are sample data.</p>
+      <p class="footer-legal">CommBank acknowledges the Traditional Owners of the lands across Australia as the continuing custodians of Country and Culture. We pay our respect to First Nations peoples and their Elders, past and present.</p>
+      <p class="footer-legal">&copy;2026 Commonwealth Bank of Australia ABN 48 123 123 124 AFSL and Australian credit licence 234945</p>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const amountHelp = document.getElementById('amountHelp');
+    const reviewFrom = document.getElementById('reviewFrom');
+    const reviewTo = document.getElementById('reviewTo');
+    const reviewAmount = document.getElementById('reviewAmount');
+    const reviewFee = document.getElementById('reviewFee');
+    const reviewDate = document.getElementById('reviewDate');
+    const totalBalance = document.getElementById('totalBalance');
+    const transferFields = [fromAccount, toAccount, amountInput, document.getElementById('accountTier')];
+    const timer = document.getElementById('sendTimer');
+    const timerValue = document.getElementById('sendTimerValue');
+    const IDLE_STATUS = 'Sample accounts. No money moves on this page.';
+    const IDLE_LABEL = 'Transfer now';
+    const FEE_PENDING = 'Shown on receipt';
+    const FEE_RATE = 0.001;
+    const FEE_MINIMUM = 2.50;
+    let timerHandle = null;
+    let pending = false;
+    const aud = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' });
+    const timeFmt = new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' });
+    const balances = { 'ACCT-1001': 3482.15, 'ACCT-1002': 12650.00, 'ACCT-1003': 4875.40 };
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function available() { return balances[fromAccount.value] || 0; }
+    function toCents(value) { return Math.round(value * 100); }
+    function estimatedFeeCents(amountCents) { return Math.max(Math.round(FEE_RATE * amountCents), toCents(FEE_MINIMUM)); }
+    function maxMove() {
+      const availableCents = toCents(available());
+      let cents = Math.max(0, availableCents - toCents(FEE_MINIMUM));
+      while (cents > 0 && cents + estimatedFeeCents(cents) > availableCents) cents -= 1;
+      return cents / 100;
+    }
+    function label(select) { return selected(select).dataset.name; }
+    function renderBalances() {
+      [fromAccount, toAccount].forEach((select) => {
+        Array.from(select.options).forEach((opt) => {
+          opt.textContent = `${opt.dataset.name} \u00b7 ${aud.format(balances[opt.value] || 0)}`;
+        });
+      });
+      document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = aud.format(balances[el.dataset.balanceFor] || 0); });
+      totalBalance.textContent = aud.format(Object.values(balances).reduce((sum, value) => sum + (value || 0), 0));
+    }
+    function parsedAmount() {
+      const raw = amountInput.value.trim();
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw);
+    }
+    function covered(amount) {
+      if (!Number.isFinite(amount) || amount <= 0) return false;
+      const cents = toCents(amount);
+      return cents + estimatedFeeCents(cents) <= toCents(available());
+    }
+    function startTimer() {
+      const started = performance.now();
+      timer.className = 'stopwatch on';
+      timerValue.textContent = '0.0s';
+      timerHandle = setInterval(() => {
+        timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      return started;
+    }
+    function stopTimer(started) {
+      clearInterval(timerHandle);
+      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }
+    function renderReview() {
+      const amount = parsedAmount();
+      amountHelp.textContent = `Available funds: ${aud.format(available())} \u00b7 transfer up to ${aud.format(maxMove())} including any fee`;
+      reviewFrom.textContent = label(fromAccount);
+      reviewTo.textContent = label(toAccount);
+      reviewAmount.textContent = covered(amount) ? aud.format(amount) : '\u2014';
+      reviewFee.textContent = FEE_PENDING;
+      reviewDate.textContent = 'Straight away';
+    }
+    [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
+    amountInput.addEventListener('input', renderReview);
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        timer.className = 'stopwatch';
+        renderReview();
+      });
+    });
+    renderBalances();
+    renderReview();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const amount = parsedAmount();
+      const maxNow = maxMove();
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choose a different account to transfer to. You can\u2019t transfer money to the account it comes from.';
+        status.textContent = IDLE_STATUS;
+        toAccount.focus();
+        return;
+      }
+      if (!covered(amount)) {
+        result.className = 'result-box notice';
+        result.textContent = maxNow > 0
+          ? `Enter an amount between $0.01 and ${aud.format(maxNow)}, so any fee is covered too.`
+          : `There isn\u2019t enough in ${label(fromAccount)} to cover a transfer and its fee.`;
+        status.textContent = IDLE_STATUS;
+        amountInput.focus();
+        return;
+      }
+      pending = true;
+      button.disabled = true;
+      cancelBtn.disabled = true;
+      transferFields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Transferring\u2026';
+      status.textContent = 'Transferring\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const fromLabel = label(fromAccount);
+      const toLabel = label(toAccount);
+      const fromId = fromAccount.value;
+      const toId = toAccount.value;
+      const started = startTimer();
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Transfer not completed.');
+        if (!data || !data.receipt) throw new Error('Transfer outcome unknown.');
+        const completedAt = new Date(data.receipt.timestamp);
+        const moved = Number(data.receipt.amount);
+        const fee = Number(data.fee ?? data.receipt.fee ?? 0);
+        const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? moved + fee);
+        if (data.duplicate) {
+          result.className = 'result-box notice';
+          result.textContent = `This transfer was already completed at ${timeFmt.format(completedAt)}: ${aud.format(moved)} to ${toLabel} from ${fromLabel}, receipt ${data.receipt.receiptId}. It wasn\u2019t transferred again and your balances haven\u2019t changed.`;
+          status.textContent = 'Already completed.';
+          return;
+        }
+        balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+        balances[toId] = Math.round(((balances[toId] || 0) + moved) * 100) / 100;
+        renderBalances();
+        renderReview();
+        reviewFee.textContent = aud.format(fee);
+        result.className = 'result-box success';
+        result.textContent = `Transfer complete at ${timeFmt.format(completedAt)}. ${aud.format(moved)} transferred to ${toLabel} from ${fromLabel}. Fee ${aud.format(fee)}; ${aud.format(debited)} taken from ${fromLabel}. Receipt ${data.receipt.receiptId}. The money is available in ${toLabel} now.`;
+        status.textContent = 'Transfer complete.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'Something went wrong and your transfer wasn\u2019t made. Your balances haven\u2019t changed. Please try again in a moment.';
+          status.textContent = 'Transfer not completed.';
+        } else {
+          result.textContent = 'We couldn\u2019t confirm this transfer. Check your transaction history before trying again so the same amount isn\u2019t transferred twice.';
+          status.textContent = 'Transfer not confirmed.';
+        }
+      } finally {
+        transferFields.forEach((el) => { el.disabled = false; });
+        stopTimer(started);
+        pending = false;
+        button.disabled = false;
+        cancelBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
