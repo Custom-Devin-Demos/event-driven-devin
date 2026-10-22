@@ -5330,6 +5330,30 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A KLARNA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Klarna product.',
   },
+  'f405f071': {
+    slug: 'f405f071',
+    company: 'Dynatrace',
+    brandMark: 'D',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: { file: 'f405f071.html', title: 'Add monitoring capacity | Dynatrace' },
+    theme: {
+      '--accent': '#1966FF',
+      '--ink': '#000000',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Dynatrace Support',
+    alertCard: {
+      title: 'p95 latency trending up \u2014 Account Management: add monitoring capacity',
+      release: 'account-management@1.42.0',
+      baseline: '~350ms (7-day p95, before account-management@1.42.0)',
+      symptom: 'Add hosts in Account Management takes ~7s and gets slower with every request since the last release. Process RSS trends up alongside it. Error rate is normal.',
+      impact: 'Customers adding monitoring capacity wait several seconds for confirmation, and the wait grows under sustained traffic.',
+    },
+    disclaimer: 'NOT ACTUALLY A DYNATRACE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Dynatrace product.',
+  },
 };
 
 function getOncallSkin(slug) {
