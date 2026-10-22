@@ -70,7 +70,7 @@
   /* Page head */
   .crumbs { padding: 24px 0 8px; font-size: 12px; line-height: 1.3; }
   .crumbs a { text-decoration: underline; text-underline-offset: 2px; }
-  h1 { font-family: var(--display); font-weight: 900; font-size: 36px; line-height: 1.2; margin: 12px 0 8px; }
+  h1 { font-family: var(--display); font-weight: 900; font-size: 36px; line-height: 1.2; margin: 12px 0 8px; scroll-margin-top: 160px; }
   .count { color: var(--caption); font-size: 16px; margin: 0 0 24px; }
 
   .plp { display: grid; grid-template-columns: 20% 1fr; column-gap: 16px; }
@@ -454,7 +454,30 @@
     { name: 'Player Name', opts: [["Ja Morant", 6], ['Kobe Bryant', 5], ['Sabrina Ionescu', 4], ['Caitlin Clark', 3]] }
   ];
 
-  var catalog = { products: [], groups: [], sizeScales: {}, shipping: [], states: [], maxLineQty: 5 };
+  var BASKETBALL = /Jordan|Kobe|JA 4|Sabrina|Caitlin|Posite|A'Two|AJ /i;
+  var RUNNING = /Air Max|Omni|XT-6|Huarache|GEL-|Mind 002/i;
+  var BOOTS = /Boot|Goadome|Manoa|Tasman|Bailey|Lowmel/i;
+  var FACET_RULES = {
+    'Gender': function (opt, p) { return opt === 'Unisex' ? false : p.group.indexOf(opt) === 0; },
+    'Brand': function (opt, p) { return brandOf(p).toLowerCase().indexOf(opt.toLowerCase()) === 0; },
+    'Kids Age Range': function (opt, p) { return p.group.indexOf(opt) > 0; },
+    'Style': function (opt, p) { return styleOf(p) === opt; },
+    'Sport': function (opt, p) { return (opt === 'Lifestyle' ? 'Casual' : opt) === styleOf(p); },
+    'Category': function (opt, p) { return opt === 'Shoes' ? p.scale !== 'apparel' : opt === 'Clothing' ? /Shirt/.test(p.name) : /Cap/.test(p.name); },
+    'Price': function (opt, p) { return opt === 'Under $50' ? p.price < 50 : opt === '$50 - $100' ? p.price >= 50 && p.price < 100 : opt === '$100 - $150' ? p.price >= 100 && p.price < 150 : opt === '$150 - $200' ? p.price >= 150 && p.price < 200 : p.price >= 200; },
+    'Customer Rating': function (opt, p) { return (p.rating || 0) >= Number(opt.charAt(0)); },
+    'Men Size': function (opt, p) { return p.scale === 'mens' && p.sizes.indexOf(opt) >= 0; },
+    'Boys Size': function (opt, p) { return p.group.indexOf("Boys'") === 0 && p.sizes.indexOf(opt) >= 0; },
+    'Girls Size': function (opt, p) { return p.group.indexOf("Girls'") === 0 && p.sizes.indexOf(opt) >= 0; },
+    'Color': function (opt, p) { return p.color.toLowerCase().indexOf(opt.toLowerCase()) >= 0; },
+    'League': function (opt, p) { return opt === 'NBA' && /Knicks/.test(p.name); },
+    'Team': function (opt, p) { return opt === 'New York Knicks' && /Knicks/.test(p.name); },
+    'Player Name': function (opt, p) { return opt === 'Ja Morant' ? /JA 4/.test(p.name) : opt === 'Kobe Bryant' ? /Kobe/.test(p.name) : opt === 'Sabrina Ionescu' ? /Sabrina/.test(p.name) : /Caitlin/.test(p.name); },
+    'Women Size': function () { return false; }
+  };
+  var TOTAL_RESULTS = 1260;
+
+  var catalog = { products: [], groups: [], sizeScales: {}, shipping: [], states: [], maxLineQty: 5, maxBagLines: 15 };
   var bag = [];
   var promoIdx = 0;
   var checkoutInFlight = false;
@@ -482,7 +505,25 @@
   function find(sku) { for (var i = 0; i < catalog.products.length; i++) if (catalog.products[i].sku === sku) return catalog.products[i]; return null; }
   function groupLabel(code) { for (var i = 0; i < catalog.groups.length; i++) if (catalog.groups[i].code === code) return catalog.groups[i].label; return code; }
   function sizeLabel(p, s) { return p.scale === 'apparel' ? s : s.replace(/\.0$/, '') + (p.scale === 'grade-school' ? 'Y' : p.scale === 'preschool' ? (Number(s) >= 10 ? 'C' : 'Y') : p.scale === 'toddler' ? 'C' : ''); }
-  function brandOf(p) { return p.name.split(' ')[0]; }
+  function brandOf(p) { return p.name.split(' ')[0].replace(/\u00ae/g, ''); }
+  function styleOf(p) { if (p.scale === 'apparel') return 'Apparel'; if (BOOTS.test(p.name)) return 'Boots'; if (p.name === 'Crocs Classic Clogs') return 'Slides & Sandals'; if (BASKETBALL.test(p.name)) return 'Basketball'; if (RUNNING.test(p.name)) return 'Running'; return 'Casual'; }
+
+  function selectedFacets() {
+    var sel = [];
+    FACETS.forEach(function (f, i) {
+      var opts = [];
+      Array.prototype.forEach.call(document.querySelectorAll('#facet-' + i + ' input:checked'), function (cb) { opts.push(cb.getAttribute('data-opt')); });
+      if (opts.length && FACET_RULES[f.name]) sel.push({ rule: FACET_RULES[f.name], opts: opts });
+    });
+    return sel;
+  }
+  function filteredProducts(list) {
+    var sel = selectedFacets();
+    if (!sel.length) return list;
+    return list.filter(function (p) {
+      return sel.every(function (f) { return f.opts.some(function (opt) { return f.rule(opt, p); }); });
+    });
+  }
 
   function renderPromo() {
     var pr = PROMOS[promoIdx];
@@ -498,7 +539,7 @@
   function renderFacets() {
     var html = FACETS.map(function (f, i) {
       return '<div><button type="button" aria-expanded="false" data-facet="' + i + '">' + esc(f.name) + '<svg class="ico"><use href="#i-chev"/></svg></button>' +
-        '<div class="opts" id="facet-' + i + '">' + f.opts.map(function (o) { return '<label><input type="checkbox"> <span>' + esc(o[0]) + '</span> <span class="n">(' + o[1] + ')</span></label>'; }).join('') + '</div></div>';
+        '<div class="opts" id="facet-' + i + '">' + f.opts.map(function (o) { return '<label><input type="checkbox" data-opt="' + esc(o[0]) + '"> <span>' + esc(o[0]) + '</span> <span class="n">(' + o[1] + ')</span></label>'; }).join('') + '</div></div>';
     }).join('');
     html += '<div class="misc"><label><input type="checkbox"> <span>Promo Code Eligible</span> <span class="n">(284)</span></label><label><input type="checkbox" checked> <span>Free Shipping</span> <span class="n">(1260)</span></label><label><input type="checkbox" checked disabled> <span>New Arrival</span> <span class="n">(1260)</span></label></div>';
     document.getElementById('facets').innerHTML = html;
@@ -508,6 +549,9 @@
     var open = b.getAttribute('aria-expanded') === 'true';
     b.setAttribute('aria-expanded', String(!open));
     document.getElementById('facet-' + b.getAttribute('data-facet')).classList.toggle('open', !open);
+  });
+  document.getElementById('facets').addEventListener('change', function (e) {
+    if (e.target.closest('#facets .opts')) renderGrid();
   });
 
   function starsHtml(p) {
@@ -545,8 +589,10 @@
   }
 
   function renderGrid() {
-    var list = sortedProducts();
-    grid.innerHTML = list.length ? list.map(cardHtml).join('') : '<div class="empty">No products found.</div>';
+    var list = filteredProducts(sortedProducts());
+    var filtered = selectedFacets().length > 0;
+    document.getElementById('count').textContent = 'Showing ' + (filtered ? list.length : TOTAL_RESULTS) + ' result' + (!filtered || list.length !== 1 ? 's' : '');
+    grid.innerHTML = list.length ? list.map(cardHtml).join('') : '<div class="empty">No products match your filters.</div>';
   }
   document.getElementById('sort').addEventListener('change', renderGrid);
 
@@ -576,12 +622,18 @@
     if (!qaState || !qaState.size) return;
     var p = find(qaState.sku);
     var qty = Number(document.getElementById('qa-qty').value) || 1;
+    var size = qaState.size;
     var existing = null;
-    for (var i = 0; i < bag.length; i++) if (bag[i].sku === p.sku && bag[i].size === qaState.size) existing = bag[i];
-    if (existing) existing.qty = Math.min(catalog.maxLineQty, existing.qty + qty); else bag.push({ sku: p.sku, size: qaState.size, qty: qty, color: p.swatches[0].sku });
+    for (var i = 0; i < bag.length; i++) if (bag[i].sku === p.sku && bag[i].size === size) existing = bag[i];
+    if (!existing && bag.length >= catalog.maxBagLines) {
+      showToast('Bag is full', 'Your bag can hold up to ' + catalog.maxBagLines + ' styles. Remove one to add ' + p.name + '.', true);
+      return;
+    }
+    if (existing) existing.qty = Math.min(catalog.maxLineQty, existing.qty + qty); else bag.push({ sku: p.sku, size: size, qty: qty, color: p.swatches[0].sku });
     closeQa();
+    hideAlerts();
     renderBag();
-    showToast('Added to bag', p.name + ' \u2014 ' + p.group + ', size ' + sizeLabel(p, qaState ? qaState.size : existing ? existing.size : ''), false);
+    showToast('Added to bag', p.name + ' \u2014 ' + p.group + ', size ' + sizeLabel(p, size), false);
     openDrawer();
   });
   document.getElementById('qa-close').addEventListener('click', closeQa);
