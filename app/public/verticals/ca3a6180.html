@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pay and transfer | SEB</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #027839;
+      --ink: #0A0B0B;
+      --surface: #FFFFFF;
+      --chrome-bg: #0A0B0B;
+      --chrome-text: #FFFFFF;
+      --grey: #F7F8F7;
+      --line: #DADCDA;
+      --muted: #555A57;
+      --ok: #027839; --ok-bg: #E7F4EC;
+      --warn: #B3261E; --warn-bg: #FCEEEE;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; overflow-x: hidden; }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field { display: grid; gap: 6px; margin-bottom: 18px; }
+    .field small { color: var(--muted); font-size: 13px; line-height: 18px; }
+    select, input[type="number"] { width: 100%; min-height: 48px; padding: 10px 14px; color: var(--ink); background: #fff; border: 1px solid var(--line); }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    select:disabled, input:disabled { opacity: .65; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 28px; border: 2px solid transparent; cursor: pointer; text-decoration: none; }
+    .btn:disabled { cursor: progress; opacity: .7; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: transparent; color: var(--ink); border-color: currentColor; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    .summary { margin: 4px 0 18px; padding: 0; display: grid; gap: 0; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+    .status { margin: 14px 0 0; color: var(--muted); font-size: 13px; line-height: 18px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--accent); }
+    .result-box { display: none; margin-top: 16px; padding: 14px 18px; font-size: 15px; line-height: 22px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); border-left: 4px solid var(--warn); }
+    .menu-toggle { display: none; min-width: 44px; min-height: 44px; background: none; border: 0; color: inherit; cursor: pointer; }
+    body { font-family: Inter, "Helvetica Neue", Arial, sans-serif; color: var(--ink); background: var(--surface); font-size: 16px; line-height: 24px; }
+    .wrap { max-width: 1140px; margin: 0 auto; padding: 0 32px; }
+    .hd { border-bottom: 1px solid var(--line); }
+    .hd .wrap { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 72px; }
+    .hd .left { display: flex; gap: 24px; }
+    .hd .left a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-size: 15px; font-weight: 500; }
+    .hd .left a[aria-current] { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
+    .brand { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-weight: 700; font-size: 26px; letter-spacing: .06em; }
+    .hd .right { justify-self: end; display: flex; gap: 12px; align-items: center; }
+    .hd .right span { font-size: 14px; color: var(--muted); }
+    .out { min-height: 44px; padding: 0 20px; border-radius: 100px; border: 1px solid var(--ink); background: #fff; color: var(--ink); font-weight: 600; cursor: pointer; }
+    .tabs { border-bottom: 1px solid var(--line); }
+    .tabs .wrap { display: flex; gap: 28px; overflow-x: auto; }
+    .tabs a { display: inline-flex; align-items: center; min-height: 52px; text-decoration: none; white-space: nowrap; font-size: 15px; color: var(--muted); }
+    .tabs a[aria-current] { color: var(--ink); font-weight: 600; box-shadow: inset 0 -2px 0 var(--ink); }
+    main { padding: 48px 0 80px; }
+    h1 { margin: 0 0 8px; font-size: 40px; line-height: 48px; font-weight: 600; letter-spacing: -.02em; }
+    .lead { margin: 0 0 40px; color: var(--muted); max-width: 640px; }
+    .grid { display: grid; grid-template-columns: 1fr 360px; gap: 64px; }
+    label { font-size: 13px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; color: var(--muted); }
+    select, input[type="number"] { border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; padding-left: 0; background: transparent; font-size: 18px; }
+    select:focus-visible, input:focus-visible { outline: none; border-bottom: 2px solid var(--accent); }
+    .btn { border-radius: 100px; font-weight: 600; }
+    .btn-primary { background: var(--accent); }
+    .list h2 { margin: 0 0 12px; font-size: 18px; font-weight: 600; }
+    .acc { display: flex; justify-content: space-between; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+    .acc span { display: block; font-size: 13px; color: var(--muted); }
+    .acc b { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .box { margin-top: 24px; background: var(--grey); border-radius: 8px; padding: 20px; font-size: 14px; line-height: 20px; }
+    .box b { display: block; margin-bottom: 4px; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 6px; }
+    .summary div { border-color: var(--line); }
+    footer { background: var(--chrome-bg); color: var(--chrome-text); padding: 48px 0; font-size: 14px; }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 32px; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 0 24px; }
+    footer a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+    @media (max-width: 900px) {
+      .hd .left { display: none; }
+      .hd .right span { display: none; }
+      .grid { grid-template-columns: 1fr; gap: 40px; }
+    }
+    @media (max-width: 520px) {
+      .wrap { padding: 0 16px; }
+      main { padding: 28px 0 56px; }
+      h1 { font-size: 30px; line-height: 36px; }
+      .lead { margin-bottom: 28px; }
+      .actions .btn { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hd">
+    <div class="wrap">
+      <nav class="left" aria-label="Customer type"><a href="#" aria-current="page">Private</a><a href="#">Business</a></nav>
+      <a class="brand" href="#" aria-label="SEB Internetbanken">SEB</a>
+      <div class="right"><span>Johanna Ek</span><button type="button" class="out">Log out</button></div>
+    </div>
+  </header>
+  <nav class="tabs" aria-label="Internetbanken"><div class="wrap"><a href="#">Overview</a><a href="#" aria-current="page">Pay and transfer</a><a href="#">Cards</a><a href="#">Save and invest</a><a href="#">Mortgage</a><a href="#">Pension</a></div></nav>
+
+  <main id="transfer">
+    <div class="wrap">
+      <h1>Transfer</h1>
+      <p class="lead">Transfer between your own accounts or to a saved recipient. Transfers between SEB accounts are booked immediately.</p>
+      <div class="grid">
+        <form id="transferForm" novalidate aria-label="New transfer">
+          <div class="field">
+            <label for="fromAccount">From</label>
+            <select id="fromAccount">
+              <option value="SEB-0412" data-name="Privatkonto" data-number="5212 00 412 77" data-balance="9875.25" data-tier="standard">Privatkonto &middot; 5212 00 412 77</option>
+              <option value="SEB-0988" data-name="Sparkonto" data-number="5212 00 988 03" data-balance="42150.00" data-tier="standard">Sparkonto &middot; 5212 00 988 03</option>
+            </select>
+            <small id="fromHelp"></small>
+            <input type="hidden" id="accountTier" value="standard">
+          </div>
+          <div class="field">
+            <label for="toAccount">To</label>
+            <select id="toAccount">
+              <option value="">Choose recipient</option>
+              <option value="RCP-OSKAR" data-name="Oskar Nyberg" data-number="8105-9, 822 761 004-3" data-ref="Dinner">Oskar Nyberg &middot; 822 761 004-3</option>
+              <option value="RCP-HSB" data-name="HSB Brf Ekhagen" data-number="Bankgiro 5050-1055" data-ref="Avgift">HSB Brf Ekhagen &middot; Bankgiro 5050-1055</option>
+              <option value="SEB-0988" data-name="Sparkonto" data-number="5212 00 988 03" data-ref="Sparande">Sparkonto (own account)</option>
+            </select>
+            <small id="toHelp"></small>
+          </div>
+          <div class="field">
+            <label for="amount">Amount, SEK</label>
+            <input type="number" id="amount" inputmode="decimal" min="0" step="0.01" placeholder="0,00" autocomplete="off">
+            <small id="amountHelp"></small>
+          </div>
+          <dl class="summary" aria-label="Transfer summary">
+            <div><dt>From</dt><dd id="sumFrom">&mdash;</dd></div>
+            <div><dt>To</dt><dd id="sumTo">&mdash;</dd></div>
+            <div><dt>Message</dt><dd id="sumRef">&mdash;</dd></div>
+            <div><dt>Amount</dt><dd id="sumAmount">&mdash;</dd></div>
+            <div><dt>Fee</dt><dd id="sumFee">&mdash;</dd></div>
+          </dl>
+          <div class="actions">
+            <button type="submit" id="submitBtn" class="btn btn-primary">Sign transfer</button>
+            <button type="reset" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+          </div>
+          <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to sign</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+          <p class="status" id="paymentStatus" role="status" aria-live="polite">Sample accounts and recipients. No real money moves on this page.</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+        <aside class="list" aria-labelledby="accHead">
+          <h2 id="accHead">Accounts</h2>
+          <div class="acc"><div>Privatkonto<span>5212 00 412 77</span></div><b data-balance-for="SEB-0412">&nbsp;</b></div>
+          <div class="acc"><div>Sparkonto<span>5212 00 988 03</span></div><b data-balance-for="SEB-0988">&nbsp;</b></div>
+          <div class="box"><b><span class="dot" aria-hidden="true"></span>Sign with Mobile BankID</b>Transfers to new recipients are signed with Mobile BankID. Saved recipients and your own accounts need no extra signing.</div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="wrap">
+      <nav aria-label="Footer"><a href="#">Customer service</a><a href="#">Security</a><a href="#">Cookies</a><a href="#">Privacy</a><a href="#">Accessibility</a></nav>
+      <span style="display:inline-flex;align-items:center;min-height:44px;">Skandinaviska Enskilda Banken AB</span>
+    </div>
+  </footer>
+  <script>
+    window.SKIN = {
+      locale: 'sv-SE', currency: 'SEK',
+      idle: 'Sign transfer', sending: 'Signing\u2026',
+      statusIdle: 'Sample accounts and recipients. No real money moves on this page.',
+      statusSending: 'Signing your transfer\u2026', statusDone: 'Transfer signed.',
+      availableLabel: 'Available', maxLabel: 'You can transfer up to', toPlaceholder: 'Saved recipients',
+      chooseRecipient: 'Choose a recipient.', enterAmount: 'Enter an amount, for example 250.',
+      tooMuch: 'The amount and fee exceed the available amount. You can transfer up to',
+      success: (at, amt, to, from, fee, ref) => `Transfer signed at ${at}. ${amt} to ${to} from ${from} (fee ${fee}). Reference ${ref}.`,
+      duplicate: (at, amt, to, ref) => `This transfer was already signed at ${at}: ${amt} to ${to}, reference ${ref}. It has not been sent again.`,
+      failed: 'The transfer could not be completed. No money has left your account. Please try again shortly.',
+      unconfirmed: 'We couldn\u2019t confirm the transfer. Check your transactions before trying again so it isn\u2019t sent twice.',
+    };
+  </script>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const S = window.SKIN;
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm');
+      const button = $('submitBtn');
+      const cancelBtn = $('cancelBtn');
+      const result = $('result');
+      const status = $('paymentStatus');
+      const fromAccount = $('fromAccount');
+      const toAccount = $('toAccount');
+      const amountInput = $('amount');
+      const accountTier = $('accountTier');
+      const timer = $('sendTimer');
+      const timerValue = $('sendTimerValue');
+      const fields = [fromAccount, toAccount, amountInput];
+      const money = new Intl.NumberFormat(S.locale, { style: 'currency', currency: S.currency });
+      const timeFmt = new Intl.DateTimeFormat(S.locale, { hour: '2-digit', minute: '2-digit' });
+      const FEE = { rate: 0.001, flat: 2.50 };
+      const balances = {};
+      Array.from(fromAccount.options).forEach((o) => { balances[o.value] = Number(o.dataset.balance) || 0; });
+      const START = { ...balances };
+      let pending = false;
+      let ticker = null;
+
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (select) => select.options[select.selectedIndex];
+      const available = () => balances[fromAccount.value] || 0;
+      const feeCents = (cents) => Math.round(Math.max(FEE.rate * cents, FEE.flat * 100));
+      function maxPayable() {
+        const avail = Math.round(available() * 100);
+        let max = Math.min(Math.floor(avail / (1 + FEE.rate)), avail - FEE.flat * 100);
+        while (max > 0 && max + feeCents(max) > avail) max -= 1;
+        return Math.max(max, 0) / 100;
+      }
+      function parsedAmount() {
+        const raw = amountInput.value.trim().replace(/,/g, '');
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return parseFloat(raw);
+      }
+      const recipient = () => (toAccount.value ? selected(toAccount) : null);
+      function renderBalances() {
+        document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = money.format(balances[el.dataset.balanceFor] || 0); });
+      }
+      function render() {
+        const from = selected(fromAccount);
+        const to = recipient();
+        const amount = parsedAmount();
+        accountTier.value = 'standard';
+        set('fromHelp', `${from.dataset.number} \u00b7 ${S.availableLabel} ${money.format(available())}`);
+        set('toHelp', to ? `${to.dataset.number}${to.dataset.ref ? ' \u00b7 ' + to.dataset.ref : ''}` : S.toPlaceholder);
+        set('amountHelp', `${S.maxLabel} ${money.format(maxPayable())}`);
+        set('sumFrom', from.dataset.name);
+        set('sumTo', to ? to.dataset.name : '\u2014');
+        set('sumRef', to && to.dataset.ref ? to.dataset.ref : '\u2014');
+        const ok = Number.isFinite(amount) && amount > 0;
+        set('sumAmount', ok ? money.format(amount) : '\u2014');
+        set('sumFee', ok ? money.format(feeCents(Math.round(amount * 100)) / 100) : '\u2014');
+        set('sumTotal', ok ? money.format((Math.round(amount * 100) + feeCents(Math.round(amount * 100))) / 100) : '\u2014');
+      }
+      function notice(message, focusEl) {
+        result.className = 'result-box notice';
+        result.textContent = message;
+        status.textContent = S.statusIdle;
+        if (focusEl) focusEl.focus();
+      }
+      function stopTimer(done) {
+        if (ticker) { clearInterval(ticker); ticker = null; }
+        if (timer) timer.className = done ? 'stopwatch on done' : 'stopwatch';
+      }
+
+      fromAccount.addEventListener('change', render);
+      toAccount.addEventListener('change', render);
+      amountInput.addEventListener('input', render);
+      form.addEventListener('reset', () => {
+        setTimeout(() => {
+          Object.assign(balances, START);
+          result.className = 'result-box';
+          result.textContent = '';
+          status.textContent = S.statusIdle;
+          stopTimer(false);
+          if (timerValue) timerValue.textContent = '0.0s';
+          renderBalances();
+          render();
+        });
+      });
+      renderBalances();
+      render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        const to = recipient();
+        const amount = parsedAmount();
+        if (!to) { notice(S.chooseRecipient, toAccount); return; }
+        if (!Number.isFinite(amount) || amount <= 0) { notice(S.enterAmount, amountInput); return; }
+        if (Math.round(amount * 100) > Math.round(maxPayable() * 100)) { notice(`${S.tooMuch} ${money.format(maxPayable())}.`, amountInput); return; }
+
+        pending = true;
+        button.disabled = true;
+        cancelBtn.disabled = true;
+        fields.forEach((el) => { el.disabled = true; });
+        button.textContent = S.sending;
+        status.textContent = S.statusSending;
+        result.className = 'result-box';
+        result.textContent = '';
+        const started = performance.now();
+        const tick = () => { if (timerValue) timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        if (timer) { timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100); }
+        const fromId = fromAccount.value;
+        const fromName = selected(fromAccount).dataset.name;
+        const toName = to.dataset.name;
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick();
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const paid = Number(data.receipt.amount);
+          const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
+          if (data.duplicate) {
+            result.className = 'result-box notice';
+            result.textContent = S.duplicate(at, money.format(paid), toName, data.receipt.receiptId);
+            status.textContent = S.statusIdle;
+            stopTimer(true);
+            return;
+          }
+          balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+          renderBalances();
+          render();
+          result.className = 'result-box success';
+          result.textContent = S.success(at, money.format(paid), toName, fromName, money.format(Math.max(debited - paid, 0)), data.receipt.receiptId);
+          status.textContent = S.statusDone;
+          stopTimer(true);
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok ? S.failed : S.unconfirmed;
+          status.textContent = S.statusIdle;
+        } finally {
+          fields.forEach((el) => { el.disabled = false; });
+          pending = false;
+          button.disabled = false;
+          cancelBtn.disabled = false;
+          button.textContent = S.idle;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
