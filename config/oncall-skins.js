@@ -5403,6 +5403,34 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A TSB SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real TSB product.',
   },
+  '7dcf3f26': {
+    slug: '7dcf3f26',
+    company: 'Ericsson',
+    brandMark: 'E',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: { file: '7dcf3f26.html', title: 'Add subscriptions | Ericsson NetCloud' },
+    theme: {
+      '--accent': '#1174E6',
+      '--ink': '#0C0C0C',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0C0C0C',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Ericsson Support',
+    alertCard: {
+      title: 'p95 latency \u2014 NetCloud Manager: add subscriptions',
+      service: 'ncm-subscriptions',
+      release: 'ncm-subscriptions@2026.10.2',
+      metricQuery: 'p95:trace.express.request.duration{service:licensing-api,resource:POST /api/oncall/licenses/provision}',
+      metricValue: 'p95 6.2s and climbing over the last 15m',
+      threshold: '> 2s',
+      baseline: '~350ms (7-day p95, before ncm-subscriptions@2026.10.2)',
+      symptom: 'Add subscriptions in NetCloud Manager takes ~6s and gets slower with every request since the last release. Error rate is normal \u2014 subscriptions are added.',
+      impact: 'Enterprise admins adding endpoints for new routers wait several seconds for confirmation, and the wait grows under sustained traffic.',
+    },
+    disclaimer: 'NOT ACTUALLY AN ERICSSON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ericsson product.',
+  },
 };
 
 function getOncallSkin(slug) {
