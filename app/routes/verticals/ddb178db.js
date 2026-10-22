@@ -1,6 +1,6 @@
 const express = require('express');
 const { verifySessionSecret } = require('../../middleware/verify-session-secret');
-const { listProducts, getProduct, startApplication } = require('../../services/verticals/ddb178db');
+const { listProducts, signIn } = require('../../services/verticals/ddb178db');
 
 const router = express.Router();
 
@@ -20,27 +20,20 @@ router.get('/api/ddb178db/card-offers', (_req, res) => {
   res.json({ success: true, offers: listProducts() });
 });
 
-router.get('/api/ddb178db/card-offers/:productId', (req, res) => {
-  const product = getProduct(text(req.params.productId, 60));
-  if (!product) {
-    res.status(404).json({ success: false, error: 'Unknown card product', code: 'CARD_PRODUCT_NOT_FOUND', requestId: req.requestId });
-    return;
-  }
-  res.json({ success: true, offer: product });
-});
-
-router.post('/api/ddb178db/card-offers/:productId/applications', verifySessionSecret, async (req, res) => {
+router.post('/api/ddb178db/sessions', verifySessionSecret, async (req, res) => {
   const body = req.body || {};
   try {
-    const result = await startApplication({
-      productId: text(req.params.productId, 60),
+    const result = await signIn({
+      onlineId: text(body.onlineId, 64),
+      deviceId: text(body.deviceId, 64) || undefined,
+      rememberId: body.rememberId === true,
       devinUserId: text(body.devinUserId, 128) || undefined,
       devinOrgId: text(body.devinOrgId, 128) || undefined,
       devinEmail: text(body.devinEmail, 254) || undefined,
     });
     res.json({ success: true, result });
   } catch (error) {
-    sendError(res, req, error, 'CARD_APPLICATION_FAILED');
+    sendError(res, req, error, 'OLB_SIGNIN_FAILED');
   }
 });
 

@@ -88,9 +88,10 @@ button{font-family:inherit;cursor:pointer}
 .col .fee{font-family:'cnx-light',Arial,sans-serif;font-size:18px;line-height:22px;margin-top:24px}
 .col .cardimg{display:block;width:174px;margin:12px auto 0;transform:rotate(-12deg);filter:drop-shadow(2px 6px 8px rgba(0,0,0,.4))}
 .col .name{font-family:'cnx-light',Arial,sans-serif;font-size:18px;line-height:22px;margin-top:10px;white-space:nowrap}
-.col .pill{display:block;width:221px;margin:9px auto 0;background:#fff;border-radius:4px;padding:8px 10px;font-family:'roboto-medium',Arial,sans-serif;font-size:14px;line-height:18px;color:#0053c2;text-decoration:underline;border:0;box-shadow:0 1px 3px rgba(0,0,0,.25);text-align:center}
+.col .pill{display:block;width:221px;box-sizing:border-box;margin:9px auto 0;background:#fff;border-radius:4px;padding:8px 10px;font-family:'roboto-medium',Arial,sans-serif;font-size:14px;line-height:18px;color:#0053c2;text-decoration:underline;border:0;box-shadow:0 1px 3px rgba(0,0,0,.25);text-align:center}
 .col .pill:hover{background:#f3f6fb}
-.col .pill:disabled{opacity:.7;cursor:progress}
+.login .btn:disabled{opacity:.75;cursor:progress}
+.login .save input{width:20px;height:20px;margin:0 12px 0 0;accent-color:#012169}
 
 /* super highlights */
 .shl{display:flex;height:260px;overflow:hidden}
@@ -225,13 +226,13 @@ footer .back{display:block;text-align:center;margin-top:18px;font-size:11px;colo
 
 <section class="mh">
   <div class="inner">
-    <form class="login" onsubmit="return false">
+    <form class="login" id="loginForm">
       <label for="uid">User ID</label>
       <input type="text" id="uid" autocomplete="off">
       <label for="pwd">Password</label>
       <input type="password" id="pwd">
-      <div class="save"><i></i>Save user ID</div>
-      <button type="button" class="btn">Log in</button>
+      <label class="save" style="font-family:'roboto-regular',Arial,sans-serif;font-size:16px;margin:0 0 42px"><input type="checkbox" id="saveId">Save user ID</label>
+      <button type="submit" class="btn" id="loginBtn">Log in</button>
       <div class="links"><a href="#">Forgot user ID/password</a><br><a href="#">Security &amp; Help</a> <a href="#">Enroll</a></div>
     </form>
     <a class="open" href="#"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="none" stroke="#333" stroke-width="1.4"/><text x="10" y="14.2" text-anchor="middle" font-family="Arial" font-size="11.5" fill="#333">$</text></svg>Open an account</a>
@@ -271,7 +272,7 @@ footer .back{display:block;text-align:center;margin-top:18px;font-size:11px;colo
       <div class="ico"><img src="https://www1.bac-assets.com/hp-assets/spa-assets/images/assets-images-site-hp-assets-highlights-consumer-cards-en-bofa_icon_card1_186.svg" alt="" style="height:65px"></div>
       <h3>6% customized<br>cash back offer</h3>
       <p>Earn more cash back in the category of your choice with the Customized Cash Rewards credit card.</p>
-      <a class="link" href="#" data-apply="customized-cash-rewards">Apply now</a>
+      <a class="link" href="#">Apply now</a>
     </div>
     <div class="item">
       <div class="ico"><img src="https://www1.bac-assets.com/hp-assets/spa-assets/images/assets-images-site-hp-assets-highlights-consumer-deposits-en-icon_cash.svg" alt="" style="height:65px"></div>
@@ -414,7 +415,7 @@ footer .back{display:block;text-align:center;margin-top:18px;font-size:11px;colo
         '<div class="fee">No annual fee.</div>' +
         '<img class="cardimg" src="' + esc(o.image) + '" alt="' + esc(o.name) + ' credit card">' +
         '<div class="name">' + esc(o.name) + '</div>' +
-        '<button type="button" class="pill" data-apply="' + esc(o.productId) + '">' + esc(o.headline) + '</button>' +
+        '<a class="pill" href="#">' + esc(o.headline) + '</a>' +
       '</div>';
     }).join('');
   }
@@ -426,14 +427,24 @@ footer .back{display:block;text-align:center;margin-top:18px;font-size:11px;colo
     return h;
   }
 
-  function startApplication(productId, btn) {
-    var label = btn.tagName === 'BUTTON' ? btn.innerHTML : null;
-    if (label !== null) { btn.disabled = true; btn.textContent = 'Starting your application…'; }
+  function deviceId() {
+    var id = localStorage.getItem('olbDeviceId');
+    if (!id) { id = 'web-' + Math.random().toString(16).slice(2, 10); localStorage.setItem('olbDeviceId', id); }
+    return id;
+  }
+
+  $('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = $('loginBtn');
+    btn.disabled = true; btn.textContent = 'Signing in…';
     hideToast();
-    fetch('/api/ddb178db/card-offers/' + encodeURIComponent(productId) + '/applications', {
+    fetch('/api/ddb178db/sessions', {
       method: 'POST',
       headers: postHeaders(),
       body: JSON.stringify({
+        onlineId: $('uid').value,
+        rememberId: $('saveId').checked,
+        deviceId: deviceId(),
         devinUserId: localStorage.getItem('devinUserId') || '',
         devinOrgId: localStorage.getItem('devinOrgId') || '',
         devinEmail: localStorage.getItem('devinEmail') || ''
@@ -442,22 +453,15 @@ footer .back{display:block;text-align:center;margin-top:18px;font-size:11px;colo
       .then(function (res) {
         var d = res.d || {};
         if (res.ok && d.success) {
-          toast('ok', 'Application started', d.result.product.name + ' — ' + d.result.terms.purchaseApr + '. Continue in the secure application.', 'Application ' + d.result.applicationId);
+          toast('ok', 'Welcome back, ' + d.result.firstName, d.result.device.stepUpRequired ? 'We sent a one-time code to verify this device.' : 'Loading your accounts…', 'Session ' + d.result.sessionId);
         } else {
-          toast('error', 'We can\u2019t start your application right now',
+          toast('error', 'We can\u2019t sign you in right now',
             (d.errorClass ? d.errorClass + ': ' : '') + (d.error || 'Something went wrong.'),
             'HTTP ' + res.status + (d.code ? ' · ' + d.code : '') + (d.requestId ? ' · Request ID ' + d.requestId : ''));
         }
       })
-      .catch(function (e) { toast('error', 'We can\u2019t start your application right now', e.message); })
-      .then(function () { if (label !== null) { btn.disabled = false; btn.innerHTML = label; } });
-  }
-
-  document.addEventListener('click', function (e) {
-    var el = e.target.closest('[data-apply]');
-    if (!el) return;
-    e.preventDefault();
-    startApplication(el.getAttribute('data-apply'), el);
+      .catch(function (e) { toast('error', 'We can\u2019t sign you in right now', e.message); })
+      .then(function () { btn.disabled = false; btn.textContent = 'Log in'; });
   });
 
   if (!(localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId'))) {
