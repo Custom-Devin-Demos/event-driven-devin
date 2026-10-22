@@ -1463,7 +1463,10 @@ async function postOncallAlert(scenarioId, options = {}) {
   if (slackReady) {
     try {
       ts = await postMessage(token, alertsChannel, text, blocks);
-      if (reservation) reservation.markPosted();
+      if (reservation) {
+        if (ts) reservation.markPosted();
+        else reservation.release();
+      }
       logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
     } catch (error) {
       if (!(await teamsDelivery)) {
