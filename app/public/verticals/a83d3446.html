@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Transfer between your accounts | NetBank - CommBank</title>
+  <title>Pay my credit card | NetBank - CommBank</title>
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -94,6 +94,20 @@
     .result-box { display: none; margin-top: 16px; padding: 16px 20px; font-size: 15px; line-height: 22px; border-left: 4px solid transparent; }
     .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); border-left-color: var(--ok); }
     .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); border-left-color: var(--accent); }
+    .card-due { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 28px; }
+    .card-due div { background: var(--page); padding: 14px 16px; }
+    .card-due span { display: block; color: var(--muted); font-size: 13px; }
+    .card-due strong { display: block; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    fieldset.choice { border: 0; padding: 0; margin: 0 0 20px; min-width: 0; }
+    fieldset.choice legend { padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+    .field label.radio { display: flex; font-weight: 400; font-size: 16px; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; border: 1px solid #8A8788; border-radius: 4px; margin-bottom: 8px; cursor: pointer; }
+    .field label.radio input { width: 20px; height: 20px; margin: 0; accent-color: var(--ink-2); flex: none; }
+    .field label.radio span { flex: 1; }
+    .field label.radio strong { font-variant-numeric: tabular-nums; }
+    .field label.radio:has(input:checked) { border: 2px solid var(--ink-2); padding: 0 15px; }
+    #otherWrap input { width: 100%; min-height: 52px; padding: 12px 16px 12px 30px; border: 1px solid #8A8788; border-radius: 4px; font-size: 16px; }
+    .card-dot { display: grid !important; background: var(--ink-2) !important; color: var(--accent) !important; font-size: 13px; }
+    .result-box.error { display: block; background: #FDECEA; color: #8A1C12; border-left-color: #C8102E; }
     aside .panel { padding: 28px; }
     aside .panel + .panel { margin-top: 16px; }
     aside h3 { margin: 0 0 12px; font-size: 22px; font-weight: 800; line-height: 28px; }
@@ -154,7 +168,8 @@
       .layout { grid-template-columns: 1fr; }
       .panel { padding: 24px 18px; }
       .panel h2 { font-size: 26px; line-height: 32px; }
-      .row { grid-template-columns: 1fr; gap: 0; }
+      .card-due { grid-template-columns: 1fr; gap: 8px; }
+      .card-due div { display: flex; justify-content: space-between; align-items: baseline; }
       .actions .submit-btn, .actions .cancel-btn { width: 100%; }
       .help-grid, .footer-cols { grid-template-columns: 1fr; gap: 16px; }
     }
@@ -185,8 +200,8 @@
     <div class="wrap">
       <a href="#accounts">Home</a>
       <a href="#accounts">View accounts</a>
-      <a href="#transfer" class="current" aria-current="page">Transfer &amp; BPAY</a>
-      <a href="#accounts">Cards</a>
+      <a href="#accounts">Transfer &amp; BPAY</a>
+      <a href="#transfer" class="current" aria-current="page">Cards</a>
       <a href="#accounts">Settings</a>
       <a href="#help">Messages</a>
     </div>
@@ -195,10 +210,10 @@
     <img src="https://www.commbank.com.au/content/dam/dynamic-media/homepage/2026/Tech_Retail_1956x1216-hp.png.transform/1956x1216/image.jpg" alt="" loading="eager" onerror="document.getElementById('heroBand').classList.add('no-img')">
     <div class="wrap">
       <div class="hero-card">
-        <p class="crumb"><a href="#accounts">NetBank</a> / Transfer &amp; BPAY</p>
-        <h1 id="hero-title">Transfer between your accounts</h1>
-        <p class="lead">Move money between your Everyday Smart Access account, NetBank Saver and GoalSaver. Transfers between your own CommBank accounts are usually instant, any day of the week.</p>
-        <div class="hero-cta"><a class="btn btn-primary" href="#transfer">Transfer money</a><a class="btn" href="https://www.commbank.com.au/digital-banking/netbank.html" target="_blank" rel="noopener noreferrer">About NetBank</a></div>
+        <p class="crumb"><a href="#accounts">NetBank</a> / Cards / Pay my credit card</p>
+        <h1 id="hero-title">Pay your credit card</h1>
+        <p class="lead">Pay your CommBank Low Rate Mastercard from Smart Access or NetBank Saver. Payments from your own CommBank accounts are applied to your card straight away.</p>
+        <div class="hero-cta"><a class="btn btn-primary" href="#transfer">Make a payment</a><a class="btn" href="https://www.commbank.com.au/digital-banking/netbank.html" target="_blank" rel="noopener noreferrer">About NetBank</a></div>
       </div>
     </div>
   </section>
@@ -206,65 +221,56 @@
     <div class="wrap">
       <div class="layout">
         <section class="panel" aria-labelledby="form-title">
-          <h2 id="form-title">Transfer money</h2>
-          <p class="sub">Choose the account to transfer from and the account to transfer to.</p>
-          <form id="transferForm" novalidate>
+          <h2 id="form-title">Pay my credit card</h2>
+          <p class="sub">Low Rate Mastercard &middot; 5218 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4417</p>
+          <div class="card-due" aria-label="Statement summary">
+            <div><span>Closing balance</span><strong>$412.37</strong></div>
+            <div><span>Minimum payment</span><strong>$25.00</strong></div>
+            <div><span>Due date</span><strong>5 Nov 2026</strong></div>
+          </div>
+          <form id="payForm" novalidate>
             <div class="field">
-              <label for="fromAccount">From</label>
+              <label for="fromAccount">Pay from</label>
               <select id="fromAccount">
-                <option value="ACCT-1001" data-name="Smart Access">Smart Access</option>
-                <option value="ACCT-1002" data-name="NetBank Saver">NetBank Saver</option>
-                <option value="ACCT-1003" data-name="GoalSaver">GoalSaver</option>
+                <option value="CHK-1634" data-name="Smart Access" data-balance="3482.15">Smart Access &middot; $3,482.15</option>
+                <option value="SAV-8820" data-name="NetBank Saver" data-balance="7250.00">NetBank Saver &middot; $7,250.00</option>
               </select>
+              <input type="hidden" id="toAccount" value="CARD-4417">
             </div>
+            <fieldset class="field choice">
+              <legend>Amount</legend>
+              <label class="radio"><input type="radio" name="amountChoice" value="25" checked><span>Minimum payment</span><strong>$25.00</strong></label>
+              <label class="radio"><input type="radio" name="amountChoice" value="412.37"><span>Closing balance</span><strong>$412.37</strong></label>
+              <label class="radio"><input type="radio" name="amountChoice" value="other"><span>Other amount</span></label>
+              <div class="amount-wrap" id="otherWrap" hidden><input type="number" id="amount" min="1" step="0.01" placeholder="0.00" inputmode="decimal" aria-label="Other amount in dollars"></div>
+            </fieldset>
             <div class="field">
-              <label for="toAccount">To</label>
-              <select id="toAccount">
-                <option value="ACCT-1002" data-name="NetBank Saver">NetBank Saver</option>
-                <option value="ACCT-1003" data-name="GoalSaver">GoalSaver</option>
-                <option value="ACCT-1001" data-name="Smart Access">Smart Access</option>
-              </select>
+              <label for="payDate">When</label>
+              <select id="payDate"><option value="today">Now</option></select>
             </div>
-            <div class="row">
-              <div class="field">
-                <label for="amount">Amount</label>
-                <div class="amount-wrap"><input type="number" id="amount" min="0.01" step="0.01" value="250.00" inputmode="decimal" required aria-describedby="amountHelp"></div>
-                <small id="amountHelp">Available funds: $0.00</small>
-              </div>
-              <div class="field">
-                <label for="accountTier">When</label>
-                <select id="accountTier">
-                  <option value="standard">Now</option>
-                </select>
-                <small>Future-dated and recurring transfers are set up in the CommBank app.</small>
-              </div>
-            </div>
-            <dl class="review" aria-label="Transfer summary">
+            <dl class="review" aria-label="Payment summary">
               <div><dt>From</dt><dd id="reviewFrom">&mdash;</dd></div>
-              <div><dt>To</dt><dd id="reviewTo">&mdash;</dd></div>
+              <div><dt>To</dt><dd>Low Rate Mastercard</dd></div>
               <div><dt>Amount</dt><dd id="reviewAmount">&mdash;</dd></div>
-              <div><dt>Fee</dt><dd id="reviewFee">Shown on receipt</dd></div>
-              <div><dt>Arrives</dt><dd id="reviewDate">&mdash;</dd></div>
+              <div><dt>Fee</dt><dd>No fee</dd></div>
             </dl>
-            <p class="fine">Transfers between your own CommBank accounts usually arrive straight away. Any fee is shown on your receipt and in your transaction history.</p>
             <div class="actions">
-              <button type="submit" id="submitBtn" class="submit-btn">Transfer now</button>
+              <button type="submit" id="submitBtn" class="submit-btn">Pay now</button>
               <button type="reset" id="cancelBtn" class="cancel-btn">Cancel</button>
             </div>
             <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to receipt</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
-            <p class="status" id="transferStatus" role="status" aria-live="polite">Sample accounts. No money moves on this page.</p>
-            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            <p class="status" id="payStatus" role="status" aria-live="polite">Sample accounts. No money moves on this page.</p>
+            <div id="result" class="result-box" role="alert"></div>
           </form>
         </section>
         <aside>
           <div class="panel" id="accounts">
             <h3>Your accounts</h3>
             <ul class="accounts">
-              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">S</span><span><span class="acct-name">Smart Access</span><span class="acct-num">06 2000 1234 5678</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1001">$0.00</span><small>Available</small></span></li>
-              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">N</span><span><span class="acct-name">NetBank Saver</span><span class="acct-num">06 2000 8765 4321</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1002">$0.00</span><small>Available</small></span></li>
-              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">G</span><span><span class="acct-name">GoalSaver</span><span class="acct-num">06 2000 5566 7788</span></span></span><span class="acct-bal"><span data-balance-for="ACCT-1003">$0.00</span><small>Available</small></span></li>
+              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">S</span><span><span class="acct-name">Smart Access</span><span class="acct-num">06 2000 1234 5678</span></span></span><span class="acct-bal"><span data-balance-for="CHK-1634">$3,482.15</span><small>Available</small></span></li>
+              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">N</span><span><span class="acct-name">NetBank Saver</span><span class="acct-num">06 2000 8765 4321</span></span></span><span class="acct-bal"><span data-balance-for="SAV-8820">$7,250.00</span><small>Available</small></span></li>
+              <li><span class="acct"><span class="acct-dot card-dot" aria-hidden="true">MC</span><span><span class="acct-name">Low Rate Mastercard</span><span class="acct-num">5218 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4417</span></span></span><span class="acct-bal"><span id="cardOwing">$412.37</span><small>Owing</small></span></li>
             </ul>
-            <div class="acct-total"><span>Total</span><span id="totalBalance">$0.00</span></div>
           </div>
           <div class="panel promo no-img">
             <div class="promo-fallback" aria-hidden="true"></div>
@@ -315,187 +321,148 @@
     })();
   </script>
   <script>
-    const form = document.getElementById('transferForm');
-    const button = document.getElementById('submitBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const result = document.getElementById('result');
-    const status = document.getElementById('transferStatus');
-    const fromAccount = document.getElementById('fromAccount');
-    const toAccount = document.getElementById('toAccount');
-    const amountInput = document.getElementById('amount');
-    const amountHelp = document.getElementById('amountHelp');
-    const reviewFrom = document.getElementById('reviewFrom');
-    const reviewTo = document.getElementById('reviewTo');
-    const reviewAmount = document.getElementById('reviewAmount');
-    const reviewFee = document.getElementById('reviewFee');
-    const reviewDate = document.getElementById('reviewDate');
-    const totalBalance = document.getElementById('totalBalance');
-    const transferFields = [fromAccount, toAccount, amountInput, document.getElementById('accountTier')];
-    const timer = document.getElementById('sendTimer');
-    const timerValue = document.getElementById('sendTimerValue');
-    const IDLE_STATUS = 'Sample accounts. No money moves on this page.';
-    const IDLE_LABEL = 'Transfer now';
-    const FEE_PENDING = 'Shown on receipt';
-    const FEE_RATE = 0.001;
-    const FEE_MINIMUM = 2.50;
-    let timerHandle = null;
-    let pending = false;
-    const aud = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' });
-    const timeFmt = new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' });
-    const balances = { 'ACCT-1001': 3482.15, 'ACCT-1002': 12650.00, 'ACCT-1003': 4875.40 };
-    function selected(select) { return select.options[select.selectedIndex]; }
-    function available() { return balances[fromAccount.value] || 0; }
-    function toCents(value) { return Math.round(value * 100); }
-    function estimatedFeeCents(amountCents) { return Math.max(Math.round(FEE_RATE * amountCents), toCents(FEE_MINIMUM)); }
-    function maxMove() {
-      const availableCents = toCents(available());
-      let cents = Math.max(0, availableCents - toCents(FEE_MINIMUM));
-      while (cents > 0 && cents + estimatedFeeCents(cents) > availableCents) cents -= 1;
-      return cents / 100;
-    }
-    function label(select) { return selected(select).dataset.name; }
-    function renderBalances() {
-      [fromAccount, toAccount].forEach((select) => {
-        Array.from(select.options).forEach((opt) => {
-          opt.textContent = `${opt.dataset.name} \u00b7 ${aud.format(balances[opt.value] || 0)}`;
+    (function () {
+      const form = document.getElementById('payForm');
+      const fromAccount = document.getElementById('fromAccount');
+      const toAccount = document.getElementById('toAccount');
+      const otherWrap = document.getElementById('otherWrap');
+      const otherAmount = document.getElementById('amount');
+      const submitBtn = document.getElementById('submitBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const result = document.getElementById('result');
+      const status = document.getElementById('payStatus');
+      const reviewFrom = document.getElementById('reviewFrom');
+      const reviewAmount = document.getElementById('reviewAmount');
+      const timer = document.getElementById('sendTimer');
+      const timerValue = document.getElementById('sendTimerValue');
+      const IDLE_STATUS = 'Sample accounts. No money moves on this page.';
+      const aud = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' });
+      const timeFmt = new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' });
+      let owing = 412.37;
+      let inFlight = false;
+      let timerHandle = null;
+
+      function selected() { return fromAccount.options[fromAccount.selectedIndex]; }
+      function fromName() { return selected().dataset.name; }
+      function available() { return Number(selected().dataset.balance); }
+      function choice() { return form.querySelector('input[name="amountChoice"]:checked').value; }
+      function rawAmount() {
+        if (choice() !== 'other') return Number(choice());
+        const raw = otherAmount.value.trim();
+        return /^\d+(\.\d{1,2})?$/.test(raw) ? Number(raw) : NaN;
+      }
+      function amountValid() {
+        const v = rawAmount();
+        return Number.isFinite(v) && v >= 1 && v <= available();
+      }
+      function renderBalances() {
+        Array.from(fromAccount.options).forEach((opt) => {
+          opt.textContent = `${opt.dataset.name} \u00b7 ${aud.format(Number(opt.dataset.balance))}`;
+          const el = document.querySelector(`[data-balance-for="${opt.value}"]`);
+          if (el) el.textContent = aud.format(Number(opt.dataset.balance));
         });
-      });
-      document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = aud.format(balances[el.dataset.balanceFor] || 0); });
-      totalBalance.textContent = aud.format(Object.values(balances).reduce((sum, value) => sum + (value || 0), 0));
-    }
-    function parsedAmount() {
-      const raw = amountInput.value.trim();
-      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
-      return parseFloat(raw);
-    }
-    function covered(amount) {
-      if (!Number.isFinite(amount) || amount <= 0) return false;
-      const cents = toCents(amount);
-      return cents + estimatedFeeCents(cents) <= toCents(available());
-    }
-    function startTimer() {
-      const started = performance.now();
-      timer.className = 'stopwatch on';
-      timerValue.textContent = '0.0s';
-      timerHandle = setInterval(() => {
+        document.getElementById('cardOwing').textContent = aud.format(owing);
+      }
+      function sync() {
+        otherWrap.hidden = choice() !== 'other';
+        reviewFrom.textContent = fromName();
+        reviewAmount.textContent = amountValid() ? aud.format(rawAmount()) : '\u2014';
+        if (!inFlight) submitBtn.disabled = false;
+      }
+      function startTimer() {
+        const started = performance.now();
+        timer.className = 'stopwatch on';
+        timerValue.textContent = '0.0s';
+        timerHandle = setInterval(() => {
+          timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+        }, 100);
+        return started;
+      }
+      function stopTimer(started) {
+        clearInterval(timerHandle);
         timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
-      }, 100);
-      return started;
-    }
-    function stopTimer(started) {
-      clearInterval(timerHandle);
-      timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
-    }
-    function renderReview() {
-      const amount = parsedAmount();
-      amountHelp.textContent = `Available funds: ${aud.format(available())} \u00b7 transfer up to ${aud.format(maxMove())} including any fee`;
-      reviewFrom.textContent = label(fromAccount);
-      reviewTo.textContent = label(toAccount);
-      reviewAmount.textContent = covered(amount) ? aud.format(amount) : '\u2014';
-      reviewFee.textContent = FEE_PENDING;
-      reviewDate.textContent = 'Straight away';
-    }
-    [fromAccount, toAccount].forEach((el) => el.addEventListener('change', renderReview));
-    amountInput.addEventListener('input', renderReview);
-    form.addEventListener('reset', () => {
-      setTimeout(() => {
-        result.className = 'result-box';
-        result.textContent = '';
-        status.textContent = IDLE_STATUS;
-        timer.className = 'stopwatch';
-        renderReview();
-      });
-    });
-    renderBalances();
-    renderReview();
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if (pending) return;
-      const amount = parsedAmount();
-      const maxNow = maxMove();
-      if (fromAccount.value === toAccount.value) {
-        result.className = 'result-box notice';
-        result.textContent = 'Choose a different account to transfer to. You can\u2019t transfer money to the account it comes from.';
-        status.textContent = IDLE_STATUS;
-        toAccount.focus();
-        return;
       }
-      if (!covered(amount)) {
-        result.className = 'result-box notice';
-        result.textContent = maxNow > 0
-          ? `Enter an amount between $0.01 and ${aud.format(maxNow)}, so any fee is covered too.`
-          : `There isn\u2019t enough in ${label(fromAccount)} to cover a transfer and its fee.`;
-        status.textContent = IDLE_STATUS;
-        amountInput.focus();
-        return;
-      }
-      pending = true;
-      button.disabled = true;
-      cancelBtn.disabled = true;
-      transferFields.forEach((el) => { el.disabled = true; });
-      button.textContent = 'Transferring\u2026';
-      status.textContent = 'Transferring\u2026';
-      result.className = 'result-box';
-      result.textContent = '';
-      const fromLabel = label(fromAccount);
-      const toLabel = label(toAccount);
-      const fromId = fromAccount.value;
-      const toId = toAccount.value;
-      const started = startTimer();
-      let response;
-      try {
-        response = await fetch('/api/banking/transfer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fromAccount: fromAccount.value,
-            toAccount: toAccount.value,
-            amount: parseFloat(amountInput.value),
-            accountTier: document.getElementById('accountTier').value,
-            devinUserId: localStorage.getItem('devinUserId') || '',
-            devinOrgId: localStorage.getItem('devinOrgId') || '',
-            devinEmail: localStorage.getItem('devinEmail') || '',
-          }),
+
+      form.addEventListener('change', sync);
+      form.addEventListener('input', sync);
+      form.addEventListener('reset', () => {
+        setTimeout(() => {
+          result.className = 'result-box';
+          result.textContent = '';
+          status.textContent = IDLE_STATUS;
+          timer.className = 'stopwatch';
+          sync();
         });
-        const data = await response.json().catch(() => null);
-        if (!response.ok) throw new Error('Transfer not completed.');
-        if (!data || !data.receipt) throw new Error('Transfer outcome unknown.');
-        const completedAt = new Date(data.receipt.timestamp);
-        const moved = Number(data.receipt.amount);
-        const fee = Number(data.fee ?? data.receipt.fee ?? 0);
-        const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? moved + fee);
-        if (data.duplicate) {
+      });
+      renderBalances();
+      sync();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (inFlight) return;
+        if (!amountValid()) {
           result.className = 'result-box notice';
-          result.textContent = `This transfer was already completed at ${timeFmt.format(completedAt)}: ${aud.format(moved)} to ${toLabel} from ${fromLabel}, receipt ${data.receipt.receiptId}. It wasn\u2019t transferred again and your balances haven\u2019t changed.`;
-          status.textContent = 'Already completed.';
+          result.textContent = rawAmount() > available()
+            ? `There isn\u2019t enough in ${fromName()} to make this payment. Choose a smaller amount or another account.`
+            : 'Enter a payment amount of at least $1.00, in dollars and cents.';
           return;
         }
-        balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
-        balances[toId] = Math.round(((balances[toId] || 0) + moved) * 100) / 100;
-        renderBalances();
-        renderReview();
-        reviewFee.textContent = aud.format(fee);
-        result.className = 'result-box success';
-        result.textContent = `Transfer complete at ${timeFmt.format(completedAt)}. ${aud.format(moved)} transferred to ${toLabel} from ${fromLabel}. Fee ${aud.format(fee)}; ${aud.format(debited)} taken from ${fromLabel}. Receipt ${data.receipt.receiptId}. The money is available in ${toLabel} now.`;
-        status.textContent = 'Transfer complete.';
-      } catch (_error) {
-        result.className = 'result-box notice';
-        if (response && !response.ok) {
-          result.textContent = 'Something went wrong and your transfer wasn\u2019t made. Your balances haven\u2019t changed. Please try again in a moment.';
-          status.textContent = 'Transfer not completed.';
-        } else {
-          result.textContent = 'We couldn\u2019t confirm this transfer. Check your transaction history before trying again so the same amount isn\u2019t transferred twice.';
-          status.textContent = 'Transfer not confirmed.';
+        inFlight = true;
+        const amount = Math.round(rawAmount() * 100) / 100;
+        const name = fromName();
+        const option = selected();
+        submitBtn.disabled = true;
+        cancelBtn.disabled = true;
+        submitBtn.textContent = 'Paying\u2026';
+        status.textContent = 'Paying\u2026';
+        result.className = 'result-box';
+        result.textContent = '';
+        const started = startTimer();
+        let outcome = 'unknown';
+        try {
+          const response = await fetch('/api/8f167941/card-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount,
+              paymentDate: document.getElementById('payDate').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          if (!response.ok) {
+            outcome = 'failed';
+            result.className = 'result-box error';
+            result.textContent = response.status === 400 || response.status === 422
+              ? 'Please check the payment details and try again.'
+              : `Sorry, we couldn\u2019t process your payment right now. No money has left ${name}. Please try again later.${data && data.requestId ? ` Reference: ${data.requestId}` : ''}`;
+            return;
+          }
+          if (!data || !data.success) throw new Error('unreadable response');
+          outcome = 'paid';
+          const paid = Number(data.totalDebit);
+          option.dataset.balance = (Math.round((Number(option.dataset.balance) - paid) * 100) / 100).toFixed(2);
+          owing = Math.max(0, Math.round((owing - paid) * 100) / 100);
+          renderBalances();
+          result.className = 'result-box success';
+          result.textContent = `Payment complete at ${timeFmt.format(new Date(data.scheduledAt))}. ${aud.format(paid)} paid to your Low Rate Mastercard from ${name}. No fee was charged. Receipt ${data.paymentId}.`;
+        } catch (_error) {
+          result.className = 'result-box error';
+          result.textContent = 'We couldn\u2019t confirm whether your payment went through. Check your card transactions before trying again.';
+        } finally {
+          stopTimer(started);
+          inFlight = false;
+          submitBtn.textContent = 'Pay now';
+          cancelBtn.disabled = false;
+          status.textContent = outcome === 'paid' ? 'Payment complete.' : outcome === 'failed' ? 'Payment not completed.' : 'Payment not confirmed.';
+          sync();
         }
-      } finally {
-        transferFields.forEach((el) => { el.disabled = false; });
-        stopTimer(started);
-        pending = false;
-        button.disabled = false;
-        cancelBtn.disabled = false;
-        button.textContent = IDLE_LABEL;
-      }
-    });
+      });
+    })();
   </script>
   <script src="/session-cap-banner.js"></script>
 </body>
