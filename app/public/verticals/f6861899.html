@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pay and transfer | Nordea Netbank</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #0000A0;
+      --ink: #00005E;
+      --surface: #FFFFFF;
+      --chrome-bg: #00005E;
+      --chrome-text: #FFFFFF;
+      --teal: #40BFA3;
+      --sky: #DCEDFF;
+      --stone: #F4F2F1;
+      --line: #E0DEDD;
+      --muted: #4D4D80;
+      --ok: #0A6B57; --ok-bg: #E2F6F1;
+      --warn: #B4430C; --warn-bg: #FFF0E6;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; overflow-x: hidden; }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field { display: grid; gap: 6px; margin-bottom: 18px; }
+    .field small { color: var(--muted); font-size: 13px; line-height: 18px; }
+    select, input[type="number"] { width: 100%; min-height: 48px; padding: 10px 14px; color: var(--ink); background: #fff; border: 1px solid var(--line); }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    select:disabled, input:disabled { opacity: .65; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 28px; border: 2px solid transparent; cursor: pointer; text-decoration: none; }
+    .btn:disabled { cursor: progress; opacity: .7; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: transparent; color: var(--ink); border-color: currentColor; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    .summary { margin: 4px 0 18px; padding: 0; display: grid; gap: 0; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+    .status { margin: 14px 0 0; color: var(--muted); font-size: 13px; line-height: 18px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--accent); }
+    .result-box { display: none; margin-top: 16px; padding: 14px 18px; font-size: 15px; line-height: 22px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); border-left: 4px solid var(--warn); }
+    .menu-toggle { display: none; min-width: 44px; min-height: 44px; background: none; border: 0; color: inherit; cursor: pointer; }
+    body { font-family: "Nunito Sans", Arial, sans-serif; color: var(--ink); background: var(--stone); font-size: 16px; line-height: 24px; }
+    .app { display: grid; grid-template-columns: 96px 1fr; min-height: 100vh; }
+    .rail { background: var(--chrome-bg); color: var(--chrome-text); display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 6px; }
+    .rail .mk { display: grid; place-items: center; width: 56px; height: 56px; margin-bottom: 18px; }
+    .rail a { display: grid; justify-items: center; gap: 4px; width: 84px; min-height: 64px; padding: 8px 4px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600; text-align: center; }
+    .rail a[aria-current] { background: rgba(255, 255, 255, .14); }
+    .rail svg { width: 22px; height: 22px; }
+    .topbar { display: flex; align-items: center; gap: 16px; min-height: 72px; padding: 0 40px; background: #fff; border-bottom: 1px solid var(--line); }
+    .topbar strong { font-size: 18px; font-weight: 800; }
+    .topbar .sp { margin-left: auto; }
+    .round { min-height: 44px; padding: 0 22px; border-radius: 50px; border: 2px solid var(--accent); background: #fff; color: var(--accent); font-weight: 700; cursor: pointer; }
+    .content { padding: 32px 40px 64px; max-width: 1120px; }
+    h1 { margin: 0 0 4px; font-size: 36px; line-height: 44px; font-weight: 800; letter-spacing: -.01em; }
+    .lead { margin: 0 0 24px; color: var(--muted); }
+    .quick { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+    .quick span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 50px; background: #fff; font-weight: 700; font-size: 14px; }
+    .quick span.on { background: var(--accent); color: #fff; }
+    .grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; }
+    .card { background: #fff; border-radius: 8px; padding: 28px; }
+    .card h2 { margin: 0 0 18px; font-size: 20px; font-weight: 800; }
+    label { font-weight: 700; font-size: 14px; }
+    select, input[type="number"] { border-radius: 8px; border: 1px solid #B3B3CC; }
+    .btn { border-radius: 50px; font-weight: 800; }
+    .btn-secondary { color: var(--accent); }
+    .acct { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .acct:last-of-type { border-bottom: 0; }
+    .acct span { display: block; color: var(--muted); font-size: 13px; }
+    .acct b { font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .info { margin-top: 16px; background: var(--sky); border-radius: 8px; padding: 18px; font-size: 14px; line-height: 20px; }
+    .info b { display: block; margin-bottom: 4px; }
+    .summary div { border-color: var(--line); }
+    footer { padding: 24px 40px 36px; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0 24px; }
+    footer a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) {
+      .app { grid-template-columns: 1fr; }
+      .rail { position: fixed; bottom: 0; left: 0; right: 0; z-index: 5; flex-direction: row; justify-content: space-around; padding: 4px 0; }
+      .rail .mk { display: none; }
+      .rail a { width: auto; flex: 1; min-height: 56px; font-size: 11px; }
+      .topbar { padding: 0 16px; }
+      .content { padding: 20px 16px 40px; }
+      h1 { font-size: 28px; line-height: 34px; }
+      .card { padding: 20px 16px; }
+      .actions .btn { flex: 1 1 100%; }
+      footer { padding: 16px 16px 96px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="rail" aria-label="Netbank">
+      <span class="mk" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="#fff" stroke-width="2.5"/><path d="M12 27V13l16 14V13" fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></svg></span>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9H3z"/></svg>Home</a>
+      <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h14l-4-4M20 16H6l4 4"/></svg>Pay</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>Cards</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19l5-6 4 3 7-9"/></svg>Savings</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16v.5"/></svg>Help</a>
+    </nav>
+    <div>
+      <header class="topbar">
+        <strong>Nordea</strong>
+        <span class="sp">Aino Virtanen</span>
+        <button type="button" class="round">Log out</button>
+      </header>
+      <main class="content" id="pay">
+        <h1>Pay and transfer</h1>
+        <p class="lead">Transfer between your own accounts or to a saved recipient. Transfers between Nordea accounts in Finland are instant.</p>
+        <div class="quick" aria-hidden="true"><span class="on">Transfer</span><span>Pay a bill</span><span>Scheduled payments</span><span>E-invoices</span></div>
+        <div class="grid">
+          <section class="card" aria-labelledby="formHead">
+            <h2 id="formHead">New transfer</h2>
+            <form id="transferForm" novalidate>
+              <div class="field">
+                <label for="fromAccount">From account</label>
+                <select id="fromAccount">
+                  <option value="FI-7701" data-name="Current account" data-number="FI21 1745 3000 7701 22" data-balance="3264.18" data-tier="standard">Current account &middot; FI21 1745 3000 7701 22</option>
+                  <option value="FI-7702" data-name="Savings account" data-number="FI37 1745 3000 7702 85" data-balance="11890.00" data-tier="standard">Savings account &middot; FI37 1745 3000 7702 85</option>
+                </select>
+                <small id="fromHelp"></small>
+                <input type="hidden" id="accountTier" value="standard">
+              </div>
+              <div class="field">
+                <label for="toAccount">To</label>
+                <select id="toAccount">
+                  <option value="">Choose recipient</option>
+                  <option value="RCP-MIKKO" data-name="Mikko Laine" data-number="FI55 8000 1470 0291 33" data-ref="Concert tickets">Mikko Laine &middot; FI55 8000 1470 0291 33</option>
+                  <option value="RCP-ASOY" data-name="As Oy Kalliontie 12" data-number="FI90 1590 3000 1128 74" data-ref="Maintenance charge">As Oy Kalliontie 12 &middot; FI90 1590 3000 1128 74</option>
+                  <option value="FI-7702" data-name="Savings account" data-number="FI37 1745 3000 7702 85" data-ref="Savings">Savings account (own account)</option>
+                </select>
+                <small id="toHelp"></small>
+              </div>
+              <div class="field">
+                <label for="amount">Amount, EUR</label>
+                <input type="number" id="amount" inputmode="decimal" min="0" step="0.01" placeholder="0,00" autocomplete="off">
+                <small id="amountHelp"></small>
+              </div>
+              <dl class="summary" aria-label="Transfer summary">
+                <div><dt>From</dt><dd id="sumFrom">&mdash;</dd></div>
+                <div><dt>To</dt><dd id="sumTo">&mdash;</dd></div>
+                <div><dt>Message</dt><dd id="sumRef">&mdash;</dd></div>
+                <div><dt>Amount</dt><dd id="sumAmount">&mdash;</dd></div>
+                <div><dt>Service fee</dt><dd id="sumFee">&mdash;</dd></div>
+              </dl>
+              <div class="actions">
+                <button type="submit" id="submitBtn" class="btn btn-primary">Confirm</button>
+                <button type="reset" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+              </div>
+              <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+              <p class="status" id="paymentStatus" role="status" aria-live="polite">Sample accounts and recipients. No real money moves on this page.</p>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            </form>
+          </section>
+          <aside>
+            <section class="card" aria-labelledby="acctHead">
+              <h2 id="acctHead">Accounts</h2>
+              <div class="acct"><div>Current account<span>FI21 1745 3000 7701 22</span></div><b data-balance-for="FI-7701">&nbsp;</b></div>
+              <div class="acct"><div>Savings account<span>FI37 1745 3000 7702 85</span></div><b data-balance-for="FI-7702">&nbsp;</b></div>
+            </section>
+            <div class="info"><b>Instant transfers</b>Transfers between Nordea accounts arrive in seconds, also at weekends.</div>
+          </aside>
+        </div>
+      </main>
+      <footer><a href="#">Customer service</a><a href="#">Security</a><a href="#">Cookies</a><a href="#">Privacy</a><span style="display:inline-flex;align-items:center;min-height:44px;">Nordea Bank Abp</span></footer>
+    </div>
+  </div>
+  <script>
+    window.SKIN = {
+      locale: 'fi-FI', currency: 'EUR',
+      idle: 'Confirm', sending: 'Confirming\u2026',
+      statusIdle: 'Sample accounts and recipients. No real money moves on this page.',
+      statusSending: 'Confirming your transfer\u2026', statusDone: 'Transfer completed.',
+      availableLabel: 'Available', maxLabel: 'You can transfer up to', toPlaceholder: 'Saved recipients',
+      chooseRecipient: 'Choose a recipient.', enterAmount: 'Enter an amount, for example 40.00.',
+      tooMuch: 'The amount and service fee exceed the available balance. You can transfer up to',
+      success: (at, amt, to, from, fee, ref) => `Transfer completed at ${at}. ${amt} to ${to} from ${from} (service fee ${fee}). Archive ID ${ref}.`,
+      duplicate: (at, amt, to, ref) => `This transfer was already completed at ${at}: ${amt} to ${to}, archive ID ${ref}. It hasn\u2019t been sent again.`,
+      failed: 'The transfer could not be completed. No money has left your account. Please try again in a moment.',
+      unconfirmed: 'We couldn\u2019t confirm the transfer. Check your account transactions before trying again so it isn\u2019t sent twice.',
+    };
+  </script>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const S = window.SKIN;
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm');
+      const button = $('submitBtn');
+      const cancelBtn = $('cancelBtn');
+      const result = $('result');
+      const status = $('paymentStatus');
+      const fromAccount = $('fromAccount');
+      const toAccount = $('toAccount');
+      const amountInput = $('amount');
+      const accountTier = $('accountTier');
+      const timer = $('sendTimer');
+      const timerValue = $('sendTimerValue');
+      const fields = [fromAccount, toAccount, amountInput];
+      const money = new Intl.NumberFormat(S.locale, { style: 'currency', currency: S.currency });
+      const timeFmt = new Intl.DateTimeFormat(S.locale, { hour: '2-digit', minute: '2-digit' });
+      const FEE = { rate: 0.001, flat: 2.50 };
+      const balances = {};
+      Array.from(fromAccount.options).forEach((o) => { balances[o.value] = Number(o.dataset.balance) || 0; });
+      const START = { ...balances };
+      let pending = false;
+      let ticker = null;
+
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (select) => select.options[select.selectedIndex];
+      const available = () => balances[fromAccount.value] || 0;
+      const feeCents = (cents) => Math.round(Math.max(FEE.rate * cents, FEE.flat * 100));
+      function maxPayable() {
+        const avail = Math.round(available() * 100);
+        let max = Math.min(Math.floor(avail / (1 + FEE.rate)), avail - FEE.flat * 100);
+        while (max > 0 && max + feeCents(max) > avail) max -= 1;
+        return Math.max(max, 0) / 100;
+      }
+      function parsedAmount() {
+        const raw = amountInput.value.trim().replace(/,/g, '');
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return parseFloat(raw);
+      }
+      const recipient = () => (toAccount.value ? selected(toAccount) : null);
+      function renderBalances() {
+        document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = money.format(balances[el.dataset.balanceFor] || 0); });
+      }
+      function render() {
+        const from = selected(fromAccount);
+        const to = recipient();
+        const amount = parsedAmount();
+        accountTier.value = 'standard';
+        set('fromHelp', `${from.dataset.number} \u00b7 ${S.availableLabel} ${money.format(available())}`);
+        set('toHelp', to ? `${to.dataset.number}${to.dataset.ref ? ' \u00b7 ' + to.dataset.ref : ''}` : S.toPlaceholder);
+        set('amountHelp', `${S.maxLabel} ${money.format(maxPayable())}`);
+        set('sumFrom', from.dataset.name);
+        set('sumTo', to ? to.dataset.name : '\u2014');
+        set('sumRef', to && to.dataset.ref ? to.dataset.ref : '\u2014');
+        const ok = Number.isFinite(amount) && amount > 0;
+        set('sumAmount', ok ? money.format(amount) : '\u2014');
+        set('sumFee', ok ? money.format(feeCents(Math.round(amount * 100)) / 100) : '\u2014');
+        set('sumTotal', ok ? money.format((Math.round(amount * 100) + feeCents(Math.round(amount * 100))) / 100) : '\u2014');
+      }
+      function notice(message, focusEl) {
+        result.className = 'result-box notice';
+        result.textContent = message;
+        status.textContent = S.statusIdle;
+        if (focusEl) focusEl.focus();
+      }
+      function stopTimer(done) {
+        if (ticker) { clearInterval(ticker); ticker = null; }
+        if (timer) timer.className = done ? 'stopwatch on done' : 'stopwatch';
+      }
+
+      fromAccount.addEventListener('change', render);
+      toAccount.addEventListener('change', render);
+      amountInput.addEventListener('input', render);
+      form.addEventListener('reset', () => {
+        setTimeout(() => {
+          Object.assign(balances, START);
+          result.className = 'result-box';
+          result.textContent = '';
+          status.textContent = S.statusIdle;
+          stopTimer(false);
+          if (timerValue) timerValue.textContent = '0.0s';
+          renderBalances();
+          render();
+        });
+      });
+      renderBalances();
+      render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        const to = recipient();
+        const amount = parsedAmount();
+        if (!to) { notice(S.chooseRecipient, toAccount); return; }
+        if (!Number.isFinite(amount) || amount <= 0) { notice(S.enterAmount, amountInput); return; }
+        if (Math.round(amount * 100) > Math.round(maxPayable() * 100)) { notice(`${S.tooMuch} ${money.format(maxPayable())}.`, amountInput); return; }
+
+        pending = true;
+        button.disabled = true;
+        cancelBtn.disabled = true;
+        fields.forEach((el) => { el.disabled = true; });
+        button.textContent = S.sending;
+        status.textContent = S.statusSending;
+        result.className = 'result-box';
+        result.textContent = '';
+        const started = performance.now();
+        const tick = () => { if (timerValue) timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        if (timer) { timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100); }
+        const fromId = fromAccount.value;
+        const fromName = selected(fromAccount).dataset.name;
+        const toName = to.dataset.name;
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick();
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const paid = Number(data.receipt.amount);
+          const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
+          if (data.duplicate) {
+            result.className = 'result-box notice';
+            result.textContent = S.duplicate(at, money.format(paid), toName, data.receipt.receiptId);
+            status.textContent = S.statusIdle;
+            stopTimer(true);
+            return;
+          }
+          balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+          renderBalances();
+          render();
+          result.className = 'result-box success';
+          result.textContent = S.success(at, money.format(paid), toName, fromName, money.format(Math.max(debited - paid, 0)), data.receipt.receiptId);
+          status.textContent = S.statusDone;
+          stopTimer(true);
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok ? S.failed : S.unconfirmed;
+          status.textContent = S.statusIdle;
+        } finally {
+          fields.forEach((el) => { el.disabled = false; });
+          pending = false;
+          button.disabled = false;
+          cancelBtn.disabled = false;
+          button.textContent = S.idle;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
