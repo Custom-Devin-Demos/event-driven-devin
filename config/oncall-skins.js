@@ -5403,6 +5403,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A TSB SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real TSB product.',
   },
+  'c21967eb': {
+    slug: 'c21967eb',
+    company: 'Avant',
+    vertical: 'banking',
+    page: { file: 'c21967eb.html', title: 'About Our Company | Borrow Better. Faster. | Avant' },
+    disclaimer: 'NOT ACTUALLY AN AVANT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Avant product.',
+  },
 };
 
 function getOncallSkin(slug) {
