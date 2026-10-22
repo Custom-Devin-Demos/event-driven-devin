@@ -208,8 +208,8 @@
             <div class="field">
               <label for="fromAccount">Funding source</label>
               <select id="fromAccount">
-                <option value="ACCT-1002" data-name="Joint Checking &bull;&bull;4471" data-bank="First Lakeshore Bank" selected>Joint Checking &bull;&bull;4471 &middot; First Lakeshore Bank</option>
-                <option value="ACCT-1003" data-name="Money Market &bull;&bull;0938" data-bank="First Lakeshore Bank">Money Market &bull;&bull;0938 &middot; First Lakeshore Bank</option>
+                <option value="ACCT-1002" data-tier="standard" data-name="Joint Savings &bull;&bull;4471" data-bank="First Lakeshore Bank" selected>Joint Savings &bull;&bull;4471 &middot; First Lakeshore Bank</option>
+                <option value="ACCT-1003" data-tier="basic" data-name="Money Market &bull;&bull;0938" data-bank="First Lakeshore Bank">Money Market &bull;&bull;0938 &middot; First Lakeshore Bank</option>
               </select>
               <small id="fromHelp">Linked bank account (ACH)</small>
               <input type="hidden" id="accountTier" value="standard">
@@ -347,6 +347,7 @@
       const from = selected(fromAccount);
       const to = target();
       const amount = parsedAmount();
+      accountTier.value = from.dataset.tier;
       toHelp.textContent = to ? `Registration: ${to.dataset.reg}` : 'Accounts in Hamilton Household';
       sumFrom.textContent = `${from.dataset.name} \u00b7 ${from.dataset.bank}`;
       sumTo.textContent = to ? to.dataset.name : '\u2014';
@@ -363,7 +364,6 @@
     fields.forEach((el) => el.addEventListener(el === amountInput ? 'input' : 'change', render));
     form.addEventListener('reset', () => {
       setTimeout(() => {
-        accountTier.value = 'standard';
         result.className = 'result-box';
         result.textContent = '';
         status.textContent = IDLE_STATUS;
