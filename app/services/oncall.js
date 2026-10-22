@@ -1401,9 +1401,12 @@ async function postOncallAlert(scenarioId, options = {}) {
     return { ok: false, skipped: true, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
-  const repeat = options.runRef || options.unique === false ? null : recentSkinAlert(skin);
+  // Incident grouping is Slack-owned: a Teams-only alert keeps its own ref and
+  // never claims the skin's slot, so a Slack alert after it opens its own incident.
+  const groupable = slackReady && !options.runRef && options.unique !== false;
+  const repeat = groupable ? recentSkinAlert(skin) : null;
   const runRef = options.runRef || (options.unique !== false && !repeat ? makeRunRef() : null);
-  const reservation = options.runRef || repeat ? null : reserveSkinAlert(skin, runRef);
+  const reservation = groupable && !repeat ? reserveSkinAlert(skin, runRef) : null;
   const triggeredBy = slackReady ? await resolveTriggeredBy(token, options.devinEmail) : null;
   // onCallIsTriggerer: the presenter who triggered the alert is paged as On-Call.
   const onCallMemberId = skin && skin.devinSession && skin.devinSession.onCallIsTriggerer
@@ -1462,7 +1465,6 @@ async function postOncallAlert(scenarioId, options = {}) {
   }
   const teams = await teamsDelivery;
   if (!ts && !teams) {
-    if (reservation) reservation.release();
     return { ok: false, error: 'Teams alert post failed' };
   }
   // Non-unique runs group into one alert thread, so only unique runs open an incident.
@@ -1502,7 +1504,10 @@ async function postOncallAlert(scenarioId, options = {}) {
       token, channel: alertsChannel, threadTs: ts, runRef, requester, onCallMemberId,
     });
   }
-  if (reservation) reservation.settle(session ? session.url : null);
+  if (reservation) {
+    if (ts) reservation.settle(session ? session.url : null);
+    else reservation.release();
+  }
   const sonarPR = repeat ? false : triggerSkinSonarPR(skin, requester);
   return {
     ok: true,

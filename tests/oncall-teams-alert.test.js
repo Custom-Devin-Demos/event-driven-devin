@@ -359,6 +359,19 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(axios.post.mock.calls[0][0]).toBe(USER_TEAMS_URL);
   });
 
+  test('a Teams-only alert does not claim the skin incident; the next Slack alert opens its own', async () => {
+    setEnv({ slack: true, teams: true });
+    const skin = channelSkin();
+    const teamsResult = await postOncallAlert(skin.vertical, { skin, destination: 'teams' });
+    expect(teamsResult).toEqual({ ok: true, teams: true });
+
+    const slackResult = await postOncallAlert(skin.vertical, { skin, destination: 'slack' });
+    expect(slackResult.ok).toBe(true);
+    expect(slackResult.grouped).toBeUndefined();
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(postMessage.mock.calls[0][2]).toMatch(/Incident Ref:\* run-[0-9a-f]{12}/);
+  });
+
   test('an unset or non-Teams skin webhook falls back to the shared webhook', async () => {
     setEnv({ slack: false, teams: true });
     const skin = channelSkin();
