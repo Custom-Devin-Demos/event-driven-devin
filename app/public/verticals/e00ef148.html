@@ -227,7 +227,6 @@
       const FEE = { rate: 0.001, flat: 2.50 };
       const balances = {};
       Array.from(fromAccount.options).forEach((o) => { balances[o.value] = Number(o.dataset.balance) || 0; });
-      const START = { ...balances };
       let pending = false;
       let ticker = null;
 
@@ -255,6 +254,8 @@
         const to = recipient();
         const amount = parsedAmount();
         accountTier.value = 'standard';
+        Array.from(toAccount.options).forEach((o) => { o.disabled = Boolean(o.value) && o.value === fromAccount.value; });
+        if (toAccount.selectedIndex >= 0 && toAccount.options[toAccount.selectedIndex].disabled) toAccount.value = '';
         set('fromHelp', `${from.dataset.number} \u00b7 ${S.availableLabel} ${money.format(available())}`);
         set('toHelp', to ? `${to.dataset.number}${to.dataset.ref ? ' \u00b7 ' + to.dataset.ref : ''}` : S.toPlaceholder);
         set('amountHelp', `${S.maxLabel} ${money.format(maxPayable())}`);
@@ -282,7 +283,6 @@
       amountInput.addEventListener('input', render);
       form.addEventListener('reset', () => {
         setTimeout(() => {
-          Object.assign(balances, START);
           result.className = 'result-box';
           result.textContent = '';
           status.textContent = S.statusIdle;
@@ -301,6 +301,7 @@
         const to = recipient();
         const amount = parsedAmount();
         if (!to) { notice(S.chooseRecipient, toAccount); return; }
+        if (toAccount.value === fromAccount.value) { notice('Choose a different account to transfer to.', toAccount); return; }
         if (!Number.isFinite(amount) || amount <= 0) { notice(S.enterAmount, amountInput); return; }
         if (Math.round(amount * 100) > Math.round(maxPayable() * 100)) { notice(`${S.tooMuch} ${money.format(maxPayable())}.`, amountInput); return; }
 
@@ -316,6 +317,7 @@
         const tick = () => { if (timerValue) timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
         if (timer) { timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100); }
         const fromId = fromAccount.value;
+        const toId = toAccount.value;
         const fromName = selected(fromAccount).dataset.name;
         const toName = to.dataset.name;
         let response;
@@ -348,6 +350,7 @@
             return;
           }
           balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+          if (toId !== fromId && Object.prototype.hasOwnProperty.call(balances, toId)) balances[toId] = Math.round((balances[toId] + paid) * 100) / 100;
           renderBalances();
           render();
           result.className = 'result-box success';
