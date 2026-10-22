@@ -524,6 +524,7 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   │       ├── 08d969be.html       # Native industrials customer skin
 │   │       ├── voice.html         # EchoScribe — Dictation Console (on-call only)
 │   │       ├── 2acc11fd.html       # Native voice customer skin
+│   │       ├── 7e48b807.html       # Native voice customer skin, Slack-pinned alerts (/wispr-oncall)
 │   │       ├── healthcare.html    # CarePoint — Patient Portal
 │   │       ├── telco.html         # WaveConnect — Telecom Self-Service
 │   │       └── payer.html         # Payer — Member ID card + pharmacy counter
