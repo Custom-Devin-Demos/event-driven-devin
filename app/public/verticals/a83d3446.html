@@ -339,6 +339,7 @@
       const aud = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' });
       const timeFmt = new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' });
       let owing = 412.37;
+      let pending = 0;
       let inFlight = false;
       let timerHandle = null;
 
@@ -363,9 +364,10 @@
         });
         document.getElementById('cardOwing').textContent = aud.format(owing);
         const owingChoice = document.getElementById('owingChoice');
-        owingChoice.value = owing.toFixed(2);
-        document.getElementById('owingChoiceAmount').textContent = aud.format(owing);
-        owingChoice.disabled = owing < 1;
+        const payable = Math.max(0, Math.round((owing - pending) * 100) / 100);
+        owingChoice.value = payable.toFixed(2);
+        document.getElementById('owingChoiceAmount').textContent = aud.format(payable);
+        owingChoice.disabled = payable < 1;
         if (owingChoice.disabled && owingChoice.checked) form.querySelector('input[name="amountChoice"][value="25"]').checked = true;
       }
       function sync() {
@@ -453,6 +455,7 @@
           option.dataset.balance = (Math.round((Number(option.dataset.balance) - paid) * 100) / 100).toFixed(2);
           const postsToday = data.postsOn === 'today';
           if (postsToday) owing = Math.max(0, Math.round((owing - paid) * 100) / 100);
+          else pending = Math.round((pending + paid) * 100) / 100;
           renderBalances();
           result.className = 'result-box success';
           result.textContent = postsToday
