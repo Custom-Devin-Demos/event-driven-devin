@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add subscriptions | Ericsson NetCloud</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1174E6;
+      --ink: #0C0C0C;
+      --surface: #FFFFFF;
+      --chrome-bg: #0C0C0C;
+      --chrome-text: #FFFFFF;
+      --link: #0069C2;
+      --grey: #FAFAFA;
+      --line: #E0E0E0;
+      --muted: #6A6A6A;
+      --ok: #1A7F37; --ok-bg: #E9F6EC;
+      --warn: #D46617; --warn-bg: #FFF4EA;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; overflow-x: hidden; }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field { display: grid; gap: 6px; margin-bottom: 18px; }
+    .field small { color: var(--muted); font-size: 13px; line-height: 18px; }
+    select, input[type="number"] { width: 100%; min-height: 48px; padding: 10px 14px; color: var(--ink); background: #fff; border: 1px solid var(--line); }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    select:disabled, input:disabled { opacity: .65; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 28px; border: 2px solid transparent; cursor: pointer; text-decoration: none; }
+    .btn:disabled { cursor: progress; opacity: .7; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: transparent; color: var(--ink); border-color: currentColor; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    .summary { margin: 4px 0 18px; padding: 0; display: grid; gap: 0; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+    .status { margin: 14px 0 0; color: var(--muted); font-size: 13px; line-height: 18px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--accent); }
+    .result-box { display: none; margin-top: 16px; padding: 14px 18px; font-size: 15px; line-height: 22px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); border-left: 4px solid var(--warn); }
+    .menu-toggle { display: none; min-width: 44px; min-height: 44px; background: none; border: 0; color: inherit; cursor: pointer; }
+    body { font-family: Hind, Helvetica, Arial, sans-serif; color: var(--ink); background: var(--grey); font-size: 16px; line-height: 24px; }
+    .bar { background: var(--chrome-bg); color: var(--chrome-text); }
+    .bar .in { display: flex; align-items: center; gap: 28px; min-height: 64px; padding: 0 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; text-decoration: none; font-size: 18px; letter-spacing: .02em; }
+    .brand b { font-weight: 500; }
+    .brand span { opacity: .7; font-weight: 300; }
+    .bar nav { display: flex; gap: 4px; }
+    .bar nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; text-decoration: none; font-size: 15px; opacity: .8; }
+    .bar nav a[aria-current] { opacity: 1; box-shadow: inset 0 -3px 0 var(--accent); }
+    .bar .acct { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 14px; }
+    .bar .acct span { opacity: .75; }
+    .bar .acct button { min-height: 44px; padding: 0 18px; background: transparent; border: 1px solid #fff; color: #fff; cursor: pointer; }
+    .page { max-width: 1240px; margin: 0 auto; padding: 32px 24px 64px; }
+    .crumb { font-size: 14px; color: var(--muted); margin: 0 0 6px; }
+    .crumb a { color: var(--link); text-decoration: none; }
+    h1 { margin: 0 0 6px; font-size: 48px; line-height: 56px; font-weight: 300; letter-spacing: -.01em; }
+    .lead { margin: 0 0 28px; color: var(--muted); max-width: 720px; font-size: 18px; line-height: 28px; }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-bottom: 24px; }
+    .kpi { background: #fff; padding: 18px 20px; }
+    .kpi span { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .kpi b { display: block; font-size: 32px; line-height: 40px; font-weight: 300; font-variant-numeric: tabular-nums; }
+    .grid { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+    .panel { background: #fff; border: 1px solid var(--line); padding: 28px; }
+    .panel h2 { margin: 0 0 4px; font-size: 24px; line-height: 32px; font-weight: 400; }
+    .panel .sub { margin: 0 0 20px; color: var(--muted); font-size: 15px; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--line); }
+    th { font-weight: 500; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    td.n { text-align: right; font-variant-numeric: tabular-nums; }
+    .tag { display: inline-block; padding: 0 8px; border: 1px solid var(--line); font-size: 13px; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    label { font-weight: 500; font-size: 15px; }
+    select, input[type="number"] { border-radius: 0; border: 1px solid #8C8C8C; }
+    .btn { border-radius: 0; font-weight: 500; width: 100%; }
+    .summary div { border-color: var(--line); }
+    .note { margin-top: 24px; font-size: 14px; color: var(--muted); }
+    .note a { color: var(--link); }
+    footer { background: var(--chrome-bg); color: var(--chrome-text); padding: 36px 24px; font-size: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 0 24px; }
+    footer a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+    @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, 1fr); } .bar nav { display: none; } }
+    @media (max-width: 520px) {
+      .bar .in { padding: 0 16px; gap: 12px; }
+      .bar .acct span, .brand span { display: none; }
+      .page { padding: 24px 16px 48px; }
+      h1 { font-size: 34px; line-height: 40px; }
+      .lead { font-size: 16px; line-height: 24px; }
+      .panel { padding: 20px 16px; }
+      .two { grid-template-columns: 1fr; gap: 0; }
+      .hide-s { display: none; }
+      .kpi b { font-size: 26px; line-height: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <div class="in">
+      <a class="brand" href="#" aria-label="Ericsson NetCloud Manager">
+        <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M6 6l16-3M6 14l16-3M6 22l16-3" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
+        <b>Ericsson</b><span>NetCloud Manager</span>
+      </a>
+      <nav aria-label="NetCloud Manager"><a href="#">Dashboard</a><a href="#">Devices</a><a href="#">Groups</a><a href="#" aria-current="page">Subscriptions</a><a href="#">Reports</a></nav>
+      <div class="acct"><span>Nordvik Logistics AB</span><button type="button">Sign out</button></div>
+    </div>
+  </header>
+  <main class="page" id="subscriptions">
+    <p class="crumb"><a href="#">Account</a> / Subscriptions</p>
+    <h1>Add subscriptions</h1>
+    <p class="lead">Add NetCloud subscriptions for new routers and adapters. Endpoints are licensed as soon as you confirm and can be claimed into a group straight away.</p>
+    <div class="kpis">
+      <div class="kpi"><span>Licensed endpoints</span><b id="kpiLicensed">412</b></div>
+      <div class="kpi"><span>In use</span><b>398</b></div>
+      <div class="kpi"><span>Available</span><b id="kpiFree">14</b></div>
+      <div class="kpi"><span>Renewal</span><b>Mar 2027</b></div>
+    </div>
+    <div class="grid">
+      <section class="panel" aria-labelledby="curHead">
+        <h2 id="curHead">Current subscriptions</h2>
+        <p class="sub">Essentials and Advanced packages across your fleet.</p>
+        <table>
+          <thead><tr><th>Package</th><th class="hide-s">Group</th><th class="n">Endpoints</th><th class="hide-s">Term</th></tr></thead>
+          <tbody>
+            <tr><td>Branch Essentials</td><td class="hide-s"><span class="tag">Warehouses SE</span></td><td class="n">180</td><td class="hide-s">3 years</td></tr>
+            <tr><td>Mobile Advanced</td><td class="hide-s"><span class="tag">Fleet vehicles</span></td><td class="n">164</td><td class="hide-s">3 years</td></tr>
+            <tr><td>IoT Essentials</td><td class="hide-s"><span class="tag">Cold chain sensors</span></td><td class="n">68</td><td class="hide-s">1 year</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Need a private 5G network for a site? Ask your Ericsson account team about Private 5G.</p>
+      </section>
+      <section class="panel" aria-labelledby="addHead">
+        <h2 id="addHead">New subscription</h2>
+        <p class="sub">Charged to your existing agreement.</p>
+        <form id="provisionForm" novalidate>
+          <div class="field">
+            <label for="product">Solution</label>
+            <select id="product">
+              <option value="branch">Branch</option>
+              <option value="mobile">Mobile (vehicles)</option>
+              <option value="iot">IoT</option>
+              <option value="remote_work">Remote work</option>
+            </select>
+          </div>
+          <div class="two">
+            <div class="field">
+              <label for="seats">Endpoints</label>
+              <input type="number" id="seats" value="20" min="1" max="250" step="1" required inputmode="numeric">
+              <small>1&ndash;250 per order</small>
+            </div>
+            <div class="field">
+              <label for="planTier">Package</label>
+              <select id="planTier">
+                <option value="enterprise">Advanced</option>
+                <option value="business">Essentials</option>
+              </select>
+            </div>
+          </div>
+          <dl class="summary" aria-label="Order summary">
+            <div><dt>Solution</dt><dd id="sumSol">&mdash;</dd></div>
+            <div><dt>Endpoints</dt><dd id="sumSeats">&mdash;</dd></div>
+            <div><dt>Package</dt><dd id="sumPkg">&mdash;</dd></div>
+          </dl>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Add subscriptions</button>
+          <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to provision</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+  <footer>
+    <nav aria-label="Footer"><a href="#">Support</a><a href="#">Status</a><a href="#">Privacy</a><a href="#">Legal</a></nav>
+    <span style="display:inline-flex;align-items:center;min-height:44px;">Telefonaktiebolaget LM Ericsson</span>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('provisionForm'); const btn = $('submitBtn'); const result = $('result');
+      const sol = $('product'); const seats = $('seats'); const pkg = $('planTier');
+      const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const IDLE = 'Add subscriptions';
+      let licensed = 412; let free = 14; let submission = 0; let ticker = null;
+      const text = (s) => s.options[s.selectedIndex].textContent;
+      function count() { const raw = seats.value.trim(); return /^\d+$/.test(raw) ? parseInt(raw, 10) : NaN; }
+      function render() {
+        const n = count();
+        $('sumSol').textContent = text(sol);
+        $('sumSeats').textContent = Number.isFinite(n) ? String(n) : '\u2014';
+        $('sumPkg').textContent = text(pkg);
+        $('kpiLicensed').textContent = String(licensed); $('kpiFree').textContent = String(free);
+      }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      function show(cls, title, detail, withReset) {
+        result.className = 'result-box ' + cls; result.textContent = '';
+        const t = document.createElement('strong'); t.textContent = title; t.style.display = 'block';
+        const d = document.createElement('div'); d.textContent = detail;
+        result.append(t, d);
+        if (withReset) {
+          const again = document.createElement('button'); again.type = 'button'; again.className = 'btn btn-secondary'; again.style.marginTop = '12px'; again.textContent = 'Add more subscriptions';
+          again.addEventListener('click', resetForm); result.append(again);
+        }
+      }
+      function resetForm() {
+        submission++; form.reset(); btn.disabled = false; btn.textContent = IDLE;
+        result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = '0.0s';
+        render(); sol.focus();
+      }
+      [sol, seats, pkg].forEach((el) => { el.addEventListener('input', render); el.addEventListener('change', render); });
+      render();
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const n = count();
+        if (!Number.isFinite(n) || n < 1 || n > 250) { show('notice', 'Check the number of endpoints', 'Enter a whole number of endpoints from 1 to 250.'); seats.focus(); return; }
+        const id = ++submission; const solLabel = text(sol); const pkgLabel = text(pkg);
+        btn.disabled = true; btn.textContent = 'Adding subscriptions\u2026';
+        result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        try {
+          const res = await fetch('/api/licenses/provision', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: 'Nordvik Logistics AB',
+              planName: pkg.value,
+              seats: n,
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (id !== submission) return;
+          tick(); stopTimer(true);
+          if (res.ok && data.success) {
+            const added = Number(data.seatsAdded) || n;
+            licensed += added; free += added; render();
+            const ref = String(data.licenseId || '').slice(0, 8).toUpperCase();
+            show('success', 'Subscriptions added', `${added} ${pkgLabel} ${added === 1 ? 'endpoint' : 'endpoints'} added for ${solLabel}.${ref ? ' Order ' + ref + '.' : ''} Claim the new devices into a group to bring them online.`, true);
+          } else {
+            show('notice', 'Subscriptions weren\u2019t added', 'We couldn\u2019t add subscriptions right now and your agreement hasn\u2019t changed. Try again in a moment, or contact Ericsson Support.');
+          }
+        } catch (err) {
+          if (id !== submission) return;
+          stopTimer(true);
+          show('notice', 'Subscriptions weren\u2019t added', 'We couldn\u2019t reach NetCloud Manager. Check your connection and try again.');
+        } finally {
+          if (id === submission) { btn.disabled = false; btn.textContent = IDLE; }
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
