@@ -344,11 +344,32 @@
     const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
     const timeFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
     const STARTING_BALANCES = { 'ACCT-1002': 2418.36, 'ACCT-1001': 5162.90 };
+    const FEE_TIERS = {
+      premium: { rate: 0, flat: 0 },
+      standard: { rate: 0.001, flat: 2.50 },
+      basic: { rate: 0.002, flat: 4.99 },
+    };
     let balances = { ...STARTING_BALANCES };
     let pending = false;
 
     function selected(select) { return select.options[select.selectedIndex]; }
     function available() { return balances[fromAccount.value] || 0; }
+    function feeTier() { return FEE_TIERS[accountTier.value] || FEE_TIERS.standard; }
+    function feePence(amountPence) {
+      const tier = feeTier();
+      return Math.round(Math.max(tier.rate * amountPence, tier.flat * 100));
+    }
+    function maxPayable() {
+      const availablePence = Math.round(available() * 100);
+      const tier = feeTier();
+      let max = Math.min(Math.floor(availablePence / (1 + tier.rate)), availablePence - Math.round(tier.flat * 100));
+      while (max > 0 && max + feePence(max) > availablePence) max -= 1;
+      return Math.max(max, 0) / 100;
+    }
+    function limitText() {
+      const max = gbp.format(maxPayable());
+      return feeTier().flat > 0 ? `${max} (your available balance less the payment charge)` : max;
+    }
     function parsedAmount() {
       const raw = amountInput.value.trim().replace(/,/g, '');
       if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
@@ -365,7 +386,7 @@
       accountTier.value = from.dataset.tier;
       fromHelp.textContent = `${from.dataset.number} \u00b7 Available balance: ${gbp.format(available())}`;
       toHelp.textContent = to ? `${to.dataset.number} \u00b7 Reference: ${to.dataset.ref}` : 'My recipients';
-      amountHelp.textContent = `Pay up to ${gbp.format(available())}`;
+      amountHelp.textContent = `Pay up to ${limitText()}`;
       sumFrom.textContent = from.dataset.name;
       sumTo.textContent = to ? to.dataset.name : '\u2014';
       sumRef.textContent = to ? to.dataset.ref : '\u2014';
@@ -383,7 +404,6 @@
     amountInput.addEventListener('input', render);
     form.addEventListener('reset', () => {
       setTimeout(() => {
-        balances = { ...STARTING_BALANCES };
         result.className = 'result-box';
         result.textContent = '';
         status.textContent = IDLE_STATUS;
@@ -401,7 +421,7 @@
       const amount = parsedAmount();
       if (!to) { notice('Choose a recipient to pay.', toAccount); return; }
       if (!Number.isFinite(amount) || amount <= 0) { notice('Enter an amount, for example 25.00.', amountInput); return; }
-      if (amount > available()) { notice(`Enter an amount up to ${gbp.format(available())}, the available balance in ${selected(fromAccount).dataset.name}.`, amountInput); return; }
+      if (Math.round(amount * 100) > Math.round(maxPayable() * 100)) { notice(`Enter an amount up to ${limitText()} in ${selected(fromAccount).dataset.name}.`, amountInput); return; }
 
       pending = true;
       button.disabled = true;
