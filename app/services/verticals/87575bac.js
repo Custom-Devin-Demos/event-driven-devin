@@ -73,11 +73,19 @@ function cadNotional(trade) {
   return Math.round(cad * 100) / 100;
 }
 
+const releases = new Map();
+
+function currentStatus(trade) {
+  return releases.has(trade.tradeId) ? 'RELEASED' : trade.status;
+}
+
 function describeTrade(trade) {
   const entity = BOOKING_ENTITIES[trade.bookingEntity];
   const location = SETTLEMENT_LOCATIONS[trade.settlementLocation];
   return {
     ...trade,
+    status: currentStatus(trade),
+    release: releases.get(trade.tradeId) || null,
     tradeDate: BUSINESS_DATE,
     settleDate: projectSettleDate(trade),
     bookingEntityName: entity.name,
@@ -132,7 +140,7 @@ function buildInstruction(trade) {
 }
 
 function assertReleasable(trade) {
-  if (trade.status === 'RELEASED') {
+  if (currentStatus(trade) === 'RELEASED') {
     const err = new Error(`Settlement instructions for ${trade.tradeId} were already released.`);
     err.name = 'ValidationError';
     err.code = 'ALREADY_RELEASED';
@@ -153,6 +161,7 @@ async function releaseInstructions(data) {
   const requestId = uuidv4();
   const trade = findTrade(data.tradeId);
   assertReleasable(trade);
+  releases.set(trade.tradeId, null);
 
   logger.info('Releasing settlement instructions', {
     requestId, tradeId: trade.tradeId, bookingEntity: trade.bookingEntity,
@@ -172,7 +181,7 @@ async function releaseInstructions(data) {
       requestId, tradeId: trade.tradeId, reference: ack.reference, settleDate: ack.settleDate, durationMs: duration,
     });
 
-    return {
+    const result = {
       tradeId: trade.tradeId,
       status: 'RELEASED',
       depository: ack.depository,
@@ -180,7 +189,10 @@ async function releaseInstructions(data) {
       settleDate: ack.settleDate,
       messageType: instruction.messageType,
     };
+    releases.set(trade.tradeId, result);
+    return result;
   } catch (error) {
+    releases.delete(trade.tradeId);
     const duration = Date.now() - startTime;
     incrementMetric('ssi_release.failure', {
       route: ROUTE, service: SERVICE, depository: trade.settlementLocation, errorClass: error.name,
