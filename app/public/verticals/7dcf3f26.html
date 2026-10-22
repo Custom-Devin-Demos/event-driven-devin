@@ -136,7 +136,7 @@
         <p class="sub">Essentials and Advanced packages across your fleet.</p>
         <table>
           <thead><tr><th>Package</th><th class="hide-s">Group</th><th class="n">Endpoints</th><th class="hide-s">Term</th></tr></thead>
-          <tbody>
+          <tbody id="subsBody">
             <tr><td>Branch Essentials</td><td class="hide-s"><span class="tag">Warehouses SE</span></td><td class="n">180</td><td class="hide-s">3 years</td></tr>
             <tr><td>Mobile Advanced</td><td class="hide-s"><span class="tag">Fleet vehicles</span></td><td class="n">164</td><td class="hide-s">3 years</td></tr>
             <tr><td>IoT Essentials</td><td class="hide-s"><span class="tag">Cold chain sensors</span></td><td class="n">68</td><td class="hide-s">1 year</td></tr>
@@ -260,6 +260,13 @@
           if (res.ok && data.success) {
             const added = Number(data.seatsAdded) || n;
             licensed += added; free += added; render();
+            const row = document.createElement('tr');
+            [[`${solLabel.replace(/ \(.*\)$/, '')} ${pkgLabel}`, ''], ['Unassigned', 'hide-s'], [String(added), 'n'], ['1 year', 'hide-s']].forEach(([value, cls], i) => {
+              const cell = document.createElement('td'); if (cls) cell.className = cls;
+              if (i === 1) { const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = value; cell.append(tag); } else cell.textContent = value;
+              row.append(cell);
+            });
+            $('subsBody').append(row);
             const ref = String(data.licenseId || '').slice(0, 8).toUpperCase();
             show('success', 'Subscriptions added', `${added} ${pkgLabel} ${added === 1 ? 'endpoint' : 'endpoints'} added for ${solLabel}.${ref ? ' Order ' + ref + '.' : ''} Claim the new devices into a group to bring them online.`, true);
           } else {
