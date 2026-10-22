@@ -232,15 +232,15 @@
             <div class="field">
               <label for="fromAccount">Pay from</label>
               <select id="fromAccount">
-                <option value="CHK-1634" data-name="Smart Access" data-balance="3482.15">Smart Access &middot; $3,482.15</option>
-                <option value="SAV-8820" data-name="NetBank Saver" data-balance="7250.00">NetBank Saver &middot; $7,250.00</option>
+                <option value="CHK-1634" data-name="Smart Access" data-balance="4000.00">Smart Access &middot; $4,000.00</option>
+                <option value="SAV-8820" data-name="NetBank Saver" data-balance="7680.90">NetBank Saver &middot; $7,680.90</option>
               </select>
               <input type="hidden" id="toAccount" value="CARD-4417">
             </div>
             <fieldset class="field choice">
               <legend>Amount</legend>
               <label class="radio"><input type="radio" name="amountChoice" value="25" checked><span>Minimum payment</span><strong>$25.00</strong></label>
-              <label class="radio"><input type="radio" name="amountChoice" value="412.37"><span>Closing balance</span><strong>$412.37</strong></label>
+              <label class="radio"><input type="radio" name="amountChoice" value="412.37" id="owingChoice"><span>Balance owing</span><strong id="owingChoiceAmount">$412.37</strong></label>
               <label class="radio"><input type="radio" name="amountChoice" value="other"><span>Other amount</span></label>
               <div class="amount-wrap" id="otherWrap" hidden><input type="number" id="amount" min="1" step="0.01" placeholder="0.00" inputmode="decimal" aria-label="Other amount in dollars"></div>
             </fieldset>
@@ -267,8 +267,8 @@
           <div class="panel" id="accounts">
             <h3>Your accounts</h3>
             <ul class="accounts">
-              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">S</span><span><span class="acct-name">Smart Access</span><span class="acct-num">06 2000 1234 5678</span></span></span><span class="acct-bal"><span data-balance-for="CHK-1634">$3,482.15</span><small>Available</small></span></li>
-              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">N</span><span><span class="acct-name">NetBank Saver</span><span class="acct-num">06 2000 8765 4321</span></span></span><span class="acct-bal"><span data-balance-for="SAV-8820">$7,250.00</span><small>Available</small></span></li>
+              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">S</span><span><span class="acct-name">Smart Access</span><span class="acct-num">06 2000 1234 5678</span></span></span><span class="acct-bal"><span data-balance-for="CHK-1634">$4,000.00</span><small>Available</small></span></li>
+              <li><span class="acct"><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt="" onerror="this.parentNode.classList.add('no-img')"><span class="acct-dot" aria-hidden="true">N</span><span><span class="acct-name">NetBank Saver</span><span class="acct-num">06 2000 8765 4321</span></span></span><span class="acct-bal"><span data-balance-for="SAV-8820">$7,680.90</span><small>Available</small></span></li>
               <li><span class="acct"><span class="acct-dot card-dot" aria-hidden="true">MC</span><span><span class="acct-name">Low Rate Mastercard</span><span class="acct-num">5218 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4417</span></span></span><span class="acct-bal"><span id="cardOwing">$412.37</span><small>Owing</small></span></li>
             </ul>
           </div>
@@ -362,6 +362,11 @@
           if (el) el.textContent = aud.format(Number(opt.dataset.balance));
         });
         document.getElementById('cardOwing').textContent = aud.format(owing);
+        const owingChoice = document.getElementById('owingChoice');
+        owingChoice.value = owing.toFixed(2);
+        document.getElementById('owingChoiceAmount').textContent = aud.format(owing);
+        owingChoice.disabled = owing < 1;
+        if (owingChoice.disabled && owingChoice.checked) form.querySelector('input[name="amountChoice"][value="25"]').checked = true;
       }
       function sync() {
         otherWrap.hidden = choice() !== 'other';
@@ -446,10 +451,13 @@
           outcome = 'paid';
           const paid = Number(data.totalDebit);
           option.dataset.balance = (Math.round((Number(option.dataset.balance) - paid) * 100) / 100).toFixed(2);
-          owing = Math.max(0, Math.round((owing - paid) * 100) / 100);
+          const postsToday = data.postsOn === 'today';
+          if (postsToday) owing = Math.max(0, Math.round((owing - paid) * 100) / 100);
           renderBalances();
           result.className = 'result-box success';
-          result.textContent = `Payment complete at ${timeFmt.format(new Date(data.scheduledAt))}. ${aud.format(paid)} paid to your Low Rate Mastercard from ${name}. No fee was charged. Receipt ${data.paymentId}.`;
+          result.textContent = postsToday
+            ? `Payment complete at ${timeFmt.format(new Date(data.scheduledAt))}. ${aud.format(paid)} paid to your Low Rate Mastercard from ${name}. No fee was charged. Receipt ${data.paymentId}.`
+            : `Payment received at ${timeFmt.format(new Date(data.scheduledAt))}. ${aud.format(paid)} from ${name} will be applied to your Low Rate Mastercard on the next business day. No fee was charged. Receipt ${data.paymentId}.`;
         } catch (_error) {
           result.className = 'result-box error';
           result.textContent = 'We couldn\u2019t confirm whether your payment went through. Check your card transactions before trying again.';
@@ -458,7 +466,7 @@
           inFlight = false;
           submitBtn.textContent = 'Pay now';
           cancelBtn.disabled = false;
-          status.textContent = outcome === 'paid' ? 'Payment complete.' : outcome === 'failed' ? 'Payment not completed.' : 'Payment not confirmed.';
+          status.textContent = outcome === 'paid' ? 'Payment received.' : outcome === 'failed' ? 'Payment not completed.' : 'Payment not confirmed.';
           sync();
         }
       });

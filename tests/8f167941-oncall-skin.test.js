@@ -59,6 +59,7 @@ describe('accounts dashboard on-call skin (8f167941)', () => {
       apiPath: '/api/8f167941/card-payment',
       oncallApiPath: '/api/oncall/cardpayment/payment',
       triggerWhen: { fromAccount: 'CHK-1634' },
+      alertOnStatus: [500],
       unlisted: true,
     });
   });
