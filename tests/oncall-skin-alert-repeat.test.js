@@ -130,6 +130,19 @@ describe('repeat alerts from one skin group into the open incident', () => {
     expect(third.sessionUrl).toBe('https://app.devin.ai/sessions/s1');
   });
 
+  test('a Slack post that returns no timestamp releases the slot for the next alert', async () => {
+    postMessage.mockResolvedValueOnce(null);
+    const first = await postOncallAlert(SKIN.vertical, { skin: SKIN });
+    expect(first.ok).toBe(false);
+    expect(createDevinSession).not.toHaveBeenCalled();
+
+    const second = await postOncallAlert(SKIN.vertical, { skin: SKIN });
+    expect(second.ok).toBe(true);
+    expect(second.grouped).toBeUndefined();
+    expect(second.sessionUrl).toBe('https://app.devin.ai/sessions/s1');
+    expect(lastAlertText()).toMatch(/\*Incident Ref:\* run-[0-9a-f]{12}/);
+  });
+
   test('a grouped alert retries the session when the first one never started', async () => {
     createDevinSession.mockRejectedValueOnce(new Error('503 from Devin'));
     const first = await postOncallAlert(SKIN.vertical, { skin: SKIN });

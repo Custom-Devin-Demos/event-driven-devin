@@ -1475,6 +1475,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   }
   const teams = await teamsDelivery;
   if (!ts && !teams) {
+    if (reservation) reservation.release();
     return { ok: false, error: 'Teams alert post failed' };
   }
   // Non-unique runs group into one alert thread, so only unique runs open an incident.
