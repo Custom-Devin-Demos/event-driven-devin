@@ -74,6 +74,7 @@ function cadNotional(trade) {
 }
 
 const releases = new Map();
+const inFlight = new Set();
 
 function currentStatus(trade) {
   return releases.has(trade.tradeId) ? 'RELEASED' : trade.status;
@@ -140,7 +141,7 @@ function buildInstruction(trade) {
 }
 
 function assertReleasable(trade) {
-  if (currentStatus(trade) === 'RELEASED') {
+  if (currentStatus(trade) === 'RELEASED' || inFlight.has(trade.tradeId)) {
     const err = new Error(`Settlement instructions for ${trade.tradeId} were already released.`);
     err.name = 'ValidationError';
     err.code = 'ALREADY_RELEASED';
@@ -161,7 +162,7 @@ async function releaseInstructions(data) {
   const requestId = uuidv4();
   const trade = findTrade(data.tradeId);
   assertReleasable(trade);
-  releases.set(trade.tradeId, null);
+  inFlight.add(trade.tradeId);
 
   logger.info('Releasing settlement instructions', {
     requestId, tradeId: trade.tradeId, bookingEntity: trade.bookingEntity,
@@ -192,7 +193,6 @@ async function releaseInstructions(data) {
     releases.set(trade.tradeId, result);
     return result;
   } catch (error) {
-    releases.delete(trade.tradeId);
     const duration = Date.now() - startTime;
     incrementMetric('ssi_release.failure', {
       route: ROUTE, service: SERVICE, depository: trade.settlementLocation, errorClass: error.name,
@@ -267,6 +267,8 @@ async function releaseInstructions(data) {
     });
 
     throw error;
+  } finally {
+    inFlight.delete(trade.tradeId);
   }
 }
 
