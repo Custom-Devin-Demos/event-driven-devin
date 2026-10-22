@@ -400,20 +400,21 @@ footer .back{display:block;text-align:center;margin-top:18px;font-size:11px;colo
   function hideToast() { $('toast').classList.remove('show'); }
   $('toastX').addEventListener('click', hideToast);
 
+  function esc(v) { return String(v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function fmtBig(o) {
-    if (o.bonus.kind === 'cash') return '<sup>$</sup>' + o.bonus.amount;
-    if (o.bonus.kind === 'points') return o.bonus.amount.toLocaleString('en-US');
-    return o.bonus.amount + '<sup class="r">%</sup>';
+    if (o.bonus.kind === 'cash') return '<sup>$</sup>' + Number(o.bonus.amount);
+    if (o.bonus.kind === 'points') return Number(o.bonus.amount).toLocaleString('en-US');
+    return Number(o.bonus.amount) + '<sup class="r">%</sup>';
   }
   function renderOffers(list) {
     $('offerCols').innerHTML = list.map(function (o) {
       return '<div class="col">' +
         '<div class="big">' + fmtBig(o) + '</div>' +
-        '<div class="sub">' + o.bonus.label + '</div>' +
+        '<div class="sub">' + esc(o.bonus.label) + '</div>' +
         '<div class="fee">No annual fee.</div>' +
-        '<img class="cardimg" src="' + o.image + '" alt="' + o.name + ' credit card">' +
-        '<div class="name">' + o.name + '</div>' +
-        '<button type="button" class="pill" data-apply="' + o.productId + '">' + o.headline + '</button>' +
+        '<img class="cardimg" src="' + esc(o.image) + '" alt="' + esc(o.name) + ' credit card">' +
+        '<div class="name">' + esc(o.name) + '</div>' +
+        '<button type="button" class="pill" data-apply="' + esc(o.productId) + '">' + esc(o.headline) + '</button>' +
       '</div>';
     }).join('');
   }
