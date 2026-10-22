@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>One-time contribution | Envestnet</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #0074BD;
+      --ink: #343741;
+      --surface: #FFFFFF;
+      --chrome-bg: #0074BD;
+      --chrome-text: #FFFFFF;
+      --deep: #005F9E;
+      --sky: #8BD3E6;
+      --stripe: #F46B10;
+      --paper: #F4F4F4;
+      --line: #DCDDE0;
+      --muted: #676A75;
+      --ok: #0B6B3A;
+      --ok-bg: #E8F5EE;
+      --warn: #B4540C;
+      --warn-bg: #FDF1E8;
+      --font: "Red Hat Display", Arial, Helvetica, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 400 16px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+
+    .topbar { background: var(--chrome-bg); color: var(--chrome-text); }
+    .topbar .wrap { display: flex; align-items: center; gap: 28px; min-height: 72px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--chrome-text); text-decoration: none; font-size: 24px; font-weight: 500; letter-spacing: -.2px; }
+    .brand svg { width: 32px; height: 32px; flex: none; }
+    .brand small { font-size: 14px; font-weight: 400; opacity: .85; padding-left: 12px; border-left: 1px solid rgba(255,255,255,.4); letter-spacing: 0; }
+    .appnav { display: flex; align-items: center; gap: 4px; }
+    .appnav a { white-space: nowrap; display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; color: var(--chrome-text); text-decoration: none; font-size: 14px; }
+    .appnav a.current { font-weight: 700; box-shadow: inset 0 -3px 0 var(--sky); }
+    .acct-tools { white-space: nowrap; display: flex; align-items: center; gap: 16px; margin-left: auto; font-size: 14px; }
+    .acct-tools a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; color: var(--chrome-text); text-decoration: none; }
+    .acct-tools .who { opacity: .9; }
+    .cta-sky { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; background: var(--sky); color: var(--deep); font-size: 14px; font-weight: 500; text-decoration: none; border: 0; }
+    .menu-btn { display: none; margin-left: auto; min-height: 44px; min-width: 44px; padding: 0 14px; background: transparent; color: var(--chrome-text); border: 1px solid rgba(255,255,255,.6); font-size: 14px; }
+
+    .hero { position: relative; background: var(--chrome-bg); color: var(--chrome-text); overflow: hidden; }
+    .hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: var(--surface); clip-path: polygon(0 100%, 100% 8%, 100% 100%); }
+    .hero .stripe { position: absolute; left: 0; right: 0; bottom: 0; height: 72px; background: var(--stripe); clip-path: polygon(0 100%, 100% 0, 100% 14%, 0 100%); z-index: 1; }
+    .hero .wrap { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 32px; align-items: center; padding-top: 24px; padding-bottom: 92px; }
+    .crumbs { display: flex; flex-wrap: wrap; align-items: center; font-size: 14px; }
+    .crumbs a { display: inline-flex; align-items: center; min-height: 44px; color: var(--chrome-text); text-decoration: none; opacity: .9; }
+    .crumbs .sep { margin: 0 10px; opacity: .6; }
+    .crumbs span[aria-current] { font-weight: 600; }
+    h1 { margin: 4px 0 0; font-weight: 400; font-size: 56px; line-height: 1.1; letter-spacing: -.5px; }
+    .lead { margin: 16px 0 0; font-size: 18px; line-height: 1.55; max-width: 620px; }
+    .hero-art { height: 220px; display: grid; place-items: center; }
+    .hero-art img { max-width: 100%; max-height: 220px; object-fit: contain; opacity: .9; }
+    .hero-art .art-fallback { display: none; width: 200px; height: 160px; background: linear-gradient(160deg, var(--sky), transparent); clip-path: polygon(10% 20%, 100% 0, 90% 80%, 0 100%); }
+    .hero-art.no-img img { display: none; }
+    .hero-art.no-img .art-fallback { display: block; }
+
+    main .wrap { padding-top: 8px; padding-bottom: 72px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: 32px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--line); padding: 36px; }
+    .panel h2 { margin: 0 0 6px; font-weight: 400; font-size: 34px; line-height: 1.2; }
+    .panel .sub { margin: 0 0 24px; color: var(--muted); }
+    .req-type { display: flex; flex-wrap: wrap; gap: 0; margin: 0 0 28px; padding: 0; list-style: none; border-bottom: 1px solid var(--line); }
+    .req-type a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; color: var(--ink); text-decoration: none; font-size: 15px; }
+    .req-type a.current { color: var(--accent); font-weight: 700; box-shadow: inset 0 -3px 0 var(--accent); }
+    .field { margin-bottom: 22px; }
+    .field label { display: block; margin-bottom: 8px; font-size: 15px; font-weight: 600; letter-spacing: .1px; }
+    .field input, .field select { width: 100%; min-height: 50px; padding: 12px 16px; border: 1px solid #9A9CA4; border-radius: 0; background: var(--surface); color: var(--ink); font-size: 16px; }
+    .field select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--accent) 50%), linear-gradient(135deg, var(--accent) 50%, transparent 50%); background-position: calc(100% - 22px) 22px, calc(100% - 16px) 22px; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 44px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 14px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: "$"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 600; }
+    .amount-wrap input { padding-left: 30px; }
+    .summary { margin: 4px 0 26px; padding: 20px 22px; background: var(--paper); display: grid; gap: 10px; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+    .summary dt { margin: 0; color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 50px; padding: 12px 28px; border-radius: 0; font-size: 16px; font-weight: 500; border: 1px solid var(--accent); }
+    .btn-primary { background: var(--accent); color: var(--chrome-text); }
+    .btn-primary:hover { background: var(--deep); border-color: var(--deep); }
+    .btn-primary:disabled { opacity: .7; cursor: wait; }
+    .btn-secondary { background: var(--surface); color: var(--accent); }
+    .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
+    .status { margin: 14px 0 0; color: var(--muted); font-size: 14px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 20px; font-size: 16px; line-height: 1.5; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); border-left: 4px solid var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); border-left: 4px solid var(--warn); }
+
+    aside .panel { padding: 26px; }
+    aside .panel + .panel { margin-top: 20px; }
+    aside h3 { margin: 0 0 4px; font-weight: 500; font-size: 22px; line-height: 1.3; }
+    aside .meta { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+    .accounts { list-style: none; margin: 0; padding: 0; }
+    .accounts li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 15px; }
+    .accounts .name { display: block; font-weight: 600; }
+    .accounts .num { display: block; color: var(--muted); font-size: 13px; }
+    .accounts .val { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+    .accounts .val small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+    .other a { display: flex; align-items: center; justify-content: space-between; min-height: 44px; border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; font-size: 15px; }
+    .other a::after { content: "\203A"; color: var(--accent); font-size: 22px; }
+    .help { background: var(--paper); border-color: var(--paper); }
+    .help p { margin: 0 0 8px; font-size: 15px; }
+    .help a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); font-size: 14px; }
+    .site-footer .wrap { padding-top: 56px; padding-bottom: 24px; }
+    .foot-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(240px, 1fr); gap: 28px; }
+    .foot-grid h4 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+    .foot-grid a { display: flex; align-items: center; min-height: 44px; color: var(--chrome-text); text-decoration: none; }
+    .foot-box { border: 1px solid rgba(255,255,255,.6); padding: 22px; }
+    .foot-box p { margin: 0 0 14px; font-size: 16px; }
+    .foot-box .cta-sky { display: inline-flex; }
+    .legal { margin: 32px 0 0; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.35); font-size: 13px; line-height: 1.6; opacity: .95; }
+    .legal p { margin: 0 0 6px; }
+    .bottom-links { display: flex; flex-wrap: wrap; gap: 0 22px; margin-top: 8px; }
+    .bottom-links a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; color: var(--chrome-text); text-decoration: none; font-size: 13px; }
+
+    @media (max-width: 1400px) {
+      .brand small, .acct-tools .who { display: none; }
+    }
+    @media (max-width: 1180px) {
+      .appnav a { padding: 0 8px; }
+      .acct-tools .who { display: none; }
+    }
+    @media (max-width: 960px) {
+      .wrap { padding: 0 18px; }
+      .menu-btn { display: inline-flex; align-items: center; }
+      .acct-tools { display: none; }
+      .topbar .wrap { flex-wrap: wrap; gap: 12px; }
+      .appnav { display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; padding-bottom: 12px; }
+      .appnav.open { display: flex; }
+      .appnav a { padding: 0 4px; border-top: 1px solid rgba(255,255,255,.25); }
+      .appnav a.current { box-shadow: inset 3px 0 0 var(--sky); padding-left: 12px; }
+      .brand small { display: none; }
+      .hero .wrap { grid-template-columns: 1fr; padding-bottom: 80px; }
+      .hero-art { display: none; }
+      h1 { font-size: 38px; }
+      .lead { font-size: 16px; }
+      .layout { grid-template-columns: 1fr; }
+      .panel { padding: 22px; }
+      .panel h2 { font-size: 28px; }
+      .row2 { grid-template-columns: 1fr; gap: 0; }
+      .actions .btn { width: 100%; }
+      .foot-grid { grid-template-columns: 1fr; gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Envestnet home">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 6 29 1v8L3 14z" fill="#8BD3E6"/><path d="M3 17l20-4v7L3 24z" fill="#fff"/><path d="M3 27l26-5v8L3 32z" fill="#fff" opacity=".75"/></svg>
+        <span>Envestnet</span>
+        <small>Wealth Management Platform</small>
+      </a>
+      <button type="button" class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="appNav">Menu</button>
+      <nav class="appnav" id="appNav" aria-label="Platform">
+        <a href="#">Home</a><a href="#">Households</a><a href="#">Proposals</a><a href="#">Trading</a><a href="#">Reporting</a><a href="#">Billing</a><a href="#" class="current" aria-current="page">Service Requests</a>
+      </nav>
+      <div class="acct-tools">
+        <span class="who">Jordan Rivera, CFP&reg;</span>
+        <a href="#">Help</a>
+        <a href="#" class="cta-sky">Log out</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero" aria-labelledby="page-title">
+    <div class="wrap">
+      <div>
+        <div class="crumbs"><a href="#">Households</a><span class="sep">/</span><a href="#">Hamilton Household</a><span class="sep">/</span><a href="#">Service Requests</a><span class="sep">/</span><span aria-current="page">One-time contribution</span></div>
+        <h1 id="page-title">One-time contribution</h1>
+        <p class="lead">Add cash to a managed account from the client&rsquo;s linked bank account. Review the details, then submit the request.</p>
+      </div>
+      <div class="hero-art">
+        <img src="https://www.envestnet.com/themes/custom/basic/build/29591c5c3ff0ff0cef1c553fe83ef9fc.png" alt="" onerror="this.parentElement.classList.add('no-img')">
+        <div class="art-fallback" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="stripe" aria-hidden="true"></div>
+  </section>
+
+  <main id="contribution">
+    <div class="wrap">
+      <div class="layout">
+        <section class="panel" aria-labelledby="form-title">
+          <ul class="req-type" aria-label="Service request type">
+            <li><a href="#" class="current" aria-current="page">Contribution</a></li>
+            <li><a href="#">Raise cash</a></li>
+            <li><a href="#">Systematic withdrawal</a></li>
+            <li><a href="#">Trade hold</a></li>
+          </ul>
+          <h2 id="form-title">Contribution details</h2>
+          <p class="sub">Choose the funding source and the managed account, then enter the amount.</p>
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">Funding source</label>
+              <select id="fromAccount">
+                <option value="ACCT-1002" data-tier="standard" data-name="Joint Savings &bull;&bull;4471" data-bank="First Lakeshore Bank" selected>Joint Savings &bull;&bull;4471 &middot; First Lakeshore Bank</option>
+                <option value="ACCT-1003" data-tier="basic" data-name="Money Market &bull;&bull;0938" data-bank="First Lakeshore Bank">Money Market &bull;&bull;0938 &middot; First Lakeshore Bank</option>
+              </select>
+              <small id="fromHelp">Linked bank account (ACH)</small>
+              <input type="hidden" id="accountTier" value="standard">
+            </div>
+            <div class="field">
+              <label for="toAccount">Managed account</label>
+              <select id="toAccount">
+                <option value="" disabled selected>Choose an account</option>
+                <option value="ENV-77120458" data-name="Hamilton Joint &middot; Envestnet PMC Core Growth" data-reg="Joint tenants">Hamilton Joint &middot; PMC Core Growth &middot; &bull;&bull;0458</option>
+                <option value="ENV-77120513" data-name="Margaret Hamilton IRA &middot; Direct Indexing" data-reg="Traditional IRA">Margaret Hamilton IRA &middot; Direct Indexing &middot; &bull;&bull;0513</option>
+                <option value="ENV-77120691" data-name="Hamilton Family Trust &middot; Tax-Managed Balanced" data-reg="Trust">Hamilton Family Trust &middot; Tax-Managed Balanced &middot; &bull;&bull;0691</option>
+              </select>
+              <small id="toHelp">Accounts in Hamilton Household</small>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="amount">Amount</label>
+                <div class="amount-wrap"><input type="text" id="amount" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-describedby="amountHelp"></div>
+                <small id="amountHelp">Up to $250,000.00 per request</small>
+              </div>
+              <div class="field">
+                <label for="investment">Investment instruction</label>
+                <select id="investment">
+                  <option value="model" selected>Invest per model allocation</option>
+                  <option value="cash">Hold as cash</option>
+                </select>
+                <small>Applied once the contribution settles</small>
+              </div>
+            </div>
+            <dl class="summary" aria-label="Request summary">
+              <div><dt>From</dt><dd id="sumFrom">&mdash;</dd></div>
+              <div><dt>To</dt><dd id="sumTo">&mdash;</dd></div>
+              <div><dt>Amount</dt><dd id="sumAmount">&mdash;</dd></div>
+              <div><dt>Investment</dt><dd id="sumInvest">&mdash;</dd></div>
+            </dl>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="btn btn-primary">Submit request</button>
+              <button type="reset" id="cancelBtn" class="btn btn-secondary">Clear</button>
+            </div>
+            <p class="status" id="requestStatus" role="status" aria-live="polite">Sample household and accounts. No money moves on this page.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+        <aside>
+          <div class="panel">
+            <h3>Hamilton Household</h3>
+            <p class="meta">3 managed accounts &middot; Advisor: Jordan Rivera</p>
+            <ul class="accounts">
+              <li><span><span class="name">Hamilton Joint</span><span class="num">PMC Core Growth &middot; &bull;&bull;0458</span></span><span class="val">$1,284,610.22<small>Market value</small></span></li>
+              <li><span><span class="name">Margaret Hamilton IRA</span><span class="num">Direct Indexing &middot; &bull;&bull;0513</span></span><span class="val">$642,075.90<small>Market value</small></span></li>
+              <li><span><span class="name">Hamilton Family Trust</span><span class="num">Tax-Managed Balanced &middot; &bull;&bull;0691</span></span><span class="val">$2,118,904.48<small>Market value</small></span></li>
+            </ul>
+          </div>
+          <div class="panel other">
+            <h3>Other service requests</h3>
+            <p class="meta">For accounts in this household</p>
+            <a href="#">Raise cash</a>
+            <a href="#">Set up a systematic withdrawal</a>
+            <a href="#">Place a trade hold</a>
+            <a href="#">Terminate an account</a>
+          </div>
+          <div class="panel help">
+            <h3>Need help?</h3>
+            <p>Questions about a service request or its status? Our service team can help.</p>
+            <a href="#">Envestnet Support</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div><h4>Our Brands</h4><a href="#">Envestnet PMC</a><a href="#">Envestnet Tamarac</a><a href="#">Envestnet MoneyGuide</a></div>
+        <div><h4>Our Ecosystem</h4><a href="#">Wealth Management Platform</a><a href="#">Financial Planning</a><a href="#">Wealth Solutions</a><a href="#">Data Solutions</a></div>
+        <div><h4>Company</h4><a href="#">Our Leadership</a><a href="#">Contact Us</a><a href="#">Trust Center</a></div>
+        <div class="foot-box"><p>Questions about this request?</p><a href="#" class="cta-sky">Contact Envestnet Support</a></div>
+      </div>
+      <div class="legal">
+        <p>Sample advisor workspace. The household, accounts, balances and requests shown here are example data.</p>
+        <div class="bottom-links"><a href="#">Cookie Preferences</a><a href="#">Trust Center</a><a href="#">Privacy</a><a href="#">Cybersecurity</a><a href="#">Legal</a></div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const menuBtn = document.getElementById('menuBtn');
+    const appNav = document.getElementById('appNav');
+    menuBtn.addEventListener('click', () => {
+      const open = appNav.classList.toggle('open');
+      menuBtn.setAttribute('aria-expanded', String(open));
+    });
+
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('requestStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const investment = document.getElementById('investment');
+    const accountTier = document.getElementById('accountTier');
+    const toHelp = document.getElementById('toHelp');
+    const sumFrom = document.getElementById('sumFrom');
+    const sumTo = document.getElementById('sumTo');
+    const sumAmount = document.getElementById('sumAmount');
+    const sumInvest = document.getElementById('sumInvest');
+    const fields = [fromAccount, toAccount, amountInput, investment];
+    const IDLE_STATUS = 'Sample household and accounts. No money moves on this page.';
+    const IDLE_LABEL = 'Submit request';
+    const MAX_AMOUNT = 250000;
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+    let pending = false;
+
+    function selected(select) { return select.options[select.selectedIndex]; }
+    function parsedAmount() {
+      const raw = amountInput.value.trim().replace(/,/g, '');
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+      return parseFloat(raw);
+    }
+    function target() { return toAccount.value ? selected(toAccount) : null; }
+    function render() {
+      const from = selected(fromAccount);
+      const to = target();
+      const amount = parsedAmount();
+      accountTier.value = from.dataset.tier;
+      toHelp.textContent = to ? `Registration: ${to.dataset.reg}` : 'Accounts in Hamilton Household';
+      sumFrom.textContent = `${from.dataset.name} \u00b7 ${from.dataset.bank}`;
+      sumTo.textContent = to ? to.dataset.name : '\u2014';
+      sumAmount.textContent = Number.isFinite(amount) && amount > 0 ? usd.format(amount) : '\u2014';
+      sumInvest.textContent = selected(investment).textContent;
+    }
+    function notice(message, focusEl) {
+      result.className = 'result-box notice';
+      result.textContent = message;
+      status.textContent = IDLE_STATUS;
+      if (focusEl) focusEl.focus();
+    }
+
+    fields.forEach((el) => el.addEventListener(el === amountInput ? 'input' : 'change', render));
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = IDLE_STATUS;
+        render();
+      });
+    });
+    render();
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (pending) return;
+      const to = target();
+      const amount = parsedAmount();
+      if (!to) { notice('Choose the managed account to fund.', toAccount); return; }
+      if (!Number.isFinite(amount) || amount <= 0) { notice('Enter an amount, for example 25000.00.', amountInput); return; }
+      if (amount > MAX_AMOUNT) { notice(`Enter an amount up to ${usd.format(MAX_AMOUNT)} per request.`, amountInput); return; }
+
+      pending = true;
+      button.disabled = true;
+      cancelBtn.disabled = true;
+      fields.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Submitting\u2026';
+      status.textContent = 'Submitting your request\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      const fromName = selected(fromAccount).dataset.name;
+      const toName = to.dataset.name;
+      const instruction = investment.value === 'cash' ? 'It will be held as cash.' : 'It will be invested per the model allocation once it settles.';
+      let response;
+      try {
+        response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
+            accountTier: accountTier.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error('Request not submitted.');
+        if (!data || !data.receipt) throw new Error('Request outcome unknown.');
+        const at = timeFmt.format(new Date(data.receipt.timestamp));
+        const paid = Number(data.receipt.amount);
+        const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
+        if (data.duplicate) {
+          result.className = 'result-box notice';
+          result.textContent = `This contribution was already submitted at ${at}: ${usd.format(paid)} from ${fromName} to ${toName}, request ${data.receipt.receiptId}. It hasn\u2019t been submitted again.`;
+          status.textContent = 'Already submitted.';
+          return;
+        }
+        const fee = debited - paid > 0.004 ? ` ${usd.format(debited)} will be drawn from ${fromName}, including a ${usd.format(debited - paid)} ACH processing fee.` : '';
+        result.className = 'result-box success';
+        result.textContent = `Request submitted at ${at}. ${usd.format(paid)} from ${fromName} to ${toName}.${fee} ${instruction} Request ${data.receipt.receiptId}.`;
+        status.textContent = 'Request submitted.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        if (response && !response.ok) {
+          result.textContent = 'We couldn\u2019t submit this contribution. Nothing has been drawn from the bank account. Please try again in a moment.';
+          status.textContent = 'Request not submitted.';
+        } else {
+          result.textContent = 'We couldn\u2019t confirm this request. Check Service Requests for this household before submitting again, or contact Envestnet Support.';
+          status.textContent = 'Request not confirmed.';
+        }
+      } finally {
+        fields.forEach((el) => { el.disabled = false; });
+        pending = false;
+        button.disabled = false;
+        cancelBtn.disabled = false;
+        button.textContent = IDLE_LABEL;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
