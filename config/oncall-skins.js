@@ -6111,6 +6111,7 @@ const ONCALL_SKINS = {
     slug: '3692c035',
     company: 'Cloudbeds',
     vertical: 'telco',
+    oncallOnly: true,
     page: {
       file: '3692c035.html',
       title: 'Award-Winning Hospitality Management System - Cloudbeds',
