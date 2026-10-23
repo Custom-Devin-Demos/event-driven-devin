@@ -6,6 +6,7 @@ const {
   CUSTOMERS,
   DEFAULT_CUSTOMER_ID,
   DEFAULT_SKU,
+  SAVED_CART,
 } = require('../../services/verticals/4dd0a997');
 
 const router = express.Router();
@@ -20,6 +21,8 @@ function isReproductionRequest(req) {
 router.get('/api/best-buy/storefront', (_req, res) => {
   res.json({
     product: CATALOG[DEFAULT_SKU],
+    catalog: CATALOG,
+    savedCart: SAVED_CART,
     customers: Object.values(CUSTOMERS).map(publicCustomer),
     defaultCustomerId: DEFAULT_CUSTOMER_ID,
   });

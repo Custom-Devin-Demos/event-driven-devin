@@ -24,9 +24,35 @@ const CATALOG = {
     limitPerOrder: 3,
     image: '/verticals/assets/4dd0a997/tv-front.jpg',
   },
+  6376563: {
+    sku: '6376563',
+    brand: 'Apple',
+    name: 'Apple - AirPods Pro 3, Wireless Active Noise Cancelling Earbuds with Heart Rate Sensing Feature - White',
+    shortName: 'Apple AirPods Pro 3',
+    price: 199.99,
+    compValue: 249.99,
+    limitPerOrder: 3,
+    image: '/verticals/assets/4dd0a997/airpods-pro-3.jpg',
+  },
+  6689812: {
+    sku: '6689812',
+    brand: 'Nintendo',
+    name: 'Nintendo Switch 2 + Mario Kart World Bundle',
+    shortName: 'Nintendo Switch 2 + Mario Kart World',
+    price: 499.99,
+    compValue: 549.99,
+    limitPerOrder: 3,
+    image: '/verticals/assets/4dd0a997/switch-2-mario-kart.jpg',
+  },
 };
 
 const DEFAULT_SKU = '6671348';
+
+/** Items already sitting in the signed-in shopper's cart when the demo opens. */
+const SAVED_CART = [
+  { sku: '6376563', quantity: 1 },
+  { sku: '6689812', quantity: 1 },
+];
 
 /**
  * My Best Buy paid memberships (corporate.bestbuy.com/2026/holiday-preview):
@@ -46,9 +72,9 @@ const MEMBER_REWARD_RATES = {
 const CUSTOMERS = {
   'BBY-30418': {
     customerId: 'BBY-30418',
-    firstName: 'Jordan',
-    lastName: 'Reyes',
-    email: 'jordan.reyes@example.com',
+    firstName: 'Mark',
+    lastName: 'Porter',
+    email: 'mark.porter@example.com',
     membership: { program: 'totaltech', displayName: 'My Best Buy Total', memberSince: '2022-03-14' },
     payment: { type: 'my-best-buy-card', label: 'My Best Buy Visa', last4: '4417' },
     fulfillment: { type: 'pickup', store: 'Richfield, MN', zip: '55423' },
@@ -90,9 +116,9 @@ const BBY_DEVIN_USER_ID = process.env.DEVIN_USER_ID_4DD0A997 || 'user-5e154bb059
 
 const SENTRY_ISSUE_QUERY = 'is:unresolved creditCard';
 
-const REMEDIATION_DIRECTIVE = `Repository: COG-GTM/event-driven-devin. Scope: only the Best Buy Black Friday checkout failure below. This repository hosts many independent demo verticals, each with its own intentional bug and its own Sentry issues (for example POST /api/banking/transfer, POST /api/cba/payment and POST /api/storefront/checkout throw their own TypeErrors and generate constant background traffic). Ignore every issue that is not from POST ${ROUTE}, do not investigate or modify any other vertical (including the separate Best Buy supply-chain demo in app/services/verticals/6074332d.js), and do not widen the Sentry or Datadog search beyond this route. The failing surface is the Best Buy storefront at app/public/verticals/4dd0a997.html (served at /best-buy and /4dd0a997): the shopper adds the Samsung 65" S85H OLED TV to the cart and clicks "Checkout", which posts to POST ${ROUTE} in app/routes/verticals/4dd0a997.js. The pipeline lives in app/services/verticals/4dd0a997.js: checkout -> priceOrder -> applyMemberRewards -> memberRewardRate. Start at memberRewardRate: it looks up the customer's paid membership in MEMBER_REWARD_RATES, which only knows the current program codes "plus" and "total". Members who joined before Best Buy renamed Totaltech to My Best Buy Total in June 2023 (for example BBY-30418, Jordan Reyes) still carry the legacy program code "totaltech", so the lookup returns undefined and the rate read throws. Treat the legacy "totaltech" code as My Best Buy Total, and make any other unrecognised membership program check out without member rewards (logged as a warning, no alert) instead of throwing. Do not change the reward rates, prices or tax, do not change the page's look and feel, and do not touch the other verticals' intentional bugs. Verify by starting the server (node app/server.js) and POSTing {"customerId":"BBY-30418","items":[{"sku":"6671348","quantity":1}]} to ${ROUTE}, which must return success with subtotal 1099.99, rewards.rate 0.06 and rewards.amount 66, and confirm npm run lint passes.
+const REMEDIATION_DIRECTIVE = `Repository: COG-GTM/event-driven-devin. Scope: only the Best Buy Black Friday checkout failure below. This repository hosts many independent demo verticals, each with its own intentional bug and its own Sentry issues (for example POST /api/banking/transfer, POST /api/cba/payment and POST /api/storefront/checkout throw their own TypeErrors and generate constant background traffic). Ignore every issue that is not from POST ${ROUTE}, do not investigate or modify any other vertical (including the separate Best Buy supply-chain demo in app/services/verticals/6074332d.js), and do not widen the Sentry or Datadog search beyond this route. The failing surface is the Best Buy storefront at app/public/verticals/4dd0a997.html (served at /best-buy and /4dd0a997): the shopper adds the Samsung 65" S85H OLED TV to a cart that already holds AirPods Pro 3 and a Nintendo Switch 2 bundle and clicks "Checkout", which posts to POST ${ROUTE} in app/routes/verticals/4dd0a997.js. The pipeline lives in app/services/verticals/4dd0a997.js: checkout -> priceOrder -> applyMemberRewards -> memberRewardRate. Start at memberRewardRate: it looks up the customer's paid membership in MEMBER_REWARD_RATES, which only knows the current program codes "plus" and "total". Members who joined before Best Buy renamed Totaltech to My Best Buy Total in June 2023 (for example BBY-30418, Mark Porter) still carry the legacy program code "totaltech", so the lookup returns undefined and the rate read throws. Treat the legacy "totaltech" code as My Best Buy Total, and make any other unrecognised membership program check out without member rewards (logged as a warning, no alert) instead of throwing. Do not change the reward rates, prices or tax, do not change the page's look and feel, and do not touch the other verticals' intentional bugs. Verify by starting the server (node app/server.js) and POSTing {"customerId":"BBY-30418","items":[{"sku":"6671348","quantity":1}]} to ${ROUTE}, which must return success with subtotal 1099.99, rewards.rate 0.06 and rewards.amount 66, and confirm npm run lint passes.
 
-Reproduce before you diagnose. Your first action after reading the alert, before reading any source file and before proposing a cause, is to start the server (node app/server.js), open /best-buy?repro=1 in a real browser and, as the pre-selected shopper (Jordan Reyes), click "Add to cart", go to the cart and click "Checkout" with your screen recording, so the recording shows the product, the cart, the click and the error. Always use ?repro=1 for your own checkouts: the request fails identically but raises no Sentry event, Slack alert or Devin session, so your reproduction does not alert anyone or spawn another session. Only once you have reproduced the failure yourself do you start investigating. If it does not reproduce, stop and report that instead of fixing anything.
+Reproduce before you diagnose. Your first action after reading the alert, before reading any source file and before proposing a cause, is to start the server (node app/server.js), open /best-buy?repro=1 in a real browser and, as the pre-selected shopper (Mark Porter), click "Add to cart", go to the cart and click "Checkout" with your screen recording, so the recording shows the product, the cart, the click and the error. Always use ?repro=1 for your own checkouts: the request fails identically but raises no Sentry event, Slack alert or Devin session, so your reproduction does not alert anyone or spawn another session. Only once you have reproduced the failure yourself do you start investigating. If it does not reproduce, stop and report that instead of fixing anything.
 
 Verification evidence is mandatory and must be visual, not curl-only: after the fix, repeat exactly the same /best-buy?repro=1 browser flow with a second screen recording, showing the order confirmation (with the $66.00 in rewards) where the error used to be. Attach both — an animated webp of the reproduction recording under a "Reproduction" heading and an animated webp of the post-fix recording plus a screenshot of the confirmation under a "Fix Verification" heading — to the pull request, and post the same evidence as a comment on the PR. Do not report the fix as complete, and do not leave the PR description saying verification is pending, until both recordings are attached.`;
 
@@ -312,5 +338,6 @@ module.exports = {
   MEMBER_REWARD_RATES,
   DEFAULT_CUSTOMER_ID,
   DEFAULT_SKU,
+  SAVED_CART,
   REMEDIATION_DIRECTIVE,
 };
