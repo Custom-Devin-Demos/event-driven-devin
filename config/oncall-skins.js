@@ -6107,6 +6107,17 @@ const ONCALL_SKINS = {
     supportCenter: 'Children\u2019s Minnesota Financial Customer Service',
     disclaimer: 'NOT ACTUALLY A CHILDREN\u2019S MINNESOTA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Children\u2019s Minnesota product.',
   },
+  '3692c035': {
+    slug: '3692c035',
+    company: 'Cloudbeds',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: {
+      file: '3692c035.html',
+      title: 'Award-Winning Hospitality Management System - Cloudbeds',
+    },
+    disclaimer: 'NOT ACTUALLY A CLOUDBEDS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cloudbeds product.',
+  },
 };
 
 function getOncallSkin(slug) {
