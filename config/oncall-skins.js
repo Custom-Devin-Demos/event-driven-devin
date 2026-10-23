@@ -5995,6 +5995,39 @@ const ONCALL_SKINS = {
       impact: 'Shoppers cannot complete checkout; every order sits on "Placing order\u2026" and then errors. No cards are charged.',
     },
   },
+  '5756ef9b': {
+    slug: '5756ef9b',
+    company: 'Together',
+    brandMark: 't.',
+    vertical: 'banking',
+    oncallOnly: true,
+    paths: ['/oncall/c/togethermoney', '/togethermoney-oncall'],
+    // Teams-capable: the presenter's hub picker decides Slack vs Teams per
+    // browser (default Slack). The Slack/Teams responders triage, so no
+    // devinSession.auto (it would double-trigger).
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    page: { file: '5756ef9b.html', title: 'Decision in Principle | Together Intermediary Portal' },
+    alertCard: {
+      title: 'p95 latency \u2014 broker Decision in Principle submissions',
+      service: 'together-dip-api',
+      release: 'together-dip-api@2026.10.3',
+      team: 'intermediary-portal-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      symptom: 'Broker Decision in Principle (DIP) submissions on the Intermediary Portal hang ~8\u201310s before the case is accepted. Error rate is normal \u2014 DIPs eventually go through.',
+      impact: 'Every broker submitting a bridging or remortgage DIP waits on a spinner for ~10 seconds; the Intermediary Support desk is reporting rising call volume and brokers are resubmitting cases.',
+    },
+    theme: {
+      '--accent': '#F5B21B',
+      '--ink': '#3D2A55',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#3D2A55',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Together Intermediary Support',
+    supportCenterSub: 'Broker portal & DIP incident intake',
+    disclaimer: 'Fictional demo \u2014 not affiliated with Together Financial Services. Invented broker, case and property data.',
+  },
 };
 
 function getOncallSkin(slug) {
