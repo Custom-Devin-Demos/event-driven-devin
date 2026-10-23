@@ -5861,6 +5861,23 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A WISE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Wise product.',
   },
+  'f2686bda': {
+    slug: 'f2686bda',
+    company: 'Bank of America',
+    brandMark: 'B',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'f2686bda.html', title: 'Transfer | Zelle\u00ae | Bank of America' },
+    theme: {
+      '--accent': '#E31837',
+      '--ink': '#333333',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#012169',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Bank of America Support',
+    disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
+  },
 };
 
 function getOncallSkin(slug) {
