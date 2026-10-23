@@ -399,7 +399,7 @@ Use the Q4 volume promo where it applies.</textarea>
         const total = visible.reduce((s, l) => s + l.total, 0);
         $('placeBtn').disabled = true;
         $('result').className = 'result-box show';
-        $('result').innerHTML = `Order placed for <b>${esc($('deliveryPoint').selectedOptions[0].textContent)}</b>: ${visible.length} lines, ${usd(total)}. Confirmation will be sent to orders@ once your distributor accepts it.`;
+        $('result').innerHTML = `Order placed for <b>${esc($('deliveryPoint').selectedOptions[0].textContent)}</b>: ${visible.length} ${visible.length === 1 ? 'line' : 'lines'}, ${usd(total)}. Confirmation will be sent to orders@ once your distributor accepts it.`;
         setStatus('done', 'Order placed');
       });
 
@@ -413,6 +413,7 @@ Use the Q4 volume promo where it applies.</textarea>
           state.lines = parsed;
           state.shown = parsed.length;
           renderLines();
+          $('draftSub').textContent = `Request for ${$('deliveryPoint').selectedOptions[0].textContent} · needs review`;
           setStatus('err', 'Needs review');
           $('result').className = 'result-box show error';
           $('result').textContent = `None of these lines are in your contract catalog. Edit ${parsed.length === 1 ? 'it' : 'them'} to a contract product and pack, then build the order again.`;
@@ -497,7 +498,7 @@ Use the Q4 volume promo where it applies.</textarea>
           const totalMs = Date.now() - started;
           const firstMs = final.ttftMs || firstAt;
           const slow = firstMs > TARGET_MS;
-          setStatus('done', `Draft ready · ${parsed.length} lines · <b>${fmtS(totalMs)}</b>`);
+          setStatus('done', `Draft ready · ${parsed.length} ${parsed.length === 1 ? 'line' : 'lines'} · <b>${fmtS(totalMs)}</b>`);
           $('result').className = 'result-box show' + (slow ? ' slow' : '');
           $('result').innerHTML = slow
             ? `Draft ready, but building it took longer than usual: first line after <b>${fmtS(firstMs)}</b>, complete in <b>${fmtS(totalMs)}</b>. Review the lines, then place the order.`
