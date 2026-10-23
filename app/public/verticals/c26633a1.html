@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout | Chewy.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --chewy-blue: #2848BD;
+        --chewy-blue-dark: #1C3BA8;
+        --chewy-link: #1C49C2;
+        --chewy-ink: #121212;
+        --chewy-muted: #555555;
+        --chewy-wash: #EDEDED;
+        --chewy-line: #DDDDDD;
+        --chewy-red: #C9213E;
+        --chewy-green: #1E7B34;
+        --chewy-orange-1: #E8742A;
+        --chewy-orange-2: #D8402C;
+        --chewy-font: 'Figtree', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body { font-family: var(--chewy-font); color: var(--chewy-ink); background: var(--chewy-wash); font-size: 15px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
+      a { color: var(--chewy-link); }
+      button { font-family: inherit; }
+
+      .masthead { background: var(--chewy-blue); color: #fff; }
+      .masthead .wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; height: 92px; display: flex; align-items: center; justify-content: space-between; }
+      .brand { display: flex; align-items: center; gap: 40px; }
+      .brand img { height: 42px; width: auto; display: block; }
+      .checkout-label { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 600; }
+      .checkout-label svg { width: 16px; height: 18px; }
+      .masthead-links { display: flex; align-items: center; font-size: 18px; font-weight: 700; }
+      .masthead-links a { color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+      .masthead-links .divider { width: 1px; height: 34px; background: rgba(255,255,255,0.35); margin: 0 12px; }
+
+      .page { max-width: 1280px; margin: 0 auto; padding: 16px 24px 48px; display: grid; grid-template-columns: minmax(0, 1fr) 434px; gap: 18px; align-items: start; }
+      .card { background: #fff; border-radius: 4px; margin-bottom: 18px; }
+      .card-pad { padding: 14px 14px 18px; }
+      .card h2 { margin: 0 0 12px; font-size: 19px; font-weight: 600; }
+
+      .address { display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 15px; line-height: 1.5; }
+      .address strong { font-weight: 700; }
+      .btn-outline { background: #fff; color: var(--chewy-link); border: 1px solid var(--chewy-link); border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+      .delivery-link { border-top: 1px solid var(--chewy-line); padding: 8px 14px 10px; font-size: 13px; font-weight: 600; }
+      .delivery-link a { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+
+      .autoship-head { font-size: 19px; font-weight: 600; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+      .autoship-head img { height: 22px; width: auto; }
+      .autoship-head a { font-size: 16px; font-weight: 500; text-decoration: none; }
+      .option { border: 1px solid var(--chewy-line); border-radius: 4px; padding: 12px 14px 14px 46px; position: relative; margin-bottom: 8px; cursor: pointer; display: block; }
+      .option.selected { border: 2px solid var(--chewy-blue); box-shadow: 0 0 0 1px rgba(40,72,189,0.15); padding: 11px 13px 13px 45px; }
+      .option input { position: absolute; left: 14px; top: 13px; width: 18px; height: 18px; accent-color: var(--chewy-blue); margin: 0; }
+      .option-title { color: var(--chewy-green); font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+      .option-sub { font-size: 15px; }
+      .option-sub b { color: var(--chewy-red); }
+      .freq-row { display: flex; gap: 22px; align-items: flex-start; margin-top: 12px; flex-wrap: wrap; }
+      .freq { position: relative; width: 352px; max-width: 100%; }
+      .freq label { position: absolute; top: -8px; left: 10px; background: #fff; padding: 0 4px; font-size: 11px; color: var(--chewy-muted); }
+      .freq select { width: 100%; font: inherit; font-size: 15px; padding: 8px 12px; border: 1px solid #555; border-radius: 4px; background: #fff; appearance: none; -webkit-appearance: none; }
+      .freq .chev { position: absolute; right: 14px; top: 13px; pointer-events: none; }
+      .freq-note { font-size: 14px; color: var(--chewy-muted); margin-top: 10px; max-width: 330px; }
+      .reco { display: flex; gap: 10px; font-size: 13px; }
+      .reco img { width: 56px; height: auto; border-radius: 4px; }
+      .reco a { display: block; font-size: 14px; margin-top: 2px; }
+
+      .items-head { padding: 22px 14px 14px; border-bottom: 1px solid var(--chewy-line); margin: 0; font-size: 19px; font-weight: 600; }
+      .rx-box { margin: 16px 22px 0; border: 1px solid #F4D7DC; border-radius: 4px; }
+      .rx-box .rx-title { background: #FCEBEE; font-size: 12px; font-weight: 600; padding: 5px 12px; display: flex; align-items: center; gap: 6px; }
+      .rx-box .rx-body { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px 10px; font-size: 13px; }
+      .rx-box .ok { color: var(--chewy-green); font-weight: 600; }
+      .btn-small { background: var(--chewy-blue); color: #fff; border: 0; border-radius: 4px; padding: 6px 12px; font-weight: 700; font-size: 13px; cursor: pointer; }
+      .item { display: grid; grid-template-columns: 128px minmax(0, 1fr) 200px; gap: 26px; padding: 36px 22px 22px; }
+      .item-img { border: 2px solid #E7E7E7; border-radius: 4px; padding: 6px; position: relative; }
+      .item-img img { width: 100%; height: auto; display: block; }
+      .item-name { font-size: 15px; line-height: 1.3; }
+      .item-name b { font-weight: 700; }
+      .item-price { font-size: 18px; font-weight: 700; margin: 6px 0 12px; }
+      .item-meta { font-size: 12px; font-weight: 600; margin-bottom: 14px; }
+      .vet-diet { font-size: 12px; color: var(--chewy-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+      .autoship-check { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+      .autoship-check input { width: 16px; height: 16px; margin: 0; }
+      .autoship-check img { height: 14px; width: auto; }
+      .autoship-check b { color: var(--chewy-red); }
+      .qty { position: relative; }
+      .qty label { position: absolute; top: -8px; left: 10px; background: #fff; padding: 0 4px; font-size: 11px; color: var(--chewy-muted); }
+      .qty select { width: 100%; font: inherit; font-size: 15px; padding: 13px 12px; border: 1px solid #555; border-radius: 4px; background: #fff; appearance: none; -webkit-appearance: none; }
+      .qty .chev { position: absolute; right: 18px; top: 19px; pointer-events: none; }
+
+      .gift-btn { display: inline-flex; align-items: center; gap: 8px; }
+
+      .summary { padding: 14px 14px 16px; }
+      .legal { font-size: 12px; color: var(--chewy-muted); margin: 0 0 12px; }
+      .place-order { display: block; width: 288px; max-width: 100%; margin: 0 auto 24px; border: 0; border-radius: 10px; padding: 0 16px; height: 44px; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; background: linear-gradient(180deg, var(--chewy-orange-1), var(--chewy-orange-2)); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+      .place-order:hover { filter: brightness(1.04); }
+      .place-order[disabled] { cursor: progress; filter: saturate(0.85); }
+      .place-order .spin { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.5); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: -2px; margin-right: 8px; }
+      .place-order[disabled] .spin { display: inline-block; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .summary h2 { margin: 0 0 12px; padding-top: 16px; border-top: 1px solid var(--chewy-line); font-size: 19px; font-weight: 600; }
+      .row { display: flex; justify-content: space-between; font-size: 15px; margin: 6px 0; }
+      .row .free { color: var(--chewy-red); }
+      .row .free s { color: var(--chewy-muted); }
+      .row .promo { color: var(--chewy-link); text-decoration: underline dotted; text-underline-offset: 3px; font-weight: 500; }
+      .row .zero { color: var(--chewy-red); }
+      .sep { border-top: 1px solid var(--chewy-line); margin: 10px 0; }
+      .total { font-size: 19px; font-weight: 700; margin-top: 12px; }
+      .total span:first-child { font-weight: 600; }
+
+      .result-box { display: none; margin: 0 0 14px; border-radius: 4px; padding: 10px 12px; font-size: 13px; }
+      .result-box.error { display: block; background: #FCEBEE; border: 1px solid #F0B9C3; color: #7A1426; }
+      .result-box.success { display: block; background: #E8F5EC; border: 1px solid #B4DCC0; color: #155D27; }
+      .result-title { font-weight: 700; margin-bottom: 2px; }
+
+      .confidence { display: flex; gap: 14px; padding: 16px 18px 18px; }
+      .confidence img { width: 40px; height: auto; align-self: flex-start; }
+      .confidence h3 { margin: 0; font-size: 15px; font-weight: 600; }
+      .confidence p { margin: 0 0 10px; font-size: 13px; color: var(--chewy-muted); }
+      .confidence ul { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+      .confidence li { display: flex; align-items: center; gap: 8px; margin: 7px 0; }
+      .confidence li::before { content: ''; width: 14px; height: 14px; border-radius: 50%; background: #121212 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M4 7.2l2 2 4-4.2' fill='none' stroke='white' stroke-width='1.6'/%3E%3C/svg%3E") center/14px no-repeat; flex: none; }
+
+      @media (max-width: 960px) {
+        .page { grid-template-columns: minmax(0, 1fr); padding: 12px; }
+        .page > * { min-width: 0; }
+        .address { flex-wrap: wrap; }
+        .freq { width: 100%; }
+        .freq-row > div:first-child { flex: 1 1 100%; }
+        .masthead .wrap { height: 64px; padding: 0 12px; }
+        .brand { gap: 16px; }
+        .brand img { height: 28px; }
+        .checkout-label { font-size: 16px; }
+        .masthead-links { font-size: 14px; }
+        .masthead-links .help { display: none; }
+        .masthead-links .divider { display: none; }
+        .item { grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 20px 14px; }
+        .item .qty { grid-column: 1 / -1; }
+        .rx-box { margin: 14px 14px 0; }
+        .place-order { width: 100%; height: 48px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="wrap">
+        <div class="brand">
+          <img src="/verticals/c26633a1/logo.png" alt="Chewy" width="122" height="42" />
+          <div class="checkout-label">
+            <svg viewBox="0 0 16 18" aria-hidden="true"><path fill="#fff" d="M8 0a5 5 0 0 0-5 5v3H2a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1V5a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H5V5z"/></svg>
+            Checkout
+          </div>
+        </div>
+        <nav class="masthead-links">
+          <a href="#" class="help">Questions? 24/7 help <svg width="12" height="8" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" fill="none" stroke="#fff" stroke-width="2"/></svg></a>
+          <span class="divider"></span>
+          <a href="#">Continue Shopping</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page">
+      <div>
+        <section class="card">
+          <div class="card-pad">
+            <h2>Your Shipping Address</h2>
+            <div class="address">
+              <div>
+                <strong>Jordan Ellis</strong><br />
+                1847 MAPLE GROVE LN, APT 3B<br />
+                COLUMBUS, OH 43215-2210
+              </div>
+              <button type="button" class="btn-outline">Change Address</button>
+            </div>
+          </div>
+          <div class="delivery-link"><a href="#">Add delivery instructions <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M1 11l.6-2.8L8.4 1.4l2.2 2.2-6.8 6.8L1 11z" fill="#1C49C2"/></svg></a></div>
+        </section>
+
+        <section class="card card-pad">
+          <div class="autoship-head">Start <img src="/verticals/c26633a1/autoship.png" alt="Autoship" width="92" height="22" /> and save up to 5% on eligible items! <a href="#">More Info</a></div>
+          <label class="option" data-option="autoship">
+            <input type="radio" name="autoship" value="yes" />
+            <div class="option-title">Yes, make my life easy.</div>
+            <div class="option-sub">You'll save an additional <b>$7.00</b> on this order!</div>
+            <div class="freq-row">
+              <div>
+                <div class="freq">
+                  <label for="frequency">Frequency</label>
+                  <select id="frequency">
+                    <option>Every 2 weeks</option>
+                    <option>Every 3 weeks</option>
+                    <option selected>Every 4 weeks (Recommended)</option>
+                    <option>Every 6 weeks</option>
+                    <option>Every 8 weeks</option>
+                  </select>
+                  <svg class="chev" width="12" height="8" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" fill="none" stroke="#121212" stroke-width="2"/></svg>
+                </div>
+                <div class="freq-note">You can easily change, cancel, or reschedule shipments at any time.</div>
+              </div>
+              <div class="reco">
+                <img src="/verticals/c26633a1/thumb.png" alt="" width="56" height="74" />
+                <div>Recommended<br />Frequency<a href="#">Every 4 weeks</a></div>
+              </div>
+            </div>
+          </label>
+          <label class="option selected" data-option="once">
+            <input type="radio" name="autoship" value="no" checked />
+            <div class="option-title">No, thank you.</div>
+            <div class="option-sub">You'll buy these items once.</div>
+          </label>
+        </section>
+
+        <section class="card">
+          <h2 class="items-head">Your Items</h2>
+          <div class="rx-box">
+            <div class="rx-title"><svg width="10" height="12" viewBox="0 0 10 12" aria-hidden="true"><rect x="0.5" y="1.5" width="9" height="10" rx="1" fill="none" stroke="#121212"/><path d="M3 6.5l1.5 1.5L7 5" fill="none" stroke="#121212"/></svg> Pet and vet clinic</div>
+            <div class="rx-body">
+              <div>Pet: <span class="ok">Biscuit (Dog)</span><br />Vet clinic: <span class="ok">Short North Animal Hospital</span></div>
+              <button type="button" class="btn-small">Edit</button>
+            </div>
+          </div>
+          <div class="item">
+            <div class="item-img"><img src="/verticals/c26633a1/bag.png" alt="Hill's Prescription Diet k/d Kidney Care with Chicken Dry Dog Food, 27.5-lb bag" width="114" height="125" /></div>
+            <div>
+              <div class="item-name"><b>Hill's Prescription Diet</b> k/d Kidney Care with Chicken Dry Dog Food, 27.5-lb bag</div>
+              <div class="item-price" id="itemPrice">$139.99</div>
+              <div class="item-meta">1-3 day delivery</div>
+              <div class="vet-diet"><svg width="10" height="12" viewBox="0 0 10 12" aria-hidden="true"><rect x="0.5" y="1.5" width="9" height="10" rx="1" fill="none" stroke="#555"/><path d="M3 6.5l1.5 1.5L7 5" fill="none" stroke="#555"/></svg> Veterinary Diet Item</div>
+              <label class="autoship-check"><input type="checkbox" id="itemAutoship" /><img src="/verticals/c26633a1/autoship.png" alt="Autoship" width="58" height="14" /> <b>Save 5%</b> today and on future orders</label>
+            </div>
+            <div class="qty">
+              <label for="quantity">Quantity:</label>
+              <select id="quantity">
+                <option selected>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              </select>
+              <svg class="chev" width="12" height="8" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" fill="none" stroke="#121212" stroke-width="2"/></svg>
+            </div>
+          </div>
+        </section>
+
+        <section class="card card-pad">
+          <h2>Gift Card</h2>
+          <button type="button" class="btn-outline gift-btn"><span aria-hidden="true">+</span> Add a Gift Card</button>
+        </section>
+      </div>
+
+      <aside>
+        <form class="card summary" id="orderForm">
+          <p class="legal">By placing your order, you agree to Chewy.com's <a href="#">Privacy Policy</a> and <a href="#">Terms of Use</a>.</p>
+          <div class="result-box" id="result" role="alert"></div>
+          <button type="submit" class="place-order" id="placeOrderBtn"><span class="spin" aria-hidden="true"></span><span id="placeOrderLabel">Place Order</span></button>
+          <h2>Order summary</h2>
+          <div class="row"><span id="subtotalLabel">Subtotal (1 item)</span><span id="subtotal">$139.99</span></div>
+          <div class="row"><span>Flat-rate shipping</span><span class="free">FREE <s>$6.95</s></span></div>
+          <div class="row"><span class="promo">Savings &amp; promo codes</span><span class="zero" id="savings">$0.00</span></div>
+          <div class="sep"></div>
+          <div class="row"><span>Total before tax</span><span id="beforeTax">$139.99</span></div>
+          <div class="row"><span>Estimated tax</span><span id="tax">$11.20</span></div>
+          <div class="sep"></div>
+          <div class="row total"><span>Order total</span><span id="orderTotal">$151.19</span></div>
+        </form>
+
+        <section class="card confidence">
+          <img src="/verticals/c26633a1/shield.png" alt="" width="40" height="42" />
+          <div>
+            <h3>Shop with Confidence</h3>
+            <p>Your orders are safe and secure with Chewy!</p>
+            <ul>
+              <li>100% Money-Back Guarantee</li>
+              <li>Free 365-Day Returns</li>
+              <li>Secured Transactions</li>
+              <li>24/7 Customer Service</li>
+            </ul>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <script>
+      (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        }).catch(function () {});
+      })();
+    </script>
+    <script>
+      const UNIT_PRICE = 139.99;
+      const TAX_RATE = 0.08;
+      const AUTOSHIP_RATE = 0.05;
+      const fmt = (n) => '$' + n.toFixed(2);
+
+      function autoshipOn() {
+        return document.querySelector('input[name="autoship"]:checked').value === 'yes' || document.getElementById('itemAutoship').checked;
+      }
+
+      function recalc() {
+        const qty = parseInt(document.getElementById('quantity').value, 10) || 1;
+        const subtotal = UNIT_PRICE * qty;
+        const savings = autoshipOn() ? Math.round(subtotal * AUTOSHIP_RATE * 100) / 100 : 0;
+        const beforeTax = subtotal - savings;
+        const tax = Math.round(beforeTax * TAX_RATE * 100) / 100;
+        document.getElementById('itemPrice').textContent = fmt(subtotal);
+        document.getElementById('subtotalLabel').textContent = 'Subtotal (' + qty + (qty === 1 ? ' item)' : ' items)');
+        document.getElementById('subtotal').textContent = fmt(subtotal);
+        document.getElementById('savings').textContent = savings ? '-' + fmt(savings) : '$0.00';
+        document.getElementById('beforeTax').textContent = fmt(beforeTax);
+        document.getElementById('tax').textContent = fmt(tax);
+        document.getElementById('orderTotal').textContent = fmt(beforeTax + tax);
+      }
+
+      document.querySelectorAll('input[name="autoship"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+          document.querySelectorAll('.option').forEach(function (o) { o.classList.remove('selected'); });
+          radio.closest('.option').classList.add('selected');
+          recalc();
+        });
+      });
+      document.getElementById('itemAutoship').addEventListener('change', recalc);
+      document.getElementById('quantity').addEventListener('change', recalc);
+
+      document.getElementById('orderForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('placeOrderBtn');
+        const label = document.getElementById('placeOrderLabel');
+        const result = document.getElementById('result');
+        const show = (cls, title, detail) => {
+          result.className = 'result-box ' + cls;
+          result.textContent = '';
+          const t = document.createElement('div');
+          t.className = 'result-title';
+          t.textContent = title;
+          const d = document.createElement('div');
+          d.textContent = detail;
+          result.append(t, d);
+        };
+        const quantity = parseInt(document.getElementById('quantity').value, 10) || 1;
+        btn.disabled = true;
+        label.textContent = 'Placing order\u2026';
+        result.className = 'result-box';
+        try {
+          const res = await fetch('/api/marketplace/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              quantity: quantity,
+              autoship: autoshipOn(),
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            const detail = data.code === 'RESERVATION_TIMEOUT'
+              ? "We couldn't confirm your items with our fulfillment center in time. Your card has not been charged. Please try again in a few minutes."
+              : (data.error || 'Something went wrong. Please try again.');
+            show('error', "We couldn't place your order", detail);
+          } else {
+            show('success', 'Thanks, Jordan! Your order is placed.', 'Order #' + String(data.cartId || '').slice(0, 8).toUpperCase() + ' \u2014 arriving in 1-3 days to Columbus, OH.');
+          }
+        } catch (err) {
+          show('error', "We couldn't place your order", err.message);
+        }
+        btn.disabled = false;
+        label.textContent = 'Place Order';
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>

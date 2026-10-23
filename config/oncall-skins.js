@@ -5927,6 +5927,39 @@ const ONCALL_SKINS = {
     supportCenter: 'Bank of America Support',
     disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
   },
+  'c26633a1': {
+    slug: 'c26633a1',
+    company: 'Chewy',
+    brandMark: 'C',
+    vertical: 'marketplace',
+    oncallOnly: true,
+    paths: ['/chewy-oncall'],
+    // Slack-routed: the Slack on-call responder triages the card, so no
+    // devinSession.auto (it would double-trigger).
+    alertDestination: 'slack',
+    // The order summary and its Place Order button sit on the right.
+    ribbonSide: 'left',
+    page: { file: 'c26633a1.html', title: 'Checkout | Chewy.com' },
+    theme: {
+      '--accent': '#2848BD',
+      '--ink': '#121212',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#2848BD',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: 'p95 latency spike \u2014 Checkout Place Order (504)',
+      service: 'checkout-api',
+      release: 'checkout-web@8.41.0',
+      team: 'checkout-oncall',
+      metricValue: '8.0s (504 on ~100% of Place Order requests)',
+      threshold: '> 2s',
+      baseline: '~420ms (7-day p95)',
+      symptom: 'Place Order requests hang ~8s and then fail with 504 Gateway Timeout. Inventory reservation latency against the fulfillment-center network is elevated.',
+      impact: 'Shoppers cannot complete checkout; every order sits on "Placing order\u2026" and then errors. No cards are charged.',
+    },
+    disclaimer: 'NOT ACTUALLY A CHEWY SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Chewy product.',
+  },
 };
 
 function getOncallSkin(slug) {
