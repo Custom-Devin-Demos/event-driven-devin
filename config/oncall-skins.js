@@ -6065,6 +6065,25 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Broker portal & DIP incident intake',
     disclaimer: 'Fictional demo \u2014 not affiliated with Together Financial Services. Invented broker, case and property data.',
   },
+  '300e14ad': {
+    slug: '300e14ad',
+    company: 'S&P Global',
+    brandMark: 'S',
+    vertical: 'hightech',
+    page: {
+      file: '300e14ad.html',
+      title: 'Manage Users | S&P Capital IQ Pro | S&P Global Market Intelligence',
+    },
+    theme: {
+      '--accent': '#D6002A',
+      '--ink': '#000000',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'S&P Global Market Intelligence Support',
+    disclaimer: 'NOT ACTUALLY AN S&P GLOBAL SITE — internal demo only, not affiliated with, endorsed by, or a real S&P Global product.',
+  },
 };
 
 function getOncallSkin(slug) {
