@@ -5870,6 +5870,10 @@ const ONCALL_SKINS = {
     brandMark: 'A',
     vertical: 'inference',
     oncallOnly: true,
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+    },
     page: { file: 'bade25cd.html', title: 'Pipelines | ML Platform | AB InBev' },
     alertCard: {
       title: 'ML Pipelines: p95 time to first scored batch trending up \u2014 poc-weekly-demand-forecast',
