@@ -110,12 +110,16 @@ function roundCents(value) {
 
 function normaliseItems(items) {
   if (!Array.isArray(items) || items.length === 0) throw validationError('Your cart is empty', 'EMPTY_CART');
-  return items.map((item) => {
+  const quantities = new Map();
+  items.forEach((item) => {
     const sku = String((item && item.sku) || '');
-    const product = Object.hasOwn(CATALOG, sku) ? CATALOG[sku] : undefined;
-    if (!product) throw validationError(`SKU ${sku || '(none)'} is no longer available`, 'UNKNOWN_SKU');
+    if (!Object.hasOwn(CATALOG, sku)) throw validationError(`SKU ${sku || '(none)'} is no longer available`, 'UNKNOWN_SKU');
     const quantity = Number(item.quantity);
     if (!Number.isInteger(quantity) || quantity < 1) throw validationError('Quantity must be at least 1', 'INVALID_QUANTITY');
+    quantities.set(sku, (quantities.get(sku) || 0) + quantity);
+  });
+  return [...quantities].map(([sku, quantity]) => {
+    const product = CATALOG[sku];
     if (quantity > product.limitPerOrder) {
       throw validationError(`Limit ${product.limitPerOrder} per customer on this Black Friday deal`, 'LIMIT_EXCEEDED');
     }

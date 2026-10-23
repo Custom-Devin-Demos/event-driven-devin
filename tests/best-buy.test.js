@@ -117,6 +117,7 @@ describe('Best Buy — Black Friday checkout', () => {
     [{ customerId: 'guest', items: [] }, 'EMPTY_CART'],
     [{ customerId: 'guest', items: [{ sku: '123', quantity: 1 }] }, 'UNKNOWN_SKU'],
     [{ customerId: 'guest', items: [{ ...TV, quantity: 4 }] }, 'LIMIT_EXCEEDED'],
+    [{ customerId: 'guest', items: [{ ...TV, quantity: 3 }, { ...TV, quantity: 3 }] }, 'LIMIT_EXCEEDED'],
   ])('invalid checkout %# is a handled 400 with no alert', async (body, code) => {
     const res = await checkout(body);
 
