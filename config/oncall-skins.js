@@ -1461,7 +1461,12 @@ const ONCALL_SKINS = {
     brandMark: 'Y',
     vertical: 'banking',
     oncallOnly: true,
+    paths: ['/ybs'],
     page: { file: '86ba63ab.html', title: 'Move money | Yorkshire Building Society' },
+    alertCard: {
+      release: 'savings-online@2026.10.3',
+      team: 'savings-payments-oncall',
+    },
     theme: {
       '--accent': '#008839',
       '--ink': '#302B41',
