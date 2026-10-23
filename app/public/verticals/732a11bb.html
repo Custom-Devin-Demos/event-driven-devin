@@ -324,16 +324,18 @@ Use the Q4 volume promo where it applies.</textarea>
             out.push({ review: true, sku: '', name: line.replace(/\s*[-–]\s*\d[\d,]*\s*(cs|cases?|kegs?)\b.*$/i, ''), pack: '', qty: requested, keg: /keg/i.test(qty[2]), unitPrice: 0, promo: 0, total: 0, perPallet: Infinity });
             return;
           }
-          const q = item.sub ? Math.ceil(requested / 2) : requested;
+          const toCases = (n) => (item.sub ? Math.ceil(n / 2) : n);
           const existing = out.find((o) => o.sku === item.sku);
           if (existing) {
-            existing.qty += q;
+            existing.requested += requested;
+            existing.qty = toCases(existing.requested);
             existing.total = Math.round(existing.unitPrice * existing.qty * 100) / 100;
             return;
           }
           const promo = PROMO[item.sku] || 0;
           const unit = Math.round(item.unit * (1 - promo) * 100) / 100;
-          out.push({ ...item, qty: q, unitPrice: unit, promo, total: Math.round(unit * q * 100) / 100 });
+          const q = toCases(requested);
+          out.push({ ...item, requested, qty: q, unitPrice: unit, promo, total: Math.round(unit * q * 100) / 100 });
         });
         return out;
       }
@@ -406,7 +408,17 @@ Use the Q4 volume promo where it applies.</textarea>
         if (state.building) return;
         const request = $('prompt').value.trim();
         const parsed = parseRequest(request);
-        if (!parsed.some((l) => !l.review)) {
+        if (parsed.length && parsed.every((l) => l.review)) {
+          resetDraft();
+          state.lines = parsed;
+          state.shown = parsed.length;
+          renderLines();
+          setStatus('err', 'Needs review');
+          $('result').className = 'result-box show error';
+          $('result').textContent = `None of these lines are in your contract catalog. Edit ${parsed.length === 1 ? 'it' : 'them'} to a contract product and pack, then build the order again.`;
+          return;
+        }
+        if (!parsed.length) {
           resetDraft();
           $('result').className = 'result-box show error';
           $('result').textContent = 'No order lines found. Add a product and a quantity in cases or kegs on each line, for example "Bud Light 12oz cans 24pk - 640 cs".';
