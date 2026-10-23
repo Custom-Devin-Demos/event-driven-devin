@@ -1455,6 +1455,23 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A LLOYDS BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Lloyds Bank product.',
   },
+  '86ba63ab': {
+    slug: '86ba63ab',
+    company: 'Yorkshire Building Society',
+    brandMark: 'Y',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '86ba63ab.html', title: 'Move money | Yorkshire Building Society' },
+    theme: {
+      '--accent': '#008839',
+      '--ink': '#302B41',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#026C2E',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Yorkshire Building Society Support',
+    disclaimer: 'NOT ACTUALLY A YORKSHIRE BUILDING SOCIETY SITE — internal demo only, not affiliated with, endorsed by, or a real Yorkshire Building Society product.',
+  },
   'f2089246': {
     slug: 'f2089246',
     company: 'Function Health',
