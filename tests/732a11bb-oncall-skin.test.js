@@ -76,7 +76,7 @@ describe('732a11bb inference on-call skin', () => {
     const [, channel, text] = postMessage.mock.calls[0];
     expect(channel).toBe('C0TEST');
     expect(text).toContain('/oncall/c/732a11bb');
-    expect(text).toContain('*[Triggered] Order builder: p95 time to first drafted line trending up');
+    expect(text).toContain('*[Triggered] Order placement: p95 time to stock and pricing check trending up');
 
     expect(createDevinSession).toHaveBeenCalledTimes(1);
     const [, options] = createDevinSession.mock.calls[0];

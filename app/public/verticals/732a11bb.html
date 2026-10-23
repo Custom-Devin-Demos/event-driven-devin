@@ -223,7 +223,7 @@ Use the Q4 volume promo where it applies.</textarea>
           <button type="submit" id="submitBtn" class="btn btn-primary">Build order</button>
           <button type="button" id="clearBtn" class="btn btn-ghost">Clear</button>
         </div>
-        <p class="hint">Quantities are matched to case and keg packs. Lines that need a pack change are flagged for review before you place the order.</p>
+        <p class="hint">Quantities are matched to case and keg packs. Lines that need a pack change are flagged for review. Stock and contract pricing are checked when you place the order.</p>
       </form>
     </section>
 
@@ -375,6 +375,7 @@ Use the Q4 volume promo where it applies.</textarea>
         $('result').className = 'result-box'; $('result').textContent = '';
         $('draftSub').textContent = 'No draft yet. Build an order from your request to see the lines here.';
         $('placeBtn').disabled = true;
+        $('placeBtn').textContent = 'Place order';
         setStatus('', 'Ready');
         renderLines();
       }
@@ -393,68 +394,39 @@ Use the Q4 volume promo where it applies.</textarea>
       $('deliveryPoint').addEventListener('change', () => { if (!state.building && state.shown) resetDraft(); });
       $('model').addEventListener('change', () => { if (!state.building && state.shown) resetDraft(); });
 
-      $('placeBtn').addEventListener('click', () => {
+      function lockForm(locked) {
+        ['submitBtn', 'clearBtn', 'prompt', 'deliveryPoint', 'model'].forEach((id) => { $(id).disabled = locked; });
+      }
+
+      $('placeBtn').addEventListener('click', async () => {
         const visible = state.lines.slice(0, state.shown);
-        if (!visible.length || visible.some((l) => l.review)) return;
+        if (state.building || !visible.length || visible.some((l) => l.review)) return;
         const total = visible.reduce((s, l) => s + l.total, 0);
-        $('placeBtn').disabled = true;
-        $('result').className = 'result-box show';
-        $('result').innerHTML = `Order placed for <b>${esc($('deliveryPoint').selectedOptions[0].textContent)}</b>: ${visible.length} ${visible.length === 1 ? 'line' : 'lines'}, ${usd(total)}. Confirmation will be sent to orders@ once your distributor accepts it.`;
-        setStatus('done', 'Order placed');
-      });
-
-      $('completionForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (state.building) return;
-        const request = $('prompt').value.trim();
-        const parsed = parseRequest(request);
-        if (parsed.length && parsed.every((l) => l.review)) {
-          resetDraft();
-          state.lines = parsed;
-          state.shown = parsed.length;
-          renderLines();
-          $('draftSub').textContent = `Request for ${$('deliveryPoint').selectedOptions[0].textContent} · needs review`;
-          setStatus('err', 'Needs review');
-          $('result').className = 'result-box show error';
-          $('result').textContent = `None of these lines are in your contract catalog. Edit ${parsed.length === 1 ? 'it' : 'them'} to a contract product and pack, then build the order again.`;
-          return;
-        }
-        if (!parsed.length) {
-          resetDraft();
-          $('result').className = 'result-box show error';
-          $('result').textContent = 'No order lines found. Add a product and a quantity in cases or kegs on each line, for example "Bud Light 12oz cans 24pk - 640 cs".';
-          return;
-        }
-
-        resetDraft();
-        state.lines = parsed;
+        const dest = $('deliveryPoint').selectedOptions[0].textContent;
         state.building = true;
-        renderLines();
-        $('submitBtn').disabled = true;
-        $('clearBtn').disabled = true;
-        $('submitBtn').textContent = 'Building order…';
-        $('draftSub').textContent = `Request for ${$('deliveryPoint').selectedOptions[0].textContent}`;
+        lockForm(true);
+        $('placeBtn').disabled = true;
+        $('placeBtn').textContent = 'Placing order…';
+        $('result').className = 'result-box'; $('result').textContent = '';
 
         const started = Date.now();
         let firstAt = 0;
-        let tokens = 0;
-        const total = parseInt($('maxTokens').value, 10) || 64;
-        const perLine = Math.max(1, Math.floor(total / parsed.length));
         const tick = setInterval(() => {
           const s = fmtS(Date.now() - started);
           setStatus('run', firstAt
-            ? `Adding lines · ${state.shown} of ${parsed.length} · <b>${s}</b>`
-            : `Reading your request… <b>${s}</b>`);
+            ? `Confirming ${visible.length} ${visible.length === 1 ? 'line' : 'lines'} · <b>${s}</b>`
+            : `Placing order · checking stock and contract pricing… <b>${s}</b>`);
         }, 100);
-        setStatus('run', 'Reading your request…');
+        setStatus('run', 'Placing order · checking stock and contract pricing…');
 
+        const order = visible.map((l) => `${l.sku} ${l.name} ${l.pack} x ${l.qty}`).join('\n');
         try {
           const res = await fetch('/api/inference/completions', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               model: $('model').value,
               deployment: $('deployment').value,
-              prompt: request,
+              prompt: `Place order for ${$('deliveryPoint').value}:\n${order}`,
               maxTokens: parseInt($('maxTokens').value, 10) || 64,
               stream: true,
               devinUserId: localStorage.getItem('devinUserId') || '',
@@ -481,46 +453,64 @@ Use the Q4 volume promo where it applies.</textarea>
               try { chunk = JSON.parse(line); } catch (_e) { continue; }
               if (chunk.error) { failed = true; continue; }
               if (chunk.ttftMs && !firstAt) firstAt = chunk.ttftMs;
-              const delta = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
-              if (delta && delta.content) {
-                tokens += 1;
-                const target = Math.min(parsed.length, Math.floor(tokens / perLine));
-                if (target > state.shown) { state.shown = target; renderLines(); }
-              }
               if (chunk.usage) final = chunk;
             }
           }
           clearInterval(tick);
           if (failed || !final) throw new Error('incomplete');
-          state.shown = parsed.length;
-          state.building = false;
-          renderLines();
           const totalMs = Date.now() - started;
           const firstMs = final.ttftMs || firstAt;
           const slow = firstMs > TARGET_MS;
-          setStatus('done', `Draft ready · ${parsed.length} ${parsed.length === 1 ? 'line' : 'lines'} · <b>${fmtS(totalMs)}</b>`);
+          const ref = 'BL-2310-' + String(1000 + (started % 9000)).slice(0, 4);
+          setStatus('done', `Order placed · ${ref} · <b>${fmtS(totalMs)}</b>`);
           $('result').className = 'result-box show' + (slow ? ' slow' : '');
-          $('result').innerHTML = slow
-            ? `Draft ready, but building it took longer than usual: first line after <b>${fmtS(firstMs)}</b>, complete in <b>${fmtS(totalMs)}</b>. Review the lines, then place the order.`
-            : `Draft ready in <b>${fmtS(totalMs)}</b>. Review the lines, then place the order.`;
-          const reviewCount = parsed.filter((l) => l.review).length;
-          if (reviewCount) {
-            $('result').innerHTML += ` <b>${reviewCount} ${reviewCount === 1 ? 'line is' : 'lines are'} not in your contract catalog.</b> Edit or remove ${reviewCount === 1 ? 'it' : 'them'} before placing the order.`;
-          }
-          $('placeBtn').disabled = reviewCount > 0;
+          $('result').innerHTML = `Order <b>${ref}</b> placed for <b>${esc(dest)}</b>: ${visible.length} ${visible.length === 1 ? 'line' : 'lines'}, ${usd(total)}.`
+            + (slow ? ` Placing it took longer than usual: stock check after <b>${fmtS(firstMs)}</b>, confirmed in <b>${fmtS(totalMs)}</b>.` : ` Confirmed in <b>${fmtS(totalMs)}</b>.`)
+            + ' Confirmation will be sent to orders@ once your distributor accepts it.';
+          $('placeBtn').textContent = 'Order placed';
         } catch (err) {
           clearInterval(tick);
-          state.shown = 0;
-          state.building = false;
-          renderLines();
-          setStatus('err', 'Not built');
+          setStatus('err', 'Not placed');
           $('result').className = 'result-box show error';
-          $('result').textContent = `We couldn't build this order right now${err.status ? ' (HTTP ' + err.status + ')' : ''}. Your request is still here; try again, or contact BEES Care to place it with your sales rep.`;
+          $('result').textContent = `We couldn't place this order right now${err.status ? ' (HTTP ' + err.status + ')' : ''}. Your draft is still here; try again, or contact BEES Care to place it with your sales rep.`;
+          $('placeBtn').textContent = 'Place order';
+          $('placeBtn').disabled = false;
         } finally {
-          $('submitBtn').disabled = false;
-          $('clearBtn').disabled = false;
-          $('submitBtn').textContent = 'Build order';
+          state.building = false;
+          lockForm(false);
         }
+      });
+
+      $('completionForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (state.building) return;
+        const request = $('prompt').value.trim();
+        const parsed = parseRequest(request);
+        resetDraft();
+        if (!parsed.length) {
+          $('result').className = 'result-box show error';
+          $('result').textContent = 'No order lines found. Add a product and a quantity in cases or kegs on each line, for example "Bud Light 12oz cans 24pk - 640 cs".';
+          return;
+        }
+        state.lines = parsed;
+        state.shown = parsed.length;
+        renderLines();
+        const reviewCount = parsed.filter((l) => l.review).length;
+        const dest = $('deliveryPoint').selectedOptions[0].textContent;
+        if (reviewCount === parsed.length) {
+          $('draftSub').textContent = `Request for ${dest} · needs review`;
+          setStatus('err', 'Needs review');
+          $('result').className = 'result-box show error';
+          $('result').textContent = `None of these lines are in your contract catalog. Edit ${parsed.length === 1 ? 'it' : 'them'} to a contract product and pack, then build the order again.`;
+          return;
+        }
+        $('draftSub').textContent = `Request for ${dest}`;
+        setStatus('done', `Draft ready · ${parsed.length} ${parsed.length === 1 ? 'line' : 'lines'}`);
+        $('result').className = 'result-box show';
+        $('result').innerHTML = reviewCount
+          ? `<b>${reviewCount} ${reviewCount === 1 ? 'line is' : 'lines are'} not in your contract catalog.</b> Edit or remove ${reviewCount === 1 ? 'it' : 'them'} before placing the order.`
+          : 'Review the lines, then place the order.';
+        $('placeBtn').disabled = reviewCount > 0;
       });
 
       renderLines();
