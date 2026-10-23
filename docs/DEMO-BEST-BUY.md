@@ -29,8 +29,10 @@ plausible migration seam. It is not a claim about how Best Buy stores membership
 
 ## The scenario
 
-Jordan Reyes (`BBY-30418`) has been a paid member since March 2022, before the rename.
-Their account still carries membership program `totaltech`. They add the TV to the cart
+Mark Porter (`BBY-30418`) has been a paid member since March 2022, before the rename.
+Their account still carries membership program `totaltech`. Their cart already holds
+AirPods Pro 3 ($199.99) and a Nintendo Switch 2 + Mario Kart World bundle ($499.99), so
+the header shows 2 items / $699.98 on the product page. They add the TV to the cart
 and click **Checkout** (paying with a My Best Buy Visa, which should earn 6% back):
 
 `checkout()` → `priceOrder()` → `applyMemberRewards()` → `memberRewardRate()` looks up
@@ -42,19 +44,19 @@ The "Demo shopper" picker (top right, under the header) shows the bug is targete
 
 | Shopper | Result |
 |---|---|
-| Jordan Reyes, BBY-30418, Total member since 2022 (legacy `totaltech` code, pre-selected) | **Fails**: red "Sorry, something went wrong." banner with a reference ID; alert fires |
-| Alex Chen, BBY-58120, Total member since 2024, My Best Buy Visa | Order placed, $66.00 rewards (6%) |
-| Sam Patel, BBY-77302, Plus member, other Visa | Order placed, $11.00 rewards (1%) |
+| Mark Porter, BBY-30418, Total member since 2022 (legacy `totaltech` code, pre-selected) | **Fails**: red "Sorry, something went wrong." banner with a reference ID; alert fires |
+| Alex Chen, BBY-58120, Total member since 2024, My Best Buy Visa | Order placed, $108.00 rewards on the full 3-item cart (6%) |
+| Sam Patel, BBY-77302, Plus member, other Visa | Order placed, $18.00 rewards on the full cart (1%) |
 | Guest checkout | Order placed, no rewards |
 
 ## Run it
 
 1. Open `https://devindemos.com/best-buy` (locally: `node app/server.js`,
    `http://localhost:3000/best-buy`).
-2. Jordan is pre-selected ("Hi, Jordan · Total Member" in the header). Click **Add to cart**,
+2. Mark is pre-selected ("Hi, Mark · Total Member" in the header; cart shows 2 items, $699.98). Click **Add to cart**,
    then **Go to Cart**.
 3. Optional: switch "Demo shopper" to Alex Chen and click **Checkout** (it succeeds), then
-   go back, add the TV again and switch back to Jordan.
+   go back, add the TV again and switch back to Mark. Open a new tab to reset the cart to its starting 2 items.
 4. Click **Checkout**. The red banner shows "Sorry, something went wrong.", a reference ID
    and the TypeError.
 5. Behind it: Sentry captures the exception (tags `route`, `membershipProgram`, `paymentType`),
@@ -64,13 +66,13 @@ The "Demo shopper" picker (top right, under the header) shows the bug is targete
 7. In the Devin session, Devin reproduces first at `/best-buy?repro=1`, which fails
    identically but raises no Sentry, Slack or Devin event.
 8. Devin maps the legacy `totaltech` code to My Best Buy Total, makes unknown programs check
-   out without rewards instead of crashing, records Jordan's order going through with $66.00
+   out without rewards instead of crashing, records Mark's 3-item order going through with $108.00
    in rewards, and opens a PR with both recordings.
 
 ## Safety notes
 
 - `?repro=1` is ignored when `NODE_ENV=production`, so on devindemos.com every click on
-  Jordan's **Checkout** raises a real alert and starts a Devin session. Test locally with
+  Mark's **Checkout** raises a real alert and starts a Devin session. Test locally with
   alerts off (blank `SENTRY_DSN`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `DEVIN_API_KEY`).
 - The bug is intentional. Keep it on `main` and close remediation PRs after the demo.
   To re-break after a merged fix, restore `memberRewardRate` to read

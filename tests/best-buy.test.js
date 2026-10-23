@@ -127,10 +127,38 @@ describe('Best Buy — Black Friday checkout', () => {
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
-  test('storefront endpoint returns the doorbuster and the shoppers with Jordan pre-selected', async () => {
+  test('Mark checking out his saved cart plus the TV hits the same TypeError', async () => {
+    const res = await checkout({
+      customerId: 'BBY-30418',
+      items: [{ sku: '6376563', quantity: 1 }, { sku: '6689812', quantity: 1 }, TV],
+    });
+
+    expect(res.status).toBe(500);
+    expect(res.body.error).toMatch(/reading 'creditCard'/);
+  });
+
+  test('a full Black Friday cart prices every line for a healthy member', async () => {
+    const res = await checkout({
+      customerId: 'BBY-58120',
+      items: [{ sku: '6376563', quantity: 1 }, { sku: '6689812', quantity: 1 }, TV],
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.items).toHaveLength(3);
+    expect(res.body.subtotal).toBe(1799.97);
+    expect(res.body.savings).toBe(1000);
+    expect(res.body.tax).toBe(141.75);
+    expect(res.body.total).toBe(1941.72);
+    expect(res.body.rewards.amount).toBe(108);
+  });
+
+  test('storefront endpoint returns the doorbuster, the saved cart and Mark pre-selected', async () => {
     const res = await fetch(`${baseUrl}/api/best-buy/storefront`).then((r) => r.json());
 
     expect(res.defaultCustomerId).toBe('BBY-30418');
+    expect(res.customers[0]).toMatchObject({ firstName: 'Mark', lastName: 'Porter' });
+    expect(res.savedCart).toEqual([{ sku: '6376563', quantity: 1 }, { sku: '6689812', quantity: 1 }]);
+    res.savedCart.forEach((line) => expect(res.catalog[line.sku]).toBeDefined());
     expect(res.product).toMatchObject({ sku: '6671348', price: 1099.99, compValue: 1999.99 });
     expect(res.customers.map((c) => c.customerId)).toEqual(['BBY-30418', 'BBY-58120', 'BBY-77302', 'guest']);
     expect(res.customers[0].membership).toEqual({ displayName: 'My Best Buy Total', memberSince: '2022-03-14' });

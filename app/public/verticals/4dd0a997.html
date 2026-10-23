@@ -43,6 +43,8 @@
     .cart-link { position: relative; padding-left: 20px; border-left: 1px solid rgba(255,255,255,.35); color: #fff; display: flex; align-items: center; gap: 6px; font-weight: 700; }
     .cart-count { position: absolute; top: -8px; left: 34px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--bby-yellow); color: var(--bby-ink); font-size: 12px; font-weight: 700; display: none; align-items: center; justify-content: center; padding: 0 5px; }
     .cart-count.is-visible { display: flex; }
+    .cart-text { display: flex; flex-direction: column; line-height: 18px; }
+    .cart-total { font-size: 12px; font-weight: 400; }
     .hdr__nav { display: flex; align-items: center; gap: 8px; padding: 12px 40px; }
     .navpill { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border: 1px solid rgba(255,255,255,.5); border-radius: 9999px; color: #fff; font-weight: 700; font-size: 14px; background: transparent; white-space: nowrap; }
     .navpill::after { content: ""; border: 5px solid transparent; border-top-color: #fff; margin-top: 5px; }
@@ -106,6 +108,7 @@
     .empty { text-align: center; padding: 36px 24px; }
     .empty h2 { font-size: 36px; line-height: 44px; margin: 0 0 8px; }
     .line { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; gap: 20px; align-items: start; }
+    .line + .line { border-top: 1px solid #e0e3e8; margin-top: 20px; padding-top: 20px; }
     .line img { width: 120px; height: 90px; object-fit: contain; }
     .line__name { font-weight: 700; font-size: 16px; line-height: 22px; color: var(--bby-ink); }
     .line__meta { font-size: 12px; color: var(--bby-muted); margin: 4px 0 8px; }
@@ -195,12 +198,12 @@
         </span>
         <span class="util util--account">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3.5"/><path d="M5.5 19c1.5-3 4-4 6.5-4s5 1 6.5 4"/></svg>
-          <span class="util__text">Hi, <span id="acct-name">Jordan</span><b id="acct-tier">Total Member</b></span>
+          <span class="util__text">Hi, <span id="acct-name">Mark</span><b id="acct-tier">Total Member</b></span>
         </span>
         <a class="cart-link" href="#cart" aria-label="Cart">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><path d="M2 3h3l2.4 12.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>
           <span class="cart-count" id="cart-count">0</span>
-          Cart
+          <span class="cart-text">Cart<span class="cart-total" id="cart-total"></span></span>
         </a>
       </div>
     </div>
@@ -276,7 +279,7 @@
     </div>
     <div id="cart-full" class="cart" style="display:none">
       <section class="card">
-        <div class="line" id="cart-line"></div>
+        <div id="cart-lines"></div>
       </section>
       <aside class="card summary">
         <h2>Order Summary</h2>
@@ -343,22 +346,35 @@
       })
       .catch(function () {});
 
-    var state = { product: null, customers: [], customerId: null, cart: loadCart() };
+    var state = { product: null, catalog: {}, customers: [], customerId: null, cart: loadCart() };
 
     function $(id) { return document.getElementById(id); }
     function money(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function round(n) { return Math.round(n * 100) / 100; }
     function customer() { return state.customers.find(function (c) { return c.customerId === state.customerId; }); }
-    function loadCart() { try { return JSON.parse(sessionStorage.getItem(CART_KEY)) || []; } catch (e) { return []; } }
+    function loadCart() { try { return JSON.parse(sessionStorage.getItem(CART_KEY)); } catch (e) { return null; } }
     function saveCart() { sessionStorage.setItem(CART_KEY, JSON.stringify(state.cart)); renderCartCount(); }
-    function units() { return state.cart.reduce(function (n, i) { return n + i.quantity; }, 0); }
+    function units() { return (state.cart || []).reduce(function (n, i) { return n + i.quantity; }, 0); }
+    function cartLines() {
+      return (state.cart || []).filter(function (i) { return state.catalog[i.sku]; }).map(function (i) {
+        return { item: i, product: state.catalog[i.sku] };
+      });
+    }
+    function cartTotals() {
+      return cartLines().reduce(function (t, l) {
+        t.subtotal = round(t.subtotal + l.product.price * l.item.quantity);
+        t.original = round(t.original + l.product.compValue * l.item.quantity);
+        return t;
+      }, { subtotal: 0, original: 0 });
+    }
     function isCardMember(c) { return c.payment.type === 'my-best-buy-card'; }
 
     function renderCartCount() {
       var n = units();
       $('cart-count').textContent = n;
       $('cart-count').classList.toggle('is-visible', n > 0);
+      $('cart-total').textContent = n > 0 ? money(cartTotals().subtotal) : '';
     }
 
     function renderAccount() {
@@ -389,34 +405,48 @@
     }
 
     function renderCart() {
-      var p = state.product;
       var c = customer();
-      var item = state.cart[0];
-      $('cart-empty').style.display = item ? 'none' : 'block';
-      $('cart-full').style.display = item ? 'grid' : 'none';
-      if (!item || !p || !c) return;
-      var subtotal = round(p.price * item.quantity);
-      var tax = round(subtotal * TAX_RATE);
-      var qtyOpts = [1, 2, 3].map(function (q) { return '<option value="' + q + '"' + (q === item.quantity ? ' selected' : '') + '>' + q + '</option>'; }).join('');
-      $('cart-line').innerHTML =
-        '<img src="/verticals/assets/4dd0a997/tv-front.jpg" alt="">' +
-        '<div><div class="line__name">' + esc(p.name) + '</div>' +
-        '<div class="line__meta">Model: ' + esc(p.model) + ' &nbsp; SKU: ' + esc(p.sku) + '</div>' +
-        '<div class="line__ful"><b>FREE pickup today</b> at Richfield, MN</div>' +
-        '<div class="line__actions"><button type="button" id="remove-item">Remove</button><button type="button">Save for later</button></div></div>' +
-        '<div class="line__right"><div class="line__price">' + money(subtotal) + '</div><div class="line__was">' + money(p.compValue * item.quantity) + '</div>' +
-        '<select class="qty" id="qty" aria-label="Quantity">' + qtyOpts + '</select></div>';
-      $('sum-original').textContent = money(p.compValue * item.quantity);
-      $('sum-savings').textContent = '-' + money((p.compValue - p.price) * item.quantity);
+      var lines = cartLines();
+      $('cart-empty').style.display = lines.length ? 'none' : 'block';
+      $('cart-full').style.display = lines.length ? 'grid' : 'none';
+      if (!lines.length || !c) return;
+      var totals = cartTotals();
+      var tax = round(totals.subtotal * TAX_RATE);
+      $('cart-lines').innerHTML = lines.map(function (l) {
+        var p = l.product;
+        var qtyOpts = [1, 2, 3].map(function (q) { return '<option value="' + q + '"' + (q === l.item.quantity ? ' selected' : '') + '>' + q + '</option>'; }).join('');
+        return '<div class="line">' +
+          '<img src="' + esc(p.image) + '" alt="">' +
+          '<div><div class="line__name">' + esc(p.name) + '</div>' +
+          '<div class="line__meta">' + (p.model ? 'Model: ' + esc(p.model) + ' &nbsp; ' : '') + 'SKU: ' + esc(p.sku) + '</div>' +
+          '<div class="line__ful"><b>FREE pickup today</b> at Richfield, MN</div>' +
+          '<div class="line__actions"><button type="button" class="remove-item" data-sku="' + esc(p.sku) + '">Remove</button><button type="button">Save for later</button></div></div>' +
+          '<div class="line__right"><div class="line__price">' + money(p.price * l.item.quantity) + '</div><div class="line__was">' + money(p.compValue * l.item.quantity) + '</div>' +
+          '<select class="qty" data-sku="' + esc(p.sku) + '" aria-label="Quantity">' + qtyOpts + '</select></div>' +
+          '</div>';
+      }).join('');
+      $('sum-original').textContent = money(totals.original);
+      $('sum-savings').textContent = '-' + money(totals.original - totals.subtotal);
       $('sum-tax').textContent = money(tax);
-      $('sum-total').textContent = money(subtotal + tax);
+      $('sum-total').textContent = money(totals.subtotal + tax);
       $('sum-rewards').innerHTML = c.membership
         ? '<b>' + esc(c.membership.displayName) + '</b> rewards are added at checkout.'
         : 'Sign in as a My Best Buy Plus or Total member to earn rewards on this order.';
       $('pay-with').textContent = 'Pay with ' + c.payment.label + ' ending in ' + c.payment.last4;
-      $('qty').addEventListener('change', function (e) { item.quantity = Number(e.target.value); saveCart(); hideError(); renderCart(); });
-      $('remove-item').addEventListener('click', function () { state.cart = []; saveCart(); hideError(); renderCart(); });
     }
+
+    $('cart-lines').addEventListener('change', function (e) {
+      var sku = e.target.dataset.sku;
+      if (!e.target.classList.contains('qty')) return;
+      state.cart.forEach(function (i) { if (i.sku === sku) i.quantity = Number(e.target.value); });
+      saveCart(); hideError(); renderCart();
+    });
+    $('cart-lines').addEventListener('click', function (e) {
+      var btn = e.target.closest('.remove-item');
+      if (!btn) return;
+      state.cart = state.cart.filter(function (i) { return i.sku !== btn.dataset.sku; });
+      saveCart(); hideError(); renderCart();
+    });
 
     function hideError() { $('checkout-error').classList.remove('is-visible'); }
 
@@ -465,12 +495,12 @@
 
     $('add-to-cart').addEventListener('click', function () {
       var p = state.product;
-      var existing = state.cart[0];
+      var existing = state.cart.find(function (i) { return i.sku === p.sku; });
       if (existing) existing.quantity = Math.min(p.limitPerOrder, existing.quantity + 1);
-      else state.cart = [{ sku: p.sku, quantity: 1 }];
+      else { existing = { sku: p.sku, quantity: 1 }; state.cart.push(existing); }
       saveCart();
       $('added-name').textContent = p.name;
-      $('added-meta').textContent = money(p.price) + ' · Qty ' + state.cart[0].quantity + ' · FREE pickup today';
+      $('added-meta').textContent = money(p.price) + ' · Qty ' + existing.quantity + ' · FREE pickup today';
       $('added').classList.add('is-open');
     });
     $('added-close').addEventListener('click', function () { $('added').classList.remove('is-open'); });
@@ -521,7 +551,8 @@
       $('confirm-title').textContent = 'Thanks for your order' + (r.customer.customerId === 'guest' ? '!' : ', ' + r.customer.firstName + '!');
       $('confirm-sub').textContent = 'We\'ll email you when it\'s ready for pickup at ' + r.fulfillment.store + '. Paid with ' + r.payment.label + ' ending in ' + r.payment.last4 + '.';
       $('confirm-number').textContent = r.orderNumber;
-      $('confirm-item').textContent = r.items[0].quantity + ' × ' + state.product.shortName;
+      var count = r.items.reduce(function (n, i) { return n + i.quantity; }, 0);
+      $('confirm-item').textContent = count === 1 ? '1 item' : count + ' items';
       $('confirm-subtotal').textContent = money(r.subtotal);
       $('confirm-tax').textContent = money(r.tax);
       $('confirm-total').textContent = money(r.total);
@@ -534,12 +565,13 @@
     }
 
     if (REPRO_MODE) $('repro-banner').style.display = 'block';
-    renderCartCount();
-
     fetch('/api/best-buy/storefront')
       .then(function (r) { return r.json(); })
       .then(function (data) {
         state.product = data.product;
+        state.catalog = data.catalog;
+        if (!state.cart) { state.cart = data.savedCart.map(function (i) { return { sku: i.sku, quantity: i.quantity }; }); saveCart(); }
+        renderCartCount();
         state.customers = data.customers;
         state.customerId = data.defaultCustomerId;
         $('customer-select').innerHTML = data.customers.map(function (c) {
