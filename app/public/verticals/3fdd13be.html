@@ -178,9 +178,9 @@
       </div>
 
       <div class="summary">
-        <div class="stat"><span>Active licenses</span><strong>1,284</strong></div>
+        <div class="stat"><span>Active licenses</span><strong id="statActive">1,284</strong></div>
         <div class="stat"><span>Assigned devices</span><strong>1,197</strong></div>
-        <div class="stat"><span>Unassigned</span><strong>87</strong></div>
+        <div class="stat"><span>Unassigned</span><strong id="statUnassigned">87</strong></div>
         <div class="stat"><span>Next renewal</span><strong>Mar 31, 2027</strong></div>
       </div>
 
@@ -205,8 +205,8 @@
                 <span class="hint" id="seats-hint">1–250 devices per order</span>
               </div>
               <div class="field">
-                <label for="planTier">Term</label>
-                <select id="planTier"><option value="enterprise">36 months</option><option value="business">60 months</option></select>
+                <label for="term">Term</label>
+                <select id="term"><option value="36">36 months</option><option value="60">60 months</option></select>
               </div>
             </div>
             <div class="field">
@@ -227,10 +227,10 @@
         <table>
           <thead><tr><th scope="col">License ▲</th><th scope="col">Assigned / Total</th><th scope="col" class="hide-sm">Term</th><th scope="col" class="hide-sm">Expires</th><th scope="col">Status</th><th scope="col"><span class="hide-sm" style="position:absolute;left:-9999px">Actions</span></th></tr></thead>
           <tbody>
-            <tr><td>Vehicle Gateway — Enterprise<span class="sku">LIC-VG-ENTERPRISE</span></td><td>612 / 640<div class="bar"><i style="width:96%"></i></div></td><td class="hide-sm">36 months</td><td class="hide-sm">Mar 31, 2027</td><td><span class="pill">Active</span></td><td><span class="more">···</span></td></tr>
-            <tr><td>AI Dash Cam — Premier<span class="sku">LIC-CM-PREMIER</span></td><td>418 / 440<div class="bar"><i style="width:95%"></i></div></td><td class="hide-sm">36 months</td><td class="hide-sm">Mar 31, 2027</td><td><span class="pill">Active</span></td><td><span class="more">···</span></td></tr>
-            <tr><td>Asset Gateway — Essential<span class="sku">LIC-AG-ESSENTIAL</span></td><td>151 / 180<div class="bar"><i style="width:84%"></i></div></td><td class="hide-sm">60 months</td><td class="hide-sm">Sep 30, 2029</td><td><span class="pill">Active</span></td><td><span class="more">···</span></td></tr>
-            <tr><td>Site Visibility — Enterprise<span class="sku">LIC-SV-ENTERPRISE</span></td><td>16 / 24<div class="bar"><i style="width:67%"></i></div></td><td class="hide-sm">36 months</td><td class="hide-sm">Dec 15, 2026</td><td><span class="pill warn">Renewal due</span></td><td><span class="more">···</span></td></tr>
+            <tr data-license="vg_enterprise"><td>Vehicle Gateway — Enterprise<span class="sku">LIC-VG-ENTERPRISE</span></td><td>612 / 640<div class="bar"><i style="width:96%"></i></div></td><td class="hide-sm">36 months</td><td class="hide-sm">Mar 31, 2027</td><td><span class="pill">Active</span></td><td><span class="more">···</span></td></tr>
+            <tr data-license="cm_premier"><td>AI Dash Cam — Premier<span class="sku">LIC-CM-PREMIER</span></td><td>418 / 440<div class="bar"><i style="width:95%"></i></div></td><td class="hide-sm">36 months</td><td class="hide-sm">Mar 31, 2027</td><td><span class="pill">Active</span></td><td><span class="more">···</span></td></tr>
+            <tr data-license="ag_essential"><td>Asset Gateway — Essential<span class="sku">LIC-AG-ESSENTIAL</span></td><td>151 / 180<div class="bar"><i style="width:84%"></i></div></td><td class="hide-sm">60 months</td><td class="hide-sm">Sep 30, 2029</td><td><span class="pill">Active</span></td><td><span class="more">···</span></td></tr>
+            <tr data-license="site_visibility"><td>Site Visibility — Enterprise<span class="sku">LIC-SV-ENTERPRISE</span></td><td>16 / 24<div class="bar"><i style="width:67%"></i></div></td><td class="hide-sm">36 months</td><td class="hide-sm">Dec 15, 2026</td><td><span class="pill warn">Renewal due</span></td><td><span class="more">···</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -259,6 +259,18 @@
       document.getElementById('closePanel').addEventListener('click', () => setOpen(false));
     })();
 
+    function addToInventory(licenseKey, seats) {
+      const bump = (el, by) => { el.textContent = (Number(el.textContent.replace(/,/g, '')) + by).toLocaleString('en-US'); };
+      bump(document.getElementById('statActive'), seats);
+      bump(document.getElementById('statUnassigned'), seats);
+      const cell = document.querySelector(`tr[data-license="${licenseKey}"] td:nth-child(2)`);
+      if (!cell) return;
+      const [assigned, total] = cell.firstChild.textContent.split('/').map((n) => Number(n.trim()));
+      const newTotal = total + seats;
+      cell.firstChild.textContent = `${assigned} / ${newTotal}`;
+      cell.querySelector('.bar i').style.width = `${Math.round((assigned / newTotal) * 100)}%`;
+    }
+
     document.getElementById('provisionForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
@@ -284,7 +296,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             orgName: license.value,
-            planName: document.getElementById('planTier').value,
+            planName: 'enterprise',
             seats,
             billingCycle: 'annual',
             devinUserId: localStorage.getItem('devinUserId') || '',
@@ -294,6 +306,7 @@
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'The request could not be completed. Please try again.');
+        addToInventory(license.value, seats);
         result.className = 'result-box success';
         result.textContent = `${seats} ${licenseName} ${seats === 1 ? 'license' : 'licenses'} activated. They are ready to assign on the Devices page.`;
       } catch (error) {

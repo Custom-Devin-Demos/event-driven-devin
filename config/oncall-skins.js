@@ -6116,7 +6116,7 @@ const ONCALL_SKINS = {
     page: { file: '3fdd13be.html', title: 'Licenses | Settings | Samsara' },
     alertCard: {
       title: 'p95 latency trending up \u2014 license activation (Settings \u203a Licenses)',
-      service: 'license-activation-api',
+      service: 'licensing-api',
       team: 'org-licensing-oncall',
       symptom: 'Activating Vehicle Gateway and AI Dash Cam licenses got slower after the last release and creeps higher with every request. Process RSS trends up alongside it.',
       impact: 'Fleet admins wait longer and longer to activate licenses for newly installed gateways and dash cams; new devices sit unlicensed until activation completes.',
