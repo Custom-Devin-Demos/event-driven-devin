@@ -6107,6 +6107,30 @@ const ONCALL_SKINS = {
     supportCenter: 'Children\u2019s Minnesota Financial Customer Service',
     disclaimer: 'NOT ACTUALLY A CHILDREN\u2019S MINNESOTA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Children\u2019s Minnesota product.',
   },
+  '3fdd13be': {
+    slug: '3fdd13be',
+    company: 'Samsara',
+    brandMark: 'S',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: { file: '3fdd13be.html', title: 'Licenses | Settings | Samsara' },
+    alertCard: {
+      title: 'p95 latency trending up \u2014 license activation (Settings \u203a Licenses)',
+      service: 'license-activation-api',
+      team: 'org-licensing-oncall',
+      symptom: 'Activating Vehicle Gateway and AI Dash Cam licenses got slower after the last release and creeps higher with every request. Process RSS trends up alongside it.',
+      impact: 'Fleet admins wait longer and longer to activate licenses for newly installed gateways and dash cams; new devices sit unlicensed until activation completes.',
+    },
+    theme: {
+      '--accent': '#1a6fdb',
+      '--ink': '#1d2733',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#0f263e',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Samsara Support',
+    disclaimer: 'NOT ACTUALLY A SAMSARA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Samsara product.',
+  },
 };
 
 function getOncallSkin(slug) {
