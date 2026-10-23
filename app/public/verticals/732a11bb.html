@@ -199,7 +199,7 @@ Kona Big Wave 12oz cans 12pk - 150 cs
 Cutwater Lime Margarita 12oz 4pk (6x4) - 120 cs
 Bud Light 1/2 bbl - 48 kegs
 
-Same split across Joliet / Aurora as last week. Use the Q4 volume promo where it applies.</textarea>
+Use the Q4 volume promo where it applies.</textarea>
         </div>
         <div class="row2">
           <div class="field">
@@ -207,7 +207,6 @@ Same split across Joliet / Aurora as last week. Use the Q4 volume promo where it
             <select id="deliveryPoint">
               <option value="DC-JOL" selected>DC Joliet, IL · dock 4</option>
               <option value="DC-AUR">DC Aurora, IL · dock 2</option>
-              <option value="SPLIT">Split Joliet / Aurora (last week)</option>
             </select>
           </div>
           <div class="field">
@@ -301,13 +300,13 @@ Same split across Joliet / Aurora as last week. Use the Q4 volume promo where it
       const TARGET_MS = 1500;
 
       const CATALOG = [
-        { match: /michelob ultra.*can/i, sku: '10158', name: 'Michelob ULTRA', pack: '12 oz can · 24/case', unit: 31.85, perPallet: 70 },
-        { match: /bud light.*can/i, sku: '10031', name: 'Bud Light', pack: '12 oz can · 24/case', unit: 27.40, perPallet: 70 },
-        { match: /budweiser.*bottle/i, sku: '10004', name: 'Budweiser', pack: '12 oz long neck · 24/case', unit: 28.15, perPallet: 60 },
-        { match: /busch light/i, sku: '10611', name: 'Busch Light', pack: '12 oz can · 30/case', unit: 24.95, perPallet: 63 },
+        { match: /michelob ultra.*can/i, oz: 12, sku: '10158', name: 'Michelob ULTRA', pack: '12 oz can · 24/case', unit: 31.85, perPallet: 70 },
+        { match: /bud light.*can/i, oz: 12, sku: '10031', name: 'Bud Light', pack: '12 oz can · 24/case', unit: 27.40, perPallet: 70 },
+        { match: /budweiser.*bottle/i, oz: 12, sku: '10004', name: 'Budweiser', pack: '12 oz long neck · 24/case', unit: 28.15, perPallet: 60 },
+        { match: /busch light/i, oz: 12, sku: '10611', name: 'Busch Light', pack: '12 oz can · 30/case', unit: 24.95, perPallet: 63 },
         { match: /stella/i, sku: '41120', name: 'Stella Artois', pack: '1/2 bbl keg', unit: 214.00, perPallet: 8, keg: true },
-        { match: /kona/i, sku: '52207', name: 'Kona Big Wave Golden Ale', pack: '12 oz can · 2×12/case', unit: 36.60, perPallet: 70, sub: '12pk → 24/case' },
-        { match: /cutwater/i, sku: '73318', name: 'Cutwater Lime Margarita', pack: '12 oz can · 6×4/case', unit: 54.20, perPallet: 50 },
+        { match: /kona/i, oz: 12, sku: '52207', name: 'Kona Big Wave Golden Ale', pack: '12 oz can · 2×12/case', unit: 36.60, perPallet: 70, sub: '12pk → 24/case' },
+        { match: /cutwater/i, oz: 12, sku: '73318', name: 'Cutwater Lime Margarita', pack: '12 oz can · 6×4/case', unit: 54.20, perPallet: 50 },
         { match: /bud light.*bbl/i, sku: '41031', name: 'Bud Light', pack: '1/2 bbl keg', unit: 168.00, perPallet: 8, keg: true },
       ];
       const PROMO = { '10158': 0.06, '10031': 0.06 };
@@ -318,10 +317,20 @@ Same split across Joliet / Aurora as last week. Use the Q4 volume promo where it
           const line = raw.trim();
           const qty = line.match(/(\d[\d,]*)\s*(cs|cases?|kegs?)\b/i);
           if (!qty) return;
-          const item = CATALOG.find((c) => c.match.test(line));
-          if (!item || out.some((o) => o.sku === item.sku)) return;
-          let q = parseInt(qty[1].replace(/,/g, ''), 10);
-          if (item.sub) q = Math.ceil(q / 2);
+          const requested = parseInt(qty[1].replace(/,/g, ''), 10);
+          const size = line.match(/(\d+(?:\.\d+)?)\s*oz\b/i);
+          const item = CATALOG.find((c) => c.match.test(line) && (!size || !c.oz || parseFloat(size[1]) === c.oz));
+          if (!item) {
+            out.push({ review: true, sku: '', name: line.replace(/\s*[-–]\s*\d[\d,]*\s*(cs|cases?|kegs?)\b.*$/i, ''), pack: '', qty: requested, keg: /keg/i.test(qty[2]), unitPrice: 0, promo: 0, total: 0, perPallet: Infinity });
+            return;
+          }
+          const q = item.sub ? Math.ceil(requested / 2) : requested;
+          const existing = out.find((o) => o.sku === item.sku);
+          if (existing) {
+            existing.qty += q;
+            existing.total = Math.round(existing.unitPrice * existing.qty * 100) / 100;
+            return;
+          }
           const promo = PROMO[item.sku] || 0;
           const unit = Math.round(item.unit * (1 - promo) * 100) / 100;
           out.push({ ...item, qty: q, unitPrice: unit, promo, total: Math.round(unit * q * 100) / 100 });
@@ -338,14 +347,15 @@ Same split across Joliet / Aurora as last week. Use the Q4 volume promo where it
           tbody.innerHTML = `<tr class="empty"><td colspan="5">${state.building ? 'Matching lines to your contract catalog…' : 'No lines yet'}</td></tr>`;
         } else {
           tbody.innerHTML = visible.map((l, i) => `<tr class="${i === visible.length - 1 ? 'new' : ''}">
-            <td>${esc(l.name)}<span class="sku">SKU ${esc(l.sku)}</span>${l.promo ? '<span class="tag promo">Q4 volume promo −' + Math.round(l.promo * 100) + '%</span>' : ''}${l.sub ? '<span class="tag sub">Pack change: ' + esc(l.sub) + '</span>' : ''}</td>
-            <td class="hide-sm">${esc(l.pack)}</td>
+            <td>${esc(l.name)}${l.sku ? '<span class="sku">SKU ' + esc(l.sku) + '</span>' : ''}${l.promo ? '<span class="tag promo">Q4 volume promo −' + Math.round(l.promo * 100) + '%</span>' : ''}${l.sub ? '<span class="tag sub">Pack change: ' + esc(l.sub) + '</span>' : ''}${l.review ? '<span class="tag sub">Not in contract catalog · review</span>' : ''}</td>
+            <td class="hide-sm">${l.review ? '—' : esc(l.pack)}</td>
             <td class="num">${l.qty.toLocaleString('en-US')} ${l.keg ? 'kegs' : 'cs'}</td>
-            <td class="num hide-sm">${usd(l.unitPrice)}</td>
-            <td class="num">${usd(l.total)}</td></tr>`).join('');
+            <td class="num hide-sm">${l.review ? '—' : usd(l.unitPrice)}</td>
+            <td class="num">${l.review ? '—' : usd(l.total)}</td></tr>`).join('');
         }
-        const units = visible.reduce((s, l) => s + l.qty, 0);
-        const pallets = visible.reduce((s, l) => s + Math.ceil(l.qty / l.perPallet), 0);
+        const priced = visible.filter((l) => !l.review);
+        const units = priced.reduce((s, l) => s + l.qty, 0);
+        const pallets = priced.reduce((s, l) => s + Math.ceil(l.qty / l.perPallet), 0);
         const total = visible.reduce((s, l) => s + l.total, 0);
         $('tLines').textContent = String(visible.length);
         $('tUnits').textContent = units.toLocaleString('en-US');
@@ -383,7 +393,7 @@ Same split across Joliet / Aurora as last week. Use the Q4 volume promo where it
 
       $('placeBtn').addEventListener('click', () => {
         const visible = state.lines.slice(0, state.shown);
-        if (!visible.length) return;
+        if (!visible.length || visible.some((l) => l.review)) return;
         const total = visible.reduce((s, l) => s + l.total, 0);
         $('placeBtn').disabled = true;
         $('result').className = 'result-box show';
@@ -396,7 +406,7 @@ Same split across Joliet / Aurora as last week. Use the Q4 volume promo where it
         if (state.building) return;
         const request = $('prompt').value.trim();
         const parsed = parseRequest(request);
-        if (!parsed.length) {
+        if (!parsed.some((l) => !l.review)) {
           resetDraft();
           $('result').className = 'result-box show error';
           $('result').textContent = 'No order lines found. Add a product and a quantity in cases or kegs on each line, for example "Bud Light 12oz cans 24pk - 640 cs".';
@@ -480,7 +490,11 @@ Same split across Joliet / Aurora as last week. Use the Q4 volume promo where it
           $('result').innerHTML = slow
             ? `Draft ready, but building it took longer than usual: first line after <b>${fmtS(firstMs)}</b>, complete in <b>${fmtS(totalMs)}</b>. Review the lines, then place the order.`
             : `Draft ready in <b>${fmtS(totalMs)}</b>. Review the lines, then place the order.`;
-          $('placeBtn').disabled = false;
+          const reviewCount = parsed.filter((l) => l.review).length;
+          if (reviewCount) {
+            $('result').innerHTML += ` <b>${reviewCount} ${reviewCount === 1 ? 'line is' : 'lines are'} not in your contract catalog.</b> Edit or remove ${reviewCount === 1 ? 'it' : 'them'} before placing the order.`;
+          }
+          $('placeBtn').disabled = reviewCount > 0;
         } catch (err) {
           clearInterval(tick);
           state.shown = 0;
