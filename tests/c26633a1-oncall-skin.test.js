@@ -27,7 +27,7 @@ const path = require('path');
 const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
 
 const oncallRoutes = require('../app/routes/oncall');
-const { postMessage } = require('../app/services/slack');
+const { postMessage, postThreadReply } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
 const { postOncallAlert } = require('../app/services/oncall');
 const { getOncallSkin } = require('../config/oncall-skins');
@@ -55,7 +55,7 @@ afterAll((done) => {
 const TITLE = 'Checkout | Chewy.com';
 
 describe('c26633a1 checkout on-call skin', () => {
-  test('is a native, Slack-pinned marketplace skin without an app-created Devin session', () => {
+  test('is a native, Slack-pinned marketplace skin with an auto-created Devin session', () => {
     const skin = getOncallSkin('c26633a1');
     expect(skin).toMatchObject({
       vertical: 'marketplace',
@@ -63,7 +63,7 @@ describe('c26633a1 checkout on-call skin', () => {
       alertDestination: 'slack',
       page: { file: 'c26633a1.html', title: TITLE },
     });
-    expect(skin.devinSession).toBeUndefined();
+    expect(skin.devinSession).toEqual({ auto: true, onCallIsTriggerer: true });
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();
     expect(skin.disclaimer).toBeUndefined();
@@ -80,7 +80,8 @@ describe('c26633a1 checkout on-call skin', () => {
     expect(text).toContain('/oncall/c/c26633a1');
     expect(text).toContain('p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/marketplace/cart}');
     expect(text).not.toMatch(/Marktplatz|Kaufland|add-to-cart/i);
-    expect(createDevinSession).not.toHaveBeenCalled();
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(postThreadReply.mock.calls.map((c) => c.join(' ')).join(' ')).toContain('https://app.devin.ai/sessions/s');
     expect(Object.values(skin.alertCard).join(' ')).not.toMatch(/\.js|RESERVATION_DEADLINE|withDeadline|fulfillment node/i);
   });
 

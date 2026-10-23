@@ -5934,9 +5934,11 @@ const ONCALL_SKINS = {
     vertical: 'marketplace',
     oncallOnly: true,
     paths: ['/chewy-oncall'],
-    // Slack-routed: the Slack on-call responder triages the card, so no
-    // devinSession.auto (it would double-trigger).
     alertDestination: 'slack',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+    },
     // The order summary and its Place Order button sit on the right.
     ribbonSide: 'left',
     page: { file: 'c26633a1.html', title: 'Checkout | Chewy.com' },
