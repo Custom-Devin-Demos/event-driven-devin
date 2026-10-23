@@ -232,17 +232,6 @@
                   <span class="hint">Determines fee waivers and transfer limits for this account.</span>
                 </div>
               </div>
-              <div class="field">
-                <label for="frequency">Frequency</label>
-                <div class="control select">
-                  <select id="frequency">
-                    <option>One time, today</option>
-                    <option>Weekly</option>
-                    <option>Every two weeks</option>
-                    <option>Monthly</option>
-                  </select>
-                </div>
-              </div>
               <div class="actions">
                 <button type="submit" class="btn-primary" id="submitBtn">Transfer now</button>
                 <button type="button" class="btn-link" id="cancelBtn">Cancel</button>
@@ -274,8 +263,9 @@
               <dt>From</dt><dd id="sumFrom">Advantage Plus Banking - 1234</dd>
               <dt>To</dt><dd id="sumTo">Advantage Savings - 9876</dd>
               <dt>Amount</dt><dd id="sumAmount">$250.00</dd>
-              <dt>When</dt><dd id="sumWhen">One time, today</dd>
-              <div class="total"><span>Remaining in from account</span><span id="sumRemaining">$1,765.83</span></div>
+              <dt>Transfer fee</dt><dd id="sumFee">$2.50</dd>
+              <dt>Total debit</dt><dd id="sumDebit">$252.50</dd>
+              <div class="total"><span>Remaining in from account</span><span id="sumRemaining">$1,763.33</span></div>
             </dl>
           </div>
         </div>
@@ -344,7 +334,7 @@
       var fromSel = document.getElementById('fromAccount');
       var toSel = document.getElementById('toAccount');
       var amountEl = document.getElementById('amount');
-      var freqSel = document.getElementById('frequency');
+      var tierSel = document.getElementById('accountTier');
       var btn = document.getElementById('submitBtn');
       var result = document.getElementById('result');
       var pendingTimer = null;
@@ -353,6 +343,9 @@
       function opt(sel) { return sel.options[sel.selectedIndex]; }
       function label(sel) { var o = opt(sel); return o.dataset.name + ' - ' + o.dataset.last4; }
       function amountValue() { var v = parseFloat(amountEl.value); return isNaN(v) ? 0 : v; }
+      /* Mirrors the transfer service's fee schedule: max(rate * amount, flat). */
+      var FEE_SCHEDULE = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.50 }, basic: { rate: 0.002, flat: 4.99 } };
+      function feeFor(amt) { var t = FEE_SCHEDULE[tierSel.value] || FEE_SCHEDULE.standard; return Math.max(t.rate * amt, t.flat); }
 
       function renderSummary() {
         var from = opt(fromSel), to = opt(toSel), amt = amountValue();
@@ -360,11 +353,13 @@
         document.getElementById('toBalance').textContent = money(parseFloat(to.dataset.balance));
         document.getElementById('sumFrom').textContent = label(fromSel);
         document.getElementById('sumTo').textContent = label(toSel);
+        var fee = feeFor(amt);
         document.getElementById('sumAmount').textContent = money(amt);
-        document.getElementById('sumWhen').textContent = freqSel.value;
-        document.getElementById('sumRemaining').textContent = money(parseFloat(from.dataset.balance) - amt);
+        document.getElementById('sumFee').textContent = money(fee);
+        document.getElementById('sumDebit').textContent = money(amt + fee);
+        document.getElementById('sumRemaining').textContent = money(parseFloat(from.dataset.balance) - amt - fee);
       }
-      [fromSel, toSel, amountEl, freqSel].forEach(function (el) { el.addEventListener('input', renderSummary); el.addEventListener('change', renderSummary); });
+      [fromSel, toSel, amountEl, tierSel].forEach(function (el) { el.addEventListener('input', renderSummary); el.addEventListener('change', renderSummary); });
       renderSummary();
 
       function show(kind, title, detail) {
@@ -384,7 +379,7 @@
         var fromOpt = opt(fromSel);
         if (fromSel.value === toSel.value) { show('error', 'Choose two different accounts.', 'The from and to accounts must be different.'); return; }
         if (!(amt > 0)) { show('error', 'Enter an amount to transfer.', ''); amountEl.focus(); return; }
-        if (amt > parseFloat(fromOpt.dataset.balance)) { show('error', 'Amount exceeds your available balance.', 'Available in ' + label(fromSel) + ': ' + money(parseFloat(fromOpt.dataset.balance))); amountEl.focus(); return; }
+        if (amt + feeFor(amt) > parseFloat(fromOpt.dataset.balance)) { show('error', 'Amount plus transfer fee exceeds your available balance.', 'Available in ' + label(fromSel) + ': ' + money(parseFloat(fromOpt.dataset.balance)) + '. Transfer fee: ' + money(feeFor(amt)) + '.'); amountEl.focus(); return; }
 
         btn.disabled = true; btn.textContent = 'Transferring\u2026';
         clearResult();
@@ -399,7 +394,7 @@
               fromAccount: fromSel.value,
               toAccount: toSel.value,
               amount: parseFloat(amountEl.value),
-              accountTier: document.getElementById('accountTier').value,
+              accountTier: tierSel.value,
               devinUserId: localStorage.getItem('devinUserId') || '',
               devinOrgId: localStorage.getItem('devinOrgId') || '',
               devinEmail: localStorage.getItem('devinEmail') || '',
@@ -411,7 +406,9 @@
             show('error', 'We couldn\u2019t complete your transfer right now.', 'No money has moved. Please try again in a few minutes.');
           } else {
             var ref = String(data.transferId || '').replace(/-/g, '').slice(0, 10).toUpperCase();
-            show('success', 'Transfer complete', money(amt) + ' moved from ' + label(fromSel) + ' to ' + label(toSel) + (ref ? '. Confirmation number ' + ref + '.' : '.'));
+            var fee = parseFloat(data.fee), debit = parseFloat(data.debitAmount);
+            var feeCopy = !isNaN(fee) && !isNaN(debit) ? ' Transfer fee ' + money(fee) + '; total debit ' + money(debit) + '.' : '';
+            show('success', 'Transfer complete', money(amt) + ' moved from ' + label(fromSel) + ' to ' + label(toSel) + (ref ? '. Confirmation number ' + ref + '.' : '.') + feeCopy);
           }
         } catch (err) {
           if (pendingTimer) clearTimeout(pendingTimer);

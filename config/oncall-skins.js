@@ -5866,6 +5866,7 @@ const ONCALL_SKINS = {
     company: 'Bank of America',
     brandMark: 'B',
     vertical: 'banking',
+    oncallOnly: true,
     page: { file: 'f2686bda.html', title: 'Transfer | Zelle\u00ae | Bank of America' },
     theme: {
       '--accent': '#E31837',
