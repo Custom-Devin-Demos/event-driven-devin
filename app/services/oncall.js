@@ -369,6 +369,7 @@ const ALERT_SCENARIOS = {
     symptom: 'Credit card payments funded from checking fail immediately with HTTP 500. Payments funded from savings succeed.',
     impact: 'Customers cannot pay their credit card from checking, the default funding account; every attempt errors.',
     triggerWhen: { fromAccount: 'CHK-1634' },
+    alertOnStatus: [500],
     // Branded page only: not offered on the generic hub.
     unlisted: true,
   },
