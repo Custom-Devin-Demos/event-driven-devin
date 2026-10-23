@@ -294,7 +294,15 @@
       const fmt = (n) => '$' + n.toFixed(2);
 
       function autoshipOn() {
-        return document.querySelector('input[name="autoship"]:checked').value === 'yes' || document.getElementById('itemAutoship').checked;
+        return document.querySelector('input[name="autoship"]:checked').value === 'yes';
+      }
+
+      function setAutoship(on) {
+        const radio = document.querySelector('input[name="autoship"][value="' + (on ? 'yes' : 'no') + '"]');
+        radio.checked = true;
+        document.querySelectorAll('.option').forEach(function (o) { o.classList.toggle('selected', o.contains(radio)); });
+        document.getElementById('itemAutoship').checked = on;
+        recalc();
       }
 
       function recalc() {
@@ -313,13 +321,9 @@
       }
 
       document.querySelectorAll('input[name="autoship"]').forEach(function (radio) {
-        radio.addEventListener('change', function () {
-          document.querySelectorAll('.option').forEach(function (o) { o.classList.remove('selected'); });
-          radio.closest('.option').classList.add('selected');
-          recalc();
-        });
+        radio.addEventListener('change', function () { setAutoship(radio.value === 'yes'); });
       });
-      document.getElementById('itemAutoship').addEventListener('change', recalc);
+      document.getElementById('itemAutoship').addEventListener('change', function (e) { setAutoship(e.target.checked); });
       document.getElementById('quantity').addEventListener('change', recalc);
 
       document.getElementById('orderForm').addEventListener('submit', async (e) => {

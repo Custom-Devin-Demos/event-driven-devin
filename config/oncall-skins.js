@@ -5952,13 +5952,13 @@ const ONCALL_SKINS = {
       service: 'checkout-api',
       release: 'checkout-web@8.41.0',
       team: 'checkout-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/marketplace/cart}',
       metricValue: '8.0s (504 on ~100% of Place Order requests)',
       threshold: '> 2s',
       baseline: '~420ms (7-day p95)',
       symptom: 'Place Order requests hang ~8s and then fail with 504 Gateway Timeout. Inventory reservation latency against the fulfillment-center network is elevated.',
       impact: 'Shoppers cannot complete checkout; every order sits on "Placing order\u2026" and then errors. No cards are charged.',
     },
-    disclaimer: 'NOT ACTUALLY A CHEWY SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Chewy product.',
   },
 };
 

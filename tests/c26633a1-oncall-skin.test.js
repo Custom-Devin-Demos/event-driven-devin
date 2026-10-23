@@ -66,7 +66,7 @@ describe('c26633a1 checkout on-call skin', () => {
     expect(skin.devinSession).toBeUndefined();
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();
-    expect(skin.disclaimer).toMatch(/^NOT ACTUALLY A CHEWY SITE/);
+    expect(skin.disclaimer).toBeUndefined();
   });
 
   test('posts a checkout-worded card to the on-call alerts channel with the real endpoint', async () => {
@@ -78,6 +78,7 @@ describe('c26633a1 checkout on-call skin', () => {
     expect(text).toContain('*Service:* checkout-api (Chewy)');
     expect(text).toContain('*Endpoint:* POST /api/oncall/marketplace/cart');
     expect(text).toContain('/oncall/c/c26633a1');
+    expect(text).toContain('p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/marketplace/cart}');
     expect(text).not.toMatch(/Marktplatz|Kaufland|add-to-cart/i);
     expect(createDevinSession).not.toHaveBeenCalled();
     expect(Object.values(skin.alertCard).join(' ')).not.toMatch(/\.js|RESERVATION_DEADLINE|withDeadline|fulfillment node/i);
@@ -98,7 +99,7 @@ describe('c26633a1 checkout on-call skin', () => {
     expect(html).toContain('id="placeOrderBtn"');
     expect(html).toContain('Jordan Ellis');
     expect(html).toContain('1847 MAPLE GROVE LN');
-    expect(html).toContain('NOT ACTUALLY A CHEWY SITE');
+    expect(html).not.toContain('NOT ACTUALLY A CHEWY SITE');
     expect(html).not.toMatch(/<base |<script[^>]+src="https?:/);
   });
 
