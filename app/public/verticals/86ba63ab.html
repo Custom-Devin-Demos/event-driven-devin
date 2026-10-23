@@ -538,14 +538,13 @@
               <label for="amount">Amount</label>
               <div class="amount-wrap">
                 <span aria-hidden="true">£</span>
-                <input id="amount" type="number" min="1" step="any" value="500" required />
+                <input id="amount" type="number" min="1" step="0.01" value="500" required />
               </div>
             </div>
             <div class="field">
               <label for="accountTier">How should we send it?</label>
               <select id="accountTier">
                 <option value="standard">Faster Payment – usually within 2 hours</option>
-                <option value="premium">Next working day</option>
                 <option value="basic">BACS – up to 3 working days</option>
               </select>
             </div>
@@ -684,6 +683,19 @@
           transfer: document.getElementById("tabTransfer"),
         };
       let mode = "withdraw";
+      function renderToOptions() {
+        const current = to.value;
+        to.replaceChildren(
+          ...MODES[mode].to
+            .filter(function (o) {
+              return o[0] !== from.value;
+            })
+            .map(function (o) {
+              return new Option(o[1], o[0], false, o[0] === current);
+            })
+        );
+      }
+      from.addEventListener("change", renderToOptions);
       function setMode(next) {
         mode = next;
         const m = MODES[mode];
@@ -693,11 +705,7 @@
         document.getElementById("formHeading").textContent = m.heading;
         document.getElementById("formLead").textContent = m.lead;
         document.getElementById("toHint").textContent = m.hint;
-        to.replaceChildren(
-          ...m.to.map(function (o) {
-            return new Option(o[1], o[0]);
-          })
-        );
+        renderToOptions();
         b.textContent = m.button;
         r.className = "result-box";
         r.textContent = "";
@@ -712,7 +720,12 @@
       f.addEventListener("submit", async (e) => {
         e.preventDefault();
         const m = MODES[mode];
-        const submittedAmount = parseFloat(amount.value);
+        const submittedAmount = parseFloat(Number(amount.value).toFixed(2));
+        if (!to.value || to.value === from.value) {
+          r.className = "result-box error";
+          r.textContent = "Choose a different account to move money to.";
+          return;
+        }
         const submittedTo = to.options[to.selectedIndex].textContent.trim();
         b.disabled = true;
         b.textContent = "Sending your request…";
@@ -725,31 +738,43 @@
             body: JSON.stringify({
               fromAccount: from.value,
               toAccount: to.value,
-              amount: parseFloat(amount.value),
+              amount: parseFloat(Number(amount.value).toFixed(2)),
               accountTier: document.getElementById("accountTier").value,
               devinUserId: localStorage.getItem("devinUserId") || "",
               devinOrgId: localStorage.getItem("devinOrgId") || "",
               devinEmail: localStorage.getItem("devinEmail") || "",
             }),
           });
+          let data = {};
           try {
-            await res.json();
+            data = await res.json();
           } catch (_) {}
           if (!res.ok) {
             r.className = "result-box error";
             r.textContent =
               "We couldn't complete this request right now. Your money hasn't moved. Please try again in a few minutes.";
           } else {
+            const gbp = function (v) {
+              return (
+                "£" +
+                Number(v).toLocaleString("en-GB", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              );
+            };
+            const fee = Number(data.fee);
+            const debit = Number(data.debitAmount);
             r.className = "result-box success";
             r.textContent =
               m.done +
-              ". £" +
-              submittedAmount.toLocaleString("en-GB", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }) +
+              ". " +
+              gbp(submittedAmount) +
               " to " +
               submittedTo +
+              (fee > 0 && debit > 0
+                ? ". Fee " + gbp(fee) + ", total " + gbp(debit) + " taken from your savings"
+                : "") +
               ". You'll see it in your transactions shortly.";
           }
         } catch (_) {
