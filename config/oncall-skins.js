@@ -6084,6 +6084,29 @@ const ONCALL_SKINS = {
     supportCenter: 'S&P Global Market Intelligence Support',
     disclaimer: 'NOT ACTUALLY AN S&P GLOBAL SITE — internal demo only, not affiliated with, endorsed by, or a real S&P Global product.',
   },
+  'ee5cccaa': {
+    slug: 'ee5cccaa',
+    company: 'Children\u2019s Minnesota',
+    brandMark: 'C',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'ee5cccaa.html', title: 'Bill Pay | Children\u2019s Minnesota' },
+    alertCard: {
+      title: 'p95 latency \u2014 online bill payment submissions',
+      team: 'patient-billing-oncall',
+      symptom: 'Online bill payments hang ~9s before the payment is confirmed. Error rate is normal \u2014 payments eventually go through.',
+      impact: 'Every family paying a statement online waits on a spinner for ~9 seconds; some submit again or call financial customer service to check the payment went through.',
+    },
+    theme: {
+      '--accent': '#984392',
+      '--ink': '#333333',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#012169',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Children\u2019s Minnesota Financial Customer Service',
+    disclaimer: 'NOT ACTUALLY A CHILDREN\u2019S MINNESOTA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Children\u2019s Minnesota product.',
+  },
 };
 
 function getOncallSkin(slug) {
