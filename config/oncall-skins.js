@@ -4763,6 +4763,14 @@ const ONCALL_SKINS = {
     page: { file: '959dc0b3.html', title: 'Hippo Home Insurance - affordable, tailored quotes in under 60 seconds' },
     disclaimer: 'NOT ACTUALLY A HIPPO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Hippo product.',
   },
+  '1100f87e': {
+    slug: '1100f87e',
+    company: 'Groupon',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '1100f87e.html', title: 'Groupon\u00ae Official Site - Find Local Deals Near You' },
+    disclaimer: 'NOT ACTUALLY A GROUPON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Groupon product.',
+  },
   '492753fe': {
     slug: '492753fe',
     company: 'Rivian',
