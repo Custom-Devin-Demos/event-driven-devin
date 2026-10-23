@@ -1461,7 +1461,14 @@ const ONCALL_SKINS = {
     brandMark: 'Y',
     vertical: 'banking',
     oncallOnly: true,
+    paths: ['/ybs'],
     page: { file: '86ba63ab.html', title: 'Move money | Yorkshire Building Society' },
+    alertCard: {
+      release: 'savings-online@2026.10.3',
+      team: 'savings-payments-oncall',
+      symptom: 'Withdrawals and transfers from online savings accounts hang ~9s before completing. Error rate is normal — requests eventually succeed.',
+      impact: 'Members moving money out of their savings wait about 9 seconds per request; some submit again, and the contact centre is taking calls about duplicate withdrawals.',
+    },
     theme: {
       '--accent': '#008839',
       '--ink': '#302B41',
