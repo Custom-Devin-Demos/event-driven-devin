@@ -28,12 +28,15 @@ const { getOncallSkin } = require('../config/oncall-skins');
 process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-test';
 process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID = 'C0TEST';
 
-const { postOncallAlert } = require('../app/services/oncall');
+const { postOncallAlert, resetSkinAlertMemory } = require('../app/services/oncall');
 
 const AUTO_SKIN_SLUG = '4b663efb';
 
 describe('on-call alerts that auto-create a Devin session', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetSkinAlertMemory();
+  });
 
   test('an opted-in skin creates one session and links it in the alert thread', async () => {
     const skin = getOncallSkin(AUTO_SKIN_SLUG);
@@ -258,7 +261,10 @@ describe('on-call alerts that auto-create a Devin session', () => {
 describe('skins that page the triggering presenter as On-Call', () => {
   const TRIGGERER_SKIN_SLUG = '6997dfbe';
 
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetSkinAlertMemory();
+  });
 
   test('the presenter owns the session and is paged as On-Call', async () => {
     lookupSlackUserByEmail.mockResolvedValueOnce('U0PRESENTER');
@@ -313,7 +319,10 @@ describe('skins that page the triggering presenter as On-Call', () => {
 describe('Coppel On-Call skin (Spanish, presenter paged)', () => {
   const COPPEL_SLUG = '04eac4a1';
 
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetSkinAlertMemory();
+  });
 
   test('the presenter owns the session, is paged as On Call and is not repeated as "Activado por"', async () => {
     lookupSlackUserByEmail.mockResolvedValueOnce('U0PRESENTER');

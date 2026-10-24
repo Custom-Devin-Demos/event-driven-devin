@@ -305,6 +305,25 @@ for (const skin of Object.values(ONCALL_SKINS)) {
 }
 
 /**
+ * Healthcare templates (pbm, payer, lifesciences) are also served under the
+ * healthcare hub: /oncall/healthcare/<template> is the template page, and
+ * /oncall/healthcare/<template>/:slug is a skin built on that template (the
+ * same page as /oncall/c/:slug). Non-healthcare demos get no new URLs.
+ */
+const HEALTHCARE_TEMPLATES = Object.keys(ALERT_SCENARIOS)
+  .filter((key) => ALERT_SCENARIOS[key].group === 'healthcare');
+for (const template of HEALTHCARE_TEMPLATES) {
+  router.get(`/oncall/healthcare/${template}`, (_req, res, next) => (
+    serveOncallScenarioPage(ALERT_SCENARIOS[template], res, next)
+  ));
+  router.get(`/oncall/healthcare/${template}/:slug`, (req, res, next) => {
+    const skin = getOncallSkin(req.params.slug);
+    if (!skin || skin.vertical !== template) return next();
+    serveSkinPage(skin, res, next);
+  });
+}
+
+/**
  * GET /oncall — On-Call demo control page.
  */
 const ONCALL_HUB_PAGE = path.join(__dirname, '..', 'public', 'oncall.html');
@@ -406,6 +425,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       // Every other scenario posts a fresh incident on every submit.
       const retryWindowEnabled = ${JSON.stringify(Boolean(scenario.retryWindow))};
       const triggerWhen = ${JSON.stringify(scenario.triggerWhen || null)};
+      const alertOnStatus = ${JSON.stringify(Array.isArray(scenario.alertOnStatus) ? scenario.alertOnStatus : null)};
       function shouldTrigger(opts) {
         if (!triggerWhen) return true;
         var body;
@@ -456,6 +476,60 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       // occurrence.
       var RETRY_WINDOW_MS = 60 * 1000;
       var alertPostedAt = 0;
+      function postAlertTrigger() {
+        var postedAt = Date.now();
+        alertPostedAt = postedAt;
+        if (ribbonCollapsed) expandRibbon();
+        const unique = document.getElementById('oncall-unique').checked;
+        var alertDestination = skinAlertDestination || (
+          localStorage.getItem('alertDestinationExplicit') !== '1' && scenarioAlertDestination
+            ? scenarioAlertDestination
+            : (localStorage.getItem('alertDestination') === 'teams' ? 'teams' : 'slack')
+        );
+        var triggerUrl = '/api/oncall/trigger/' + vertical;
+        var triggerBody = {
+            unique: unique,
+            skin: skinSlug,
+            devinEmail: localStorage.getItem('devinEmail') || '',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            alertDestination: alertDestination,
+        };
+        var postedMsg = ${JSON.stringify(r.posted)} + ${JSON.stringify((skin && skin.slackChannelName) || ALERTS_CHANNEL_LABEL)};
+        var skippedMsg = ${JSON.stringify(r.skipped)};
+        var failedMsg = ${JSON.stringify(r.failed)};
+        origFetch(triggerUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(triggerBody),
+        }).then(function (r) { return r.json(); }).then(function (d) {
+          const el = document.getElementById('oncall-status');
+          if (d.skipped) {
+            console.warn('On-call trigger post skipped: ' + d.error);
+            if (ribbonCollapsed) expandRibbon();
+            el.style.color = '#f85149';
+            el.textContent = skippedMsg;
+            if (alertPostedAt === postedAt) alertPostedAt = 0;
+            return;
+          }
+          if (!d.ok && alertPostedAt === postedAt) alertPostedAt = 0;
+          if (ribbonCollapsed) expandRibbon();
+          el.style.color = d.ok ? '#3fb950' : '#f85149';
+          var deliveredMsg = !d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams');
+          if (d.teamsFailed) deliveredMsg += ' (Teams is not set up on this server, so it went to Slack)';
+          el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
+          if (d.ok && !d.teamsFailed) scheduleCollapse();
+          else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }
+        }).catch(function () {
+          if (alertPostedAt === postedAt) alertPostedAt = 0;
+          if (ribbonCollapsed) expandRibbon();
+          var el = document.getElementById('oncall-status');
+          if (el) {
+            el.style.color = '#f85149';
+            el.textContent = failedMsg;
+          }
+        });
+      }
       window.fetch = function (url, opts) {
         if (typeof url === 'string' && url.startsWith(apiPath) && (opts && opts.method && opts.method.toUpperCase() === 'POST')) {
           // Reroute the page's primary action to the on-call vertical
@@ -496,58 +570,15 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
             else scheduleCollapse();
             return origFetch(url.replace(apiPath, oncallApiPath), opts);
           }
-          var postedAt = Date.now();
-          alertPostedAt = postedAt;
-          if (ribbonCollapsed) expandRibbon();
-          const unique = document.getElementById('oncall-unique').checked;
-          var alertDestination = skinAlertDestination || (
-            localStorage.getItem('alertDestinationExplicit') !== '1' && scenarioAlertDestination
-              ? scenarioAlertDestination
-              : (localStorage.getItem('alertDestination') === 'teams' ? 'teams' : 'slack')
-          );
-          var triggerUrl = '/api/oncall/trigger/' + vertical;
-          var triggerBody = {
-              unique: unique,
-              skin: skinSlug,
-              devinEmail: localStorage.getItem('devinEmail') || '',
-              devinUserId: localStorage.getItem('devinUserId') || '',
-              devinOrgId: localStorage.getItem('devinOrgId') || '',
-              alertDestination: alertDestination,
-          };
-          var postedMsg = ${JSON.stringify(r.posted)} + ${JSON.stringify((skin && skin.slackChannelName) || ALERTS_CHANNEL_LABEL)};
-          var skippedMsg = ${JSON.stringify(r.skipped)};
-          var failedMsg = ${JSON.stringify(r.failed)};
-          origFetch(triggerUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(triggerBody),
-          }).then(function (r) { return r.json(); }).then(function (d) {
-            const el = document.getElementById('oncall-status');
-            if (d.skipped) {
-              console.warn('On-call trigger post skipped: ' + d.error);
-              if (ribbonCollapsed) expandRibbon();
-              el.style.color = '#f85149';
-              el.textContent = skippedMsg;
-              if (alertPostedAt === postedAt) alertPostedAt = 0;
-              return;
-            }
-            if (!d.ok && alertPostedAt === postedAt) alertPostedAt = 0;
-            if (ribbonCollapsed) expandRibbon();
-            el.style.color = d.ok ? '#3fb950' : '#f85149';
-            var deliveredMsg = !d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams');
-            if (d.teamsFailed) deliveredMsg += ' (Teams is not set up on this server, so it went to Slack)';
-            el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
-            if (d.ok && !d.teamsFailed) scheduleCollapse();
-            else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }
-          }).catch(function () {
-            if (alertPostedAt === postedAt) alertPostedAt = 0;
-            if (ribbonCollapsed) expandRibbon();
-            var el = document.getElementById('oncall-status');
-            if (el) {
-              el.style.color = '#f85149';
-              el.textContent = failedMsg;
-            }
-          });
+          // Error-shaped scenarios page on-call only when the rerouted call
+          // actually fails with one of the scenario's statuses, once per failure.
+          if (alertOnStatus) {
+            return origFetch(url.replace(apiPath, oncallApiPath), opts).then(function (resp) {
+              if (alertOnStatus.indexOf(resp.status) !== -1) postAlertTrigger();
+              return resp;
+            });
+          }
+          postAlertTrigger();
           return origFetch(url.replace(apiPath, oncallApiPath), opts);
         }
         return origFetch(url, opts);

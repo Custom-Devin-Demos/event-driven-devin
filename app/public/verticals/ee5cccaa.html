@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bill Pay | Children’s Minnesota</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;1,400&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #012169; --purple: #984392; --purple-dark: #7C3577; --red: #CB3F50; --red-dark: #B03443;
+      --blue: #1B75BB; --link: #0A58A5; --lavender: #EEE3F0; --sky: #DCECF5;
+      --ink: #333333; --muted: #5F6368; --line: #D0D4DA; --panel: #F2F2F2;
+      --success: #22663A; --success-bg: #E8F4EC; --warn: #A52A35; --warn-bg: #FCEDEF; --notice-bg: #F5EEF6;
+      --sans: 'Nunito', Arial, Helvetica, sans-serif;
+      --cond: 'Roboto Condensed', 'Arial Narrow', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--sans); color: var(--ink); background: #fff; font-size: 18px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: var(--link); }
+    button, input, select { font-family: inherit; font-size: inherit; }
+    .wrap { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* Header */
+    .site-header { background: var(--navy); color: #fff; }
+    .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 150px; }
+    .brand { display: flex; align-items: center; gap: 12px; color: #fff; text-decoration: none; flex: none; }
+    .brand .mark { width: 46px; height: 46px; border-radius: 50%; background: #fff; color: var(--navy); display: inline-flex; align-items: center; justify-content: center; font-family: var(--cond); font-weight: 700; font-size: 26px; position: relative; }
+    .brand .mark::after { content: ''; position: absolute; top: -3px; right: -3px; width: 14px; height: 14px; border-radius: 50%; background: var(--red); border: 2px solid var(--navy); }
+    .brand .words { display: flex; flex-direction: column; line-height: 1.05; }
+    .brand .name { font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 26px; letter-spacing: -.3px; }
+    .brand .state { font-family: var(--cond); font-weight: 700; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin-top: 2px; }
+    .brand .tag { font-size: 13px; font-weight: 600; margin-top: 6px; }
+    .head-right { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
+    .utility { display: flex; align-items: center; gap: 6px; font-family: var(--cond); font-weight: 700; font-size: 15px; }
+    .utility a, .utility button.icon { color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; min-height: 44px; }
+    .utility a:hover { text-decoration: underline; }
+    .utility a.on { background: var(--blue); }
+    .utility a.give { background: var(--red); text-transform: uppercase; }
+    .utility a.give:hover { background: var(--red-dark); text-decoration: none; }
+    .utility svg { width: 14px; height: 14px; fill: currentColor; flex: none; }
+    .utility button.icon { background: none; border: 0; cursor: pointer; }
+    .utility button.icon svg { width: 20px; height: 20px; }
+    .mainnav { display: flex; gap: 40px; }
+    .mainnav a { color: #fff; text-decoration: none; font-family: var(--cond); font-weight: 700; font-size: 20px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+    .mainnav a:hover { text-decoration: underline; }
+    .mainnav a::after { content: ''; width: 7px; height: 7px; border-right: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(45deg) translateY(-3px); }
+    .menu-btn { display: none; background: none; border: 0; color: #fff; font-family: var(--cond); font-weight: 700; font-size: 16px; min-height: 44px; min-width: 44px; cursor: pointer; align-items: center; gap: 8px; }
+    .menu-btn .bars { width: 22px; height: 2px; background: #fff; position: relative; display: inline-block; }
+    .menu-btn .bars::before, .menu-btn .bars::after { content: ''; position: absolute; left: 0; width: 22px; height: 2px; background: #fff; }
+    .menu-btn .bars::before { top: -7px; } .menu-btn .bars::after { top: 7px; }
+
+    /* Notice */
+    .notice { background: var(--lavender); }
+    .notice .wrap { display: flex; align-items: center; justify-content: center; gap: 22px; padding-top: 18px; padding-bottom: 18px; }
+    .notice .i { width: 40px; height: 40px; border-radius: 50%; background: var(--purple); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-family: Georgia, serif; font-weight: 700; font-size: 22px; flex: none; }
+    .notice p { max-width: 560px; font-size: 17px; }
+    .btn-navy { background: var(--navy); color: #fff; font-family: var(--cond); font-weight: 700; font-size: 20px; text-decoration: none; padding: 0 22px; min-height: 52px; display: inline-flex; align-items: center; flex: none; }
+    .btn-navy:hover { background: #00184E; }
+
+    /* Page */
+    main { padding: 18px 0 40px; }
+    .crumbs { font-family: var(--cond); font-size: 14px; padding-bottom: 6px; border-bottom: 2px solid var(--blue); }
+    .crumbs a { color: var(--navy); }
+    .crumbs span { color: var(--ink); }
+    h1 { font-family: var(--cond); font-weight: 700; color: var(--navy); font-size: 52px; line-height: 1.1; margin: 10px 0 14px; }
+    h2 { font-family: var(--cond); font-weight: 700; color: var(--navy); font-size: 30px; line-height: 1.15; }
+    h3 { font-family: var(--cond); font-weight: 700; color: var(--ink); font-size: 28px; line-height: 1.2; margin: 26px 0 8px; }
+    .intro { max-width: 900px; margin-bottom: 26px; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+    .panel { background: var(--panel); padding: 26px 28px 28px; }
+    .panel .lede { margin: 6px 0 20px; font-size: 17px; }
+    .steps { display: flex; gap: 8px; margin-bottom: 20px; font-family: var(--cond); font-size: 15px; flex-wrap: wrap; }
+    .steps span { background: #fff; border: 1px solid var(--line); padding: 4px 12px; }
+    .steps span.on { background: var(--navy); border-color: var(--navy); color: #fff; font-weight: 700; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-weight: 700; font-size: 16px; }
+    .control { position: relative; }
+    select, input[type=number] { width: 100%; min-height: 48px; border: 1px solid #8A9099; background: #fff; color: var(--ink); padding: 0 14px; border-radius: 0; }
+    select { -webkit-appearance: none; appearance: none; padding-right: 40px; background-image: linear-gradient(45deg, transparent 50%, var(--navy) 50%), linear-gradient(135deg, var(--navy) 50%, transparent 50%); background-position: calc(100% - 20px) 21px, calc(100% - 14px) 21px; background-size: 6px 6px; background-repeat: no-repeat; text-overflow: ellipsis; }
+    .money input { padding-left: 30px; }
+    .money::before { content: '$'; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 700; }
+    select:focus, input:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--purple); outline-offset: 2px; }
+    .hint { font-size: 14px; color: var(--muted); }
+    .actions { display: flex; align-items: center; gap: 18px; margin-top: 24px; flex-wrap: wrap; }
+    .btn-primary { background: var(--purple); color: #fff; border: 0; font-family: var(--cond); font-weight: 700; font-size: 22px; min-height: 56px; padding: 0 34px; cursor: pointer; }
+    .btn-primary:hover { background: var(--purple-dark); }
+    .btn-primary:disabled { background: #B48AB1; cursor: default; }
+    .btn-link { background: none; border: 0; color: var(--link); text-decoration: underline; cursor: pointer; min-height: 44px; padding: 0 4px; font-size: 16px; }
+    .btn-link:disabled { opacity: .5; cursor: default; }
+    .secure { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); margin-top: 16px; }
+    .secure svg { width: 14px; height: 14px; fill: var(--muted); flex: none; }
+
+    .result-box { display: none; margin-top: 20px; padding: 16px 18px; border-left: 5px solid; font-size: 16px; }
+    .result-box .title { font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .result-box .detail { margin-top: 4px; }
+    .result-box.pending { display: block; background: var(--notice-bg); border-color: var(--purple); }
+    .result-box.success { display: block; background: var(--success-bg); border-color: var(--success); color: #183F25; }
+    .result-box.error { display: block; background: var(--warn-bg); border-color: var(--warn); color: #6E1A22; }
+    .spinner { width: 18px; height: 18px; border: 3px solid #D9C3D7; border-top-color: var(--purple); border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .summary { background: #fff; border: 1px solid var(--line); border-top: 5px solid var(--navy); }
+    .summary h2 { font-size: 24px; padding: 18px 20px 6px; }
+    .summary dl { padding: 4px 20px 18px; display: grid; grid-template-columns: auto auto; gap: 8px 12px; font-size: 16px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { text-align: right; font-weight: 600; overflow-wrap: anywhere; }
+    .summary .total { grid-column: 1 / -1; display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; font-weight: 700; color: var(--navy); font-size: 18px; }
+    .summary .after { grid-column: 1 / -1; display: flex; justify-content: space-between; font-size: 15px; color: var(--muted); }
+    .side-card { background: var(--panel); padding: 20px; margin-top: 20px; font-size: 16px; }
+    .side-card h2 { font-size: 22px; margin-bottom: 6px; }
+    .side-card ul { margin: 8px 0 0 20px; }
+
+    .info h3:first-child { margin-top: 36px; }
+    .info p { max-width: 900px; }
+    .refund { border-top: 1px solid var(--ink); margin-top: 30px; padding-top: 18px; font-style: italic; font-size: 17px; }
+
+    .band { background: var(--sky); padding: 26px 0; text-align: center; font-size: 17px; }
+    .band .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .band h4 { font-family: var(--cond); color: var(--navy); font-size: 17px; margin-bottom: 10px; }
+    .band p { margin-bottom: 8px; }
+    .badges { background: var(--panel); padding: 26px 0; }
+    .badges .wrap { display: flex; justify-content: space-around; gap: 16px; flex-wrap: wrap; }
+    .badges span { font-family: var(--cond); font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; border: 1px solid var(--line); background: #fff; padding: 10px 14px; }
+
+    footer { background: var(--navy); color: #fff; }
+    footer .wrap { display: grid; grid-template-columns: 200px repeat(5, minmax(0, 1fr)); gap: 24px; padding-top: 38px; padding-bottom: 30px; }
+    footer h4 { font-family: var(--cond); color: #A7D1F0; font-size: 15px; margin-bottom: 14px; }
+    footer ul { list-style: none; font-family: var(--cond); font-size: 14px; }
+    footer li a { color: #fff; text-decoration: none; display: inline-block; padding: 3px 0; }
+    footer li a:hover { text-decoration: underline; }
+    .give-now { margin-top: 18px; background: var(--red); color: #fff; font-family: var(--cond); font-weight: 700; font-size: 18px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 30px; text-transform: uppercase; }
+    .legal { border-top: 1px solid rgba(255,255,255,.2); text-align: center; font-size: 13px; padding: 16px 24px 22px; }
+    .legal a { color: #fff; }
+    .legal p + p { margin-top: 6px; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      footer .wrap { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      footer .wrap > .foot-brand { grid-column: 1 / -1; }
+      .mainnav { gap: 22px; }
+    }
+    @media (max-width: 760px) {
+      body { font-size: 17px; }
+      .site-header .wrap { min-height: 76px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
+      .brand .mark { width: 38px; height: 38px; font-size: 21px; }
+      .brand .name { font-size: 21px; } .brand .tag { display: none; }
+      .head-right { flex-direction: row; align-items: center; gap: 4px; }
+      .utility a:not(.on):not(.give) { display: none; }
+      .utility a { padding: 0 10px; }
+      .menu-btn { display: inline-flex; }
+      .mainnav { display: none; flex-direction: column; gap: 0; width: 100%; padding: 4px 0 10px; border-top: 1px solid rgba(255,255,255,.2); }
+      .mainnav.open { display: flex; }
+      .mainnav a { font-size: 18px; }
+      .notice .wrap { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .notice .i { display: none; }
+      h1 { font-size: 40px; }
+      .panel { padding: 20px 16px 22px; margin: 0 -8px; }
+      .grid2 { grid-template-columns: 1fr; }
+      .btn-primary { width: 100%; }
+      .band .wrap { grid-template-columns: 1fr; }
+      footer .wrap { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Children’s Minnesota home">
+        <span class="mark" aria-hidden="true">C</span>
+        <span class="words"><span class="name">Children’s</span><span class="state">Minnesota</span><span class="tag">The Kid Experts</span></span>
+      </a>
+      <div class="head-right">
+        <div class="utility">
+          <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>Locations</a>
+          <a href="#" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9h-1V7a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2zM9 7a3 3 0 0 1 6 0v2H9z"/></svg>Pay my bill</a>
+          <a href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.4 0-9 2.2-9 5v3h18v-3c0-2.8-4.6-5-9-5z"/></svg>Log in</a>
+          <a href="#" class="give">Give <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"/></svg></a>
+          <button type="button" class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mainNav"><span class="bars" aria-hidden="true"></span><span class="sr-only">Menu</span></button>
+        </div>
+        <nav class="mainnav" id="mainNav" aria-label="Main">
+          <a href="#">Patients &amp; Family</a>
+          <a href="#">Care &amp; Services</a>
+          <a href="#">Health Professionals</a>
+          <a href="#">About Us</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="notice">
+    <div class="wrap">
+      <span class="i" aria-hidden="true">i</span>
+      <p>As of Oct. 3, 2026, MyChart is now your new online health record at Children’s Minnesota. Learn more and activate your account now.</p>
+      <a class="btn-navy" href="#">Learn more</a>
+    </div>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#">Home</a> › <a href="#">MyChart</a> › <span>Bill Pay</span></nav>
+      <h1>Bill Pay</h1>
+      <p class="intro">Pay your Children’s Minnesota statement online as a guest. You don’t need a MyChart account &mdash; have your statement ready. The guarantor account number is printed in the top right corner.</p>
+
+      <div class="layout">
+        <section class="panel" aria-labelledby="payHeading">
+          <h2 id="payHeading">Guest bill pay</h2>
+          <p class="lede">For statements from appointments after Oct. 3, 2026.</p>
+          <div class="steps" aria-hidden="true"><span>1. Find statement</span><span class="on">2. Payment</span><span>3. Confirmation</span></div>
+          <form id="transferForm" novalidate>
+            <div class="grid2">
+              <div class="field full">
+                <label for="toAccount">Guarantor account</label>
+                <div class="control">
+                  <select id="toAccount">
+                    <option value="GTR-70048821" data-label="Account 7004-8821" data-statement="Oct. 12, 2026" data-balance="186.40">Account 7004-8821 &middot; Statement Oct. 12, 2026 &middot; $186.40 due</option>
+                    <option value="GTR-70043317" data-label="Account 7004-3317" data-statement="Oct. 19, 2026" data-balance="412.75">Account 7004-3317 &middot; Statement Oct. 19, 2026 &middot; $412.75 due</option>
+                  </select>
+                </div>
+                <span class="hint">Statements found for the guarantor details you entered.</span>
+              </div>
+              <div class="field">
+                <label for="accountTier">Payment option</label>
+                <div class="control">
+                  <select id="accountTier">
+                    <option value="standard" data-mode="full">Pay statement balance</option>
+                    <option value="standard" data-mode="other">Pay a different amount</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="amount">Payment amount</label>
+                <div class="control money"><input type="number" id="amount" value="186.40" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" readonly aria-describedby="amountHint"></div>
+                <span class="hint" id="amountHint">Up to the statement balance.</span>
+              </div>
+              <div class="field full">
+                <label for="fromAccount">Pay with</label>
+                <div class="control">
+                  <select id="fromAccount">
+                    <option value="ACCT-1001" data-label="Visa ending 4417">Visa ending 4417</option>
+                    <option value="ACCT-1002" data-label="Checking ending 0932">Checking account ending 0932</option>
+                  </select>
+                </div>
+                <span class="hint">Payment methods added in this guest session.</span>
+              </div>
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn-primary" id="submitBtn">Submit payment</button>
+              <button type="button" class="btn-link" id="cancelBtn">Start over</button>
+            </div>
+            <div class="secure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9h-1V7a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2zM9 7a3 3 0 0 1 6 0v2H9z"/></svg>Payments are processed over a secure, encrypted connection.</div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <aside>
+          <div class="summary">
+            <h2>Payment summary</h2>
+            <dl>
+              <dt>Guarantor account</dt><dd id="sumAccount">Account 7004-8821</dd>
+              <dt>Statement date</dt><dd id="sumStatement">Oct. 12, 2026</dd>
+              <dt>Statement balance</dt><dd id="sumBalance">$186.40</dd>
+              <dt>Pay with</dt><dd id="sumMethod">Visa ending 4417</dd>
+              <dt>Payment amount</dt><dd id="sumAmount">$186.40</dd>
+              <dt>Online processing fee</dt><dd id="sumFee">$2.50</dd>
+              <div class="total"><span>Total charged</span><span id="sumTotal">$188.90</span></div>
+              <div class="after"><span>Balance after payment</span><span id="sumRemaining">$0.00</span></div>
+            </dl>
+          </div>
+          <div class="side-card">
+            <h2>Care before Oct. 3, 2026?</h2>
+            <p>Statements for earlier visits are paid in our previous systems:</p>
+            <ul><li>MyChildren’s</li><li>healow bill pay</li></ul>
+          </div>
+        </aside>
+      </div>
+
+      <section class="info">
+        <h3>To request an itemized statement</h3>
+        <p>Itemized statements are available upon request. Call our financial customer service line to request one or to get questions answered about an itemized bill.</p>
+        <h3>Financial assistance</h3>
+        <p>Children’s Minnesota offers financial assistance for eligible patients and support from our financial counselors. Learn more about <a href="#">financial assistance</a>.</p>
+        <h3>Hospital bill benefits</h3>
+        <p>Enjoy the potential benefit of a prompt payment discount by paying your hospital bill in full. For more information, please reach out to our customer service team.</p>
+        <p class="refund">All transactions via Children’s Minnesota online are eligible for a refund if an overpayment is made. Please allow 10-14 business days for a refund.</p>
+      </section>
+    </div>
+  </main>
+
+  <section class="band">
+    <div class="wrap">
+      <div><h4>Patients and families</h4><p><a href="#">Find a primary or specialty care clinic location »</a></p><p><a href="#">Request an appointment »</a></p></div>
+      <div><h4>Doctors and healthcare providers</h4><p>Reach us 24/7 for patient referrals, consults, admissions and neonatal transport.</p><p><a href="#">Learn more about Physician Access »</a></p></div>
+    </div>
+  </section>
+  <div class="badges" aria-hidden="true"><div class="wrap"><span>Surgical Quality Partner</span><span>Verified Trauma Center</span><span>Healthcare Equality Leader</span><span>Accredited Hospital</span><span>Magnet Recognized</span></div></div>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-brand">
+        <a class="brand" href="#" aria-label="Children’s Minnesota home"><span class="mark" aria-hidden="true">C</span><span class="words"><span class="name">Children’s</span><span class="state">Minnesota</span><span class="tag">The Kid Experts</span></span></a>
+      </div>
+      <div><h4>Patients and families</h4><ul><li><a href="#">Sign in to MyChart</a></li><li><a href="#">Symptom checker</a></li><li><a href="#">Pay your bill</a></li><li><a href="#">Find a provider</a></li><li><a href="#">Price transparency</a></li></ul></div>
+      <div><h4>Visit Children’s Minnesota</h4><ul><li><a href="#">Locations</a></li><li><a href="#">Visiting hours &amp; guidelines</a></li><li><a href="#">Directions &amp; parking</a></li><li><a href="#">Minneapolis campus</a></li><li><a href="#">St. Paul campus</a></li></ul></div>
+      <div><h4>For health professionals</h4><ul><li><a href="#">Physician Access</a></li><li><a href="#">Employee &amp; physician login</a></li><li><a href="#">Talking Pediatrics podcast</a></li><li><a href="#">Refer a patient</a></li></ul></div>
+      <div><h4>About us</h4><ul><li><a href="#">Learn about us</a></li><li><a href="#">Meet our leaders</a></li><li><a href="#">News and blog</a></li><li><a href="#">Careers</a></li><li><a href="#">Media requests</a></li></ul></div>
+      <div><h4>Support Children’s Minnesota</h4><ul><li><a href="#">Volunteer</a></li><li><a href="#">Attend an event</a></li><li><a href="#">About giving</a></li><li><a href="#">Star Shop</a></li></ul><a class="give-now" href="#">Give now</a></div>
+    </div>
+    <div class="legal">
+      <p><a href="#">Home</a> | <a href="#">Privacy policy &amp; terms of use</a> | <a href="#">Contact us</a></p>
+      <p>&copy; 2026 Children’s Minnesota</p>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var menuBtn = document.getElementById('menuBtn');
+      var mainNav = document.getElementById('mainNav');
+      menuBtn.addEventListener('click', function () {
+        var open = mainNav.classList.toggle('open');
+        menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+
+      var form = document.getElementById('transferForm');
+      var fromSel = document.getElementById('fromAccount');
+      var toSel = document.getElementById('toAccount');
+      var amountEl = document.getElementById('amount');
+      var tierSel = document.getElementById('accountTier');
+      var btn = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      var pendingTimer = null;
+      var submitted = false;
+
+      function opt(sel) { return sel.options[sel.selectedIndex]; }
+      function cents(n) { return Math.round(n * 100); }
+      function money(c) { return '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+      function balanceCents() { return cents(parseFloat(opt(toSel).dataset.balance)); }
+      function payFull() { return opt(tierSel).dataset.mode === 'full'; }
+      function amountCents() {
+        var raw = String(amountEl.value).trim();
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return cents(parseFloat(raw));
+      }
+      /* Mirrors the payment service's standard fee: max(0.1% of the amount, $2.50). */
+      function feeCents(c) { return Math.max(Math.round(c / 1000), 250); }
+
+      function syncAmountMode() {
+        if (payFull()) {
+          amountEl.value = (balanceCents() / 100).toFixed(2);
+          amountEl.readOnly = true;
+        } else {
+          amountEl.readOnly = false;
+        }
+      }
+
+      function renderSummary() {
+        var to = opt(toSel), bal = balanceCents(), amt = amountCents();
+        document.getElementById('sumAccount').textContent = to.dataset.label;
+        document.getElementById('sumStatement').textContent = to.dataset.statement;
+        document.getElementById('sumBalance').textContent = money(bal);
+        document.getElementById('sumMethod').textContent = opt(fromSel).dataset.label;
+        var valid = !isNaN(amt) && amt > 0;
+        var fee = valid ? feeCents(amt) : 0;
+        document.getElementById('sumAmount').textContent = valid ? money(amt) : '\u2014';
+        document.getElementById('sumFee').textContent = valid ? money(fee) : '\u2014';
+        document.getElementById('sumTotal').textContent = valid ? money(amt + fee) : '\u2014';
+        document.getElementById('sumRemaining').textContent = valid ? money(Math.max(bal - amt, 0)) : '\u2014';
+      }
+
+      toSel.addEventListener('change', function () { syncAmountMode(); renderSummary(); });
+      tierSel.addEventListener('change', function () { syncAmountMode(); renderSummary(); if (!payFull()) amountEl.focus(); });
+      fromSel.addEventListener('change', renderSummary);
+      amountEl.addEventListener('input', renderSummary);
+      syncAmountMode();
+      renderSummary();
+
+      function show(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '<div class="title"></div><div class="detail"></div>';
+        result.firstChild.textContent = title;
+        result.lastChild.textContent = detail || '';
+        if (kind === 'pending') result.firstChild.insertAdjacentHTML('afterbegin', '<span class="spinner" aria-hidden="true"></span>');
+      }
+      function clearResult() { if (pendingTimer) clearTimeout(pendingTimer); pendingTimer = null; result.className = 'result-box'; result.innerHTML = ''; }
+      function lockForm(locked) { [fromSel, toSel, tierSel, amountEl, cancelBtn].forEach(function (el) { el.disabled = locked; }); }
+
+      var cancelBtn = document.getElementById('cancelBtn');
+      cancelBtn.addEventListener('click', function () {
+        form.reset();
+        submitted = false;
+        lockForm(false);
+        btn.disabled = false; btn.textContent = 'Submit payment';
+        clearResult();
+        syncAmountMode();
+        renderSummary();
+      });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (submitted) return;
+        var amt = amountCents(), bal = balanceCents();
+        if (isNaN(amt) || amt <= 0) { show('error', 'Enter a payment amount.', 'Use dollars and cents, for example 50.00.'); amountEl.focus(); return; }
+        if (amt > bal) { show('error', 'The payment is more than the statement balance.', 'The balance on ' + opt(toSel).dataset.label + ' is ' + money(bal) + '.'); amountEl.focus(); return; }
+
+        submitted = true;
+        btn.disabled = true; btn.textContent = 'Submitting\u2026';
+        clearResult();
+        show('pending', 'Submitting your payment\u2026', '');
+        pendingTimer = setTimeout(function () {
+          show('pending', 'Your payment is taking longer than usual.', 'Please stay on this page. You don\u2019t need to submit it again.');
+        }, 2500);
+        var payload = {
+          fromAccount: fromSel.value,
+          toAccount: toSel.value,
+          amount: parseFloat(amountEl.value),
+          accountTier: tierSel.value,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        };
+        lockForm(true);
+        try {
+          var res = await fetch('/api/banking/transfer', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (pendingTimer) clearTimeout(pendingTimer);
+          if (!res.ok) {
+            submitted = false;
+            lockForm(false);
+            btn.disabled = false; btn.textContent = 'Submit payment';
+            show('error', 'We couldn\u2019t process your payment right now.', 'Your card or account was not charged. Please try again in a few minutes.');
+          } else {
+            var ref = String(data.transferId || '').replace(/-/g, '').slice(0, 10).toUpperCase();
+            var fee = parseFloat(data.fee), debit = parseFloat(data.debitAmount);
+            var chargeCopy = !isNaN(fee) && !isNaN(debit) ? ' Total charged ' + money(cents(debit)) + ', including a ' + money(cents(fee)) + ' online processing fee.' : '';
+            btn.textContent = 'Payment submitted';
+            cancelBtn.disabled = false;
+            show('success', 'Thank you. Your payment was received.', money(amt) + ' was applied to ' + opt(toSel).dataset.label + ' from ' + opt(fromSel).dataset.label + '.' + chargeCopy + (ref ? ' Confirmation number ' + ref + '.' : ''));
+          }
+        } catch (err) {
+          if (pendingTimer) clearTimeout(pendingTimer);
+          submitted = false;
+          lockForm(false);
+          btn.disabled = false; btn.textContent = 'Submit payment';
+          show('error', 'We couldn\u2019t process your payment right now.', 'Please check your connection and try again.');
+        } finally {
+          pendingTimer = null;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

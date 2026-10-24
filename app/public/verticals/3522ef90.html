@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSeek V4 Pro 0813 | Model library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Chivo+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #19e76e;
+      --green-ink: #00b86b;
+      --tint: #f5f8f4;
+      --tag-line: #909a8b;
+      --tag-ink: #676e64;
+      --rule: #d9d9d9;
+      --sans: NeueAlteGrotesk, 'Onest', ui-sans-serif, system-ui, sans-serif;
+      --ui: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+      --mono: chivoMono, 'Chivo Mono', ui-monospace, monospace;
+      --dash-v: repeating-linear-gradient(#d9d9d9, #d9d9d9 50%, transparent 0, transparent);
+      --dash-h: repeating-linear-gradient(to right, #d9d9d9 0, #d9d9d9 50%, transparent 0, transparent);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { background: #fff; color: #000; font-family: var(--ui); font-size: 16px; line-height: 24px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    .container { width: 100%; max-width: 1296px; margin: 0 auto; padding: 0 16px; position: relative; }
+
+    /* dashed construction lines */
+    .vl, .hl { position: absolute; pointer-events: none; z-index: 0; }
+    .vl { top: 0; bottom: 0; width: 1px; background: var(--dash-v); background-size: 1px 8px; }
+    .hl { height: 1px; background: var(--dash-h); background-size: 8px 1px; }
+
+    /* announcement */
+    .announce { background: var(--green); padding: 8px 16px; text-align: center; font-size: 16px; line-height: 24px; }
+    .announce a { font-family: var(--mono); font-size: 14px; line-height: 20px; text-transform: uppercase; text-decoration: underline; text-underline-offset: 3px; margin-left: 4px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+    .announce svg { width: 16px; height: 16px; }
+
+    /* header */
+    .header { position: sticky; top: 0; z-index: 50; background: #fff; border-bottom: 1px dashed #ccc; }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 86px; }
+    .nav-left, .nav-right { display: flex; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 9px; height: 34px; width: 131px; margin-right: 24px; }
+    .logo svg { width: 22px; height: 26px; flex: none; }
+    .logo span { font-family: var(--sans); font-size: 29px; line-height: 34px; font-weight: 400; letter-spacing: 0.8px; }
+    .nl { position: relative; display: flex; align-items: center; gap: 4px; padding: 7px 12px; height: 38px; margin-right: 2px; font-size: 16px; line-height: 24px; background: none; border: 0; cursor: pointer; overflow: hidden; }
+    .nl::after { content: ''; position: absolute; inset: 0; background: var(--green); transform: translateY(100%); transition: transform .15s ease; z-index: -1; }
+    .nl:hover::after { transform: translateY(0); }
+    .nl svg { width: 10px; height: 10px; color: #676e64; }
+    .nav-right .nl.last { margin-right: 7px; }
+    .mbtn { position: relative; display: inline-flex; align-items: center; gap: 12px; font-family: var(--mono); text-transform: uppercase; font-size: 14px; line-height: 18px; letter-spacing: -0.28px; padding: 9px 16px; height: 36px; white-space: nowrap; overflow: hidden; isolation: isolate; cursor: pointer; border: 0; }
+    .mbtn::after { content: ''; position: absolute; inset: 0; transform: translateY(100%); transition: transform .15s ease; z-index: -1; }
+    .mbtn:hover::after { transform: translateY(0); }
+    .mbtn.dark { background: #000; color: #fff; }
+    .mbtn.dark::after { background: var(--green); }
+    .mbtn.light { background: #fff; color: #000; box-shadow: inset 0 0 0 1px #e6e6e6; }
+    .mbtn.light::after { background: var(--tint); }
+    .mbtn.lg { font-size: 16px; line-height: 24px; letter-spacing: -0.32px; padding: 12px 16px; height: 48px; }
+    .mbtn svg { width: 16px; height: 16px; flex: none; }
+    .nav-right .mbtn + .mbtn { margin-left: 16px; }
+    .burger { display: none; position: relative; width: 24px; height: 24px; background: none; border: 0; }
+    .burger::before { content: ''; position: absolute; inset: -10px; }
+    .burger i { position: absolute; left: 0; width: 24px; height: 1px; background: #000; }
+    .burger i:first-child { top: 8px; } .burger i:last-child { top: 16px; }
+
+    /* hero */
+    .hero { position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0 0 auto; height: 440px; background: linear-gradient(#fff, rgba(255,255,255,0)); }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 24px; padding: 112px 0; position: relative; }
+    .hero-left { position: relative; z-index: 1; }
+    .row { position: relative; }
+    .row > .hl { left: -100vw; right: 0; }
+    .row > .hl.t { top: 0; } .row > .hl.b { bottom: 0; }
+    .tagrow { padding-top: 1px; height: 27px; }
+    .tag { display: inline-flex; align-items: center; font-family: var(--mono); font-size: 16px; line-height: 16px; text-transform: uppercase; color: var(--tag-ink); background: var(--tint); border: 1px solid var(--tag-line); padding: 4px 8px; white-space: nowrap; }
+    .tag.api { color: #000; background: #f4fef9; border-color: var(--green); }
+    .h1row { margin-top: 32px; height: 73px; display: flex; align-items: flex-start; gap: 12px; }
+    .h1row .avatar { margin-top: 6px; }
+    .h1row h1 { margin-top: -1px; }
+    .avatar { flex: none; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 9999px; background: var(--tint); border: 1px solid #e6e6e6; }
+    .avatar img { width: 26px; height: 26px; mix-blend-mode: darken; object-fit: contain; }
+    .avatar.sm { width: 48px; height: 48px; border-color: #e5e7eb; }
+    .avatar.sm img { width: 22px; height: 22px; mix-blend-mode: multiply; }
+    .avatar .fb { display: none; font-family: var(--mono); font-size: 13px; color: #4d6bfe; }
+    h1 { font-family: var(--sans); font-size: 64px; line-height: 70px; font-weight: 600; letter-spacing: -1.92px; white-space: nowrap; }
+    .subrow { margin-top: 33px; height: 60px; }
+    .subrow p { font-family: var(--sans); font-size: 22px; line-height: 30px; max-width: 727px; }
+    .btnrow { margin-top: 30px; height: 51px; padding-top: 2px; display: flex; gap: 16px; }
+    .art { position: relative; }
+    .art svg { position: absolute; left: 74px; top: -52px; width: 300px; height: 400px; overflow: visible; }
+    .hero .vl.c1 { left: 16px; } .hero .vl.c3 { right: 16px; }
+    .hero .vl.c2 { left: calc(16px + (100% - 32px - 24px) * 7 / 12); }
+
+    /* details */
+    .details { position: relative; }
+    .details-grid { display: grid; grid-template-columns: minmax(0, 416fr) minmax(0, 848fr); padding: 39px 0 128px; position: relative; }
+    .details .vl.d1 { left: 16px; } .details .vl.d2 { left: calc(16px + (100% - 32px) * 416 / 1264); } .details .vl.d3 { right: 16px; }
+    .side { padding: 0 24px; position: relative; z-index: 1; }
+    .side h3 { font-family: var(--sans); font-size: 32px; line-height: 44px; font-weight: 600; letter-spacing: -1.28px; }
+    .side dl { margin-top: 16px; }
+    .side dt { font-weight: 600; font-size: 16px; line-height: 20px; letter-spacing: -0.32px; }
+    .side dd { margin: 6px 0 18px; font-size: 14px; line-height: 20px; letter-spacing: -0.28px; }
+    .side dd.lk { font-size: 16px; letter-spacing: 0; }
+    .side .pricing { margin-top: 27px; }
+    .side .per { font-family: var(--sans); margin-top: 4px; }
+    .side .see { display: inline-block; margin-top: 4px; font-family: var(--sans); }
+    .side .repo { margin-top: 19px; }
+    .side .repo svg { width: 14px; height: 14px; }
+    .main { padding: 0 19px 0 21px; position: relative; z-index: 1; font-family: var(--sans); }
+    .main p { margin-bottom: 20px; }
+    .main a.u { font-weight: 500; color: #111827; text-decoration: underline; text-underline-offset: 4px; }
+    .main ul { list-style: none; margin: 6px 0 20px; }
+    .main li { position: relative; padding-left: 32px; margin-bottom: 22.5px; }
+    .main li::before { content: ''; position: absolute; left: 12px; top: 10px; width: 5px; height: 5px; border-radius: 50%; background: #d1d5db; }
+    .main li:last-child { margin-bottom: 0; }
+    .spec { margin: 30px 2px 38px; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.26); font-family: var(--ui); }
+    .spec table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 24px; table-layout: fixed; }
+    .spec th { background: #f9fafb; color: #6b7280; font-weight: 600; text-align: left; padding: 14px 12px; border-bottom: 1px solid #e5e7eb; }
+    .spec td { padding: 12px; border-top: 1px solid #e5e7eb; vertical-align: top; }
+    .spec tr:first-child td { border-top: 0; }
+    .spec th:first-child, .spec td:first-child { width: 47%; }
+    .spec th + th, .spec td + td { border-left: 1px solid #e5e7eb; padding-left: 24px; }
+
+    /* code / playground block */
+    .code { border: 1px solid var(--rule); background: #fff; font-family: var(--ui); scroll-margin-top: 120px; }
+    .code-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; }
+    .code-head .t { font-weight: 500; font-size: 16px; line-height: 24px; }
+    .tab { font-family: var(--mono); font-size: 14px; line-height: 14px; font-weight: 500; letter-spacing: -0.28px; text-transform: uppercase; padding: 8px 12px; background: #e1eadd; }
+    .ttft { font-family: var(--mono); font-size: 14px; line-height: 14px; letter-spacing: -0.28px; color: var(--tag-ink); text-transform: uppercase; padding: 8px 0; white-space: nowrap; }
+    .ttft.waiting { color: #d91e18; }
+    .ttft.done { color: #000; }
+    .code-body { padding: 0 16px 24px; font-family: var(--mono); font-size: 14px; line-height: 21px; color: #545454; }
+    .field { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: start; margin-bottom: 12px; }
+    .ln { color: var(--tag-ink); padding-top: 12px; user-select: none; }
+    .field label { display: block; color: #008000; margin-bottom: 6px; }
+    .field label .k { color: #545454; }
+    .ctl { width: 100%; min-height: 44px; padding: 11px 12px; border: 1px solid var(--rule); border-radius: 0; background: #fff; color: #000; font-family: var(--mono); font-size: 14px; line-height: 21px; outline: none; appearance: none; -webkit-appearance: none; }
+    .ctl:focus-visible { border-color: #000; }
+    textarea.ctl { min-height: 86px; resize: vertical; color: var(--green-ink); }
+    select.ctl { cursor: pointer; padding-right: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M1.5 3.5 5 7l3.5-3.5' stroke='%23676e64' stroke-width='1.2' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    .pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+    .field .lbl-row { min-width: 0; }
+    .run-row { display: grid; grid-template-columns: 32px minmax(0, 1fr); margin-top: 4px; }
+    .run-row .mbtn { justify-self: start; }
+    .run-row .mbtn:disabled { opacity: .5; cursor: default; }
+    .out-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; border-top: 1px solid var(--rule); font-family: var(--ui); }
+    .out-head .t { font-weight: 500; font-size: 16px; line-height: 24px; }
+    .out { display: grid; grid-template-columns: 32px minmax(0, 1fr); padding: 0 16px 24px; font-family: var(--mono); font-size: 14px; line-height: 21px; color: #545454; min-height: 192px; }
+    .out .ln { padding-top: 0; }
+    .stream { white-space: pre-wrap; word-break: break-word; color: #000; }
+    .stream .ph { color: #9aa196; }
+    .caret { display: inline-block; width: 8px; height: 15px; background: var(--green); vertical-align: -3px; animation: blink 1s steps(2, start) infinite; }
+    @keyframes blink { to { visibility: hidden; } }
+    .usage { grid-column: 2; margin-top: 12px; color: var(--tag-ink); }
+    .result { display: none; margin: 0 16px 24px; padding: 10px 12px; font-family: var(--mono); font-size: 14px; line-height: 21px; }
+    .result.success { display: block; background: #f4fef9; border: 1px solid var(--green); color: #000; }
+    .result.error { display: block; background: #fff5f5; border: 1px solid #d91e18; color: #d91e18; }
+    .result .rd { color: var(--tag-ink); word-break: break-all; }
+
+    /* model card sections */
+    .band { position: relative; padding: 48px 0 72px; }
+    .band > .hl { top: 0; left: 0; right: 0; }
+    .band .vl { top: -48px; bottom: -50px; }
+    .band .vl.e1 { left: 16px; } .band .vl.e2 { right: 16px; }
+    .band .cards { position: relative; }
+    .band .cards::before, .band .cards::after { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: var(--dash-h); background-size: 8px 1px; pointer-events: none; }
+    .band .cards::before { top: -24px; } .band .cards::after { bottom: -22px; }
+    .band .container { position: relative; }
+    .band.alt { background: var(--tint); }
+    .band-head .mbtn { gap: 6px; }
+    .band-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 48px; }
+    h2 { font-family: var(--sans); font-size: 32px; line-height: 44px; font-weight: 600; letter-spacing: -1.28px; }
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+    .card { border: 1px solid rgba(0,0,0,.05); padding: 1px; height: 184px; }
+    .card-in { background: #fff; padding: 24px; height: 100%; }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .tags { display: flex; gap: 8px; }
+    .card h4 { margin-top: 16px; font-family: var(--sans); font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.48px; }
+    .card .sub { margin-top: 16px; font-size: 14px; line-height: 20px; text-transform: uppercase; }
+    .card .sub i { font-style: normal; margin: 0 4px; }
+
+    /* explore */
+    .explore { position: relative; padding: 128px 0 165px; text-align: center; }
+    .explore h2 { font-size: 64px; line-height: 70px; letter-spacing: -1.92px; }
+    .explore .btns { margin-top: 32px; display: flex; justify-content: center; gap: 16px; }
+
+    /* footer */
+    footer { background: #000; color: #fff; padding-top: 52px; position: relative; }
+    .fnav { display: flex; padding: 64px 32px 0; gap: 48px; font-family: var(--sans); }
+    .fbrand { width: 270px; flex: none; }
+    .fbrand .logo { margin: 0; color: #fff; }
+    .social { display: flex; gap: 12px; margin-top: 24px; color: #e6e6e6; }
+    .social svg { width: 24px; height: 24px; }
+    .fcols { display: grid; grid-template-columns: 198px 213px 142px auto; gap: 40px; flex: 1; }
+    .fpair { display: contents; }
+    .fh { color: #b3b3b3; letter-spacing: -0.32px; padding: 8px 0; margin-bottom: 15px; }
+    .fg { margin-bottom: 29px; }
+    .fg a { display: block; margin-bottom: 12px; line-height: 24px; white-space: nowrap; }
+    .fg a:hover { color: var(--green); }
+    .fbottom { display: flex; align-items: center; justify-content: space-between; padding: 79px 32px 32px; }
+    .status { display: inline-flex; align-items: center; gap: 8px; padding: 4px 8px; background: rgba(15,139,66,.5); color: var(--green); font-family: var(--mono); font-size: 14px; line-height: 18px; text-transform: uppercase; }
+    .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .5; } }
+    .fright { display: flex; align-items: center; gap: 28px; }
+    .copy { font-family: var(--mono); font-size: 12px; line-height: 16px; color: #b3b3b3; text-transform: uppercase; padding: 8px 0; }
+    .badges { display: flex; align-items: center; gap: 28px; }
+    .badges img { height: 40px; width: auto; }
+    .fend { position: relative; height: 121px; }
+    .fend .hl { top: 0; left: 0; right: 0; background-image: repeating-linear-gradient(to right, #333 0, #333 50%, transparent 0, transparent); }
+    .fend .vl { background-image: repeating-linear-gradient(#333, #333 50%, transparent 0, transparent); }
+
+    @media (max-width: 1023px) {
+      .nav { height: 62px; }
+      .nav-left .nl, .nav-right { display: none; }
+      .burger { display: block; }
+      .hero-grid { grid-template-columns: 1fr; padding: 39px 0 39px; }
+      .art { display: none; }
+      .hero .vl.c2 { display: none; }
+      .tagrow { height: 27px; }
+      .h1row { margin-top: 16px; height: 104px; align-items: center; }
+      .h1row .avatar, .h1row h1 { margin-top: 0; }
+      .avatar.hero-av { width: 37px; }
+      h1 { font-size: 44px; line-height: 48px; letter-spacing: -1.32px; white-space: normal; padding: 4px 0; text-wrap: balance; }
+      .subrow { margin-top: 16px; height: auto; padding-bottom: 1px; }
+      .subrow p { font-size: 16px; line-height: 24px; }
+      .btnrow { margin-top: 13px; height: auto; flex-direction: column; gap: 16px; padding: 2px 1px 1px; }
+      .btnrow .mbtn { width: 100%; height: 42px; font-size: 14px; line-height: 18px; letter-spacing: -0.28px; }
+      .btnrow .mbtn::before { content: ''; position: absolute; inset: -2px 0; }
+      .details-grid { grid-template-columns: 1fr; padding: 39px 0 103px; }
+      .details .vl.d2 { display: none; }
+      .side h3 { font-size: 22px; line-height: 26px; letter-spacing: -0.44px; }
+      .side .repo { height: 26px; padding: 4px 8px; font-size: 12px; line-height: 18px; gap: 8px; }
+      .main { padding: 40px 20px 0 8px; }
+      .band-head { margin-bottom: 48px; }
+      h2 { font-size: 22px; line-height: 26px; letter-spacing: -0.44px; }
+      .band-head { gap: 8px; }
+      .band-head h2 { white-space: nowrap; }
+      .band-head .mbtn { height: 26px; padding: 4px 8px; font-size: 12px; line-height: 18px; gap: 6px; }
+      .band-head .mbtn::before { content: ''; position: absolute; inset: -9px 0; }
+      .cards { grid-template-columns: 1fr; }
+      .card { height: 174px; }
+      .card h4 { font-size: 20px; line-height: 22px; letter-spacing: -0.4px; }
+      .explore { padding: 96px 0 120px; }
+      .explore h2 { font-size: 44px; line-height: 48px; letter-spacing: -1.32px; }
+      .explore .btns { flex-direction: column; align-items: stretch; }
+      .explore .mbtn { height: 42px; font-size: 14px; line-height: 18px; justify-content: space-between; }
+      .fnav { flex-direction: column; padding: 32px 0 0; gap: 24px; }
+      .fbrand .social { display: none; }
+      .fcols { grid-template-columns: 1fr 1fr; gap: 0 16px; }
+      .fpair { display: block; }
+      .fh { font-size: 12px; line-height: 18px; margin-bottom: 14px; }
+      .fg { margin-bottom: 24px; }
+      .fg a { margin-bottom: 8px; white-space: normal; }
+      .fbottom { flex-wrap: wrap; gap: 16px; padding: 24px 0 48px; border-top: 1px solid #222; margin-top: 26px; }
+      .fend { display: none; }
+      .fbottom .msocial { display: flex; margin-top: 0; }
+      .fright { width: 100%; justify-content: space-between; }
+      .badges img { height: 24px; }
+      .badges { gap: 16px; }
+    }
+    @media (min-width: 1024px) { .msocial { display: none !important; } }
+    @media (max-width: 1150px) { .nav-left .nl, .nav-right { display: none; } .burger { display: block; } }
+    @media (max-width: 1023px) and (min-width: 700px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 1240px) and (min-width: 1024px) { .nav-left .nl { padding: 7px 8px; } .fcols { grid-template-columns: repeat(4, minmax(0, 1fr)); } .fbrand { width: 180px; } h1 { font-size: 52px; letter-spacing: -1.5px; } }
+  </style>
+</head>
+<body>
+  <div class="announce">Use your OpenAI commitments on Baseten open models. <a href="#">Learn more <svg viewBox="0 0 16 16" fill="none"><path d="M6.5 4.5 10 8l-3.5 3.5" stroke="currentColor" stroke-width="1.2"/></svg></a></div>
+
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <div class="nav-left">
+          <a class="logo" href="#" aria-label="Baseten">
+            <svg viewBox="0 0 22 26" aria-hidden="true"><rect x="0" y="0" width="22" height="5"/><rect x="8" y="7" width="14" height="5"/><rect x="0" y="14" width="8" height="5"/><rect x="14" y="14" width="8" height="5"/><rect x="8" y="21" width="8" height="5"/></svg>
+            <span>baseten</span>
+          </a>
+          <button class="nl" type="button">Products <svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5 5 6.5 8 3.5" stroke="currentColor"/></svg></button>
+          <button class="nl" type="button">Solutions <svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5 5 6.5 8 3.5" stroke="currentColor"/></svg></button>
+          <button class="nl" type="button">Resources <svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5 5 6.5 8 3.5" stroke="currentColor"/></svg></button>
+          <a class="nl" href="#">Models</a>
+          <a class="nl" href="#">Customers</a>
+          <a class="nl" href="#">Pricing</a>
+        </div>
+        <div class="nav-right">
+          <a class="nl" href="#">Base Labs</a>
+          <a class="nl last" href="#">Docs</a>
+          <a class="mbtn light" href="#">Log in</a>
+          <a class="mbtn dark" href="#">Get started</a>
+        </div>
+        <button class="burger" type="button" aria-label="Menu"><i></i><i></i></button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <span class="vl c1"></span><span class="vl c2"></span><span class="vl c3"></span>
+        <div class="hero-grid">
+          <div class="hero-left">
+            <div class="row tagrow"><span class="hl t"></span><span class="tag">LLM</span><span class="hl b"></span></div>
+            <div class="row h1row"><span class="hl t"></span>
+              <span class="avatar hero-av"><img src="https://www.datocms-assets.com/104802/1735223982-frame-14663.png?auto=compress%2Cformat&w=64" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="fb">DS</span></span>
+              <h1>DeepSeek V4 Pro 0813</h1>
+              <span class="hl b"></span></div>
+            <div class="row subrow"><span class="hl t"></span><p>DeepSeek V4 Pro 0813 is the latest 1.6T-parameter open frontier model from DeepSeek AI</p><span class="hl b"></span></div>
+            <div class="row btnrow"><span class="hl t"></span>
+              <a class="mbtn dark lg" href="#try">Try model API <svg viewBox="0 0 16 16" fill="none"><path d="M6.5 4.5 10 8l-3.5 3.5" stroke="currentColor" stroke-width="1.2"/></svg></a>
+              <a class="mbtn light lg" href="#">Talk to an engineer <svg viewBox="0 0 16 16" fill="none"><path d="M6.5 4.5 10 8l-3.5 3.5" stroke="currentColor" stroke-width="1.2"/></svg></a>
+              <span class="hl b"></span></div>
+          </div>
+          <div class="art" aria-hidden="true">
+            <svg viewBox="0 0 300 400" fill="none">
+              <g transform="translate(150 22)"><path d="M0 0 22 10 0 20-22 10Z" fill="#f9c8f6"/><path d="M0 10 22 20 0 30-22 20Z" fill="#f5b3f1" opacity=".85"/></g>
+              <path d="M150 116 172 126 150 136 128 126Z" fill="#f7c0f3"/>
+              <g font-family="Chivo Mono, monospace" font-size="11" fill="#2fbf71"><text x="44" y="150">B</text><text x="88" y="150">N</text><text x="62" y="176">S</text><text x="82" y="194">B</text><text x="30" y="200">T</text></g>
+              <path d="M150 178 202 202 150 226 98 202Z" fill="#d6f7e4"/>
+              <path d="M84 230 154 196 154 296 84 330Z" stroke="#38d27e" stroke-dasharray="4 4"/>
+              <path d="M196 262 262 230 262 330 196 362Z" stroke="#38d27e" stroke-dasharray="4 4"/>
+              <path d="M150 210 218 244 150 278 82 244Z" fill="#dff9ea" stroke="#3fd585"/>
+              <path d="M150 226 186 244 150 262 114 244Z" fill="#b9f2d2"/>
+              <path d="M82 244 150 278 150 362 82 328Z" fill="#c9f6dc" stroke="#3fd585"/>
+              <path d="M218 244 150 278 150 362 218 328Z" fill="#7de8a8" stroke="#3fd585"/>
+              <path d="M150 336 202 360 150 384 98 360Z" fill="#c4f4d8" opacity=".9"/>
+              <path d="M150 356 186 372 150 392 114 372Z" fill="#d6f7e4" opacity=".8"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="details">
+      <div class="container">
+        <span class="vl d1"></span><span class="vl d2"></span><span class="vl d3"></span>
+        <div class="details-grid">
+          <aside class="side">
+            <h3>Model details</h3>
+            <dl>
+              <dt>Developed by</dt><dd class="lk"><a href="#">DeepSeek</a></dd>
+              <dt>Model family</dt><dd class="lk"><a href="#">DeepSeek</a></dd>
+              <dt>Version</dt><dd>V4</dd>
+              <dt>Variant</dt><dd>Pro 0813</dd>
+              <dt>Size</dt><dd>1.6T-A49B</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+            <h3 class="pricing">Model API pricing</h3>
+            <p class="per">Per 1M tokens</p>
+            <dl>
+              <dt>Input</dt><dd>$1.32</dd>
+              <dt>Cache input</dt><dd>$0.132</dd>
+              <dt>Output</dt><dd>$3.96</dd>
+            </dl>
+            <a class="see" href="#">See all pricing</a><br>
+            <a class="mbtn dark repo" href="#">View repository <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9.5c0-3 2.2-5 5-5s5 2 5 5v3H3Z"/><circle cx="6" cy="9" r=".8" fill="currentColor"/><circle cx="10" cy="9" r=".8" fill="currentColor"/></svg></a>
+          </aside>
+
+          <div class="main">
+            <p>As a 1.7T-parameter frontier model, DeepSeek V4 Pro 0813 works well alongside its smaller sibling, <a class="u" href="#">V4 Flash 0731</a>, in coding agents. With Pro powering a main agent and Flash running sub-agents, your whole coding stack runs on open weight models.</p>
+            <p>DeepSeek V4 Pro offers substantial cost savings versus frontier closed models:</p>
+            <ul>
+              <li>Input tokens (cache miss): $1.32/m</li>
+              <li>Input tokens (cache hit): $0.132/m</li>
+              <li>Output tokens: $3.96/m</li>
+            </ul>
+            <p>Whether you&rsquo;re running evals, writing code, or powering agents in your product, try DeepSeek V4 Pro 0813 on Baseten today.</p>
+            <p><a class="u" href="#">See HuggingFace model card</a>.</p>
+
+            <div class="spec">
+              <table>
+                <thead><tr><th>Attribute</th><th>Value</th></tr></thead>
+                <tbody>
+                  <tr><td>Parameter Size</td><td>1.7T-A49B</td></tr>
+                  <tr><td>Context Length</td><td>1M</td></tr>
+                  <tr><td>Input Modalities</td><td>Text</td></tr>
+                  <tr><td>Output Modalities</td><td>Text</td></tr>
+                  <tr><td>Supported Features</td><td>Tool Use<br>JSON mode<br>Structured Outputs<br>Reasoning</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="code" id="try">
+              <div class="code-head"><span class="t">Input</span><span class="tab">POST /v1/chat/completions</span></div>
+              <form id="completionForm" class="code-body">
+                <div class="field">
+                  <span class="ln">1</span>
+                  <div class="lbl-row">
+                    <label for="prompt"><span class="k">"messages":</span> [{"role": "user", "content":</label>
+                    <textarea id="prompt" class="ctl">Explain continuous batching in one paragraph.</textarea>
+                  </div>
+                </div>
+                <div class="field">
+                  <span class="ln">2</span>
+                  <div class="pair">
+                    <div class="lbl-row">
+                      <label for="model"><span class="k">"model":</span></label>
+                      <select id="model" class="ctl">
+                        <option value="deepseek-v3">deepseek-ai/DeepSeek-V4-Pro-0813</option>
+                        <option value="qwen3-32b">zai-org/GLM-5.3</option>
+                        <option value="llama-3.3-70b">moonshotai/Kimi-K3</option>
+                      </select>
+                    </div>
+                    <div class="lbl-row">
+                      <label for="deployment"><span class="k">"deployment":</span></label>
+                      <select id="deployment" class="ctl">
+                        <option value="chat-prod">chat-prod</option>
+                        <option value="autocomplete-prod">autocomplete-prod</option>
+                        <option value="batch-eval">batch-eval</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <span class="ln">3</span>
+                  <div class="pair">
+                    <div class="lbl-row">
+                      <label for="maxTokens"><span class="k">"max_tokens":</span></label>
+                      <input id="maxTokens" class="ctl" type="number" value="64" min="8" max="512">
+                    </div>
+                    <div class="lbl-row">
+                      <label><span class="k">"stream":</span></label>
+                      <div class="ctl" style="color:#008000">true</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="run-row"><span></span>
+                  <button type="submit" class="mbtn dark lg" id="submitBtn">Run request <svg viewBox="0 0 16 16" fill="none"><path d="M6.5 4.5 10 8l-3.5 3.5" stroke="currentColor" stroke-width="1.2"/></svg></button>
+                </div>
+              </form>
+              <div class="out-head"><span class="t">Output</span><span class="ttft" id="ttft">TTFT &mdash;</span></div>
+              <div class="out">
+                <span class="ln">1</span>
+                <div class="stream" id="stream"><span class="ph">Run the request to stream a response.</span></div>
+                <div class="usage" id="usage"></div>
+              </div>
+              <div id="result" class="result"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <span class="hl"></span>
+      <div class="container"><span class="vl e1"></span><span class="vl e2"></span>
+        <div class="band-head"><h2>Large Language models</h2><a class="mbtn light" href="#">See all <svg viewBox="0 0 16 16" fill="none"><path d="M6.5 4.5 10 8l-3.5 3.5" stroke="currentColor" stroke-width="1.2"/></svg></a></div>
+        <div class="cards">
+          <div class="card"><div class="card-in"><div class="card-top"><span class="avatar sm"><img src="https://www.datocms-assets.com/104802/1735223982-frame-14663.png?auto=compress%2Cformat&w=64" alt="" onerror="this.remove()"></span><span class="tags"><span class="tag api">Model API</span><span class="tag">LLM</span></span></div><h4>DeepSeek V4.1 Flash 1017</h4><div class="sub">V4.1<i>-</i>Flash 1017</div></div></div>
+          <div class="card"><div class="card-in"><div class="card-top"><span class="avatar sm"><img src="https://www.datocms-assets.com/104802/1735223982-frame-14663.png?auto=compress%2Cformat&w=64" alt="" onerror="this.remove()"></span><span class="tags"><span class="tag api">Model API</span><span class="tag">LLM</span></span></div><h4>DeepSeek V4.1 Flash</h4><div class="sub">V4.1<i>-</i>Flash</div></div></div>
+          <div class="card"><div class="card-in"><div class="card-top"><span class="avatar sm"><img src="https://www.datocms-assets.com/104802/1786395649-meta_ai_logo-2026-svg.webp?auto=compress%2Cformat&w=64" alt="" onerror="this.remove()"></span><span class="tags"><span class="tag api">Model API</span><span class="tag">LLM</span></span></div><h4>Muse Spark Open</h4><div class="sub">Open</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <span class="hl"></span>
+      <div class="container"><span class="vl e1"></span><span class="vl e2"></span>
+        <div class="band-head"><h2>DeepSeek models</h2><a class="mbtn light" href="#">See all <svg viewBox="0 0 16 16" fill="none"><path d="M6.5 4.5 10 8l-3.5 3.5" stroke="currentColor" stroke-width="1.2"/></svg></a></div>
+        <div class="cards">
+          <div class="card"><div class="card-in"><div class="card-top"><span class="avatar sm"><img src="https://www.datocms-assets.com/104802/1735223982-frame-14663.png?auto=compress%2Cformat&w=64" alt="" onerror="this.remove()"></span><span class="tags"><span class="tag api">Model API</span><span class="tag">LLM</span></span></div><h4>DeepSeek V4.1 Flash 1017</h4><div class="sub">V4.1<i>-</i>Flash 1017</div></div></div>
+          <div class="card"><div class="card-in"><div class="card-top"><span class="avatar sm"><img src="https://www.datocms-assets.com/104802/1735223982-frame-14663.png?auto=compress%2Cformat&w=64" alt="" onerror="this.remove()"></span><span class="tags"><span class="tag api">Model API</span><span class="tag">LLM</span></span></div><h4>DeepSeek V4.1 Flash</h4><div class="sub">V4.1<i>-</i>Flash</div></div></div>
+          <div class="card"><div class="card-in"><div class="card-top"><span class="avatar sm"><img src="https://www.datocms-assets.com/104802/1735223982-frame-14663.png?auto=compress%2Cformat&w=64" alt="" onerror="this.remove()"></span><span class="tags"><span class="tag api">Model API</span><span class="tag">LLM</span></span></div><h4>DeepSeek V4.1 Flash Fast</h4><div class="sub">V4.1<i>-</i>Fast</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band alt">
+      <div class="container"><span class="vl e1"></span><span class="vl e2"></span>
+        <div class="band-head"><h2>&#128293; Trending models</h2></div>
+        <div class="cards">
+          <div class="card"><div class="card-in"><div class="card-top"><span class="avatar sm"><img src="https://www.datocms-assets.com/104802/1792517094-base-labs-favicon-4x4.png?auto=compress%2Cformat&w=64" alt="" onerror="this.remove()"></span><span class="tags"><span class="tag">System one decision</span></span></div><h4>mammoth-1</h4></div></div>
+          <div class="card"><div class="card-in"><div class="card-top"><span class="avatar sm"><img src="https://www.datocms-assets.com/104802/1792517094-base-labs-favicon-4x4.png?auto=compress%2Cformat&w=64" alt="" onerror="this.remove()"></span><span class="tags"><span class="tag">System one decision</span></span></div><h4>elephant-1</h4></div></div>
+          <div class="card"><div class="card-in"><div class="card-top"><span class="avatar sm"><img src="https://www.datocms-assets.com/104802/1786395649-meta_ai_logo-2026-svg.webp?auto=compress%2Cformat&w=64" alt="" onerror="this.remove()"></span><span class="tags"><span class="tag api">Model API</span><span class="tag">LLM</span></span></div><h4>Muse Spark Open</h4><div class="sub">Open</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="explore">
+      <div class="container">
+        <h2>Explore Baseten today</h2>
+        <div class="btns">
+          <a class="mbtn dark lg" href="#">Start deploying <svg viewBox="0 0 16 16" fill="none"><path d="M6.5 4.5 10 8l-3.5 3.5" stroke="currentColor" stroke-width="1.2"/></svg></a>
+          <a class="mbtn light lg" href="#">Talk to an engineer <svg viewBox="0 0 16 16" fill="none"><path d="M6.5 4.5 10 8l-3.5 3.5" stroke="currentColor" stroke-width="1.2"/></svg></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="fnav">
+        <div class="fbrand">
+          <a class="logo" href="#" aria-label="Baseten">
+            <svg viewBox="0 0 22 26" aria-hidden="true" fill="#fff"><rect x="0" y="0" width="22" height="5"/><rect x="8" y="7" width="14" height="5"/><rect x="0" y="14" width="8" height="5"/><rect x="14" y="14" width="8" height="5"/><rect x="8" y="21" width="8" height="5"/></svg>
+            <span>baseten</span>
+          </a>
+          <div class="social" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.7.4-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.3 4.7-4.6 4.9.4.3.7.9.7 1.9V21c0 .3.2.6.7.5A10 10 0 0 0 12 2Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l16 16M20 4 4 20"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3Zm3 7v8h2.5v-8Zm1.25-4a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8ZM10.5 10v8H13v-4.2c0-1.2.6-1.8 1.5-1.8s1.5.6 1.5 1.8V18h2.5v-4.8c0-2.4-1.3-3.4-3-3.4-1.1 0-1.9.5-2.5 1.2V10Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15V9l5.2 3Z"/></svg>
+          </div>
+        </div>
+        <div class="fcols">
+          <div class="fpair">
+            <div>
+              <div class="fg"><p class="fh">Product</p><a href="#">Dedicated Inference</a><a href="#">Model APIs</a><a href="#">Training</a><a href="#">Model Labs</a></div>
+              <div class="fg"><p class="fh">Baseten Inference Platform</p><a href="#">Model Runtimes</a><a href="#">Infrastructure</a><a href="#">Multi-cloud</a></div>
+              <div class="fg"><p class="fh">Deployment options</p><a href="#">Cloud</a><a href="#">Self-hosted</a><a href="#">Hybrid</a></div>
+            </div>
+            <div>
+              <div class="fg"><p class="fh">Embedded engineering</p><a href="#">Forward deployed engineers</a></div>
+              <div class="fg"><p class="fh">Modalities</p><a href="#">Transcription</a><a href="#">Image Generation</a><a href="#">Text-to-speech</a><a href="#">Large language models</a><a href="#">Compound AI</a><a href="#">Embeddings</a></div>
+              <div class="fg"><p class="fh">Industries</p><a href="#">Enterprise</a><a href="#">Healthcare</a></div>
+            </div>
+          </div>
+          <div class="fpair">
+            <div>
+              <div class="fg"><p class="fh">Developer</p><a href="#">Model library</a><a href="#">Documentation</a><a href="#">Changelog</a></div>
+              <div class="fg"><p class="fh">Resources</p><a href="#">Base Labs</a><a href="#">Customers</a><a href="#">Blog</a><a href="#">Guides</a><a href="#">Articles</a><a href="#">Events</a><a href="#">Partners</a><a href="#">Savings calculator</a><a href="#">Trust Center</a><a href="#">Security</a><a href="#">About us</a><a href="#">Startups</a><a href="#">Careers</a><a href="#">Contact us</a></div>
+            </div>
+            <div>
+              <div class="fg"><p class="fh">Popular models</p><a href="#">mammoth-1</a><a href="#">elephant-1</a><a href="#">Muse Spark Open</a><a href="#">DeepSeek V4.1 Flash 1017</a><a href="#">GLM-5.3 Fast</a><a href="#">GLM-5.3-Flash</a><a href="#">Explore all</a></div>
+              <div class="fg"><p class="fh">Legal</p><a href="#">Terms and Conditions</a><a href="#">Privacy Policy</a><a href="#">Service Level Agreement</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fbottom">
+        <span class="status"><i></i>All systems normal</span>
+        <div class="social msocial" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.7.4-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.3 4.7-4.6 4.9.4.3.7.9.7 1.9V21c0 .3.2.6.7.5A10 10 0 0 0 12 2Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l16 16M20 4 4 20"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3Zm3 7v8h2.5v-8Zm1.25-4a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8ZM10.5 10v8H13v-4.2c0-1.2.6-1.8 1.5-1.8s1.5.6 1.5 1.8V18h2.5v-4.8c0-2.4-1.3-3.4-3-3.4-1.1 0-1.9.5-2.5 1.2V10Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15V9l5.2 3Z"/></svg>
+          </div>
+        <div class="fright">
+          <span class="copy">&copy; 2026 Baseten</span>
+          <span class="badges">
+            <img src="https://www.baseten.co/_next/static/media/soc2-type2.660a008c.png" alt="SOC 2 Type II" onerror="this.remove()">
+            <img src="https://www.baseten.co/_next/static/media/hipaa.14626a53.png" alt="HIPAA compliant" onerror="this.remove()">
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="fend"><span class="hl"></span><div class="container" style="height:100%"><span class="vl" style="left:16px"></span><span class="vl" style="right:16px"></span></div></div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('completionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const btnLabel = btn.firstChild;
+      const result = document.getElementById('result');
+      const streamEl = document.getElementById('stream');
+      const ttftEl = document.getElementById('ttft');
+      const usageEl = document.getElementById('usage');
+      const modelSel = document.getElementById('model');
+
+      const showResult = (kind, title, detail) => {
+        result.className = 'result ' + kind;
+        result.textContent = '';
+        const t = document.createElement('div');
+        t.textContent = title;
+        const d = document.createElement('div');
+        d.className = 'rd';
+        d.textContent = detail;
+        result.append(t, d);
+      };
+      const caret = () => { const c = document.createElement('span'); c.className = 'caret'; return c; };
+
+      btn.disabled = true; btnLabel.nodeValue = 'Streaming ';
+      result.className = 'result';
+      result.textContent = '';
+      streamEl.textContent = '';
+      streamEl.appendChild(caret());
+      usageEl.textContent = '';
+      const started = Date.now();
+      let firstToken = 0;
+      ttftEl.className = 'ttft waiting';
+      const tick = setInterval(() => {
+        if (!firstToken) ttftEl.textContent = 'TTFT ' + ((Date.now() - started) / 1000).toFixed(1) + 's — waiting for first token';
+      }, 100);
+
+      let text = '';
+      const render = () => { streamEl.textContent = text; streamEl.appendChild(caret()); };
+      try {
+        const res = await fetch('/api/inference/completions', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: modelSel.value,
+            deployment: document.getElementById('deployment').value,
+            prompt: document.getElementById('prompt').value,
+            maxTokens: parseInt(document.getElementById('maxTokens').value, 10) || 64,
+            stream: true,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let usage = null;
+        let failure = null;
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const frames = buffer.split('\n\n');
+          buffer = frames.pop();
+          for (const frame of frames) {
+            const line = frame.replace(/^data: /, '').trim();
+            if (!line || line === '[DONE]') continue;
+            const chunk = JSON.parse(line);
+            if (chunk.error) { failure = chunk.error; continue; }
+            if (chunk.ttftMs && !firstToken) {
+              firstToken = chunk.ttftMs;
+              clearInterval(tick);
+              ttftEl.className = 'ttft done';
+              ttftEl.textContent = 'TTFT ' + (chunk.ttftMs / 1000).toFixed(2) + 's';
+            }
+            const delta = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
+            if (delta && delta.content) { text += delta.content; render(); }
+            if (chunk.usage) usage = chunk;
+          }
+        }
+        clearInterval(tick);
+        if (failure) throw new Error(failure.message);
+        streamEl.textContent = text;
+        if (usage) {
+          usageEl.textContent = usage.usage.prompt_tokens + ' prompt · ' + usage.usage.completion_tokens
+            + ' completion · ' + usage.tokensPerSecond + ' tok/s · ' + modelSel.options[modelSel.selectedIndex].text;
+          showResult('success', 'Completion finished', usage.id + ' — first token in ' + (usage.ttftMs / 1000).toFixed(2) + 's');
+        }
+      } catch (err) {
+        clearInterval(tick);
+        ttftEl.className = 'ttft';
+        showResult('error', 'Request failed', err.message);
+      } finally { btn.disabled = false; btnLabel.nodeValue = 'Run request '; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

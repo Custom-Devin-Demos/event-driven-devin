@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payments | Handshake AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font: 'Noi Grotesk', 'Hanken Grotesk', system-ui, sans-serif;
+      --ink: #121212;
+      --muted: rgba(18, 18, 18, 0.62);
+      --faint: rgba(18, 18, 18, 0.48);
+      --page: #fcfcfd;
+      --card: #ffffff;
+      --rule: #eeeff1;
+      --card-border: #ececee;
+      --lime: #dbfa6f;
+      --mark-ink: #0e2225;
+      --button: #04191b;
+      --green: #477c26;
+      --pending: #e9ebe9;
+      --input-border: rgba(31, 32, 44, 0.12);
+      --hl: #e8e7e9;
+      --sidebar-w: 194px;
+      --panel-w: 339px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--font); font-size: 15px; line-height: 18px; color: var(--ink); background: var(--page); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; }
+    .hs-app { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .hs-side { width: var(--sidebar-w); flex: none; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 7px 0 11px; }
+    .hs-mark { display: block; width: 28px; height: 28px; margin-left: 13px; }
+    .hs-nav { list-style: none; margin: 0; padding: 0; }
+    .hs-nav li a { display: flex; align-items: center; height: 30px; padding-left: 20px; font-size: 14px; line-height: 18px; color: var(--ink); }
+    .hs-nav li a svg { width: 14px; height: 14px; margin-right: 10px; flex: none; }
+    .hs-nav.n1 { margin-top: 12px; }
+    .hs-rule { height: 1px; background: #e4e5e8; margin: 0 23px 0 17px; }
+    .hs-rule.r1 { margin-top: 1px; margin-bottom: 29px; }
+    .hs-rule.r2 { margin-top: 10px; margin-bottom: 11px; }
+    .hs-nav li a.on { background: var(--hl); margin: 0 20px 0 10px; padding-left: 10px; border-radius: 6px; height: 28px; font-weight: 500; }
+    .hs-getapp { margin: auto 34px 0 17px; height: 35px; border: 1px solid #e6e7e9; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; }
+
+    /* Main */
+    .hs-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .hs-top { height: 46px; border-bottom: 1px solid var(--rule); display: flex; align-items: stretch; padding-left: 16px; }
+    .hs-tabs { display: flex; gap: 0; align-items: stretch; }
+    .hs-tabs a { display: flex; align-items: center; font-size: 15px; font-weight: 400; color: var(--muted); margin-right: 19px; position: relative; }
+    .hs-tabs a.title { color: var(--ink); font-weight: 500; margin-right: 20px; }
+    .hs-tabs a.on { color: var(--ink); font-weight: 500; }
+    .hs-tabs a.on::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ink); }
+    .hs-top-right { margin-left: auto; display: flex; align-items: center; gap: 22px; padding-right: 5px; }
+    .hs-bell { position: relative; width: 20px; height: 20px; color: var(--ink); }
+    .hs-badge { position: absolute; top: -12px; left: 2px; min-width: 28px; height: 20px; padding: 0 6px; border-radius: 10px; background: #ad4148; color: #fff; font-size: 11px; line-height: 20px; text-align: center; font-weight: 500; }
+    .hs-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #c9d6de, #8fa7b8); color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+    .hs-body { flex: 1; display: flex; align-items: stretch; }
+    .hs-col { flex: 1; min-width: 0; padding: 19px 19px 30px 16px; }
+    .hs-panel { width: var(--panel-w); flex: none; border-left: 1px solid #e1e2e4; background: #fbfcfe; }
+
+    .hs-filters { display: flex; gap: 8px; align-items: center; height: 26px; }
+    .hs-chip { height: 26px; border: 1px solid #e6e7e8; background: #fff; border-radius: 8px; padding: 0 7px; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--ink); cursor: pointer; }
+    .hs-chip svg { width: 13px; height: 13px; }
+    .hs-dots { margin-left: auto; width: 26px; padding: 0; justify-content: center; }
+    .hs-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; }
+    .hs-chart { margin-top: 12px; height: 193px; padding: 16px 15px 0 14px; position: relative; }
+    .hs-chart h2 { margin: 0; font-size: 15px; line-height: 18px; font-weight: 500; }
+    .hs-legend { position: absolute; top: 16px; right: 14px; display: flex; gap: 12px; font-size: 12.5px; color: var(--muted); }
+    .hs-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .hs-legend i { width: 18px; height: 18px; border-radius: 3px; display: inline-block; }
+    .hs-plot { position: absolute; left: 14px; right: 15px; top: 62px; height: 100px; }
+    .hs-grid { position: absolute; left: 46px; right: 0; height: 1px; background: #efefef; }
+    .hs-ylab { position: absolute; left: 0; font-size: 12px; color: var(--faint); transform: translateY(-50%); }
+    .hs-bars { position: absolute; left: 47px; right: 0; top: 0; bottom: 0; display: flex; gap: 11px; }
+    .hs-bar { flex: 1; position: relative; }
+    .hs-bar b { position: absolute; left: 0; right: 0; bottom: 5px; border-radius: 3px 3px 0 0; background: var(--green); }
+    .hs-bar.pend b { background: var(--pending); }
+    .hs-bar em { position: absolute; left: -6px; right: -6px; top: 103px; text-align: center; font-style: normal; font-size: 12px; color: var(--faint); white-space: nowrap; }
+    .hs-weeks { margin-top: 19px; overflow: hidden; }
+    .hs-week { display: flex; align-items: center; height: 52.6px; padding: 0 15px 0 14px; border-top: 1px solid var(--rule); }
+    .hs-week:first-child { border-top: 0; }
+    .hs-week .w { font-size: 15px; font-weight: 500; letter-spacing: -0.15px; }
+    .hs-week .s { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
+    .hs-week .s.paid { color: var(--green); }
+    .hs-week .s svg { width: 16px; height: 16px; }
+    .hs-week .a { width: 112px; text-align: right; font-size: 13.5px; font-weight: 600; }
+    .hs-pager { display: flex; justify-content: center; align-items: center; gap: 18px; height: 42px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+
+    .hs-stats { display: grid; grid-template-columns: 167px 1fr; row-gap: 23px; padding: 19px 18px 20px 18px; border-bottom: 1px solid #e2e2e4; }
+    .hs-stat .l { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 5px; height: 16px; }
+    .hs-stat .l svg { width: 13px; height: 13px; }
+    .hs-stat .v { font-size: 21px; line-height: 26px; font-weight: 500; letter-spacing: -0.3px; margin-top: 4px; }
+
+    .hs-xfer { margin: 20px 5px 0 18px; padding: 15px 14px 14px; }
+    .hs-xfer h2 { margin: 0 0 4px; font-size: 15px; line-height: 18px; font-weight: 600; }
+    .hs-xfer .sub { margin: 0 0 12px; font-size: 12.5px; line-height: 16px; color: var(--muted); }
+    .hs-field { margin-bottom: 10px; }
+    .hs-field label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
+    .hs-field input, .hs-field select { width: 100%; height: 44px; border: 1px solid var(--input-border); border-radius: 8px; background: #fff; padding: 0 12px; font-size: 15px; color: var(--ink); appearance: none; -webkit-appearance: none; }
+    .hs-field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath d='M17.47 8.47a.75.75 0 011.06 1.06l-5.65 5.65a1.25 1.25 0 01-1.77 0L5.47 9.53a.75.75 0 011.06-1.06L12 13.94z' fill='%23121212'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; }
+    .hs-amount { position: relative; }
+    .hs-amount span { position: absolute; left: 12px; top: 13px; font-size: 15px; }
+    .hs-amount input { padding-left: 24px; }
+    .hs-submit { width: 100%; height: 44px; margin-top: 2px; border: 0; border-radius: 8px; background: var(--button); color: #fff; font-size: 15px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .hs-submit:disabled { opacity: 0.75; cursor: progress; }
+    .hs-spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: hs-spin 0.8s linear infinite; }
+    @keyframes hs-spin { to { transform: rotate(360deg); } }
+    .result-box { display: none; margin-top: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 17px; }
+    .result-box.success { display: block; background: #eef5e9; color: #2f5a15; }
+    .result-box.error { display: block; background: #fbeced; color: #8c2a31; }
+    .result-box .error-title { font-weight: 600; margin-bottom: 2px; }
+
+    .hs-links { margin: 20px 5px 0 18px; overflow: hidden; border-radius: 12px; }
+    .hs-links a { display: flex; align-items: center; height: 46px; padding: 0 14px; font-size: 14px; font-weight: 600; border-top: 1px solid var(--rule); }
+    .hs-links a:first-child { border-top: 0; }
+    .hs-links a svg { margin-left: auto; width: 16px; height: 16px; }
+    .hs-links .pm { margin-left: 18px; font-weight: 400; color: var(--muted); font-size: 13px; }
+    .hs-note { margin: 21px 10px 24px 18px; font-size: 12px; line-height: 15px; color: var(--muted); }
+
+    .hs-mtop { display: none; }
+    @media (max-width: 1100px) {
+      .hs-side { width: 64px; }
+      .hs-nav li a span, .hs-getapp span { display: none; }
+      .hs-nav li a.on { margin: 0 10px; padding-left: 15px; }
+      .hs-rule { margin-left: 14px; margin-right: 14px; }
+      .hs-getapp { margin: auto 10px 0; }
+    }
+    @media (max-width: 900px) {
+      .hs-app { display: block; }
+      .hs-side { display: none; }
+      .hs-mtop { display: flex; align-items: center; height: 52px; padding: 0 16px; border-bottom: 1px solid var(--rule); }
+      .hs-mtop .hs-mark { margin: 0; }
+      .hs-mtop .hs-top-right { padding-right: 0; }
+      .hs-top { padding-left: 16px; overflow-x: auto; }
+      .hs-top .hs-top-right { display: none; }
+      .hs-body { flex-direction: column-reverse; }
+      .hs-panel { width: auto; border-left: 0; border-bottom: 1px solid #e1e2e4; }
+      .hs-stats { grid-template-columns: 1fr 1fr; }
+      .hs-xfer, .hs-links { margin-left: 16px; margin-right: 16px; }
+      .hs-note { margin-left: 16px; margin-right: 16px; }
+      .hs-col { padding: 16px; }
+      .hs-bars { gap: 6px; }
+      .hs-bar em { font-size: 10px; left: -4px; right: -4px; white-space: normal; line-height: 12px; }
+      .hs-chart { height: 205px; }
+      .hs-legend { gap: 8px; }
+      .hs-week .w { font-size: 14px; }
+      .hs-week .s .full { display: none; }
+      .hs-week .a { width: 84px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hs-app">
+    <aside class="hs-side" aria-label="Primary">
+      <a href="#" aria-label="Handshake home"><svg class="hs-mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="6" fill="#dbfa6f"/><path d="M10.6 7.5h2.6l-1 5.1h3.4l1-5.1h2.6l-2.9 13h-2.6l1.3-5.6h-3.4l-1.3 5.6H7.7z" fill="#0e2225"/></svg></a>
+      <ul class="hs-nav n1">
+        <li><a href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6.5"/><path d="M10.5 5.5L9 9 5.5 10.5 7 7z"/></svg><span>Explore</span></a></li>
+        <li><a href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 14.5V5.5h5v9M7 14.5V2h7v12.5M1 14.5h14M9.5 5h2M9.5 8h2M9.5 11h2"/></svg><span>Jobs</span></a></li>
+        <li><a href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1.5 6.5L8 2l6.5 4.5v7h-13zM1.5 6.5L8 10.5l6.5-4"/></svg><span>Inbox</span></a></li>
+      </ul>
+      <div class="hs-rule r1"></div>
+      <ul class="hs-nav">
+        <li><a href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.5 2h11M3.5 5h9v7h-9zM2 14.5h12"/></svg><span>Feed</span></a></li>
+        <li><a href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9.5 2.5c2-1 3.5-1 4-.5.5.5.5 2-.5 4L8 11.5 4.5 8zM4.5 8L2 8.5l2-3h3M8 11.5L7.5 14l3-2v-3M3.5 12.5l-1.5 1.5"/></svg><span>AI showcase</span></a></li>
+        <li><a href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 6.5h12M5 1.5v3M11 1.5v3"/></svg><span>Events</span></a></li>
+        <li><a href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="5" r="3"/><path d="M1.5 14.5c.5-3 2.5-4.5 5.5-4.5s5 1.5 5.5 4.5M11 2.5a2.5 2.5 0 010 5"/></svg><span>People</span></a></li>
+        <li><a href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="2" width="10" height="13" rx="1"/><path d="M6 1v2h4V1M6 12h4"/><circle cx="8" cy="7.5" r="1.8"/></svg><span>Employers</span></a></li>
+        <li><a href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1 6l7-3.5L15 6 8 9.5zM4 7.5V11c1 1.2 2.4 2 4 2s3-.8 4-2V7.5"/></svg><span>Career center</span></a></li>
+      </ul>
+      <div class="hs-rule r2"></div>
+      <ul class="hs-nav">
+        <li><a href="#" class="on" aria-current="page"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M4.5 6h7M4.5 8.5h7M4.5 11h4"/></svg><span>AI work</span></a></li>
+      </ul>
+      <a href="#" class="hs-getapp"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="1.5" width="5" height="5"/><rect x="9.5" y="1.5" width="5" height="5"/><rect x="1.5" y="9.5" width="5" height="5"/><path d="M9.5 9.5h2v2M14.5 9.5v5h-5"/></svg><span>Get the app</span></a>
+    </aside>
+
+    <div class="hs-main">
+      <div class="hs-mtop">
+        <svg class="hs-mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="6" fill="#dbfa6f"/><path d="M10.6 7.5h2.6l-1 5.1h3.4l1-5.1h2.6l-2.9 13h-2.6l1.3-5.6h-3.4l-1.3 5.6H7.7z" fill="#0e2225"/></svg>
+        <div class="hs-top-right">
+          <span class="hs-bell"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 8a5 5 0 0110 0v4l1.5 2.5h-13L5 12zM8 17a2 2 0 004 0"/></svg><span class="hs-badge">44</span></span>
+          <span class="hs-avatar">AC</span>
+        </div>
+      </div>
+      <header class="hs-top">
+        <nav class="hs-tabs" aria-label="AI work">
+          <a href="#" class="title">AI work</a>
+          <a href="#">Projects</a>
+          <a href="#" class="on" aria-current="page">Payments</a>
+          <a href="#">Referrals</a>
+        </nav>
+        <div class="hs-top-right">
+          <span class="hs-bell"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 8a5 5 0 0110 0v4l1.5 2.5h-13L5 12zM8 17a2 2 0 004 0"/></svg><span class="hs-badge">44</span></span>
+          <span class="hs-avatar">AC</span>
+        </div>
+      </header>
+
+      <div class="hs-body">
+        <main class="hs-col">
+          <div class="hs-filters">
+            <button class="hs-chip" type="button">All time <svg viewBox="0 0 24 24"><path d="M17.47 8.47a.75.75 0 011.06 1.06l-5.65 5.65a1.25 1.25 0 01-1.77 0L5.47 9.53a.75.75 0 011.06-1.06L12 13.94z" fill="currentColor"/></svg></button>
+            <button class="hs-chip" type="button">All projects <svg viewBox="0 0 24 24"><path d="M17.47 8.47a.75.75 0 011.06 1.06l-5.65 5.65a1.25 1.25 0 01-1.77 0L5.47 9.53a.75.75 0 011.06-1.06L12 13.94z" fill="currentColor"/></svg></button>
+            <button class="hs-chip hs-dots" type="button" aria-label="More"><svg viewBox="0 0 16 16"><circle cx="3" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="13" cy="8" r="1.2" fill="currentColor"/></svg></button>
+          </div>
+
+          <section class="hs-card hs-chart" aria-label="Earnings">
+            <h2>Earnings</h2>
+            <div class="hs-legend"><span><i style="background:var(--green)"></i>Paid</span><span><i style="background:var(--pending);border:1px solid #e3e3e3"></i>Pending</span></div>
+            <div class="hs-plot">
+              <div class="hs-grid" style="top:6px"></div><div class="hs-ylab" style="top:6px">$600</div>
+              <div class="hs-grid" style="top:35px"></div><div class="hs-ylab" style="top:35px">$400</div>
+              <div class="hs-grid" style="top:64px"></div><div class="hs-ylab" style="top:64px">$200</div>
+              <div class="hs-grid" style="top:93px"></div><div class="hs-ylab" style="top:93px">$0</div>
+              <div class="hs-bars" id="bars"></div>
+            </div>
+          </section>
+
+          <section class="hs-card hs-weeks" aria-label="Pay weeks">
+            <div id="weeks"></div>
+            <div class="hs-pager"><span>&lsaquo;</span><span style="color:var(--ink)">1</span><span>2</span><span>3</span><span>&hellip;</span><span>&rsaquo;</span></div>
+          </section>
+        </main>
+
+        <aside class="hs-panel" aria-label="Summary">
+          <div class="hs-stats">
+            <div class="hs-stat"><div class="l">Earnings this week <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="6.5"/><path d="M8 7v4.5M8 4.6v.2"/></svg></div><div class="v">$360.00</div></div>
+            <div class="hs-stat"><div class="l">Total paid <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="6.5"/><path d="M8 7v4.5M8 4.6v.2"/></svg></div><div class="v">$1,000.00</div></div>
+            <div class="hs-stat"><div class="l">Tasks this week <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="6.5"/><path d="M8 7v4.5M8 4.6v.2"/></svg></div><div class="v">4</div></div>
+            <div class="hs-stat"><div class="l">Hours this week <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="6.5"/><path d="M8 7v4.5M8 4.6v.2"/></svg></div><div class="v">8h 10m</div></div>
+          </div>
+
+          <section class="hs-card hs-xfer" aria-labelledby="xferTitle">
+            <h2 id="xferTitle">Transfer earnings</h2>
+            <p class="sub">Send pending earnings to your payout method.</p>
+            <form id="transferForm">
+              <div class="hs-field"><label for="amount">Amount</label><div class="hs-amount"><span>$</span><input type="number" id="amount" value="360.00" min="1" step="0.01" inputmode="decimal" required></div></div>
+              <div class="hs-field"><label for="fromAccount">From</label><select id="fromAccount"><option value="ACCT-1001">AI work earnings</option><option value="ACCT-1002">Referral bonuses</option></select></div>
+              <div class="hs-field"><label for="toAccount">To</label><select id="toAccount"><option value="ACCT-EXT-001">Stripe &middot; Bank account &bull;&bull;&bull;&bull;6789</option><option value="ACCT-EXT-002">Stripe &middot; Debit card &bull;&bull;&bull;&bull;4242</option></select></div>
+              <div class="hs-field"><label for="accountTier">Arrival</label><select id="accountTier"><option value="standard">Standard &middot; 1&ndash;2 business days</option><option value="basic">With Wednesday payout</option></select></div>
+              <button type="submit" class="hs-submit" id="submitBtn">Transfer</button>
+            </form>
+            <div id="result" class="result-box"></div>
+          </section>
+
+          <nav class="hs-card hs-links" aria-label="Payment settings">
+            <a href="#">Payout method<span class="pm">Stripe</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3l5 5-5 5"/></svg></a>
+            <a href="#">Payment help centre<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3l5 5-5 5"/></svg></a>
+            <a href="#">Tax forms<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3l5 5-5 5"/></svg></a>
+          </nav>
+          <p class="hs-note">Payments are processed on Wednesdays for the prior week. Your bank may take a few days to post the funds.</p>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var CLOCK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5V8l2 1.5"/></svg>';
+      var CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.5 8.5l3.5 3.5 7.5-8"/></svg>';
+      var now = new Date();
+      var monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7) - 7);
+      function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+      function md(d) { return MONTHS[d.getMonth()] + ' ' + d.getDate(); }
+      function range(start, withYear) {
+        var end = addDays(start, 6);
+        var r = md(start) + '\u2013' + (end.getMonth() === start.getMonth() ? end.getDate() : md(end));
+        return withYear ? r + ', ' + end.getFullYear() : r;
+      }
+      function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+      var amounts = [360, 100, 100, 100, 100, 0, 100, 100, 100, 100];
+      var weeks = document.getElementById('weeks');
+      amounts.forEach(function (amt, i) {
+        var start = addDays(monday, -7 * i);
+        var row = el('div', 'hs-week');
+        row.appendChild(el('span', 'w', range(start, true)));
+        var s = el('span', 's');
+        if (i < 2) { s.innerHTML = CLOCK; s.appendChild(el('span', null, 'Pending')); }
+        else if (amt === 0) { s.innerHTML = CHECK; s.appendChild(el('span', null, 'Outstanding balance rolled over')); }
+        else { s.className = 's paid'; s.innerHTML = CHECK; var t = el('span', null, ''); t.appendChild(el('span', 'full', 'Paid on ')); t.appendChild(document.createTextNode(md(addDays(start, 9)) + ', ' + addDays(start, 9).getFullYear())); s.appendChild(t); }
+        row.appendChild(s);
+        row.appendChild(el('span', 'a', '$' + amt.toFixed(2)));
+        weeks.appendChild(row);
+      });
+      var bars = document.getElementById('bars');
+      for (var i = 6; i >= 0; i--) {
+        var amt = amounts[i] || 100;
+        var b = el('div', 'hs-bar' + (i < 2 ? ' pend' : ''));
+        var fill = el('b'); fill.style.height = Math.round(amt * 0.145) + 'px';
+        b.appendChild(fill); b.appendChild(el('em', null, range(addDays(monday, -7 * i), false)));
+        bars.appendChild(b);
+      }
+    })();
+
+    function showResult(title, detail) {
+      var result = document.getElementById('result');
+      var t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+      var d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+      result.replaceChildren(t, d);
+    }
+
+    document.getElementById('transferForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      btn.disabled = true; btn.innerHTML = '<span class="hs-spin" aria-hidden="true"></span>Transferring';
+      result.className = 'result-box';
+      var dest = document.getElementById('toAccount').selectedOptions[0].textContent.replace('Stripe \u00b7 ', '').toLowerCase();
+      var amount = parseFloat(document.getElementById('amount').value) || 0;
+      try {
+        var res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: amount, accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          showResult("Your transfer didn't go through", (data.errorClass ? data.errorClass + ': ' : '') + (data.error || 'Try again in a few minutes.'));
+        } else {
+          result.className = 'result-box success';
+          showResult('Transfer sent', '$' + amount.toFixed(2) + ' is on its way to your ' + dest + '. Your bank may take 1\u20132 business days to post the funds.');
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        showResult('Network error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Transfer'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

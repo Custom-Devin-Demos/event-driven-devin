@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pipelines | ML Platform | AB InBev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #E5B611; --ink: #1F1D1D; --surface: #FFFFFF; --chrome-bg: #000000; --chrome-text: #FFFFFF;
+      --accent-strong: color-mix(in srgb, var(--accent) 82%, var(--ink));
+      --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+      --text: color-mix(in srgb, var(--ink) 92%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 58%, var(--surface));
+      --line: color-mix(in srgb, var(--ink) 13%, var(--surface));
+      --page: color-mix(in srgb, var(--ink) 4%, var(--surface));
+      --chrome-muted: color-mix(in srgb, var(--chrome-text) 62%, var(--chrome-bg));
+      --chrome-line: color-mix(in srgb, var(--chrome-text) 18%, var(--chrome-bg));
+      --footer-bg: color-mix(in srgb, var(--accent) 45%, #F5E003);
+      --ok: color-mix(in srgb, #1B7F4B 90%, var(--ink)); --ok-bg: color-mix(in srgb, #1B7F4B 12%, var(--surface));
+      --warn: color-mix(in srgb, #8A5A00 90%, var(--ink)); --warn-bg: color-mix(in srgb, var(--accent) 22%, var(--surface));
+      --danger: #B3261E; --danger-bg: color-mix(in srgb, #B3261E 9%, var(--surface));
+      --info: #1E4E8C; --info-bg: color-mix(in srgb, #1E4E8C 9%, var(--surface));
+      --mono: 'SFMono-Regular', Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { background: var(--page); color: var(--text); font: 14px/1.5 'Figtree', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; min-height: 100vh; }
+    a { color: var(--ink); }
+    button { font: inherit; cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .5; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* Chrome */
+    .navbar { background: var(--chrome-bg); color: var(--chrome-text); }
+    .navbar-in { display: flex; align-items: stretch; height: 64px; padding: 0 32px; gap: 8px; min-width: 0; }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--chrome-text); white-space: nowrap; padding-right: 16px; }
+    .brand svg { width: 34px; height: 34px; flex: none; }
+    .brand strong { font-size: 19px; font-weight: 800; letter-spacing: -.01em; }
+    .brand .product { font-size: 15px; font-weight: 600; color: var(--chrome-muted); border-left: 1px solid var(--chrome-line); padding-left: 12px; }
+    .nav { display: flex; align-items: stretch; gap: 0; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+    .nav::-webkit-scrollbar { display: none; }
+    .nav a { display: flex; align-items: center; padding: 0 16px; font-size: 15px; color: var(--chrome-text); text-decoration: none; white-space: nowrap; border-bottom: 3px solid transparent; }
+    .nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .nav a:hover { color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 14px; white-space: nowrap; }
+    .zone { font-size: 13px; color: var(--chrome-muted); }
+    .zone b { color: var(--chrome-text); font-weight: 600; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--ink); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+
+    .subbar { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .subbar-in { padding: 14px 32px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .crumbs { font-size: 13px; color: var(--muted); }
+    .crumbs b { color: var(--ink); font-weight: 600; }
+    .subbar h1 { margin: 2px 0 0; font-size: 26px; line-height: 1.15; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+    .subbar .spacer { flex: 1; }
+    .env { font: 12px var(--mono); background: var(--page); border: 1px solid var(--line); padding: 4px 8px; color: var(--muted); }
+
+    .wrap { padding: 20px 32px 40px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+    .card { background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+    .card-h { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+    .card-h h2 { margin: 0; font-size: 15px; font-weight: 700; color: var(--ink); }
+    .card-h .sub { font-size: 12px; color: var(--muted); }
+    .card-h .spacer { flex: 1; }
+    .count { font-size: 12px; background: var(--page); border: 1px solid var(--line); padding: 1px 7px; color: var(--muted); }
+    .stack { display: grid; gap: 20px; min-width: 0; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--page); white-space: nowrap; }
+    td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+    tbody tr:last-child td { border-bottom: 0; }
+    #pipelineRows tr { cursor: pointer; }
+    #pipelineRows tr:hover td { background: var(--page); }
+    #pipelineRows tr.selected td { background: var(--accent-soft); }
+    #pipelineRows tr.selected td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+    .name { font: 600 13px var(--mono); color: var(--ink); }
+    .meta { display: block; font-size: 12px; color: var(--muted); }
+    .num { font-variant-numeric: tabular-nums; }
+    td.r, th.r { text-align: right; }
+
+    .chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; white-space: nowrap; border: 1px solid transparent; }
+    .chip.ok { color: var(--ok); background: var(--ok-bg); }
+    .chip.warn { color: var(--warn); background: var(--warn-bg); border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+    .chip.danger { color: var(--danger); background: var(--danger-bg); }
+    .chip.info { color: var(--info); background: var(--info-bg); }
+    .chip.pending { color: var(--ink); background: var(--page); border-color: var(--line); }
+    .chip.idle { color: var(--muted); background: var(--page); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border: 1px solid var(--ink); background: var(--surface); color: var(--ink); font-weight: 700; font-size: 14px; border-radius: 0; }
+    .btn:hover:not(:disabled) { background: var(--page); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+    .btn.primary:hover:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); }
+    .btn.dark { background: var(--chrome-bg); border-color: var(--chrome-bg); color: var(--chrome-text); }
+    .btn.sm { min-height: 44px; padding: 0 12px; font-size: 13px; font-weight: 600; border-color: var(--line); }
+
+    .detail-body { padding: 16px; display: grid; gap: 16px; }
+    .detail-body > *, #completionForm > * { min-width: 0; }
+    #completionForm { display: grid; gap: 12px; }
+    .params { display: flex; flex-wrap: wrap; gap: 6px; }
+    .param { font-size: 12px; background: var(--page); border: 1px solid var(--line); padding: 3px 8px; }
+    .param b { font-weight: 600; color: var(--muted); margin-right: 4px; }
+
+    .dag { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); }
+    .stage { padding: 10px 12px; border-right: 1px solid var(--line); min-width: 0; position: relative; }
+    .stage:last-child { border-right: 0; }
+    .stage .s-name { font-weight: 700; font-size: 13px; color: var(--ink); }
+    .stage .s-sub { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .stage .s-state { margin-top: 6px; display: flex; align-items: center; gap: 6px; font-size: 12px; }
+    .stage .s-time { font: 12px var(--mono); color: var(--muted); }
+    .stage.running { background: var(--accent-soft); }
+    .stage.running::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, var(--accent) 0 40%, transparent 40%); background-size: 200% 100%; animation: slide 1.1s linear infinite; }
+    @keyframes slide { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
+    .dot.ok { background: var(--ok); } .dot.warn { background: var(--accent); } .dot.danger { background: var(--danger); } .dot.run { background: var(--ink); } .dot.held { background: var(--muted); }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .status-line { font-size: 13px; color: var(--muted); min-height: 20px; }
+    .status-line b { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .progress { height: 6px; background: var(--page); border: 1px solid var(--line); overflow: hidden; display: none; }
+    .progress.show { display: block; }
+    .progress i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .15s; }
+
+    .result-box { display: none; padding: 14px 16px; border: 1px solid var(--line); border-left-width: 4px; }
+    .result-box.show { display: block; }
+    .result-box.success { border-left-color: var(--ok); background: var(--ok-bg); }
+    .result-box.degraded { border-left-color: var(--accent); background: var(--warn-bg); }
+    .result-box.error { border-left-color: var(--danger); background: var(--danger-bg); }
+    .result-box h3 { margin: 0 0 4px; font-size: 15px; color: var(--ink); }
+    .result-box .timing { font-size: 13px; color: var(--text); }
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+    .kpi { background: var(--surface); border: 1px solid var(--line); padding: 8px 10px; min-width: 0; }
+    .kpi .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    .kpi .val { font-size: 18px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .kpi .val.bad { color: var(--danger); }
+    .preview-note { font-size: 12px; color: var(--muted); margin: 0 0 6px; }
+    .result-table .table-wrap { border: 1px solid var(--line); }
+    .pending-row td { color: var(--muted); font-style: italic; }
+
+    .side { display: grid; gap: 20px; min-width: 0; }
+    .side-body { padding: 12px 16px; }
+    .metric-row { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .metric-row:last-child { border-bottom: 0; }
+    .metric-row span { color: var(--muted); }
+    .metric-row b { color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
+    .spark { display: flex; align-items: flex-end; gap: 3px; height: 40px; margin: 6px 0 2px; }
+    .spark i { flex: 1; background: color-mix(in srgb, var(--ink) 22%, var(--surface)); min-height: 3px; }
+    .spark i.last { background: var(--accent); }
+    .note { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+    .runs td { font-size: 12px; padding: 7px 10px; }
+
+    footer.site { background: var(--footer-bg); color: var(--ink); padding: 28px 32px; display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; font-size: 13px; }
+    footer.site strong { font-size: 18px; font-weight: 800; }
+    footer.site a { color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+    footer.site .spacer { flex: 1; }
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); background: var(--chrome-bg); color: var(--chrome-text); padding: 10px 16px; font-size: 13px; opacity: 0; pointer-events: none; transition: .2s; max-width: calc(100vw - 32px); }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 1100px) {
+      .wrap { grid-template-columns: minmax(0, 1fr); }
+      .side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      .navbar-in { padding: 0 16px; height: auto; flex-wrap: wrap; }
+      .brand { height: 56px; }
+      .nav-right { margin-left: auto; }
+      .zone { display: none; }
+      .nav { order: 3; flex-basis: 100%; height: 45px; border-top: 1px solid var(--chrome-line); margin: 0 -16px; padding: 0 4px; }
+      .nav a { padding: 0 12px; font-size: 14px; }
+      .subbar-in, .wrap { padding-left: 16px; padding-right: 16px; }
+      .subbar h1 { font-size: 21px; }
+      .side { grid-template-columns: minmax(0, 1fr); }
+      .dag { grid-template-columns: minmax(0, 1fr); }
+      .stage { border-right: 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; }
+      .stage:last-child { border-bottom: 0; }
+      .stage .s-state { margin-top: 0; grid-row: 1 / span 2; grid-column: 2; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .actions .btn { flex: 1 1 auto; }
+      footer.site { padding: 24px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar-in">
+      <a class="brand" href="#" aria-label="ML Platform home">
+        <svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" fill="#E5B611"/><path d="M8.5 26 15 8h4l6.5 18h-4.2l-1.3-3.9h-6.1L12.6 26zm5.4-7.3h4.2L16 12.4z" fill="#000"/></svg>
+        <strong>AB InBev</strong><span class="product">ML Platform</span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#" class="active" aria-current="page">Pipelines</a>
+        <a href="#" data-soon="Models">Models</a>
+        <a href="#" data-soon="Feature store">Feature store</a>
+        <a href="#" data-soon="Experiments">Experiments</a>
+        <a href="#" data-soon="Monitoring">Monitoring</a>
+      </nav>
+      <div class="nav-right">
+        <span class="zone">Workspace <b>Global Analytics</b></span>
+        <span class="avatar" title="M. Oliveira">MO</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="subbar">
+    <div class="subbar-in">
+      <div>
+        <div class="crumbs">Pipelines / <b id="crumbGroup">Demand forecasting</b></div>
+        <h1 id="pageTitle">poc-weekly-demand-forecast</h1>
+      </div>
+      <span class="spacer"></span>
+      <span class="env">prod · scoring-pool-a</span>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <div class="stack">
+      <section class="card" aria-labelledby="plTitle">
+        <div class="card-h">
+          <h2 id="plTitle">Pipelines</h2><span class="count" id="plCount">5</span>
+          <span class="sub" id="plSub"></span>
+          <span class="spacer"></span>
+        </div>
+        <div class="table-wrap">
+          <table aria-label="Pipelines">
+            <thead><tr><th>Pipeline</th><th>Zone</th><th>Schedule</th><th>Last run</th><th class="r">Duration</th><th>Status</th><th></th></tr></thead>
+            <tbody id="pipelineRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="detailTitle">
+        <div class="card-h">
+          <h2 id="detailTitle"></h2>
+          <span class="chip" id="detailChip"></span>
+          <span class="spacer"></span>
+          <span class="sub" id="detailSub"></span>
+        </div>
+        <div class="detail-body">
+          <div class="params" id="params"></div>
+          <div class="dag" id="dag" aria-label="Pipeline stages"></div>
+
+          <form id="completionForm">
+            <input type="hidden" id="prompt" value="">
+            <input type="hidden" id="model" value="deepseek-v3">
+            <input type="hidden" id="deployment" value="forecast-scoring-prod">
+            <input type="hidden" id="maxTokens" value="64">
+            <div class="actions">
+              <button type="submit" class="btn primary" id="submitBtn">Run pipeline</button>
+              <button type="button" class="btn" id="pauseBtn">Pause schedule</button>
+              <button type="button" class="btn sm" id="logsBtn">View run logs</button>
+            </div>
+            <div class="progress" id="progress"><i id="progressBar"></i></div>
+            <div class="status-line" id="runStatus"></div>
+            <div class="result-box" id="result" role="status" aria-live="polite"></div>
+            <div class="result-table" id="resultTable"></div>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <aside class="side">
+      <section class="card">
+        <div class="card-h"><h2>Batch score · scoring SLA</h2></div>
+        <div class="side-body">
+          <div class="metric-row"><span>SLA (p95, first scored batch)</span><b>1.5 s</b></div>
+          <div class="metric-row"><span>7-day p95</span><b>310 ms</b></div>
+          <div class="metric-row"><span>This session, last run</span><b id="slaLast">—</b></div>
+          <div class="spark" id="spark" aria-hidden="true"></div>
+          <p class="note">First-scored-batch time, last 14 incremental runs. Breaching runs finish Degraded and hold Publish to BEES.</p>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-h"><h2>Model health</h2><span class="spacer"></span><span class="sub" id="modelTag"></span></div>
+        <div class="side-body" id="modelHealth"></div>
+      </section>
+      <section class="card">
+        <div class="card-h"><h2>Recent runs</h2></div>
+        <div class="table-wrap">
+          <table class="runs" aria-label="Recent runs">
+            <thead><tr><th>Run</th><th>Trigger</th><th class="r">Duration</th><th>Status</th></tr></thead>
+            <tbody id="runRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="site">
+    <strong>AB InBev</strong>
+    <span>ML Platform · Global Analytics</span>
+    <span class="spacer"></span>
+    <a href="#" data-soon="Runbooks">Runbooks</a>
+    <a href="#" data-soon="ML Platform Support">ML Platform Support</a>
+    <a href="#" data-soon="Data governance">Data governance</a>
+    <span>Enjoy Responsibly</span>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const fmtS = (ms) => (ms / 1000).toFixed(1) + ' s';
+      const pct = (n) => (n > 0 ? '+' : '') + n.toFixed(1) + '%';
+      const SLA_MS = 1500;
+
+      const PIPELINES = [
+        {
+          id: 'maz-demand', name: 'poc-weekly-demand-forecast', group: 'Demand forecasting', zone: 'Middle Americas', schedule: 'Mon 02:00 CST',
+          output: 'forecast', publishSub: 'Replenishment suggestions',
+          lastRun: '2h ago', duration: '41m 08s', status: { text: 'Succeeded', cls: 'ok' },
+          model: 'demand-gbm', version: 'v14.2', features: 'poc_sku_weekly_v9', horizon: '8 wks', pocs: '1,184,300', skus: '412',
+          health: [['wMAPE (holdout)', '8.4%'], ['Bias', '−0.6%'], ['Feature drift (PSI)', '0.04'], ['POC coverage', '99.2%']],
+          ingest: 'BEES orders + POS · 6.1M rows', unit: 'hL',
+          rows: [
+            { sku: 'MX-COR-EXT-355C24', brand: 'Corona Extra', pack: '24 × 355 ml can', fcst: 18420, ly: 3.1 },
+            { sku: 'MX-MOD-ESP-355B12', brand: 'Modelo Especial', pack: '12 × 355 ml bottle', fcst: 14980, ly: 5.4 },
+            { sku: 'MX-VIC-STD-1200R', brand: 'Victoria', pack: '1.2 L returnable', fcst: 9240, ly: -1.8 },
+            { sku: 'MX-MUL-LT-355C12', brand: 'Michelob Ultra', pack: '12 × 355 ml can', fcst: 6610, ly: 11.2 },
+            { sku: 'MX-PAC-STD-940R', brand: 'Pacífico', pack: '940 ml returnable', fcst: 4870, ly: 0.7 },
+          ],
+          runs: [['#2046', 'schedule', '41m 08s', 'ok'], ['#2045', 'manual', '3.9 s', 'ok'], ['#2044', 'manual', '4.2 s', 'ok'], ['#2043', 'schedule', '39m 51s', 'ok'], ['#2042', 'backfill', '1h 12m', 'ok']],
+        },
+        {
+          id: 'saz-demand', name: 'poc-weekly-demand-forecast', group: 'Demand forecasting', zone: 'South America', schedule: 'Mon 03:00 BRT',
+          output: 'forecast', publishSub: 'Replenishment suggestions',
+          lastRun: '1h ago', duration: '52m 30s', status: { text: 'Succeeded', cls: 'ok' },
+          model: 'demand-gbm', version: 'v14.2', features: 'poc_sku_weekly_v9', horizon: '8 wks', pocs: '1,962,750', skus: '538',
+          health: [['wMAPE (holdout)', '9.1%'], ['Bias', '+0.4%'], ['Feature drift (PSI)', '0.06'], ['POC coverage', '98.7%']],
+          ingest: 'BEES orders + POS · 9.4M rows', unit: 'hL',
+          rows: [
+            { sku: 'BR-BRA-CHP-350C12', brand: 'Brahma Chopp', pack: '12 × 350 ml can', fcst: 26310, ly: 2.2 },
+            { sku: 'BR-SKL-PIL-600R', brand: 'Skol', pack: '600 ml returnable', fcst: 21740, ly: -0.9 },
+            { sku: 'BR-ANT-ORG-473C', brand: 'Antarctica Original', pack: '473 ml can', fcst: 8150, ly: 6.3 },
+            { sku: 'BR-BUD-STD-350C8', brand: 'Budweiser', pack: '8 × 350 ml can', fcst: 7420, ly: 4.0 },
+            { sku: 'BR-SPT-ZRO-350C6', brand: 'Spaten', pack: '6 × 350 ml can', fcst: 5260, ly: 14.6 },
+          ],
+          runs: [['#1877', 'schedule', '52m 30s', 'ok'], ['#1876', 'manual', '4.4 s', 'ok'], ['#1875', 'schedule', '50m 02s', 'ok'], ['#1874', 'manual', '3.7 s', 'ok'], ['#1873', 'schedule', '51m 44s', 'ok']],
+        },
+        {
+          id: 'naz-promo', name: 'promo-uplift-scoring', group: 'Revenue management', zone: 'North America', schedule: 'Daily 04:30 ET',
+          output: 'uplift scores', publishSub: 'Promo recommendations',
+          lastRun: '5h ago', duration: '18m 47s', status: { text: 'Succeeded', cls: 'ok' },
+          model: 'uplift-tlearner', version: 'v6.0', features: 'promo_calendar_v4', horizon: '6 wks', pocs: '412,900', skus: '219',
+          health: [['Qini (holdout)', '0.31'], ['Uplift bias', '+1.2%'], ['Feature drift (PSI)', '0.03'], ['Retailer coverage', '97.9%']],
+          ingest: 'Retailer POS + promo calendar · 2.8M rows', unit: 'cases',
+          rows: [
+            { sku: 'US-MUL-LT-12C12', brand: 'Michelob Ultra', pack: '12 × 12 oz can', fcst: 41200, ly: 8.9 },
+            { sku: 'US-BDL-LT-12C24', brand: 'Bud Light', pack: '24 × 12 oz can', fcst: 38650, ly: -2.4 },
+            { sku: 'US-BUS-LT-12C30', brand: 'Busch Light', pack: '30 × 12 oz can', fcst: 29110, ly: 6.1 },
+            { sku: 'US-STA-ART-11B12', brand: 'Stella Artois', pack: '12 × 11.2 oz bottle', fcst: 12480, ly: 3.3 },
+          ],
+          runs: [['#988', 'schedule', '18m 47s', 'ok'], ['#987', 'schedule', '19m 02s', 'ok'], ['#986', 'manual', '3.2 s', 'ok'], ['#985', 'schedule', '18m 21s', 'ok']],
+        },
+        {
+          id: 'afr-oos', name: 'oos-risk-nightly', group: 'Supply', zone: 'Africa', schedule: 'Daily 01:00 SAST',
+          output: 'OOS risk scores', publishSub: 'Depot alerts',
+          lastRun: '15h ago', duration: '22m 15s', status: { text: 'Succeeded', cls: 'ok' },
+          model: 'oos-classifier', version: 'v3.8', features: 'depot_stock_daily_v5', horizon: '7 days', pocs: '318,400', skus: '164',
+          health: [['AUC (holdout)', '0.87'], ['Precision @ top 5%', '0.62'], ['Feature drift (PSI)', '0.05'], ['Depot coverage', '99.6%']],
+          ingest: 'Depot stock + BEES orders · 1.9M rows', unit: 'POCs at risk',
+          rows: [
+            { sku: 'ZA-CAS-LAG-750R', brand: 'Castle Lager', pack: '750 ml returnable', fcst: 3820, ly: -4.1 },
+            { sku: 'ZA-CBL-STD-500C6', brand: 'Carling Black Label', pack: '6 × 500 ml can', fcst: 3110, ly: -6.7 },
+            { sku: 'ZA-HAN-PIL-660R', brand: 'Hansa Pilsener', pack: '660 ml returnable', fcst: 1640, ly: 2.5 },
+            { sku: 'ZA-COR-EXT-355B6', brand: 'Corona Extra', pack: '6 × 355 ml bottle', fcst: 920, ly: 9.8 },
+          ],
+          runs: [['#3312', 'schedule', '22m 15s', 'ok'], ['#3311', 'schedule', '21m 58s', 'ok'], ['#3310', 'schedule', '23m 40s', 'warn'], ['#3309', 'schedule', '22m 03s', 'ok']],
+        },
+        {
+          id: 'eur-churn', name: 'poc-churn-propensity', group: 'Customer', zone: 'Europe', schedule: 'Sun 22:00 CET',
+          output: 'churn scores', publishSub: 'Retention lists',
+          lastRun: '3d ago', duration: '27m 39s', status: { text: 'Succeeded', cls: 'ok' }, paused: true,
+          model: 'churn-lgbm', version: 'v9.1', features: 'poc_engagement_v7', horizon: '12 wks', pocs: '276,150', skus: '—',
+          health: [['AUC (holdout)', '0.81'], ['Calibration (ECE)', '0.018'], ['Feature drift (PSI)', '0.09'], ['POC coverage', '96.4%']],
+          ingest: 'BEES sessions + orders · 3.3M rows', unit: 'POCs flagged',
+          rows: [
+            { sku: 'BE-JUP-PIL-250B24', brand: 'Jupiler', pack: 'On-trade · Flanders', fcst: 1210, ly: -3.0 },
+            { sku: 'BE-STA-ART-330B24', brand: 'Stella Artois', pack: 'On-trade · Brussels', fcst: 860, ly: 1.4 },
+            { sku: 'BE-LEF-BLD-330B24', brand: 'Leffe Blonde', pack: 'Off-trade · Wallonia', fcst: 540, ly: -0.6 },
+          ],
+          runs: [['#611', 'schedule', '27m 39s', 'ok'], ['#610', 'schedule', '28m 10s', 'ok'], ['#609', 'manual', '4.0 s', 'ok']],
+        },
+      ];
+
+      const SPARK = [280, 300, 290, 330, 310, 295, 320, 305, 290, 315, 300, 285, 310, 305];
+      const state = { selectedId: PIPELINES[0].id, inFlight: false, lastResult: {}, stages: {}, seq: 0, runNo: {} };
+
+      function current() { return PIPELINES.find((p) => p.id === state.selectedId) || PIPELINES[0]; }
+      function detailSub(p) { return `Last run ${p.lastRun}${p.paused ? ' · schedule paused' : ''}`; }
+      function nextRunLabel(p) {
+        state.runNo[p.id] = (state.runNo[p.id] || parseInt(p.runs[0][0].slice(1), 10)) + 1;
+        return '#' + state.runNo[p.id];
+      }
+      function outputLabel(p) { return p.output.charAt(0).toUpperCase() + p.output.slice(1); }
+      function baseStages(p) {
+        return [
+          { name: 'Ingest', sub: p.ingest, st: 'idle', label: 'Not started' },
+          { name: 'Build features', sub: p.features, st: 'idle', label: 'Not started' },
+          { name: 'Validate drift', sub: 'PSI < 0.20 · schema check', st: 'idle', label: 'Not started' },
+          { name: 'Batch score', sub: `${p.model} ${p.version} · ${$('maxTokens').value} batches`, st: 'idle', label: 'Not started' },
+          { name: 'Publish to BEES', sub: p.publishSub, st: 'idle', label: 'Not started' },
+        ];
+      }
+      const DOT = { idle: '', ok: 'ok', warn: 'warn', danger: 'danger', run: 'run', held: 'held' };
+
+      function renderDag() {
+        const stages = state.stages[state.selectedId] || baseStages(current());
+        $('dag').innerHTML = stages.map((s) => `
+          <div class="stage ${s.st === 'run' ? 'running' : ''}">
+            <div class="s-name">${esc(s.name)}</div>
+            <div class="s-sub">${esc(s.sub)}</div>
+            <div class="s-state"><span class="dot ${DOT[s.st]}"></span><span>${esc(s.label)}</span>${s.time ? `<span class="s-time">${esc(s.time)}</span>` : ''}</div>
+          </div>`).join('');
+      }
+      function setStage(i, patch) {
+        const p = current();
+        if (!state.stages[p.id]) state.stages[p.id] = baseStages(p);
+        Object.assign(state.stages[p.id][i], patch);
+        renderDag();
+      }
+
+      function renderRows() {
+        $('pipelineRows').innerHTML = PIPELINES.map((p) => `
+          <tr data-id="${p.id}" class="${p.id === state.selectedId ? 'selected' : ''}">
+            <td><span class="name">${esc(p.name)}</span><span class="meta">${esc(p.group)} · ${esc(p.model)} ${esc(p.version)}</span></td>
+            <td>${esc(p.zone)}</td>
+            <td>${esc(p.paused ? 'Paused' : p.schedule)}</td>
+            <td class="num">${esc(p.lastRun)}</td>
+            <td class="num r">${esc(p.duration)}</td>
+            <td><span class="chip ${p.status.cls}">${esc(p.status.text)}</span>${p.paused ? ' <span class="chip idle">Paused</span>' : ''}</td>
+            <td><button type="button" class="btn sm" data-id="${p.id}" ${state.inFlight ? 'disabled' : ''}>Open</button></td>
+          </tr>`).join('');
+        const healthy = PIPELINES.filter((p) => p.status.cls === 'ok' && !p.paused).length;
+        $('plCount').textContent = PIPELINES.length;
+        $('plSub').textContent = `${healthy} healthy · ${PIPELINES.length - healthy} need attention`;
+      }
+
+      function renderSide(p) {
+        $('modelTag').textContent = `${p.model} ${p.version}`;
+        $('modelHealth').innerHTML = p.health.map(([k, v]) => `<div class="metric-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+        $('runRows').innerHTML = p.runs.map(([id, trig, dur, cls]) => `<tr><td class="num">${esc(id)}</td><td>${esc(trig)}</td><td class="num r">${esc(dur)}</td><td><span class="chip ${cls}">${esc({ ok: 'Succeeded', warn: 'Degraded', danger: 'Failed' }[cls])}</span></td></tr>`).join('');
+        const last = state.lastResult[p.id];
+        $('slaLast').textContent = last ? fmtS(last.ttftMs) : '—';
+        const series = SPARK.slice(last ? 1 : 0).concat(last ? [last.ttftMs] : []);
+        const max = Math.max(SLA_MS, ...series);
+        $('spark').innerHTML = series.map((v, i) => `<i class="${last && i === series.length - 1 ? 'last' : ''}" style="height:${Math.max(4, Math.round((v / max) * 100))}%"></i>`).join('');
+      }
+
+      function promptFor(p) {
+        return [
+          `pipeline=${p.name}`, `zone=${p.zone}`, `model=${p.model}:${p.version}`, `feature_view=${p.features}`,
+          `horizon=${p.horizon}`, `pocs=${p.pocs.replace(/,/g, '')}`, `skus=${p.skus}`, 'mode=incremental', 'window=latest_iso_week',
+        ].join('\n');
+      }
+
+      function renderDetail() {
+        const p = current();
+        $('pageTitle').textContent = p.name;
+        $('crumbGroup').textContent = p.group;
+        $('detailTitle').textContent = `${p.name} · ${p.zone}`;
+        $('detailChip').textContent = p.status.text;
+        $('detailChip').className = 'chip ' + p.status.cls;
+        $('detailSub').textContent = detailSub(p);
+        $('params').innerHTML = [['Model', `${p.model} ${p.version}`], ['Feature view', p.features], ['Horizon', p.horizon], ['POCs', p.pocs], ['SKUs', p.skus], ['Mode', 'Incremental · latest ISO week']]
+          .map(([k, v]) => `<span class="param"><b>${esc(k)}</b>${esc(v)}</span>`).join('');
+        $('prompt').value = promptFor(p);
+        $('pauseBtn').textContent = p.paused ? 'Resume schedule' : 'Pause schedule';
+        $('submitBtn').disabled = state.inFlight;
+        $('progress').className = 'progress';
+        $('runStatus').textContent = 'Incremental run · reuses the last scheduled ingest and scores the latest ISO week.';
+        $('result').className = 'result-box';
+        $('result').innerHTML = '';
+        $('resultTable').innerHTML = '';
+        renderDag();
+        renderSide(p);
+        if (state.lastResult[p.id]) showResult(p, state.lastResult[p.id]);
+      }
+
+      function renderPreview(p, revealed) {
+        const rows = p.rows.slice(0, revealed).map((r) => `<tr><td class="name">${esc(r.sku)}</td><td>${esc(r.brand)}</td><td>${esc(r.pack)}</td><td class="num r">${esc(r.fcst.toLocaleString('en-US'))}</td><td class="num r">${esc(pct(r.ly))}</td></tr>`);
+        const pending = p.rows.slice(revealed).map(() => '<tr class="pending-row"><td colspan="5">Waiting for the next scored batch…</td></tr>');
+        const previewNote = `${outputLabel(p)} preview rows are illustrative for this pipeline; timings and batch counts are measured from this run.`;
+        $('resultTable').innerHTML = `<p class="preview-note">${esc(previewNote)}</p><div class="table-wrap"><table aria-label="${esc(outputLabel(p))} preview">
+          <thead><tr><th>SKU</th><th>Brand</th><th>Pack / segment</th><th class="r">Wk+1 (${esc(p.unit)})</th><th class="r">vs LY</th></tr></thead>
+          <tbody>${rows.concat(pending).join('')}</tbody></table></div>`;
+      }
+
+      function showResult(p, res) {
+        const degraded = res.ttftMs > SLA_MS;
+        const box = $('result');
+        box.className = 'result-box show ' + (degraded ? 'degraded' : 'success');
+        box.innerHTML = `<h3>${degraded ? 'Run degraded — scoring SLA breached. Publish to BEES held.' : 'Run succeeded. ' + outputLabel(p) + ' published to BEES.'}</h3>
+          <div class="timing">Run ${esc(res.runLabel)} · first scored batch after <b>${esc(fmtS(res.ttftMs))}</b> (SLA ${esc(fmtS(SLA_MS))}) · ${esc(res.batches)} batches in ${esc(fmtS(res.totalMs))}</div>
+          <div class="kpis">
+            <div class="kpi"><div class="lbl">First scored batch</div><div class="val ${degraded ? 'bad' : ''}">${esc(fmtS(res.ttftMs))}</div></div>
+            <div class="kpi"><div class="lbl">Batches scored</div><div class="val">${esc(res.batches)}</div></div>
+            <div class="kpi"><div class="lbl">POCs scored</div><div class="val">${esc(p.pocs)}</div></div>
+            <div class="kpi"><div class="lbl">Publish to BEES</div><div class="val ${degraded ? 'bad' : ''}">${degraded ? 'Held' : 'Done'}</div></div>
+          </div>`;
+        renderPreview(p, p.rows.length);
+      }
+
+      function lock(on) {
+        state.inFlight = on;
+        $('submitBtn').disabled = on;
+        $('pauseBtn').disabled = on;
+        document.querySelectorAll('#pipelineRows button').forEach((b) => { b.disabled = on; });
+      }
+
+      let toastTimer = null;
+      function toast(msg) {
+        const el = $('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+      }
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+      $('pipelineRows').addEventListener('click', (e) => {
+        if (state.inFlight) return;
+        const row = e.target.closest('tr[data-id]');
+        if (!row) return;
+        state.selectedId = row.dataset.id;
+        renderRows();
+        renderDetail();
+      });
+      document.querySelectorAll('[data-soon]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(`${a.dataset.soon} is not available in this workspace view.`); }));
+      $('logsBtn').addEventListener('click', () => toast('Run logs open in the platform log explorer.'));
+      $('pauseBtn').addEventListener('click', () => {
+        const p = current();
+        p.paused = !p.paused;
+        renderRows();
+        renderDetail();
+        toast(p.paused ? `${p.name} · ${p.zone} schedule paused.` : `${p.name} · ${p.zone} schedule resumed (${p.schedule}).`);
+      });
+
+      $('completionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (state.inFlight) return;
+        const p = current();
+        const seq = ++state.seq;
+        lock(true);
+        state.stages[p.id] = baseStages(p);
+        delete state.lastResult[p.id];
+        p.status = { text: 'Running', cls: 'pending' };
+        renderRows();
+        renderDetail();
+        $('detailChip').textContent = 'Running';
+        $('detailChip').className = 'chip pending';
+        const status = $('runStatus');
+        const started = Date.now();
+        const total = parseInt($('maxTokens').value, 10) || 64;
+        let firstAt = 0;
+        let batches = 0;
+        let revealed = 0;
+        const perRow = Math.max(1, Math.floor(total / p.rows.length));
+        $('progress').className = 'progress show';
+        $('progressBar').style.width = '0%';
+
+        const pre = [['Reused · run ' + p.runs[0][0], 'ok'], ['Materialized', 'ok'], ['Passed · PSI ' + p.health[2][1], 'ok']];
+        for (let i = 0; i < pre.length; i++) {
+          setStage(i, { st: 'run', label: 'Running' });
+          status.textContent = `${baseStages(p)[i].name}…`;
+          const t0 = Date.now();
+          await wait(220 + i * 60);
+          setStage(i, { st: pre[i][1], label: pre[i][0], time: fmtS(Date.now() - t0) });
+          $('progressBar').style.width = `${(i + 1) * 8}%`;
+        }
+
+        setStage(3, { st: 'run', label: 'Running' });
+        const scoreStart = Date.now();
+        const tick = setInterval(() => {
+          if (seq !== state.seq) return;
+          const s = fmtS(Date.now() - scoreStart);
+          status.innerHTML = firstAt
+            ? `Batch score · first batch after <b>${esc(fmtS(firstAt))}</b> · ${batches} / ${total} batches · <b>${s}</b>`
+            : `Batch score · waiting for the first scored batch… <b>${s}</b>`;
+          setStage(3, { time: s });
+        }, 100);
+        try {
+          const res = await fetch('/api/inference/completions', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: $('model').value,
+              deployment: $('deployment').value,
+              prompt: $('prompt').value,
+              maxTokens: parseInt($('maxTokens').value, 10) || 64,
+              stream: true,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          if (!res.ok) { const err = new Error('HTTP ' + res.status); err.status = res.status; throw err; }
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let final = null;
+          let failed = false;
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const frames = buffer.split('\n\n');
+            buffer = frames.pop();
+            for (const frame of frames) {
+              const line = frame.replace(/^data: /, '').trim();
+              if (!line || line === '[DONE]') continue;
+              let chunk;
+              try { chunk = JSON.parse(line); } catch (_e) { continue; }
+              if (chunk.error) { failed = true; continue; }
+              if (chunk.ttftMs && !firstAt) { firstAt = chunk.ttftMs; renderPreview(p, 0); }
+              const delta = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
+              if (delta && delta.content) {
+                batches += 1;
+                $('progressBar').style.width = `${24 + Math.min(1, batches / total) * 66}%`;
+                const target = Math.min(p.rows.length, Math.floor(batches / perRow));
+                if (target > revealed) { revealed = target; renderPreview(p, revealed); }
+              }
+              if (chunk.usage) final = chunk;
+            }
+          }
+          clearInterval(tick);
+          if (failed || !final) throw new Error('incomplete');
+          const ttftMs = final.ttftMs || firstAt;
+          const degraded = ttftMs > SLA_MS;
+          setStage(3, degraded
+            ? { st: 'warn', label: 'SLA breached', time: fmtS(Date.now() - scoreStart) }
+            : { st: 'ok', label: 'Scored', time: fmtS(Date.now() - scoreStart) });
+          setStage(4, degraded ? { st: 'held', label: 'Held · SLA breach' } : { st: 'ok', label: 'Published', time: '0.2 s' });
+          $('progressBar').style.width = degraded ? '90%' : '100%';
+          const totalMs = Date.now() - started;
+          const runLabel = nextRunLabel(p);
+          const summary = { runLabel, ttftMs, totalMs, batches };
+          state.lastResult[p.id] = summary;
+          p.runs = [[runLabel, 'manual', fmtS(totalMs), degraded ? 'warn' : 'ok']].concat(p.runs).slice(0, 6);
+          p.lastRun = 'just now';
+          p.duration = fmtS(totalMs);
+          p.status = degraded ? { text: 'Degraded', cls: 'warn' } : { text: 'Succeeded', cls: 'ok' };
+          status.innerHTML = degraded
+            ? `Completed in <b>${esc(fmtS(totalMs))}</b>. Batch score returned its first batch after <b>${esc(fmtS(ttftMs))}</b>, over the ${esc(fmtS(SLA_MS))} SLA. ${esc(p.publishSub)} in BEES keep last week's ${esc(p.output)} until a run passes.`
+            : `Completed in <b>${esc(fmtS(totalMs))}</b>.`;
+          $('detailChip').textContent = p.status.text;
+          $('detailChip').className = 'chip ' + p.status.cls;
+          $('detailSub').textContent = detailSub(p);
+          showResult(p, summary);
+          renderSide(p);
+        } catch (err) {
+          clearInterval(tick);
+          setStage(3, { st: 'danger', label: 'Failed', time: fmtS(Date.now() - scoreStart) });
+          setStage(4, { st: 'held', label: 'Not run' });
+          const totalMs = Date.now() - started;
+          const runLabel = nextRunLabel(p);
+          p.runs = [[runLabel, 'manual', fmtS(totalMs), 'danger']].concat(p.runs).slice(0, 6);
+          p.status = { text: 'Failed', cls: 'danger' };
+          p.lastRun = 'just now';
+          p.duration = fmtS(totalMs);
+          delete state.lastResult[p.id];
+          $('detailChip').textContent = 'Failed';
+          $('detailChip').className = 'chip danger';
+          $('detailSub').textContent = detailSub(p);
+          $('resultTable').innerHTML = '';
+          $('result').className = 'result-box show error';
+          $('result').innerHTML = `<h3>Batch score did not complete.</h3><div class="timing">No ${esc(p.output)} was published${err.status ? ` (HTTP ${esc(err.status)})` : ''}. The previous ${esc(p.output)} stays active in BEES. Retry the run or contact ML Platform Support.</div>`;
+          status.textContent = 'Not completed.';
+          renderSide(p);
+        } finally {
+          lock(false);
+          renderRows();
+        }
+      });
+
+      renderRows();
+      renderDetail();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

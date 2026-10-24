@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build order | BEES Link</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23FFFF00'/%3E%3Ctext x='16' y='23' font-family='Arial' font-weight='700' font-size='20' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #FFFF00; --ink: #000000; --surface: #FFFFFF; --chrome-bg: #000000; --chrome-text: #FFFFFF;
+      --accent-soft: color-mix(in srgb, var(--accent) 22%, var(--surface));
+      --text: color-mix(in srgb, var(--ink) 90%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 56%, var(--surface));
+      --line: color-mix(in srgb, var(--ink) 12%, var(--surface));
+      --page: color-mix(in srgb, #F5EFE2 70%, var(--surface));
+      --chrome-muted: color-mix(in srgb, var(--chrome-text) 64%, var(--chrome-bg));
+      --chrome-line: color-mix(in srgb, var(--chrome-text) 18%, var(--chrome-bg));
+      --ok: #1B6E3F; --ok-bg: color-mix(in srgb, #1B6E3F 11%, var(--surface));
+      --warn: #7A5200; --warn-bg: color-mix(in srgb, var(--accent) 30%, var(--surface));
+      --danger: #B3261E; --danger-bg: color-mix(in srgb, #B3261E 9%, var(--surface));
+      --head: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { background: var(--page); color: var(--text); font: 15px/1.5 'Work Sans', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; min-height: 100vh; }
+    a { color: var(--ink); }
+    button, select, input, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .45; }
+    :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+    .navbar { background: var(--chrome-bg); color: var(--chrome-text); }
+    .navbar-in { display: flex; align-items: stretch; height: 64px; padding: 0 28px; gap: 8px; min-width: 0; }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--chrome-text); white-space: nowrap; padding-right: 14px; }
+    .mark { width: 34px; height: 34px; flex: none; border-radius: 10px; background: var(--accent); color: var(--ink); display: grid; place-items: center; font: 700 23px/1 var(--head); }
+    .brand strong { font: 700 24px/1 var(--head); letter-spacing: .02em; }
+    .brand .product { font: 600 18px/1 var(--head); color: var(--accent); }
+    .nav { display: flex; align-items: stretch; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+    .nav::-webkit-scrollbar { display: none; }
+    .nav a { display: flex; align-items: center; padding: 0 14px; font-size: 15px; font-weight: 500; color: var(--chrome-text); text-decoration: none; white-space: nowrap; border-bottom: 3px solid transparent; }
+    .nav a.active { border-bottom-color: var(--accent); font-weight: 600; }
+    .nav a:hover { color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 14px; white-space: nowrap; }
+    .acct { font-size: 13px; color: var(--chrome-muted); text-align: right; line-height: 1.3; }
+    .acct b { color: var(--chrome-text); font-weight: 600; display: block; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--ink); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+
+    .subbar { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .subbar-in { max-width: 1320px; margin: 0 auto; padding: 16px 28px; display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+    .crumbs { font-size: 13px; color: var(--muted); }
+    .crumbs a { color: var(--muted); }
+    .subbar h1 { margin: 2px 0 0; font: 600 36px/1.05 var(--head); color: var(--ink); }
+    .spacer { flex: 1; }
+    .facts { display: flex; gap: 22px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+    .facts b { display: block; color: var(--ink); font-weight: 600; font-size: 14px; }
+
+    main { max-width: 1320px; margin: 0 auto; padding: 22px 28px 48px; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 20px; align-items: start; }
+    main > * { min-width: 0; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; min-width: 0; }
+    .card h2 { margin: 0 0 4px; font: 600 24px/1.15 var(--head); color: var(--ink); }
+    .card .sub { margin: 0 0 16px; font-size: 13px; color: var(--muted); }
+    .field { display: grid; gap: 6px; margin-bottom: 14px; min-width: 0; }
+    .field label { font-size: 13px; font-weight: 600; color: var(--ink); }
+    textarea, select { width: 100%; border: 1px solid color-mix(in srgb, var(--ink) 24%, var(--surface)); border-radius: 12px; background: var(--surface); padding: 12px 14px; min-height: 48px; }
+    textarea { min-height: 236px; resize: vertical; font-size: 14px; line-height: 1.55; font-family: 'Work Sans', sans-serif; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row2 > * { min-width: 0; }
+    .src { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .src span { font-size: 12px; font-weight: 600; border: 1px solid var(--line); border-radius: 32px; padding: 6px 12px; background: var(--page); }
+    .src span.on { background: var(--ink); color: var(--chrome-text); border-color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: 32px; border: 2px solid var(--ink); font-weight: 600; font-size: 16px; }
+    .btn-primary { background: var(--accent); color: var(--ink); border-color: var(--accent); }
+    .btn-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 88%, var(--ink)); }
+    .btn-dark { background: var(--ink); color: var(--chrome-text); }
+    .btn-ghost { background: transparent; color: var(--ink); }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+    .status { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 14px; border-radius: 12px; background: var(--page); font-size: 14px; margin-bottom: 14px; }
+    .status .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex: none; }
+    .status.run .dot { background: var(--ink); animation: pulse 1s infinite; }
+    .status.done .dot { background: var(--ok); }
+    .status.err .dot { background: var(--danger); }
+    @keyframes pulse { 50% { opacity: .25; } }
+    .tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); padding: 10px 12px; background: var(--page); border-bottom: 1px solid var(--line); white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    td .sku { display: block; font-size: 12px; color: var(--muted); }
+    .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 32px; margin-top: 4px; }
+    .tag.promo { background: var(--accent); color: var(--ink); }
+    .tag.sub { background: var(--warn-bg); color: var(--warn); }
+    .empty td { color: var(--muted); text-align: center; padding: 36px 12px; }
+    tr.new td { animation: fadein .35s ease; }
+    @keyframes fadein { from { background: var(--accent-soft); } to { background: transparent; } }
+    .totals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+    .totals div { background: var(--page); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+    .totals .lbl { font-size: 12px; color: var(--muted); }
+    .totals .val { font: 600 22px/1.2 var(--head); color: var(--ink); }
+    .result-box { display: none; border-radius: 12px; padding: 12px 14px; font-size: 14px; margin-bottom: 14px; }
+    .result-box.show { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.show.slow { background: var(--warn-bg); color: var(--warn); }
+    .result-box.show.error { background: var(--danger-bg); color: var(--danger); }
+    .result-box b { color: var(--ink); }
+
+    .side { display: grid; gap: 20px; }
+    .recent table td { font-size: 13px; }
+    .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 32px; background: var(--page); }
+    .pill.ok { background: var(--ok-bg); color: var(--ok); }
+    .pill.wait { background: var(--warn-bg); color: var(--warn); }
+
+    footer { background: var(--chrome-bg); color: var(--chrome-muted); }
+    .foot-in { max-width: 1320px; margin: 0 auto; padding: 22px 28px; display: flex; gap: 22px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+    .foot-in a { color: var(--chrome-text); text-decoration: none; }
+    .foot-in .grow { flex: 1; }
+    td.ref { white-space: nowrap; }
+    .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: var(--ink); color: var(--chrome-text); padding: 12px 18px; border-radius: 32px; font-size: 14px; display: none; z-index: 20; max-width: calc(100vw - 32px); }
+    .toast.show { display: block; }
+
+    @media (max-width: 980px) {
+      main { grid-template-columns: minmax(0, 1fr); }
+      .acct { display: none; }
+    }
+    @media (max-width: 640px) {
+      .navbar-in { padding: 0 14px; }
+      .brand .product { display: none; }
+      .nav a { padding: 0 10px; font-size: 14px; }
+      .subbar-in, main, .foot-in { padding-left: 14px; padding-right: 14px; }
+      .subbar h1 { font-size: 30px; }
+      .row2 { grid-template-columns: minmax(0, 1fr); }
+      .totals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .actions .btn { flex: 1 1 100%; }
+      th.hide-sm, td.hide-sm { display: none; }
+      .foot-in { gap: 10px 18px; }
+      .recent th:nth-child(3), .recent td:nth-child(3) { display: none; }
+      .foot-in .grow { flex: 1 1 calc(100% - 60px); }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar-in">
+      <a class="brand" href="#" aria-label="BEES Link home"><span class="mark" aria-hidden="true">B</span><strong>BEES</strong><span class="product">Link</span></a>
+      <nav class="nav" aria-label="Main">
+        <a href="#" class="active" aria-current="page">Build order</a>
+        <a href="#" data-soon="Orders">Orders</a>
+        <a href="#" data-soon="Catalog">Catalog</a>
+        <a href="#" data-soon="Deliveries">Deliveries</a>
+        <a href="#" data-soon="Invoices">Invoices</a>
+        <a href="#" data-soon="Contracts">Contracts</a>
+      </nav>
+      <div class="nav-right">
+        <div class="acct"><b>Hartwell Foodservice Group</b>Key account · 38 delivery points</div>
+        <div class="avatar" aria-label="Signed in as Megan Ortiz">MO</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="subbar">
+    <div class="subbar-in">
+      <div>
+        <div class="crumbs"><a href="#" data-soon="Orders">Orders</a> / New order</div>
+        <h1>Build order</h1>
+      </div>
+      <div class="spacer"></div>
+      <div class="facts">
+        <div>Contract<b>HFG-2026 Annual</b></div>
+        <div>Next delivery window<b>Tue 28 Oct, 05:00–09:00</b></div>
+        <div>Order cutoff<b>Fri 24 Oct, 14:00 CT</b></div>
+        <div>Credit available<b>$412,880.00</b></div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <section class="card" aria-labelledby="reqTitle">
+      <h2 id="reqTitle">Order request</h2>
+      <p class="sub">Paste a purchase order, an email or spreadsheet rows. BEES Link matches each line to your contract catalog and builds the order.</p>
+      <div class="src" aria-label="Request source">
+        <span class="on">Pasted text</span><span>Email (orders@)</span><span>CSV / XLSX</span><span>EDI 850</span>
+      </div>
+      <form id="completionForm" autocomplete="off">
+        <div class="field">
+          <label for="prompt">Purchase order</label>
+          <textarea id="prompt" spellcheck="false">PO 4471-2210 · Hartwell Foodservice · ship to DC Joliet, IL
+Deliver Tue 28 Oct, dock 4
+
+Michelob Ultra 12oz cans 24pk - 880 cs
+Bud Light 12oz cans 24pk - 640 cs
+Budweiser 12oz bottles 24pk - 420 cs
+Busch Light 30pk cans - 300 cs
+Stella Artois 1/2 bbl - 60 kegs
+Kona Big Wave 12oz cans 12pk - 150 cs
+Cutwater Lime Margarita 12oz 4pk (6x4) - 120 cs
+Bud Light 1/2 bbl - 48 kegs
+
+Use the Q4 volume promo where it applies.</textarea>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="deliveryPoint">Deliver to</label>
+            <select id="deliveryPoint">
+              <option value="DC-JOL" selected>DC Joliet, IL · dock 4</option>
+              <option value="DC-AUR">DC Aurora, IL · dock 2</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="model">Catalog</label>
+            <select id="model">
+              <option value="deepseek-v3" selected>HFG-2026 contract</option>
+              <option value="qwen3-32b">Full portfolio</option>
+            </select>
+          </div>
+        </div>
+        <input type="hidden" id="deployment" value="chat-prod">
+        <input type="hidden" id="maxTokens" value="64">
+        <div class="actions">
+          <button type="submit" id="submitBtn" class="btn btn-primary">Build order</button>
+          <button type="button" id="clearBtn" class="btn btn-ghost">Clear</button>
+        </div>
+        <p class="hint">Quantities are matched to case and keg packs. Lines that need a pack change are flagged for review. Stock and contract pricing are checked when you place the order.</p>
+      </form>
+    </section>
+
+    <div class="side">
+      <section class="card" aria-labelledby="draftTitle">
+        <h2 id="draftTitle">Order draft</h2>
+        <p class="sub" id="draftSub">No draft yet. Build an order from your request to see the lines here.</p>
+        <div class="status" id="status"><span class="dot"></span><span id="statusText">Ready</span></div>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Product</th><th class="hide-sm">Pack</th><th class="num">Qty</th><th class="num hide-sm">Unit</th><th class="num">Line total</th></tr></thead>
+            <tbody id="lines"><tr class="empty"><td colspan="5">No lines yet</td></tr></tbody>
+          </table>
+        </div>
+        <div class="totals">
+          <div><div class="lbl">Lines</div><div class="val" id="tLines">0</div></div>
+          <div><div class="lbl">Cases / kegs</div><div class="val" id="tUnits">0</div></div>
+          <div><div class="lbl">Pallets</div><div class="val" id="tPallets">0</div></div>
+          <div><div class="lbl">Subtotal</div><div class="val" id="tTotal">$0.00</div></div>
+        </div>
+        <div class="actions">
+          <button type="button" id="placeBtn" class="btn btn-dark" disabled>Place order</button>
+          <button type="button" class="btn btn-ghost" data-soon="Save as draft">Save as draft</button>
+        </div>
+      </section>
+
+      <section class="card recent" aria-labelledby="recentTitle">
+        <h2 id="recentTitle">Recent orders</h2>
+        <p class="sub">Last 4 orders for this account</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Order</th><th class="hide-sm">Placed</th><th class="num">Pallets</th><th class="num">Total</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="ref">BL-2210-0918</td><td class="hide-sm">Fri 17 Oct</td><td class="num">43</td><td class="num">$84,212.40</td><td><span class="pill ok">Delivered</span></td></tr>
+              <tr><td class="ref">BL-2210-0874</td><td class="hide-sm">Fri 10 Oct</td><td class="num">39</td><td class="num">$77,905.10</td><td><span class="pill ok">Delivered</span></td></tr>
+              <tr><td class="ref">BL-2210-0831</td><td class="hide-sm">Fri 3 Oct</td><td class="num">41</td><td class="num">$80,377.85</td><td><span class="pill ok">Delivered</span></td></tr>
+              <tr><td class="ref">BL-2210-0802</td><td class="hide-sm">Fri 26 Sep</td><td class="num">47</td><td class="num">$91,640.00</td><td><span class="pill ok">Invoiced</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="foot-in">
+      <span class="mark" aria-hidden="true">B</span>
+      <span class="grow">© 2026 BEES Global</span>
+      <a href="#" data-soon="BEES Care">BEES Care</a>
+      <a href="#" data-soon="Terms & Conditions">Terms &amp; Conditions</a>
+      <a href="#" data-soon="Privacy Policy">Privacy Policy</a>
+      <span>Enjoy Responsibly</span>
+    </div>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const usd = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const fmtS = (ms) => (ms / 1000).toFixed(1) + ' s';
+      const TARGET_MS = 1500;
+
+      const CATALOG = [
+        { match: /michelob ultra.*can/i, oz: 12, sku: '10158', name: 'Michelob ULTRA', pack: '12 oz can · 24/case', unit: 31.85, perPallet: 70 },
+        { match: /bud light.*can/i, oz: 12, sku: '10031', name: 'Bud Light', pack: '12 oz can · 24/case', unit: 27.40, perPallet: 70 },
+        { match: /budweiser.*bottle/i, oz: 12, sku: '10004', name: 'Budweiser', pack: '12 oz long neck · 24/case', unit: 28.15, perPallet: 60 },
+        { match: /busch light/i, oz: 12, sku: '10611', name: 'Busch Light', pack: '12 oz can · 30/case', unit: 24.95, perPallet: 63 },
+        { match: /stella/i, sku: '41120', name: 'Stella Artois', pack: '1/2 bbl keg', unit: 214.00, perPallet: 8, keg: true },
+        { match: /kona/i, oz: 12, sku: '52207', name: 'Kona Big Wave Golden Ale', pack: '12 oz can · 2×12/case', unit: 36.60, perPallet: 70, sub: '12pk → 24/case' },
+        { match: /cutwater/i, oz: 12, sku: '73318', name: 'Cutwater Lime Margarita', pack: '12 oz can · 6×4/case', unit: 54.20, perPallet: 50 },
+        { match: /bud light.*bbl/i, sku: '41031', name: 'Bud Light', pack: '1/2 bbl keg', unit: 168.00, perPallet: 8, keg: true },
+      ];
+      const PROMO = { '10158': 0.06, '10031': 0.06 };
+
+      function parseRequest(text) {
+        const out = [];
+        String(text || '').split(/\n/).forEach((raw) => {
+          const line = raw.trim();
+          const qty = line.match(/(\d[\d,]*)\s*(cs|cases?|kegs?)\b/i);
+          if (!qty) return;
+          const requested = parseInt(qty[1].replace(/,/g, ''), 10);
+          const size = line.match(/(\d+(?:\.\d+)?)\s*oz\b/i);
+          const item = CATALOG.find((c) => c.match.test(line) && (!size || !c.oz || parseFloat(size[1]) === c.oz));
+          if (!item) {
+            out.push({ review: true, sku: '', name: line.replace(/\s*[-–]\s*\d[\d,]*\s*(cs|cases?|kegs?)\b.*$/i, ''), pack: '', qty: requested, keg: /keg/i.test(qty[2]), unitPrice: 0, promo: 0, total: 0, perPallet: Infinity });
+            return;
+          }
+          const toCases = (n) => (item.sub ? Math.ceil(n / 2) : n);
+          const existing = out.find((o) => o.sku === item.sku);
+          if (existing) {
+            existing.requested += requested;
+            existing.qty = toCases(existing.requested);
+            existing.total = Math.round(existing.unitPrice * existing.qty * 100) / 100;
+            return;
+          }
+          const promo = PROMO[item.sku] || 0;
+          const unit = Math.round(item.unit * (1 - promo) * 100) / 100;
+          const q = toCases(requested);
+          out.push({ ...item, requested, qty: q, unitPrice: unit, promo, total: Math.round(unit * q * 100) / 100 });
+        });
+        return out;
+      }
+
+      const state = { lines: [], shown: 0, building: false };
+
+      function renderLines() {
+        const tbody = $('lines');
+        const visible = state.lines.slice(0, state.shown);
+        if (!visible.length) {
+          tbody.innerHTML = `<tr class="empty"><td colspan="5">${state.building ? 'Matching lines to your contract catalog…' : 'No lines yet'}</td></tr>`;
+        } else {
+          tbody.innerHTML = visible.map((l, i) => `<tr class="${i === visible.length - 1 ? 'new' : ''}">
+            <td>${esc(l.name)}${l.sku ? '<span class="sku">SKU ' + esc(l.sku) + '</span>' : ''}${l.promo ? '<span class="tag promo">Q4 volume promo −' + Math.round(l.promo * 100) + '%</span>' : ''}${l.sub ? '<span class="tag sub">Pack change: ' + esc(l.sub) + '</span>' : ''}${l.review ? '<span class="tag sub">Not in contract catalog · review</span>' : ''}</td>
+            <td class="hide-sm">${l.review ? '—' : esc(l.pack)}</td>
+            <td class="num">${l.qty.toLocaleString('en-US')} ${l.keg ? 'kegs' : 'cs'}</td>
+            <td class="num hide-sm">${l.review ? '—' : usd(l.unitPrice)}</td>
+            <td class="num">${l.review ? '—' : usd(l.total)}</td></tr>`).join('');
+        }
+        const priced = visible.filter((l) => !l.review);
+        const units = priced.reduce((s, l) => s + l.qty, 0);
+        const pallets = priced.reduce((s, l) => s + Math.ceil(l.qty / l.perPallet), 0);
+        const total = visible.reduce((s, l) => s + l.total, 0);
+        $('tLines').textContent = String(visible.length);
+        $('tUnits').textContent = units.toLocaleString('en-US');
+        $('tPallets').textContent = String(pallets);
+        $('tTotal').textContent = usd(total);
+      }
+
+      function setStatus(cls, text) {
+        $('status').className = 'status' + (cls ? ' ' + cls : '');
+        $('statusText').innerHTML = text;
+      }
+
+      function resetDraft() {
+        state.lines = []; state.shown = 0; state.building = false;
+        $('result').className = 'result-box'; $('result').textContent = '';
+        $('draftSub').textContent = 'No draft yet. Build an order from your request to see the lines here.';
+        $('placeBtn').disabled = true;
+        $('placeBtn').textContent = 'Place order';
+        setStatus('', 'Ready');
+        renderLines();
+      }
+
+      function toast(msg) {
+        const t = $('toast'); t.textContent = msg; t.className = 'toast show';
+        clearTimeout(toast.timer); toast.timer = setTimeout(() => { t.className = 'toast'; }, 2600);
+      }
+
+      document.querySelectorAll('[data-soon]').forEach((el) => el.addEventListener('click', (e) => {
+        e.preventDefault(); toast(el.getAttribute('data-soon') + ' is not available on this account view.');
+      }));
+
+      $('clearBtn').addEventListener('click', () => { $('prompt').value = ''; resetDraft(); $('prompt').focus(); });
+      $('prompt').addEventListener('input', () => { if (!state.building && state.shown) resetDraft(); });
+      $('deliveryPoint').addEventListener('change', () => { if (!state.building && state.shown) resetDraft(); });
+      $('model').addEventListener('change', () => { if (!state.building && state.shown) resetDraft(); });
+
+      function lockForm(locked) {
+        ['submitBtn', 'clearBtn', 'prompt', 'deliveryPoint', 'model'].forEach((id) => { $(id).disabled = locked; });
+      }
+
+      $('placeBtn').addEventListener('click', async () => {
+        const visible = state.lines.slice(0, state.shown);
+        if (state.building || !visible.length || visible.some((l) => l.review)) return;
+        const total = visible.reduce((s, l) => s + l.total, 0);
+        const dest = $('deliveryPoint').selectedOptions[0].textContent;
+        state.building = true;
+        lockForm(true);
+        $('placeBtn').disabled = true;
+        $('placeBtn').textContent = 'Placing order…';
+        $('result').className = 'result-box'; $('result').textContent = '';
+
+        const started = Date.now();
+        let firstAt = 0;
+        const tick = setInterval(() => {
+          const s = fmtS(Date.now() - started);
+          setStatus('run', firstAt
+            ? `Confirming ${visible.length} ${visible.length === 1 ? 'line' : 'lines'} · <b>${s}</b>`
+            : `Placing order · checking stock and contract pricing… <b>${s}</b>`);
+        }, 100);
+        setStatus('run', 'Placing order · checking stock and contract pricing…');
+
+        const order = visible.map((l) => `${l.sku} ${l.name} ${l.pack} x ${l.qty}`).join('\n');
+        try {
+          const res = await fetch('/api/inference/completions', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: $('model').value,
+              deployment: $('deployment').value,
+              prompt: `Place order for ${$('deliveryPoint').value}:\n${order}`,
+              maxTokens: parseInt($('maxTokens').value, 10) || 64,
+              stream: true,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          if (!res.ok) { const err = new Error('HTTP ' + res.status); err.status = res.status; throw err; }
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let final = null;
+          let failed = false;
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const frames = buffer.split('\n\n');
+            buffer = frames.pop();
+            for (const frame of frames) {
+              const line = frame.replace(/^data: /, '').trim();
+              if (!line || line === '[DONE]') continue;
+              let chunk;
+              try { chunk = JSON.parse(line); } catch (_e) { continue; }
+              if (chunk.error) { failed = true; continue; }
+              if (chunk.ttftMs && !firstAt) firstAt = chunk.ttftMs;
+              if (chunk.usage) final = chunk;
+            }
+          }
+          clearInterval(tick);
+          if (failed || !final) throw new Error('incomplete');
+          const totalMs = Date.now() - started;
+          const firstMs = final.ttftMs || firstAt;
+          const slow = firstMs > TARGET_MS;
+          const ref = 'BL-2310-' + String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, '0');
+          setStatus('done', `Order placed · ${ref} · <b>${fmtS(totalMs)}</b>`);
+          $('result').className = 'result-box show' + (slow ? ' slow' : '');
+          $('result').innerHTML = `Order <b>${ref}</b> placed for <b>${esc(dest)}</b>: ${visible.length} ${visible.length === 1 ? 'line' : 'lines'}, ${usd(total)}.`
+            + (slow ? ` Placing it took longer than usual: stock check after <b>${fmtS(firstMs)}</b>, confirmed in <b>${fmtS(totalMs)}</b>.` : ` Confirmed in <b>${fmtS(totalMs)}</b>.`)
+            + ' Confirmation will be sent to orders@ once your distributor accepts it.';
+          $('placeBtn').textContent = 'Order placed';
+        } catch (err) {
+          clearInterval(tick);
+          setStatus('err', 'Not placed');
+          $('result').className = 'result-box show error';
+          $('result').textContent = `We couldn't place this order right now${err.status ? ' (HTTP ' + err.status + ')' : ''}. Your draft is still here; try again, or contact BEES Care to place it with your sales rep.`;
+          $('placeBtn').textContent = 'Place order';
+          $('placeBtn').disabled = false;
+        } finally {
+          state.building = false;
+          lockForm(false);
+        }
+      });
+
+      $('completionForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (state.building) return;
+        const request = $('prompt').value.trim();
+        const parsed = parseRequest(request);
+        resetDraft();
+        if (!parsed.length) {
+          $('result').className = 'result-box show error';
+          $('result').textContent = 'No order lines found. Add a product and a quantity in cases or kegs on each line, for example "Bud Light 12oz cans 24pk - 640 cs".';
+          return;
+        }
+        state.lines = parsed;
+        state.shown = parsed.length;
+        renderLines();
+        const reviewCount = parsed.filter((l) => l.review).length;
+        const dest = $('deliveryPoint').selectedOptions[0].textContent;
+        if (reviewCount === parsed.length) {
+          $('draftSub').textContent = `Request for ${dest} · needs review`;
+          setStatus('err', 'Needs review');
+          $('result').className = 'result-box show error';
+          $('result').textContent = `None of these lines are in your contract catalog. Edit ${parsed.length === 1 ? 'it' : 'them'} to a contract product and pack, then build the order again.`;
+          return;
+        }
+        $('draftSub').textContent = `Request for ${dest}`;
+        setStatus('done', `Draft ready · ${parsed.length} ${parsed.length === 1 ? 'line' : 'lines'}`);
+        $('result').className = 'result-box show';
+        $('result').innerHTML = reviewCount
+          ? `<b>${reviewCount} ${reviewCount === 1 ? 'line is' : 'lines are'} not in your contract catalog.</b> Edit or remove ${reviewCount === 1 ? 'it' : 'them'} before placing the order.`
+          : 'Review the lines, then place the order.';
+        $('placeBtn').disabled = reviewCount > 0;
+      });
+
+      renderLines();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

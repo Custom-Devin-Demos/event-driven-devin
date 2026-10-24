@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Add monitoring capacity | Dynatrace</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1966FF;
+      --ink: #000000;
+      --surface: #FFFFFF;
+      --chrome-bg: #000000;
+      --chrome-text: #FFFFFF;
+      --page: color-mix(in srgb, var(--ink) 4%, var(--surface));
+      --hero: color-mix(in srgb, var(--accent) 82%, var(--chrome-bg));
+      --line: color-mix(in srgb, var(--ink) 8%, var(--surface));
+      --field-line: color-mix(in srgb, var(--ink) 20%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 68%, var(--surface));
+      --tint: color-mix(in srgb, var(--accent) 9%, var(--surface));
+      --ok: color-mix(in srgb, #2E8B57 70%, var(--ink));
+      --ok-bg: color-mix(in srgb, #2E8B57 8%, var(--surface));
+      --warn: color-mix(in srgb, #B26A00 75%, var(--ink));
+      --warn-bg: color-mix(in srgb, #F5A623 12%, var(--surface));
+      --chrome-soft: color-mix(in srgb, var(--chrome-text) 85%, transparent);
+      --chrome-faint: color-mix(in srgb, var(--chrome-text) 18%, transparent);
+      --text: Inter, BerninaSans, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 400 18px/1.55 var(--text); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 48px; }
+
+    .gnav { background: var(--chrome-bg); color: var(--chrome-text); }
+    .gnav .wrap { display: flex; align-items: center; height: 100px; gap: 28px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; color: var(--chrome-text); font-size: 30px; font-weight: 400; letter-spacing: -0.8px; }
+    .brand svg { width: 30px; height: 30px; flex: none; }
+    .gnav-links { display: flex; align-items: center; gap: 24px; }
+    .gnav-links a, .gnav-util a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; text-decoration: none; font-size: 16px; font-weight: 500; color: var(--chrome-text); white-space: nowrap; }
+    .gnav-util a.btn-white { color: var(--ink); }
+    .caret { width: 10px; height: 10px; }
+    .gnav-util { display: flex; align-items: center; gap: 24px; margin-left: auto; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 10px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; text-decoration: none; border: 0; }
+    .btn-white { background: var(--surface); color: var(--ink); }
+    .menu-toggle { display: none; margin-left: auto; width: 48px; height: 48px; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; background: transparent; color: var(--chrome-text); }
+    .menu-toggle svg { width: 22px; height: 22px; }
+
+    .banner { background: linear-gradient(90deg, #B53CE5 14%, #7930D6 86%); color: #fff; }
+    .banner .wrap { display: flex; align-items: center; justify-content: center; gap: 24px; min-height: 50px; font-size: 16px; font-weight: 700; text-align: center; }
+    .banner a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 500; text-decoration: none; border-bottom: 2px solid rgba(255,255,255,.7); line-height: 1.2; }
+
+    .hero { background: var(--hero) linear-gradient(100deg, var(--hero) 0%, var(--accent) 65%, color-mix(in srgb, var(--accent) 85%, var(--surface)) 100%); color: var(--chrome-text); overflow: hidden; }
+    .hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 46%); gap: 40px; align-items: center; min-height: 440px; }
+    .crumbs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; font-size: 15px; color: rgba(255,255,255,.85); }
+    .crumbs a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.5); line-height: 1.2; }
+    .crumbs span { display: inline-flex; align-items: center; min-height: 44px; }
+    h1 { margin: 0; font-size: 50px; line-height: 60px; font-weight: 800; letter-spacing: -0.5px; }
+    .lead { margin: 20px 0 0; font-size: 20px; line-height: 32px; max-width: 560px; color: rgba(255,255,255,.92); }
+    .hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; margin-top: 32px; }
+    .link-arrow { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 18px; font-weight: 500; text-decoration: none; color: var(--chrome-text); border-bottom: 2px solid rgba(255,255,255,.7); line-height: 1.2; }
+    .hero-art { align-self: end; }
+    .hero-art img { display: block; width: 118%; max-width: none; margin: 32px 0 -8px; filter: drop-shadow(0 20px 40px rgba(0,0,0,.35)); }
+
+    main { padding: 64px 0 88px; }
+    .section-head { margin: 0 0 32px; }
+    .section-head h2 { margin: 0; font-size: 40px; line-height: 50px; font-weight: 800; }
+    .section-head p { margin: 8px 0 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+    .card { background: var(--surface); border-radius: 16px; padding: 32px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+    .card h3 { margin: 0 0 4px; font-size: 25px; line-height: 35px; font-weight: 800; }
+    .card .sub { margin: 0 0 24px; font-size: 16px; color: var(--muted); }
+    .usage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat { background: var(--tint); border-radius: 12px; padding: 16px; }
+    .stat b { display: block; font-size: 28px; line-height: 36px; font-weight: 800; }
+    .stat span { font-size: 14px; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 16px; }
+    th { text-align: left; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); padding: 0 8px 12px 0; border-bottom: 1px solid var(--line); }
+    td { padding: 14px 8px 14px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+    td small { display: block; font-size: 13px; color: var(--muted); }
+    .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 13px; font-weight: 600; background: var(--ok-bg); color: var(--ok); white-space: nowrap; }
+    .pill.watch { background: var(--warn-bg); color: var(--warn); }
+
+    .form-group { margin-bottom: 20px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    label { display: block; margin-bottom: 6px; font-size: 15px; font-weight: 600; }
+    select, input[type=number] { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--field-line); border-radius: 8px; background: var(--surface); color: var(--ink); font-size: 16px; }
+    select:focus, input:focus, button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 2px; }
+    .hint { margin-top: 6px; font-size: 14px; color: var(--muted); }
+    .summary { margin: 4px 0 24px; padding: 16px; border-radius: 12px; background: var(--page); font-size: 15px; line-height: 24px; }
+    .summary dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 0; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; text-align: right; }
+    .btn-primary { width: 100%; background: var(--accent); color: var(--surface); min-height: 52px; font-size: 18px; }
+    .btn-primary:hover { background: color-mix(in srgb, var(--accent) 85%, var(--ink)); }
+    .btn-primary:disabled { opacity: .7; cursor: progress; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 20px; border-radius: 12px; font-size: 16px; line-height: 24px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); }
+    .result-box .title { font-weight: 700; margin-bottom: 4px; }
+    .result-actions { margin-top: 8px; }
+    .text-btn { min-height: 44px; padding: 0; border: 0; background: none; color: var(--accent); font-weight: 600; text-decoration: underline; }
+
+    footer { background: var(--chrome-bg); color: var(--chrome-text); padding: 64px 0 32px; font-size: 15px; }
+    .fcols { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; }
+    .fcols h4 { margin: 0 0 8px; font-size: 13px; font-weight: 700; letter-spacing: .6px; }
+    .fcols a { display: flex; align-items: center; min-height: 44px; text-decoration: none; color: var(--chrome-soft); }
+    .fbottom { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--chrome-faint); }
+    .fbottom a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; text-decoration: none; color: var(--chrome-soft); }
+    .copy { margin-top: 16px; color: rgba(255,255,255,.6); font-size: 13px; }
+
+    @media (max-width: 1080px) {
+      .gnav-links, .gnav-util { display: none; }
+      .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
+      .gnav .wrap { flex-wrap: wrap; height: auto; min-height: 80px; }
+      .gnav.open .gnav-links, .gnav.open .gnav-util { display: flex; flex-direction: column; align-items: flex-start; gap: 0; width: 100%; margin: 0; }
+      .gnav.open .gnav-util { padding-bottom: 20px; }
+      .hero .wrap { grid-template-columns: 1fr; min-height: 0; padding-top: 48px; }
+      .hero-art img { width: 100%; }
+      .grid { grid-template-columns: 1fr; }
+      .fcols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 0 20px; }
+      .brand { font-size: 26px; }
+      .banner .wrap { flex-direction: column; gap: 0; padding: 8px 20px; font-size: 15px; }
+      h1 { font-size: 36px; line-height: 44px; }
+      .lead { font-size: 18px; line-height: 28px; }
+      .section-head h2 { font-size: 30px; line-height: 38px; }
+      .card { padding: 20px; }
+      .usage { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      table th:nth-child(3), table td:nth-child(3) { display: none; }
+      .fcols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="gnav" id="gnav">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="dynatrace home">
+        <svg viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="1" width="28" height="28" rx="7" fill="#1966FF"/><path d="M19.5 7v16h-2.6v-1.4A5.4 5.4 0 0 1 12.8 23c-3.1 0-5.3-2.5-5.3-5.6s2.2-5.6 5.3-5.6c1.7 0 3.1.6 4.1 1.8V7h2.6Zm-6.3 7.3c-1.8 0-3.1 1.4-3.1 3.1s1.3 3.1 3.1 3.1 3.1-1.4 3.1-3.1-1.3-3.1-3.1-3.1Z" fill="#fff"/><circle cx="23.5" cy="23" r="2" fill="#B53CE5"/></svg>
+        <span>dynatrace</span>
+      </a>
+      <nav class="gnav-links" aria-label="Main">
+        <a href="#">Platform <svg class="caret" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
+        <a href="#">Solutions <svg class="caret" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
+        <a href="#">Resources <svg class="caret" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
+        <a href="#">Company <svg class="caret" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
+        <a href="#">Pricing</a>
+      </nav>
+      <div class="gnav-util">
+        <a href="#">Support <svg class="caret" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
+        <a href="#">Account Management</a>
+        <a class="btn btn-white" href="#capacity">Add capacity</a>
+      </div>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="gnav">
+        <svg viewBox="0 0 22 22" aria-hidden="true"><path d="M2 5h18M2 11h18M2 17h18" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="banner">
+    <div class="wrap">
+      <span>Capacity you add draws down from your annual Dynatrace Platform Subscription commitment.</span>
+      <a href="#capacity">View usage &rarr;</a>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <div class="crumbs"><a href="#">Account Management</a><span>&rsaquo;</span><a href="#">Subscription</a><span>&rsaquo;</span><span>Monitoring capacity</span></div>
+        <h1>Add monitoring capacity</h1>
+        <p class="lead">Bring more hosts under OneAgent monitoring in any environment. New hosts report into Grail and appear in Smartscape topology as soon as OneAgent connects.</p>
+        <div class="hero-cta">
+          <a class="btn btn-white" href="#capacity">Add hosts</a>
+          <a class="link-arrow" href="#">View full rate card &rarr;</a>
+        </div>
+      </div>
+      <div class="hero-art">
+        <img src="https://cdn.dm.dynatrace.com/assets/images/pages/page-home/dynatrace-dashboard-dark.png" alt="" onerror="this.parentNode.style.display='none'">
+      </div>
+    </div>
+  </section>
+
+  <main id="capacity">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Monitoring capacity</h2>
+        <p>Account: Northwind Retail Group &middot; Dynatrace Platform Subscription, annual commitment</p>
+      </div>
+      <div class="grid">
+        <section class="card" aria-labelledby="envHead">
+          <h3 id="envHead">Environments</h3>
+          <p class="sub">Monitored hosts by environment, last 24 hours</p>
+          <div class="usage">
+            <div class="stat"><b class="num">1,284</b><span>Monitored hosts</span></div>
+            <div class="stat"><b class="num">71%</b><span>Commitment used</span></div>
+            <div class="stat"><b class="num">4</b><span>Environments</span></div>
+          </div>
+          <table>
+            <thead><tr><th>Environment</th><th>Hosts</th><th>Monitoring mode</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Production<small>us-east-1</small></td><td class="num">812</td><td>Full-Stack</td><td><span class="pill">Healthy</span></td></tr>
+              <tr><td>Staging<small>us-east-1</small></td><td class="num">236</td><td>Full-Stack</td><td><span class="pill">Healthy</span></td></tr>
+              <tr><td>Kubernetes platform<small>eu-central-1</small></td><td class="num">174</td><td>Infrastructure</td><td><span class="pill watch">92% of quota</span></td></tr>
+              <tr><td>Data center<small>on-premises Managed</small></td><td class="num">62</td><td>Foundation &amp; Discovery</td><td><span class="pill">Healthy</span></td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="card" aria-labelledby="addHead">
+          <h3 id="addHead">Add hosts</h3>
+          <p class="sub">Hosts are licensed as soon as you confirm. Install OneAgent to start monitoring.</p>
+          <form id="provisionForm" novalidate>
+            <div class="form-group">
+              <label for="product">Environment</label>
+              <select id="product">
+                <option value="production">Production</option>
+                <option value="staging">Staging</option>
+                <option value="kubernetes_platform">Kubernetes platform</option>
+                <option value="data_center">Data center</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="seats">Hosts to add</label>
+                <input type="number" id="seats" value="25" min="1" max="250" step="1" required inputmode="numeric">
+                <div class="hint">Up to 250 per request</div>
+              </div>
+              <div class="form-group">
+                <label for="planTier">Monitoring mode</label>
+                <select id="planTier">
+                  <option value="enterprise">Full-Stack</option>
+                  <option value="business">Infrastructure</option>
+                  <option value="starter">Foundation &amp; Discovery</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="region">Cluster region</label>
+              <select id="region">
+                <option value="us-east-1">AWS us-east-1 (N. Virginia)</option>
+                <option value="us-west-2">AWS us-west-2 (Oregon)</option>
+                <option value="eu-central-1">AWS eu-central-1 (Frankfurt)</option>
+                <option value="ap-southeast-2">AWS ap-southeast-2 (Sydney)</option>
+              </select>
+            </div>
+            <div class="summary" aria-live="polite">
+              <dl>
+                <dt>Environment</dt><dd id="sumEnv"></dd>
+                <dt>Hosts</dt><dd id="sumHosts"></dd>
+                <dt>Monitoring mode</dt><dd id="sumMode"></dd>
+                <dt>Region</dt><dd id="sumRegion"></dd>
+              </dl>
+            </div>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Add hosts</button>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="fcols">
+        <div><h4>PLATFORM</h4><a href="#">Overview</a><a href="#">Pricing</a><a href="#">Supported technologies</a><a href="#">Grail</a></div>
+        <div><h4>SOLUTIONS</h4><a href="#">Application monitoring</a><a href="#">Infrastructure monitoring</a><a href="#">Kubernetes</a><a href="#">Log management</a></div>
+        <div><h4>RESOURCES</h4><a href="#">Documentation</a><a href="#">Dynatrace Hub</a><a href="#">Customer stories</a><a href="#">Blog</a></div>
+        <div><h4>SUPPORT &amp; SERVICES</h4><a href="#">Dynatrace Support</a><a href="#">Account Management</a><a href="#">Community</a><a href="#">University</a></div>
+        <div><h4>ABOUT</h4><a href="#">Company</a><a href="#">Careers</a><a href="#">Newsroom</a><a href="#">Investor Relations</a></div>
+      </div>
+      <div class="fbottom">
+        <a href="#">Trust Center</a><a href="#">Dynatrace status</a><a href="#">Terms of use</a><a href="#">Policies</a><a href="#">Sitemap</a><a href="#">Cookies</a>
+      </div>
+      <div class="copy">Sample account data for demonstration.</div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const nav = document.getElementById('gnav');
+      const toggle = document.getElementById('menuToggle');
+      toggle.addEventListener('click', function () {
+        const open = nav.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      });
+
+      const form = document.getElementById('provisionForm');
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const env = document.getElementById('product');
+      const seats = document.getElementById('seats');
+      const mode = document.getElementById('planTier');
+      const region = document.getElementById('region');
+      const IDLE_LABEL = 'Add hosts';
+      const nf = new Intl.NumberFormat('en-US');
+      let submission = 0;
+
+      function text(select) { return select.options[select.selectedIndex].textContent; }
+      function hostCount() {
+        const raw = seats.value.trim();
+        if (!/^\d+$/.test(raw)) return NaN;
+        return parseInt(raw, 10);
+      }
+      function renderSummary() {
+        const n = hostCount();
+        document.getElementById('sumEnv').textContent = text(env);
+        document.getElementById('sumHosts').textContent = Number.isFinite(n) ? nf.format(n) : '\u2014';
+        document.getElementById('sumMode').textContent = text(mode);
+        document.getElementById('sumRegion').textContent = region.value;
+      }
+      function clearResult() { result.className = 'result-box'; result.textContent = ''; }
+      function show(cls, title, detail, withReset) {
+        result.className = 'result-box ' + cls;
+        result.textContent = '';
+        const t = document.createElement('div'); t.className = 'title'; t.textContent = title;
+        const d = document.createElement('div'); d.textContent = detail;
+        result.append(t, d);
+        if (withReset) {
+          const wrap = document.createElement('div'); wrap.className = 'result-actions';
+          const again = document.createElement('button'); again.type = 'button'; again.className = 'text-btn'; again.textContent = 'Add more hosts';
+          again.addEventListener('click', resetForm);
+          wrap.append(again); result.append(wrap);
+        }
+      }
+      function resetForm() {
+        submission++;
+        form.reset();
+        btn.disabled = false; btn.textContent = IDLE_LABEL;
+        clearResult();
+        renderSummary();
+        env.focus();
+      }
+
+      [env, seats, mode, region].forEach(function (el) {
+        el.addEventListener('input', renderSummary);
+        el.addEventListener('change', renderSummary);
+      });
+      renderSummary();
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const n = hostCount();
+        if (!Number.isFinite(n) || n < 1 || n > 250) {
+          show('notice', 'Check the number of hosts', 'Enter a whole number of hosts from 1 to 250.');
+          seats.focus();
+          return;
+        }
+        const id = ++submission;
+        const envLabel = text(env);
+        const modeLabel = text(mode);
+        const regionLabel = region.value;
+        btn.disabled = true; btn.textContent = 'Adding hosts\u2026';
+        clearResult();
+        try {
+          const res = await fetch('/api/licenses/provision', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: 'Northwind Retail Group',
+              planName: mode.value,
+              seats: n,
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json().catch(function () { return {}; });
+          if (id !== submission) return;
+          if (res.ok && data.success) {
+            const added = Number(data.seatsAdded) || n;
+            const ref = String(data.licenseId || '').slice(0, 8).toUpperCase();
+            show('success', 'Hosts added',
+              nf.format(added) + ' ' + (added === 1 ? 'host' : 'hosts') + ' added to ' + envLabel + ' (' + regionLabel + ') with ' + modeLabel + ' monitoring.' +
+              (ref ? ' Reference ' + ref + '.' : '') + ' Install OneAgent on the new hosts to start monitoring.', true);
+          } else {
+            show('notice', 'Hosts weren\u2019t added', 'We couldn\u2019t add capacity to ' + envLabel + ' right now and your subscription hasn\u2019t changed. Try again in a moment, or contact Dynatrace Support.');
+          }
+        } catch (err) {
+          if (id !== submission) return;
+          show('notice', 'Hosts weren\u2019t added', 'We couldn\u2019t reach Account Management. Check your connection and try again.');
+        } finally {
+          if (id === submission) { btn.disabled = false; btn.textContent = IDLE_LABEL; }
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

@@ -171,4 +171,19 @@ describe('per-skin alertCard overrides on the #oncall-alerts card', () => {
       expect(skin.alertCard[key]).not.toMatch(new RegExp(skin.company, 'i'));
     }
   });
+
+  test('86ba63ab posts its own release and team instead of the generic banking ones', async () => {
+    const skin = getOncallSkin('86ba63ab');
+    const { text } = await postCard(skin);
+
+    expect(text).toContain('*Endpoint:* POST /api/oncall/banking/transfer');
+    expect(text).toContain('Release: savings-online@2026.10.3');
+    expect(text).toContain('savings-payments-oncall');
+    expect(text).toContain('/oncall/c/86ba63ab');
+    expect(text).not.toMatch(/apex/i);
+    expect(skin.paths).toEqual(['/ybs']);
+    for (const key of ['release', 'team']) {
+      expect(skin.alertCard[key]).not.toMatch(/ybs|yorkshire/i);
+    }
+  });
 });

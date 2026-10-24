@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settlement Operations | 87575bac</title>
+<link rel="icon" type="image/x-icon" href="/verticals/assets/87575bac/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --v-green: #008a00;
+    --v-green-hover: #037a03;
+    --v-green-dark: #1a5336;
+    --v-green-deep: #0f3d26;
+    --v-green-tint: #e7f3e7;
+    --v-green-line: #cfe5cf;
+    --v-ink: #1c1c1c;
+    --v-text: #333;
+    --v-muted: #6b6b6b;
+    --v-line: #e2e4e2;
+    --v-canvas: #f3f5f3;
+    --v-red: #c8102e;
+    --v-red-tint: #fdecee;
+    --v-red-line: #f3c2ca;
+    --v-amber: #a86400;
+    --v-amber-tint: #fff4e0;
+    --v-blue: #1a5fb4;
+    --v-blue-tint: #e8f0fb;
+    --v-radius: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--v-canvas); color: var(--v-text); font-size: 13px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'Roboto Mono', ui-monospace, Menlo, monospace; font-size: 12px; }
+  .wrap { max-width: 1440px; margin: 0 auto; padding: 0 28px; }
+
+  .topbar { background: var(--v-green-dark); color: #fff; position: sticky; top: 0; z-index: 50; box-shadow: 0 1px 0 rgba(0,0,0,.15); }
+  .topbar .wrap { display: flex; align-items: center; height: 60px; gap: 18px; }
+  .brand { display: flex; align-items: center; gap: 16px; color: #fff; text-decoration: none; }
+  .brand img { height: 30px; width: auto; display: block; }
+  .brand-sep { width: 1px; height: 26px; background: rgba(255,255,255,.35); }
+  .brand-app { font-size: 17px; font-weight: 600; letter-spacing: -.1px; }
+  .topnav { display: flex; margin-left: 24px; }
+  .topnav a { color: rgba(255,255,255,.82); text-decoration: none; font-weight: 500; font-size: 13px; padding: 19px 13px 17px; border-bottom: 3px solid transparent; }
+  .topnav a.is-active { color: #fff; border-bottom-color: #3dae2b; }
+  .topnav a:hover { color: #fff; }
+  .top-right { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 12px; }
+  .bizdate { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25; }
+  .bizdate small { color: rgba(255,255,255,.7); font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px; }
+  .bizdate b { font-weight: 600; font-size: 13px; }
+  .env { font-size: 10.5px; font-weight: 700; letter-spacing: .7px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); padding: 3px 9px; border-radius: 999px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: #3dae2b; color: #fff; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+
+  .subbar { background: #fff; border-bottom: 1px solid var(--v-line); }
+  .subbar .wrap { display: flex; align-items: center; height: 46px; gap: 10px; font-size: 12.5px; color: var(--v-muted); }
+  .subbar a { color: var(--v-green); text-decoration: none; font-weight: 500; }
+  .subbar a:hover { text-decoration: underline; }
+  .subbar .crumb-cur { color: var(--v-ink); font-weight: 600; }
+  .subbar .feed { margin-left: auto; display: flex; align-items: center; gap: 7px; }
+  .subbar .feed::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--v-green); box-shadow: 0 0 0 3px rgba(0,138,0,.15); }
+
+  main { padding: 22px 0 48px; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 16px; }
+  .page-head h1 { font-size: 21px; font-weight: 700; color: var(--v-ink); letter-spacing: -.2px; }
+  .page-head p { color: var(--v-muted); margin-top: 3px; }
+  .btn { text-decoration: none; display: inline-block; font: inherit; font-weight: 600; font-size: 13px; border-radius: var(--v-radius); padding: 9px 16px; cursor: pointer; border: 1px solid var(--v-line); background: #fff; color: var(--v-ink); transition: background .15s, border-color .15s, opacity .15s; }
+  .btn:hover { border-color: #c7cbc7; }
+  .btn-primary { background: var(--v-green); border-color: var(--v-green); color: #fff; }
+  .btn-primary:hover { background: var(--v-green-hover); border-color: var(--v-green-hover); }
+  .btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+  .kpi { background: #fff; border: 1px solid var(--v-line); border-radius: var(--v-radius); padding: 15px 18px; border-top: 3px solid var(--v-green); }
+  .kpi.is-warn { border-top-color: var(--v-amber); }
+  .kpi.is-bad { border-top-color: var(--v-red); }
+  .kpi-label { font-size: 11.5px; color: var(--v-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .kpi-value { font-size: 28px; font-weight: 700; color: var(--v-ink); margin-top: 4px; letter-spacing: -.5px; }
+  .kpi-sub { font-size: 12px; color: var(--v-muted); margin-top: 2px; }
+
+  .card { background: #fff; border: 1px solid var(--v-line); border-radius: var(--v-radius); }
+  .card-head { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; border-bottom: 1px solid var(--v-line); }
+  .card-head h2 { font-size: 14.5px; font-weight: 700; color: var(--v-ink); }
+  .card-head .meta { color: var(--v-muted); font-size: 12px; }
+  .filters { display: flex; gap: 6px; }
+  .chip { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--v-line); color: var(--v-text); background: #fff; }
+  .chip.is-on { background: var(--v-green-tint); border-color: var(--v-green-line); color: var(--v-green-dark); font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--v-muted); font-weight: 600; padding: 10px 12px; background: #f8faf8; border-bottom: 1px solid var(--v-line); white-space: nowrap; }
+  td { padding: 10px 12px; border-bottom: 1px solid #eef0ee; vertical-align: middle; }
+  td.nw { white-space: nowrap; }
+  tbody tr { cursor: pointer; transition: background .1s; }
+  tbody tr:hover { background: #f5faf5; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .sec b { color: var(--v-ink); font-weight: 600; }
+  .sec { white-space: nowrap; }
+  .sec small { display: block; color: var(--v-muted); font-size: 11.5px; margin-top: 1px; }
+  .sub { display: block; color: var(--v-muted); font-size: 11.5px; margin-top: 1px; }
+  .side { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-right: 6px; }
+  .side-BUY { color: var(--v-green-dark); background: var(--v-green-tint); }
+  .side-SELL { color: var(--v-red); background: var(--v-red-tint); }
+  .tid { color: var(--v-green); font-weight: 500; }
+  .loc { display: inline-flex; align-items: center; gap: 6px; }
+  .flag { font-size: 10px; font-weight: 700; color: var(--v-muted); border: 1px solid var(--v-line); border-radius: 3px; padding: 0 4px; }
+
+  .pill { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .4px; padding: 3px 9px; border-radius: 999px; }
+  .st-PENDING { background: var(--v-amber-tint); color: var(--v-amber); }
+  .st-AFFIRMED { background: var(--v-blue-tint); color: var(--v-blue); }
+  .st-RELEASED { background: var(--v-green-tint); color: var(--v-green-dark); }
+  .st-BREAK, .st-REJECTED { background: var(--v-red-tint); color: var(--v-red); }
+
+  .detail-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
+  .fields { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .field { padding: 14px 18px; border-bottom: 1px solid #eef0ee; border-right: 1px solid #eef0ee; }
+  .field:nth-child(3n) { border-right: 0; }
+  .field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--v-muted); font-weight: 600; margin-bottom: 4px; }
+  .field div { color: var(--v-ink); font-weight: 500; font-size: 14px; }
+  .field div small { color: var(--v-muted); font-weight: 400; font-size: 12px; display: block; margin-top: 1px; }
+  .trade-title { display: flex; align-items: center; gap: 12px; }
+  .trade-title h1 { font-size: 21px; }
+  .actions { padding: 18px; }
+  .actions h3 { font-size: 14px; color: var(--v-ink); margin-bottom: 6px; }
+  .actions p { color: var(--v-muted); margin-bottom: 14px; }
+  .actions .btn { width: 100%; padding: 11px 16px; }
+  .ssi { padding: 0 18px 16px; }
+  .ssi dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 12.5px; }
+  .ssi dt { color: var(--v-muted); }
+  .ssi dd { color: var(--v-ink); font-weight: 500; text-align: right; }
+  .timeline { padding: 4px 18px 16px; }
+  .tl { display: flex; gap: 10px; padding: 7px 0; font-size: 12.5px; }
+  .tl i { width: 8px; height: 8px; border-radius: 50%; background: var(--v-green); margin-top: 5px; flex-shrink: 0; }
+  .tl.is-bad i { background: var(--v-red); }
+  .tl span { color: var(--v-muted); margin-left: auto; }
+
+  .banner { display: none; align-items: flex-start; gap: 12px; padding: 13px 16px; border-radius: var(--v-radius); margin-bottom: 16px; border: 1px solid; }
+  .banner.is-on { display: flex; }
+  .banner.is-error { background: var(--v-red-tint); border-color: var(--v-red-line); color: #7a0a1c; }
+  .banner.is-ok { background: var(--v-green-tint); border-color: var(--v-green-line); color: var(--v-green-deep); }
+  .banner .ico { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 13px; }
+  .banner.is-error .ico { background: var(--v-red); }
+  .banner.is-ok .ico { background: var(--v-green); }
+  .banner b { display: block; font-size: 13.5px; margin-bottom: 2px; }
+  .banner .ref { font-size: 11.5px; opacity: .75; margin-top: 3px; }
+  .banner .x { margin-left: auto; background: none; border: 0; font-size: 18px; line-height: 1; cursor: pointer; color: inherit; opacity: .6; }
+
+  .back { position: fixed; left: 14px; bottom: 12px; font-size: 11px; color: #9aa09a; text-decoration: none; opacity: .7; }
+  .back:hover { opacity: 1; color: var(--v-green); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#">
+      <img src="https://www.tdsecurities.com/assets/img/header-nav/TDS_Header_Logo_EN.svg" alt="TD Securities" onerror="this.onerror=null;this.src='/verticals/assets/87575bac/favicon.ico';this.style.height='26px';">
+      <span class="brand-sep"></span>
+      <span class="brand-app">Settlement Operations</span>
+    </a>
+    <nav class="topnav">
+      <a href="#" class="is-active">Trade Blotter</a>
+      <a href="#">Breaks &amp; Fails</a>
+      <a href="#">SSI Library</a>
+      <a href="#">Depositories</a>
+      <a href="#">Reports</a>
+    </nav>
+    <div class="top-right">
+      <div class="bizdate"><small>Business date</small><b id="bizDate">Friday, May 15, 2026</b></div>
+      <span class="env">PROD · TORONTO</span>
+      <span class="avatar">MK</span>
+    </div>
+  </div>
+</header>
+<div class="subbar">
+  <div class="wrap">
+    <a href="#">Cash Equities — North America</a><span>/</span><span class="crumb-cur" id="crumb">Today's trades</span>
+    <span class="feed">CDS &amp; DTC feeds live · last sync 11:31:04 ET</span>
+  </div>
+</div>
+
+<main class="wrap">
+  <section id="blotterView">
+    <div class="page-head">
+      <div>
+        <h1>Today's trades</h1>
+        <p>Trade date Fri, May 15, 2026 · T+1 settlement · TD Securities Inc. &amp; TD Securities (USA) LLC</p>
+      </div>
+      <button class="btn" type="button">Export blotter</button>
+    </div>
+    <div class="kpis">
+      <div class="kpi is-warn"><div class="kpi-label">Trades pending</div><div class="kpi-value" id="kpiPending">–</div><div class="kpi-sub" id="kpiPendingSub">awaiting instruction release</div></div>
+      <div class="kpi is-bad"><div class="kpi-label">Settlement breaks</div><div class="kpi-value" id="kpiBreaks">–</div><div class="kpi-sub" id="kpiBreaksSub">open, needs action</div></div>
+      <div class="kpi"><div class="kpi-label">Fail rate (MTD)</div><div class="kpi-value" id="kpiFail">–</div><div class="kpi-sub">target &lt; 2.0% · CSDR / Rule 15c6-1</div></div>
+      <div class="kpi"><div class="kpi-label">CAD notional today</div><div class="kpi-value" id="kpiNotional">–</div><div class="kpi-sub" id="kpiTrades">–</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <h2>Trade blotter</h2>
+        <div class="filters"><span class="chip is-on">All</span><span class="chip">CDS</span><span class="chip">DTC</span><span class="chip">Exceptions</span></div>
+      </div>
+      <table>
+        <thead><tr><th>Trade ID</th><th>Security</th><th>Client</th><th>Booking entity</th><th>Trade date</th><th>Settle date</th><th>Settlement location</th><th>Status</th></tr></thead>
+        <tbody id="blotterBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="detailView" hidden>
+    <div class="banner" id="banner" role="alert">
+      <span class="ico" id="bannerIco">!</span>
+      <div><b id="bannerTitle"></b><div id="bannerBody"></div><div class="ref mono" id="bannerRef"></div></div>
+      <button class="x" id="bannerX" aria-label="Dismiss">&times;</button>
+    </div>
+    <div class="page-head">
+      <div class="trade-title">
+        <h1 id="dTitle"></h1>
+        <span class="pill" id="dStatus"></span>
+      </div>
+      <a class="btn" href="#" id="backBtn">← Back to blotter</a>
+    </div>
+    <div class="detail-grid">
+      <div class="card">
+        <div class="card-head"><h2>Trade details</h2><span class="meta mono" id="dTradeId"></span></div>
+        <div class="fields" id="dFields"></div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="actions">
+            <h3>Settlement instructions</h3>
+            <p id="dActionNote">Releases the MT54x settlement instruction to the depository for matching.</p>
+            <button class="btn btn-primary" id="releaseBtn" type="button">Release Settlement Instructions</button>
+          </div>
+          <div class="ssi"><dl id="dSsi"></dl></div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <div class="card-head"><h2>Activity</h2></div>
+          <div class="timeline" id="dTimeline"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<a class="back" href="/">← All Demos</a>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var trades = [];
+  var meta = {};
+  var STATE_KEY = 'v87575bac.status';
+  var overrides = {};
+  try { overrides = JSON.parse(sessionStorage.getItem(STATE_KEY) || '{}'); } catch (e) { overrides = {}; }
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmtDate(iso) {
+    var d = new Date(iso + 'T12:00:00Z');
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  }
+  function fmtLong(iso) {
+    var d = new Date(iso + 'T12:00:00Z');
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  }
+  function num(n, dp) { return Number(n).toLocaleString('en-US', { minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 0 }); }
+  function statusOf(t) { return overrides[t.tradeId] || t.status; }
+  function setStatus(id, status) { overrides[id] = status; sessionStorage.setItem(STATE_KEY, JSON.stringify(overrides)); }
+  function pill(status) { return '<span class="pill st-' + esc(status) + '">' + esc(status) + '</span>'; }
+
+  function renderKpis() {
+    var pending = trades.filter(function (t) { return ['PENDING', 'AFFIRMED'].indexOf(statusOf(t)) >= 0; }).length;
+    var breaks = trades.filter(function (t) { return ['BREAK', 'REJECTED'].indexOf(statusOf(t)) >= 0; }).length;
+    var notional = trades.reduce(function (s, t) { return s + t.cadNotional; }, 0);
+    $('kpiPending').textContent = pending;
+    $('kpiBreaks').textContent = breaks;
+    $('kpiBreaksSub').textContent = breaks === 1 ? '1 open, needs action' : breaks + ' open, needs action';
+    $('kpiFail').textContent = meta.failRateMtd.toFixed(1) + '%';
+    $('kpiNotional').textContent = 'C$' + (notional / 1e6).toFixed(1) + 'M';
+    $('kpiTrades').textContent = trades.length + ' trades · ' + trades.filter(function (t) { return t.settlementLocation === 'CDS'; }).length + ' CDS / ' + trades.filter(function (t) { return t.settlementLocation === 'DTC'; }).length + ' DTC';
+  }
+
+  function renderBlotter() {
+    $('blotterBody').innerHTML = trades.map(function (t) {
+      return '<tr data-id="' + esc(t.tradeId) + '">' +
+        '<td class="mono tid nw">' + esc(t.tradeId) + '</td>' +
+        '<td class="sec"><span class="side side-' + t.side + '">' + t.side + '</span><b>' + esc(t.ticker) + '</b><small>' + esc(t.security) + ' · ' + esc(t.exchange) + '</small></td>' +
+        '<td>' + esc(t.client) + '<span class="sub">' + esc(t.clientType) + '</span></td>' +
+        '<td>' + esc(t.bookingEntityName) + '</td>' +
+        '<td class="nw">' + fmtDate(t.tradeDate) + '</td>' +
+        '<td class="nw"><b>' + fmtDate(t.settleDate) + '</b></td>' +
+        '<td><span class="loc">' + esc(t.settlementLocationName) + ' <span class="flag">' + (t.settlementLocation === 'CDS' ? 'CA' : 'US') + '</span></span></td>' +
+        '<td class="nw">' + pill(statusOf(t)) + '</td></tr>';
+    }).join('');
+    renderKpis();
+  }
+
+  function field(label, value, sub) { return '<div class="field"><label>' + esc(label) + '</label><div>' + value + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</div></div>'; }
+
+  var current = null;
+  var timelineExtra = [];
+  function renderDetail(t) {
+    current = t;
+    var status = statusOf(t);
+    $('dTitle').textContent = t.side + ' ' + num(t.quantity) + ' ' + t.ticker;
+    $('dStatus').className = 'pill st-' + status;
+    $('dStatus').textContent = status;
+    $('dTradeId').textContent = t.tradeId;
+    $('crumb').textContent = t.tradeId;
+    $('dFields').innerHTML = [
+      field('Trade ID', '<span class="mono">' + esc(t.tradeId) + '</span>'),
+      field('Security', esc(t.ticker) + ' — ' + esc(t.security), t.exchange + ' · ISIN ' + t.isin),
+      field('Side', esc(t.side)),
+      field('Client', esc(t.client), t.clientType),
+      field('Booking entity', esc(t.bookingEntityName)),
+      field('Counterparty', esc(t.counterparty)),
+      field('Trade date', fmtDate(t.tradeDate), 'Executed ' + t.execTime + ' ET'),
+      field('Settle date', fmtDate(t.settleDate), 'T+1'),
+      field('Settlement location', esc(t.settlementLocationName), t.settlementLocation),
+      field('Quantity', num(t.quantity)),
+      field('Price', esc(t.currency) + ' ' + num(t.price, 2)),
+      field('CAD notional', 'C$' + num(t.cadNotional, 2), t.currency === 'CAD' ? 'CAD-denominated' : 'USD/CAD ' + t.fxRate.toFixed(4))
+    ].join('');
+    $('dSsi').innerHTML =
+      '<dt>Message</dt><dd class="mono">' + (t.side === 'BUY' ? 'MT541 RVP' : 'MT543 DVP') + '</dd>' +
+      '<dt>Depository</dt><dd>' + esc(t.settlementLocation) + '</dd>' +
+      '<dt>Place of settlement</dt><dd class="mono">' + (t.settlementLocation === 'CDS' ? 'CDSLCATT' : 'DTCYUS33') + '</dd>' +
+      '<dt>Settlement amount</dt><dd>' + esc(t.currency) + ' ' + num(t.quantity * t.price, 2) + '</dd>';
+    var btn = $('releaseBtn');
+    btn.disabled = status === 'RELEASED' || status === 'BREAK';
+    btn.textContent = 'Release Settlement Instructions';
+    $('dActionNote').textContent = status === 'BREAK' ? (t.breakReason + '. Resolve the break before releasing.')
+      : status === 'RELEASED' ? 'Instructions have been released to ' + t.settlementLocation + ' and are awaiting matching.'
+        : 'Releases the MT54x settlement instruction to ' + t.settlementLocation + ' for matching.';
+    var items = [
+      ['Trade captured from OMS', t.execTime],
+      ['Allocation confirmed by client', addMins(t.execTime, 18)]
+    ];
+    if (['AFFIRMED', 'RELEASED', 'REJECTED'].indexOf(status) >= 0 || t.status === 'AFFIRMED') items.push(['Trade affirmed (CTM)', addMins(t.execTime, 31)]);
+    if (t.status === 'RELEASED') items.push(['Instructions released to ' + t.settlementLocation, addMins(t.execTime, 40)]);
+    if (t.status === 'BREAK') items.push(['SSI enrichment failed — break raised', addMins(t.execTime, 22), true]);
+    $('dTimeline').innerHTML = items.concat(timelineExtra).map(function (i) { return '<div class="tl' + (i[2] ? ' is-bad' : '') + '"><i></i>' + esc(i[0]) + '<span>' + esc(i[1]) + '</span></div>'; }).join('');
+  }
+  function addMins(hms, m) {
+    var p = hms.split(':').map(Number); var total = p[0] * 60 + p[1] + m;
+    return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0') + ':' + String(p[2]).padStart(2, '0');
+  }
+  function nowEt() { var d = new Date(); return '11:3' + (2 + (d.getMinutes() % 8)) + ':' + String(d.getSeconds()).padStart(2, '0'); }
+
+  function showBanner(kind, title, body, ref) {
+    $('banner').className = 'banner is-on ' + (kind === 'ok' ? 'is-ok' : 'is-error');
+    $('bannerIco').textContent = kind === 'ok' ? '✓' : '!';
+    $('bannerTitle').textContent = title;
+    $('bannerBody').textContent = body || '';
+    $('bannerRef').textContent = ref || '';
+  }
+  function hideBanner() { $('banner').className = 'banner'; }
+  $('bannerX').addEventListener('click', hideBanner);
+
+  function postHeaders() {
+    var h = { 'Content-Type': 'application/json' };
+    var secret = localStorage.getItem('sessionSecret');
+    if (secret) h['x-session-secret'] = secret;
+    return h;
+  }
+
+  $('releaseBtn').addEventListener('click', function () {
+    if (!current) return;
+    var t = current;
+    var btn = $('releaseBtn');
+    btn.disabled = true; btn.textContent = 'Releasing to ' + t.settlementLocation + '…';
+    hideBanner();
+    fetch('/api/87575bac/trades/' + encodeURIComponent(t.tradeId) + '/release', {
+      method: 'POST',
+      headers: postHeaders(),
+      body: JSON.stringify({
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || ''
+      })
+    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        var d = res.d || {};
+        if (res.ok && d.success) {
+          setStatus(t.tradeId, 'RELEASED');
+          timelineExtra = [['Instructions released to ' + d.result.depository + ' (' + d.result.messageType + ')', nowEt()]];
+          renderDetail(t);
+          showBanner('ok', 'Settlement instructions released', 'Accepted by ' + d.result.depository + ' for settlement on ' + fmtDate(d.result.settleDate) + '.', 'Ref ' + d.result.reference);
+        } else {
+          if (d.status) setStatus(t.tradeId, d.status);
+          if (d.status) timelineExtra = [['Instruction rejected by ' + t.settlementLocation, nowEt(), true]];
+          renderDetail(t);
+          showBanner('error', d.status === 'REJECTED' ? 'Settlement instruction rejected' : 'Unable to release instructions', d.error || 'Something went wrong.', d.requestId ? 'Request ID ' + d.requestId : '');
+        }
+      })
+      .catch(function (e) {
+        renderDetail(t);
+        showBanner('error', 'Unable to release instructions', e.message);
+      });
+  });
+
+  function route() {
+    var m = location.hash.match(/^#trade\/(.+)$/);
+    hideBanner();
+    timelineExtra = [];
+    if (m) {
+      var t = trades.find(function (x) { return x.tradeId === decodeURIComponent(m[1]); });
+      if (t) {
+        $('blotterView').hidden = true; $('detailView').hidden = false;
+        renderDetail(t); window.scrollTo(0, 0);
+        return;
+      }
+    }
+    current = null;
+    $('crumb').textContent = "Today's trades";
+    $('detailView').hidden = true; $('blotterView').hidden = false;
+    renderBlotter();
+  }
+
+  $('blotterBody').addEventListener('click', function (e) {
+    var row = e.target.closest('tr[data-id]');
+    if (row) location.hash = 'trade/' + encodeURIComponent(row.getAttribute('data-id'));
+  });
+  $('backBtn').addEventListener('click', function (e) { e.preventDefault(); location.hash = ''; });
+  window.addEventListener('hashchange', route);
+
+  if (!(localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId'))) {
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+    }).catch(function () {});
+  }
+
+  fetch('/api/87575bac/trades').then(function (r) { return r.json(); }).then(function (d) {
+    trades = d.trades; meta = d;
+    $('bizDate').textContent = fmtLong(d.businessDate);
+    route();
+  }).catch(function (e) {
+    $('blotterBody').innerHTML = '<tr><td colspan="8">Unable to load blotter: ' + esc(e.message) + '</td></tr>';
+  });
+})();
+</script>
+</body>
+</html>

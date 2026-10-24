@@ -75,6 +75,8 @@ describe('on-call hub routes', () => {
     expect(html).toContain('<h1>Healthcare on-call demos</h1>');
     expect(html).toContain('Alert cards use Splunk searches and Dynatrace problems.');
     expect(html).toContain('/api/oncall/scenarios?group=healthcare');
+    expect(html).toContain("const demoPath = '/oncall/healthcare/' + encodeURIComponent(s.id);");
+    expect(html).not.toContain("link.href = '/oncall/' +");
     expect(html).toContain("defaultValue: 'teams'");
     expect(html).toContain('No healthcare demos are available yet.');
     expect(html).not.toContain('SEV-1 demo incident');
