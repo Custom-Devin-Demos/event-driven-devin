@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kering: French Luxury Group | Kering</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #000000;
+      --ink: #000000;
+      --surface: #FFFFFF;
+      --chrome-bg: #000000;
+      --chrome-text: #FFFFFF;
+      --grey: #F2F2F2;
+      --muted: #6B6B6B;
+      --line: #E3E3E3;
+      --danger: #B3261E;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Jost, "Helvetica Neue", Arial, sans-serif; font-weight: 400; color: var(--ink); background: var(--surface); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* Header */
+    .header { position: sticky; top: 0; z-index: 50; background: #fff; height: 84px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 40px; }
+    .header__left { display: flex; align-items: center; gap: 34px; font-size: 11px; letter-spacing: 0.06em; }
+    .share b { display: block; font-weight: 500; font-size: 13px; letter-spacing: 0; }
+    .share span { text-transform: uppercase; }
+    .lang { display: flex; align-items: center; gap: 6px; font-weight: 500; background: none; border: 0; cursor: pointer; padding: 6px 0; min-height: 32px; }
+    .nav { display: flex; align-items: center; gap: 46px; }
+    .nav a { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; padding: 8px 0; }
+    .nav a:hover { opacity: 0.6; }
+    .nav .logo { display: block; width: 92px; padding: 0; margin: 0 6px; }
+    .nav .logo svg { display: block; width: 100%; height: auto; }
+    .header__right { justify-self: end; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+    .burger { display: none; background: none; border: 0; width: 44px; height: 44px; cursor: pointer; }
+    .burger span { display: block; width: 22px; height: 1px; background: #000; margin: 6px auto; }
+
+    /* Hero carousel */
+    .hero { position: relative; margin: 0 40px; height: calc(100vh - 124px); min-height: 560px; max-height: 960px; background: #111; overflow: hidden; color: #fff; }
+    .slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity 0.8s ease, visibility 0.8s; }
+    .slide.is-active { opacity: 1; visibility: visible; }
+    .slide picture, .slide__media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .slide[data-house="Ginori 1735"] { background: radial-gradient(ellipse at 50% 40%, #6f7f86 0%, #2d383d 70%); }
+    .slide__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.35) 100%); }
+    .slide__copy { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -30%); text-align: center; width: 90%; }
+    .slide__house { font-family: "Cormorant Garamond", Didot, Georgia, serif; font-weight: 400; font-size: 64px; line-height: 1; margin: 0 0 34px; text-shadow: 0 1px 18px rgba(0,0,0,0.25); }
+    .discover { position: relative; min-width: 170px; min-height: 44px; padding: 12px 34px; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.85); font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; cursor: pointer; transition: background 0.25s, color 0.25s; }
+    .discover:hover:not([aria-busy="true"]) { background: #fff; color: #000; }
+    .discover[aria-busy="true"] { cursor: progress; color: transparent; }
+    .discover[aria-busy="true"]::after { content: ""; position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border: 1px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hero__error { position: absolute; left: 50%; top: calc(50% + 120px); transform: translateX(-50%); width: min(440px, 88%); background: rgba(255,255,255,0.96); color: #000; padding: 16px 20px; text-align: center; font-size: 14px; line-height: 1.45; z-index: 5; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+    .hero__error[hidden] { display: none; }
+    .hero__error b { display: block; font-weight: 500; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--danger); margin-bottom: 6px; }
+    .hero__error button { margin-top: 10px; background: none; border: 0; border-bottom: 1px solid #000; padding: 4px 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; min-height: 32px; }
+    .arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 4; width: 48px; height: 48px; background: none; border: 0; color: #fff; cursor: pointer; font-size: 28px; opacity: 0.8; }
+    .arrow:hover { opacity: 1; }
+    .arrow--prev { left: 12px; } .arrow--next { right: 12px; }
+    .pastilles { position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; display: flex; gap: 18px; justify-content: center; padding: 18px 20px 22px; background: linear-gradient(180deg, transparent, rgba(0,0,0,0.35)); overflow-x: auto; scrollbar-width: none; }
+    .pastilles::-webkit-scrollbar { display: none; }
+    .pastille { flex: none; width: 52px; height: 52px; border-radius: 50%; border: 1px solid transparent; background: rgba(255,255,255,0.92); padding: 0; cursor: pointer; display: grid; place-items: center; overflow: hidden; opacity: 0.75; transition: opacity 0.2s, transform 0.2s; }
+    .pastille img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .pastille span { font-family: "Cormorant Garamond", serif; font-size: 11px; color: #000; }
+    .pastille:hover, .pastille.is-active { opacity: 1; }
+    .pastille.is-active { border-color: #fff; transform: scale(1.12); box-shadow: 0 0 0 2px rgba(255,255,255,0.5); }
+    .scroll-hint { display: block; text-align: center; padding: 18px 0 8px; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); }
+
+    /* Mosaic */
+    .section { padding: 70px 40px 30px; }
+    .section h3 { font-family: "Cormorant Garamond", serif; font-weight: 400; font-size: 40px; margin: 0 0 36px; text-align: center; }
+    .mosaic { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+    .tile { position: relative; display: block; aspect-ratio: 586 / 914; overflow: hidden; background: var(--grey); color: #fff; }
+    .tile img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; }
+    .tile:hover img { transform: scale(1.04); }
+    .tile::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.55)); }
+    .tile__text { position: absolute; left: 22px; right: 22px; bottom: 22px; z-index: 1; display: flex; flex-direction: column; gap: 10px; }
+    .tile__cat { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; }
+    .tile__title { font-family: "Cormorant Garamond", serif; font-size: 22px; line-height: 1.15; }
+
+    /* Finance strip */
+    .figures { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; padding: 30px 40px 60px; }
+    .figure { background: var(--grey); padding: 44px 40px; }
+    .figure b { display: block; font-family: "Cormorant Garamond", serif; font-weight: 400; font-size: 30px; margin-bottom: 12px; }
+    .figure p { margin: 0 0 22px; color: #333; font-size: 15px; line-height: 1.5; }
+    .figure a { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 3px; }
+
+    /* Footer */
+    footer { background: #000; color: #fff; padding: 56px 40px 34px; }
+    .foot__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 30px; flex-wrap: wrap; }
+    .foot__logo { width: 120px; color: #fff; }
+    .foot__logo svg { width: 100%; height: auto; fill: currentColor; }
+    .foot__social { display: flex; gap: 22px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+    .foot__links { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-top: 46px; padding-top: 24px; border-top: 1px solid #333; font-size: 10px; letter-spacing: 0.18em; }
+    .foot__links span { margin-left: auto; color: #999; letter-spacing: 0.06em; }
+
+    @media (max-width: 1100px) {
+      .nav a:not(.logo) { display: none; }
+      .burger { display: block; justify-self: end; }
+      .header__right { display: none; }
+      .header { grid-template-columns: 1fr auto 1fr; padding: 0 16px; height: 64px; }
+      .hero { margin: 0; height: calc(100vh - 104px); }
+      .mosaic { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 760px) {
+      .header__left .lang { display: none; }
+      .slide__house { font-size: 46px; }
+      .hero { height: calc(100svh - 190px); min-height: 480px; }
+      .section { padding: 50px 16px 20px; }
+      .mosaic { gap: 12px; }
+      .tile__title { font-size: 18px; }
+      .figures { grid-template-columns: 1fr; padding: 20px 16px 40px; }
+      footer { padding: 40px 16px 28px; }
+      .pastilles { justify-content: flex-start; gap: 12px; }
+      .pastille { width: 44px; height: 44px; }
+      .arrow { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header__left">
+      <div class="share"><span>Share price</span><b id="sharePrice">179,64 €</b></div>
+      <button type="button" class="lang" aria-label="Language">EN <span aria-hidden="true">›</span></button>
+    </div>
+    <nav class="nav" aria-label="Main">
+      <a href="https://www.kering.com/en/group/" target="_blank" rel="noopener">Group</a>
+      <a href="https://www.kering.com/en/houses/" target="_blank" rel="noopener">Houses</a>
+      <a href="https://www.kering.com/en/talent/" target="_blank" rel="noopener">Talent</a>
+      <a href="#" class="logo" aria-label="Kering"><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 284 95" xml:space="preserve"><path d="M30.1 29.8c-3 0-4.7-.9-7-4.1l-3.7-5.2c-1.9-2.6-3.7-3.7-7.8-3.7H3.5v12.9H.3V1h3.2v13h5.8c3.8 0 5.7-1.4 7.9-4.4L23.7 1h4l-7 9.2c-1.8 2.3-2.9 3.6-4.9 4.6 3.1.6 4.6 1.9 6.4 4.4l3.4 4.6c1.6 2.1 2.8 3.1 4.5 3.1h1l-.3 2.9h-.7zm24.3 0V1h25l.3 2.9H57.5v9.9h21V17h-21v9.6h23.8l-.6 3.2H54.4zm82.6 0c-2.9 0-4.7-.9-7-4.1l-1.9-2.8c-1.9-2.7-3.7-3.8-7.7-3.8h-9.8v10.6h-3.2V1h14.5c7.2 0 11.2 3.8 11.2 8.9 0 4.2-2.8 6.8-6.4 7.9 1.7.6 2.9 1.9 4.1 3.6l1.7 2.3c1.6 2.2 2.7 3.1 4.5 3.1h1l-.3 2.9h-.7v.1zM121.9 4h-11.3v12.3h11.3c4.5 0 7.8-2.1 7.8-6.1 0-4.1-3.3-6.2-7.8-6.2zm39.8 25.8V1h3.2v28.8h-3.2zm60.6 0L195.7 5.5h-.1v24.3h-3.2V1h2.9l26.6 24.4h.1V1h3.2v28.8h-2.9zm47 .9c-13.9 0-20.2-7.1-20.2-15.3 0-8.3 6.5-15.2 19.6-15.2 4.7 0 9.4.9 13.6 2.7v3.3c-4.1-1.9-8.8-3-13.6-3-10.8 0-16.1 5.6-16.1 12.3 0 6.9 5.6 12.3 16.7 12.3 4.5 0 8.6-1 11.2-2.2v-7.2h-12l.4-2.9h14.8v12.1c-3.7 1.8-8.7 3.1-14.4 3.1zM137.9 56.9c0 .9.5.1 1.7.1 1.3 0 1.7.8 1.7-.1s-.8-1.7-1.7-1.7c-.9 0-1.7.8-1.7 1.7m10.5 0c0 .9-.5.1-1.7.1-1.3 0-1.7.8-1.7-.1s.8-1.7 1.7-1.7c.9 0 1.7.8 1.7 1.7"></path><path d="M139.9 53.4c-2.5 0-3.7 1.7-3.7 3.8 0 2.8 2.5 6.4 6.9 7.9 4.4-1.6 6.9-5.2 6.9-7.9 0-2.1-1.2-3.8-3.7-3.8-2.1 0-3.2 1.3-3.2 1.4 0-.1-1.1-1.4-3.2-1.4m3.3 0s.9-1.4 3.6-1.3c3 .1 4.4 2.6 4.4 4.9 0 3.3-3.2 7.5-8.1 8.9-4.9-1.3-8.1-5.6-8.1-8.9 0-2.3 1.5-4.8 4.4-4.9 2.8 0 3.8 1.3 3.8 1.3"></path><path d="M143.2 58.1c.5 0 .9.3.9 1 0 .8-.5 2.1-.9 2.1s-.9-1.4-.9-2.1c-.1-.7.4-1 .9-1"></path><path d="M143.2 69.8c1.3.5 2.7.9 4.2 1.1-.4.4-.8.9-1.2 1.3-1.2 1.3-2.2 2.6-3 3.9-.8-1.3-1.8-2.6-3-3.9-.4-.4-.8-.9-1.2-1.3 1.5-.3 2.9-.7 4.2-1.1m0 23.8c-2.9 0-2.8-5.2-2.8-5.2 0-3.3.8-6.6 2.8-9.9 1.9 3.3 2.8 6.6 2.8 9.9-.1 0 .1 5.2-2.8 5.2m0-43.5s5.2-.2 8.1 2.5c1.3 1.3 1.9 3 1.9 5.1 0 2.3-1.5 5.1-4 7.1-1.7 1.3-3.7 2.5-5.9 3.4-2.2-.9-4.3-2.1-5.9-3.4-2.6-2-4-4.8-4-7.1 0-2.1.6-3.8 1.9-5.1 2.6-2.7 7.9-2.5 7.9-2.5m7.2 19.7c3.3-3 7.4-6 12.1-8.9 9.1-5.5 18.2-9.3 21.4-10.5-.4 1.4-1.2 3.9-3 6.7-2.6 3.9-7.7 9-17.6 11.5-4.6 1-9 1.4-12.9 1.2m-27.3-1.3c-9.8-2.4-15-7.6-17.6-11.5-1.8-2.8-2.7-5.3-3-6.7 3.1 1.2 12.3 5 21.4 10.5 4.8 2.9 8.8 5.9 12.1 8.9-4 .3-8.4-.1-12.9-1.2m20.1-19.6s-5.7-.2-8.9 2.9c-1.6 1.5-2.4 3.5-2.4 6 0 2.7 1.7 5.8 4.6 8.1 1 .8 2.6 2 4.8 3.1-1.1.3-2.3.6-3.5.7-3.5-3.4-8-6.7-13.3-10-11.2-6.9-22.6-11-22.7-11.1l-1-.4.1 1.1c0 .2.5 4 3.5 8.4 2.7 4.1 8.1 9.5 18.4 12 5.8 1.4 10.7 1.7 14.6 1.3.7.7 1.3 1.3 1.9 2 1.3 1.4 2.3 2.8 3.3 4.2-2 3.6-2.9 7.2-2.9 10.8 0 .2.1 3.8 1.5 5.3.7.8 1.3 1 2.1 1s1.4-.2 2.1-1c1.4-1.5 1.5-5.1 1.5-5.3 0-3.6-.9-7.2-2.9-10.8.9-1.4 2-2.8 3.3-4.2.6-.7 1.2-1.3 1.9-2 3.9.4 8.7.2 14.6-1.3 10.3-2.5 15.6-7.9 18.4-12 3-4.5 3.5-8.3 3.5-8.4l.1-1.1-1 .4c-.1 0-11.5 4.2-22.7 11.1-5.3 3.2-9.7 6.6-13.3 10-1.2-.1-2.4-.4-3.5-.7 2.2-1.1 3.8-2.3 4.8-3.1 2.9-2.3 4.6-5.4 4.6-8.1 0-2.5-.8-4.4-2.4-6-3.4-3.1-9.1-2.9-9.1-2.9"></path></svg></a>
+      <a href="https://www.kering.com/en/sustainability/" target="_blank" rel="noopener">Sustainability</a>
+      <a href="https://www.kering.com/en/finance/" target="_blank" rel="noopener">Finance</a>
+      <a href="https://www.kering.com/en/press/" target="_blank" rel="noopener">Press</a>
+    </nav>
+    <a class="header__right" href="https://www.kering.com/en/talent/" target="_blank" rel="noopener">Join us</a>
+    <button type="button" class="burger" aria-label="Menu"><span></span><span></span></button>
+  </header>
+
+  <main>
+    <section class="hero" id="hero" aria-roledescription="carousel" aria-label="Kering Houses">
+      <div class="slides" id="slides">
+        <div class="slide" data-index="0" data-house="Kering" data-url="/group/kering-highlights/kering-craft-a-creative-residency-for-the-new-generation-of-chinese-designers/" role="group" aria-roledescription="slide" aria-label="Kering"><picture><source media="(max-width: 760px)" srcset="https://assets-keringcom.keringapps.com/CRAFT_MOB_ed6bad3887.png"><img class="slide__media" src="https://assets-keringcom.keringapps.com/crat_HP_desk_139d001063.png" alt="" loading="eager"></picture><div class="slide__shade"></div><div class="slide__copy"><h2 class="sr-only">Kering</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide is-active" data-index="1" data-house="Gucci" data-url="/houses/couture-and-leather-goods/gucci/" role="group" aria-roledescription="slide" aria-label="Gucci"><picture><source media="(max-width: 760px)" srcset="https://assets-keringcom.keringapps.com/safe_mobile_65621c0afb.jpg"><img class="slide__media" src="https://assets-keringcom.keringapps.com/safe_desk_96e34d36bb.jpg" alt="" loading="eager"></picture><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">Gucci</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide" data-index="2" data-house="Saint Laurent" data-url="/houses/couture-and-leather-goods/saint-laurent/" role="group" aria-roledescription="slide" aria-label="Saint Laurent"><picture><source media="(max-width: 760px)" srcset="https://assets-keringcom.keringapps.com/Kering_Carousel_Homepage_Mobile_48e54eaf85.jpg"><img class="slide__media" src="https://assets-keringcom.keringapps.com/Kering_Carousel_Homepage_Desktop_cc4154f84f.jpg" alt="" loading="lazy"></picture><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">Saint Laurent</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide" data-index="3" data-house="Bottega Veneta" data-url="/houses/couture-and-leather-goods/bottega-veneta/" role="group" aria-roledescription="slide" aria-label="Bottega Veneta"><picture><source media="(max-width: 760px)" srcset="https://assets-keringcom.keringapps.com/Carrousel_Homepage_asset_mobile_b99eab46b8.jpg"><img class="slide__media" src="https://assets-keringcom.keringapps.com/Carrousel_Homepage_asset_desktop_c16992a149.jpg" alt="" loading="lazy"></picture><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">Bottega Veneta</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide" data-index="4" data-house="Balenciaga" data-url="/houses/couture-and-leather-goods/balenciaga/" role="group" aria-roledescription="slide" aria-label="Balenciaga"><picture><source media="(max-width: 760px)" srcset="https://assets-keringcom.keringapps.com/500x800_478267a701.jpg"><img class="slide__media" src="https://assets-keringcom.keringapps.com/1760x570_66a83439cc.jpg" alt="" loading="lazy"></picture><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">Balenciaga</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide" data-index="5" data-house="McQueen" data-url="/houses/couture-and-leather-goods/alexander-mcqueen/" role="group" aria-roledescription="slide" aria-label="McQueen"><video class="slide__media" muted loop playsinline preload="none" data-src="https://www.kering.com/api/download-file/?path=CAROUSEL_HP_ASSET_1_1760x570_COMPRESSED_afc01dde33.mp4" poster="https://assets-keringcom.keringapps.com/KERING_Carousel_HP_2_586x914_54ada96653.jpg"></video><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">McQueen</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide" data-index="6" data-house="Brioni" data-url="/houses/couture-and-leather-goods/brioni/" role="group" aria-roledescription="slide" aria-label="Brioni"><picture><source media="(max-width: 760px)" srcset="https://assets-keringcom.keringapps.com/FW_26_Carousel_Homepage_mobile_ff727fd779.jpg"><img class="slide__media" src="https://assets-keringcom.keringapps.com/FW_26_Carousel_Homepage_desktop_2295eede64.jpg" alt="" loading="lazy"></picture><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">Brioni</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide" data-index="7" data-house="Boucheron" data-url="/houses/jewelry/boucheron/" role="group" aria-roledescription="slide" aria-label="Boucheron"><picture><source media="(max-width: 760px)" srcset="https://assets-keringcom.keringapps.com/HOMEPAGE_MOBILE_9189bf921d.png"><img class="slide__media" src="https://assets-keringcom.keringapps.com/HOMEPAGE_DESKTOP_fec8f2abd6.png" alt="" loading="lazy"></picture><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">Boucheron</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide" data-index="8" data-house="Pomellato" data-url="/houses/jewelry/pomellato/" role="group" aria-roledescription="slide" aria-label="Pomellato"><video class="slide__media" muted loop playsinline preload="none" data-src="https://www.kering.com/api/download-file/?path=1760x570_a3fb934b99.mp4" poster="https://assets-keringcom.keringapps.com/586x914_759cd95122.jpg"></video><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">Pomellato</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide" data-index="9" data-house="DoDo" data-url="/houses/jewelry/dodo/" role="group" aria-roledescription="slide" aria-label="DoDo"><video class="slide__media" muted loop playsinline preload="none" data-src="https://www.kering.com/api/download-file/?path=dodo_kering_brand_desk_1760x800px_01_8073591298.mp4" poster="https://assets-keringcom.keringapps.com/dodo_kering_hp_portrait_2_dodo_kering_586x914px_01_8e984c1e42.jpg"></video><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">DoDo</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide" data-index="10" data-house="Qeelin" data-url="/houses/jewelry/qeelin/" role="group" aria-roledescription="slide" aria-label="Qeelin"><video class="slide__media" muted loop playsinline preload="none" data-src="https://www.kering.com/api/download-file/?path=CARROUSEL_HOMEPAGE_ASSET_1_Desktop_e6d9f5afbf_d0eae3a1f5.mp4" poster="https://assets-keringcom.keringapps.com/Homepage_Portrait_Asset_2_19a2f1187b.jpg"></video><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">Qeelin</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide" data-index="11" data-house="Ginori 1735" data-url="/houses/others/ginori-1735/" role="group" aria-roledescription="slide" aria-label="Ginori 1735"><video class="slide__media" muted loop playsinline preload="none" data-src="https://www.kering.com/api/download-file/?path=Ginori1735_CARROUSEL_HOMEPAGE_ASSET_1760x570_540e6e5b27.mp4"></video><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">Ginori 1735</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+        <div class="slide" data-index="12" data-house="Kering Eyewear" data-url="/houses/others/kering-eyewear/" role="group" aria-roledescription="slide" aria-label="Kering Eyewear"><picture><source media="(max-width: 760px)" srcset="https://assets-keringcom.keringapps.com/Kering_eyewear_sept21_carrousel_hp_mobile_349x503_px_41bb41ed65.jpg"><img class="slide__media" src="https://assets-keringcom.keringapps.com/newsroom_header_image_desktop_1920x960px_2_6012c1e7d444c_1_44b7b1ad84.jpg" alt="" loading="lazy"></picture><div class="slide__shade"></div><div class="slide__copy"><h2 class="slide__house">Kering Eyewear</h2><button type="button" class="discover" data-discover>Discover</button></div></div>
+      </div>
+      <button type="button" class="arrow arrow--prev" id="prevBtn" aria-label="Previous House">‹</button>
+      <button type="button" class="arrow arrow--next" id="nextBtn" aria-label="Next House">›</button>
+      <div class="hero__error" id="result" role="alert" hidden>
+        <b>Something went wrong</b>
+        <span id="resultText">Sorry, this page could not be loaded. Please try again later.</span><br>
+        <button type="button" id="retryBtn">Try again</button>
+      </div>
+      <div class="pastilles" id="pastilles">
+        <button type="button" class="pastille" data-go="0" aria-label="Kering"><img src="https://assets-keringcom.keringapps.com/Kering_pastille_noire_93x94px_c869a285f2.png" alt=""></button>
+        <button type="button" class="pastille is-active" data-go="1" aria-label="Gucci"><img src="https://assets-keringcom.keringapps.com/Gucci_pastille_noire_93x94px_b9e26183d7.png" alt=""></button>
+        <button type="button" class="pastille" data-go="2" aria-label="Saint Laurent"><img src="https://assets-keringcom.keringapps.com/Logo_pastille_blanc_94_94_463342580d.png" alt=""></button>
+        <button type="button" class="pastille" data-go="3" aria-label="Bottega Veneta"><img src="https://assets-keringcom.keringapps.com/Bottega_Veneta_pastille_noire_93x94px_827dde65d3.png" alt=""></button>
+        <button type="button" class="pastille" data-go="4" aria-label="Balenciaga"><img src="https://assets-keringcom.keringapps.com/balenciaga_pastille_noire_HP_bd9e70de3e.png" alt=""></button>
+        <button type="button" class="pastille" data-go="5" aria-label="McQueen"><img src="https://assets-keringcom.keringapps.com/Mc_Queen_logo_pastille_noir_6047ea4413.png" alt=""></button>
+        <button type="button" class="pastille" data-go="6" aria-label="Brioni"><img src="https://assets-keringcom.keringapps.com/Brioni_pastille_noire_93x94px_bbfaba23b1.png" alt=""></button>
+        <button type="button" class="pastille" data-go="7" aria-label="Boucheron"><img src="https://assets-keringcom.keringapps.com/Boucheron_pastille_noire_93x94px_3589762b19.png" alt=""></button>
+        <button type="button" class="pastille" data-go="8" aria-label="Pomellato"><img src="https://assets-keringcom.keringapps.com/Pomellato_pastille_noire_93x94px_10ea976024.png" alt=""></button>
+        <button type="button" class="pastille" data-go="9" aria-label="DoDo"><img src="https://assets-keringcom.keringapps.com/logo_dodo_kering_36x36px_012_10a93d22c3.jpg" alt=""></button>
+        <button type="button" class="pastille" data-go="10" aria-label="Qeelin"><img src="https://assets-keringcom.keringapps.com/Qeelin_pastille_noire_93x94px_08924f512e.png" alt=""></button>
+        <button type="button" class="pastille" data-go="11" aria-label="Ginori 1735"><span>Ginori</span></button>
+        <button type="button" class="pastille" data-go="12" aria-label="Kering Eyewear"><img src="https://assets-keringcom.keringapps.com/Kering_eyewear_pastille_noire_93x94px_d918780ce4.png" alt=""></button>
+      </div>
+    </section>
+    <span class="scroll-hint">Scroll to discover</span>
+
+    <section class="section" aria-labelledby="mosaicTitle">
+      <h3 id="mosaicTitle">Kering at a glance</h3>
+      <div class="mosaic">
+      <a class="tile tile--0" href="https://www.kering.com/en/houses/fashion-and-leather-goods/gucci" target="_blank" rel="noopener"><img src="https://assets-keringcom.keringapps.com/02_HOMEPAGE_PORTRAIT_ASSET_2_e06bdafa19.jpg" alt="" loading="lazy"><span class="tile__text"><span class="tile__cat">Houses</span><span class="tile__title">Gucci</span></span></a>
+      <a class="tile tile--1" href="https://www.kering.com/en/houses/fashion-and-leather-goods/saint-laurent" target="_blank" rel="noopener"><img src="https://assets-keringcom.keringapps.com/Kering_Homepage_Portrait_39e50bd78b.jpg" alt="" loading="lazy"><span class="tile__text"><span class="tile__cat">Houses</span><span class="tile__title">Saint Laurent</span></span></a>
+      <a class="tile tile--2" href="https://www.kering.com/en/houses/fashion-and-leather-goods/bottega-veneta" target="_blank" rel="noopener"><img src="https://assets-keringcom.keringapps.com/Homepage_portrait_asset_7459aecac4.jpg" alt="" loading="lazy"><span class="tile__text"><span class="tile__cat">Houses</span><span class="tile__title">Bottega Veneta</span></span></a>
+      <a class="tile tile--3" href="https://www.kering.com/en/houses/jewelry/boucheron" target="_blank" rel="noopener"><img src="https://assets-keringcom.keringapps.com/HOMEPAGE_PORTRAIT_3e0813a82a.png" alt="" loading="lazy"><span class="tile__text"><span class="tile__cat">Houses</span><span class="tile__title">Boucheron</span></span></a>
+      <a class="tile tile--4" href="https://www.kering.com/en/talent" target="_blank" rel="noopener"><img src="https://assets-keringcom.keringapps.com/586x914_desktop_home_boucheron_cape_59adea4cae.png" alt="" loading="lazy"><span class="tile__text"><span class="tile__cat">Talent</span><span class="tile__title">Our Job Offers</span></span></a>
+      <a class="tile tile--5" href="https://www.kering.com/en/news/kering-accademia-per-le-eccellenze-launches-its-first-academic-year" target="_blank" rel="noopener"><img src="https://assets-keringcom.keringapps.com/Article_Presse_K_Ap_E_953bab0fbf.png" alt="" loading="lazy"><span class="tile__text"><span class="tile__cat">Press</span><span class="tile__title">Kering Accademia per le Eccellenze launches its first academic year</span></span></a>
+      <a class="tile tile--6" href="https://www.kering.com/en/sustainability" target="_blank" rel="noopener"><img src="https://assets-keringcom.keringapps.com/DSC_5283_6379b6050a.jpg" alt="" loading="lazy"><span class="tile__text"><span class="tile__cat">Sustainability</span><span class="tile__title">Kering launches its Kering Generation Award in India</span></span></a>
+      <a class="tile tile--7" href="https://www.kering.com/en/group/kering-for-women/kering-foundation" target="_blank" rel="noopener"><img src="https://assets-keringcom.keringapps.com/02_Fondation_Kering_586x457_Desktop_HP_83030c3853.jpg" alt="" loading="lazy"><span class="tile__text"><span class="tile__cat">Group</span><span class="tile__title">Kering Foundation</span></span></a>
+      </div>
+    </section>
+
+    <section class="figures" aria-label="Finance">
+      <div class="figure"><b>Key Figures</b><p>Group’s key financial data.</p><a href="https://www.kering.com/en/finance/about-kering/" target="_blank" rel="noopener">Discover</a></div>
+      <div class="figure"><b>Kering Share</b><p>All information about the Kering share (characteristics, real-time quotes, dividend history).</p><a href="https://www.kering.com/en/finance/kering-share/" target="_blank" rel="noopener">Discover</a></div>
+    </section>
+
+    <!-- Hidden fields required by the House content API -->
+    <form id="claimForm" hidden aria-hidden="true">
+      <select id="policyId" tabindex="-1"><option value="POL-5001" selected>POL-5001</option></select>
+      <select id="claimType" tabindex="-1"><option value="collision" selected>collision</option></select>
+      <input type="number" id="amount" value="1" tabindex="-1">
+      <button type="submit" id="submitBtn" tabindex="-1">Discover</button>
+    </form>
+  </main>
+
+  <footer>
+    <div class="foot__top">
+      <div class="foot__logo"><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 284 95" xml:space="preserve"><path d="M30.1 29.8c-3 0-4.7-.9-7-4.1l-3.7-5.2c-1.9-2.6-3.7-3.7-7.8-3.7H3.5v12.9H.3V1h3.2v13h5.8c3.8 0 5.7-1.4 7.9-4.4L23.7 1h4l-7 9.2c-1.8 2.3-2.9 3.6-4.9 4.6 3.1.6 4.6 1.9 6.4 4.4l3.4 4.6c1.6 2.1 2.8 3.1 4.5 3.1h1l-.3 2.9h-.7zm24.3 0V1h25l.3 2.9H57.5v9.9h21V17h-21v9.6h23.8l-.6 3.2H54.4zm82.6 0c-2.9 0-4.7-.9-7-4.1l-1.9-2.8c-1.9-2.7-3.7-3.8-7.7-3.8h-9.8v10.6h-3.2V1h14.5c7.2 0 11.2 3.8 11.2 8.9 0 4.2-2.8 6.8-6.4 7.9 1.7.6 2.9 1.9 4.1 3.6l1.7 2.3c1.6 2.2 2.7 3.1 4.5 3.1h1l-.3 2.9h-.7v.1zM121.9 4h-11.3v12.3h11.3c4.5 0 7.8-2.1 7.8-6.1 0-4.1-3.3-6.2-7.8-6.2zm39.8 25.8V1h3.2v28.8h-3.2zm60.6 0L195.7 5.5h-.1v24.3h-3.2V1h2.9l26.6 24.4h.1V1h3.2v28.8h-2.9zm47 .9c-13.9 0-20.2-7.1-20.2-15.3 0-8.3 6.5-15.2 19.6-15.2 4.7 0 9.4.9 13.6 2.7v3.3c-4.1-1.9-8.8-3-13.6-3-10.8 0-16.1 5.6-16.1 12.3 0 6.9 5.6 12.3 16.7 12.3 4.5 0 8.6-1 11.2-2.2v-7.2h-12l.4-2.9h14.8v12.1c-3.7 1.8-8.7 3.1-14.4 3.1zM137.9 56.9c0 .9.5.1 1.7.1 1.3 0 1.7.8 1.7-.1s-.8-1.7-1.7-1.7c-.9 0-1.7.8-1.7 1.7m10.5 0c0 .9-.5.1-1.7.1-1.3 0-1.7.8-1.7-.1s.8-1.7 1.7-1.7c.9 0 1.7.8 1.7 1.7"></path><path d="M139.9 53.4c-2.5 0-3.7 1.7-3.7 3.8 0 2.8 2.5 6.4 6.9 7.9 4.4-1.6 6.9-5.2 6.9-7.9 0-2.1-1.2-3.8-3.7-3.8-2.1 0-3.2 1.3-3.2 1.4 0-.1-1.1-1.4-3.2-1.4m3.3 0s.9-1.4 3.6-1.3c3 .1 4.4 2.6 4.4 4.9 0 3.3-3.2 7.5-8.1 8.9-4.9-1.3-8.1-5.6-8.1-8.9 0-2.3 1.5-4.8 4.4-4.9 2.8 0 3.8 1.3 3.8 1.3"></path><path d="M143.2 58.1c.5 0 .9.3.9 1 0 .8-.5 2.1-.9 2.1s-.9-1.4-.9-2.1c-.1-.7.4-1 .9-1"></path><path d="M143.2 69.8c1.3.5 2.7.9 4.2 1.1-.4.4-.8.9-1.2 1.3-1.2 1.3-2.2 2.6-3 3.9-.8-1.3-1.8-2.6-3-3.9-.4-.4-.8-.9-1.2-1.3 1.5-.3 2.9-.7 4.2-1.1m0 23.8c-2.9 0-2.8-5.2-2.8-5.2 0-3.3.8-6.6 2.8-9.9 1.9 3.3 2.8 6.6 2.8 9.9-.1 0 .1 5.2-2.8 5.2m0-43.5s5.2-.2 8.1 2.5c1.3 1.3 1.9 3 1.9 5.1 0 2.3-1.5 5.1-4 7.1-1.7 1.3-3.7 2.5-5.9 3.4-2.2-.9-4.3-2.1-5.9-3.4-2.6-2-4-4.8-4-7.1 0-2.1.6-3.8 1.9-5.1 2.6-2.7 7.9-2.5 7.9-2.5m7.2 19.7c3.3-3 7.4-6 12.1-8.9 9.1-5.5 18.2-9.3 21.4-10.5-.4 1.4-1.2 3.9-3 6.7-2.6 3.9-7.7 9-17.6 11.5-4.6 1-9 1.4-12.9 1.2m-27.3-1.3c-9.8-2.4-15-7.6-17.6-11.5-1.8-2.8-2.7-5.3-3-6.7 3.1 1.2 12.3 5 21.4 10.5 4.8 2.9 8.8 5.9 12.1 8.9-4 .3-8.4-.1-12.9-1.2m20.1-19.6s-5.7-.2-8.9 2.9c-1.6 1.5-2.4 3.5-2.4 6 0 2.7 1.7 5.8 4.6 8.1 1 .8 2.6 2 4.8 3.1-1.1.3-2.3.6-3.5.7-3.5-3.4-8-6.7-13.3-10-11.2-6.9-22.6-11-22.7-11.1l-1-.4.1 1.1c0 .2.5 4 3.5 8.4 2.7 4.1 8.1 9.5 18.4 12 5.8 1.4 10.7 1.7 14.6 1.3.7.7 1.3 1.3 1.9 2 1.3 1.4 2.3 2.8 3.3 4.2-2 3.6-2.9 7.2-2.9 10.8 0 .2.1 3.8 1.5 5.3.7.8 1.3 1 2.1 1s1.4-.2 2.1-1c1.4-1.5 1.5-5.1 1.5-5.3 0-3.6-.9-7.2-2.9-10.8.9-1.4 2-2.8 3.3-4.2.6-.7 1.2-1.3 1.9-2 3.9.4 8.7.2 14.6-1.3 10.3-2.5 15.6-7.9 18.4-12 3-4.5 3.5-8.3 3.5-8.4l.1-1.1-1 .4c-.1 0-11.5 4.2-22.7 11.1-5.3 3.2-9.7 6.6-13.3 10-1.2-.1-2.4-.4-3.5-.7 2.2-1.1 3.8-2.3 4.8-3.1 2.9-2.3 4.6-5.4 4.6-8.1 0-2.5-.8-4.4-2.4-6-3.4-3.1-9.1-2.9-9.1-2.9"></path></svg></div>
+      <div class="foot__social"><a href="https://www.instagram.com/kering_official/" target="_blank" rel="noopener">Instagram</a><a href="https://www.linkedin.com/company/kering" target="_blank" rel="noopener">LinkedIn</a><a href="https://www.youtube.com/channel/UCMDZYZibcyrf99iEa4CQJkA" target="_blank" rel="noopener">YouTube</a><a href="https://twitter.com/KeringGroup" target="_blank" rel="noopener">X</a></div>
+    </div>
+    <div class="foot__links"><a href="#">SITEMAP</a><a href="#">CONTACT US</a><a href="#">LEGAL</a><a href="#">CREDITS</a><a href="#">PRIVACY POLICY</a><a href="#">COOKIE POLICY</a><span>© Kering 2026</span></div>
+  </footer>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const dots = Array.from(document.querySelectorAll('.pastille'));
+    const result = document.getElementById('result');
+    const resultText = document.getElementById('resultText');
+    let current = slides.findIndex((s) => s.classList.contains('is-active'));
+    let busy = false;
+    let lastHouse = null;
+    let autoplay = null;
+
+    function playVideo(slide) {
+      const v = slide.querySelector('video');
+      if (!v) return;
+      if (!v.src && v.dataset.src) v.src = v.dataset.src;
+      v.play().catch(() => {});
+    }
+    function show(index) {
+      if (busy) return;
+      current = (index + slides.length) % slides.length;
+      slides.forEach((s, i) => {
+        s.classList.toggle('is-active', i === current);
+        const v = s.querySelector('video');
+        if (v && i !== current) v.pause();
+      });
+      dots.forEach((d, i) => d.classList.toggle('is-active', i === current));
+      dots[current].scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      result.hidden = true;
+      playVideo(slides[current]);
+    }
+    function restartAutoplay() {
+      clearInterval(autoplay);
+      autoplay = setInterval(() => { if (!busy && result.hidden) show(current + 1); }, 7000);
+    }
+    dots.forEach((d) => d.addEventListener('click', () => { show(Number(d.dataset.go)); restartAutoplay(); }));
+    document.getElementById('prevBtn').addEventListener('click', () => { show(current - 1); restartAutoplay(); });
+    document.getElementById('nextBtn').addEventListener('click', () => { show(current + 1); restartAutoplay(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { show(current + 1); restartAutoplay(); }
+      if (e.key === 'ArrowLeft') { show(current - 1); restartAutoplay(); }
+    });
+
+    async function discover(slide) {
+      if (busy) return;
+      busy = true;
+      clearInterval(autoplay);
+      const house = slide.dataset.house;
+      const housePath = slide.dataset.url;
+      const btn = slide.querySelector('[data-discover]');
+      lastHouse = slide;
+      result.hidden = true;
+      btn.setAttribute('aria-busy', 'true');
+      btn.disabled = true;
+      try {
+        const response = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: document.getElementById('policyId').value,
+            claimType: document.getElementById('claimType').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            description: 'Discover ' + house + ' — GET /en' + housePath,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) throw new Error('house page failed');
+        window.location.href = 'https://www.kering.com/en' + housePath;
+      } catch (_error) {
+        resultText.textContent = 'Sorry, the ' + house + ' page could not be loaded. Please try again later.';
+        result.hidden = false;
+      } finally {
+        btn.removeAttribute('aria-busy');
+        btn.disabled = false;
+        busy = false;
+      }
+    }
+    document.getElementById('slides').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-discover]');
+      if (btn) discover(btn.closest('.slide'));
+    });
+    document.getElementById('retryBtn').addEventListener('click', () => { if (lastHouse) discover(lastHouse); });
+    document.getElementById('claimForm').addEventListener('submit', (e) => { e.preventDefault(); discover(slides[current]); });
+
+    playVideo(slides[current]);
+    restartAutoplay();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
