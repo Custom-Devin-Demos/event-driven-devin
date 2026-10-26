@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pay merchant | Orvi Money</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #1174E6; --blue-dark: #0B5CC0; --blue-soft: #E8F1FD; --ink: #0C0C0C; --ink-2: #3C3F44; --muted: #6E737A;
+      --line: #E6E8EB; --bg: #F5F6F8; --card: #FFFFFF; --yellow: #FAD22D; --green: #16804A; --green-bg: #E7F5EC;
+      --red: #B3261E; --red-bg: #FCECEB; --radius: 18px; --shadow: 0 1px 2px rgba(16,24,40,.06), 0 4px 16px rgba(16,24,40,.06);
+      --sans: 'Hanken Grotesk', Helvetica, Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--sans); color: var(--ink); background: var(--bg); font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    a { color: var(--blue); text-decoration: none; }
+    button, input, select { font-family: inherit; font-size: inherit; color: inherit; }
+    svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+    select:focus-visible, input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+    /* App bar */
+    .appbar { position: sticky; top: 0; z-index: 20; background: var(--card); border-bottom: 1px solid var(--line); }
+    .appbar .in { display: flex; align-items: center; gap: 16px; height: 64px; padding: 0 24px; }
+    .logo { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); min-height: 44px; flex: none; }
+    .logo .mark { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #1174E6 0%, #0A4AA0 100%); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+    .logo .nm { font-weight: 700; font-size: 19px; letter-spacing: -.2px; }
+    .search { flex: 1; max-width: 420px; margin-left: 40px; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 16px; border-radius: 22px; background: var(--bg); color: var(--muted); font-size: 15px; }
+    .search svg { width: 18px; height: 18px; }
+    .bar-tools { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .icon-btn { position: relative; width: 44px; height: 44px; border-radius: 50%; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink-2); }
+    .icon-btn:hover { background: var(--bg); }
+    .icon-btn .dot { position: absolute; top: 10px; right: 11px; width: 8px; height: 8px; border-radius: 50%; background: #E5484D; border: 2px solid #fff; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: #D9E6F7; color: #0A4AA0; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; }
+    .me { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding-left: 6px; font-weight: 500; font-size: 15px; color: var(--ink); }
+
+    /* Shell */
+    .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); max-width: 1360px; margin: 0 auto; }
+    .rail { position: sticky; top: 64px; align-self: start; height: calc(100vh - 64px); padding: 20px 14px; display: flex; flex-direction: column; gap: 2px; }
+    .rail a { display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 0 14px; border-radius: 12px; color: var(--ink-2); font-weight: 500; font-size: 15px; }
+    .rail a:hover { background: #ECEEF1; }
+    .rail a.on { background: var(--blue-soft); color: var(--blue-dark); }
+    .rail .powered { margin-top: auto; padding: 14px; font-size: 12px; color: var(--muted); line-height: 1.4; }
+    main { padding: 24px 28px 48px; min-width: 0; }
+    .back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--ink-2); font-weight: 500; font-size: 15px; }
+    .back svg { width: 18px; height: 18px; }
+    h1 { font-size: 30px; line-height: 38px; font-weight: 700; letter-spacing: -.4px; margin: 2px 0 20px; }
+    .cols { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+    .cols > * { min-width: 0; }
+    .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+
+    /* Checkout sheet */
+    .sheet { padding: 24px; }
+    .merchant { display: flex; align-items: center; gap: 14px; }
+    .m-ava { width: 52px; height: 52px; border-radius: 50%; background: #111; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; flex: none; }
+    .m-name { font-weight: 600; font-size: 18px; display: flex; align-items: center; gap: 6px; }
+    .m-name svg { width: 16px; height: 16px; color: var(--blue); stroke-width: 2.2; }
+    .m-sub { font-size: 14px; color: var(--muted); }
+    .chip { margin-left: auto; flex: none; background: var(--yellow); color: #111; font-weight: 600; font-size: 13px; padding: 5px 12px; border-radius: 999px; }
+    .items { margin: 20px 0 4px; border-top: 1px solid var(--line); }
+    .item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .thumb { width: 48px; height: 48px; border-radius: 12px; background: var(--bg); display: inline-flex; align-items: center; justify-content: center; color: var(--ink-2); flex: none; }
+    .item .t { font-weight: 500; }
+    .item .s { font-size: 13px; color: var(--muted); }
+    .item .p { margin-left: auto; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .item .was { display: block; font-size: 13px; color: var(--muted); text-decoration: line-through; }
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 14px; font-weight: 500; color: var(--ink-2); }
+    select { width: 100%; min-height: 52px; border: 1px solid #D5D8DD; background-color: #fff; border-radius: 14px; padding: 0 44px 0 16px; font-size: 16px; -webkit-appearance: none; appearance: none; cursor: pointer; text-overflow: ellipsis;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%233C3F44' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+    select:disabled { background-color: var(--bg); cursor: default; }
+    .due { margin-top: 22px; padding: 18px 20px; border-radius: 16px; background: var(--bg); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .due label { flex: 1 0 auto; font-size: 15px; }
+    .due .later { width: 100%; font-size: 13px; color: var(--muted); order: 3; }
+    .amt { display: flex; align-items: baseline; gap: 2px; font-weight: 700; font-size: 32px; letter-spacing: -.5px; }
+    .amt span { font-size: 26px; }
+    .amt input { width: 6.3ch; border: 0; background: transparent; font-weight: 700; font-size: 32px; letter-spacing: -.5px; text-align: right; padding: 0; -moz-appearance: textfield; }
+    .amt input::-webkit-outer-spin-button, .amt input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .pay { margin-top: 18px; width: 100%; min-height: 56px; border: 0; border-radius: 999px; background: var(--blue); color: #fff; font-weight: 600; font-size: 18px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+    .pay:hover { background: var(--blue-dark); }
+    .pay:disabled { background: #8DB8EF; cursor: default; }
+    .pay svg { width: 20px; height: 20px; }
+    .sub-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+    .ghost { min-height: 44px; padding: 0 14px; border: 0; background: transparent; color: var(--ink-2); font-weight: 500; border-radius: 12px; cursor: pointer; }
+    .ghost:hover { background: var(--bg); }
+    .ghost:disabled { opacity: .45; cursor: default; }
+    .secure { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+    .secure svg { width: 15px; height: 15px; }
+
+    .result-box { display: none; margin-top: 14px; padding: 14px 16px; border-radius: 14px; font-size: 15px; }
+    .result-box .title { font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .result-box .detail { margin-top: 3px; }
+    .result-box.pending { display: block; background: var(--blue-soft); color: #0A3F85; }
+    .result-box.success { display: block; background: var(--green-bg); color: #0F4D2E; }
+    .result-box.error { display: block; background: var(--red-bg); color: #6B1712; }
+    .spinner { width: 18px; height: 18px; border: 2.5px solid #B9D3F5; border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Side */
+    .balance { padding: 22px; color: #fff; background: linear-gradient(140deg, #1174E6 0%, #0A4AA0 70%, #082F6B 100%); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .balance .lbl { font-size: 14px; opacity: .85; }
+    .balance .val { font-size: 34px; font-weight: 700; letter-spacing: -.6px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .balance .row { display: flex; gap: 10px; margin-top: 18px; }
+    .balance .row a { flex: 1; min-height: 44px; border-radius: 12px; background: rgba(255,255,255,.16); color: #fff; font-weight: 500; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .balance .row svg { width: 18px; height: 18px; }
+    .side-card { margin-top: 16px; padding: 18px 20px; }
+    .side-card h2 { font-size: 16px; font-weight: 600; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+    .side-card h2 a { font-size: 14px; font-weight: 500; min-height: 44px; display: inline-flex; align-items: center; }
+    .side-card p { font-size: 14px; color: var(--ink-2); }
+    .bnpl { display: flex; gap: 14px; align-items: flex-start; }
+    .bnpl .ic { width: 40px; height: 40px; border-radius: 12px; background: #FFF6CF; color: #8A6A00; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+    .tx { list-style: none; }
+    .tx li { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+    .tx li + li { border-top: 1px solid var(--line); }
+    .tx .a { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex: none; }
+    .tx .n { font-weight: 500; font-size: 15px; }
+    .tx .d { font-size: 13px; color: var(--muted); }
+    .tx .v { margin-left: auto; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .tx .v.in { color: var(--green); }
+    .tx .v small { display: block; text-align: right; font-weight: 400; font-size: 12px; color: var(--muted); }
+
+    .foot { margin-top: 32px; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center; }
+    .foot a { color: var(--muted); min-height: 44px; display: inline-flex; align-items: center; }
+
+    .tabbar { display: none; }
+
+    @media (max-width: 1100px) {
+      .cols { grid-template-columns: 1fr; }
+      .search { margin-left: 16px; }
+    }
+    @media (max-width: 860px) {
+      .shell { grid-template-columns: 1fr; }
+      .rail, .search, .me .who { display: none; }
+      .appbar .in { padding: 0 12px 0 16px; gap: 8px; }
+      main { padding: 12px 16px 104px; }
+      h1 { font-size: 26px; line-height: 32px; margin-bottom: 14px; }
+      .sheet { padding: 18px 16px; }
+      .chip { display: none; }
+      .fields { grid-template-columns: 1fr; }
+      .amt, .amt input { font-size: 28px; }
+      .amt span { font-size: 22px; }
+      .tabbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--card); border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
+      .tabbar a { flex: 1; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--muted); }
+      .tabbar a.on { color: var(--blue); }
+      .tabbar .scan { width: 52px; height: 52px; border-radius: 50%; background: var(--blue); color: #fff; display: inline-flex; align-items: center; justify-content: center; margin-top: -18px; box-shadow: 0 4px 12px rgba(17,116,230,.35); }
+      #oncall-ribbon, #oncall-dot { bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="appbar">
+    <div class="in">
+      <a class="logo" href="#" aria-label="Orvi Money home"><span class="mark" aria-hidden="true">o</span><span class="nm">Orvi Money</span></a>
+      <div class="search" role="search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search payments and merchants</div>
+      <div class="bar-tools">
+        <button type="button" class="icon-btn" aria-label="Notifications, 2 new"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="dot"></span></button>
+        <a href="#" class="me" aria-label="Account"><span class="avatar">MK</span><span class="who">Maria</span></a>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="rail" aria-label="Wallet">
+      <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+      <a href="#" class="on" aria-current="page"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>Pay</a>
+      <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Send</a>
+      <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Activity</a>
+      <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>Cards</a>
+      <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>Rewards</a>
+      <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68 1.65 1.65 0 0 0 10 3.17V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</a>
+      <div class="powered">Orvi Money by Orvi Mobile<br>Powered by Ericsson Fintech Platform</div>
+    </nav>
+
+    <main>
+      <a href="#" class="back"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Back to store</a>
+      <h1>Checkout</h1>
+
+      <div class="cols">
+        <section class="card sheet" aria-label="Payment">
+          <div class="merchant">
+            <span class="m-ava" aria-hidden="true">N</span>
+            <div>
+              <div class="m-name">Northgate Electronics <svg class="i" viewBox="0 0 24 24" aria-label="Verified merchant"><path d="M20 6L9 17l-5-5"/></svg></div>
+              <div class="m-sub">Online store &middot; Dublin</div>
+            </div>
+            <span class="chip">Black Friday &minus;30%</span>
+          </div>
+
+          <div class="items" id="items" aria-live="polite"></div>
+
+          <form id="transferForm" novalidate>
+            <div class="fields">
+              <div class="field full">
+                <label for="toAccount">Order</label>
+                <select id="toAccount">
+                  <option value="MER-44102286-NG48210" data-label="Order NG-48210" data-total="349.00">NG-48210 &middot; 55&quot; 4K TV + wall mount &middot; &euro;349.00</option>
+                  <option value="MER-44102286-NG48217" data-label="Order NG-48217" data-total="89.99">NG-48217 &middot; Wireless earbuds &middot; &euro;89.99</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="accountTier">How to pay</label>
+                <select id="accountTier">
+                  <option value="standard" data-parts="1">Pay in full</option>
+                  <option value="standard" data-parts="4">Pay in 4, interest free</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="fromAccount">Pay with</label>
+                <select id="fromAccount">
+                  <option value="ACCT-1001" data-label="Wallet balance" data-balance="1240.18">Wallet balance &middot; &euro;1,240.18</option>
+                  <option value="ACCT-1002" data-label="Visa ending 4417">Visa ending 4417</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="due">
+              <label for="amount">Due today</label>
+              <div class="amt"><span aria-hidden="true">&euro;</span><input type="number" id="amount" value="349.00" min="0.01" step="0.01" readonly></div>
+              <div class="later" id="later"></div>
+            </div>
+
+            <button type="submit" class="pay" id="submitBtn">Pay &euro;349.00</button>
+            <div class="sub-actions">
+              <span class="secure"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Confirmed with your Orvi Money PIN</span>
+              <button type="button" class="ghost" id="cancelBtn">Start over</button>
+            </div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <aside>
+          <div class="balance">
+            <div class="lbl">Orvi Money balance</div>
+            <div class="val">&euro;1,240.18</div>
+            <div class="row">
+              <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Top up</a>
+              <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Send</a>
+              <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>Cards</a>
+            </div>
+          </div>
+
+          <div class="card side-card">
+            <div class="bnpl">
+              <span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+              <div><h2>Pay in 4</h2><p>Split orders over &euro;50 into four payments, two weeks apart. No interest, no fees when you pay on time.</p></div>
+            </div>
+          </div>
+
+          <div class="card side-card">
+            <h2>Recent <a href="#">See all</a></h2>
+            <ul class="tx">
+              <li><span class="a" style="background:#F3E8DD;color:#7A4A1E">H</span><div><div class="n">Harbour Coffee</div><div class="d">Today, 08:12</div></div><span class="v">&minus;&euro;4.60</span></li>
+              <li><span class="a" style="background:#E3ECF8;color:#1C4F8F">M</span><div><div class="n">Metro Transit</div><div class="d">Yesterday</div></div><span class="v">&minus;&euro;20.00</span></li>
+              <li><span class="a" style="background:#E7F5EC;color:#16804A">+</span><div><div class="n">Top up</div><div class="d">21 Nov &middot; Visa 4417</div></div><span class="v in">+&euro;500.00</span></li>
+              <li><span class="a" style="background:#EEF6E2;color:#4A6B12">F</span><div><div class="n">FreshMart</div><div class="d">19 Nov</div></div><span class="v">&minus;&euro;84.12</span></li>
+              <li><span class="a" style="background:#111;color:#fff">N</span><div><div class="n">Northgate Electronics</div><div class="d">17 Nov</div></div><span class="v">+&euro;24.99<small>Refund</small></span></li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+
+      <div class="foot">
+        <span>Orvi Money is a service of Orvi Mobile. Powered by Ericsson Fintech Platform.</span>
+        <a href="#">Help</a><a href="#">Terms</a><a href="#">Privacy</a>
+      </div>
+    </main>
+  </div>
+
+  <nav class="tabbar" aria-label="Wallet">
+    <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+    <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Activity</a>
+    <a href="#" class="on" aria-current="page"><span class="scan"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg></span>Pay</a>
+    <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>Cards</a>
+    <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Me</a>
+  </nav>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var ORDERS = {
+        'MER-44102286-NG48210': [
+          { icon: 'tv', t: '55" 4K Smart TV', s: 'Qty 1', p: 319.00, was: 459.00 },
+          { icon: 'mount', t: 'Tilting wall mount', s: 'Qty 1', p: 30.00, was: 39.00 },
+        ],
+        'MER-44102286-NG48217': [
+          { icon: 'buds', t: 'Wireless earbuds', s: 'Qty 1 \u00b7 Black', p: 89.99, was: 129.99 },
+        ],
+      };
+      var ICONS = {
+        tv: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+        mount: '<path d="M4 4v16M4 8h8l4 4-4 4H4"/>',
+        buds: '<path d="M7 4a3 3 0 0 0-3 3v2a3 3 0 0 0 3 3v8M17 4a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3v8"/>',
+      };
+
+      var form = document.getElementById('transferForm');
+      var fromSel = document.getElementById('fromAccount');
+      var toSel = document.getElementById('toAccount');
+      var amountEl = document.getElementById('amount');
+      var tierSel = document.getElementById('accountTier');
+      var btn = document.getElementById('submitBtn');
+      var cancelBtn = document.getElementById('cancelBtn');
+      var result = document.getElementById('result');
+      var itemsEl = document.getElementById('items');
+      var laterEl = document.getElementById('later');
+      var pendingTimer = null;
+      var submitted = false;
+
+      function opt(sel) { return sel.options[sel.selectedIndex]; }
+      function cents(n) { return Math.round(n * 100); }
+      function eur(c) { return (c / 100).toLocaleString('en-IE', { style: 'currency', currency: 'EUR' }); }
+      function totalCents() { return cents(parseFloat(opt(toSel).dataset.total)); }
+      function parts() { return parseInt(opt(tierSel).dataset.parts, 10) || 1; }
+      function dueCents() { var t = totalCents(), n = parts(); return n === 1 ? t : t - Math.floor(t / n) * (n - 1); }
+
+      function renderItems() {
+        itemsEl.innerHTML = '';
+        (ORDERS[toSel.value] || []).forEach(function (it) {
+          var row = document.createElement('div');
+          row.className = 'item';
+          row.innerHTML = '<span class="thumb"><svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[it.icon] + '</svg></span>' +
+            '<div><div class="t"></div><div class="s"></div></div><div class="p"><span class="now"></span><span class="was"></span></div>';
+          row.querySelector('.t').textContent = it.t;
+          row.querySelector('.s').textContent = it.s;
+          row.querySelector('.now').textContent = eur(cents(it.p));
+          row.querySelector('.was').textContent = eur(cents(it.was));
+          itemsEl.appendChild(row);
+        });
+      }
+
+      function payLabel() { return 'Pay ' + eur(dueCents()); }
+
+      function sync() {
+        var due = dueCents(), total = totalCents();
+        amountEl.value = (due / 100).toFixed(2);
+        amountEl.style.width = (amountEl.value.length + 0.3) + 'ch';
+        laterEl.textContent = parts() === 1
+          ? 'Order total ' + eur(total) + ' \u00b7 paid in full today'
+          : 'Then 3 \u00d7 ' + eur(Math.floor(total / 4)) + ' every 2 weeks \u00b7 order total ' + eur(total);
+        if (!submitted) btn.textContent = payLabel();
+        renderItems();
+      }
+
+      [toSel, tierSel, fromSel].forEach(function (el) { el.addEventListener('change', sync); });
+      sync();
+
+      function show(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '<div class="title"></div><div class="detail"></div>';
+        result.firstChild.textContent = title;
+        result.lastChild.textContent = detail || '';
+        if (kind === 'pending') result.firstChild.insertAdjacentHTML('afterbegin', '<span class="spinner" aria-hidden="true"></span>');
+      }
+      function clearResult() { if (pendingTimer) clearTimeout(pendingTimer); pendingTimer = null; result.className = 'result-box'; result.innerHTML = ''; }
+      function lockForm(locked) { [fromSel, toSel, tierSel, cancelBtn].forEach(function (el) { el.disabled = locked; }); }
+      function resetButton() { btn.disabled = false; btn.textContent = payLabel(); }
+
+      cancelBtn.addEventListener('click', function () {
+        form.reset();
+        submitted = false;
+        lockForm(false);
+        resetButton();
+        clearResult();
+        sync();
+      });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (submitted) return;
+        var due = dueCents(), from = opt(fromSel);
+        if (from.dataset.balance && due > cents(parseFloat(from.dataset.balance))) {
+          show('error', 'Not enough in your wallet.', 'Top up or pay with your card.');
+          return;
+        }
+
+        submitted = true;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner" aria-hidden="true" style="border-color:rgba(255,255,255,.4);border-top-color:#fff"></span>Paying\u2026';
+        clearResult();
+        pendingTimer = setTimeout(function () {
+          show('pending', 'This is taking longer than usual.', 'Keep this screen open. You won\u2019t be charged twice.');
+        }, 2500);
+        var payload = {
+          fromAccount: fromSel.value,
+          toAccount: toSel.value,
+          amount: parseFloat(amountEl.value),
+          accountTier: tierSel.value,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        };
+        lockForm(true);
+        try {
+          var res = await fetch('/api/banking/transfer', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          await res.json().catch(function () { return {}; });
+          if (pendingTimer) clearTimeout(pendingTimer);
+          if (!res.ok) {
+            submitted = false;
+            lockForm(false);
+            resetButton();
+            show('error', 'Payment didn\u2019t go through.', 'You haven\u2019t been charged. Try again in a few minutes.');
+          } else {
+            btn.textContent = 'Paid';
+            cancelBtn.disabled = false;
+            show('success', 'Paid ' + eur(due) + ' to Northgate Electronics', opt(toSel).dataset.label + ' \u00b7 ' + from.dataset.label + '. The store has your payment.');
+          }
+        } catch (err) {
+          if (pendingTimer) clearTimeout(pendingTimer);
+          submitted = false;
+          lockForm(false);
+          resetButton();
+          show('error', 'Payment didn\u2019t go through.', 'Check your connection and try again.');
+        } finally {
+          pendingTimer = null;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
