@@ -41,6 +41,10 @@
     .header__right { justify-self: end; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
     .burger { display: none; background: none; border: 0; width: 44px; height: 44px; cursor: pointer; }
     .burger span { display: block; width: 22px; height: 1px; background: #000; margin: 6px auto; }
+    .mobile-nav { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-top: 1px solid var(--line); box-shadow: 0 12px 24px rgba(0,0,0,0.08); padding: 8px 16px 18px; display: flex; flex-direction: column; }
+    .mobile-nav[hidden] { display: none; }
+    .mobile-nav a { padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; }
+    @media (min-width: 1101px) { .mobile-nav { display: none !important; } }
 
     /* Hero carousel */
     .hero { position: relative; margin: 0 40px; height: calc(100vh - 124px); min-height: 560px; max-height: 960px; background: #111; overflow: hidden; color: #fff; }
@@ -139,7 +143,16 @@
       <a href="https://www.kering.com/en/press/" target="_blank" rel="noopener">Press</a>
     </nav>
     <a class="header__right" href="https://www.kering.com/en/talent/" target="_blank" rel="noopener">Join us</a>
-    <button type="button" class="burger" aria-label="Menu"><span></span><span></span></button>
+    <button type="button" class="burger" id="burgerBtn" aria-label="Menu" aria-expanded="false" aria-controls="mobileNav"><span></span><span></span></button>
+    <nav class="mobile-nav" id="mobileNav" aria-label="Mobile" hidden>
+      <a href="https://www.kering.com/en/group/" target="_blank" rel="noopener">Group</a>
+      <a href="https://www.kering.com/en/houses/" target="_blank" rel="noopener">Houses</a>
+      <a href="https://www.kering.com/en/talent/" target="_blank" rel="noopener">Talent</a>
+      <a href="https://www.kering.com/en/sustainability/" target="_blank" rel="noopener">Sustainability</a>
+      <a href="https://www.kering.com/en/finance/" target="_blank" rel="noopener">Finance</a>
+      <a href="https://www.kering.com/en/press/" target="_blank" rel="noopener">Press</a>
+      <a href="https://www.kering.com/en/talent/" target="_blank" rel="noopener">Join us</a>
+    </nav>
   </header>
 
   <main>
@@ -245,7 +258,9 @@
         if (v && i !== current) v.pause();
       });
       dots.forEach((d, i) => d.classList.toggle('is-active', i === current));
-      dots[current].scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      const strip = document.getElementById('pastilles');
+      const dot = dots[current];
+      strip.scrollTo({ left: dot.offsetLeft - (strip.clientWidth - dot.offsetWidth) / 2, behavior: 'smooth' });
       result.hidden = true;
       playVideo(slides[current]);
     }
@@ -260,6 +275,16 @@
       if (e.key === 'ArrowRight') { show(current + 1); restartAutoplay(); }
       if (e.key === 'ArrowLeft') { show(current - 1); restartAutoplay(); }
     });
+
+    const burgerBtn = document.getElementById('burgerBtn');
+    const mobileNav = document.getElementById('mobileNav');
+    function setMenu(open) {
+      mobileNav.hidden = !open;
+      burgerBtn.setAttribute('aria-expanded', String(open));
+      burgerBtn.setAttribute('aria-label', open ? 'Close menu' : 'Menu');
+    }
+    burgerBtn.addEventListener('click', () => setMenu(mobileNav.hidden));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !mobileNav.hidden) { setMenu(false); burgerBtn.focus(); } });
 
     async function discover(slide) {
       if (busy) return;
