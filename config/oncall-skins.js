@@ -6315,7 +6315,7 @@ const ONCALL_SKINS = {
     page: { file: '50a6f684.html', title: 'ATORIS, 20mg, plėvele dengtos tabletės, N30 | Eurovaistine.lt' },
     oncallOnly: true,
     alertCard: {
-      title: 'p95 latency \u2014 e-prescription order submissions',
+      title: '5xx rate \u2014 e-prescription order submissions',
       release: 'eshop-rx@2026.10.4',
       team: 'eshop-oncall',
       symptom: 'E-prescription order submissions hang ~8s and then fail with 504 Gateway Timeout. Upstream latency is elevated.',
