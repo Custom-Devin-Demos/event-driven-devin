@@ -6290,6 +6290,16 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     disclaimer: 'NOT ACTUALLY A BIGPANDA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BigPanda product.',
   },
+  '0cde929a': {
+    slug: '0cde929a',
+    company: 'Blue Owl',
+    vertical: 'banking',
+    page: { file: '0cde929a.html', title: 'Investor Portal & Login | Blue Owl Capital' },
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
+    disclaimer: 'NOT ACTUALLY A BLUE OWL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Blue Owl product.',
+  },
 };
 
 function getOncallSkin(slug) {
