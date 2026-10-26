@@ -6142,6 +6142,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A CLOUDBEDS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cloudbeds product.',
   },
+  '50124a40': {
+    slug: '50124a40',
+    company: 'BigPanda',
+    vertical: 'hightech',
+    page: { file: '50124a40.html', title: 'Agentic AI for IT Operations | BigPanda' },
+    disclaimer: 'NOT ACTUALLY A BIGPANDA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BigPanda product.',
+  },
 };
 
 function getOncallSkin(slug) {

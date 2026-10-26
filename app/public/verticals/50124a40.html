@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic AI for IT Operations | BigPanda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #0041f5;
+      --blue-deep: #0034c2;
+      --ice: #c7daff;
+      --card-grey: #f4f4f4;
+      --ink: #000;
+      --ink-soft: #292929;
+      --white: #fff;
+      --font: 'Denim', 'Hanken Grotesk', Helvetica, Arial, sans-serif;
+      --h1: 74px; --h1-lh: 81.4px;
+      --h2: 36.6667px; --h2-lh: 40.3333px;
+      --h3: 24.7524px; --h3-lh: 27.2277px;
+      --h4: 22px; --h4-lh: 24.2px;
+      --body: 17.996px; --body-lh: 26.994px;
+      --tight: -1.04px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    html { overflow-y: scroll; }
+    body { font-family: var(--font); font-size: var(--body); line-height: var(--body-lh); color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    h1, h2, h3, h4, p { margin: 0; font-weight: 400; }
+    h1, h2, h3, h4 { letter-spacing: var(--tight); }
+    .wrap { width: 1140px; max-width: 80%; margin: 0 auto; }
+    .wrap-wide { width: 1200px; max-width: 90%; margin: 0 auto; }
+
+    /* Notification banner + tophat */
+    .notice { position: relative; z-index: 100; height: 50px; background: #ea00ef; display: flex; align-items: center; justify-content: center; padding: 0 0 0 66px; }
+    .notice a { font-size: 16px; line-height: 50px; color: #000; }
+    .tophat { height: 83px; background: #292929; display: flex; align-items: center; justify-content: flex-end; padding: 0 54px 0 0; color: #fff; font-size: 17.996px; }
+    .tophat a { font-size: 15px; line-height: 27px; }
+    .tophat .th-lang { margin-right: 55px; }
+    .tophat .th-support { margin-right: 67px; }
+    .tophat .th-login { width: 97px; height: 26px; border: 1px solid #fff; border-radius: 50px; display: inline-flex; align-items: center; justify-content: center; font-weight: 500; position: relative; }
+    .tophat .th-login::before { content: ''; position: absolute; inset: -9px -2px; }
+
+    /* Main header */
+    .hdr { position: relative; height: 99px; margin-bottom: -99px; z-index: 50; display: flex; align-items: center; padding: 0 54px; }
+    .logo { display: flex; align-items: center; gap: 8px; width: 166px; height: 40px; color: #fff; }
+    .logo svg { width: 44px; height: 40px; flex: none; color: #fff; }
+    .logo span { font-size: 27.5px; font-weight: 500; letter-spacing: -0.6px; line-height: 1; }
+    .nav { display: flex; align-items: center; margin-left: auto; height: 99px; }
+    .nav a { display: flex; align-items: center; gap: 9px; height: 99px; padding: 0 18px; color: #fff; font-size: 17.996px; line-height: 26.994px; }
+    .nav a svg { width: 10px; height: 6px; }
+    .nav .gap { width: 18px; }
+    .nav a.pill { height: 48px; padding: 14px 30px; font-size: 15.84px; line-height: 15.84px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 14px 30px; border-radius: 50px; border: 2px solid #fff; font-size: 15.84px; font-weight: 500; line-height: 15.84px; white-space: nowrap; font-family: var(--font); cursor: pointer; }
+    .pill.white { background: #fff; color: var(--blue-deep); }
+    .pill.white.blue-text { color: var(--blue); }
+    .pill.outline { background: transparent; color: #fff; }
+    .pill.solid { background: var(--blue); color: #fff; border: 0; height: 44px; }
+    .hdr .pill.white { margin-right: 19px; }
+    .burger { display: none; margin-left: auto; width: 44px; height: 44px; background: none; border: 0; padding: 7px 7px; cursor: pointer; }
+    .burger span { display: block; height: 2px; background: #fff; margin: 7px 0; }
+
+    /* Hero gradient section */
+    .hero-sec { background: linear-gradient(rgb(0, 65, 245) 29.81%, rgb(199, 218, 255) 58.77%, rgba(255, 255, 255, 0) 96%); padding-top: 100px; margin-top: -1px; }
+    .hero { width: 1200px; max-width: 90%; margin: 0 auto; display: flex; gap: 66px; padding-top: 14.25px; }
+    .hero-copy { width: 567px; flex: none; padding-top: 13px; }
+    .hero-copy h1 { font-size: var(--h1); line-height: var(--h1-lh); color: #fff; }
+    .hero-copy .lede { margin-top: 26px; color: #fff; }
+    .hero-art { width: 567px; flex: none; }
+    .hero-art img { width: 567px; height: 387px; object-fit: contain; }
+    .hero-art .art-fallback { width: 567px; height: 387px; border-radius: 10px; background: rgba(255,255,255,.12); }
+
+    /* Seat provisioning card (primary action) */
+    .seat-card { margin-top: 42px; background: #fff; border-radius: 10px; padding: 30px; color: var(--ink); max-width: 567px; }
+    .seat-card h2 { font-size: var(--h4); line-height: var(--h4-lh); font-weight: 500; letter-spacing: var(--tight); }
+    .seat-card .sub { margin-top: 8px; font-size: 16px; line-height: 24px; color: var(--ink-soft); }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; margin-top: 22px; }
+    .field-grid .full { grid-column: 1 / -1; }
+    .field label { display: block; font-size: 14px; line-height: 18px; font-weight: 500; color: var(--ink-soft); margin-bottom: 6px; }
+    .field select, .field input { width: 100%; height: 48px; padding: 0 16px; border: 1px solid #b8c9ec; border-radius: 8px; background: #fff; font-family: var(--font); font-size: 16px; color: var(--ink); appearance: none; -webkit-appearance: none; }
+    .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%230041f5' stroke-width='1.6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; }
+    .field select:focus, .field input:focus { outline: 2px solid var(--blue); outline-offset: 0; border-color: var(--blue); }
+    .seat-actions { display: flex; align-items: center; gap: 11px; margin-top: 24px; flex-wrap: wrap; }
+    .seat-actions .pill.solid { height: 48px; }
+    .seat-actions .pill.ghost { background: transparent; color: var(--blue); border: 2px solid var(--blue); }
+    .seat-actions .pill:disabled { opacity: .7; cursor: progress; }
+    .result-box { display: none; margin-top: 18px; padding: 14px 16px; border-radius: 8px; font-size: 15px; line-height: 22px; }
+    .result-box.success { display: block; background: #e8f7ee; border: 1px solid #4fc27a; color: #0d4a24; }
+    .result-box.error { display: block; background: #fdecec; border: 1px solid #e46a6a; color: #6b1010; }
+    .result-title { font-weight: 600; margin-bottom: 2px; }
+
+    .trusted { padding: 110px 0 14.25px; text-align: center; }
+    .trusted h3 { font-size: var(--h3); line-height: var(--h3-lh); font-weight: 500; color: #fff; }
+    .logos { width: 1200px; max-width: 90%; margin: 0 auto; overflow: hidden; padding: 14.25px 0; height: 85px; }
+    .logos .track { display: flex; gap: 22px; width: max-content; }
+    .logos img { width: 157px; height: 52px; object-fit: contain; flex: none; }
+
+    .glance { padding: 100px 0 14.25px; text-align: center; }
+    .glance h2 { font-size: var(--h2); line-height: var(--h2-lh); color: #fff; }
+    .glance img { width: 1140px; height: 418px; object-fit: contain; margin: 31px auto 0; }
+    .evolve { display: flex; gap: 62px; padding: 14.25px 0 70px; align-items: flex-start; }
+    .evolve .video { width: 539px; height: 303px; flex: none; border-radius: 10px; overflow: hidden; }
+    .evolve .video iframe { width: 100%; height: 100%; border: 0; display: block; }
+    .evolve .copy { width: 539px; padding-top: 39px; }
+    .evolve .copy p + p { margin-top: 18px; }
+
+    /* Automate IT work */
+    .automate { padding: 42.75px 0 50px; }
+    .automate h2 { text-align: center; font-size: var(--h2); line-height: var(--h2-lh); padding-top: 14.25px; }
+    .feat-grid { width: 1283px; max-width: 90%; margin: 41px auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 29px 39px; }
+    .feat { background: var(--ice); border-radius: 10px; padding: 30px 45px 54px; min-height: 314px; }
+    .feat img { width: 50px; height: 50px; object-fit: contain; }
+    .feat .ft { margin-top: 18px; color: var(--blue-deep); }
+    .feat ul { margin: 18px 0 0; padding: 0 0 0 18px; color: var(--ink-soft); }
+    .feat li + li { margin-top: 5px; }
+
+    /* Why leading enterprises */
+    .why { background: var(--blue-deep); padding: 100px 0 20px; color: #fff; }
+    .why h2.sec { text-align: center; font-size: var(--h2); line-height: var(--h2-lh); padding-bottom: 35px; }
+    .why-row { display: flex; gap: 62px; align-items: center; height: 404px; }
+    .why-row .txt, .why-row .img { width: 539px; flex: none; }
+    .why-row h3 { font-size: var(--h3); line-height: var(--h3-lh); font-weight: 500; }
+    .why-row p { margin-top: 9px; }
+    .why-row img { width: 539px; height: 303px; object-fit: contain; }
+
+    /* ServiceNow */
+    .snow { background: var(--ice); padding: 57px 0; min-height: 373px; }
+    .snow .wrap { display: flex; gap: 63px; align-items: flex-start; }
+    .snow img { width: 418px; height: 234px; object-fit: contain; flex: none; }
+    .snow h2 { font-size: var(--h2); line-height: var(--h2-lh); color: var(--ink-soft); }
+    .snow p { margin-top: 12px; color: var(--ink-soft); }
+    .snow .pill { margin-top: 31px; }
+
+    /* Work smarter */
+    .smarter { background: var(--blue); padding: 57px 0 54px; }
+    .smarter h2 { text-align: center; color: #fff; font-size: var(--h2); line-height: var(--h2-lh); }
+    .res-grid { width: 1300px; max-width: 92%; margin: 55px auto 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 39px; }
+    .res { background: var(--card-grey); border-radius: 10px; padding: 30px; min-height: 576px; }
+    .res img { width: 347px; height: 271px; object-fit: contain; }
+    .res h4 { margin-top: 56px; font-size: var(--h4); line-height: var(--h4-lh); font-weight: 500; }
+    .res p { margin-top: 8px; font-size: 17.6px; line-height: 26.4px; }
+    .res p a { color: var(--blue); }
+
+    /* Report */
+    .report { background: var(--ice); padding: 57px 0; }
+    .report .wrap { display: flex; gap: 62px; align-items: flex-start; }
+    .report .txt { width: 539px; flex: none; }
+    .report .eyebrow { font-size: 12px; line-height: 15.6px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; }
+    .report h2 { margin-top: 12px; font-size: var(--h2); line-height: var(--h2-lh); }
+    .report p.l { margin-top: 18px; }
+    .report .pill { margin-top: 39px; }
+    .report img { width: 539px; height: 337px; object-fit: contain; }
+
+    /* Footer */
+    .foot { background: #fff; padding: 47px 0 13px; }
+    .foot-grid { width: 1200px; max-width: 90%; margin: 0 auto; display: grid; grid-template-columns: 150px repeat(4, 244px) 1fr; padding-top: 12px; }
+    .fcol.m-only { display: none; }
+    .foot-grid .panda svg { width: 85px; height: 77px; color: #1b1d45; }
+    .fcol h5 { margin: 18px 0 14px; font-size: 18px; line-height: 24px; font-weight: 500; letter-spacing: 0; }
+    .fcol h6 { margin: 10px 0 2px; font-size: 14px; line-height: 20px; font-weight: 600; }
+    .fcol a { display: block; font-size: 14px; line-height: 28px; color: #000; max-width: 190px; }
+    .fcol h5.later { margin-top: 26px; }
+    .fcol .acc { display: none; }
+    .also { width: 1200px; max-width: 90%; margin: 71px auto 0; display: flex; align-items: baseline; gap: 20px; padding-left: 135px; }
+    .also strong { font-size: 18px; font-weight: 500; }
+    .also a { font-size: 14px; }
+    .also a svg { display: none; }
+    .contact-m { display: none; }
+    .foot-base { width: 1200px; max-width: 90%; margin: 90px auto 0; padding: 0 0 0 143px; display: flex; align-items: center; font-size: 14px; line-height: 18.2px; }
+    .foot-base .social { margin-left: auto; margin-right: 228px; display: flex; gap: 14px; }
+    .foot-base .social a { width: 22px; height: 22px; color: var(--blue); }
+    .privacy { width: 1200px; max-width: 90%; margin: 60px auto 0; text-align: right; font-size: 14px; font-weight: 600; }
+    .privacy .tog { display: inline-block; vertical-align: middle; width: 30px; height: 17px; border-radius: 9px; background: var(--blue); margin-left: 4px; }
+
+    @media (max-width: 1260px) {
+      .nav a { padding: 0 11px; font-size: 16px; }
+    }
+    @media (max-width: 980px) {
+      .tophat, .nav { display: none; }
+      .notice { padding: 0 16px; height: 50px; }
+      .notice a { font-size: 13.0909px; line-height: 15.5px; text-align: center; }
+      .hdr { height: 79px; margin-bottom: -79px; padding: 0 16px; }
+      .burger { display: block; }
+      .hero-sec { padding-top: 109px; }
+      .hero-art { max-width: 300px; margin: 0 auto; }
+      .hero { flex-direction: column; gap: 40px; width: 80%; text-align: center; padding-top: 3.75px; }
+      .hero-copy, .hero-art { width: 100%; }
+      .hero-copy { padding-top: 0; }
+      .hero-copy h1 { font-size: 50px; line-height: 55px; }
+      .hero-copy .lede { margin-top: 20px; font-size: 14.724px; line-height: 22.086px; }
+      .hero-art img, .hero-art .art-fallback { width: 100%; height: auto; aspect-ratio: 567 / 387; }
+      .seat-card { text-align: left; padding: 22px 18px; margin-top: 30px; }
+      .field-grid { grid-template-columns: 1fr; }
+      .seat-actions .pill { width: 100%; height: 48px; font-size: 12.96px; }
+      .trusted { padding-top: 90px; }
+      .trusted h3 { width: 80%; margin: 0 auto; font-size: 20.252px; line-height: 22.2772px; }
+      .glance h2 { width: 80%; margin: 0 auto; font-size: 30px; line-height: 33px; }
+      .glance img { width: 100%; height: auto; margin-top: 30px; }
+      body { font-size: 14.724px; line-height: 22.086px; }
+      .evolve { flex-direction: column; gap: 30px; padding-bottom: 40px; }
+      .evolve .video { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+      .evolve .copy { width: 100%; padding-top: 0; }
+      .automate { padding-top: 0; }
+      .automate h2 { width: 80%; margin: 0 auto; font-size: 30px; line-height: 33px; }
+      .feat-grid { grid-template-columns: 1fr; gap: 30px; margin-top: 40px; }
+      .feat { padding: 30px 45px 51px; min-height: 0; }
+      .feat .ft { margin-top: 18px; }
+      .feat ul { padding-left: 18px; }
+      .why { padding: 100px 0 7px; }
+      .why h2.sec { width: 90%; margin: 0 auto; font-size: 30px; line-height: 33px; padding-bottom: 39px; }
+      .why-row { flex-direction: column; height: auto; gap: 0; padding: 45px 0; align-items: stretch; }
+      .why-row.flip { flex-direction: column-reverse; }
+      .why-row .txt { width: 100%; }
+      .why-row .img { display: none; }
+      .why-row h3 { font-size: 20.252px; line-height: 22.2772px; }
+      .why-row img { width: 100%; height: auto; }
+      .snow { padding: 54px 0 84px; min-height: 0; }
+      .snow p { margin-top: 11px; }
+      .snow .pill { margin-top: 30px; }
+      .snow .wrap, .report .wrap { flex-direction: column; gap: 30px; }
+      .snow img { width: 156px; height: 87px; margin: 0 auto; }
+      .report img { width: 281px; height: 175px; margin: 0 auto; }
+      .snow h2, .smarter h2, .report h2 { font-size: 30px; line-height: 33px; }
+      .snow .pill, .report .pill { height: 41px; padding: 14px 30px; font-size: 12.96px; line-height: 12.96px; position: relative; }
+      .snow .pill::before, .report .pill::before { content: ''; position: absolute; inset: -2px 0; }
+      .smarter { padding: 54px 0 83px; }
+      .smarter h2 { width: 80%; margin: 0 auto; }
+      .res-grid { grid-template-columns: 1fr; width: 90%; gap: 30px; margin-top: 48px; }
+      .res { min-height: 0; padding-bottom: 45px; }
+      .res img { width: 100%; height: auto; }
+      .res h4 { margin-top: 70px; font-size: 18px; line-height: 19.8px; }
+      .res p { font-size: 14.4px; line-height: 21.6px; }
+      .report { padding: 54px 0 84px; }
+      .report p.l { margin-top: 22px; }
+      .report .pill { margin-top: 33px; }
+      .report .txt { width: 100%; }
+      .foot { padding: 32px 0 34px; }
+      .foot-grid { display: block; width: 264px; max-width: 90%; }
+      .foot-grid .panda { display: none; }
+      .fcol.m-only { display: block; }
+      .fcol { border-bottom: 0; }
+      .fcol .acc { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 52.5px; font-family: var(--font); font-size: 14.724px; font-weight: 500; background: none; border: 0; padding: 0; color: #000; cursor: pointer; }
+      .fcol .acc svg { width: 14px; height: 8px; }
+      .fcol h5, .fcol h6, .fcol a { display: none; }
+      .also { display: block; width: 294px; max-width: 90%; padding: 0; margin-top: 30px; }
+      .also strong { display: block; font-size: 16px; line-height: 24px; margin-bottom: 10px; }
+      .also a { display: flex; justify-content: space-between; align-items: center; min-height: 44px; border-bottom: 1px solid #ececec; }
+      .also a + a { display: none; }
+      .also a svg { display: block; }
+      .contact-m { display: block; order: 2; text-align: center; font-size: 14px; line-height: 18.2px; margin: 0 0 60px; width: 294px; }
+      .contact-m p + p { margin-top: 18px; }
+      .foot-base { flex-direction: column; padding: 0; margin-top: 40px; text-align: center; width: 294px; }
+      .foot-base .copy { order: 3; }
+      .foot-base .social { order: 1; margin: 0 0 40px; }
+      .foot-base .social a { position: relative; }
+      .foot-base .social a::before { content: ''; position: absolute; inset: -11px; }
+      .privacy { text-align: center; margin-top: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="notice"><a href="#">Get our new ebook: A 90-Day Leadership Playbook for Agentic ITOps</a></div>
+  <div class="tophat">
+    <a href="#" class="th-lang">EN</a>
+    <a href="#" class="th-support">Service + Support</a>
+    <a href="#" class="th-login">Login</a>
+  </div>
+
+  <header class="hdr">
+    <a href="#" class="logo" aria-label="BigPanda home">
+      <svg viewBox="0 0 44 40" aria-hidden="true">
+        <symbol id="bp-mark" viewBox="0 0 44 40">
+          <circle cx="9" cy="7.5" r="5" fill="currentColor"/>
+          <circle cx="35" cy="7.5" r="5" fill="currentColor"/>
+          <path d="M13.5 7.2 22 5.2l8.5 2 5.6 6 1.9 7-1.9 9.6-6 5.6-8.1 2.2-8.1-2.2-6-5.6L6 20.2l1.9-7z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
+          <path d="M3.5 16.2h17l-1.2 7.4c-.3 1.8-1.8 3-3.6 3H9.4c-1.8 0-3.3-1.2-3.7-2.9zm20 0h17l-2.2 7.5c-.4 1.7-1.9 2.9-3.7 2.9h-6.3c-1.8 0-3.3-1.2-3.6-3z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M20.5 17.4h3" stroke="currentColor" stroke-width="2.4"/>
+          <path d="M19.4 29.6h5.2L22 32.4z" fill="currentColor"/>
+        </symbol>
+        <use href="#bp-mark"/>
+      </svg>
+      <span>BigPanda</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#">Platform <svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="#fff" stroke-width="1.4"/></svg></a>
+      <a href="#">Solutions <svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="#fff" stroke-width="1.4"/></svg></a>
+      <a href="#">Customers</a>
+      <a href="#">Resources <svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="#fff" stroke-width="1.4"/></svg></a>
+      <a href="#">Company <svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="#fff" stroke-width="1.4"/></svg></a>
+      <span class="gap"></span>
+      <a href="#" class="pill white">Get a demo</a>
+      <a href="#" class="pill outline">Contact us</a>
+    </nav>
+    <button class="burger" type="button" aria-label="Open menu"><span></span><span></span><span></span></button>
+  </header>
+
+  <section class="hero-sec">
+    <div class="hero">
+      <div class="hero-copy">
+        <h1>Agentic AI for IT operations</h1>
+        <p class="lede">Manual ITOps is slow, reactive, and expensive. BigPanda enables a new era of IT automation.</p>
+
+        <div class="seat-card">
+          <h2>Add operator seats</h2>
+          <p class="sub">Provision more seats for your ITOps and ITSM teams. New operators can sign in as soon as provisioning completes.</p>
+          <form id="provisionForm">
+            <div class="field-grid">
+              <div class="field full">
+                <label for="product">Product</label>
+                <select id="product">
+                  <option value="devops_platform">AI Detection &amp; Response</option>
+                  <option value="enterprise_suite">AI Incident Prevention</option>
+                  <option value="analytics_cloud">AI Incident Assistant</option>
+                  <option value="security_gateway">IT Knowledge Graph</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="seats">Operator seats</label>
+                <input type="number" id="seats" value="25" min="1" max="250" step="1" inputmode="numeric" required>
+              </div>
+              <div class="field">
+                <label for="planTier">Plan tier</label>
+                <select id="planTier">
+                  <option value="enterprise">Enterprise</option>
+                  <option value="business">Business</option>
+                  <option value="starter">Starter</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="region">Deployment region</label>
+                <select id="region">
+                  <option value="us-east">US East</option>
+                  <option value="us-west">US West</option>
+                  <option value="eu-west">EU West</option>
+                  <option value="ap-south">AP South</option>
+                </select>
+              </div>
+            </div>
+            <div class="seat-actions">
+              <button type="submit" id="submitBtn" class="pill solid">Provision seats</button>
+              <a href="#" class="pill ghost">Explore the platform</a>
+            </div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </div>
+      <div class="hero-art">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/10/bigpanda-hero-homepage-R2.png.webp" alt="Discover BigPanda. An agentic AI platform for IT operations." onerror="this.outerHTML='<div class=&quot;art-fallback&quot;></div>'">
+      </div>
+    </div>
+
+    <div class="trusted"><h3>Trusted by enterprise IT teams who keep the digital world running:</h3></div>
+    <div class="logos">
+      <div class="track">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/05/Paramount.svg" alt="Paramount logo" onerror="this.style.visibility='hidden'">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/05/lse.svg" alt="London Stock Exchange logo" onerror="this.style.visibility='hidden'">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/05/labcorp.svg" alt="Labcorp logo" onerror="this.style.visibility='hidden'">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/05/playstation.svg" alt="PlayStation logo" onerror="this.style.visibility='hidden'">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/05/bread-financial.svg" alt="Bread Financial logo" onerror="this.style.visibility='hidden'">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/05/ubs-1.svg" alt="UBS logo" onerror="this.style.visibility='hidden'">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/08/ihg-logo-v2.svg" alt="IHG Hotels and Resorts logo" onerror="this.style.visibility='hidden'">
+      </div>
+    </div>
+
+    <div class="glance">
+      <div class="wrap">
+        <h2>The BigPanda agentic IT operations platform at a glance</h2>
+        <picture>
+          <source media="(max-width: 980px)" srcset="https://www.bigpanda.io/wp-content/uploads/2026/09/agentic-platform-diagram-mobile.png.webp">
+          <img src="https://www.bigpanda.io/wp-content/uploads/2026/09/agentic-platform-diagram_sept2026-scaled.png" alt="BigPanda Platform" onerror="this.style.display='none'">
+        </picture>
+      </div>
+    </div>
+    <div class="wrap evolve">
+      <div class="video"><iframe loading="lazy" title="Agentic IT operations, powered by BigPanda" src="https://www.youtube-nocookie.com/embed/F6IUCo9Gw2M?rel=0" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe></div>
+      <div class="copy">
+        <p>Enterprises spend $250 billion annually on manual, human-driven IT operations, and it doesn&rsquo;t scale.</p>
+        <p>The BigPanda platform represents the evolution of AIOps, delivering agentic AI automation for ITOps and ITSM teams. Watch the video to see how BigPanda eliminates slow IT response times, human error, and inconsistent execution that erode customer confidence.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="automate">
+    <h2>Automate IT work.<br>Unleash the productivity of your teams.</h2>
+    <div class="feat-grid">
+      <div class="feat">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/09/bigpanda-icon-generative-ai.svg" alt="" onerror="this.style.visibility='hidden'">
+        <p class="ft">Provide first responders with the answer before the ticket arrives</p>
+        <ul>
+          <li>Ensure every incident ticket includes context, root cause, and a recommended action.</li>
+          <li>Enable your L2 operators to stop investigating and start resolving.</li>
+          <li>Surface SLA risk before it becomes a breach.</li>
+        </ul>
+      </div>
+      <div class="feat">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2026/04/bigpanda-icon-brain.png.webp" alt="" onerror="this.style.visibility='hidden'">
+        <p class="ft">Put AI agents on the front lines of L1 operations</p>
+        <ul>
+          <li>Use AI agents for repetitive, low-judgment work and escalations.</li>
+          <li>Reduce your GSI spend by automating outsourced work.</li>
+          <li>Free your L1 operators to focus only on what humans do best.</li>
+        </ul>
+      </div>
+      <div class="feat">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/09/ai-incident-icon.svg" alt="" onerror="this.style.visibility='hidden'">
+        <p class="ft">Resolve incidents faster, with fewer people</p>
+        <ul>
+          <li>Reduce the size, length, and frequency of your bridge calls.</li>
+          <li>Speed IT incident resolution and unblock execution.</li>
+          <li>Eliminate silos and automate major incident coordination.</li>
+        </ul>
+      </div>
+      <div class="feat">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/09/Icons.svg" alt="" onerror="this.style.visibility='hidden'">
+        <p class="ft">Stop incidents before they start</p>
+        <ul>
+          <li>Prevent outages before they impact your customers.</li>
+          <li>Accelerate change approvals with clear, automated risk analysis.</li>
+          <li>Unlock engineering velocity with faster approved changes.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="why">
+    <h2 class="sec">Why leading enterprises choose BigPanda</h2>
+    <div class="wrap">
+      <div class="why-row">
+        <div class="txt"><h3>Turn tribal knowledge into AI context</h3><p>Every enterprise runs on tribal knowledge trapped in tools, tickets, and people&rsquo;s heads. BigPanda unifies it into a living knowledge graph that gives AI the context to actually reason rather than just follow rules.</p></div>
+        <div class="img"><img src="https://www.bigpanda.io/wp-content/uploads/2026/04/bigpanda-homepage-data-unified-image-1.png" alt="Agentic AI in IT operations can turn your fragmented IT data into context" onerror="this.style.visibility='hidden'"></div>
+      </div>
+      <div class="why-row flip">
+        <div class="img"><img src="https://www.bigpanda.io/wp-content/uploads/2026/04/bigpanda-homepage-prevent-issues-image.png" alt="Use BigPanda Unified Analytics to gain a clear view of your operations" onerror="this.style.visibility='hidden'"></div>
+        <div class="txt"><h3>Perfect data not required</h3><p>Real-world data is messy. BigPanda was built for that. Our AI works with what you have from day one and improves it as a byproduct of daily operations.</p></div>
+      </div>
+      <div class="why-row">
+        <div class="txt"><h3>Quick wins that compound</h3><p>Deliver value quickly. Reduce adoption friction and build momentum through clear wins. Early BigPanda adopters see a median ROI of 430%, with payback in under a year.</p></div>
+        <div class="img"><img src="https://www.bigpanda.io/wp-content/uploads/2026/04/bigpanda-homepage-prevent-issues-image-1.png" alt="BigPanda helps enterprises start small and scale fast" onerror="this.style.visibility='hidden'"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="snow">
+    <div class="wrap">
+      <img src="https://www.bigpanda.io/wp-content/uploads/2026/04/bigpanda-home-page-cta-image.png.webp" alt="Create smart tickets, identify root cause changes, and understand impact" onerror="this.style.visibility='hidden'">
+      <div>
+        <h2>Supercharge your ServiceNow ITSM investment with BigPanda</h2>
+        <p>Enterprises don&rsquo;t have to wait for perfect data to get more from ServiceNow with BigPanda. Turn alert noise into context-rich incidents, so your ServiceNow workflow can act faster with less noise, fewer tickets, and quicker MTTR.</p>
+        <a href="#" class="pill solid">Unlock ServiceNow value</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="smarter">
+    <h2>Work smarter with BigPanda</h2>
+    <div class="res-grid">
+      <div class="res">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2026/04/bigpanda-business-value-image.png.webp" alt="View the report to see how BigPanda customers are transforming IT operations" onerror="this.style.visibility='hidden'">
+        <h4>See what Fortune 1000 enterprises have achieved</h4>
+        <p>View <a href="#">The Business Value of the BigPanda Platform</a> report to see how customers have achieved a median ROI of 430% and payback in under a year.</p>
+      </div>
+      <div class="res">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2026/04/bigpanda-ensure-reliability-image.png.webp" alt="BigPanda is recognized in the Gartner Market Guide" onerror="this.style.visibility='hidden'">
+        <h4>Ensure reliability across your organization</h4>
+        <p>See how agentic IT operations change the equation and help enterprises deliver reliability at scale. <a href="#">Watch webinar &rarr;</a></p>
+      </div>
+      <div class="res">
+        <img src="https://www.bigpanda.io/wp-content/uploads/2025/05/bigpanda-homepage-learn-from-industry-image.png.webp" alt="BigPanda offers an extensive resource library" onerror="this.style.visibility='hidden'">
+        <h4>Learn from industry experts</h4>
+        <p>Access our <a href="#">library of resources</a> that cover agentic ITOps, event management, incident management, and more.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="report">
+    <div class="wrap">
+      <div class="txt">
+        <p class="eyebrow">Report</p>
+        <h2>The high cost of low-quality L1 NOC outsourcing</h2>
+        <p class="l">Enterprises spend millions on outsourced IT support. However, higher spending doesn&rsquo;t guarantee improved outcomes.</p>
+        <a href="#" class="pill solid">Explore the research</a>
+      </div>
+      <img src="https://www.bigpanda.io/wp-content/uploads/2026/09/bigpanda-L1-automation-side-banner-image.png.webp" alt="" onerror="this.style.visibility='hidden'">
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="foot-grid">
+      <div class="panda">
+        <svg viewBox="0 0 44 40" aria-hidden="true"><use href="#bp-mark"/></svg>
+      </div>
+      <div class="fcol">
+        <button class="acc" type="button">Platform <svg viewBox="0 0 14 8"><path d="M1 1l6 6 6-6" fill="none" stroke="#0041f5" stroke-width="1.8"/></svg></button>
+        <h5>Platform</h5>
+        <h6>Agentic IT Operations</h6>
+        <a href="#">Platform Overview</a><a href="#">AI Incident Prevention</a><a href="#">AI Detection &amp; Response</a><a href="#">AI Incident Assistant</a><a href="#">IT Knowledge Graph</a>
+        <h6 style="margin-top:18px">BigPanda AIOps</h6>
+        <a href="#">BigPanda Core</a><a href="#">Advanced Insight</a><a href="#">Biggy AI</a>
+        <a href="#" style="margin-top:10px">Rebranding Matrix</a><a href="#">Integrations</a><a href="#">Security &amp; Compliance</a>
+      </div>
+      <div class="fcol">
+        <button class="acc" type="button">Features <svg viewBox="0 0 14 8"><path d="M1 1l6 6 6-6" fill="none" stroke="#0041f5" stroke-width="1.8"/></svg></button>
+        <h5>Features</h5>
+        <h6>Detection</h6><a href="#">Open Integration Hub</a><a href="#">AI Detection</a>
+        <h6>Diagnosis</h6><a href="#">Service Desk Correlation</a><a href="#">Suggested Actions</a><a href="#">Incident Correlation</a>
+        <h6>Triage</h6><a href="#">Automated Incident Triage</a><a href="#">Root Cause Analysis</a><a href="#">Similar Incidents</a>
+        <h6>Prevention</h6><a href="#">Change Risk Management</a><a href="#">Problem Management</a>
+      </div>
+      <div class="fcol">
+        <button class="acc" type="button">Solutions <svg viewBox="0 0 14 8"><path d="M1 1l6 6 6-6" fill="none" stroke="#0041f5" stroke-width="1.8"/></svg></button>
+        <h5>Solutions</h5>
+        <a href="#">Automating L1 Detection &amp; Response</a><a href="#">Empowering Experts with AI Assistance</a><a href="#">Predicting &amp; Preventing Disruptions</a>
+        <h6>Personas</h6><a href="#">IT operations</a><a href="#">Incident management</a><a href="#">IT service management</a><a href="#">Site Reliability Engineering</a>
+        <h6>Industries</h6><a href="#">Financial services</a><a href="#">Manufacturing</a><a href="#">Insurance</a><a href="#">Media and entertainment</a><a href="#">Managed services</a><a href="#">Airlines</a><a href="#">All industries</a>
+      </div>
+      <div class="fcol">
+        <button class="acc" type="button">Resources <svg viewBox="0 0 14 8"><path d="M1 1l6 6 6-6" fill="none" stroke="#0041f5" stroke-width="1.8"/></svg></button>
+        <h5>Resources</h5>
+        <a href="#">Blog</a><a href="#">Resource library</a><a href="#">BigPanda Education</a><a href="#">IT Ops Vendorscape</a><a href="#">Glossary</a>
+        <h5 class="later">Services + Support</h5>
+        <a href="#">Platform status</a><a href="#">Community</a><a href="#">Customer support</a><a href="#">Documentation</a><a href="#">Professional services</a>
+      </div>
+      <div class="fcol m-only">
+        <button class="acc" type="button">Services + Support <svg viewBox="0 0 14 8"><path d="M1 1l6 6 6-6" fill="none" stroke="#0041f5" stroke-width="1.8"/></svg></button>
+      </div>
+      <div class="fcol">
+        <button class="acc" type="button">Company <svg viewBox="0 0 14 8"><path d="M1 1l6 6 6-6" fill="none" stroke="#0041f5" stroke-width="1.8"/></svg></button>
+        <h5>Company</h5>
+        <a href="#">Our Story</a><a href="#">Careers</a><a href="#">Newsroom</a><a href="#">Partners</a>
+      </div>
+    </div>
+    <div class="also">
+      <strong>Also of Interest</strong>
+      <a href="#">What is an AIOps Platform <svg class="m-only" width="14" height="8" viewBox="0 0 14 8"><path d="M1 1l6 6 6-6" fill="none" stroke="#0041f5" stroke-width="1.8"/></svg></a>
+      <a href="#">Investigation for IT Incident Management Teams</a>
+      <a href="#">Proactive AI-powered IT Event Management</a>
+    </div>
+    <div class="foot-base">
+      <span class="copy">&copy;2026 BigPanda. All rights reserved.</span>
+      <div class="contact-m">
+      <p>Employment Verifications:<br>voe@bigpanda.io | (650) 240-7272</p>
+      <p>Contact Info: info@bigpanda.io | 650-562-6555<br>555 Twin Dolphin Drive, Suite 155<br>Redwood City, CA 94065</p>
+      </div>
+      <span class="social">
+        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 8.5h3.6V21H3.5zM5.3 3a2.1 2.1 0 1 1 0 4.2 2.1 2.1 0 0 1 0-4.2zM9.4 8.5h3.4v1.7h.1c.5-.9 1.7-2 3.5-2 3.7 0 4.4 2.4 4.4 5.6V21h-3.6v-6.3c0-1.5 0-3.4-2.1-3.4s-2.4 1.6-2.4 3.3V21H9.4z"/></svg></a>
+        <a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3.5 3.5h5l12 17h-5zM20 3.5l-6.9 7.9M4 20.5l6.9-7.9"/></svg></a>
+      </span>
+    </div>
+    <div class="privacy">Privacy Notice | Your Privacy Choices <span class="tog"></span></div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('provisionForm');
+      var btn = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      var selects = ['product', 'planTier', 'region'].map(function (id) { return document.getElementById(id); });
+
+      function showResult(kind, title, detail) {
+        result.textContent = '';
+        var t = document.createElement('div');
+        t.className = 'result-title';
+        t.textContent = title;
+        var d = document.createElement('div');
+        d.textContent = detail;
+        result.appendChild(t);
+        result.appendChild(d);
+        result.className = 'result-box ' + kind;
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var seatsEl = document.getElementById('seats');
+        var rawSeats = seatsEl.value.trim();
+        var seats = /^\d+$/.test(rawSeats) ? Number(rawSeats) : NaN;
+        if (!Number.isInteger(seats) || seats < 1 || seats > 250) {
+          showResult('error', 'Enter a seat count', 'Choose between 1 and 250 operator seats.');
+          seatsEl.focus();
+          return;
+        }
+        var productEl = document.getElementById('product');
+        var tierEl = document.getElementById('planTier');
+        var productLabel = productEl.options[productEl.selectedIndex].text;
+        var tierLabel = tierEl.options[tierEl.selectedIndex].text;
+        var payload = {
+          orgName: productEl.value,
+          planName: tierEl.value,
+          seats: seats,
+          billingCycle: 'annual',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        };
+        btn.disabled = true;
+        seatsEl.disabled = true;
+        selects.forEach(function (s) { s.disabled = true; });
+        btn.textContent = 'Provisioning\u2026';
+        result.className = 'result-box';
+        try {
+          var res = await fetch('/api/licenses/provision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          var data = await res.json();
+          if (!res.ok) {
+            showResult('error', 'Seats not provisioned', data.error || 'Something went wrong. Please try again.');
+          } else {
+            var count = data.seatsAdded || seats;
+            var ref = data.licenseId ? ' License ' + String(data.licenseId).slice(0, 8).toUpperCase() + '.' : '';
+            showResult(
+              'success',
+              'Seats provisioned',
+              count + ' operator seat' + (count === 1 ? '' : 's') + ' added to ' + productLabel + ' (' + tierLabel + ' plan).' + ref
+            );
+          }
+        } catch (err) {
+          showResult('error', 'Network error', err.message);
+        } finally {
+          btn.disabled = false;
+          seatsEl.disabled = false;
+          selects.forEach(function (s) { s.disabled = false; });
+          btn.textContent = 'Provision seats';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
