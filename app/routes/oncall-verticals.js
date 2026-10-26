@@ -32,6 +32,7 @@ const { createEnvironment, createApplication } = require('../services/oncall-ver
 const { getAvailability, confirmBooking } = require('../services/oncall-verticals/examscheduling');
 const { dispatchResponsePlan } = require('../services/oncall-verticals/emergencydispatch');
 const { createSession: createMemberSession } = require('../services/oncall-verticals/memberlogin');
+const { prepareFulfillment, listCollection } = require('../services/oncall-verticals/nftcheckout');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
@@ -915,6 +916,36 @@ router.post('/api/oncall/memberlogin/session', async (req, res) => {
       success: false,
       error: expired ? 'Your session has expired. Please log in again.' : status === 400 ? error.message : 'We could not log you in. Please try again.',
       code: error.code || 'LOGIN_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+router.get('/api/oncall/nftcheckout/listings', (req, res) => {
+  res.json(listCollection());
+});
+
+router.post('/api/oncall/nftcheckout/fulfillment', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await prepareFulfillment({ tokenIds: body.tokenIds }));
+  } catch (error) {
+    if (error.code === 'SEAPORT_REVERT') {
+      return res.status(422).json({
+        success: false,
+        code: error.code,
+        step: 'Preparing transaction',
+        error: 'This transaction would fail. Seaport rejected the order bundle during simulation, so nothing was sent to your wallet.',
+        revert: { name: error.revert.name, selector: error.revert.selector, method: 'fulfillAvailableAdvancedOrders' },
+        checkoutId: error.checkoutId,
+        requestId: req.requestId,
+      });
+    }
+    const invalid = error.code === 'INVALID_CHECKOUT';
+    return res.status(invalid ? 400 : 500).json({
+      success: false,
+      code: error.code || 'CHECKOUT_FAILED',
+      error: invalid ? error.message : 'We could not prepare your transaction. Please try again.',
       requestId: req.requestId,
     });
   }

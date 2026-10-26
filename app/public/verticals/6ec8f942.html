@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puffy Penguins - Collection | OpenSea</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #121212; --panel: #1E1E1E; --panel-2: #262626; --line: #2C2C2C; --text: #FFFFFF;
+      --muted: #8A8A8A; --blue: #2081E2; --blue-hover: #1868B7; --green: #34C77B; --red: #EB5757;
+      --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, -apple-system, 'Segoe UI', sans-serif; font-size: 14px; }
+    body { overflow-x: hidden; }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    .app { display: grid; grid-template-columns: 56px minmax(0, 1fr); min-height: 100vh; }
+    .rail { border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 14px 0; position: sticky; top: 0; height: 100vh; }
+    .rail .logo { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); display: grid; place-items: center; }
+    .rail .ico { width: 22px; height: 22px; border-radius: 6px; border: 1.6px solid #6b6b6b; opacity: .8; background: none; padding: 0; }
+    .main { min-width: 0; display: flex; flex-direction: column; }
+    .topbar { display: flex; align-items: center; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--line); }
+    .search { flex: 0 1 340px; display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; color: var(--muted); }
+    .search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--text); font: inherit; }
+    .kbd { border: 1px solid #444; border-radius: 6px; padding: 0 6px; font-size: 12px; }
+    .spacer { flex: 1; }
+    .wallet { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 7px 12px; font-family: var(--mono); font-size: 13px; }
+    .avatar { width: 22px; height: 22px; border-radius: 50%; background: conic-gradient(#2081E2, #8b5cf6, #f59e0b, #2081E2); }
+    .cart-btn { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 7px 12px; }
+    .cart-btn .count { position: absolute; top: -6px; right: -6px; background: var(--blue); border-radius: 999px; font-size: 11px; min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 4px; }
+    .banner { height: 120px; background: linear-gradient(120deg, #1b3b6f 0%, #2081E2 45%, #9ad0ff 100%); position: relative; overflow: hidden; }
+    .banner::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 120%, rgba(255,255,255,.35) 0 18%, transparent 19%), radial-gradient(circle at 70% 130%, rgba(255,255,255,.25) 0 22%, transparent 23%); }
+    .collection-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 32px; padding: 0 24px 14px; margin-top: -36px; position: relative; }
+    .col-id { display: flex; gap: 14px; align-items: flex-end; min-width: 0; }
+    .col-avatar { width: 84px; height: 84px; border-radius: 14px; border: 3px solid var(--bg); background: #bfe3ff; overflow: hidden; flex: none; }
+    .col-title { display: flex; align-items: center; gap: 8px; font-size: 22px; font-weight: 700; }
+    .verified { width: 18px; height: 18px; border-radius: 50%; background: var(--blue); display: inline-grid; place-items: center; font-size: 11px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 3px 7px; color: #cfcfcf; }
+    .stats { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-left: auto; }
+    .stat .k { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+    .stat .v { font-family: var(--mono); font-weight: 500; margin-top: 6px; }
+    .up { color: var(--green); }
+    .tabs { display: flex; gap: 22px; padding: 0 24px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tabs button { background: none; border: 0; padding: 12px 0; color: var(--muted); font-weight: 500; white-space: nowrap; border-bottom: 2px solid transparent; }
+    .tabs button.active { color: var(--text); border-bottom-color: var(--text); }
+    .body { display: grid; grid-template-columns: 240px minmax(0, 1fr) 300px; gap: 0; flex: 1; }
+    .filters { padding: 16px 20px; border-right: 1px solid var(--line); }
+    .filters h3 { font-size: 14px; margin: 6px 0 10px; display: flex; justify-content: space-between; }
+    .seg { display: flex; gap: 6px; margin-bottom: 18px; }
+    .seg button { background: none; border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; color: var(--muted); }
+    .seg button.active { background: var(--panel-2); color: var(--text); }
+    details.trait { border-top: 1px solid var(--line); padding: 10px 0; }
+    details.trait summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; color: #ddd; }
+    details.trait summary::-webkit-details-marker { display: none; }
+    details.trait summary .n { color: var(--muted); }
+    .trait-opt { display: flex; align-items: center; gap: 8px; padding: 6px 0 0; color: #cfcfcf; font-size: 13px; }
+    .trait-opt input { accent-color: var(--blue); }
+    .content { padding: 14px 20px 120px; min-width: 0; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+    .toolbar .search { flex: 1 1 200px; }
+    select, .numfield { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; font: inherit; }
+    .count-line { font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: .06em; margin-bottom: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 12px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: transform .12s; }
+    .card:hover { transform: translateY(-2px); }
+    .card.in-cart { outline: 2px solid var(--blue); }
+    .art { aspect-ratio: 1; display: block; width: 100%; }
+    .card-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .card-top { display: flex; justify-content: space-between; gap: 6px; font-weight: 600; font-size: 13px; }
+    .rar { font-family: var(--mono); font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 5px; white-space: nowrap; }
+    .price { font-weight: 600; }
+    .last { font-size: 12px; color: var(--muted); }
+    .add { margin-top: 4px; background: var(--blue); border: 0; border-radius: 8px; padding: 8px; font-weight: 600; }
+    .add:hover { background: var(--blue-hover); }
+    .card.in-cart .add { background: var(--panel-2); }
+    .activity { border-left: 1px solid var(--line); padding: 16px 18px; }
+    .activity h3 { margin: 4px 0 4px; font-size: 15px; }
+    .illus { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+    .act-row { display: grid; grid-template-columns: 26px 1fr auto auto; gap: 8px; align-items: center; font-family: var(--mono); font-size: 12px; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
+    .act-row svg { width: 24px; height: 24px; border-radius: 5px; }
+    .act-row .t { color: var(--muted); }
+    .bottombar { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 24px; background: rgba(18,18,18,.96); border-top: 1px solid var(--line); z-index: 20; }
+    .stepper { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .stepper button { background: none; border: 0; width: 36px; height: 38px; }
+    .stepper output { min-width: 34px; text-align: center; font-family: var(--mono); }
+    .bottombar input[type=range] { accent-color: var(--blue); width: 120px; }
+    .numfield { width: 130px; }
+    .btn-blue { background: var(--blue); border: 0; border-radius: 12px; padding: 10px 18px; font-weight: 600; }
+    .btn-blue:hover:not(:disabled) { background: var(--blue-hover); }
+    .btn-ghost { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; font-weight: 600; }
+    .statusbar { display: flex; flex-wrap: wrap; gap: 18px; padding: 8px 24px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); }
+    .live::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 6px; }
+    .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(400px, 100%); background: var(--panel); border-left: 1px solid var(--line); transform: translateX(100%); transition: transform .2s; z-index: 50; display: flex; flex-direction: column; }
+    .drawer.open { transform: none; }
+    .drawer header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+    .drawer header h2 { font-size: 18px; margin: 0; }
+    .x { background: none; border: 0; font-size: 20px; color: var(--muted); }
+    .cart-items { flex: 1; overflow-y: auto; padding: 8px 20px; }
+    .cart-row { display: grid; grid-template-columns: 48px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .cart-row svg { width: 48px; height: 48px; border-radius: 8px; }
+    .cart-row .hold { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+    .cart-row .rm { background: none; border: 0; color: var(--muted); font-size: 12px; }
+    .cart-empty { color: var(--muted); padding: 30px 0; text-align: center; }
+    .cart-foot { padding: 16px 20px; border-top: 1px solid var(--line); display: grid; gap: 10px; }
+    .row { display: flex; justify-content: space-between; gap: 10px; }
+    .muted { color: var(--muted); }
+    .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 40; display: none; }
+    .scrim.show { display: block; }
+    .modal { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(480px, calc(100% - 24px)); max-height: calc(100vh - 24px); overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; z-index: 60; display: none; }
+    .modal.show { display: block; }
+    .modal header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px 6px; }
+    .modal header h2 { margin: 0; font-size: 18px; }
+    .modal section { padding: 10px 20px; }
+    .kv { display: grid; gap: 8px; background: var(--panel-2); border-radius: 12px; padding: 12px 14px; }
+    .kv .row span:last-child { font-family: var(--mono); }
+    .steps { display: grid; gap: 10px; }
+    .step { display: flex; gap: 10px; align-items: center; color: var(--muted); }
+    .step .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #444; display: grid; place-items: center; font-size: 12px; flex: none; }
+    .step.active { color: var(--text); }
+    .step.active .dot { border-color: var(--blue); border-top-color: transparent; animation: spin .8s linear infinite; }
+    .step.done .dot { border-color: var(--green); background: var(--green); color: #000; }
+    .step.fail { color: var(--red); }
+    .step.fail .dot { border-color: var(--red); background: var(--red); color: #fff; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .alert { border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.45; display: none; }
+    .alert.err { display: block; background: rgba(235,87,87,.12); border: 1px solid rgba(235,87,87,.5); }
+    .alert.ok { display: block; background: rgba(52,199,123,.12); border: 1px solid rgba(52,199,123,.5); }
+    .alert code { font-family: var(--mono); font-size: 12px; }
+    .modal footer { padding: 12px 20px 20px; display: grid; gap: 8px; }
+    .note { font-size: 11px; color: var(--muted); text-align: center; }
+    .toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); background: #333; border-radius: 10px; padding: 9px 14px; font-size: 13px; z-index: 70; display: none; }
+    .toast.show { display: block; }
+    @media (max-width: 1180px) { .body { grid-template-columns: 220px minmax(0, 1fr); } .activity { display: none; } }
+    @media (max-width: 760px) {
+      .app { grid-template-columns: minmax(0, 1fr); }
+      .rail { display: none; }
+      .body { grid-template-columns: minmax(0, 1fr); }
+      .filters { display: none; }
+      .topbar { padding: 10px 12px; gap: 8px; }
+      .topbar .search { flex: 1 1 auto; }
+      .topbar .kbd, .wallet { display: none; }
+      .topbar .search { min-width: 0; }
+      .collection-head, .tabs, .content { padding-left: 12px; padding-right: 12px; }
+      .stats { margin-left: 0; gap: 12px 20px; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .bottombar { padding: 10px 12px 92px; }
+      .bottombar .slider-wrap, .bottombar .maxlbl { display: none; }
+      .numfield { width: 100px; }
+    }
+  </style>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (response) { return response.json(); }).then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+</head>
+<body>
+  <div class="app">
+    <nav class="rail" aria-label="Primary">
+      <div class="logo" aria-label="OpenSea">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M4 15.5 9.6 6.7c.2-.3.6-.3.7 0 1 2.3 1.8 5.1 1.4 6.9-.2.8-.7 1.8-1.3 2.6-.1.1-.2.2-.3.2H4.2c-.3 0-.4-.3-.2-.5Zm17 1.6v1.1c0 .1-.1.2-.2.2-.6.3-2.6 1.2-3.4 2.4-2.1 2.9-3.7 3.2-5.6 3.2H6.3A4.3 4.3 0 0 1 2 19.6v-.2c0-.1.1-.2.2-.2h4.5c.2 0 .3.2.3.4-.1.4 0 .8.2 1.1.3.6.9 1 1.6 1H11v-1.5H8.8c-.2 0-.3-.2-.2-.3l.1-.2c.4-.6.9-1.4 1.4-2.3.4-.6.7-1.3 1-2 0-.1.1-.3.1-.4.1-.4.2-.7.3-1.1.1-.4.1-.8.1-1.1 0-.2 0-.4-.1-.6 0-.2 0-.4-.1-.7l-.1-.6c0-.2-.1-.4-.2-.6v-.1l-.3-1c-.1-.2-.1-.3-.2-.5-.2-.6-.4-1.1-.6-1.6l-.3-.6c-.1-.2-.2-.4-.2-.6-.1-.1-.1-.2-.2-.3l-.6-1.2c-.1-.1 0-.3.2-.3l1.6.5.2.1.2.1.2.1v-1c0-.5.4-.9.9-.9.2 0 .5.1.6.3.2.2.3.4.3.6v1.4l.2.1.1.1.2.2c.1.1.2.2.4.3.3.3.6.6 1 1 .1.1.2.2.3.3l1.1 1.4.3.5c.2.3.5.6.6 1 .1.2.2.3.3.5.2.4.3.8.4 1.3v.4c0 .3 0 .6-.1.9l-.2.8c-.1.2-.2.5-.3.7-.2.4-.5.9-.8 1.3l-.4.5-.4.5c-.2.2-.3.4-.5.6l-.4.3c-.1.1-.1.1-.2.1H13v1.5h1.6c.4 0 .7-.1 1-.4.1-.1.6-.5 1.2-1.1h.1l4.2-1.2c.1-.1.3 0 .3.2Z"/></svg>
+      </div>
+      <button class="ico" type="button" data-demo-only title="Discover (demo-only)" aria-label="Discover (demo-only)"></button>
+      <button class="ico" type="button" data-demo-only title="Collections (demo-only)" aria-label="Collections (demo-only)"></button>
+      <button class="ico" type="button" data-demo-only title="Tokens (demo-only)" aria-label="Tokens (demo-only)"></button>
+      <button class="ico" type="button" data-demo-only title="Activity (demo-only)" aria-label="Activity (demo-only)"></button>
+    </nav>
+    <div class="main">
+      <header class="topbar">
+        <label class="search"><span aria-hidden="true">&#128269;</span><input id="globalSearch" type="search" placeholder="Search OpenSea" aria-label="Search items in this collection"><span class="kbd">/</span></label>
+        <div class="spacer"></div>
+        <div class="wallet" title="Illustrative testnet wallet"><span class="avatar"></span><span>12.40 ETH</span><span class="addr muted">0x7a3e…d3m0</span></div>
+        <button class="cart-btn" id="cartBtn" type="button" aria-label="Open cart">&#128722;<span class="count" id="cartCount">0</span></button>
+      </header>
+
+      <div class="banner" aria-hidden="true"></div>
+      <section class="collection-head">
+        <div class="col-id">
+          <div class="col-avatar" id="colAvatar"></div>
+          <div>
+            <div class="col-title">Puffy Penguins <span class="verified" title="Verified (illustrative)">&#10003;</span></div>
+            <div class="chips">
+              <span class="chip">By PuffyCo</span><span class="chip">Base Sepolia</span><span class="chip">8,888</span><span class="chip">Oct 2026</span><span class="chip">PFPs</span>
+            </div>
+          </div>
+        </div>
+        <div class="stats" id="stats">
+          <div class="stat"><div class="k">Floor price</div><div class="v" id="statFloor">—</div></div>
+          <div class="stat"><div class="k">1D floor %</div><div class="v up">+3.1%</div></div>
+          <div class="stat"><div class="k">Top offer</div><div class="v">9.61 ETH</div></div>
+          <div class="stat"><div class="k">24H volume</div><div class="v">412 ETH</div></div>
+          <div class="stat"><div class="k">Creator earnings</div><div class="v" id="statFee">5%</div></div>
+          <div class="stat"><div class="k">Owners (unique)</div><div class="v">4,966 (55.9%)</div></div>
+        </div>
+      </section>
+      <nav class="tabs" aria-label="Collection">
+        <button type="button" data-demo-only>Explore</button>
+        <button type="button" class="active" aria-current="page">Items</button>
+        <button type="button" data-demo-only>Offers</button>
+        <button type="button" data-demo-only>Holders</button>
+        <button type="button" data-demo-only>Traits</button>
+        <button type="button" data-demo-only>Activity</button>
+        <button type="button" data-demo-only>About</button>
+      </nav>
+
+      <div class="body">
+        <aside class="filters" aria-label="Filters">
+          <h3>Status</h3>
+          <div class="seg"><button type="button" class="active">All</button><button type="button" class="active-alt" data-demo-only>Owned by you</button></div>
+          <h3>Traits</h3>
+          <div id="traitFilters"></div>
+        </aside>
+
+        <main class="content">
+          <div class="toolbar">
+            <label class="search"><span aria-hidden="true">&#128269;</span><input id="itemSearch" type="search" placeholder="Search by item or trait" aria-label="Search by item or trait"></label>
+            <select id="sort" aria-label="Sort">
+              <option value="asc">Price low to high</option>
+              <option value="desc">Price high to low</option>
+              <option value="rarity">Rarity</option>
+            </select>
+          </div>
+          <div class="count-line" id="countLine">— ITEMS</div>
+          <div class="grid" id="grid" aria-live="polite"></div>
+        </main>
+
+        <aside class="activity" aria-label="Recent sales">
+          <h3>Activity</h3>
+          <div class="illus">Illustrative sales — fictional data</div>
+          <div id="activity"></div>
+        </aside>
+      </div>
+
+      <div class="bottombar">
+        <div class="spacer"></div>
+        <strong>Buy</strong>
+        <span class="slider-wrap"><input id="sweepRange" type="range" min="0" max="10" step="1" value="0" aria-label="Number of floor items to sweep"></span>
+        <div class="stepper"><button type="button" id="sweepMinus" aria-label="Fewer items">&minus;</button><output id="sweepCount">0</output><button type="button" id="sweepPlus" aria-label="More items">+</button></div>
+        <span class="maxlbl muted">Max price per item</span>
+        <input id="maxPrice" class="numfield" type="number" min="0" step="any" placeholder="ETH" aria-label="Max price per item (ETH)">
+        <button type="button" class="btn-blue" id="buyFloor" disabled>Buy floor</button>
+      </div>
+      <footer class="statusbar">
+        <span class="live">Live</span><span>Aggregating</span><span>Base Sepolia testnet</span><span>0.67 GWEI (illustrative)</span>
+      </footer>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim"></div>
+  <aside class="drawer" id="drawer" aria-label="Cart" aria-hidden="true">
+    <header><h2>Your cart</h2><button type="button" class="x" id="closeDrawer" aria-label="Close cart">&times;</button></header>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-foot">
+      <div class="row"><span class="muted">Items reserved for</span><span id="holdTimer" class="muted">—</span></div>
+      <div class="row"><strong>Total price</strong><strong id="cartTotal">0 ETH</strong></div>
+      <button type="button" class="btn-blue" id="checkoutBtn" disabled>Complete purchase</button>
+      <button type="button" class="btn-ghost" id="clearCart">Clear all</button>
+    </div>
+  </aside>
+
+  <div class="modal" id="checkout" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+    <header><h2 id="checkoutTitle">Complete checkout</h2><button type="button" class="x" id="closeCheckout" aria-label="Close checkout">&times;</button></header>
+    <section>
+      <div class="kv">
+        <div class="row"><span class="muted">Wallet</span><span>0x7a3e…d3m0 (illustrative)</span></div>
+        <div class="row"><span class="muted">Network</span><span>Base Sepolia (testnet)</span></div>
+        <div class="row"><span class="muted">Items</span><span id="ckItems">0</span></div>
+        <div class="row"><span class="muted">Subtotal</span><span id="ckSubtotal">0 ETH</span></div>
+        <div class="row"><span class="muted">Marketplace fee</span><span>0%</span></div>
+        <div class="row"><span class="muted">Creator earnings (5%, included)</span><span id="ckCreator">0 ETH</span></div>
+        <div class="row"><span class="muted">Est. network fee</span><span id="ckGas">~0.0004 ETH</span></div>
+        <div class="row"><strong>You pay</strong><strong id="ckTotal">0 ETH</strong></div>
+      </div>
+    </section>
+    <section>
+      <div class="steps">
+        <div class="step" id="stepPrepare"><span class="dot">1</span>Preparing transaction</div>
+        <div class="step" id="stepWallet"><span class="dot">2</span>Confirm in wallet</div>
+        <div class="step" id="stepDone"><span class="dot">3</span>Purchase complete</div>
+      </div>
+    </section>
+    <section><div class="alert" id="ckResult" role="status"></div></section>
+    <footer>
+      <button type="button" class="btn-blue" id="confirmBtn">Confirm purchase</button>
+      <div class="note">Testnet simulation — no wallet signature is requested and no transaction is broadcast.</div>
+    </footer>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (function () {
+      var HOLD_MS = 10 * 60 * 1000;
+      var MAX_ITEMS = 10;
+      var CREATOR_FEE_BPS = 500;
+      var listings = [];
+      var cart = []; // { tokenId, heldUntil }
+      var traitFilter = {};
+      var submitted = false;
+      var inFlight = false;
+      var $ = function (id) { return document.getElementById(id); };
+
+      var PALETTE = {
+        Blue: '#9fd3ff', Mint: '#b8f0d8', Peach: '#f6c9a8', Lavender: '#c9c3f5', Sky: '#a6e1f2', Coral: '#f5a58a',
+        Turtleneck: '#e86a8f', Hoodie: '#5b6cff', Lei: '#ff7fb0', Overalls: '#3d7bd9', Scarf: '#e94b3c', Puffer: '#f2b134',
+        Beanie: '#ef476f', Helmet: '#6b7f3a', Afro: '#5a2e14', Sombrero: '#e8b34a', Crown: '#ffd23f', 'Bear Hood': '#9a5a2b'
+      };
+      function art(l, cls) {
+        var t = l.traits;
+        var eyes = t.face === 'Shades'
+          ? '<rect x="38" y="47" width="10" height="7" rx="3" fill="#111"/><rect x="52" y="47" width="10" height="7" rx="3" fill="#111"/><rect x="47" y="49" width="6" height="2" fill="#111"/>'
+          : t.face === 'Wink'
+            ? '<circle cx="43" cy="50" r="3" fill="#111"/><path d="M53 50h7" stroke="#111" stroke-width="2.4" stroke-linecap="round"/>'
+            : '<circle cx="43" cy="50" r="3" fill="#111"/><circle cx="57" cy="50" r="3" fill="#111"/>';
+        var hat = t.head === 'Afro'
+          ? '<circle cx="50" cy="28" r="22" fill="' + PALETTE.Afro + '"/>'
+          : t.head === 'Crown'
+            ? '<path d="M36 28l5-10 9 8 9-8 5 10z" fill="' + PALETTE.Crown + '"/>'
+            : '<path d="M30 36c2-14 38-14 40 0z" fill="' + (PALETTE[t.head] || '#ef476f') + '"/>';
+        return '<svg class="' + (cls || '') + '" viewBox="0 0 100 100" role="img" aria-label="' + esc(l.name) + ' (illustrative art)">' +
+          '<rect width="100" height="100" fill="' + (PALETTE[t.background] || '#9fd3ff') + '"/>' +
+          '<path d="M22 100c0-30 12-62 28-62s28 32 28 62z" fill="#2b2f3a"/>' +
+          '<ellipse cx="50" cy="62" rx="20" ry="26" fill="#fff"/>' +
+          '<path d="M26 100c2-12 10-18 24-18s22 6 24 18z" fill="' + (PALETTE[t.body] || '#5b6cff') + '"/>' +
+          hat + eyes + '<path d="M46 56h8l-4 5z" fill="#f2a33a"/>' +
+          (t.face === 'Blush' ? '<circle cx="38" cy="58" r="3" fill="#ff9fb4"/><circle cx="62" cy="58" r="3" fill="#ff9fb4"/>' : '') +
+          '</svg>';
+      }
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function eth(n) { return (Math.round(n * 10000) / 10000).toLocaleString('en-US', { maximumFractionDigits: 4 }) + ' ETH'; }
+      function toast(msg) {
+        var el = $('toast'); el.textContent = msg; el.classList.add('show');
+        clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove('show'); }, 2200);
+      }
+      document.querySelectorAll('[data-demo-only]').forEach(function (b) {
+        b.addEventListener('click', function () { toast('Demo-only — not part of this demo'); });
+      });
+
+      function byId(id) { return listings.find(function (l) { return l.tokenId === id; }); }
+      function inCart(id) { return cart.some(function (c) { return c.tokenId === id; }); }
+      function floorSorted() { return listings.slice().sort(function (a, b) { return a.priceEth - b.priceEth; }); }
+
+      function visibleListings() {
+        var q = $('itemSearch').value.trim().toLowerCase() || $('globalSearch').value.trim().toLowerCase();
+        var rows = listings.filter(function (l) {
+          var traitsOk = Object.keys(traitFilter).every(function (k) {
+            return !traitFilter[k].length || traitFilter[k].indexOf(l.traits[k]) !== -1;
+          });
+          if (!traitsOk) return false;
+          if (!q) return true;
+          var hay = (l.name + ' ' + Object.keys(l.traits).map(function (k) { return l.traits[k]; }).join(' ')).toLowerCase();
+          return hay.indexOf(q) !== -1;
+        });
+        var sort = $('sort').value;
+        rows.sort(function (a, b) {
+          if (sort === 'desc') return b.priceEth - a.priceEth;
+          if (sort === 'rarity') return a.rarity - b.rarity;
+          return a.priceEth - b.priceEth;
+        });
+        return rows;
+      }
+
+      function renderGrid() {
+        var rows = visibleListings();
+        $('countLine').textContent = rows.length + ' LISTED · 8,888 ITEMS';
+        $('grid').innerHTML = rows.map(function (l) {
+          var held = inCart(l.tokenId);
+          return '<article class="card' + (held ? ' in-cart' : '') + '">' + art(l, 'art') +
+            '<div class="card-body"><div class="card-top"><span>' + esc(l.name) + '</span><span class="rar">#' + esc(l.rarity.toLocaleString('en-US')) + '</span></div>' +
+            '<div class="price">' + eth(l.priceEth) + '</div><div class="last">Last sale ' + eth(l.lastSaleEth) + '</div>' +
+            '<button type="button" class="add" data-token="' + esc(l.tokenId) + '">' + (held ? 'Remove from cart' : 'Add to cart') + '</button></div></article>';
+        }).join('');
+      }
+
+      function renderFilters() {
+        var keys = ['background', 'body', 'face', 'head'];
+        $('traitFilters').innerHTML = keys.map(function (k) {
+          var values = [];
+          listings.forEach(function (l) { if (values.indexOf(l.traits[k]) === -1) values.push(l.traits[k]); });
+          values.sort();
+          return '<details class="trait"><summary><span>' + esc(k.charAt(0).toUpperCase() + k.slice(1)) + '</span><span class="n">' + values.length + '</span></summary>' +
+            values.map(function (v) {
+              return '<label class="trait-opt"><input type="checkbox" data-trait="' + esc(k) + '" value="' + esc(v) + '"> ' + esc(v) + '</label>';
+            }).join('') + '</details>';
+        }).join('');
+      }
+
+      function renderActivity() {
+        var t = ['7m', '8m', '1h', '2h', '2h', '3h', '3h', '5h'];
+        $('activity').innerHTML = floorSorted().slice(0, 8).map(function (l, i) {
+          return '<div class="act-row">' + art(l) + '<span>' + eth(l.lastSaleEth) + '</span><span>#' + esc(l.rarity) + '</span><span class="t">' + t[i] + '</span></div>';
+        }).join('');
+      }
+
+      function pruneHolds() {
+        var now = Date.now();
+        var before = cart.length;
+        cart = cart.filter(function (c) { return c.heldUntil > now; });
+        if (cart.length !== before) {
+          toast('Cart reservation expired — items released');
+          renderAll();
+          if ($('checkout').classList.contains('show') && !inFlight && !submitted) refreshCheckout();
+        }
+      }
+
+      function renderCart() {
+        $('cartCount').textContent = cart.length;
+        var total = cart.reduce(function (s, c) { return s + byId(c.tokenId).priceEth; }, 0);
+        $('cartTotal').textContent = eth(total);
+        $('checkoutBtn').disabled = !cart.length;
+        $('cartItems').innerHTML = cart.length ? cart.map(function (c) {
+          var l = byId(c.tokenId);
+          return '<div class="cart-row">' + art(l) + '<div><div>' + esc(l.name) + '</div><div class="hold">' + eth(l.priceEth) + '</div></div>' +
+            '<button type="button" class="rm" data-remove="' + esc(l.tokenId) + '">Remove</button></div>';
+        }).join('') : '<div class="cart-empty">Your cart is empty. Add items or use Buy floor.</div>';
+        updateHoldTimer();
+      }
+
+      function updateHoldTimer() {
+        if (!cart.length) { $('holdTimer').textContent = '—'; return; }
+        var soonest = Math.min.apply(null, cart.map(function (c) { return c.heldUntil; }));
+        var left = Math.max(0, soonest - Date.now());
+        var m = Math.floor(left / 60000), s = Math.floor((left % 60000) / 1000);
+        $('holdTimer').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+      }
+
+      function renderAll() { renderGrid(); renderCart(); }
+
+      function addToCart(id) {
+        if (inCart(id)) { cart = cart.filter(function (c) { return c.tokenId !== id; }); renderAll(); return; }
+        if (cart.length >= MAX_ITEMS) { toast('You can buy up to ' + MAX_ITEMS + ' items at once'); return; }
+        cart.push({ tokenId: id, heldUntil: Date.now() + HOLD_MS });
+        renderAll();
+      }
+
+      function openDrawer() { $('drawer').classList.add('open'); $('drawer').setAttribute('aria-hidden', 'false'); $('scrim').classList.add('show'); }
+      function closeDrawer() { $('drawer').classList.remove('open'); $('drawer').setAttribute('aria-hidden', 'true'); if (!$('checkout').classList.contains('show')) $('scrim').classList.remove('show'); }
+
+      function setStep(id, state) {
+        var el = $(id); el.classList.remove('active', 'done', 'fail');
+        if (state) el.classList.add(state);
+        el.querySelector('.dot').textContent = state === 'done' ? '\u2713' : state === 'fail' ? '!' : el.dataset.n || el.querySelector('.dot').textContent;
+      }
+      ['stepPrepare', 'stepWallet', 'stepDone'].forEach(function (id, i) { $(id).dataset.n = String(i + 1); });
+      function resetSteps() { ['stepPrepare', 'stepWallet', 'stepDone'].forEach(function (id) { setStep(id, null); $(id).querySelector('.dot').textContent = $(id).dataset.n; }); }
+
+      function openCheckout() {
+        if (!cart.length) return;
+        submitted = false;
+        updateCheckoutTotals();
+        $('ckResult').className = 'alert';
+        $('ckResult').textContent = '';
+        $('confirmBtn').disabled = false;
+        $('confirmBtn').textContent = 'Confirm purchase';
+        resetSteps();
+        closeDrawer();
+        $('scrim').classList.add('show');
+        $('checkout').classList.add('show');
+      }
+      function updateCheckoutTotals() {
+        var subtotal = cart.reduce(function (s, c) { return s + byId(c.tokenId).priceEth; }, 0);
+        $('ckItems').textContent = cart.length;
+        $('ckSubtotal').textContent = eth(subtotal);
+        $('ckCreator').textContent = eth(subtotal * CREATOR_FEE_BPS / 10000);
+        $('ckTotal').textContent = eth(cart.length ? subtotal + 0.0004 : 0);
+      }
+      function refreshCheckout() {
+        updateCheckoutTotals();
+        if (cart.length) return;
+        resetSteps();
+        $('ckResult').className = 'alert err';
+        $('ckResult').textContent = 'Your reservation expired and the items were released. Add them to your cart again to check out.';
+        $('confirmBtn').disabled = true;
+        $('confirmBtn').textContent = 'Reservation expired';
+      }
+      function closeCheckout() {
+        if (inFlight) return;
+        $('checkout').classList.remove('show'); $('scrim').classList.remove('show');
+      }
+
+      function confirmPurchase() {
+        if (submitted || inFlight || !cart.length) return;
+        inFlight = true;
+        $('confirmBtn').disabled = true;
+        $('confirmBtn').textContent = 'Preparing transaction…';
+        $('ckResult').className = 'alert';
+        setStep('stepPrepare', 'active');
+        var tokenIds = cart.map(function (c) { return c.tokenId; });
+        fetch('/api/opensea-checkout/fulfillment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tokenIds: tokenIds,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        }).then(function (response) {
+          return response.json().catch(function () { return {}; }).then(function (data) { return { ok: response.ok, status: response.status, data: data }; });
+        }).then(function (res) {
+          inFlight = false;
+          var box = $('ckResult');
+          if (res.ok && res.data.success) {
+            submitted = true;
+            setStep('stepPrepare', 'done');
+            setStep('stepWallet', 'done');
+            setStep('stepDone', 'done');
+            box.className = 'alert ok';
+            box.textContent = 'Purchase simulated: ' + res.data.items.length + ' item(s) via ' + res.data.transaction.method + ' on ' + res.data.transaction.chain + ' (' + res.data.checkoutId + '). Nothing was broadcast.';
+            $('confirmBtn').textContent = 'Purchased';
+            var bought = res.data.items;
+            cart = cart.filter(function (c) { return bought.indexOf(c.tokenId) === -1; });
+            listings = listings.filter(function (l) { return bought.indexOf(l.tokenId) === -1; });
+            renderAll(); renderActivity(); updateFloor();
+            return;
+          }
+          setStep('stepPrepare', 'fail');
+          box.className = 'alert err';
+          if (res.data && res.data.revert) {
+            box.innerHTML = '<strong>Transaction would fail</strong><br>' + esc(res.data.error) +
+              '<br><code>' + esc(res.data.revert.method) + ' reverted: ' + esc(res.data.revert.name) + ' (' + esc(res.data.revert.selector) + ')</code>' +
+              (res.data.checkoutId ? '<br><span class="muted">Reference ' + esc(res.data.checkoutId) + '</span>' : '');
+          } else {
+            box.textContent = (res.data && res.data.error) || 'We could not prepare your transaction. Please try again.';
+          }
+          $('confirmBtn').disabled = false;
+          $('confirmBtn').textContent = 'Try again';
+        }).catch(function () {
+          inFlight = false;
+          setStep('stepPrepare', 'fail');
+          $('ckResult').className = 'alert err';
+          $('ckResult').textContent = 'Network error while preparing the transaction. Please try again.';
+          $('confirmBtn').disabled = false;
+          $('confirmBtn').textContent = 'Try again';
+        });
+      }
+
+      function sweepCount() { return Number($('sweepCount').value || $('sweepCount').textContent) || 0; }
+      function setSweep(n) {
+        n = Math.max(0, Math.min(MAX_ITEMS, n));
+        $('sweepCount').textContent = n;
+        $('sweepRange').value = n;
+        $('buyFloor').disabled = n === 0;
+        $('buyFloor').textContent = n > 1 ? 'Buy floor (' + n + ')' : 'Buy floor';
+      }
+      function buyFloor() {
+        var n = sweepCount();
+        var max = Number($('maxPrice').value);
+        var pool = floorSorted().filter(function (l) { return !($('maxPrice').value !== '' && max >= 0 && l.priceEth > max); });
+        if (!pool.length) { toast('No listings under your max price'); return; }
+        var now = Date.now();
+        cart = pool.slice(0, n).map(function (l) { return { tokenId: l.tokenId, heldUntil: now + HOLD_MS }; });
+        if (cart.length < n) toast('Only ' + cart.length + ' listing(s) under your max price');
+        renderAll();
+        openCheckout();
+      }
+      function updateFloor() {
+        var f = floorSorted()[0];
+        $('statFloor').textContent = f ? eth(f.priceEth) : '—';
+      }
+
+      $('grid').addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-token]');
+        if (b) addToCart(Number(b.dataset.token));
+      });
+      $('cartItems').addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-remove]');
+        if (!b) return;
+        var id = Number(b.dataset.remove);
+        cart = cart.filter(function (c) { return c.tokenId !== id; });
+        renderAll();
+      });
+      $('traitFilters').addEventListener('change', function (e) {
+        var k = e.target.dataset.trait; if (!k) return;
+        traitFilter[k] = Array.prototype.map.call(document.querySelectorAll('input[data-trait="' + k + '"]:checked'), function (i) { return i.value; });
+        renderGrid();
+      });
+      ['itemSearch', 'globalSearch'].forEach(function (id) { $(id).addEventListener('input', renderGrid); });
+      $('sort').addEventListener('change', renderGrid);
+      $('cartBtn').addEventListener('click', openDrawer);
+      $('closeDrawer').addEventListener('click', closeDrawer);
+      $('scrim').addEventListener('click', function () { closeDrawer(); closeCheckout(); });
+      $('clearCart').addEventListener('click', function () { cart = []; renderAll(); });
+      $('checkoutBtn').addEventListener('click', openCheckout);
+      $('closeCheckout').addEventListener('click', closeCheckout);
+      $('confirmBtn').addEventListener('click', confirmPurchase);
+      $('sweepRange').addEventListener('input', function () { setSweep(Number(this.value)); });
+      $('sweepMinus').addEventListener('click', function () { setSweep(sweepCount() - 1); });
+      $('sweepPlus').addEventListener('click', function () { setSweep(sweepCount() + 1); });
+      $('buyFloor').addEventListener('click', buyFloor);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeCheckout(); closeDrawer(); }
+        if (e.key === '/' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); $('itemSearch').focus(); }
+      });
+      setInterval(function () { pruneHolds(); updateHoldTimer(); }, 1000);
+
+      fetch('/api/oncall/nftcheckout/listings').then(function (r) { return r.json(); }).then(function (data) {
+        listings = data.listings || [];
+        $('colAvatar').innerHTML = listings[0] ? art(listings[0], 'art') : '';
+        renderFilters(); renderAll(); renderActivity(); updateFloor();
+      }).catch(function () {
+        $('grid').innerHTML = '<div class="cart-empty">Could not load listings. Refresh to try again.</div>';
+      });
+      setSweep(0);
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

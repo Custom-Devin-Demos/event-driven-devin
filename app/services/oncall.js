@@ -453,6 +453,25 @@ const ALERT_SCENARIOS = {
     alertOnStatus: [401],
     unlisted: true,
   },
+  nftcheckout: {
+    vertical: 'nftcheckout',
+    apiPath: '/api/opensea-checkout',
+    oncallApiPath: '/api/oncall/nftcheckout',
+    owner: 'Riley Chen (marketplace-checkout-oncall)',
+    brand: 'NFT Marketplace',
+    service: 'os-fulfillment-api',
+    endpoint: 'POST /api/oncall/nftcheckout/fulfillment',
+    monitor: 'Error rate — sweep checkout: Seaport preflight reverts on POST /api/oncall/nftcheckout/fulfillment',
+    metricQuery: '(sum:demo.nftcheckout.fulfillment.reverted{service:checkout-api,route:/api/oncall/nftcheckout/fulfillment}.as_count() / sum:demo.nftcheckout.fulfillment.attempt{service:checkout-api,route:/api/oncall/nftcheckout/fulfillment}.as_count()) * 100',
+    metricValue: '~38% of checkouts (100% of multi-item carts) revert with ConsiderationNotMet (0xa5f54208)',
+    threshold: '> 1%',
+    baseline: '< 0.2% (7-day)',
+    release: 'os-fulfillment-api@2026.10.26',
+    symptom: 'Multi-item checkouts and "Buy floor" sweeps on collections with creator earnings fail at "Preparing transaction": the fulfillAvailableAdvancedOrders preflight against the Seaport testnet deployment reverts with ConsiderationNotMet (0xa5f54208). Single-item buys of the same NFTs still succeed. Onset follows the latest Seaport deploy from COG-GTM/seaport main.',
+    impact: 'Collectors cannot sweep floors or buy more than one NFT at a time; every multi-item cart fails before the wallet prompt and sellers see abandoned purchases.',
+    alertOnStatus: [422],
+    unlisted: true,
+  },
   emergencydispatch: {
     vertical: 'emergencydispatch',
     page: 'eba2e983.html',
@@ -1111,6 +1130,16 @@ function resolveAlertCard(scenario, skin) {
   };
 }
 
+/**
+ * Triage notes for responder-triaged skins (devinSession.promptAppendix without
+ * auto): the channel responder only sees the card, so the notes ride on it.
+ */
+function responderNotes(skin) {
+  const config = skin && skin.devinSession;
+  if (!config || config.auto || typeof config.promptAppendix !== 'string') return null;
+  return config.promptAppendix.trim() || null;
+}
+
 function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, onCall, skin }) {
 
   const card = resolveAlertCard(scenario, skin);
@@ -1133,6 +1162,9 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     '',
     `Repo: ${REPO_URL}`,
   ];
+
+  const notes = responderNotes(skin);
+  if (notes) lines.push('', notes);
 
   return lines.filter((l) => l !== null).join('\n');
 }
@@ -1452,6 +1484,7 @@ async function postOncallAlert(scenarioId, options = {}) {
       (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
+    ...(responderNotes(skin) ? [mrkdwnSection(responderNotes(skin))] : []),
     ...(t.viewDatadog ? [datadogActions(t)] : []),
     contextBlock(card.service, triggeredByLine, null, t),
   ];

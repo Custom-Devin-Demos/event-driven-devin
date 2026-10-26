@@ -3956,6 +3956,47 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Change Management & incident intake',
     disclaimer: 'Internal demo only \u2014 illustrative BMC Helix ITSM change scenario, not a real BMC Software product screen or affiliated with or endorsed by BMC Software.',
   },
+  '6ec8f942': {
+    slug: '6ec8f942',
+    company: 'OpenSea',
+    brandMark: 'OS',
+    vertical: 'nftcheckout',
+    oncallOnly: true,
+    paths: ['/oncall/c/opensea', '/opensea-oncall'],
+    // The cart drawer and "Buy floor" bar sit along the right/bottom edge, so
+    // dock the demo ribbon on the left.
+    ribbonSide: 'left',
+    // Slack-routed: the card lands in the on-call alerts channel and the Slack
+    // responder triages, so no devinSession.auto (it would double-trigger);
+    // the promptAppendix rides on the card instead.
+    alertDestination: 'slack',
+    page: { file: '6ec8f942.html', title: 'Puffy Penguins - Collection | OpenSea' },
+    devinSession: {
+      promptAppendix: [
+        '*Triage notes (OpenSea checkout):*',
+        '- The web tier (`app/services/oncall-verticals/nftcheckout.js`, page `app/public/verticals/6ec8f942.html`) builds Seaport orders and fulfillment components and surfaces the preflight result; multi-item carts aggregate the creator-earnings consideration items of every order into one fulfillment, single-item buys do not.',
+        '- The revert comes from the Seaport deployment the preflight simulates against: the reference build of https://github.com/COG-GTM/seaport `main` (`reference/`). Check recent commits there that touch fulfillment aggregation.',
+        '- Reproduce with Foundry in COG-GTM/seaport: a `fulfillAvailableAdvancedOrders` test with 2+ orders whose creator-fee consideration items are aggregated into one fulfillment component group (`FOUNDRY_PROFILE=reference forge build`, then `FOUNDRY_PROFILE=reference MOAT_PROFILE=reference forge test --match-contract <YourTest>`). Single-order fulfillment should keep passing.',
+        '- Open the fix PR against COG-GTM/seaport `main` (never ProjectOpenSea) with the failing-then-passing Foundry regression test, and reply in this thread with root cause + PR link.',
+      ].join('\n'),
+    },
+    alertCard: {
+      title: 'Error rate — sweep checkout: Seaport ConsiderationNotMet on POST /api/oncall/nftcheckout/fulfillment',
+      service: 'os-fulfillment-api',
+      release: 'os-fulfillment-api@2026.10.26 (Seaport ref build: COG-GTM/seaport@main)',
+      team: 'marketplace-checkout-oncall',
+    },
+    theme: {
+      '--accent': '#2081E2',
+      '--ink': '#FFFFFF',
+      '--surface': '#121212',
+      '--chrome-bg': '#121212',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'OpenSea Support',
+    supportCenterSub: 'Checkout & transactions',
+    disclaimer: 'NOT ACTUALLY AN OPENSEA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OpenSea product. Collection, NFTs, wallets and prices are fictional and illustrative; testnet simulation only, no transactions are broadcast.',
+  },
   e7a1c4d9: {
     slug: 'e7a1c4d9',
     company: 'Egencia by Amex GBT',
