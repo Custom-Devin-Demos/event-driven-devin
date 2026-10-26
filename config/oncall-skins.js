@@ -6142,6 +6142,33 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A CLOUDBEDS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Cloudbeds product.',
   },
+  '004156f1': {
+    slug: '004156f1',
+    company: 'Ericsson',
+    brandMark: 'E',
+    vertical: 'banking',
+    oncallOnly: true,
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+    },
+    page: { file: '004156f1.html', title: 'Pay merchant | Wallet | Ericsson Fintech Platform' },
+    alertCard: {
+      title: 'p95 latency \u2014 wallet merchant payments',
+      team: 'wallet-payments-oncall',
+      symptom: 'Wallet merchant payments hang ~9s before the payment is confirmed. Error rate is normal \u2014 payments eventually go through.',
+      impact: 'Every shopper paying a merchant from their wallet waits on a spinner for ~9 seconds at checkout; shoppers are tapping Pay again and abandoning baskets.',
+    },
+    theme: {
+      '--accent': '#1174E6',
+      '--ink': '#0C0C0C',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0C0C0C',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Ericsson Fintech Platform Support',
+    disclaimer: 'NOT ACTUALLY AN ERICSSON SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Ericsson product.',
+  },
 };
 
 function getOncallSkin(slug) {
