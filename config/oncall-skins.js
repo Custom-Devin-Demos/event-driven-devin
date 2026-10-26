@@ -6290,6 +6290,24 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     disclaimer: 'NOT ACTUALLY A BIGPANDA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BigPanda product.',
   },
+  '0cde929a': {
+    slug: '0cde929a',
+    company: 'Blue Owl',
+    vertical: 'banking',
+    page: { file: '0cde929a.html', title: 'Investor Portal & Login | Blue Owl Capital' },
+    oncallOnly: true,
+    alertCard: {
+      title: 'p95 latency — Investor Portal transfer submissions',
+      release: 'investor-portal@2026.10.2',
+      team: 'investor-portal-oncall',
+      symptom: 'Investor Portal transfer submissions hang ~10s before completing. Error rate is normal — requests eventually succeed.',
+      impact: 'Every investor moving funds through the Investor Portal waits on a spinner for ~10 seconds; some resubmit, and Investor Services is taking calls about duplicate transfers.',
+    },
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
+    disclaimer: 'NOT ACTUALLY A BLUE OWL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Blue Owl product.',
+  },
 };
 
 function getOncallSkin(slug) {
