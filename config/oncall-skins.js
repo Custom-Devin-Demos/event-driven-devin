@@ -6308,6 +6308,21 @@ const ONCALL_SKINS = {
     alertDestination: 'teams',
     disclaimer: 'NOT ACTUALLY A BLUE OWL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Blue Owl product.',
   },
+  '50a6f684': {
+    slug: '50a6f684',
+    company: 'Euroapotheca',
+    vertical: 'insurance',
+    page: { file: '50a6f684.html', title: 'ATORIS, 20mg, plėvele dengtos tabletės, N30 | Eurovaistine.lt' },
+    oncallOnly: true,
+    alertCard: {
+      title: 'p95 latency \u2014 e-prescription order submissions',
+      release: 'eshop-rx@2026.10.4',
+      team: 'eshop-oncall',
+      symptom: 'E-prescription order submissions hang ~8s and then fail with 504 Gateway Timeout. Upstream latency is elevated.',
+      impact: 'Customers ordering prescription medicines online cannot complete the order; every submission times out after a long hang.',
+    },
+    disclaimer: 'NOT ACTUALLY A EUROAPOTHECA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Euroapotheca product.',
+  },
 };
 
 function getOncallSkin(slug) {
