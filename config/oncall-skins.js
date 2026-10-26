@@ -6147,6 +6147,7 @@ const ONCALL_SKINS = {
     company: 'BigPanda',
     vertical: 'hightech',
     page: { file: '50124a40.html', title: 'Agentic AI for IT Operations | BigPanda' },
+    oncallOnly: true,
     disclaimer: 'NOT ACTUALLY A BIGPANDA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BigPanda product.',
   },
 };
