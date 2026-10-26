@@ -5261,6 +5261,7 @@ const ONCALL_SKINS = {
     vertical: 'inference',
     oncallOnly: true,
     paths: ['/openrouter'],
+    ribbonSide: 'left',
     devinSession: {
       auto: true,
       onCallIsTriggerer: true,

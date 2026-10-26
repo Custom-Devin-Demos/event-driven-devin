@@ -128,7 +128,7 @@
       .stats-row { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 820px) {
-      .side { position: fixed; top: 56px; bottom: 0; left: 0; z-index: 40; transform: translateX(-100%); transition: transform .2s ease; box-shadow: 4px 0 24px rgba(15,23,42,.12); }
+      .side { position: fixed; top: var(--side-top, 56px); bottom: 0; left: 0; z-index: 25; transform: translateX(-100%); transition: transform .2s ease; box-shadow: 4px 0 24px rgba(15,23,42,.12); }
       body.side-open .side { transform: none; }
       .menu-btn { display: inline-flex; }
       .search { display: none; }
@@ -174,7 +174,7 @@
 
   <div class="shell">
     <aside class="side" id="side">
-      <button class="newchat" type="button">
+      <button class="newchat" type="button" id="newChatBtn">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3v10M3 8h10"/></svg>New Chat
       </button>
       <div class="side-search">
@@ -284,7 +284,22 @@
       modelSel.addEventListener('change', syncModel);
       syncModel();
 
-      document.getElementById('menuBtn').addEventListener('click', () => document.body.classList.toggle('side-open'));
+      const topnav = document.querySelector('.topnav');
+      const placeSide = () => document.body.style.setProperty('--side-top', Math.max(0, topnav.getBoundingClientRect().bottom) + 'px');
+      document.getElementById('menuBtn').addEventListener('click', () => { placeSide(); document.body.classList.toggle('side-open'); });
+      window.addEventListener('scroll', placeSide, { passive: true });
+      window.addEventListener('resize', placeSide);
+      document.querySelectorAll('#side .room, #side li').forEach((r) => r.addEventListener('click', () => document.body.classList.remove('side-open')));
+
+      const initialThread = document.getElementById('threadIn').innerHTML;
+      document.getElementById('newChatBtn').addEventListener('click', () => {
+        document.getElementById('threadIn').innerHTML = initialThread;
+        const result = document.getElementById('result');
+        result.className = 'result'; result.textContent = '';
+        document.getElementById('prompt').value = '';
+        syncModel();
+        document.body.classList.remove('side-open');
+      });
       const promptEl = document.getElementById('prompt');
       promptEl.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); document.getElementById('completionForm').requestSubmit(); }
