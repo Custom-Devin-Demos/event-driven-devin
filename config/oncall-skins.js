@@ -6152,7 +6152,7 @@ const ONCALL_SKINS = {
       auto: true,
       onCallIsTriggerer: true,
     },
-    page: { file: '004156f1.html', title: 'Pay merchant | Wallet | Ericsson Fintech Platform' },
+    page: { file: '004156f1.html', title: 'Pay merchant | Wallet' },
     alertCard: {
       title: 'p95 latency \u2014 wallet merchant payments',
       team: 'wallet-payments-oncall',
