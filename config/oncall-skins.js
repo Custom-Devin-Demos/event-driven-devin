@@ -2701,6 +2701,8 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     page: { file: '9ecaa5d1.html', title: 'Payment Release | LoanTrack' },
     teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
     alertCard: {
       title: 'p95 latency — payment release submissions',
       service: 'loantrack-disbursement-api',
