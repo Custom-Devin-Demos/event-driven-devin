@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Envoyer de l’argent | BCV TWINT</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #262626;
+      --ink: #1A1A1A;
+      --surface: #FFFFFF;
+      --chrome-bg: #000000;
+      --chrome-text: #FFFFFF;
+      --paper: #F3F3F3;
+      --line: #E4E4E4;
+      --muted: #6B6B6B;
+      --bank: #009D4D;
+      --bank-soft: #E5F5EC;
+      --ok: #0B6B39; --ok-bg: #E7F5EC;
+      --warn: #8A4B00; --warn-bg: #FFF4E5;
+      --err: #A1231B; --err-bg: #FCECEB;
+      --glow: linear-gradient(90deg, #FF2E63 0%, #FF8A00 35%, #FFD000 55%, #00C48C 75%, #2F80ED 100%);
+      --radius: 24px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; overflow-x: hidden; font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.45; color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+    :focus-visible { outline: 3px solid var(--bank); outline-offset: 2px; }
+    [hidden] { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    .num { font-variant-numeric: tabular-nums; }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    .appbar { padding-top: 18px; }
+    .bar { display: flex; align-items: center; gap: 28px; min-height: 76px; padding: 0 22px 0 26px; background: var(--chrome-bg); color: var(--chrome-text); border-radius: 26px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; flex: none; }
+    .mark { width: 40px; height: 40px; flex: none; }
+    .wordmark { display: flex; flex-direction: column; line-height: 1; }
+    .wordmark b { font-size: 21px; font-weight: 900; letter-spacing: .06em; }
+    .wordmark small { margin-top: 4px; font-size: 11px; font-weight: 500; letter-spacing: .04em; color: #BDBDBD; }
+    .topnav { display: flex; gap: 4px; }
+    .topnav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; color: #D6D6D6; font-weight: 500; font-size: 15px; }
+    .topnav a:hover { color: #fff; background: rgba(255,255,255,.08); }
+    .topnav a[aria-current] { color: #000; background: #fff; }
+    .tools { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .icon-btn { position: relative; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .icon-btn:hover { background: rgba(255,255,255,.1); }
+    .icon-btn .dot { position: absolute; top: 9px; right: 10px; width: 9px; height: 9px; border-radius: 50%; background: #FF2E63; border: 2px solid #000; }
+    .me { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 6px 0 8px; font-size: 15px; font-weight: 500; }
+    .ava { width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex: none; }
+    .me .ava { background: #fff; color: #000; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 24px; align-items: start; margin: 24px auto 40px; }
+    .layout > * { min-width: 0; }
+    .card { background: var(--surface); border-radius: var(--radius); min-width: 0; }
+
+    .account { position: relative; overflow: hidden; padding: 22px 22px 20px; background: #000; color: #fff; border-radius: var(--radius); }
+    .account::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--glow); }
+    .acc-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .acc-lbl { font-size: 13px; color: #BDBDBD; }
+    .bank-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--bank); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+    .acc-val { margin-top: 6px; font-size: 34px; font-weight: 700; letter-spacing: -.5px; }
+    .acc-val span { font-size: 18px; font-weight: 500; margin-right: 6px; color: #BDBDBD; }
+    .acc-sub { margin-top: 2px; font-size: 13px; color: #BDBDBD; overflow-wrap: anywhere; }
+    .actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+    .actions a { display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 64px; padding: 8px 2px; border-radius: 16px; font-size: 12px; font-weight: 500; color: #E6E6E6; }
+    .actions a .c { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.12); display: inline-flex; align-items: center; justify-content: center; }
+    .actions a[aria-current] .c { background: #fff; color: #000; }
+    .actions a[aria-current] { color: #fff; }
+
+    .side-card { margin-top: 16px; padding: 18px 20px; }
+    .side-card h2 { margin: 0 0 8px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .side-card h2 a { font-size: 14px; font-weight: 500; color: var(--muted); min-height: 44px; display: inline-flex; align-items: center; }
+    .limit-row { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--muted); }
+    .limit-row b { color: var(--ink); font-weight: 500; }
+    .meter { height: 8px; margin: 10px 0 8px; border-radius: 999px; background: var(--paper); overflow: hidden; }
+    .meter i { display: block; height: 100%; border-radius: 999px; background: var(--ink); }
+    .tx { list-style: none; margin: 0; padding: 0; }
+    .tx li { display: flex; align-items: center; gap: 12px; padding: 10px 0; min-width: 0; }
+    .tx li + li { border-top: 1px solid var(--line); }
+    .tx .ava { width: 40px; height: 40px; }
+    .tx .who { min-width: 0; flex: 1; }
+    .tx .n { font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx .d { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx .v { font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .tx .v.in { color: var(--ok); }
+    .tx li.fresh { animation: fresh 1.6s ease-out; }
+    @keyframes fresh { from { background: var(--bank-soft); } to { background: transparent; } }
+
+    .flow { padding: 26px 28px 28px; }
+    .flow-head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+    .back { width: 44px; height: 44px; margin-left: -10px; border: 0; border-radius: 50%; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .back:hover { background: var(--paper); }
+    h1 { margin: 0; font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -.3px; }
+    .steps { display: flex; gap: 8px; margin: 14px 0 22px; padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
+    .steps li { display: inline-flex; align-items: center; gap: 8px; }
+    .steps li + li::before { content: ""; width: 24px; height: 1px; background: var(--line); }
+    .steps b { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--line); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+    .steps li.on { color: var(--ink); font-weight: 500; }
+    .steps li.on b { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .steps li.done b { background: var(--bank); border-color: var(--bank); color: #fff; }
+
+    .amount-box { padding: 18px 20px 16px; border-radius: 20px; background: var(--paper); }
+    .amount-box label { font-size: 14px; font-weight: 500; color: var(--muted); }
+    .amt { display: flex; align-items: baseline; gap: 10px; margin-top: 4px; min-width: 0; }
+    .amt span { font-size: 22px; font-weight: 500; color: var(--muted); }
+    .amt input { flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; padding: 0; font-size: 44px; font-weight: 700; letter-spacing: -.6px; -moz-appearance: textfield; }
+    .amt input::placeholder { color: #B5B5B5; }
+    .amt input::-webkit-outer-spin-button, .amt input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip { min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid #D2D2D2; background: #fff; font-weight: 500; cursor: pointer; }
+    .chip:hover { border-color: var(--ink); }
+
+    .field { display: grid; gap: 6px; margin-top: 20px; min-width: 0; }
+    .field > label, .field .lbl { font-size: 14px; font-weight: 500; color: var(--muted); }
+    .field small { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+    select, textarea { width: 100%; min-width: 0; border: 1.5px solid #D2D2D2; border-radius: 16px; background-color: #fff; color: var(--ink); }
+    select { min-height: 54px; padding: 0 44px 0 16px; -webkit-appearance: none; appearance: none; cursor: pointer; text-overflow: ellipsis;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231A1A1A' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+    textarea { min-height: 84px; padding: 12px 16px; resize: vertical; }
+    select:disabled, textarea:disabled, input:disabled { opacity: .6; }
+    .recent { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; }
+    .recent::-webkit-scrollbar { display: none; }
+    .pick { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 76px; min-height: 84px; flex: none; padding: 6px 2px; border: 0; border-radius: 16px; background: transparent; cursor: pointer; font-size: 12px; }
+    .pick .ava { width: 48px; height: 48px; font-size: 16px; box-shadow: 0 0 0 2px transparent; }
+    .pick[aria-pressed="true"] .ava { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--ink); }
+    .pick span:last-child { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .count { justify-self: end; font-size: 12px; color: var(--muted); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; padding: 0 28px; border-radius: 999px; border: 2px solid transparent; font-weight: 700; font-size: 17px; cursor: pointer; }
+    .btn-primary { width: 100%; margin-top: 24px; background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #000; }
+    .btn-primary:disabled { background: #7A7A7A; cursor: progress; }
+    .btn-ghost { min-height: 48px; padding: 0 18px; background: transparent; color: var(--ink); border-color: #D2D2D2; font-size: 15px; font-weight: 500; }
+    .btn-ghost:disabled { opacity: .45; cursor: default; }
+    .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .confirm[hidden], .edit[hidden] { display: none; }
+    .payee { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 20px; background: var(--paper); min-width: 0; }
+    .payee .ava { width: 52px; height: 52px; font-size: 18px; }
+    .payee > div { min-width: 0; }
+    .payee b { display: block; font-size: 18px; }
+    .payee small { color: var(--muted); font-size: 14px; }
+    .big { margin: 22px 0 6px; text-align: center; font-size: 48px; font-weight: 700; letter-spacing: -.8px; }
+    .big span { font-size: 22px; font-weight: 500; color: var(--muted); margin-right: 8px; }
+    .msg-preview { margin: 0 auto 4px; max-width: 460px; text-align: center; color: var(--muted); font-size: 15px; overflow-wrap: anywhere; }
+    .summary { margin: 18px 0 0; padding: 0; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 500; text-align: right; overflow-wrap: anywhere; min-width: 0; }
+    .row-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+    .secure { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+    .secure svg { width: 16px; height: 16px; }
+
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 16px; font-size: 15px; }
+    .result-box .t { font-weight: 700; }
+    .result-box .d { margin-top: 2px; overflow-wrap: anywhere; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--warn); }
+    .result-box.error { display: block; background: var(--err-bg); color: var(--err); }
+    .result-box .again { margin-top: 10px; }
+
+    .foot { padding: 4px 0 40px; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0 18px; align-items: center; }
+    .foot a { min-height: 44px; display: inline-flex; align-items: center; }
+    .foot span { min-height: 44px; display: inline-flex; align-items: center; }
+
+    .tabbar { display: none; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      .flow-col { order: -1; }
+      .topnav { display: none; }
+    }
+    @media (max-width: 720px) {
+      .wrap { padding: 0 12px; }
+      .appbar { padding-top: 10px; }
+      .bar { min-height: 60px; padding: 0 8px 0 14px; border-radius: 20px; gap: 10px; }
+      .mark { width: 34px; height: 34px; }
+      .wordmark b { font-size: 18px; }
+      .me .nm { display: none; }
+      .layout { margin: 12px auto 24px; gap: 14px; }
+      .flow { padding: 18px 16px 20px; }
+      h1 { font-size: 23px; line-height: 28px; }
+      .steps { margin: 10px 0 16px; }
+      .steps li + li::before { width: 12px; }
+      .amt input { font-size: 38px; }
+      .big { font-size: 40px; }
+      .account { padding: 18px; }
+      .acc-val { font-size: 30px; }
+      .side-card { margin-top: 14px; }
+      body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+      .tabbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: #fff; border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
+      .tabbar a { flex: 1; min-width: 0; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--muted); }
+      .tabbar a[aria-current] { color: var(--ink); }
+      .tabbar .scan { width: 54px; height: 54px; margin-top: -20px; border-radius: 50%; background: #000; color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+      #oncall-ribbon, #oncall-dot { bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="appbar">
+    <div class="wrap">
+      <div class="bar">
+        <a class="brand" href="#" aria-label="BCV TWINT, accueil">
+          <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+            <defs><linearGradient id="mk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF2E63"/><stop offset=".5" stop-color="#FFB000"/><stop offset="1" stop-color="#00C48C"/></linearGradient></defs>
+            <rect x="1" y="1" width="38" height="38" rx="12" fill="#fff"/>
+            <rect x="5" y="5" width="30" height="30" rx="9" fill="url(#mk)"/>
+            <text x="20" y="27.5" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-size="20" font-weight="900" fill="#000">B</text>
+          </svg>
+          <span class="wordmark"><b>BCV TWINT</b><small>Banque Cantonale Vaudoise</small></span>
+        </a>
+        <nav class="topnav" aria-label="Navigation principale">
+          <a href="#">Accueil</a>
+          <a href="#">Transactions</a>
+          <a href="#" aria-current="page">Envoyer</a>
+          <a href="#">Super Deals</a>
+          <a href="#">Cartes clients</a>
+        </nav>
+        <div class="tools">
+          <button type="button" class="icon-btn" aria-label="Notifications, 1 nouvelle"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="dot"></span></button>
+          <a href="#" class="me" aria-label="Profil de Camille Martin"><span class="ava">CM</span><span class="nm">Camille</span></a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <section class="flow-col">
+      <div class="card flow">
+        <div class="flow-head">
+          <button type="button" class="back" id="headBack" aria-label="Retour"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <h1>Envoyer de l’argent</h1>
+        </div>
+        <ol class="steps" aria-label="Étapes">
+          <li id="stepLbl1" class="on"><b>1</b>Montant et contact</li>
+          <li id="stepLbl2"><b>2</b>Confirmer</li>
+        </ol>
+
+        <form id="transferForm" novalidate>
+          <div class="edit" id="stepEdit">
+            <div class="amount-box">
+              <label for="amount">Montant</label>
+              <div class="amt"><span aria-hidden="true">CHF</span><input type="number" id="amount" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" autocomplete="off"></div>
+              <div class="chips" role="group" aria-label="Montants rapides">
+                <button type="button" class="chip" data-amount="10">10</button>
+                <button type="button" class="chip" data-amount="20">20</button>
+                <button type="button" class="chip" data-amount="50">50</button>
+                <button type="button" class="chip" data-amount="100">100</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="lbl" id="recentLbl">Contacts récents</span>
+              <div class="recent" id="recent" role="group" aria-labelledby="recentLbl"></div>
+            </div>
+
+            <div class="field">
+              <label for="toAccount">À</label>
+              <select id="toAccount">
+                <option value="">Choisir un contact TWINT</option>
+                <option value="P2P-41794128803" data-name="Léa Rochat" data-short="Léa" data-phone="+41 79 412 88 03" data-ini="LR" data-bg="#FFE1E8" data-fg="#A3133A">Léa Rochat · +41 79 412 88 03</option>
+                <option value="P2P-41786152047" data-name="Julien Favre" data-short="Julien" data-phone="+41 78 615 20 47" data-ini="JF" data-bg="#E1ECFF" data-fg="#1D4FA8">Julien Favre · +41 78 615 20 47</option>
+                <option value="P2P-41763309112" data-name="Sofia Bianchi" data-short="Sofia" data-phone="+41 76 330 91 12" data-ini="SB" data-bg="#FFF0D6" data-fg="#8A5300">Sofia Bianchi · +41 76 330 91 12</option>
+                <option value="P2P-41792075564" data-name="Marc-André Jaquier" data-short="Marc-André" data-phone="+41 79 207 55 64" data-ini="MJ" data-bg="#DDF5EA" data-fg="#0B6B39">Marc-André Jaquier · +41 79 207 55 64</option>
+                <option value="P2P-41774881630" data-name="Nadia Berset" data-short="Nadia" data-phone="+41 77 488 16 30" data-ini="NB" data-bg="#EDE4FF" data-fg="#5B2DB3">Nadia Berset · +41 77 488 16 30</option>
+                <option value="P2P-41216147720" data-name="Thomas Roulin" data-short="Thomas" data-phone="+41 21 614 77 20" data-ini="TR" data-bg="#E8E8E8" data-fg="#333333">Thomas Roulin · +41 21 614 77 20</option>
+              </select>
+              <small id="toHelp">Contacts de votre carnet d’adresses qui utilisent TWINT.</small>
+            </div>
+
+            <div class="field">
+              <label for="note">Message</label>
+              <textarea id="note" maxlength="400" placeholder="Ajouter un message (facultatif)"></textarea>
+              <span class="count" id="noteCount">0 / 400</span>
+            </div>
+
+            <div class="field">
+              <label for="fromAccount">Débiter</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001" data-name="Compte privé" data-iban="CH56 0076 7000 K523 0418 7" data-balance="2418.65">Compte privé · CH56 0076 7000 K523 0418 7</option>
+                <option value="ACCT-1002" data-name="Compte épargne" data-iban="CH12 0076 7000 S523 0418 9" data-balance="9860.20">Compte épargne · CH12 0076 7000 S523 0418 9</option>
+              </select>
+              <small id="fromHelp"></small>
+            </div>
+
+            <select id="accountTier" hidden aria-hidden="true" tabindex="-1"><option value="standard">standard</option></select>
+
+            <button type="button" class="btn btn-primary" id="nextBtn">Suivant</button>
+          </div>
+
+          <div class="confirm" id="stepConfirm" hidden>
+            <div class="payee">
+              <span class="ava" id="cfAva" aria-hidden="true"></span>
+              <div><b id="cfName"></b><small id="cfPhone"></small></div>
+            </div>
+            <div class="big num"><span>CHF</span><span id="cfAmount" style="font-size:inherit;color:inherit;font-weight:inherit;margin:0"></span></div>
+            <p class="msg-preview" id="cfNote"></p>
+            <dl class="summary">
+              <div><dt>Débité de</dt><dd id="cfFrom"></dd></div>
+              <div><dt>Exécution</dt><dd>Immédiate</dd></div>
+            </dl>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Envoyer</button>
+            <div class="row-actions">
+              <span class="secure"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Confirmé avec votre code TWINT</span>
+              <button type="button" class="btn btn-ghost" id="editBtn">Modifier</button>
+            </div>
+          </div>
+
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <aside>
+      <div class="account">
+        <div class="acc-top"><span class="acc-lbl" id="accLbl">Compte lié · Compte privé</span><span class="bank-tag">BCV</span></div>
+        <div class="acc-val num"><span>CHF</span><b id="accBal" style="font-weight:inherit"></b></div>
+        <div class="acc-sub" id="accIban"></div>
+        <nav class="actions" aria-label="Actions TWINT">
+          <a href="#"><span class="c"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg></span>Payer</a>
+          <a href="#" aria-current="page"><span class="c"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></span>Envoyer</a>
+          <a href="#"><span class="c"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7L7 17M15 17H7V9"/></svg></span>Demander</a>
+          <a href="#"><span class="c"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3 20a6 6 0 0 1 12 0M15 20a4.5 4.5 0 0 1 6.5-4"/></svg></span>Partager</a>
+        </nav>
+      </div>
+
+      <div class="card side-card">
+        <h2>Limite d’envoi <a href="#">Modifier</a></h2>
+        <div class="limit-row"><span>Utilisé sur 30 jours</span><b class="num" id="limUsed"></b></div>
+        <div class="meter" aria-hidden="true"><i id="limBar"></i></div>
+        <div class="limit-row"><span>Encore disponible</span><b class="num" id="limLeft"></b></div>
+      </div>
+
+      <div class="card side-card">
+        <h2>Transactions <a href="#">Tout afficher</a></h2>
+        <ul class="tx" id="txList">
+          <li><span class="ava" style="background:#FFE1E8;color:#A3133A">LR</span><div class="who"><div class="n">Léa Rochat</div><div class="d">Reçu · Hier, 21:14 · Pizza vendredi</div></div><span class="v in">+25.00</span></li>
+          <li><span class="ava" style="background:#FFEBD6;color:#9A4A00">C</span><div class="who"><div class="n">Coop Pronto Lausanne Gare</div><div class="d">Paiement · Hier, 18:02</div></div><span class="v">−12.40</span></li>
+          <li><span class="ava" style="background:#E8E8E8;color:#333">P</span><div class="who"><div class="n">Parking de la Riponne</div><div class="d">Mobilité · 24.10., 14:37</div></div><span class="v">−6.00</span></li>
+          <li><span class="ava" style="background:#E1ECFF;color:#1D4FA8">JF</span><div class="who"><div class="n">Julien Favre</div><div class="d">Envoyé · 23.10., 19:50 · Billets Paléo</div></div><span class="v">−89.00</span></li>
+          <li><span class="ava" style="background:#FFE7D1;color:#B04A00">M</span><div class="who"><div class="n">Migros Online</div><div class="d">Paiement en ligne · 22.10.</div></div><span class="v">−143.85</span></li>
+          <li><span class="ava" style="background:#FDE2E2;color:#B3261E">CFF</span><div class="who"><div class="n">CFF Mobile</div><div class="d">Mobilité · 21.10.</div></div><span class="v">−8.60</span></li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="wrap foot">
+    <span>BCV TWINT · une app de la Banque Cantonale Vaudoise</span>
+    <a href="#">Aide et contact</a><a href="#">Conditions d’utilisation</a><a href="#">Protection des données</a><a href="#">Signaler un phishing</a>
+  </footer>
+
+  <nav class="tabbar" aria-label="Navigation de l’app">
+    <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Accueil</a>
+    <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Transactions</a>
+    <a href="#" aria-label="Payer, scanner un code QR"><span class="scan"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg></span></a>
+    <a href="#" aria-current="page"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>Envoyer</a>
+    <a href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Profil</a>
+  </nav>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      var form = $('transferForm');
+      var fromAccount = $('fromAccount');
+      var toAccount = $('toAccount');
+      var amountInput = $('amount');
+      var accountTier = $('accountTier');
+      var note = $('note');
+      var nextBtn = $('nextBtn');
+      var submitBtn = $('submitBtn');
+      var editBtn = $('editBtn');
+      var result = $('result');
+      var stepEdit = $('stepEdit');
+      var stepConfirm = $('stepConfirm');
+      var recent = $('recent');
+      var LIMIT = 300000;
+      var limitUsed = 64000;
+      var balances = {};
+      Array.prototype.forEach.call(fromAccount.options, function (o) { balances[o.value] = Math.round(Number(o.dataset.balance) * 100); });
+      var step = 'edit';
+      var pending = false;
+
+      var num = new Intl.NumberFormat('de-CH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      var timeFmt = new Intl.DateTimeFormat('fr-CH', { hour: '2-digit', minute: '2-digit' });
+      function chf(c) { return num.format(c / 100); }
+      function sel(s) { return s.options[s.selectedIndex]; }
+      function contact() { return toAccount.value ? sel(toAccount) : null; }
+      function amountCents() {
+        var raw = amountInput.value.trim().replace(',', '.');
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return Math.round(parseFloat(raw) * 100);
+      }
+      function available() { return balances[fromAccount.value] || 0; }
+      function maxSend() { return Math.max(0, Math.min(available(), LIMIT - limitUsed)); }
+
+      Array.prototype.forEach.call(toAccount.options, function (o) {
+        if (!o.value) return;
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'pick';
+        b.dataset.value = o.value;
+        b.setAttribute('aria-pressed', 'false');
+        b.innerHTML = '<span class="ava" aria-hidden="true"></span><span></span>';
+        b.firstChild.textContent = o.dataset.ini;
+        b.firstChild.style.background = o.dataset.bg;
+        b.firstChild.style.color = o.dataset.fg;
+        b.lastChild.textContent = o.dataset.short;
+        b.setAttribute('aria-label', o.dataset.name);
+        b.addEventListener('click', function () { if (pending) return; toAccount.value = o.value; render(); });
+        recent.appendChild(b);
+      });
+
+      function renderAccount() {
+        var o = sel(fromAccount);
+        $('accLbl').textContent = 'Compte lié · ' + o.dataset.name;
+        $('accBal').textContent = chf(available());
+        $('accIban').textContent = o.dataset.iban;
+        $('limUsed').textContent = 'CHF ' + chf(limitUsed) + ' / ' + chf(LIMIT);
+        $('limLeft').textContent = 'CHF ' + chf(LIMIT - limitUsed);
+        $('limBar').style.width = Math.min(100, (limitUsed / LIMIT) * 100).toFixed(1) + '%';
+      }
+      function render() {
+        accountTier.value = 'standard';
+        var o = sel(fromAccount);
+        var c = contact();
+        $('fromHelp').textContent = 'Disponible CHF ' + chf(available()) + ' · envoi maximum CHF ' + chf(maxSend());
+        $('toHelp').textContent = c ? c.dataset.phone + ' · utilise TWINT' : 'Contacts de votre carnet d’adresses qui utilisent TWINT.';
+        $('noteCount').textContent = note.value.length + ' / 400';
+        Array.prototype.forEach.call(recent.children, function (b) { b.setAttribute('aria-pressed', String(Boolean(c) && b.dataset.value === c.value)); });
+        var cents = amountCents();
+        var ok = Number.isFinite(cents) && cents > 0;
+        $('cfAva').textContent = c ? c.dataset.ini : '';
+        $('cfAva').style.background = c ? c.dataset.bg : '';
+        $('cfAva').style.color = c ? c.dataset.fg : '';
+        $('cfName').textContent = c ? c.dataset.name : '';
+        $('cfPhone').textContent = c ? c.dataset.phone : '';
+        $('cfAmount').textContent = ok ? chf(cents) : '';
+        $('cfNote').textContent = note.value.trim() ? '« ' + note.value.trim() + ' »' : '';
+        $('cfFrom').textContent = o.dataset.name + ' · ' + o.dataset.iban;
+        if (!pending) submitBtn.textContent = ok ? 'Envoyer CHF ' + chf(cents) : 'Envoyer';
+        renderAccount();
+      }
+      function setStep(next) {
+        step = next;
+        stepEdit.hidden = next !== 'edit';
+        stepConfirm.hidden = next !== 'confirm';
+        $('stepLbl1').className = next === 'edit' ? 'on' : 'done';
+        $('stepLbl2').className = next === 'confirm' ? 'on' : '';
+      }
+      function show(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '<div class="t"></div><div class="d"></div>';
+        result.firstChild.textContent = title;
+        result.lastChild.textContent = detail || '';
+      }
+      function clearResult() { result.className = 'result-box'; result.innerHTML = ''; }
+      function validate() {
+        var cents = amountCents();
+        if (!Number.isFinite(cents) || cents <= 0) { show('notice', 'Montant manquant', 'Saisissez un montant en CHF, par exemple 20.00.'); amountInput.focus(); return false; }
+        if (!contact()) { show('notice', 'Contact manquant', 'Choisissez la personne à qui envoyer l’argent.'); toAccount.focus(); return false; }
+        if (cents > available()) { show('notice', 'Solde insuffisant', 'Le montant dépasse le solde disponible du ' + sel(fromAccount).dataset.name.toLowerCase() + ' (CHF ' + chf(available()) + ').'); amountInput.focus(); return false; }
+        if (cents > LIMIT - limitUsed) { show('notice', 'Limite d’envoi atteinte', 'Vous pouvez encore envoyer CHF ' + chf(LIMIT - limitUsed) + ' sur les 30 derniers jours.'); amountInput.focus(); return false; }
+        return true;
+      }
+      function goConfirm() {
+        if (pending) return;
+        clearResult();
+        if (!validate()) return;
+        render();
+        setStep('confirm');
+        submitBtn.focus();
+      }
+      function lock(on) {
+        [fromAccount, toAccount, amountInput, note, editBtn, $('headBack')].forEach(function (el) { el.disabled = on; });
+        Array.prototype.forEach.call(document.querySelectorAll('.chip, .pick'), function (el) { el.disabled = on; });
+      }
+      function addTx(c, cents, at) {
+        var li = document.createElement('li');
+        li.className = 'fresh';
+        li.innerHTML = '<span class="ava"></span><div class="who"><div class="n"></div><div class="d"></div></div><span class="v"></span>';
+        li.querySelector('.ava').textContent = c.dataset.ini;
+        li.querySelector('.ava').style.background = c.dataset.bg;
+        li.querySelector('.ava').style.color = c.dataset.fg;
+        li.querySelector('.n').textContent = c.dataset.name;
+        li.querySelector('.d').textContent = 'Envoyé · Aujourd’hui, ' + at + (note.value.trim() ? ' · ' + note.value.trim() : '');
+        li.querySelector('.v').textContent = '\u2212' + chf(cents);
+        $('txList').insertBefore(li, $('txList').firstChild);
+      }
+
+      amountInput.addEventListener('input', render);
+      note.addEventListener('input', render);
+      fromAccount.addEventListener('change', render);
+      toAccount.addEventListener('change', render);
+      Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (b) {
+        b.addEventListener('click', function () { amountInput.value = Number(b.dataset.amount).toFixed(2); render(); });
+      });
+      nextBtn.addEventListener('click', goConfirm);
+      editBtn.addEventListener('click', function () { if (pending) return; clearResult(); setStep('edit'); amountInput.focus(); });
+      $('headBack').addEventListener('click', function () { if (pending) return; if (step === 'confirm') { clearResult(); setStep('edit'); } });
+      form.addEventListener('reset', function () {
+        setTimeout(function () { clearResult(); setStep('edit'); submitBtn.hidden = false; editBtn.hidden = false; render(); });
+      });
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (pending) return;
+        if (step !== 'confirm') { goConfirm(); return; }
+        if (!validate()) { setStep('edit'); return; }
+        var c = contact();
+        var fromId = fromAccount.value;
+        pending = true;
+        lock(true);
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Envoi en cours…';
+        clearResult();
+        var response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim().replace(',', '.')),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          var data = await response.json().catch(function () { return null; });
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          var at = timeFmt.format(new Date(data.receipt.timestamp));
+          var sent = Math.round(Number(data.receipt.amount) * 100);
+          if (data.duplicate) {
+            show('notice', 'Déjà envoyé', 'Cet envoi a déjà été effectué à ' + at + ' : CHF ' + chf(sent) + ' à ' + c.dataset.name + ', réf. ' + data.receipt.receiptId + '. Il n’a pas été renvoyé.');
+            return;
+          }
+          var debited = Math.round(Number(data.debitAmount != null ? data.debitAmount : (data.receipt.totalDebit != null ? data.receipt.totalDebit : data.receipt.amount)) * 100);
+          balances[fromId] = (balances[fromId] || 0) - debited;
+          limitUsed += sent;
+          addTx(c, sent, at);
+          show('success', 'Envoyé à ' + c.dataset.short, 'CHF ' + chf(sent) + ' à ' + c.dataset.name + ' à ' + at + '. L’argent est déjà sur son compte. Réf. ' + data.receipt.receiptId + '.');
+          var again = document.createElement('button');
+          again.type = 'reset';
+          again.className = 'btn btn-ghost again';
+          again.textContent = 'Nouvel envoi';
+          result.appendChild(again);
+          submitBtn.hidden = true;
+          editBtn.hidden = true;
+        } catch (_e) {
+          if (response && !response.ok) show('error', 'Envoi impossible', 'L’argent n’a pas été envoyé et votre compte n’a pas été débité. Réessayez dans quelques instants.');
+          else show('error', 'Envoi non confirmé', 'Nous n’avons pas pu confirmer cet envoi. Vérifiez vos transactions avant de réessayer.');
+        } finally {
+          pending = false;
+          lock(false);
+          submitBtn.disabled = false;
+          render();
+        }
+      });
+
+      render();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
