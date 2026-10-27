@@ -6497,6 +6497,38 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A SEB PANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real SEB Pank product.',
   },
+  'b804e8ab': {
+    slug: 'b804e8ab',
+    company: 'bp pulse',
+    brandMark: 'bp',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it. Keep the
+      // file's own <title> in sync with page.title.
+      file: 'b804e8ab.html',
+      title: 'Membership | My account | bp pulse UK',
+    },
+    theme: {
+      '--accent': '#000096',
+      '--ink': '#111111',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#111111',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'bp pulse Help and support',
+    alertCard: {
+      title: 'p95 latency \u2014 membership change: PAYG to Full membership',
+      service: 'membership-api',
+      release: 'member-account-web@3.2.1',
+      team: 'membership-oncall',
+      baseline: '~300ms (7-day p95)',
+      symptom: 'Membership changes from My account \u2192 Membership hang ~8s after the member selects Upgrade to Full membership before the confirmation appears. Error rate is normal \u2014 the membership changes.',
+      impact: 'Members wait ~8 seconds to move to Full membership; some select Upgrade again or leave the page before Subscriber rates are confirmed.',
+    },
+    disclaimer: 'NOT ACTUALLY A BP PULSE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real bp pulse product.',
+  },
 };
 
 function getOncallSkin(slug) {
