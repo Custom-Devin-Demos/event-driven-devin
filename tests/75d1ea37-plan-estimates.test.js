@@ -25,7 +25,7 @@ describe('AGL plan estimates (75d1ea37)', () => {
     expect(result.success).toBe(true);
     expect(result.quoteId).toMatch(/^AGL-Q-[0-9A-F]{8}$/);
     expect(result.supplyPoint).toMatchObject({ network: 'Ausgrid', tariffCode: 'EA010', state: 'NSW' });
-    expect(result.plans.map((p) => p.id)).toEqual(PLANS.map((p) => p.id));
+    expect(result.plans.map((p) => p.id)).toEqual(PLANS.filter((p) => !p.requiresSmartMeter).map((p) => p.id));
     expect(result.plans[0].electricity.annual).toBeGreaterThan(1000);
     expect(result.plans[0].gas.annual).toBeGreaterThan(400);
     expect(createSessionAndAlert).not.toHaveBeenCalled();
@@ -52,5 +52,28 @@ describe('AGL plan estimates (75d1ea37)', () => {
       service: 'customer-75d1ea37-plan-pricing',
       devinUserId: 'u1',
     }));
+  });
+});
+
+describe('AGL plan eligibility (75d1ea37)', () => {
+  test('Three for Free is only quoted for smart meters with electricity', async () => {
+    const basic = await estimatePlans({ address: '41 Campbell Parade, Bondi Beach NSW 2026' });
+    expect(basic.plans.map((p) => p.id)).not.toContain('three-for-free');
+    const gasOnly = await estimatePlans({ address: '48 Station Street, Penrith NSW 2750', electricity: false });
+    expect(gasOnly.plans.map((p) => p.id)).not.toContain('three-for-free');
+    const smart = await estimatePlans({ address: '48 Station Street, Penrith NSW 2750' });
+    expect(smart.plans.map((p) => p.id)).toContain('three-for-free');
+  });
+
+  test('join-online credits apply only in NSW and SA', async () => {
+    const vic = await estimatePlans({ address: '220 Lygon Street, Carlton VIC 3053' });
+    const nsw = await estimatePlans({ address: '41 Campbell Parade, Bondi Beach NSW 2026' });
+    expect(vic.plans[0].electricity.annual).toBe(1490);
+    expect(nsw.plans[0].electricity.annual).toBe(1514);
+  });
+
+  test('pricing failures are on the Sentry webhook instant path', () => {
+    const { isInstantPathEvent } = jest.requireActual('../app/routes/sentry-webhook');
+    expect(isInstantPathEvent({ culprit: 'app/services/verticals/75d1ea37.js — estimateAnnualElectricity', tags: [] })).toBe(true);
   });
 });

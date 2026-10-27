@@ -11,6 +11,7 @@ const QUOTE_PREFIX = 'AGL-Q';
 /** AER / ESC reference usage for the published estimates. */
 const REFERENCE_USAGE = { electricityKwhPerYear: 3900, gasMjPerDay: 39 };
 const JOIN_ONLINE_CREDIT = { electricity: 150, gas: 150 };
+const JOIN_ONLINE_CREDIT_STATES = ['NSW', 'SA'];
 const SOLAR_EXPORT_KWH_PER_YEAR = 2400;
 
 /**
@@ -76,7 +77,7 @@ const RETAIL_RATE_CARDS = {
 const PLANS = [
   { id: 'smart-saver', name: 'AGL Smart Saver', tagline: 'For homes that want everyday low rates', usageFactor: 1, monthlyInclusion: 0, freeUsageShare: 0 },
   { id: 'netflix', name: 'AGL Netflix Plan', tagline: 'For homes that love Netflix', usageFactor: 1.004, monthlyInclusion: 0, freeUsageShare: 0, addOn: 'Netflix Standard with ads included' },
-  { id: 'three-for-free', name: 'AGL Three for Free', tagline: 'For homes that can shift electricity usage to 11am\u20132pm', usageFactor: 1.24, monthlyInclusion: 0, freeUsageShare: 0.12, joinCredit: false },
+  { id: 'three-for-free', name: 'AGL Three for Free', tagline: 'For homes that can shift electricity usage to 11am\u20132pm', usageFactor: 1.24, monthlyInclusion: 0, freeUsageShare: 0.12, joinCredit: false, requiresSmartMeter: true, requiresElectricity: true },
 ];
 
 const SOLAR_FEED_IN_CENTS = 8;
@@ -125,19 +126,29 @@ function resolveNetworkTariff(site) {
 }
 
 /** Annual electricity cost in dollars for a plan on the site's network tariff. */
+function joinCreditApplies(plan, state) {
+  return plan.joinCredit !== false && JOIN_ONLINE_CREDIT_STATES.includes(state);
+}
+
+function isPlanAvailable(plan, site, options) {
+  if (plan.requiresSmartMeter && site.meterType !== 'smart') return false;
+  if (plan.requiresElectricity && !options.electricity) return false;
+  return true;
+}
+
 function estimateAnnualElectricity(rateCard, plan, options) {
   const supply = (rateCard.dailySupplyCharge * 365) / 100;
   const billableKwh = REFERENCE_USAGE.electricityKwhPerYear * (1 - plan.freeUsageShare);
   const usage = (billableKwh * rateCard.usageCentsPerKwh * plan.usageFactor) / 100;
   const feedIn = options.solar ? (SOLAR_EXPORT_KWH_PER_YEAR * SOLAR_FEED_IN_CENTS) / 100 : 0;
-  const credit = plan.joinCredit === false ? 0 : JOIN_ONLINE_CREDIT.electricity;
+  const credit = joinCreditApplies(plan, options.state) ? JOIN_ONLINE_CREDIT.electricity : 0;
   return Math.max(0, Math.round(supply + usage - feedIn - credit));
 }
 
-function estimateAnnualGas(gasNetwork, plan) {
+function estimateAnnualGas(gasNetwork, plan, state) {
   const supply = (gasNetwork.dailySupplyCents * 365) / 100;
   const usage = (REFERENCE_USAGE.gasMjPerDay * 365 * gasNetwork.usageCentsPerMj) / 100;
-  const credit = plan.joinCredit === false ? 0 : JOIN_ONLINE_CREDIT.gas;
+  const credit = joinCreditApplies(plan, state) ? JOIN_ONLINE_CREDIT.gas : 0;
   return Math.max(0, Math.round(supply + usage - credit));
 }
 
@@ -182,10 +193,10 @@ async function estimatePlans(data = {}) {
     tariffCode = tariff.tariffCode;
     const gasNetwork = GAS_NETWORKS[site.gasNetwork];
 
-    const plans = PLANS.map((plan) => {
+    const plans = PLANS.filter((plan) => isPlanAvailable(plan, site, normalized)).map((plan) => {
       const result = { id: plan.id, name: plan.name, tagline: plan.tagline, addOn: plan.addOn || null };
       if (normalized.electricity) {
-        const annual = estimateAnnualElectricity(tariff.rateCard, plan, normalized);
+        const annual = estimateAnnualElectricity(tariff.rateCard, plan, { ...normalized, state: site.state });
         const vsReference = Math.round(((network.referencePrice - annual) / network.referencePrice) * 100);
         result.electricity = {
           annual,
@@ -198,7 +209,7 @@ async function estimatePlans(data = {}) {
         };
       }
       if (normalized.gas && gasNetwork) {
-        const annual = estimateAnnualGas(gasNetwork, plan);
+        const annual = estimateAnnualGas(gasNetwork, plan, site.state);
         result.gas = { annual, monthly: Math.round(annual / 12), estimate: priceForPeriod(annual, normalized.period) };
       }
       return result;
@@ -306,6 +317,7 @@ module.exports = {
   resolveNetworkTariff,
   estimateAnnualElectricity,
   estimateAnnualGas,
+  isPlanAvailable,
   SUPPLY_POINTS,
   NETWORKS,
   NETWORK_TARIFF_ASSIGNMENT,

@@ -249,6 +249,8 @@
 
   function renderQuote(q){
     lastQuote = q;
+    const quoted = new Set(q.plans.map(p => p.id));
+    document.querySelectorAll('.plan').forEach(card => { card.style.display = quoted.has(card.dataset.plan) ? '' : 'none'; });
     q.plans.forEach(p => {
       const card = document.querySelector(`.plan[data-plan="${p.id}"]`);
       if (!card) return;
@@ -273,8 +275,9 @@
     if (lastQuote) renderQuote(lastQuote);
   }));
   document.querySelectorAll('.btn.check').forEach(b => b.addEventListener('click', () => {
-    if (lastQuote) return;
-    document.getElementById('estimateForm').requestSubmit();
+    if (!lastQuote) { document.getElementById('estimateForm').requestSubmit(); return; }
+    const plan = lastQuote.plans.find(p => p.id === b.closest('.plan').dataset.plan);
+    showToast(true, '<h6>' + esc(plan ? plan.name : 'Plan') + ' selected</h6>We\u2019ll take you through sign-up next. Your quote reference is <b>' + esc(lastQuote.quoteId) + '</b>.');
   }));
 
   document.getElementById('estimateForm').addEventListener('submit', async e => {
