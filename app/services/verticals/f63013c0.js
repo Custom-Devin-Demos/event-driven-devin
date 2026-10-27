@@ -98,6 +98,56 @@ const CARREFOUR_BASKET = {
   ],
 };
 
+// Back Market skin (/f63013c0/rb/backmarket): Smart Essentials refurbished
+// tech in GBP for a UK customer. giftBoxEligible here is the "case & screen
+// protector" add-on, offered on phones and tablets only.
+const BACKMARKET_CATALOG = [
+  { sku: 'BM-WA-001', name: 'Samsung Galaxy Watch4', price: 55, category: 'Smartwatches', giftBoxEligible: false },
+  { sku: 'BM-WA-002', name: 'Samsung Galaxy Watch5', price: 56, category: 'Smartwatches', giftBoxEligible: false },
+  { sku: 'BM-PH-003', name: 'iPhone SE (2020)', price: 62, category: 'Smartphones', giftBoxEligible: true },
+  { sku: 'BM-WA-004', name: 'Google Pixel Watch 2', price: 69, category: 'Smartwatches', giftBoxEligible: false },
+  { sku: 'BM-WA-005', name: 'Samsung Galaxy Watch7', price: 73, category: 'Smartwatches', giftBoxEligible: false },
+  { sku: 'BM-WA-006', name: 'Samsung Galaxy Watch6', price: 76, category: 'Smartwatches', giftBoxEligible: false },
+  { sku: 'BM-WA-007', name: 'Google Pixel Watch', price: 82, category: 'Smartwatches', giftBoxEligible: false },
+  { sku: 'BM-AU-008', name: 'AirPods 3', price: 89, category: 'Audio', giftBoxEligible: false },
+  { sku: 'BM-PH-009', name: 'Galaxy A15', price: 94, category: 'Smartphones', giftBoxEligible: true },
+  { sku: 'BM-TA-010', name: 'iPad 8 (2020, A12 series)', price: 97, category: 'Tablets', giftBoxEligible: true },
+  { sku: 'BM-GC-011', name: 'PlayStation 4 Slim', price: 107, category: 'Game consoles', giftBoxEligible: false },
+  { sku: 'BM-GC-012', name: 'Switch Lite', price: 108, category: 'Game consoles', giftBoxEligible: false },
+  { sku: 'BM-PH-013', name: 'Galaxy A15 5G', price: 109, category: 'Smartphones', giftBoxEligible: true },
+  { sku: 'BM-WA-014', name: 'Apple Watch SE Series 2', price: 111, category: 'Smartwatches', giftBoxEligible: false },
+  { sku: 'BM-PH-015', name: 'Galaxy A53 5G', price: 113, category: 'Smartphones', giftBoxEligible: true },
+];
+
+const BACKMARKET_ACCOUNT = {
+  id: 'cus_oliver_uk',
+  name: 'Oliver Bennett',
+  email: 'oliver.bennett@example.co.uk',
+  address: {
+    id: 'addr_oliver_london',
+    line1: '14 Chalk Farm Road',
+    line2: 'Flat 3',
+    city: 'London',
+    postcode: 'NW1 8AB',
+    country: 'United Kingdom',
+  },
+  card: {
+    token: 'tok_oliver_uk_visa_4242',
+    brand: 'Visa',
+    last4: '4242',
+    exp: '11/29',
+  },
+  cartId: 'bsk_oliver_uk',
+};
+
+const BACKMARKET_BASKET = {
+  cartId: 'bsk_oliver_uk',
+  lines: [
+    { sku: 'BM-PH-003', qty: 1, giftBox: true },
+    { sku: 'BM-WA-001', qty: 1 },
+  ],
+};
+
 const BRANDS = {
   rl: {
     key: 'rl',
@@ -121,6 +171,17 @@ const BRANDS = {
     currency: 'EUR',
     descriptor: 'CARREFOUR',
   },
+  backmarket: {
+    key: 'backmarket',
+    label: 'Back Market — Smart Essentials Checkout',
+    site: 'backmarket.co.uk',
+    catalog: BACKMARKET_CATALOG,
+    account: BACKMARKET_ACCOUNT,
+    basket: BACKMARKET_BASKET,
+    giftBoxFee: 9.99,
+    currency: 'GBP',
+    descriptor: 'BACK MARKET',
+  },
 };
 
 function brandOf(key) {
@@ -128,6 +189,7 @@ function brandOf(key) {
 }
 
 function formatShipTo(addr) {
+  if (addr.postcode) return `${addr.line1}${addr.line2 ? `, ${addr.line2}` : ''}, ${addr.city} ${addr.postcode}${addr.country ? `, ${addr.country}` : ''}`;
   if (addr.state) return `${addr.line1}${addr.line2 ? `, ${addr.line2}` : ''}, ${addr.city}, ${addr.state} ${addr.zip}`;
   return `${addr.line1}${addr.line2 ? `, ${addr.line2}` : ''}, ${addr.zip} ${addr.city}${addr.country ? `, ${addr.country}` : ''}`;
 }
@@ -638,6 +700,8 @@ module.exports = {
   GIFT_BOX_FEE,
   CARREFOUR_CATALOG,
   CARREFOUR_ACCOUNT,
+  BACKMARKET_CATALOG,
+  BACKMARKET_ACCOUNT,
   SYNTHETIC_CUSTOMERS,
   getAccount,
   getCatalog,
