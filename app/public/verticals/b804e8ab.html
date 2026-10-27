@@ -283,7 +283,7 @@
               <div class="row"><span>Membership</span><span id="sumPlan">&mdash;</span></div>
               <div class="row"><span>Monthly fee</span><span id="sumFee">&mdash;</span></div>
               <div class="row free"><span>First month</span><span>Free</span></div>
-              <div class="row"><span>First payment</span><span id="sumFirst">&mdash;</span></div>
+              <div class="row"><span>First payment</span><span>After your free month</span></div>
               <div class="row"><span>Pay with</span><span id="sumCard">&mdash;</span></div>
               <div class="row"><span>Charge card</span><span id="sumAddon">&mdash;</span></div>
               <div class="row total"><span>Due today</span><span>&pound;0.00</span></div>
@@ -332,14 +332,6 @@
 
       function selected(sel) { return sel.options[sel.selectedIndex]; }
       function money(n) { return '\u00a3' + n.toFixed(2); }
-      function firstPaymentDate() {
-        var d = new Date();
-        var day = d.getDate();
-        d.setDate(1);
-        d.setMonth(d.getMonth() + 1);
-        d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
-        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-      }
       function fmtDate(iso) {
         var d = iso ? new Date(iso + 'T12:00:00') : new Date();
         if (isNaN(d.getTime())) d = new Date();
@@ -349,7 +341,6 @@
         var plan = selected(newPlan);
         document.getElementById('sumPlan').textContent = plan.dataset.label;
         document.getElementById('sumFee').textContent = money(parseFloat(plan.dataset.fee) || 0) + ' a month';
-        document.getElementById('sumFirst').textContent = firstPaymentDate();
         document.getElementById('sumCard').innerHTML = selected(payCard).dataset.label;
         document.getElementById('sumAddon').textContent = selected(addon).dataset.label;
       }
@@ -383,12 +374,6 @@
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
         if (btn.disabled) return;
-        var submitted = {
-          plan: selected(newPlan).dataset.label,
-          fee: parseFloat(selected(newPlan).dataset.fee) || 0,
-          card: selected(payCard).dataset.label,
-          chargeCard: addon.value === 'charge-card',
-        };
         result.className = 'result-box';
         result.innerHTML = '';
         setBusy(true);
@@ -418,7 +403,7 @@
         }
         var ref = 'BPP-' + String(data.upgradeId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
         result.className = 'result-box success';
-        result.innerHTML = '<div class="t">You\u2019re now a Full member</div><div class="d">Reference ' + ref + ' &middot; Subscriber rates apply from ' + fmtDate(data.effectiveDate) + '. Your first month is free, then ' + money(submitted.fee) + ' a month from ' + submitted.card + ' starting ' + firstPaymentDate() + '.' + (submitted.chargeCard ? ' We\u2019ll post your bp pulse charge card to the address on your account.' : '') + '</div>';
+        result.innerHTML = '<div class="t">You\u2019re now a Full member</div><div class="d">Reference ' + ref + ' &middot; Subscriber rates apply from ' + fmtDate(data.effectiveDate) + '. Your first month is free. You can see your billing details in Membership.</div>';
         document.getElementById('planCurrentTag').textContent = 'Previous membership';
         document.getElementById('planNewTag').textContent = 'Current membership';
         setBusy(false);
