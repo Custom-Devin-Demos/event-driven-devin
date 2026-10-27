@@ -54,7 +54,7 @@ function withDeadline(promise, ms) {
 function validateReportRequest(data = {}) {
   if (data.patientId !== DEMO_PATIENT.id) throw invalidReport('Select a patient.');
   if (!UPLOAD_TYPES.includes(data.uploadType)) throw invalidReport('Select an upload type.');
-  if (!UPLOAD_SOURCES[data.uploadSource]) throw invalidReport('Select an upload source.');
+  if (!Object.prototype.hasOwnProperty.call(UPLOAD_SOURCES, data.uploadSource)) throw invalidReport('Select an upload source.');
   const periodDays = Number(data.periodDays);
   if (!REPORT_PERIODS.includes(periodDays)) throw invalidReport('Choose a report period.');
   return { patientId: data.patientId, uploadType: data.uploadType, uploadSource: data.uploadSource, periodDays };

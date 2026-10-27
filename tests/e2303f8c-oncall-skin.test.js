@@ -141,6 +141,7 @@ describe('device upload & report on-call vertical', () => {
     await expect(generateReport({ patientId: 'PT-0', uploadType: 'full', uploadSource: 'clinic-usb', periodDays: 14 }))
       .rejects.toMatchObject({ code: 'INVALID_REPORT_REQUEST' });
     expect((await postReport({ uploadType: 'incremental', uploadSource: 'fax', periodDays: 14 })).status).toBe(400);
+    expect((await postReport({ uploadType: 'incremental', uploadSource: 'toString', periodDays: 14 })).status).toBe(400);
     const res = await postReport({ uploadType: 'full', periodDays: 3 });
     expect(res.status).toBe(400);
   });
