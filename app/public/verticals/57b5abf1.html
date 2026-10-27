@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Issue guarantee | District</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #0A5EF0;
+      --ink: #002346;
+      --surface: #FFFFFF;
+      --chrome-bg: #002346;
+      --chrome-text: #FFFFFF;
+      --canvas: #F2F2EE;
+      --panel: #EBEBE6;
+      --line: #D6D6CF;
+      --field: #9AA5B1;
+      --muted: #5A6B7D;
+      --ok: #0B6B3A; --ok-bg: #E6F4EA;
+      --warn: #C2410C; --warn-bg: #FFF1E8;
+      --info-bg: #E7EFFD;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; overflow-x: hidden; font-family: Figtree, "Helvetica Neue", Arial, sans-serif; color: var(--ink); background: var(--canvas); font-size: 14px; line-height: 20px; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; color: inherit; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    .top { background: var(--chrome-bg); color: var(--chrome-text); }
+    .top-in { display: flex; align-items: center; gap: 20px; min-height: 56px; padding: 0 20px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: inherit; text-decoration: none; font-weight: 600; font-size: 17px; white-space: nowrap; }
+    .brand svg { width: 30px; height: 30px; flex: none; }
+    .brand .product { font-weight: 400; opacity: .85; padding-left: 10px; border-left: 1px solid rgba(255,255,255,.35); }
+    .top-right { margin-left: auto; display: flex; align-items: center; gap: 18px; min-width: 0; }
+    .entity { display: grid; text-align: right; line-height: 17px; min-width: 0; }
+    .entity b { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .entity span { font-size: 12px; opacity: .8; white-space: nowrap; }
+    .logoff { min-height: 44px; padding: 0 18px; border-radius: 50px; border: 1px solid rgba(255,255,255,.6); background: transparent; cursor: pointer; white-space: nowrap; }
+
+    .shell { display: grid; grid-template-columns: 212px minmax(0, 1fr); min-height: calc(100vh - 56px); }
+    .side { background: #fff; border-right: 1px solid var(--line); padding: 12px 0 24px; min-width: 0; }
+    .side a { display: flex; align-items: center; min-height: 40px; padding: 0 20px; color: var(--ink); text-decoration: none; }
+    .side a:hover { background: var(--canvas); }
+    .side .grp { font-weight: 600; background: var(--panel); box-shadow: inset 3px 0 0 var(--accent); }
+    .side .sub a { padding-left: 34px; min-height: 36px; font-size: 13px; }
+    .side .sub a[aria-current] { font-weight: 600; color: var(--accent); }
+    .side .sep { height: 1px; background: var(--line); margin: 10px 20px; }
+
+    .main { padding: 18px 24px 40px; min-width: 0; }
+    .crumbs { font-size: 12px; color: var(--muted); margin: 0 0 4px; }
+    .head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 24px; margin-bottom: 12px; }
+    .head h1 { margin: 0; font-size: 26px; line-height: 32px; font-weight: 600; letter-spacing: -.01em; }
+    .head .meta { color: var(--muted); font-size: 13px; }
+    .subnav { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; }
+    .subnav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; color: var(--ink); text-decoration: none; white-space: nowrap; font-weight: 500; }
+    .subnav a[aria-current] { box-shadow: inset 0 -3px 0 var(--accent); font-weight: 600; }
+
+    .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 480px); gap: 16px; align-items: start; }
+    .cols > * { min-width: 0; }
+    .card { background: #fff; border: 1px solid var(--line); min-width: 0; }
+    .card-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+    .card-h h2 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 600; }
+    .card-h small { color: var(--muted); font-size: 12px; }
+    .card-b { padding: 16px; min-width: 0; }
+
+    .steps { display: flex; gap: 0; list-style: none; margin: 0; padding: 0; border-bottom: 1px solid var(--line); }
+    .steps li { flex: 1 1 0; min-width: 0; padding: 10px 16px; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .steps li b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--field); font-size: 12px; flex: none; }
+    .steps li.on { color: var(--ink); font-weight: 600; box-shadow: inset 0 -3px 0 var(--accent); }
+    .steps li.on b, .steps li.done b { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+    fieldset { border: 0; margin: 0 0 6px; padding: 0; min-width: 0; }
+    legend { padding: 0; margin: 0 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    .row > * { min-width: 0; }
+    .field { display: grid; gap: 4px; margin-bottom: 14px; min-width: 0; }
+    .field label { font-weight: 600; font-size: 13px; }
+    .field small { color: var(--muted); font-size: 12px; line-height: 16px; min-height: 16px; }
+    select, input[type="number"], input[type="text"], input[type="date"] { width: 100%; min-width: 0; min-height: 44px; padding: 8px 12px; background: #fff; border: 1px solid var(--field); border-radius: 4px; color: var(--ink); }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .amt { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 24px; border-radius: 50px; border: 1px solid transparent; font-weight: 600; cursor: pointer; }
+    .btn:disabled { cursor: progress; opacity: .7; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: #fff; color: var(--ink); border-color: var(--ink); }
+
+    .summary { margin: 0 0 14px; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+    .summary dt { color: var(--muted); flex: none; }
+    .summary dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; min-width: 0; }
+    .terms { background: var(--info-bg); padding: 10px 12px; font-size: 12px; line-height: 17px; margin: 0 0 14px; }
+    [hidden] { display: none !important; }
+
+    .status { margin: 12px 0 0; color: var(--muted); font-size: 12px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 12px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 22px; font-weight: 700; }
+    .stopwatch.done .sw-value { color: var(--accent); }
+    .result-box { display: none; margin-top: 14px; padding: 12px 14px; line-height: 20px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); border-left: 4px solid var(--warn); }
+
+    .facility { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .facility div { min-width: 0; }
+    .facility span { display: block; font-size: 12px; color: var(--muted); }
+    .facility b { display: block; font-size: 15px; font-weight: 600; }
+    .bar { height: 6px; background: var(--panel); margin-top: 12px; }
+    .bar i { display: block; height: 100%; background: var(--ink); }
+    .fx { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+
+    .tablewrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 8px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    td { padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    td .ref { font-weight: 600; white-space: nowrap; }
+    td .amtv { white-space: nowrap; }
+    td .sub { display: block; color: var(--muted); font-size: 12px; }
+    th.r, td.r { text-align: right; }
+    tr.new td { background: #F5F9FF; }
+    .pill { display: inline-block; padding: 1px 7px; border-radius: 50px; font-size: 11.5px; white-space: nowrap; background: var(--panel); }
+    .pill.issued { background: var(--ok-bg); color: var(--ok); }
+    .pill.pending { background: var(--warn-bg); color: var(--warn); }
+    .pill.received { background: var(--info-bg); color: var(--accent); }
+    .pill.expired { color: var(--muted); }
+    .card + .card { margin-top: 16px; }
+
+    footer { background: var(--chrome-bg); color: var(--chrome-text); font-size: 12px; }
+    footer .in { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 24px; padding: 8px 20px; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 0 18px; }
+    footer a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; text-decoration: none; opacity: .9; }
+    footer span { display: inline-flex; align-items: center; min-height: 44px; opacity: .8; }
+
+    @media (max-width: 1180px) {
+      .cols { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: minmax(0, 1fr); }
+      .side { display: none; }
+      .entity { display: none; }
+    }
+    @media (max-width: 560px) {
+      .top-in { padding: 0 12px; gap: 10px; }
+      .brand { font-size: 16px; }
+      .main { padding: 14px 12px 32px; }
+      .head h1 { font-size: 22px; line-height: 28px; }
+      .row { grid-template-columns: minmax(0, 1fr); }
+      .steps li { padding: 10px 8px; font-size: 12px; gap: 6px; }
+      .actions .btn { flex: 1 1 100%; }
+      .facility { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+      .facility div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+      .facility b { font-size: 14px; }
+      .hide-sm { display: none; }
+      th, td { padding-left: 6px; padding-right: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-in">
+      <a class="brand" href="#" aria-label="Danske Bank District">
+        <svg viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="3" fill="#fff"/><path d="M8 7h7.2c5 0 8.3 3.2 8.3 8s-3.3 8-8.3 8H8V7Zm3.6 3.2v9.6h3.4c2.9 0 4.8-1.9 4.8-4.8s-1.9-4.8-4.8-4.8h-3.4Z" fill="#002346"/><rect x="5" y="13.6" width="9" height="2.8" fill="#0A5EF0"/></svg>
+        <span>Danske Bank</span><span class="product">District</span>
+      </a>
+      <div class="top-right">
+        <div class="entity"><b>Nordhavn Maskinfabrik A/S</b><span>Line Kj&aelig;rgaard &middot; Agreement 4471-209</span></div>
+        <button type="button" class="logoff">Log off</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="side" aria-label="District">
+      <a href="#">Overview</a>
+      <a href="#">Accounts</a>
+      <a href="#">Payments</a>
+      <a href="#">Liquidity</a>
+      <a href="#" class="grp">Trade Finance</a>
+      <div class="sub">
+        <a href="#">Overview</a>
+        <a href="#" aria-current="page">Guarantees</a>
+        <a href="#">Import letters of credit</a>
+        <a href="#">Export letters of credit</a>
+        <a href="#">Documentary collections</a>
+      </div>
+      <a href="#">Card management</a>
+      <a href="#">Markets Online</a>
+      <a href="#">eArchive</a>
+      <div class="sep"></div>
+      <a href="#">User administration</a>
+      <a href="#">Settings</a>
+    </nav>
+
+    <main class="main">
+      <p class="crumbs">Trade Finance / Guarantees / Issue guarantee</p>
+      <div class="head">
+        <h1>Issue guarantee</h1>
+        <span class="meta">Nordhavn Maskinfabrik A/S &middot; CVR 34 18 22 76</span>
+      </div>
+      <nav class="subnav" aria-label="Trade Finance">
+        <a href="#">Overview</a><a href="#" aria-current="page">Guarantees</a><a href="#">Import LCs</a><a href="#">Export LCs</a><a href="#">Collections</a>
+      </nav>
+
+      <div class="cols">
+        <section class="card" aria-labelledby="formHead">
+          <h2 id="formHead" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Guarantee application</h2>
+          <ol class="steps" aria-label="Progress">
+            <li id="step1" class="on"><b>1</b>Details</li>
+            <li id="step2"><b>2</b>Review</li>
+            <li id="step3"><b>3</b>Sent</li>
+          </ol>
+          <div class="card-b">
+            <form id="transferForm" novalidate>
+              <div id="detailsPane">
+                <fieldset>
+                  <legend>Fees and commission</legend>
+                  <div class="field">
+                    <label for="fromAccount">Debit fees and commission from</label>
+                    <select id="fromAccount">
+                      <option value="DK-4471209" data-name="Erhvervskonto" data-number="3001 4471209" data-ccy="DKK" data-balance="3482915.40">Erhvervskonto &middot; 3001 4471209 &middot; DKK</option>
+                      <option value="EU-4471217" data-name="Valutakonto EUR" data-number="3001 4471217" data-ccy="EUR" data-balance="618204.75">Valutakonto EUR &middot; 3001 4471217 &middot; EUR</option>
+                    </select>
+                    <small id="fromHelp"></small>
+                    <input type="hidden" id="accountTier" value="standard">
+                  </div>
+                </fieldset>
+                <fieldset>
+                  <legend>Beneficiary</legend>
+                  <div class="field">
+                    <label for="toAccount">Beneficiary</label>
+                    <select id="toAccount">
+                      <option value="">Choose beneficiary</option>
+                      <option value="BEN-HKA" data-name="Hamburger Kraftanlagen GmbH" data-place="Hamburg, Germany">Hamburger Kraftanlagen GmbH &middot; DE</option>
+                      <option value="BEN-GHT" data-name="G&ouml;teborg Hamnterminal AB" data-place="G&ouml;teborg, Sweden">G&ouml;teborg Hamnterminal AB &middot; SE</option>
+                      <option value="BEN-BSS" data-name="Bergen Subsea Services AS" data-place="Bergen, Norway">Bergen Subsea Services AS &middot; NO</option>
+                      <option value="BEN-RBH" data-name="Rotterdam Bulk Handling B.V." data-place="Rotterdam, Netherlands">Rotterdam Bulk Handling B.V. &middot; NL</option>
+                      <option value="BEN-NJV" data-name="Nordjysk Vandv&aelig;rk A/S" data-place="Aalborg, Denmark">Nordjysk Vandv&aelig;rk A/S &middot; DK</option>
+                    </select>
+                    <small id="toHelp"></small>
+                  </div>
+                </fieldset>
+                <fieldset>
+                  <legend>Guarantee</legend>
+                  <div class="row">
+                    <div class="field">
+                      <label for="gType">Guarantee type</label>
+                      <select id="gType">
+                        <option>Performance guarantee</option>
+                        <option>Advance payment guarantee</option>
+                        <option>Bid guarantee</option>
+                        <option>Retention guarantee</option>
+                        <option>Payment guarantee</option>
+                        <option>Green guarantee</option>
+                      </select>
+                      <small></small>
+                    </div>
+                    <div class="field">
+                      <label for="amount">Guarantee amount</label>
+                      <div class="amt">
+                        <select id="gCcy" aria-label="Currency"><option>EUR</option><option>DKK</option></select>
+                        <input type="number" id="amount" inputmode="decimal" min="0" step="0.01" placeholder="0.00" autocomplete="off">
+                      </div>
+                      <small id="amountHelp"></small>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="field">
+                      <label for="gExpiry">Expiry date</label>
+                      <input type="date" id="gExpiry">
+                      <small id="expiryHelp"></small>
+                    </div>
+                    <div class="field">
+                      <label for="gContract">Underlying contract</label>
+                      <input type="text" id="gContract" maxlength="35" placeholder="e.g. Contract 2026-118" autocomplete="off">
+                      <small>Shown on the guarantee. Max 35 characters.</small>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="gWording">Wording</label>
+                    <select id="gWording">
+                      <option>Danske Bank standard wording (URDG 758)</option>
+                      <option>Beneficiary&rsquo;s wording, sent to Trade Finance</option>
+                      <option>Local bank issues against our counter-guarantee</option>
+                    </select>
+                    <small></small>
+                  </div>
+                </fieldset>
+                <div class="actions">
+                  <button type="button" id="reviewBtn" class="btn btn-primary">Continue to review</button>
+                  <button type="reset" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+                </div>
+              </div>
+
+              <div id="reviewPane" hidden>
+                <dl class="summary" aria-label="Guarantee summary">
+                  <div><dt>Applicant</dt><dd>Nordhavn Maskinfabrik A/S</dd></div>
+                  <div><dt>Beneficiary</dt><dd id="sumTo">&mdash;</dd></div>
+                  <div><dt>Type</dt><dd id="sumType">&mdash;</dd></div>
+                  <div><dt>Amount</dt><dd id="sumAmount" class="num">&mdash;</dd></div>
+                  <div><dt>Expiry</dt><dd id="sumExpiry">&mdash;</dd></div>
+                  <div><dt>Underlying contract</dt><dd id="sumContract">&mdash;</dd></div>
+                  <div><dt>Wording</dt><dd id="sumWording">&mdash;</dd></div>
+                  <div><dt>Fees debited from</dt><dd id="sumFrom">&mdash;</dd></div>
+                  <div><dt>Issuing fee (0.10%)</dt><dd id="sumFee" class="num">&mdash;</dd></div>
+                  <div><dt>Facility available after issue</dt><dd id="sumAfter" class="num">&mdash;</dd></div>
+                </dl>
+                <p class="terms">The amount is reserved on your guarantee facility when Trade Finance receives the application. Guarantee commission is charged quarterly in advance on the outstanding amount under your trade finance agreement. Danske Bank Trade Finance checks the application before the guarantee is issued.</p>
+                <div class="actions">
+                  <button type="submit" id="submitBtn" class="btn btn-primary">Send to Danske Bank</button>
+                  <button type="button" id="backBtn" class="btn btn-secondary">Back</button>
+                </div>
+              </div>
+
+              <div id="sentPane" hidden>
+                <div class="actions">
+                  <button type="reset" id="againBtn" class="btn btn-secondary">Issue another guarantee</button>
+                </div>
+              </div>
+
+              <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to send</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+              <p class="status" id="paymentStatus" role="status" aria-live="polite">Sample company, accounts and beneficiaries. No guarantee is issued from this page.</p>
+              <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            </form>
+          </div>
+        </section>
+
+        <div>
+          <section class="card" aria-labelledby="facHead">
+            <div class="card-h"><h2 id="facHead">Guarantee facility</h2><small>TF-4471-209</small></div>
+            <div class="card-b">
+              <div class="facility">
+                <div><span>Limit</span><b class="num" id="facLimit">&nbsp;</b></div>
+                <div><span>Utilised</span><b class="num" id="facUsed">&nbsp;</b></div>
+                <div><span>Available</span><b class="num" id="facAvail">&nbsp;</b></div>
+              </div>
+              <div class="bar" aria-hidden="true"><i id="facBar" style="width:0"></i></div>
+              <p class="fx">Indicative rate EUR/DKK 7.4604 &middot; 27.10.2026 09:00 CET</p>
+            </div>
+          </section>
+          <section class="card" aria-labelledby="instHead">
+            <div class="card-h"><h2 id="instHead">Trade finance instruments</h2><small id="instCount"></small></div>
+            <div class="tablewrap">
+              <table>
+                <thead><tr><th>Reference</th><th class="hide-sm">Beneficiary</th><th class="r">Amount / expiry</th><th>Status</th></tr></thead>
+                <tbody id="instBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="in">
+      <nav aria-label="Footer"><a href="#">District Support +45 70 114 115</a><a href="#">Security</a><a href="#">Cookies</a><a href="#">Terms</a></nav>
+      <span>Danske Bank A/S &middot; CVR 61 12 62 28</span>
+    </div>
+  </footer>
+
+  <script>
+    window.SKIN = {
+      locale: 'en-GB',
+      idle: 'Send to Danske Bank', sending: 'Sending\u2026',
+      statusIdle: 'Sample company, accounts and beneficiaries. No guarantee is issued from this page.',
+      statusSending: 'Sending your guarantee application to Danske Bank\u2026',
+      statusDone: 'Application received by Danske Bank Trade Finance.',
+    };
+  </script>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const S = window.SKIN;
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm');
+      const fromAccount = $('fromAccount');
+      const toAccount = $('toAccount');
+      const amountInput = $('amount');
+      const accountTier = $('accountTier');
+      const gType = $('gType');
+      const gCcy = $('gCcy');
+      const gExpiry = $('gExpiry');
+      const gContract = $('gContract');
+      const gWording = $('gWording');
+      const reviewBtn = $('reviewBtn');
+      const backBtn = $('backBtn');
+      const button = $('submitBtn');
+      const result = $('result');
+      const status = $('paymentStatus');
+      const timer = $('sendTimer');
+      const timerValue = $('sendTimerValue');
+      const panes = { details: $('detailsPane'), review: $('reviewPane'), sent: $('sentPane') };
+      const EURDKK = 7.4604;
+      const FEE = { rate: 0.001, flat: 2.50 };
+      const LIMIT_DKK = 30000000;
+      const dateFmt = new Intl.DateTimeFormat('da-DK', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const timeFmt = new Intl.DateTimeFormat('da-DK', { hour: '2-digit', minute: '2-digit' });
+      const fmt = (value, ccy) => `${ccy} ${new Intl.NumberFormat(S.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)}`;
+      const toDkk = (value, ccy) => (ccy === 'EUR' ? value * EURDKK : value);
+      const instruments = [
+        { ref: 'GTE-26-0418', kind: 'Advance payment guarantee', ben: 'Hamburger Kraftanlagen GmbH', ccy: 'EUR', amount: 1850000, expiry: '2027-06-30', status: 'Issued' },
+        { ref: 'GTE-26-0402', kind: 'Performance guarantee', ben: 'Nordjysk Vandv\u00e6rk A/S', ccy: 'DKK', amount: 4200000, expiry: '2028-03-31', status: 'Issued' },
+        { ref: 'GTE-26-0377', kind: 'Bid guarantee', ben: 'G\u00f6teborg Hamnterminal AB', ccy: 'EUR', amount: 250000, expiry: '2026-11-15', status: 'Amendment pending' },
+        { ref: 'ILC-26-0091', kind: 'Import letter of credit', ben: 'Shanghai Hengli Bearings Co., Ltd.', ccy: 'USD', amount: 612400, expiry: '2026-12-18', status: 'Documents received' },
+        { ref: 'GTE-26-0355', kind: 'Payment guarantee', ben: 'St\u00e5lgruppen Nord AB', ccy: 'DKK', amount: 2000000, expiry: '2026-12-31', status: 'Issued' },
+        { ref: 'DCO-26-0044', kind: 'Export collection (D/P)', ben: 'Gulf Marine Equipment LLC', ccy: 'USD', amount: 286900, expiry: '', status: 'Awaiting payment' },
+        { ref: 'GTE-25-1188', kind: 'Retention guarantee', ben: 'Esbjerg Offshore Terminal A/S', ccy: 'DKK', amount: 1350000, expiry: '2026-09-01', status: 'Expired' },
+      ];
+      const pillClass = { Issued: 'issued', 'Amendment pending': 'pending', 'Documents received': 'pending', 'Awaiting payment': 'pending', Received: 'received', Expired: 'expired' };
+      const counts = ['Issued', 'Amendment pending', 'Received'];
+      let step = 'details';
+      let pending = false;
+      let ticker = null;
+
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (select) => select.options[select.selectedIndex];
+      const isoDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const fromIso = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+      function defaultExpiry() { const d = new Date(); d.setFullYear(d.getFullYear() + 1); return isoDate(d); }
+      function tomorrow() { const d = new Date(); d.setDate(d.getDate() + 1); return isoDate(d); }
+      const utilisedDkk = () => instruments.filter((i) => /guarantee$/i.test(i.kind) && counts.includes(i.status)).reduce((sum, i) => sum + toDkk(i.amount, i.ccy), 0);
+      const availableDkk = () => Math.max(LIMIT_DKK - utilisedDkk(), 0);
+      function parsedAmount() {
+        const raw = amountInput.value.trim().replace(/,/g, '');
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return parseFloat(raw);
+      }
+      const feeFor = (amount) => Math.max(FEE.rate * amount, FEE.flat);
+      const maxAmount = () => Math.floor((gCcy.value === 'EUR' ? availableDkk() / EURDKK : availableDkk()) * 100) / 100;
+
+      function renderFacility() {
+        const used = utilisedDkk();
+        set('facLimit', fmt(LIMIT_DKK, 'DKK'));
+        set('facUsed', fmt(used, 'DKK'));
+        set('facAvail', fmt(availableDkk(), 'DKK'));
+        $('facBar').style.width = `${Math.min(100, (used / LIMIT_DKK) * 100).toFixed(1)}%`;
+      }
+      function renderInstruments() {
+        const body = $('instBody');
+        body.textContent = '';
+        instruments.forEach((i) => {
+          const tr = document.createElement('tr');
+          if (i.isNew) tr.className = 'new';
+          const cells = [
+            [`<span class="ref"></span><span class="sub"></span>`, ''],
+            ['', 'hide-sm'],
+            ['<span class="amtv"></span><span class="sub"></span>', 'r num'],
+            ['<span class="pill"></span>', ''],
+          ];
+          cells.forEach(([html, cls]) => { const td = document.createElement('td'); if (cls) td.className = cls; td.innerHTML = html; tr.appendChild(td); });
+          tr.children[0].querySelector('.ref').textContent = i.ref;
+          tr.children[0].querySelector('.sub').textContent = i.kind;
+          tr.children[1].textContent = i.ben;
+          tr.children[2].querySelector('.amtv').textContent = fmt(i.amount, i.ccy);
+          tr.children[2].querySelector('.sub').textContent = i.expiry ? `Exp. ${dateFmt.format(fromIso(i.expiry))}` : 'Sight';
+          const pill = tr.children[3].querySelector('.pill');
+          pill.textContent = i.status;
+          pill.className = `pill ${pillClass[i.status] || ''}`;
+          body.appendChild(tr);
+        });
+        set('instCount', `${instruments.length} active and recent`);
+      }
+      function render() {
+        const from = selected(fromAccount);
+        const to = toAccount.value ? selected(toAccount) : null;
+        accountTier.value = 'standard';
+        set('fromHelp', `${from.dataset.number} \u00b7 Available ${fmt(Number(from.dataset.balance) || 0, from.dataset.ccy)}`);
+        set('toHelp', to ? to.dataset.place : 'Beneficiaries registered under your trade finance agreement');
+        set('amountHelp', `Facility allows up to ${fmt(maxAmount(), gCcy.value)}`);
+        set('expiryHelp', gExpiry.value ? `Expires ${dateFmt.format(fromIso(gExpiry.value))} unless returned earlier` : 'Choose the last day the guarantee is valid');
+      }
+      function setStep(next) {
+        step = next;
+        Object.keys(panes).forEach((k) => { panes[k].hidden = k !== next; });
+        const order = ['details', 'review', 'sent'];
+        ['step1', 'step2', 'step3'].forEach((id, idx) => {
+          const pos = order.indexOf(next);
+          $(id).className = idx === pos ? 'on' : (idx < pos ? 'done' : '');
+        });
+      }
+      function notice(message, focusEl) {
+        result.className = 'result-box notice';
+        result.textContent = message;
+        status.textContent = S.statusIdle;
+        if (focusEl) focusEl.focus();
+      }
+      function clearResult() { result.className = 'result-box'; result.textContent = ''; }
+      function stopTimer(done) {
+        if (ticker) { clearInterval(ticker); ticker = null; }
+        timer.className = done ? 'stopwatch on done' : 'stopwatch';
+      }
+      function validate() {
+        const amount = parsedAmount();
+        if (!toAccount.value) { notice('Choose a beneficiary.', toAccount); return false; }
+        if (!Number.isFinite(amount) || amount <= 0) { notice('Enter the guarantee amount, for example 750000.00.', amountInput); return false; }
+        if (amount > maxAmount()) { notice(`The amount is more than the available facility. You can apply for up to ${fmt(maxAmount(), gCcy.value)}.`, amountInput); return false; }
+        if (!gExpiry.value || gExpiry.value < tomorrow()) { notice('Choose an expiry date after today.', gExpiry); return false; }
+        return true;
+      }
+      function fillReview() {
+        const from = selected(fromAccount);
+        const to = selected(toAccount);
+        const amount = parsedAmount();
+        const ccy = gCcy.value;
+        set('sumTo', `${to.dataset.name}, ${to.dataset.place}`);
+        set('sumType', gType.value);
+        set('sumAmount', fmt(amount, ccy));
+        set('sumExpiry', dateFmt.format(fromIso(gExpiry.value)));
+        set('sumContract', gContract.value.trim() || '\u2014');
+        set('sumWording', gWording.value);
+        set('sumFrom', `${from.dataset.name} \u00b7 ${from.dataset.number}`);
+        set('sumFee', fmt(feeFor(amount), ccy));
+        set('sumAfter', fmt(availableDkk() - toDkk(amount, ccy), 'DKK'));
+      }
+      function resetReview() {
+        ['sumTo', 'sumType', 'sumAmount', 'sumExpiry', 'sumContract', 'sumWording', 'sumFrom', 'sumFee', 'sumAfter'].forEach((id) => set(id, '\u2014'));
+      }
+
+      [fromAccount, toAccount, gCcy, gExpiry].forEach((el) => el.addEventListener('change', render));
+      amountInput.addEventListener('input', render);
+      reviewBtn.addEventListener('click', () => {
+        clearResult();
+        if (!validate()) return;
+        fillReview();
+        setStep('review');
+        button.focus();
+      });
+      backBtn.addEventListener('click', () => {
+        if (pending) return;
+        clearResult();
+        setStep('details');
+        reviewBtn.focus();
+      });
+      form.addEventListener('reset', () => {
+        if (pending) return;
+        setTimeout(() => {
+          gExpiry.value = defaultExpiry();
+          gExpiry.min = tomorrow();
+          clearResult();
+          status.textContent = S.statusIdle;
+          stopTimer(false);
+          timerValue.textContent = '0.0s';
+          resetReview();
+          setStep('details');
+          render();
+        });
+      });
+      gExpiry.value = defaultExpiry();
+      gExpiry.min = tomorrow();
+      renderFacility();
+      renderInstruments();
+      render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        if (step === 'details') { reviewBtn.click(); return; }
+        if (step !== 'review') return;
+        if (!validate()) { setStep('details'); return; }
+
+        const to = selected(toAccount);
+        const amount = parsedAmount();
+        const ccy = gCcy.value;
+        const kind = gType.value;
+        const expiry = gExpiry.value;
+        const fromLabel = `${selected(fromAccount).dataset.name} ${selected(fromAccount).dataset.number}`;
+        pending = true;
+        button.disabled = true;
+        backBtn.disabled = true;
+        button.textContent = S.sending;
+        status.textContent = S.statusSending;
+        clearResult();
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick();
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const ref = `GTA-${String(data.receipt.receiptId).replace(/\D/g, '').slice(-7)}`;
+          const fee = Number(data.fee ?? data.receipt.fee);
+          stopTimer(true);
+          if (data.duplicate) {
+            result.className = 'result-box notice';
+            result.textContent = `This application was already sent at ${at}: ${fmt(Number(data.receipt.amount), ccy)} in favour of ${to.dataset.name}, receipt ${ref}. It hasn\u2019t been sent again.`;
+            status.textContent = S.statusIdle;
+            return;
+          }
+          instruments.unshift({ ref, kind, ben: to.dataset.name, ccy, amount: Number(data.receipt.amount), expiry, status: 'Received', isNew: true });
+          renderInstruments();
+          renderFacility();
+          render();
+          setStep('sent');
+          result.className = 'result-box success';
+          result.textContent = `Sent to Danske Bank at ${at}. ${kind} ${ref} for ${fmt(Number(data.receipt.amount), ccy)} in favour of ${to.dataset.name}. Issuing fee ${fmt(fee, ccy)} will be debited from ${fromLabel}. Trade Finance will confirm when the guarantee is issued.`;
+          status.textContent = S.statusDone;
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok
+            ? 'We couldn\u2019t send the application. Nothing has been sent to Danske Bank. Please try again in a moment.'
+            : 'We couldn\u2019t confirm the application. Check Trade Finance \u2192 Guarantees before sending again so it isn\u2019t sent twice.';
+          status.textContent = S.statusIdle;
+        } finally {
+          pending = false;
+          button.disabled = false;
+          backBtn.disabled = false;
+          button.textContent = S.idle;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
