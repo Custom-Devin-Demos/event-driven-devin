@@ -16,6 +16,7 @@ const { addKitToCart } = require('../services/oncall-verticals/fluidanalysis');
 const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
+const { searchRecalls } = require('../services/oncall-verticals/recalllookup');
 const { createReservation } = require('../services/oncall-verticals/evreservation');
 const { createDeployment } = require('../services/oncall-verticals/privatecloud');
 const { filterPortfolio } = require('../services/oncall-verticals/portfoliofilter');
@@ -832,6 +833,26 @@ router.post('/api/oncall/esnlookup/lookup', async (req, res) => {
       error: status === 500 ? 'Service information is temporarily unavailable for this engine.' : error.message,
       errorClass: error.name,
       code: error.code || 'ESN_LOOKUP_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/recalllookup/search — look up a vehicle by chassis number and
+ * list the recalls and service campaigns that apply to it
+ */
+router.post('/api/oncall/recalllookup/search', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await searchRecalls({ frameDiv: body.frameDiv, frameNo: body.frameNo }));
+  } catch (error) {
+    const status = error.code === 'INVALID_CHASSIS' ? 400 : error.code === 'CHASSIS_NOT_FOUND' ? 404 : 500;
+    res.status(status).json({
+      success: false,
+      error: status === 500 ? '現在、リコール等の検索を一時的にご利用いただけません。' : error.message,
+      errorClass: error.name,
+      code: error.code || 'RECALL_SEARCH_FAILED',
       requestId: req.requestId,
     });
   }
