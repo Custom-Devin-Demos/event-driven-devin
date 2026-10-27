@@ -444,7 +444,7 @@ const ALERT_SCENARIOS = {
     service: 'carelink-reports-api',
     endpoint: 'POST /api/oncall/devicereports/reports',
     monitor: 'Error rate \u2014 POST /api/oncall/devicereports/reports',
-    metricQuery: 'sum:demo.devicereports.report.generate.failure{service:carelink-reports-api}.as_count() / (sum:demo.devicereports.report.generate.success{service:carelink-reports-api}.as_count() + sum:demo.devicereports.report.generate.failure{service:carelink-reports-api}.as_count()) * 100',
+    metricQuery: 'sum:demo.devicereports.report.generate.failure{service:carelink-reports-api,uploadtype:full}.as_count() / (sum:demo.devicereports.report.generate.success{service:carelink-reports-api,uploadtype:full}.as_count() + sum:demo.devicereports.report.generate.failure{service:carelink-reports-api,uploadtype:full}.as_count()) * 100',
     metricValue: '100% of full uploads (HTTP 504 after ~8s)',
     threshold: '> 2%',
     baseline: '~0.2% (7-day)',

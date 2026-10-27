@@ -13,6 +13,7 @@ const SENSOR_DELTA_FETCH_LATENCY_MS = [90, 140];
 const READINGS_PER_DAY = 288;
 const REPORT_PERIODS = [7, 14, 30, 90];
 const UPLOAD_TYPES = ['full', 'incremental'];
+const UPLOAD_SOURCES = { 'clinic-usb': 'Clinic USB reader', 'patient-app': 'Patient app sync' };
 
 const DEMO_PATIENT = {
   id: 'PT-20417',
@@ -53,9 +54,10 @@ function withDeadline(promise, ms) {
 function validateReportRequest(data = {}) {
   if (data.patientId !== DEMO_PATIENT.id) throw invalidReport('Select a patient.');
   if (!UPLOAD_TYPES.includes(data.uploadType)) throw invalidReport('Select an upload type.');
+  if (!UPLOAD_SOURCES[data.uploadSource]) throw invalidReport('Select an upload source.');
   const periodDays = Number(data.periodDays);
   if (!REPORT_PERIODS.includes(periodDays)) throw invalidReport('Choose a report period.');
-  return { patientId: data.patientId, uploadType: data.uploadType, periodDays };
+  return { patientId: data.patientId, uploadType: data.uploadType, uploadSource: data.uploadSource, periodDays };
 }
 
 async function fetchSensorDay(patientId, dayOffset) {
@@ -109,7 +111,7 @@ async function generateReport(data = {}) {
   const startedAt = Date.now();
   const request = validateReportRequest(data);
   const reportId = `RPT-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
-  const tags = { route: REPORTS_ROUTE, service: SERVICE, uploadType: request.uploadType };
+  const tags = { route: REPORTS_ROUTE, service: SERVICE, uploadType: request.uploadType, uploadSource: request.uploadSource };
 
   try {
     const readingsProcessed = await loadSensorHistory(request, reportId, startedAt + REPORT_DEADLINE_MS);
@@ -123,6 +125,8 @@ async function generateReport(data = {}) {
         type: 'therapy-management-dashboard',
         patientId: request.patientId,
         uploadType: request.uploadType,
+        uploadSource: request.uploadSource,
+        uploadSourceLabel: UPLOAD_SOURCES[request.uploadSource],
         periodDays: request.periodDays,
         readingsProcessed,
         summary: { ...REPORT_SUMMARIES[request.periodDays] },
@@ -135,7 +139,7 @@ async function generateReport(data = {}) {
     recordTiming('devicereports.report.generate.latency', durationMs, { ...tags, error: 'true' });
     logger.error('Report generation failed', {
       reportId, error: error.message, code: error.code, durationMs,
-      uploadType: request.uploadType, periodDays: request.periodDays,
+      uploadType: request.uploadType, uploadSource: request.uploadSource, periodDays: request.periodDays,
       service: SERVICE, route: REPORTS_ROUTE,
     });
     Sentry.captureException(error, {
@@ -154,4 +158,5 @@ module.exports = {
   REPORT_DEADLINE_MS,
   SENSOR_DAY_FETCH_LATENCY_MS,
   REPORT_PERIODS,
+  UPLOAD_SOURCES,
 };

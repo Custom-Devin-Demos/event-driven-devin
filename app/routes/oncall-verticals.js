@@ -905,6 +905,7 @@ router.post('/api/oncall/devicereports/reports', async (req, res) => {
     res.json(await generateReport({
       patientId: body.patientId,
       uploadType: body.uploadType,
+      uploadSource: body.uploadSource,
       periodDays: body.periodDays,
     }));
   } catch (error) {

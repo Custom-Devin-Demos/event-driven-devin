@@ -54,7 +54,7 @@ beforeEach(() => jest.clearAllMocks());
 const postReport = (body) => fetch(`${baseUrl}/api/oncall/devicereports/reports`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ patientId: DEMO_PATIENT.id, ...body }),
+  body: JSON.stringify({ patientId: DEMO_PATIENT.id, uploadSource: 'clinic-usb', ...body }),
 });
 
 describe('e2303f8c MiniMed CareLink on-call skin', () => {
@@ -87,6 +87,8 @@ describe('e2303f8c MiniMed CareLink on-call skin', () => {
     expect(html).toContain("fetch('/api/carelink/reports'");
     expect(html).toContain('const oncallApiPath = "/api/oncall/devicereports"');
     expect(html).toContain('const alertOnStatus = [504]');
+    expect(html).toContain("uploadSource: document.getElementById('uploadSource').value");
+    expect(ALERT_SCENARIOS.devicereports.metricQuery.match(/uploadtype:full/g)).toHaveLength(3);
     expect(html).toContain('var skinAlertDestination = "teams"');
     expect(html).toContain('NOT ACTUALLY A MINIMED SITE');
     expect(html).not.toMatch(/<base |<script[^>]+src="https?:/);
@@ -110,7 +112,7 @@ describe('device upload & report on-call vertical', () => {
     expect(Date.now() - started).toBeLessThan(1000);
     expect(res.status).toBe(200);
     const { report } = await res.json();
-    expect(report).toMatchObject({ uploadType: 'incremental', periodDays: 14 });
+    expect(report).toMatchObject({ uploadType: 'incremental', uploadSource: 'clinic-usb', periodDays: 14 });
     expect(report.summary.timeInRange.reduce((a, b) => a + b, 0)).toBe(100);
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
@@ -136,8 +138,9 @@ describe('device upload & report on-call vertical', () => {
   });
 
   test('rejects unknown patients and periods with 400', async () => {
-    await expect(generateReport({ patientId: 'PT-0', uploadType: 'full', periodDays: 14 }))
+    await expect(generateReport({ patientId: 'PT-0', uploadType: 'full', uploadSource: 'clinic-usb', periodDays: 14 }))
       .rejects.toMatchObject({ code: 'INVALID_REPORT_REQUEST' });
+    expect((await postReport({ uploadType: 'incremental', uploadSource: 'fax', periodDays: 14 })).status).toBe(400);
     const res = await postReport({ uploadType: 'full', periodDays: 3 });
     expect(res.status).toBe(400);
   });
