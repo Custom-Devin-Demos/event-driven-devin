@@ -127,13 +127,17 @@ function resolveDesk(topic, subject) {
   return { deskKey, desk: ENQUIRY_DESKS[deskKey] };
 }
 
-function addBusinessDays(start, days) {
+function localWeekday(date, timeZone) {
+  return new Intl.DateTimeFormat('en-US', { timeZone, weekday: 'short' }).format(date);
+}
+
+function addBusinessDays(start, days, timeZone) {
   const d = new Date(start.getTime());
   let added = 0;
   while (added < days) {
-    d.setUTCDate(d.getUTCDate() + 1);
-    const dow = d.getUTCDay();
-    if (dow !== 0 && dow !== 6) added += 1;
+    d.setTime(d.getTime() + 24 * 3600 * 1000);
+    const dow = localWeekday(d, timeZone);
+    if (dow !== 'Sat' && dow !== 'Sun') added += 1;
   }
   return d;
 }
@@ -148,7 +152,7 @@ function computeResponseCommitment(desk, subject, createdAt) {
   const businessDays = Math.max(1, desk.slaBusinessDays - escalation);
   return {
     respondWithinBusinessDays: businessDays,
-    respondBy: addBusinessDays(createdAt, businessDays).toISOString(),
+    respondBy: addBusinessDays(createdAt, businessDays, desk.timezone).toISOString(),
   };
 }
 
