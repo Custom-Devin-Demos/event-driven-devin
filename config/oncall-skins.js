@@ -6323,6 +6323,17 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A EUROAPOTHECA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Euroapotheca product.',
   },
+  'a6f389b5': {
+    slug: 'a6f389b5',
+    company: 'Toyota',
+    vertical: 'recalllookup',
+    oncallOnly: true,
+    page: {
+      file: 'a6f389b5.html',
+      title: 'トヨタ | 該当するリコール等の内容と実施状況の検索',
+    },
+    disclaimer: 'NOT ACTUALLY A TOYOTA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Toyota product.',
+  },
   'c7b0b57a': {
     slug: 'c7b0b57a',
     company: 'Toyota',
