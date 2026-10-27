@@ -90,5 +90,6 @@ describe('b4fb2968 Pomelo Care signup coverage-check on-call skin', () => {
   test('unknown insurers or states return 400', async () => {
     expect((await check({ state: 'TX', insurer: 'acme' })).status).toBe(400);
     expect((await check({ state: 'Texas', insurer: 'aetna' })).status).toBe(400);
+    expect((await check({ state: 'ZZ', insurer: 'aetna' })).status).toBe(400);
   });
 });

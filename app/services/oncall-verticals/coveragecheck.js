@@ -4,6 +4,12 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 
 const ROUTE = '/api/oncall/coveragecheck/coverage';
+
+const SUPPORTED_STATES = new Set([
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS',
+  'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC',
+  'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
+]);
 const SERVICE = 'eligibility-api';
 
 /**
@@ -70,7 +76,7 @@ async function checkCoverage(request) {
   logger.info('Coverage check started', { checkId, insurer: insurerId, state, service: SERVICE, route: ROUTE });
 
   try {
-    if (!/^[A-Z]{2}$/.test(state)) throw invalidRequest(`Unknown state: ${state}`);
+    if (!SUPPORTED_STATES.has(state)) throw invalidRequest(`Unknown state: ${state}`);
     const insurer = Object.hasOwn(INSURERS, insurerId) ? INSURERS[insurerId] : null;
     if (!insurer) throw invalidRequest(`Unknown insurer: ${insurerId}`);
 

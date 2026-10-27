@@ -159,7 +159,7 @@
 
   /* family + misc */
   .qr { display: inline-block; padding: 16px; border-radius: 16px; background: rgba(252, 252, 250, .6); box-shadow: var(--glass-shadow); }
-  .qr canvas { display: block; background: #fff; padding: 8px; }
+  .qr img { display: block; background: #fff; padding: 8px; }
   ul.bul { text-align: left; color: var(--ink); padding-left: 22px; margin: 8px 0 0; }
   ul.bul li { margin: 0 0 12px; }
 
@@ -284,10 +284,11 @@
   function bindSelect(id, onPick) {
     var root = app.querySelector('[data-sel="' + id + '"]');
     var trigger = root.querySelector('.inp'); var menu = root.querySelector('.menu');
-    function close() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
-    trigger.addEventListener('click', function (e) { e.stopPropagation(); var open = menu.hidden; menu.hidden = !open; trigger.setAttribute('aria-expanded', String(open)); });
+    function outside(e) { if (!root.contains(e.target)) close(); }
+    function close() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); document.removeEventListener('click', outside); }
+    function open() { menu.hidden = false; trigger.setAttribute('aria-expanded', 'true'); document.addEventListener('click', outside); }
+    trigger.addEventListener('click', function () { if (menu.hidden) open(); else close(); });
     menu.addEventListener('click', function (e) { var li = e.target.closest('li'); if (!li) return; close(); onPick(li.getAttribute('data-v')); });
-    document.addEventListener('click', close, { once: true });
   }
 
   var VIEWS = {
@@ -326,12 +327,20 @@
         } };
     },
     'otp': function () {
-      return { html: hdrLeft(true) + '<main><div class="col"><h1>Enter your code</h1><p class="sub">We sent a 6-digit code to ' + esc(state.phone || 'your phone') + '.</p><div class="field"><label for="code">Code</label><input class="inp" id="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></div>' + btn('Next') + '</div></main>' + footer() };
+      return { html: hdrLeft(true) + '<main><div class="col"><h1>Enter your code</h1><p class="sub">We sent a 6-digit code to ' + esc(state.phone || 'your phone') + '.</p><form id="f" novalidate><div class="field"><label for="code">Code</label><input class="inp" id="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></div><div id="e"></div>' + btn('Next') + '</form></div></main>' + footer(),
+        bind: function () {
+          app.querySelector('#f').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var ok = /^\d{6}$/.test(app.querySelector('#code').value.trim());
+            app.querySelector('#e').innerHTML = ok ? '' : '<div class="err" style="margin:-16px 0 16px">Please enter the 6-digit code.</div>';
+            if (ok) go('/signup/perimenopause/coverage-verified');
+          });
+        } };
     },
     'family': function () {
       return { html: hdrLeft(true) + '<main><div class="col"><div style="color:var(--ink);margin:16px 0 20px">' + ICON.hand + '</div><h1>We\u2019d love to support your partner or family member</h1><p class="sub ink" style="margin-bottom:24px">Have them sign up by sending them a link below.</p>' +
-        '<a class="btn outline" href="mailto:?subject=Join%20me%20on%20Pomelo&body=https%3A%2F%2Fapp.pomelocare.com%2Fsignup" style="text-decoration:none">' + ICON.mail + 'Email them a link</a><p class="sub ink" style="margin:64px 0 16px">Or scan this QR code with your phone to text them a link.</p><div class="qr"><canvas id="qr" width="166" height="166"></canvas></div></div></main>' + footer(),
-        bind: drawQr };
+        '<a class="btn outline" href="mailto:?subject=Join%20me%20on%20Pomelo&body=https%3A%2F%2Fapp.pomelocare.com%2Fsignup" style="text-decoration:none">' + ICON.mail + 'Email them a link</a><p class="sub ink" style="margin:64px 0 16px">Or scan this QR code with your phone to text them a link.</p><div class="qr"><img src="' + ASSET + 'family-qr.svg" alt="QR code linking to Pomelo signup" width="150" height="150"></div></div></main>' + footer(),
+        };
     },
     'unsupported-reason': function () {
       return { html: hdrLeft(true) + '<main><div class="col"><img src="' + ASSET + 'exploring.png" alt="" width="160" height="155" style="display:block;margin:0 auto 24px"><h1>It sounds like Pomelo isn\u2019t the right fit at the moment.</h1><p class="sub ink">Check back regularly to see if our services have changed, or if your situation has changed!</p>' +
@@ -477,19 +486,6 @@
       if (!state[key].length) { app.querySelector('#e').innerHTML = '<div class="err" style="margin:-16px 0 16px">Please select at least one option.</div>'; return; }
       onNext();
     });
-  }
-
-  function drawQr() {
-    var c = app.querySelector('#qr'); if (!c) return;
-    var ctx = c.getContext('2d'); var n = 29; var s = 150 / n; var seed = 7;
-    function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
-    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 166, 166); ctx.fillStyle = '#000';
-    function finder(x, y) { ctx.fillRect(8 + x * s, 8 + y * s, 7 * s, 7 * s); ctx.fillStyle = '#fff'; ctx.fillRect(8 + (x + 1) * s, 8 + (y + 1) * s, 5 * s, 5 * s); ctx.fillStyle = '#000'; ctx.fillRect(8 + (x + 2) * s, 8 + (y + 2) * s, 3 * s, 3 * s); }
-    for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) {
-      var inF = (x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9);
-      if (!inF && rnd() > 0.52) ctx.fillRect(8 + x * s, 8 + y * s, Math.ceil(s), Math.ceil(s));
-    }
-    finder(0, 0); finder(n - 7, 0); finder(0, n - 7);
   }
 
   function render() {
