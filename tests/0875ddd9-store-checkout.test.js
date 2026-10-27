@@ -19,6 +19,7 @@ const http = require('http');
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
+const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const checkoutRoutes = require('../app/routes/verticals/0875ddd9');
 const { SERVICE, ROUTE, ENTITLEMENT_CATALOG, EDITION_ENTITLEMENTS } = require('../app/services/verticals/0875ddd9');
 
@@ -80,6 +81,7 @@ describe('2K Store checkout (0875ddd9)', () => {
     const sentryContext = JSON.stringify(Sentry.captureException.mock.calls[0][1]);
     expect(sentryContext).not.toContain(EMAIL);
     expect(JSON.stringify(alert.extra)).not.toContain(EMAIL);
+    expect(isInstantPathEvent({ culprit: alert.culprit, tags: [] })).toBe(true);
   });
 
   test('an empty body defaults to the failing hero order', async () => {
