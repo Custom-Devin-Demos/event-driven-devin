@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Transfer | Kestrel Bank</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1B5E50;
+      --ink: #191919;
+      --surface: #FFFFFF;
+      --chrome-bg: #164C41;
+      --chrome-text: #FFFFFF;
+      --canvas: #F4F1EB;
+      --pressed: #164C41;
+      --sage: #CFE3DA;
+      --pale: #E4EFE9;
+      --muted: rgba(25,25,25,.56);
+      --faint: rgba(25,25,25,.40);
+      --line: rgba(0,0,0,.06);
+      --pos: #00A558;
+      --err: #C62B2A; --err-bg: #FDEDED;
+      --warn: #8A4B00; --warn-bg: #FFF4E5;
+      --radius: 22px;
+      --shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 18px rgba(0,0,0,.04);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; overflow-x: hidden; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 15px; line-height: 20px; color: var(--ink); background: var(--canvas); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+    .num { font-variant-numeric: tabular-nums; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+    .top { display: flex; align-items: center; gap: 28px; min-height: 76px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 18px; font-weight: 600; letter-spacing: -.01em; }
+    .mark { width: 34px; height: 34px; border-radius: 11px; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 17px; }
+    .nav { display: flex; gap: 4px; padding: 5px; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow); }
+    .nav a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; font-weight: 500; color: var(--muted); }
+    .nav a[aria-current] { background: var(--pale); color: var(--accent); }
+    .nav a:hover { color: var(--ink); }
+    .me { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 500; }
+    .ava { width: 40px; height: 40px; border-radius: 50%; background: var(--sage); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex: none; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; margin: 12px auto 32px; }
+    .layout > * { min-width: 0; }
+    .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); min-width: 0; }
+    h1 { margin: 8px 0 18px; font-size: 32px; line-height: 38px; font-weight: 600; letter-spacing: -.02em; }
+    .flow { max-width: 620px; }
+    .lbl { font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); }
+
+    .acct { position: relative; display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
+    .acct + .acct { margin-top: 10px; }
+    .bub { width: 48px; height: 48px; border-radius: 50%; background: var(--pale); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+    .acct .txt { min-width: 0; flex: 1; }
+    .acct select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .acct .nm { font-size: 17px; line-height: 22px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .acct .sub { font-size: 14px; line-height: 18px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .acct .chev { color: var(--faint); }
+    .acct:focus-within { box-shadow: 0 0 0 3px var(--accent); }
+    .swapwrap { position: relative; height: 0; z-index: 2; display: flex; justify-content: center; }
+    .swap { position: absolute; top: -27px; width: 44px; height: 44px; border-radius: 50%; border: 4px solid var(--canvas); background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; box-sizing: content-box; }
+    .swap:hover { background: var(--pressed); }
+
+    .amtwrap { margin: 22px 0 14px; text-align: center; }
+    .amtwrap label { display: block; font-size: 14px; color: var(--muted); }
+    .amt { display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-top: 4px; }
+    .amt input { width: 6.2ch; min-width: 0; border: 0; background: transparent; padding: 0; text-align: right; font-size: 56px; line-height: 64px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+    .amt input::placeholder { color: rgba(25,25,25,.25); }
+    .amt input::-webkit-outer-spin-button, .amt input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .amt span { font-size: 26px; font-weight: 500; color: var(--muted); }
+    .chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .chip { min-height: 48px; border: 0; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow); font-weight: 500; font-size: 16px; cursor: pointer; }
+    .chip[aria-pressed="true"] { background: var(--accent); color: #fff; }
+    .msg { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 4px 18px; min-height: 56px; }
+    .msg label { font-weight: 500; flex: none; }
+    .msg input { flex: 1; min-width: 0; border: 0; background: transparent; text-align: right; min-height: 44px; color: var(--ink); }
+    .msg input::placeholder { color: var(--faint); }
+
+    .btn { display: flex; width: 100%; align-items: center; justify-content: center; gap: 10px; min-height: 56px; margin-top: 16px; border-radius: 18px; border: 0; font-weight: 600; font-size: 17px; cursor: pointer; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--pressed); }
+    .btn-primary:disabled { background: #6E978C; cursor: progress; }
+    .btn-plain { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); font-weight: 500; }
+    .btn-plain:disabled { opacity: .5; cursor: default; }
+    .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .rhead { display: flex; align-items: center; gap: 12px; margin: 4px 0 16px; }
+    .back { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--surface); box-shadow: var(--shadow); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
+    .rhead h2 { flex: 1; margin: 0 44px 0 0; text-align: center; font-size: 20px; line-height: 24px; font-weight: 600; }
+    .review { padding: 22px 20px 6px; }
+    .big { text-align: center; font-size: 40px; line-height: 46px; font-weight: 600; letter-spacing: -.02em; }
+    .between { text-align: center; margin-top: 4px; color: var(--muted); }
+    .leg { display: flex; align-items: center; gap: 14px; padding: 14px 0; min-width: 0; }
+    .leg .txt { flex: 1; min-width: 0; }
+    .leg .nm { font-weight: 600; font-size: 16px; }
+    .leg .sub { color: var(--muted); font-size: 14px; }
+    .leg .after { text-align: right; flex: none; }
+    .leg .after small { display: block; color: var(--faint); font-size: 13px; }
+    .leg .after b { font-weight: 600; }
+    .rows { margin: 4px 0 0; border-top: 1px solid var(--line); }
+    .rows div { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; }
+    .rows div + div { border-top: 1px solid var(--line); }
+    .rows dt { color: var(--muted); }
+    .rows dd { margin: 0; text-align: right; overflow-wrap: anywhere; min-width: 0; }
+
+    .result-box { display: none; margin-top: 16px; }
+    .result-box.notice, .result-box.error { display: block; padding: 14px 16px; border-radius: 16px; }
+    .result-box.notice { background: var(--warn-bg); color: var(--warn); }
+    .result-box.error { background: var(--err-bg); color: var(--err); }
+    .result-box .t { font-weight: 600; }
+    .result-box .d { margin-top: 2px; overflow-wrap: anywhere; }
+    .result-box.success { display: block; text-align: center; }
+    .done-badge { width: 96px; height: 96px; margin: 8px auto 18px; border-radius: 50%; background: var(--pale); color: var(--accent); display: flex; align-items: center; justify-content: center; }
+    .done-badge svg { width: 44px; height: 44px; stroke-width: 2.4; }
+    .success h2 { margin: 0; font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -.02em; }
+    .success .d { margin: 8px auto 18px; max-width: 420px; color: var(--muted); font-size: 16px; line-height: 22px; }
+    .success .rows { text-align: left; border-top: 0; padding: 0 18px; }
+
+    .side h2 { margin: 0 0 10px; font-size: 20px; line-height: 24px; font-weight: 600; letter-spacing: -.01em; }
+    .side h2 small { font-size: 14px; font-weight: 400; color: var(--muted); }
+    .side .card { padding: 4px 18px; }
+    .side .card + h2 { margin-top: 24px; }
+    .lst { list-style: none; margin: 0; padding: 0; }
+    .lst li { display: flex; align-items: center; gap: 12px; padding: 12px 0; min-width: 0; }
+    .lst li + li { border-top: 1px solid var(--line); }
+    .lst .bub { width: 40px; height: 40px; }
+    .lst .bub svg { width: 20px; height: 20px; }
+    .lst .who { flex: 1; min-width: 0; }
+    .lst .n { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lst .s { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lst .v { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .lst .v.in { color: var(--pos); }
+    .lst .ini { background: var(--sage); color: var(--accent); font-weight: 600; font-size: 13px; }
+    .lst li.fresh { animation: fresh 1.6s ease-out; }
+    @keyframes fresh { from { background: var(--pale); } to { background: transparent; } }
+    .foot { margin: 0 auto; padding: 0 24px 40px; max-width: 1120px; font-size: 13px; line-height: 17px; color: var(--faint); text-align: center; }
+    .tabbar { display: none; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      .nav { display: none; }
+      .flow { max-width: none; }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 0 16px; }
+      .top { min-height: 64px; }
+      .me .nm { display: none; }
+      h1 { font-size: 30px; line-height: 36px; margin-top: 0; }
+      .amt input { font-size: 48px; line-height: 56px; }
+      .chips { gap: 8px; }
+      .big { font-size: 34px; line-height: 40px; }
+      .leg .after b { font-size: 14px; }
+      .swapwrap { justify-content: flex-end; padding-right: 56px; }
+      body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+      .tabbar { display: flex; position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 30; padding: 6px; border-radius: 999px; background: var(--surface); box-shadow: 0 4px 24px rgba(0,0,0,.10); }
+      .tabbar a { flex: 1; min-width: 0; min-height: 56px; border-radius: 999px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--muted); }
+      .tabbar a[aria-current] { background: var(--pale); color: var(--accent); }
+      #oncall-ribbon, #oncall-dot { bottom: calc(96px + env(safe-area-inset-bottom)) !important; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="ic-card" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h4"/></symbol>
+    <symbol id="ic-bill" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
+    <symbol id="ic-pig" viewBox="0 0 24 24"><path d="M5 11a7 6 0 0 1 12.5-3.5L20 7l-.6 3.2A6 6 0 0 1 19 15l-1 1v3h-3v-1.5h-4V19H8v-3a6 6 0 0 1-3-5z"/><path d="M5 11H3.5M15.5 10h.01"/></symbol>
+    <symbol id="ic-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></symbol>
+    <symbol id="ic-home" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="ic-transfer" viewBox="0 0 24 24"><path d="M4 8h15l-4-4M20 16H5l4 4"/></symbol>
+    <symbol id="ic-more" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01"/></symbol>
+  </svg>
+  <header class="wrap top">
+    <a class="brand" href="#" aria-label="Kestrel Bank, home"><span class="mark" aria-hidden="true">K</span>Kestrel Bank</a>
+    <nav class="nav" aria-label="Main">
+      <a href="#"><svg class="i"><use href="#ic-home"/></svg>Home</a>
+      <a href="#" aria-current="page"><svg class="i"><use href="#ic-transfer"/></svg>Transfer</a>
+      <a href="#"><svg class="i"><use href="#ic-pig"/></svg>Savings</a>
+      <a href="#"><svg class="i"><use href="#ic-more"/></svg>More</a>
+    </nav>
+    <span class="me"><span class="nm">Alex Lindqvist</span><span class="ava" aria-hidden="true">AL</span></span>
+  </header>
+  <main class="wrap layout">
+    <section class="flow">
+      <form id="transferForm" novalidate>
+        <div id="stepEdit">
+          <h1>Transfer</h1>
+          <div class="card acct">
+            <span class="bub" id="fromIcon"><svg class="i"><use href="#ic-card"/></svg></span>
+            <div class="txt"><div class="lbl">From</div><div class="nm" id="fromName"></div><div class="sub num" id="fromSub"></div></div>
+            <svg class="i chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            <select id="fromAccount" aria-label="From account">
+              <option value="KB-4816" data-name="Everyday Account" data-mask="4816" data-icon="card" data-balance="18450.75">Everyday Account •••• 4816</option>
+              <option value="KB-3520" data-name="Bills Account" data-mask="3520" data-icon="bill" data-balance="6200.00">Bills Account •••• 3520</option>
+              <option value="KB-7043" data-name="Savings Account" data-mask="7043" data-icon="pig" data-balance="84300.50">Savings Account •••• 7043</option>
+              <option value="KB-8192" data-name="Shared Account" data-mask="8192" data-icon="people" data-balance="3975.20">Shared Account •••• 8192 · with Sam</option>
+            </select>
+          </div>
+          <div class="swapwrap"><button type="button" class="swap" id="swapBtn" aria-label="Swap accounts"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v16M8 4L4.5 7.5M8 4l3.5 3.5M16 20V4M16 20l-3.5-3.5M16 20l3.5-3.5"/></svg></button></div>
+          <div class="card acct">
+            <span class="bub" id="toIcon"><svg class="i"><use href="#ic-pig"/></svg></span>
+            <div class="txt"><div class="lbl">To</div><div class="nm" id="toName"></div><div class="sub num" id="toSub"></div></div>
+            <svg class="i chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            <select id="toAccount" aria-label="To account">
+              <option value="KB-4816">Everyday Account •••• 4816</option>
+              <option value="KB-3520">Bills Account •••• 3520</option>
+              <option value="KB-7043" selected>Savings Account •••• 7043</option>
+              <option value="KB-8192">Shared Account •••• 8192 · with Sam</option>
+            </select>
+          </div>
+          <div class="amtwrap">
+            <label for="amount">Amount</label>
+            <div class="amt"><input type="number" id="amount" inputmode="decimal" min="0.01" step="0.01" placeholder="0" autocomplete="off"><span aria-hidden="true">kr</span></div>
+          </div>
+          <div class="chips" role="group" aria-label="Quick amounts">
+            <button type="button" class="chip" data-amount="500">500</button>
+            <button type="button" class="chip" data-amount="1000">1 000</button>
+            <button type="button" class="chip" data-amount="2000">2 000</button>
+            <button type="button" class="chip" data-amount="5000">5 000</button>
+          </div>
+          <div class="card msg">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--muted)"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg>
+            <label for="note">Message</label>
+            <input id="note" maxlength="50" placeholder="Add a message" autocomplete="off">
+          </div>
+          <select id="accountTier" hidden aria-hidden="true" tabindex="-1"><option value="standard">standard</option></select>
+          <button type="button" class="btn btn-primary" id="nextBtn">Continue</button>
+        </div>
+        <div id="stepConfirm" hidden>
+          <div class="rhead">
+            <button type="button" class="back" id="backBtn" aria-label="Back"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+            <h2>Review transfer</h2>
+          </div>
+          <div class="card review">
+            <div class="big num" id="rvAmount"></div>
+            <div class="between">Between your accounts · arrives instantly</div>
+            <div class="leg"><span class="bub" id="rvFromIcon"></span><div class="txt"><div class="lbl">From</div><div class="nm" id="rvFromName"></div><div class="sub num" id="rvFromMask"></div></div><div class="after"><small>After</small><b class="num" id="rvFromAfter"></b></div></div>
+            <div class="leg"><span class="bub" id="rvToIcon"></span><div class="txt"><div class="lbl">To</div><div class="nm" id="rvToName"></div><div class="sub num" id="rvToMask"></div></div><div class="after"><small>After</small><b class="num" id="rvToAfter"></b></div></div>
+            <dl class="rows">
+              <div id="rvMsgRow"><dt>Message</dt><dd id="rvMsg"></dd></div>
+              <div><dt>Date</dt><dd id="rvDate"></dd></div>
+              <div><dt>Fee</dt><dd class="num">0,00 kr</dd></div>
+            </dl>
+          </div>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Confirm transfer</button>
+          <button type="button" class="btn btn-plain" id="cancelBtn">Cancel</button>
+        </div>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+    <aside class="side">
+      <h2>Accounts <small>· 4 accounts</small></h2>
+      <div class="card"><ul class="lst" id="acctList"></ul></div>
+      <h2>Latest activity</h2>
+      <div class="card">
+        <ul class="lst" id="txList">
+          <li><span class="bub ini">IS</span><div class="who"><div class="n">ICA Supermarket</div><div class="s">Groceries · 08:42</div></div><span class="v">−312,40 kr</span></li>
+          <li><span class="bub ini">SL</span><div class="who"><div class="n">SL</div><div class="s">Transport · 07:55</div></div><span class="v">−42,00 kr</span></li>
+          <li><span class="bub ini">ML</span><div class="who"><div class="n">Swish from Maria L.</div><div class="s">Dinner · Yesterday</div></div><span class="v in">+450,00 kr</span></li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+  <p class="foot">Demo app with fictional data. Kestrel Bank is not a real bank and is not affiliated with any bank.</p>
+  <nav class="tabbar" aria-label="App">
+    <a href="#"><svg class="i"><use href="#ic-home"/></svg>Home</a>
+    <a href="#" aria-current="page"><svg class="i"><use href="#ic-transfer"/></svg>Transfer</a>
+    <a href="#"><svg class="i"><use href="#ic-pig"/></svg>Savings</a>
+    <a href="#"><svg class="i"><use href="#ic-more"/></svg>More</a>
+  </nav>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      var form = $('transferForm');
+      var fromAccount = $('fromAccount');
+      var toAccount = $('toAccount');
+      var amountInput = $('amount');
+      var accountTier = $('accountTier');
+      var note = $('note');
+      var submitBtn = $('submitBtn');
+      var result = $('result');
+      var accounts = {};
+      Array.prototype.forEach.call(fromAccount.options, function (o) {
+        accounts[o.value] = { name: o.dataset.name, mask: o.dataset.mask, icon: o.dataset.icon, cents: Math.round(Number(o.dataset.balance) * 100) };
+      });
+      var pending = false;
+      var num = new Intl.NumberFormat('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      var dayFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long' });
+      var stampFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+      var timeFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+      function kr(c) { return num.format(c / 100).replace(/\u2212/, '-') + ' kr'; }
+      function icon(name) { return '<svg class="i"><use href="#ic-' + name + '"/></svg>'; }
+      function amountCents() {
+        var raw = amountInput.value.trim();
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return Math.round(parseFloat(raw) * 100);
+      }
+      function from() { return accounts[fromAccount.value]; }
+      function to() { return accounts[toAccount.value]; }
+      function renderAccounts() {
+        var list = $('acctList');
+        list.innerHTML = '';
+        Object.keys(accounts).forEach(function (id) {
+          var a = accounts[id];
+          var li = document.createElement('li');
+          li.innerHTML = '<span class="bub">' + icon(a.icon) + '</span><div class="who"><div class="n"></div><div class="s num"></div></div><span class="v"></span>';
+          li.querySelector('.n').textContent = a.name;
+          li.querySelector('.s').textContent = '•••• ' + a.mask + (id === 'KB-8192' ? ' · with Sam' : '');
+          li.querySelector('.v').textContent = kr(a.cents);
+          list.appendChild(li);
+        });
+      }
+      function render() {
+        accountTier.value = 'standard';
+        var f = from(), t = to();
+        $('fromIcon').innerHTML = icon(f.icon);
+        $('fromName').textContent = f.name;
+        $('fromSub').textContent = '•••• ' + f.mask + ' · ' + kr(f.cents);
+        $('toIcon').innerHTML = icon(t.icon);
+        $('toName').textContent = t.name;
+        $('toSub').textContent = '•••• ' + t.mask + ' · ' + kr(t.cents);
+        var cents = amountCents();
+        Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (b) {
+          b.setAttribute('aria-pressed', String(Number(b.dataset.amount) * 100 === cents));
+        });
+        var ok = Number.isFinite(cents) && cents > 0;
+        $('rvAmount').textContent = ok ? kr(cents) : '';
+        $('rvFromIcon').innerHTML = icon(f.icon);
+        $('rvFromName').textContent = f.name;
+        $('rvFromMask').textContent = '•••• ' + f.mask;
+        $('rvFromAfter').textContent = ok ? kr(f.cents - cents) : '';
+        $('rvToIcon').innerHTML = icon(t.icon);
+        $('rvToName').textContent = t.name;
+        $('rvToMask').textContent = '•••• ' + t.mask;
+        $('rvToAfter').textContent = ok ? kr(t.cents + cents) : '';
+        $('rvMsg').textContent = note.value.trim();
+        $('rvMsgRow').hidden = !note.value.trim();
+        $('rvDate').textContent = 'Today, ' + dayFmt.format(new Date());
+        renderAccounts();
+      }
+      function setStep(next) {
+        $('stepEdit').hidden = next !== 'edit';
+        $('stepConfirm').hidden = next !== 'confirm';
+      }
+      function show(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '<div class="t"></div><div class="d"></div>';
+        result.firstChild.textContent = title;
+        result.lastChild.textContent = detail || '';
+      }
+      function clearResult() { result.className = 'result-box'; result.innerHTML = ''; }
+      function validate() {
+        var cents = amountCents();
+        if (fromAccount.value === toAccount.value) { show('notice', 'Choose two different accounts', 'Money can only move between two different accounts.'); return false; }
+        if (!Number.isFinite(cents) || cents <= 0) { show('notice', 'Enter an amount', 'Enter an amount in kronor, for example 500.'); amountInput.focus(); return false; }
+        if (cents > from().cents) { show('notice', 'Not enough money', 'Available: ' + kr(from().cents)); amountInput.focus(); return false; }
+        return true;
+      }
+      function goReview() {
+        if (pending) return;
+        clearResult();
+        if (!validate()) return;
+        render();
+        setStep('confirm');
+        submitBtn.focus();
+      }
+      function backToEdit() { if (pending) return; clearResult(); setStep('edit'); }
+      function lock(on) {
+        [fromAccount, toAccount, amountInput, note, $('swapBtn'), $('backBtn'), $('cancelBtn')].forEach(function (el) { el.disabled = on; });
+        Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (el) { el.disabled = on; });
+      }
+      function reference(receiptId) {
+        var digits = String(receiptId || '').replace(/\D/g, '').slice(-8).padStart(8, '0');
+        return 'KB-' + digits.slice(0, 4) + '-' + digits.slice(4);
+      }
+      function addTx(f, t, cents, at) {
+        var li = document.createElement('li');
+        li.className = 'fresh';
+        li.innerHTML = '<span class="bub">' + icon('transfer') + '</span><div class="who"><div class="n"></div><div class="s"></div></div><span class="v"></span>';
+        li.querySelector('.n').textContent = 'To ' + t.name;
+        li.querySelector('.s').textContent = 'Transfer · ' + at;
+        li.querySelector('.v').textContent = '\u2212' + kr(cents);
+        $('txList').insertBefore(li, $('txList').firstChild);
+      }
+      function showComplete(f, t, cents, when, ref) {
+        result.className = 'result-box success';
+        result.innerHTML = '<div class="done-badge" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>' +
+          '<h2 class="t">Transfer complete</h2><p class="d"></p>' +
+          '<dl class="card rows"><div><dt>From</dt><dd class="f"></dd></div><div><dt>To</dt><dd class="to"></dd></div><div><dt>Date</dt><dd class="dt"></dd></div><div><dt>Reference</dt><dd class="rf num"></dd></div></dl>' +
+          '<button type="reset" class="btn btn-primary">Done</button>';
+        result.querySelector('.d').textContent = kr(cents) + ' moved to ' + t.name + '. It\u2019s available right away.';
+        result.querySelector('.f').textContent = f.name + ' •••• ' + f.mask;
+        result.querySelector('.to').textContent = t.name + ' •••• ' + t.mask;
+        result.querySelector('.dt').textContent = stampFmt.format(when);
+        result.querySelector('.rf').textContent = ref;
+      }
+      amountInput.addEventListener('input', function () { clearResult(); render(); });
+      note.addEventListener('input', render);
+      fromAccount.addEventListener('change', function () { clearResult(); render(); });
+      toAccount.addEventListener('change', function () { clearResult(); render(); });
+      $('swapBtn').addEventListener('click', function () {
+        var a = fromAccount.value; fromAccount.value = toAccount.value; toAccount.value = a; clearResult(); render();
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (b) {
+        b.addEventListener('click', function () { amountInput.value = b.dataset.amount; clearResult(); render(); });
+      });
+      $('nextBtn').addEventListener('click', goReview);
+      $('backBtn').addEventListener('click', backToEdit);
+      $('cancelBtn').addEventListener('click', backToEdit);
+      form.addEventListener('reset', function () {
+        setTimeout(function () { clearResult(); setStep('edit'); toAccount.value = 'KB-7043'; render(); });
+      });
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (pending) return;
+        if ($('stepConfirm').hidden) { goReview(); return; }
+        if (!validate()) { setStep('edit'); return; }
+        var fromId = fromAccount.value, toId = toAccount.value;
+        var f = accounts[fromId], t = accounts[toId];
+        pending = true;
+        lock(true);
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Transferring…';
+        clearResult();
+        var response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          var data = await response.json().catch(function () { return null; });
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          var when = new Date(data.receipt.timestamp);
+          var moved = Math.round(Number(data.receipt.amount) * 100);
+          var ref = reference(data.receipt.receiptId);
+          if (data.duplicate) {
+            show('notice', 'Already transferred', 'This transfer was already made at ' + timeFmt.format(when) + ': ' + kr(moved) + ' to ' + t.name + ', reference ' + ref + '. It was not sent again.');
+            return;
+          }
+          f.cents -= moved;
+          t.cents += moved;
+          addTx(f, t, moved, timeFmt.format(when));
+          setStep('done');
+          showComplete(f, t, moved, when, ref);
+          note.value = '';
+          amountInput.value = '';
+        } catch (_e) {
+          if (response && !response.ok) show('error', 'Transfer not made', 'No money has moved. Please try again in a moment.');
+          else show('error', 'We couldn\u2019t confirm this transfer', 'Check your latest activity before you try again.');
+        } finally {
+          pending = false;
+          lock(false);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Confirm transfer';
+          render();
+        }
+      });
+      render();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

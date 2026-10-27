@@ -6420,6 +6420,38 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A BCV TWINT SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BCV TWINT product.',
   },
+  '7f7b606c': {
+    slug: '7f7b606c',
+    company: 'Kestrel Bank',
+    brandMark: 'K',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '7f7b606c.html', title: 'Transfer | Kestrel Bank' },
+    theme: {
+      '--accent': '#1B5E50',
+      '--ink': '#191919',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#164C41',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Kestrel Bank Help & support',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+    },
+    alertCard: {
+      title: 'p95 latency \u2014 Kestrel Bank: transfer between accounts',
+      service: 'kestrel-transfers',
+      release: 'kestrel-transfers@2026.10.2',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      metricValue: '9.4s',
+      threshold: '> 1.5s',
+      baseline: '~300ms (7-day p95, before kestrel-transfers@2026.10.2)',
+      symptom: 'Transfers between own accounts hang ~9s after the customer taps Confirm transfer before Transfer complete appears. Error rate is normal \u2014 the money moves.',
+      impact: 'Kestrel Bank customers wait ~9 seconds to move money between their own accounts; some tap Confirm transfer again and contact Help & support about money moved twice.',
+    },
+    disclaimer: 'NOT ACTUALLY A KESTREL BANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Kestrel Bank product. Kestrel Bank is a fictional bank.',
+  },
 };
 
 function getOncallSkin(slug) {
