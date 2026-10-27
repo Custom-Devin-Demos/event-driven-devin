@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Membership | My account | bp pulse UK</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #000096;
+      --navy-deep: #000061;
+      --navy-hover: #0000B8;
+      --green: #007F00;
+      --lime: #99CC00;
+      --ink: #111111;
+      --ink-84: rgba(17, 17, 17, 0.84);
+      --ink-70: rgba(17, 17, 17, 0.7);
+      --ink-55: rgba(17, 17, 17, 0.55);
+      --line: #DEDEDE;
+      --line-soft: #EBEBEB;
+      --wash: #FAFAFA;
+      --wash-2: #F2F2F2;
+      --white: #FFFFFF;
+      --red: #B3261E;
+      --sans: 'Roboto', 'Roboto Fallback', Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--sans); background: var(--wash-2); color: var(--ink); font-size: 16px; line-height: 28px; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+    button, select, input { font-family: inherit; }
+
+    /* Top bar + header */
+    .topbar { background: #111111; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 64px; font-size: 14px; color: rgba(255,255,255,0.64); }
+    .topbar nav { display: flex; gap: 28px; }
+    .topbar a { display: inline-flex; align-items: center; gap: 8px; height: 44px; }
+    .topbar svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+    .header { background: var(--white); height: 88px; display: flex; align-items: center; gap: 32px; padding: 0 64px; border-bottom: 1px solid var(--line-soft); position: sticky; top: 0; z-index: 20; }
+    .wordmark { display: inline-flex; align-items: center; min-height: 44px; gap: 2px; font-size: 30px; line-height: 30px; letter-spacing: -0.6px; font-weight: 400; flex: none; }
+    .wordmark .b { color: var(--green); }
+    .wordmark .p { color: var(--navy); margin-left: 4px; }
+    .wordmark svg { width: 15px; height: 15px; margin-bottom: 2px; }
+    .header .links { display: flex; gap: 28px; margin-left: auto; font-size: 15px; color: var(--ink-70); }
+    .header .links a { height: 44px; display: inline-flex; align-items: center; border-bottom: 2px solid transparent; }
+    .header .links a.on { color: var(--ink); border-bottom-color: var(--ink); }
+    .acct { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 6px 0 16px; border-radius: 800px; border: 1px solid var(--line); font-size: 14px; color: var(--ink-84); white-space: nowrap; }
+    .acct .av { width: 32px; height: 32px; border-radius: 50%; background: var(--navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; }
+    @media (max-width: 1100px) { .topbar, .header { padding: 0 24px; } .header .links { display: none; } .acct { margin-left: auto; } }
+    @media (max-width: 600px) {
+      .topbar { height: 48px; padding: 0 16px; font-size: 13px; }
+      .topbar nav a:nth-child(2), .topbar .region span { display: none; }
+      .header { height: 64px; padding: 0 16px; gap: 12px; }
+      .wordmark { font-size: 24px; line-height: 24px; }
+      .acct .nm { display: none; }
+      .acct { padding: 0 6px; border: none; }
+    }
+
+    /* Account shell */
+    .wrap { max-width: 1312px; margin: 0 auto; padding: 40px 64px 72px; display: grid; grid-template-columns: 248px minmax(0, 1fr); gap: 32px; }
+    .side { background: var(--white); border-radius: 24px; padding: 16px 12px; align-self: start; position: sticky; top: 112px; box-shadow: 0 2px 8px rgba(17,17,17,0.04); }
+    .side .who { padding: 8px 12px 16px; border-bottom: 1px solid var(--line-soft); margin-bottom: 8px; }
+    .side .who b { display: block; font-weight: 500; font-size: 16px; line-height: 24px; }
+    .side .who span { font-size: 13px; line-height: 20px; color: var(--ink-70); }
+    .side a { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 12px; border-radius: 12px; font-size: 15px; color: var(--ink-84); white-space: nowrap; }
+    .side a svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.5; flex: none; }
+    .side a:hover { background: var(--wash-2); }
+    .side a.on { background: #EBEBFA; color: var(--navy); font-weight: 500; }
+    @media (max-width: 1100px) { .wrap { padding: 24px; grid-template-columns: minmax(0, 1fr); gap: 20px; } .side { position: static; display: flex; overflow-x: auto; padding: 8px; gap: 4px; border-radius: 16px; scrollbar-width: none; } .side::-webkit-scrollbar { display: none; } .side .who { display: none; } .side a { flex: none; } }
+    @media (max-width: 600px) { .wrap { padding: 16px 16px 48px; } }
+
+    .crumbs { font-size: 14px; color: var(--ink-70); display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .crumbs .cur { color: var(--ink); }
+    h1 { font-size: 48px; line-height: 56px; font-weight: 400; letter-spacing: -0.5px; }
+    .lede { font-size: 17px; line-height: 28px; color: var(--ink-84); font-weight: 300; margin: 8px 0 28px; max-width: 680px; }
+    @media (max-width: 600px) { h1 { font-size: 34px; line-height: 42px; } .lede { font-size: 16px; } }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
+    @media (max-width: 1240px) { .grid { grid-template-columns: minmax(0, 1fr); } .summary { position: static !important; } }
+
+    .card { background: var(--white); border-radius: 24px; padding: 28px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(17,17,17,0.04); }
+    .card h2 { font-size: 24px; line-height: 32px; font-weight: 400; margin-bottom: 4px; }
+    .card .hint { font-size: 15px; line-height: 24px; color: var(--ink-70); font-weight: 300; margin-bottom: 20px; }
+    @media (max-width: 600px) { .card { padding: 20px; border-radius: 20px; } }
+
+    .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .plans { grid-template-columns: 1fr; } }
+    .plan { border: 1px solid var(--line); border-radius: 20px; padding: 20px 22px; position: relative; background: var(--wash); }
+    .plan.sel { border: 2px solid var(--navy); background: var(--white); padding: 19px 21px; }
+    .plan .tag { display: inline-block; font-size: 12px; line-height: 16px; letter-spacing: 0.4px; padding: 4px 10px; border-radius: 800px; background: var(--wash-2); color: var(--ink-84); margin-bottom: 12px; }
+    .plan.sel .tag { background: var(--navy); color: #fff; }
+    .plan h3 { font-size: 20px; line-height: 28px; font-weight: 400; }
+    .plan .price { font-size: 32px; line-height: 40px; margin: 6px 0 2px; }
+    .plan .price small { font-size: 15px; color: var(--ink-70); }
+    .plan .sub { font-size: 14px; line-height: 22px; color: var(--ink-70); font-weight: 300; }
+    .plan ul { list-style: none; margin-top: 14px; font-size: 14px; line-height: 22px; color: var(--ink-84); }
+    .plan li { display: flex; gap: 10px; padding: 4px 0; }
+    .plan li svg { width: 18px; height: 18px; flex: none; margin-top: 2px; stroke: var(--green); fill: none; stroke-width: 2; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 22px; }
+    th { text-align: left; font-weight: 400; color: var(--ink-70); background: var(--wash); padding: 13px 16px; border: 1px solid #CCCCCC; }
+    td { padding: 13px 16px; border: 1px solid #CCCCCC; }
+    td small { display: block; color: var(--ink-55); font-size: 13px; }
+    td.sub-col, th.sub-col { background: #EBEBFA; color: var(--navy); }
+    .fine { font-size: 13px; line-height: 20px; color: var(--ink-55); font-weight: 300; margin-top: 12px; }
+
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 14px; line-height: 20px; color: var(--ink-84); margin-bottom: 8px; }
+    .field select { width: 100%; height: 56px; padding: 0 44px 0 18px; border: 1px solid #BDBDBD; border-radius: 12px; background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23111111' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 18px center; color: var(--ink); font-size: 16px; appearance: none; }
+    .field select:focus { outline: 2px solid var(--navy); outline-offset: 1px; border-color: var(--navy); }
+    .field select:disabled { background-color: var(--wash); color: var(--ink-70); }
+    .field .help { font-size: 13px; line-height: 20px; color: var(--ink-55); margin-top: 6px; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .two { grid-template-columns: 1fr; } }
+
+    .summary { position: sticky; top: 112px; }
+    .rows { margin-top: 8px; }
+    .row { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; line-height: 22px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+    .row span:first-child { color: var(--ink-70); flex: none; }
+    .row span:last-child { text-align: right; }
+    .row.free span:last-child { color: var(--green); }
+    .row.total { border-bottom: none; font-weight: 500; font-size: 17px; padding-top: 16px; }
+    .btn { width: 100%; min-height: 56px; border: 0; border-radius: 800px; background: var(--navy); color: rgba(255,255,255,0.92); font-size: 16px; cursor: pointer; margin-top: 18px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: background .15s; padding: 0 24px; }
+    .btn:hover { background: var(--navy-hover); }
+    .btn:disabled { opacity: 0.65; cursor: progress; }
+    .btn.done { background: var(--green); opacity: 1; cursor: default; }
+    .btn .spin { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.45); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; display: none; }
+    .btn.busy .spin { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .terms { font-size: 13px; line-height: 20px; color: var(--ink-55); font-weight: 300; margin-top: 14px; }
+    .terms a { text-decoration: underline; }
+
+    .result-box { margin-top: 16px; padding: 16px 18px; border-radius: 16px; font-size: 15px; line-height: 22px; display: none; }
+    .result-box.success { display: block; background: #EAF5EA; border: 1px solid var(--green); color: #0B3D0B; }
+    .result-box.error { display: block; background: #FCEFEE; border: 1px solid var(--red); color: #6E1C17; }
+    .result-box .t { font-weight: 500; margin-bottom: 4px; }
+    .result-box .d { font-size: 14px; line-height: 21px; }
+
+    .promo { border-radius: 24px; overflow: hidden; background: var(--navy); color: #fff; box-shadow: 0 4px 16px rgba(0,0,150,0.18); }
+    .promo img { width: 100%; height: 170px; object-fit: cover; display: block; background: var(--navy-deep); }
+    .promo .txt { padding: 18px 22px 22px; }
+    .promo b { display: block; font-weight: 400; font-size: 20px; line-height: 28px; margin-bottom: 4px; }
+    .promo span { font-size: 14px; line-height: 22px; color: rgba(255,255,255,0.84); font-weight: 300; }
+
+    footer { background: #111111; color: rgba(255,255,255,0.64); padding: 40px 64px; font-size: 14px; line-height: 22px; }
+    footer .cols { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    footer ul { list-style: none; display: flex; gap: 24px; flex-wrap: wrap; }
+    footer .wm { color: #fff; display: inline-flex; align-items: center; gap: 10px; }
+    footer .wm svg { width: 22px; height: 22px; }
+    @media (max-width: 1100px) { footer { padding: 32px 24px; } }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <nav aria-label="Audience">
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Public EV charging</a>
+      <a href="#"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="1.5"/><path d="M9 7V4h6v3"/></svg>Business EV charging</a>
+    </nav>
+    <a href="#" class="region"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg><span>United Kingdom</span></a>
+  </div>
+
+  <header class="header">
+    <a href="#" class="wordmark" aria-label="bp pulse">
+      <span class="b">bp</span><span class="p">pulse</span>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#99CC00"/><stop offset="1" stop-color="#2DA9E1"/></linearGradient></defs><circle cx="8" cy="8" r="5.6" fill="none" stroke="url(#ring)" stroke-width="2.6"/></svg>
+    </a>
+    <nav class="links" aria-label="Main">
+      <a href="#">Find a charger</a>
+      <a href="#">Charging history</a>
+      <a href="#" class="on">My account</a>
+      <a href="#">Help and support</a>
+    </nav>
+    <span class="acct"><span class="nm">Hannah Clarke</span><span class="av" aria-label="Hannah Clarke">HC</span></span>
+  </header>
+
+  <div class="wrap">
+    <nav class="side" aria-label="My account">
+      <div class="who"><b>Hannah Clarke</b><span>Member since March 2024</span></div>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Overview</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>Charging history</a>
+      <a href="#" class="on" aria-current="page"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Membership</a>
+      <a href="#"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Payment methods</a>
+      <a href="#"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 17h6"/></svg>Charge cards</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M5 16l1.5-5h11L19 16M4 16h16v3H4zM7 19v2M17 19v2"/></svg>Vehicles</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Receipts</a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Settings</a>
+    </nav>
+
+    <main>
+      <div class="crumbs"><span>My account</span><span>&rsaquo;</span><span class="cur">Membership</span></div>
+      <h1>Membership</h1>
+      <p class="lede">Change the way you pay so you&rsquo;re always good to go. Full members pay Subscriber rates on the bp pulse network, with the first month free.</p>
+
+      <form id="upgradeForm" class="grid" novalidate>
+        <div>
+          <section class="card">
+            <h2>Choose your membership</h2>
+            <p class="hint">You can change your membership at any time. Subscriber rates apply from your next charge once the change is confirmed.</p>
+            <div class="plans">
+              <div class="plan" id="planCurrent">
+                <span class="tag" id="planCurrentTag">Current membership</span>
+                <h3>Free / PAYG member</h3>
+                <div class="price">&pound;0 <small>a month</small></div>
+                <p class="sub">Our second lowest on-the-go charging rates.</p>
+                <ul>
+                  <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>Pay as you go rates in the bp pulse app</li>
+                  <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>Free bp pulse charge card on request</li>
+                </ul>
+              </div>
+              <div class="plan sel" id="planNew">
+                <span class="tag" id="planNewTag">Selected</span>
+                <h3>Full membership</h3>
+                <div class="price">&pound;7.85 <small>a month</small></div>
+                <p class="sub">Save over 20% on our Contactless rates. First month free.</p>
+                <ul>
+                  <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>Subscriber rates on fast, rapid and ultrafast chargers</li>
+                  <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>50% off hot drinks at Wild Bean Cafe</li>
+                  <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>bp pulse charge card to start and stop charging</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Prices for public EV charging</h2>
+            <p class="hint">Tariff (&pound;/kWh) inc. VAT on the bp pulse owned network.</p>
+            <div class="table-wrap">
+              <table aria-label="Tariffs by membership">
+                <thead><tr><th></th><th class="sub-col">Subscribers</th><th>Pay as you go</th></tr></thead>
+                <tbody>
+                  <tr><td>Fast<small>AC 7kW</small></td><td class="sub-col">&pound;0.52</td><td>&pound;0.65</td></tr>
+                  <tr><td>Rapid<small>AC 43kW / DC 50kW</small></td><td class="sub-col">&pound;0.63 &ndash; &pound;0.74</td><td>&pound;0.79 &ndash; &pound;0.93</td></tr>
+                  <tr><td>Ultrafast<small>DC 150kW+</small></td><td class="sub-col">&pound;0.63 &ndash; &pound;0.74</td><td>&pound;0.79 &ndash; &pound;0.93</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="fine">Payment by bp pulse charge card or via the bp pulse app is required for Subscriber rates. Rates can vary across the bp pulse network &ndash; check the app for latest prices.</p>
+          </section>
+
+          <section class="card">
+            <h2>Your change</h2>
+            <p class="hint">Review your membership change and how you&rsquo;d like to pay the monthly fee.</p>
+            <div class="two">
+              <div class="field">
+                <label for="currentPlan">Current membership</label>
+                <select id="currentPlan">
+                  <option value="BASIC-12" data-label="Free / PAYG member">Free / PAYG member &mdash; &pound;0 a month</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="newPlan">New membership</label>
+                <select id="newPlan">
+                  <option value="PLUS-24" data-label="Full membership" data-fee="7.85">Full membership &mdash; &pound;7.85 a month</option>
+                </select>
+              </div>
+            </div>
+            <div class="two">
+              <div class="field">
+                <label for="payCard">Pay monthly fee with</label>
+                <select id="payCard">
+                  <option value="visa-4417" data-label="Visa &bull;&bull;&bull;&bull; 4417">Visa &bull;&bull;&bull;&bull; 4417 &mdash; expires 08/28</option>
+                  <option value="mc-0932" data-label="Mastercard &bull;&bull;&bull;&bull; 0932">Mastercard &bull;&bull;&bull;&bull; 0932 &mdash; expires 02/27</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="addon">bp pulse charge card</label>
+                <select id="addon">
+                  <option value="charge-card" data-label="Posted to you">Send me a bp pulse charge card</option>
+                  <option value="none" data-label="Using my current card">I already have a charge card</option>
+                </select>
+                <p class="help">Charge cards are posted to the address on your account.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="summary">
+          <section class="card">
+            <h2>Summary</h2>
+            <div class="rows">
+              <div class="row"><span>Membership</span><span id="sumPlan">&mdash;</span></div>
+              <div class="row"><span>Monthly fee</span><span id="sumFee">&mdash;</span></div>
+              <div class="row free"><span>First month</span><span>Free</span></div>
+              <div class="row"><span>First payment</span><span id="sumFirst">&mdash;</span></div>
+              <div class="row"><span>Pay with</span><span id="sumCard">&mdash;</span></div>
+              <div class="row"><span>Charge card</span><span id="sumAddon">&mdash;</span></div>
+              <div class="row total"><span>Due today</span><span>&pound;0.00</span></div>
+            </div>
+            <button type="submit" class="btn" id="submitBtn"><span class="spin" aria-hidden="true"></span><span class="label">Upgrade to Full membership</span></button>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+            <p class="terms">By upgrading you agree to the bp pulse <a href="#">subscription terms and conditions</a>. You can cancel at any time from Membership.</p>
+          </section>
+          <div class="promo" id="promoCard">
+            <img src="https://images.ctfassets.net/zm63ki8guuuw/2zOZNrDZS3SARtCK5oQYHv/b5da1c669e4dc29203ea86d022f7933e/wildbean-got-drinks.jpg?w=900&amp;q=75&amp;fm=webp" alt="Hot drinks at Wild Bean Cafe" loading="lazy" onerror="this.onerror=null;this.style.display='none';">
+            <div class="txt"><b>50% off hot drinks</b><span>Full members get 50% off hot drinks at Wild Bean Cafe, one per visit.</span></div>
+          </div>
+        </aside>
+      </form>
+    </main>
+  </div>
+
+  <footer>
+    <div class="cols">
+      <span class="wm"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.6" fill="none" stroke="url(#ring)" stroke-width="2.6"/></svg>bp pulse &middot; &copy;Copyright 2026 bp pulse. All rights reserved.</span>
+      <ul><li>Legal notice</li><li>Privacy notice</li><li>Cookie policy</li><li>Terms and conditions</li><li>Contact us</li></ul>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('upgradeForm');
+      var currentPlan = document.getElementById('currentPlan');
+      var newPlan = document.getElementById('newPlan');
+      var payCard = document.getElementById('payCard');
+      var addon = document.getElementById('addon');
+      var btn = document.getElementById('submitBtn');
+      var label = btn.querySelector('.label');
+      var result = document.getElementById('result');
+      var controls = [currentPlan, newPlan, payCard, addon];
+
+      function selected(sel) { return sel.options[sel.selectedIndex]; }
+      function money(n) { return '\u00a3' + n.toFixed(2); }
+      function firstPaymentDate() {
+        var d = new Date();
+        var day = d.getDate();
+        d.setDate(1);
+        d.setMonth(d.getMonth() + 1);
+        d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+      function fmtDate(iso) {
+        var d = iso ? new Date(iso + 'T12:00:00') : new Date();
+        if (isNaN(d.getTime())) d = new Date();
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+      function render() {
+        var plan = selected(newPlan);
+        document.getElementById('sumPlan').textContent = plan.dataset.label;
+        document.getElementById('sumFee').textContent = money(parseFloat(plan.dataset.fee) || 0) + ' a month';
+        document.getElementById('sumFirst').textContent = firstPaymentDate();
+        document.getElementById('sumCard').innerHTML = selected(payCard).dataset.label;
+        document.getElementById('sumAddon').textContent = selected(addon).dataset.label;
+      }
+      function setBusy(busy) {
+        controls.forEach(function (el) { el.disabled = busy; });
+        btn.disabled = busy;
+        btn.classList.toggle('busy', busy);
+        label.textContent = busy ? 'Updating your membership\u2026' : 'Upgrade to Full membership';
+      }
+      function showError(title, detail) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="t">' + title + '</div><div class="d">' + detail + '</div>';
+      }
+
+      [newPlan, payCard, addon].forEach(function (el) { el.addEventListener('change', render); });
+      form.addEventListener('reset', function () {
+        setTimeout(function () {
+          result.className = 'result-box';
+          result.innerHTML = '';
+          btn.classList.remove('done');
+          setBusy(false);
+          render();
+        }, 0);
+      });
+      render();
+
+      var side = document.querySelector('.side');
+      var activeNav = side.querySelector('a.on');
+      if (activeNav && side.scrollWidth > side.clientWidth) side.scrollLeft = activeNav.offsetLeft - 8;
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (btn.disabled) return;
+        var submitted = {
+          plan: selected(newPlan).dataset.label,
+          fee: parseFloat(selected(newPlan).dataset.fee) || 0,
+          card: selected(payCard).dataset.label,
+          chargeCard: addon.value === 'charge-card',
+        };
+        result.className = 'result-box';
+        result.innerHTML = '';
+        setBusy(true);
+        var res;
+        try {
+          res = await fetch('/api/telco/upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accountId: 'CUST-3001', currentPlanCode: document.getElementById('currentPlan').value, targetPlanCode: newPlan.value, billingDay: 15, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          });
+        } catch (err) {
+          setBusy(false);
+          showError('We couldn\u2019t confirm your membership change', 'Check Membership in a few minutes before trying again, so you aren\u2019t upgraded twice.');
+          return;
+        }
+        var data = null;
+        try { data = await res.json(); } catch (err) { data = null; }
+        if (!res.ok) {
+          setBusy(false);
+          showError('We couldn\u2019t change your membership', 'You\u2019re still a Free / PAYG member and nothing has been charged. Try again, or contact bp pulse Help and support.');
+          return;
+        }
+        if (!data || !data.success) {
+          setBusy(false);
+          showError('We couldn\u2019t confirm your membership change', 'Check Membership in a few minutes before trying again, so you aren\u2019t upgraded twice.');
+          return;
+        }
+        var ref = 'BPP-' + String(data.upgradeId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
+        result.className = 'result-box success';
+        result.innerHTML = '<div class="t">You\u2019re now a Full member</div><div class="d">Reference ' + ref + ' &middot; Subscriber rates apply from ' + fmtDate(data.effectiveDate) + '. Your first month is free, then ' + money(submitted.fee) + ' a month from ' + submitted.card + ' starting ' + firstPaymentDate() + '.' + (submitted.chargeCard ? ' We\u2019ll post your bp pulse charge card to the address on your account.' : '') + '</div>';
+        document.getElementById('planCurrentTag').textContent = 'Previous membership';
+        document.getElementById('planNewTag').textContent = 'Current membership';
+        setBusy(false);
+        controls.forEach(function (el) { el.disabled = true; });
+        btn.disabled = true;
+        btn.classList.add('done');
+        label.textContent = 'Full membership active';
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
