@@ -6312,6 +6312,7 @@ const ONCALL_SKINS = {
     slug: 'c7b0b57a',
     company: 'Toyota',
     vertical: 'telco',
+    oncallOnly: true,
     page: {
       file: 'c7b0b57a.html',
       title: 'トヨタ トヨタのコネクティッドサービス | プラン詳細 | トヨタ自動車WEBサイト',
