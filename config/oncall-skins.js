@@ -72,6 +72,9 @@
  * ribbonSide: 'left' docks the ribbon bottom-left instead, and ribbonYieldTo: '<css selector>'
  * hides the ribbon while that page element matches (e.g. the page's own toast).
  *
+ * triggerWhen: { <bodyField>: <value> } overrides the scenario's triggerWhen, so
+ * only requests matching every field post an alert (others are just rerouted).
+ *
  * paths: ['/<name>'] adds friendly direct URLs served exactly like /oncall/c/<slug>.
  *
  * A native page whose primary action has no legacy /api/<vertical> endpoint
@@ -113,6 +116,37 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Intake Factory Support',
     disclaimer: 'NOT ACTUALLY AN INTAKE FACTORY SITE — demo only, not a production Intake Factory deployment. All documents and data are fictional.',
+  },
+  'e2303f8c': {
+    slug: 'e2303f8c',
+    company: 'MiniMed',
+    brandMark: 'M',
+    vertical: 'banking',
+    oncallOnly: true,
+    teamsAlerts: true,
+    alertDestination: 'teams',
+    triggerWhen: { accountTier: 'standard' },
+    page: { file: 'e2303f8c.html', title: 'Upload & reports | MiniMed CareLink' },
+    theme: {
+      '--accent': '#0067B1',
+      '--ink': '#1B2A4A',
+      '--surface': '#F2F5F9',
+      '--chrome-bg': '#1B2A4A',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: 'p95 latency \u2014 device upload & therapy report',
+      service: 'carelink-reports-api',
+      release: 'carelink-reports@2026.10.3',
+      team: 'clinic-reports-oncall',
+      metricValue: '9.4s',
+      threshold: '> 1.5s',
+      baseline: '~300ms (7-day p95)',
+      symptom: 'Upload & generate report for full clinic uploads hangs ~9s before the Therapy Management Dashboard renders. Incremental app syncs are fast and the error rate is normal.',
+      impact: 'Clinicians uploading a pump at the front desk wait on a spinner for ~9 seconds per patient before the visit report appears; some retry the upload.',
+    },
+    supportCenter: 'MiniMed CareLink Support',
+    disclaimer: 'NOT ACTUALLY A MINIMED SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real MiniMed or Medtronic product. All patient and device data is fictional.',
   },
   'cb84fd21': {
     slug: 'cb84fd21',
@@ -6528,6 +6562,51 @@ const ONCALL_SKINS = {
       impact: 'Members wait ~8 seconds to move to Full membership; some select Upgrade again or leave the page before Subscriber rates are confirmed.',
     },
     disclaimer: 'NOT ACTUALLY A BP PULSE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real bp pulse product.',
+  },
+  'fadb6441': {
+    slug: 'fadb6441',
+    company: 'Zopa',
+    brandMark: 'Z',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'fadb6441.html', title: 'Send money | Zopa Bank' },
+    theme: {
+      '--accent': '#0E2C27',
+      '--ink': '#0E2C27',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#031A16',
+      '--chrome-text': '#F1F1F7',
+    },
+    supportCenter: 'Zopa Help',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Demo investigation requirements:',
+        '1. Reproduce the symptom in a browser on this machine against a local run of the repo, and time the request before any change. Never open or submit the live page on devindemos.com, and tell every child session and testing agent the same: each live submit fires a new alert and starts another investigation.',
+        '2. Find every root cause from the code and telemetry: the slow request, and anything else the alert names (the impact line often names a second problem, for example duplicate transfers from customers submitting again). Fix all of them.',
+        '3. Add a regression test per root cause that fails before the fix and passes after it.',
+        '4. Record as much as you can; recordings are what the demo audience watches. At minimum three separate recordings: BEFORE on a local run of main (real ~9s hang), AFTER on a local run of the fix branch (the fix is not deployed), and the regression test failing then passing. Same flow, same clicks, a visible timer in each.',
+        '5. Label every recording inside the recording tool, not only in the message that attaches it: a title naming the step ("BEFORE: transfer hangs 9s on main", "AFTER: fix branch, 0.9s", "REGRESSION TEST: fails on main, passes on fix"), one chapter per action, and one pass/fail check annotation stating what should happen and what did ("It should confirm in under 1.5s \u2014 failed: 9.5s"). The labels must be in the recording\'s *-annotations.json sidecar and burned into the edited video. A label that exists only in a PR comment, chat message, or filename does not count.',
+        '6. Gate before posting: for every recording, open its *-annotations.json and confirm it has a title, at least one chapter, and a pass/fail check. If any is missing, re-annotate or re-record before embedding it anywhere. Never embed or post an unlabeled recording in the PR, the Slack thread, or the handover; list it as "missing: <step>" instead.',
+        '7. When you hand recording work to a child session or your testing agent, paste requirements 4, 5 and 6 verbatim into its prompt, and run the step-6 check on its deliverable before accepting it.',
+        '8. Open a PR with the investigation summary, the fix, the test, and every recording that passed step 6 embedded. Request Devin Review. Do not merge; stop for human approval.',
+        '9. Post one final message in the Slack alert thread with exactly four labeled lines: "Root cause:" (one plain sentence per cause), "PR review:" (the PR URL), "Videos:" (BEFORE, AFTER, REGRESSION TEST links; "missing" for any that failed step 6), "Sessions:" (this session, then each child labeled "Fix 1 of N: <root cause>"). Post the same four lines as the last message of this session.',
+        'Work split: this session reproduces, coordinates, records BEFORE and AFTER itself, and opens the single PR. Spawn exactly one child session per root cause for its fix and regression test, and nothing else: no child for recordings, and no child for the second root cause unless it is a separate defect in separate code. Decide N once, before spawning, and title every child "Fix <i> of <N>: <root cause in plain words>" with that same N so the session list reads like a plan. Merge their work into one branch and record AFTER on it in this session.',
+      ].join('\n'),
+    },
+    alertCard: {
+      title: 'p95 latency \u2014 Zopa app: Send money',
+      service: 'payments-api',
+      release: 'payments-api@2026.10.4',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      metricValue: '9.4s',
+      threshold: '> 1.5s',
+      baseline: '~300ms (7-day p95, before payments-api@2026.10.4)',
+      symptom: 'Payments from the Biscuit current account hang ~9s after the customer selects Send money, before the confirmation is shown. Error rate is normal \u2014 the payment completes.',
+      impact: 'Zopa customers wait ~9 seconds for a payment to confirm; some select Send money again and contact Zopa Help about the same payment leaving their account twice.',
+    },
+    disclaimer: 'NOT ACTUALLY A ZOPA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Zopa product.',
   },
   '3fdd13be': {
     slug: '3fdd13be',
