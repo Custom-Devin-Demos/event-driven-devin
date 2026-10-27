@@ -424,7 +424,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       // demonstrate the per-request growth, so they join the open incident.
       // Every other scenario posts a fresh incident on every submit.
       const retryWindowEnabled = ${JSON.stringify(Boolean(scenario.retryWindow))};
-      const triggerWhen = ${JSON.stringify(scenario.triggerWhen || null)};
+      const triggerWhen = ${JSON.stringify((skin && skin.triggerWhen) || scenario.triggerWhen || null)};
       const alertOnStatus = ${JSON.stringify(Array.isArray(scenario.alertOnStatus) ? scenario.alertOnStatus : null)};
       function shouldTrigger(opts) {
         if (!triggerWhen) return true;

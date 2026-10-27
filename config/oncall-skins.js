@@ -72,6 +72,9 @@
  * ribbonSide: 'left' docks the ribbon bottom-left instead, and ribbonYieldTo: '<css selector>'
  * hides the ribbon while that page element matches (e.g. the page's own toast).
  *
+ * triggerWhen: { <bodyField>: <value> } overrides the scenario's triggerWhen, so
+ * only requests matching every field post an alert (others are just rerouted).
+ *
  * paths: ['/<name>'] adds friendly direct URLs served exactly like /oncall/c/<slug>.
  *
  * A native page whose primary action has no legacy /api/<vertical> endpoint
@@ -113,6 +116,37 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Intake Factory Support',
     disclaimer: 'NOT ACTUALLY AN INTAKE FACTORY SITE — demo only, not a production Intake Factory deployment. All documents and data are fictional.',
+  },
+  'e2303f8c': {
+    slug: 'e2303f8c',
+    company: 'MiniMed',
+    brandMark: 'M',
+    vertical: 'banking',
+    oncallOnly: true,
+    teamsAlerts: true,
+    alertDestination: 'teams',
+    triggerWhen: { accountTier: 'standard' },
+    page: { file: 'e2303f8c.html', title: 'Upload & reports | MiniMed CareLink' },
+    theme: {
+      '--accent': '#0067B1',
+      '--ink': '#1B2A4A',
+      '--surface': '#F2F5F9',
+      '--chrome-bg': '#1B2A4A',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: 'p95 latency \u2014 device upload & therapy report',
+      service: 'carelink-reports-api',
+      release: 'carelink-reports@2026.10.3',
+      team: 'clinic-reports-oncall',
+      metricValue: '9.4s',
+      threshold: '> 1.5s',
+      baseline: '~300ms (7-day p95)',
+      symptom: 'Upload & generate report for full clinic uploads hangs ~9s before the Therapy Management Dashboard renders. Incremental app syncs are fast and the error rate is normal.',
+      impact: 'Clinicians uploading a pump at the front desk wait on a spinner for ~9 seconds per patient before the visit report appears; some retry the upload.',
+    },
+    supportCenter: 'MiniMed CareLink Support',
+    disclaimer: 'NOT ACTUALLY A MINIMED SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real MiniMed or Medtronic product. All patient and device data is fictional.',
   },
   'cb84fd21': {
     slug: 'cb84fd21',
