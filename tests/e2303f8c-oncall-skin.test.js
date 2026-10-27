@@ -52,7 +52,13 @@ describe('e2303f8c MiniMed CareLink on-call skin', () => {
     expect(html).toContain('const oncallApiPath = "/api/oncall/banking/transfer"');
     expect(html).toContain('var skinAlertDestination = "teams"');
     expect(html).toContain('NOT ACTUALLY A MINIMED SITE');
+    expect(html).toContain('const triggerWhen = {"accountTier":"standard"}');
     expect(html).not.toMatch(/<base |<script[^>]+src="https?:/);
+  });
+
+  test('stock banking skins keep the scenario trigger (alert on every submit)', async () => {
+    const html = await (await fetch(`${baseUrl}/oncall/c/8df370c5`)).text();
+    expect(html).toContain('const triggerWhen = null');
   });
 
   test('alert card copy stays metric-shaped and free of the company name', () => {

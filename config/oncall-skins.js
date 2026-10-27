@@ -72,6 +72,9 @@
  * ribbonSide: 'left' docks the ribbon bottom-left instead, and ribbonYieldTo: '<css selector>'
  * hides the ribbon while that page element matches (e.g. the page's own toast).
  *
+ * triggerWhen: { <bodyField>: <value> } overrides the scenario's triggerWhen, so
+ * only requests matching every field post an alert (others are just rerouted).
+ *
  * paths: ['/<name>'] adds friendly direct URLs served exactly like /oncall/c/<slug>.
  *
  * A native page whose primary action has no legacy /api/<vertical> endpoint
@@ -122,6 +125,7 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     teamsAlerts: true,
     alertDestination: 'teams',
+    triggerWhen: { accountTier: 'standard' },
     page: { file: 'e2303f8c.html', title: 'Upload & reports | MiniMed CareLink' },
     theme: {
       '--accent': '#0067B1',
