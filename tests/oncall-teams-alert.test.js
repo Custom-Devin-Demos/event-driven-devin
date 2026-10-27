@@ -359,6 +359,18 @@ describe('On-Call alerts routed to Microsoft Teams', () => {
     expect(axios.post.mock.calls[0][0]).toBe(USER_TEAMS_URL);
   });
 
+  test('LoanTrack (9ecaa5d1) forces Teams and posts to the oncall-demo channel only', async () => {
+    expect(LOANTRACK.alertDestination).toBe('teams');
+    expect(LOANTRACK.teamsWebhookEnv).toBe('ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI');
+    setEnv({ slack: true, teams: true });
+    process.env.ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI = USER_TEAMS_URL;
+    const result = await postOncallAlert('banking', { skin: LOANTRACK, destination: LOANTRACK.alertDestination });
+    expect(result).toEqual({ ok: true, teams: true });
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    expect(axios.post.mock.calls[0][0]).toBe(USER_TEAMS_URL);
+  });
+
   test('a Teams-only alert does not claim the skin incident; the next Slack alert opens its own', async () => {
     setEnv({ slack: true, teams: true });
     const skin = channelSkin();

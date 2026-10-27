@@ -453,6 +453,25 @@ const ALERT_SCENARIOS = {
     alertOnStatus: [401],
     unlisted: true,
   },
+  nftcheckout: {
+    vertical: 'nftcheckout',
+    apiPath: '/api/opensea-checkout',
+    oncallApiPath: '/api/oncall/nftcheckout',
+    owner: 'Riley Chen (marketplace-checkout-oncall)',
+    brand: 'NFT Marketplace',
+    service: 'os-fulfillment-api',
+    endpoint: 'POST /api/oncall/nftcheckout/fulfillment',
+    monitor: 'Error rate — sweep checkout: Seaport preflight reverts on POST /api/oncall/nftcheckout/fulfillment',
+    metricQuery: '(sum:demo.nftcheckout.fulfillment.reverted{service:checkout-api,route:/api/oncall/nftcheckout/fulfillment}.as_count() / sum:demo.nftcheckout.fulfillment.attempt{service:checkout-api,route:/api/oncall/nftcheckout/fulfillment}.as_count()) * 100',
+    metricValue: '~38% of checkouts (100% of multi-item carts) revert with ConsiderationNotMet (0xa5f54208)',
+    threshold: '> 1%',
+    baseline: '< 0.2% (7-day)',
+    release: 'os-fulfillment-api@2026.10.26',
+    symptom: 'Multi-item checkouts and "Buy floor" sweeps on collections with creator earnings fail at "Preparing transaction": the fulfillAvailableAdvancedOrders preflight against the Seaport testnet deployment reverts with ConsiderationNotMet (0xa5f54208). Single-item buys of the same NFTs still succeed. Onset follows the latest Seaport deploy from COG-GTM/seaport main.',
+    impact: 'Collectors cannot sweep floors or buy more than one NFT at a time; every multi-item cart fails before the wallet prompt and sellers see abandoned purchases.',
+    alertOnStatus: [422],
+    unlisted: true,
+  },
   emergencydispatch: {
     vertical: 'emergencydispatch',
     page: 'eba2e983.html',
@@ -647,6 +666,26 @@ const ALERT_SCENARIOS = {
     symptom: 'Opening Our Portfolio hangs for ~8 seconds and then fails with HTTP 504; the company grid never renders and visitors see "Our portfolio is temporarily unavailable". Narrower filtered views still load, slowly. Onset coincides with the content-store profile lookup shipped in hf-portfolio-web@2026.10.3.',
     impact: 'Every visitor to the public Our Portfolio page waits ~8 seconds and then sees the portfolio as unavailable; no portfolio company is reachable from the page.',
     retryWindow: true,
+    unlisted: true,
+  },
+  recalllookup: {
+    vertical: 'recalllookup',
+    page: 'a6f389b5.html',
+    apiPath: '/api/a6f389b5/recall',
+    oncallApiPath: '/api/oncall/recalllookup/search',
+    owner: 'Kenji Morita (recall-search-oncall)',
+    brand: 'Recall Search (Chassis Number)',
+    service: 'recall-search-api',
+    endpoint: 'POST /api/oncall/recalllookup/search',
+    monitor: '5xx rate — POST /api/oncall/recalllookup/search',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/recalllookup/search,http.status_code:500}',
+    metricValue: '500 on recall searches for recently built vehicles',
+    threshold: '> 2% error rate',
+    baseline: '<0.1% (7-day)',
+    release: 'recall-search@4.8.0',
+    symptom: 'Recall searches by chassis number fail immediately with HTTP 500 for some recently built vehicles. Older vehicles return their results normally. Latency is normal. Onset coincides with the latest vehicle build-record import.',
+    impact: 'Owners of affected vehicles cannot check whether a recall or service campaign applies to their car.',
+    triggerWhen: { frameDiv: 'TKX230', frameNo: '0104518' },
     unlisted: true,
   },
   wheretobuy: {
@@ -1111,6 +1150,16 @@ function resolveAlertCard(scenario, skin) {
   };
 }
 
+/**
+ * Triage notes for responder-triaged skins (devinSession.promptAppendix without
+ * auto): the channel responder only sees the card, so the notes ride on it.
+ */
+function responderNotes(skin) {
+  const config = skin && skin.devinSession;
+  if (!config || config.auto || typeof config.promptAppendix !== 'string') return null;
+  return config.promptAppendix.trim() || null;
+}
+
 function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, onCall, skin }) {
 
   const card = resolveAlertCard(scenario, skin);
@@ -1133,6 +1182,9 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     '',
     `Repo: ${REPO_URL}`,
   ];
+
+  const notes = responderNotes(skin);
+  if (notes) lines.push('', notes);
 
   return lines.filter((l) => l !== null).join('\n');
 }
@@ -1452,6 +1504,7 @@ async function postOncallAlert(scenarioId, options = {}) {
       (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
+    ...(responderNotes(skin) ? [mrkdwnSection(responderNotes(skin))] : []),
     ...(t.viewDatadog ? [datadogActions(t)] : []),
     contextBlock(card.service, triggeredByLine, null, t),
   ];

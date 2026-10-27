@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat | OpenRouter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #6467F2;
+      --accent-ink: #4F46E5;
+      --ink: #0F172A;
+      --muted: #64748B;
+      --faint: #94A3B8;
+      --line: #E2E8F0;
+      --soft: #F8FAFC;
+      --soft-2: #F1F5F9;
+      --sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { background: #fff; color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 20px; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    svg { flex: none; }
+
+    /* top nav */
+    .topnav { height: 56px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 16px; padding: 0 16px; background: #fff; position: sticky; top: 0; z-index: 30; }
+    .logo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; letter-spacing: -0.2px; }
+    .logo svg { width: 22px; height: 22px; }
+    .search { flex: 0 1 280px; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--faint); background: #fff; }
+    .search svg { width: 15px; height: 15px; }
+    .search span:not(.kbd) { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .kbd { font-family: var(--mono); font-size: 11px; line-height: 16px; padding: 0 5px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); }
+    .navlinks { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+    .navlinks a { padding: 6px 10px; border-radius: 6px; color: var(--muted); font-weight: 500; }
+    .navlinks a:hover { background: var(--soft-2); color: var(--ink); }
+    .navlinks a.on { color: var(--ink); }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #818CF8, #C084FC); color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; margin-left: 8px; }
+    .menu-btn { display: none; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 8px; background: #fff; align-items: center; justify-content: center; cursor: pointer; }
+    .menu-btn svg { width: 16px; height: 16px; }
+
+    /* shell */
+    .shell { flex: 1; display: flex; min-height: 0; }
+    .side { width: 260px; border-right: 1px solid var(--line); background: var(--soft); display: flex; flex-direction: column; padding: 12px; gap: 10px; }
+    .newchat { display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font-weight: 500; cursor: pointer; }
+    .newchat svg { width: 14px; height: 14px; }
+    .side-search { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 8px; background: #fff; border: 1px solid var(--line); color: var(--faint); font-size: 13px; }
+    .side-search svg { width: 13px; height: 13px; }
+    .side h6 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--faint); margin: 6px 4px 0; }
+    .rooms { display: flex; flex-direction: column; gap: 2px; }
+    .room { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; color: #334155; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .room:hover { background: var(--soft-2); }
+    .room.on { background: #E0E7FF; color: #3730A3; font-weight: 500; }
+    .room .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex: none; }
+    .room.on .dot { background: var(--accent); }
+    .side-foot { margin-top: auto; border-top: 1px solid var(--line); padding-top: 10px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
+    .credits { display: flex; justify-content: space-between; align-items: center; }
+    .credits b { color: var(--ink); font-weight: 600; font-size: 13px; }
+    .bar { height: 4px; border-radius: 4px; background: var(--line); overflow: hidden; }
+    .bar i { display: block; height: 100%; width: 62%; background: var(--accent); }
+
+    /* main */
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .toolbar { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .chip { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 6px 0 8px; border: 1px solid var(--line); border-radius: 999px; background: #fff; position: relative; max-width: 100%; }
+    .chip .mk { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-weight: 700; color: #fff; background: #4D6BFE; flex: none; }
+    .chip select { appearance: none; -webkit-appearance: none; border: 0; background: transparent; font-weight: 500; padding-right: 18px; cursor: pointer; outline: none; min-width: 0; max-width: 240px; text-overflow: ellipsis; }
+    .chip .caret-d { position: absolute; right: 8px; width: 10px; height: 10px; pointer-events: none; color: var(--muted); }
+    .chip.ghost { border-style: dashed; color: var(--muted); padding: 0 12px; cursor: pointer; }
+    .chip.ghost svg { width: 12px; height: 12px; }
+    .tb-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .route { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font-size: 13px; }
+    .route select { appearance: none; -webkit-appearance: none; border: 0; background: transparent; color: var(--ink); font-weight: 500; outline: none; cursor: pointer; }
+    .route svg { width: 13px; height: 13px; }
+    .route input { width: 52px; border: 0; outline: none; color: var(--ink); font-weight: 500; background: transparent; }
+
+    .thread { flex: 1; overflow-y: auto; padding: 24px 16px 8px; }
+    .thread-in { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+    .hello { text-align: center; padding: 40px 0 10px; }
+    .hello h1 { font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.3px; }
+    .hello p { color: var(--muted); margin-top: 6px; }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 18px; text-align: left; }
+    .stat { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+    .stat span { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+    .stat b { font-size: 15px; font-weight: 600; }
+    .msg-user { align-self: flex-end; max-width: 85%; background: var(--soft-2); border-radius: 14px; padding: 10px 14px; white-space: pre-wrap; word-break: break-word; }
+    .msg-ai { display: flex; gap: 12px; }
+    .msg-ai .mk { width: 26px; height: 26px; border-radius: 50%; background: #4D6BFE; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none; margin-top: 2px; }
+    .msg-ai .body { flex: 1; min-width: 0; }
+    .msg-ai .who { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+    .msg-ai .who b { color: var(--ink); font-weight: 600; }
+    .via { font-family: var(--mono); font-size: 11px; padding: 0 6px; border-radius: 4px; background: var(--soft-2); color: var(--muted); }
+    .text { white-space: pre-wrap; word-break: break-word; line-height: 22px; }
+    .waiting { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
+    .caret { display: inline-block; width: 7px; height: 15px; background: var(--ink); vertical-align: -2px; margin-left: 1px; animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .meta { margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .meta .slow { color: #B45309; }
+    .meta .err { color: #B91C1C; }
+
+    .composer-wrap { padding: 8px 16px 14px; }
+    form#completionForm { max-width: 780px; margin: 0 auto; border: 1px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 16px rgba(15,23,42,.04); padding: 10px 10px 8px 14px; }
+    form#completionForm:focus-within { border-color: #A5B4FC; box-shadow: 0 0 0 3px rgba(100,103,242,.12); }
+    #prompt { width: 100%; border: 0; outline: none; resize: none; min-height: 48px; max-height: 180px; line-height: 22px; background: transparent; }
+    .comp-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .ibtn { width: 32px; height: 32px; border-radius: 8px; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+    .ibtn:hover { background: var(--soft-2); }
+    .ibtn svg { width: 16px; height: 16px; }
+    .hint { font-size: 12px; color: var(--faint); margin-left: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #submitBtn { margin-left: auto; height: 34px; padding: 0 14px; border: 0; border-radius: 9px; background: var(--accent); color: #fff; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    #submitBtn:hover { background: var(--accent-ink); }
+    #submitBtn:disabled { opacity: .6; cursor: progress; }
+    #submitBtn svg { width: 14px; height: 14px; }
+    .result { max-width: 780px; margin: 8px auto 0; font-size: 12px; display: none; border-radius: 8px; padding: 8px 12px; }
+    .result.success { display: block; background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
+    .result.error { display: block; background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
+    .result .rd { color: inherit; opacity: .8; font-family: var(--mono); font-size: 11px; margin-top: 2px; word-break: break-word; }
+    .fine { max-width: 780px; margin: 6px auto 0; text-align: center; font-size: 11px; color: var(--faint); }
+
+    @media (max-width: 960px) {
+      .navlinks a.hide-md { display: none; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 820px) {
+      .side { position: fixed; top: var(--side-top, 56px); bottom: 0; left: 0; z-index: 25; transform: translateX(-100%); transition: transform .2s ease; box-shadow: 4px 0 24px rgba(15,23,42,.12); }
+      body.side-open .side { transform: none; }
+      .menu-btn { display: inline-flex; }
+      .search { display: none; }
+      .navlinks a { display: none; }
+    }
+    @media (max-width: 520px) {
+      .topnav { gap: 10px; padding: 0 12px; }
+      .toolbar { padding: 8px 12px; }
+      .tb-right { margin-left: 0; width: 100%; }
+      .route { flex: 1; min-width: 0; }
+      .route select { min-width: 0; flex: 1; }
+      .chip select { max-width: 200px; }
+      .hint { display: none; }
+      .thread { padding: 16px 12px 8px; }
+      .composer-wrap { padding: 8px 12px 104px; }
+      #submitBtn { height: 44px; padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topnav">
+    <button class="menu-btn" type="button" id="menuBtn" aria-label="Toggle rooms">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+    </button>
+    <a class="logo" href="#" aria-label="OpenRouter">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h3.5c3 0 4.5-6.5 8.5-6.5H20"/><path d="M17 2.5 20 5.5 17 8.5"/><path d="M2 12h3.5c3 0 4.5 6.5 8.5 6.5H20"/><path d="M17 15.5 20 18.5 17 21.5"/></svg>
+      <span>OpenRouter</span>
+    </a>
+    <div class="search" role="search">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg>
+      <span>Search models</span><span class="kbd">/</span>
+    </div>
+    <nav class="navlinks">
+      <a href="#">Models</a>
+      <a href="#" class="on">Chat</a>
+      <a href="#">Rankings</a>
+      <a href="#" class="hide-md">Enterprise</a>
+      <a href="#" class="hide-md">Pricing</a>
+      <a href="#">Docs</a>
+    </nav>
+    <div class="avatar" aria-hidden="true">JD</div>
+  </header>
+
+  <div class="shell">
+    <aside class="side" id="side">
+      <button class="newchat" type="button" id="newChatBtn">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3v10M3 8h10"/></svg>New Chat
+      </button>
+      <div class="side-search">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg>Search rooms
+      </div>
+      <h6>Today</h6>
+      <div class="rooms">
+        <div class="room on"><span class="dot"></span>Continuous batching explainer</div>
+        <div class="room"><span class="dot"></span>Provider fallback config</div>
+        <div class="room"><span class="dot"></span>JSON schema for pricing table</div>
+      </div>
+      <h6>Previous 7 days</h6>
+      <div class="rooms">
+        <div class="room"><span class="dot"></span>Compare Llama 3.3 vs Qwen3</div>
+        <div class="room"><span class="dot"></span>Tool-calling eval prompts</div>
+        <div class="room"><span class="dot"></span>Summarize incident postmortem</div>
+        <div class="room"><span class="dot"></span>Rewrite onboarding email</div>
+      </div>
+      <div class="side-foot">
+        <div class="credits"><span>Credits</span><b>$48.21</b></div>
+        <div class="bar"><i></i></div>
+        <span>Default org &middot; Pay as you go</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="toolbar">
+        <label class="chip" for="model" title="Model">
+          <span class="mk" id="modelMark">D</span>
+          <select id="model" aria-label="Model">
+            <option value="deepseek-v3">DeepSeek: DeepSeek V3</option>
+            <option value="qwen3-32b">Qwen: Qwen3 32B</option>
+            <option value="llama-3.3-70b">Meta: Llama 3.3 70B Instruct</option>
+          </select>
+          <svg class="caret-d" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><path d="m2.5 4 2.5 2.5L7.5 4"/></svg>
+        </label>
+        <span class="chip ghost"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3v10M3 8h10"/></svg>Add model</span>
+        <div class="tb-right">
+          <label class="route" for="deployment">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 8h3c2 0 3-4 6-4h3M2 8h3c2 0 3 4 6 4h3"/></svg>
+            Routing
+            <select id="deployment" aria-label="Provider routing">
+              <option value="chat-prod">Auto</option>
+              <option value="autocomplete-prod">Sort by throughput</option>
+              <option value="batch-eval">Sort by price</option>
+            </select>
+          </label>
+          <label class="route" for="maxTokens">Max tokens <input id="maxTokens" type="number" value="160" min="8" max="512"></label>
+        </div>
+      </div>
+
+      <div class="thread" id="thread">
+        <div class="thread-in" id="threadIn">
+          <div class="hello" id="hello">
+            <h1>Chat with any model</h1>
+            <p>One API for every frontier and open model. Requests route to the best available provider.</p>
+            <div class="stats-row">
+              <div class="stat"><span>Context</span><b id="ctxStat">163,840</b></div>
+              <div class="stat"><span>Input</span><b>$0.27 / M</b></div>
+              <div class="stat"><span>Output</span><b>$1.10 / M</b></div>
+              <div class="stat"><span>Providers</span><b>9 online</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="composer-wrap">
+        <form id="completionForm" autocomplete="off">
+          <textarea id="prompt" rows="2" aria-label="Message">Explain continuous batching in one paragraph.</textarea>
+          <div class="comp-row">
+            <button class="ibtn" type="button" aria-label="Attach file"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M10.5 4.5 5.8 9.2a1.5 1.5 0 0 0 2.1 2.1l5-5a3 3 0 0 0-4.2-4.2l-5 5a4.5 4.5 0 0 0 6.4 6.4l4-4"/></svg></button>
+            <button class="ibtn" type="button" aria-label="Web search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12"/></svg></button>
+            <span class="hint">Streaming &middot; Enter to send, Shift+Enter for newline</span>
+            <button type="submit" id="submitBtn">Send <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg></button>
+          </div>
+        </form>
+        <div id="result" class="result"></div>
+        <p class="fine">Models can make mistakes. Prompts are routed to third-party providers per your privacy settings.</p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const MODELS = {
+        'deepseek-v3': { mark: 'D', color: '#4D6BFE', slug: 'deepseek/deepseek-chat-v3', ctx: '163,840', provider: 'DeepInfra' },
+        'qwen3-32b': { mark: 'Q', color: '#7C3AED', slug: 'qwen/qwen3-32b', ctx: '131,072', provider: 'Groq' },
+        'llama-3.3-70b': { mark: 'M', color: '#0866FF', slug: 'meta-llama/llama-3.3-70b-instruct', ctx: '131,072', provider: 'Together' },
+      };
+      const modelSel = document.getElementById('model');
+      const syncModel = () => {
+        const m = MODELS[modelSel.value];
+        const mark = document.getElementById('modelMark');
+        mark.textContent = m.mark; mark.style.background = m.color;
+        document.getElementById('ctxStat').textContent = m.ctx;
+      };
+      modelSel.addEventListener('change', syncModel);
+      syncModel();
+
+      const topnav = document.querySelector('.topnav');
+      const placeSide = () => document.body.style.setProperty('--side-top', Math.max(0, topnav.getBoundingClientRect().bottom) + 'px');
+      document.getElementById('menuBtn').addEventListener('click', () => { placeSide(); document.body.classList.toggle('side-open'); });
+      window.addEventListener('scroll', placeSide, { passive: true });
+      window.addEventListener('resize', placeSide);
+      document.querySelectorAll('#side .room, #side li').forEach((r) => r.addEventListener('click', () => document.body.classList.remove('side-open')));
+
+      const initialThread = document.getElementById('threadIn').innerHTML;
+      document.getElementById('newChatBtn').addEventListener('click', () => {
+        document.getElementById('threadIn').innerHTML = initialThread;
+        const result = document.getElementById('result');
+        result.className = 'result'; result.textContent = '';
+        document.getElementById('prompt').value = '';
+        syncModel();
+        document.body.classList.remove('side-open');
+      });
+      const promptEl = document.getElementById('prompt');
+      promptEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); document.getElementById('completionForm').requestSubmit(); }
+      });
+
+      const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+
+      document.getElementById('completionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const btnLabel = btn.firstChild;
+        const result = document.getElementById('result');
+        const threadIn = document.getElementById('threadIn');
+        const thread = document.getElementById('thread');
+        const prompt = promptEl.value.trim();
+        if (!prompt) return;
+        const m = MODELS[modelSel.value];
+        const modelLabel = modelSel.options[modelSel.selectedIndex].text;
+
+        const showResult = (kind, title, detail) => {
+          result.className = 'result ' + kind;
+          result.textContent = '';
+          const d = el('div', 'rd', detail);
+          result.append(el('div', null, title), d);
+        };
+
+        const hello = document.getElementById('hello');
+        if (hello) hello.remove();
+        threadIn.appendChild(el('div', 'msg-user', prompt));
+        const ai = el('div', 'msg-ai');
+        const mk = el('span', 'mk', m.mark); mk.style.background = m.color;
+        const body = el('div', 'body');
+        const who = el('div', 'who');
+        who.append(el('b', null, modelLabel), el('span', 'via', m.slug));
+        const textEl = el('div', 'text');
+        const waiting = el('span', 'waiting');
+        const waitLabel = el('span', null, 'Routing to ' + m.provider + '…');
+        waiting.append(el('span', 'pulse'), waitLabel);
+        textEl.appendChild(waiting);
+        const meta = el('div', 'meta');
+        body.append(who, textEl, meta);
+        ai.append(mk, body);
+        threadIn.appendChild(ai);
+        thread.scrollTop = thread.scrollHeight;
+
+        btn.disabled = true; btnLabel.nodeValue = 'Streaming ';
+        result.className = 'result'; result.textContent = '';
+        const started = Date.now();
+        let firstToken = 0;
+        const tick = setInterval(() => {
+          if (!firstToken) waitLabel.textContent = 'Waiting for first token from ' + m.provider + ' · ' + ((Date.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+
+        let text = '';
+        const caret = () => el('span', 'caret');
+        const render = () => { textEl.textContent = text; textEl.appendChild(caret()); thread.scrollTop = thread.scrollHeight; };
+        try {
+          const res = await fetch('/api/inference/completions', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: modelSel.value,
+              deployment: document.getElementById('deployment').value,
+              prompt,
+              maxTokens: parseInt(document.getElementById('maxTokens').value, 10) || 160,
+              stream: true,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let usage = null;
+          let failure = null;
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const frames = buffer.split('\n\n');
+            buffer = frames.pop();
+            for (const frame of frames) {
+              const line = frame.replace(/^data: /, '').trim();
+              if (!line || line === '[DONE]') continue;
+              const chunk = JSON.parse(line);
+              if (chunk.error) { failure = chunk.error; continue; }
+              if (chunk.ttftMs && !firstToken) {
+                firstToken = chunk.ttftMs;
+                clearInterval(tick);
+                render();
+              }
+              const delta = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
+              if (delta && delta.content) { text += delta.content; render(); }
+              if (chunk.usage) usage = chunk;
+            }
+          }
+          clearInterval(tick);
+          if (failure) throw new Error(failure.message);
+          textEl.textContent = text;
+          if (usage) {
+            const ttft = usage.ttftMs / 1000;
+            const tokens = usage.usage.prompt_tokens + usage.usage.completion_tokens;
+            const cost = (usage.usage.prompt_tokens * 0.27 + usage.usage.completion_tokens * 1.10) / 1e6;
+            meta.append(
+              el('span', ttft > 1.5 ? 'slow' : null, 'TTFT ' + ttft.toFixed(2) + 's'),
+              el('span', null, usage.tokensPerSecond + ' tok/s'),
+              el('span', null, tokens + ' tokens'),
+              el('span', null, '$' + cost.toFixed(6)),
+              el('span', null, 'via ' + m.provider),
+            );
+            showResult('success', 'Completion finished', usage.id + ' — first token in ' + ttft.toFixed(2) + 's');
+          }
+        } catch (err) {
+          clearInterval(tick);
+          textEl.textContent = '';
+          meta.append(el('span', 'err', 'Request failed · ' + err.message));
+          showResult('error', 'Request failed', err.message);
+        } finally {
+          btn.disabled = false; btnLabel.nodeValue = 'Send ';
+          thread.scrollTop = thread.scrollHeight;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
