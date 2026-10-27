@@ -678,7 +678,7 @@ const ALERT_SCENARIOS = {
     service: 'recall-search-api',
     endpoint: 'POST /api/oncall/recalllookup/search',
     monitor: '5xx rate — POST /api/oncall/recalllookup/search',
-    metricQuery: 'sum:trace.express.request.errors{service:recall-search-api,resource:POST /api/oncall/recalllookup/search,http.status_code:500}',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/recalllookup/search,http.status_code:500}',
     metricValue: '500 on recall searches for recently built vehicles',
     threshold: '> 2% error rate',
     baseline: '<0.1% (7-day)',
