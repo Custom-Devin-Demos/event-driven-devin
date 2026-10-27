@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Licenses | Settings | Samsara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0f263e;
+      --ink: #1d2733;
+      --muted: #5f6b7a;
+      --rule: #e3e6ea;
+      --rail: #f4f5f7;
+      --hover: #eef0f3;
+      --blue: #1a6fdb;
+      --blue-dark: #155bb5;
+      --green: #12a150;
+      --orange: #e8692e;
+      --warn-bg: #fdf0e8;
+      --sans: "Source Sans 3", "Source Sans Pro", -apple-system, "Segoe UI", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body { font-family: var(--sans); color: var(--ink); background: #fff; font-size: 15px; -webkit-font-smoothing: antialiased; }
+    a { color: var(--blue); text-decoration: none; }
+    button, input, select { font: inherit; }
+
+    .app { display: flex; min-height: 100vh; }
+
+    .rail { width: 64px; flex: 0 0 64px; background: var(--rail); border-right: 1px solid var(--rule); display: flex; flex-direction: column; align-items: center; padding: 14px 0 12px; position: sticky; top: 0; height: 100vh; }
+    .rail .logo { width: 30px; height: 30px; margin-bottom: 12px; flex: 0 0 auto; }
+    .rail-btn { width: 38px; height: 36px; border-radius: 6px; display: grid; place-items: center; color: #4b5866; margin: 1px 0; }
+    .rail-btn:hover { background: var(--hover); }
+    .rail-btn.active { color: var(--navy); }
+    .rail-btn svg { width: 19px; height: 19px; }
+    .rail .sep { width: 36px; border-top: 1px solid var(--rule); margin: 10px 0; }
+    .rail .spacer { flex: 1; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--orange); color: #fff; font-weight: 600; font-size: 13px; display: grid; place-items: center; position: relative; margin-top: 8px; }
+    .avatar::after { content: ""; position: absolute; top: -2px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: #c0272d; border: 2px solid var(--rail); }
+
+    .subnav { width: 208px; flex: 0 0 208px; border-right: 1px solid var(--rule); padding: 18px 0 24px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    .subnav h1 { font-size: 21px; font-weight: 600; color: var(--navy); margin: 0 0 18px; padding: 0 22px; }
+    .subnav h2 { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #5f6b7a; margin: 0 0 6px; padding: 0 22px; }
+    .subnav ul { list-style: none; margin: 0 0 14px; padding: 0 0 14px; border-bottom: 1px solid var(--rule); margin-left: 14px; margin-right: 14px; }
+    .subnav li a { display: block; padding: 7px 8px; color: var(--ink); border-radius: 4px; font-size: 15px; }
+    .subnav li a:hover { background: var(--hover); }
+    .subnav li a.active { background: var(--hover); font-weight: 600; }
+
+    .main { flex: 1; min-width: 0; padding: 16px 28px 48px; }
+    .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--rule); }
+    .page-head h2 { margin: 0; font-size: 26px; font-weight: 600; color: var(--navy); display: flex; align-items: center; gap: 10px; }
+    .page-head h2 .star { color: var(--orange); font-size: 19px; }
+    .page-head p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #c9ced5; background: #fff; color: var(--ink); border-radius: 4px; padding: 8px 16px; font-size: 14px; cursor: pointer; min-height: 40px; white-space: nowrap; }
+    .btn:hover { background: #f7f8fa; }
+    .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
+    .btn-primary:hover { background: var(--blue-dark); }
+    .btn:disabled { opacity: .65; cursor: progress; }
+
+    .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 20px 0 6px; }
+    .stat { border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; }
+    .stat span { display: block; font-size: 13px; color: var(--muted); }
+    .stat strong { display: block; font-size: 22px; font-weight: 600; color: var(--navy); margin-top: 2px; }
+
+    .panel { border: 1px solid var(--rule); border-radius: 6px; margin: 20px 0 8px; max-width: 560px; }
+    .panel[hidden] { display: none; }
+    .panel header { padding: 14px 20px; border-bottom: 1px solid var(--rule); font-size: 18px; font-weight: 700; color: var(--ink); display: flex; justify-content: space-between; align-items: center; }
+    .panel header button { border: 0; background: none; font-size: 22px; color: var(--muted); cursor: pointer; line-height: 1; width: 32px; height: 32px; }
+    .panel .body { padding: 16px 20px 20px; }
+    .panel h3 { margin: 0 0 10px; font-size: 16px; font-weight: 700; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+    .field label .req { color: #d0342c; }
+    .field input, .field select { width: 100%; height: 40px; border: 1px solid #b9c0c9; border-radius: 3px; padding: 0 10px; background: #fff; color: var(--ink); font-size: 15px; }
+    .field input:focus, .field select:focus { outline: 2px solid rgba(26,111,219,.35); border-color: var(--blue); }
+    .field .hint { display: block; font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .request-status { font-size: 13px; color: var(--muted); margin: 0; }
+    .result-box { display: none; margin-top: 14px; padding: 10px 14px; border-radius: 4px; font-size: 14px; }
+    .result-box.success { display: block; background: #e8f6ee; border: 1px solid #b6e2c7; color: #0d6b37; }
+    .result-box.error { display: block; background: var(--warn-bg); border: 1px solid #f3c7ad; color: #9a3412; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 15px; }
+    th { text-align: left; font-weight: 700; font-size: 14px; padding: 12px 14px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+    td { padding: 16px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+    td .sku { display: block; font-size: 13px; color: var(--muted); }
+    .pill { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; color: #fff; background: var(--green); }
+    .pill.warn { background: #d97706; }
+    .bar { height: 6px; background: #e8ebef; border-radius: 3px; margin-top: 6px; width: 120px; overflow: hidden; }
+    .bar i { display: block; height: 100%; background: var(--blue); }
+    .more { width: 32px; height: 32px; border: 1px solid #c9ced5; border-radius: 4px; background: #fff; display: grid; place-items: center; color: var(--ink); font-weight: 700; letter-spacing: 1px; }
+    .footnote { color: var(--muted); font-size: 13px; margin-top: 16px; }
+    .table-wrap { overflow-x: auto; }
+
+    @media (max-width: 900px) {
+      .subnav { display: none; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .rail { display: none; }
+      .main { padding: 14px 16px 40px; }
+      .page-head { flex-direction: column; }
+      .page-head .btn { width: 100%; justify-content: center; min-height: 44px; }
+      .row2 { grid-template-columns: 1fr; }
+      .actions .btn { width: 100%; justify-content: center; min-height: 48px; }
+      .hide-sm { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="rail" aria-label="Primary">
+      <svg class="logo" viewBox="0 0 32 32" aria-label="Samsara" role="img">
+        <circle cx="16" cy="16" r="15" fill="#0f263e"/>
+        <path d="M8 9.5l4 2.2h8l4-2.2v6.8c0 4.6-3.6 8.2-8 8.2s-8-3.6-8-8.2z" fill="#fff"/>
+        <circle cx="12.6" cy="15.6" r="2.3" fill="#0f263e"/><circle cx="19.4" cy="15.6" r="2.3" fill="#0f263e"/>
+        <path d="M14.8 19.2h2.4L16 21z" fill="#0f263e"/>
+      </svg>
+      <a class="rail-btn" href="#" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></a>
+      <a class="rail-btn" href="#" aria-label="Favorites"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></a>
+      <a class="rail-btn" href="#" aria-label="Overview"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6 6 0 00-6 6c0 4.5 6 10 6 10s6-5.5 6-10a6 6 0 00-6-6zm0 8.2A2.2 2.2 0 1112 5.8a2.2 2.2 0 010 4.4zM4 20h16v2H4z"/></svg></a>
+      <a class="rail-btn" href="#" aria-label="Safety"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l8 3v6c0 5-3.4 9.6-8 11-4.6-1.4-8-6-8-11V5zm-1 13.6l6-6-1.4-1.4-4.6 4.6-2.1-2.1L7.5 12z"/></svg></a>
+      <a class="rail-btn" href="#" aria-label="Compliance"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3h-2.2a3 3 0 00-5.6 0H7a2 2 0 00-2 2v15a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2zm-5 5a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm5 10H7v-1c0-1.7 3.3-2.5 5-2.5s5 .8 5 2.5z"/></svg></a>
+      <a class="rail-btn" href="#" aria-label="Maintenance"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.7 6.3l-3.4 3.4-2.6-.6-.6-2.6 3.4-3.4a6 6 0 00-7.8 7.6L3 18.4 5.6 21l7.7-7.7a6 6 0 008.4-7z"/></svg></a>
+      <a class="rail-btn" href="#" aria-label="Dispatch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M6 8.5v7M18 8.5v7M8.5 18h7"/></svg></a>
+      <a class="rail-btn" href="#" aria-label="Fuel &amp; Energy"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h9v18H5zm2 2v5h5V5zm9 3l3 3v8a1.5 1.5 0 01-3 0v-4h-1v-2h2z"/></svg></a>
+      <a class="rail-btn" href="#" aria-label="Documents"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v12l-6 6H5zm3 4v2h8V7zm0 4v2h8v-2zm0 4v2h4v-2z"/></svg></a>
+      <a class="rail-btn" href="#" aria-label="Reports"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h3v16H4zm6 8h3v8h-3zm6 4h3v4h-3z"/></svg></a>
+      <div class="sep"></div>
+      <div class="spacer"></div>
+      <a class="rail-btn" href="#" aria-label="Messages"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18v13H8l-5 4zm5 6.5a1.3 1.3 0 100-2.6 1.3 1.3 0 000 2.6zm4 0a1.3 1.3 0 100-2.6 1.3 1.3 0 000 2.6zm4 0a1.3 1.3 0 100-2.6 1.3 1.3 0 000 2.6z"/></svg></a>
+      <a class="rail-btn" href="#" aria-label="Alerts"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 002.5-2.5h-5A2.5 2.5 0 0012 22zm7-6V11a7 7 0 00-5.5-6.8V3h-3v1.2A7 7 0 005 11v5l-2 2v1h18v-1z"/></svg></a>
+      <a class="rail-btn" href="#" aria-label="Help"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 16h-2v-2h2zm2.1-7.8l-.9.9c-.7.7-1.2 1.3-1.2 2.9h-2v-.5c0-1.1.5-2.1 1.2-2.8l1.2-1.3A2 2 0 1010 8H8a4 4 0 118 0 3.2 3.2 0 01-.9 2.2z"/></svg></a>
+      <a class="rail-btn active" href="#" aria-label="Settings" aria-current="page"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 000-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 00-1.7-1L15 3h-4l-.4 2.7a7.6 7.6 0 00-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 000 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 001.7 1L11 21h4l.4-2.7a7.6 7.6 0 001.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z"/></svg></a>
+      <div class="avatar" aria-label="Signed in as Sam Ortiz">S</div>
+    </nav>
+
+    <nav class="subnav" aria-label="Settings">
+      <h1>Settings</h1>
+      <h2>Organization</h2>
+      <ul>
+        <li><a href="#">General</a></li>
+        <li><a href="#">Users &amp; Roles</a></li>
+        <li><a href="#">Drivers</a></li>
+        <li><a href="#">Tags</a></li>
+        <li><a href="#">Feature Management</a></li>
+        <li><a href="#">Activity Log</a></li>
+        <li><a href="#" class="active" aria-current="page">Licenses</a></li>
+        <li><a href="#">Billing</a></li>
+      </ul>
+      <h2>Devices</h2>
+      <ul>
+        <li><a href="#">Devices</a></li>
+        <li><a href="#">Configuration</a></li>
+      </ul>
+      <h2>Fleet</h2>
+      <ul>
+        <li><a href="#">Driver App</a></li>
+        <li><a href="#">Safety</a></li>
+        <li><a href="#">Compliance</a></li>
+        <li><a href="#">Dispatch</a></li>
+        <li><a href="#">Fuel &amp; Energy</a></li>
+      </ul>
+    </nav>
+
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h2>Licenses <span class="star" aria-hidden="true">&#9734;</span></h2>
+          <p>Activate licenses for new Vehicle Gateways, AI Dash Cams and Asset Gateways in Ridgeline Freight Co.</p>
+        </div>
+        <button type="button" class="btn" id="openPanel" aria-controls="addPanel" aria-expanded="true"><span aria-hidden="true">+</span> Add Licenses</button>
+      </div>
+
+      <div class="summary">
+        <div class="stat"><span>Active licenses</span><strong id="statActive">1,284</strong></div>
+        <div class="stat"><span>Assigned devices</span><strong>1,197</strong></div>
+        <div class="stat"><span>Unassigned</span><strong id="statUnassigned">87</strong></div>
+        <div class="stat"><span>Next renewal</span><strong>Mar 31, 2027</strong></div>
+      </div>
+
+      <section class="panel" id="addPanel" aria-labelledby="form-title">
+        <header><span id="form-title">Add Licenses</span><button type="button" id="closePanel" aria-label="Close">&times;</button></header>
+        <div class="body">
+          <form id="provisionForm">
+            <h3>General</h3>
+            <div class="field">
+              <label for="product">License type <span class="req">*</span></label>
+              <select id="product">
+                <option value="vg_enterprise">Vehicle Gateway — Enterprise (LIC-VG-ENTERPRISE)</option>
+                <option value="cm_premier">AI Dash Cam — Premier (LIC-CM-PREMIER)</option>
+                <option value="ag_essential">Asset Gateway — Essential (LIC-AG-ESSENTIAL)</option>
+                <option value="site_visibility">Site Visibility — Enterprise (LIC-SV-ENTERPRISE)</option>
+              </select>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="seats">Quantity <span class="req">*</span></label>
+                <input id="seats" type="number" min="1" max="250" step="1" value="40" required aria-describedby="seats-hint">
+                <span class="hint" id="seats-hint">1–250 devices per order</span>
+              </div>
+              <div class="field">
+                <label for="term">Term</label>
+                <select id="term"><option value="36">36 months</option><option value="60">60 months</option></select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="tag">Tag access</label>
+              <select id="tag" aria-describedby="tag-hint" disabled><option>Entire Organization</option></select>
+              <span class="hint" id="tag-hint">New licenses are available to every tag in this organization.</span>
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn btn-primary" id="submitBtn">Activate licenses</button>
+              <p class="request-status" id="requestStatus" role="status">Example data. No real account changes.</p>
+            </div>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">License ▲</th><th scope="col">Assigned / Total</th><th scope="col" class="hide-sm">Term</th><th scope="col" class="hide-sm">Expires</th><th scope="col">Status</th><th scope="col"><span class="hide-sm" style="position:absolute;left:-9999px">Actions</span></th></tr></thead>
+          <tbody>
+            <tr data-license="vg_enterprise"><td>Vehicle Gateway — Enterprise<span class="sku">LIC-VG-ENTERPRISE</span></td><td>612 / 640<div class="bar"><i style="width:96%"></i></div></td><td class="hide-sm">36 months</td><td class="hide-sm">Mar 31, 2027</td><td><span class="pill">Active</span></td><td><span class="more">···</span></td></tr>
+            <tr data-license="cm_premier"><td>AI Dash Cam — Premier<span class="sku">LIC-CM-PREMIER</span></td><td>418 / 440<div class="bar"><i style="width:95%"></i></div></td><td class="hide-sm">36 months</td><td class="hide-sm">Mar 31, 2027</td><td><span class="pill">Active</span></td><td><span class="more">···</span></td></tr>
+            <tr data-license="ag_essential"><td>Asset Gateway — Essential<span class="sku">LIC-AG-ESSENTIAL</span></td><td>151 / 180<div class="bar"><i style="width:84%"></i></div></td><td class="hide-sm">60 months</td><td class="hide-sm">Sep 30, 2029</td><td><span class="pill">Active</span></td><td><span class="more">···</span></td></tr>
+            <tr data-license="site_visibility"><td>Site Visibility — Enterprise<span class="sku">LIC-SV-ENTERPRISE</span></td><td>16 / 24<div class="bar"><i style="width:67%"></i></div></td><td class="hide-sm">36 months</td><td class="hide-sm">Dec 15, 2026</td><td><span class="pill warn">Renewal due</span></td><td><span class="more">···</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footnote">Licenses activate on the Samsara dashboard, the Samsara Driver App and the Samsara API. Need more help? Contact Samsara Support.</p>
+    </main>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const panel = document.getElementById('addPanel');
+      const open = document.getElementById('openPanel');
+      function setOpen(isOpen) {
+        panel.hidden = !isOpen;
+        open.setAttribute('aria-expanded', String(isOpen));
+        if (isOpen) document.getElementById('product').focus();
+      }
+      open.addEventListener('click', () => setOpen(true));
+      document.getElementById('closePanel').addEventListener('click', () => setOpen(false));
+    })();
+
+    function addToInventory(licenseKey, seats) {
+      const bump = (el, by) => { el.textContent = (Number(el.textContent.replace(/,/g, '')) + by).toLocaleString('en-US'); };
+      bump(document.getElementById('statActive'), seats);
+      bump(document.getElementById('statUnassigned'), seats);
+      const cell = document.querySelector(`tr[data-license="${licenseKey}"] td:nth-child(2)`);
+      if (!cell) return;
+      const [assigned, total] = cell.firstChild.textContent.split('/').map((n) => Number(n.trim()));
+      const newTotal = total + seats;
+      cell.firstChild.textContent = `${assigned} / ${newTotal}`;
+      cell.querySelector('.bar i').style.width = `${Math.round((assigned / newTotal) * 100)}%`;
+    }
+
+    document.getElementById('provisionForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const status = document.getElementById('requestStatus');
+      const seats = Number(document.getElementById('seats').value);
+      const license = document.getElementById('product');
+      const licenseName = license.options[license.selectedIndex].text.replace(/\s*\(.*\)$/, '');
+      const started = performance.now();
+      button.disabled = true;
+      button.textContent = 'Activating licenses…';
+      form.setAttribute('aria-busy', 'true');
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = 'Request in progress…';
+      const timer = setInterval(() => {
+        status.textContent = `Request in progress · ${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      try {
+        const response = await fetch('/api/licenses/provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: license.value,
+            planName: 'enterprise',
+            seats,
+            billingCycle: 'annual',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'The request could not be completed. Please try again.');
+        addToInventory(license.value, seats);
+        result.className = 'result-box success';
+        result.textContent = `${seats} ${licenseName} ${seats === 1 ? 'license' : 'licenses'} activated. They are ready to assign on the Devices page.`;
+      } catch (error) {
+        result.className = 'result-box error';
+        result.textContent = `We couldn't activate these licenses. ${error.message}`;
+      } finally {
+        clearInterval(timer);
+        status.textContent = `Request finished in ${((performance.now() - started) / 1000).toFixed(1)}s`;
+        form.removeAttribute('aria-busy');
+        button.disabled = false;
+        button.textContent = 'Activate licenses';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
