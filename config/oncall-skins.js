@@ -6308,6 +6308,16 @@ const ONCALL_SKINS = {
     alertDestination: 'teams',
     disclaimer: 'NOT ACTUALLY A BLUE OWL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Blue Owl product.',
   },
+  'c7b0b57a': {
+    slug: 'c7b0b57a',
+    company: 'Toyota',
+    vertical: 'telco',
+    page: {
+      file: 'c7b0b57a.html',
+      title: 'トヨタ トヨタのコネクティッドサービス | プラン詳細 | トヨタ自動車WEBサイト',
+    },
+    disclaimer: 'NOT ACTUALLY A TOYOTA SITE — internal demo only, not affiliated with, endorsed by, or a real Toyota product.',
+  },
 };
 
 function getOncallSkin(slug) {
