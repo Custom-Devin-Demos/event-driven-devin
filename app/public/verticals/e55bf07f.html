@@ -556,8 +556,7 @@
             show('notice', 'Déjà envoyé', 'Cet envoi a déjà été effectué à ' + at + ' : CHF ' + chf(sent) + ' à ' + c.dataset.name + ', réf. ' + data.receipt.receiptId + '. Il n’a pas été renvoyé.');
             return;
           }
-          var debited = Math.round(Number(data.debitAmount != null ? data.debitAmount : (data.receipt.totalDebit != null ? data.receipt.totalDebit : data.receipt.amount)) * 100);
-          balances[fromId] = (balances[fromId] || 0) - debited;
+          balances[fromId] = Math.max(0, (balances[fromId] || 0) - sent);
           limitUsed += sent;
           addTx(c, sent, at);
           show('success', 'Envoyé à ' + c.dataset.short, 'CHF ' + chf(sent) + ' à ' + c.dataset.name + ' à ' + at + '. L’argent est déjà sur son compte. Réf. ' + data.receipt.receiptId + '.');
