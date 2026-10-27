@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2K Games – Official Website for 2K</title>
+<link rel="icon" href="https://assets.2k.com/1a6ngf98576c/2zjPZpinUk7HU9ppHrQaWd/e51ed9ba96d3eab501f5d751248ad72f/2K_Web_App_config_Nav_Logo_30x30.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--red:#e61f27;--red-dark:#c4161d;--black:#000;--nav:#111;--ink:#232323;--muted:#9a9a9a;--line:#2a2a2a;--green:#2fb36b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:Montserrat,sans-serif;background:var(--black);color:#fff;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+  button{font-family:inherit}
+  .btn{display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:#fff;font-weight:700;font-size:24px;border-radius:8px;padding:12px 22px;border:0;cursor:pointer;text-transform:uppercase;transition:background .15s}
+  .btn:hover{background:var(--red-dark)}
+  .btn.sm{font-size:18px;padding:10px 20px}
+
+  /* header */
+  header{position:sticky;top:0;z-index:30;height:64px;background:var(--nav);border-bottom:1px solid #2b2b2b;display:flex;align-items:center;padding:0 30px}
+  header .logo img{width:40px;height:40px}
+  header nav{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:26px}
+  header nav .item{position:relative;font-size:20px;font-weight:500;text-transform:uppercase;display:flex;align-items:center;gap:8px;cursor:pointer;height:64px}
+  header nav .item svg{width:9px;height:9px;opacity:.8}
+  header nav .menu{display:none;position:absolute;top:64px;left:-16px;min-width:300px;background:var(--nav);border-top:2px solid var(--red);padding:12px 0;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+  header nav .item:hover .menu{display:block}
+  header nav .menu a{display:block;padding:9px 18px;font-size:14px;font-weight:600;letter-spacing:.02em}
+  header nav .menu a:hover{color:var(--red)}
+
+  /* hero carousel */
+  .hero{position:relative;height:calc(100vh - 64px);min-height:620px;max-height:900px;overflow:hidden;background:#000}
+  .slide{position:absolute;inset:0;opacity:0;transition:opacity .7s ease;display:flex;align-items:flex-end;justify-content:center;padding-bottom:76px}
+  .slide.on{opacity:1;z-index:2}
+  .slide>img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .slide .content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:28px}
+  .slide .content.left{position:absolute;left:5%;bottom:76px;align-items:center}
+  .slide .wordmark{max-width:640px;width:44vw}
+  .slide.bl4{background:radial-gradient(circle at 70% 40%,#ff3b2b 0%,#e01d14 40%,#a80c08 100%)}
+  .hero .arrow{position:absolute;top:50%;z-index:5;transform:translateY(-50%);background:none;border:0;color:#fff;cursor:pointer;padding:12px}
+  .hero .arrow svg{width:22px;height:34px}
+  .hero .prev{left:30px}.hero .next{right:30px}
+  .dots{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:10px}
+  .dots button{width:12px;height:12px;border-radius:50%;border:2px solid #fff;background:transparent;cursor:pointer}
+  .dots button.on{background:#fff}
+
+  /* sections */
+  section{padding:72px 5%}
+  .h1{font-size:48px;font-weight:700;text-align:center;text-transform:uppercase;line-height:1.15}
+  .h2{font-size:36px;font-weight:700;text-transform:uppercase;text-align:center}
+  .sub{font-size:20px;font-weight:700;text-transform:uppercase;text-align:center;margin:26px 0 30px;letter-spacing:.02em}
+  .fobs{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;max-width:2200px;margin:0 auto}
+  .fob{position:relative;cursor:pointer}
+  .fob .art{position:relative;aspect-ratio:425/535;overflow:hidden;border-radius:4px;background:#111}
+  .fob .art img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+  .fob:hover .art img{transform:scale(1.04)}
+  .fob .art .buy{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);opacity:0;transition:opacity .2s;font-size:16px;padding:9px 18px;white-space:nowrap}
+  .fob:hover .art .buy{opacity:1}
+  .fob h3{font-size:20px;font-weight:700;text-transform:uppercase;text-align:center;margin-top:14px}
+  .center{text-align:center;margin-top:38px}
+
+  .news{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:40px}
+  .news article img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px}
+  .news .date{color:#bdbdbd;font-size:14px;font-weight:600;margin-top:16px;text-transform:uppercase}
+  .news h3{font-size:26px;font-weight:700;margin-top:8px;line-height:1.25}
+
+  .social{background:#fff;color:var(--ink);text-align:center}
+  .social .icons{display:flex;justify-content:center;gap:42px;margin-top:36px}
+  .social .icons img{width:48px;height:48px}
+
+  .careers{position:relative;min-height:440px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:#000 center/cover no-repeat}
+  .careers p{max-width:760px;text-align:center;font-size:18px;line-height:1.6;font-weight:500}
+
+  .foundations{background:#fff;color:var(--ink)}
+  .found-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:40px}
+  .found-grid img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:4px}
+  .found-grid h3{font-size:26px;font-weight:700;margin-top:16px}
+  .found-grid p{font-size:15px;line-height:1.6;margin-top:8px;color:#444}
+
+  .store{display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center}
+  .store img{width:100%;border-radius:4px}
+  .store .h2{text-align:left}
+  .store p{font-size:18px;line-height:1.6;margin:20px 0 28px;color:#ddd}
+
+  footer{background:#000;border-top:4px solid var(--red);padding:56px 5% 36px}
+  .fcols{display:grid;grid-template-columns:1.2fr repeat(4,1fr);gap:30px}
+  .fcols h4{font-size:16px;font-weight:700;text-transform:uppercase;margin-bottom:14px}
+  .fcols a{display:block;font-size:14px;color:#cfcfcf;padding:5px 0;font-weight:500}
+  .fcols a:hover{color:#fff}
+  .ficons{display:flex;gap:16px;margin-top:18px}
+  .ficons img{width:24px;height:24px}
+  .legal{display:flex;gap:26px;align-items:center;margin-top:44px;padding-top:26px;border-top:1px solid #222}
+  .legal img.esrb{height:64px}
+  .legal p{font-size:12px;line-height:1.6;color:#9a9a9a;max-width:1100px}
+
+  /* checkout drawer */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:40;display:none;align-items:center;justify-content:center;padding:24px}
+  .overlay.open{display:flex}
+  .checkout{background:#141414;border:1px solid #2c2c2c;border-radius:12px;width:min(1040px,100%);max-height:calc(100vh - 48px);overflow:auto;display:grid;grid-template-columns:340px 1fr;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+  .checkout .cover{background:#000;padding:28px;display:flex;flex-direction:column;gap:18px}
+  .checkout .cover img{border-radius:6px}
+  .checkout .cover .ttl{font-size:22px;font-weight:800;text-transform:uppercase}
+  .checkout .cover .rating{display:flex;gap:10px;align-items:center;color:#aaa;font-size:12px}
+  .checkout .cover .rating img{height:44px}
+  .checkout form{padding:28px 32px;position:relative}
+  .checkout .close{position:absolute;top:16px;right:18px;background:none;border:0;color:#aaa;font-size:28px;cursor:pointer;line-height:1}
+  .checkout .kicker{font-size:13px;font-weight:700;color:var(--red);letter-spacing:.12em;text-transform:uppercase}
+  .checkout h2{font-size:28px;font-weight:800;text-transform:uppercase;margin:6px 0 22px}
+  .lbl{display:block;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin:20px 0 10px}
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .opt{position:relative}
+  .opt input{position:absolute;opacity:0;pointer-events:none}
+  .opt span{display:block;border:2px solid #333;border-radius:8px;padding:12px 14px;cursor:pointer;font-size:14px;font-weight:700;transition:border-color .15s,background .15s}
+  .opt span small{display:block;font-weight:500;color:#aaa;margin-top:4px;font-size:13px}
+  .opt input:checked+span{border-color:var(--red);background:rgba(230,31,39,.12)}
+  .field{width:100%;background:#0c0c0c;border:2px solid #333;border-radius:8px;color:#fff;font:500 15px Montserrat,sans-serif;padding:12px 14px}
+  .field:focus{outline:none;border-color:var(--red)}
+  .summary{display:flex;justify-content:space-between;align-items:center;margin-top:26px;padding-top:20px;border-top:1px solid #2c2c2c}
+  .summary .total{font-size:14px;color:#bbb}
+  .summary .total b{display:block;font-size:26px;color:#fff;margin-top:2px}
+  .fine{font-size:12px;color:#888;margin-top:16px;line-height:1.5}
+
+  .toast{position:fixed;right:24px;bottom:24px;z-index:60;width:min(440px,calc(100vw - 48px));background:#1b1b1b;border-radius:10px;border-left:4px solid var(--red);padding:18px 20px;box-shadow:0 12px 40px rgba(0,0,0,.6);display:none;font-size:14px;line-height:1.5}
+  .toast.ok{border-left-color:var(--green)}
+  .toast h6{font-size:15px;font-weight:800;margin-bottom:6px;text-transform:uppercase}
+  .toast code{display:block;margin-top:10px;background:#0b0b0b;border-radius:6px;padding:8px 10px;font-size:12px;color:#ff9a9a;white-space:pre-wrap;word-break:break-word}
+  .toast .x{position:absolute;top:10px;right:14px;cursor:pointer;color:#888}
+
+  @media (max-width:1100px){.fobs{grid-template-columns:repeat(3,1fr)}.news,.found-grid{grid-template-columns:1fr 1fr}.fcols{grid-template-columns:1fr 1fr}.checkout{grid-template-columns:1fr}header nav{display:none}.store{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="#" aria-label="2K Games"><img src="https://assets.2k.com/1a6ngf98576c/2zjPZpinUk7HU9ppHrQaWd/e51ed9ba96d3eab501f5d751248ad72f/2K_Web_App_config_Nav_Logo_30x30.svg" alt="2K Games" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{textContent:'2K',style:'background:#e61f27;font-weight:800;padding:6px 8px;border-radius:2px'}))"></a>
+  <nav>
+    <div class="item">Games <svg viewBox="0 0 10 6" fill="none" stroke="#fff" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
+      <div class="menu">
+        <a href="#featured" data-buy="wwe-2k26">WWE 2K26</a><a href="#featured" data-buy="nba-2k27">NBA 2K27</a><a href="#featured">PGA TOUR 2K25</a><a href="#featured" data-buy="borderlands-4">Borderlands 4</a><a href="#featured" data-buy="civilization-vii">Civilization 7</a><a href="#featured">Mafia: The Omertà Collection</a><a href="#featured">TopSpin 2K</a><a href="#featured">LEGO 2K Drive</a><a href="#featured">BioShock</a><a href="#featured">Browse More Games</a><a href="#featured">2K Promos</a>
+      </div></div>
+    <div class="item">About <svg viewBox="0 0 10 6" fill="none" stroke="#fff" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
+      <div class="menu"><a href="#">About 2K</a><a href="#news">Game News</a><a href="#store">2K Store</a><a href="#">2K Account Login</a><a href="#">2K Newsroom</a><a href="#foundations">2K Foundations</a><a href="#">Game Manuals</a><a href="#">2K Support</a><a href="#">2K Ad Partners</a></div></div>
+    <div class="item">2K Careers <svg viewBox="0 0 10 6" fill="none" stroke="#fff" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
+      <div class="menu"><a href="#careers">All 2K Careers</a><a href="#careers">Graduate Programs</a><a href="#careers">2K Madrid Careers</a><a href="#careers">2K Vegas Careers</a><a href="#careers">Cloud Chamber Careers</a><a href="#careers">Hangar 13 Careers</a><a href="#careers">Gearbox Careers</a></div></div>
+    <div class="item">Studios &amp; Locations <svg viewBox="0 0 10 6" fill="none" stroke="#fff" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
+      <div class="menu"><a href="#">All 2K Studios</a><a href="#">Hangar 13</a><a href="#">Cloud Chamber</a><a href="#">Gearbox Entertainment</a><a href="#">Visual Concepts</a><a href="#">31st Union</a><a href="#">Firaxis Games</a><a href="#">HB Studios</a><a href="#">Cat Daddy Games</a></div></div>
+  </nav>
+</header>
+
+<div class="hero" id="hero">
+  <div class="slide on" data-title="nba-2k27">
+    <img class="bg" src="https://assets.2k.com/1a6ngf98576c/4wQPUUT6xz8dnRgNLDt4rk/81b49b74d6c4f0fcb7682fa568d5e8c8/NBA2K27_zoom_BG.jpg" alt="NBA 2K27" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1920&q=80'">
+    <div class="content"><button class="btn" data-buy="nba-2k27">Buy Now</button></div>
+  </div>
+  <div class="slide" data-title="wwe-2k26">
+    <img class="bg" src="https://assets.2k.com/1a6ngf98576c/2kYQuut094BnoFxYlRugGB/0665a0cebfc1d3b13ed741cfd04f504f/2K.com_Update_Standard_Edition_Key_Art_Desktop_-_1440x500px.jpg" alt="WWE 2K26" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1920&q=80'">
+    <div class="content"><button class="btn" data-buy="wwe-2k26">Buy Now</button></div>
+  </div>
+  <div class="slide bl4" data-title="borderlands-4">
+    <div class="content left">
+      <img class="wordmark" src="https://assets.2k.com/1a6ngf98576c/666yHh3FO2rAqhNW5IiBNI/f7b56de8cd306ba403552e004f8042e2/BL4_Logo_Homepage-All.png" alt="Borderlands 4" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=1200&q=80'">
+      <button class="btn" data-buy="borderlands-4">Buy Now</button>
+    </div>
+  </div>
+  <div class="slide" data-title="mafia-the-old-country">
+    <img class="bg" src="https://assets.2k.com/1a6ngf98576c/11AVuu30P8vJUjXw95Ay0q/6b04d617876962e79415416f6c99fc33/MTOC_Homepage_Marquee_Desktop_Gradient.jpg" alt="Mafia: The Old Country" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=1920&q=80'">
+    <div class="content left">
+      <img class="wordmark" src="https://assets.2k.com/1a6ngf98576c/2XpjEQaTOkOTJcI5sdDcg4/59dd2e915cf1c96c34f462718df7878c/Logo.png" alt="Mafia: The Old Country" onerror="this.onerror=null;this.style.display='none'">
+      <button class="btn" data-buy="mafia-the-old-country">Buy Now</button>
+    </div>
+  </div>
+  <div class="slide" data-title="civilization-vii">
+    <img class="bg" src="https://assets.2k.com/1a6ngf98576c/4eEc0bImMrrPH77Fc1av5Z/3d7ed885b384153f0c638f8e14d627ea/Civ7_Homepage_Marquee_Desktop_Short_V3.png" alt="Sid Meier's Civilization VII" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1920&q=80'">
+    <div class="content"><button class="btn" data-buy="civilization-vii">Buy Now</button></div>
+  </div>
+  <button class="arrow prev" aria-label="Previous slide"><svg viewBox="0 0 14 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 2L2 12l10 10"/></svg></button>
+  <button class="arrow next" aria-label="Next slide"><svg viewBox="0 0 14 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M2 2l10 10-10 10"/></svg></button>
+  <div class="dots" id="dots"></div>
+</div>
+
+<section id="featured">
+  <h1 class="h1">2K Games - Official Home of NBA 2K, WWE 2K, Borderlands &amp; More</h1>
+  <div class="sub">Featured Games</div>
+  <div class="fobs">
+    <div class="fob" data-buy="nba-2k27"><div class="art"><img src="https://assets.2k.com/1a6ngf98576c/6VC0pmXVIg52jVgXXKrFJs/30495494bbac9dc156fa39fcf39bd45c/NBA2k27_2K.com_Standard-Edition_FOBs_425x535px.jpg" alt="NBA 2K27" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&q=80'"><span class="btn buy">Buy Now</span></div><h3>NBA 2K27</h3></div>
+    <div class="fob" data-buy="wwe-2k26"><div class="art"><img src="https://assets.2k.com/1a6ngf98576c/5HmLbSvPjEocPFqHCfYzer/2b6ca5b30b2bb8f7c73c108ace961325/2K.com_Update_Standard_Edition_FOBs__425x535px.jpg" alt="WWE 2K26" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&q=80'"><span class="btn buy">Buy Now</span></div><h3>WWE 2K26</h3></div>
+    <div class="fob" data-buy="borderlands-4"><div class="art"><img src="https://assets.2k.com/1a6ngf98576c/6aTxhjEAHtImmilMXIjfo3/f9e1277f1c7be1d41deac1b50fba4eff/BDL4_Standard_FOB_425x535.png" alt="Borderlands 4" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&q=80'"><span class="btn buy">Buy Now</span></div><h3>Borderlands 4</h3></div>
+    <div class="fob" data-buy="mafia-the-old-country"><div class="art"><img src="https://assets.2k.com/1a6ngf98576c/10lKXYrGAy7dmsGSOw3vSC/f14ef3b4cdf545161470194df75c8f65/MTOC_FOB_Standard_425x535.png" alt="Mafia: The Old Country Standard Edition" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=600&q=80'"><span class="btn buy">Buy Now</span></div><h3>Mafia: The Old Country</h3></div>
+    <div class="fob" data-buy="civilization-vii"><div class="art"><img src="https://assets.2k.com/1a6ngf98576c/6TPQqO2998e4XKjlXSSZYj/a9eea76b8474b425eefa65e04d4a9dca/Desktop_Retail_FOBs_425x535_Standard.png" alt="Civilization VII Standard Edition" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&q=80'"><span class="btn buy">Buy Now</span></div><h3>Civilization VII</h3></div>
+  </div>
+  <div class="center"><a class="btn sm" href="#featured">More Games</a></div>
+</section>
+
+<section id="news">
+  <h2 class="h2">Game News</h2>
+  <div class="news">
+    <article><img src="https://assets.2k.com/1a6ngf98576c/NEkKIH8FXeMoVyr6xjoBc/74e6a6f27664e1c882efc7421c30e9fe/WWE26-STREET_FIGHTER-KEY_ART-NA-STATIC-ENUS-NO_RATING-AGN-1920x1080-R1__1_.jpg" alt="WWE 2K26 x Street Fighter Elite Pack" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=900&q=80'"><div class="date">October 26, 2026</div><h3>Ringside Report - WWE 2K26 x Street Fighter Elite Pack</h3></article>
+    <article><img src="https://assets.2k.com/1a6ngf98576c/66VCz7IvJnZOfNsKeaq61/ed2e7d56c60aa27c197b7d0d1da6828f/WWE26-SEASON_6-KEY_ART-NA-STATIC-ENUS-NO_RATING-AGN-1920x1080-FINAL2.jpg" alt="Season 6" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1511512578047-dfb367046420?w=900&q=80'"><div class="date">October 25, 2026</div><h3>Ringside Report - Ringside Pass Season 6</h3></article>
+    <article><img src="https://assets.2k.com/1a6ngf98576c/7CjG8ITeeDIbGjdRvnMefi/c876ab7f1c37cdda7855ea7c02dd245f/WWE25-ALL-DLC_5_TRAILER_THUMBNAIL_2-NA-STATIC-ENUS-NO_RATING-AGN-1920x1080-R1.jpg" alt="WWE 2K25 Ringside Report - Saturday Night's Main Event" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=900&q=80'"><div class="date">October 22, 2026</div><h3>WWE 2K25 Ringside Report - Saturday Night’s Main Event</h3></article>
+  </div>
+</section>
+
+<section class="social">
+  <h2 class="h1" style="color:#232323">Follow Us on Social</h2>
+  <div class="icons">
+    <a href="#" aria-label="LinkedIn"><img src="https://assets.2k.com/1a6ngf98576c/1MnKPRkrXDl8PhwbDw3uPm/f09c7ff1266c81affa8f373d75f60461/icons8-linkedin-logo__1_.svg" alt="2K Games LinkedIn" onerror="this.onerror=null;this.style.display='none'"></a>
+    <a href="#" aria-label="X"><img src="https://assets.2k.com/1a6ngf98576c/5hvl3wL0bT3ZmTdrElxkIx/ccef2797a64275b663cfbca16e197238/icons8-x-logo-48.png" alt="X" onerror="this.onerror=null;this.style.display='none'"></a>
+    <a href="#" aria-label="Facebook"><img src="https://assets.2k.com/1a6ngf98576c/1WxnmbzBFyl9qUAuZyUz32/733f435f4254bf87d043d9bfaf7a8c5b/icons8-facebook-logo-50.png" alt="Facebook" onerror="this.onerror=null;this.style.display='none'"></a>
+    <a href="#" aria-label="Instagram"><img src="https://assets.2k.com/1a6ngf98576c/4o5wp9NzDIuqAJg9Fo1zUU/767b77945412cb74de69ed200e1c0727/icons8-instagram-logo__1_.svg" alt="Instagram" onerror="this.onerror=null;this.style.display='none'"></a>
+    <a href="#" aria-label="YouTube"><img src="https://assets.2k.com/1a6ngf98576c/39dLnSEpswyAFevWecjICh/d6e41b9e344da1ff9fc10b59b9c2a48a/icons8-youtube-logo.svg" alt="Youtube" onerror="this.onerror=null;this.style.display='none'"></a>
+    <a href="#" aria-label="Twitch"><img src="https://assets.2k.com/1a6ngf98576c/7pC6ankacn2imRr7UPs83i/fc58fb8d86abccff5d4f41d6233cc72f/icons8-twitch.svg" alt="NBA 2K Twitch" onerror="this.onerror=null;this.style.display='none'"></a>
+  </div>
+</section>
+
+<section class="careers" id="careers" style="background-image:url('https://assets.2k.com/1a6ngf98576c/5yVKZZm1H1CSwqUHDoj2dS/5ac0f3e7d97fc9492e9692161ba921c5/2K-Web_Homepage-Careers_Desktop.png'),url('https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1920&q=80')">
+  <h2 class="h2">Careers</h2>
+  <p>We’re always looking for passionate, talented people to help us create the world’s best interactive entertainment.</p>
+  <a class="btn sm" href="#careers">Join Us</a>
+</section>
+
+<section class="foundations" id="foundations">
+  <h2 class="h2">2K Foundations</h2>
+  <div class="found-grid">
+    <div><img src="https://assets.2k.com/1a6ngf98576c/6jdlRRB9untjWbK153vhZQ/406df607f5af3b19ea85de92490f0650/RESIZE_Photo_May_13_2026__4_26_29_PM.jpg" alt="2K Foundations | Boys &amp; Girls Clubs of San Francisco" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1546519638-68e109498ffc?w=900&q=80'"><h3>San Francisco, CA</h3><p>Refurbishing community basketball courts with Boys &amp; Girls Clubs of San Francisco.</p></div>
+    <div><img src="https://assets.2k.com/1a6ngf98576c/X52rMeLgbDJpfreixbdsD/a6cb0090e1968aaf82781a41dd6ea5f8/2KF_x_Master_P_New_Orleans__2026_129__1_.jpg" alt="2K Foundations | Thurgood Marshall" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1546519638-68e109498ffc?w=900&q=80'"><h3>Thurgood Marshall, New Orleans</h3><p>A new court and tech space for the students of Thurgood Marshall.</p></div>
+    <div><img src="https://assets.2k.com/1a6ngf98576c/2E7U5Y4B2gt85wY6OO6gT9/fd5c6508404aee1f3b4fd31dcc722349/16.9_VERSION.jpg" alt="2K Foundations | UA House at Fayette" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1546519638-68e109498ffc?w=900&q=80'"><h3>Baltimore, Maryland</h3><p>Investing in safe places to play at UA House at Fayette.</p></div>
+  </div>
+</section>
+
+<section class="store" id="store">
+  <img src="https://assets.2k.com/1a6ngf98576c/3SyZn45ZhotSsfED7bdIsu/9ec1a043aa7181c5deeec82302bc7ab1/2K_Store_image.png" alt="2K Store" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=1200&q=80'">
+  <div>
+    <h2 class="h2">2K Store</h2>
+    <p>Shop the latest 2K games, editions, and add-on content — linked straight to your 2K Account.</p>
+    <button class="btn sm" data-buy="nba-2k27">Shop Now</button>
+  </div>
+</section>
+
+<footer>
+  <div class="fcols">
+    <div>
+      <img src="https://assets.2k.com/1a6ngf98576c/2zjPZpinUk7HU9ppHrQaWd/e51ed9ba96d3eab501f5d751248ad72f/2K_Web_App_config_Nav_Logo_30x30.svg" alt="2K" style="width:56px;height:56px" onerror="this.onerror=null;this.style.display='none'">
+      <div class="ficons">
+        <img src="https://assets.2k.com/1a6ngf98576c/6hq9USPEntTsY2DfIFYz69/1935aaad495927437fe7498996c39924/linkedin.svg" alt="LinkedIn" onerror="this.onerror=null;this.style.display='none'">
+        <img src="https://assets.2k.com/1a6ngf98576c/2FSCyS8XTL3nYUX0pL4QPB/c759e270920759f470cb9561c4f6282e/icons8-facebook-f__2_.svg" alt="Facebook" onerror="this.onerror=null;this.style.display='none'">
+        <img src="https://assets.2k.com/1a6ngf98576c/6t8aR6LdTsnsclQFRAwf8D/5547c3a5bab1472d2b8f87a026910b59/twitter-white__2_.svg" alt="X" onerror="this.onerror=null;this.style.display='none'">
+        <img src="https://assets.2k.com/1a6ngf98576c/bKzPOHeM9Tbo8oEljWUZE/82f805f7c2962bda7ed65e725ae12d6d/Instagram_Logo.svg" alt="Instagram" onerror="this.onerror=null;this.style.display='none'">
+        <img src="https://assets.2k.com/1a6ngf98576c/74Op7dLNKn46l2hMWVmiv9/1d187583f3d7988758e75c2ad7baabf3/YouTube_Logo.svg" alt="YouTube" onerror="this.onerror=null;this.style.display='none'">
+        <img src="https://assets.2k.com/1a6ngf98576c/7juCF9ChVGx8YVK2QKX2Ov/13781560e7257a0af8d5fbbbf85608b0/twitchicon.svg" alt="Twitch" onerror="this.onerror=null;this.style.display='none'">
+      </div>
+    </div>
+    <div><h4>About</h4><a href="#">About 2K</a><a href="#news">Game News</a><a href="#store">2K Store</a><a href="#">2K Account Login</a><a href="#">2K Newsroom</a><a href="#">2K Support</a></div>
+    <div><h4>Careers</h4><a href="#careers">All 2K Careers</a><a href="#careers">Graduate Programs</a><a href="#">All 2K Studios</a><a href="#foundations">2K Foundations</a></div>
+    <div><h4>Legal</h4><a href="#">Terms of Service</a><a href="#">EULA</a><a href="#">Legal Information</a><a href="#">Accessibility</a></div>
+    <div><h4>Policies</h4><a href="#">Privacy Policy</a><a href="#">Cookie Policy</a><a href="#">Cookie Settings</a><a href="#">Your Privacy Choices</a></div>
+  </div>
+  <div class="legal">
+    <img class="esrb" src="https://assets.2k.com/1a6ngf98576c/7sOZFAaaXgmRTeSPW9EVdz/aecb6567da3f5a02ed56a97dd00838b9/ESRB_RP-M_Compilation_Badge__1_.png" alt="ESRB" onerror="this.onerror=null;this.style.display='none'">
+    <p>©2026 Take-Two Interactive Software, Inc. and its subsidiaries. 2K, T2, related logos, and Take-Two Interactive Software, are all trademarks and/or registered trademarks of Take-Two Interactive Software, Inc. All other marks are property of their respective owners.</p>
+  </div>
+</footer>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="coTitle">
+  <div class="checkout">
+    <div class="cover">
+      <img id="coArt" src="https://assets.2k.com/1a6ngf98576c/6VC0pmXVIg52jVgXXKrFJs/30495494bbac9dc156fa39fcf39bd45c/NBA2k27_2K.com_Standard-Edition_FOBs_425x535px.jpg" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&q=80'">
+      <div class="ttl" id="coName">NBA 2K27</div>
+      <div class="rating"><img src="https://assets.2k.com/1a6ngf98576c/7sOZFAaaXgmRTeSPW9EVdz/aecb6567da3f5a02ed56a97dd00838b9/ESRB_RP-M_Compilation_Badge__1_.png" alt="ESRB" onerror="this.onerror=null;this.style.display='none'">Rating Pending · In-game purchases</div>
+    </div>
+    <form id="checkoutForm" novalidate>
+      <button type="button" class="close" id="closeCo" aria-label="Close">&times;</button>
+      <div class="kicker">2K Store</div>
+      <h2 id="coTitle">Buy NBA 2K27</h2>
+      <input type="hidden" name="title" id="titleField" value="nba-2k27">
+      <span class="lbl">Choose your edition</span>
+      <div class="opts" id="editionOpts"></div>
+      <span class="lbl">Choose your platform</span>
+      <div class="opts" id="platformOpts">
+        <label class="opt"><input type="radio" name="platform" value="ps5" checked><span>PlayStation 5</span></label>
+        <label class="opt"><input type="radio" name="platform" value="xbox-series"><span>Xbox Series X|S</span></label>
+        <label class="opt"><input type="radio" name="platform" value="steam"><span>PC (Steam)</span></label>
+        <label class="opt"><input type="radio" name="platform" value="switch-2"><span>Nintendo Switch 2</span></label>
+      </div>
+      <label class="lbl" for="email">2K Account email</label>
+      <input class="field" id="email" name="email" type="email" value="mypark.hooper@example.com" autocomplete="email">
+      <div class="summary">
+        <div class="total">Order total<b id="coTotal">$69.99</b></div>
+        <button class="btn" id="placeBtn" type="submit">Place Order</button>
+      </div>
+      <p class="fine">Your game and bonus content will be linked to your 2K Account and delivered through your platform’s storefront. By placing this order you agree to the 2K Terms of Service and EULA.</p>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="alert"><span class="x" onclick="this.parentElement.style.display='none'">&times;</span><div id="toastBody"></div></div>
+
+<script>
+  const identityReady = fetch('/api/config')
+    .then(r => r.json())
+    .then(config => {
+      if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+      if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+    })
+    .catch(() => {});
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money = cents => '$' + (cents / 100).toFixed(2);
+
+  const GAMES = {
+    'nba-2k27': { name: 'NBA 2K27', art: 'https://assets.2k.com/1a6ngf98576c/6VC0pmXVIg52jVgXXKrFJs/30495494bbac9dc156fa39fcf39bd45c/NBA2k27_2K.com_Standard-Edition_FOBs_425x535px.jpg',
+      editions: [['standard','Standard Edition',6999,'Includes 15,000 VC + Season 2 Locker Code bonus'],['deluxe','Deluxe Edition',9999,'15,000 VC, MyTEAM content, MyPLAYER boosts'],['ultra','Ultra Edition',14999,'100,000 VC, MyTEAM content, MyPLAYER boosts']] },
+    'wwe-2k26': { name: 'WWE 2K26', art: 'https://assets.2k.com/1a6ngf98576c/5HmLbSvPjEocPFqHCfYzer/2b6ca5b30b2bb8f7c73c108ace961325/2K.com_Update_Standard_Edition_FOBs__425x535px.jpg',
+      editions: [['standard','Standard Edition',6999,'Base game'],['deluxe','Deluxe Edition',9999,'Season Pass + 12,500 VC']] },
+    'borderlands-4': { name: 'Borderlands 4', art: 'https://assets.2k.com/1a6ngf98576c/6aTxhjEAHtImmilMXIjfo3/f9e1277f1c7be1d41deac1b50fba4eff/BDL4_Standard_FOB_425x535.png',
+      editions: [['standard','Standard Edition',6999,'Base game'],['deluxe','Deluxe Edition',9999,'Bounty Pack bundle']] },
+    'mafia-the-old-country': { name: 'Mafia: The Old Country', art: 'https://assets.2k.com/1a6ngf98576c/10lKXYrGAy7dmsGSOw3vSC/f14ef3b4cdf545161470194df75c8f65/MTOC_FOB_Standard_425x535.png',
+      editions: [['standard','Standard Edition',4999,'Base game']] },
+    'civilization-vii': { name: 'Civilization VII', art: 'https://assets.2k.com/1a6ngf98576c/6TPQqO2998e4XKjlXSSZYj/a9eea76b8474b425eefa65e04d4a9dca/Desktop_Retail_FOBs_425x535_Standard.png',
+      editions: [['standard','Standard Edition',6999,'Base game'],['deluxe','Deluxe Edition',9999,'Founders content pack']] },
+  };
+
+  // hero carousel
+  const slides = [...document.querySelectorAll('.slide')];
+  const dots = document.getElementById('dots');
+  let current = 0, timer;
+  slides.forEach((_, i) => { const d = document.createElement('button'); d.setAttribute('aria-label', 'Slide ' + (i + 1)); d.onclick = () => go(i); dots.appendChild(d); });
+  function go(i){ current = (i + slides.length) % slides.length; slides.forEach((s, j) => s.classList.toggle('on', j === current)); [...dots.children].forEach((d, j) => d.classList.toggle('on', j === current)); clearInterval(timer); timer = setInterval(() => go(current + 1), 7000); }
+  document.querySelector('.prev').onclick = () => go(current - 1);
+  document.querySelector('.next').onclick = () => go(current + 1);
+  go(0);
+
+  // checkout
+  const overlay = document.getElementById('overlay');
+  const form = document.getElementById('checkoutForm');
+  function updateTotal(){ const g = GAMES[form.title.value]; const ed = g.editions.find(e => e[0] === (form.querySelector('input[name=edition]:checked') || {}).value) || g.editions[0]; document.getElementById('coTotal').textContent = money(ed[2]); }
+  function openCheckout(key){
+    const g = GAMES[key] || GAMES['nba-2k27'];
+    form.title.value = GAMES[key] ? key : 'nba-2k27';
+    document.getElementById('coArt').src = g.art;
+    document.getElementById('coName').textContent = g.name;
+    document.getElementById('coTitle').textContent = 'Buy ' + g.name;
+    document.getElementById('editionOpts').innerHTML = g.editions.map((e, i) =>
+      '<label class="opt"><input type="radio" name="edition" value="' + esc(e[0]) + '"' + (i === 0 ? ' checked' : '') + '><span>' + esc(e[1]) + '<small>' + esc(money(e[2])) + ' · ' + esc(e[3]) + '</small></span></label>').join('');
+    form.querySelectorAll('input[name=edition]').forEach(r => r.addEventListener('change', updateTotal));
+    updateTotal();
+    overlay.classList.add('open');
+  }
+  document.querySelectorAll('[data-buy]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); openCheckout(el.dataset.buy); }));
+  document.getElementById('closeCo').onclick = () => overlay.classList.remove('open');
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+
+  let toastTimer;
+  function showToast(ok, html){
+    const t = document.getElementById('toast');
+    t.className = 'toast' + (ok ? ' ok' : '');
+    document.getElementById('toastBody').innerHTML = html;
+    t.style.display = 'block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.style.display = 'none'; }, ok ? 10000 : 8000);
+  }
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('placeBtn');
+    btn.disabled = true; btn.textContent = 'Processing…';
+    await identityReady;
+    const payload = {
+      title: form.title.value,
+      edition: (form.querySelector('input[name=edition]:checked') || {}).value,
+      platform: (form.querySelector('input[name=platform]:checked') || {}).value,
+      email: form.email.value,
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || ''
+    };
+    try {
+      const res = await fetch('/api/0875ddd9/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        overlay.classList.remove('open');
+        showToast(true, '<h6>Order confirmed</h6>Order <b>' + esc(data.orderId) + '</b> · ' + esc(data.title) + ' ' + esc(data.edition) + ' (' + esc(data.platform) + '). ' + esc(data.message || ''));
+      } else if (res.status === 400) {
+        showToast(false, '<h6>Check your order</h6>' + esc(data.error || 'Some details are missing.'));
+      } else {
+        showToast(false, '<h6>We couldn\'t complete your order</h6>Something went wrong while fulfilling your order. You have not been charged — our team has been notified, please try again shortly.' + (data.error ? '<code>' + esc((data.errorClass ? data.errorClass + ': ' : '') + data.error) + '</code>' : ''));
+      }
+    } catch (err) {
+      showToast(false, '<h6>Network error</h6>Please check your connection and try again.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Place Order';
+    }
+  });
+</script>
+</body>
+</html>
