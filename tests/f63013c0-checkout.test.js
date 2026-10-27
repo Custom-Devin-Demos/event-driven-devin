@@ -197,6 +197,56 @@ describe('Carrefour skin (brand=carrefour)', () => {
   });
 });
 
+const BACKMARKET_ORDER = {
+  brand: 'backmarket',
+  customerId: 'cus_oliver_uk',
+  cartId: 'bsk_oliver_uk',
+  addressId: 'addr_oliver_london',
+  lines: [
+    { sku: 'BM-PH-003', qty: 1, giftBox: true },
+    { sku: 'BM-WA-001', qty: 1 },
+  ],
+  paymentMethod: 'card',
+  cardToken: 'tok_oliver_uk_visa_4242',
+};
+
+describe('Back Market skin (brand=backmarket)', () => {
+  test('catalog serves Smart Essentials in GBP for a UK customer', async () => {
+    const bm = await (await fetch(`${base}/api/f63013c0/catalog?brand=backmarket`)).json();
+    expect(bm.currency).toBe('GBP');
+    expect(bm.customer.id).toBe('cus_oliver_uk');
+    expect(bm.customer.address).toMatchObject({ city: 'London', postcode: 'NW1 8AB', country: 'United Kingdom' });
+    expect(bm.products.every((p) => p.sku.startsWith('BM-'))).toBe(true);
+  });
+
+  test('card checkout authorizes in GBP as BACK MARKET', async () => {
+    psp.setVersion('2025-06');
+    const res = await post('/api/f63013c0/checkout', BACKMARKET_ORDER);
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.order.total).toBe(126.99);
+    expect(body.order.currency).toBe('GBP');
+    expect(body.order.shipTo).toBe('14 Chalk Farm Road, Flat 3, London NW1 8AB, United Kingdom');
+    const auth = psp.listAuthorizations({ cardToken: 'tok_oliver_uk_visa_4242' })[0];
+    expect(auth).toMatchObject({ amount: 126.99, currency: 'GBP', descriptor: 'BACK MARKET' });
+  });
+
+  test('card failure alerts with the Back Market label', async () => {
+    const res = await post('/api/f63013c0/checkout', BACKMARKET_ORDER);
+    expect(res.status).toBe(502);
+    expect((await res.json()).code).toBe('PAYMENT_FAILED');
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.verticalLabel).toBe('Back Market — Smart Essentials Checkout');
+    expect(alert.extra.promptContext).toContain('backmarket.co.uk');
+  });
+
+  test('case add-on is rejected on watches', async () => {
+    const res = await post('/api/f63013c0/checkout', { ...BACKMARKET_ORDER, lines: [{ sku: 'BM-WA-001', qty: 1, giftBox: true }] });
+    expect(res.status).toBe(400);
+  });
+});
+
 describe('reconciliation planning', () => {
   const auth = (id, reference, status = 'AUTHORISED') => ({
     id, reference, status, createdAt: '2026-10-05T14:00:00Z', voidedAt: status === 'VOIDED' ? '2026-10-05T15:00:00Z' : null,
