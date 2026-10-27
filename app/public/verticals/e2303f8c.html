@@ -156,24 +156,23 @@
       </aside>
 
       <section class="card">
-        <form id="transferForm" novalidate>
+        <form id="uploadForm" novalidate>
           <div class="grid">
-            <label class="field" for="fromAccount">Upload source
-              <select id="fromAccount">
-                <option value="ACCT-1001">Clinic upload &mdash; USB reader at front desk</option>
-                <option value="ACCT-1004">Patient app sync &mdash; MiniMed Mobile</option>
+            <label class="field" for="uploadSource">Upload source
+              <select id="uploadSource">
+                <option value="clinic-usb">Clinic upload &mdash; USB reader at front desk</option>
+                <option value="patient-app">Patient app sync &mdash; MiniMed Mobile</option>
               </select>
             </label>
-            <label class="field" for="toAccount">Report
-              <select id="toAccount">
-                <option value="ACCT-1002">Therapy Management Dashboard</option>
+            <label class="field" for="reportType">Report
+              <select id="reportType">
+                <option value="tmd">Therapy Management Dashboard</option>
               </select>
             </label>
-            <label class="field" for="accountTier">Processing path
-              <select id="accountTier">
-                <option value="standard">Full upload &mdash; pump, sensor &amp; event history</option>
-                <option value="premium">Incremental &mdash; since last cloud sync</option>
-                <option value="basic">Overnight batch</option>
+            <label class="field" for="uploadType">Processing path
+              <select id="uploadType">
+                <option value="full" selected>Full upload &mdash; pump, sensor &amp; event history</option>
+                <option value="incremental">Incremental &mdash; since last cloud sync</option>
               </select>
             </label>
             <label class="field" for="amount">Report period (days)
@@ -212,21 +211,15 @@
     })();
   </script>
   <script>
-    const form = document.getElementById('transferForm');
+    const form = document.getElementById('uploadForm');
     const button = document.getElementById('submitBtn');
     const submitLabel = document.getElementById('submitLabel');
     const result = document.getElementById('result');
     const uploadStatus = document.getElementById('uploadStatus');
     const uploadElapsed = document.getElementById('uploadElapsed');
     const daysInput = document.getElementById('amount');
-
-    // Fictional demo patient's report per review period (time-in-range bands sum to 100).
-    const REPORTS = {
-      7: { tir: [0, 2, 78, 16, 4], avg: 142, gmi: 6.7, smartGuard: 95, wear: 98 },
-      14: { tir: [1, 3, 74, 17, 5], avg: 148, gmi: 6.8, smartGuard: 93, wear: 96 },
-      30: { tir: [1, 3, 72, 18, 6], avg: 151, gmi: 6.9, smartGuard: 92, wear: 95 },
-      90: { tir: [1, 4, 70, 19, 6], avg: 154, gmi: 7.0, smartGuard: 90, wear: 94 },
-    };
+    const PATIENT_ID = 'PT-20417';
+    const REPORT_PERIODS = [7, 14, 30, 90];
 
     let ticker = null;
     function startTicker() {
@@ -243,18 +236,19 @@
       return node;
     }
 
-    function renderReport(reportId, days) {
+    function renderReport(report) {
+      const days = report.periodDays;
+      const r = report.summary;
       result.className = 'result-box';
       result.innerHTML = '';
       const head = el('div', 'report-head');
       const title = el('b', '', 'Therapy Management Dashboard \u00b7 last ' + days + (days === 1 ? ' day' : ' days'));
-      const meta = el('code', '', reportId + ' \u00b7 generated in ' + uploadElapsed.textContent);
+      const meta = el('code', '', report.id + ' \u00b7 generated in ' + uploadElapsed.textContent);
       head.append(title, meta);
 
       const tirLabel = el('div', 'muted', 'Time in range (70\u2013180 mg/dL)');
-      const r = REPORTS[days];
       const bands = [
-        ['#7A1F1F', r.tir[0]], ['#C2410C', r.tir[1]], ['#1F7A4D', r.tir[2]], ['#E2B54A', r.tir[3]], ['#B7791F', r.tir[4]],
+        ['#7A1F1F', r.timeInRange[0]], ['#C2410C', r.timeInRange[1]], ['#1F7A4D', r.timeInRange[2]], ['#E2B54A', r.timeInRange[3]], ['#B7791F', r.timeInRange[4]],
       ];
       const tir = el('div', 'tir');
       bands.forEach(([color, pct]) => {
@@ -264,10 +258,10 @@
         tir.append(s);
       });
       const legend = el('div', 'legend');
-      ['Very low', 'Low', 'In range', 'High', 'Very high'].map((name, i) => name + ' ' + r.tir[i] + '%').forEach((t) => legend.append(el('span', '', t)));
+      ['Very low', 'Low', 'In range', 'High', 'Very high'].map((name, i) => name + ' ' + r.timeInRange[i] + '%').forEach((t) => legend.append(el('span', '', t)));
 
       const stats = el('div', 'stats');
-      [[r.avg + ' mg/dL', 'Avg sensor glucose'], [r.gmi + '%', 'GMI'], [r.smartGuard + '%', 'SmartGuard time'], [r.wear + '%', 'Sensor wear']].forEach(([v, l]) => {
+      [[r.avgGlucoseMgDl + ' mg/dL', 'Avg sensor glucose'], [r.gmiPct.toFixed(1) + '%', 'GMI'], [r.smartGuardPct + '%', 'SmartGuard time'], [r.sensorWearPct + '%', 'Sensor wear']].forEach(([v, l]) => {
         const s = el('div', 'stat');
         s.append(el('b', '', v), el('span', '', l));
         stats.append(s);
@@ -277,8 +271,8 @@
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const days = parseFloat(daysInput.value);
-      if (!REPORTS[days]) {
+      const days = Number(daysInput.value);
+      if (!REPORT_PERIODS.includes(days)) {
         result.className = 'result-box notice';
         result.textContent = 'Choose a report period.';
         return;
@@ -291,28 +285,26 @@
       result.textContent = '';
       startTicker();
       try {
-        const response = await fetch('/api/banking/transfer', {
+        const response = await fetch('/api/carelink/reports', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            fromAccount: document.getElementById('fromAccount').value,
-            toAccount: document.getElementById('toAccount').value,
-            amount: days,
-            accountTier: document.getElementById('accountTier').value,
+            patientId: PATIENT_ID,
+            uploadType: document.getElementById('uploadType').value,
+            periodDays: days,
             devinUserId: localStorage.getItem('devinUserId') || '',
             devinOrgId: localStorage.getItem('devinOrgId') || '',
             devinEmail: localStorage.getItem('devinEmail') || '',
           }),
         });
-        const data = await response.json();
-        if (!response.ok || !data.receipt) throw new Error('Report failed');
-        const reportId = 'RPT-' + String(data.transferId || data.receipt.receiptId).slice(0, 8).toUpperCase();
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.report) throw new Error(data.error || 'Report could not be generated.');
         stopTicker();
-        renderReport(reportId, days);
+        renderReport(data.report);
         uploadStatus.textContent = 'Upload complete. Report ready for review.';
-      } catch (_error) {
+      } catch (error) {
         result.className = 'result-box notice';
-        result.textContent = 'The report could not be generated. Device data was not saved \u2014 please try the upload again.';
+        result.textContent = error.message + ' No report was produced for this visit.';
         uploadStatus.textContent = 'Upload not completed.';
       } finally {
         stopTicker();

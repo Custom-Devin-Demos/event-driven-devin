@@ -31,6 +31,7 @@ const { runWithAlertDestination } = require('../services/alert-destination');
 const logger = require('../telemetry/logger');
 const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
 const { getAvailability, confirmBooking } = require('../services/oncall-verticals/examscheduling');
+const { generateReport } = require('../services/oncall-verticals/devicereports');
 const { dispatchResponsePlan } = require('../services/oncall-verticals/emergencydispatch');
 const { createSession: createMemberSession } = require('../services/oncall-verticals/memberlogin');
 const { prepareFulfillment, listCollection } = require('../services/oncall-verticals/nftcheckout');
@@ -893,6 +894,29 @@ router.post('/api/oncall/examscheduling/appointments', async (req, res) => {
         : error.message,
       errorClass: isTimeout ? 'GatewayTimeout' : error.name,
       code: error.code || 'BOOKING_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+router.post('/api/oncall/devicereports/reports', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await generateReport({
+      patientId: body.patientId,
+      uploadType: body.uploadType,
+      periodDays: body.periodDays,
+    }));
+  } catch (error) {
+    const isTimeout = error.code === 'REPORT_TIMEOUT';
+    const status = isTimeout ? 504 : error.code === 'INVALID_REPORT_REQUEST' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: isTimeout
+        ? 'Report could not be generated. The upload timed out before the report was ready.'
+        : error.message,
+      errorClass: isTimeout ? 'GatewayTimeout' : error.name,
+      code: error.code || 'REPORT_FAILED',
       requestId: req.requestId,
     });
   }
