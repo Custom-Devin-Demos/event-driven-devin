@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What brings you to Pomelo? | Pomelo Care</title>
+<style>
+  @font-face { font-family: Senes; src: url(/verticals/b4fb2968/Senes-Regular.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: Senes; src: url(/verticals/b4fb2968/Senes-Book.woff2) format("woff2"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: Senes; src: url(/verticals/b4fb2968/Senes-Demi.woff2) format("woff2"); font-weight: 600; font-display: swap; }
+  @font-face { font-family: Senes; src: url(/verticals/b4fb2968/Senes-Bold.woff2) format("woff2"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: Items; src: url(/verticals/b4fb2968/Items-Medium.woff2) format("woff2"); font-weight: 500; font-display: swap; }
+  @font-face { font-family: "Items Pomelo"; src: url(/verticals/b4fb2968/ItemsPomelo-Bold.woff2) format("woff2"); font-weight: 700; font-display: swap; }
+  :root {
+    --ink: #393939; --ink-2: #5E5E5E; --black: #1B1B1B; --paper: #FCFCFA; --line: #675D6C;
+    --glass: rgba(252, 252, 250, 0.6);
+    --glass-shadow: rgba(255, 255, 255, 0.35) -1px -1px 1px 0px inset, rgba(255, 255, 255, 0.75) 1px 1px 1px 0px inset, rgba(0, 0, 0, 0.1) 0px 2px 8px -2px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: Senes, sans-serif; font-size: 16px; line-height: 24px; color: #000;
+    background: #D0E2ED linear-gradient(#F5FFCF, #FAE6E3, #F1ECF3, #E8DDEE, #D0E2ED) fixed;
+    min-height: 100vh; -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; }
+  a { color: inherit; }
+  .page { min-height: 100vh; display: flex; flex-direction: column; padding: 0 20px; }
+  .page.full { padding: 0; }
+
+  /* header */
+  .hdr { display: flex; align-items: center; justify-content: space-between; height: 80px; padding: 16px 8px; margin: 8px 0 16px; }
+  .hdr-l { display: flex; align-items: center; gap: 20px; }
+  .logo { color: var(--ink); font-family: "Items Pomelo", serif; font-size: 34px; font-weight: 700; line-height: 100%; transform: translateY(-2px); text-decoration: none; }
+  .back {
+    width: 34px; height: 34px; border: 0; border-radius: 50%; padding: 0; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; color: #50453C;
+    background: rgba(252, 252, 250, 0.4);
+    box-shadow: rgba(255, 255, 255, 0.35) -1px -1px 1px 0px inset, rgba(255, 255, 255, 0.75) 1px 1px 1px 0px inset, rgba(0, 0, 0, 0.15) 0px 0px 26px 0px;
+  }
+  .back svg { width: 16px; height: 16px; }
+  .lang { height: 48px; width: 64px; border: 0; border-radius: 12px; background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; color: var(--ink); font-size: 14px; line-height: 20px; padding: 0; }
+  .lang svg { width: 14px; height: 14px; }
+  .hdr.mid { position: relative; height: 96px; margin: 0 -20px 32px; padding: 16px 20px; justify-content: center; }
+  .hdr.mid .back { position: absolute; left: 20px; top: 27px; }
+  .hdr.mid .lang { position: absolute; right: 20px; top: 20px; }
+  .hdr.mid .logo { margin-top: -12px; }
+  .progress { position: absolute; left: 20px; right: 20px; top: 76px; height: 4px; border-radius: 8px; background: var(--paper); overflow: hidden; }
+  .progress > div { height: 100%; border-radius: 8px; background: var(--black); transition: width .4s ease; }
+
+  /* content */
+  main { flex: 1; width: 100%; }
+  .hdr:not(.mid) + main { padding-top: 19px; }
+  .col { width: 500px; max-width: 100%; margin: 0 auto; text-align: center; }
+  h1 { font-family: Items, serif; font-weight: 500; font-size: 48px; line-height: 48px; letter-spacing: -0.48px; color: var(--ink); margin: 0 0 16px; }
+  h1.solo { margin-bottom: 32px; }
+  .sub { color: var(--ink-2); letter-spacing: -0.16px; margin: 0 0 32px; }
+  .sub.ink { color: var(--ink); }
+  .opts { display: flex; flex-direction: column; gap: 16px; text-align: left; }
+  .opt {
+    display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 19px 15px; cursor: pointer; user-select: none;
+    background: var(--glass); border: 1px solid rgba(173, 173, 172, 0); border-radius: 20px; box-shadow: var(--glass-shadow);
+    transition: border-color .15s, background-color .15s;
+  }
+  .opt:hover { background: rgba(252, 252, 250, 0.8); }
+  .opt.on { border-color: var(--line); background: rgba(252, 252, 250, 0.85); }
+  .opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .cbx { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 8px; border: .5px solid var(--line); background: rgba(252, 252, 250, 0.4); display: inline-flex; align-items: center; justify-content: center; }
+  .opt.on .cbx { background: #B2D1E4; }
+  .cbx svg { width: 14px; height: 14px; opacity: 0; color: var(--black); }
+  .opt.on .cbx svg { opacity: 1; }
+  .err { color: #B42318; font-size: 14px; line-height: 20px; margin: -16px 0 16px; text-align: left; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 60px; padding: 20px; border: 0; border-radius: 12px; cursor: pointer;
+    background: var(--black); color: var(--paper); font-size: 16px; line-height: 20px; box-shadow: var(--line) 0px 0px 0px 1px inset;
+  }
+  .btn:hover { background: #333; }
+  .btn[disabled] { cursor: default; }
+  .btn.outline { background: transparent; color: var(--ink); height: 44px; padding: 10px 20px; box-shadow: var(--line) 0px 0px 0px 1px inset; }
+  .btn.outline:hover { background: rgba(252, 252, 250, 0.4); }
+  .spin { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(252, 252, 250, .35); border-top-color: var(--paper); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .mt32 { margin-top: 32px; } .mt24 { margin-top: 24px; } .mt16 { margin-top: 16px; }
+  .fine { color: var(--ink-2); font-size: 12px; line-height: 18px; }
+  .note { color: var(--ink); font-size: 14px; line-height: 20px; }
+
+  /* fields */
+  .field { text-align: left; margin-bottom: 24px; }
+  .field label, .lbl { display: block; font-size: 14px; line-height: 17px; letter-spacing: -0.14px; color: var(--ink); margin-bottom: 6px; }
+  .inp {
+    width: 100%; height: 56px; padding: 16.5px 14px; border-radius: 12px; border: 1px solid #8E8A90; background: var(--glass);
+    font: inherit; font-size: 16px; line-height: 20px; letter-spacing: -0.16px; color: var(--ink); outline: none;
+  }
+  .inp:hover { border-color: var(--ink); }
+  .inp:focus { border-color: var(--black); box-shadow: 0 0 0 1px var(--black); }
+  .sel { position: relative; }
+  .sel .inp { text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+  .sel .caret { width: 24px; height: 24px; color: #5E5E5E; margin-right: -4px; }
+  .menu {
+    position: absolute; left: 0; right: 0; top: 60px; z-index: 30; max-height: 320px; overflow: auto; list-style: none; margin: 0; padding: 8px 0;
+    background: #FCFCFA; border-radius: 12px; box-shadow: rgba(0, 0, 0, 0.2) 0px 5px 5px -3px, rgba(0, 0, 0, 0.14) 0px 8px 10px 1px, rgba(0, 0, 0, 0.12) 0px 3px 14px 2px;
+  }
+  .menu li { padding: 6px 16px; min-height: 36px; display: flex; align-items: center; cursor: pointer; color: var(--black); font-size: 16px; line-height: 24px; }
+  .menu li:hover, .menu li.act { background: rgba(0, 0, 0, 0.04); }
+  .menu li.sel-on { background: rgba(27, 27, 27, 0.08); }
+  .alert { display: flex; gap: 12px; align-items: flex-start; text-align: left; margin: -8px 0 24px; padding: 12px 16px; border-radius: 12px; background: rgba(253, 236, 234, .85); color: #5F2120; font-size: 14px; line-height: 20px; }
+  .alert svg { flex: 0 0 20px; width: 20px; height: 20px; color: #D32F2F; margin-top: 0; }
+  .alert b { display: block; font-weight: 600; margin-bottom: 2px; }
+  .chk { display: flex; gap: 12px; align-items: flex-start; text-align: left; cursor: pointer; margin-bottom: 16px; color: var(--ink); }
+  .chk input { position: absolute; opacity: 0; }
+  .chk .box { flex: 0 0 20px; width: 20px; height: 20px; margin-top: 2px; border-radius: 6px; border: .5px solid var(--line); background: rgba(252, 252, 250, 0.4); display: inline-flex; align-items: center; justify-content: center; }
+  .chk.on .box { background: #B2D1E4; }
+  .chk .box svg { width: 12px; height: 12px; opacity: 0; }
+  .chk.on .box svg { opacity: 1; }
+  .chk a { font-weight: 600; text-underline-offset: 2px; }
+  .sponsor { margin: 0 0 32px; padding: 14px 16px; border-radius: 12px; background: #F2FCCB; color: var(--ink); text-align: center; line-height: 24px; }
+  .sponsor a, a.u { font-weight: 600; text-underline-offset: 3px; }
+
+  /* footer */
+  .ftr { display: flex; justify-content: center; gap: 48px; padding: 32px 0 48px; margin-top: 64px; flex-wrap: wrap; }
+  .ftr p { margin: 0; max-width: 500px; color: var(--ink-2); font-size: 12px; line-height: 18px; }
+  .ftr nav { display: flex; flex-direction: column; gap: 8px; }
+  .ftr nav div { display: flex; gap: 24px; flex-wrap: wrap; }
+  .ftr nav a { font-size: 14px; line-height: 20px; color: var(--ink); }
+  .ftr nav span { font-size: 12px; line-height: 18px; color: var(--ink-2); }
+  .mini-ftr { width: 500px; max-width: 100%; margin: 24px auto 48px; text-align: center; }
+
+  /* phone page */
+  .legal { font-size: 13px; line-height: 20px; color: var(--ink); margin: 12px 0 0; }
+  .h2 { font-family: Items, serif; font-weight: 500; font-size: 36px; line-height: 40px; letter-spacing: -0.36px; color: var(--ink); text-align: center; margin: 56px 0 32px; }
+  .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 1200px; margin: 0 auto; }
+  .card3 { min-height: 240px; padding: 32px; text-align: left; border-radius: 40px; background: var(--glass); box-shadow: var(--glass-shadow); border: 1px solid rgba(255, 255, 255, .6); }
+  .card3 .t { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; font-size: 20px; line-height: 28px; font-weight: 500; color: var(--ink); }
+  .card3 svg { flex: 0 0 36px; width: 36px; height: 36px; color: var(--ink); }
+  .card3 p { margin: 24px 0 0; color: var(--ink); }
+
+  /* program preview */
+  .hero { position: relative; height: 690px; overflow: hidden; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
+  .hero::after { content: ""; position: absolute; inset: auto 0 0 0; height: 45%; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.18)); }
+  .hero .cap { position: absolute; left: 0; right: 0; bottom: 32px; z-index: 2; text-align: center; }
+  .hero h1 { color: #FFFFFF; font-size: 64px; line-height: 64px; letter-spacing: -0.64px; margin: 0 0 24px; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px; border-radius: 999px; background: rgba(252, 252, 250, 0.6); border: 1px solid rgba(255, 255, 255, .7); font-size: 14px; line-height: 20px; color: var(--ink); }
+  .pill svg { width: 13px; height: 13px; }
+  .hero .back { position: absolute; left: 20px; top: 20px; z-index: 3; }
+  .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 24px 48px 0; max-width: 1280px; margin: 0 auto; }
+  .quote { padding: 28px 24px 24px; border-radius: 24px; background: var(--glass); box-shadow: var(--glass-shadow); border: 1px solid rgba(255, 255, 255, .6); display: flex; flex-direction: column; justify-content: space-between; min-height: 200px; }
+  .quote p { margin: 0; font-size: 18px; line-height: 20px; color: var(--black); }
+  .quote span { display: block; margin-top: 40px; color: var(--ink-2); font-size: 16px; }
+  .sticky { position: sticky; bottom: 0; padding: 24px 20px; background: rgba(236, 240, 246, .88); backdrop-filter: blur(6px); margin-top: 24px; z-index: 5; }
+  .sticky .btn { max-width: 500px; display: flex; margin: 0 auto; }
+  .foot2 { text-align: center; padding: 16px 20px 48px; }
+
+  /* covered */
+  .cost { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; margin: 0 0 40px; text-align: left; border-radius: 20px; background: rgba(240, 247, 196, .55); border: 2px solid rgba(252, 252, 250, .7); box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 16px -2px; }
+  .cost b { display: block; font-weight: 500; color: var(--black); font-size: 17px; }
+  .cost small { display: block; color: var(--ink-2); font-size: 15px; line-height: 17px; max-width: 200px; margin-top: 4px; }
+  .cost .amt { font-size: 52px; line-height: 52px; color: var(--ink); letter-spacing: -1px; }
+
+  /* family + misc */
+  .qr { display: inline-block; padding: 16px; border-radius: 16px; background: rgba(252, 252, 250, .6); box-shadow: var(--glass-shadow); }
+  .qr canvas { display: block; background: #fff; padding: 8px; }
+  ul.bul { text-align: left; color: var(--ink); padding-left: 22px; margin: 8px 0 0; }
+  ul.bul li { margin: 0 0 12px; }
+
+  /* cookie */
+  .cookie { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); width: 720px; max-width: calc(100% - 32px); z-index: 50; display: flex; align-items: center; gap: 24px; padding: 28px 24px; border-radius: 16px; background: #F7F8F8; box-shadow: 0 4px 24px rgba(0,0,0,.12); font-size: 14px; line-height: 20px; color: #2b2b2b; }
+  .cookie p { margin: 0; flex: 1; }
+  .cookie a { font-weight: 700; }
+  .cookie .bb { display: flex; flex-direction: column; gap: 8px; width: 242px; }
+  .cookie button { height: 46px; border-radius: 10px; cursor: pointer; font-size: 14px; }
+  .cookie .k1 { background: #1B1B1B; color: #fff; border: 1px solid #1B1B1B; }
+  .cookie .k2 { background: transparent; color: #2b2b2b; border: 1px solid #675D6C; }
+
+  @media (max-width: 700px) {
+    h1 { font-size: 36px; line-height: 40px; letter-spacing: -0.36px; }
+    .logo { font-size: 28px; }
+    .hdr { margin: 0 0 8px; padding: 16px 0; }
+    .cards3, .quotes { grid-template-columns: 1fr; }
+    .quotes { padding: 16px 20px 0; }
+    .hero { height: 480px; }
+    .hero h1 { font-size: 40px; line-height: 44px; }
+    .ftr { gap: 24px; }
+    .cookie { flex-direction: column; align-items: stretch; }
+    .cookie .bb { width: auto; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+  function devinIdentity() {
+    return {
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || '',
+    };
+  }
+</script>
+<script>
+(function () {
+  var ASSET = '/verticals/b4fb2968/';
+  var ICON = {
+    back: '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true"><path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path></svg>',
+    globe: '<svg viewBox="0 0 14 14" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="6.5"></circle><path d="M.5 7h13m-4 0A11.22 11.22 0 0 1 7 13.5A11.22 11.22 0 0 1 4.5 7A11.22 11.22 0 0 1 7 .5A11.22 11.22 0 0 1 9.5 7Z"></path></g></svg>',
+    check: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>',
+    caret: '<svg class="caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>',
+    star: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7.1L12 17.3 5.8 21l1.6-7.1L2 9.2l7.1-.6z"/></svg>',
+    warn: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm1-5C6.47 2 2 6.5 2 12a10 10 0 0 0 20 0A10 10 0 0 0 12 2m0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16"/></svg>',
+    mail: '<svg viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM203.43,64,128,133.15,52.57,64ZM216,192H40V74.19l82.59,75.71a8,8,0,0,0,10.82,0L216,74.19V192Z"></path></svg>',
+    hand: '<svg viewBox="0 0 256 256" width="40" height="40" fill="currentColor" aria-hidden="true"><path d="M230.33,141.06a24.43,24.43,0,0,0-18.61-4.77C230.5,117.33,240,98.48,240,80c0-26.47-21.29-48-47.46-48A47.58,47.58,0,0,0,156,48.75,47.58,47.58,0,0,0,119.46,32C93.29,32,72,53.53,72,80c0,11,3.24,21.69,10.06,33a31.87,31.87,0,0,0-14.75,8.4L44.69,144H16A16,16,0,0,0,0,160v40a16,16,0,0,0,16,16H120a7.93,7.93,0,0,0,1.94-.24l64-16a6.94,6.94,0,0,0,1.19-.4L226,182.82l.44-.2a24.6,24.6,0,0,0,3.93-41.56ZM119.46,48A31.15,31.15,0,0,1,148.6,67a8,8,0,0,0,14.8,0,31.15,31.15,0,0,1,29.14-19C209.59,48,224,62.65,224,80c0,19.51-15.79,41.58-45.66,63.9l-11.09,2.55A28,28,0,0,0,140,112H100.68C92.05,100.36,88,90.12,88,80,88,62.65,102.41,48,119.46,48ZM16,160H40v40H16Zm203.43,8.21-38,16.18L119,200H56V155.31l22.63-22.62A15.86,15.86,0,0,1,89.94,128H140a12,12,0,0,1,0,24H112a8,8,0,0,0,0,16h32a8.32,8.32,0,0,0,1.79-.2l67-15.41.31-.08a8.6,8.6,0,0,1,6.3,15.9Z"></path></svg>',
+    chat: '<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,80H184V48a16,16,0,0,0-16-16H40A16,16,0,0,0,24,48V176a8,8,0,0,0,13,6.22L72,154V184a16,16,0,0,0,16,16h93.59L219,230.22a8,8,0,0,0,5,1.78,8,8,0,0,0,8-8V96A16,16,0,0,0,216,80ZM66.55,137.78,40,159.25V48H168v88H71.58A8,8,0,0,0,66.55,137.78ZM216,207.25l-26.55-21.47a8,8,0,0,0-5-1.78H88V152h80a16,16,0,0,0,16-16V96h32Z"></path></svg>',
+    steth: '<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M220,160a12,12,0,1,1-12-12A12,12,0,0,1,220,160Zm-4.55,39.29A48.08,48.08,0,0,1,168,240H144a48.05,48.05,0,0,1-48-48V151.49A64,64,0,0,1,40,88V40a8,8,0,0,1,8-8H72a8,8,0,0,1,0,16H56V88a48,48,0,0,0,48.64,48c26.11-.34,47.36-22.25,47.36-48.83V48H136a8,8,0,0,1,0-16h24a8,8,0,0,1,8,8V87.17c0,32.84-24.53,60.29-56,64.31V192a32,32,0,0,0,32,32h24a32.06,32.06,0,0,0,31.22-25,40,40,0,1,1,16.23.27ZM232,160a24,24,0,1,0-24,24A24,24,0,0,0,232,160Z"></path></svg>',
+    smile: '<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M92,140a12,12,0,1,1,12-12A12,12,0,0,1,92,140Zm72-24a12,12,0,1,0,12,12A12,12,0,0,0,164,116Zm-12.27,45.23a45,45,0,0,1-47.46,0,8,8,0,0,0-8.54,13.54,61,61,0,0,0,64.54,0,8,8,0,0,0-8.54-13.54ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0A88.11,88.11,0,0,0,141.34,41,12,12,0,0,0,140,64a8,8,0,0,1,0,16,28,28,0,0,1-4.19-55.68A88,88,0,1,0,216,128Z"></path></svg>',
+    book: '<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h64a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48ZM96,192H32V64H96a24,24,0,0,1,24,24V200A39.81,39.81,0,0,0,96,192Zm128,0H160a39.81,39.81,0,0,0-24,8V88a24,24,0,0,1,24-24h64Z"></path></svg>',
+    heart: '<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M178,40c-20.65,0-38.73,8.88-50,23.89C116.73,48.88,98.65,40,78,40a62.07,62.07,0,0,0-62,62c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,228.66,240,172,240,102A62.07,62.07,0,0,0,178,40ZM128,214.8C109.74,204.16,32,155.69,32,102A46.06,46.06,0,0,1,78,56c19.45,0,35.78,10.36,42.6,27a8,8,0,0,0,14.8,0c6.82-16.67,23.15-27,42.6-27a46.06,46.06,0,0,1,46,46C224,155.61,146.24,204.15,128,214.8Z"></path></svg>',
+    bubbles: '<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Zm0,192a87.87,87.87,0,0,1-44.06-11.81,8,8,0,0,0-6.54-.67L40,216,52.47,178.6a8,8,0,0,0-.66-6.54A88,88,0,1,1,128,216Z"></path></svg>',
+  };
+
+  var REASONS = [
+    { id: 'pregnant', label: "I'm pregnant" },
+    { id: 'postpartum', label: 'I had a baby within the last year' },
+    { id: 'ttc', label: "I'm trying to conceive" },
+    { id: 'loss', label: 'I experienced the loss of a pregnancy within the last year' },
+    { id: 'family', label: "I'm looking for support for my partner or family member" },
+    { id: 'midlife', label: "I'm experiencing perimenopause or menopause symptoms" },
+    { id: 'none', label: 'None of these apply to me' },
+  ];
+  var PHONE = {
+    pregnant: { h: 'Pomelo is here to support your pregnancy journey', cards: [['24/7 virtual care', 'From pregnancy through your baby\'s first birthday', 'chat'], ['Access to specialists', 'Including therapists, dietitians, lactation consultants, and more', 'steth'], ['Birth planning', 'Guidance to set your labor & delivery preferences', 'smile']] },
+    postpartum: { h: 'Pomelo is here to help you and your baby have a healthy, happy start', cards: [['24/7 virtual care', 'Until your baby\'s first birthday', 'chat'], ['Access to specialists', 'Including pediatricians, therapists, and more', 'steth'], ['Feeding guidance', 'All feeding and lactation questions and concerns.', 'smile']] },
+    ttc: { h: 'Pomelo is here to support you through every step of growing your family', cards: [['24/7 virtual care', 'For all of your fertility questions', 'chat'], ['Access to specialists', 'Including OB-GYNs, dietitians, therapists, and more', 'steth'], ['Expert guidance', 'On cycle tracking and health conditions that affect fertility', 'smile']] },
+    loss: { h: 'Pomelo is here for you', cards: [['24/7 virtual care', 'For all of your questions or concerns', 'chat'], ['Mental and emotional support', 'So you never feel alone in this experience', 'heart'], ['Articles to help', 'You understand this journey', 'book']] },
+  };
+  var SYMPTOMS = ['Address hot flashes', 'Sleep better', 'Manage weight', 'Improve my mood or anxiety', 'Reduce night sweats', 'Better sexual health', 'Relieve achy joints', 'Feel less foggy', 'Something else'];
+  var RX = ['Hormone therapy', 'Weight management medications, such as GLP-1s', 'Non-hormonal prescriptions', 'Lifestyle or natural approaches', "I'm not sure yet"];
+  var STATES = [['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','District of Columbia'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']];
+  var TX_INSURERS = [['aetna','Aetna'],['ambetter','Ambetter'],['bsw-health-plan','Baylor Scott & White Health Plan'],['bcbs-tx','Blue Cross Blue Shield of Texas'],['christus-health-plan','CHRISTUS Health Plan'],['cigna','Cigna'],['community-first','Community First Health Plans'],['community-health-choice','Community Health Choice'],['cook-childrens',"Cook Children's Health Plan"],['molina','Molina Healthcare'],['oscar','Oscar Health'],['sendero','Sendero Health Plans'],['texas-childrens',"Texas Children's Health Plan"],['unitedhealthcare','UnitedHealthcare'],['wellcare','WellCare'],['other',"I don't see my provider listed"]];
+  var NATIONAL_INSURERS = [['aetna','Aetna'],['cigna','Cigna'],['oscar','Oscar Health'],['unitedhealthcare','UnitedHealthcare'],['other',"I don't see my provider listed"]];
+  var MIDLIFE_PROGRESS = { symptoms: 7.5, 'top-symptom': 15, 'rx-interests': 22.5, 'email-capture': 45 };
+
+  var KEY = 'pomeloDemoSignup';
+  var state = load();
+  function load() { try { return JSON.parse(sessionStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+  function save() { sessionStorage.setItem(KEY, JSON.stringify(state)); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function go(path) { location.hash = '#' + path; }
+  function back() { if (history.length > 1) history.back(); else go('/signup/reason-for-care'); }
+  var app = document.getElementById('app');
+
+  function langBtn() { return '<button class="lang" type="button" aria-label="Select language: English" aria-haspopup="listbox">EN' + ICON.globe + '</button>'; }
+  function backBtn() { return '<button class="back" type="button" aria-label="Back" data-back>' + ICON.back + '</button>'; }
+  function logo() { return '<a class="logo" href="https://www.pomelocare.com" target="_blank" rel="noopener">Pomelo</a>'; }
+  function hdrLeft(withBack) { return '<header class="hdr"><div class="hdr-l">' + (withBack ? backBtn() : '') + logo() + '</div>' + langBtn() + '</header>'; }
+  function hdrMid(pct) { return '<header class="hdr mid">' + backBtn() + logo() + langBtn() + '<div class="progress" role="progressbar" aria-valuenow="' + pct + '"><div style="width:' + pct + '%"></div></div></header>'; }
+  function footer() {
+    return '<footer class="ftr"><p>All clinical services are provided by licensed physicians and clinicians practicing within an independently owned and operated medical practice, Pomelo, P.C. Pomelo Care, Inc. does not provide any medical, nursing, or other healthcare provider services.</p>' +
+      '<nav><div><a href="https://www.pomelocare.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a><a href="https://www.pomelocare.com/terms-of-service" target="_blank" rel="noopener">Terms of Service</a><a href="https://www.pomelocare.com/accessibility" target="_blank" rel="noopener">Accessibility</a></div><span>&copy; ' + new Date().getFullYear() + ' Pomelo Care, Inc. All rights reserved.</span></nav></footer>';
+  }
+  function npp() { return '<div class="mini-ftr fine">We use the information you enter to evaluate and provide the care or service you request. Review our <a href="https://www.pomelocare.com/notice-of-privacy-practices" target="_blank" rel="noopener">Notice of Privacy Practices</a>.</div>'; }
+  function btn(label, id) { return '<button class="btn" type="submit" id="' + (id || 'next') + '">' + label + '</button>'; }
+  function optList(items, selected, kind) {
+    return '<div class="opts" role="' + (kind === 'radio' ? 'radiogroup' : 'group') + '">' + items.map(function (it, i) {
+      var label = typeof it === 'string' ? it : it.label;
+      var on = selected.indexOf(label) !== -1;
+      return '<label class="opt' + (on ? ' on' : '') + '" data-i="' + i + '"><input type="' + kind + '" name="opt"' + (on ? ' checked' : '') + '>' +
+        (kind === 'checkbox' ? '<span class="cbx">' + ICON.check + '</span>' : '') + '<span>' + esc(label) + '</span></label>';
+    }).join('') + '</div>';
+  }
+  function selectField(id, label, options, value) {
+    var cur = options.filter(function (o) { return o[0] === value; })[0];
+    return '<div class="field"><span class="lbl" id="' + id + '-l">' + label + '</span><div class="sel" data-sel="' + id + '">' +
+      '<button type="button" class="inp" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="' + id + '-l"><span>' + (cur ? esc(cur[1]) : '&#8203;') + '</span>' + ICON.caret + '</button>' +
+      '<ul class="menu" role="listbox" hidden>' + options.map(function (o) { return '<li role="option" data-v="' + esc(o[0]) + '"' + (o[0] === value ? ' class="sel-on" aria-selected="true"' : '') + '>' + esc(o[1]) + '</li>'; }).join('') + '</ul></div></div>';
+  }
+  function bindSelect(id, onPick) {
+    var root = app.querySelector('[data-sel="' + id + '"]');
+    var trigger = root.querySelector('.inp'); var menu = root.querySelector('.menu');
+    function close() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+    trigger.addEventListener('click', function (e) { e.stopPropagation(); var open = menu.hidden; menu.hidden = !open; trigger.setAttribute('aria-expanded', String(open)); });
+    menu.addEventListener('click', function (e) { var li = e.target.closest('li'); if (!li) return; close(); onPick(li.getAttribute('data-v')); });
+    document.addEventListener('click', close, { once: true });
+  }
+
+  var VIEWS = {
+    'reason-for-care': function () {
+      document.title = 'What brings you to Pomelo? | Pomelo Care';
+      return { html: hdrLeft(false) + '<main><div class="col"><h1>What brings you to Pomelo?</h1><p class="sub">Choose your primary reason for seeking care with us. You can change this later if needed.</p>' + optList(REASONS, state.reason ? [REASONS.filter(function (r) { return r.id === state.reason; })[0].label] : [], 'radio') + '</div></main>' + footer(),
+        bind: function () {
+          app.querySelectorAll('.opt').forEach(function (el) {
+            el.addEventListener('click', function (e) {
+              e.preventDefault();
+              var r = REASONS[+el.getAttribute('data-i')];
+              state.reason = r.id; save();
+              app.querySelectorAll('.opt').forEach(function (o) { o.classList.toggle('on', o === el); });
+              setTimeout(function () {
+                if (r.id === 'family') go('/signup/family');
+                else if (r.id === 'none') go('/signup/unsupported-reason');
+                else if (r.id === 'midlife') go('/signup/perimenopause/symptoms');
+                else go('/signup/phone-number');
+              }, 150);
+            });
+          });
+        } };
+    },
+    'phone-number': function () {
+      var p = PHONE[state.reason] || PHONE.pregnant;
+      return { html: hdrLeft(true) + '<main><div class="col"><h1>' + esc(p.h) + '</h1><p class="sub ink">Enter your number to sign up</p><form id="f" novalidate><div class="field" style="margin-bottom:16px"><label for="phone">Phone number</label><input class="inp" id="phone" name="phoneNumber" type="tel" autocomplete="tel" required></div>' + btn('Get started') +
+        '<p class="legal">By providing your phone number, you agree to receive account updates, notifications, and other text messages from Pomelo Care, including messages sent using automated technology, understanding that texts are not secure.</p><p class="legal">Message frequency may vary and standard message and data rates may apply. You can opt out of receiving texts at any time by replying \u201cSTOP.\u201d For help, reply \u201cHELP.\u201d See our <a class="u" href="https://www.pomelocare.com/terms-of-service" target="_blank" rel="noopener">Terms of Service</a> and <a class="u" href="https://www.pomelocare.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>.</p></form></div>' +
+        '<div class="h2">How Pomelo supports you</div><div class="cards3">' + p.cards.map(function (c) { return '<div class="card3"><div class="t"><span>' + esc(c[0]) + '</span>' + ICON[c[2]] + '</div><p>' + esc(c[1]) + '</p></div>'; }).join('') + '</div></main>' + footer(),
+        bind: function () {
+          var input = app.querySelector('#phone');
+          input.addEventListener('input', function () {
+            var d = input.value.replace(/\D/g, '').slice(0, 10);
+            input.value = d.length > 6 ? '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6) : d.length > 3 ? '(' + d.slice(0, 3) + ') ' + d.slice(3) : d;
+          });
+          app.querySelector('#f').addEventListener('submit', function (e) { e.preventDefault(); if (input.value.replace(/\D/g, '').length === 10) { state.phone = input.value; save(); go('/signup/otp'); } else input.focus(); });
+        } };
+    },
+    'otp': function () {
+      return { html: hdrLeft(true) + '<main><div class="col"><h1>Enter your code</h1><p class="sub">We sent a 6-digit code to ' + esc(state.phone || 'your phone') + '.</p><div class="field"><label for="code">Code</label><input class="inp" id="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></div>' + btn('Next') + '</div></main>' + footer() };
+    },
+    'family': function () {
+      return { html: hdrLeft(true) + '<main><div class="col"><div style="color:var(--ink);margin:16px 0 20px">' + ICON.hand + '</div><h1>We\u2019d love to support your partner or family member</h1><p class="sub ink" style="margin-bottom:24px">Have them sign up by sending them a link below.</p>' +
+        '<a class="btn outline" href="mailto:?subject=Join%20me%20on%20Pomelo&body=https%3A%2F%2Fapp.pomelocare.com%2Fsignup" style="text-decoration:none">' + ICON.mail + 'Email them a link</a><p class="sub ink" style="margin:64px 0 16px">Or scan this QR code with your phone to text them a link.</p><div class="qr"><canvas id="qr" width="166" height="166"></canvas></div></div></main>' + footer(),
+        bind: drawQr };
+    },
+    'unsupported-reason': function () {
+      return { html: hdrLeft(true) + '<main><div class="col"><img src="' + ASSET + 'exploring.png" alt="" width="160" height="155" style="display:block;margin:0 auto 24px"><h1>It sounds like Pomelo isn\u2019t the right fit at the moment.</h1><p class="sub ink">Check back regularly to see if our services have changed, or if your situation has changed!</p>' +
+        '<p class="sub ink" style="text-align:left;margin-bottom:8px;font-weight:500">Remember, Pomelo may be able to support you if:</p><ul class="bul"><li>You or your partner are pregnant or had a baby within the last year</li><li>You\'re pregnant or postpartum and interested in doula support</li><li>You\'re trying to conceive</li><li>You\'re experiencing perimenopause or menopause symptoms, or want support for midlife health concerns</li></ul></div></main>' + footer() };
+    },
+    'perimenopause/symptoms': function () {
+      var sel = state.symptoms || [];
+      return { html: hdrMid(MIDLIFE_PROGRESS.symptoms) + '<main><form class="col" id="f"><h1 class="solo">What are you looking to get out of Pomelo?</h1><div id="e"></div>' + optList(SYMPTOMS, sel, 'checkbox') + '<div class="mt32">' + btn('Next') + '</div></form>' + npp() + '</main>',
+        bind: function () { bindMulti('symptoms', SYMPTOMS, function () { go('/signup/perimenopause/top-symptom'); }); } };
+    },
+    'perimenopause/top-symptom': function () {
+      var sel = state.symptoms && state.symptoms.length ? state.symptoms : [SYMPTOMS[0]];
+      return { html: hdrMid(MIDLIFE_PROGRESS['top-symptom']) + '<main><div class="col"><h1>Which of these is your top priority?</h1><p class="sub">We\'ll use this to start your care plan. You and your provider will customize it together.</p>' + optList(sel, state.topSymptom ? [state.topSymptom] : [], 'radio') + '</div></main>',
+        bind: function () {
+          app.querySelectorAll('.opt').forEach(function (el) {
+            el.addEventListener('click', function (e) {
+              e.preventDefault(); state.topSymptom = sel[+el.getAttribute('data-i')]; save();
+              app.querySelectorAll('.opt').forEach(function (o) { o.classList.toggle('on', o === el); });
+              setTimeout(function () { go('/signup/perimenopause/rx-interests'); }, 150);
+            });
+          });
+        } };
+    },
+    'perimenopause/rx-interests': function () {
+      return { html: hdrMid(MIDLIFE_PROGRESS['rx-interests']) + '<main><form class="col" id="f"><h1>What treatments interest you?</h1><p class="sub">Select all that you\'re interested in discussing.</p><div id="e"></div>' + optList(RX, state.rx || [], 'checkbox') + '<div class="mt32">' + btn('Next') + '</div></form></main>',
+        bind: function () { bindMulti('rx', RX, function () { go('/signup/perimenopause/program-preview'); }); } };
+    },
+    'perimenopause/program-preview': function () {
+      var stars = ICON.star + ICON.star + ICON.star + ICON.star + ICON.star;
+      return { full: true, html: '<div class="hero">' + backBtn() + '<img src="' + ASSET + 'patient.jpg" alt="Smiling Pomelo patient"><div class="cap"><h1>Trusted by 2,000+ women</h1><span class="pill"><span style="display:inline-flex;gap:2px">' + stars + '</span>4.9 / 5 average rating *</span></div></div>' +
+        '<div class="quotes">' + [['\u201cCommunication has been stellar, I feel as though they are my personal team and that I\'m the only person in the world\u201d', 'Lauren S.**'], ['\u201cSuch a relief to talk to someone who gets it and listens to my symptoms and doesn\'t brush them off. I left feeling heard and with a solid game plan\u201d', 'Myra O.**'], ['\u201cI couldn\'t see a specialist for 9 months. I got in quickly with Pomelo and I\u2019m helping myself in 3 different ways, not just pharmaceuticals\u201d', 'Andrea M.**']].map(function (q) { return '<div class="quote"><p>' + esc(q[0]) + '</p><span>- ' + esc(q[1]) + '</span></div>'; }).join('') + '</div>' +
+        '<div class="sticky">' + btn('Next') + '</div><div class="foot2 fine"><p>* Based on Pomelo patient satisfaction survey responses collected in 2025.</p><p>** This is a real patient of Pomelo. Names have been changed.</p></div>',
+        bind: function () { app.querySelector('#next').addEventListener('click', function () { go('/signup/perimenopause/email-capture'); }); } };
+    },
+    'perimenopause/email-capture': function () {
+      return { html: hdrMid(MIDLIFE_PROGRESS['email-capture']) + '<main><form class="col" id="f" novalidate><img src="' + ASSET + 'midlife-women-walking.png" alt="" width="500" height="250" style="display:block;width:100%;height:auto;margin:16px 0 40px"><h1 style="margin-bottom:8px">Ready to get started?</h1><p class="sub">Most patients pay less than $25 per visit with in-network insurance!</p>' +
+        '<div class="field"><label for="email">Email</label><input class="inp" id="email" name="email" type="email" autocomplete="email" value="' + esc(state.email || '') + '"></div>' +
+        '<label class="chk' + (state.consent ? ' on' : '') + '" data-k="consent"><input type="checkbox" name="consent"' + (state.consent ? ' checked' : '') + '><span class="box">' + ICON.check + '</span><span>I agree to Pomelo Care\'s <a href="https://www.pomelocare.com/terms-of-service" target="_blank" rel="noopener">Terms of Service</a>, <a href="https://www.pomelocare.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>, and <a href="https://www.pomelocare.com/notice-of-privacy-practices" target="_blank" rel="noopener">Notice of Privacy Practices</a>.</span></label>' +
+        '<label class="chk' + (state.loop ? ' on' : '') + '" data-k="loop"><input type="checkbox" name="consentedToAdPlatformEmailSharing"' + (state.loop ? ' checked' : '') + '><span class="box">' + ICON.check + '</span><span>Yes, keep me in the loop**</span></label><div id="e"></div>' +
+        '<div class="mt32">' + btn('Next') + '</div><p class="fine mt24" style="text-align:left">** By checking this box, I allow Pomelo to email me about products, services, and health topics, and to share my email address with the ad and social media platforms it uses so I can be presented with content that\'s relevant to me, and for advertising and marketing purposes.</p></form></main>',
+        bind: function () {
+          app.querySelectorAll('.chk').forEach(function (el) {
+            el.addEventListener('click', function (e) { if (e.target.closest('a')) return; e.preventDefault(); var k = el.getAttribute('data-k'); state[k] = !state[k]; save(); el.classList.toggle('on', state[k]); });
+          });
+          app.querySelector('#f').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var email = app.querySelector('#email').value.trim();
+            var msg = !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ? 'Please enter a valid email address.' : !state.consent ? 'Please agree to the Terms of Service, Privacy Policy, and Notice of Privacy Practices.' : '';
+            app.querySelector('#e').innerHTML = msg ? '<div class="err" style="margin:0 0 8px">' + msg + '</div>' : '';
+            if (msg) return;
+            state.email = email; save(); go('/signup/perimenopause/check-coverage-state');
+          });
+        } };
+    },
+    'perimenopause/check-coverage-state': function () {
+      return { html: hdrLeft(false) + '<main><form class="col" id="f"><h1>Let\u2019s check if you\u2019re covered</h1><p class="sub">Pomelo is in-network with many major insurers. Start by telling us where you live.</p>' + selectField('state', 'State', STATES, state.state) + '<div id="e"></div>' +
+        '<div class="sponsor">Is your employer paying for Pomelo Care?<br><a href="https://app.pomelocare.com/sponsored" target="_blank" rel="noopener">Activate a sponsored membership</a></div>' + btn('Next') + '</form></main>',
+        bind: function () {
+          bindSelect('state', function (v) { state.state = v; state.insurer = null; save(); render(); });
+          app.querySelector('#f').addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (!state.state) { app.querySelector('#e').innerHTML = '<div class="err" style="margin:-16px 0 16px">Please select your state.</div>'; return; }
+            go('/signup/perimenopause/check-coverage-insurance');
+          });
+        } };
+    },
+    'perimenopause/check-coverage-insurance': function () {
+      if (!state.state) { go('/signup/perimenopause/check-coverage-state'); return null; }
+      var list = state.state === 'TX' ? TX_INSURERS : NATIONAL_INSURERS;
+      return { html: hdrLeft(true) + '<main><form class="col" id="f"><h1>Who\u2019s your insurance provider?</h1><p class="sub">We\'ll check if Pomelo is in-network with your plan.</p>' + selectField('insurer', 'Insurance provider', list, state.insurer) + '<div id="e"></div><div class="mt32" style="margin-top:8px">' + btn('Next') + '</div></form></main>',
+        bind: function () {
+          bindSelect('insurer', function (v) { state.insurer = v; save(); render(); });
+          var form = app.querySelector('#f');
+          form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            var box = app.querySelector('#e');
+            if (!state.insurer) { box.innerHTML = '<div class="err" style="margin:-16px 0 16px">Please select your insurance provider.</div>'; return; }
+            var picked = list.filter(function (o) { return o[0] === state.insurer; })[0];
+            if (state.insurer === 'other') { state.coverage = { covered: false, insurer: { name: 'your insurance provider' } }; save(); go('/signup/perimenopause/check-coverage-not-covered'); return; }
+            var b = app.querySelector('#next'); b.disabled = true; b.innerHTML = '<span class="spin" role="progressbar" aria-label="Checking coverage"></span>';
+            box.innerHTML = '';
+            try {
+              var res = await fetch('/api/b4fb2968/coverage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(Object.assign({ state: state.state, insurer: state.insurer, reason: 'perimenopause' }, devinIdentity())),
+              });
+              var data = await res.json().catch(function () { return {}; });
+              if (!res.ok || data.success === false) throw new Error(data.error || 'Coverage check failed');
+              state.coverage = { covered: !!data.covered, insurer: { name: (data.insurer && data.insurer.name) || picked[1] }, estimatedCostCents: data.estimatedCostCents };
+              save();
+              go(data.covered ? '/signup/perimenopause/check-coverage-covered' : '/signup/perimenopause/check-coverage-not-covered');
+            } catch (err) {
+              box.innerHTML = '<div class="alert" role="alert">' + ICON.warn + '<div><b>Something went wrong</b>We weren\u2019t able to check your coverage. Please try again.</div></div>';
+              b.disabled = false; b.textContent = 'Next';
+            }
+          });
+        } };
+    },
+    'perimenopause/check-coverage-covered': function () {
+      var c = state.coverage || { insurer: { name: 'Aetna' }, estimatedCostCents: 2500 };
+      var amt = '$' + Math.round((c.estimatedCostCents || 2500) / 100);
+      return { html: hdrLeft(false) + '<main><div class="col"><img src="' + ASSET + 'covered.png" alt="" width="200" height="190" style="display:block;margin:24px auto 32px;object-fit:contain"><h1 style="margin-bottom:24px">Good news!</h1><p class="sub ink" style="font-size:17px;line-height:30px">Pomelo visits are in-network with ' + esc(c.insurer.name) + '. If you\u2019re on an HMO plan, we\u2019ll handle the referral process for you.</p>' +
+        '<div class="cost"><div><b>Your cost*</b><small>Most ' + esc(c.insurer.name) + ' patients pay this for a standard visit</small></div><div class="amt">' + amt + '</div></div>' + btn('Next') +
+        '<p class="fine mt32">*The cost provided is an estimate. You can confirm your final cost prior to your visit</p><p class="note">Is your employer paying for Pomelo Care? <a class="u" href="https://app.pomelocare.com/sponsored" target="_blank" rel="noopener">Activate a sponsored membership</a></p></div></main>',
+        bind: function () { app.querySelector('#next').addEventListener('click', function () { go('/signup/perimenopause/create-account'); }); } };
+    },
+    'perimenopause/check-coverage-not-covered': function () {
+      var c = state.coverage || { insurer: { name: 'your insurance provider' } };
+      return { html: hdrLeft(true) + '<main><div class="col"><img src="' + ASSET + 'exploring.png" alt="" width="160" height="155" style="display:block;margin:16px auto 24px"><h1>We\u2019re not in-network with ' + esc(c.insurer.name) + ' yet</h1><p class="sub">Join the waitlist and we\u2019ll let you know as soon as Pomelo is covered by your plan.</p>' + btn('Join the waitlist') +
+        '<p class="note mt24">Is your employer paying for Pomelo Care? <a class="u" href="https://app.pomelocare.com/sponsored" target="_blank" rel="noopener">Activate a sponsored membership</a></p></div></main>',
+        bind: function () { app.querySelector('#next').addEventListener('click', function () { go('/signup/perimenopause/waitlist-confirmation'); }); } };
+    },
+    'perimenopause/waitlist-confirmation': function () {
+      return { html: hdrLeft(false) + '<main><div class="col"><img src="' + ASSET + 'covered.png" alt="" width="200" height="190" style="display:block;margin:24px auto 32px;object-fit:contain"><h1>You\u2019re on the list!</h1><p class="sub">We\u2019ll email ' + esc(state.email || 'you') + ' as soon as Pomelo is in-network with your plan.</p></div></main>' };
+    },
+    'perimenopause/create-account': function () {
+      return { html: hdrLeft(true) + '<main><form class="col" id="f" novalidate><h1>Create your account</h1><p class="sub">Tell us a bit about yourself so we can match you with your care team.</p>' +
+        '<div class="field"><label for="fn">Legal first name</label><input class="inp" id="fn" autocomplete="given-name"></div><div class="field"><label for="ln">Legal last name</label><input class="inp" id="ln" autocomplete="family-name"></div>' +
+        '<div class="field"><label for="dob">Date of birth</label><input class="inp" id="dob" placeholder="MM/DD/YYYY" inputmode="numeric"></div><div class="field"><label for="ph">Phone number</label><input class="inp" id="ph" type="tel" autocomplete="tel"></div>' + btn('Create account') + '</form></main>',
+        bind: function () { app.querySelector('#f').addEventListener('submit', function (e) { e.preventDefault(); go('/signup/perimenopause/coverage-verified'); }); } };
+    },
+    'perimenopause/coverage-verified': function () {
+      return { html: hdrLeft(false) + '<main><div class="col"><img src="' + ASSET + 'covered.png" alt="" width="200" height="190" style="display:block;margin:24px auto 32px;object-fit:contain"><h1>You\u2019re all set!</h1><p class="sub">Welcome to Pomelo. Your care team will reach out shortly to schedule your first visit.</p></div></main>' };
+    },
+  };
+
+  function bindMulti(key, items, onNext) {
+    state[key] = state[key] || [];
+    app.querySelectorAll('.opt').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        var label = items[+el.getAttribute('data-i')];
+        var i = state[key].indexOf(label);
+        if (i === -1) state[key].push(label); else state[key].splice(i, 1);
+        state[key] = items.filter(function (it) { return state[key].indexOf(it) !== -1; });
+        save(); el.classList.toggle('on', i === -1);
+        if (state[key].length) app.querySelector('#e').innerHTML = '';
+      });
+    });
+    app.querySelector('#f').addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!state[key].length) { app.querySelector('#e').innerHTML = '<div class="err" style="margin:-16px 0 16px">Please select at least one option.</div>'; return; }
+      onNext();
+    });
+  }
+
+  function drawQr() {
+    var c = app.querySelector('#qr'); if (!c) return;
+    var ctx = c.getContext('2d'); var n = 29; var s = 150 / n; var seed = 7;
+    function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 166, 166); ctx.fillStyle = '#000';
+    function finder(x, y) { ctx.fillRect(8 + x * s, 8 + y * s, 7 * s, 7 * s); ctx.fillStyle = '#fff'; ctx.fillRect(8 + (x + 1) * s, 8 + (y + 1) * s, 5 * s, 5 * s); ctx.fillStyle = '#000'; ctx.fillRect(8 + (x + 2) * s, 8 + (y + 2) * s, 3 * s, 3 * s); }
+    for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) {
+      var inF = (x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9);
+      if (!inF && rnd() > 0.52) ctx.fillRect(8 + x * s, 8 + y * s, Math.ceil(s), Math.ceil(s));
+    }
+    finder(0, 0); finder(n - 7, 0); finder(0, n - 7);
+  }
+
+  function render() {
+    var path = (location.hash || '').replace(/^#\/?/, '').replace(/^signup\/?/, '') || 'reason-for-care';
+    var view = VIEWS[path];
+    if (!view) { go('/signup/reason-for-care'); return; }
+    var v = view();
+    if (!v) return;
+    if (path !== 'reason-for-care') document.title = 'Pomelo Care | Virtual Care for Women and Children';
+    app.innerHTML = '<div class="page' + (v.full ? ' full' : '') + '">' + v.html + '</div>';
+    app.querySelectorAll('[data-back]').forEach(function (b) { b.addEventListener('click', back); });
+    if (v.bind) v.bind();
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', render);
+  if (!location.hash) history.replaceState(null, '', '#/signup/reason-for-care');
+  render();
+
+  if (!localStorage.getItem('pomeloDemoCookies')) {
+    var ck = document.createElement('div');
+    ck.className = 'cookie'; ck.setAttribute('role', 'dialog'); ck.setAttribute('aria-label', 'Cookie Consent Banner');
+    ck.innerHTML = '<p>We use cookies and similar technologies for analytics and advertising. Third-party data sharing excludes health information. By using our site, you agree to our <a href="https://www.pomelocare.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a></p><div class="bb"><button class="k1" type="button">I Understand</button><button class="k2" type="button">Manage Preferences</button></div>';
+    document.body.appendChild(ck);
+    ck.querySelectorAll('button').forEach(function (b) { b.addEventListener('click', function () { localStorage.setItem('pomeloDemoCookies', '1'); ck.remove(); }); });
+  }
+})();
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>
