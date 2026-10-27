@@ -6323,6 +6323,17 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A EUROAPOTHECA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Euroapotheca product.',
   },
+  'c7b0b57a': {
+    slug: 'c7b0b57a',
+    company: 'Toyota',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: {
+      file: 'c7b0b57a.html',
+      title: 'トヨタ トヨタのコネクティッドサービス | プラン詳細 | トヨタ自動車WEBサイト',
+    },
+    disclaimer: 'NOT ACTUALLY A TOYOTA SITE — internal demo only, not affiliated with, endorsed by, or a real Toyota product.',
+  },
 };
 
 function getOncallSkin(slug) {
