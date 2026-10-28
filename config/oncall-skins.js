@@ -4007,16 +4007,17 @@ const ONCALL_SKINS = {
     devinSession: {
       promptAppendix: [
         '*Triage notes (OpenSea checkout):*',
-        '- The web tier (`app/services/oncall-verticals/nftcheckout.js`, page `app/public/verticals/6ec8f942.html`) builds Seaport orders and fulfillment components and surfaces the preflight result; multi-item carts aggregate the creator-earnings consideration items of every order into one fulfillment, single-item buys do not.',
-        '- The revert comes from the Seaport deployment the preflight simulates against: the reference build of https://github.com/COG-GTM/seaport `main` (`reference/`). Check recent commits there that touch fulfillment aggregation.',
-        '- Reproduce with Foundry in COG-GTM/seaport: a `fulfillAvailableAdvancedOrders` test with 2+ orders whose creator-fee consideration items are aggregated into one fulfillment component group (`FOUNDRY_PROFILE=reference forge build`, then `FOUNDRY_PROFILE=reference MOAT_PROFILE=reference forge test --match-contract <YourTest>`). Single-order fulfillment should keep passing.',
-        '- Open the fix PR against COG-GTM/seaport `main` (never ProjectOpenSea) with the failing-then-passing Foundry regression test, and reply in this thread with root cause + PR link.',
+        '- The web tier (`app/services/oncall-verticals/nftcheckout.js`, page `app/public/verticals/6ec8f942.html`) builds Seaport orders and fulfillment components; multi-item carts aggregate the creator-earnings consideration items of every order into one fulfillment, single-item buys do not.',
+        '- Before the wallet prompt the bundle is preflighted in-process by `app/services/oncall-verticals/nftcheckout-seaport.js`, a port of the Seaport 1.6 reference fulfillment path (aggregation + consideration accounting). The 422 comes from that preflight, not from the chain (`broadcast: false`), so the fix belongs in COG-GTM/event-driven-devin.',
+        '- Add a failing-then-passing Jest regression in `tests/nftcheckout-oncall-fulfillment.test.js` (2- and 3-item sweeps prepare, single-item still prepares, a genuinely underpaid order still reverts with ConsiderationNotMet); run `npx jest tests/nftcheckout-oncall-fulfillment.test.js`.',
+        '- Browser before/after is required: run the app isolated on `main` (`env -i PATH="$PATH" HOME="$HOME" NODE_ENV=development PORT=3100 DD_TRACE_ENABLED=false node app/server.js`) and on the fix branch (same, `PORT=3101`), open `/oncall/c/6ec8f942`, click *Buy floor* (3 items), then *Confirm purchase*: main shows "This transaction would fail" (ConsiderationNotMet, 422), the fix branch shows the purchase prepared. Record both with the testing agent.',
+        '- Open the fix PR against COG-GTM/event-driven-devin `main` with the before/after screenshots, then reply in this thread with root cause, PR link, and the browser recording + before/after screenshots attached.',
       ].join('\n'),
     },
     alertCard: {
       title: 'Error rate — sweep checkout: Seaport ConsiderationNotMet on POST /api/oncall/nftcheckout/fulfillment',
       service: 'os-fulfillment-api',
-      release: 'os-fulfillment-api@2026.10.26 (Seaport ref build: COG-GTM/seaport@main)',
+      release: 'os-fulfillment-api@2026.10.26 (Seaport 1.6 in-process preflight)',
       team: 'marketplace-checkout-oncall',
     },
     theme: {

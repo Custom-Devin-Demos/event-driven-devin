@@ -487,7 +487,7 @@ const ALERT_SCENARIOS = {
     threshold: '> 1%',
     baseline: '< 0.2% (7-day)',
     release: 'os-fulfillment-api@2026.10.26',
-    symptom: 'Multi-item checkouts and "Buy floor" sweeps on collections with creator earnings fail at "Preparing transaction": the fulfillAvailableAdvancedOrders preflight against the Seaport testnet deployment reverts with ConsiderationNotMet (0xa5f54208). Single-item buys of the same NFTs still succeed. Onset follows the latest Seaport deploy from COG-GTM/seaport main.',
+    symptom: 'Multi-item checkouts and "Buy floor" sweeps on collections with creator earnings fail at "Preparing transaction": the pre-sign fulfillAvailableAdvancedOrders preflight reverts with ConsiderationNotMet (0xa5f54208). Single-item buys of the same NFTs still succeed. Onset follows the os-fulfillment-api@2026.10.26 release.',
     impact: 'Collectors cannot sweep floors or buy more than one NFT at a time; every multi-item cart fails before the wallet prompt and sellers see abandoned purchases.',
     alertOnStatus: [422],
     unlisted: true,
