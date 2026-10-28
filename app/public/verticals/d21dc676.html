@@ -633,7 +633,8 @@
       : /\b(package|import|public|private|final|class|implements|return|new|if|switch|case|default|var)\b/g;
     var html = esc(code);
     if (lang === 'java' && /^\s*(\/\/|@)/.test(code)) return '<span class="cm">' + html + '</span>';
-    return html.replace(/(&quot;[^&]*&quot;|'[^']*')/g, '<span class="str">$1</span>').replace(kw, '<span class="kw">$1</span>');
+    var token = new RegExp('(&quot;.*?&quot;|\'[^\']*\')|' + kw.source, 'g');
+    return html.replace(token, function (m, str) { return '<span class="' + (str ? 'str' : 'kw') + '">' + m + '</span>'; });
   }
   function renderCode(el, lines, lang, hlPattern) {
     var on = false;

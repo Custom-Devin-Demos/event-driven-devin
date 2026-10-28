@@ -64,6 +64,61 @@ const COPYBOOKS = {
       { name: 'LB-CATCH-WT-LBS', pic: 'S9(7)V9(3)', usage: 'COMP-3', parityClass: 'weight' },
     ],
   },
+  LBPOST: {
+    name: 'LBPOST',
+    description: 'Lot position after the day\'s receipts, shipments, transfers and spoilage are posted.',
+    table: 'inventory.lot_position',
+    fields: [
+      { name: 'LP-OPCO-NBR', pic: 'X(3)' },
+      { name: 'LP-ITEM-NBR', pic: '9(7)' },
+      { name: 'LP-LOT-NBR', pic: 'X(10)' },
+      { name: 'LP-ON-HAND-QTY', pic: 'S9(7)', usage: 'COMP-3' },
+      { name: 'LP-SPOIL-QTY', pic: 'S9(7)', usage: 'COMP-3' },
+      { name: 'LP-SELL-BY-DT', pic: '9(8)' },
+      { name: 'LP-RESID-COST', pic: 'S9(9)V99', usage: 'COMP-3' },
+    ],
+  },
+  LOTCLS: {
+    name: 'LOTCLS',
+    description: 'Closed-lot record with the residual cost carried to the item\'s next open lot.',
+    table: 'inventory.lot_close',
+    fields: [
+      { name: 'LC-OPCO-NBR', pic: 'X(3)' },
+      { name: 'LC-ITEM-NBR', pic: '9(7)' },
+      { name: 'LC-LOT-NBR', pic: 'X(10)' },
+      { name: 'LC-LOT-STATUS-CD', pic: 'X(1)' },
+      { name: 'LC-CLOSE-DT', pic: '9(8)' },
+      { name: 'LC-CLOSE-REASON-CD', pic: 'X(2)' },
+      { name: 'LC-CARRY-COST-AMT', pic: 'S9(9)V99', usage: 'COMP-3' },
+    ],
+  },
+  LGRCORR: {
+    name: 'LGRCORR',
+    description: 'Correcting ledger entry posted so warehouses open the next business day on a clean book.',
+    table: 'ledger.ledger_correction',
+    fields: [
+      { name: 'LG-OPCO-NBR', pic: 'X(3)' },
+      { name: 'LG-GL-ACCT-NBR', pic: 'X(10)' },
+      { name: 'LG-ITEM-NBR', pic: '9(7)' },
+      { name: 'LG-BOOK-VALUE-AMT', pic: 'S9(11)V99', usage: 'COMP-3' },
+      { name: 'LG-VARIANCE-AMT', pic: 'S9(9)V99', usage: 'COMP-3' },
+      { name: 'LG-POST-DT', pic: '9(8)' },
+      { name: 'LG-NEXT-BUS-DT', pic: '9(8)' },
+    ],
+  },
+  RPTVAL: {
+    name: 'RPTVAL',
+    description: 'Inventory valuation report detail line, one per item per OpCo.',
+    table: 's3://inv-close-reports/valuation/',
+    fields: [
+      { name: 'RV-OPCO-NBR', pic: 'X(3)' },
+      { name: 'RV-ITEM-NBR', pic: '9(7)' },
+      { name: 'RV-ITEM-DESC', pic: 'X(30)' },
+      { name: 'RV-ON-HAND-QTY', pic: 'S9(7)', usage: 'COMP-3' },
+      { name: 'RV-EXT-VALUE-AMT', pic: 'S9(11)V99', usage: 'COMP-3' },
+      { name: 'RV-RPT-DT', pic: '9(8)' },
+    ],
+  },
 };
 
 /**
@@ -165,7 +220,7 @@ const JOBS = [
     javaClass: 'ReceiptDepletionJob',
     stepState: 'PostReceiptsAndDepletions',
     modernNote: 'Partitioned by OpCo so the 70+ US operating companies post in parallel.',
-    copybook: 'LBBAL',
+    copybook: 'LBPOST',
     agent: 'java-translator-02',
     cobolExcerpt: [
       '       3100-APPLY-TRANSACTION.',
@@ -205,7 +260,7 @@ const JOBS = [
     javaClass: 'LotCloseJob',
     stepState: 'CloseUsedLots',
     modernNote: 'Lot close audit table still to be created in the modernized schema.',
-    copybook: 'LBBAL',
+    copybook: 'LOTCLS',
     agent: 'cobol-analyst-01',
     cobolExcerpt: [
       '       4000-CLOSE-LOT.',
@@ -240,7 +295,7 @@ const JOBS = [
     javaClass: 'LedgerCorrectionJob',
     stepState: 'CorrectLedgerForNextDay',
     modernNote: 'Writes correcting entries in a single Aurora transaction per OpCo.',
-    copybook: 'LBBAL',
+    copybook: 'LGRCORR',
     agent: 'orchestrator',
     cobolExcerpt: [
       '       5000-POST-CORRECTION.',
@@ -274,7 +329,7 @@ const JOBS = [
     javaClass: 'ReportDistributionJob',
     stepState: 'PublishReportsToS3',
     modernNote: 'Reports land in S3; small reports are emailed as pre-signed URLs. PCX is retired.',
-    copybook: 'LBBAL',
+    copybook: 'RPTVAL',
     agent: 'stepfn-composer-01',
     cobolExcerpt: [
       '       6000-WRITE-REPORT.',
