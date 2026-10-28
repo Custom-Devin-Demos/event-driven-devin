@@ -88,6 +88,16 @@
  */
 
 const ONCALL_SKINS = {
+  '2b30ce42': {
+    slug: '2b30ce42',
+    company: 'CIBC',
+    vertical: 'banking',
+    page: {
+      file: '2b30ce42.html',
+      title: 'CIBC U.S.: Commercial Banking, Personal Banking, Wealth Management',
+    },
+    disclaimer: 'NOT ACTUALLY A CIBC SITE — internal demo only, not affiliated with, endorsed by, or a real CIBC product.',
+  },
   '8df370c5': {
     slug: '8df370c5',
     company: 'Intake Factory',
@@ -6387,6 +6397,25 @@ const ONCALL_SKINS = {
     alertDestination: 'teams',
     disclaimer: 'NOT ACTUALLY A BLUE OWL SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Blue Owl product.',
   },
+  '50a6f684': {
+    slug: '50a6f684',
+    company: 'Euroapotheca',
+    vertical: 'insurance',
+    page: { file: '50a6f684.html', title: 'ATORIS, 20mg, plėvele dengtos tabletės, N30 | Eurovaistine.lt' },
+    paths: ['/euroapotheca', '/eurovaistine'],
+    oncallOnly: true,
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
+    alertCard: {
+      title: '5xx rate \u2014 e-prescription order submissions',
+      release: 'eshop-rx@2026.10.4',
+      team: 'eshop-oncall',
+      symptom: 'E-prescription order submissions hang ~8s and then fail with 504 Gateway Timeout. Upstream latency is elevated.',
+      impact: 'Customers ordering prescription medicines online cannot complete the order; every submission times out after a long hang.',
+    },
+    disclaimer: 'NOT ACTUALLY A EUROAPOTHECA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Euroapotheca product.',
+  },
   'a6f389b5': {
     slug: 'a6f389b5',
     company: 'Toyota',
@@ -6631,6 +6660,23 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Samsara Support',
     disclaimer: 'NOT ACTUALLY A SAMSARA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Samsara product.',
+  },
+
+  '62c39cd8': {
+    slug: '62c39cd8',
+    company: 'NAB',
+    brandMark: 'N',
+    vertical: 'banking',
+    page: { file: '62c39cd8.html', title: 'Pay someone | NAB Internet Banking' },
+    theme: {
+      '--accent': '#C20000',
+      '--ink': '#000000',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'NAB Help and support',
+    disclaimer: 'NOT ACTUALLY A NAB SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real National Australia Bank product.',
   },
 };
 
