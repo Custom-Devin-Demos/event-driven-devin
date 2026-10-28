@@ -6644,6 +6644,7 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     oncallOnly: true,
     page: { file: 'b0f6f0ce.html', title: 'Pay someone | Kiwibank internet banking' },
+    alertDestination: 'slack',
     theme: {
       '--accent': '#19E480',
       '--ink': '#000000',
