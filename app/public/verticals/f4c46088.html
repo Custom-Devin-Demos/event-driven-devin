@@ -147,7 +147,7 @@
       <p class="lead">Pay one of your saved payees, or move money between your own Bank of Ireland accounts. SEPA payments to Irish accounts usually arrive within seconds.</p>
       <div class="grid">
         <form id="transferForm" novalidate aria-labelledby="formHead">
-          <ol class="steps" aria-label="Steps"><li aria-current="step">1. Payment details</li><li>2. Confirm</li><li>3. Done</li></ol>
+          <ol class="steps" id="steps" aria-label="Steps"><li aria-current="step">1. Payment details</li><li>2. Done</li></ol>
           <h2 id="formHead">Payment details</h2>
           <div class="field">
             <label for="fromAccount">Pay from</label>
@@ -317,8 +317,13 @@
       fromAccount.addEventListener('change', render);
       toAccount.addEventListener('change', render);
       amountInput.addEventListener('input', render);
+      const stepItems = Array.from(document.querySelectorAll('#steps li'));
+      const setStep = (n) => stepItems.forEach((li, i) => {
+        if (i === n) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+      });
       form.addEventListener('reset', () => {
         setTimeout(() => {
+          setStep(0);
           result.className = 'result-box';
           result.textContent = '';
           status.textContent = S.statusIdle;
@@ -349,6 +354,7 @@
         status.textContent = S.statusSending;
         result.className = 'result-box';
         result.textContent = '';
+        setStep(0);
         const started = performance.now();
         const tick = () => { if (timerValue) timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
         if (timer) { timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100); }
@@ -392,6 +398,7 @@
           result.className = 'result-box success';
           result.textContent = S.success(at, money.format(paid), toName, fromName, money.format(Math.max(debited - paid, 0)), data.receipt.receiptId);
           status.textContent = S.statusDone;
+          setStep(1);
           stopTimer(true);
         } catch (_error) {
           stopTimer(true);
