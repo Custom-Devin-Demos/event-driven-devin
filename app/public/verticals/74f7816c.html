@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Freestyle | Stitch Fix</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1f1f1f;
+      --muted: #6b6b6b;
+      --line: #e3e1dc;
+      --chrome: #2e2e2e;
+      --teal: #2f6f6a;
+      --mint: #3ab89c;
+      --red: #d6372b;
+      --paper: #f6f4f0;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: var(--ink); background: #fff; }
+    button { font: inherit; cursor: pointer; }
+    .chrome { background: var(--chrome); color: #fff; height: 56px; display: flex; align-items: center; padding: 0 20px; gap: 24px; position: sticky; top: 0; z-index: 20; }
+    .logo { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid #cfcfcf; display: grid; place-items: center; }
+    .logo svg { width: 22px; height: 22px; }
+    .wordmark { font-size: 15px; letter-spacing: 4px; text-transform: uppercase; }
+    .chrome nav { margin-left: auto; display: flex; gap: 22px; font-size: 14px; }
+    .chrome nav a { color: #e9e9e9; text-decoration: none; padding-bottom: 3px; }
+    .chrome nav a.active { color: #fff; border-bottom: 2px solid #fff; }
+    .bag-button { background: none; border: 0; color: #fff; position: relative; padding: 4px; }
+    .bag-button svg { width: 22px; height: 22px; display: block; }
+    .bag-count { position: absolute; top: -4px; right: -8px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--mint); color: #fff; font-size: 11px; font-weight: 700; display: none; place-items: center; padding: 0 4px; }
+    .bag-count.show { display: grid; }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--mint); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+    .fix-banner { border-bottom: 1px solid var(--line); padding: 11px 20px; font-size: 13px; display: flex; gap: 10px; align-items: center; }
+    .fix-banner span:last-child { margin-left: auto; }
+    .subnav { display: flex; gap: 26px; padding: 14px 20px 0; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--muted); overflow-x: auto; }
+    .subnav a { color: inherit; text-decoration: none; padding-bottom: 12px; white-space: nowrap; }
+    .subnav a.active { color: var(--teal); border-bottom: 2px solid var(--teal); }
+    main { max-width: 1080px; margin: 0 auto; padding: 22px 20px 80px; }
+    h1 { font-weight: 400; font-size: 28px; margin: 6px 0 4px; }
+    .lede { color: var(--muted); margin: 0 0 22px; font-size: 14px; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; font-size: 17px; margin: 0 0 14px; }
+    .pills { display: flex; gap: 10px; margin-bottom: 18px; }
+    .pill { border: 1px solid #9a9a9a; background: #fff; border-radius: 20px; padding: 7px 18px; font-size: 13px; }
+    .pill.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+    .looks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 22px; }
+    .look { border: 1px solid var(--line); background: #fff; display: flex; flex-direction: column; }
+    .look[hidden] { display: none; }
+    .flatlay { background: var(--paper); aspect-ratio: 4 / 3; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; padding: 14px; gap: 6px; }
+    .flatlay svg { width: 100%; height: 100%; }
+    .look-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .look-title { display: flex; justify-content: space-between; align-items: baseline; }
+    .look-title strong { font-size: 16px; font-weight: 500; }
+    .look-title span { color: var(--muted); font-size: 13px; }
+    .look-note { color: var(--muted); font-size: 13px; margin: 0; }
+    .items { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+    .items li { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .thumb { width: 44px; height: 44px; background: var(--paper); padding: 4px; }
+    .brand { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+    .size { color: var(--muted); }
+    .low { color: var(--red); font-size: 11px; font-weight: 700; display: block; }
+    .ship { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; }
+    .btn { height: 42px; border: 1px solid var(--red); background: #fff; color: var(--red); font-size: 14px; }
+    .btn.solid { background: var(--red); color: #fff; }
+    .btn:disabled { opacity: .55; cursor: default; }
+    .btn.added { border-color: var(--teal); color: var(--teal); }
+    .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 30; }
+    .scrim.open { opacity: 1; pointer-events: auto; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100%); background: #fff; z-index: 40; transform: translateX(100%); transition: transform .25s; display: flex; flex-direction: column; }
+    .drawer.open { transform: none; }
+    .drawer header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); font-size: 18px; }
+    .drawer header button { background: none; border: 0; font-size: 22px; line-height: 1; }
+    .drawer-body { padding: 8px 20px; overflow-y: auto; flex: 1; }
+    .drawer-body .items li { grid-template-columns: 52px 1fr auto; }
+    .drawer-body .thumb { width: 52px; height: 52px; }
+    .hold { font-size: 11px; color: var(--teal); }
+    .empty { color: var(--muted); text-align: center; padding: 50px 0; font-size: 14px; }
+    .summary { border-top: 1px solid var(--line); padding: 16px 20px 22px; font-size: 14px; display: grid; gap: 8px; }
+    .summary div { display: flex; justify-content: space-between; }
+    .summary .total { font-weight: 700; font-size: 16px; }
+    .summary .btn { width: 100%; margin-top: 6px; }
+    .alert { display: none; border: 1px solid var(--red); background: #fdf0ef; color: #8a1c13; padding: 12px 14px; font-size: 13px; margin: 12px 0 4px; }
+    .alert.show { display: block; }
+    .alert strong { display: block; margin-bottom: 4px; }
+    .alert .ref { color: var(--muted); font-size: 11px; margin-top: 6px; }
+    .success { display: none; text-align: center; padding: 40px 10px; }
+    .success.show { display: block; }
+    .success h2 { font-weight: 400; margin: 10px 0 6px; }
+    .success p { color: var(--muted); font-size: 14px; margin: 4px 0; }
+    .check { width: 54px; height: 54px; border-radius: 50%; background: var(--mint); color: #fff; display: inline-grid; place-items: center; font-size: 28px; }
+    @media (max-width: 640px) {
+      .wordmark { display: none; }
+      .chrome { gap: 14px; }
+      .chrome nav { gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="chrome">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#e6e6e6" stroke-width="1.2"><path d="M3 3l18 18M21 3L3 21M12 2v20M2 12h20M5 5l14 0M5 19h14"/></svg>
+    </div>
+    <span class="wordmark">Stitch Fix</span>
+    <nav aria-label="Primary"><a href="#">Home</a><a href="#">Fix</a><a href="#" class="active">Freestyle</a></nav>
+    <button class="bag-button" id="open-bag" aria-label="Open bag">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 8h14l-1 13H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+      <span class="bag-count" id="bag-count">0</span>
+    </button>
+    <div class="avatar" id="avatar">V</div>
+  </header>
+  <div class="fix-banner">
+    <span aria-hidden="true">&#128230;</span>
+    <span>Your Fix is estimated to arrive: November 9</span>
+    <span>&rarr;</span>
+  </div>
+  <div class="subnav"><a href="#" class="active" id="looks-tab">Vanessa's Looks</a><a href="#">Categories</a><a href="#">Buy it again</a><a href="#">Saved</a></div>
+
+  <main>
+    <h1 id="welcome">Welcome back</h1>
+    <p class="lede">Your Stylist picked these outfits for your style and your fit. Buy the whole look, or just what you love.</p>
+    <div class="section-head"><span>Shop your looks</span><span>&rsaquo;</span></div>
+    <div class="pills" role="tablist">
+      <button class="pill active" data-rail="trending" role="tab">Trending for you</button>
+      <button class="pill" data-rail="complete" role="tab">Complete your looks</button>
+    </div>
+    <div class="looks" id="looks"></div>
+  </main>
+
+  <div class="scrim" id="scrim"></div>
+  <aside class="drawer" id="drawer" aria-label="Your bag">
+    <header><span>Your bag</span><button id="close-bag" aria-label="Close bag">&times;</button></header>
+    <div class="drawer-body">
+      <div class="alert" id="checkout-error" role="alert"></div>
+      <div id="bag-lines"></div>
+      <div class="success" id="success">
+        <div class="check">&#10003;</div>
+        <h2>Order placed</h2>
+        <p id="success-order"></p>
+        <p id="success-arrives"></p>
+      </div>
+    </div>
+    <div class="summary" id="summary">
+      <div><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+      <div><span>Shipping</span><span>Free</span></div>
+      <div><span>Styling fee credit</span><span>Applied</span></div>
+      <div class="total"><span>Total</span><span id="total">$0.00</span></div>
+      <button class="btn solid" id="checkout" disabled>Checkout</button>
+    </div>
+  </aside>
+
+  <script>
+    (function () {
+      var slug = '74f7816c';
+      var fallbackUserId = '';
+      var fallbackOrgId = 'org_69IXJFLrljx8zSAw';
+      var cartId = null;
+      var lines = [];
+      var looksById = {};
+      var activeRail = 'trending';
+
+      var ART = {
+        hoodie: '<path d="M30 22l20-8 20 8 16 18-10 10-8-8v46H32V42l-8 8-10-10z" fill="#1f5a57"/><path d="M42 16q8 14 16 0" fill="none" stroke="#164340" stroke-width="3"/><path d="M50 30v58" stroke="#164340" stroke-width="2"/>',
+        tee: '<path d="M30 20l14-4h12l14 4 16 14-10 10-8-6v46H32V38l-8 6-10-10z" fill="#f2a98c"/><path d="M32 46h36M32 58h36" stroke="#f6d1a4" stroke-width="7"/><path d="M32 70h36" stroke="#8ec7c2" stroke-width="7"/>',
+        jogger: '<path d="M32 12h36l4 76H54L50 40l-4 48H28z" fill="#e8dcc8"/><path d="M32 18h36" stroke="#d3c4ab" stroke-width="5"/>',
+        backpack: '<rect x="28" y="26" width="44" height="60" rx="14" fill="#3d4a6b"/><path d="M40 26q10-18 20 0" fill="none" stroke="#2c3550" stroke-width="4"/><rect x="36" y="54" width="28" height="18" rx="5" fill="#46557a"/>',
+        sneaker: '<path d="M14 62q14-4 22-18l14 6q10 8 24 8 14 2 14 12v6H14z" fill="#fafafa" stroke="#cfcfcf" stroke-width="2"/><path d="M14 72h76" stroke="#d9d9d9" stroke-width="4"/>',
+        sweater: '<path d="M30 20l20-4 20 4 18 20-10 8-8-8v48H30V40l-8 8-10-8z" fill="#c9653a"/><path d="M30 44h40M30 56h40M30 68h40M30 80h40" stroke="#2f3a4a" stroke-width="5"/>',
+        pants: '<path d="M32 12h36l4 76H54L50 36l-4 52H28z" fill="#222"/>',
+        flats: '<ellipse cx="34" cy="56" rx="14" ry="26" fill="#c99a5e"/><ellipse cx="66" cy="56" rx="14" ry="26" fill="#c99a5e"/><ellipse cx="34" cy="62" rx="9" ry="14" fill="#b07f45"/><ellipse cx="66" cy="62" rx="9" ry="14" fill="#b07f45"/>',
+        earrings: '<circle cx="36" cy="22" r="4" fill="#bfa36a"/><circle cx="64" cy="22" r="4" fill="#bfa36a"/><path d="M36 26v10M64 26v10" stroke="#bfa36a" stroke-width="2"/><ellipse cx="36" cy="54" rx="10" ry="18" fill="#9fd8c8"/><ellipse cx="64" cy="54" rx="10" ry="18" fill="#9fd8c8"/>',
+        cardigan: '<path d="M30 22l20-6 20 6 16 18-10 8-6-6v40H30V42l-6 6-10-8z" fill="#b8b8bd"/><path d="M50 18v66" stroke="#8d8d93" stroke-width="3"/><circle cx="54" cy="40" r="2" fill="#666"/><circle cx="54" cy="54" r="2" fill="#666"/>',
+        jeans: '<path d="M32 12h36l4 76H54L50 38l-4 50H28z" fill="#9cb8d8"/><path d="M32 18h36" stroke="#7d9cc0" stroke-width="5"/>',
+        bag: '<rect x="22" y="40" width="56" height="40" rx="6" fill="#c08a55"/><path d="M28 40q22-40 44 0" fill="none" stroke="#9d6c3c" stroke-width="3"/><path d="M22 52h56" stroke="#9d6c3c" stroke-width="2"/>'
+      };
+
+      function art(kind) {
+        return '<svg viewBox="0 0 100 100" aria-hidden="true">' + (ART[kind] || '') + '</svg>';
+      }
+      function money(cents) { return '$' + (cents / 100).toFixed(2); }
+      function el(id) { return document.getElementById(id); }
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function renderLooks(data) {
+        el('welcome').textContent = 'Welcome, ' + data.client.firstName;
+        el('looks').innerHTML = data.looks.map(function (look) {
+          looksById[look.id] = look;
+          var total = look.items.reduce(function (sum, item) { return sum + item.priceCents; }, 0);
+          return '<article class="look" data-look="' + look.id + '" data-rail="' + look.rail + '">' +
+            '<div class="flatlay">' + look.items.map(function (item) { return art(item.art); }).join('') + '</div>' +
+            '<div class="look-body">' +
+              '<div class="look-title"><strong>' + escapeHtml(look.name) + '</strong><span>' + look.items.length + ' items &middot; ' + money(total) + '</span></div>' +
+              '<p class="look-note">' + escapeHtml(look.note) + '</p>' +
+              '<ul class="items">' + look.items.map(function (item) {
+                return '<li><div class="thumb">' + art(item.art) + '</div><div><div class="brand">' + escapeHtml(item.brand) + '</div>' +
+                  escapeHtml(item.name) + ' <span class="size">&middot; ' + escapeHtml(item.size) + '</span>' +
+                  (item.lowStock ? '<span class="low">Only ' + item.available + ' left in your size</span>' : '') +
+                  '</div><div>' + money(item.priceCents) + '</div></li>';
+              }).join('') + '</ul>' +
+              '<div class="ship">&#128666; Free shipping, returns &amp; exchanges</div>' +
+              '<div class="actions"><button class="btn solid" data-buy="' + look.id + '">Buy now</button>' +
+              '<button class="btn" data-add="' + look.id + '">Add to bag</button></div>' +
+            '</div></article>';
+        }).join('');
+        applyRail();
+      }
+
+      function applyRail() {
+        Array.prototype.forEach.call(document.querySelectorAll('.look'), function (card) {
+          card.hidden = card.getAttribute('data-rail') !== activeRail;
+        });
+        Array.prototype.forEach.call(document.querySelectorAll('.pill'), function (pill) {
+          pill.classList.toggle('active', pill.getAttribute('data-rail') === activeRail);
+        });
+      }
+
+      function renderBag() {
+        var count = lines.length;
+        el('bag-count').textContent = count;
+        el('bag-count').classList.toggle('show', count > 0);
+        el('success').classList.remove('show');
+        el('summary').style.display = '';
+        if (!count) {
+          el('bag-lines').innerHTML = '<div class="empty">Your bag is empty. Add a look your Stylist picked.</div>';
+        } else {
+          el('bag-lines').innerHTML = '<ul class="items">' + lines.map(function (line) {
+            return '<li data-sku="' + line.sku + '"><div class="thumb">' + art(line.art) + '</div><div><div class="brand">' + escapeHtml(line.brand) + '</div>' +
+              escapeHtml(line.name) + '<div class="size">' + escapeHtml(line.color) + ' &middot; Size ' + escapeHtml(line.size) + '</div>' +
+              '<div class="hold">Held for you for 15 min</div></div><div>' + money(line.priceCents) + '</div></li>';
+          }).join('') + '</ul>';
+        }
+        var subtotal = lines.reduce(function (sum, line) { return sum + line.priceCents * line.quantity; }, 0);
+        el('subtotal').textContent = money(subtotal);
+        el('total').textContent = money(subtotal);
+        el('checkout').disabled = !count;
+      }
+
+      function openBag() { el('drawer').classList.add('open'); el('scrim').classList.add('open'); }
+      function closeBag() { el('drawer').classList.remove('open'); el('scrim').classList.remove('open'); }
+
+      function addToBag(lookId, button, thenCheckout) {
+        el('checkout-error').classList.remove('show');
+        if (lines.some(function (line) { return line.lookId === lookId; })) {
+          openBag();
+          if (thenCheckout) checkout();
+          return Promise.resolve();
+        }
+        button.disabled = true;
+        return fetch('/api/' + slug + '/bag/items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cartId: cartId, lookId: lookId })
+        }).then(function (res) { return res.json(); }).then(function (data) {
+          button.disabled = false;
+          if (!data.success) throw new Error(data.error || 'Could not add to bag');
+          cartId = data.cartId;
+          lines = lines.concat(data.lines);
+          var addButton = document.querySelector('[data-add="' + lookId + '"]');
+          addButton.textContent = 'Added to bag';
+          addButton.classList.add('added');
+          renderBag();
+          openBag();
+          if (thenCheckout) checkout();
+        }).catch(function (err) {
+          button.disabled = false;
+          window.alert(err.message);
+        });
+      }
+
+      function checkout() {
+        var button = el('checkout');
+        var errorBox = el('checkout-error');
+        errorBox.classList.remove('show');
+        button.disabled = true;
+        button.textContent = 'Placing order...';
+        fetch('/api/' + slug + '/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cartId: cartId,
+            lines: lines,
+            devinUserId: localStorage.getItem('devinUserId') || fallbackUserId,
+            devinOrgId: localStorage.getItem('devinOrgId') || fallbackOrgId,
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        }).then(function (res) {
+          return res.json().then(function (data) { return { status: res.status, data: data }; });
+        }).then(function (result) {
+          button.textContent = 'Checkout';
+          var data = result.data;
+          if (!data.success) {
+            var names = (data.unavailable || []).map(function (item) {
+              return escapeHtml(item.name) + ' (' + escapeHtml(item.color) + ', ' + escapeHtml(item.size) + ')';
+            });
+            errorBox.innerHTML = '<strong>Sorry, ' + (names.length ? names.join(', ') + (names.length > 1 ? ' are' : ' is') : 'an item in your bag is') +
+              ' no longer available.</strong>We couldn\'t place your order. Remove it from your bag or try a different size.' +
+              (data.requestId ? '<div class="ref">Reference: ' + escapeHtml(data.requestId) + '</div>' : '');
+            errorBox.classList.add('show');
+            (data.unavailable || []).forEach(function (item) {
+              var row = document.querySelector('#bag-lines li[data-sku="' + item.sku + '"] .hold');
+              if (row) { row.textContent = 'No longer available'; row.style.color = 'var(--red)'; }
+            });
+            button.disabled = false;
+            return;
+          }
+          lines = [];
+          cartId = null;
+          renderBag();
+          Array.prototype.forEach.call(document.querySelectorAll('[data-add]'), function (b) {
+            b.textContent = 'Add to bag'; b.classList.remove('added');
+          });
+          el('bag-lines').innerHTML = '';
+          el('summary').style.display = 'none';
+          el('success-order').textContent = 'Order ' + data.orderId + ' · ' + money(data.totalCents);
+          el('success-arrives').textContent = 'Arrives ' + data.arrives;
+          el('success').classList.add('show');
+        }).catch(function () {
+          button.textContent = 'Checkout';
+          button.disabled = false;
+          errorBox.innerHTML = '<strong>Something went wrong.</strong>Please try again.';
+          errorBox.classList.add('show');
+        });
+      }
+
+      document.addEventListener('click', function (event) {
+        var target = event.target.closest('button');
+        if (!target) return;
+        if (target.hasAttribute('data-add')) addToBag(target.getAttribute('data-add'), target, false);
+        else if (target.hasAttribute('data-buy')) addToBag(target.getAttribute('data-buy'), target, true);
+        else if (target.hasAttribute('data-rail')) { activeRail = target.getAttribute('data-rail'); applyRail(); }
+      });
+      el('open-bag').addEventListener('click', function () { renderBag(); openBag(); });
+      el('close-bag').addEventListener('click', closeBag);
+      el('scrim').addEventListener('click', closeBag);
+      el('checkout').addEventListener('click', checkout);
+      el('looks-tab').addEventListener('click', function (e) { e.preventDefault(); });
+
+      fetch('/api/' + slug + '/looks').then(function (res) { return res.json(); }).then(renderLooks);
+      renderBag();
+    })();
+  </script>
+</body>
+</html>
