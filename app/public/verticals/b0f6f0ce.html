@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pay someone | Kiwibank internet banking</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #19E480; --ink: #000000; --surface: #FFFFFF; --chrome-bg: #000000; --chrome-text: #FFFFFF;
+      --green-dark: #258752; --grey: #333333; --muted: #5C5F62; --line: #A7A8A9; --panel: #F2F4F4; --coral: #FFB7A9;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Montserrat, Geograph, Futura, Avenir, Corbel, sans-serif; font-weight: 300; color: var(--ink); background: var(--surface); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: var(--ink); }
+    strong, b { font-weight: 500; }
+    .wrap { width: min(1200px, calc(100% - 48px)); margin: 0 auto; }
+    .masthead { background: var(--chrome-bg); color: var(--chrome-text); }
+    .masthead .wrap { display: flex; align-items: stretch; gap: 24px; min-height: 120px; }
+    .brand { display: flex; align-items: center; text-decoration: none; color: var(--chrome-text); padding: 18px 0; min-height: 44px; }
+    .mark { display: block; width: 68px; height: 72px; position: relative; padding: 12px 0 0 12px; font-weight: 500; font-size: 17px; line-height: 0.95; letter-spacing: -0.02em; }
+    .mark::before { content: ''; position: absolute; inset: 0; border: 4px solid var(--chrome-text); border-right-color: var(--accent); border-bottom-color: var(--accent); }
+    .mark span { position: relative; display: block; }
+    .masthead-main { flex: 1; display: flex; flex-direction: column; }
+    .utility { display: flex; align-items: center; gap: 4px; min-height: 44px; }
+    .utility .seg { color: var(--chrome-text); text-decoration: none; text-transform: uppercase; font-weight: 400; font-size: 16px; padding: 0 16px; min-height: 44px; display: inline-flex; align-items: center; }
+    .utility .seg[aria-current] { background: var(--grey); }
+    .utility .right { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+    .utility .right a { color: var(--chrome-text); text-decoration: none; font-weight: 400; padding: 0 10px; min-height: 44px; display: inline-flex; align-items: center; }
+    .utility .logout { white-space: nowrap; background: var(--accent); color: var(--ink); text-transform: uppercase; font-weight: 500; padding: 0 16px; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+    .utility .who { color: var(--chrome-text); font-size: 14px; padding: 0 10px; }
+    .primary { display: flex; align-items: center; gap: 8px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+    .primary a { color: var(--chrome-text); text-decoration: none; text-transform: uppercase; font-weight: 500; font-size: 15px; letter-spacing: 0.01em; padding: 0 12px; min-height: 44px; display: inline-flex; align-items: center; white-space: nowrap; border-bottom: 3px solid transparent; }
+    .primary a[aria-current] { border-bottom-color: var(--accent); }
+    .subnav { background: var(--surface); border-bottom: 1px solid #DADCDD; }
+    .subnav .wrap { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+    .subnav a { color: var(--ink); text-decoration: none; font-weight: 400; font-size: 16px; padding: 0 14px; min-height: 56px; display: inline-flex; align-items: center; white-space: nowrap; border-bottom: 3px solid transparent; }
+    .subnav a[aria-current] { font-weight: 500; border-bottom-color: var(--accent); }
+    .crumbs { font-size: 14px; color: var(--muted); padding: 12px 0 0; }
+    .crumbs a { color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+    .crumbs span { color: var(--ink); font-weight: 400; }
+    .crumbs i { font-style: normal; margin: 0 8px; color: var(--green-dark); }
+    main { padding: 0 0 72px; }
+    .kicker { text-transform: uppercase; font-weight: 500; font-size: 14px; letter-spacing: 0.08em; color: var(--green-dark); margin: 8px 0 4px; }
+    h1 { font-weight: 500; font-size: 50px; line-height: 1.15; letter-spacing: -0.015em; margin: 0 0 12px; }
+    h2 { font-weight: 500; font-size: 22px; line-height: 1.25; margin: 0 0 20px; }
+    .lead { font-size: 18px; margin: 0 0 32px; max-width: 680px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+    form#transferForm, .side > section { background: var(--surface); border: 1px solid #DADCDD; padding: 32px; }
+    .field { margin-bottom: 20px; }
+    label { display: block; font-weight: 500; font-size: 15px; margin-bottom: 8px; }
+    select, input[type=number], input[type=text] { width: 100%; font: inherit; font-weight: 400; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 12px 14px; min-height: 48px; }
+    select:disabled, input:disabled { background: var(--panel); color: var(--muted); }
+    .field small { display: block; color: var(--muted); font-size: 13px; margin-top: 6px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap b { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 500; color: var(--muted); }
+    .amount-wrap input { padding-left: 30px; }
+    .row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .summary { margin: 24px 0 0; padding: 20px; background: var(--panel); display: grid; gap: 10px; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 500; text-align: right; }
+    .summary div.total { border-top: 1px solid #D4D7D8; padding-top: 10px; }
+    .summary div.total dd { font-size: 17px; }
+    .btn { font: inherit; font-weight: 500; font-size: 16px; border-radius: 0; padding: 12px 24px; min-height: 56px; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary { background: var(--accent); color: var(--ink); }
+    .btn-primary:hover { background: #12CF72; }
+    .btn-primary:disabled { background: #A9F3D0; color: #4A5B53; cursor: progress; }
+    .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--ink); }
+    .btn-secondary:hover { background: var(--panel); }
+    .btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--green-dark); outline-offset: 2px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    .actions .btn { flex: 1 1 180px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--green-dark); }
+    .status { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; font-size: 15px; line-height: 1.5; font-weight: 400; }
+    .result-box.success { display: block; background: #E3FBEF; color: var(--ink); border-left: 4px solid var(--green-dark); }
+    .result-box.notice { display: block; background: #FFF0EC; color: #5A1F12; border-left: 4px solid var(--coral); }
+    .side { display: grid; gap: 24px; }
+    .acc { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid #DADCDD; }
+    .acc:first-of-type { border-top: 0; padding-top: 0; }
+    .acc div { font-weight: 500; }
+    .acc span { display: block; font-weight: 300; color: var(--muted); font-size: 13px; }
+    .acc b { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 500; }
+    .promo { position: relative; background: var(--chrome-bg); color: var(--chrome-text); overflow: hidden; min-height: 240px; display: flex; align-items: flex-end; }
+    .promo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
+    .promo .cap { position: relative; background: var(--accent); color: var(--ink); padding: 18px 20px; margin: 20px; font-weight: 500; font-size: 18px; line-height: 1.3; max-width: 260px; }
+    .promo.fallback img { display: none; }
+    .promo.fallback .cap { margin-top: 110px; }
+    .cop { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; }
+    .cop .tick { flex: none; width: 24px; height: 24px; background: var(--accent); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+    .side p { margin: 0 0 12px; font-size: 15px; }
+    .side p:last-child { margin-bottom: 0; }
+    .side a.help { color: var(--green-dark); font-weight: 500; display: inline-block; padding: 10px 0; margin: -10px 0; line-height: 24px; }
+    footer { background: var(--chrome-bg); color: var(--chrome-text); padding: 48px 0 32px; font-size: 14px; }
+    footer .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 36px; }
+    footer .cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+    footer h3 { text-transform: uppercase; font-size: 13px; letter-spacing: 0.08em; font-weight: 500; margin: 0 0 10px; }
+    footer ul { list-style: none; margin: 0; padding: 0; }
+    footer li a { color: var(--chrome-text); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+    footer .legal { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #333; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+    footer .legal a { color: var(--chrome-text); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+    footer .copy { margin: 12px 0 0; font-size: 12px; color: #BBBDBE; }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .primary a:nth-child(n+4) { display: none; }
+      .utility .who { display: none; }
+      h1 { font-size: 36px; }
+      footer .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      .wrap { width: calc(100% - 32px); }
+      .masthead .wrap { gap: 12px; min-height: 104px; }
+      .mark { width: 58px; height: 62px; font-size: 15px; }
+      .utility .seg { padding: 0 10px; font-size: 14px; }
+      .utility .right a:not(.logout) { display: none; }
+      .primary a:nth-child(n+3) { display: none; }
+      .row { grid-template-columns: 1fr; }
+      form#transferForm, .side > section { padding: 20px; }
+      .lead { font-size: 16px; }
+      footer .top { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Kiwibank internet banking home"><span class="mark" aria-hidden="true"><span>Kiwi</span><span>bank.</span></span></a>
+      <div class="masthead-main">
+        <div class="utility">
+          <a class="seg" href="#" aria-current="page">Personal</a>
+          <a class="seg" href="#">Business</a>
+          <div class="right">
+            <a href="#">Help</a>
+            <a href="#">Contact</a>
+            <span class="who">Kia ora, Aroha</span>
+            <a class="logout" href="#">Log out</a>
+          </div>
+        </div>
+        <nav class="primary" aria-label="Internet banking">
+          <a href="#">Accounts</a>
+          <a href="#" aria-current="page">Pay &amp; transfer</a>
+          <a href="#">Payees</a>
+          <a href="#">Cards</a>
+          <a href="#">Statements</a>
+          <a href="#">Settings</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+  <nav class="subnav" aria-label="Pay and transfer">
+    <div class="wrap">
+      <a href="#" aria-current="page">Pay someone</a>
+      <a href="#">Transfer between my accounts</a>
+      <a href="#">Automatic payments</a>
+      <a href="#">Direct debits</a>
+      <a href="#">Upcoming payments</a>
+    </div>
+  </nav>
+
+  <main id="transfer">
+    <div class="wrap">
+      <p class="crumbs"><a href="#">Internet banking</a><i aria-hidden="true">&rsaquo;</i><a href="#">Pay &amp; transfer</a><i aria-hidden="true">&rsaquo;</i><span>Pay someone</span></p>
+      <p class="kicker">Pay &amp; transfer</p>
+      <h1>Pay someone</h1>
+      <p class="lead">Make a one-off payment to a saved payee, a bill payee or one of your own accounts. Payments to other New Zealand banks are usually processed the same day.</p>
+      <div class="grid">
+        <form id="transferForm" novalidate aria-labelledby="formHead">
+          <h2 id="formHead">Payment details</h2>
+          <div class="field">
+            <label for="fromAccount">Pay from</label>
+            <select id="fromAccount">
+              <option value="KB-3801" data-name="Free Up" data-number="38-9012-0345678-00" data-balance="3184.25">Free Up &middot; 38-9012-0345678-00</option>
+              <option value="KB-3802" data-name="Online Call" data-number="38-9012-0345678-01" data-balance="12650.00">Online Call &middot; 38-9012-0345678-01</option>
+            </select>
+            <small id="fromHelp"></small>
+            <input type="hidden" id="accountTier" value="standard">
+          </div>
+          <div class="field">
+            <label for="toAccount">Pay to</label>
+            <select id="toAccount">
+              <option value="">Choose a payee or one of your accounts</option>
+              <option value="PAYEE-TANE" data-name="Tane Williams" data-number="12-3140-0556721-00" data-ref="Flat power">Tane Williams &middot; 12-3140-0556721-00</option>
+              <option value="PAYEE-RENT" data-name="Harbourview Property Ltd" data-number="02-0500-0118824-00" data-ref="Rent 14B">Harbourview Property Ltd &middot; 02-0500-0118824-00</option>
+              <option value="PAYEE-WCC" data-name="Wellington City Council" data-number="03-0502-0040311-00" data-ref="Rates">Wellington City Council &middot; bill payee</option>
+              <option value="KB-3801" data-name="Free Up" data-number="38-9012-0345678-00" data-ref="Everyday">Free Up (my account)</option>
+              <option value="KB-3802" data-name="Online Call" data-number="38-9012-0345678-01" data-ref="Savings">Online Call (my account)</option>
+            </select>
+            <small id="toHelp"></small>
+          </div>
+          <div class="field">
+            <label for="amount">Amount</label>
+            <div class="amount-wrap"><b aria-hidden="true">$</b><input type="number" id="amount" inputmode="decimal" min="0" step="0.01" placeholder="0.00" autocomplete="off"></div>
+            <small id="amountHelp"></small>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="particulars">Particulars</label>
+              <input type="text" id="particulars" maxlength="12" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="code">Code</label>
+              <input type="text" id="code" maxlength="12" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="reference">Reference</label>
+              <input type="text" id="reference" maxlength="12" autocomplete="off">
+              <small>Shows on both statements. Up to 12 characters each.</small>
+            </div>
+          </div>
+          <dl class="summary" aria-label="Payment summary">
+            <div><dt>From</dt><dd id="sumFrom">&mdash;</dd></div>
+            <div><dt>To</dt><dd id="sumTo">&mdash;</dd></div>
+            <div><dt>Reference</dt><dd id="sumRef">&mdash;</dd></div>
+            <div><dt>Amount</dt><dd id="sumAmount">&mdash;</dd></div>
+            <div><dt>Fee (estimated)</dt><dd id="sumFee">&mdash;</dd></div>
+            <div class="total"><dt>Leaves your account</dt><dd id="sumTotal">&mdash;</dd></div>
+          </dl>
+          <div class="actions">
+            <button type="submit" id="submitBtn" class="btn btn-primary">Pay now</button>
+            <button type="reset" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+          </div>
+          <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+          <p class="status" id="paymentStatus" role="status" aria-live="polite">Check the details, then select Pay now.</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+        <aside class="side">
+          <section aria-labelledby="accHead">
+            <h2 id="accHead">My accounts</h2>
+            <div class="acc"><div>Free Up<span>38-9012-0345678-00</span></div><b data-balance-for="KB-3801">&nbsp;</b></div>
+            <div class="acc"><div>Online Call<span>38-9012-0345678-01</span></div><b data-balance-for="KB-3802">&nbsp;</b></div>
+          </section>
+          <div class="promo" id="promoBox">
+            <img src="https://media.kiwibank.co.nz/media/images/Family_boys__celebrating_TS063226_Tkdokk3.2e16d0ba.fill-960x500.webp" alt="" loading="lazy" onerror="document.getElementById('promoBox').className='promo fallback'">
+            <div class="cap">We&rsquo;re Kiwi making Kiwi better off</div>
+          </div>
+          <section aria-labelledby="safeHead">
+            <h2 id="safeHead">Before you pay</h2>
+            <p class="cop"><span class="tick" aria-hidden="true">&#10003;</span><span>Confirmation of Payee checks that the account owner&rsquo;s name matches the account number before your payment goes.</span></p>
+            <p>Kiwibank will never ask you to move money to keep it safe. If something doesn&rsquo;t feel right, stop and call us on 0800 11 33 55.</p>
+            <p>Need a hand? <a class="help" href="#">Visit the Help hub</a> or check Payment times.</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="wrap">
+      <div class="top">
+        <span class="mark" aria-hidden="true"><span>Kiwi</span><span>bank.</span></span>
+        <a class="btn btn-primary" href="#">Join Kiwibank</a>
+      </div>
+      <div class="cols">
+        <div><h3>Contact</h3><ul><li><a href="#">Contact us</a></li><li><a href="#">Find a branch or ATM</a></li><li><a href="#">Make a complaint</a></li></ul></div>
+        <div><h3>Help &amp; support</h3><ul><li><a href="#">Help hub</a></li><li><a href="#">Scam &amp; fraud hub</a></li><li><a href="#">Payment times</a></li></ul></div>
+        <div><h3>About</h3><ul><li><a href="#">About us</a></li><li><a href="#">News &amp; updates</a></li><li><a href="#">Public notices</a></li></ul></div>
+        <div><h3>Interest rates &amp; fees</h3><ul><li><a href="#">Personal banking rates &amp; fees</a></li><li><a href="#">Business banking rates &amp; fees</a></li></ul></div>
+      </div>
+      <div class="legal"><a href="#">Website terms</a><a href="#">Privacy</a><a href="#">Terms &amp; conditions</a><a href="#">Disclosure statements</a></div>
+      <p class="copy">&copy; Kiwibank Limited. Demo content for illustration only; account names, numbers and balances are fictitious.</p>
+    </div>
+  </footer>
+
+  <script>
+    window.SKIN = {
+      locale: 'en-NZ', currency: 'NZD',
+      idle: 'Pay now', sending: 'Paying\u2026',
+      statusIdle: 'Check the details, then select Pay now.',
+      statusSending: 'Making your payment\u2026', statusDone: 'Payment made.',
+      availableLabel: 'Available', maxLabel: 'You can pay up to', toPlaceholder: 'Saved payees, bill payees and your own accounts',
+      chooseRecipient: 'Choose who to pay.', enterAmount: 'Enter an amount, for example 25.',
+      sameAccount: 'Choose a different account to pay to.',
+      tooMuch: 'That amount plus the fee is more than you have available. You can pay up to',
+      success: (at, amt, to, from, fee, ref) => `Payment made at ${at}. ${amt} to ${to} from your ${from} account (fee ${fee}). Receipt ${ref}.`,
+      duplicate: (at, amt, to, ref) => `This payment was already made at ${at}: ${amt} to ${to}, receipt ${ref}. We didn\u2019t pay it twice.`,
+      failed: 'We couldn\u2019t make this payment. Nothing has left your account. Please try again in a moment.',
+      unconfirmed: 'We couldn\u2019t confirm this payment. Check your account activity before paying again, so it doesn\u2019t go twice.',
+    };
+  </script>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const S = window.SKIN;
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm');
+      const button = $('submitBtn');
+      const cancelBtn = $('cancelBtn');
+      const result = $('result');
+      const status = $('paymentStatus');
+      const fromAccount = $('fromAccount');
+      const toAccount = $('toAccount');
+      const amountInput = $('amount');
+      const accountTier = $('accountTier');
+      const reference = $('reference');
+      const timer = $('sendTimer');
+      const timerValue = $('sendTimerValue');
+      const fields = [fromAccount, toAccount, amountInput, $('particulars'), $('code'), reference];
+      const money = new Intl.NumberFormat(S.locale, { style: 'currency', currency: S.currency });
+      const timeFmt = new Intl.DateTimeFormat(S.locale, { hour: '2-digit', minute: '2-digit' });
+      const FEE = { rate: 0.001, flat: 2.50 };
+      const balances = {};
+      Array.from(fromAccount.options).forEach((o) => { balances[o.value] = Number(o.dataset.balance) || 0; });
+      let pending = false;
+      let ticker = null;
+
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (select) => select.options[select.selectedIndex];
+      const available = () => balances[fromAccount.value] || 0;
+      const feeCents = (cents) => Math.round(Math.max(FEE.rate * cents, FEE.flat * 100));
+      function maxPayable() {
+        const avail = Math.round(available() * 100);
+        let max = Math.min(Math.floor(avail / (1 + FEE.rate)), avail - FEE.flat * 100);
+        while (max > 0 && max + feeCents(max) > avail) max -= 1;
+        return Math.max(max, 0) / 100;
+      }
+      function parsedAmount() {
+        const raw = amountInput.value.trim().replace(/,/g, '');
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return parseFloat(raw);
+      }
+      const recipient = () => (toAccount.value ? selected(toAccount) : null);
+      function renderBalances() {
+        document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = money.format(balances[el.dataset.balanceFor] || 0); });
+      }
+      function render() {
+        Array.from(toAccount.options).forEach((o) => { o.disabled = Boolean(o.value) && o.value === fromAccount.value; });
+        if (toAccount.selectedIndex >= 0 && toAccount.options[toAccount.selectedIndex].disabled) toAccount.value = '';
+        const from = selected(fromAccount);
+        const to = recipient();
+        const amount = parsedAmount();
+        accountTier.value = 'standard';
+        set('fromHelp', `${from.dataset.number} \u00b7 ${S.availableLabel} ${money.format(available())}`);
+        set('toHelp', to ? to.dataset.number : S.toPlaceholder);
+        set('amountHelp', `${S.maxLabel} ${money.format(maxPayable())}`);
+        set('sumFrom', from.dataset.name);
+        set('sumTo', to ? to.dataset.name : '\u2014');
+        const ref = reference.value.trim();
+        set('sumRef', ref || '\u2014');
+        const ok = Number.isFinite(amount) && amount > 0;
+        set('sumAmount', ok ? money.format(amount) : '\u2014');
+        set('sumFee', ok ? money.format(feeCents(Math.round(amount * 100)) / 100) : '\u2014');
+        set('sumTotal', ok ? money.format((Math.round(amount * 100) + feeCents(Math.round(amount * 100))) / 100) : '\u2014');
+      }
+      function notice(message, focusEl) {
+        result.className = 'result-box notice';
+        result.textContent = message;
+        status.textContent = S.statusIdle;
+        if (focusEl) focusEl.focus();
+      }
+      function stopTimer(done) {
+        if (ticker) { clearInterval(ticker); ticker = null; }
+        if (timer) timer.className = done ? 'stopwatch on done' : 'stopwatch';
+      }
+
+      fromAccount.addEventListener('change', render);
+      toAccount.addEventListener('change', () => {
+        const to = recipient();
+        if (to && to.dataset.ref && !reference.value.trim()) reference.value = to.dataset.ref;
+        render();
+      });
+      amountInput.addEventListener('input', render);
+      reference.addEventListener('input', render);
+      form.addEventListener('reset', () => {
+        setTimeout(() => {
+          result.className = 'result-box';
+          result.textContent = '';
+          status.textContent = S.statusIdle;
+          stopTimer(false);
+          if (timerValue) timerValue.textContent = '0.0s';
+          renderBalances();
+          render();
+        });
+      });
+      renderBalances();
+      render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        const to = recipient();
+        const amount = parsedAmount();
+        if (!to) { notice(S.chooseRecipient, toAccount); return; }
+        if (toAccount.value === fromAccount.value) { notice(S.sameAccount, toAccount); return; }
+        if (!Number.isFinite(amount) || amount <= 0) { notice(S.enterAmount, amountInput); return; }
+        if (Math.round(amount * 100) > Math.round(maxPayable() * 100)) { notice(`${S.tooMuch} ${money.format(maxPayable())}.`, amountInput); return; }
+
+        pending = true;
+        button.disabled = true;
+        cancelBtn.disabled = true;
+        fields.forEach((el) => { el.disabled = true; });
+        button.textContent = S.sending;
+        status.textContent = S.statusSending;
+        result.className = 'result-box';
+        result.textContent = '';
+        const started = performance.now();
+        const tick = () => { if (timerValue) timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        if (timer) { timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100); }
+        const fromId = fromAccount.value;
+        const toId = toAccount.value;
+        const fromName = selected(fromAccount).dataset.name;
+        const toName = to.dataset.name;
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick();
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const paid = Number(data.receipt.amount);
+          const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
+          if (data.duplicate) {
+            result.className = 'result-box notice';
+            result.textContent = S.duplicate(at, money.format(paid), toName, data.receipt.receiptId);
+            status.textContent = S.statusIdle;
+            stopTimer(true);
+            return;
+          }
+          balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+          if (toId !== fromId && Object.prototype.hasOwnProperty.call(balances, toId)) balances[toId] = Math.round((balances[toId] + paid) * 100) / 100;
+          renderBalances();
+          render();
+          result.className = 'result-box success';
+          result.textContent = S.success(at, money.format(paid), toName, fromName, money.format(Math.max(debited - paid, 0)), data.receipt.receiptId);
+          status.textContent = S.statusDone;
+          stopTimer(true);
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok ? S.failed : S.unconfirmed;
+          status.textContent = S.statusIdle;
+        } finally {
+          fields.forEach((el) => { el.disabled = false; });
+          pending = false;
+          button.disabled = false;
+          cancelBtn.disabled = false;
+          button.textContent = S.idle;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
