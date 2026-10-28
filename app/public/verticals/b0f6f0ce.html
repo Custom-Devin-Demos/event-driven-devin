@@ -325,9 +325,10 @@
       const feeCents = (cents) => Math.round(Math.max(FEE.rate * cents, FEE.flat * 100));
       function maxPayable() {
         const avail = Math.round(available() * 100);
-        let max = Math.min(Math.floor(avail / (1 + FEE.rate)), avail - FEE.flat * 100);
+        let max = Math.max(Math.min(Math.floor(avail / (1 + FEE.rate)), avail - FEE.flat * 100), 0);
         while (max > 0 && max + feeCents(max) > avail) max -= 1;
-        return Math.max(max, 0) / 100;
+        while (max + 1 + feeCents(max + 1) <= avail) max += 1;
+        return max / 100;
       }
       function parsedAmount() {
         const raw = amountInput.value.trim().replace(/,/g, '');
@@ -369,14 +370,20 @@
       }
 
       fromAccount.addEventListener('change', render);
+      let autoRef = '';
       toAccount.addEventListener('change', () => {
         const to = recipient();
-        if (to && to.dataset.ref && !reference.value.trim()) reference.value = to.dataset.ref;
+        const current = reference.value.trim();
+        if (to && to.dataset.ref && (!current || current === autoRef)) {
+          reference.value = to.dataset.ref;
+          autoRef = to.dataset.ref;
+        }
         render();
       });
       amountInput.addEventListener('input', render);
       reference.addEventListener('input', render);
       form.addEventListener('reset', () => {
+        autoRef = '';
         setTimeout(() => {
           result.className = 'result-box';
           result.textContent = '';
