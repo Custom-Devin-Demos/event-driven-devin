@@ -246,7 +246,8 @@
 
       function addToBag(lookId, button, thenCheckout) {
         el('checkout-error').classList.remove('show');
-        if (lines.some(function (line) { return line.lookId === lookId; })) {
+        var lookButton = document.querySelector('[data-add="' + lookId + '"]');
+        if (lookButton && lookButton.classList.contains('added')) {
           openBag();
           if (thenCheckout) checkout();
           return Promise.resolve();
@@ -260,7 +261,9 @@
           button.disabled = false;
           if (!data.success) throw new Error(data.error || 'Could not add to bag');
           cartId = data.cartId;
-          lines = lines.concat(data.lines);
+          var inBag = lines.filter(function (line) { return line.lookId === lookId; })
+            .map(function (line) { return line.sku + ':' + line.size; });
+          lines = lines.concat(data.lines.filter(function (line) { return inBag.indexOf(line.sku + ':' + line.size) === -1; }));
           var addButton = document.querySelector('[data-add="' + lookId + '"]');
           addButton.textContent = 'Added to bag';
           addButton.classList.add('added');
@@ -276,7 +279,7 @@
       function removeLine(holdId) {
         var removed = lines.filter(function (line) { return line.holdId === holdId; })[0];
         lines = lines.filter(function (line) { return line.holdId !== holdId; });
-        if (removed && !lines.some(function (line) { return line.lookId === removed.lookId; })) {
+        if (removed) {
           var addButton = document.querySelector('[data-add="' + removed.lookId + '"]');
           if (addButton) { addButton.textContent = 'Add to bag'; addButton.classList.remove('added'); }
         }
