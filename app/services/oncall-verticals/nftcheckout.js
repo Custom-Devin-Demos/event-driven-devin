@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
+const { simulateFulfillAvailableAdvancedOrders } = require('./nftcheckout-seaport');
 
 const FULFILLMENT_ROUTE = '/api/oncall/nftcheckout/fulfillment';
 const SERVICE = 'checkout-api';
@@ -12,16 +13,13 @@ const WEI_PER_ETH = 10n ** 18n;
 const PREFLIGHT_LATENCY_MS = [220, 420];
 
 /**
- * Seaport deployment the checkout preflight simulates against. The checkout
- * testnet runs the reference build of our Seaport fork, redeployed from
- * COG-GTM/seaport `main` on every merge.
+ * Seaport deployment the transaction targets. Before the wallet prompt the
+ * bundle is preflighted in-process (./nftcheckout-seaport.js) with the same
+ * fulfillment rules, so nothing reaches the chain unless it would settle.
  */
 const SEAPORT_DEPLOYMENT = {
   protocol: 'Seaport 1.6',
-  repo: 'COG-GTM/seaport',
-  ref: 'main',
-  build: 'reference (FOUNDRY_PROFILE=reference)',
-  contract: 'reference/ReferenceConsideration.sol',
+  preflight: 'in-process (app/services/oncall-verticals/nftcheckout-seaport.js)',
   chain: 'Base Sepolia (testnet)',
   chainId: 84532,
   address: '0x0000000000000068F116a894984e2DB1123eB395',
@@ -29,6 +27,8 @@ const SEAPORT_DEPLOYMENT = {
 
 const ITEM_TYPE = { NATIVE: 0, ERC721: 2 };
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+/** Illustrative connected wallet that signs and funds the purchase. */
+const BUYER_WALLET = '0xb0b0000000000000000000000000000000c0ffee';
 
 /** Illustrative collection: fictional art, sellers and wallets. */
 const COLLECTION = {
@@ -128,32 +128,6 @@ function buildFulfillments(orders) {
   return { offerFulfillments, considerationFulfillments: [...groups.values()] };
 }
 
-/**
- * eth_call of fulfillAvailableAdvancedOrders against SEAPORT_DEPLOYMENT.
- * Illustrative: the demo has no node attached, so the call returns the
- * outcome recorded against the current deployment for this fulfillment shape.
- * Since the latest deploy, a consideration fulfillment with more than one
- * component leaves every component after the first unspent, and the call
- * reverts with ConsiderationNotMet for the first of those items.
- */
-function simulateFulfillAvailableAdvancedOrders(orders, { considerationFulfillments }) {
-  for (const components of considerationFulfillments) {
-    if (components.length < 2) continue;
-    const { orderIndex, itemIndex } = components[1];
-    const shortfall = orders[orderIndex].consideration[itemIndex].amount;
-    return {
-      success: false,
-      revert: {
-        name: 'ConsiderationNotMet',
-        selector: '0xa5f54208',
-        signature: 'ConsiderationNotMet(uint256,uint256,uint256)',
-        args: { orderIndex, considerationIndex: itemIndex, shortfallAmount: shortfall.toString() },
-      },
-    };
-  }
-  return { success: true, gasEstimate: 118000 + orders.length * 64000 };
-}
-
 function validateCheckout(data) {
   const raw = Array.isArray(data.tokenIds) ? data.tokenIds : [];
   const tokenIds = [...new Set(raw.map((id) => Number(id)))];
@@ -165,7 +139,7 @@ function validateCheckout(data) {
 }
 
 function seaportRevertError(revert) {
-  const error = new Error(`Seaport preflight reverted: ${revert.name}(${revert.args.orderIndex}, ${revert.args.considerationIndex}, ${revert.args.shortfallAmount})`);
+  const error = new Error(`Seaport preflight reverted: ${revert.name}(${Object.values(revert.args).join(', ')})`);
   error.name = 'SeaportRevertError';
   error.code = 'SEAPORT_REVERT';
   error.revert = revert;
@@ -185,7 +159,7 @@ async function prepareFulfillment(data = {}) {
   const creatorFeesWei = orders.reduce((sum, o) => sum + o.consideration[1].amount, 0n);
 
   await delay(PREFLIGHT_LATENCY_MS);
-  const result = simulateFulfillAvailableAdvancedOrders(orders, fulfillments);
+  const result = simulateFulfillAvailableAdvancedOrders(orders, fulfillments, { fulfiller: BUYER_WALLET, value: totalWei });
   const durationMs = Date.now() - startedAt;
 
   if (result.success) {
@@ -226,7 +200,7 @@ async function prepareFulfillment(data = {}) {
     shortfallWei: result.revert.args.shortfallAmount,
     orders: orders.length,
     considerationFulfillments: fulfillments.considerationFulfillments.map((c) => c.length),
-    seaport: `${SEAPORT_DEPLOYMENT.repo}@${SEAPORT_DEPLOYMENT.ref} ${SEAPORT_DEPLOYMENT.build}`,
+    preflight: SEAPORT_DEPLOYMENT.preflight,
     release: RELEASE,
     durationMs,
     service: SERVICE,
