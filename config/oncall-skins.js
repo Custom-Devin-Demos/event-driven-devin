@@ -6651,6 +6651,23 @@ const ONCALL_SKINS = {
     supportCenter: 'Samsara Support',
     disclaimer: 'NOT ACTUALLY A SAMSARA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Samsara product.',
   },
+
+  '62c39cd8': {
+    slug: '62c39cd8',
+    company: 'NAB',
+    brandMark: 'N',
+    vertical: 'banking',
+    page: { file: '62c39cd8.html', title: 'Pay someone | NAB Internet Banking' },
+    theme: {
+      '--accent': '#C20000',
+      '--ink': '#000000',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'NAB Help and support',
+    disclaimer: 'NOT ACTUALLY A NAB SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real National Australia Bank product.',
+  },
 };
 
 function getOncallSkin(slug) {
