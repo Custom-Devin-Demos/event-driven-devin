@@ -584,8 +584,8 @@
               <label for="toAccount">Pay to *</label>
               <select id="toAccount">
                 <option value="ACCT-EXT-001">Liam O&rsquo;Connor &middot; 063-019 1048 2291</option>
-                <option value="ACCT-1002">Harbourside Strata Pty Ltd &middot; 033-112 6620 418</option>
-                <option value="ACCT-1001">Priya Raman &middot; PayID 0412 *** 781</option>
+                <option value="ACCT-EXT-002">Harbourside Strata Pty Ltd &middot; 033-112 6620 418</option>
+                <option value="ACCT-EXT-003">Priya Raman &middot; PayID 0412 *** 781</option>
               </select>
               <span class="help">Check the payee&rsquo;s details with them directly.</span>
             </div>
@@ -636,6 +636,8 @@
               <dd id="sumTo"></dd>
               <dt>Amount</dt>
               <dd id="sumAmount"></dd>
+              <dt>Fee</dt>
+              <dd id="sumFee">Shown on your receipt</dd>
               <dt>Reference</dt>
               <dd id="sumRef"></dd>
               <dt>When</dt>
@@ -782,6 +784,12 @@
           e.preventDefault();
           var payee = label(to);
           var amt = amount.value;
+          var amtNum = parseFloat(amt);
+          if (!isFinite(amtNum) || amtNum <= 0) {
+            show('error', 'Check the amount', 'Enter an amount greater than $0.00.');
+            amount.focus();
+            return;
+          }
           btn.disabled = true;
           btn.textContent = 'Processing\u2026';
           show('pending', 'Processing your payment', 'Please don\u2019t refresh or close this page.');
@@ -792,7 +800,7 @@
               body: JSON.stringify({
                 fromAccount: from.value,
                 toAccount: to.value,
-                amount: parseFloat(amt),
+                amount: amtNum,
                 accountTier: document.getElementById('accountTier').value,
                 devinUserId: localStorage.getItem('devinUserId') || '',
                 devinOrgId: localStorage.getItem('devinOrgId') || '',
@@ -807,7 +815,10 @@
               show('error', 'We couldn\u2019t process this payment', 'No money has left your account. Please try again shortly.');
             } else {
               var receipt = (d.receipt && d.receipt.receiptId) || d.transactionId || d.transferId || '';
-              show('success', 'Payment sent', money(amt) + ' to ' + payee + '.' + (receipt ? ' Receipt number ' + receipt + '.' : ''));
+              var fee = d.fee != null ? parseFloat(d.fee) : NaN;
+              var debit = d.debitAmount != null ? parseFloat(d.debitAmount) : NaN;
+              var feeText = isFinite(fee) && isFinite(debit) ? ' Fee ' + money(fee) + ', total debited ' + money(debit) + '.' : '';
+              show('success', 'Payment sent', money(amtNum) + ' to ' + payee + '.' + feeText + (receipt ? ' Receipt number ' + receipt + '.' : ''));
             }
           } catch (_) {
             show('error', 'We couldn\u2019t process this payment', 'No money has left your account. Please try again shortly.');
