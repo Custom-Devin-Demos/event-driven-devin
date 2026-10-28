@@ -88,6 +88,16 @@
  */
 
 const ONCALL_SKINS = {
+  '2b30ce42': {
+    slug: '2b30ce42',
+    company: 'CIBC',
+    vertical: 'banking',
+    page: {
+      file: '2b30ce42.html',
+      title: 'CIBC U.S.: Commercial Banking, Personal Banking, Wealth Management',
+    },
+    disclaimer: 'NOT ACTUALLY A CIBC SITE — internal demo only, not affiliated with, endorsed by, or a real CIBC product.',
+  },
   '8df370c5': {
     slug: '8df370c5',
     company: 'Intake Factory',
