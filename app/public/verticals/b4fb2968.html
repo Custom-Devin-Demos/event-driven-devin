@@ -385,7 +385,7 @@
     'perimenopause/email-capture': function () {
       return { html: hdrMid(MIDLIFE_PROGRESS['email-capture']) + '<main><form class="col" id="f" novalidate><img src="' + ASSET + 'midlife-women-walking.png" alt="" width="500" height="250" style="display:block;width:100%;height:auto;margin:40px 0 40px"><h1 style="margin-bottom:8px">Ready to get started?</h1><p class="sub">Most patients pay less than $25 per visit with in-network insurance!</p>' +
         '<div class="field"><label for="email">Email</label><input class="inp" id="email" name="email" type="email" autocomplete="email" value="' + esc(state.email || '') + '"></div>' +
-        '<label class="chk' + (state.consent ? ' on' : '') + '" data-k="consent"><input type="checkbox" name="consent"' + (state.consent ? ' checked' : '') + '><span class="box">' + ICON.check + '</span><span>I agree to Pomelo Care\'s <a href="https://www.pomelocare.com/terms-of-service" target="_blank" rel="noopener">Terms of Service</a>, <a href="https://www.pomelocare.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>, and <a href="https://www.pomelocare.com/notice-of-privacy-practices" target="_blank" rel="noopener">Notice of Privacy Practices</a>.</span></label>' +
+        '<label class="chk' + (state.consent ? ' on' : '') + '" data-k="consent" style="font-size:14px;line-height:17px"><input type="checkbox" name="consent"' + (state.consent ? ' checked' : '') + '><span class="box">' + ICON.check + '</span><span>I agree to Pomelo Care\'s <a href="https://www.pomelocare.com/terms-of-service" target="_blank" rel="noopener">Terms of Service</a>, <a href="https://www.pomelocare.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>, and <a href="https://www.pomelocare.com/notice-of-privacy-practices" target="_blank" rel="noopener">Notice of Privacy Practices</a>.</span></label>' +
         '<label class="chk' + (state.loop ? ' on' : '') + '" data-k="loop"><input type="checkbox" name="consentedToAdPlatformEmailSharing"' + (state.loop ? ' checked' : '') + '><span class="box">' + ICON.check + '</span><span>Yes, keep me in the loop**</span></label><div id="e"></div>' +
         '<div class="mt32">' + btn('Next') + '</div><p class="fine mt24" style="text-align:left">** By checking this box, I allow Pomelo to email me about products, services, and health topics, and to share my email address with the ad and social media platforms it uses so I can be presented with content that\'s relevant to me, and for advertising and marketing purposes.</p></form></main>',
         bind: function () {
@@ -437,7 +437,7 @@
               });
               var data = await res.json().catch(function () { return {}; });
               if (!res.ok || data.success === false) throw new Error(data.error || 'Coverage check failed');
-              state.coverage = { covered: !!data.covered, insurer: { name: (data.insurer && data.insurer.name) || picked[1] }, estimatedCostCents: data.estimatedCostCents };
+              state.coverage = { covered: !!data.covered, insurer: { name: (data.insurer && data.insurer.name) || picked[1] }, estimatedCostCents: data.estimatedCostCents, referralPlans: data.referralPlans || [] };
               save();
               go(data.covered ? '/signup/perimenopause/check-coverage-covered' : '/signup/perimenopause/check-coverage-not-covered');
             } catch (err) {
@@ -448,9 +448,10 @@
         } };
     },
     'perimenopause/check-coverage-covered': function () {
-      var c = state.coverage || { insurer: { name: 'Aetna' }, estimatedCostCents: 2500 };
+      var c = state.coverage || { insurer: { name: 'Aetna' }, estimatedCostCents: 2500, referralPlans: ['HMO'] };
+      var hmo = (c.referralPlans || []).indexOf('HMO') !== -1 ? ' If you\u2019re on an HMO plan, we\u2019ll handle the referral process for you.' : '';
       var amt = '$' + Math.round((c.estimatedCostCents || 2500) / 100);
-      return { html: hdrLeft(false) + '<main><div class="col"><img src="' + ASSET + 'covered.png" alt="" width="200" height="190" style="display:block;margin:24px auto 32px;object-fit:contain"><h1 style="margin-bottom:24px">Good news!</h1><p class="sub ink" style="font-size:17px;line-height:30px">Pomelo visits are in-network with ' + esc(c.insurer.name) + '. If you\u2019re on an HMO plan, we\u2019ll handle the referral process for you.</p>' +
+      return { html: hdrLeft(false) + '<main><div class="col"><img src="' + ASSET + 'covered.png" alt="" width="200" height="190" style="display:block;margin:24px auto 32px;object-fit:contain"><h1 style="margin-bottom:24px">Good news!</h1><p class="sub ink" style="font-size:17px;line-height:30px">Pomelo visits are in-network with ' + esc(c.insurer.name) + '.' + hmo + '</p>' +
         '<div class="cost"><div><b>Your cost*</b><small>Most ' + esc(c.insurer.name) + ' patients pay this for a standard visit</small></div><div class="amt">' + amt + '</div></div>' + btn('Next') +
         '<p class="fine mt32">*The cost provided is an estimate. You can confirm your final cost prior to your visit</p><p class="note">Is your employer paying for Pomelo Care? <a class="u" href="https://app.pomelocare.com/sponsored" target="_blank" rel="noopener">Activate a sponsored membership</a></p></div></main>',
         bind: function () { app.querySelector('#next').addEventListener('click', function () { go('/signup/perimenopause/coverage-verified'); }); } };
@@ -465,6 +466,18 @@
       return { html: hdrLeft(false) + '<main><div class="col"><img src="' + ASSET + 'covered.png" alt="" width="200" height="190" style="display:block;margin:24px auto 32px;object-fit:contain"><h1>You\u2019re on the list!</h1><p class="sub">We\u2019ll email ' + esc(state.email || 'you') + ' as soon as Pomelo is in-network with your plan.</p></div></main>' };
     },
     'perimenopause/create-account': function () {
+      function detailFormatError(key, v) {
+        if (key === 'dob') {
+          var m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v);
+          var d = m && new Date(+m[3], +m[1] - 1, +m[2]);
+          var real = d && d.getFullYear() === +m[3] && d.getMonth() === +m[1] - 1 && d.getDate() === +m[2];
+          var age = real && (Date.now() - d.getTime()) / 31557600000;
+          return real && age >= 18 && age <= 120 ? '' : 'Please enter a valid date of birth';
+        }
+        if (key === 'zip') return /^\d{5}$/.test(v) ? '' : 'Please enter a valid 5-digit zip code';
+        if (key === 'phone') return /^\d{10}$/.test(v.replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '')) ? '' : 'Please enter a valid phone number';
+        return '';
+      }
       var d = state.details || {};
       var F = [['firstName', 'First name', 'given-name', 'text'], ['lastName', 'Last name', 'family-name', 'text'], ['dob', 'Date of birth (mm/dd/yyyy)', 'bday', 'text', 'mm/dd/yyyy', 'Date of birth'], ['zip', 'Zip code', 'postal-code', 'text', '', 'Zip code'], ['phone', 'Phone number', 'tel', 'tel']];
       return { html: hdrMid(MIDLIFE_PROGRESS['create-account']) + '<main><form class="col" id="f" novalidate><h1 style="margin-bottom:8px">A few more details</h1><p class="sub">This helps us personalize your experience.</p>' +
@@ -480,9 +493,9 @@
             F.forEach(function (f) {
               var box = app.querySelector('[data-f="' + f[0] + '"]'); var v = box.querySelector('input').value.trim(); vals[f[0]] = v;
               var old = box.querySelector('.help.bad'); if (old) old.remove();
-              var bad = !v;
-              box.classList.toggle('bad', bad);
-              if (bad) { ok = false; box.insertAdjacentHTML('beforeend', '<p class="help bad">' + (f[5] || f[1]) + ' is required</p>'); }
+              var msg = !v ? (f[5] || f[1]) + ' is required' : detailFormatError(f[0], v);
+              box.classList.toggle('bad', !!msg);
+              if (msg) { ok = false; box.insertAdjacentHTML('beforeend', '<p class="help bad">' + msg + '</p>'); }
             });
             if (!ok) return;
             state.details = vals; save(); go('/signup/perimenopause/check-coverage-state');
