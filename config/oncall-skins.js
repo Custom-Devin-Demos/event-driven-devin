@@ -6392,7 +6392,11 @@ const ONCALL_SKINS = {
     company: 'Euroapotheca',
     vertical: 'insurance',
     page: { file: '50a6f684.html', title: 'ATORIS, 20mg, plėvele dengtos tabletės, N30 | Eurovaistine.lt' },
+    paths: ['/euroapotheca', '/eurovaistine'],
     oncallOnly: true,
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    alertDestination: 'teams',
     alertCard: {
       title: '5xx rate \u2014 e-prescription order submissions',
       release: 'eshop-rx@2026.10.4',
