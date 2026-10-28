@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    if (!/^\/oncall\/c\/2b30ce42\/?$/.test(location.pathname)) location.replace('/oncall/c/2b30ce42');
+  </script>
   <title>CIBC U.S.: Commercial Banking, Personal Banking, Wealth Management</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -358,6 +361,15 @@
     const continueBtn = document.getElementById('continueBtn');
     let opener;
     let reviewed = false;
+    let submitting = false;
+    function resetReview() {
+      fields.querySelectorAll('input, select').forEach((field) => { field.disabled = false; });
+      document.getElementById('toAccount').setCustomValidity('');
+      reviewed = false; review.hidden = true; continueBtn.hidden = false;
+      document.getElementById('result').className = 'result-box';
+      document.getElementById('result').replaceChildren();
+      document.getElementById('submitBtn').disabled = false;
+    }
     function closeMenu() { menu.hidden = true; signToggle.setAttribute('aria-expanded', 'false'); }
     signToggle.addEventListener('click', () => {
       menu.hidden = !menu.hidden;
@@ -373,6 +385,7 @@
     document.querySelectorAll('[data-transfer]').forEach((button) => button.addEventListener('click', () => {
       opener = button.closest('.sign-menu') ? signToggle : button;
       closeMenu();
+      if (!submitting) resetReview();
       dialog.showModal();
     }));
     dialog.querySelector('.close').addEventListener('click', () => dialog.close());
@@ -386,7 +399,7 @@
       if (from.value === to.value) { to.setCustomValidity('Choose a different destination account.'); to.reportValidity(); return; }
       const amount = Number(document.getElementById('amount').value);
       const tier = fees[document.getElementById('accountTier').value];
-      const fee = Math.round((amount * tier.rate + tier.flat) * 100) / 100;
+      const fee = Math.round(Math.max(amount * tier.rate, tier.flat) * 100) / 100;
       document.getElementById('reviewDetails').textContent = `${money(amount)} from ${from.selectedOptions[0].textContent} to ${to.selectedOptions[0].textContent}. One-time transfer. Fee: ${money(fee)}. Total debit: ${money(amount + fee)}.`;
       fields.querySelectorAll('input, select').forEach((field) => { field.disabled = true; });
       continueBtn.hidden = true; review.hidden = false; reviewed = true; review.focus();
@@ -394,8 +407,7 @@
     form.addEventListener('change', () => document.getElementById('toAccount').setCustomValidity(''));
     continueBtn.addEventListener('click', showReview);
     document.getElementById('editBtn').addEventListener('click', () => {
-      fields.querySelectorAll('input, select').forEach((field) => { field.disabled = false; });
-      reviewed = false; review.hidden = true; continueBtn.hidden = false;
+      resetReview();
       document.getElementById('fromAccount').focus();
     });
     form.addEventListener('submit', async (e) => {
@@ -404,6 +416,7 @@
       const btn = document.getElementById('submitBtn');
       if (btn.disabled) return;
       const result = document.getElementById('result');
+      submitting = true;
       btn.disabled = true; btn.textContent = 'Processing...';
       document.getElementById('editBtn').disabled = true;
       result.className = 'result-box';
@@ -427,6 +440,7 @@
       } catch (err) {
         showResult(false, 'Network Error', 'Unable to confirm this transfer. Please check your connection before trying again.');
       } finally {
+        submitting = false;
         btn.disabled = false; btn.textContent = 'Submit';
         document.getElementById('editBtn').disabled = false;
         form.setAttribute('aria-busy', 'false');
