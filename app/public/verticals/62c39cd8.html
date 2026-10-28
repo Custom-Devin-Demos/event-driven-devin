@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pay someone | NAB Internet Banking</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --accent: #c20000;
+        --ink: #000000;
+        --surface: #ffffff;
+        --chrome-bg: #000000;
+        --chrome-text: #ffffff;
+        --page: #f5f5f5;
+        --muted: #4d4d4d;
+        --line: #d9d9d9;
+        --field: #737373;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        overflow-x: hidden;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          16px/1.5 "Source Sans 3",
+          "Source Sans Pro",
+          Helvetica,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+      a {
+        color: var(--accent);
+      }
+      .container {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+
+      /* Masthead */
+      .masthead {
+        background: var(--chrome-bg);
+        color: var(--chrome-text);
+      }
+      .masthead .container {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: inherit;
+        text-decoration: none;
+        min-height: 44px;
+      }
+      .brand svg {
+        width: 34px;
+        height: 34px;
+        flex: none;
+      }
+      .brand-text {
+        font-size: 10px;
+        line-height: 1.05;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+      .masthead-title {
+        font-size: 18px;
+        font-weight: 400;
+        padding-left: 24px;
+        border-left: 1px solid #4d4d4d;
+        white-space: nowrap;
+      }
+      .masthead-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .masthead-right a {
+        color: var(--chrome-text);
+        text-decoration: none;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 14px;
+      }
+      .user {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 14px;
+        min-height: 64px;
+        background: #3a4b55;
+      }
+      .avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #ffffff;
+        color: var(--ink);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 13px;
+      }
+      .logout {
+        margin-left: 12px;
+        background: var(--accent);
+        border-radius: 4px;
+        font-weight: 400;
+        padding: 0 28px !important;
+      }
+
+      /* Section nav */
+      .subnav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+      }
+      .subnav .container {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .subnav a {
+        color: var(--ink);
+        text-decoration: none;
+        padding: 0 14px;
+        min-height: 52px;
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        font-size: 17px;
+        border-bottom: 4px solid transparent;
+      }
+      .subnav a.active {
+        border-bottom-color: var(--accent);
+        font-weight: 600;
+      }
+
+      .crumbs {
+        font-size: 14px;
+        padding: 4px 0 0;
+        color: var(--muted);
+      }
+      .crumbs a {
+        color: var(--ink);
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+      }
+      .crumbs span[aria-hidden] {
+        color: var(--accent);
+        margin: 0 8px;
+      }
+
+      h1 {
+        font-size: 48px;
+        line-height: 1.15;
+        font-weight: 300;
+        margin: 22px 0 6px;
+      }
+      .lede {
+        margin: 0 0 28px;
+        font-size: 18px;
+        color: var(--muted);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+        padding-bottom: 56px;
+      }
+      .card {
+        background: var(--surface);
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+        padding: 32px;
+      }
+      .card h2 {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 4px;
+      }
+      .card .hint {
+        color: var(--muted);
+        margin: 0 0 22px;
+      }
+
+      .tabs {
+        display: flex;
+        border: 1px solid var(--field);
+        border-radius: 4px;
+        margin-bottom: 24px;
+        overflow: hidden;
+      }
+      .tabs button {
+        flex: 1;
+        min-height: 44px;
+        background: var(--surface);
+        border: 0;
+        border-right: 1px solid var(--field);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--ink);
+      }
+      .tabs button:last-child {
+        border-right: 0;
+      }
+      .tabs button[aria-selected="true"] {
+        background: var(--ink);
+        color: #ffffff;
+      }
+
+      .field {
+        margin-bottom: 20px;
+      }
+      .field label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .field .help {
+        display: block;
+        font-size: 14px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .field select,
+      .field input {
+        width: 100%;
+        min-height: 48px;
+        padding: 0 14px;
+        border: 1px solid var(--field);
+        border-radius: 4px;
+        background: var(--surface);
+        font: inherit;
+        color: var(--ink);
+      }
+      .field select:focus,
+      .field input:focus,
+      .tabs button:focus-visible,
+      .btn:focus-visible {
+        outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+        outline-offset: 2px;
+        border-color: var(--accent);
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .amount-wrap {
+        position: relative;
+      }
+      .amount-wrap::before {
+        content: "$";
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+      }
+      .amount-wrap input {
+        padding-left: 28px;
+      }
+
+      .notice {
+        display: flex;
+        gap: 12px;
+        background: #f5f5f5;
+        border-left: 4px solid var(--ink);
+        padding: 14px 16px;
+        margin: 4px 0 24px;
+        font-size: 15px;
+      }
+      .actions {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .btn {
+        min-height: 48px;
+        padding: 0 32px;
+        border-radius: 4px;
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #ffffff;
+        font: inherit;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: progress;
+      }
+      .btn-link {
+        background: none;
+        border: 0;
+        color: var(--accent);
+        text-decoration: underline;
+        font: inherit;
+        font-size: 18px;
+        min-height: 48px;
+        padding: 0 4px;
+        cursor: pointer;
+      }
+
+      .result-box {
+        margin-top: 20px;
+      }
+      .result-box:empty {
+        display: none;
+      }
+      .result-box.success,
+      .result-box.error,
+      .result-box.pending {
+        padding: 16px 18px;
+        border-radius: 4px;
+        border-left: 4px solid;
+      }
+      .result-box.pending {
+        background: #f5f5f5;
+        border-color: #737373;
+      }
+      .result-box.success {
+        background: #edf7ef;
+        border-color: #1e7b34;
+      }
+      .result-box.error {
+        background: #fdeeee;
+        border-color: var(--accent);
+      }
+      .result-box strong {
+        display: block;
+        font-size: 18px;
+      }
+
+      .accounts {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .accounts li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 0;
+        border-top: 1px solid var(--line);
+      }
+      .accounts li:first-child {
+        border-top: 0;
+      }
+      .accounts .name {
+        font-weight: 600;
+      }
+      .accounts .num {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .accounts .bal {
+        text-align: right;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .accounts .bal small {
+        display: block;
+        font-weight: 400;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .summary dl {
+        margin: 0;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 8px 16px;
+      }
+      .summary dt {
+        color: var(--muted);
+      }
+      .summary dd {
+        margin: 0;
+        text-align: right;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+
+      .safety {
+        padding: 0;
+        overflow: hidden;
+      }
+      .safety img {
+        display: block;
+        width: 100%;
+        height: 170px;
+        object-fit: cover;
+      }
+      .safety .body {
+        padding: 24px 28px 28px;
+      }
+      .safety a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+      }
+      .side {
+        display: grid;
+        gap: 24px;
+      }
+
+      footer {
+        background: var(--chrome-bg);
+        color: var(--chrome-text);
+        padding: 48px 0 32px;
+        font-size: 15px;
+      }
+      footer .cols {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 24px;
+      }
+      footer h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 10px;
+      }
+      footer ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      footer li a {
+        color: var(--chrome-text);
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+      }
+      footer .legal {
+        border-top: 1px solid #333333;
+        margin-top: 28px;
+        padding-top: 20px;
+        color: #cccccc;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+      }
+
+      @media (max-width: 960px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        footer .cols {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .masthead-title,
+        .user .uname {
+          display: none;
+        }
+      }
+      @media (max-width: 600px) {
+        .container {
+          padding: 0 16px;
+        }
+        .masthead .container {
+          gap: 12px;
+        }
+        .user {
+          background: none;
+          padding: 0;
+        }
+        .logout {
+          padding: 0 16px !important;
+        }
+        h1 {
+          font-size: 36px;
+        }
+        .card {
+          padding: 22px 18px;
+        }
+        .row {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .btn {
+          width: 100%;
+        }
+        .actions {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="container">
+        <a class="brand" href="#" aria-label="Internet Banking home">
+          <svg viewBox="0 0 40 40" aria-hidden="true">
+            <path
+              fill="#E3000F"
+              d="M20 2l3.6 10.4L34 8.2l-4.6 10L40 21l-10.6 3 4.2 10.4L23.4 30 20 38l-3.4-8-10.2 4.4L10.6 24 0 21l10.6-2.8L6 8.2l10.4 4.2z"
+            />
+          </svg>
+          <span class="brand-text">more<br />than<br />money</span>
+        </a>
+        <span class="masthead-title">Internet Banking</span>
+        <div class="masthead-right">
+          <span class="user"
+            ><span class="avatar" aria-hidden="true">IN</span
+            ><span class="uname">Isabella Nguyen</span></span
+          >
+          <a class="logout" href="#">Log out</a>
+        </div>
+      </div>
+    </header>
+
+    <nav class="subnav" aria-label="Internet Banking">
+      <div class="container">
+        <a href="#">Accounts</a>
+        <a href="#" class="active" aria-current="page">Transfer &amp; pay</a>
+        <a href="#">BPAY</a>
+        <a href="#">Scheduled payments</a>
+        <a href="#">Cards</a>
+        <a href="#">Statements</a>
+        <a href="#">Settings</a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <div class="crumbs">
+        <a href="#">Internet Banking</a><span aria-hidden="true">&rsaquo;</span
+        ><a href="#">Transfer &amp; pay</a><span aria-hidden="true">&rsaquo;</span
+        ><strong>Pay someone</strong>
+      </div>
+      <h1>Pay someone</h1>
+      <p class="lede">Send money to a saved payee, a new BSB and account number, or a PayID.</p>
+
+      <div class="layout">
+        <section class="card" aria-labelledby="payHeading">
+          <h2 id="payHeading">Payment details</h2>
+          <p class="hint">Fields marked * are required.</p>
+
+          <div class="tabs" role="tablist" aria-label="Payee type">
+            <button type="button" role="tab" aria-selected="true">Saved payee</button>
+            <button type="button" role="tab" aria-selected="false" disabled>BSB &amp; account</button>
+            <button type="button" role="tab" aria-selected="false" disabled>PayID</button>
+          </div>
+
+          <form id="transferForm" novalidate>
+            <div class="field">
+              <label for="fromAccount">Pay from *</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001">NAB Classic Banking &middot; 082-001 14872931 &middot; $6,482.15 available</option>
+                <option value="ACCT-1002">NAB iSaver &middot; 082-001 22059347 &middot; $18,750.00 available</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="toAccount">Pay to *</label>
+              <select id="toAccount">
+                <option value="ACCT-EXT-001">Liam O&rsquo;Connor &middot; 063-019 1048 2291</option>
+                <option value="ACCT-EXT-002">Harbourside Strata Pty Ltd &middot; 033-112 6620 418</option>
+                <option value="ACCT-EXT-003">Priya Raman &middot; PayID 0412 *** 781</option>
+              </select>
+              <span class="help">Check the payee&rsquo;s details with them directly.</span>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="amount">Amount *</label>
+                <div class="amount-wrap">
+                  <input id="amount" type="number" inputmode="decimal" min="0.01" step="any" value="1250.00" required />
+                </div>
+              </div>
+              <div class="field">
+                <label for="accountTier">Account package</label>
+                <select id="accountTier">
+                  <option value="premium">NAB Private</option>
+                  <option value="standard" selected>Personal</option>
+                  <option value="basic">Basic</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="reference">Reference *</label>
+              <input id="reference" type="text" maxlength="18" value="Rent October" />
+              <span class="help">Shown on both statements (max 18 characters)</span>
+            </div>
+
+            <div class="notice">
+              <span>Your daily payment limit of $10,000.00 applies across all channels. New payees are held for 24 hours on some accounts.</span>
+            </div>
+
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="btn">Pay now</button>
+              <button type="reset" class="btn-link">Cancel</button>
+            </div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <aside class="side">
+          <section class="card summary" aria-labelledby="sumHeading">
+            <h2 id="sumHeading">Payment summary</h2>
+            <p class="hint">Review before you pay.</p>
+            <dl>
+              <dt>From</dt>
+              <dd id="sumFrom"></dd>
+              <dt>To</dt>
+              <dd id="sumTo"></dd>
+              <dt>Amount</dt>
+              <dd id="sumAmount"></dd>
+              <dt>Fee</dt>
+              <dd id="sumFee">Shown on your receipt</dd>
+              <dt>Reference</dt>
+              <dd id="sumRef"></dd>
+              <dt>When</dt>
+              <dd>Now</dd>
+            </dl>
+          </section>
+
+          <section class="card" aria-labelledby="accHeading">
+            <h2 id="accHeading">Your accounts</h2>
+            <ul class="accounts">
+              <li>
+                <span><span class="name">NAB Classic Banking</span><br /><span class="num">082-001 14872931</span></span>
+                <span class="bal">$6,482.15<small>Available balance</small></span>
+              </li>
+              <li>
+                <span><span class="name">NAB iSaver</span><br /><span class="num">082-001 22059347</span></span>
+                <span class="bal">$18,750.00<small>Available balance</small></span>
+              </li>
+              <li>
+                <span><span class="name">NAB Everyday Global</span><br /><span class="num">082-001 40817266</span></span>
+                <span class="bal">$3,210.40<small>Available balance</small></span>
+              </li>
+            </ul>
+          </section>
+
+          <section class="card safety" aria-labelledby="safeHeading">
+            <img
+              src="https://www.nab.com.au/personal/online-banking/nab-internet-banking/_jcr_content/root/responsivegrid_1236212131/section_container_17/responsivegrid_676375957/feature_container_co/responsivegrid/feature_content_pimary/image.coreimg.95.1440.jpeg/1711530429369/womanwithphone-promotion-620x360.jpeg"
+              alt=""
+              onerror="this.style.display='none'"
+            />
+            <div class="body">
+              <h2 id="safeHeading">Paying safely</h2>
+              <p>NAB will never ask you to move money to keep it safe. If something doesn&rsquo;t feel right, stop and call us on 13 22 65.</p>
+              <a href="#">Report a scam or fraud</a>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="cols">
+          <div>
+            <h3>Quick links</h3>
+            <ul>
+              <li><a href="#">Security and fraud</a></li>
+              <li><a href="#">Contact us</a></li>
+              <li><a href="#">Financial assistance</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Payments help</h3>
+            <ul>
+              <li><a href="#">Change your daily payment limit</a></li>
+              <li><a href="#">Manage payees</a></li>
+              <li><a href="#">Scheduled payments</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Policies and terms</h3>
+            <ul>
+              <li><a href="#">Privacy</a></li>
+              <li><a href="#">Website disclaimer</a></li>
+              <li><a href="#">Financial Services Guide</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Connect with us</h3>
+            <ul>
+              <li><a href="#">Find us</a></li>
+              <li><a href="#">Feedback</a></li>
+              <li><a href="#">13 22 65</a></li>
+            </ul>
+          </div>
+        </div>
+        <p class="legal">
+          Demo content for illustration only. Account names, numbers and balances are fictitious.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      /* Ensure locked-mode config is in localStorage for direct navigation */
+      (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config')
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (cfg) {
+            if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+            if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          })
+          .catch(function () {});
+      })();
+    </script>
+    <script>
+      (function () {
+        var form = document.getElementById('transferForm');
+        var from = document.getElementById('fromAccount');
+        var to = document.getElementById('toAccount');
+        var amount = document.getElementById('amount');
+        var ref = document.getElementById('reference');
+        var btn = document.getElementById('submitBtn');
+        var result = document.getElementById('result');
+        var aud = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' });
+
+        function label(sel) {
+          return sel.options[sel.selectedIndex].textContent.split(' \u00b7 ')[0].trim();
+        }
+        function money(v) {
+          var n = parseFloat(v);
+          return isFinite(n) ? aud.format(n) : '\u2014';
+        }
+        function sync() {
+          document.getElementById('sumFrom').textContent = label(from);
+          document.getElementById('sumTo').textContent = label(to);
+          document.getElementById('sumAmount').textContent = money(amount.value);
+          document.getElementById('sumRef').textContent = ref.value || '\u2014';
+        }
+        [from, to, amount, ref].forEach(function (el) {
+          el.addEventListener('input', sync);
+          el.addEventListener('change', sync);
+        });
+        form.addEventListener('reset', function () {
+          result.className = 'result-box';
+          result.textContent = '';
+          setTimeout(sync, 0);
+        });
+        sync();
+
+        function show(kind, title, text) {
+          result.className = 'result-box ' + kind;
+          result.textContent = '';
+          var s = document.createElement('strong');
+          s.textContent = title;
+          result.appendChild(s);
+          result.appendChild(document.createTextNode(text));
+        }
+
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          var payee = label(to);
+          var amt = amount.value;
+          var amtNum = parseFloat(amt);
+          if (!isFinite(amtNum) || amtNum <= 0) {
+            show('error', 'Check the amount', 'Enter an amount greater than $0.00.');
+            amount.focus();
+            return;
+          }
+          btn.disabled = true;
+          btn.textContent = 'Processing\u2026';
+          show('pending', 'Processing your payment', 'Please don\u2019t refresh or close this page.');
+          try {
+            var res = await fetch('/api/banking/transfer', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fromAccount: from.value,
+                toAccount: to.value,
+                amount: amtNum,
+                accountTier: document.getElementById('accountTier').value,
+                devinUserId: localStorage.getItem('devinUserId') || '',
+                devinOrgId: localStorage.getItem('devinOrgId') || '',
+                devinEmail: localStorage.getItem('devinEmail') || '',
+              }),
+            });
+            var d = {};
+            try {
+              d = await res.json();
+            } catch (_) {}
+            if (!res.ok) {
+              show('error', 'We couldn\u2019t process this payment', 'No money has left your account. Please try again shortly.');
+            } else {
+              var receipt = (d.receipt && d.receipt.receiptId) || d.transactionId || d.transferId || '';
+              var fee = d.fee != null ? parseFloat(d.fee) : NaN;
+              var debit = d.debitAmount != null ? parseFloat(d.debitAmount) : NaN;
+              var feeText = isFinite(fee) && isFinite(debit) ? ' Fee ' + money(fee) + ', total debited ' + money(debit) + '.' : '';
+              show('success', 'Payment sent', money(amtNum) + ' to ' + payee + '.' + feeText + (receipt ? ' Receipt number ' + receipt + '.' : ''));
+            }
+          } catch (_) {
+            show('error', 'We couldn\u2019t process this payment', 'No money has left your account. Please try again shortly.');
+          } finally {
+            btn.disabled = false;
+            btn.textContent = 'Pay now';
+          }
+        });
+      })();
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>

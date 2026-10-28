@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send money | Zopa Bank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0E2C27; --mid: #387360; --muted: #646D71; --line: #D9DEDC;
+      --mint: #72E7C1; --mint-soft: #EFFFF6; --mint-band: #CBFFE6; --cream: #F1F1F7; --card: #FFFFFF;
+      --coral: #FE3C49; --bar: #031A16; --radius: 8px; --radius-lg: 16px;
+      --shadow: 0 1px 2px rgba(14,44,39,.06), 0 8px 24px rgba(14,44,39,.08);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Inter, -apple-system, 'Segoe UI', Roboto, sans-serif; color: var(--ink); background: var(--card); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: var(--ink); }
+    .wrap { width: min(1200px, calc(100% - 48px)); margin: 0 auto; }
+    .util { background: var(--bar); color: var(--cream); }
+    .util .wrap { display: flex; align-items: center; gap: 4px; min-height: 52px; padding: 4px 0; }
+    .util a { color: var(--cream); text-decoration: none; font-size: 14px; font-weight: 500; padding: 4px 20px; border-radius: 30px; min-height: 44px; display: inline-flex; align-items: center; }
+    .util a[aria-current] { background: var(--mid); }
+    .hd { background: var(--card); border-bottom: 1px solid #E7EBEA; }
+    .hd .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 86px; }
+    .brand { display: inline-flex; align-items: baseline; text-decoration: none; color: #111; font-weight: 800; font-size: 26px; letter-spacing: -.04em; line-height: 1; min-height: 44px; padding: 9px 0; }
+    .brand i { display: inline-block; width: 6px; }
+    .brand b { font-weight: 800; }
+    .nav { display: flex; align-items: center; gap: 4px; }
+    .nav a { color: var(--muted); text-decoration: none; font-weight: 500; font-size: 16px; padding: 12px 16px; border-radius: var(--radius); min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+    .nav a[aria-current] { color: var(--ink); }
+    .nav a .chev { width: 10px; height: 10px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-3px) rotate(45deg); }
+    .btn { font: inherit; font-weight: 600; font-size: 16px; border-radius: var(--radius); padding: 12px 24px; min-height: 48px; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary { background: var(--ink); color: var(--mint); }
+    .btn-primary:hover { background: #163F38; }
+    .btn-primary:disabled { background: #6F8A84; color: #D9F6EB; cursor: progress; }
+    .btn-secondary { background: var(--card); color: var(--ink); border-color: var(--mid); }
+    .btn-secondary:hover { background: var(--mint-soft); }
+    .btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
+    .signed { background: var(--mint-band); }
+    .signed .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; font-size: 14px; }
+    .signed .crumbs { color: var(--mid); font-weight: 500; }
+    .signed .crumbs a { color: var(--mid); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+    .signed .crumbs, .signed .who { margin: 0; }
+    .signed .crumbs span { color: var(--ink); }
+    .signed .who { color: var(--ink); font-weight: 500; }
+
+    main { background: var(--mint-soft); padding: 48px 0 72px; }
+    h1 { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 48px; line-height: 1.15; letter-spacing: -.01em; margin: 0 0 12px; font-variation-settings: 'opsz' 48; }
+    h2 { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 24px; line-height: 1.25; margin: 0 0 20px; }
+    .lead { color: var(--ink); font-size: 18px; margin: 0 0 32px; max-width: 640px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+    form#transferForm, .side > section { background: var(--card); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow); }
+    .field { margin-bottom: 20px; }
+    label { display: block; font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+    select, input[type=number] { width: 100%; font: inherit; color: var(--ink); background: var(--card); border: 1px solid #B9C4C1; border-radius: var(--radius); padding: 12px 14px; min-height: 48px; }
+    select:disabled, input:disabled { background: #F3F5F4; color: var(--muted); }
+    .field small { display: block; color: var(--muted); font-size: 13px; margin-top: 6px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap b { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--muted); }
+    .amount-wrap input { padding-left: 30px; }
+    .summary { margin: 24px 0 0; padding: 20px; border-radius: var(--radius); background: var(--mint-soft); display: grid; gap: 10px; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; text-align: right; }
+    .summary div.total { border-top: 1px solid #CFE8DE; padding-top: 10px; }
+    .summary div.total dd { font-size: 17px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    .actions .btn { flex: 1 1 180px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--mid); }
+    .status { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: var(--radius); font-size: 15px; line-height: 1.5; }
+    .result-box.success { display: block; background: var(--mint-band); color: var(--ink); border-left: 4px solid var(--mid); }
+    .result-box.notice { display: block; background: #FFF1F2; color: #7A1E25; border-left: 4px solid var(--coral); }
+    .side { display: grid; gap: 24px; }
+    .acc { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid #E7EBEA; }
+    .acc:first-of-type { border-top: 0; padding-top: 0; }
+    .acc div { font-weight: 600; }
+    .acc span { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+    .acc b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .cardbox { background: var(--mint); border-radius: var(--radius-lg); padding: 0; overflow: hidden; }
+    .cardbox img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+    .cardbox .alt { display: none; padding: 32px; min-height: 220px; color: var(--ink); }
+    .cardbox .alt .mark { font-weight: 800; font-size: 22px; letter-spacing: -.04em; color: var(--coral); }
+    .cardbox .alt .bis { font-family: Fraunces, Georgia, serif; font-size: 34px; color: var(--coral); margin-top: 90px; }
+    .cardbox.fallback img { display: none; }
+    .cardbox.fallback .alt { display: block; }
+    .cop { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--ink); }
+    .cop .tick { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--mid); color: var(--mint); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+    .side p { margin: 0 0 12px; font-size: 15px; }
+    .side p:last-child { margin-bottom: 0; }
+    .side a.help { color: var(--mid); font-weight: 600; display: inline-block; padding: 10px 0; margin: -10px 0; line-height: 24px; }
+    footer { background: var(--cream); color: var(--ink); padding: 40px 0 48px; font-size: 13px; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 24px; }
+    footer nav a { color: var(--ink); font-weight: 500; text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; }
+    footer p { margin: 0 0 12px; color: #3A4A46; max-width: 960px; }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .nav a:not(.btn) { display: none; }
+      h1 { font-size: 36px; }
+    }
+    @media (max-width: 600px) {
+      .wrap { width: calc(100% - 32px); }
+      .hd .wrap { min-height: 72px; }
+      main { padding: 32px 0 48px; }
+      form#transferForm, .side > section { padding: 20px; border-radius: 12px; }
+      .signed .who { display: none; }
+      .lead { font-size: 16px; }
+      .util a { padding: 8px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="util"><div class="wrap"><a href="#" aria-current="page">Personal</a><a href="#">Business</a></div></div>
+  <header class="hd">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Zopa Bank">zopa<i aria-hidden="true"></i><b>bank</b></a>
+      <nav class="nav" aria-label="Main">
+        <a href="#" aria-current="page">Biscuit <span class="chev" aria-hidden="true"></span></a>
+        <a href="#">Borrow <span class="chev" aria-hidden="true"></span></a>
+        <a href="#">Save <span class="chev" aria-hidden="true"></span></a>
+        <a href="#">Invest <span class="chev" aria-hidden="true"></span></a>
+        <a href="#">About <span class="chev" aria-hidden="true"></span></a>
+        <a href="#">Help</a>
+        <button type="button" class="btn btn-primary">Sign out</button>
+      </nav>
+    </div>
+  </header>
+  <div class="signed"><div class="wrap">
+    <p class="crumbs"><a href="#">Biscuit current account</a> &rsaquo; <span>Send money</span></p>
+    <p class="who">Hi, Alex</p>
+  </div></div>
+
+  <main id="transfer">
+    <div class="wrap">
+      <h1>Send money</h1>
+      <p class="lead">Pay someone you've paid before, or move money between your Zopa accounts. Payments to UK accounts usually arrive within seconds.</p>
+      <div class="grid">
+        <form id="transferForm" novalidate aria-labelledby="formHead">
+          <h2 id="formHead">Payment details</h2>
+          <div class="field">
+            <label for="fromAccount">From</label>
+            <select id="fromAccount">
+              <option value="ZB-4471" data-name="Biscuit current account" data-number="04-00-10 &middot; 31906274" data-balance="2418.60" data-tier="standard">Biscuit current account &middot; 31906274</option>
+              <option value="ZB-4472" data-name="Smart Saver" data-number="04-00-10 &middot; 31906282" data-balance="6250.00" data-tier="standard">Smart Saver &middot; 31906282</option>
+            </select>
+            <small id="fromHelp"></small>
+            <input type="hidden" id="accountTier" value="standard">
+          </div>
+          <div class="field">
+            <label for="toAccount">To</label>
+            <select id="toAccount">
+              <option value="">Choose a payee or one of your accounts</option>
+              <option value="RCP-PRIYA" data-name="Priya Shah" data-number="20-45-61 &middot; 70228413" data-ref="Dinner on Friday">Priya Shah &middot; 70228413</option>
+              <option value="RCP-RENT" data-name="Harbour Lettings Ltd" data-number="30-96-26 &middot; 14407519" data-ref="Rent, Flat 4">Harbour Lettings Ltd &middot; 14407519</option>
+              <option value="RCP-WATER" data-name="Thames Water" data-number="60-00-01 &middot; 39012345" data-ref="Account 7733 1120">Thames Water &middot; 39012345</option>
+              <option value="ZB-4471" data-name="Biscuit current account" data-number="04-00-10 &middot; 31906274" data-ref="Everyday spending">Biscuit current account (your account)</option>
+              <option value="ZB-4472" data-name="Smart Saver" data-number="04-00-10 &middot; 31906282" data-ref="Savings">Smart Saver (your account)</option>
+            </select>
+            <small id="toHelp"></small>
+          </div>
+          <div class="field">
+            <label for="amount">Amount</label>
+            <div class="amount-wrap"><b aria-hidden="true">&pound;</b><input type="number" id="amount" inputmode="decimal" min="0" step="0.01" placeholder="0.00" autocomplete="off"></div>
+            <small id="amountHelp"></small>
+          </div>
+          <dl class="summary" aria-label="Payment summary">
+            <div><dt>From</dt><dd id="sumFrom">&mdash;</dd></div>
+            <div><dt>To</dt><dd id="sumTo">&mdash;</dd></div>
+            <div><dt>Reference</dt><dd id="sumRef">&mdash;</dd></div>
+            <div><dt>Amount</dt><dd id="sumAmount">&mdash;</dd></div>
+            <div><dt>Fee</dt><dd id="sumFee">&mdash;</dd></div>
+            <div class="total"><dt>Leaves your account</dt><dd id="sumTotal">&mdash;</dd></div>
+          </dl>
+          <div class="actions">
+            <button type="submit" id="submitBtn" class="btn btn-primary">Send money</button>
+            <button type="reset" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+          </div>
+          <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+          <p class="status" id="paymentStatus" role="status" aria-live="polite">Check the details, then select Send money.</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+        <aside class="side">
+          <section aria-labelledby="accHead">
+            <h2 id="accHead">Your accounts</h2>
+            <div class="acc"><div>Biscuit current account<span>04-00-10 &middot; 31906274</span></div><b data-balance-for="ZB-4471">&nbsp;</b></div>
+            <div class="acc"><div>Smart Saver<span>04-00-10 &middot; 31906282</span></div><b data-balance-for="ZB-4472">&nbsp;</b></div>
+          </section>
+          <div class="cardbox" id="cardBox">
+            <img src="https://www.datocms-assets.com/23873/1786535049-zopa_ft_biscuit2_biscuits_in_tin_card_ec_r2-3-4.png?auto=format&amp;w=760" alt="The mint green Biscuit debit card" loading="lazy" onerror="document.getElementById('cardBox').className='cardbox fallback'">
+            <div class="alt" aria-hidden="true"><div class="mark">zopa bank</div><div class="bis">biscuit</div></div>
+          </div>
+          <section aria-labelledby="safeHead">
+            <h2 id="safeHead">Before you send</h2>
+            <p class="cop"><span class="tick" aria-hidden="true">&#10003;</span><span>We check the payee's name against their sort code and account number before any money leaves your account.</span></p>
+            <p>Payments to UK accounts usually arrive within seconds. Your Biscuit account activity updates as soon as the payment is confirmed.</p>
+            <p>Not sure about a payment? <a class="help" href="#">Visit Zopa Help</a> or ask in the Zopa app.</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="wrap">
+      <nav aria-label="Footer"><a href="#">Help</a><a href="#">Taking fraud seriously</a><a href="#">Complaints</a><a href="#">Privacy notice</a><a href="#">Terms of use</a></nav>
+      <p>Zopa Bank Limited is authorised by the Prudential Regulation Authority and regulated by the Financial Conduct Authority and the Prudential Regulation Authority, and entered on the Financial Services Register (800542). Zopa Bank Limited (10627575) is incorporated in England &amp; Wales and has its registered office at: Zopa Bank, Level 12, 20 Water Street, Canary Wharf, London E14 5GX.</p>
+      <p>&copy; Zopa Bank Limited. 'Zopa' is a trademark of Zopa Bank Limited.</p>
+    </div>
+  </footer>
+  <script>
+    window.SKIN = {
+      locale: 'en-GB', currency: 'GBP',
+      idle: 'Send money', sending: 'Sending\u2026',
+      statusIdle: 'Check the details, then select Send money.',
+      statusSending: 'Sending your payment\u2026', statusDone: 'Payment sent.',
+      availableLabel: 'Available', maxLabel: 'You can send up to', toPlaceholder: 'Saved payees and your own accounts',
+      chooseRecipient: 'Choose who to pay.', enterAmount: 'Enter an amount, for example 25.',
+      sameAccount: 'Choose a different account to send to.',
+      tooMuch: 'That amount plus the fee is more than you have available. You can send up to',
+      success: (at, amt, to, from, fee, ref) => `Payment sent at ${at}. ${amt} to ${to} from your ${from} (fee ${fee}). Reference ${ref}.`,
+      duplicate: (at, amt, to, ref) => `This payment was already sent at ${at}: ${amt} to ${to}, reference ${ref}. We didn't send it twice.`,
+      failed: 'We couldn\u2019t send this payment. Nothing has left your account. Please try again in a moment.',
+      unconfirmed: 'We couldn\u2019t confirm this payment. Check your account activity before sending again, so it doesn\u2019t go twice.',
+    };
+  </script>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const S = window.SKIN;
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm');
+      const button = $('submitBtn');
+      const cancelBtn = $('cancelBtn');
+      const result = $('result');
+      const status = $('paymentStatus');
+      const fromAccount = $('fromAccount');
+      const toAccount = $('toAccount');
+      const amountInput = $('amount');
+      const accountTier = $('accountTier');
+      const timer = $('sendTimer');
+      const timerValue = $('sendTimerValue');
+      const fields = [fromAccount, toAccount, amountInput];
+      const money = new Intl.NumberFormat(S.locale, { style: 'currency', currency: S.currency });
+      const timeFmt = new Intl.DateTimeFormat(S.locale, { hour: '2-digit', minute: '2-digit' });
+      const FEE = { rate: 0.001, flat: 2.50 };
+      const balances = {};
+      Array.from(fromAccount.options).forEach((o) => { balances[o.value] = Number(o.dataset.balance) || 0; });
+      let pending = false;
+      let ticker = null;
+
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (select) => select.options[select.selectedIndex];
+      const available = () => balances[fromAccount.value] || 0;
+      const feeCents = (cents) => Math.round(Math.max(FEE.rate * cents, FEE.flat * 100));
+      function maxPayable() {
+        const avail = Math.round(available() * 100);
+        let max = Math.min(Math.floor(avail / (1 + FEE.rate)), avail - FEE.flat * 100);
+        while (max > 0 && max + feeCents(max) > avail) max -= 1;
+        return Math.max(max, 0) / 100;
+      }
+      function parsedAmount() {
+        const raw = amountInput.value.trim().replace(/,/g, '');
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return parseFloat(raw);
+      }
+      const recipient = () => (toAccount.value ? selected(toAccount) : null);
+      function renderBalances() {
+        document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = money.format(balances[el.dataset.balanceFor] || 0); });
+      }
+      function render() {
+        Array.from(toAccount.options).forEach((o) => { o.disabled = Boolean(o.value) && o.value === fromAccount.value; });
+        if (toAccount.selectedIndex >= 0 && toAccount.options[toAccount.selectedIndex].disabled) toAccount.value = '';
+        const from = selected(fromAccount);
+        const to = recipient();
+        const amount = parsedAmount();
+        accountTier.value = 'standard';
+        set('fromHelp', `${from.dataset.number} \u00b7 ${S.availableLabel} ${money.format(available())}`);
+        set('toHelp', to ? `${to.dataset.number}${to.dataset.ref ? ' \u00b7 ' + to.dataset.ref : ''}` : S.toPlaceholder);
+        set('amountHelp', `${S.maxLabel} ${money.format(maxPayable())}`);
+        set('sumFrom', from.dataset.name);
+        set('sumTo', to ? to.dataset.name : '\u2014');
+        set('sumRef', to && to.dataset.ref ? to.dataset.ref : '\u2014');
+        const ok = Number.isFinite(amount) && amount > 0;
+        set('sumAmount', ok ? money.format(amount) : '\u2014');
+        set('sumFee', ok ? money.format(feeCents(Math.round(amount * 100)) / 100) : '\u2014');
+        set('sumTotal', ok ? money.format((Math.round(amount * 100) + feeCents(Math.round(amount * 100))) / 100) : '\u2014');
+      }
+      function notice(message, focusEl) {
+        result.className = 'result-box notice';
+        result.textContent = message;
+        status.textContent = S.statusIdle;
+        if (focusEl) focusEl.focus();
+      }
+      function stopTimer(done) {
+        if (ticker) { clearInterval(ticker); ticker = null; }
+        if (timer) timer.className = done ? 'stopwatch on done' : 'stopwatch';
+      }
+
+      fromAccount.addEventListener('change', render);
+      toAccount.addEventListener('change', render);
+      amountInput.addEventListener('input', render);
+      form.addEventListener('reset', () => {
+        setTimeout(() => {
+          result.className = 'result-box';
+          result.textContent = '';
+          status.textContent = S.statusIdle;
+          stopTimer(false);
+          if (timerValue) timerValue.textContent = '0.0s';
+          renderBalances();
+          render();
+        });
+      });
+      renderBalances();
+      render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        const to = recipient();
+        const amount = parsedAmount();
+        if (!to) { notice(S.chooseRecipient, toAccount); return; }
+        if (toAccount.value === fromAccount.value) { notice(S.sameAccount, toAccount); return; }
+        if (!Number.isFinite(amount) || amount <= 0) { notice(S.enterAmount, amountInput); return; }
+        if (Math.round(amount * 100) > Math.round(maxPayable() * 100)) { notice(`${S.tooMuch} ${money.format(maxPayable())}.`, amountInput); return; }
+
+        pending = true;
+        button.disabled = true;
+        cancelBtn.disabled = true;
+        fields.forEach((el) => { el.disabled = true; });
+        button.textContent = S.sending;
+        status.textContent = S.statusSending;
+        result.className = 'result-box';
+        result.textContent = '';
+        const started = performance.now();
+        const tick = () => { if (timerValue) timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        if (timer) { timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100); }
+        const fromId = fromAccount.value;
+        const toId = toAccount.value;
+        const fromName = selected(fromAccount).dataset.name;
+        const toName = to.dataset.name;
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick();
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const paid = Number(data.receipt.amount);
+          const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
+          if (data.duplicate) {
+            result.className = 'result-box notice';
+            result.textContent = S.duplicate(at, money.format(paid), toName, data.receipt.receiptId);
+            status.textContent = S.statusIdle;
+            stopTimer(true);
+            return;
+          }
+          balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+          if (toId !== fromId && Object.prototype.hasOwnProperty.call(balances, toId)) balances[toId] = Math.round((balances[toId] + paid) * 100) / 100;
+          renderBalances();
+          render();
+          result.className = 'result-box success';
+          result.textContent = S.success(at, money.format(paid), toName, fromName, money.format(Math.max(debited - paid, 0)), data.receipt.receiptId);
+          status.textContent = S.statusDone;
+          stopTimer(true);
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok ? S.failed : S.unconfirmed;
+          status.textContent = S.statusIdle;
+        } finally {
+          fields.forEach((el) => { el.disabled = false; });
+          pending = false;
+          button.disabled = false;
+          cancelBtn.disabled = false;
+          button.textContent = S.idle;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

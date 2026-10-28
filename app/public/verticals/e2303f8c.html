@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Upload &amp; reports | MiniMed CareLink</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #0067B1;
+      --ink: #1B2A4A;
+      --surface: #F2F5F9;
+      --chrome-bg: #1B2A4A;
+      --chrome-text: #FFFFFF;
+      --panel: #FFFFFF;
+      --line: #D9E0E8;
+      --muted: #5F6F84;
+      --ok: #1F7A4D;
+      --ok-bg: #DFF3E8;
+      --warn: #8A5A00;
+      --warn-bg: #FFF1D6;
+      --low: #C2410C;
+      --high: #B7791F;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--surface);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    button, select, input { font: inherit; }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      min-height: 64px;
+      padding: 0 32px;
+      background: var(--chrome-bg);
+      color: var(--chrome-text);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--chrome-text); font-weight: 700; white-space: nowrap; min-height: 44px; }
+    .brand .mark {
+      display: inline-grid; place-items: center;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #fff; color: var(--chrome-bg); font-weight: 800; font-size: 13px;
+    }
+    .brand small { display: block; font-weight: 500; font-size: 11px; opacity: .75; letter-spacing: .04em; }
+    .app-nav { display: flex; gap: 24px; flex: 1; }
+    .app-nav a { display: inline-flex; align-items: center; min-height: 44px; color: rgba(255,255,255,.75); font-size: 14px; white-space: nowrap; }
+    .app-nav a.active { color: #fff; font-weight: 700; box-shadow: inset 0 -3px 0 #4FB3E8; }
+    .account { font-size: 13px; color: rgba(255,255,255,.85); white-space: nowrap; }
+
+    main { max-width: 1120px; margin: 0 auto; padding: 36px 28px 64px; }
+    .eyebrow { margin: 0 0 4px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 800; }
+    h1 { margin: 0; font-size: 28px; letter-spacing: -.02em; }
+    h2 { margin: 0; font-size: 17px; }
+    .muted { color: var(--muted); font-size: 13px; }
+
+    .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; margin-top: 24px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+    .patient { display: flex; flex-direction: column; gap: 14px; }
+    .patient-head { display: flex; gap: 12px; align-items: center; }
+    .avatar { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #E3EEF8; color: var(--accent); font-weight: 800; }
+    .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; font-size: 13px; }
+    .facts dt { color: var(--muted); }
+    .facts dd { margin: 0; font-weight: 600; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 99px; background: var(--ok-bg); color: var(--ok); font-size: 11px; font-weight: 700; }
+
+    form { display: flex; flex-direction: column; gap: 18px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
+    .field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 700; }
+    .field small { color: var(--muted); font-weight: 400; font-size: 11px; }
+    select {
+      min-height: 44px; border: 1px solid #C8D2DD; border-radius: 6px; padding: 9px 10px; background: #fff; color: inherit; font-size: 13px;
+    }
+    select:focus-visible, input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .device {
+      display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+      border: 1px dashed #9DB0C4; border-radius: 8px; background: #FAFCFE; font-size: 13px;
+    }
+    .device-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; background: #E3EEF8; color: var(--accent); font-weight: 800; font-size: 12px; flex: 0 0 40px; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 46px; border: 0; border-radius: 6px; padding: 10px 18px;
+      background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; cursor: pointer;
+    }
+    .btn:disabled { opacity: .6; cursor: default; }
+    .spinner { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .btn.busy .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress { display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: 13px; }
+    .progress .elapsed { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--ink); }
+
+    .result-box:empty { display: none; }
+    .result-box { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 18px; font-size: 13px; }
+    .result-box.notice { background: #FFF8E8; border-color: #E7C477; color: #6F4A00; }
+    .report-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; margin-bottom: 14px; }
+    .report-head code { color: var(--muted); font-size: 12px; }
+    .tir { display: flex; height: 18px; border-radius: 4px; overflow: hidden; margin: 6px 0 8px; }
+    .tir span { display: block; }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 12px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+    .stat { padding: 12px; border: 1px solid var(--line); border-radius: 6px; }
+    .stat b { display: block; font-size: 20px; }
+    .stat span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+
+    @media (max-width: 860px) {
+      .app-header { flex-wrap: wrap; gap: 0 16px; padding: 10px 16px 0; }
+      .app-nav { order: 3; flex: 1 0 100%; overflow-x: auto; gap: 18px; scrollbar-width: none; }
+      .account { margin-left: auto; }
+      main { padding: 24px 16px 48px; }
+      .layout, .grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .btn { flex: 1 1 auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="#"><span class="mark">M</span><span>MiniMed CareLink<small>CLINIC</small></span></a>
+    <nav class="app-nav" aria-label="Primary">
+      <a href="#">Patients</a>
+      <a href="#" class="active" aria-current="page">Upload &amp; reports</a>
+      <a href="#">Therapy settings</a>
+      <a href="#">Clinic</a>
+    </nav>
+    <span class="account">Dr. A. Rivera &middot; Lakeside Endocrinology</span>
+  </header>
+
+  <main>
+    <p class="eyebrow">Patient record</p>
+    <h1>Upload device data &amp; generate report</h1>
+
+    <div class="layout">
+      <aside class="card patient" aria-label="Patient">
+        <div class="patient-head">
+          <span class="avatar" aria-hidden="true">JM</span>
+          <div><h2>Jamie Morgan</h2><span class="muted">Demo patient &middot; fictional</span></div>
+        </div>
+        <dl class="facts">
+          <dt>Pump</dt><dd>MiniMed 780G</dd>
+          <dt>Sensor</dt><dd>Simplera Sync</dd>
+          <dt>Mode</dt><dd>SmartGuard <span class="pill">Active</span></dd>
+          <dt>Last sync</dt><dd>3 days ago</dd>
+          <dt>Next visit</dt><dd>Today, 2:30 PM</dd>
+        </dl>
+      </aside>
+
+      <section class="card">
+        <form id="uploadForm" novalidate>
+          <div class="grid">
+            <label class="field" for="uploadSource">Upload source
+              <select id="uploadSource">
+                <option value="clinic-usb">Clinic upload &mdash; USB reader at front desk</option>
+                <option value="patient-app">Patient app sync &mdash; MiniMed Mobile</option>
+              </select>
+            </label>
+            <label class="field" for="reportType">Report
+              <select id="reportType">
+                <option value="tmd">Therapy Management Dashboard</option>
+              </select>
+            </label>
+            <label class="field" for="uploadType">Processing path
+              <select id="uploadType">
+                <option value="full" selected>Full upload &mdash; pump, sensor &amp; event history</option>
+                <option value="incremental">Incremental &mdash; since last cloud sync</option>
+              </select>
+            </label>
+            <label class="field" for="amount">Report period (days)
+              <select id="amount">
+                <option value="7">7 days</option>
+                <option value="14" selected>14 days</option>
+                <option value="30">30 days</option>
+                <option value="90">90 days</option>
+              </select>
+              <small>Most clinics review the last 14 days.</small>
+            </label>
+          </div>
+
+          <div class="device" role="group" aria-label="Connected device">
+            <span class="device-icon" aria-hidden="true">780G</span>
+            <span><b>MiniMed 780G detected</b><br><span class="muted">Serial NG&middot;&middot;&middot;&middot;4417 &middot; Simplera Sync paired &middot; ready to upload</span></span>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span id="submitLabel">Upload &amp; generate report</span></button>
+            <div class="progress"><span id="uploadStatus" role="status" aria-live="polite"></span><span class="elapsed" id="uploadElapsed"></span></div>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('uploadForm');
+    const button = document.getElementById('submitBtn');
+    const submitLabel = document.getElementById('submitLabel');
+    const result = document.getElementById('result');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const uploadElapsed = document.getElementById('uploadElapsed');
+    const daysInput = document.getElementById('amount');
+    const PATIENT_ID = 'PT-20417';
+    const REPORT_PERIODS = [7, 14, 30, 90];
+
+    let ticker = null;
+    function startTicker() {
+      const started = Date.now();
+      uploadElapsed.textContent = '0.0s';
+      ticker = setInterval(() => { uploadElapsed.textContent = ((Date.now() - started) / 1000).toFixed(1) + 's'; }, 100);
+    }
+    function stopTicker() { clearInterval(ticker); ticker = null; }
+
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    function renderReport(report) {
+      const days = report.periodDays;
+      const r = report.summary;
+      result.className = 'result-box';
+      result.innerHTML = '';
+      const head = el('div', 'report-head');
+      const title = el('b', '', 'Therapy Management Dashboard \u00b7 last ' + days + (days === 1 ? ' day' : ' days'));
+      const meta = el('code', '', report.id + ' \u00b7 ' + report.uploadSourceLabel + ' \u00b7 generated in ' + uploadElapsed.textContent);
+      head.append(title, meta);
+
+      const tirLabel = el('div', 'muted', 'Time in range (70\u2013180 mg/dL)');
+      const bands = [
+        ['#7A1F1F', r.timeInRange[0]], ['#C2410C', r.timeInRange[1]], ['#1F7A4D', r.timeInRange[2]], ['#E2B54A', r.timeInRange[3]], ['#B7791F', r.timeInRange[4]],
+      ];
+      const tir = el('div', 'tir');
+      bands.forEach(([color, pct]) => {
+        const s = el('span');
+        s.style.background = color;
+        s.style.width = pct + '%';
+        tir.append(s);
+      });
+      const legend = el('div', 'legend');
+      ['Very low', 'Low', 'In range', 'High', 'Very high'].map((name, i) => name + ' ' + r.timeInRange[i] + '%').forEach((t) => legend.append(el('span', '', t)));
+
+      const stats = el('div', 'stats');
+      [[r.avgGlucoseMgDl + ' mg/dL', 'Avg sensor glucose'], [r.gmiPct.toFixed(1) + '%', 'GMI'], [r.smartGuardPct + '%', 'SmartGuard time'], [r.sensorWearPct + '%', 'Sensor wear']].forEach(([v, l]) => {
+        const s = el('div', 'stat');
+        s.append(el('b', '', v), el('span', '', l));
+        stats.append(s);
+      });
+      result.append(head, tirLabel, tir, legend, stats);
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const days = Number(daysInput.value);
+      if (!REPORT_PERIODS.includes(days)) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choose a report period.';
+        return;
+      }
+      button.disabled = true;
+      button.classList.add('busy');
+      submitLabel.textContent = 'Generating\u2026';
+      uploadStatus.textContent = 'Uploading device history and building report\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      startTicker();
+      try {
+        const response = await fetch('/api/carelink/reports', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientId: PATIENT_ID,
+            uploadType: document.getElementById('uploadType').value,
+            uploadSource: document.getElementById('uploadSource').value,
+            periodDays: days,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.report) throw new Error(data.error || 'Report could not be generated.');
+        stopTicker();
+        renderReport(data.report);
+        uploadStatus.textContent = 'Upload complete. Report ready for review.';
+      } catch (error) {
+        result.className = 'result-box notice';
+        result.textContent = error.message + ' No report was produced for this visit.';
+        uploadStatus.textContent = 'Upload not completed.';
+      } finally {
+        stopTicker();
+        button.classList.remove('busy');
+        button.disabled = false;
+        submitLabel.textContent = 'Upload & generate report';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
