@@ -75,6 +75,7 @@
     .drawer-body .items li { grid-template-columns: 52px 1fr auto; }
     .drawer-body .thumb { width: 52px; height: 52px; }
     .hold { font-size: 11px; color: var(--teal); }
+    .remove { display: block; margin-top: 4px; margin-left: auto; background: none; border: 0; padding: 0; color: var(--muted); font-size: 11px; text-decoration: underline; }
     .empty { color: var(--muted); text-align: center; padding: 50px 0; font-size: 14px; }
     .summary { border-top: 1px solid var(--line); padding: 16px 20px 22px; font-size: 14px; display: grid; gap: 8px; }
     .summary div { display: flex; justify-content: space-between; }
@@ -230,7 +231,8 @@
           el('bag-lines').innerHTML = '<ul class="items">' + lines.map(function (line) {
             return '<li data-sku="' + line.sku + '"><div class="thumb">' + art(line.art) + '</div><div><div class="brand">' + escapeHtml(line.brand) + '</div>' +
               escapeHtml(line.name) + '<div class="size">' + escapeHtml(line.color) + ' &middot; Size ' + escapeHtml(line.size) + '</div>' +
-              '<div class="hold">Held for you for 15 min</div></div><div>' + money(line.priceCents) + '</div></li>';
+              '<div class="hold">Held for you for 15 min</div></div><div>' + money(line.priceCents) +
+              '<button class="remove" data-remove="' + escapeHtml(line.holdId) + '">Remove</button></div></li>';
           }).join('') + '</ul>';
         }
         var subtotal = lines.reduce(function (sum, line) { return sum + line.priceCents * line.quantity; }, 0);
@@ -269,6 +271,17 @@
           button.disabled = false;
           window.alert(err.message);
         });
+      }
+
+      function removeLine(holdId) {
+        var removed = lines.filter(function (line) { return line.holdId === holdId; })[0];
+        lines = lines.filter(function (line) { return line.holdId !== holdId; });
+        if (removed && !lines.some(function (line) { return line.lookId === removed.lookId; })) {
+          var addButton = document.querySelector('[data-add="' + removed.lookId + '"]');
+          if (addButton) { addButton.textContent = 'Add to bag'; addButton.classList.remove('added'); }
+        }
+        el('checkout-error').classList.remove('show');
+        renderBag();
       }
 
       function checkout() {
@@ -332,6 +345,7 @@
         if (target.hasAttribute('data-add')) addToBag(target.getAttribute('data-add'), target, false);
         else if (target.hasAttribute('data-buy')) addToBag(target.getAttribute('data-buy'), target, true);
         else if (target.hasAttribute('data-rail')) { activeRail = target.getAttribute('data-rail'); applyRail(); }
+        else if (target.hasAttribute('data-remove')) removeLine(target.getAttribute('data-remove'));
       });
       el('open-bag').addEventListener('click', function () { renderBag(); openBag(); });
       el('close-bag').addEventListener('click', closeBag);
