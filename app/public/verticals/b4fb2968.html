@@ -471,7 +471,8 @@
           var m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v);
           var d = m && new Date(+m[3], +m[1] - 1, +m[2]);
           var real = d && d.getFullYear() === +m[3] && d.getMonth() === +m[1] - 1 && d.getDate() === +m[2];
-          var age = real && (Date.now() - d.getTime()) / 31557600000;
+          var now = new Date(), mo = +m[1] - 1, da = +m[2];
+          var age = real && now.getFullYear() - +m[3] - (now.getMonth() < mo || (now.getMonth() === mo && now.getDate() < da) ? 1 : 0);
           return real && age >= 18 && age <= 120 ? '' : 'Please enter a valid date of birth';
         }
         if (key === 'zip') return /^\d{5}$/.test(v) ? '' : 'Please enter a valid 5-digit zip code';
