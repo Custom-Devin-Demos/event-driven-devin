@@ -124,7 +124,7 @@ function reportAppFailure(report) {
   const authorisersRequired = Number.isFinite(report.authorisersRequired) ? report.authorisersRequired : clip(report.authorisersRequired, 8);
   const tier = Number.isFinite(report.tier) ? report.tier : clip(report.tier, 8);
   const roleCode = clip(report.roleCode || 'unknown', 32);
-  const roleCodes = Array.isArray(report.roleCodes) ? report.roleCodes.map((code) => clip(code, 32)) : [];
+  const roleCodes = Array.isArray(report.roleCodes) ? report.roleCodes.slice(0, 16).map((code) => clip(code, 32)) : [];
   const fromAccount = clip(report.fromAccount || 'unknown', 64);
   const toLabel = clip(report.toLabel, 128);
   const lineCount = Number.isFinite(report.lineCount) ? report.lineCount : clip(report.lineCount, 8);
