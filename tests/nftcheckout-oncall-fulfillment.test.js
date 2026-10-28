@@ -153,8 +153,8 @@ describe('OpenSea sweep checkout on-call vertical', () => {
     expect(card).toContain('os-fulfillment-api@2026.10.26');
     expect(card).toContain('ConsiderationNotMet');
     expect(card).toContain('demo.nftcheckout.fulfillment.reverted{service:checkout-api');
-    expect(text).toContain('https://github.com/COG-GTM/seaport');
-    expect(text).toContain('forge test');
+    expect(text).toContain('nftcheckout-seaport.js');
+    expect(text).toContain('Browser before/after');
     expect(JSON.stringify(blocks)).toContain('Triage notes (OpenSea checkout)');
   });
 

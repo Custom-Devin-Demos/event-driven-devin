@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Transfer | Kestrel Bank</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1B5E50;
+      --ink: #191919;
+      --surface: #FFFFFF;
+      --chrome-bg: #164C41;
+      --chrome-text: #FFFFFF;
+      --canvas: #F4F1EB;
+      --pressed: #123F36;
+      --sage: #CFE3DA;
+      --pale: #E4EFE9;
+      --muted: rgba(25,25,25,.60);
+      --faint: rgba(25,25,25,.42);
+      --line: rgba(0,0,0,.08);
+      --field: #D5D9D6;
+      --pos: #00874A;
+      --err: #B42322; --err-bg: #FDEDED;
+      --warn: #7A4300; --warn-bg: #FFF4E5;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; overflow-x: hidden; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 15px; line-height: 22px; color: var(--ink); background: var(--canvas); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+    .num { font-variant-numeric: tabular-nums; }
+    .wrap { max-width: 1300px; margin: 0 auto; padding: 0 32px; }
+
+    .util { background: var(--chrome-bg); color: rgba(255,255,255,.82); font-size: 13px; }
+    .util .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; }
+    .util nav { display: flex; gap: 4px; }
+    .util a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; }
+    .util a[aria-current] { color: #fff; font-weight: 600; box-shadow: inset 0 -2px 0 #fff; }
+    .util a:hover { color: #fff; }
+
+    .masthead { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .masthead .wrap { display: flex; align-items: center; gap: 36px; min-height: 76px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 20px; font-weight: 700; letter-spacing: -.01em; color: var(--accent); flex: none; }
+    .mark { width: 36px; height: 36px; border-radius: 11px; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+    .mainnav { display: flex; gap: 2px; align-self: stretch; }
+    .mainnav a { display: inline-flex; align-items: center; padding: 0 14px; font-weight: 500; color: var(--muted); box-shadow: inset 0 -3px 0 transparent; }
+    .mainnav a:hover { color: var(--ink); }
+    .mainnav a[aria-current] { color: var(--accent); font-weight: 600; box-shadow: inset 0 -3px 0 var(--accent); }
+    .user { margin-left: auto; display: flex; align-items: center; gap: 14px; flex: none; }
+    .ava { width: 40px; height: 40px; border-radius: 50%; background: var(--sage); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex: none; }
+    .user .who { text-align: right; line-height: 18px; }
+    .user .who b { display: block; font-weight: 600; }
+    .user .who small { color: var(--muted); font-size: 12px; }
+    .logout { min-height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--field); background: var(--surface); font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .logout:hover { border-color: var(--accent); color: var(--accent); }
+
+    .pagehead { padding-top: 26px; padding-bottom: 22px; }
+    .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; margin-top: -10px; font-size: 13px; color: var(--muted); }
+    .crumbs a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 2px; }
+    h1 { margin: 6px 0 4px; font-size: 32px; line-height: 40px; font-weight: 600; letter-spacing: -.02em; }
+    .pagehead p { margin: 0; color: var(--muted); }
+
+    .layout { display: grid; grid-template-columns: 210px minmax(0, 1fr) 340px; gap: 28px; align-items: start; padding-bottom: 56px; }
+    .layout > * { min-width: 0; }
+    .card { background: var(--surface); border-radius: 16px; border: 1px solid var(--line); min-width: 0; }
+
+    .side-nav { padding: 10px; }
+    .side-nav h2 { margin: 6px 10px 6px; font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); }
+    .side-nav a { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border-radius: 10px; color: var(--muted); font-weight: 500; }
+    .side-nav a:hover { background: var(--canvas); color: var(--ink); }
+    .side-nav a[aria-current] { background: var(--pale); color: var(--accent); font-weight: 600; }
+    .side-help { margin-top: 16px; padding: 18px; font-size: 14px; color: var(--muted); }
+    .side-help b { display: block; color: var(--ink); margin-bottom: 4px; }
+    .side-help a { color: var(--accent); font-weight: 600; display: inline-flex; min-height: 44px; align-items: center; }
+
+    .panel { padding: 28px 32px 32px; }
+    .steps { display: flex; gap: 0; margin: 0 0 26px; padding: 0; list-style: none; font-size: 14px; color: var(--faint); }
+    .steps li { flex: 1; display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 3px solid var(--line); font-weight: 500; }
+    .steps b { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--field); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex: none; }
+    .steps li.on { color: var(--ink); border-color: var(--accent); }
+    .steps li.on b { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .steps li.done { color: var(--accent); border-color: var(--sage); }
+    .steps li.done b { background: var(--pale); border-color: var(--pale); color: var(--accent); }
+    .panel h2 { margin: 0 0 4px; font-size: 20px; line-height: 28px; font-weight: 600; }
+    .panel .lead { margin: 0 0 22px; color: var(--muted); }
+
+    .accts { display: grid; grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr); gap: 14px; align-items: end; }
+    .field { display: grid; gap: 6px; min-width: 0; }
+    .field > label { font-weight: 600; font-size: 14px; }
+    .field small { color: var(--muted); font-size: 13px; min-height: 20px; }
+    select, .txt { width: 100%; min-width: 0; min-height: 50px; border: 1.5px solid var(--field); border-radius: 12px; background-color: var(--surface); color: var(--ink); padding: 0 14px; }
+    select { padding-right: 40px; -webkit-appearance: none; appearance: none; cursor: pointer; text-overflow: ellipsis;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231B5E50' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    select:hover, .txt:hover { border-color: #AEB6B1; }
+    select:focus, .txt:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--pale); }
+    select:disabled, .txt:disabled, input:disabled { opacity: .6; }
+    .swap { width: 44px; height: 44px; margin-bottom: 29px; border-radius: 50%; border: 1.5px solid var(--field); background: var(--surface); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .swap:hover { border-color: var(--accent); background: var(--pale); }
+    .row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px 74px; margin-top: 10px; }
+    .amount-field { grid-column: 1 / -1; }
+    .amount-line { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+    .money { position: relative; width: 260px; max-width: 100%; }
+    .amount-line .chips { margin-top: 0; }
+    .money input { padding-right: 46px; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+    .money input::-webkit-outer-spin-button, .money input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .money span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 500; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .chip { min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--field); background: var(--surface); font-weight: 500; font-size: 14px; cursor: pointer; }
+    .chip:hover { border-color: var(--accent); }
+    .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .static { min-height: 50px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border-radius: 12px; background: var(--canvas); }
+    .static b { font-weight: 600; }
+
+    .actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+    .actions .note { margin-right: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 26px; border-radius: 12px; border: 1.5px solid transparent; font-weight: 600; font-size: 15px; cursor: pointer; }
+    .btn-primary { background: var(--accent); color: #fff; min-width: 180px; }
+    .btn-primary:hover { background: var(--pressed); }
+    .btn-primary:disabled { background: #6E978C; cursor: progress; }
+    .btn-plain { background: var(--surface); color: var(--ink); border-color: var(--field); }
+    .btn-plain:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-plain:disabled { opacity: .5; cursor: default; }
+    .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .sum { width: 100%; border-collapse: collapse; }
+    .sum th, .sum td { padding: 14px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .sum th { width: 34%; color: var(--muted); font-weight: 500; }
+    .sum td { font-weight: 500; overflow-wrap: anywhere; }
+    .sum td small { display: block; color: var(--muted); font-weight: 400; font-size: 13px; }
+    .sum .amt td { font-size: 26px; line-height: 32px; font-weight: 600; letter-spacing: -.01em; }
+
+    .result-box { display: none; margin-top: 18px; }
+    .result-box.notice, .result-box.error { display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px; }
+    .result-box.notice { background: var(--warn-bg); color: var(--warn); }
+    .result-box.error { background: var(--err-bg); color: var(--err); }
+    .result-box .t { font-weight: 600; }
+    .result-box .d { overflow-wrap: anywhere; }
+    .result-box.success { display: block; margin-top: 0; }
+    .ok-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+    .ok-badge { width: 56px; height: 56px; border-radius: 50%; background: var(--pale); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+    .ok-badge svg { width: 28px; height: 28px; stroke-width: 2.4; }
+    .ok-head h2 { margin: 0; }
+    .ok-head p { margin: 2px 0 0; color: var(--muted); }
+
+    .acts { margin-top: 22px; padding: 22px 32px 10px; }
+    .acts-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .acts-head h2 { margin: 0; font-size: 18px; font-weight: 600; }
+    .acts-head a { color: var(--accent); font-weight: 600; font-size: 14px; display: inline-flex; min-height: 44px; align-items: center; }
+    .tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .tbl th { text-align: left; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .tbl td { padding: 13px 0; border-bottom: 1px solid var(--line); }
+    .tbl tr:last-child td { border-bottom: 0; }
+    .tbl .r { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .tbl .in { color: var(--pos); }
+    .tbl .desc { display: flex; align-items: center; gap: 12px; font-weight: 500; }
+    .tbl .desc .ava { width: 34px; height: 34px; font-size: 12px; }
+    .tbl .m { color: var(--muted); }
+    .tbl tr.fresh td { animation: fresh 1.8s ease-out; }
+    @keyframes fresh { from { background: var(--pale); } to { background: transparent; } }
+
+    .aside-card { padding: 20px 22px 8px; }
+    .aside-card h2 { margin: 0 0 4px; font-size: 16px; font-weight: 600; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .aside-card h2 small { font-size: 13px; font-weight: 400; color: var(--muted); }
+    .lst { list-style: none; margin: 0; padding: 0; }
+    .lst li { display: flex; align-items: center; gap: 12px; padding: 12px 0; min-width: 0; }
+    .lst li + li { border-top: 1px solid var(--line); }
+    .bub { width: 38px; height: 38px; border-radius: 50%; background: var(--pale); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+    .lst .who { flex: 1; min-width: 0; }
+    .lst .n { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lst .s { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lst .v { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .total { display: flex; justify-content: space-between; padding: 12px 0 14px; border-top: 1px solid var(--line); font-weight: 600; }
+    .tip { margin-top: 16px; padding: 18px 22px; background: var(--pale); border-color: transparent; font-size: 14px; }
+    .tip b { display: block; color: var(--accent); margin-bottom: 4px; }
+    .tip ul { margin: 0; padding-left: 18px; color: var(--ink); }
+    .tip li + li { margin-top: 4px; }
+
+    .foot { background: var(--chrome-bg); color: rgba(255,255,255,.78); font-size: 14px; }
+    .foot .cols { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 28px; padding: 40px 0 28px; }
+    .foot h3 { margin: 0 0 8px; color: #fff; font-size: 14px; font-weight: 600; }
+    .foot a { display: flex; align-items: center; min-height: 44px; }
+    .foot a:hover { color: #fff; }
+    .foot .brand { color: #fff; font-size: 18px; }
+    .foot .brand .mark { background: #fff; color: var(--chrome-bg); }
+    .foot .legal { border-top: 1px solid rgba(255,255,255,.14); padding: 16px 0 24px; font-size: 12px; color: rgba(255,255,255,.62); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: minmax(0, 1fr) 300px; }
+      .side-col { display: none; }
+    }
+    @media (max-width: 860px) {
+      .wrap { padding: 0 18px; }
+      .util nav:first-child a:not([aria-current]) { display: none; }
+      .mainnav, .user .who, .logout span { display: none; }
+      .masthead .wrap { min-height: 64px; gap: 12px; }
+      .logout { padding: 0 12px; min-height: 44px; }
+      .layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+      .pagehead { padding-top: 18px; padding-bottom: 16px; }
+      h1 { font-size: 26px; line-height: 32px; }
+      .panel { padding: 20px 18px 22px; }
+      .acts { padding: 18px 18px 6px; }
+      .accts { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+      .swap { margin: 0 auto; transform: rotate(90deg); }
+      .row2 { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+      .money { width: 100%; }
+      .steps { font-size: 12px; }
+      .steps li { gap: 6px; }
+      .actions { flex-wrap: wrap; }
+      .actions .note { flex-basis: 100%; }
+      .actions .btn { flex: 1; min-width: 0; }
+      .tbl .acc-col { display: none; }
+      .foot .cols { grid-template-columns: 1fr 1fr; }
+      .foot .cols > :first-child { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="ic-card" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h4"/></symbol>
+    <symbol id="ic-bill" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
+    <symbol id="ic-pig" viewBox="0 0 24 24"><path d="M5 11a7 6 0 0 1 12.5-3.5L20 7l-.6 3.2A6 6 0 0 1 19 15l-1 1v3h-3v-1.5h-4V19H8v-3a6 6 0 0 1-3-5z"/><path d="M5 11H3.5M15.5 10h.01"/></symbol>
+    <symbol id="ic-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></symbol>
+    <symbol id="ic-transfer" viewBox="0 0 24 24"><path d="M4 8h15l-4-4M20 16H5l4 4"/></symbol>
+    <symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="ic-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></symbol>
+    <symbol id="ic-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="ic-out" viewBox="0 0 24 24"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l4-4-4-4M14 12H4"/></symbol>
+    <symbol id="ic-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+  <div class="util">
+    <div class="wrap">
+      <nav aria-label="Customer type"><a href="#" aria-current="page">Personal</a><a href="#">Business</a><a href="#">About Kestrel</a></nav>
+      <nav aria-label="Support"><a href="#">Help &amp; support</a><a href="#">Svenska</a></nav>
+    </div>
+  </div>
+  <header class="masthead">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Kestrel Bank, overview"><span class="mark" aria-hidden="true">K</span>Kestrel Bank</a>
+      <nav class="mainnav" aria-label="Internet bank">
+        <a href="#">Overview</a>
+        <a href="#">Accounts</a>
+        <a href="#" aria-current="page">Transfers</a>
+        <a href="#">Savings</a>
+        <a href="#">Cards</a>
+      </nav>
+      <div class="user">
+        <span class="who"><b>Alex Lindqvist</b><small>Last login today, 07:58</small></span>
+        <span class="ava" aria-hidden="true">AL</span>
+        <button type="button" class="logout" aria-label="Log out"><svg class="i"><use href="#ic-out"/></svg><span>Log out</span></button>
+      </div>
+    </div>
+  </header>
+  <div class="wrap pagehead">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="#">Overview</a><span aria-hidden="true">›</span><a href="#">Transfers</a><span aria-hidden="true">›</span><span>Between your accounts</span></nav>
+    <h1>Transfer between your accounts</h1>
+    <p>Move money between your Kestrel accounts. It arrives instantly and there is no fee.</p>
+  </div>
+  <main class="wrap layout">
+    <aside class="side-col">
+      <nav class="card side-nav" aria-label="Transfers">
+        <h2>Transfers</h2>
+        <a href="#" aria-current="page"><svg class="i"><use href="#ic-transfer"/></svg>Between your accounts</a>
+        <a href="#"><svg class="i"><use href="#ic-list"/></svg>Transfer history</a>
+        <a href="#"><svg class="i"><use href="#ic-clock"/></svg>Upcoming</a>
+      </nav>
+      <div class="card side-help"><b>Need a hand?</b>Our team answers questions about your accounts every day, 08–22.<br><a href="#">Contact Help &amp; support</a></div>
+    </aside>
+    <div>
+      <section class="card panel">
+        <ol class="steps" aria-label="Progress">
+          <li id="st1" class="on"><b>1</b>Details</li>
+          <li id="st2"><b>2</b>Review</li>
+          <li id="st3"><b>3</b>Done</li>
+        </ol>
+        <form id="transferForm" novalidate>
+          <div id="stepEdit">
+            <h2>Transfer details</h2>
+            <p class="lead">Choose the accounts and the amount.</p>
+            <div class="accts">
+              <div class="field">
+                <label for="fromAccount">From</label>
+                <select id="fromAccount">
+                  <option value="KB-4816" data-name="Everyday Account" data-mask="4816" data-icon="card" data-balance="18450.75">Everyday Account</option>
+                  <option value="KB-3520" data-name="Bills Account" data-mask="3520" data-icon="bill" data-balance="6200.00">Bills Account</option>
+                  <option value="KB-7043" data-name="Savings Account" data-mask="7043" data-icon="pig" data-balance="84300.50">Savings Account</option>
+                  <option value="KB-8192" data-name="Shared Account" data-mask="8192" data-icon="people" data-balance="3975.20" data-with="with Sam">Shared Account</option>
+                </select>
+                <small id="fromHelp"></small>
+              </div>
+              <button type="button" class="swap" id="swapBtn" aria-label="Swap From and To"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h15l-4-4M20 16H5l4 4"/></svg></button>
+              <div class="field">
+                <label for="toAccount">To</label>
+                <select id="toAccount">
+                  <option value="KB-4816">Everyday Account</option>
+                  <option value="KB-3520">Bills Account</option>
+                  <option value="KB-7043" selected>Savings Account</option>
+                  <option value="KB-8192">Shared Account</option>
+                </select>
+                <small id="toHelp"></small>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field amount-field">
+                <label for="amount">Amount</label>
+                <div class="amount-line">
+                <div class="money"><input class="txt" type="number" id="amount" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" autocomplete="off"><span aria-hidden="true">kr</span></div>
+                <div class="chips" role="group" aria-label="Quick amounts">
+                  <button type="button" class="chip" data-amount="500">500</button>
+                  <button type="button" class="chip" data-amount="1000">1 000</button>
+                  <button type="button" class="chip" data-amount="2000">2 000</button>
+                  <button type="button" class="chip" data-amount="5000">5 000</button>
+                </div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="note">Message <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+                <input class="txt" id="note" maxlength="50" placeholder="For example: Lisbon trip" autocomplete="off">
+                <small>Only you see this message.</small>
+              </div>
+              <div class="field">
+                <span style="font-weight:600;font-size:14px">Date</span>
+                <div class="static"><svg class="i" style="color:var(--accent)"><use href="#ic-clock"/></svg><span><b id="edDate"></b> · arrives instantly</span></div>
+              </div>
+            </div>
+            <select id="accountTier" hidden aria-hidden="true" tabindex="-1"><option value="standard">standard</option></select>
+            <div class="actions">
+              <span class="note"><svg class="i"><use href="#ic-lock"/></svg>Transfers between your own accounts are free.</span>
+              <button type="button" class="btn btn-plain" id="clearBtn">Clear</button>
+              <button type="button" class="btn btn-primary" id="nextBtn">Continue</button>
+            </div>
+          </div>
+          <div id="stepConfirm" hidden>
+            <h2>Review transfer</h2>
+            <p class="lead">Check the details before you confirm.</p>
+            <table class="sum">
+              <tr class="amt"><th scope="row">Amount</th><td class="num" id="rvAmount"></td></tr>
+              <tr><th scope="row">From</th><td><span id="rvFrom"></span><small class="num" id="rvFromAfter"></small></td></tr>
+              <tr><th scope="row">To</th><td><span id="rvTo"></span><small class="num" id="rvToAfter"></small></td></tr>
+              <tr id="rvMsgRow"><th scope="row">Message</th><td id="rvMsg"></td></tr>
+              <tr><th scope="row">Date</th><td id="rvDate"></td></tr>
+              <tr><th scope="row">Fee</th><td class="num">0,00 kr</td></tr>
+            </table>
+            <div class="actions">
+              <span class="note"><svg class="i"><use href="#ic-lock"/></svg>Between your accounts · arrives instantly</span>
+              <button type="button" class="btn btn-plain" id="backBtn">Back</button>
+              <button type="submit" class="btn btn-primary" id="submitBtn">Confirm transfer</button>
+            </div>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+      <section class="card acts" aria-labelledby="actsTitle">
+        <div class="acts-head"><h2 id="actsTitle">Latest activity</h2><a href="#">All transactions</a></div>
+        <table class="tbl">
+          <thead><tr><th scope="col">Description</th><th scope="col" class="acc-col">Account</th><th scope="col" class="r">Amount</th></tr></thead>
+          <tbody id="txList">
+            <tr><td><span class="desc"><span class="ava">IS</span><span>ICA Supermarket<br><span class="m" style="font-weight:400">Groceries · Today, 08:42</span></span></span></td><td class="acc-col m">Everyday •••• 4816</td><td class="r">−312,40 kr</td></tr>
+            <tr><td><span class="desc"><span class="ava">SL</span><span>SL<br><span class="m" style="font-weight:400">Transport · Today, 07:55</span></span></span></td><td class="acc-col m">Everyday •••• 4816</td><td class="r">−42,00 kr</td></tr>
+            <tr><td><span class="desc"><span class="ava">ML</span><span>Swish from Maria L.<br><span class="m" style="font-weight:400">Dinner · Yesterday</span></span></span></td><td class="acc-col m">Everyday •••• 4816</td><td class="r in">+450,00 kr</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+    <aside>
+      <section class="card aside-card" aria-labelledby="acctTitle">
+        <h2 id="acctTitle">Your accounts <small>4 accounts</small></h2>
+        <ul class="lst" id="acctList"></ul>
+        <div class="total"><span>Total</span><span class="num" id="acctTotal"></span></div>
+      </section>
+      <section class="card tip">
+        <b>Good to know</b>
+        <ul>
+          <li>Money between your own accounts arrives instantly, every day.</li>
+          <li>Transfers between your accounts are always free.</li>
+          <li>You'll find every transfer under Transfer history.</li>
+        </ul>
+      </section>
+    </aside>
+  </main>
+  <footer class="foot">
+    <div class="wrap cols">
+      <div><a class="brand" href="#"><span class="mark" aria-hidden="true">K</span>Kestrel Bank</a><p style="margin:10px 0 0;max-width:300px">Demo app with fictional data. Kestrel Bank is not a real bank and is not affiliated with any bank.</p></div>
+      <div><h3>Everyday banking</h3><a href="#">Accounts</a><a href="#">Transfers</a><a href="#">Savings</a></div>
+      <div><h3>Help</h3><a href="#">Help &amp; support</a><a href="#">Book an advisor</a><a href="#">Report a lost card</a></div>
+      <div><h3>About</h3><a href="#">Security</a><a href="#">Privacy</a><a href="#">Cookies</a></div>
+    </div>
+    <div class="wrap legal"><span>© Kestrel Bank (fictional) · Demo app with fictional data</span><span>Kestrel Internet Bank</span></div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      var form = $('transferForm');
+      var fromAccount = $('fromAccount');
+      var toAccount = $('toAccount');
+      var amountInput = $('amount');
+      var accountTier = $('accountTier');
+      var note = $('note');
+      var submitBtn = $('submitBtn');
+      var result = $('result');
+      var accounts = {};
+      Array.prototype.forEach.call(fromAccount.options, function (o) {
+        accounts[o.value] = { name: o.dataset.name, mask: o.dataset.mask, icon: o.dataset.icon, extra: o.dataset.with || '', cents: Math.round(Number(o.dataset.balance) * 100) };
+      });
+      var pending = false;
+      var num = new Intl.NumberFormat('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      var dayFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long' });
+      var stampFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+      var timeFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+      function kr(c) { return num.format(c / 100).replace(/\u2212/, '-') + ' kr'; }
+      function icon(name) { return '<svg class="i"><use href="#ic-' + name + '"/></svg>'; }
+      function label(a) { return a.name + ' •••• ' + a.mask; }
+      function amountCents() {
+        var raw = amountInput.value.trim();
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return Math.round(parseFloat(raw) * 100);
+      }
+      function from() { return accounts[fromAccount.value]; }
+      function to() { return accounts[toAccount.value]; }
+      function renderAccounts() {
+        var list = $('acctList');
+        var total = 0;
+        list.innerHTML = '';
+        Object.keys(accounts).forEach(function (id) {
+          var a = accounts[id];
+          total += a.cents;
+          var li = document.createElement('li');
+          li.innerHTML = '<span class="bub">' + icon(a.icon) + '</span><div class="who"><div class="n"></div><div class="s num"></div></div><span class="v"></span>';
+          li.querySelector('.n').textContent = a.name;
+          li.querySelector('.s').textContent = '•••• ' + a.mask + (a.extra ? ' · ' + a.extra : '');
+          li.querySelector('.v').textContent = kr(a.cents);
+          list.appendChild(li);
+        });
+        $('acctTotal').textContent = kr(total);
+        [fromAccount, toAccount].forEach(function (s) {
+          Array.prototype.forEach.call(s.options, function (o) { o.textContent = accounts[o.value].name; });
+        });
+      }
+      function render() {
+        accountTier.value = 'standard';
+        var f = from(), t = to();
+        renderAccounts();
+        $('fromHelp').textContent = '•••• ' + f.mask + ' · Available: ' + kr(f.cents);
+        $('toHelp').textContent = '•••• ' + t.mask + (t.extra ? ' · ' + t.extra : '') + ' · Balance: ' + kr(t.cents);
+        var cents = amountCents();
+        Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (b) {
+          b.setAttribute('aria-pressed', String(Number(b.dataset.amount) * 100 === cents));
+        });
+        var ok = Number.isFinite(cents) && cents > 0;
+        var today = 'Today, ' + dayFmt.format(new Date());
+        $('edDate').textContent = today;
+        $('rvAmount').textContent = ok ? kr(cents) : '';
+        $('rvFrom').textContent = label(f);
+        $('rvFromAfter').textContent = ok ? 'Balance after: ' + kr(f.cents - cents) : '';
+        $('rvTo').textContent = label(t);
+        $('rvToAfter').textContent = ok ? 'Balance after: ' + kr(t.cents + cents) : '';
+        $('rvMsg').textContent = note.value.trim();
+        $('rvMsgRow').hidden = !note.value.trim();
+        $('rvDate').textContent = today + ' · arrives instantly';
+      }
+      function setStep(next) {
+        $('stepEdit').hidden = next !== 'edit';
+        $('stepConfirm').hidden = next !== 'confirm';
+        var idx = { edit: 1, confirm: 2, done: 3 }[next];
+        [1, 2, 3].forEach(function (n) { $('st' + n).className = n === idx ? 'on' : (n < idx ? 'done' : ''); });
+      }
+      function show(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><div><div class="t"></div><div class="d"></div></div>';
+        result.querySelector('.t').textContent = title;
+        result.querySelector('.d').textContent = detail || '';
+      }
+      function clearResult() { result.className = 'result-box'; result.innerHTML = ''; }
+      function validate() {
+        var cents = amountCents();
+        if (fromAccount.value === toAccount.value) { show('notice', 'Choose two different accounts', 'Money can only move between two different accounts.'); toAccount.focus(); return false; }
+        if (!Number.isFinite(cents) || cents <= 0) { show('notice', 'Enter an amount', 'Enter an amount in kronor, for example 500.'); amountInput.focus(); return false; }
+        if (cents > from().cents) { show('notice', 'Not enough money', 'Available: ' + kr(from().cents)); amountInput.focus(); return false; }
+        return true;
+      }
+      function goReview() {
+        if (pending) return;
+        clearResult();
+        if (!validate()) return;
+        render();
+        setStep('confirm');
+        submitBtn.focus();
+      }
+      function backToEdit() { if (pending) return; clearResult(); setStep('edit'); }
+      function lock(on) {
+        [fromAccount, toAccount, amountInput, note, $('swapBtn'), $('backBtn'), $('clearBtn')].forEach(function (el) { el.disabled = on; });
+        Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (el) { el.disabled = on; });
+      }
+      function reference(receiptId) {
+        var digits = String(receiptId || '').replace(/\D/g, '').slice(-8).padStart(8, '0');
+        return 'KB-' + digits.slice(0, 4) + '-' + digits.slice(4);
+      }
+      function addTx(f, t, cents, at) {
+        var tr = document.createElement('tr');
+        tr.className = 'fresh';
+        tr.innerHTML = '<td><span class="desc"><span class="ava">' + icon('transfer') + '</span><span><span class="n"></span><br><span class="m s" style="font-weight:400"></span></span></span></td><td class="acc-col m"></td><td class="r"></td>';
+        tr.querySelector('.n').textContent = 'Transfer to ' + t.name;
+        tr.querySelector('.s').textContent = 'Transfer · Today, ' + at;
+        tr.querySelector('.acc-col').textContent = f.name.replace(' Account', '') + ' •••• ' + f.mask;
+        tr.querySelector('.r').textContent = '\u2212' + kr(cents);
+        $('txList').insertBefore(tr, $('txList').firstChild);
+      }
+      function showComplete(f, t, cents, when, ref) {
+        result.className = 'result-box success';
+        result.innerHTML = '<div class="ok-head"><span class="ok-badge" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><h2 class="t">Transfer complete</h2><p class="d"></p></div></div>' +
+          '<table class="sum"><tr class="amt"><th scope="row">Amount</th><td class="num a"></td></tr><tr><th scope="row">From</th><td class="f"></td></tr><tr><th scope="row">To</th><td class="to"></td></tr><tr><th scope="row">Date</th><td class="dt"></td></tr><tr><th scope="row">Reference</th><td class="rf num"></td></tr></table>' +
+          '<div class="actions"><a class="btn btn-plain" href="#">Go to overview</a><button type="reset" class="btn btn-primary">Make another transfer</button></div>';
+        result.querySelector('.d').textContent = kr(cents) + ' moved to ' + t.name + '. It\u2019s available right away.';
+        result.querySelector('.a').textContent = kr(cents);
+        result.querySelector('.f').textContent = label(f);
+        result.querySelector('.to').textContent = label(t);
+        result.querySelector('.dt').textContent = stampFmt.format(when);
+        result.querySelector('.rf').textContent = ref;
+      }
+      amountInput.addEventListener('input', function () { clearResult(); render(); });
+      note.addEventListener('input', render);
+      fromAccount.addEventListener('change', function () { clearResult(); render(); });
+      toAccount.addEventListener('change', function () { clearResult(); render(); });
+      $('swapBtn').addEventListener('click', function () {
+        var a = fromAccount.value; fromAccount.value = toAccount.value; toAccount.value = a; clearResult(); render();
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (b) {
+        b.addEventListener('click', function () { amountInput.value = b.dataset.amount; clearResult(); render(); });
+      });
+      $('clearBtn').addEventListener('click', function () { form.reset(); });
+      $('nextBtn').addEventListener('click', goReview);
+      $('backBtn').addEventListener('click', backToEdit);
+      form.addEventListener('reset', function () {
+        setTimeout(function () { clearResult(); setStep('edit'); fromAccount.value = 'KB-4816'; toAccount.value = 'KB-7043'; render(); });
+      });
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (pending) return;
+        if ($('stepConfirm').hidden) { goReview(); return; }
+        if (!validate()) { setStep('edit'); return; }
+        var f = from(), t = to();
+        pending = true;
+        lock(true);
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Transferring…';
+        clearResult();
+        var response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          var data = await response.json().catch(function () { return null; });
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          var when = new Date(data.receipt.timestamp);
+          var moved = Math.round(Number(data.receipt.amount) * 100);
+          var ref = reference(data.receipt.receiptId);
+          if (data.duplicate) {
+            show('notice', 'Already transferred', 'This transfer was already made at ' + timeFmt.format(when) + ': ' + kr(moved) + ' to ' + t.name + ', reference ' + ref + '. It was not sent again.');
+            return;
+          }
+          f.cents -= moved;
+          t.cents += moved;
+          addTx(f, t, moved, timeFmt.format(when));
+          setStep('done');
+          showComplete(f, t, moved, when, ref);
+          note.value = '';
+          amountInput.value = '';
+        } catch (_e) {
+          if (response && !response.ok) show('error', 'Transfer not made', 'No money has moved. Please try again in a moment.');
+          else show('error', 'We couldn\u2019t confirm this transfer', 'Check your latest activity before you try again.');
+        } finally {
+          pending = false;
+          lock(false);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Confirm transfer';
+          render();
+        }
+      });
+      render();
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

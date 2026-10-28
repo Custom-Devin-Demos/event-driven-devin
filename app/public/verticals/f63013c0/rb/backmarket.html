@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Essentials | Back Market · DEMO ENVIRONMENT</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  @font-face { font-family: 'BMDupletTXT'; src: url('/verticals/f63013c0/rb/backmarket/BMDupletTXT-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'BMDupletTXT'; src: url('/verticals/f63013c0/rb/backmarket/BMDupletTXT-Semibold.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+  @font-face { font-family: 'BMDupletDSP'; src: url('/verticals/f63013c0/rb/backmarket/BMDupletDSP-Semibold.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+  @font-face { font-family: 'IvarSoft'; src: url('/verticals/f63013c0/rb/backmarket/IvarSoft-SemiBold.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+  :root { --ink: #2F3137; --ink2: #110F15; --meta: #6B6E78; --line: #DDE0E6; --bg: #F8F9FC; --chip: #EDEEF3; --purple: #6E35D9; --promo: #CDB4F2; --pink: #B5175D; --danger: #C2042C; --danger-bg: #FFE9EC; --ok: #0D7F45; --font: 'BMDupletTXT', 'Helvetica Neue', Arial, sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); color: var(--ink); background: var(--bg); font-size: 16px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  button, input, select { font-family: inherit; }
+  button { cursor: pointer; }
+  img { display: block; max-width: 100%; }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  .ico { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 24px; border-radius: 8px; border: 0; background: var(--ink2); color: #fff; font-weight: 600; font-size: 16px; }
+  .btn:hover { background: #2b2933; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn.block { width: 100%; }
+  .btn.sec { background: #fff; color: var(--ink2); border: 1px solid var(--ink2); }
+  .muted { color: var(--meta); }
+
+  header.site { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; }
+  .util { height: 32px; display: flex; align-items: center; gap: 24px; font-size: 12px; font-weight: 600; color: var(--ink2); }
+  .util a { display: inline-flex; align-items: center; gap: 6px; }
+  .util .ico { width: 15px; height: 15px; }
+  .util .lang { margin-left: auto; font-weight: 600; }
+  .util .lang img { width: 24px; height: 16px; }
+  .mainbar { height: 56px; display: flex; align-items: center; gap: 32px; }
+  .mainbar .logo img { width: 214px; height: auto; }
+  .search { flex: 1; display: flex; align-items: center; gap: 12px; height: 40px; background: var(--chip); border-radius: 20px; padding: 0 12px; }
+  .search input { border: 0; background: transparent; outline: none; font-size: 16px; flex: 1; color: var(--ink2); }
+  .search input::placeholder { color: var(--ink); }
+  .mainbar .links { display: flex; align-items: center; gap: 32px; font-weight: 600; color: var(--ink2); }
+  .mainbar .icon-btn { position: relative; display: inline-flex; color: var(--ink2); background: none; border: 0; }
+  .mainbar .icon-btn .ico { width: 24px; height: 24px; }
+  .badge { position: absolute; top: -6px; right: -8px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--ink2); color: #fff; font-size: 11px; font-weight: 600; display: none; align-items: center; justify-content: center; padding: 0 4px; }
+  .badge.on { display: inline-flex; }
+  nav.cats { height: 46px; display: flex; align-items: center; gap: 32px; font-size: 14px; color: var(--ink2); max-width: 1164px; white-space: nowrap; }
+  nav.cats a { display: inline-flex; align-items: center; gap: 4px; height: 46px; border-bottom: 2px solid transparent; }
+  nav.cats a.on { border-bottom-color: var(--ink2); }
+  nav.cats a.deals { color: var(--pink); }
+  nav.cats .right { margin-left: auto; display: flex; gap: 34px; }
+
+  .view { display: none; }
+  .view.on { display: block; }
+  .crumbs { display: flex; align-items: center; gap: 14px; font-size: 14px; padding: 24px 0 20px; color: var(--ink2); }
+  .crumbs b { font-weight: 600; }
+  .reassure { background: #EEF0F5; border-radius: 8px; height: 80px; display: grid; grid-template-columns: repeat(4, 1fr); align-items: center; padding: 0 32px; font-size: 14px; color: var(--ink2); }
+  .reassure div { display: flex; align-items: center; gap: 14px; }
+  .reassure .ico { margin-right: 10px; }
+  h1.title { font-family: 'IvarSoft', Georgia, serif; font-weight: 600; font-size: 56px; line-height: 1.1; color: var(--ink); margin: 30px 0 10px; letter-spacing: -.01em; }
+  .lede { font-size: 14px; color: var(--ink); }
+  .filters { display: flex; align-items: center; gap: 8px; margin: 46px 0 34px; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 16px; background: var(--chip); border: 0; font-size: 14px; color: var(--ink2); }
+  .pill .ico { width: 16px; height: 16px; }
+  .pill.sort { margin-left: auto; }
+  .count { font-size: 12px; color: var(--ink); }
+  .qa { font-size: 11px; margin-top: 10px; }
+  .qa u { font-weight: 600; }
+  .tradein { display: inline-flex; align-items: center; gap: 10px; height: 36px; padding: 0 14px; border-radius: 18px; background: #fff; font-size: 14px; color: var(--ink2); margin: 20px 0 44px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding-bottom: 40px; }
+  .promo { background: var(--promo); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: flex-end; min-height: 330px; color: var(--ink2); }
+  .promo .shield { width: 42px; height: 42px; border-radius: 50%; background: #2F3137; display: flex; align-items: center; justify-content: center; color: #fff; margin-bottom: 12px; }
+  .promo h3 { font-size: 20px; font-weight: 600; line-height: 1.4; margin-bottom: 12px; font-family: 'BMDupletDSP', var(--font); }
+  .promo p { font-size: 14px; }
+  .card { background: #fff; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; cursor: pointer; transition: box-shadow .15s; min-height: 330px; position: relative; }
+  .card:hover { box-shadow: 0 6px 18px rgba(17,15,21,.10); }
+  .card .tag { font-size: 12px; font-weight: 600; color: var(--purple); }
+  .card .pic { height: 128px; display: flex; align-items: center; justify-content: center; margin: 10px 0 8px; }
+  .card .pic img { max-height: 128px; max-width: 160px; object-fit: contain; }
+  .dots { display: flex; justify-content: center; align-items: center; gap: 4px; height: 14px; font-size: 12px; color: var(--ink2); margin-bottom: 10px; }
+  .dots i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,.18); }
+  .card .name { font-size: 16px; font-weight: 600; color: var(--ink2); }
+  .rating { display: flex; align-items: center; gap: 6px; font-size: 12px; margin: 4px 0 6px; color: var(--ink2); }
+  .stars { display: inline-flex; gap: 1px; }
+  .stars svg { width: 12px; height: 12px; }
+  .from { font-size: 12px; color: var(--ink); }
+  .price { color: var(--ink2); font-weight: 600; line-height: 1.1; }
+  .price .c { font-size: 14px; vertical-align: 6px; }
+  .price .i { font-size: 22px; }
+  .price .d { font-size: 13px; vertical-align: 8px; }
+  .was { font-size: 14px; color: var(--meta); margin-top: 2px; }
+  .was s { color: var(--meta); }
+  .card .add { position: absolute; right: 14px; bottom: 14px; height: 32px; padding: 0 12px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .15s; }
+  .card:hover .add, .card:focus-within .add { opacity: 1; }
+  .empty { grid-column: 2 / -1; background: #fff; border-radius: 12px; padding: 40px; color: var(--meta); }
+
+  .page-h { font-family: 'IvarSoft', Georgia, serif; font-weight: 600; font-size: 40px; color: var(--ink); margin: 32px 0 24px; }
+  .two { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; padding-bottom: 56px; }
+  .panel { background: #fff; border-radius: 12px; padding: 24px; }
+  .panel + .panel { margin-top: 16px; }
+  .panel h2 { font-size: 20px; font-weight: 600; color: var(--ink2); margin-bottom: 14px; font-family: 'BMDupletDSP', var(--font); }
+  .line { display: grid; grid-template-columns: 96px 1fr auto; gap: 18px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .line:first-of-type { border-top: 0; padding-top: 4px; }
+  .line img { width: 96px; height: 96px; object-fit: contain; }
+  .line .nm { font-weight: 600; color: var(--ink2); }
+  .line .meta { font-size: 13px; color: var(--meta); margin-top: 2px; }
+  .line .ctl { display: flex; align-items: center; gap: 16px; margin-top: 12px; font-size: 14px; }
+  .line select { height: 32px; border: 1px solid var(--line); border-radius: 8px; padding: 0 8px; background: #fff; }
+  .line .rm { background: none; border: 0; text-decoration: underline; font-size: 14px; color: var(--ink2); }
+  .line .addon { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--ink2); }
+  .line .lp { font-weight: 600; color: var(--ink2); text-align: right; }
+  .row { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; padding: 5px 0; }
+  .row.total { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 14px; font-weight: 600; font-size: 18px; color: var(--ink2); }
+  .ok { color: var(--ok); }
+  .paypal { width: 100%; height: 48px; border-radius: 8px; border: 0; background: #FFC439; margin-top: 10px; display: flex; align-items: center; justify-content: center; }
+  .paypal img { height: 22px; }
+  .paypal:disabled { opacity: .45; cursor: not-allowed; }
+  .assure { list-style: none; margin-top: 18px; font-size: 13px; color: var(--ink2); }
+  .assure li { display: flex; gap: 10px; align-items: center; padding: 4px 0; }
+  .assure .ico { width: 18px; height: 18px; }
+  .steps { display: flex; gap: 10px; align-items: center; font-size: 14px; color: var(--meta); margin: 28px 0 0; }
+  .steps b { color: var(--ink2); font-weight: 600; }
+  .addr { font-size: 15px; color: var(--ink2); line-height: 1.6; }
+  .opt { display: flex; align-items: center; gap: 14px; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; cursor: pointer; margin-top: 10px; font-size: 15px; color: var(--ink2); }
+  .opt.on { border: 2px solid var(--ink2); padding: 13px 15px; }
+  .opt input { accent-color: var(--ink2); width: 18px; height: 18px; }
+  .opt .grow { flex: 1; }
+  .opt img { height: 22px; }
+  .opt .logos { display: flex; gap: 6px; }
+  .opt .logos img { height: 20px; }
+  .pay-error { display: none; background: var(--danger-bg); border-radius: 8px; padding: 14px 16px; margin-top: 16px; color: var(--ink2); font-size: 14px; gap: 12px; }
+  .pay-error.on { display: flex; }
+  .pay-error .bang { width: 22px; height: 22px; border-radius: 50%; background: var(--danger); color: #fff; font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .pay-error b { display: block; color: var(--danger); margin-bottom: 2px; }
+  .pay-error .retry { margin-top: 10px; height: 36px; font-size: 14px; padding: 0 16px; }
+  .mini { display: flex; gap: 12px; align-items: center; padding: 8px 0; font-size: 14px; }
+  .mini img { width: 48px; height: 48px; object-fit: contain; }
+  .mini .grow { flex: 1; color: var(--ink2); }
+  .confirm { max-width: 640px; margin: 48px auto 64px; text-align: center; }
+  .confirm .tick { width: 64px; height: 64px; border-radius: 50%; background: #DDF5E8; color: var(--ok); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .confirm .panel { text-align: left; margin-top: 24px; }
+
+  footer.site { background: #fff; color: var(--ink2); padding: 36px 0 28px; }
+  .news { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; padding-bottom: 40px; }
+  .news h4 { font-size: 22px; font-weight: 600; font-family: 'BMDupletDSP', var(--font); }
+  .news p { font-size: 13px; margin-top: 4px; max-width: 460px; }
+  .news form { display: flex; gap: 8px; }
+  .news input { flex: 1; height: 48px; border: 1px solid #9DA0A8; border-radius: 8px; padding: 0 12px; font-size: 15px; }
+  .news .lm { font-size: 11px; font-weight: 600; text-decoration: underline; margin-top: 12px; display: inline-block; }
+  .fcols { display: grid; grid-template-columns: repeat(5, 1fr) 1.2fr; gap: 24px; padding-bottom: 32px; border-bottom: 1px solid var(--line); }
+  .fcols h5 { font-size: 18px; font-weight: 600; margin-bottom: 20px; font-family: 'BMDupletDSP', var(--font); }
+  .fcols a { display: block; font-size: 13px; margin-bottom: 10px; }
+  .fcols .badges img { height: 22px; display: inline-block; margin: 0 4px 6px 0; }
+  .fcols .soc { display: flex; gap: 10px; margin-top: 8px; }
+  .fcols .soc img { height: 22px; filter: invert(1); }
+  .fcols .apps img { height: 40px; margin-bottom: 8px; }
+  .fcols .bcorp { height: 54px; margin-top: 10px; }
+  .copy { padding-top: 28px; font-size: 14px; }
+  .copy small { display: block; font-size: 10px; margin-top: 18px; }
+  .demo-strip { background: var(--ink2); color: #B9BCC6; font-size: 11px; text-align: center; padding: 6px 12px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 7h12l1 14H5L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></symbol>
+  <symbol id="i-return" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/><path d="M9 12h6M12 9l3 3-3 3"/></symbol>
+  <symbol id="i-headset" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19c0 1.5-2 2.5-5 2.5"/></symbol>
+  <symbol id="i-trade" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5.3L4 15"/><path d="M4 20v-5h5"/><path d="M12 9v6M9 12h6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 8h10M18 8h2M4 16h2M10 16h10"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M10 3l1.6 5.4L17 10l-5.4 1.6L10 17l-1.6-5.4L3 10l5.4-1.6zM18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+</svg>
+
+<header class="site">
+  <div class="wrap util">
+    <a href="#/"><svg class="ico"><use href="#i-shield"/></svg>The Back Market Promise</a>
+    <a href="#/">End fast tech</a>
+    <a href="#/">Tech Journal</a>
+    <span class="lang" style="display:inline-flex;align-items:center;gap:8px"><img src="/verticals/f63013c0/rb/backmarket/gb.svg" alt="">English (GB)</span>
+  </div>
+  <div class="wrap mainbar">
+    <a href="#/" class="logo" data-cat="all" aria-label="Back Market home"><img src="/verticals/f63013c0/rb/backmarket/logo.svg" alt="Back Market"></a>
+    <form class="search" id="searchForm" role="search"><svg class="ico"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Search for" aria-label="Search"></form>
+    <div class="links">
+      <a href="#/">Need help?</a>
+      <a href="#/">Business</a>
+      <a href="#/" class="icon-btn" aria-label="My account"><svg class="ico"><use href="#i-user"/></svg></a>
+      <a href="#/bag" class="icon-btn" aria-label="Basket"><svg class="ico"><use href="#i-bag"/></svg><span class="badge" id="bagCount">0</span></a>
+    </div>
+  </div>
+  <nav class="wrap cats" id="nav" style="max-width:1164px">
+    <a href="#/" class="deals" data-cat="deals"><svg class="ico" style="width:18px;height:18px"><use href="#i-spark"/></svg>Good deals</a>
+    <a href="#/" data-cat="Smartphones">Smartphones</a>
+    <a href="#/" data-cat="Laptops">Laptops</a>
+    <a href="#/" data-cat="Tablets">Tablets</a>
+    <a href="#/" data-cat="Game consoles">Game consoles</a>
+    <a href="#/" data-cat="Smartwatches">Smartwatches</a>
+    <a href="#/" data-cat="Audio">Audio</a>
+    <a href="#/" data-cat="Home appliances">Home appliances</a>
+    <a href="#/" data-cat="all">More</a>
+    <span class="right">
+      <a href="#/"><svg class="ico"><use href="#i-trade"/></svg>Trade in</a>
+      <a href="#/"><svg class="ico"><use href="#i-shield"/></svg>Services</a>
+    </span>
+  </nav>
+</header>
+
+<main>
+  <section class="view on" id="v-home">
+    <div class="wrap">
+      <div class="crumbs"><b><a href="#/" data-cat="all">Home</a></b><svg class="ico" style="width:16px;height:16px"><use href="#i-right"/></svg><span id="crumb">Smart Essentials</span></div>
+      <div class="reassure">
+        <div><svg class="ico"><use href="#i-shield"/></svg>1-year minimum warranty</div>
+        <div><svg class="ico"><use href="#i-truck"/></svg>Free delivery on all items</div>
+        <div><svg class="ico"><use href="#i-return"/></svg>Free 30-day returns</div>
+        <div><svg class="ico"><use href="#i-headset"/></svg>Excellent customer support</div>
+      </div>
+      <h1 class="title" id="title">Smart Essentials</h1>
+      <p class="lede" id="lede">Great price. Trusted quality. All hand-picked by our experts.</p>
+      <div class="filters">
+        <button class="pill">Price <svg class="ico"><use href="#i-chev"/></svg></button>
+        <button class="pill">Brand <svg class="ico"><use href="#i-chev"/></svg></button>
+        <button class="pill">Model <svg class="ico"><use href="#i-chev"/></svg></button>
+        <button class="pill">Condition <svg class="ico"><use href="#i-chev"/></svg></button>
+        <button class="pill">Categories <svg class="ico"><use href="#i-chev"/></svg></button>
+        <button class="pill">Filter <svg class="ico"><use href="#i-sliders"/></svg></button>
+        <button class="pill sort">Sort <b style="font-weight:600">Price: Low to High</b> <svg class="ico"><use href="#i-chev"/></svg></button>
+      </div>
+      <div class="count" id="count"></div>
+      <div class="qa"><u>Quality Assurance Fee</u> applies (starting at £0.49)</div>
+      <a href="#/" class="tradein"><svg class="ico"><use href="#i-trade"/></svg>Trade in to get it for less<svg class="ico" style="width:16px;height:16px"><use href="#i-right"/></svg></a>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-bag">
+    <div class="wrap">
+      <h1 class="page-h">Your basket</h1>
+      <div class="two">
+        <div class="panel" id="bagLines"></div>
+        <aside>
+          <div class="panel">
+            <h2>Summary</h2>
+            <div id="bagSummary"></div>
+            <button class="btn block" id="toCheckout" style="margin-top:16px">Go to checkout</button>
+            <button class="paypal" id="bagPaypal" aria-label="Pay with PayPal"><img src="/verticals/f63013c0/rb/backmarket/paypal.svg" alt="PayPal"></button>
+            <ul class="assure">
+              <li><svg class="ico"><use href="#i-shield"/></svg>1-year minimum warranty</li>
+              <li><svg class="ico"><use href="#i-truck"/></svg>Free delivery on all items</li>
+              <li><svg class="ico"><use href="#i-return"/></svg>Free 30-day returns</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-checkout">
+    <div class="wrap">
+      <div class="steps"><span>Basket</span><svg class="ico" style="width:14px;height:14px"><use href="#i-right"/></svg><b>Address &amp; payment</b><svg class="ico" style="width:14px;height:14px"><use href="#i-right"/></svg><span>Confirmation</span></div>
+      <h1 class="page-h" style="margin-top:12px">Checkout</h1>
+      <div class="two">
+        <div>
+          <div class="panel"><h2>Delivery address</h2><div class="addr" id="coAddr"></div></div>
+          <div class="panel"><h2>Delivery</h2><label class="opt on"><input type="radio" checked><span class="grow">Standard delivery · 2–4 working days</span><span class="ok">Free</span></label></div>
+          <div class="panel">
+            <h2>Payment</h2>
+            <label class="opt on" data-pay="card"><input type="radio" name="pay" value="card" checked><span class="grow" id="coCard"></span><span class="logos"><img src="/verticals/f63013c0/rb/backmarket/visa.svg" alt="Visa"><img src="/verticals/f63013c0/rb/backmarket/mastercard.svg" alt="Mastercard"><img src="/verticals/f63013c0/rb/backmarket/amex.svg" alt="Amex"></span></label>
+            <label class="opt" data-pay="paypal"><input type="radio" name="pay" value="paypal"><span class="grow">PayPal</span><img src="/verticals/f63013c0/rb/backmarket/paypal.svg" alt="PayPal"></label>
+            <div class="pay-error" id="payError" role="alert"><span class="bang">!</span><div><b>Payment failed</b><span id="payErrorMsg"></span><br><button class="btn retry" id="tryAgain">Try again</button></div></div>
+          </div>
+        </div>
+        <aside>
+          <div class="panel">
+            <h2>Your order</h2>
+            <div id="coMini"></div>
+            <div id="coSummary"></div>
+            <button class="btn block" id="placeOrder" style="margin-top:16px"></button>
+            <p class="muted" style="font-size:12px;margin-top:12px;display:flex;gap:6px;align-items:center"><svg class="ico" style="width:14px;height:14px"><use href="#i-lock"/></svg>Payments 100% secured</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-confirm">
+    <div class="wrap confirm">
+      <div class="tick"><svg class="ico" style="width:32px;height:32px"><use href="#i-check"/></svg></div>
+      <h1 class="page-h" style="margin:0 0 8px" id="cfTitle">Thanks for your order</h1>
+      <p class="muted" id="cfNum"></p>
+      <div class="panel" id="cfBox"></div>
+      <a href="#/" class="btn sec" style="margin-top:24px" data-cat="all">Continue shopping</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="news">
+      <div><h4>Stay in the loop with hot drops</h4><p>Be the first to know about new arrivals, exclusive deals, and tech news that matters.</p></div>
+      <div><form onsubmit="return false"><input type="email" placeholder="Email" aria-label="Email"><button class="btn">Sign up</button></form><a href="#/" class="lm">Learn more</a></div>
+    </div>
+    <div class="fcols">
+      <div><h5>About</h5><a href="#/">About us</a><a href="#/">Press</a><a href="#/">Our impact</a><a href="#/">We're hiring!</a><a href="#/">Trustpilot</a></div>
+      <div><h5>Help</h5><a href="#/">Contact us</a><a href="#/">Help Centre</a><a href="#/">Delivery</a><a href="#/">Returns and refunds</a></div>
+      <div><h5>Services</h5><a href="#/">Refer a friend</a><a href="#/">Commercial warranty</a><a href="#/">Insurances</a><a href="#/">Sell old tech</a><a href="#/">Campus+ Student and Teacher Savings</a><a href="#/">Sellers: Register to sell</a><a href="#/">Seller portal</a><a href="#/">Payments 100% secured</a></div>
+      <div><h5>Resources</h5><a href="#/">Tech Journal</a><a href="#/">Compare devices</a><a href="#/">All customer reviews</a><a href="#/">Gift ideas</a><a href="#/">Black Friday</a></div>
+      <div><h5>Law and order</h5><a href="#/">Terms of Use</a><a href="#/">Terms of Sale</a><a href="#/">Trade-in Terms and Conditions</a><a href="#/">Cookies and privacy settings</a><a href="#/">Data protection</a><a href="#/">Other legal information</a><a href="#/">Legal notices</a><a href="#/">Report illicit content</a></div>
+      <div>
+        <h5>Payments 100% secured</h5>
+        <div class="badges"><img src="/verticals/f63013c0/rb/backmarket/visa.svg" alt="Visa"><img src="/verticals/f63013c0/rb/backmarket/mastercard.svg" alt="Mastercard"><img src="/verticals/f63013c0/rb/backmarket/amex.svg" alt="Amex"><img src="/verticals/f63013c0/rb/backmarket/paypal.svg" alt="PayPal"><img src="/verticals/f63013c0/rb/backmarket/klarna.svg" alt="Klarna"><img src="/verticals/f63013c0/rb/backmarket/clearpay.svg" alt="Clearpay"><img src="/verticals/f63013c0/rb/backmarket/apple_pay.svg" alt="Apple Pay"><img src="/verticals/f63013c0/rb/backmarket/google_pay.svg" alt="Google Pay"></div>
+        <div class="soc"><img src="/verticals/f63013c0/rb/backmarket/facebook-light.svg" alt="Facebook"><img src="/verticals/f63013c0/rb/backmarket/x-light.svg" alt="X"><img src="/verticals/f63013c0/rb/backmarket/instagram-light.svg" alt="Instagram"><img src="/verticals/f63013c0/rb/backmarket/tiktok-light.svg" alt="TikTok"><img src="/verticals/f63013c0/rb/backmarket/youtube-light.svg" alt="YouTube"></div>
+        <div class="apps" style="margin-top:14px"><img src="/verticals/f63013c0/rb/backmarket/apple-store.svg" alt="App Store"><img src="/verticals/f63013c0/rb/backmarket/google-play.svg" alt="Google Play"></div>
+        <img class="bcorp" src="/verticals/f63013c0/rb/backmarket/B-Corp-Logo-Black.svg" alt="Certified B Corporation">
+      </div>
+    </div>
+    <div class="copy">© 2026 Back Market<small>Back Market is an Introducer Appointed Representative of Klarna Financial Services UK Limited, authorised and regulated by the Financial Conduct Authority (FRN 987889).</small></div>
+  </div>
+</footer>
+<div class="demo-strip">DEMO ENVIRONMENT · Back Market storefront sandbox for a Devin incident demo. Fictional customers, cards and orders; no real payments. Payments processed by Meridian Pay (fictional) · <span id="pspVer"></span></div>
+
+<script>
+(function () {
+  'use strict';
+  var API = '/api/f63013c0';
+  var ASSETS = '/verticals/f63013c0/rb/backmarket/';
+  var BRAND = 'backmarket';
+  var CASE_FEE = 9.99;
+  // Display-only listing data (ratings, RRP, colours) copied from the Smart Essentials page.
+  var META = {
+    'BM-WA-001': { img: 'p01.jpg', rating: 4.2, reviews: '1,342', rrp: 300, colors: ['#111', '#4a2a1d', '#333', '#1f6fd1'], more: 10 },
+    'BM-WA-002': { img: 'p02.jpg', rating: 4.3, reviews: '995', rrp: 490.82, colors: ['#111', '#555', '#333', '#1f6fd1'], more: 12 },
+    'BM-PH-003': { img: 'p03.jpg', rating: 4.3, reviews: '65,178', rrp: 289, colors: ['#111', '#d0021b', '#fff'] },
+    'BM-WA-004': { img: 'p04.jpg', rating: 4.5, reviews: '113', rrp: 349, colors: ['#111', '#1f8fe0', '#f2c500', '#888'], more: 2 },
+    'BM-WA-005': { img: 'p05.jpg', rating: 4.5, reviews: '717', rrp: 294.69, colors: ['#111', '#444', '#8a9db5', '#f7f2d0'], more: 4 },
+    'BM-WA-006': { img: 'p06.jpg', rating: 4.4, reviews: '873', rrp: 455.39, colors: ['#111', '#1f8fe0', '#f7f2d0', '#f4a7b9'], more: 5 },
+    'BM-WA-007': { img: 'p07.jpg', rating: 4.5, reviews: '85', rrp: 329, colors: ['#111', '#f7f2d0', '#f2c500', '#222'], more: 2 },
+    'BM-AU-008': { img: 'p08.jpg', rating: 4.5, reviews: '849' },
+    'BM-PH-009': { img: 'p09.jpg', rating: 4.5, reviews: '476', rrp: 169, colors: ['#111', '#9fb7d6', '#d9e7c5'] },
+    'BM-TA-010': { img: 'p10.jpg', rating: 4.5, reviews: '7,148', rrp: 389, colors: ['#555', '#d8d8d8', '#e8cfb5'] },
+    'BM-GC-011': { img: 'p11.jpg', rating: 4.2, reviews: '1,613' },
+    'BM-GC-012': { img: 'p12.jpg', rating: 4.4, reviews: '572', colors: ['#f2c500', '#7a7a7a', '#3cb8c9'], more: 1 },
+    'BM-PH-013': { img: 'p13.jpg', rating: 4.5, reviews: '264', rrp: 212.30, colors: ['#111', '#9fb7d6', '#d9e7c5'] },
+    'BM-WA-014': { img: 'p14.jpg', rating: 4.6, reviews: '6,377', rrp: 299, colors: ['#111', '#e9e3da', '#c0c0c0'] },
+    'BM-PH-015': { img: 'p15.jpg', rating: 4.3, reviews: '2,066', rrp: 459, colors: ['#111', '#fff', '#9fd0e8', '#f3b8c6'] }
+  };
+  var CATS = {
+    all: { title: 'Smart Essentials', lede: 'Great price. Trusted quality. All hand-picked by our experts.' },
+    deals: { title: 'Good deals', lede: 'Smart Essentials with the biggest savings versus new.', filter: function (p) { var m = META[p.sku] || {}; return m.rrp && (1 - p.price / m.rrp) >= 0.75; } },
+    search: { title: 'Search results', lede: '' }
+  };
+  ['Smartphones', 'Laptops', 'Tablets', 'Game consoles', 'Smartwatches', 'Audio', 'Home appliances'].forEach(function (c) {
+    CATS[c] = { title: c, lede: 'Smart Essentials · ' + c + '. Refurbished, tested and backed by a 1-year warranty.', filter: function (p) { return p.category === c; } };
+  });
+
+  var catalog = null, products = {}, bag = [], placing = false, lastRequest = null;
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function money(n) { return '£' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function bigPrice(n) { var s = Number(n).toFixed(2).split('.'); return '<span class="c">£</span><span class="i">' + Number(s[0]).toLocaleString('en-GB') + '</span><span class="d">.' + s[1] + '</span>'; }
+  function imgSrc(sku) { return ASSETS + ((META[sku] || {}).img || 'p01.jpg'); }
+  function stars(r) {
+    var out = '';
+    for (var i = 1; i <= 5; i++) {
+      var fill = r >= i ? 1 : r >= i - 0.5 ? 0.5 : 0;
+      out += '<svg viewBox="0 0 24 24"><defs><linearGradient id="g' + i + Math.round(r * 10) + '"><stop offset="' + (fill * 100) + '%" stop-color="#110F15"/><stop offset="' + (fill * 100) + '%" stop-color="#fff"/></linearGradient></defs><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" fill="url(#g' + i + Math.round(r * 10) + ')" stroke="#110F15" stroke-width="1.6"/></svg>';
+    }
+    return '<span class="stars">' + out + '</span>';
+  }
+  function shipTo(a) { return esc(a.line1) + (a.line2 ? ', ' + esc(a.line2) : '') + '<br>' + esc(a.city) + ' ' + esc(a.postcode) + '<br>' + esc(a.country); }
+
+  function totals() {
+    var sub = 0, extras = 0, count = 0;
+    bag.forEach(function (l) {
+      var p = products[l.sku]; if (!p) return;
+      sub += p.price * l.qty; count += l.qty;
+      if (l.giftBox) extras += CASE_FEE;
+    });
+    sub = Math.round(sub * 100) / 100; extras = Math.round(extras * 100) / 100;
+    return { sub: sub, extras: extras, total: Math.round((sub + extras) * 100) / 100, count: count };
+  }
+
+  function postHeaders() {
+    var h = { 'Content-Type': 'application/json' };
+    var secret = localStorage.getItem('sessionSecret');
+    if (secret) h['x-session-secret'] = secret;
+    return h;
+  }
+
+  var currentCat = 'all';
+  function renderGrid(cat) {
+    currentCat = cat;
+    var c = CATS[cat] || CATS.all;
+    $('title').textContent = c.title;
+    $('crumb').textContent = c.title;
+    $('lede').textContent = c.lede;
+    document.querySelectorAll('#nav a[data-cat]').forEach(function (a) { a.classList.toggle('on', cat !== 'all' && a.getAttribute('data-cat') === cat); });
+    var list = (catalog ? catalog.products : []).filter(function (p) { return !c.filter || c.filter(p); });
+    list.sort(function (a, b) { return a.price - b.price; });
+    $('count').textContent = list.length + ' product' + (list.length === 1 ? '' : 's');
+    var promo = '<div class="promo"><div class="shield"><svg class="ico"><use href="#i-shield"/></svg></div><h3>Free 1-year warranty included</h3><p>Device repair or replacement on us for all devices.</p></div>';
+    if (!list.length) { $('grid').innerHTML = promo + '<div class="empty">No Smart Essentials in ' + esc(c.title) + ' right now. Check back soon — new devices land every day.</div>'; return; }
+    $('grid').innerHTML = promo + list.map(function (p) {
+      var m = META[p.sku] || {};
+      var dots = (m.colors || []).map(function (col) { return '<i style="background:' + col + '"></i>'; }).join('') + (m.more ? '+' + m.more : '');
+      return '<article class="card" data-add="' + esc(p.sku) + '" tabindex="0" aria-label="' + esc(p.name) + '">' +
+        '<div class="tag">Smart Essentials</div>' +
+        '<div class="pic"><img src="' + imgSrc(p.sku) + '" alt="' + esc(p.name) + '" loading="lazy"></div>' +
+        '<div class="dots">' + dots + '</div>' +
+        '<div class="name">' + esc(p.name) + '</div>' +
+        '<div class="rating">' + stars(m.rating || 4.5) + '<span>' + (m.rating || 4.5).toFixed(1) + '/5</span><span>(' + esc(m.reviews || '0') + ')</span></div>' +
+        '<div class="from">Starting at</div>' +
+        '<div class="price">' + bigPrice(p.price) + '</div>' +
+        (m.rrp ? '<div class="was"><s>' + money(m.rrp) + '</s> new</div>' : '') +
+        '<button class="btn add" data-add="' + esc(p.sku) + '">Add to basket</button>' +
+        '</article>';
+    }).join('');
+  }
+
+  function renderBagCount() {
+    var n = totals().count;
+    $('bagCount').textContent = n;
+    $('bagCount').classList.toggle('on', n > 0);
+  }
+
+  function summaryRows(t) {
+    return '<div class="row"><span>Subtotal (' + t.count + ' item' + (t.count === 1 ? '' : 's') + ')</span><span>' + money(t.sub) + '</span></div>' +
+      (t.extras ? '<div class="row"><span>Case &amp; screen protector</span><span>' + money(t.extras) + '</span></div>' : '') +
+      '<div class="row"><span>Delivery</span><span class="ok">Free</span></div>' +
+      '<div class="row total"><span>Total <span class="muted" style="font-size:13px;font-weight:400">incl. VAT</span></span><span>' + money(t.total) + '</span></div>';
+  }
+
+  function renderBag() {
+    renderBagCount();
+    var t = totals();
+    if (!bag.length) {
+      $('bagLines').innerHTML = '<p style="font-size:18px;font-weight:600;color:var(--ink2)">Your basket is empty</p><p class="muted" style="margin:6px 0 18px">Treat yourself to some Smart Essentials.</p><a href="#/" class="btn" data-cat="all">Start shopping</a>';
+    } else {
+      $('bagLines').innerHTML = bag.map(function (l) {
+        var p = products[l.sku]; if (!p) return '';
+        var opts = [1, 2, 3].map(function (n) { return '<option' + (n === l.qty ? ' selected' : '') + '>' + n + '</option>'; }).join('');
+        return '<div class="line"><img src="' + imgSrc(l.sku) + '" alt="' + esc(p.name) + '">' +
+          '<div><div class="nm">' + esc(p.name) + '</div><div class="meta">Condition: Fair · Sold by a Back Market verified refurbisher</div>' +
+          '<div class="meta">1-year warranty · Free delivery</div>' +
+          (p.giftBoxEligible ? '<label class="addon"><input type="checkbox" data-gift="' + esc(l.sku) + '"' + (l.giftBox ? ' checked' : '') + '> Add a case &amp; screen protector (+' + money(CASE_FEE) + ')</label>' : '') +
+          '<div class="ctl"><label>Qty <select data-qty="' + esc(l.sku) + '">' + opts + '</select></label><button class="rm" data-rm="' + esc(l.sku) + '">Remove</button></div></div>' +
+          '<div class="lp">' + money(p.price * l.qty) + '</div></div>';
+      }).join('');
+    }
+    $('bagSummary').innerHTML = summaryRows(t);
+    $('toCheckout').disabled = !bag.length;
+    $('bagPaypal').disabled = !bag.length;
+  }
+
+  function renderCheckout() {
+    var c = catalog.customer, t = totals(), card = c.card || {};
+    $('coAddr').innerHTML = '<b style="font-weight:600">' + esc(c.name) + '</b><br>' + shipTo(c.address || {}) + '<br><span class="muted">' + esc(c.email) + '</span>';
+    $('coCard').innerHTML = esc(card.brand || 'Visa') + ' ending in ' + esc(card.last4) + ' <span class="muted">· Exp. ' + esc(card.exp) + '</span>';
+    $('coMini').innerHTML = bag.map(function (l) {
+      var p = products[l.sku]; return p ? '<div class="mini"><img src="' + imgSrc(l.sku) + '" alt=""><span class="grow">' + esc(p.name) + ' × ' + l.qty + (l.giftBox ? '<br><span class="muted" style="font-size:12px">+ case &amp; screen protector</span>' : '') + '</span><span>' + money(p.price * l.qty) + '</span></div>' : '';
+    }).join('');
+    $('coSummary').innerHTML = summaryRows(t);
+    setPlacing(false);
+  }
+
+  function selectedPay() { var r = document.querySelector('input[name="pay"]:checked'); return r ? r.value : 'card'; }
+
+  function buildRequest(method) {
+    var c = catalog.customer;
+    var body = {
+      cartId: catalog.basket.cartId,
+      customerId: c.id,
+      addressId: (c.address || {}).id,
+      lines: bag.map(function (l) { return { sku: l.sku, qty: l.qty, giftBox: !!l.giftBox }; }),
+      paymentMethod: method,
+      brand: BRAND,
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || ''
+    };
+    if (method === 'card') body.cardToken = (c.card || {}).token;
+    return body;
+  }
+
+  function setPlacing(on, method) {
+    placing = on;
+    $('placeOrder').disabled = on;
+    $('tryAgain').disabled = on;
+    $('placeOrder').textContent = on ? (method === 'paypal' ? 'Connecting to PayPal\u2026' : 'Processing payment\u2026') : 'Pay ' + money(totals().total);
+  }
+
+  function showPayError() {
+    $('payErrorMsg').textContent = 'We couldn\u2019t process your payment. Please try again or choose another payment method.';
+    $('payError').classList.add('on');
+  }
+
+  function submit(body) {
+    if (placing) return;
+    lastRequest = body;
+    setPlacing(true, body.paymentMethod);
+    fetch(API + '/checkout', { method: 'POST', headers: postHeaders(), body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (res.ok && res.d && res.d.success) {
+          $('payError').classList.remove('on');
+          showConfirmation(res.d.order || {}, body.paymentMethod);
+          return;
+        }
+        var d = res.d || {};
+        if (d.requestId && window.console) console.info('[DEMO] checkout failed, requestId', d.requestId);
+        showPayError();
+      })
+      .catch(showPayError)
+      .then(function () { setPlacing(false); });
+  }
+
+  function showConfirmation(order, method) {
+    var t = totals(), c = catalog.customer;
+    $('cfTitle').textContent = 'Thanks, ' + String(c.name || '').split(' ')[0] + '! Your order is confirmed';
+    $('cfNum').textContent = 'Order no. ' + (order.id || '').toUpperCase() + ' · confirmation sent to ' + c.email;
+    $('cfBox').innerHTML = bag.map(function (l) {
+      var p = products[l.sku]; return p ? '<div class="row"><span>' + esc(p.name) + ' × ' + l.qty + '</span><span>' + money(p.price * l.qty) + '</span></div>' : '';
+    }).join('') +
+      (t.extras ? '<div class="row"><span>Case &amp; screen protector</span><span>' + money(t.extras) + '</span></div>' : '') +
+      '<div class="row total"><span>Total paid</span><span>' + money(order.total != null ? order.total : t.total) + '</span></div>' +
+      '<div class="row muted" style="margin-top:8px"><span>Paid with</span><span>' + (method === 'paypal' ? 'PayPal' : 'Visa ending in ' + esc((c.card || {}).last4)) + '</span></div>' +
+      '<div class="row muted"><span>Delivering to</span><span style="text-align:right">' + esc((c.address || {}).line1) + ', ' + esc((c.address || {}).city) + ' ' + esc((c.address || {}).postcode) + '</span></div>';
+    bag = [];
+    renderBagCount();
+    location.hash = '#/confirmation';
+  }
+
+  function add(sku) {
+    var l = bag.find(function (x) { return x.sku === sku; });
+    if (l) l.qty = Math.min(3, l.qty + 1); else bag.push({ sku: sku, qty: 1, giftBox: false });
+    renderBagCount();
+    location.hash = '#/bag';
+  }
+
+  function route() {
+    var h = location.hash || '#/';
+    var view = h.indexOf('#/bag') === 0 ? 'bag' : h.indexOf('#/checkout') === 0 ? 'checkout' : h.indexOf('#/confirmation') === 0 ? 'confirm' : 'home';
+    if (view === 'checkout' && (!catalog || !bag.length)) { location.hash = '#/bag'; return; }
+    if (view === 'confirm' && !$('cfNum').textContent) { location.hash = '#/'; return; }
+    ['home', 'bag', 'checkout', 'confirm'].forEach(function (v) { $('v-' + v).classList.toggle('on', v === view); });
+    if (view === 'bag') renderBag();
+    if (view === 'checkout') { renderCheckout(); $('payError').classList.remove('on'); }
+    window.scrollTo(0, 0);
+  }
+
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-add],[data-rm],[data-cat],[data-pay]');
+    if (!el) return;
+    if (el.hasAttribute('data-add')) { e.preventDefault(); e.stopPropagation(); return add(el.getAttribute('data-add')); }
+    if (el.hasAttribute('data-rm')) { bag = bag.filter(function (l) { return l.sku !== el.getAttribute('data-rm'); }); return renderBag(); }
+    if (el.hasAttribute('data-cat')) { e.preventDefault(); renderGrid(el.getAttribute('data-cat')); if ((location.hash || '#/') !== '#/') location.hash = '#/'; else window.scrollTo(0, 0); return; }
+    if (el.hasAttribute('data-pay')) {
+      document.querySelectorAll('[data-pay]').forEach(function (o) { o.classList.toggle('on', o === el); });
+      $('payError').classList.remove('on');
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('card')) add(e.target.getAttribute('data-add'));
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.hasAttribute('data-qty')) { var l = bag.find(function (x) { return x.sku === t.getAttribute('data-qty'); }); if (l) l.qty = parseInt(t.value, 10); renderBag(); }
+    if (t.hasAttribute('data-gift')) { var g = bag.find(function (x) { return x.sku === t.getAttribute('data-gift'); }); if (g) g.giftBox = t.checked; renderBag(); }
+  });
+  $('toCheckout').addEventListener('click', function () { location.hash = '#/checkout'; });
+  $('bagPaypal').addEventListener('click', function () {
+    location.hash = '#/checkout';
+    setTimeout(function () { document.querySelector('[data-pay="paypal"]').click(); }, 0);
+  });
+  $('placeOrder').addEventListener('click', function () { submit(buildRequest(selectedPay())); });
+  $('tryAgain').addEventListener('click', function () { if (lastRequest) submit(lastRequest); });
+  $('searchForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var q = $('q').value.trim().toLowerCase();
+    if (!q) renderGrid('all');
+    else {
+      CATS.search = { title: 'Results for \u201c' + $('q').value.trim() + '\u201d', lede: 'Refurbished Smart Essentials matching your search.', filter: function (p) { return (p.name + ' ' + p.category).toLowerCase().indexOf(q) !== -1; } };
+      renderGrid('search');
+    }
+    if ((location.hash || '#/') !== '#/') location.hash = '#/';
+  });
+  window.addEventListener('hashchange', route);
+
+  if (!(localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId'))) {
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+    }).catch(function () {});
+  }
+
+  fetch(API + '/catalog?brand=' + BRAND).then(function (r) { return r.json(); }).then(function (d) {
+    catalog = d;
+    (d.products || []).forEach(function (p) { products[p.sku] = p; });
+    bag = ((d.basket && d.basket.lines) || []).map(function (l) { return { sku: l.sku, qty: l.qty, giftBox: !!l.giftBox }; });
+    if (d.pspApiVersion) $('pspVer').textContent = 'PSP API ' + d.pspApiVersion;
+    renderGrid('all');
+    renderBagCount();
+    route();
+  }).catch(function () {
+    $('grid').innerHTML = '<div class="empty" style="grid-column:1/-1">We couldn\u2019t load the products. Please refresh the page.</div>';
+    route();
+  });
+})();
+</script>
+</body>
+</html>
