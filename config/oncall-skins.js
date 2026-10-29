@@ -6927,6 +6927,8 @@ const ONCALL_SKINS = {
     vertical: 'banking',
     oncallOnly: true,
     page: { file: '2d98fac9.html', title: 'Search Jobs | Accenture' },
+    teamsAlerts: true,
+    alertDestination: 'teams',
     alertCard: {
       title: 'p95 latency — job search',
       service: 'careers-search-api',
