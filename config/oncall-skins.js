@@ -4406,6 +4406,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A INTESA SANPAOLO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Intesa Sanpaolo product.',
   },
+  '21d0c234': {
+    slug: '21d0c234',
+    company: 'BNP Paribas',
+    vertical: 'banking',
+    page: {
+      file: '21d0c234.html',
+      title: 'Bank BNP Paribas | The bank for a changing world',
+    },
+    disclaimer: 'NOT ACTUALLY A BNP PARIBAS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BNP Paribas product.',
+  },
   '6997dfbe': {
     slug: '6997dfbe',
     company: 'Coca-Cola FEMSA',
@@ -6920,6 +6930,32 @@ const ONCALL_SKINS = {
       title: 'בנק הפועלים - לא רק פועלים, יוזמים.',
     },
     disclaimer: 'NOT ACTUALLY A BANK HAPOALIM SITE — internal demo only, not affiliated with, endorsed by, or a real Bank Hapoalim product.',
+  },
+  '7f4e1bb8': {
+    slug: '7f4e1bb8',
+    company: 'Barclays',
+    brandMark: 'B',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: { file: '7f4e1bb8.html', title: 'Join Blue Rewards | Barclays Online Banking' },
+    theme: {
+      '--accent': '#006DE3',
+      '--ink': '#272727',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0000FF',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Barclays Help and support',
+    alertCard: {
+      title: 'p95 latency \u2014 Blue Rewards join',
+      service: 'rewards-membership-api',
+      release: 'online-banking-products@2.4.0',
+      team: 'rewards-membership-oncall',
+      baseline: '~300ms (7-day p95)',
+      symptom: 'Blue Rewards joins from Online Banking \u2192 Products hang ~8s after the customer selects Join Blue Rewards before the confirmation appears. Error rate is normal \u2014 memberships are created.',
+      impact: 'Customers wait ~8 seconds to join Blue Rewards; some select Join again or leave the page before the membership is confirmed.',
+    },
+    disclaimer: 'NOT ACTUALLY A BARCLAYS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Barclays product.',
   },
 };
 
