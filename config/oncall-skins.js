@@ -6882,6 +6882,23 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A PLENFUL SITE — internal demo only, not affiliated with, endorsed by, or a real Plenful product.',
   },
+  '5fda94f8': {
+    slug: '5fda94f8',
+    company: 'Land Transport Authority',
+    brandMark: 'O',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '5fda94f8.html', title: 'LTA | Renew Road Tax' },
+    theme: {
+      '--accent': '#3B3A99',
+      '--ink': '#212529',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#222067',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'OneMotoring Contact Us',
+    disclaimer: 'NOT ACTUALLY A LAND TRANSPORT AUTHORITY SITE — internal demo only, not affiliated with, endorsed by, or a real Land Transport Authority (LTA) or OneMotoring product.',
+  },
 };
 
 function getOncallSkin(slug) {
