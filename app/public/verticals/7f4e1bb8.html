@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Join Blue Rewards | Barclays Online Banking</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #006DE3;
+      --ink: #272727;
+      --surface: #FFFFFF;
+      --chrome-bg: #0000FF;
+      --chrome-text: #FFFFFF;
+      --cyan: #00AEEF;
+      --mint: #CDF5E8;
+      --navy: #1A2142;
+      --page: #F6F6F6;
+      --green: #008A00;
+      --red: #C8102E;
+      --line: color-mix(in srgb, var(--ink) 16%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 72%, var(--surface));
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.5 'Hanken Grotesk', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1200px; margin: auto; padding: 0 24px; }
+    .site-header { background: var(--surface); }
+    .header-row { display: flex; align-items: center; gap: 16px; min-height: 72px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; color: var(--cyan); }
+    .brand svg { display: block; flex: none; }
+    .brand-name { font-size: 24px; font-weight: 700; letter-spacing: .08em; line-height: 1; }
+    .brand-sub { padding-left: 12px; border-left: 1px solid var(--line); color: var(--ink); font-size: 16px; font-weight: 500; letter-spacing: 0; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 20px; font-weight: 500; }
+    .header-right a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; }
+    .last-login { color: var(--muted); font-size: 14px; font-weight: 400; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border: 2px solid var(--accent); border-radius: 99px; background: var(--surface); color: var(--accent); font-weight: 500; text-decoration: none; }
+    .primary-nav { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface); }
+    .primary-nav .wrap { display: flex; gap: 28px; }
+    .primary-nav a { min-height: 48px; display: inline-flex; align-items: center; color: var(--ink); font-weight: 500; text-decoration: none; }
+    .primary-nav a.current { color: var(--accent); box-shadow: inset 0 -3px 0 var(--accent); }
+    .band { background: var(--chrome-bg); color: var(--chrome-text); }
+    .band .wrap { padding-top: 36px; padding-bottom: 96px; }
+    .crumbs { margin: 0 0 10px; font-size: 14px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: color-mix(in srgb, var(--chrome-text) 80%, var(--chrome-bg)); }
+    .band h1 { margin: 0; font-size: clamp(34px, 4.4vw, 48px); font-weight: 500; line-height: 1.2; color: var(--mint); }
+    .band p { margin: 12px 0 0; max-width: 680px; font-size: 18px; color: var(--chrome-text); }
+    main .wrap { margin-top: -64px; padding-bottom: 64px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .85fr); gap: 24px; align-items: start; }
+    .stack { display: grid; gap: 24px; min-width: 0; }
+    .card { background: var(--surface); border-radius: 12px; padding: 32px; box-shadow: 0 2px 10px rgba(0, 0, 0, .08); }
+    .card h2 { margin: 0 0 4px; font-size: 32px; font-weight: 500; line-height: 1.2; }
+    .card .sub { margin: 0 0 24px; color: var(--muted); }
+    .perks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+    .perk { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+    .perk .media { aspect-ratio: 16 / 9; background: var(--navy); display: flex; align-items: center; justify-content: center; color: var(--mint); font-weight: 700; font-size: 20px; }
+    .perk .media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .perk .media.saver { background: linear-gradient(135deg, #0000FF, #00AEEF); }
+    .perk .media.rainy { background: linear-gradient(135deg, #1A2142, #006DE3); }
+    .perk .body { padding: 16px 18px 18px; }
+    .perk h3 { margin: 0 0 4px; font-size: 18px; font-weight: 500; }
+    .perk p { margin: 0; color: var(--muted); font-size: 15px; }
+    .step { margin: 0 0 14px; font-size: 20px; font-weight: 500; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; margin-bottom: 6px; font-weight: 500; }
+    .field select { width: 100%; min-height: 52px; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--ink) 50%, var(--surface)); border-radius: 8px; background: var(--surface); color: var(--ink); font-size: 16px; }
+    .field select:disabled { background: var(--page); cursor: not-allowed; }
+    .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 14px; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; }
+    .checks { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 10px; }
+    .checks li { display: flex; gap: 10px; align-items: flex-start; }
+    .checks svg { flex: none; width: 22px; height: 22px; margin-top: 1px; }
+    .review { margin: 0 0 20px; padding: 18px 20px; border-radius: 8px; background: var(--page); display: grid; gap: 8px; }
+    .review div { display: flex; justify-content: space-between; gap: 16px; }
+    .review dt { margin: 0; color: var(--muted); }
+    .review dd { margin: 0; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .review .total { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 2px; }
+    .review .total dt, .review .total dd { color: var(--ink); font-weight: 700; }
+    .submit-btn { width: 100%; min-height: 52px; padding: 12px 24px; border: 2px solid var(--accent); border-radius: 99px; background: var(--accent); color: #fff; font-size: 18px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 84%, var(--navy)); }
+    .submit-btn:disabled { cursor: wait; opacity: .75; }
+    .submit-btn.done { cursor: default; background: var(--green); border-color: var(--green); opacity: 1; }
+    .spin { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .submit-btn.busy .spin { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .terms { margin: 14px 0 0; color: var(--muted); font-size: 14px; }
+    .terms a { display: inline-flex; align-items: center; min-height: 44px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: 8px; border-left: 4px solid; }
+    .result-box .t { font-weight: 700; margin-bottom: 4px; }
+    .result-box.success { display: block; background: color-mix(in srgb, var(--green) 8%, var(--surface)); border-color: var(--green); }
+    .result-box.error { display: block; background: color-mix(in srgb, var(--red) 7%, var(--surface)); border-color: var(--red); }
+    aside { display: grid; gap: 24px; min-width: 0; }
+    .acct-card h3, .note h3 { margin: 0 0 12px; font-size: 20px; font-weight: 500; }
+    .status-pill { display: inline-block; padding: 2px 10px; border-radius: 99px; background: var(--page); color: var(--muted); font-size: 13px; font-weight: 500; }
+    .status-pill.on { background: color-mix(in srgb, var(--green) 14%, var(--surface)); color: #006400; }
+    .acct-line { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+    .acct-line:first-of-type { border-top: 0; padding-top: 0; }
+    .acct-line .nm { display: block; font-weight: 500; }
+    .acct-line .no { display: block; color: var(--muted); font-size: 14px; }
+    .acct-line .bal { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .note { background: var(--navy); color: #fff; border-radius: 12px; padding: 24px; }
+    .note p { margin: 0 0 16px; }
+    .note a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 99px; background: var(--mint); color: var(--navy); font-weight: 500; text-decoration: none; }
+    .site-footer { background: var(--page); border-top: 1px solid var(--line); }
+    .site-footer .wrap { padding-top: 32px; padding-bottom: 40px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 0 28px; }
+    .footer-links a { min-height: 44px; display: inline-flex; align-items: center; color: var(--ink); }
+    .footer-legal { margin: 16px 0 0; max-width: 900px; color: var(--muted); font-size: 14px; }
+    @media (max-width: 960px) {
+      .primary-nav, .last-login { display: none; }
+      .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .wrap { padding: 0 16px; }
+      .brand-sub, .header-right .hide-sm { display: none; }
+      .band .wrap { padding-top: 24px; padding-bottom: 84px; }
+      .card { padding: 22px 18px; }
+      .card h2 { font-size: 26px; }
+      .row, .perks { grid-template-columns: 1fr; gap: 0; }
+      .perks { gap: 16px; }
+      .site-footer .wrap { padding-bottom: 72px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="brand" href="#join" aria-label="Barclays Online Banking">
+        <svg width="34" height="34" viewBox="0 0 34 34" role="img" aria-hidden="true" focusable="false">
+          <rect x="1" y="1" width="32" height="32" rx="8" fill="#00AEEF"></rect>
+          <path d="M11 8h8.2c3.6 0 5.8 1.8 5.8 4.6 0 1.8-1 3.1-2.6 3.7 2.1.5 3.4 2 3.4 4.1 0 3.2-2.4 5.6-6.4 5.6H11zm4 7.3h3.6c1.6 0 2.5-.8 2.5-2s-.9-2-2.5-2H15zm0 7.4h4.1c1.8 0 2.8-.9 2.8-2.3s-1-2.3-2.8-2.3H15z" fill="#FFFFFF"></path>
+        </svg>
+        <span class="brand-name">BARCLAYS</span>
+        <span class="brand-sub">Online Banking</span>
+      </a>
+      <div class="header-right">
+        <span class="last-login">Last logged in today at 08:47</span>
+        <a class="hide-sm" href="https://www.barclays.co.uk/help/">Help</a>
+        <a class="pill" href="https://www.barclays.co.uk/">Log out</a>
+      </div>
+    </div>
+  </header>
+  <nav class="primary-nav" aria-label="Online Banking">
+    <div class="wrap">
+      <a href="#join">Home</a>
+      <a href="#accounts">Accounts</a>
+      <a href="#join">Pay &amp; transfer</a>
+      <a href="#join" class="current" aria-current="page">Products</a>
+      <a href="https://www.barclays.co.uk/help/">Help and support</a>
+    </div>
+  </nav>
+  <section class="band" aria-label="Page heading">
+    <div class="wrap">
+      <p class="crumbs">Products / Barclays Blue Rewards</p>
+      <h1>Blue Rewards</h1>
+      <p>Get access to enhanced rates on savings, cashback on everyday spending, and an Apple TV subscription &ndash; all for just &pound;5 a month. Cancel any time.</p>
+    </div>
+  </section>
+
+  <main id="join">
+    <div class="wrap layout">
+      <div class="stack">
+        <section class="card" aria-labelledby="perksTitle">
+          <h2 id="perksTitle">What you get</h2>
+          <p class="sub">Boost your Barclays Bank Account with Blue Rewards. Eligibility, terms and conditions apply.</p>
+          <ul class="perks">
+            <li class="perk">
+              <div class="media"><img src="https://www.barclays.co.uk/adobe/assets/urn:aaid:aem:b38192e1-5304-422f-aa83-1e168af6c105/as/SlowHorses.png?width=1440&amp;preferwebp=true" alt="Apple TV on a phone" loading="lazy" onerror="this.onerror=null;this.remove();"></div>
+              <div class="body"><h3>Apple TV</h3><p>Unlimited access to Apple TV worth &pound;9.99 a month. Activate it in the Barclays app.</p></div>
+            </li>
+            <li class="perk">
+              <div class="media"><img src="https://www.barclays.co.uk/adobe/assets/urn:aaid:aem:c32c2db3-909b-43bf-b494-e3a41201965f/as/CashBackRewards.png?width=1440&amp;preferwebp=true" alt="Barclays Cashback Rewards balance" loading="lazy" onerror="this.onerror=null;this.remove();"></div>
+              <div class="body"><h3>Barclays Cashback Rewards</h3><p>Earn cashback at selected retailers with a linked Barclays Visa debit or credit card.</p></div>
+            </li>
+            <li class="perk">
+              <div class="media rainy" aria-hidden="true">3.96% AER</div>
+              <div class="body"><h3>Rainy Day Saver</h3><p>Our highest instant-access rate of 3.96% AER / 3.89% gross p.a. on balances from &pound;1 to &pound;5,000.</p></div>
+            </li>
+            <li class="perk">
+              <div class="media saver" aria-hidden="true">2.51% AER</div>
+              <div class="body"><h3>Blue Rewards Saver</h3><p>2.51% AER / 2.48% gross p.a. (variable) in months where you don&rsquo;t dip into your savings.</p></div>
+            </li>
+          </ul>
+        </section>
+
+        <section class="card" aria-labelledby="joinTitle">
+          <h2 id="joinTitle">Join Blue Rewards</h2>
+          <p class="sub">Add Blue Rewards to your Barclays Bank Account. The &pound;5 monthly fee is taken from your nominated account.</p>
+          <form id="upgradeForm" novalidate>
+            <p class="step">1. Your account</p>
+            <div class="row">
+              <div class="field">
+                <label for="currentPlan">Nominated account</label>
+                <select id="currentPlan">
+                  <option value="BASIC-12" data-label="Barclays Bank Account">Barclays Bank Account &bull;&bull;&bull;&bull; 4821 &mdash; no Blue Rewards</option>
+                </select>
+                <small>Only one person on a joint account can join.</small>
+              </div>
+              <div class="field">
+                <label for="newPlan">Membership</label>
+                <select id="newPlan">
+                  <option value="PLUS-24" data-label="Blue Rewards" data-fee="5">Barclays Blue Rewards &mdash; &pound;5 a month</option>
+                </select>
+              </div>
+            </div>
+            <p class="step">2. Your rewards</p>
+            <div class="field">
+              <label for="addon">Apple TV subscription</label>
+              <select id="addon">
+                <option value="appletv" data-label="Activate in the app">Activate Apple TV in the Barclays app after joining</option>
+                <option value="none" data-label="Not now">Not now &ndash; I can activate it later</option>
+              </select>
+              <small>Activation takes a few minutes and needs an Apple Account.</small>
+            </div>
+            <p class="step">3. Check you&rsquo;re eligible</p>
+            <ul class="checks">
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#008A00"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2"/></svg>At least &pound;800 paid into your nominated account every month</li>
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#008A00"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2"/></svg>Registered for the Barclays app, with an email address</li>
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#008A00"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2"/></svg>Aged 18 or over and a UK resident</li>
+            </ul>
+          </form>
+        </section>
+      </div>
+
+      <aside>
+        <section class="card" aria-labelledby="sumTitle">
+          <h2 id="sumTitle" style="font-size:24px;margin-bottom:16px;">Summary</h2>
+          <dl class="review">
+            <div><dt>Membership</dt><dd id="sumPlan">&mdash;</dd></div>
+            <div><dt>Monthly fee</dt><dd id="sumFee">&mdash;</dd></div>
+            <div><dt>Paid from</dt><dd id="sumAcct">&mdash;</dd></div>
+            <div><dt>Apple TV</dt><dd id="sumAddon">&mdash;</dd></div>
+            <div class="total"><dt>Due today</dt><dd>&pound;0.00</dd></div>
+          </dl>
+          <button type="submit" form="upgradeForm" class="submit-btn" id="submitBtn"><span class="spin" aria-hidden="true"></span><span class="label">Join Blue Rewards</span></button>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <p class="terms">By joining you agree to the <a href="https://www.barclays.co.uk/current-accounts/blue-rewards/">Barclays Blue Rewards terms and conditions</a>. Your first fee is taken on your next monthly reward date.</p>
+        </section>
+        <section class="card acct-card" id="accounts" aria-labelledby="acctTitle">
+          <h3 id="acctTitle">Your accounts</h3>
+          <div class="acct-line"><span><span class="nm">Barclays Bank Account</span><span class="no">20-37-16 &bull;&bull;&bull;&bull;4821 &middot; <span class="status-pill" id="memberPill">No Blue Rewards</span></span></span><span class="bal">&pound;2,418.36</span></div>
+          <div class="acct-line"><span><span class="nm">Everyday Saver</span><span class="no">20-37-16 &bull;&bull;&bull;&bull;9047</span></span><span class="bal">&pound;6,250.00</span></div>
+        </section>
+        <section class="note">
+          <h3>Live experiences</h3>
+          <p>Blue Rewards members can enjoy presale tickets and perks at some of the UK&rsquo;s most iconic venues. T&amp;Cs apply.</p>
+          <a href="https://www.barclays.co.uk/current-accounts/blue-rewards/">Explore entertainment perks</a>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-links">
+        <a href="https://www.barclays.co.uk/help/">Help and support</a>
+        <a href="https://www.barclays.co.uk/">Security</a>
+        <a href="https://www.barclays.co.uk/">Accessibility</a>
+        <a href="https://www.barclays.co.uk/">Privacy policy</a>
+        <a href="https://www.barclays.co.uk/">Service status</a>
+      </div>
+      <p class="footer-legal">Example Online Banking experience. Accounts, balances and memberships shown here are sample data.</p>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('upgradeForm');
+      var currentPlan = document.getElementById('currentPlan');
+      var newPlan = document.getElementById('newPlan');
+      var addon = document.getElementById('addon');
+      var btn = document.getElementById('submitBtn');
+      var label = btn.querySelector('.label');
+      var result = document.getElementById('result');
+      var pill = document.getElementById('memberPill');
+      var controls = [currentPlan, newPlan, addon];
+
+      function selected(sel) { return sel.options[sel.selectedIndex]; }
+      function fmtDate(iso) {
+        var d = iso ? new Date(iso + 'T12:00:00') : new Date();
+        if (isNaN(d.getTime())) d = new Date();
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+      function render() {
+        var plan = selected(newPlan);
+        document.getElementById('sumPlan').textContent = plan.dataset.label;
+        document.getElementById('sumFee').textContent = '\u00a3' + (parseFloat(plan.dataset.fee) || 0).toFixed(2) + ' a month';
+        document.getElementById('sumAcct').textContent = selected(currentPlan).dataset.label + ' \u2022\u2022\u2022\u2022 4821';
+        document.getElementById('sumAddon').textContent = selected(addon).dataset.label;
+      }
+      function setBusy(busy) {
+        controls.forEach(function (el) { el.disabled = busy; });
+        btn.disabled = busy;
+        btn.classList.toggle('busy', busy);
+        label.textContent = busy ? 'Adding Blue Rewards\u2026' : 'Join Blue Rewards';
+      }
+      function showError(title, detail) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="t">' + title + '</div><div class="d">' + detail + '</div>';
+      }
+
+      [currentPlan, newPlan, addon].forEach(function (el) { el.addEventListener('change', render); });
+      form.addEventListener('reset', function () {
+        setTimeout(function () {
+          result.className = 'result-box';
+          result.innerHTML = '';
+          btn.classList.remove('done');
+          pill.className = 'status-pill';
+          pill.textContent = 'No Blue Rewards';
+          setBusy(false);
+          render();
+        }, 0);
+      });
+      render();
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (btn.disabled) return;
+        result.className = 'result-box';
+        result.innerHTML = '';
+        setBusy(true);
+        var res;
+        try {
+          res = await fetch('/api/telco/upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accountId: 'CUST-3001', currentPlanCode: document.getElementById('currentPlan').value, targetPlanCode: newPlan.value, billingDay: 15, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          });
+        } catch (err) {
+          setBusy(false);
+          showError('We couldn\u2019t confirm your Blue Rewards membership', 'Check Products in a few minutes before trying again, so you aren\u2019t charged twice.');
+          return;
+        }
+        var data = null;
+        try { data = await res.json(); } catch (err) { data = null; }
+        if (!res.ok) {
+          setBusy(false);
+          showError('We couldn\u2019t add Blue Rewards', 'Your account hasn\u2019t changed and no fee has been taken. Try again, or contact Barclays Help and support.');
+          return;
+        }
+        if (!data || !data.success) {
+          setBusy(false);
+          showError('We couldn\u2019t confirm your Blue Rewards membership', 'Check Products in a few minutes before trying again, so you aren\u2019t charged twice.');
+          return;
+        }
+        var ref = 'BR' + String(data.upgradeId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
+        var appleTv = addon.value === 'appletv' ? ' Activate Apple TV in the Barclays app under Blue Rewards.' : '';
+        result.className = 'result-box success';
+        result.innerHTML = '<div class="t">You\u2019ve joined Blue Rewards</div><div class="d">Reference ' + ref + ' &middot; Your membership started on ' + fmtDate(data.effectiveDate) + '. The \u00a35 monthly fee is taken from your Barclays Bank Account.' + appleTv + '</div>';
+        pill.className = 'status-pill on';
+        pill.textContent = 'Blue Rewards';
+        setBusy(false);
+        controls.forEach(function (el) { el.disabled = true; });
+        btn.disabled = true;
+        btn.classList.add('done');
+        label.textContent = 'Blue Rewards active';
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
