@@ -33,13 +33,13 @@
 
     .global-nav { background: var(--black); }
     .global-nav .wrap { display: flex; align-items: center; height: 72px; gap: 48px; }
-    .logo { display: flex; align-items: center; height: 48px; }
+    .logo { display: flex; align-items: center; justify-content: center; min-width: 44px; height: 48px; }
     .logo svg { display: block; height: 32px; width: auto; }
     .nav-items { display: flex; align-items: center; margin: 0 auto; padding: 0; list-style: none; }
     .nav-items a { display: inline-flex; align-items: center; gap: 10px; height: 72px; padding: 0 12px; font-size: 14px; line-height: 21px; letter-spacing: -0.07px; }
     .nav-items svg { width: 12px; height: 12px; }
     .nav-tools { display: flex; align-items: center; gap: 28px; }
-    .nav-tools a { display: inline-flex; align-items: center; gap: 8px; height: 48px; }
+    .nav-tools a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; height: 48px; }
     .nav-tools svg { width: 20px; height: 20px; }
 
     .careers-nav { background: var(--purple-deep); }
@@ -301,6 +301,7 @@
         { title: 'Operations Delivery Analyst', area: 'operations', level: 'Entry Level', type: 'Part time', loc: 'various' }
       ];
       var PAGE_SIZE = 8;
+      var submittedKeyword = '';
 
       var form = document.getElementById('transferForm');
       var btn = document.getElementById('submitBtn');
@@ -330,7 +331,7 @@
           areas: checked(areaList),
           types: checked(typeList),
           loc: location.value,
-          terms: keyword.value.trim().toLowerCase().split(/\s+/).filter(Boolean)
+          terms: submittedKeyword.toLowerCase().split(/\s+/).filter(Boolean)
         };
       }
 
@@ -369,7 +370,7 @@
           for (var i = 1; i <= pages; i++) links.push('<a href="#" class="' + (i === 1 ? 'current' : '') + '" aria-label="Page ' + i + '">' + i + '</a>');
           pager.innerHTML = '<a href="#" class="arrow" aria-label="Previous page"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4l-6 6 6 6"/></svg></a>' + links.join('') + '<a href="#" class="arrow" aria-label="Next page"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4l6 6-6 6"/></svg></a>';
         }
-        result.innerHTML = total ? '' : '<div class="status">No results found for \u2018' + escapeHtml(keyword.value.trim()) + '\u2019. Try a different keyword, location, area of interest or job type.</div>';
+        result.innerHTML = total ? '' : '<div class="status">No results found for \u2018' + escapeHtml(submittedKeyword) + '\u2019. Try a different keyword, location, area of interest or job type.</div>';
       }
 
       function refresh() { syncHidden(); buildFacets(); renderResults(); }
@@ -379,6 +380,7 @@
       location.addEventListener('change', refresh);
       document.getElementById('clearBtn').addEventListener('click', function () {
         form.reset();
+        submittedKeyword = '';
         location.value = 'various';
         [].forEach.call(document.querySelectorAll('.facet-list input'), function (i) { i.checked = false; });
         refresh();
@@ -408,6 +410,7 @@
           });
           var data = await res.json();
           if (!res.ok || !data.success) throw new Error('search failed');
+          submittedKeyword = keyword.value.trim();
           refresh();
         } catch (err) {
           count.textContent = '';
