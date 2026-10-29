@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="data:,">
+  <title>Checkout | Ralph Lauren</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=DM+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #041E3A;
+      --ink: #041E3A;
+      --surface: #FFFFFF;
+      --chrome-bg: #041E3A;
+      --chrome-text: #FFFFFF;
+      --sale: #996E40;
+      --tile: #F0EFED;
+      --line: #E5E5E5;
+      --muted: #474747;
+      --err: #B3261E;
+      --ok: #1F6B3A;
+      --sans: 'Hanken Grotesk', Helvetica, Arial, sans-serif;
+      --mono: 'DM Mono', Arial, Helvetica, sans-serif;
+      --serif: 'Cormorant Garamond', 'Times New Roman', Times, serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: hidden; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 13px/1.5 var(--sans); letter-spacing: .2px; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    img { display: block; max-width: 100%; }
+    button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .mono { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    .promo { background: var(--chrome-bg); color: var(--chrome-text); min-height: 44px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 56px; font-size: 11px; letter-spacing: .5px; }
+    .promo .msg { grid-column: 2; text-align: center; }
+    .promo .msg a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 3px; }
+    .promo .utils { grid-column: 3; display: flex; justify-content: flex-end; gap: 24px; }
+    .promo .utils a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+    .promo svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+
+    header.site { position: sticky; top: 0; z-index: 20; background: #fff; border-bottom: 1px solid var(--line); }
+    .head { height: 70px; display: flex; align-items: center; padding: 0 56px; gap: 40px; }
+    .wordmark { font-family: var(--serif); font-size: 27px; font-weight: 500; letter-spacing: 7px; line-height: 1; white-space: nowrap; display: inline-flex; align-items: center; min-height: 44px; }
+    nav.primary { display: flex; gap: 24px; height: 100%; }
+    nav.primary a { display: inline-flex; align-items: center; height: 70px; border-bottom: 1px solid transparent; }
+    nav.primary a:hover, nav.primary a.current { border-bottom-color: var(--ink); }
+    nav.primary a.sale { color: var(--sale); }
+    .icons { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .icons button { position: relative; background: none; border: 0; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+    .icons svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+    .bag-count { position: absolute; top: 4px; right: 2px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--ink); color: #fff; font: 500 9px/16px var(--mono); text-align: center; padding: 0 4px; }
+    .bag-count:empty { display: none; }
+    .menu-btn { display: none !important; }
+
+    /* Home */
+    .hero { position: relative; height: min(56vw, 720px); min-height: 420px; background: #3b3a36 center 30% / cover no-repeat; color: #fff; display: flex; align-items: flex-end; justify-content: center; text-align: center; padding-bottom: 88px; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,.35)); }
+    .hero > div { position: relative; z-index: 1; }
+    .hero .brand { font-family: var(--serif); font-size: 52px; letter-spacing: 12px; font-weight: 500; line-height: 1; }
+    .hero .season { font-family: var(--mono); font-size: 20px; letter-spacing: 8px; margin: 22px 0 28px; }
+    .text-link { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid currentColor; min-height: 44px; display: inline-flex; align-items: flex-end; padding-bottom: 3px; }
+    .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 16px; }
+    .tile { position: relative; background: var(--tile); }
+    .tile .img { aspect-ratio: 1424 / 1880; background: #cfcac2 center / cover no-repeat; }
+    .tile .copy { text-align: center; padding: 26px 24px 40px; }
+    .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+    .tile h2, .feature h2 { font-family: var(--serif); font-weight: 400; font-size: 30px; margin: 8px 0 8px; line-height: 1.15; }
+    .tile p, .feature p { margin: 0 auto 6px; max-width: 420px; color: var(--muted); font-size: 14px; }
+    .feature { display: grid; grid-template-columns: 1fr 1fr; align-items: center; background: var(--tile); margin: 16px 0 0; }
+    .feature .img { aspect-ratio: 4 / 5; background: #e9e6e0 center / cover no-repeat; }
+    .feature .copy { text-align: center; padding: 40px 32px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 32px; background: var(--accent); color: #fff; border: 1px solid var(--accent); font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; border-radius: 0; }
+    .btn:disabled { opacity: .55; cursor: progress; }
+    .btn.ghost { background: #fff; color: var(--accent); }
+
+    /* PDP */
+    .pdp { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .gallery { display: grid; gap: 4px; background: var(--tile); }
+    .gallery .shot { aspect-ratio: 800 / 1006; background: var(--tile) center / cover no-repeat; position: relative; }
+    .shot .fb, .tile .fb, .feature .fb, .hero .fb { display: none; }
+    .noimg .fb { display: flex; position: absolute; inset: 0; align-items: center; justify-content: center; font-family: var(--serif); font-size: 22px; color: var(--muted); }
+    .buy { padding: 56px 80px 64px 78px; }
+    .buy-inner { position: sticky; top: 100px; max-width: 556px; }
+    .crumbs { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; display: flex; gap: 8px; flex-wrap: wrap; }
+    .crumbs a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+    h1.pname { font-family: var(--serif); font-weight: 500; font-size: 30px; line-height: 1.2; margin: 8px 0 2px; letter-spacing: 0; }
+    .sub { font-size: 13px; }
+    .price { font-size: 15px; margin: 16px 0 6px; }
+    .note { font-size: 11px; color: var(--muted); }
+    .opt { margin-top: 26px; }
+    .opt-label { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; display: flex; gap: 8px; align-items: baseline; }
+    .opt-label span { font-family: var(--sans); font-size: 11px; text-transform: none; letter-spacing: .3px; font-weight: 400; }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip { min-width: 61px; min-height: 44px; padding: 0 20px; background: #fff; border: 1px solid #c8c8c8; border-radius: 4px; font-size: 12px; }
+    .chip[aria-pressed="true"] { border: 1px solid var(--ink); box-shadow: inset 0 0 0 1px var(--ink); font-weight: 500; background: #f6f6f6; }
+    .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+    .swatch { width: 44px; height: 44px; border-radius: 4px; border: 1px solid #c8c8c8; padding: 3px; background: #fff; }
+    .swatch i { display: block; width: 100%; height: 100%; border-radius: 2px; }
+    .swatch[aria-pressed="true"] { border: 1px solid var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+    .size-hint { color: var(--err); font-size: 12px; margin-top: 8px; min-height: 18px; }
+    .qty { display: flex; align-items: center; gap: 12px; margin-top: 22px; }
+    .qty select { min-height: 44px; min-width: 88px; padding: 0 12px; border: 1px solid #c8c8c8; border-radius: 4px; background: #fff; }
+    .bag-btn { width: 100%; margin-top: 22px; }
+    .bag-msg { font-size: 12px; margin-top: 10px; min-height: 18px; color: var(--ok); }
+    .ship { margin-top: 18px; font-size: 12px; border-top: 1px solid var(--line); padding-top: 16px; }
+    .ship b { font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 2px; }
+
+    .fis { margin-top: 22px; border: 1px solid var(--line); padding: 22px 22px 20px; }
+    .fis h2 { margin: 0; font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+    .fis h2 svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+    .fis > p { margin: 4px 0 16px; font-size: 12px; color: var(--muted); }
+    .fis-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+    .field input, .field select { width: 100%; min-height: 46px; padding: 0 12px; border: 1px solid #c8c8c8; border-radius: 0; background: #fff; font-size: 14px; }
+    .fis .btn { width: 100%; margin-top: 14px; }
+    .result-box { margin-top: 14px; font-size: 13px; line-height: 1.5; display: none; }
+    .result-box.pending, .result-box.success, .result-box.error { display: block; padding: 14px 16px; border-left: 3px solid var(--ink); background: #f7f7f6; }
+    .result-box.success { border-left-color: var(--ok); }
+    .result-box.error { border-left-color: var(--err); }
+    .result-box strong { display: block; font-weight: 500; margin-bottom: 2px; }
+    .result-box.pending strong::before { content: ''; display: inline-block; width: 11px; height: 11px; margin-right: 8px; border: 1.5px solid var(--ink); border-right-color: transparent; border-radius: 50%; vertical-align: -1px; animation: spin .9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .desc { margin-top: 28px; font-size: 13px; color: var(--muted); }
+
+    footer.site { margin-top: 56px; border-top: 1px solid var(--line); }
+    .signup { text-align: center; padding: 40px 24px; border-bottom: 1px solid var(--line); }
+    .signup form { display: flex; justify-content: center; margin-top: 14px; }
+    .signup input { width: min(360px, 60vw); min-height: 52px; border: 1px solid #c8c8c8; border-right: 0; padding: 0 14px; }
+    .fcols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding: 40px 56px; }
+    .fcols h3 { font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 10px; }
+    .fcols a { display: flex; align-items: center; min-height: 44px; font-size: 12px; }
+    .legal { padding: 18px 56px 30px; font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 1024px) {
+      .promo { grid-template-columns: 1fr; padding: 0 16px; }
+      .promo .msg { grid-column: 1; }
+      .promo .utils { display: none; }
+      .head { padding: 0 8px 0 4px; gap: 4px; height: 60px; }
+      nav.primary { display: none; }
+      .menu-btn { display: inline-flex !important; }
+      .wordmark { font-size: 20px; letter-spacing: 4px; margin: 0 auto; }
+      .icons { margin-left: 0; gap: 0; }
+      .icons .opt-icon { display: none; }
+      .pdp, .feature, .tiles { grid-template-columns: 1fr; }
+      .buy { padding: 24px 16px 32px; }
+      .buy-inner { position: static; }
+      .gallery { grid-auto-flow: column; grid-auto-columns: 86%; overflow-x: auto; scroll-snap-type: x mandatory; }
+      .gallery .shot { scroll-snap-align: start; }
+      .hero { min-height: 520px; padding-bottom: 56px; }
+      .hero .brand { font-size: 32px; letter-spacing: 6px; }
+      .hero .season { font-size: 14px; letter-spacing: 5px; }
+      .fcols { grid-template-columns: 1fr 1fr; padding: 28px 16px; }
+      .legal { padding: 16px; }
+    }
+
+    /* Checkout */
+    .co { max-width: 1240px; margin: 0 auto; padding: 36px 56px 0; }
+    .co-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+    .co-head h1 { font-family: var(--serif); font-weight: 400; font-size: 36px; margin: 0; line-height: 1.1; }
+    .secure { display: inline-flex; align-items: center; gap: 6px; }
+    .secure svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+    .co-grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 48px; padding-top: 28px; }
+    .co-grid > * { min-width: 0; }
+    .step { border-bottom: 1px solid var(--line); padding: 4px 0 26px; margin-bottom: 26px; }
+    .step h2 { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 6px; }
+    .step h2 .n { width: 24px; height: 24px; border: 1px solid var(--ink); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; }
+    .step .sub2 { color: var(--muted); font-size: 12px; margin: 0 0 16px; }
+    .step .field { max-width: 520px; }
+    .ship-line { display: flex; justify-content: space-between; gap: 12px; max-width: 520px; margin-top: 12px; padding: 12px 14px; background: var(--tile); font-size: 12px; }
+    .club { max-width: 520px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+    .summary { border: 1px solid var(--line); padding: 26px 24px; align-self: start; position: sticky; top: 96px; }
+    .summary h2 { font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 16px; }
+    .items { list-style: none; margin: 0; padding: 0; }
+    .item { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+    .item .thumb { width: 72px; aspect-ratio: 4 / 5; background: var(--tile) center / cover no-repeat; position: relative; }
+    .item .thumb.loaded .fb { display: none; }
+    .item .thumb.noimg .fb { font-size: 11px; text-align: center; padding: 4px; }
+    .item .brandline { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+    .item .iname { font-family: var(--serif); font-size: 17px; line-height: 1.2; margin: 2px 0 4px; }
+    .item .imeta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .item select.qty { min-height: 44px; padding: 0 10px; border: 1px solid #c8c8c8; background: #fff; }
+    .item .iprice { font-size: 13px; white-space: nowrap; }
+    .totals { border-top: 1px solid var(--line); padding-top: 14px; font-size: 13px; }
+    .totals > div { display: flex; justify-content: space-between; padding: 4px 0; }
+    .totals .grand { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 12px; font-weight: 500; font-size: 15px; align-items: center; }
+    .totals .grand label { font-family: var(--mono); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+    .totals .amt { display: inline-flex; align-items: center; }
+    .totals input { width: 7ch; field-sizing: content; border: 0; padding: 0; background: transparent; text-align: right; font: 400 13px var(--sans); color: var(--ink); -moz-appearance: textfield; }
+    .totals input::-webkit-outer-spin-button, .totals input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .summary .btn { width: 100%; margin-top: 18px; }
+    .order-status { font-size: 12px; color: var(--muted); margin: 10px 0 0; text-align: center; }
+    .fine { font-size: 11px; color: var(--muted); margin: 14px 0 0; }
+    @media (max-width: 1024px) {
+      .co { padding: 22px 16px 0; }
+      .co-head h1 { font-size: 28px; }
+      .co-grid { grid-template-columns: 1fr; gap: 8px; padding-top: 20px; }
+      .summary { position: static; padding: 20px 16px; }
+      .item { grid-template-columns: 60px minmax(0, 1fr) auto; gap: 10px; }
+      .item .thumb { width: 60px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="promo">
+    <div class="msg">Signature Styles They’ll Love Now and Forever | <a href="#home">The Gift Guide</a></div>
+    <div class="utils">
+      <a href="#home"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="M1.5 8h13M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13"/></svg>US English</a>
+      <a href="#checkout"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 15s5-4.6 5-8.5A5 5 0 0 0 3 6.5C3 10.4 8 15 8 15z"/><circle cx="8" cy="6.5" r="1.8"/></svg>Find a store</a>
+    </div>
+  </div>
+
+  <header class="site">
+    <div class="head">
+      <div class="icons"><button type="button" class="menu-btn" aria-label="Menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 5h16M2 10h16M2 15h16"/></svg></button></div>
+      <a class="wordmark" href="#home" aria-label="Ralph Lauren home">RALPH LAUREN</a>
+      <nav class="primary mono" aria-label="Primary">
+        <a href="#checkout" >Men</a><a href="#home">Women</a><a href="#home">Kids &amp; Baby</a><a href="#home">Home</a><a href="#home">Gifts</a><a href="#home">Discover</a><a href="#home" class="sale">Sale</a>
+      </nav>
+      <div class="icons">
+        <button type="button" aria-label="Search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6"/><path d="m13 13 5 5"/></svg></button>
+        <button type="button" class="opt-icon" aria-label="Account"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="6" r="3.2"/><path d="M3.5 18c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/></svg></button>
+        <button type="button" class="opt-icon" aria-label="Wishlist"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17s-7-4.3-7-9.2A3.8 3.8 0 0 1 10 5a3.8 3.8 0 0 1 7 2.8C17 12.7 10 17 10 17z"/></svg></button>
+        <button type="button" aria-label="Shopping bag"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 7h13l-1 11h-11z"/><path d="M7 7V5.5a3 3 0 0 1 6 0V7"/></svg><span class="bag-count" id="bagCount"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="checkout">
+    <div class="co">
+      <div class="co-head">
+        <h1>Secure Checkout</h1>
+        <span class="secure mono"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>Signed in as Claire</span>
+      </div>
+      <form id="transferForm" class="co-grid" novalidate>
+        <div class="steps">
+          <section class="step" aria-labelledby="shipHeading">
+            <h2 id="shipHeading"><span class="n">1</span>Shipping</h2>
+            <p class="sub2">Where should we send your order?</p>
+            <div class="field">
+              <label for="toAccount">Ship to</label>
+              <select id="toAccount">
+                <option value="ACCT-1003">Home · 212 E 70th St, New York, NY 10021</option>
+                <option value="ACCT-1005">Work · 380 Lexington Ave, New York, NY 10168</option>
+                <option value="ACCT-1006">Pick up in store · Ralph Lauren Madison Avenue</option>
+              </select>
+            </div>
+            <div class="ship-line"><span id="shipMethodLabel">Standard Delivery · 3–5 business days</span><span id="shipMethodPrice">$0.00</span></div>
+          </section>
+          <section class="step" aria-labelledby="payHeading">
+            <h2 id="payHeading"><span class="n">2</span>Payment</h2>
+            <p class="sub2">Choose a saved payment method.</p>
+            <div class="field">
+              <label for="fromAccount">Payment method</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001">Visa ending in 4417</option>
+                <option value="ACCT-1002">American Express ending in 1009</option>
+                <option value="ACCT-1004">Mastercard ending in 9031</option>
+              </select>
+            </div>
+            <p class="club">Billing address matches your shipping address.</p>
+          </section>
+          <section class="step" aria-labelledby="clubHeading">
+            <h2 id="clubHeading"><span class="n">3</span>Ralph’s Club</h2>
+            <p class="sub2">Your membership is applied to this order.</p>
+            <div class="field">
+              <label for="accountTier">Membership</label>
+              <select id="accountTier">
+                <option value="standard" selected>Member</option>
+                <option value="basic">Member · Gift Wrap Included</option>
+              </select>
+            </div>
+            <p class="club" id="clubNote">Gift wrap available at the next step.</p>
+          </section>
+        </div>
+        <aside class="summary" aria-labelledby="bagHeading">
+          <h2 id="bagHeading">Order Summary (<span id="bagItemsCount">3</span>)</h2>
+          <ul class="items">
+            <li class="item">
+              <div class="thumb" data-bg="https://dtcralphlauren.scene7.com/is/image/PoloGSI/s7-1266689_lifestyle?$rl_4x5_pdp$" role="img" aria-label="White mesh polo shirt"><span class="fb">Polo</span></div>
+              <div>
+                <div class="brandline">Polo Ralph Lauren</div>
+                <div class="iname">Classic Fit Cotton Mesh Polo Shirt</div>
+                <div class="imeta">White · M</div>
+                <select class="qty" data-price="110" aria-label="Quantity, Classic Fit Cotton Mesh Polo Shirt"><option value="1" selected>Qty 1</option><option value="2">Qty 2</option><option value="3">Qty 3</option></select>
+              </div>
+              <span class="iprice" data-line>$110.00</span>
+            </li>
+            <li class="item">
+              <div class="thumb noimg" style="background:#1F3B63" role="img" aria-label="Navy cashmere sweater"><span class="fb" style="color:#fff">Navy</span></div>
+              <div>
+                <div class="brandline">Polo Ralph Lauren</div>
+                <div class="iname">Cable-Knit Cashmere Crewneck Sweater</div>
+                <div class="imeta">Navy · M</div>
+                <select class="qty" data-price="398" aria-label="Quantity, Cable-Knit Cashmere Crewneck Sweater"><option value="1" selected>Qty 1</option><option value="2">Qty 2</option><option value="3">Qty 3</option></select>
+              </div>
+              <span class="iprice" data-line>$398.00</span>
+            </li>
+            <li class="item">
+              <div class="thumb noimg" style="background:#C9B48A" role="img" aria-label="Khaki chino pant"><span class="fb" style="color:#041E3A">Khaki</span></div>
+              <div>
+                <div class="brandline">Polo Ralph Lauren</div>
+                <div class="iname">Stretch Slim Fit Chino Pant</div>
+                <div class="imeta">Khaki · 32/32</div>
+                <select class="qty" data-price="98" aria-label="Quantity, Stretch Slim Fit Chino Pant"><option value="1" selected>Qty 1</option><option value="2">Qty 2</option><option value="3">Qty 3</option></select>
+              </div>
+              <span class="iprice" data-line>$98.00</span>
+            </li>
+          </ul>
+          <div class="totals">
+            <div><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+            <div><span>Estimated Tax</span><span id="tax">$0.00</span></div>
+            <div><label for="amount">Merchandise &amp; Tax</label><span class="amt">$<input type="number" id="amount" step="0.01" min="0" readonly></span></div>
+            <div><span>Shipping &amp; Handling</span><span id="shipping">$0.00</span></div>
+            <div class="grand"><span>Total</span><span id="orderTotal">$0.00</span></div>
+          </div>
+          <button type="submit" id="submitBtn" class="btn">Place Order</button>
+          <p class="order-status" id="orderStatus">Review your order before placing it.</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <p class="fine">By placing your order, you agree to the Terms of Use and Privacy Notice.</p>
+        </aside>
+      </form>
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="signup">
+      <div class="eyebrow">Sign Up for Emails</div>
+      <form onsubmit="return false"><label class="sr" for="email">Email address</label><input id="email" type="email" placeholder="Email address"><button type="button" class="btn">Submit</button></form>
+    </div>
+    <div class="fcols">
+      <div><h3>Customer Service</h3><a href="#home">My Account</a><a href="#home">Live Chat</a><a href="#home">Customer Support</a><a href="#home">Shipping &amp; Delivery</a></div>
+      <div><h3>Stores</h3><a href="#checkout">Find a Store</a><a href="#home">Restaurants</a><a href="#home">Ralph's Coffee</a></div>
+      <div><h3>About</h3><a href="#home">Our Story</a><a href="#home">RL Mag</a><a href="#home">Careers</a></div>
+      <div><h3>Gift Cards</h3><a href="#home">Buy Gift Cards</a><a href="#home">Check Balance</a></div>
+    </div>
+    <div class="legal"><span>Sample storefront. Products, prices and availability shown are example data.</span><span>Privacy Notice · Terms of Use · Accessibility</span></div>
+  </footer>
+
+  <script>
+    (function () {
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.defaultUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.defaultOrgId && !localStorage.getItem('devinOrgId')) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.querySelectorAll('[data-bg]').forEach(function (el) {
+      var probe = new Image();
+      probe.onload = function () { el.style.backgroundImage = 'url("' + el.dataset.bg + '")'; el.classList.add('loaded'); };
+      probe.onerror = function () { el.classList.add('noimg'); };
+      probe.src = el.dataset.bg;
+    });
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('orderStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const accountTier = document.getElementById('accountTier');
+    const amountInput = document.getElementById('amount');
+    const qtySelects = Array.from(document.querySelectorAll('select.qty'));
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const TAX_RATE_PER_100K = 8875;
+    const idleStatus = 'Review your order before placing it.';
+    const CLUB_NOTES = {
+      standard: 'Gift wrap available at the next step.',
+      basic: 'Gift wrap is included with your membership.',
+    };
+    const HANDLING = {
+      standard: { rate: 0.001, flat: 2.5 },
+      basic: { rate: 0.002, flat: 4.99 },
+    };
+    function round2(n) { return Math.round(n * 100) / 100; }
+    function renderSummary() {
+      let subtotal = 0;
+      let count = 0;
+      qtySelects.forEach((select) => {
+        const qty = Number(select.value);
+        const line = qty * Number(select.dataset.price);
+        subtotal += line;
+        count += qty;
+        select.closest('.item').querySelector('[data-line]').textContent = usd.format(line);
+      });
+      subtotal = round2(subtotal);
+      const pickup = toAccount.value === 'ACCT-1006';
+      const handling = HANDLING[accountTier.value] || HANDLING.standard;
+      const tax = Math.round(Math.round(subtotal * 100) * TAX_RATE_PER_100K / 100000) / 100;
+      const total = round2(subtotal + tax);
+      const fee = round2(Math.max(handling.rate * total, handling.flat));
+      document.getElementById('subtotal').textContent = usd.format(subtotal);
+      document.getElementById('tax').textContent = usd.format(tax);
+      document.getElementById('shipMethodLabel').textContent = pickup
+        ? 'Pick up in store · Ready in 2 hours'
+        : 'Standard Delivery · 3–5 business days';
+      document.getElementById('shipMethodPrice').textContent = usd.format(fee);
+      document.getElementById('shipping').textContent = usd.format(fee);
+      document.getElementById('orderTotal').textContent = usd.format(total + fee);
+      document.getElementById('clubNote').textContent = CLUB_NOTES[accountTier.value] || CLUB_NOTES.standard;
+      document.getElementById('bagCount').textContent = count;
+      document.getElementById('bagItemsCount').textContent = count;
+      amountInput.value = total.toFixed(2);
+    }
+    function clearResult() {
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = idleStatus;
+    }
+    function show(kind, title, text) {
+      result.className = 'result-box ' + kind;
+      result.textContent = '';
+      const strong = document.createElement('strong');
+      strong.textContent = title;
+      result.appendChild(strong);
+      if (text) result.appendChild(document.createTextNode(text));
+    }
+    const controls = [fromAccount, toAccount, accountTier, ...qtySelects];
+    controls.forEach((el) => el.addEventListener('change', () => {
+      if (!button.disabled) clearResult();
+      renderSummary();
+    }));
+    renderSummary();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (button.disabled) return;
+      renderSummary();
+      const paymentLabel = fromAccount.options[fromAccount.selectedIndex].text;
+      button.disabled = true;
+      controls.forEach((el) => { el.disabled = true; });
+      button.textContent = 'Placing Order…';
+      status.textContent = '';
+      show('pending', 'Placing your order…', 'Please don’t refresh or leave this page.');
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: accountTier.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.receipt) throw new Error('Order could not be placed.');
+        show('success', 'Thank you, Claire. Your order is placed.', `Order ${data.receipt.receiptId} · ${usd.format(Number(data.receipt.totalDebit))}, paid with ${paymentLabel}. A confirmation email is on its way.`);
+        status.textContent = 'Order placed.';
+      } catch (_error) {
+        show('error', 'We couldn’t place your order.', 'Please try again or contact Customer Service.');
+        status.textContent = 'Order not placed.';
+      } finally {
+        button.disabled = false;
+        controls.forEach((el) => { el.disabled = false; });
+        button.textContent = 'Place Order';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Our Portfolio - Blackstone</title>
+    <style>
+      :root {
+        --bx-black: #000000;
+        --bx-ink: #111111;
+        --bx-grey: #5b5b5b;
+        --bx-line: #d9d9d9;
+        --bx-surface: #ffffff;
+        --bx-soft: #f5f5f3;
+        --serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, 'Times New Roman', serif;
+        --sans: 'Helvetica Neue', Helvetica, Arial, 'Segoe UI', sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body { font-family: var(--sans); color: var(--bx-ink); background: var(--bx-surface); -webkit-font-smoothing: antialiased; }
+      a { color: inherit; text-decoration: none; }
+      button { font-family: inherit; }
+
+      .wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+
+      header.site { position: sticky; top: 0; z-index: 20; background: #fff; border-bottom: 1px solid var(--bx-line); }
+      header.site .wrap { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+      .wordmark { display: inline-flex; align-items: center; justify-content: center; background: var(--bx-black); color: #fff; font-family: var(--serif); font-size: 22px; letter-spacing: 0.02em; padding: 10px 16px; line-height: 1; }
+      .wordmark span { display: block; }
+      .menu-btn { display: inline-flex; align-items: center; gap: 14px; background: none; border: 0; cursor: pointer; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--bx-ink); }
+      .menu-btn .bars { display: inline-block; width: 26px; height: 18px; position: relative; }
+      .menu-btn .bars i { position: absolute; left: 0; right: 0; height: 2px; background: var(--bx-black); }
+      .menu-btn .bars i:nth-child(1) { top: 0; } .menu-btn .bars i:nth-child(2) { top: 8px; } .menu-btn .bars i:nth-child(3) { top: 16px; }
+
+      nav.drawer { display: none; background: #000; color: #fff; }
+      nav.drawer.open { display: block; }
+      nav.drawer ul { list-style: none; margin: 0; padding: 18px 0; display: flex; flex-wrap: wrap; gap: 28px; }
+      nav.drawer li { font-family: var(--serif); font-size: 20px; }
+      nav.drawer li.current { text-decoration: underline; text-underline-offset: 6px; }
+
+      .eyebrow { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--bx-grey); margin: 0 0 18px; }
+      .hero { padding: 84px 0 56px; }
+      .hero h1 { font-family: var(--serif); font-weight: 400; font-size: 64px; line-height: 1.05; margin: 0 0 28px; letter-spacing: -0.01em; }
+      .hero p { font-size: 20px; line-height: 1.55; max-width: 720px; margin: 0; color: #222; }
+
+      .stats { background: #000; color: #fff; padding: 56px 0; }
+      .stats .wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+      .stat h4 { margin: 0 0 12px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 400; color: #bdbdbd; }
+      .stat strong { font-family: var(--serif); font-weight: 400; font-size: 56px; line-height: 1; }
+      .stats .note { grid-column: 1 / -1; font-size: 12px; color: #9a9a9a; margin: 8px 0 0; }
+
+      .portfolio { padding: 72px 0 96px; }
+      .portfolio h2 { font-family: var(--serif); font-weight: 400; font-size: 40px; margin: 0 0 32px; }
+      .filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 32px; padding: 24px 0; border-top: 1px solid #000; border-bottom: 1px solid var(--bx-line); margin-bottom: 36px; }
+      .filter { display: flex; flex-direction: column; gap: 8px; min-width: 220px; }
+      .filter label { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--bx-grey); }
+      .filter select { appearance: none; -webkit-appearance: none; border: 0; border-bottom: 2px solid #000; background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'><path d='M1 1l6 6 6-6' fill='none' stroke='black' stroke-width='2'/></svg>") no-repeat right 4px center; padding: 8px 28px 8px 0; font-family: var(--serif); font-size: 22px; color: #000; border-radius: 0; cursor: pointer; }
+      .filter select:focus { outline: none; border-bottom-color: #666; }
+      .filters .count { margin-left: auto; font-size: 14px; color: var(--bx-grey); white-space: nowrap; }
+      .filters .count.busy { color: #000; font-variant-numeric: tabular-nums; }
+
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; min-height: 240px; }
+      .card { border: 1px solid var(--bx-line); padding: 32px 28px 28px; display: flex; flex-direction: column; gap: 14px; min-height: 230px; background: #fff; transition: border-color 0.15s; }
+      .card:hover { border-color: #000; }
+      .card .mark { font-size: 26px; line-height: 1.1; min-height: 58px; display: flex; align-items: flex-end; }
+      .mark.heavy { font-weight: 800; letter-spacing: -0.03em; }
+      .mark.heavy-italic { font-weight: 800; font-style: italic; letter-spacing: -0.02em; }
+      .mark.bold { font-weight: 700; }
+      .mark.light { font-weight: 300; letter-spacing: 0.04em; }
+      .mark.wide { font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; font-size: 20px; }
+      .mark.caps { font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-size: 22px; }
+      .mark.serif { font-family: var(--serif); font-size: 30px; }
+      .mark.regular { font-weight: 500; }
+      .mark.badge span { background: #000; color: #fff; padding: 6px 12px; font-weight: 700; font-size: 20px; }
+      .card p { margin: 0; font-size: 15px; line-height: 1.5; color: #333; flex: 1; }
+      .card .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+      .card .tags span { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bx-grey); border: 1px solid var(--bx-line); padding: 4px 8px; }
+      .card .more { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; }
+      .card .more::after { content: '\2192'; }
+
+      .skeleton .card { border-color: #eee; }
+      .skeleton .sk { background: linear-gradient(90deg, #eee 25%, #f7f7f7 50%, #eee 75%); background-size: 400% 100%; animation: shimmer 1.4s infinite; }
+      .skeleton .sk.a { height: 30px; width: 60%; } .skeleton .sk.b { height: 14px; width: 95%; } .skeleton .sk.c { height: 14px; width: 80%; }
+      @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+      .notice { grid-column: 1 / -1; border: 1px solid var(--bx-line); padding: 48px 40px; text-align: center; }
+      .notice h3 { font-family: var(--serif); font-weight: 400; font-size: 34px; margin: 0 0 14px; }
+      .notice p { margin: 0 auto; max-width: 620px; font-size: 16px; line-height: 1.55; color: #333; }
+      .notice.outage { border-color: #000; background: var(--bx-soft); }
+      .notice.outage h3 { color: #000; }
+      .notice .ref { font-size: 12px; color: var(--bx-grey); margin-top: 14px; }
+      .notice button { margin-top: 24px; background: #000; color: #fff; border: 0; padding: 14px 32px; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; }
+      .notice button:hover { background: #222; }
+
+      footer.site { background: #000; color: #fff; padding: 64px 0 40px; margin-top: 40px; }
+      footer.site .cols { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 40px; }
+      footer.site h2 { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 400; color: #bdbdbd; margin: 0 0 16px; }
+      footer.site ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 15px; }
+      footer.site .legal { border-top: 1px solid #333; margin-top: 48px; padding-top: 24px; display: flex; flex-wrap: wrap; gap: 20px; font-size: 12px; color: #9a9a9a; }
+      footer.site .legal .copy { margin-left: auto; }
+      footer.site .wordmark { background: #fff; color: #000; }
+      .disclaimer { font-size: 11px; color: #777; margin-top: 18px; }
+
+      @media (max-width: 900px) {
+        .grid { grid-template-columns: repeat(2, 1fr); }
+        .stats .wrap, footer.site .cols { grid-template-columns: 1fr 1fr; }
+        .hero h1 { font-size: 44px; }
+      }
+      @media (max-width: 600px) {
+        .grid { grid-template-columns: 1fr; }
+        .filters .count { margin-left: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site">
+      <div class="wrap">
+        <a class="wordmark" href="#" aria-label="Blackstone home"><span>Blackstone</span></a>
+        <button class="menu-btn" id="menuToggle" aria-expanded="false" aria-controls="drawer">Menu <span class="bars"><i></i><i></i><i></i></span></button>
+      </div>
+      <nav class="drawer" id="drawer" aria-label="Primary">
+        <div class="wrap">
+          <ul>
+            <li><a href="#">The Firm</a></li>
+            <li><a href="#">What We Do</a></li>
+            <li class="current"><a href="#">Our Portfolio</a></li>
+            <li><a href="#">News &amp; Insights</a></li>
+            <li><a href="#">Financial Advisors</a></li>
+            <li><a href="#">Shareholders</a></li>
+            <li><a href="#">LP Login</a></li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="wrap">
+          <p class="eyebrow">What We Do</p>
+          <h1>Our Portfolio</h1>
+          <p>We play a vital role in helping companies realize their growth potential. We uncover and unlock value by identifying great companies with untapped potential and enhancing their performance.</p>
+        </div>
+      </section>
+
+      <section class="stats" aria-label="Featured Stats">
+        <div class="wrap">
+          <div class="stat"><h4>Total AUM</h4><strong>$1.2T</strong></div>
+          <div class="stat"><h4>Available Capital to Invest</h4><strong>$181B</strong></div>
+          <div class="stat"><h4>Portfolio Companies</h4><strong>250+</strong></div>
+          <p class="note">Note: Figures are illustrative demo values.</p>
+        </div>
+      </section>
+
+      <section class="portfolio" id="portfolio">
+        <div class="wrap">
+          <h2>Explore the portfolio</h2>
+          <div class="filters">
+            <div class="filter">
+              <label for="filter-business">Business</label>
+              <select id="filter-business" data-facet="business">
+                <option value="">All businesses</option>
+                <option value="private-equity">Private Equity</option>
+                <option value="real-estate">Real Estate</option>
+                <option value="credit-insurance">Credit &amp; Insurance</option>
+                <option value="infrastructure">Infrastructure</option>
+                <option value="tactical-opportunities">Tactical Opportunities</option>
+                <option value="life-sciences">Life Sciences</option>
+                <option value="growth">Growth</option>
+              </select>
+            </div>
+            <div class="filter">
+              <label for="filter-sector">Sector</label>
+              <select id="filter-sector" data-facet="sector">
+                <option value="">All sectors</option>
+                <option value="technology">Technology</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="consumer">Consumer</option>
+                <option value="industrials">Industrials</option>
+                <option value="real-estate">Real Estate</option>
+                <option value="financial-services">Financial Services</option>
+                <option value="energy-infrastructure">Energy &amp; Infrastructure</option>
+                <option value="media-entertainment">Media &amp; Entertainment</option>
+              </select>
+            </div>
+            <div class="filter">
+              <label for="filter-region">Region</label>
+              <select id="filter-region" data-facet="region">
+                <option value="">All regions</option>
+                <option value="americas">Americas</option>
+                <option value="europe">Europe</option>
+                <option value="asia-pacific">Asia Pacific</option>
+              </select>
+            </div>
+            <div class="count" id="count" aria-live="polite">Loading portfolio&hellip;</div>
+          </div>
+          <div class="grid" id="results" aria-live="polite"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site">
+      <div class="wrap">
+        <div class="cols">
+          <div><a class="wordmark" href="#" aria-label="Blackstone home"><span>Blackstone</span></a></div>
+          <nav><h2>Quick Links</h2><ul><li>The Firm</li><li>Our People</li><li>Insights</li><li>Careers</li></ul></nav>
+          <nav><h2>Social</h2><ul><li>LinkedIn</li><li>Instagram</li><li>X (Twitter)</li><li>Facebook</li></ul></nav>
+          <nav><h2>Get in Touch</h2><ul><li>Our Offices</li><li>Limited Partner Login</li></ul></nav>
+        </div>
+        <div class="legal">
+          <span>Transparency &amp; Disclosure</span><span>Legal</span><span>Privacy Notice</span><span>Manage Cookies</span>
+          <span class="copy">&copy; 2026 Blackstone Inc.</span>
+        </div>
+        <p class="disclaimer">NOT ACTUALLY A BLACKSTONE SITE: internal demo only, not affiliated with, endorsed by, or a real Blackstone product.</p>
+      </div>
+    </footer>
+
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      try { if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return; } catch (_) { return; }
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+    (function () {
+      function $(id) { return document.getElementById(id); }
+      function getStore(key) { try { return localStorage.getItem(key) || ''; } catch (_) { return ''; } }
+      var FACETS = ['business', 'sector', 'region'];
+      var state = { pending: false, requestSeq: 0 };
+      var results = $('results');
+      var count = $('count');
+      var loadTimer = null;
+
+      var menuToggle = $('menuToggle');
+      var drawer = $('drawer');
+      menuToggle.addEventListener('click', function () {
+        var open = !drawer.classList.contains('open');
+        drawer.classList.toggle('open', open);
+        menuToggle.setAttribute('aria-expanded', String(open));
+      });
+
+      function esc(text) {
+        return String(text).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      // Preselect from the URL (?business=private-equity) so a shared
+      // filtered link opens straight into that view.
+      var params = new URLSearchParams(location.search);
+      FACETS.forEach(function (facet) {
+        var value = params.get(facet);
+        var el = $('filter-' + facet);
+        if (value && Array.prototype.some.call(el.options, function (option) { return option.value === value; })) el.value = value;
+      });
+
+      function activeFilters() {
+        var body = {};
+        FACETS.forEach(function (facet) { body[facet] = $('filter-' + facet).value; });
+        return body;
+      }
+
+      function stopLoadTimer() { if (loadTimer) { clearInterval(loadTimer); loadTimer = null; } }
+
+      function renderSkeleton() {
+        var html = '';
+        for (var i = 0; i < 6; i++) html += '<div class="card"><div class="sk a"></div><div class="sk b"></div><div class="sk c"></div></div>';
+        results.className = 'grid skeleton';
+        results.innerHTML = html;
+      }
+
+      function renderCards(data) {
+        results.className = 'grid';
+        if (!data.companies.length) {
+          results.innerHTML = '<div class="notice"><h3>No portfolio companies match these filters.</h3><p>Try a different business, sector or region.</p><button type="button" id="clearFilters">Clear filters</button></div>';
+          return;
+        }
+        results.innerHTML = data.companies.map(function (c) {
+          var tags = [c.business, c.sector, c.region].filter(Boolean).map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('');
+          var mark = c.mark === 'badge' ? '<span>' + esc(c.name) + '</span>' : esc(c.name);
+          return '<article class="card"><div class="mark ' + esc(c.mark) + '">' + mark + '</div><p>' + esc(c.blurb) + '</p>'
+            + (tags ? '<div class="tags">' + tags + '</div>' : '')
+            + '<a class="more" href="#">Learn more</a></article>';
+        }).join('');
+      }
+
+      function renderError(data, elapsedMs) {
+        var seconds = (elapsedMs / 1000).toFixed(1);
+        results.className = 'grid';
+        results.innerHTML = '<div class="notice error outage" role="alert"><h3>Portfolio unavailable</h3>'
+          + '<p>We could not load the portfolio companies' + (elapsedMs ? ' (gave up after ' + seconds + 's)' : '') + '. Please try again in a moment, or contact Blackstone Investor Relations if the problem continues.</p>'
+          + (data && data.requestId ? '<p class="ref">Reference ' + esc(data.requestId) + '</p>' : '')
+          + '<button type="button" class="retry" id="retryLoad">Retry</button></div>';
+      }
+
+      async function load() {
+        var seq = ++state.requestSeq;
+        var body = activeFilters();
+        body.devinUserId = getStore('devinUserId');
+        body.devinOrgId = getStore('devinOrgId');
+        body.devinEmail = getStore('devinEmail');
+        var started = Date.now();
+        renderSkeleton();
+        count.classList.add('busy');
+        count.textContent = 'Loading portfolio\u2026';
+        stopLoadTimer();
+        loadTimer = setInterval(function () {
+          count.textContent = 'Loading portfolio\u2026 ' + ((Date.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+        try {
+          var res = await fetch('/api/a3c9e7b1/portfolio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          var data = await res.json().catch(function () { return null; });
+          if (seq !== state.requestSeq) return;
+          stopLoadTimer();
+          count.classList.remove('busy');
+          if (!res.ok || !data || data.success !== true) {
+            count.textContent = 'Portfolio unavailable';
+            renderError(data, Date.now() - started);
+            return;
+          }
+          count.textContent = data.total + (data.total === 1 ? ' company' : ' companies');
+          renderCards(data);
+        } catch (err) {
+          if (seq !== state.requestSeq) return;
+          stopLoadTimer();
+          count.classList.remove('busy');
+          count.textContent = 'Portfolio unavailable';
+          renderError(null, Date.now() - started);
+        }
+      }
+
+      FACETS.forEach(function (facet) {
+        $('filter-' + facet).addEventListener('change', load);
+      });
+      results.addEventListener('click', function (e) {
+        if (e.target && e.target.id === 'retryLoad') { load(); return; }
+        if (e.target && e.target.id === 'clearFilters') {
+          FACETS.forEach(function (facet) { $('filter-' + facet).value = ''; });
+          load();
+        }
+      });
+
+      // The first query waits for the document to finish parsing so a page
+      // served with a fetch shim appended after this script is routed by it.
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
+      else load();
+    })();
+    </script>
+  </body>
+</html>
