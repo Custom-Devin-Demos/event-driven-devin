@@ -272,12 +272,6 @@
           <div><label>titular</label><div class="v">Mariana López Hernández</div></div>
           <div><label>celular</label><div class="v">55 4821 3390</div></div>
           <div class="full"><label>domicilio de instalación</label><div class="v">Av. Insurgentes Sur 1602, Crédito Constructor, Benito Juárez, CDMX, 03940</div></div>
-          <div><label>fecha de instalación</label>
-            <select class="v" id="installDate"></select>
-          </div>
-          <div><label>horario</label>
-            <select class="v" id="installSlot"><option>9:00 a 13:00</option><option>13:00 a 18:00</option></select>
-          </div>
         </div>
         <p class="terms">Al confirmar aceptas el contrato de adhesión registrado ante Profeco y el aviso de privacidad de izzi. Contrato a 12 meses.</p>
         <button type="submit" id="confirmBtn"><span class="spin"></span><span class="label">confirmar contratación</span></button>
@@ -302,13 +296,14 @@
         vix: ['Vixpremium.svg', 'ViX Premium'], skeelo: ['Skeelo.svg', 'Skeelo'], disney: ['disney.svg', 'Disney+'],
         hbo: ['hbo_max.svg', 'HBO Max'], appletv: ['Appletv.svg', 'Apple TV'],
       };
+      var CONTRACT_PLAN = 'FAMILY-PLUS-12';
       var PACKAGES = [
-        { id: '120', from: 100, to: 120, was: 480, price: 429, fine: 'Precio con promoción por tres meses.', apps: ['vix', 'skeelo'], plan: 'PLUS-24' },
-        { id: '150', from: 120, to: 150, was: 540, price: 459, fine: 'Precio regular $540. Contrato a 12 meses.', apps: ['vix', 'hbo', 'skeelo'], plan: 'PLUS-24', top: true },
-        { id: '200', from: 150, to: 200, was: 640, price: 539, fine: 'Precio regular $640. Contrato a 12 meses.', apps: ['vix', 'disney', 'hbo', 'appletv', 'skeelo'], plan: 'ULTRA-36' },
-        { id: '300', from: 200, to: 300, was: 700, price: 599, fine: 'Precio regular $700. Contrato a 12 meses.', apps: ['vix', 'disney', 'hbo', 'appletv', 'skeelo'], plan: 'ULTRA-36' },
-        { id: '600', from: 500, to: 600, was: 820, price: 719, fine: 'Precio regular $820. Contrato a 12 meses.', apps: ['vix', 'disney', 'hbo', 'appletv', 'skeelo'], plan: 'FAMILY-PLUS-12' },
-        { id: '1000', to: 1000, was: 1020, price: 919, fine: 'Precio regular $1020. Contrato a 12 meses.', apps: ['vix', 'disney', 'hbo', 'appletv', 'skeelo'], plan: 'UNLIMITED-24' },
+        { id: '120', from: 100, to: 120, was: 480, price: 429, fine: 'Precio con promoción por tres meses.', apps: ['vix', 'skeelo'] },
+        { id: '150', from: 120, to: 150, was: 540, price: 459, fine: 'Precio regular $540. Contrato a 12 meses.', apps: ['vix', 'hbo', 'skeelo'], top: true },
+        { id: '200', from: 150, to: 200, was: 640, price: 539, fine: 'Precio regular $640. Contrato a 12 meses.', apps: ['vix', 'disney', 'hbo', 'appletv', 'skeelo'] },
+        { id: '300', from: 200, to: 300, was: 700, price: 599, fine: 'Precio regular $700. Contrato a 12 meses.', apps: ['vix', 'disney', 'hbo', 'appletv', 'skeelo'] },
+        { id: '600', from: 500, to: 600, was: 820, price: 719, fine: 'Precio regular $820. Contrato a 12 meses.', apps: ['vix', 'disney', 'hbo', 'appletv', 'skeelo'] },
+        { id: '1000', to: 1000, was: 1020, price: 919, fine: 'Precio regular $1020. Contrato a 12 meses.', apps: ['vix', 'disney', 'hbo', 'appletv', 'skeelo'] },
       ];
       function money(n) { return '$' + n.toLocaleString('es-MX'); }
       function title(p) {
@@ -331,29 +326,14 @@
       var btn = document.getElementById('confirmBtn');
       var label = btn.querySelector('.label');
       var result = document.getElementById('result');
-      var dateSel = document.getElementById('installDate');
-      var slotSel = document.getElementById('installSlot');
       var current = PACKAGES[1];
       var busy = false;
-
-      (function fillDates() {
-        var d = new Date();
-        for (var i = 2; i <= 5; i++) {
-          var x = new Date(d.getFullYear(), d.getMonth(), d.getDate() + i);
-          var o = document.createElement('option');
-          o.value = x.toISOString().slice(0, 10);
-          o.textContent = x.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
-          dateSel.appendChild(o);
-        }
-      })();
 
       function reset() {
         result.className = 'result';
         result.innerHTML = '';
         btn.className = '';
         btn.disabled = false;
-        dateSel.disabled = false;
-        slotSel.disabled = false;
         label.textContent = 'confirmar contratación';
       }
       function open(id) {
@@ -379,8 +359,6 @@
       function setBusy(on) {
         busy = on;
         btn.disabled = on;
-        dateSel.disabled = on;
-        slotSel.disabled = on;
         btn.classList.toggle('busy', on);
         label.textContent = on ? 'procesando tu contratación…' : 'confirmar contratación';
       }
@@ -399,7 +377,7 @@
           res = await fetch('/api/telco/upgrade', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ accountId: 'CUST-3001', currentPlanCode: 'BASIC-12', targetPlanCode: current.plan, billingDay: 15, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+            body: JSON.stringify({ accountId: 'CUST-3001', currentPlanCode: 'BASIC-12', targetPlanCode: CONTRACT_PLAN, billingDay: 15, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
           });
           try { data = await res.json(); } catch (err) { data = null; }
         } catch (err) {
@@ -408,18 +386,15 @@
           return;
         }
         setBusy(false);
-        if (!res.ok || !data || !data.success) {
+        if (!res.ok || !data || !data.success || data.newTermMonths !== 12) {
           showError('No pudimos completar tu contratación', 'No se hizo ningún cargo. Intenta de nuevo o llámanos al 800 607 7097.');
           return;
         }
         var folio = 'IZ-' + String(data.upgradeId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
-        var when = dateSel.options[dateSel.selectedIndex].textContent;
         result.className = 'result show ok';
-        result.innerHTML = '<div class="t">¡listo! tu contratación está confirmada</div><div>Folio ' + folio + ' · izzi internet ' + current.to + ' megas por ' + money(current.price) + ' al mes. Un técnico te visitará el ' + when + ' de ' + slotSel.value + '.</div>';
+        result.innerHTML = '<div class="t">¡listo! tu contratación está confirmada</div><div>Folio ' + folio + ' · izzi internet ' + current.to + ' megas por ' + money(current.price) + ' al mes, contrato a ' + data.newTermMonths + ' meses. Te llamaremos al 55 4821 3390 para agendar tu instalación.</div>';
         btn.classList.add('done');
         btn.disabled = true;
-        dateSel.disabled = true;
-        slotSel.disabled = true;
         label.textContent = 'contratación confirmada';
       });
     })();
