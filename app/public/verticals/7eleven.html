@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7NOW | Order Fresh Food, Drinks, and Snacks from 7-Eleven</title>
+  <link rel="icon" href="https://www.7-eleven.com/7now/favicon.ico">
+  <style>
+    @font-face { font-family: 'BasisGrotesquePro'; font-weight: 400; font-display: swap; src: url('/api/7eleven/fonts/Basis%20Grotesque%20Pro%20Regular.fef1d0ac.woff2') format('woff2'); }
+    @font-face { font-family: 'BasisGrotesquePro'; font-weight: 500; font-display: swap; src: url('/api/7eleven/fonts/Basis%20Grotesque%20Pro%20Medium.3445d153.woff2') format('woff2'); }
+    @font-face { font-family: 'BasisGrotesquePro'; font-weight: 700; font-display: swap; src: url('/api/7eleven/fonts/Basis%20Grotesque%20Pro%20Bold.13317b53.woff2') format('woff2'); }
+    :root {
+      --foreground: #111; --gray: #605e62; --green: #007350; --bggreen: #00563c; --lightgreen: #e6f1ee;
+      --bordercolor: #f1f1f1; --searchborder: #e4e4e4; --bgsecondary: #fafafa; --bgpromo: #ffc81e; --red: #d93235;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scrollbar-gutter: stable; }
+    body { font-family: 'BasisGrotesquePro', 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 22px; color: var(--foreground); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    img { display: block; }
+    .b { font-weight: 700; }
+
+    /* Header */
+    .hdr { position: fixed; top: 0; left: 0; right: 0; height: 66px; z-index: 40; background: #fff; border-bottom: 1px solid var(--searchborder); display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; }
+    .hdr-left { display: flex; align-items: center; gap: 24px; }
+    .hdr-logo img { width: 68px; height: 24px; }
+    .deliver p { font-size: 12px; line-height: 17px; }
+    .deliver .addr { display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 16px; line-height: 22px; cursor: pointer; }
+    .deliver .addr img { width: 24px; height: 24px; }
+    .search { position: relative; width: 600px; }
+    .search img { position: absolute; left: 16px; top: 10px; width: 20px; height: 20px; }
+    .search input { width: 100%; height: 40px; padding-left: 48px; padding-right: 16px; border: 1px solid var(--searchborder); border-radius: 8px; font: inherit; font-size: 16px; line-height: 24px; color: var(--foreground); outline: none; }
+    .search input::placeholder { color: var(--gray); }
+    .search input:focus { border-color: var(--foreground); }
+    .hdr-right { display: flex; align-items: center; gap: 16px; }
+    .pill { height: 40px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; line-height: 24px; white-space: nowrap; }
+    .pill-dark { background: var(--foreground); color: #fff; padding: 8px 24px; }
+    .pill-dark img { width: 24px; height: 24px; }
+    .pill-light { color: #000; padding: 8px 26px; border: 1px solid var(--searchborder); }
+    .pill-light:hover { background: var(--bordercolor); }
+
+    /* Sidebar */
+    .side { position: fixed; top: 66px; left: 0; bottom: 0; width: 240px; border-right: 1px solid var(--searchborder); background: #fff; display: flex; flex-direction: column; padding: 18px 16px 16px; z-index: 30; }
+    .side nav { display: flex; flex-direction: column; gap: 4px; }
+    .side nav a { display: flex; align-items: center; gap: 8px; height: 40px; padding: 8px 12px; border-radius: 8px; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--gray); }
+    .side nav a img { width: 24px; height: 24px; opacity: .72; }
+    .side nav a.active { background: var(--bordercolor); color: #000; }
+    .side nav a.active img { opacity: 1; }
+    .side nav a:hover { background: var(--bordercolor); }
+    .side .signin { margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--gray); }
+    .side .signin img { width: 24px; height: 24px; }
+
+    /* Main */
+    main { margin-left: 240px; padding: 74px 48px 32px; min-height: 50vh; }
+    .cats { display: flex; gap: 4px; padding: 8px 0 0; overflow: hidden; }
+    .cat { width: 84px; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+    .cat .circle { width: 64px; height: 64px; border-radius: 9999px; background: var(--bgsecondary); display: flex; align-items: center; justify-content: center; }
+    .cat .circle img { width: 48px; height: 48px; object-fit: contain; }
+    .cat span { font-size: 12px; line-height: 16px; font-weight: 500; text-align: center; }
+
+    .sec { margin-top: 8px; position: relative; }
+    .sec-h { display: flex; align-items: center; justify-content: space-between; height: 48px; }
+    .sec-h h2 { font-size: 18px; line-height: 24px; font-weight: 700; letter-spacing: -0.3px; padding: 12px 0; }
+    .sec-h .ctl { display: flex; align-items: center; gap: 8px; color: var(--green); }
+    .sec-h .ctl a { font-weight: 700; font-size: 14px; color: var(--green); margin-right: 8px; }
+    .sec-h .ctl button { width: 32px; height: 32px; border: 1px solid var(--searchborder); border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #fff; }
+    .sec-h .ctl button:disabled { opacity: .45; cursor: default; }
+    .sec-h .ctl img { width: 24px; height: 24px; }
+    .rail { display: flex; gap: 0; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none; margin: 0 -8px; }
+    .rail::-webkit-scrollbar { display: none; }
+    .offers { gap: 24px; margin: 0; }
+    .offer { flex: 0 0 auto; width: 296px; height: 159px; border-radius: 8px; overflow: hidden; background: var(--bgsecondary); cursor: pointer; }
+    .offer img { width: 100%; height: 100%; object-fit: cover; }
+
+    .tile { flex: 0 0 auto; width: 180px; padding: 0 8px 8px; }
+    .card { position: relative; width: 164px; overflow: hidden; }
+    .card .add { position: absolute; top: 8px; right: 8px; z-index: 1; width: 32px; height: 32px; border-radius: 9999px; background: #fff; border: 1px solid var(--searchborder); display: flex; align-items: center; justify-content: center; }
+    .card .add:hover { background: var(--bordercolor); }
+    .card .add img { width: 16px; height: 16px; }
+    .card .img { position: relative; height: 150px; background: var(--bgsecondary); display: flex; align-items: center; justify-content: center; padding: 16px 24px; }
+    .card .img img { height: 118px; width: auto; max-width: 116px; object-fit: contain; mix-blend-mode: multiply; }
+    .card .badge { position: absolute; left: 0; bottom: -8px; display: block; font-size: 11px; line-height: 16px; font-weight: 700; border-radius: 4px; padding: 0 8px; background: var(--bgpromo); border: 1px solid var(--bgpromo); color: var(--foreground); max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card .body { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .card .name { font-weight: 700; font-size: 14px; line-height: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card .meta { color: var(--gray); font-size: 12px; line-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card .price { font-weight: 700; font-size: 14px; line-height: 20px; display: flex; gap: 8px; align-items: baseline; }
+    .card .price s { color: var(--gray); font-weight: 400; }
+    .brand { flex: 0 0 auto; width: 180px; padding: 0 8px 8px; }
+    .brand img { width: 164px; height: 148px; border-radius: 8px; object-fit: cover; background: var(--bgsecondary); }
+
+    /* Footer */
+    footer { margin-left: 240px; background: var(--foreground); color: #fff; padding: 48px 48px 40px; }
+    .f-top { display: grid; grid-template-columns: 1.15fr 1.15fr .8fr; gap: 24px; padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,.15); }
+    .f-top h3 { font-size: 18px; line-height: 24px; font-weight: 700; margin-bottom: 16px; }
+    .f-top ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .f-top li { font-size: 13px; line-height: 16px; font-weight: 500; }
+    .badges { display: flex; gap: 12px; }
+    .badges img { height: 40px; width: auto; }
+    .f-bot { display: grid; grid-template-columns: 56px 1fr 1.4fr auto; gap: 24px; align-items: start; padding-top: 32px; }
+    .f-bot .stack { width: 56px; height: 88px; object-fit: contain; }
+    .f-links { font-size: 14px; line-height: 20px; }
+    .f-links .row { display: flex; gap: 16px; font-weight: 700; margin-bottom: 4px; }
+    .f-links p { font-size: 12px; line-height: 16px; margin-top: 12px; }
+    .legal { font-size: 12px; line-height: 15px; color: #fff; }
+    .social { display: flex; gap: 16px; }
+    .social img { width: 40px; height: 40px; border-radius: 9999px; }
+
+    /* Cart drawer */
+    .scrim { position: fixed; inset: 0; background: rgba(17,17,17,.5); z-index: 50; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .scrim.open { opacity: 1; pointer-events: auto; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; background: #fff; z-index: 60; transform: translateX(100%); transition: transform .25s; display: flex; flex-direction: column; }
+    .drawer.open { transform: none; }
+    .d-h { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--searchborder); }
+    .d-h h2 { font-size: 20px; line-height: 24px; font-weight: 700; letter-spacing: -0.3px; }
+    .d-h button { width: 32px; height: 32px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; }
+    .d-h button:hover { background: var(--bordercolor); }
+    .d-body { flex: 1; overflow-y: auto; padding: 8px 24px; }
+    .d-empty { padding: 48px 0; text-align: center; color: var(--gray); }
+    .line { display: flex; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--bordercolor); }
+    .line .thumb { width: 64px; height: 64px; border-radius: 8px; background: var(--bgsecondary); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+    .line .thumb img { max-height: 52px; max-width: 52px; mix-blend-mode: multiply; }
+    .line .info { flex: 1; min-width: 0; }
+    .line .nm { font-weight: 700; font-size: 14px; line-height: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .line .mt { color: var(--gray); font-size: 14px; line-height: 20px; }
+    .line .row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+    .qty { display: inline-flex; align-items: center; height: 32px; border: 1px solid var(--searchborder); border-radius: 9999px; }
+    .qty button { width: 32px; height: 30px; display: flex; align-items: center; justify-content: center; }
+    .qty span { min-width: 20px; text-align: center; font-weight: 700; font-size: 14px; }
+    .tag { display: inline-block; font-size: 11px; line-height: 16px; font-weight: 700; padding: 0 8px; border-radius: 4px; background: var(--lightgreen); color: var(--bggreen); margin-top: 4px; }
+    .tag.frozen { background: #e8f1fb; color: #1b4f9c; }
+    .d-f { border-top: 1px solid var(--searchborder); padding: 16px 24px 24px; }
+    .fee { display: flex; justify-content: space-between; font-size: 14px; line-height: 20px; color: var(--gray); padding: 3px 0; }
+    .fee.total { color: var(--foreground); font-weight: 700; font-size: 16px; line-height: 22px; padding-top: 10px; }
+    .place { width: 100%; height: 48px; margin-top: 16px; border-radius: 9999px; background: var(--foreground); color: #fff; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+    .place:disabled { background: #c9c9c9; cursor: default; }
+    .place .spin { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast + success */
+    .toast { position: fixed; left: 50%; bottom: 32px; transform: translate(-50%, 120px); z-index: 80; background: var(--foreground); color: #fff; padding: 14px 20px; border-radius: 12px; min-width: 360px; max-width: 640px; font-size: 14px; line-height: 20px; transition: transform .25s; box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+    .toast.show { transform: translate(-50%, 0); }
+    .drawer.open ~ .toast { left: calc(50% - 210px); }
+    .toast.error { background: var(--red); }
+    .toast .t { font-weight: 700; margin-bottom: 2px; }
+    .toast code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; display: block; margin-top: 6px; opacity: .9; word-break: break-word; }
+    .modal { position: fixed; inset: 0; z-index: 90; display: none; align-items: center; justify-content: center; background: rgba(17,17,17,.5); }
+    .modal.open { display: flex; }
+    .modal .box { width: 440px; background: #fff; border-radius: 16px; padding: 32px; text-align: center; }
+    .modal .check { width: 64px; height: 64px; border-radius: 9999px; background: var(--lightgreen); color: var(--green); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .modal h2 { font-size: 20px; line-height: 24px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 8px; }
+    .modal p { color: var(--gray); font-size: 14px; line-height: 20px; }
+    .modal .sum { margin: 20px 0; text-align: left; background: var(--bgsecondary); border-radius: 12px; padding: 12px 16px; font-size: 14px; line-height: 20px; }
+    .modal .sum div { display: flex; justify-content: space-between; padding: 2px 0; }
+    .modal .sum .b { border-top: 1px solid var(--searchborder); margin-top: 6px; padding-top: 8px; }
+    .modal button { height: 44px; padding: 0 28px; border-radius: 9999px; background: var(--foreground); color: #fff; font-weight: 700; }
+    .cookie { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; background: var(--foreground); color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px 48px; font-size: 14px; line-height: 20px; }
+    .cookie a { text-decoration: underline; }
+    .cookie button { height: 40px; padding: 0 24px; border-radius: 9999px; background: #fff; color: var(--foreground); font-weight: 700; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <div class="hdr-left">
+      <a class="hdr-logo" href="/7eleven"><img alt="logo" src="https://www.7-eleven.com/7now/_next/static/media/logo.43c17270.svg"></a>
+      <div class="deliver">
+        <p>Deliver to</p>
+        <div class="addr" id="address-entry" role="button" tabindex="0"><span id="address-label">Add Address</span><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/arrow-down-black.5b4a73a6.svg" onerror="this.style.display='none'"></div>
+      </div>
+    </div>
+    <div class="search">
+      <img alt="" src="https://www.7-eleven.com/7now/_next/static/media/search-icon-black.bf107cdb.svg">
+      <input id="search-input" type="search" placeholder="What are you craving?" autocomplete="off">
+    </div>
+    <div class="hdr-right">
+      <button class="pill pill-dark" id="cart-btn" aria-label="Open cart">
+        <img alt="" src="https://www.7-eleven.com/7now/_next/static/media/cart-icon.ad13a8e8.svg">
+        <span>Cart (<span id="cart-count">0</span>)</span>
+      </button>
+      <button class="pill pill-light" aria-label="Sign in">Sign in</button>
+    </div>
+  </header>
+
+  <aside class="side">
+    <nav>
+      <a class="active" href="/7eleven"><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/home.e783ebbe.svg">Home</a>
+      <a href="#offers"><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/offers.cd5af7f3.svg">Offers</a>
+      <a href="#shelves"><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/browse.5333dea1.svg">Browse</a>
+      <a href="#"><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/gold-pass.dcdceb65.svg">7-Eleven Gold Pass™</a>
+      <a href="#"><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/help-center.c7297c5d.svg">Help Center</a>
+    </nav>
+    <a class="signin" href="#"><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/action-log-in.d72c47c8.svg" onerror="this.style.display='none'">Sign in / Register</a>
+  </aside>
+
+  <main>
+    <div class="cats" id="cats"></div>
+    <section class="sec" id="offers">
+      <div class="sec-h"><h2>Offers</h2>
+        <div class="ctl"><button aria-label="Previous" data-rail="offers-rail" data-dir="-1"><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/icon-chevron-left-arrow.fea13d6f.svg"></button><button aria-label="Next" data-rail="offers-rail" data-dir="1"><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/icon-chevron-right-arrow.456d1861.svg"></button></div>
+      </div>
+      <div class="rail offers" id="offers-rail"></div>
+    </section>
+    <div id="shelves"></div>
+  </main>
+
+  <footer>
+    <div class="f-top">
+      <div><h3>Download our app</h3>
+        <div class="badges">
+          <img alt="Apple App Store Logo" src="https://images.contentstack.io/v3/assets/blt3bc3ff6be240f0a9/blt1b84fa922d3bc394/6969e6dca251a70008364268/app-store.png?branch=ver_1_0_0">
+          <img alt="Google Play Logo" src="https://images.contentstack.io/v3/assets/blt3bc3ff6be240f0a9/bltd8e69b539eb98ba4/6972aa09237b3dac103a3bbf/image_5.png?branch=ver_1_0_0">
+        </div></div>
+      <div><h3>How can we help?</h3>
+        <ul><li>Leave Feedback</li><li>Contact Us</li><li>California Consumer Privacy Act</li><li>California Cleaning Products Right to Know Act</li><li>Do Not Sell or Share My Information</li></ul></div>
+      <div><h3>Get to know us</h3>
+        <ul><li>About 7-Eleven</li><li>All Locations</li><li>Merchant Portal</li></ul></div>
+    </div>
+    <div class="f-bot">
+      <img class="stack" alt="7now-logo" src="https://images.contentstack.io/v3/assets/blt3bc3ff6be240f0a9/blt5d6404a254398584/690a9c9ca1a3666d4cf759ce/7Now.png?branch=ver_1_0_0">
+      <div class="f-links">
+        <div class="row"><span>Terms and Conditions</span><span>Privacy Policy</span></div>
+        <div class="row"><span>FAQs</span></div>
+        <p>This site is intended for residents of the U.S.</p>
+        <p>© 2026 7-Eleven, Inc. All rights reserved. Products and services available at participating locations.</p>
+      </div>
+      <p class="legal">Average delivery time across all markets as of December 2025 was about 30 minutes. Your actual delivery time may be longer, depending on driver availability, weather and traffic conditions. Consumer pays all applicable sales taxes and fees. A small basket fee may apply to any offer if minimum purchase requirement is not met. Delivery charges may apply. Limited delivery area. All offers limited, while supplies last. 7-Eleven, Inc. reserves the right to modify, change or cancel this offer at any time.</p>
+      <div class="social">
+        <img alt="Instagram icon" src="https://images.contentstack.io/v3/assets/blt3bc3ff6be240f0a9/blte6c25762d9b53b40/6972a949f632957c46c40e5e/Button.png?branch=ver_1_0_0">
+        <img alt="Facebook icon" src="https://images.contentstack.io/v3/assets/blt3bc3ff6be240f0a9/blt4e0cad39b3ff7c7c/690a9c9c0cfa41761a224132/Button_(1).png?branch=ver_1_0_0">
+        <img alt="X icon" src="https://images.contentstack.io/v3/assets/blt3bc3ff6be240f0a9/bltfea9ee4de23c146f/690a9c9a97ba1976f78f0491/Button_(2).png?branch=ver_1_0_0">
+      </div>
+    </div>
+  </footer>
+
+  <div class="cookie" id="cookie">
+    <span>We use cookies to give you the best experience on 7NOW. By continuing to browse you agree to our <a href="#">Privacy Policy</a>.</span>
+    <button id="cookie-ok">Accept</button>
+  </div>
+
+  <div class="scrim" id="scrim"></div>
+  <aside class="drawer" id="drawer" aria-label="Cart">
+    <div class="d-h"><h2>Your cart</h2><button id="drawer-close" aria-label="Close cart"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="d-body" id="cart-lines"></div>
+    <div class="d-f" id="cart-foot"></div>
+  </aside>
+
+  <div class="toast" id="toast" role="status"></div>
+  <div class="modal" id="modal"><div class="box">
+    <div class="check"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2 id="modal-title">Order placed</h2>
+    <p id="modal-sub"></p>
+    <div class="sum" id="modal-sum"></div>
+    <button id="modal-close">Keep shopping</button>
+  </div></div>
+
+  <script>
+    const API = '/api/7eleven';
+    const state = { products: new Map(), cart: new Map(), fees: null, placing: false };
+    const $ = (id) => document.getElementById(id);
+    const round2 = (n) => Math.round(n * 100) / 100;
+    const money = (n) => '$' + Number(n).toFixed(2);
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    function devinIds() {
+      return {
+        devinUserId: localStorage.getItem('devinUserId') || undefined,
+        devinOrgId: localStorage.getItem('devinOrgId') || undefined,
+        devinEmail: localStorage.getItem('devinEmail') || undefined,
+      };
+    }
+
+    function card(p) {
+      return `<div class="tile"><section class="card">
+        <button class="add" data-add="${p.id}" aria-label="Add ${esc(p.name)} to cart"><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/plus-icon.ed105ec9.svg"></button>
+        <a href="#" data-add="${p.id}">
+          <div class="img"><img alt="${esc(p.name)}" loading="lazy" src="${p.image}" onerror="this.style.visibility='hidden'">${p.badge ? `<span class="badge">${esc(p.badge)}</span>` : ''}</div>
+          <div class="body"><p class="name">${esc(p.name)}</p><p class="meta">${esc(p.meta)}</p>
+            <p class="price"><span>${money(p.price)}</span>${p.wasPrice ? `<s>${money(p.wasPrice)}</s>` : ''}</p></div>
+        </a></section></div>`;
+    }
+
+    function shelf(title, inner, railId, cls) {
+      return `<section class="sec"><div class="sec-h"><h2>${esc(title)}</h2>
+        <div class="ctl"><a href="#">View All</a><button aria-label="Previous" data-rail="${railId}" data-dir="-1"><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/icon-chevron-left-arrow.fea13d6f.svg"></button><button aria-label="Next" data-rail="${railId}" data-dir="1"><img alt="" src="https://www.7-eleven.com/7now/_next/static/media/icon-chevron-right-arrow.456d1861.svg"></button></div></div>
+        <div class="rail ${cls || ''}" id="${railId}">${inner}</div></section>`;
+    }
+
+    async function load() {
+      const res = await fetch(`${API}/catalog`);
+      const data = await res.json();
+      state.fees = data.fees;
+      data.products.forEach((p) => state.products.set(p.id, p));
+      $('cats').innerHTML = data.categories.map((c) => `<a class="cat" href="#"><div class="circle"><img alt="${esc(c.label)}" src="${c.image}" onerror="this.style.visibility='hidden'"></div><span>${esc(c.label)}</span></a>`).join('');
+      $('offers-rail').innerHTML = data.offers.map((o) => `<div class="offer"><img alt="${esc(o.alt)}" src="${o.image}" onerror="this.style.visibility='hidden'"></div>`).join('');
+      const html = [];
+      data.shelves.forEach((s, i) => {
+        html.push(shelf(s.title, s.ids.map((id) => card(state.products.get(id))).join(''), `rail-${i}`));
+        if (i === 1) {
+          html.push(shelf('Shop by brand', data.brands.map((b) => `<div class="brand"><img alt="${esc(b.name)} logo" src="${b.image}" onerror="this.style.visibility='hidden'"></div>`).join(''), 'rail-brands'));
+        }
+      });
+      $('shelves').innerHTML = html.join('');
+      renderCart();
+    }
+
+    function add(id, delta = 1) {
+      const cur = state.cart.get(id) || 0;
+      const next = Math.max(0, Math.min(10, cur + delta));
+      if (next === 0) state.cart.delete(id); else state.cart.set(id, next);
+      renderCart();
+    }
+
+    function totals() {
+      const f = state.fees;
+      let subtotal = 0;
+      state.cart.forEach((qty, id) => { subtotal += state.products.get(id).price * qty; });
+      subtotal = round2(subtotal);
+      const smallBasket = subtotal > 0 && subtotal < f.smallBasketMin ? f.smallBasketFee : 0;
+      const serviceFee = round2(subtotal * f.serviceFeeRate);
+      const tax = round2(subtotal * f.taxRate);
+      return { subtotal, smallBasket, serviceFee, tax, total: round2(subtotal + f.deliveryFee + serviceFee + smallBasket + tax) };
+    }
+
+    function renderCart() {
+      let count = 0;
+      state.cart.forEach((q) => { count += q; });
+      $('cart-count').textContent = count;
+      if (!state.cart.size) {
+        $('cart-lines').innerHTML = '<div class="d-empty"><p class="b" style="color:#111">Your cart is empty</p><p>Add something from the shelves to get started.</p></div>';
+        $('cart-foot').innerHTML = '';
+        return;
+      }
+      const lines = [];
+      state.cart.forEach((qty, id) => {
+        const p = state.products.get(id);
+        lines.push(`<div class="line"><div class="thumb"><img alt="" src="${p.image}"></div><div class="info"><p class="nm">${esc(p.name)}</p><p class="mt">${esc(p.meta)}</p><span class="tag ${p.temp}">${p.temp === 'hot' ? 'Hot & ready' : p.temp === 'frozen' ? 'Frozen' : p.temp === 'chilled' ? 'Chilled' : 'Shelf'}</span>
+          <div class="row"><div class="qty"><button data-dec="${id}" aria-label="Decrease">−</button><span>${qty}</span><button data-inc="${id}" aria-label="Increase">+</button></div><span class="b">${money(p.price * qty)}</span></div></div></div>`);
+      });
+      $('cart-lines').innerHTML = lines.join('');
+      const t = totals();
+      $('cart-foot').innerHTML = `
+        <div class="fee"><span>Subtotal</span><span>${money(t.subtotal)}</span></div>
+        <div class="fee"><span>Delivery fee</span><span>${money(state.fees.deliveryFee)}</span></div>
+        <div class="fee"><span>Service fee</span><span>${money(t.serviceFee)}</span></div>
+        ${t.smallBasket ? `<div class="fee"><span>Small basket fee</span><span>${money(t.smallBasket)}</span></div>` : ''}
+        <div class="fee"><span>Estimated tax</span><span>${money(t.tax)}</span></div>
+        <div class="fee total"><span>Total</span><span>${money(t.total)}</span></div>
+        <button class="place" id="place" ${state.placing ? 'disabled' : ''}><span>${state.placing ? 'Placing order…' : 'Place order'}</span>${state.placing ? '<span class="spin"></span>' : `<span>${money(t.total)}</span>`}</button>`;
+    }
+
+    let toastTimer;
+    function toast(title, body, code, isError) {
+      const el = $('toast');
+      el.className = 'toast show' + (isError ? ' error' : '');
+      el.innerHTML = `<div class="t">${esc(title)}</div><div>${esc(body)}</div>${code ? `<code>${esc(code)}</code>` : ''}`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), isError ? 9000 : 4000);
+    }
+
+    const ADDRESS_PLACEHOLDER = 'Add Address';
+    function hasAddress() { return $('address-label').textContent.trim() !== ADDRESS_PLACEHOLDER; }
+    function askAddress() {
+      const current = hasAddress() ? $('address-label').textContent : '';
+      const a = prompt('Enter a delivery address', current);
+      if (a && a.trim()) $('address-label').textContent = a.trim();
+      return hasAddress();
+    }
+
+    async function placeOrder() {
+      if (state.placing || !state.cart.size) return;
+      if (!hasAddress() && !askAddress()) {
+        toast('Add a delivery address', 'Tell us where to deliver before placing your order.', null, true);
+        return;
+      }
+      state.placing = true; renderCart();
+      const items = [...state.cart.entries()].map(([id, qty]) => ({ id, qty }));
+      try {
+        const res = await fetch(`${API}/checkout`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items, address: $('address-label').textContent, ...devinIds() }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          toast('We couldn’t place your order', `Something went wrong on our end (HTTP ${res.status}). Please try again in a moment.`,
+            `${data.errorClass || 'Error'}: ${data.error || 'Unknown error'}${data.requestId ? '  ·  request ' + data.requestId : ''}`, true);
+          return;
+        }
+        $('modal-sub').textContent = `${data.orderId} · ${data.message}`;
+        $('modal-sum').innerHTML = data.items.map((l) => `<div><span>${l.qty}× ${esc(l.name)}</span><span>${money(l.lineTotal)}</span></div>`).join('')
+          + `<div><span>Packed in</span><span>${esc(data.bags.join(', '))}</span></div><div class="b"><span>Total charged</span><span>${money(data.total)}</span></div>`;
+        $('modal').classList.add('open');
+        state.cart.clear();
+        closeDrawer();
+      } catch (err) {
+        toast('Network error', err.message, null, true);
+      } finally {
+        state.placing = false; renderCart();
+      }
+    }
+
+    function openDrawer() { $('drawer').classList.add('open'); $('scrim').classList.add('open'); }
+    function closeDrawer() { $('drawer').classList.remove('open'); $('scrim').classList.remove('open'); }
+
+    document.addEventListener('click', (e) => {
+      const addEl = e.target.closest('[data-add]');
+      if (addEl) { e.preventDefault(); add(addEl.dataset.add, 1); const p = state.products.get(addEl.dataset.add); toast('Added to cart', p.name); return; }
+      const inc = e.target.closest('[data-inc]'); if (inc) { add(inc.dataset.inc, 1); return; }
+      const dec = e.target.closest('[data-dec]'); if (dec) { add(dec.dataset.dec, -1); return; }
+      const nav = e.target.closest('[data-rail]'); if (nav) { $(nav.dataset.rail).scrollBy({ left: 540 * Number(nav.dataset.dir), behavior: 'smooth' }); return; }
+      if (e.target.closest('#place')) { placeOrder(); return; }
+      if (e.target.closest('#cart-btn')) { openDrawer(); return; }
+      if (e.target.closest('#drawer-close') || e.target === $('scrim')) { closeDrawer(); return; }
+      if (e.target.closest('#modal-close')) { $('modal').classList.remove('open'); return; }
+      if (e.target.closest('#cookie-ok')) { $('cookie').remove(); return; }
+      if (e.target.closest('#address-entry')) askAddress();
+    });
+    $('search-input').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      document.querySelectorAll('.tile').forEach((t) => { t.style.display = !q || t.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+    });
+
+    load().catch((err) => toast('Could not load the 7NOW home page', err.message, null, true));
+  </script>
+</body>
+</html>

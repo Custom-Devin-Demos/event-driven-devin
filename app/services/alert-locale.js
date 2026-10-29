@@ -112,6 +112,15 @@ STRINGS['en-plain'] = {
   titleSeparator: ' | ',
 };
 
+// AWS CloudWatch vocabulary for customers whose production monitoring is
+// CloudWatch rather than Sentry (config/customers/<slug>.js `locale: 'en-cloudwatch'`).
+STRINGS['en-cloudwatch'] = {
+  ...STRINGS.en,
+  header: (label) => `AWS CloudWatch Alarm — ${label} Error`,
+  viewSentry: 'View in CloudWatch',
+  sentryIssue: 'CloudWatch Alarm',
+};
+
 function alertLocale(alertData) {
   const locale = alertData && (alertData.locale || (alertData.customerConfig && alertData.customerConfig.locale));
   return Object.prototype.hasOwnProperty.call(STRINGS, locale) ? locale : 'en';
