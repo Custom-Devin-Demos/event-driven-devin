@@ -4406,6 +4406,16 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A INTESA SANPAOLO SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Intesa Sanpaolo product.',
   },
+  '21d0c234': {
+    slug: '21d0c234',
+    company: 'BNP Paribas',
+    vertical: 'banking',
+    page: {
+      file: '21d0c234.html',
+      title: 'Bank BNP Paribas | The bank for a changing world',
+    },
+    disclaimer: 'NOT ACTUALLY A BNP PARIBAS SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real BNP Paribas product.',
+  },
   '6997dfbe': {
     slug: '6997dfbe',
     company: 'Coca-Cola FEMSA',
