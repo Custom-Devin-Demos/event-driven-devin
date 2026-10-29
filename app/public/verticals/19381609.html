@@ -36,7 +36,7 @@
   .gsearch .go { background: var(--accent); color: #fff; }
   .gsearch .go:hover { background: #3a43c9; }
   .top-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
-  .conductor { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 18px; padding: 6px 12px; font-weight: 600; color: var(--navy); background: linear-gradient(90deg, #f3f1ff, #eef6ff); }
+  .conductor { white-space: nowrap; display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 18px; padding: 6px 12px; font-weight: 600; color: var(--navy); background: linear-gradient(90deg, #f3f1ff, #eef6ff); }
   .ticon { color: var(--muted); font-size: 18px; }
   .avatar { width: 32px; height: 32px; border-radius: 16px; background: var(--navy); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
 
@@ -54,17 +54,18 @@
   .acct-row { display: flex; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
   .acct-name { font-size: 22px; font-weight: 700; color: var(--navy); }
   .acct-code { color: var(--muted); font-weight: 600; margin-left: 8px; font-size: 14px; }
-  .acct-meta { display: flex; gap: 26px; font-size: 13px; color: var(--muted); padding-bottom: 3px; flex-wrap: wrap; }
+  .acct-meta { display: flex; gap: 6px 26px; font-size: 13px; color: var(--muted); padding-bottom: 3px; flex-wrap: wrap; }
   .acct-meta b { color: var(--ink); font-weight: 600; }
   .tabs { display: flex; gap: 24px; margin-top: 12px; }
   .tabs a { padding: 10px 0; color: var(--muted); font-weight: 600; border-bottom: 3px solid transparent; }
   .tabs a.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-  .content { padding: 18px 24px 40px; display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 18px; }
+  .content { padding: 18px 24px 40px; display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 18px; align-items: start; }
+  .table-wrap { overflow-x: auto; }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; }
   .card h2 { margin: 0; font-size: 20px; color: var(--navy); }
   .card-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; flex-wrap: wrap; }
-  .tools { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+  .tools { display: flex; gap: 8px; align-items: center; margin-left: auto; flex-wrap: wrap; }
   .tools select, .tools input { height: 32px; border: 1px solid var(--line); border-radius: 6px; padding: 0 10px; font-size: 13px; color: var(--ink); background: #fff; }
   .tools input { width: 190px; }
   .btn { height: 32px; border-radius: 6px; padding: 0 12px; border: 1px solid var(--line); background: #fff; color: var(--navy); font-weight: 600; cursor: pointer; font-size: 13px; }
@@ -100,7 +101,7 @@
   .promo img { width: 100%; border-radius: 6px; display: block; }
 
   /* Search results panel */
-  .results { position: absolute; top: 46px; left: 0; width: 820px; max-width: calc(100vw - 60px); background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 18px 50px rgba(35,38,90,.22); display: none; overflow: hidden; }
+  .results { position: absolute; top: 46px; left: 0; width: min(820px, calc(100vw - 40px)); background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 18px 50px rgba(35,38,90,.22); display: none; overflow: hidden; }
   .results.open { display: block; }
   .rhead { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
   .rhead .count { font-weight: 700; color: var(--navy); }
@@ -131,6 +132,19 @@
   .spinner { width: 28px; height: 28px; border: 3px solid var(--lav); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  .tabs { overflow-x: auto; white-space: nowrap; }
+  .side .empty { color: var(--muted); font-size: 13px; }
+  @media (max-width: 1360px) {
+    .content { grid-template-columns: minmax(0,1fr); }
+    .side { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .side .card { margin-bottom: 0; }
+    .promo img { max-height: 160px; object-fit: cover; }
+  }
+  @media (max-width: 1180px) {
+    .conductor .lbl { display: none; }
+    .brand { min-width: 0; }
+    .details { grid-template-columns: 1fr; }
+  }
   .toast { position: fixed; right: 24px; bottom: 24px; width: 400px; background: #fff; border: 1px solid #f2c4ca; border-left: 4px solid var(--red); border-radius: 8px; box-shadow: 0 12px 34px rgba(0,0,0,.16); padding: 14px 16px; display: none; z-index: 50; }
   .toast.show { display: block; }
   .toast b { color: var(--red); display: block; margin-bottom: 4px; }
@@ -172,7 +186,7 @@
     </div>
   </div>
   <div class="top-right">
-    <span class="conductor">&#10022; Epic Conductor</span>
+    <span class="conductor">&#10022;<span class="lbl"> Epic Conductor</span></span>
     <span class="ticon" title="Notifications">&#128276;</span>
     <span class="ticon" title="Help">&#9432;</span>
     <span class="avatar" title="Marisol Reyes">MR</span>
@@ -224,10 +238,10 @@
             </div>
           </div>
           <div class="actbar"><button title="Add">+</button><button title="Edit">&#9998;</button><button title="Delete">&times;</button><button title="Print">&#9113;</button><button title="Refresh">&#8635;</button></div>
-          <table>
+          <div class="table-wrap"><table>
             <thead><tr><th>Line</th><th>Line Description</th><th>Status</th><th>Effective</th><th>Expiration</th><th>Policy #</th><th>Stage</th><th>Company</th><th>Billing</th><th>Agency</th><th>Branch</th></tr></thead>
             <tbody id="policyRows"></tbody>
-          </table>
+          </table></div>
           <div class="table-foot" id="policyFoot"></div>
         </section>
 
@@ -246,9 +260,7 @@
       <aside class="side">
         <section class="card">
           <h3>Open Activities</h3>
-          <div class="act-item"><span class="act-dot"></span><div>Renewal review — Commercial Umbrella<small>Due 11/02/2026 · Marisol Reyes</small></div></div>
-          <div class="act-item"><span class="act-dot"></span><div>Ivans download 7186042 — file carrier documents<small>Due 10/30/2026 · Tom Becker</small></div></div>
-          <div class="act-item"><span class="act-dot"></span><div>Request updated driver schedule<small>Due 11/14/2026 · Tom Becker</small></div></div>
+          <div id="activities"></div>
         </section>
         <section class="card promo">
           <h3>Epic Conductor</h3>
@@ -274,6 +286,8 @@
   const fmt = (iso) => { const [y, m, d] = iso.split('-'); return `${m}/${d}/${y}`; };
   const TODAY = new Date();
   let policies = [];
+  let selectedPolicy = 0;
+  const TODAY_ISO = `${TODAY.getFullYear()}-${String(TODAY.getMonth() + 1).padStart(2, '0')}-${String(TODAY.getDate()).padStart(2, '0')}`;
   let lastResults = null;
   let selectedAccount = null;
   let selectedAttachment = null;
@@ -296,21 +310,26 @@
     el('acctExec').textContent = a.accountExec; el('acctBranch').textContent = a.branch;
     document.title = `Applied Epic — ${a.name} — Policies`;
     policies = data.policies;
+    el('activities').innerHTML = data.activities.length
+      ? data.activities.map((x) => `<div class="act-item"><span class="act-dot"></span><div>${esc(x.subject)}<small>Due ${fmt(x.due)} · ${esc(x.owner)}</small></div></div>`).join('')
+      : '<div class="empty">No open activities.</div>';
     renderPolicies(0);
   }
 
   function renderPolicies(selIdx) {
     const q = el('policyFilter').value.trim().toLowerCase();
     const rows = policies.map((p, i) => ({ p, i })).filter(({ p }) => !q || `${p.line} ${p.lineDescription} ${p.policyNumber} ${p.company}`.toLowerCase().includes(q));
+    if (selIdx !== undefined) selectedPolicy = selIdx;
+    if (!rows.some(({ i }) => i === selectedPolicy)) selectedPolicy = rows.length ? rows[0].i : -1;
     el('policyRows').innerHTML = rows.map(({ p, i }) => {
-      const expired = new Date(`${p.expiration}T00:00:00`) < TODAY;
+      const expired = p.expiration < TODAY_ISO;
       const pill = expired ? '<span class="pill exp">EXPIRED</span>' : (p.status === 'New' ? '<span class="pill new">NEW</span>' : '<span class="pill act">ACTIVE</span>');
-      return `<tr data-i="${i}" class="${i === selIdx ? 'sel' : ''}"><td><b>${esc(p.line)}</b></td><td>${esc(p.lineDescription)}</td><td>${esc(p.status)} ${pill}</td><td>${fmt(p.effective)}</td><td>${fmt(p.expiration)}</td><td>${esc(p.policyNumber)}</td><td>${esc(p.stage)}</td><td>${esc(p.company)}</td><td>${esc(p.billing)}</td><td>${esc(p.agency)}</td><td>${esc(p.branch)}</td></tr>`;
+      return `<tr data-i="${i}" class="${i === selectedPolicy ? 'sel' : ''}"><td><b>${esc(p.line)}</b></td><td>${esc(p.lineDescription)}</td><td>${esc(p.status)} ${pill}</td><td>${fmt(p.effective)}</td><td>${fmt(p.expiration)}</td><td>${esc(p.policyNumber)}</td><td>${esc(p.stage)}</td><td>${esc(p.company)}</td><td>${esc(p.billing)}</td><td>${esc(p.agency)}</td><td>${esc(p.branch)}</td></tr>`;
     }).join('');
     el('policyFoot').textContent = `${rows.length} of ${policies.length} policies`;
     el('policyRows').querySelectorAll('tr').forEach((tr) => tr.addEventListener('click', () => renderPolicies(Number(tr.dataset.i))));
-    const p = policies[selIdx] || policies[0];
-    if (!p) return;
+    const p = policies[selectedPolicy];
+    if (!p) { el('policyDetail').innerHTML = '<span>No policy selected</span><span></span>'; el('lineDetail').innerHTML = ''; return; }
     el('policyDetail').innerHTML = [
       ['Policy #', p.policyNumber], ['Status', p.status], ['Effective', fmt(p.effective)], ['Expiration', fmt(p.expiration)],
       ['Issuing Company', p.company], ['Billing', `${p.billing} Bill`], ['Stage', p.stage === 'A' ? 'A — Active' : 'D — Done'],
@@ -379,7 +398,7 @@
       const att = acct.attachments.find((x) => x.id === selectedAttachment) || acct.attachments[0];
       detail = acct.attachments.map((x) => `<div class="att ${x.id === att.id ? 'sel' : ''}" data-id="${esc(x.id)}"><span class="clip">&#128206;</span><div><div class="t">${esc(x.description)}</div><div class="s">Attached ${esc(x.attachedDate)} · ${esc(x.attachedBy)}</div></div><span class="star ${x.important ? 'on' : ''}">&#9733;</span></div>`).join('')
         + `<div class="s" style="color:var(--muted);font-size:12px">${acct.count} result${acct.count === 1 ? '' : 's'} for this account.</div>`
-        + `<div class="acct-link"><span>${esc(acct.name)}</span><a href="#" data-open="${esc(acct.lookupCode)}">Search Within Account &rsaquo;</a></div>`
+        + `<div class="acct-link"><span>${esc(acct.name)}</span><a href="#" data-open="${esc(acct.lookupCode)}">Open Account &rsaquo;</a></div>`
         + `<div class="basic"><h4>Basic Details</h4><div class="kv">${[
           ['Important', att.important ? 'Yes' : 'No'], ['Client', att.client], ['Attached Date', att.attachedDate], ['Attached By', att.attachedBy],
           ['Folder Path', att.folderPath], ['Original File Name', att.originalFileName], ['Security Access', att.securityAccess], ['Status', att.status], ['Attached To', att.attachedTo],
@@ -396,8 +415,8 @@
   el('searchForm').addEventListener('submit', (e) => { e.preventDefault(); runSearch(); });
   el('clearBtn').addEventListener('click', () => { el('searchInput').value = ''; el('results').classList.remove('open'); el('searchInput').focus(); });
   ['statusFilter', 'dateFilter', 'sortFilter'].forEach((id) => el(id).addEventListener('change', () => { if (el('searchInput').value.trim()) runSearch(); }));
-  el('policyFilter').addEventListener('input', () => renderPolicies(0));
-  document.addEventListener('click', (e) => { if (!e.target.closest('.gsearch')) el('results').classList.remove('open'); });
+  el('policyFilter').addEventListener('input', () => renderPolicies());
+  document.addEventListener('click', (e) => { if (!e.composedPath().some((n) => n.classList && n.classList.contains('gsearch'))) el('results').classList.remove('open'); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') el('results').classList.remove('open'); });
   loadAccount('HARTLOG-01');
 </script>

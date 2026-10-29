@@ -130,6 +130,23 @@ const POLICIES = {
   ],
 };
 
+const ACTIVITIES = {
+  'HARTLOG-01': [
+    { subject: 'Renewal review — Commercial Umbrella', due: '2026-11-02', owner: 'Marisol Reyes' },
+    { subject: 'Ivans download 7186042 — file carrier documents', due: '2026-10-30', owner: 'Tom Becker' },
+    { subject: 'Request updated driver schedule', due: '2026-11-14', owner: 'Tom Becker' },
+  ],
+  'LAKESHO-01': [{ subject: 'Send cyber application to Coalition', due: '2026-11-05', owner: 'Angela Ortiz' }],
+  'BRIGHTW-01': [
+    { subject: 'Remarket property renewal — 12/15', due: '2026-11-10', owner: 'Derek Han' },
+    { subject: 'Ivans download 7186051 — file umbrella quote', due: '2026-10-30', owner: 'Tom Becker' },
+  ],
+  'NORTHSI-01': [],
+  'PRAIRIE-01': [{ subject: 'Confirm farm equipment schedule', due: '2026-11-20', owner: 'Luis Navarro' }],
+  'CARDINA-01': [{ subject: 'Motor truck cargo renewal — 11/20', due: '2026-11-03', owner: 'Luis Navarro' }],
+  'SUMMITC-01': [{ subject: 'Review experience mod worksheet', due: '2026-11-12', owner: 'Tom Becker' }],
+};
+
 // Attachments filed from Ivans download batches 7186042 and 7186051. Records
 // created by the Ivans eDocs mailbox keep the carrier's ACORD line code.
 const ATTACHMENTS = [
@@ -264,7 +281,11 @@ function getAccountPolicies(lookupCode) {
       branch: account.branch,
     };
   });
-  return { account: { ...account, branchName: AGENCY.branches[account.branch] }, policies };
+  return {
+    account: { ...account, branchName: AGENCY.branches[account.branch] },
+    policies,
+    activities: ACTIVITIES[account.lookupCode] || [],
+  };
 }
 
 function describeAttachedTo(attachment) {
@@ -354,22 +375,39 @@ function groupByAccount(attachments, sort) {
   return accounts;
 }
 
-function searchAccountsAndPolicies({ query, type }) {
+function isPolicyActive(policy, now) {
+  return policy.stage === 'A' && new Date(`${policy.expiration}T23:59:59Z`).getTime() >= now;
+}
+
+function matchingPolicies(account, {
+  query, status, date,
+}, now) {
   const needle = query.toLowerCase();
-  const accounts = ACCOUNTS.filter((account) => {
-    if (type === 'account') {
-      return `${account.name} ${account.lookupCode} ${account.primaryContact}`.toLowerCase().includes(needle);
-    }
-    return (POLICIES[account.lookupCode] || []).some((policy) => policy.policyNumber.toLowerCase().includes(needle));
+  return (POLICIES[account.lookupCode] || []).filter((policy) => {
+    if (!policy.policyNumber.toLowerCase().includes(needle)) return false;
+    if (status === 'active' && !isPolicyActive(policy, now)) return false;
+    if (status === 'inactive' && isPolicyActive(policy, now)) return false;
+    return withinDate(policy.effective, date, now);
   });
-  return accounts.map((account) => ({
-    lookupCode: account.lookupCode,
-    name: account.name,
-    type: account.type,
-    branch: account.branch,
-    count: type === 'account' ? 1 : POLICIES[account.lookupCode].filter((policy) => policy.policyNumber.toLowerCase().includes(needle)).length,
-    attachments: [],
-  }));
+}
+
+function searchAccountsAndPolicies(params, now) {
+  const needle = params.query.toLowerCase();
+  return ACCOUNTS
+    .map((account) => {
+      const count = params.type === 'account'
+        ? Number(`${account.name} ${account.lookupCode} ${account.primaryContact}`.toLowerCase().includes(needle))
+        : matchingPolicies(account, params, now).length;
+      return {
+        lookupCode: account.lookupCode,
+        name: account.name,
+        type: account.type,
+        branch: account.branch,
+        count,
+        attachments: [],
+      };
+    })
+    .filter((account) => account.count > 0);
 }
 
 function failureAlertPayload(error, context) {
@@ -468,7 +506,7 @@ async function search(data = {}, options = {}) {
       matched = matchingAttachments(params, now);
       accounts = groupByAccount(matched, params.sort);
     } else {
-      accounts = searchAccountsAndPolicies(params);
+      accounts = searchAccountsAndPolicies(params, now);
     }
     const durationMs = Date.now() - startTime;
     incrementMetric('attachment_search.success', { route: ROUTE, type: params.type });

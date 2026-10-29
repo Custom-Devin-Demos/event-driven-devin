@@ -65,6 +65,8 @@ describe('Applied Epic (19381609) global search', () => {
     expect(policies.status).toBe(200);
     expect(policies.body.account.name).toBe('Hartwell Logistics, Inc.');
     expect(policies.body.policies[0]).toMatchObject({ line: 'WCOM', lineDescription: "Worker's Compensation", agency: 'INS', branch: 'MAT' });
+    expect(policies.body.activities[0]).toMatchObject({ owner: 'Marisol Reyes' });
+    expect(getAccountPolicies('NORTHSI-01').activities).toEqual([]);
     expect(getAccountPolicies('NOPE-01')).toBeNull();
     expect((await request('GET', '/api/19381609/accounts/NOPE-01/policies')).status).toBe(404);
   });
@@ -95,6 +97,8 @@ describe('Applied Epic (19381609) global search', () => {
     expect(accounts.accounts.map((account) => account.lookupCode)).toEqual(['SUMMITC-01']);
     const policies = await search({ query: 'CPP 2848019', type: 'policy' });
     expect(policies.accounts[0]).toMatchObject({ lookupCode: 'HARTLOG-01', count: 4 });
+    const activePolicies = await search({ query: 'CPP 2848019', type: 'policy', status: 'active' }, { now: '2026-10-29T12:00:00Z' });
+    expect(activePolicies.accounts[0]).toMatchObject({ lookupCode: 'HARTLOG-01', count: 2 });
   });
 
   test.each([
