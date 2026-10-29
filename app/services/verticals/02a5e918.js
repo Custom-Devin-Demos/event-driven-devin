@@ -6,7 +6,7 @@ const { createSessionAndAlert } = require('../devin-session');
 const { declareDatadogIncident } = require('../datadog-incidents');
 
 const SERVICE = 'customer-02a5e918-smarttime';
-const ROUTE = '/api/02a5e918/timecards/send-to-payroll';
+const PRECHECK_ROUTE = '/api/02a5e918/timecards/precheck';
 
 const PRODUCTION = {
   id: 'PRJ-24817',
@@ -70,13 +70,13 @@ function getTimecardBatch() {
 const REMEDIATION_DIRECTIVE = [
   '*Repository to investigate and fix:* `COG-GTM/event-driven-devin`',
   '',
-  'Production accountants cannot send the approved Silver Lake crew timecard batch to EP Payroll from SmartTime.',
+  'The new SmartTime Payroll Pre-Check crashes while validating the approved Silver Lake crew timecard batch.',
   '- Service: `app/services/verticals/02a5e918.js`',
   '- Route: `app/routes/verticals/02a5e918.js`',
   '- Page: `app/public/verticals/02a5e918.html` (served at `/entertainment-partners`)',
   '',
   'Use Sentry and Datadog through MCP to confirm the failing union and request pattern before changing code.',
-  'Fix the root cause in the union fringe rule lookup, keep the existing union rates unchanged, add regression coverage in `tests/ep-smarttime-payroll-batch.test.js`, and prove the full batch sends successfully.',
+  'Fix the root cause in the union fringe rule lookup, keep the existing union rates unchanged, add regression coverage in `tests/ep-smarttime-payroll-batch.test.js`, and prove the full pre-check and payroll submission succeed.',
   '',
   'Open a pull request against `main` with the fix.',
 ].join('\n');
@@ -89,8 +89,7 @@ function validationError(message, code) {
   return error;
 }
 
-async function sendTimecardsToPayroll(data) {
-  const startTime = Date.now();
+function selectedTimecards(data) {
   if (data.batchId !== PRODUCTION.payrollBatchId) {
     throw validationError(`Unknown timecard batch: ${data.batchId || '(none)'}`, 'UNKNOWN_TIMECARD_BATCH');
   }
@@ -108,19 +107,87 @@ async function sendTimecardsToPayroll(data) {
   const unknownIds = timecardIds.filter((id) => !TIMECARDS.some((timecard) => timecard.id === id));
   if (unknownIds.length > 0) throw validationError(`Unknown timecard ID(s): ${unknownIds.join(', ')}`, 'UNKNOWN_TIMECARD');
 
-  const selected = TIMECARDS.filter((timecard) => timecardIds.includes(timecard.id));
+  return TIMECARDS.filter((timecard) => timecardIds.includes(timecard.id));
+}
+
+async function reportPrecheckIncident(error, data, failingTimecard, duration) {
+  const union = failingTimecard ? failingTimecard.union : 'unknown';
+  incrementMetric('ep_smarttime.payroll_precheck_failure', { batchId: PRODUCTION.payrollBatchId, union });
+  recordTiming('ep_smarttime.payroll_precheck_latency', duration, { batchId: PRODUCTION.payrollBatchId, union, error: 'true' });
+
+  logger.error('SmartTime Payroll Pre-Check failed', {
+    error: error.message,
+    errorClass: error.name,
+    durationMs: duration,
+    batchId: PRODUCTION.payrollBatchId,
+    timecardId: failingTimecard ? failingTimecard.id : undefined,
+    union,
+    service: SERVICE,
+  });
+
+  Sentry.captureException(error, {
+    tags: { route: PRECHECK_ROUTE, service: SERVICE, batchId: PRODUCTION.payrollBatchId, union, alert_path: 'instant' },
+    extra: { productionId: PRODUCTION.id, ...(failingTimecard ? { timecardId: failingTimecard.id } : {}) },
+  });
+
+  declareDatadogIncident({
+    title: 'SmartTime Payroll Pre-Check failing for IATSE Local 600 timecards',
+    summary: `${error.name}: ${error.message}. The pre-check cannot validate batch ${PRODUCTION.payrollBatchId} for ${PRODUCTION.title}.`,
+    runRef: PRODUCTION.payrollBatchId,
+    service: SERVICE,
+    triggeredBy: data.devinEmail || 'smarttime',
+    repoUrl: 'https://github.com/COG-GTM/event-driven-devin',
+    severity: 'SEV-2',
+  }).catch((err) => logger.warn('Failed to declare Datadog incident for SmartTime', { error: err.message }));
+
+  createSessionAndAlert({
+    issueTitle: `${error.name}: ${error.message}`,
+    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+    culprit: 'app/services/verticals/02a5e918.js — runPayrollPrecheck',
+    errorType: error.name || 'Error',
+    errorValue: error.message,
+    devinUserId: data.devinUserId,
+    devinEmail: data.devinEmail,
+    devinOrgId: data.devinOrgId,
+    service: SERVICE,
+    verticalLabel: 'Entertainment Partners SmartTime — Payroll Pre-Check',
+    promptAppendix: REMEDIATION_DIRECTIVE,
+    customer: '02a5e918',
+    tags: [
+      { key: 'route', value: PRECHECK_ROUTE },
+      { key: 'service', value: SERVICE },
+      { key: 'batchId', value: PRODUCTION.payrollBatchId },
+      { key: 'union', value: union },
+    ],
+    extra: { productionId: PRODUCTION.id, ...(failingTimecard ? { timecardId: failingTimecard.id } : {}) },
+    level: 'error',
+    platform: 'node',
+    firstSeen: '',
+    lastSeen: new Date().toISOString(),
+    count: '',
+    shortId: '',
+    project: 'event-driven-devin',
+    release: process.env.SENTRY_RELEASE || `${SERVICE}@1.0.0`,
+    environment: process.env.DD_ENV || 'prod',
+    triggeredRule: '',
+  }).catch((err) => logger.warn('SmartTime incident follow-up failed', { error: err.message }));
+}
+
+async function runPayrollPrecheck(data) {
+  const startTime = Date.now();
+  const selected = selectedTimecards(data);
   let failingTimecard = null;
 
-  logger.info('Sending SmartTime batch to EP Payroll', {
+  logger.info('Running SmartTime Payroll Pre-Check', {
     batchId: PRODUCTION.payrollBatchId,
     productionId: PRODUCTION.id,
     timecardCount: selected.length,
     service: SERVICE,
-    route: ROUTE,
+    route: PRECHECK_ROUTE,
   });
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 120 + Math.random() * 160));
+    await new Promise((resolve) => setTimeout(resolve, 260 + Math.random() * 180));
     const lines = selected.map((timecard) => {
       failingTimecard = timecard;
       return { timecardId: timecard.id, crewName: timecard.crewName, union: timecard.union, ...computeTimecardCost(timecard) };
@@ -130,88 +197,51 @@ async function sendTimecardsToPayroll(data) {
     const totalFringe = round(lines.reduce((sum, line) => sum + line.fringe, 0));
     const duration = Date.now() - startTime;
 
-    incrementMetric('ep_smarttime.payroll_batch_success', { batchId: PRODUCTION.payrollBatchId });
-    recordTiming('ep_smarttime.payroll_batch_latency', duration, { batchId: PRODUCTION.payrollBatchId, error: 'false' });
+    incrementMetric('ep_smarttime.payroll_precheck_success', { batchId: PRODUCTION.payrollBatchId });
+    recordTiming('ep_smarttime.payroll_precheck_latency', duration, { batchId: PRODUCTION.payrollBatchId, error: 'false' });
 
     return {
       success: true,
       batchId: PRODUCTION.payrollBatchId,
-      status: 'sent_to_payroll',
-      payrollReference: `EPP-${crypto.randomBytes(3).toString('hex').toUpperCase()}`,
-      payDate: PRODUCTION.payDate,
+      status: 'ready_for_payroll',
       timecardCount: lines.length,
       totalGross,
       totalFringe,
       totalLaborCost: round(totalGross + totalFringe),
+      checks: [
+        { id: 'onboarding', label: 'Onboarding & work authorization', status: 'passed', detail: `${lines.length} crew records complete` },
+        { id: 'rates', label: 'Rates, overtime & allowances', status: 'passed', detail: 'Approved rates match deal memos' },
+        { id: 'accounts', label: 'Account codes & cost allocation', status: 'passed', detail: 'All timecards coded to the production ledger' },
+        { id: 'fringes', label: 'Union fringes & payroll taxes', status: 'passed', detail: 'Union rules calculated successfully' },
+      ],
       lines,
     };
   } catch (error) {
     const duration = Date.now() - startTime;
-    const union = failingTimecard ? failingTimecard.union : 'unknown';
-    incrementMetric('ep_smarttime.payroll_batch_failure', { batchId: PRODUCTION.payrollBatchId, union });
-    recordTiming('ep_smarttime.payroll_batch_latency', duration, { batchId: PRODUCTION.payrollBatchId, union, error: 'true' });
-
-    logger.error('SmartTime batch failed while sending to EP Payroll', {
-      error: error.message,
-      errorClass: error.name,
-      durationMs: duration,
-      batchId: PRODUCTION.payrollBatchId,
-      timecardId: failingTimecard ? failingTimecard.id : undefined,
-      union,
-      service: SERVICE,
-    });
-
-    Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, batchId: PRODUCTION.payrollBatchId, union, alert_path: 'instant' },
-      extra: { productionId: PRODUCTION.id, ...(failingTimecard ? { timecardId: failingTimecard.id } : {}) },
-    });
-
-    declareDatadogIncident({
-      title: 'SmartTime payroll batch failing for IATSE Local 600 timecards',
-      summary: `${error.name}: ${error.message}. Batch ${PRODUCTION.payrollBatchId} for ${PRODUCTION.title} cannot be sent to EP Payroll.`,
-      runRef: PRODUCTION.payrollBatchId,
-      service: SERVICE,
-      triggeredBy: data.devinEmail || 'smarttime',
-      repoUrl: 'https://github.com/COG-GTM/event-driven-devin',
-      severity: 'SEV-2',
-    }).catch((err) => logger.warn('Failed to declare Datadog incident for SmartTime', { error: err.message }));
-
-    createSessionAndAlert({
-      issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/02a5e918.js — computeTimecardCost',
-      errorType: error.name || 'Error',
-      errorValue: error.message,
-      devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail,
-      devinOrgId: data.devinOrgId,
-      service: SERVICE,
-      verticalLabel: 'Entertainment Partners SmartTime — Send to Payroll',
-      promptAppendix: REMEDIATION_DIRECTIVE,
-      customer: '02a5e918',
-      tags: [
-        { key: 'route', value: ROUTE },
-        { key: 'service', value: SERVICE },
-        { key: 'batchId', value: PRODUCTION.payrollBatchId },
-        { key: 'union', value: union },
-      ],
-      extra: { productionId: PRODUCTION.id, ...(failingTimecard ? { timecardId: failingTimecard.id } : {}) },
-      level: 'error',
-      platform: 'node',
-      firstSeen: '',
-      lastSeen: new Date().toISOString(),
-      count: '',
-      shortId: '',
-      project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || `${SERVICE}@1.0.0`,
-      environment: process.env.DD_ENV || 'prod',
-      triggeredRule: '',
-    }).catch((err) => logger.warn('SmartTime incident follow-up failed', { error: err.message }));
-
+    await reportPrecheckIncident(error, data, failingTimecard, duration);
     error.statusCode = 500;
-    error.code = 'PAYROLL_BATCH_FAILED';
+    error.code = 'PAYROLL_PRECHECK_FAILED';
     throw error;
   }
+}
+
+async function sendTimecardsToPayroll(data) {
+  const selected = selectedTimecards(data);
+  const lines = selected.map((timecard) => ({ timecardId: timecard.id, crewName: timecard.crewName, union: timecard.union, ...computeTimecardCost(timecard) }));
+  const totalGross = round(lines.reduce((sum, line) => sum + line.gross, 0));
+  const totalFringe = round(lines.reduce((sum, line) => sum + line.fringe, 0));
+  return {
+    success: true,
+    batchId: PRODUCTION.payrollBatchId,
+    status: 'sent_to_payroll',
+    payrollReference: `EPP-${crypto.randomBytes(3).toString('hex').toUpperCase()}`,
+    payDate: PRODUCTION.payDate,
+    timecardCount: lines.length,
+    totalGross,
+    totalFringe,
+    totalLaborCost: round(totalGross + totalFringe),
+    lines,
+  };
 }
 
 module.exports = {
@@ -220,5 +250,6 @@ module.exports = {
   UNION_FRINGE_RULES,
   REMEDIATION_DIRECTIVE,
   getTimecardBatch,
+  runPayrollPrecheck,
   sendTimecardsToPayroll,
 };

@@ -1,6 +1,11 @@
 const express = require('express');
 const path = require('path');
-const { PRODUCTION, getTimecardBatch, sendTimecardsToPayroll } = require('../../services/verticals/02a5e918');
+const {
+  PRODUCTION,
+  getTimecardBatch,
+  runPayrollPrecheck,
+  sendTimecardsToPayroll,
+} = require('../../services/verticals/02a5e918');
 
 const router = express.Router();
 const PAGE = path.join(__dirname, '..', '..', 'public', 'verticals', '02a5e918.html');
@@ -13,16 +18,34 @@ router.get('/api/02a5e918/timecards', (_req, res) => {
   res.json({ success: true, production: PRODUCTION, timecards: getTimecardBatch() });
 });
 
+function requestData(body) {
+  return {
+    batchId: body.batchId || PRODUCTION.payrollBatchId,
+    timecardIds: body.timecardIds,
+    devinUserId: typeof body.devinUserId === 'string' ? body.devinUserId.slice(0, 128) : undefined,
+    devinOrgId: typeof body.devinOrgId === 'string' ? body.devinOrgId.slice(0, 128) : undefined,
+    devinEmail: typeof body.devinEmail === 'string' ? body.devinEmail.slice(0, 254) : undefined,
+  };
+}
+
+router.post('/api/02a5e918/timecards/precheck', async (req, res) => {
+  try {
+    res.json(await runPayrollPrecheck(requestData(req.body || {})));
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'PAYROLL_PRECHECK_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
 router.post('/api/02a5e918/timecards/send-to-payroll', async (req, res) => {
   const body = req.body || {};
   try {
-    const result = await sendTimecardsToPayroll({
-      batchId: body.batchId || PRODUCTION.payrollBatchId,
-      timecardIds: body.timecardIds,
-      devinUserId: typeof body.devinUserId === 'string' ? body.devinUserId.slice(0, 128) : undefined,
-      devinOrgId: typeof body.devinOrgId === 'string' ? body.devinOrgId.slice(0, 128) : undefined,
-      devinEmail: typeof body.devinEmail === 'string' ? body.devinEmail.slice(0, 254) : undefined,
-    });
+    const result = await sendTimecardsToPayroll(requestData(body));
     res.json(result);
   } catch (error) {
     res.status(error.statusCode || 500).json({
