@@ -6817,6 +6817,17 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN ALLICA BANK SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Allica Bank product.',
   },
+  '9e24626b': {
+    slug: '9e24626b',
+    company: 'Plenful',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: {
+      file: '9e24626b.html',
+      title: 'Prior Authorization for Infusion & Specialty Pharmacy',
+    },
+    disclaimer: 'NOT ACTUALLY A PLENFUL SITE — internal demo only, not affiliated with, endorsed by, or a real Plenful product.',
+  },
 };
 
 function getOncallSkin(slug) {
