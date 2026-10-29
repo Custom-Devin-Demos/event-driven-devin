@@ -375,8 +375,10 @@ function groupByAccount(attachments, sort) {
   return accounts;
 }
 
+const AGENCY_DATE = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago' });
+
 function isPolicyActive(policy, now) {
-  return policy.stage === 'A' && new Date(`${policy.expiration}T23:59:59Z`).getTime() >= now;
+  return policy.stage === 'A' && policy.expiration >= AGENCY_DATE.format(new Date(now));
 }
 
 function matchingPolicies(account, {
