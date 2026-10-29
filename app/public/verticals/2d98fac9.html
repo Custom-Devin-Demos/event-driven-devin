@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Jobs | Accenture</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #000000;
+      --panel: #101010;
+      --field: #202020;
+      --purple: #A100FF;
+      --purple-deep: #460073;
+      --white: #ffffff;
+      --muted: #a2a2a0;
+      --muted-2: #616160;
+      --line: #3a3a3a;
+      --font: Inter, Graphik, Arial, Helvetica, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { background: var(--black); }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--font); font-size: 16px; line-height: 24px; color: var(--white); background: var(--black); -webkit-font-smoothing: antialiased; letter-spacing: -0.08px; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; letter-spacing: inherit; }
+    .wrap { max-width: 1440px; margin: 0 auto; padding: 0 80px; }
+
+    .global-nav { background: var(--black); }
+    .global-nav .wrap { display: flex; align-items: center; height: 72px; gap: 48px; }
+    .logo { display: flex; align-items: center; height: 48px; }
+    .logo svg { display: block; height: 32px; width: auto; }
+    .nav-items { display: flex; align-items: center; gap: 0; margin: 0 auto; padding: 0; list-style: none; }
+    .nav-items a { display: inline-flex; align-items: center; gap: 8px; height: 72px; padding: 0 12px; font-size: 14px; line-height: 21px; letter-spacing: -0.07px; }
+    .nav-items svg { width: 12px; height: 12px; }
+    .nav-tools { display: flex; align-items: center; gap: 28px; }
+    .nav-tools a { display: inline-flex; align-items: center; gap: 8px; height: 48px; }
+    .nav-tools svg { width: 20px; height: 20px; }
+
+    .careers-nav { background: var(--purple-deep); }
+    .careers-nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 52px; }
+    .careers-nav strong { font-weight: 500; }
+    .careers-nav ul { display: flex; gap: 40px; margin: 0; padding: 0; list-style: none; }
+    .careers-nav li a { display: inline-flex; align-items: center; height: 52px; }
+    .careers-nav li.active a { box-shadow: inset 0 -3px 0 var(--white); }
+
+    .search-hero { padding: 80px 0 60px; }
+    .search-hero h1 { margin: 0 0 40px; font-size: 56px; line-height: 64px; font-weight: 500; letter-spacing: -2px; }
+    .search-bar { display: flex; align-items: center; gap: 0; background: var(--field); height: 88px; }
+    .search-bar .spy { flex: none; width: 32px; height: 32px; margin-left: 40px; }
+    .search-bar input { flex: 1; min-width: 0; height: 88px; padding: 0 24px; border: 0; background: transparent; color: var(--white); font-size: 28px; line-height: 35px; font-weight: 500; outline: none; }
+    .search-bar input::placeholder { color: var(--muted-2); }
+    .pro-tip { margin-top: 16px; color: var(--muted); }
+    .pro-tip b { font-weight: 500; color: var(--white); margin-right: 8px; letter-spacing: 1px; font-size: 12px; text-transform: uppercase; }
+
+    .layout { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 32px; padding-bottom: 96px; }
+    .layout > * { min-width: 0; }
+    .filters { position: relative; padding-right: 20px; border-right: 6px solid var(--purple); align-self: start; }
+    .filters-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 2px solid var(--purple); }
+    .filters-head h3 { margin: 0; font-size: 20px; line-height: 32px; font-weight: 500; letter-spacing: -0.1px; }
+    .ghost { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0; border: 0; background: none; color: var(--white); font-weight: 500; cursor: pointer; }
+    .ghost svg { width: 18px; height: 18px; }
+    .facet { padding: 16px 0 20px; border-bottom: 1px solid var(--line); }
+    .facet label.title { display: flex; align-items: center; justify-content: space-between; min-height: 24px; margin-bottom: 14px; font-weight: 500; }
+    .facet label.title::after { content: ""; width: 12px; height: 2px; background: var(--white); }
+    .select { position: relative; }
+    .select select { display: block; width: 100%; max-width: 100%; min-width: 0; height: 52px; padding: 0 40px 0 16px; border: 0; background: var(--field); color: var(--white); outline: none; -webkit-appearance: none; appearance: none; cursor: pointer; }
+    .select select:focus { box-shadow: inset 0 0 0 2px var(--purple); }
+    .select::after { content: ""; position: absolute; right: 16px; top: 50%; width: 8px; height: 8px; border-right: 2px solid var(--white); border-bottom: 2px solid var(--white); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+    .facet-list { list-style: none; margin: 0; padding: 0; }
+    .facet-list li { position: relative; display: flex; align-items: center; gap: 16px; min-height: 48px; }
+    .facet-list li span.count { margin-left: auto; color: var(--muted); }
+    .facet-list input[type="radio"] { position: absolute; left: 0; top: 0; width: 48px; height: 48px; margin: 0; opacity: 0; cursor: pointer; }
+    .facet-list label { cursor: pointer; flex: 1; display: flex; align-items: center; gap: 16px; min-height: 48px; }
+    .facet-list label::before { content: ""; flex: none; width: 18px; height: 18px; border: 1px solid var(--white); background: transparent; }
+    .facet-list input[type="radio"]:checked + label::before { background: var(--purple) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3 3 7-8' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E") no-repeat center / 14px; border-color: var(--purple); }
+    .facet-list input[type="radio"]:focus-visible + label::before { outline: 2px solid var(--purple); outline-offset: 2px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; padding: 0 24px; border: 0; background: var(--purple); color: var(--white); font-weight: 500; cursor: pointer; }
+    .btn:hover { background: #8d00e0; }
+    .btn[disabled] { background: #6a00a8; color: rgba(255,255,255,0.75); cursor: progress; }
+    .btn .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.35); border-top-color: var(--white); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .btn[disabled] .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .filters .btn { width: 100%; margin-top: 24px; }
+
+    .results-head { display: flex; align-items: center; justify-content: flex-end; gap: 24px; padding: 16px 0; min-height: 72px; }
+    .results-head .count { color: var(--white); }
+    .results-head .sort { display: inline-flex; align-items: center; gap: 8px; color: var(--muted-2); font-size: 14px; line-height: 21px; }
+    .results-head .sort b { color: var(--white); font-weight: 400; }
+    .result-box { min-height: 24px; }
+    .result-box[hidden] { display: none; }
+    .status { display: flex; align-items: center; gap: 16px; padding: 24px 32px; background: var(--panel); color: var(--muted); }
+    .status.error { color: var(--white); border-left: 4px solid var(--purple); }
+    .status .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.25); border-top-color: var(--purple); border-radius: 50%; animation: spin 0.8s linear infinite; flex: none; }
+    .job-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 24px; }
+    .job-card { position: relative; display: block; padding: 24px 32px 32px; background: var(--panel); }
+    .job-card h3 { margin: 0 0 8px; padding-right: 56px; font-size: 20px; line-height: 32px; font-weight: 500; letter-spacing: -0.1px; }
+    .job-card .meta { display: flex; flex-wrap: wrap; align-items: center; color: var(--muted); }
+    .job-card .meta span + span::before { content: "|"; margin: 0 12px; color: var(--purple); }
+    .job-card .save { position: absolute; top: 24px; right: 32px; width: 24px; height: 24px; border: 0; background: var(--purple); color: var(--white); font-size: 20px; line-height: 24px; cursor: pointer; padding: 0; }
+    .pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 40px; }
+    .pager a { display: inline-flex; align-items: center; justify-content: center; min-width: 48px; height: 48px; }
+    .pager a.current { background: var(--panel); box-shadow: inset 0 -2px 0 var(--purple); }
+    .pager .arrow svg { width: 20px; height: 20px; }
+    .eeo { margin-top: 48px; }
+    .eeo a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 4px; }
+
+    .site-footer { background: var(--black); padding: 96px 0 64px; }
+    .wordmark { display: block; width: 340px; max-width: 100%; height: auto; }
+    .footer-links { display: flex; flex-wrap: wrap; column-gap: 24px; row-gap: 0; margin: 48px 0 40px; padding: 0; list-style: none; }
+    .footer-links li { display: inline-flex; align-items: center; }
+    .footer-links a { display: inline-flex; align-items: center; min-height: 44px; }
+    .copyright { color: var(--white); font-size: 14px; line-height: 21px; }
+
+    @media (max-width: 1100px) { .layout { grid-template-columns: 320px 1fr; } }
+    @media (max-width: 900px) {
+      .wrap { padding: 0 20px; }
+      .nav-items { display: none; }
+      .global-nav .wrap { justify-content: space-between; }
+      .careers-nav ul { gap: 20px; }
+      .careers-nav li:not(.active) { display: none; }
+      .search-hero { padding: 40px 0 32px; }
+      .search-hero h1 { font-size: 36px; line-height: 42px; letter-spacing: -1px; margin-bottom: 24px; }
+      .search-bar { height: 64px; }
+      .search-bar .spy { width: 24px; height: 24px; margin-left: 16px; }
+      .search-bar input { height: 64px; padding: 0 16px; font-size: 18px; line-height: 24px; }
+      .layout { grid-template-columns: 1fr; gap: 24px; }
+      .filters { padding-right: 0; border-right: 0; }
+      .results-head { justify-content: space-between; }
+      .job-card { padding: 20px 20px 24px; }
+      .job-card .save { right: 20px; top: 20px; }
+      .site-footer { padding: 64px 0 40px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="global-nav">
+    <div class="wrap">
+      <a href="#" class="logo" aria-label="Accenture home">
+        <svg viewBox="0 0 30 32" aria-hidden="true"><path fill="#A100FF" d="M0 0 L22 11.2 L0 21.4 L0 32 L30 17.5 L30 6.8 L0 -2.4Z" transform="translate(0 2) scale(0.95)"/></svg>
+      </a>
+      <ul class="nav-items">
+        <li><a href="#">Services <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l4 4 4-4"/></svg></a></li>
+        <li><a href="#">Products</a></li>
+        <li><a href="#">Insights</a></li>
+        <li><a href="#">About Us <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l4 4 4-4"/></svg></a></li>
+        <li><a href="#">Careers <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l4 4 4-4"/></svg></a></li>
+      </ul>
+      <div class="nav-tools">
+        <a href="#" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 2.8 4 5.9 4 9s-1.2 6.2-4 9c-2.8-2.8-4-5.9-4-9s1.2-6.2 4-9z"/></svg> USA <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" style="width:12px;height:12px"><path d="M2 4l4 4 4-4"/></svg></a>
+      </div>
+    </div>
+  </header>
+  <nav class="careers-nav" aria-label="Careers">
+    <div class="wrap">
+      <strong>Careers</strong>
+      <ul>
+        <li class="active"><a href="#">Job Search</a></li>
+        <li><a href="#">Saved Jobs</a></li>
+        <li><a href="#">Access Application</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <section class="search-hero">
+      <div class="wrap">
+        <h1>Search jobs at Accenture</h1>
+        <form id="transferForm" novalidate>
+          <div class="search-bar">
+            <svg class="spy" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="14" cy="14" r="9"/><path d="M21 21l8 8"/></svg>
+            <input type="search" id="keyword" placeholder="Find your next opportunity" aria-label="Search jobs" autocomplete="off">
+          </div>
+          <p class="pro-tip"><b>Pro tip</b>Try searching using a descriptive phrase such as "AI engineer in Dublin"</p>
+          <select id="accountTier" hidden aria-hidden="true" tabindex="-1">
+            <option value="standard" selected>Standard</option>
+            <option value="premium">Premium</option>
+          </select>
+          <input type="number" id="amount" value="100" min="1" hidden aria-hidden="true" tabindex="-1">
+        </form>
+      </div>
+    </section>
+
+    <section class="wrap layout">
+      <aside class="filters" aria-label="Filters">
+        <div class="filters-head">
+          <h3>Filters</h3>
+          <button type="button" class="ghost" id="clearBtn">Clear filters <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9a6 6 0 1 1 1.8 4.3"/><path d="M3 13.5V9h4.5"/></svg></button>
+        </div>
+        <div class="facet">
+          <label class="title" for="fromAccount">Location</label>
+          <div class="select">
+            <select id="fromAccount" form="transferForm">
+              <option value="various">Various locations</option>
+              <option value="new-york">New York, NY</option>
+              <option value="chicago">Chicago, IL</option>
+              <option value="atlanta">Atlanta, GA</option>
+              <option value="san-francisco">San Francisco, CA</option>
+              <option value="arlington">Arlington, VA</option>
+            </select>
+          </div>
+        </div>
+        <div class="facet">
+          <label class="title" for="distance">Distance</label>
+          <div class="select">
+            <select id="distance">
+              <option value="25">Within 25 mi</option>
+              <option value="50">Within 50 mi</option>
+              <option value="100" selected>Within 100 mi</option>
+            </select>
+          </div>
+        </div>
+        <div class="facet">
+          <label class="title" for="toAccount">Area of Interest</label>
+          <div class="select">
+            <select id="toAccount" form="transferForm">
+              <option value="all">All areas of interest</option>
+              <option value="ai-data" selected>Artificial Intelligence (AI) &amp; Data Science</option>
+              <option value="cloud">Cloud</option>
+              <option value="consulting">Consulting</option>
+              <option value="corporate">Corporate Functions</option>
+              <option value="engineering">Engineering &amp; Manufacturing</option>
+              <option value="industries">Industries</option>
+              <option value="operations">Operations &amp; Delivery</option>
+            </select>
+          </div>
+        </div>
+        <div class="facet">
+          <span class="title" style="display:flex;align-items:center;justify-content:space-between;font-weight:500;margin-bottom:6px">Job Type</span>
+          <ul class="facet-list" id="jobType">
+            <li><input type="radio" name="jobType" id="jt-any" value="any" checked><label for="jt-any">Any</label></li>
+            <li><input type="radio" name="jobType" id="jt-full" value="Full time"><label for="jt-full">Full time</label></li>
+            <li><input type="radio" name="jobType" id="jt-part" value="Part time"><label for="jt-part">Part time</label></li>
+          </ul>
+        </div>
+        <button type="submit" class="btn" id="submitBtn" form="transferForm"><span class="spinner" aria-hidden="true"></span><span id="submitLabel">Search</span></button>
+      </aside>
+
+      <div class="results">
+        <div class="results-head">
+          <div class="count" id="resultsCount">Search to see open roles</div>
+          <div class="sort">Sort by <b>Relevancy</b> <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" style="width:12px;height:12px"><path d="M2 4l4 4 4-4"/></svg></div>
+        </div>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <ul class="job-list" id="jobList" aria-live="polite"></ul>
+        <div class="pager" id="pager" hidden>
+          <a href="#" class="arrow" aria-label="Previous page"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4l-6 6 6 6"/></svg></a>
+          <a href="#" class="current">1</a><a href="#">2</a><a href="#">3</a><a href="#">4</a><a href="#">5</a><span style="padding:0 8px">…</span><a href="#" id="lastPage">87</a>
+          <a href="#" class="arrow" aria-label="Next page"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4l6 6-6 6"/></svg></a>
+        </div>
+        <p class="eeo"><a href="#">Click here</a> to view our equal opportunity and other employment statements.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <svg class="wordmark" viewBox="0 0 340 68" aria-label="Reinvented with Accenture" role="img">
+        <text x="0" y="24" fill="#fff" font-family="Inter, Arial, sans-serif" font-weight="600" font-size="22" letter-spacing="0.5">REINVENTED WITH</text>
+        <path fill="#A100FF" d="M226 4 L246 13.6 L226 22.4 L226 29 L252 17.6 L252 9.4 L226 -2Z"/>
+        <text x="92" y="64" fill="#fff" font-family="Inter, Arial, sans-serif" font-weight="600" font-size="46" letter-spacing="-1.5">accenture</text>
+      </svg>
+      <ul class="footer-links">
+        <li><a href="#">About Us</a></li><li><a href="#">Contact Us</a></li><li><a href="#">Alumni</a></li><li><a href="#">Privacy Statement</a></li>
+        <li><a href="#">Recruiting and Hiring Privacy Statement</a></li><li><a href="#">Applicant Notices – Federal, State &amp; Local</a></li>
+        <li><a href="#">Terms &amp; Conditions</a></li><li><a href="#">Cookie Policy/Settings</a></li><li><a href="#">Accessibility Statement</a></li><li><a href="#">Sitemap</a></li>
+        <li><a href="#">Global Meritocracy</a></li><li><a href="#">Labor Condition Applications</a></li><li><a href="#">Do Not Sell/Share My Personal Information</a></li>
+      </ul>
+      <div class="copyright">© 2026 Accenture. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var ROLES = [
+        { title: 'Data Science Practitioner', area: 'ai-data', level: 'Mid-Level', type: 'Full time' },
+        { title: 'AI Engineer Senior Manager', area: 'ai-data', level: 'Senior Level', type: 'Full time' },
+        { title: 'Generative AI Platform Lead', area: 'ai-data', level: 'Senior Level', type: 'Full time' },
+        { title: 'Machine Learning Engineering Specialist', area: 'ai-data', level: 'Mid-Level', type: 'Full time' },
+        { title: 'Data Engineering Analyst', area: 'ai-data', level: 'Entry Level', type: 'Part time' },
+        { title: 'Cloud Migration Architect', area: 'cloud', level: 'Senior Level', type: 'Full time' },
+        { title: 'Cloud Platform Engineer', area: 'cloud', level: 'Mid-Level', type: 'Full time' },
+        { title: 'Customer Growth Strategy Senior Manager | Utilities', area: 'consulting', level: 'Senior Level', type: 'Full time' },
+        { title: 'Customer Growth Strategy Consultant | Utilities', area: 'consulting', level: 'Mid-Level', type: 'Full time' },
+        { title: 'Enterprise Productivity & Performance Manager', area: 'consulting', level: 'Senior Level', type: 'Full time' },
+        { title: 'Finance Operations Associate', area: 'corporate', level: 'Entry Level', type: 'Part time' },
+        { title: 'Talent Acquisition Specialist', area: 'corporate', level: 'Mid-Level', type: 'Full time' },
+        { title: 'Software Products and Platform Engineering Specialist', area: 'engineering', level: 'Mid-Level', type: 'Full time' },
+        { title: 'Industry X Manufacturing Consultant', area: 'engineering', level: 'Mid-Level', type: 'Full time' },
+        { title: 'ServiceNow Technology Delivery Lead Manager', area: 'industries', level: 'Senior Level', type: 'Full time' },
+        { title: 'Life Sciences Regulatory Consultant', area: 'industries', level: 'Mid-Level', type: 'Full time' },
+        { title: 'Service Delivery Operations Associate Manager', area: 'operations', level: 'Mid-Level', type: 'Full time' },
+        { title: 'Operations Delivery Analyst', area: 'operations', level: 'Entry Level', type: 'Part time' }
+      ];
+      var AREA_TOTALS = { all: 1039, 'ai-data': 65, cloud: 10, consulting: 159, corporate: 15, engineering: 35, industries: 128, operations: 39 };
+
+      var form = document.getElementById('transferForm');
+      var btn = document.getElementById('submitBtn');
+      var label = document.getElementById('submitLabel');
+      var result = document.getElementById('result');
+      var list = document.getElementById('jobList');
+      var count = document.getElementById('resultsCount');
+      var pager = document.getElementById('pager');
+      var location = document.getElementById('fromAccount');
+      var area = document.getElementById('toAccount');
+      var distance = document.getElementById('distance');
+      var amount = document.getElementById('amount');
+      var tier = document.getElementById('accountTier');
+
+      function syncDistance() { amount.value = distance.value; }
+      distance.addEventListener('change', syncDistance);
+      syncDistance();
+
+      function jobType() {
+        var checked = document.querySelector('input[name="jobType"]:checked');
+        return checked ? checked.value : 'any';
+      }
+      function escapeHtml(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+      function resetResults() {
+        result.innerHTML = '';
+        list.innerHTML = '';
+        pager.hidden = true;
+        count.textContent = 'Search to see open roles';
+      }
+      document.getElementById('clearBtn').addEventListener('click', function () {
+        form.reset();
+        location.value = 'various';
+        area.value = 'all';
+        distance.value = '100';
+        document.getElementById('jt-any').checked = true;
+        syncDistance();
+        resetResults();
+      });
+
+      function renderResults() {
+        var selectedArea = area.value;
+        var type = jobType();
+        var locText = location.options[location.selectedIndex].text;
+        var roles = ROLES.filter(function (r) { return (selectedArea === 'all' || r.area === selectedArea) && (type === 'any' || r.type === type); });
+        var total = AREA_TOTALS[selectedArea] || roles.length;
+        if (type !== 'any') total = Math.max(roles.length, Math.round(total * (type === 'Full time' ? 0.9 : 0.1)));
+        count.innerHTML = '<b>' + total + '</b> Results';
+        list.innerHTML = roles.map(function (r) {
+          return '<li class="job-card"><h3>' + escapeHtml(r.title) + '</h3><div class="meta"><span>' + escapeHtml(locText) + '</span><span>' + escapeHtml(r.type) + '</span><span>' + escapeHtml(r.level) + '</span></div><button type="button" class="save" aria-label="Save job">+</button></li>';
+        }).join('');
+        pager.hidden = roles.length === 0;
+        document.getElementById('lastPage').textContent = Math.max(1, Math.ceil(total / 12));
+        if (!roles.length) result.innerHTML = '<div class="status">No results found for this search. Try a different area of interest or job type.</div>';
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        btn.disabled = true;
+        label.textContent = 'Searching\u2026';
+        list.innerHTML = '';
+        pager.hidden = true;
+        count.textContent = '';
+        result.innerHTML = '<div class="status"><span class="spinner" aria-hidden="true"></span>Finding roles that match your search\u2026</div>';
+        try {
+          var res = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: location.value,
+              toAccount: area.value,
+              amount: parseFloat(amount.value),
+              accountTier: tier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          });
+          var data = await res.json();
+          if (!res.ok || !data.success) throw new Error('search failed');
+          result.innerHTML = '';
+          renderResults();
+        } catch (err) {
+          count.textContent = '';
+          result.innerHTML = '<div class="status error">Job search is taking longer than usual. Please try again in a few minutes.</div>';
+        } finally {
+          btn.disabled = false;
+          label.textContent = 'Search';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
