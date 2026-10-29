@@ -6915,6 +6915,7 @@ const ONCALL_SKINS = {
     company: 'Accenture',
     brandMark: '>',
     vertical: 'banking',
+    oncallOnly: true,
     page: { file: '2d98fac9.html', title: 'Search Jobs | Accenture' },
     alertCard: {
       title: 'p95 latency — job search',
