@@ -371,7 +371,7 @@
     const amountInput = document.getElementById('amount');
     const qtySelects = Array.from(document.querySelectorAll('select.qty'));
     const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-    const TAX_RATE = 0.08875;
+    const TAX_RATE_PER_100K = 8875;
     const idleStatus = 'Review your order before placing it.';
     const CLUB_NOTES = {
       standard: 'Gift wrap available at the next step.',
@@ -395,7 +395,7 @@
       subtotal = round2(subtotal);
       const pickup = toAccount.value === 'ACCT-1006';
       const handling = HANDLING[accountTier.value] || HANDLING.standard;
-      const tax = round2(subtotal * TAX_RATE);
+      const tax = Math.round(Math.round(subtotal * 100) * TAX_RATE_PER_100K / 100000) / 100;
       const total = round2(subtotal + tax);
       const fee = round2(Math.max(handling.rate * total, handling.flat));
       document.getElementById('subtotal').textContent = usd.format(subtotal);
@@ -424,7 +424,8 @@
       result.appendChild(strong);
       if (text) result.appendChild(document.createTextNode(text));
     }
-    [fromAccount, toAccount, accountTier, ...qtySelects].forEach((el) => el.addEventListener('change', () => {
+    const controls = [fromAccount, toAccount, accountTier, ...qtySelects];
+    controls.forEach((el) => el.addEventListener('change', () => {
       if (!button.disabled) clearResult();
       renderSummary();
     }));
@@ -435,6 +436,7 @@
       renderSummary();
       const paymentLabel = fromAccount.options[fromAccount.selectedIndex].text;
       button.disabled = true;
+      controls.forEach((el) => { el.disabled = true; });
       button.textContent = 'Placing Order…';
       status.textContent = '';
       show('pending', 'Placing your order…', 'Please don’t refresh or leave this page.');
@@ -461,6 +463,7 @@
         status.textContent = 'Order not placed.';
       } finally {
         button.disabled = false;
+        controls.forEach((el) => { el.disabled = false; });
         button.textContent = 'Place Order';
       }
     });
