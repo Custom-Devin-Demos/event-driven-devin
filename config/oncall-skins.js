@@ -6882,6 +6882,17 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A PLENFUL SITE — internal demo only, not affiliated with, endorsed by, or a real Plenful product.',
   },
+  'bba7fc63': {
+    slug: 'bba7fc63',
+    company: 'Gong',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: {
+      file: 'bba7fc63.html',
+      title: 'Gong Revenue AI Pricing',
+    },
+    disclaimer: 'NOT ACTUALLY A GONG SITE — internal demo only, not affiliated with, endorsed by, or a real Gong product.',
+  },
 };
 
 function getOncallSkin(slug) {
