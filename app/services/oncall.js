@@ -1502,14 +1502,15 @@ async function startDevinOnlyIncident(scenario, skin, options) {
   const failed = { ok: false, devin: true, error: 'Devin session could not be started' };
 
   // Repeats inside the skin's window (retries, investigators reproducing) share one session.
-  const recent = recentSkinAlert(skin);
+  const groupable = !options.runRef && options.unique !== false;
+  const recent = groupable ? recentSkinAlert(skin) : null;
   if (recent) {
     const { url } = await joinSkinIncident(scenario, sessionSkin, recent, { requester });
     return url ? { ok: true, devin: true, repeat: true, sessionUrl: url, runRef: recent.runRef } : failed;
   }
 
   const runRef = options.runRef || makeRunRef();
-  const reservation = reserveSkinAlert(skin, runRef);
+  const reservation = groupable ? reserveSkinAlert(skin, runRef) : null;
   const session = await triggerSkinDevinSession(scenario, sessionSkin, { runRef, requester });
   if (!session) {
     if (reservation) reservation.release();

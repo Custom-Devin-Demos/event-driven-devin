@@ -71,6 +71,16 @@ describe("alertDestination: 'devin' skins", () => {
     [b, c].forEach((r) => expect(r).toMatchObject({ ok: true, repeat: true, sessionUrl: 'https://app.devin.ai/sessions/abc', runRef: a.runRef }));
   });
 
+  test('an explicit runRef starts its own session instead of joining', async () => {
+    process.env.DEVIN_ONCALL_SERVICE_KEY = 'svc-test';
+    createDevinSession.mockResolvedValueOnce({ sessionId: 'devin-a', url: 'https://app.devin.ai/sessions/a' })
+      .mockResolvedValueOnce({ sessionId: 'devin-b', url: 'https://app.devin.ai/sessions/b' });
+    await postOncallAlert('coveragecheck', { skin });
+    const explicit = await postOncallAlert('coveragecheck', { skin, runRef: 'run-bbb' });
+    expect(explicit).toMatchObject({ ok: true, runRef: 'run-bbb', sessionUrl: 'https://app.devin.ai/sessions/b' });
+    expect(explicit.repeat).toBeUndefined();
+  });
+
   test('a failed session start does not block the next attempt', async () => {
     process.env.DEVIN_ONCALL_SERVICE_KEY = 'svc-test';
     createDevinSession.mockResolvedValueOnce(null)
