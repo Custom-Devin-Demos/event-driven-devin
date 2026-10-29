@@ -257,6 +257,7 @@
     const API = '/api/7eleven';
     const state = { products: new Map(), cart: new Map(), fees: null, placing: false };
     const $ = (id) => document.getElementById(id);
+    const round2 = (n) => Math.round(n * 100) / 100;
     const money = (n) => '$' + Number(n).toFixed(2);
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -313,10 +314,11 @@
       const f = state.fees;
       let subtotal = 0;
       state.cart.forEach((qty, id) => { subtotal += state.products.get(id).price * qty; });
+      subtotal = round2(subtotal);
       const smallBasket = subtotal > 0 && subtotal < f.smallBasketMin ? f.smallBasketFee : 0;
-      const serviceFee = subtotal * f.serviceFeeRate;
-      const tax = subtotal * f.taxRate;
-      return { subtotal, smallBasket, serviceFee, tax, total: subtotal + f.deliveryFee + serviceFee + smallBasket + tax };
+      const serviceFee = round2(subtotal * f.serviceFeeRate);
+      const tax = round2(subtotal * f.taxRate);
+      return { subtotal, smallBasket, serviceFee, tax, total: round2(subtotal + f.deliveryFee + serviceFee + smallBasket + tax) };
     }
 
     function renderCart() {
@@ -355,8 +357,21 @@
       toastTimer = setTimeout(() => el.classList.remove('show'), isError ? 9000 : 4000);
     }
 
+    const ADDRESS_PLACEHOLDER = 'Add Address';
+    function hasAddress() { return $('address-label').textContent.trim() !== ADDRESS_PLACEHOLDER; }
+    function askAddress() {
+      const current = hasAddress() ? $('address-label').textContent : '';
+      const a = prompt('Enter a delivery address', current);
+      if (a && a.trim()) $('address-label').textContent = a.trim();
+      return hasAddress();
+    }
+
     async function placeOrder() {
       if (state.placing || !state.cart.size) return;
+      if (!hasAddress() && !askAddress()) {
+        toast('Add a delivery address', 'Tell us where to deliver before placing your order.', null, true);
+        return;
+      }
       state.placing = true; renderCart();
       const items = [...state.cart.entries()].map(([id, qty]) => ({ id, qty }));
       try {
@@ -397,10 +412,7 @@
       if (e.target.closest('#drawer-close') || e.target === $('scrim')) { closeDrawer(); return; }
       if (e.target.closest('#modal-close')) { $('modal').classList.remove('open'); return; }
       if (e.target.closest('#cookie-ok')) { $('cookie').remove(); return; }
-      if (e.target.closest('#address-entry')) {
-        const a = prompt('Enter a delivery address', $('address-label').textContent === 'Add Address' ? '' : $('address-label').textContent);
-        if (a && a.trim()) $('address-label').textContent = a.trim();
-      }
+      if (e.target.closest('#address-entry')) askAddress();
     });
     $('search-input').addEventListener('input', (e) => {
       const q = e.target.value.trim().toLowerCase();

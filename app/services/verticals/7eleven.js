@@ -146,12 +146,22 @@ function normalizeItems(items) {
   return items.map((item) => {
     const product = findProduct(item && item.id);
     if (!product) throw validationError(`Unknown product: ${item && item.id}`, 'UNKNOWN_PRODUCT');
-    const qty = Number(item.qty || 1);
+    const qty = item.qty === undefined ? 1 : Number(item.qty);
     if (!Number.isInteger(qty) || qty < 1 || qty > MAX_LINE_QTY) {
       throw validationError(`Quantity for ${product.name} must be between 1 and ${MAX_LINE_QTY}`, 'BAD_QTY');
     }
     return { product, qty };
   });
+}
+
+const ADDRESS_PLACEHOLDER = 'Add Address';
+
+function normalizeAddress(address) {
+  const trimmed = typeof address === 'string' ? address.trim() : '';
+  if (!trimmed || trimmed.toLowerCase() === ADDRESS_PLACEHOLDER.toLowerCase()) {
+    throw validationError('Add a delivery address before placing your order', 'ADDRESS_REQUIRED');
+  }
+  return trimmed;
 }
 
 /**
@@ -262,7 +272,7 @@ function reportFailure(error, context) {
  */
 async function placeOrder(data = {}) {
   const lines = normalizeItems(data.items);
-  const address = typeof data.address === 'string' && data.address.trim() ? data.address.trim() : 'Add Address';
+  const address = normalizeAddress(data.address);
   const orderId = `7N-${Date.now().toString(36).toUpperCase()}`;
   const temps = [...new Set(lines.map((l) => l.product.temp))];
 
@@ -328,6 +338,7 @@ module.exports = {
   SMALL_BASKET_FEE,
   MAX_LINE_QTY,
   MAX_CART_LINES,
+  ADDRESS_PLACEHOLDER,
   SERVICE,
   ROUTE,
   ALARM_NAME,

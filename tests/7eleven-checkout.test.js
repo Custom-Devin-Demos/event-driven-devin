@@ -37,8 +37,16 @@ describe('7NOW checkout (7eleven)', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
+  test('fees are rounded to cents independently (parity with the page)', async () => {
+    const order = await svc.placeOrder({ items: [{ id: MONSTER, qty: 3 }], address: '1 Main St, Irving, TX' });
+    expect(order.subtotal).toBe(12.27);
+    expect(order.serviceFee).toBe(0.61);
+    expect(order.tax).toBe(1.01);
+    expect(order.total).toBe(16.88);
+  });
+
   test('small baskets get the small basket fee', async () => {
-    const order = await svc.placeOrder({ items: [{ id: '140370-0-1' }] });
+    const order = await svc.placeOrder({ items: [{ id: '140370-0-1' }], address: '1 Main St, Irving, TX' });
     expect(order.smallBasketFee).toBe(svc.SMALL_BASKET_FEE);
   });
 
@@ -46,12 +54,15 @@ describe('7NOW checkout (7eleven)', () => {
     await expect(svc.placeOrder({ items: [] })).rejects.toMatchObject({ status: 400, code: 'EMPTY_CART' });
     await expect(svc.placeOrder({ items: [{ id: 'nope' }] })).rejects.toMatchObject({ status: 400, code: 'UNKNOWN_PRODUCT' });
     await expect(svc.placeOrder({ items: [{ id: MONSTER, qty: 99 }] })).rejects.toMatchObject({ status: 400, code: 'BAD_QTY' });
+    await expect(svc.placeOrder({ items: [{ id: MONSTER, qty: 0 }] })).rejects.toMatchObject({ status: 400, code: 'BAD_QTY' });
+    await expect(svc.placeOrder({ items: [{ id: MONSTER }] })).rejects.toMatchObject({ status: 400, code: 'ADDRESS_REQUIRED' });
+    await expect(svc.placeOrder({ items: [{ id: MONSTER }], address: ' Add Address ' })).rejects.toMatchObject({ status: 400, code: 'ADDRESS_REQUIRED' });
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
   test('a frozen pint throws the planted TypeError and raises a CloudWatch-flavoured instant alert', async () => {
     const ids = { devinUserId: 'user-1', devinOrgId: 'org-1', devinEmail: 'demo@devindemos.com' };
-    await expect(svc.placeOrder({ items: [{ id: MONSTER }, { id: HALF_BAKED }], ...ids }))
+    await expect(svc.placeOrder({ items: [{ id: MONSTER }, { id: HALF_BAKED }], address: '1 Main St, Irving, TX', ...ids }))
       .rejects.toThrow(TypeError);
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
