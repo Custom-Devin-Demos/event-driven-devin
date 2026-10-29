@@ -1216,6 +1216,21 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
   },
+  '62b9367b': {
+    slug: '62b9367b',
+    company: 'PGIM Real Estate',
+    brandMark: 'PGIM',
+    vertical: 'banking',
+    hideRibbon: true,
+    page: { file: '62b9367b.html', title: 'Portfolios | PGIM Real Estate | AssetCentral' },
+    theme: {
+      '--accent': '#001e60',
+      '--ink': '#0d1b3e',
+      '--surface': '#f5f7fb',
+      '--chrome-bg': '#001e60',
+      '--chrome-text': '#FFFFFF',
+    },
+  },
   '02238eb0': {
     slug: '02238eb0',
     company: 'Harborline FCU',
