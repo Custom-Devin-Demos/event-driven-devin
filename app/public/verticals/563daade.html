@@ -176,10 +176,10 @@
             <label for="toAccount">Pay to</label>
             <select id="toAccount">
               <option value="">Choose a Payee or one of your accounts</option>
-              <option value="PAYEE-NIAMH" data-name="Niamh Byrne" data-number="IE21 AIBK 9320 6110 3378 45" data-ref="Concert tickets">Niamh Byrne &middot; ~3378 45</option>
-              <option value="PAYEE-CLUB" data-name="St. Kevin's GAA Club" data-number="IE66 BOFI 9058 1172 0094 28" data-ref="Membership 2026">St. Kevin's GAA Club &middot; ~0094 28</option>
-              <option value="PTSB-4172" data-name="Explore Current Account" data-number="IE57 IPBS 9906 2184 4172 61" data-ref="Own account">Explore Current Account (your account)</option>
-              <option value="PTSB-8830" data-name="Savings Account" data-number="IE83 IPBS 9906 2190 8830 14" data-ref="Savings">Savings Account (your account)</option>
+              <option value="PAYEE-NIAMH" data-name="Niamh Byrne" data-number="IE21 AIBK 9320 6110 3378 45">Niamh Byrne &middot; ~3378 45</option>
+              <option value="PAYEE-CLUB" data-name="St. Kevin's GAA Club" data-number="IE66 BOFI 9058 1172 0094 28">St. Kevin's GAA Club &middot; ~0094 28</option>
+              <option value="PTSB-4172" data-name="Explore Current Account" data-number="IE57 IPBS 9906 2184 4172 61">Explore Current Account (your account)</option>
+              <option value="PTSB-8830" data-name="Savings Account" data-number="IE83 IPBS 9906 2190 8830 14">Savings Account (your account)</option>
             </select>
             <small id="toHelp"></small>
           </div>
@@ -191,7 +191,6 @@
           <dl class="summary" aria-label="Payment summary">
             <div><dt>From</dt><dd id="sumFrom">&mdash;</dd></div>
             <div><dt>To</dt><dd id="sumTo">&mdash;</dd></div>
-            <div><dt>Reference</dt><dd id="sumRef">&mdash;</dd></div>
             <div><dt>Amount</dt><dd id="sumAmount">&mdash;</dd></div>
             <div><dt>Fee (estimated)</dt><dd id="sumFee">&mdash;</dd></div>
             <div class="total"><dt>Leaves your account</dt><dd id="sumTotal">&mdash;</dd></div>
@@ -290,6 +289,7 @@
         const avail = Math.round(available() * 100);
         let max = Math.min(Math.floor(avail / (1 + FEE.rate)), avail - FEE.flat * 100);
         while (max > 0 && max + feeCents(max) > avail) max -= 1;
+        while (max + 1 + feeCents(max + 1) <= avail) max += 1;
         return Math.max(max, 0) / 100;
       }
       function parsedAmount() {
@@ -309,11 +309,10 @@
         const amount = parsedAmount();
         accountTier.value = 'standard';
         set('fromHelp', `${from.dataset.number} \u00b7 ${S.availableLabel} ${money.format(available())}`);
-        set('toHelp', to ? `${to.dataset.number}${to.dataset.ref ? ' \u00b7 ' + to.dataset.ref : ''}` : S.toPlaceholder);
+        set('toHelp', to ? to.dataset.number : S.toPlaceholder);
         set('amountHelp', `${S.maxLabel} ${money.format(maxPayable())}`);
         set('sumFrom', from.dataset.name);
         set('sumTo', to ? to.dataset.name : '\u2014');
-        set('sumRef', to && to.dataset.ref ? to.dataset.ref : '\u2014');
         const ok = Number.isFinite(amount) && amount > 0;
         set('sumAmount', ok ? money.format(amount) : '\u2014');
         set('sumFee', ok ? money.format(feeCents(Math.round(amount * 100)) / 100) : '\u2014');
