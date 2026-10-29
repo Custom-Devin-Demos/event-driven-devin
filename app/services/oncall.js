@@ -1497,13 +1497,26 @@ async function startDevinOnlyIncident(scenario, skin, options) {
     logger.warn('Devin service key not configured — skipping Devin-only On-Call session', { skin: skin.slug });
     return { ok: false, skipped: true, devin: true, error: 'Devin service key not configured' };
   }
-  const runRef = options.runRef || (options.unique !== false ? makeRunRef() : null);
-  const session = await triggerSkinDevinSession(scenario, { ...skin, devinSession: { ...config, auto: true } }, {
-    runRef,
-    requester: resolveRequesterIdentity(options),
-  });
-  if (!session) return { ok: false, devin: true, error: 'Devin session could not be started' };
-  return { ok: true, devin: true, sessionUrl: session.url, ...(runRef ? { runRef } : {}) };
+  const sessionSkin = { ...skin, devinSession: { ...config, auto: true } };
+  const requester = resolveRequesterIdentity(options);
+  const failed = { ok: false, devin: true, error: 'Devin session could not be started' };
+
+  // Repeats inside the skin's window (retries, investigators reproducing) share one session.
+  const recent = recentSkinAlert(skin);
+  if (recent) {
+    const { url } = await joinSkinIncident(scenario, sessionSkin, recent, { requester });
+    return url ? { ok: true, devin: true, repeat: true, sessionUrl: url, runRef: recent.runRef } : failed;
+  }
+
+  const runRef = options.runRef || makeRunRef();
+  const reservation = reserveSkinAlert(skin, runRef);
+  const session = await triggerSkinDevinSession(scenario, sessionSkin, { runRef, requester });
+  if (!session) {
+    if (reservation) reservation.release();
+    return failed;
+  }
+  if (reservation) reservation.settle(session.url);
+  return { ok: true, devin: true, sessionUrl: session.url, runRef };
 }
 
 async function postOncallAlert(scenarioId, options = {}) {

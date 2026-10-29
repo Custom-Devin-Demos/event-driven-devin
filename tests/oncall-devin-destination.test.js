@@ -55,6 +55,31 @@ describe("alertDestination: 'devin' skins", () => {
     expect(prompt).not.toContain('Slack Thread:');
   });
 
+  test('repeat failures inside the window share the first session', async () => {
+    process.env.DEVIN_ONCALL_SERVICE_KEY = 'svc-test';
+    let finish;
+    createDevinSession.mockImplementation(() => new Promise((r) => { finish = r; }));
+
+    const first = postOncallAlert('coveragecheck', { skin });
+    const second = postOncallAlert('coveragecheck', { skin });
+    finish({ sessionId: 'devin-abc', url: 'https://app.devin.ai/sessions/abc' });
+    const [a, b] = await Promise.all([first, second]);
+    const c = await postOncallAlert('coveragecheck', { skin });
+
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(a).toMatchObject({ ok: true, sessionUrl: 'https://app.devin.ai/sessions/abc' });
+    [b, c].forEach((r) => expect(r).toMatchObject({ ok: true, repeat: true, sessionUrl: 'https://app.devin.ai/sessions/abc', runRef: a.runRef }));
+  });
+
+  test('a failed session start does not block the next attempt', async () => {
+    process.env.DEVIN_ONCALL_SERVICE_KEY = 'svc-test';
+    createDevinSession.mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ sessionId: 'devin-def', url: 'https://app.devin.ai/sessions/def' });
+    expect(await postOncallAlert('coveragecheck', { skin })).toMatchObject({ ok: false, devin: true });
+    expect(await postOncallAlert('coveragecheck', { skin })).toMatchObject({ ok: true, sessionUrl: 'https://app.devin.ai/sessions/def' });
+    expect(createDevinSession).toHaveBeenCalledTimes(2);
+  });
+
   test('skip cleanly when no Devin service key is configured', async () => {
     const result = await postOncallAlert('coveragecheck', { skin });
     expect(result).toMatchObject({ ok: false, skipped: true, devin: true });
