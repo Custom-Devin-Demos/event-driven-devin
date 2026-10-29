@@ -18,6 +18,7 @@ const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { searchRecalls } = require('../services/oncall-verticals/recalllookup');
 const { createReservation } = require('../services/oncall-verticals/evreservation');
+const { checkCoverage } = require('../services/oncall-verticals/coveragecheck');
 const { createDeployment } = require('../services/oncall-verticals/privatecloud');
 const { filterPortfolio } = require('../services/oncall-verticals/portfoliofilter');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
@@ -767,6 +768,25 @@ router.post('/api/oncall/evreservation/reservations', async (req, res) => {
       error: 'We couldn\'t complete your reservation. Your card has not been charged.',
       errorClass: error.name,
       code: error.code || 'RESERVATION_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/coveragecheck/coverage — check whether Pomelo visits are
+ * in-network with the member's insurer during signup
+ */
+router.post('/api/oncall/coveragecheck/coverage', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await checkCoverage({ state: body.state, insurer: body.insurer }));
+  } catch (error) {
+    res.status(error.code === 'INVALID_COVERAGE_REQUEST' ? 400 : 500).json({
+      success: false,
+      error: 'Something went wrong. Please try again.',
+      errorClass: error.name,
+      code: error.code || 'COVERAGE_CHECK_FAILED',
       requestId: req.requestId,
     });
   }

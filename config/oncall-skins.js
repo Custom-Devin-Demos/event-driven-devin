@@ -5020,6 +5020,46 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A RIVIAN SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Rivian product.',
   },
+  'b4fb2968': {
+    slug: 'b4fb2968',
+    company: 'Pomelo Care',
+    brandMark: 'P',
+    vertical: 'coveragecheck',
+    oncallOnly: true,
+    // No Slack/Teams card: the failure starts a Devin session directly as Sophia Lyssy
+    // (cog-gtm org), so it shows in her recent sessions.
+    alertDestination: 'devin',
+    paths: ['/pomelo', '/pomelocare', '/pomelo-care'],
+    ribbonSide: 'left',
+    devinSession: {
+      auto: true,
+      pinIdentity: true,
+      orgId: 'org_69IXJFLrljx8zSAw',
+      userId: 'email|698b4ec82a96a7c11bae5936',
+      promptAppendix: [
+        'Customer-facing context: this incident comes from the Pomelo Care signup flow linked above (What brings you to Pomelo? \u203a perimenopause questions \u203a Let\u2019s check if you\u2019re covered). The Next button on "Who\u2019s your insurance provider?" posts the member\u2019s state and insurer to the endpoint above, so that endpoint is the backend of this incident.',
+        'The incident reads "5xx rate \u2014 Signup coverage check", release signup-web@5.12.0, owner team eligibility-oncall: the coverage check fails immediately with HTTP 500 for Blue Cross Blue Shield of Texas while Aetna, Cigna, UnitedHealthcare and the other insurers return a result. It was raised straight into this Devin session; there is no Slack alert thread.',
+        'Investigate from telemetry first (the monitor, APM traces and logs around the incident reference) before reading code, and write an evidence-based investigation summary: signals checked, hypotheses ruled out, root cause, impact.',
+        'Use "Pomelo Care signup" and "coverage check" in your PR title and PR description. Report your findings and the PR link in this session. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    page: { file: 'b4fb2968.html', title: 'What brings you to Pomelo? | Pomelo Care' },
+    theme: {
+      '--accent': '#1B1B1B',
+      '--ink': '#393939',
+      '--surface': '#FCFCFA',
+      '--chrome-bg': '#1B1B1B',
+      '--chrome-text': '#FCFCFA',
+    },
+    alertCard: {
+      title: '5xx rate \u2014 Signup coverage check',
+      service: 'eligibility-api',
+      release: 'signup-web@5.12.0',
+      team: 'eligibility-oncall',
+      symptom: 'The insurance step of Pomelo Care signup fails immediately with HTTP 500 when the member picks Blue Cross Blue Shield of Texas; the page shows "Something went wrong". Aetna, Cigna, UnitedHealthcare and other insurers get a coverage result. Latency is normal.',
+      impact: 'Texas members on BCBS cannot get past the coverage check, so they never reach account creation; every attempt errors.',
+    },
+  },
   '357c3b76': {
     slug: '357c3b76',
     company: 'Dell Technologies',
