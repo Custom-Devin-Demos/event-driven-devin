@@ -43,10 +43,13 @@ function check(body) {
 const TITLE = 'What brings you to Pomelo? | Pomelo Care';
 
 describe('b4fb2968 Pomelo Care signup coverage-check on-call skin', () => {
-  test('is a native, unlisted coveragecheck skin routed to Slack', () => {
+  test('is a native, unlisted coveragecheck skin routed straight to a Devin session', () => {
     const skin = getOncallSkin('b4fb2968');
-    expect(skin).toMatchObject({ vertical: 'coveragecheck', oncallOnly: true, alertDestination: 'slack', page: { file: 'b4fb2968.html', title: TITLE } });
-    expect(skin.devinSession).toMatchObject({ auto: true });
+    expect(skin).toMatchObject({ vertical: 'coveragecheck', oncallOnly: true, alertDestination: 'devin', page: { file: 'b4fb2968.html', title: TITLE } });
+    expect(skin.devinSession).toMatchObject({
+      auto: true, pinIdentity: true, orgId: 'org_69IXJFLrljx8zSAw', userId: 'email|698b4ec82a96a7c11bae5936',
+    });
+    expect(skin.devinSession.promptAppendix).not.toMatch(/(Post|back) in the alert thread|thread replies/i);
     expect(ALERT_SCENARIOS.coveragecheck).toMatchObject({
       apiPath: '/api/b4fb2968/coverage', oncallApiPath: '/api/oncall/coveragecheck/coverage', triggerWhen: { insurer: 'bcbs-tx' }, unlisted: true,
     });
@@ -66,6 +69,7 @@ describe('b4fb2968 Pomelo Care signup coverage-check on-call skin', () => {
     expect(html).toContain("fetch('/api/b4fb2968/coverage'");
     expect(html).toContain('const oncallApiPath = "/api/oncall/coveragecheck/coverage"');
     expect(html).toContain('const triggerWhen = {"insurer":"bcbs-tx"}');
+    expect(html).toContain('var skinAlertDestination = "devin"');
     expect(html).not.toMatch(/<base |<script[^>]+src="https?:/);
   });
 

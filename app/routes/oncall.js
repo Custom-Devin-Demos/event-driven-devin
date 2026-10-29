@@ -371,6 +371,8 @@ const RIBBON_STRINGS = {
     posted: 'Alert posted to ',
     skipped: 'Alert post skipped — no alert reached Slack',
     failed: 'Alert post failed',
+    sessionStarted: 'Devin session started — ',
+    sessionSkipped: 'Devin session skipped — no Devin service key on this server',
   },
   es: {
     title: 'Demo de Devin On-Call',
@@ -378,6 +380,8 @@ const RIBBON_STRINGS = {
     posted: 'Alerta publicada en ',
     skipped: 'Alerta omitida — no llegó ninguna alerta a Slack',
     failed: 'No se pudo publicar la alerta',
+    sessionStarted: 'Sesión de Devin iniciada — ',
+    sessionSkipped: 'Sesión de Devin omitida — no hay clave de servicio de Devin en este servidor',
   },
   ja: {
     title: 'Devin オンコールデモ',
@@ -385,6 +389,8 @@ const RIBBON_STRINGS = {
     posted: 'アラート投稿先: ',
     skipped: 'アラート投稿をスキップ — Slackには届いていません',
     failed: 'アラートの投稿に失敗しました',
+    sessionStarted: 'Devinセッションを開始しました — ',
+    sessionSkipped: 'Devinセッションをスキップ — サーバーにDevinサービスキーがありません',
   },
 };
 
@@ -414,7 +420,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
       const automatedAlertPath = ${JSON.stringify(Boolean(skin && skin.alertPath === 'automated'))};
-      var skinAlertDestination = ${JSON.stringify(skin && (skin.alertDestination === 'teams' || skin.alertDestination === 'slack') ? skin.alertDestination : null)};
+      var skinAlertDestination = ${JSON.stringify(skin && ['teams', 'slack', 'devin'].includes(skin.alertDestination) ? skin.alertDestination : null)};
       var scenarioAlertDestination = ${JSON.stringify(
     scenario.defaultAlertDestination === 'teams' || scenario.defaultAlertDestination === 'slack'
       ? scenario.defaultAlertDestination
@@ -496,7 +502,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
             alertDestination: alertDestination,
         };
         var postedMsg = ${JSON.stringify(r.posted)} + ${JSON.stringify((skin && skin.slackChannelName) || ALERTS_CHANNEL_LABEL)};
-        var skippedMsg = ${JSON.stringify(r.skipped)};
+        var skippedMsg = skinAlertDestination === 'devin' ? ${JSON.stringify(r.sessionSkipped)} : ${JSON.stringify(r.skipped)};
         var failedMsg = ${JSON.stringify(r.failed)};
         origFetch(triggerUrl, {
           method: 'POST',
@@ -517,7 +523,18 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
           el.style.color = d.ok ? '#3fb950' : '#f85149';
           var deliveredMsg = !d.teams ? postedMsg : (d.channel ? postedMsg + ' and Teams' : 'Alert posted to Teams');
           if (d.teamsFailed) deliveredMsg += ' (Teams is not set up on this server, so it went to Slack)';
-          el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
+          if (d.ok && d.devin && d.sessionUrl) {
+            el.textContent = ${JSON.stringify(r.sessionStarted)};
+            var link = document.createElement('a');
+            link.href = d.sessionUrl;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.textContent = 'open in Devin';
+            link.style.color = '#58a6ff';
+            el.appendChild(link);
+          } else {
+            el.textContent = d.ok ? deliveredMsg : (d.error || failedMsg);
+          }
           if (d.ok && !d.teamsFailed) scheduleCollapse();
           else if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }
         }).catch(function () {

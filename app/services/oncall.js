@@ -1352,6 +1352,8 @@ function resolveRequesterIdentity({ devinOrgId, devinUserId } = {}) {
  * but no user runs as that org's service user.
  */
 function resolveSessionIdentity(requester, config) {
+  // pinIdentity: the skin's own org/user always owns the session, whoever triggers it.
+  if (config.pinIdentity && config.orgId) return { orgId: config.orgId, userId: config.userId || null };
   if (requester.complete) return { orgId: requester.orgId, userId: requester.userId };
   if (config.orgId) return { orgId: config.orgId, userId: config.userId || null };
   return {
@@ -1402,6 +1404,8 @@ async function triggerSkinDevinSession(
     scenario: scenario.vertical,
     sessionId: session.sessionId,
   });
+
+  if (!threadTs) return session;
 
   try {
     const t = oncallStrings(skin, scenario);
@@ -1483,6 +1487,25 @@ async function postTeamsAlert(webhookUrl, scenario, skin, { card, brand, runRef,
   }
 }
 
+/**
+ * alertDestination: 'devin' skins post no Slack/Teams card: each alert starts
+ * the skin's Devin session directly, so it lands in the owner's session list.
+ */
+async function startDevinOnlyIncident(scenario, skin, options) {
+  const config = skin.devinSession || {};
+  if (!config.apiKey && !process.env.DEVIN_ONCALL_SERVICE_KEY && !process.env.DEVIN_SERVICE_KEY && !process.env.DEVIN_API_KEY) {
+    logger.warn('Devin service key not configured — skipping Devin-only On-Call session', { skin: skin.slug });
+    return { ok: false, skipped: true, devin: true, error: 'Devin service key not configured' };
+  }
+  const runRef = options.runRef || (options.unique !== false ? makeRunRef() : null);
+  const session = await triggerSkinDevinSession(scenario, { ...skin, devinSession: { ...config, auto: true } }, {
+    runRef,
+    requester: resolveRequesterIdentity(options),
+  });
+  if (!session) return { ok: false, devin: true, error: 'Devin session could not be started' };
+  return { ok: true, devin: true, sessionUrl: session.url, ...(runRef ? { runRef } : {}) };
+}
+
 async function postOncallAlert(scenarioId, options = {}) {
   const scenario = ALERT_SCENARIOS[scenarioId];
   if (!scenario) {
@@ -1490,6 +1513,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   }
 
   const skin = options.skin || null;
+  if (skin && skin.alertDestination === 'devin') return startDevinOnlyIncident(scenario, skin, options);
   const env = resolveOncallEnv();
   const { token } = env;
   // A skin may own its alerts channel (e.g. a customer-specific #<brand>-oncall)

@@ -5026,17 +5026,21 @@ const ONCALL_SKINS = {
     brandMark: 'P',
     vertical: 'coveragecheck',
     oncallOnly: true,
-    alertDestination: 'slack',
+    // No Slack/Teams card: the failure starts a Devin session directly as Sophia Lyssy
+    // (cog-gtm org), so it shows in her recent sessions.
+    alertDestination: 'devin',
     paths: ['/pomelo', '/pomelocare', '/pomelo-care'],
     ribbonSide: 'left',
     devinSession: {
       auto: true,
-      onCallIsTriggerer: true,
+      pinIdentity: true,
+      orgId: 'org_69IXJFLrljx8zSAw',
+      userId: 'email|698b4ec82a96a7c11bae5936',
       promptAppendix: [
-        'Customer-facing context: this alert comes from the Pomelo Care signup flow linked above (What brings you to Pomelo? \u203a perimenopause questions \u203a Let\u2019s check if you\u2019re covered). The Next button on "Who\u2019s your insurance provider?" posts the member\u2019s state and insurer to the endpoint above, so that endpoint is the backend of this incident.',
-        'In the alert thread the incident reads "5xx rate \u2014 Signup coverage check", release signup-web@5.12.0, owner team eligibility-oncall: the coverage check fails immediately with HTTP 500 for Blue Cross Blue Shield of Texas while Aetna, Cigna, UnitedHealthcare and the other insurers return a result.',
+        'Customer-facing context: this incident comes from the Pomelo Care signup flow linked above (What brings you to Pomelo? \u203a perimenopause questions \u203a Let\u2019s check if you\u2019re covered). The Next button on "Who\u2019s your insurance provider?" posts the member\u2019s state and insurer to the endpoint above, so that endpoint is the backend of this incident.',
+        'The incident reads "5xx rate \u2014 Signup coverage check", release signup-web@5.12.0, owner team eligibility-oncall: the coverage check fails immediately with HTTP 500 for Blue Cross Blue Shield of Texas while Aetna, Cigna, UnitedHealthcare and the other insurers return a result. It was raised straight into this Devin session; there is no Slack alert thread.',
         'Investigate from telemetry first (the monitor, APM traces and logs around the incident reference) before reading code, and write an evidence-based investigation summary: signals checked, hypotheses ruled out, root cause, impact.',
-        'Use "Pomelo Care signup" and "coverage check" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread. Do not deploy or merge.',
+        'Use "Pomelo Care signup" and "coverage check" in your PR title and PR description. Report your findings and the PR link in this session. Do not deploy or merge.',
       ].join('\n'),
     },
     page: { file: 'b4fb2968.html', title: 'What brings you to Pomelo? | Pomelo Care' },
