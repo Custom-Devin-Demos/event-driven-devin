@@ -2955,6 +2955,60 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A MANABIBA SITE — manabiba is a fictional brand; demo only, not affiliated with, endorsed by, or a product of any real event platform. ／ 実在するサービスのサイトではありません（架空ブランド・デモ用）。',
   },
+  '78161f67': {
+    slug: '78161f67',
+    company: 'まちポータル',
+    brandMark: 'ま',
+    vertical: 'hightech',
+    locale: 'ja',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        '顧客コンテキスト: このアラートは上記リンクの「まちポータル」（ひだまり市 電子申請・届出サービス）の「令和8年度 4月入所 保育所等入所申込」申請フォームから発生しています。「この内容で申請する」ボタンは上記エンドポイントに申請を送信するため、そのエンドポイントがこのインシデントのバックエンドです。',
+        'あなたはこのシステムの運用保守を受託しているアオバシステムズ 運用保守チームのオンコール担当エンジニアです。スレッド上のインシデント表示は「p95レイテンシ上昇中 — 保育所入所申込（電子申請）」、担当チーム e-application-oncall です。申請の送信は遅く、リクエストのたびにさらに遅くなります。受付開始直後で申請が集中している時間帯です。',
+        'コードを読む前にテレメトリ（モニター、APMトレース、インシデント参照前後のログ）から調査し、確認したシグナル、除外した仮説、根本原因、影響をまとめた根拠ベースの調査サマリーを書いてください。',
+        '調査完了後、スレッドに顧客（ひだまり市 こども未来部 保育課・情報政策課）向けの「障害報告書（ドラフト）」を投稿してください。見出しは「1. 発生事象」「2. 発生日時・検知経路」「3. 影響範囲」「4. 原因」「5. 暫定対処」「6. 恒久対策」「7. 再発防止策」とし、事実と推定を区別して記載してください。',
+        'スレッドへの返信、PRのタイトル、PRの説明では「まちポータル」「保育所入所申込」「この内容で申請する」という表現を使ってください。デプロイやマージは行わないでください。',
+      ].join('\n'),
+    },
+    page: {
+      // Natively branded Japanese municipal e-application page under the
+      // fictional brand "まちポータル" for the fictional city ひだまり市 (an
+      // original mark and name, not a clone of any real e-application
+      // service): the nursery admission application form in the main column
+      // reuses the hightech provisioning ids so the shared shim reroutes and
+      // degrades it with no backend changes. Two tracks share the one file:
+      // /oncall/c/78161f67 is the shimmed latency alert, and the bare
+      // /78161f67 posts to its own e-application API
+      // (app/routes/verticals/78161f67.js → /api/78161f67/apply) whose
+      // failure runs the legacy error track (Sentry → Slack → Devin).
+      file: '78161f67.html',
+      title: '令和8年度 4月入所 保育所等入所申込 - 申請内容の入力 | まちポータル（ひだまり市 電子申請）',
+    },
+    theme: {
+      '--accent': '#1f7a5c',
+      '--ink': '#333333',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#1c3f5e',
+      '--chrome-text': '#ffffff',
+    },
+    alertCard: {
+      title: 'p95レイテンシ上昇中 — 保育所入所申込（電子申請）',
+      team: 'e-application-oncall',
+      // Display labels only: the request, monitor query and repro URL stay on
+      // the real hightech on-call endpoint so Devin's telemetry search works.
+      service: 'e-application-api',
+      endpointLabel: 'POST /api/oncall/licenses/provision（申請送信 API）',
+      release: 'e-application@3.1.0',
+      metricValue: '6.8秒（上昇中）',
+      threshold: '> 2秒',
+      baseline: '~350ms（7日間p95）',
+      symptom: '保育所等入所申込の申請送信が遅く、リクエストのたびにさらに遅くなっています。プロセスのRSSも同時に増加しています。',
+      impact: '受付期間中に申請するすべての保護者が、送信のたびに長く待たされています。受付開始直後の申請集中時間帯が最も大きな影響を受けています。',
+    },
+    disclaimer: 'NOT ACTUALLY A MACHI-PORTAL SITE — まちポータル／ひだまり市 are fictional; demo only, not affiliated with, endorsed by, or a product of any real municipality or e-application service. ／ 実在する自治体・サービスのサイトではありません（架空ブランド・デモ用）。',
+  },
   'd886be88': {
     slug: 'd886be88',
     company: 'SB C&S',
