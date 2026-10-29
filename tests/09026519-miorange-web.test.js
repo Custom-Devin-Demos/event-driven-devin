@@ -16,6 +16,8 @@ describe('Mi Orange web replica (/miorange, iOS demo 09026519)', () => {
     expect(PAGE).toContain("source: 'ios-demos/' + SLUG + '/ios'");
     expect(PAGE).toContain("service: 'customer-ios-demo'");
     expect(PAGE).toContain("platform: 'web'");
+    expect(PAGE).toContain("devinUserId: localStorage.getItem('devinUserId') || ''");
+    expect(PAGE).not.toMatch(/@cognition\.ai|org_[A-Za-z0-9]{8,}/);
     expect(isAppReport('09026519', { source: sourceFor('09026519'), service: APP_SERVICE })).toBe(true);
   });
 

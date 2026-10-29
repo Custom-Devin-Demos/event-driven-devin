@@ -141,7 +141,7 @@
       <p class="muted">Accede con tu usuario de Orange</p>
       <form id="signin-form">
         <input class="field" id="signin-user" placeholder="Usuario, email o NIF" autocomplete="off" value="lucia.fernandez">
-        <input class="field" id="signin-password" type="password" placeholder="Contraseña" value="orange2026">
+        <input class="field" id="signin-password" type="password" placeholder="Contraseña">
         <button class="btn" id="signin-submit" type="submit">Entrar</button>
       </form>
       <p class="muted" style="margin-top:16px">¿Has olvidado tu contraseña?</p>
@@ -307,8 +307,6 @@ var SLUG = '09026519';
 var REPORT_PATH = '/api/ios/' + SLUG + '/error';
 var APP_NAME = 'Mi Orange';
 var APP_VERSION = '9.12.0';
-var DEFAULT_DEVIN_EMAIL = 'joao.esteves@cognition.ai';
-var DEFAULT_DEVIN_ORG_ID = 'org_69IXJFLrljx8zSAw';
 
 var LINES = [
   { id: 'line-1', number: '612 384 907', tariff: 'Fibra 2 Líneas Ilimitadas', dataUsedGB: 35, minutesUsed: 115 },
@@ -447,8 +445,9 @@ function reportFailure(error, destination, l) {
       osVersion: navigator.userAgent.slice(0, 64),
       appVersion: APP_VERSION,
       release: APP_NAME + '-web@' + APP_VERSION,
-      devinEmail: localStorage.getItem('devinEmail') || DEFAULT_DEVIN_EMAIL,
-      devinOrgId: localStorage.getItem('devinOrgId') || DEFAULT_DEVIN_ORG_ID,
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || '',
       context: {
         destination: destination.id,
         destinationName: destination.name,
@@ -479,7 +478,6 @@ function renderBills() {
 
 $('signin-form').addEventListener('submit', function (event) {
   event.preventDefault();
-  if (!$('signin-user').value.trim() || !$('signin-password').value) return;
   selectTab('home');
 });
 document.querySelectorAll('.tab').forEach(function (b) {
