@@ -12,7 +12,9 @@ const { getCustomerConfig } = require('../../config/customers');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { legacyAlertsSuppressed } = require('./oncall-suppression');
 const { currentAlertDestination } = require('./alert-destination');
-const { buildTeamsAlertCard, buildTeamsFieldCard, postTeamsCard } = require('./teams');
+const {
+  buildTeamsAlertCard, buildTeamsFieldCard, buildTeamsCloudWatchAlarmCard, postTeamsCard,
+} = require('./teams');
 const { alertStrings, alertLocale } = require('./alert-locale');
 
 let servicenowConfigWarningLogged = false;
@@ -41,7 +43,44 @@ function resolveAlertRouting() {
 const TEAMS_THREAD_NOTE = 'This alert was posted only to Microsoft Teams; there is no Slack alert thread. '
   + 'Wherever these instructions say to post in the Slack alert thread, reply to this Teams message instead.';
 
+/**
+ * Verticals monitored by Amazon CloudWatch pass `alertData.cloudwatch` (the
+ * service-owned alarm definition); their Teams card is the CloudWatch alarm
+ * notification rather than the Sentry-style field card.
+ */
+function buildTeamsCloudWatchCardForAlert(alertData) {
+  const t = alertStrings(alertData);
+  const service = alertData.service || 'checkout-api';
+  const cw = {
+    ...alertData.cloudwatch,
+    dimensions: alertData.cloudwatch.dimensions || { ServiceName: service, Environment: alertData.environment || process.env.DD_ENV || 'prod' },
+  };
+  const logEvent = [
+    `[${t.error}] ${alertData.issueTitle}`,
+    alertData.culprit ? `${t.location}: ${alertData.culprit}` : null,
+    alertData.release ? `${t.release}: ${alertData.release}` : null,
+  ].filter(Boolean).join('\n');
+  return buildTeamsCloudWatchAlarmCard({
+    cw,
+    logEvent,
+    instructions: alertData.promptAppendix ? `${TEAMS_THREAD_NOTE}\n\n${alertData.promptAppendix}` : null,
+    instructionsLabel: t.responderInstructions || 'Responder instructions',
+    actions: [
+      { title: t.watchDevin, url: process.env.AUTOMATIONS_TEAMS_AUTOMATION_URL || DEFAULT_TEAMS_AUTOMATION_URL },
+      { title: t.viewSentry, url: alertData.issueUrl },
+      { title: 'View logs in CloudWatch Logs', url: alertData.cloudwatch.logsUrl },
+    ],
+    footer: [
+      `${t.service}: ${service}`,
+      alertData.culprit ? `${t.location}: ${alertData.culprit}` : null,
+      alertData.errorType ? `${t.type}: ${alertData.errorType}` : null,
+      new Date().toISOString(),
+    ].filter(Boolean).join(' | '),
+  });
+}
+
 function buildTeamsAlertCardForAlert(alertData) {
+  if (alertData.cloudwatch) return buildTeamsCloudWatchCardForAlert(alertData);
   const owner = typeof alertData.devinEmail === 'string' && EMAIL_RE.test(alertData.devinEmail)
     ? alertData.devinEmail
     : null;
@@ -144,6 +183,13 @@ function buildPrompt(alertData) {
     errorValue ? `*${t.message}:* ${errorValue}` : null,
     alertData.service ? `*${t.service}:* ${alertData.service}` : null,
   ];
+  if (alertData.cloudwatch) {
+    const cw = alertData.cloudwatch;
+    lines.push(
+      `*Alarm source:* Amazon CloudWatch — alarm \`${cw.alarmName}\` (${cw.namespace} / ${cw.metricName}) in ${cw.region} entered ALARM`,
+      cw.logGroup ? `*Log group:* \`${cw.logGroup}\`` : null,
+    );
+  }
 
   // Compact metadata line — combine small fields with pipe separators
   const metaParts = [
@@ -170,7 +216,7 @@ function buildPrompt(alertData) {
   if (shortId) lines.push(`Short ID: ${shortId}`);
   if (triggeredRule) lines.push(`${t.rule}: ${triggeredRule}`);
 
-  // Sentry link
+  // Sentry / CloudWatch alarm link
   if (issueUrl) lines.push('', issueUrl);
 
   // Tags — inline comma-separated for compactness
