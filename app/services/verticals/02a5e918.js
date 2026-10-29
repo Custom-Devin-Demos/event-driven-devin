@@ -7,8 +7,6 @@ const { declareDatadogIncident } = require('../datadog-incidents');
 
 const SERVICE = 'customer-02a5e918-smarttime';
 const ROUTE = '/api/02a5e918/timecards/send-to-payroll';
-const DEFAULT_DEVIN_EMAIL = 'shahmir.masood@cognition.ai';
-const DEFAULT_DEVIN_ORG_ID = 'org_69IXJFLrljx8zSAw';
 
 const PRODUCTION = {
   id: 'PRJ-24817',
@@ -173,7 +171,7 @@ async function sendTimecardsToPayroll(data) {
       summary: `${error.name}: ${error.message}. Batch ${PRODUCTION.payrollBatchId} for ${PRODUCTION.title} cannot be sent to EP Payroll.`,
       runRef: PRODUCTION.payrollBatchId,
       service: SERVICE,
-      triggeredBy: data.devinEmail || DEFAULT_DEVIN_EMAIL,
+      triggeredBy: data.devinEmail || 'smarttime',
       repoUrl: 'https://github.com/COG-GTM/event-driven-devin',
       severity: 'SEV-2',
     }).catch((err) => logger.warn('Failed to declare Datadog incident for SmartTime', { error: err.message }));
@@ -185,8 +183,8 @@ async function sendTimecardsToPayroll(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail || DEFAULT_DEVIN_EMAIL,
-      devinOrgId: data.devinOrgId || DEFAULT_DEVIN_ORG_ID,
+      devinEmail: data.devinEmail,
+      devinOrgId: data.devinOrgId,
       service: SERVICE,
       verticalLabel: 'Entertainment Partners SmartTime — Send to Payroll',
       promptAppendix: REMEDIATION_DIRECTIVE,

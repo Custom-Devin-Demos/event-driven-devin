@@ -19,10 +19,10 @@ describe('Entertainment Partners SmartTime send to payroll (02a5e918)', () => {
   });
 
   test('full batch fails and starts a Devin session for the payroll incident', async () => {
-    await expect(sendTimecardsToPayroll({ batchId: PRODUCTION.payrollBatchId })).rejects.toMatchObject({ name: 'TypeError', code: 'PAYROLL_BATCH_FAILED', statusCode: 500 });
+    await expect(sendTimecardsToPayroll({ batchId: PRODUCTION.payrollBatchId, devinEmail: 'presenter@cognition.ai' })).rejects.toMatchObject({ name: 'TypeError', code: 'PAYROLL_BATCH_FAILED', statusCode: 500 });
     expect(declareDatadogIncident).toHaveBeenCalledWith(expect.objectContaining({ service: 'customer-02a5e918-smarttime', severity: 'SEV-2' }));
     expect(createSessionAndAlert).toHaveBeenCalledWith(expect.objectContaining({
-      customer: '02a5e918', devinEmail: 'shahmir.masood@cognition.ai', devinOrgId: 'org_69IXJFLrljx8zSAw', promptAppendix: REMEDIATION_DIRECTIVE,
+      customer: '02a5e918', devinEmail: 'presenter@cognition.ai', devinOrgId: undefined, promptAppendix: REMEDIATION_DIRECTIVE,
     }));
   });
 
