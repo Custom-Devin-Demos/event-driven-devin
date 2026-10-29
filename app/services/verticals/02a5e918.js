@@ -7,6 +7,7 @@ const { declareDatadogIncident } = require('../datadog-incidents');
 
 const SERVICE = 'customer-02a5e918-smarttime';
 const PRECHECK_ROUTE = '/api/02a5e918/timecards/precheck';
+const SEND_ROUTE = '/api/02a5e918/timecards/send-to-payroll';
 
 const PRODUCTION = {
   id: 'PRJ-24817',
@@ -89,6 +90,19 @@ function validationError(message, code) {
   return error;
 }
 
+const PRECHECK_STAGE = {
+  route: PRECHECK_ROUTE,
+  metric: 'payroll_precheck',
+  culprit: 'app/services/verticals/02a5e918.js — runPayrollPrecheck',
+  label: 'Entertainment Partners SmartTime — Payroll Pre-Check',
+};
+const SEND_STAGE = {
+  route: SEND_ROUTE,
+  metric: 'payroll_batch',
+  culprit: 'app/services/verticals/02a5e918.js — sendTimecardsToPayroll',
+  label: 'Entertainment Partners SmartTime — Send to Payroll',
+};
+
 function selectedTimecards(data) {
   if (data.batchId !== PRODUCTION.payrollBatchId) {
     throw validationError(`Unknown timecard batch: ${data.batchId || '(none)'}`, 'UNKNOWN_TIMECARD_BATCH');
@@ -110,12 +124,12 @@ function selectedTimecards(data) {
   return TIMECARDS.filter((timecard) => timecardIds.includes(timecard.id));
 }
 
-async function reportPrecheckIncident(error, data, failingTimecard, duration) {
+async function reportPayrollIncident(error, data, failingTimecard, duration, stage = PRECHECK_STAGE) {
   const union = failingTimecard ? failingTimecard.union : 'unknown';
-  incrementMetric('ep_smarttime.payroll_precheck_failure', { batchId: PRODUCTION.payrollBatchId, union });
-  recordTiming('ep_smarttime.payroll_precheck_latency', duration, { batchId: PRODUCTION.payrollBatchId, union, error: 'true' });
+  incrementMetric(`ep_smarttime.${stage.metric}_failure`, { batchId: PRODUCTION.payrollBatchId, union });
+  recordTiming(`ep_smarttime.${stage.metric}_latency`, duration, { batchId: PRODUCTION.payrollBatchId, union, error: 'true' });
 
-  logger.error('SmartTime Payroll Pre-Check failed', {
+  logger.error(`${stage.label} failed`, {
     error: error.message,
     errorClass: error.name,
     durationMs: duration,
@@ -126,12 +140,12 @@ async function reportPrecheckIncident(error, data, failingTimecard, duration) {
   });
 
   Sentry.captureException(error, {
-    tags: { route: PRECHECK_ROUTE, service: SERVICE, batchId: PRODUCTION.payrollBatchId, union, alert_path: 'instant' },
+    tags: { route: stage.route, service: SERVICE, batchId: PRODUCTION.payrollBatchId, union, alert_path: 'instant' },
     extra: { productionId: PRODUCTION.id, ...(failingTimecard ? { timecardId: failingTimecard.id } : {}) },
   });
 
   declareDatadogIncident({
-    title: 'SmartTime Payroll Pre-Check failing for IATSE Local 600 timecards',
+    title: `${stage.label} failing for IATSE Local 600 timecards`,
     summary: `${error.name}: ${error.message}. The pre-check cannot validate batch ${PRODUCTION.payrollBatchId} for ${PRODUCTION.title}.`,
     runRef: PRODUCTION.payrollBatchId,
     service: SERVICE,
@@ -143,18 +157,18 @@ async function reportPrecheckIncident(error, data, failingTimecard, duration) {
   createSessionAndAlert({
     issueTitle: `${error.name}: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-    culprit: 'app/services/verticals/02a5e918.js — runPayrollPrecheck',
+    culprit: stage.culprit,
     errorType: error.name || 'Error',
     errorValue: error.message,
     devinUserId: data.devinUserId,
     devinEmail: data.devinEmail,
     devinOrgId: data.devinOrgId,
     service: SERVICE,
-    verticalLabel: 'Entertainment Partners SmartTime — Payroll Pre-Check',
+    verticalLabel: stage.label,
     promptAppendix: REMEDIATION_DIRECTIVE,
     customer: '02a5e918',
     tags: [
-      { key: 'route', value: PRECHECK_ROUTE },
+      { key: 'route', value: stage.route },
       { key: 'service', value: SERVICE },
       { key: 'batchId', value: PRODUCTION.payrollBatchId },
       { key: 'union', value: union },
@@ -218,7 +232,7 @@ async function runPayrollPrecheck(data) {
     };
   } catch (error) {
     const duration = Date.now() - startTime;
-    await reportPrecheckIncident(error, data, failingTimecard, duration);
+    await reportPayrollIncident(error, data, failingTimecard, duration);
     error.statusCode = 500;
     error.code = 'PAYROLL_PRECHECK_FAILED';
     throw error;
@@ -226,8 +240,21 @@ async function runPayrollPrecheck(data) {
 }
 
 async function sendTimecardsToPayroll(data) {
+  const startTime = Date.now();
   const selected = selectedTimecards(data);
-  const lines = selected.map((timecard) => ({ timecardId: timecard.id, crewName: timecard.crewName, union: timecard.union, ...computeTimecardCost(timecard) }));
+  let failingTimecard = null;
+  let lines;
+  try {
+    lines = selected.map((timecard) => {
+      failingTimecard = timecard;
+      return { timecardId: timecard.id, crewName: timecard.crewName, union: timecard.union, ...computeTimecardCost(timecard) };
+    });
+  } catch (error) {
+    await reportPayrollIncident(error, data, failingTimecard, Date.now() - startTime, SEND_STAGE);
+    error.statusCode = 500;
+    error.code = 'PAYROLL_BATCH_FAILED';
+    throw error;
+  }
   const totalGross = round(lines.reduce((sum, line) => sum + line.gross, 0));
   const totalFringe = round(lines.reduce((sum, line) => sum + line.fringe, 0));
   return {

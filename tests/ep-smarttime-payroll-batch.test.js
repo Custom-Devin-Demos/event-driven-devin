@@ -44,6 +44,15 @@ describe('Entertainment Partners SmartTime send to payroll (02a5e918)', () => {
     }));
   });
 
+  test('direct send of the Local 600 timecard still raises the incident', async () => {
+    await expect(sendTimecardsToPayroll({ batchId: PRODUCTION.payrollBatchId, timecardIds: ['TC-91845'] })).rejects.toMatchObject({ name: 'TypeError', code: 'PAYROLL_BATCH_FAILED', statusCode: 500 });
+    expect(createSessionAndAlert).toHaveBeenCalledWith(expect.objectContaining({
+      customer: '02a5e918',
+      verticalLabel: 'Entertainment Partners SmartTime — Send to Payroll',
+      culprit: 'app/services/verticals/02a5e918.js — sendTimecardsToPayroll',
+    }));
+  });
+
   test.each([
     [{ batchId: 'TB-OLD' }, 'UNKNOWN_TIMECARD_BATCH'],
     [{ batchId: PRODUCTION.payrollBatchId, timecardIds: 'TC-91841' }, 'INVALID_TIMECARD_SELECTION'],
