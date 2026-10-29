@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LTA | Renew Road Tax</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #3B3A99;
+      --ink: #212529;
+      --surface: #FFFFFF;
+      --chrome-bg: #222067;
+      --chrome-text: #FFFFFF;
+      --page: color-mix(in srgb, var(--ink) 6%, var(--surface));
+      --border: color-mix(in srgb, var(--ink) 16%, var(--surface));
+      --muted: color-mix(in srgb, var(--ink) 72%, var(--surface));
+      --accent-soft: color-mix(in srgb, var(--accent) 9%, var(--surface));
+      --accent-dark: color-mix(in srgb, var(--accent) 80%, var(--chrome-bg));
+      --info-bg: color-mix(in srgb, var(--accent) 10%, var(--surface));
+      --warm: color-mix(in srgb, #FFC236 9%, var(--surface));
+      --highlight: #FFC236;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Noto Sans", Arial, system-ui, sans-serif;
+      font-size: 18px;
+      line-height: 1.5;
+      color: var(--ink);
+      background: var(--surface);
+      overflow-x: hidden;
+    }
+    h1, h2, h3, .display { font-family: "Noto Sans Display", "Noto Sans", Arial, sans-serif; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 0 18px; }
+    .masthead { background: color-mix(in srgb, var(--ink) 6%, var(--surface)); font-size: 14px; line-height: 20px; }
+    .masthead .wrap { max-width: 1240px; display: flex; align-items: center; gap: 8px; min-height: 28px; }
+    .masthead a { font-size: 14px; display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; }
+    .site-header { background: var(--surface); }
+    .site-header .wrap { max-width: 1240px; display: flex; align-items: center; min-height: 72px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--accent); min-height: 44px; }
+    .brand-mark { width: 44px; height: 32px; }
+    .brand-word { font-family: "Noto Sans Display", sans-serif; font-size: 24px; letter-spacing: .5px; text-transform: uppercase; }
+    .brand-word b { font-weight: 700; }
+    .brand-word span { font-weight: 400; }
+    .func-title-container { background: linear-gradient(to right, var(--chrome-bg), var(--accent)); color: var(--chrome-text); text-align: center; padding: 24px 18px; }
+    .func-title { margin: 0; font-size: 28px; font-weight: 700; line-height: 42px; }
+    .stepper { background: var(--surface); border-bottom: 1px solid var(--border); }
+    .step-list { list-style: none; margin: 0 auto; padding: 0 18px; max-width: 1000px; display: flex; gap: 8px; }
+    .step-item { flex: 1; display: flex; align-items: center; gap: 10px; min-height: 64px; border-bottom: 4px solid transparent; color: var(--muted); }
+    .step-item.active { border-bottom-color: var(--highlight); color: var(--ink); }
+    .step-item.done { color: var(--ink); }
+    .step-num { flex: none; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; background: var(--border); color: var(--ink); }
+    .step-item.active .step-num, .step-item.done .step-num { background: var(--accent); color: var(--chrome-text); }
+    .step-mobile { display: none; align-items: center; gap: 10px; min-height: 56px; padding: 0 18px; border-bottom: 4px solid var(--highlight); }
+    .func-main { background: var(--page); padding: 20px 0 36px; }
+    .alert-info { display: flex; gap: 12px; align-items: flex-start; background: var(--info-bg); border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--surface)); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 16px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+    .alert-info p { margin: 0; flex: 1; }
+    .icon-btn { flex: none; width: 44px; height: 44px; margin: -10px -10px -10px 0; border: 0; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; color: var(--ink); border-radius: 8px; }
+    .card { background: var(--surface); border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.16); }
+    .card-head { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+    .card-head h3 { margin: 0; font-size: 22px; font-weight: 700; }
+    .card-body { padding: 20px 24px; }
+    .card-foot { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .intro-grid { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 24px; }
+    .intro-grid h4 { margin: 20px 0 8px; font-size: 18px; font-weight: 600; }
+    .intro-grid p { margin: 0; font-size: 16px; }
+    .time { display: flex; align-items: center; gap: 6px; font-size: 16px; }
+    .methods { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+    .methods span { font-size: 14px; font-weight: 700; padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--accent); }
+    .notes { margin: 0; padding-left: 22px; font-size: 16px; }
+    .egiro { background: var(--warm); border-radius: 12px; padding: 18px; align-self: start; font-size: 16px; }
+    .egiro h4 { margin-top: 0 !important; }
+    .egiro a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; text-decoration: none; }
+    .agree { display: flex; align-items: center; gap: 10px; font-size: 16px; min-height: 44px; cursor: pointer; }
+    .agree input { width: 20px; height: 20px; accent-color: var(--accent); margin: 0; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; padding: 11px 22px; border-radius: 9999px; font: 600 18px "Noto Sans Display", "Noto Sans", sans-serif; cursor: pointer; border: 1px solid var(--accent); }
+    .btn-primary { background: var(--accent); color: var(--chrome-text); }
+    .btn-primary:hover { background: var(--accent-dark); }
+    .btn-primary:disabled { background: color-mix(in srgb, var(--accent) 40%, var(--surface)); border-color: transparent; cursor: not-allowed; }
+    .btn-secondary { background: var(--surface); color: var(--accent); }
+    .btn:focus-visible, input:focus-visible, select:focus-visible, .period:focus-within { outline: 3px solid color-mix(in srgb, var(--accent) 45%, var(--surface)); outline-offset: 2px; }
+    .field { margin-bottom: 20px; max-width: 420px; }
+    .field label { display: block; font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .field input, .field select { width: 100%; min-height: 48px; padding: 10px 14px; font: 400 18px "Noto Sans", sans-serif; color: var(--ink); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+    .field .hint { font-size: 14px; color: var(--muted); margin-top: 4px; }
+    .field .err { font-size: 14px; color: #B3261E; margin-top: 4px; }
+    .vehicle { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; background: var(--accent-soft); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+    .vehicle dt { font-size: 14px; color: var(--muted); }
+    .vehicle dd { margin: 0; font-weight: 600; font-size: 16px; }
+    fieldset { border: 0; padding: 0; margin: 0 0 8px; }
+    legend { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .periods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .period { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; min-height: 44px; }
+    .period:has(input:checked) { border: 2px solid var(--accent); padding: 15px; background: var(--accent-soft); }
+    .period input { width: 20px; height: 20px; margin: 4px 0 0; accent-color: var(--accent); }
+    .period strong { display: block; font-size: 18px; }
+    .period span { display: block; font-size: 14px; color: var(--muted); }
+    .period .price { font-size: 20px; font-weight: 700; color: var(--ink); margin-top: 4px; }
+    .summary { margin: 0 0 20px; border: 1px solid var(--border); border-radius: 12px; }
+    .summary div { display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 16px; }
+    .summary div:last-child { border-bottom: 0; font-weight: 700; font-size: 18px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; text-align: right; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+    .result-box { margin-top: 20px; font-size: 16px; }
+    .result-box:empty { display: none; }
+    .result-box.pending { padding: 14px 16px; border-radius: 8px; background: var(--info-bg); }
+    .result-box.success { padding: 16px; border-radius: 8px; background: color-mix(in srgb, #1B7F3B 9%, var(--surface)); border: 1px solid color-mix(in srgb, #1B7F3B 45%, var(--surface)); }
+    .result-box.error { padding: 16px; border-radius: 8px; background: color-mix(in srgb, #B3261E 7%, var(--surface)); border: 1px solid color-mix(in srgb, #B3261E 40%, var(--surface)); }
+    .result-box h4 { margin: 0 0 6px; font-size: 18px; }
+    .result-box p { margin: 2px 0; }
+    .also { padding: 28px 0 36px; }
+    .also h2 { font-size: 24px; margin: 0 0 16px; }
+    .also-grid { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+    .also-card { width: 180px; min-height: 180px; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 18px; text-align: center; text-decoration: none; color: var(--ink); font-weight: 600; font-size: 16px; }
+    .also-card svg { width: 40px; height: 40px; color: var(--accent); }
+    .also-cta { text-align: center; margin-top: 20px; }
+    footer { border-top: 1px solid var(--border); padding: 32px 0; font-size: 14px; }
+    footer .wrap { max-width: 1240px; }
+    .foot-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .foot-brand { font-size: 20px; font-weight: 700; }
+    .foot-brand small { font-size: 14px; }
+    .foot-links { display: flex; flex-wrap: wrap; gap: 0 24px; }
+    .foot-links a { color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+    .foot-bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 12px; }
+    .copyright { text-align: right; margin-left: auto; }
+    @media (max-width: 720px) {
+      .intro-grid { grid-template-columns: 1fr; }
+      .vehicle { grid-template-columns: 1fr 1fr; }
+      .periods { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 575px) {
+      .step-list { display: none; }
+      .step-mobile { display: flex; }
+      .func-title { font-size: 24px; line-height: 34px; }
+      .card-head, .card-body, .card-foot { padding-left: 16px; padding-right: 16px; }
+      .card-foot .btn, .actions .btn { width: 100%; }
+      .actions { flex-direction: column-reverse; }
+      .also-card { width: calc(50% - 7px); }
+      .copyright { text-align: left; margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="masthead"><div class="wrap"><span>A Singapore Government Agency Website</span> <a href="#" data-noop>How to identify</a></div></div>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="#" data-noop aria-label="OneMotoring home">
+        <svg class="brand-mark" viewBox="0 0 44 32" aria-hidden="true"><ellipse cx="22" cy="16" rx="21" ry="15" fill="#FFC236"/><text x="22" y="22.5" text-anchor="middle" font-family="Noto Sans Display, sans-serif" font-size="18" font-weight="700" fill="#3B3A99">O</text></svg>
+        <span class="brand-word"><b>One</b><span>Motoring</span></span>
+      </a>
+    </div>
+  </header>
+
+  <div class="func-title-container"><h2 class="func-title">Renew Road Tax</h2></div>
+
+  <nav class="stepper" aria-label="Progress" id="stepper" hidden>
+    <ol class="step-list">
+      <li class="step-item" data-step="1"><span class="step-num">1</span><span>Enter vehicle no.</span></li>
+      <li class="step-item" data-step="2"><span class="step-num">2</span><span>Select renewal period</span></li>
+      <li class="step-item" data-step="3"><span class="step-num">3</span><span>Make payment</span></li>
+    </ol>
+    <div class="step-mobile"><span class="step-num" id="stepMobileNum" style="background:var(--accent);color:var(--chrome-text)">1</span><span id="stepMobileText">of 3 - Enter vehicle no.</span></div>
+  </nav>
+
+  <main class="func-main">
+    <div class="wrap">
+      <div class="alert-info" id="notice" role="note">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" style="flex:none;margin-top:3px;color:var(--accent)"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6v.5"/></svg>
+        <p>Notice something new? We are progressively refreshing the design of our digital services to serve you better. Stay tuned!</p>
+        <button type="button" class="icon-btn" id="dismissNotice" aria-label="Dismiss notice">&times;</button>
+      </div>
+
+      <form id="transferForm" novalidate>
+        <section class="card" data-panel="0">
+          <div class="card-head"><h3>Before you begin</h3></div>
+          <div class="card-body intro-grid">
+            <div>
+              <div class="time"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 5v5l3 2"/></svg> 5 minutes estimated time to complete.</div>
+              <h4>Introduction</h4>
+              <p>This digital service allows you to renew the road tax for your vehicle for either 6 or 12 months as part of your vehicle ownership tax.</p>
+              <h4>What you need</h4>
+              <p>Ensure that your vehicle meets all the <a href="#" data-noop>renewal prerequisites</a> at least 1 working day before renewing your road tax.</p>
+              <h4>Accepted payment methods</h4>
+              <div class="methods" aria-label="Accepted payment methods"><span>eNETS</span><span>VISA</span><span>Mastercard</span><span>PayNow</span><span>Apple Pay</span><span>Google Pay</span></div>
+              <ul class="notes">
+                <li>Please allow pop-ups for eNETS and your banks' websites to avoid "time-out" errors.</li>
+                <li>Ensure that you have adequate balance and daily payment limit for the amount to be debited from your account.</li>
+              </ul>
+            </div>
+            <aside class="egiro">
+              <h4>Enjoy automatic road tax renewals with eGIRO</h4>
+              <p>Apply online with instant approval and enjoy hassle-free automatic road tax renewals.</p>
+              <a href="#" data-noop>Apply eGIRO &#8599;</a>
+            </aside>
+          </div>
+          <div class="card-foot">
+            <label class="agree"><input type="checkbox" id="agreeTC"> <span>I have read and agree to the <a href="#" data-noop>terms and conditions</a>.</span></label>
+            <button type="button" class="btn btn-primary" id="startBtn" disabled>Start &rsaquo;</button>
+          </div>
+        </section>
+
+        <section class="card" data-panel="1" hidden>
+          <div class="card-head"><h3>Enter vehicle no.</h3></div>
+          <div class="card-body">
+            <div class="field">
+              <label for="toAccount">Vehicle no.</label>
+              <input id="toAccount" name="toAccount" type="text" autocomplete="off" autocapitalize="characters" placeholder="e.g. SFW1234J" value="SKH4821C" maxlength="10">
+              <div class="err" id="vehicleErr" hidden>Please enter a valid vehicle no.</div>
+            </div>
+            <div class="actions"><span></span><button type="button" class="btn btn-primary" id="nextBtn1">Next &rsaquo;</button></div>
+          </div>
+        </section>
+
+        <section class="card" data-panel="2" hidden>
+          <div class="card-head"><h3>Select renewal period</h3></div>
+          <div class="card-body">
+            <dl class="vehicle">
+              <div><dt>Vehicle no.</dt><dd id="vehNoOut">SKH4821C</dd></div>
+              <div><dt>Vehicle type</dt><dd>Private car</dd></div>
+              <div><dt>Engine capacity</dt><dd>1,598 cc</dd></div>
+              <div><dt>Road tax expiry date</dt><dd>30 Nov 2026</dd></div>
+              <div><dt>Renewal prerequisites</dt><dd>Fulfilled</dd></div>
+            </dl>
+            <fieldset>
+              <legend>Renewal period</legend>
+              <div class="periods">
+                <label class="period"><input type="radio" name="period" value="6" data-amount="371.00" data-expiry="31 May 2027"><div><strong>6 months</strong><span>New expiry date: 31 May 2027</span><div class="price">S$371.00</div></div></label>
+                <label class="period"><input type="radio" name="period" value="12" data-amount="742.00" data-expiry="30 Nov 2027" checked><div><strong>12 months</strong><span>New expiry date: 30 Nov 2027</span><div class="price">S$742.00</div></div></label>
+              </div>
+            </fieldset>
+            <input type="number" id="amount" name="amount" value="742.00" step="0.01" hidden>
+            <div class="actions"><button type="button" class="btn btn-secondary" data-back="1">&lsaquo; Back</button><button type="button" class="btn btn-primary" id="nextBtn2">Next &rsaquo;</button></div>
+          </div>
+        </section>
+
+        <section class="card" data-panel="3" hidden>
+          <div class="card-head"><h3>Make payment</h3></div>
+          <div class="card-body">
+            <dl class="summary">
+              <div><dt>Vehicle no.</dt><dd id="sumVeh">—</dd></div>
+              <div><dt>Renewal period</dt><dd id="sumPeriod">—</dd></div>
+              <div><dt>New road tax expiry date</dt><dd id="sumExpiry">—</dd></div>
+              <div><dt>Amount payable</dt><dd id="sumAmount">—</dd></div>
+            </dl>
+            <div class="field">
+              <label for="fromAccount">Payment method</label>
+              <select id="fromAccount" name="fromAccount">
+                <option value="ENETS-DEBIT">eNETS Debit</option>
+                <option value="CARD-VISA-MC" selected>Credit / Debit card (VISA / Mastercard)</option>
+                <option value="PAYNOW">PayNow</option>
+                <option value="APPLE-PAY">Apple Pay</option>
+                <option value="GOOGLE-PAY">Google Pay</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="accountTier">Paying as</label>
+              <select id="accountTier" name="accountTier">
+                <option value="standard" selected>Individual (Singpass)</option>
+                <option value="premium">Business (Corppass)</option>
+              </select>
+            </div>
+            <div class="actions"><button type="button" class="btn btn-secondary" data-back="2">&lsaquo; Back</button><button type="submit" class="btn btn-primary" id="submitBtn">Pay S$742.00</button></div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </div>
+        </section>
+      </form>
+    </div>
+  </main>
+
+  <section class="also">
+    <div class="wrap">
+      <h2>You may also like</h2>
+      <div class="also-grid">
+        <a class="also-card" href="#" data-noop><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="8" width="30" height="26" rx="3"/><path d="M5 16h30M13 4v8M27 4v8"/></svg>Enquire Road Tax Expiry Date</a>
+        <a class="also-card" href="#" data-noop><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="20" cy="20" r="15"/><path d="M20 12v9l6 4"/></svg>Enquire Road Tax Payable / Prerequisite(s) To Fulfil</a>
+        <a class="also-card" href="#" data-noop><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 24l4-10h20l4 10v8H6z"/><circle cx="12" cy="28" r="2"/><circle cx="28" cy="28" r="2"/></svg>Car Expenses Calculator</a>
+      </div>
+      <div class="also-cta"><a class="btn btn-primary" href="#" data-noop style="text-decoration:none">View all services &rsaquo;</a></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-top">
+        <div class="foot-brand display">OneMotoring <small>by Land Transport Authority</small></div>
+        <nav class="foot-links" aria-label="Contact"><a href="#" data-noop>Contact us</a><a href="#" data-noop>Feedback</a></nav>
+      </div>
+      <div class="foot-bottom">
+        <nav class="foot-links" aria-label="Legal"><a href="#" data-noop>Report vulnerability</a><a href="#" data-noop>Privacy statement</a><a href="#" data-noop>Terms of use</a><a href="#" data-noop>Disclaimer</a></nav>
+        <div class="copyright">&copy; 2026 Government of Singapore<br>Last updated 24 October 2026</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config')
+        .then(function (r) { return r.json(); })
+        .then(function (cfg) {
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        })
+        .catch(function () {});
+    })();
+
+    (function () {
+      var form = document.getElementById('transferForm');
+      var panels = form.querySelectorAll('[data-panel]');
+      var stepper = document.getElementById('stepper');
+      var stepNames = ['', 'Enter vehicle no.', 'Select renewal period', 'Make payment'];
+      var agree = document.getElementById('agreeTC');
+      var startBtn = document.getElementById('startBtn');
+      var vehInput = document.getElementById('toAccount');
+      var vehErr = document.getElementById('vehicleErr');
+      var amountInput = document.getElementById('amount');
+      var fromSel = document.getElementById('fromAccount');
+      var tierSel = document.getElementById('accountTier');
+      var submitBtn = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      var VEH_RE = /^S[A-Z]{1,2}\d{1,4}[A-Z]$/;
+
+      document.querySelectorAll('[data-noop]').forEach(function (a) {
+        a.addEventListener('click', function (e) { e.preventDefault(); });
+      });
+      document.getElementById('dismissNotice').addEventListener('click', function () {
+        document.getElementById('notice').hidden = true;
+      });
+
+      function money(n) {
+        return 'S$' + (isFinite(n) ? n : 0).toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function selectedPeriod() { return form.querySelector('input[name="period"]:checked'); }
+      function vehicleNo() { return vehInput.value.replace(/\s+/g, '').toUpperCase(); }
+      function payLabel() { return 'Pay ' + money(parseFloat(amountInput.value)); }
+
+      function updateSummary() {
+        var p = selectedPeriod();
+        amountInput.value = p.getAttribute('data-amount');
+        document.getElementById('vehNoOut').textContent = vehicleNo();
+        document.getElementById('sumVeh').textContent = vehicleNo();
+        document.getElementById('sumPeriod').textContent = p.value + ' months';
+        document.getElementById('sumExpiry').textContent = p.getAttribute('data-expiry');
+        document.getElementById('sumAmount').textContent = money(parseFloat(amountInput.value));
+        if (!submitBtn.disabled) submitBtn.textContent = payLabel();
+      }
+
+      function show(step) {
+        panels.forEach(function (el) { el.hidden = el.getAttribute('data-panel') !== String(step); });
+        stepper.hidden = step === 0;
+        stepper.querySelectorAll('.step-item').forEach(function (li) {
+          var n = Number(li.getAttribute('data-step'));
+          li.classList.toggle('active', n === step);
+          li.classList.toggle('done', n < step);
+          if (n === step) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+        });
+        document.getElementById('stepMobileNum').textContent = String(step || 1);
+        document.getElementById('stepMobileText').textContent = 'of 3 - ' + stepNames[step || 1];
+        updateSummary();
+        window.scrollTo(0, 0);
+      }
+
+      agree.addEventListener('change', function () { startBtn.disabled = !agree.checked; });
+      startBtn.addEventListener('click', function () { if (agree.checked) show(1); });
+      document.getElementById('nextBtn1').addEventListener('click', function () {
+        var ok = VEH_RE.test(vehicleNo());
+        vehErr.hidden = ok;
+        vehInput.setAttribute('aria-invalid', ok ? 'false' : 'true');
+        if (ok) { vehInput.value = vehicleNo(); show(2); } else vehInput.focus();
+      });
+      document.getElementById('nextBtn2').addEventListener('click', function () { show(3); });
+      form.querySelectorAll('[data-back]').forEach(function (b) {
+        b.addEventListener('click', function () { result.textContent = ''; result.className = 'result-box'; show(Number(b.getAttribute('data-back'))); });
+      });
+      form.querySelectorAll('input[name="period"]').forEach(function (r) { r.addEventListener('change', updateSummary); });
+
+      function para(text) { var p = document.createElement('p'); p.textContent = text; return p; }
+      function renderSuccess(data) {
+        var p = selectedPeriod();
+        result.className = 'result-box success';
+        result.textContent = '';
+        var h = document.createElement('h4');
+        h.textContent = 'Payment successful';
+        result.appendChild(h);
+        result.appendChild(para('The road tax for ' + vehicleNo() + ' has been renewed until ' + p.getAttribute('data-expiry') + '.'));
+        result.appendChild(para('Transaction no.: ' + (data.transferId || data.receiptId || '—')));
+        result.appendChild(para('Amount paid: ' + money(parseFloat(amountInput.value))));
+        var again = document.createElement('button');
+        again.type = 'button';
+        again.className = 'btn btn-secondary';
+        again.style.marginTop = '12px';
+        again.textContent = 'Renew another vehicle';
+        again.addEventListener('click', resetFlow);
+        result.appendChild(again);
+      }
+      function renderFailure() {
+        result.className = 'result-box error';
+        result.textContent = '';
+        var h = document.createElement('h4');
+        h.textContent = 'We are unable to complete your payment';
+        result.appendChild(h);
+        result.appendChild(para('Your road tax has not been renewed. Please try again later.'));
+      }
+      function resetFlow() {
+        form.reset();
+        result.textContent = '';
+        result.className = 'result-box';
+        vehErr.hidden = true;
+        startBtn.disabled = true;
+        show(0);
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        updateSummary();
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing payment…';
+        result.className = 'result-box pending';
+        result.textContent = 'Processing your payment. Please do not close or refresh this page.';
+        try {
+          var res = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromSel.value,
+              toAccount: vehicleNo(),
+              amount: parseFloat(amountInput.value),
+              accountTier: tierSel.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          });
+          var data = null;
+          try { data = await res.json(); } catch (_) {}
+          if (res.ok && data && data.success) renderSuccess(data);
+          else renderFailure();
+        } catch (_) {
+          renderFailure();
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = payLabel();
+        }
+      });
+
+      show(0);
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
