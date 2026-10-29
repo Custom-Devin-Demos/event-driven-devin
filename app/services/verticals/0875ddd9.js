@@ -2,7 +2,8 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
-const { createSessionAndAlert } = require('../devin-session');
+const { postOncallAlert } = require('../oncall');
+const { selectedAlertDestination } = require('../alert-destination');
 
 const SERVICE = 'customer-0875ddd9-2k-store-checkout';
 const ROUTE = '/api/0875ddd9/checkout';
@@ -101,17 +102,6 @@ const EDITION_ENTITLEMENTS = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const REMEDIATION_DIRECTIVE = [
-  '*Repository to investigate and fix:* `COG-GTM/event-driven-devin`',
-  '',
-  'The failing code path is the 2K Store checkout (BUY NOW) vertical:',
-  '- Service: `app/services/verticals/0875ddd9.js`',
-  '- Route: `app/routes/verticals/0875ddd9.js`',
-  '- Page: `app/public/verticals/0875ddd9.html` (served at `/0875ddd9`)',
-  '',
-  'Open a pull request against `main` with the fix.',
-].join('\n');
 
 function validationError(message, code) {
   const error = new Error(message);
@@ -246,49 +236,14 @@ async function placeOrder(data = {}) {
       },
     });
 
-    createSessionAndAlert({
-      issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/0875ddd9.js \u2014 buildFulfillmentPlan',
-      errorType: error.name || 'Error',
-      errorValue: error.message,
-      devinUserId: order.devinUserId,
+    postOncallAlert('0875ddd9', {
+      destination: selectedAlertDestination(),
       devinEmail: order.devinEmail,
+      devinUserId: order.devinUserId,
       devinOrgId: order.devinOrgId,
-      service: SERVICE,
-      verticalLabel: '2K Store Checkout',
-      promptAppendix: REMEDIATION_DIRECTIVE,
-      customer: '0875ddd9',
-      tags: [
-        { key: 'route', value: ROUTE },
-        { key: 'service', value: SERVICE },
-        { key: 'title', value: order.title },
-        { key: 'edition', value: order.edition },
-        { key: 'platform', value: order.platform },
-        { key: 'order_prefix', value: ORDER_PREFIX },
-      ],
-      extra: {
-        requestId,
-        title: order.title,
-        edition: order.edition,
-        platform: order.platform,
-      },
-      level: 'error',
-      platform: 'node',
-      firstSeen: '',
-      lastSeen: new Date().toISOString(),
-      count: '',
-      shortId: '',
-      project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || `${SERVICE}@27.2.0`,
-      environment: process.env.DD_ENV || 'prod',
-      triggeredRule: '',
-    }).catch((alertError) => {
-      logger.error('Failed to create Devin session for 2K Store checkout error', {
-        error: alertError.message,
-        requestId,
-      });
-    });
+    })
+      .then((alert) => logger.info('Posting alert and triggering Devin', { requestId, ok: alert && alert.ok, service: SERVICE }))
+      .catch((alertError) => logger.warn('2K Store checkout on-call alert failed', { error: alertError.message, requestId }));
 
     error.requestId = requestId;
     throw error;
@@ -306,5 +261,4 @@ module.exports = {
   SERVICE,
   ROUTE,
   ORDER_PREFIX,
-  REMEDIATION_DIRECTIVE,
 };

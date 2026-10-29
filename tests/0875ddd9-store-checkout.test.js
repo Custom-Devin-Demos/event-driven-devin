@@ -1,5 +1,9 @@
 /* global describe, expect, test, jest, afterEach */
 
+jest.mock('../app/services/oncall', () => ({
+  postOncallAlert: jest.fn(() => Promise.resolve({ ok: true })),
+}));
+
 jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ ok: true })),
 }));
@@ -17,6 +21,7 @@ jest.mock('../app/telemetry/datadog', () => ({
 const express = require('express');
 const http = require('http');
 
+const { postOncallAlert } = require('../app/services/oncall');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
@@ -54,12 +59,13 @@ function postOrder(body) {
 }
 
 afterEach(() => {
+  postOncallAlert.mockClear();
   createSessionAndAlert.mockClear();
   Sentry.captureException.mockClear();
 });
 
 describe('2K Store checkout (0875ddd9)', () => {
-  test('the pre-filled NBA 2K27 Standard Edition order fails downstream and raises one alert', async () => {
+  test('the pre-filled NBA 2K27 Standard Edition order fails downstream and pages on-call instead of the automated alert', async () => {
     const response = await postOrder({
       title: 'nba-2k27', edition: 'standard', platform: 'ps5', email: EMAIL,
       devinUserId: 'user-1', devinOrgId: 'org-1', devinEmail: 'se@example.com',
@@ -69,19 +75,19 @@ describe('2K Store checkout (0875ddd9)', () => {
     expect(response.body.errorClass).toBe('TypeError');
     expect(response.body.error).toMatch(/reading 'vcAmount'/);
 
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-    const alert = createSessionAndAlert.mock.calls[0][0];
-    expect(alert.customer).toBe('0875ddd9');
-    expect(alert.service).toBe(SERVICE);
-    expect(alert.culprit).toMatch(/buildFulfillmentPlan/);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(postOncallAlert).toHaveBeenCalledTimes(1);
+    const [scenarioId, alert] = postOncallAlert.mock.calls[0];
+    expect(scenarioId).toBe('0875ddd9');
+    expect(alert.devinEmail).toBe('se@example.com');
     expect(alert.devinUserId).toBe('user-1');
     expect(alert.devinOrgId).toBe('org-1');
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     const sentryContext = JSON.stringify(Sentry.captureException.mock.calls[0][1]);
     expect(sentryContext).not.toContain(EMAIL);
-    expect(JSON.stringify(alert.extra)).not.toContain(EMAIL);
-    expect(isInstantPathEvent({ culprit: alert.culprit, tags: [] })).toBe(true);
+    expect(JSON.stringify(alert)).not.toContain(EMAIL);
+    expect(isInstantPathEvent({ culprit: 'app/services/verticals/0875ddd9.js', tags: [] })).toBe(true);
   });
 
   test('an empty body defaults to the failing hero order', async () => {
@@ -101,7 +107,7 @@ describe('2K Store checkout (0875ddd9)', () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.orderId).toMatch(/^2KS-[0-9A-F]{8}$/);
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(postOncallAlert).not.toHaveBeenCalled();
   });
 
   test('NBA 2K27 Ultra Edition grants 100,000 VC', async () => {
@@ -113,12 +119,23 @@ describe('2K Store checkout (0875ddd9)', () => {
     const response = await postOrder({ title: 'nba-2k27', edition: 'standard', platform: 'ps5', email: 'nope' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('INVALID_EMAIL');
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(postOncallAlert).not.toHaveBeenCalled();
   });
 
   test('the only uncatalogued entitlement is the Standard Edition Season 2 bonus', () => {
     const missing = Object.entries(EDITION_ENTITLEMENTS)
       .flatMap(([sku, entitlements]) => entitlements.filter((e) => !ENTITLEMENT_CATALOG[e]).map((e) => `${sku}:${e}`));
     expect(missing).toEqual(['nba-2k27:standard:nba2k27-s2-locker-code-vc']);
+  });
+});
+
+describe('2K Store on-call scenario', () => {
+  test('is registered for the on-call handler and kept off the hub', () => {
+    const { ALERT_SCENARIOS } = jest.requireActual('../app/services/oncall');
+    const scenario = ALERT_SCENARIOS['0875ddd9'];
+    expect(scenario.service).toBe(SERVICE);
+    expect(scenario.endpoint).toBe(`POST ${ROUTE}`);
+    expect(scenario.demoPage).toBe('/0875ddd9');
+    expect(scenario.unlisted).toBe(true);
   });
 });
