@@ -240,12 +240,19 @@ function resetSeatLedger() {
   SEAT_LEDGER.clear();
 }
 
+// Candidate starting seats for a block of `quantity`, nearest the row centre first.
+function blockStarts(seatsPerRow, quantity) {
+  const centre = Math.max(1, Math.floor(seatsPerRow / 2) - Math.floor(quantity / 2));
+  const starts = [];
+  for (let start = 1; start + quantity - 1 <= seatsPerRow; start += 1) starts.push(start);
+  return starts.sort((a, b) => Math.abs(a - centre) - Math.abs(b - centre) || a - b);
+}
+
 function assignSeats(eventId, section, quantity) {
   const taken = ledgerFor(eventId, section);
-  const centre = Math.floor(section.seatsPerRow / 2);
   const seats = [];
   for (const row of section.rows) {
-    for (let start = Math.max(1, centre - Math.floor(quantity / 2)); start + quantity - 1 <= section.seatsPerRow; start += 1) {
+    for (const start of blockStarts(section.seatsPerRow, quantity)) {
       const block = [];
       for (let i = 0; i < quantity; i += 1) block.push(`${row}-${start + i}`);
       if (block.every((id) => !taken.has(id))) {
@@ -558,9 +565,11 @@ function publicAccount(account) {
   };
 }
 
-function getStorefront() {
+function getStorefront(eventId = 'FB26-RIV') {
+  const forEvent = EVENTS[eventId] ? eventId : 'FB26-RIV';
   return {
     school: SCHOOL,
+    availabilityFor: forEvent,
     events: Object.values(EVENTS),
     sections: Object.values(SECTIONS).map((section) => ({
       sectionId: section.sectionId,
@@ -571,7 +580,7 @@ function getStorefront() {
       priorityHold: section.priorityHold,
       prices: section.prices,
       facilityFee: section.facilityFee,
-      available: seatsRemaining('FB26-RIV', section),
+      available: seatsRemaining(forEvent, section),
     })),
     deliveryMethods: Object.values(DELIVERY_METHODS),
     orderFee: ORDER_FEE,

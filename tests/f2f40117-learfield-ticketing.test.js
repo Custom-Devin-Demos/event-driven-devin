@@ -139,9 +139,21 @@ describe('Learfield / Paciolan game-day ticketing (f2f40117)', () => {
     const second = await placeOrder({ ...defaultOrder, sectionId: '215' });
     const ids = (order) => order.seats.map((seat) => `${seat.row}-${seat.seat}`);
     expect(ids(first)).toEqual(['C-13', 'C-14']);
-    expect(ids(second)).toEqual(['C-15', 'C-16']);
+    expect(ids(second)).toEqual(['C-11', 'C-12']);
     expect(seatsRemaining('FB26-RIV', SECTIONS['215'])).toBe(41 - 4);
     expect(getStorefront().sections.find((s) => s.sectionId === '215').available).toBe(37);
+  });
+
+  test('single-seat orders can use every advertised seat and availability is per event', async () => {
+    for (let i = 0; i < 112; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await placeOrder({ ...defaultOrder, sectionId: '320', quantities: { adult: 1, youth: 0 }, donationAmount: 0 });
+    }
+    expect(seatsRemaining('FB26-RIV', SECTIONS['320'])).toBe(0);
+    await expect(placeOrder({ ...defaultOrder, sectionId: '320', quantities: { adult: 1, youth: 0 } })).rejects.toMatchObject({ code: 'SECTION_SOLD_OUT' });
+    expect(getStorefront('FB26-RIV').sections.find((s) => s.sectionId === '320').available).toBe(0);
+    expect(getStorefront('FB26-HC').sections.find((s) => s.sectionId === '320').available).toBe(112);
+    expect(getStorefront('nope').availabilityFor).toBe('FB26-RIV');
   });
 
   test('youth pricing and no gift in the end zone', async () => {

@@ -3,8 +3,8 @@ const { placeOrder, getStorefront } = require('../../services/verticals/f2f40117
 
 const router = express.Router();
 
-router.get('/api/f2f40117/storefront', (_req, res) => {
-  res.json(getStorefront());
+router.get('/api/f2f40117/storefront', (req, res) => {
+  res.json(getStorefront(typeof req.query.eventId === 'string' ? req.query.eventId : undefined));
 });
 
 router.post('/api/f2f40117/orders', async (req, res) => {

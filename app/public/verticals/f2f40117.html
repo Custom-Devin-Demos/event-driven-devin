@@ -447,7 +447,7 @@
             </div>
 
             <div class="result success" id="order-success">
-              <h4>Order confirmed — see you at the Prairie Cup!</h4>
+              <h4 id="success-heading">Order confirmed — see you at the Prairie Cup!</h4>
               <p id="success-copy"></p>
               <div class="rows" id="success-rows"></div>
             </div>
@@ -604,6 +604,11 @@
     var SECTION_CLASS = { '108': 'avail-club', '101': 'avail-lower', '215': 'avail-upper', '320': 'avail-ez' };
     var SECTION_COLOR = { '108': '#f2a900', '101': '#2d6cdf', '215': '#4fa3e3', '320': '#6cc29a' };
 
+    function esc(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+      });
+    }
     function money(value) { return '$' + Number(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
     function moneyShort(value) { return '$' + Math.round(value).toLocaleString('en-US'); }
     function section() { return storefront.sections.filter(function (s) { return s.sectionId === state.sectionId; })[0]; }
@@ -622,11 +627,11 @@
         var selected = ev.eventId === state.eventId;
         var action;
         if (selected) action = '<span class="badge badge-gold">Selected</span>';
-        else if (ev.status === 'presale') action = '<button type="button" class="btn btn-outline" style="padding:8px 12px;" disabled title="' + ev.statusLabel + '">Presale Nov 1</button>';
-        else action = '<button type="button" class="btn btn-gold" style="padding:8px 12px;" data-event="' + ev.eventId + '">Buy Tickets</button>';
+        else if (ev.status === 'presale') action = '<button type="button" class="btn btn-outline" style="padding:8px 12px;" disabled title="' + esc(ev.statusLabel) + '">Presale Nov 1</button>';
+        else action = '<button type="button" class="btn btn-gold" style="padding:8px 12px;" data-event="' + esc(ev.eventId) + '">Buy Tickets</button>';
         return '<div class="event-card' + (selected ? ' selected' : '') + '">'
           + '<div class="date-block"><div class="mon">' + mon + '</div><div class="day">' + d.getUTCDate() + '</div></div>'
-          + '<div class="meta"><div class="sport">' + ev.sport + '</div><div class="name">' + ev.title + '</div><div class="when">' + formatDate(ev.date) + ' • ' + ev.time + '<br>' + ev.venue + '</div></div>'
+          + '<div class="meta"><div class="sport">' + esc(ev.sport) + '</div><div class="name">' + esc(ev.title) + '</div><div class="when">' + formatDate(ev.date) + ' • ' + esc(ev.time) + '<br>' + esc(ev.venue) + '</div></div>'
           + action + '</div>';
       }).join('');
       Array.prototype.forEach.call(document.querySelectorAll('#event-list button[data-event]'), function (btn) {
@@ -638,7 +643,7 @@
       var ev = currentEvent();
       document.getElementById('event-title').textContent = ev.title;
       document.getElementById('event-subtitle').textContent = ev.subtitle || '';
-      document.getElementById('event-when').innerHTML = '<strong>' + formatDate(ev.date) + '</strong> · ' + ev.time;
+      document.getElementById('event-when').innerHTML = '<strong>' + formatDate(ev.date) + '</strong> · ' + esc(ev.time);
       document.getElementById('event-venue').textContent = ev.venue;
       document.getElementById('event-gates').textContent = ev.gates || '';
       document.getElementById('crumb-event').textContent = ev.title;
@@ -655,6 +660,7 @@
       renderEvents();
       renderEventHeader();
       renderCart();
+      refreshAvailability();
       document.getElementById('event-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -698,10 +704,10 @@
       document.getElementById('level-rows').innerHTML = storefront.sections.map(function (s) {
         var low = s.available < 20;
         var price = s.prices.adult === s.prices.youth ? money(s.prices.adult) : money(s.prices.youth) + ' – ' + money(s.prices.adult);
-        return '<tr class="level' + (s.sectionId === state.sectionId ? ' selected' : '') + '" data-section="' + s.sectionId + '">'
-          + '<td><input type="radio" name="level" ' + (s.sectionId === state.sectionId ? 'checked' : '') + ' style="margin-right:8px;"><span class="dot" style="background:' + SECTION_COLOR[s.sectionId] + '"></span><span class="lvl-name">' + s.priceLevel + '</span><div class="lvl-note">' + s.label + '</div></td>'
+        return '<tr class="level' + (s.sectionId === state.sectionId ? ' selected' : '') + '" data-section="' + esc(s.sectionId) + '">'
+          + '<td><input type="radio" name="level" ' + (s.sectionId === state.sectionId ? 'checked' : '') + ' style="margin-right:8px;"><span class="dot" style="background:' + (SECTION_COLOR[s.sectionId] || '#c3c9d2') + '"></span><span class="lvl-name">' + esc(s.priceLevel) + '</span><div class="lvl-note">' + esc(s.label) + '</div></td>'
           + '<td>' + price + '</td>'
-          + '<td class="lvl-note">' + (HOLD_LABELS[s.priorityHold] || s.priorityHold) + '</td>'
+          + '<td class="lvl-note">' + esc(HOLD_LABELS[s.priorityHold] || s.priorityHold) + '</td>'
           + '<td><span class="avail-pill' + (low ? ' low' : '') + '">' + s.available + ' left</span></td></tr>';
       }).join('');
       Array.prototype.forEach.call(document.querySelectorAll('tr.level'), function (row) {
@@ -712,14 +718,14 @@
     function renderDelivery() {
       document.getElementById('delivery-options').innerHTML = storefront.deliveryMethods.map(function (d) {
         var checked = d.deliveryMethodId === state.deliveryMethod;
-        return '<label class="radio-card' + (checked ? ' checked' : '') + '"><input type="radio" name="delivery" value="' + d.deliveryMethodId + '" ' + (checked ? 'checked' : '') + '><div><div class="rc-title">' + d.label + (d.fee ? ' · ' + money(d.fee) : ' · Free') + '</div><div class="rc-detail">' + d.detail + '</div></div></label>';
+        return '<label class="radio-card' + (checked ? ' checked' : '') + '"><input type="radio" name="delivery" value="' + esc(d.deliveryMethodId) + '" ' + (checked ? 'checked' : '') + '><div><div class="rc-title">' + esc(d.label) + (d.fee ? ' · ' + money(d.fee) : ' · Free') + '</div><div class="rc-detail">' + esc(d.detail) + '</div></div></label>';
       }).join('');
       Array.prototype.forEach.call(document.querySelectorAll('input[name="delivery"]'), function (input) {
         input.addEventListener('change', function () { state.deliveryMethod = input.value; renderDelivery(); renderCart(); });
       });
       var select = document.getElementById('payment-method');
       select.innerHTML = storefront.account.paymentMethods.map(function (pm) {
-        return '<option value="' + pm.paymentMethodId + '"' + (pm.paymentMethodId === state.paymentMethodId ? ' selected' : '') + '>' + pm.brand + ' •••• ' + pm.last4 + ' (exp ' + pm.expires + ')</option>';
+        return '<option value="' + esc(pm.paymentMethodId) + '"' + (pm.paymentMethodId === state.paymentMethodId ? ' selected' : '') + '>' + esc(pm.brand) + ' •••• ' + esc(pm.last4) + ' (exp ' + esc(pm.expires) + ')</option>';
       }).join('');
       select.onchange = function () { state.paymentMethodId = select.value; };
     }
@@ -765,7 +771,7 @@
       if (state.qty.adult) items.push({ type: 'Adult', n: state.qty.adult, price: s.prices.adult });
       if (state.qty.youth) items.push({ type: 'Youth', n: state.qty.youth, price: s.prices.youth });
       document.getElementById('line-items').innerHTML = items.map(function (it) {
-        return '<div class="line-item"><div class="thumb">' + s.sectionId + '</div><div><div class="li-title">' + ev.title + '</div><div class="li-meta">' + s.label + '<br>' + it.n + ' × ' + it.type + ' · ' + money(it.price) + ' · ' + shortDate(ev) + '</div></div><div class="li-price">' + money(it.price * it.n) + '</div></div>';
+        return '<div class="line-item"><div class="thumb">' + esc(s.sectionId) + '</div><div><div class="li-title">' + esc(ev.title) + '</div><div class="li-meta">' + esc(s.label) + '<br>' + it.n + ' × ' + it.type + ' · ' + money(it.price) + ' · ' + esc(shortDate(ev)) + '</div></div><div class="li-price">' + money(it.price * it.n) + '</div></div>';
       }).join('') + (state.donation > 0 ? '<div class="line-item"><div class="thumb" style="background:#f2a900;color:#0b2545;">TAF</div><div><div class="li-title">Thunderhawk Athletic Fund gift</div><div class="li-meta">Annual fund · earns Priority Points · tax-deductible</div></div><div class="li-price">' + money(state.donation) + '</div></div>' : '');
       document.getElementById('cart-count').textContent = qty;
       document.getElementById('sum-tickets-label').textContent = 'Tickets (' + items.map(function (it) { return it.n + ' × ' + money(it.price); }).join(' + ') + ')';
@@ -847,14 +853,15 @@
       ];
       if (order.donation) rows.push(['TAF gift receipt', order.donation.receiptNumber + ' · ' + money(order.donation.amount)]);
       rows.push(['Priority Points', order.account.priorityPointsBefore.toLocaleString('en-US') + ' → ' + order.account.priorityPointsAfter.toLocaleString('en-US') + ' (+' + order.account.priorityPointsEarned + ')']);
-      document.getElementById('success-rows').innerHTML = rows.map(function (r) { return '<div><span>' + r[0] + '</span><strong>' + r[1] + '</strong></div>'; }).join('');
+      document.getElementById('success-rows').innerHTML = rows.map(function (r) { return '<div><span>' + esc(r[0]) + '</span><strong>' + esc(r[1]) + '</strong></div>'; }).join('');
+      document.getElementById('success-heading').textContent = 'Order confirmed — see you at ' + (order.event.eventId === 'FB26-RIV' ? 'the Prairie Cup' : order.event.subtitle || order.event.title) + '!';
       document.getElementById('order-success').style.display = 'block';
       document.getElementById('order-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
       refreshAvailability();
     }
 
     function refreshAvailability() {
-      fetch('/api/f2f40117/storefront')
+      fetch('/api/f2f40117/storefront?eventId=' + encodeURIComponent(state.eventId))
         .then(function (response) { return response.ok ? response.json() : null; })
         .then(function (data) {
           if (!data || !data.sections) return;
