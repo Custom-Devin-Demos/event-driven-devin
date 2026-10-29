@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolios | PGIM Real Estate | AssetCentral</title>
+  <style>
+    :root {
+      --navy: #001e60;
+      --navy-2: #0a2d7a;
+      --ink: #0d1b3e;
+      --muted: #5b6785;
+      --line: #dde3ef;
+      --surface: #f5f7fb;
+      --accent: #2d6cdf;
+      --ok: #137a4b;
+      --warn: #a05a00;
+      --bad: #b42318;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--surface); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    header.top { background: var(--navy); color: #fff; }
+    .bar { max-width: 1240px; margin: 0 auto; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .top .bar { height: 64px; }
+    .wordmark { font-size: 20px; font-weight: 700; letter-spacing: 0.2px; color: #fff; white-space: nowrap; }
+    .wordmark .sep { color: #7f95c8; font-weight: 400; margin: 0 8px; }
+    .wordmark .product { font-weight: 400; }
+    nav.main { display: flex; gap: 24px; font-size: 14px; color: #c3cfee; }
+    nav.main span { padding: 21px 0; border-bottom: 3px solid transparent; }
+    nav.main span.active { color: #fff; border-bottom-color: #fff; }
+    .user { font-size: 13px; color: #c3cfee; white-space: nowrap; }
+    .sub { background: #fff; border-bottom: 1px solid var(--line); }
+    .sub .bar { height: 52px; font-size: 13px; color: var(--muted); }
+    .feed { display: flex; align-items: center; gap: 14px; }
+    .feed strong { color: var(--ink); }
+    button { font-family: inherit; }
+    .btn { height: 36px; padding: 0 16px; border-radius: 4px; border: 1px solid var(--navy); background: var(--navy); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn:hover { background: var(--navy-2); }
+    .btn.ghost { background: #fff; color: var(--navy); }
+    .btn.ghost:hover { background: #eef2fb; }
+    .btn:disabled { opacity: 0.55; cursor: default; }
+    main { max-width: 1240px; margin: 0 auto; padding: 26px 28px 40px; }
+    h1 { margin: 0 0 4px; font-size: 26px; color: var(--navy); letter-spacing: -0.3px; }
+    .lede { margin: 0 0 22px; color: var(--muted); }
+    .crumbs { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .crumbs a { color: var(--accent); text-decoration: none; cursor: pointer; }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; }
+    .card .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); font-weight: 600; }
+    .card .v { margin-top: 6px; font-size: 22px; font-weight: 700; color: var(--navy); }
+    .card .s { margin-top: 2px; font-size: 12px; color: var(--muted); }
+    .panel { background: #fff; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+    .panel h2 { margin: 0; padding: 14px 18px; font-size: 15px; color: var(--navy); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+    .panel h2 small { font-weight: 400; color: var(--muted); font-size: 12px; }
+    .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); font-weight: 600; padding: 10px 18px; border-bottom: 1px solid var(--line); background: #fafbfe; }
+    td { padding: 11px 18px; border-bottom: 1px solid #eef1f7; }
+    tr:last-child td { border-bottom: 0; }
+    th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    tbody.clickable tr { cursor: pointer; }
+    tbody.clickable tr:hover td { background: #f3f6fd; }
+    td .name { font-weight: 600; color: var(--navy); }
+    td .meta { font-size: 12px; color: var(--muted); }
+    .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .pill.ok { background: #e3f4ec; color: var(--ok); }
+    .pill.warn { background: #fff1dc; color: var(--warn); }
+    .pill.navy { background: #e6ebf7; color: var(--navy); }
+    .detail { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start; }
+    .side { display: grid; gap: 20px; }
+    .esg .body { padding: 16px 18px; }
+    .esg .big { font-size: 34px; font-weight: 700; color: var(--navy); line-height: 1.1; }
+    .esg .unit { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .esg dl { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 14px 0 16px; font-size: 13px; }
+    .esg dt { color: var(--muted); }
+    .esg dd { margin: 0; font-weight: 600; text-align: right; }
+    .esg .over { margin: 0 0 14px; padding: 10px 12px; background: #fff7e8; border: 1px solid #f2dcb0; border-radius: 4px; font-size: 12px; color: #6a4500; }
+    .audit ol { list-style: none; margin: 0; padding: 4px 0; max-height: 360px; overflow: auto; }
+    .audit li { padding: 10px 18px; border-bottom: 1px solid #eef1f7; font-size: 13px; }
+    .audit li:last-child { border-bottom: 0; }
+    .audit .when { font-size: 11px; color: var(--muted); }
+    .audit .what { font-weight: 600; color: var(--navy); }
+    .audit .why { color: var(--ink); }
+    .state { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 64px 24px; text-align: center; }
+    .spinner { width: 34px; height: 34px; border: 3px solid #d6deef; border-top-color: var(--navy); border-radius: 50%; margin: 0 auto 16px; animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .state h3 { margin: 0 0 6px; font-size: 20px; color: var(--navy); }
+    .state p { margin: 0 auto 18px; color: var(--muted); max-width: 520px; }
+    .state.error { border-color: #f1c4c0; background: #fffafa; }
+    .state.error .icon { width: 46px; height: 46px; border-radius: 50%; background: #fde7e5; color: var(--bad); font-size: 26px; font-weight: 700; line-height: 46px; margin: 0 auto 14px; }
+    .state.error h3 { color: var(--bad); }
+    .state code { font-family: Menlo, Consolas, monospace; font-size: 12px; color: var(--muted); }
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 420px; background: var(--navy); color: #fff; padding: 12px 16px; border-radius: 6px; font-size: 13px; box-shadow: 0 8px 24px rgba(0, 20, 70, 0.25); display: none; z-index: 20; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(0, 20, 60, 0.45); display: none; align-items: center; justify-content: center; z-index: 30; }
+    .modal { background: #fff; border-radius: 8px; width: 440px; max-width: calc(100vw - 32px); padding: 22px; }
+    .modal h3 { margin: 0 0 4px; color: var(--navy); font-size: 18px; }
+    .modal p { margin: 0 0 16px; color: var(--muted); font-size: 13px; }
+    .modal label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin: 0 0 6px; }
+    .modal input, .modal textarea { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 4px; font: inherit; color: var(--ink); margin-bottom: 14px; }
+    .modal textarea { min-height: 84px; resize: vertical; }
+    .modal .err { color: var(--bad); font-size: 12px; margin: -6px 0 12px; min-height: 16px; }
+    .modal .actions { display: flex; justify-content: flex-end; gap: 10px; }
+    footer { max-width: 1240px; margin: 0 auto; padding: 0 28px 30px; font-size: 12px; color: var(--muted); }
+    [hidden] { display: none !important; }
+    @media (max-width: 960px) {
+      nav.main, .user { display: none; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .detail { grid-template-columns: 1fr; }
+      .sub .bar { height: auto; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+      .hide-sm { display: none; }
+      th, td { padding-left: 12px; padding-right: 12px; }
+      td { white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="bar">
+      <div class="wordmark">PGIM Real Estate<span class="sep">|</span><span class="product">AssetCentral</span></div>
+      <nav class="main">
+        <span class="active">Portfolios</span><span>Properties</span><span>Buildings</span><span>Leasing</span><span>Investments</span><span>Reports</span>
+      </nav>
+      <div class="user">A. Rivera, Portfolio Analytics</div>
+    </div>
+  </header>
+  <div class="sub">
+    <div class="bar">
+      <div class="feed">Positions feed: last load <strong id="feed-time">...</strong> <span class="hide-sm">batch <span id="feed-batch">...</span></span></div>
+      <button class="btn" id="load-btn" type="button">Run nightly positions load</button>
+    </div>
+  </div>
+
+  <main>
+    <section id="dashboard">
+      <h1>Portfolio dashboard</h1>
+      <p class="lede">System of record for properties, buildings, leasing and investment characteristics. Values as of <span id="as-of">...</span>.</p>
+      <div class="kpis">
+        <div class="card"><div class="k">Portfolios</div><div class="v" id="kpi-count">...</div><div class="s">Funds and mandates</div></div>
+        <div class="card"><div class="k">Market value</div><div class="v" id="kpi-aum">...</div><div class="s">Last valuation snapshot</div></div>
+        <div class="card"><div class="k">Holdings</div><div class="v" id="kpi-holdings">...</div><div class="s">Assets and securities</div></div>
+        <div class="card"><div class="k">ESG data month</div><div class="v" id="kpi-esg">...</div><div class="s">Monthly carbon feed</div></div>
+      </div>
+      <div class="panel">
+        <h2>Portfolios <small>Select a portfolio to open it</small></h2>
+        <div class="scroll"><table>
+          <thead><tr><th>Portfolio</th><th class="hide-sm">Strategy</th><th class="hide-sm">Region</th><th class="num">Holdings</th><th class="num">Market value</th><th class="num hide-sm">WACI</th><th>Status</th></tr></thead>
+          <tbody id="portfolio-rows" class="clickable"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <section id="detail" hidden>
+      <div class="crumbs"><a id="back-link-crumb">Portfolios</a> / <span id="crumb-name"></span></div>
+      <h1 id="detail-name"></h1>
+      <p class="lede" id="detail-meta"></p>
+
+      <div id="detail-loading" class="state" hidden>
+        <div class="spinner"></div>
+        <h3>Loading portfolio</h3>
+        <p>Valuing holdings against the latest marks.</p>
+      </div>
+
+      <div id="detail-error" class="state error" hidden>
+        <div class="icon">!</div>
+        <h3>Portfolio unavailable, retry</h3>
+        <p id="error-text">AssetCentral could not load this portfolio. The platform team has been alerted.</p>
+        <p><code id="error-ref"></code></p>
+        <button class="btn" id="retry-btn" type="button">Retry</button>
+        <button class="btn ghost" id="error-back" type="button">Back to portfolios</button>
+      </div>
+
+      <div id="detail-body" hidden>
+        <div class="kpis">
+          <div class="card"><div class="k">Market value</div><div class="v" id="d-total"></div><div class="s" id="d-valued"></div></div>
+          <div class="card"><div class="k">Holdings</div><div class="v" id="d-count"></div><div class="s">Positions in portfolio</div></div>
+          <div class="card"><div class="k">Largest holding</div><div class="v" id="d-top"></div><div class="s" id="d-top-name"></div></div>
+          <div class="card"><div class="k">Portfolio manager</div><div class="v" id="d-manager"></div><div class="s" id="d-strategy"></div></div>
+        </div>
+        <div class="detail">
+          <div class="panel">
+            <h2>Holdings <small id="holdings-note"></small></h2>
+            <div class="scroll"><table>
+              <thead><tr><th>Asset</th><th>Property type</th><th class="num">Market value</th><th class="num">Weight</th></tr></thead>
+              <tbody id="holding-rows"></tbody>
+            </table></div>
+          </div>
+          <div class="side">
+            <div class="panel esg" id="esg-card">
+              <h2>Carbon intensity (WACI, tCO2e per USD m revenue)</h2>
+              <div class="body">
+                <div class="big" id="waci-value"></div>
+                <div class="unit">tCO2e per USD m revenue, weighted by market value</div>
+                <dl>
+                  <dt>As of month</dt><dd id="waci-month"></dd>
+                  <dt>Coverage</dt><dd id="waci-coverage"></dd>
+                  <dt>Calculated value</dt><dd id="waci-computed"></dd>
+                </dl>
+                <div class="over" id="waci-override" hidden></div>
+                <button class="btn ghost" id="override-btn" type="button">Override</button>
+              </div>
+            </div>
+            <div class="panel audit">
+              <h2>Audit history</h2>
+              <ol id="audit-list"></ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>AssetCentral demonstration environment. All portfolios, assets and figures are synthetic.</footer>
+
+  <div class="modal-bg" id="override-modal">
+    <form class="modal" id="override-form" novalidate>
+      <h3>Override carbon intensity</h3>
+      <p>Overrides are recorded in the audit history with your name and reason.</p>
+      <label for="override-value">WACI (tCO2e per USD m revenue)</label>
+      <input id="override-value" type="number" step="0.1" min="0" required>
+      <label for="override-reason">Reason (required)</label>
+      <textarea id="override-reason" placeholder="For example: vendor restated scope 2 emissions for one issuer" required></textarea>
+      <div class="err" id="override-error"></div>
+      <div class="actions">
+        <button class="btn ghost" type="button" id="override-cancel">Cancel</button>
+        <button class="btn" type="submit" id="override-save">Save override</button>
+      </div>
+    </form>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      var API = '/api/62b9367b';
+      var currentId = null;
+      var currentCarbon = null;
+      var openSeq = 0;
+
+      var identityReady = fetch('/api/config')
+        .then(function (response) { return response.json(); })
+        .then(function (config) {
+          if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+          if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+        })
+        .catch(function () {});
+
+      function $(id) { return document.getElementById(id); }
+      function esc(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function usd(value) {
+        if (value >= 1e9) return '$' + (value / 1e9).toFixed(2) + 'bn';
+        if (value >= 1e6) return '$' + (value / 1e6).toFixed(1) + 'm';
+        return '$' + Math.round(value).toLocaleString('en-US');
+      }
+      function usdFull(value) { return '$' + Math.round(value).toLocaleString('en-US'); }
+      function pct(value) { return (value * 100).toFixed(2) + '%'; }
+      function when(iso) {
+        var d = new Date(iso);
+        return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      }
+      function toast(text) {
+        var el = $('toast');
+        el.textContent = text;
+        el.style.display = 'block';
+        clearTimeout(toast.timer);
+        toast.timer = setTimeout(function () { el.style.display = 'none'; }, 4500);
+      }
+      function identityHeaders() {
+        return {
+          'X-Devin-User-Id': localStorage.getItem('devinUserId') || '',
+          'X-Devin-Org-Id': localStorage.getItem('devinOrgId') || '',
+          'X-Devin-Email': localStorage.getItem('devinEmail') || '',
+        };
+      }
+
+      function loadDashboard() {
+        return fetch(API + '/portfolios').then(function (r) { return r.json(); }).then(function (data) {
+          $('as-of').textContent = new Date(data.asOf + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+          $('feed-time').textContent = when(data.positionsFeed.lastLoadAt);
+          $('feed-batch').textContent = data.positionsFeed.batchId;
+          $('kpi-count').textContent = data.portfolios.length;
+          $('kpi-aum').textContent = usd(data.portfolios.reduce(function (s, p) { return s + p.marketValue; }, 0));
+          $('kpi-holdings').textContent = data.portfolios.reduce(function (s, p) { return s + p.holdingsCount; }, 0);
+          $('kpi-esg').textContent = data.esgAsOfMonth;
+          $('portfolio-rows').innerHTML = data.portfolios.map(function (p) {
+            var status = p.status === 'Valued' ? '<span class="pill ok">Valued</span>' : '<span class="pill warn">' + esc(p.status) + '</span>';
+            return '<tr data-id="' + esc(p.id) + '">' +
+              '<td><div class="name">' + esc(p.name) + '</div><div class="meta">' + esc(p.id) + '</div></td>' +
+              '<td class="hide-sm">' + esc(p.strategy) + '</td><td class="hide-sm">' + esc(p.region) + '</td>' +
+              '<td class="num">' + p.holdingsCount + '</td><td class="num">' + usd(p.marketValue) + '</td>' +
+              '<td class="num hide-sm">' + (p.waci == null ? 'n/a' : p.waci.toFixed(1)) + '</td><td>' + status + '</td></tr>';
+          }).join('');
+          Array.prototype.forEach.call($('portfolio-rows').querySelectorAll('tr'), function (row) {
+            row.addEventListener('click', function () { location.hash = '#/portfolio/' + row.getAttribute('data-id'); });
+          });
+          return data;
+        });
+      }
+
+      function show(which) {
+        ['detail-loading', 'detail-error', 'detail-body'].forEach(function (id) { $(id).hidden = id !== which; });
+      }
+
+      function renderCarbon(carbon) {
+        currentCarbon = carbon;
+        $('waci-value').textContent = carbon.waci == null ? 'n/a' : carbon.waci.toFixed(1);
+        $('waci-month').textContent = carbon.asOfMonth;
+        $('waci-coverage').textContent = carbon.coveragePct.toFixed(1) + '%';
+        $('waci-computed').textContent = carbon.computedWaci == null ? 'n/a' : carbon.computedWaci.toFixed(1);
+        var o = carbon.override;
+        $('waci-override').hidden = !o;
+        if (o) $('waci-override').innerHTML = '<strong>Overridden</strong> by ' + esc(o.by) + ' on ' + esc(when(o.at)) + '. Reason: ' + esc(o.reason);
+      }
+
+      function renderAudit(entries) {
+        $('audit-list').innerHTML = entries.map(function (e) {
+          return '<li><div class="when">' + esc(when(e.at)) + ' &middot; ' + esc(e.actor) + '</div><div class="what">' + esc(e.action) + '</div><div class="why">' + esc(e.detail) + '</div></li>';
+        }).join('');
+      }
+
+      function openPortfolio(id, summaryRow) {
+        currentId = id;
+        var seq = ++openSeq;
+        $('dashboard').hidden = true;
+        $('detail').hidden = false;
+        $('crumb-name').textContent = summaryRow ? summaryRow.name : id;
+        $('detail-name').textContent = summaryRow ? summaryRow.name : id;
+        $('detail-meta').textContent = summaryRow ? summaryRow.strategy + ' | ' + summaryRow.region + ' | ' + id : id;
+        show('detail-loading');
+        identityReady.then(function () {
+          return fetch(API + '/portfolios/' + encodeURIComponent(id), { headers: identityHeaders() });
+        }).then(function (r) {
+          return r.json().catch(function () { return {}; }).then(function (body) { return { ok: r.ok, status: r.status, body: body }; });
+        }).then(function (res) {
+          if (seq !== openSeq) return;
+          if (!res.ok) throw res;
+          var d = res.body;
+          document.title = d.portfolio.name + ' | PGIM Real Estate | AssetCentral';
+          $('crumb-name').textContent = d.portfolio.name;
+          $('detail-name').textContent = d.portfolio.name;
+          $('detail-meta').textContent = d.portfolio.strategy + ' | ' + d.portfolio.region + ' | ' + d.portfolio.id;
+          $('d-total').textContent = usd(d.totalMarketValue);
+          $('d-valued').textContent = 'Valued ' + when(d.valuedAt);
+          $('d-count').textContent = d.holdings.length;
+          var top = d.holdings.slice().sort(function (a, b) { return b.weight - a.weight; })[0];
+          $('d-top').textContent = top ? pct(top.weight) : 'n/a';
+          $('d-top-name').textContent = top ? top.asset : '';
+          $('d-manager').textContent = d.portfolio.manager;
+          $('d-strategy').textContent = d.portfolio.strategy;
+          $('holdings-note').textContent = d.holdings.length + ' positions';
+          $('holding-rows').innerHTML = d.holdings.map(function (h) {
+            return '<tr><td><div class="name">' + esc(h.asset) + '</div><div class="meta">' + esc(h.assetId) + ' &middot; ' + esc(h.market) + '</div></td>' +
+              '<td><span class="pill navy">' + esc(h.propertyType) + '</span></td>' +
+              '<td class="num">' + usdFull(h.marketValue) + '</td><td class="num">' + pct(h.weight) + '</td></tr>';
+          }).join('');
+          renderCarbon(d.carbon);
+          renderAudit(d.audit);
+          show('detail-body');
+        }).catch(function (res) {
+          if (seq !== openSeq) return;
+          var body = (res && res.body) || {};
+          $('error-text').textContent = 'AssetCentral could not load this portfolio (HTTP ' + (res && res.status ? res.status : 'error') + '). The platform team has been alerted. Other portfolios are not affected.';
+          $('error-ref').textContent = body.reference ? 'Reference ' + body.reference : '';
+          show('detail-error');
+        });
+      }
+
+      function route() {
+        var match = location.hash.match(/^#\/portfolio\/([A-Za-z0-9-]+)/);
+        if (match) {
+          loadDashboard().then(function (data) {
+            var row = data.portfolios.filter(function (p) { return p.id === match[1]; })[0];
+            openPortfolio(match[1], row);
+          });
+          return;
+        }
+        openSeq++;
+        currentId = null;
+        document.title = 'Portfolios | PGIM Real Estate | AssetCentral';
+        $('detail').hidden = true;
+        $('dashboard').hidden = false;
+        loadDashboard();
+      }
+
+      function backToList() { location.hash = '#/'; }
+      $('back-link-crumb').addEventListener('click', backToList);
+      $('error-back').addEventListener('click', backToList);
+      $('retry-btn').addEventListener('click', function () { if (currentId) openPortfolio(currentId, null); });
+
+      $('load-btn').addEventListener('click', function () {
+        var btn = $('load-btn');
+        btn.disabled = true;
+        btn.textContent = 'Loading positions...';
+        fetch(API + '/positions-load', { method: 'POST' })
+          .then(function (r) { return r.json(); })
+          .then(function (res) { toast(res.message || 'Positions load complete.'); return loadDashboard(); })
+          .catch(function () { toast('Positions load could not be started.'); })
+          .then(function () { btn.disabled = false; btn.textContent = 'Run nightly positions load'; });
+      });
+
+      function closeModal() { $('override-modal').style.display = 'none'; }
+      $('override-btn').addEventListener('click', function () {
+        $('override-value').value = currentCarbon && currentCarbon.waci != null ? currentCarbon.waci.toFixed(1) : '';
+        $('override-reason').value = '';
+        $('override-error').textContent = '';
+        $('override-modal').style.display = 'flex';
+        $('override-reason').focus();
+      });
+      $('override-cancel').addEventListener('click', closeModal);
+      $('override-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        var reason = $('override-reason').value.trim();
+        if (reason.length < 10) {
+          $('override-error').textContent = 'A reason of at least 10 characters is required.';
+          $('override-reason').focus();
+          return;
+        }
+        $('override-save').disabled = true;
+        fetch(API + '/portfolios/' + encodeURIComponent(currentId) + '/carbon-override', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: $('override-value').value, reason: reason }),
+        }).then(function (r) {
+          return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+        }).then(function (res) {
+          if (!res.ok) { $('override-error').textContent = res.body.error || 'Override failed.'; return; }
+          var o = res.body.override;
+          renderCarbon(Object.assign({}, currentCarbon, { waci: o.value, override: o }));
+          renderAudit(res.body.audit);
+          closeModal();
+          toast('Carbon intensity override saved.');
+        }).catch(function () {
+          $('override-error').textContent = 'Override failed.';
+        }).then(function () { $('override-save').disabled = false; });
+      });
+
+      window.addEventListener('hashchange', route);
+      route();
+    })();
+  </script>
+</body>
+</html>

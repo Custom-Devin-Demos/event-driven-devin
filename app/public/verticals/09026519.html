@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Orange</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --orange: #ff7900;
+    --orange-soft: #fff1e6;
+    --black: #000;
+    --text: #000;
+    --soft: #595959;
+    --line: #e6e6e6;
+    --page: #f4f4f4;
+    --surface: #fff;
+    --success: #32c832;
+    --danger: #cd3c14;
+    --danger-soft: #fbe9e4;
+  }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #1a1a1a; color: var(--text); min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; padding: 28px 16px 48px;
+  }
+  .page-head { text-align: center; margin-bottom: 18px; color: #bdbdbd; font-size: 13px; }
+  .page-head b { color: #fff; }
+
+  .phone {
+    position: relative; width: 390px; height: 820px; flex: none;
+    border-radius: 54px; border: 10px solid #0b0b0b; background: var(--page);
+    box-shadow: 0 40px 100px rgba(0,0,0,.6); overflow: hidden;
+  }
+  .notch { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 120px; height: 32px; background: #000; border-radius: 20px; z-index: 60; }
+  .status-bar { position: absolute; top: 0; left: 0; right: 0; height: 54px; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 16px 30px 0; font-size: 14px; font-weight: 600; color: #fff; background: var(--black); }
+
+  .view { position: absolute; top: 54px; left: 0; right: 0; bottom: 78px; overflow-y: auto; overflow-x: hidden; background: var(--page); }
+  .view::-webkit-scrollbar { display: none; }
+  .view.full { bottom: 0; }
+  [hidden] { display: none !important; }
+
+  .nav { background: var(--black); color: #fff; display: flex; align-items: center; gap: 10px; padding: 12px 16px; position: sticky; top: 0; z-index: 5; }
+  .nav h1 { font-size: 17px; font-weight: 700; flex: 1; text-align: center; }
+  .nav .back { background: none; border: 0; color: var(--orange); font-size: 24px; cursor: pointer; width: 28px; text-align: left; }
+  .nav .spacer { width: 28px; }
+
+  .logo { width: 30px; height: 30px; background: var(--orange); position: relative; flex: none; }
+  .logo::after { content: ""; position: absolute; left: 5px; right: 5px; bottom: 5px; height: 4px; background: #fff; }
+  .logo.big { width: 64px; height: 64px; }
+  .logo.big::after { left: 10px; right: 10px; bottom: 10px; height: 8px; }
+
+  .hero { background: var(--black); color: #fff; padding: 14px 16px 22px; }
+  .hero .row { display: flex; align-items: center; gap: 12px; }
+  .hero h2 { font-size: 28px; font-weight: 800; margin-top: 16px; }
+  .hero p { color: #cfcfcf; font-size: 14px; margin-top: 4px; }
+
+  .section { padding: 16px 16px 80px; }
+  .section-title { font-size: 18px; font-weight: 800; margin: 6px 0 10px; }
+  .card { background: var(--surface); border-radius: 4px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .card h3 { font-size: 16px; font-weight: 700; }
+  .muted { color: var(--soft); font-size: 13px; }
+  .amount { font-size: 30px; font-weight: 800; margin: 8px 0 2px; }
+  .btn { display: block; width: 100%; border: 0; background: var(--orange); color: #000; font-weight: 700; font-size: 15px; padding: 14px; border-radius: 0; cursor: pointer; margin-top: 12px; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.ghost { background: #fff; border: 2px solid #000; }
+  .link { color: var(--orange); font-weight: 700; font-size: 14px; background: none; border: 0; cursor: pointer; padding: 0; }
+
+  .rows .row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .rows .row:last-child { border-bottom: 0; }
+  .rows .ico { width: 36px; height: 36px; border-radius: 50%; background: var(--orange-soft); color: var(--orange); display: grid; place-items: center; font-size: 18px; flex: none; }
+  .rows .txt { flex: 1; }
+  .rows .txt b { display: block; font-size: 15px; }
+  .rows .chev { color: var(--orange); font-size: 20px; }
+  .badge { background: var(--success); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .chip { border: 1px solid #000; background: #fff; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .chip.on { background: #000; color: #fff; }
+
+  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 6px 0 2px; }
+  .bar > i { display: block; height: 100%; background: var(--orange); }
+
+  .dest { display: flex; align-items: center; gap: 12px; padding: 14px 12px; border: 2px solid transparent; background: #fff; margin-bottom: 8px; cursor: pointer; }
+  .dest.on { border-color: var(--orange); }
+  .dest .flag { font-size: 24px; }
+  .dest .name { flex: 1; font-weight: 700; }
+  .dest .zone { font-size: 12px; color: var(--soft); }
+
+  .banner { background: var(--danger-soft); border-left: 4px solid var(--danger); padding: 12px 14px; margin-bottom: 12px; }
+  .banner b { color: var(--danger); display: block; margin-bottom: 2px; }
+  .banner .ref { font-size: 11px; color: var(--soft); margin-top: 6px; }
+
+  .sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,.45); z-index: 70; display: flex; align-items: flex-end; }
+  .sheet { background: #fff; width: 100%; padding: 24px 20px 34px; border-radius: 16px 16px 0 0; }
+  .sheet .ok { width: 52px; height: 52px; border-radius: 50%; background: var(--success); color: #fff; display: grid; place-items: center; font-size: 28px; margin-bottom: 12px; }
+
+  .chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; margin-top: 12px; }
+  .chart div { flex: 1; background: #d6d6d6; position: relative; }
+  .chart div.last { background: var(--orange); }
+  .chart span { position: absolute; bottom: -18px; left: 0; right: 0; text-align: center; font-size: 10px; color: var(--soft); }
+
+  .steps { margin-top: 10px; }
+  .step { display: flex; gap: 12px; padding-bottom: 14px; position: relative; }
+  .step .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--line); margin-top: 2px; flex: none; }
+  .step.done .dot { background: var(--orange); }
+  .step b { font-size: 14px; }
+
+  .product { display: flex; gap: 12px; align-items: center; }
+  .product .img { width: 72px; height: 72px; background: #eee; display: grid; place-items: center; font-size: 34px; flex: none; }
+
+  .tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 78px; background: var(--black); display: flex; padding: 8px 4px 20px; z-index: 40; }
+  .tab { flex: 1; background: none; border: 0; color: #bdbdbd; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+  .tab .ti { font-size: 20px; line-height: 1; }
+  .tab.on { color: var(--orange); }
+
+  .fab { position: absolute; right: 16px; bottom: 92px; width: 56px; height: 56px; border-radius: 50%; background: var(--orange); border: 0; z-index: 45; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.3); font-size: 24px; }
+
+  .chat { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 82%; padding: 10px 12px; font-size: 14px; line-height: 1.4; }
+  .msg.bot { background: #fff; align-self: flex-start; }
+  .msg.me { background: var(--orange); align-self: flex-end; }
+
+  .signin { padding: 40px 24px; }
+  .signin h2 { font-size: 26px; font-weight: 800; margin: 24px 0 6px; }
+  .field { display: block; width: 100%; padding: 14px 12px; border: 1px solid #ccc; font-size: 15px; margin-top: 12px; background: #fff; }
+</style>
+</head>
+<body>
+<div class="page-head"><b>Mi Orange</b> · iOS demo 09026519 · versión web</div>
+
+<div class="phone" id="phone">
+  <div class="notch"></div>
+  <div class="status-bar"><span>9:41</span><span>5G ▮▮▮</span></div>
+
+  <!-- Sign in -->
+  <section class="view full" id="v-signin">
+    <div class="signin">
+      <div class="logo big"></div>
+      <h2>Mi Orange</h2>
+      <p class="muted">Accede con tu usuario de Orange</p>
+      <form id="signin-form">
+        <input class="field" id="signin-user" placeholder="Usuario, email o NIF" autocomplete="off" value="lucia.fernandez">
+        <input class="field" id="signin-password" type="password" placeholder="Contraseña">
+        <button class="btn" id="signin-submit" type="submit">Entrar</button>
+      </form>
+      <p class="muted" style="margin-top:16px">¿Has olvidado tu contraseña?</p>
+    </div>
+  </section>
+
+  <!-- Inicio -->
+  <section class="view" id="v-home" hidden>
+    <div class="hero">
+      <div class="row"><div class="logo"></div><b style="flex:1">Mi Orange</b><span>🔔</span></div>
+      <h2>¡Hola, Lucía!</h2>
+      <p>Fibra 2 Líneas Ilimitadas</p>
+    </div>
+    <div class="section">
+      <div class="card">
+        <div class="muted">Factura de octubre</div>
+        <div class="amount">85,90 €</div>
+        <div class="muted">Se cargará el 05/11/2026 en ES21 •••• 4471</div>
+        <button class="link" style="margin-top:10px" data-go="bills">Ver factura ›</button>
+      </div>
+      <div class="section-title">Tus productos</div>
+      <div class="card rows">
+        <div class="row" data-go="products"><div class="ico">📱</div><div class="txt"><b>612 384 907</b><span class="muted">Móvil · Ilimitadas</span></div><span class="chev">›</span></div>
+        <div class="row" data-go="products"><div class="ico">📱</div><div class="txt"><b>655 210 438</b><span class="muted">Móvil · Ilimitadas</span></div><span class="chev">›</span></div>
+        <div class="row" data-go="products"><div class="ico">🏠</div><div class="txt"><b>Fibra 1 Gb</b><span class="muted">Calle Alcalá 112, Madrid</span></div><span class="chev">›</span></div>
+      </div>
+      <div class="card" style="background:#000;color:#fff;padding-right:80px">
+        <h3>Orange Energía</h3>
+        <p style="font-size:13px;color:#cfcfcf;margin-top:4px">Ahorra en tu factura de la luz con tu tarifa Orange.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Productos -->
+  <section class="view" id="v-products" hidden>
+    <div class="nav"><span class="spacer"></span><h1>Productos</h1><span class="spacer"></span></div>
+    <div class="section">
+      <div class="chips" id="line-chips"></div>
+      <div class="card" style="margin-top:12px">
+        <div class="muted">Mi tarifa</div>
+        <h3 style="margin-top:4px">Fibra 2 Líneas Ilimitadas</h3>
+        <div class="muted" style="margin-top:2px">Datos y llamadas ilimitadas · Fibra 1 Gb</div>
+      </div>
+      <div class="card">
+        <h3>Consumos</h3>
+        <div style="margin-top:10px" class="muted">Datos</div>
+        <div class="bar"><i id="data-bar"></i></div>
+        <div class="muted" id="data-label"></div>
+        <div style="margin-top:10px" class="muted">Llamadas</div>
+        <div class="bar"><i id="min-bar"></i></div>
+        <div class="muted" id="min-label"></div>
+      </div>
+      <div class="section-title">Gestionar Mi Línea</div>
+      <div class="card rows">
+        <div class="row" id="products-roaming"><div class="ico">✈️</div><div class="txt"><b>Roaming <span class="badge" id="roaming-badge" hidden>Activo</span></b><span class="muted">Si vas a viajar fuera de España activa el roaming y tu control de consumo</span></div><span class="chev">›</span></div>
+        <div class="row"><div class="ico">🔒</div><div class="txt"><b>PIN y PUK</b><span class="muted">Consulta los códigos de tu SIM</span></div><span class="chev">›</span></div>
+        <div class="row"><div class="ico">🎬</div><div class="txt"><b>Servicios de entretenimiento</b><span class="muted">Gestiona tus plataformas incluidas</span></div><span class="chev">›</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Roaming -->
+  <section class="view" id="v-roaming" hidden>
+    <div class="nav"><button class="back" id="roaming-back">‹</button><h1>Roaming</h1><span class="spacer"></span></div>
+    <div class="section">
+      <div class="card">
+        <div class="muted">Línea</div>
+        <h3 id="roaming-line"></h3>
+      </div>
+      <div class="section-title">¿A dónde viajas?</div>
+      <div id="dest-list"></div>
+      <div class="banner" id="roaming-error" hidden>
+        <b>Algo ha ido mal</b>
+        No hemos podido activar el roaming. Inténtalo de nuevo más tarde.
+        <div class="ref" id="roaming-ref"></div>
+      </div>
+      <button class="btn" id="roaming-activate" disabled>Activar roaming</button>
+      <p class="muted" style="margin-top:10px">En la UE disfrutas de Roaming como en casa. Fuera de la UE se aplica el bono de tu zona.</p>
+    </div>
+  </section>
+
+  <!-- Pedidos -->
+  <section class="view" id="v-orders" hidden>
+    <div class="nav"><span class="spacer"></span><h1>Seguimiento de pedido</h1><span class="spacer"></span></div>
+    <div class="section">
+      <div class="card">
+        <div class="muted">Pedido 1-48210377</div>
+        <h3 style="margin-top:4px">iPhone 17 128 GB · Negro</h3>
+        <div class="steps">
+          <div class="step done"><span class="dot"></span><div><b>Pedido realizado</b><div class="muted">24/10/2026</div></div></div>
+          <div class="step done"><span class="dot"></span><div><b>Preparando envío</b><div class="muted">25/10/2026</div></div></div>
+          <div class="step done"><span class="dot"></span><div><b>En reparto</b><div class="muted">28/10/2026 · SEUR</div></div></div>
+          <div class="step"><span class="dot"></span><div><b>Entregado</b><div class="muted">Previsto 30/10/2026</div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Facturas -->
+  <section class="view" id="v-bills" hidden>
+    <div class="nav"><span class="spacer"></span><h1>Facturas</h1><span class="spacer"></span></div>
+    <div class="section">
+      <div class="card">
+        <div class="muted">Última factura · octubre 2026</div>
+        <div class="amount">85,90 €</div>
+        <div class="chart" id="bill-chart"></div>
+        <div style="height:18px"></div>
+        <button class="btn ghost" id="bill-download">Descargar factura</button>
+      </div>
+      <div class="card rows">
+        <div class="row"><div class="ico">⚙️</div><div class="txt"><b>Configura tu factura</b><span class="muted">Factura electrónica, cuenta bancaria</span></div><span class="chev">›</span></div>
+        <div class="row"><div class="ico">📊</div><div class="txt"><b>Compara tus facturas</b><span class="muted">Últimos 12 meses</span></div><span class="chev">›</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tienda -->
+  <section class="view" id="v-shop" hidden>
+    <div class="nav"><span class="spacer"></span><h1>Tienda</h1><span class="spacer"></span></div>
+    <div class="section">
+      <div class="card product"><div class="img">📱</div><div><h3>iPhone 17</h3><div class="muted">Desde 24,99 €/mes</div></div></div>
+      <div class="card product"><div class="img">📱</div><div><h3>Samsung Galaxy S26</h3><div class="muted">Desde 21,99 €/mes</div></div></div>
+      <div class="card product"><div class="img">⌚</div><div><h3>Apple Watch Series 11</h3><div class="muted">Desde 9,99 €/mes</div></div></div>
+    </div>
+  </section>
+
+  <!-- Asistente -->
+  <section class="view full" id="v-assistant" hidden>
+    <div class="nav"><button class="back" id="assistant-close">✕</button><h1>Asistente Virtual 24h</h1><span class="spacer"></span></div>
+    <div class="chat">
+      <div class="msg bot">¡Hola, Lucía! Soy tu asistente virtual de Orange. ¿En qué te puedo ayudar?</div>
+      <div class="msg me">Me voy a Japón la semana que viene</div>
+      <div class="msg bot">¡Buen viaje! Japón está fuera de la UE, así que te recomiendo activar el roaming con el Bono Roaming Mundo antes de salir.</div>
+      <button class="chip" id="assistant-roaming" style="align-self:flex-start">Ir a Roaming</button>
+    </div>
+  </section>
+
+  <button class="fab" id="fab" hidden aria-label="Asistente">💬</button>
+
+  <nav class="tabbar" id="tabbar" hidden>
+    <button class="tab on" data-tab="home"><span class="ti">⌂</span>Inicio</button>
+    <button class="tab" data-tab="products"><span class="ti">▦</span>Productos</button>
+    <button class="tab" data-tab="orders"><span class="ti">📦</span>Pedidos</button>
+    <button class="tab" data-tab="bills"><span class="ti">€</span>Facturas</button>
+    <button class="tab" data-tab="shop"><span class="ti">🛍</span>Tienda</button>
+  </nav>
+
+  <div class="sheet-bg" id="roaming-sheet" hidden>
+    <div class="sheet">
+      <div class="ok">✓</div>
+      <h3 style="font-size:20px">Roaming activado</h3>
+      <p class="muted" id="sheet-plan" style="margin-top:6px"></p>
+      <p class="muted" id="sheet-ref" style="margin-top:4px"></p>
+      <button class="btn" id="sheet-done">Hecho</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Same client identity and payload shape as the native app's FailureReporter
+ * (event-driven-demos-ios apps/09026519), with platform "web". */
+var SLUG = '09026519';
+var REPORT_PATH = '/api/ios/' + SLUG + '/error';
+var APP_NAME = 'Mi Orange';
+var APP_VERSION = '9.12.0';
+
+var LINES = [
+  { id: 'line-1', number: '612 384 907', tariff: 'Fibra 2 Líneas Ilimitadas', dataUsedGB: 35, minutesUsed: 115 },
+  { id: 'line-2', number: '655 210 438', tariff: 'Fibra 2 Líneas Ilimitadas', dataUsedGB: 12, minutesUsed: 48 }
+];
+
+/* Mirrors DemoCore/Roaming.swift. */
+var DESTINATIONS = [
+  { id: 'FR', name: 'Francia', flag: '🇫🇷', zoneID: 'zona-1', regulatedEU: true },
+  { id: 'PT', name: 'Portugal', flag: '🇵🇹', zoneID: 'zona-1', regulatedEU: true },
+  { id: 'IT', name: 'Italia', flag: '🇮🇹', zoneID: 'zona-1', regulatedEU: true },
+  { id: 'GB', name: 'Reino Unido', flag: '🇬🇧', zoneID: 'zona-2', regulatedEU: false },
+  { id: 'MA', name: 'Marruecos', flag: '🇲🇦', zoneID: 'zona-2', regulatedEU: false },
+  { id: 'US', name: 'Estados Unidos', flag: '🇺🇸', zoneID: 'zona-3', regulatedEU: false },
+  { id: 'JP', name: 'Japón', flag: '🇯🇵', zoneID: 'zona-3', regulatedEU: false }
+];
+
+var TARIFF_TABLE = {
+  Z2: { name: 'Bono Roaming Zona 2', dataMB: 2048, minutes: 60, validDays: 7, priceCents: 1000 },
+  Z3: { name: 'Bono Roaming Mundo', dataMB: 1024, minutes: 30, validDays: 5, priceCents: 1500 }
+};
+
+function RoamingError(zoneID, destination) {
+  this.name = 'RoamingError';
+  this.errorType = 'RoamingError.tariffNotFound(zoneID: "' + zoneID + '", destination: "' + destination + '")';
+  this.message = 'No roaming tariff configured for zone ' + zoneID + ' (destination ' + destination + ')';
+}
+
+function activateRoaming(destination, line) {
+  var reference = 'RM-' + line.number.slice(-3) + '-' + destination.id + '-2026';
+  if (destination.regulatedEU) return { reference: reference, plan: null };
+  var bono = TARIFF_TABLE[destination.zoneID];
+  if (!bono) throw new RoamingError(destination.zoneID, destination.id);
+  return { reference: reference, plan: bono };
+}
+
+function euros(cents) {
+  return (Math.floor(cents / 100)) + ',' + String(cents % 100).padStart(2, '0') + ' €';
+}
+
+var state = { tab: 'home', lineIndex: 0, selected: null, active: {} };
+var reported = {};
+
+function $(id) { return document.getElementById(id); }
+
+function show(viewId) {
+  ['signin', 'home', 'products', 'roaming', 'orders', 'bills', 'shop', 'assistant'].forEach(function (id) {
+    $('v-' + id).hidden = id !== viewId;
+  });
+  var shell = viewId !== 'signin' && viewId !== 'assistant';
+  $('tabbar').hidden = !shell;
+  $('fab').hidden = !shell || viewId === 'roaming';
+}
+
+function selectTab(tab) {
+  state.tab = tab;
+  document.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === tab); });
+  show(tab);
+  $('v-' + tab).scrollTop = 0;
+}
+
+function line() { return LINES[state.lineIndex]; }
+
+function renderProducts() {
+  $('line-chips').innerHTML = LINES.map(function (l, i) {
+    return '<button class="chip' + (i === state.lineIndex ? ' on' : '') + '" data-line="' + i + '">' + l.number + '</button>';
+  }).join('');
+  var l = line();
+  $('data-bar').style.width = Math.min(100, l.dataUsedGB / 50 * 100) + '%';
+  $('data-label').textContent = l.dataUsedGB + ' GB consumidos · Ilimitados';
+  $('min-bar').style.width = Math.min(100, l.minutesUsed / 300 * 100) + '%';
+  $('min-label').textContent = l.minutesUsed + ' min · Ilimitadas';
+  $('roaming-badge').hidden = !state.active[l.id];
+}
+
+function renderRoaming() {
+  $('roaming-line').textContent = line().number;
+  $('dest-list').innerHTML = DESTINATIONS.map(function (d) {
+    return '<div class="dest' + (state.selected === d.id ? ' on' : '') + '" data-dest="' + d.id + '">'
+      + '<span class="flag">' + d.flag + '</span><span class="name">' + d.name + '</span>'
+      + '<span class="zone">' + (d.regulatedEU ? 'UE' : 'Fuera de la UE') + '</span></div>';
+  }).join('');
+  $('roaming-activate').disabled = !state.selected;
+}
+
+function openRoaming() {
+  state.selected = null;
+  $('roaming-error').hidden = true;
+  selectTab('products');
+  show('roaming');
+  renderRoaming();
+}
+
+function onActivate() {
+  var destination = DESTINATIONS.filter(function (d) { return d.id === state.selected; })[0];
+  if (!destination) return;
+  var l = line();
+  $('roaming-error').hidden = true;
+  try {
+    var activation = activateRoaming(destination, l);
+    state.active[l.id] = activation;
+    $('sheet-plan').textContent = activation.plan
+      ? activation.plan.name + ' · ' + euros(activation.plan.priceCents) + ' · ' + activation.plan.validDays + ' días'
+      : 'Roaming como en casa en ' + destination.name;
+    $('sheet-ref').textContent = 'Referencia ' + activation.reference;
+    $('roaming-sheet').hidden = false;
+  } catch (error) {
+    $('roaming-error').hidden = false;
+    $('roaming-ref').textContent = '';
+    $('roaming-activate').scrollIntoView({ block: 'end' });
+    reportFailure(error, destination, l);
+  }
+}
+
+function reportFailure(error, destination, l) {
+  var signature = 'RoamingActivation/activateRoaming/' + error.name;
+  if (reported[signature]) {
+    if (reported[signature].reference) $('roaming-ref').textContent = 'Ref ' + reported[signature].reference;
+    return;
+  }
+  reported[signature] = { reference: null };
+  fetch(REPORT_PATH, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      source: 'ios-demos/' + SLUG + '/ios',
+      service: 'customer-ios-demo',
+      platform: 'web',
+      appName: APP_NAME,
+      screen: 'RoamingActivation',
+      action: 'activateRoaming',
+      errorType: error.errorType,
+      errorMessage: error.message,
+      stackTrace: (new Error(error.message)).stack || '',
+      device: 'web',
+      osVersion: navigator.userAgent.slice(0, 64),
+      appVersion: APP_VERSION,
+      release: APP_NAME + '-web@' + APP_VERSION,
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || '',
+      context: {
+        destination: destination.id,
+        destinationName: destination.name,
+        zoneID: destination.zoneID,
+        regulatedEU: destination.regulatedEU ? 'true' : 'false',
+        lineID: l.id,
+        tariff: l.tariff
+      }
+    })
+  }).then(function (response) {
+    if (response.status !== 202) throw new Error('report rejected');
+    return response.json();
+  }).then(function (ack) {
+    reported[signature].reference = ack.reference;
+    if (!$('roaming-error').hidden) $('roaming-ref').textContent = 'Ref ' + ack.reference;
+  }).catch(function () {
+    delete reported[signature];
+  });
+}
+
+function renderBills() {
+  var months = ['N', 'D', 'E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O'];
+  var values = [82, 85, 85, 86, 84, 85, 88, 92, 86, 85, 85, 86];
+  $('bill-chart').innerHTML = values.map(function (v, i) {
+    return '<div class="' + (i === values.length - 1 ? 'last' : '') + '" style="height:' + (v - 60) * 3 + 'px"><span>' + months[i] + '</span></div>';
+  }).join('');
+}
+
+$('signin-form').addEventListener('submit', function (event) {
+  event.preventDefault();
+  selectTab('home');
+});
+document.querySelectorAll('.tab').forEach(function (b) {
+  b.addEventListener('click', function () { selectTab(b.dataset.tab); });
+});
+document.querySelectorAll('[data-go]').forEach(function (el) {
+  el.addEventListener('click', function () { selectTab(el.dataset.go); });
+});
+$('line-chips').addEventListener('click', function (event) {
+  var chip = event.target.closest('[data-line]');
+  if (!chip) return;
+  state.lineIndex = Number(chip.dataset.line);
+  renderProducts();
+});
+$('products-roaming').addEventListener('click', openRoaming);
+$('roaming-back').addEventListener('click', function () { renderProducts(); selectTab('products'); });
+$('dest-list').addEventListener('click', function (event) {
+  var row = event.target.closest('[data-dest]');
+  if (!row) return;
+  state.selected = row.dataset.dest;
+  $('roaming-error').hidden = true;
+  renderRoaming();
+});
+$('roaming-activate').addEventListener('click', onActivate);
+$('sheet-done').addEventListener('click', function () {
+  $('roaming-sheet').hidden = true;
+  renderProducts();
+  selectTab('products');
+});
+$('fab').addEventListener('click', function () { show('assistant'); });
+$('assistant-close').addEventListener('click', function () { selectTab(state.tab); });
+$('assistant-roaming').addEventListener('click', openRoaming);
+$('bill-download').addEventListener('click', function () { $('bill-download').textContent = 'Factura descargada ✓'; });
+
+renderProducts();
+renderBills();
+show('signin');
+</script>
+</body>
+</html>

@@ -110,6 +110,104 @@ function buildTeamsFieldCard({
   };
 }
 
+/**
+ * Amazon CloudWatch alarm notification as an Adaptive Card, laid out like the
+ * SNS "ALARM: ... in <region>" message (Alarm Details / Threshold / Monitored
+ * Metric / State Change Actions) with the triggering log event and the
+ * responder directive appended. `cw` is the service-owned alarm definition.
+ */
+function buildTeamsCloudWatchAlarmCard({
+  cw, logEvent, instructions, instructionsLabel = 'Responder instructions', actions = [], footer,
+}) {
+  const timestamp = cw.timestamp || new Date().toISOString();
+  const dimensions = Object.entries(cw.dimensions || {}).map(([k, v]) => `[${k} = ${v}]`).join(' ');
+  const period = `${cw.period || 60} seconds`;
+  const threshold = `The alarm is in the ALARM state when the metric is ${cw.comparison || 'GreaterThanOrEqualToThreshold'} `
+    + `${Number(cw.threshold ?? 1).toFixed(1)} for at least ${cw.datapoints || 1} of ${cw.evaluationPeriods || 1} datapoints within ${period}.`;
+  const facts = (rows) => ({
+    type: 'FactSet',
+    facts: rows.filter((r) => r && r[1] !== undefined && r[1] !== null && r[1] !== '')
+      .map(([title, value]) => ({ title, value: String(value) })),
+  });
+  const heading = (text) => ({
+    type: 'TextBlock', text, weight: 'Bolder', spacing: 'Medium',
+  });
+  const body = [
+    {
+      type: 'TextBlock',
+      text: `\u{1F534} ALARM: "${cw.alarmName}" in ${cw.regionLabel || cw.region}`,
+      weight: 'Bolder',
+      size: 'Medium',
+      color: 'Attention',
+      wrap: true,
+    },
+    {
+      type: 'TextBlock',
+      text: `You are receiving this message because your Amazon CloudWatch Alarm "${cw.alarmName}" in the ${cw.regionLabel || cw.region} region has entered the ALARM state, because "${cw.reason}" at "${timestamp}".`,
+      wrap: true,
+      isSubtle: true,
+      spacing: 'Small',
+    },
+    heading('Alarm Details'),
+    facts([
+      ['Name', cw.alarmName],
+      ['Description', cw.alarmDescription],
+      ['State Change', `${cw.previousState || 'OK'} -> ALARM`],
+      ['Reason for State Change', cw.reason],
+      ['Timestamp', timestamp],
+      ['AWS Account', cw.accountId],
+      ['Alarm Arn', `arn:aws:cloudwatch:${cw.region}:${cw.accountId}:alarm:${cw.alarmName}`],
+    ]),
+    heading('Threshold'),
+    { type: 'TextBlock', text: threshold, wrap: true, spacing: 'Small' },
+    heading('Monitored Metric'),
+    facts([
+      ['MetricNamespace', cw.namespace],
+      ['MetricName', cw.metricName],
+      ['Dimensions', dimensions],
+      ['Period', period],
+      ['Statistic', cw.statistic || 'Sum'],
+      ['Unit', cw.unit || 'not specified'],
+      ['TreatMissingData', cw.treatMissingData || 'notBreaching'],
+    ]),
+    heading('State Change Actions'),
+    facts([
+      ['OK', cw.okAction || ''],
+      ['ALARM', cw.alarmAction || `[arn:aws:sns:${cw.region}:${cw.accountId}:${cw.snsTopic || 'oncall-alerts'}]`],
+      ['INSUFFICIENT_DATA', cw.insufficientDataAction || ''],
+    ]),
+  ];
+  if (logEvent) {
+    body.push(heading(`Triggering log event (${cw.logGroup || 'CloudWatch Logs'})`));
+    // Top-level, not in a Container: Teams passes responders only top-level TextBlocks.
+    body.push({
+      type: 'TextBlock', text: logEvent, fontType: 'Monospace', wrap: true, spacing: 'Small',
+    });
+  }
+  if (instructions) {
+    body.push(heading(instructionsLabel));
+    body.push({
+      type: 'TextBlock', text: instructions, wrap: true, spacing: 'Small',
+    });
+  }
+  const buttons = actions.filter((a) => a && a.url)
+    .map(({ title, url }) => ({ type: 'Action.OpenUrl', title, url }));
+  if (buttons.length) body.push({ type: 'ActionSet', spacing: 'Medium', actions: buttons });
+  if (footer) {
+    body.push({
+      type: 'TextBlock', text: footer, size: 'Small', isSubtle: true, wrap: true, spacing: 'Small',
+    });
+  }
+  return {
+    $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+    type: 'AdaptiveCard',
+    version: '1.4',
+    msteams: { width: 'Full' },
+    body,
+    actions: [],
+  };
+}
+
 function escapeHtml(value) {
   return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -176,5 +274,6 @@ async function postTeamsCard(webhookUrl, card) {
 }
 
 module.exports = {
+  buildTeamsCloudWatchAlarmCard,
   buildTeamsAlertCard, buildTeamsFieldCard, isTeamsWebhookUrl, postTeamsCard, teamsCardText,
 };

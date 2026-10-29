@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prior Authorization for Infusion &amp; Specialty Pharmacy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--green:#00c2af;--dark-green:#002d2a;--dark:#004841;--roi:#0a1a18;--light:#d1eeea;--mint:#69d8cd;--meta:#738584;--card-title:#034a43;--border:#e0e0e0;--font:"Host Grotesk",Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);font-size:16px;line-height:24px;color:var(--dark);background:#fff;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.arrow{width:10px;height:10px;flex:none}
+.btn{display:inline-flex;align-items:center;gap:12px;background:var(--green);color:#fff;border:0;border-radius:3px;padding:12px 20px;font:500 14px/16px var(--font);letter-spacing:.4px;cursor:pointer;white-space:nowrap}
+.btn.alt{color:var(--dark-green);letter-spacing:.2px}
+.tagline{font-weight:600;font-size:16px;line-height:16px;letter-spacing:.4px;text-transform:uppercase;color:var(--green)}
+
+/* nav */
+.nav{height:61px;border-bottom:1px solid #eef2f1;display:flex;align-items:center;padding:0 12px 0 24px;background:#fff;position:relative;z-index:5}
+.logo{display:flex;align-items:center;gap:5px;width:113px;height:28px;flex:none}
+.logo svg{width:24px;height:28px;flex:none}
+.logo span{font-weight:500;font-size:30px;line-height:28px;letter-spacing:-.9px;color:var(--dark-green)}
+.nav-menu{display:flex;align-items:center;flex:1;padding-left:16px}
+.nav-menu a{font-weight:500;font-size:14px;line-height:21px;letter-spacing:.6px;color:var(--dark);padding:20px 16px;display:flex;align-items:center;gap:8px}
+.nav-menu a.sol{padding:20px 41px 20px 20px;position:relative}
+.nav-menu a.sol svg{position:absolute;right:20px;top:24px}
+.nav .btn{margin-left:auto}
+.burger{display:none;margin-left:auto;width:44px;height:44px;align-items:center;justify-content:center;background:none;border:0}
+
+/* hero */
+.hero{padding:66px 64px 0}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:1297px;margin:0}
+.hero-copy{padding-top:16px}
+.hero h1{font-weight:600;font-size:64px;line-height:68px;letter-spacing:-.4px;color:var(--dark-green);margin-top:20px}
+.hero p.lead{font-size:20px;line-height:25px;letter-spacing:.2px;color:var(--dark-green);max-width:520px;margin-top:21px}
+.hero-img{padding-top:16px}
+.hero-img img{width:100%;height:auto}
+
+/* PA form (replaces the hero CTA) */
+.pa-form{margin-top:40px;max-width:560px;border:1px solid var(--border);border-radius:8px;padding:24px;background:#fff}
+.pa-form h2{font-weight:600;font-size:20px;line-height:22px;color:var(--card-title);margin-bottom:16px}
+.pa-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.fg label{font-weight:500;font-size:12px;line-height:14.4px;letter-spacing:.8px;text-transform:uppercase;color:var(--meta)}
+.fg input,.fg select{height:44px;border:1px solid var(--border);border-radius:3px;padding:0 12px;font:400 16px/24px var(--font);color:var(--dark-green);background:#fff;width:100%}
+.fg input:focus,.fg select:focus{outline:2px solid var(--green);outline-offset:-1px}
+.pa-form .btn{margin-top:8px;height:44px}
+.pa-form .btn:disabled{opacity:.7;cursor:wait}
+.result-box{display:none;margin-top:16px;border-radius:3px;padding:12px 16px;font-size:14px;line-height:21px}
+.result-box.success{display:block;background:var(--light);color:var(--dark-green)}
+.result-box.error{display:block;background:#fdecef;color:#9f1b6a}
+
+/* roi */
+.roi-wrap{padding:96px 32px 0}
+.roi{background:var(--roi);border-radius:8px;display:grid;grid-template-columns:1fr 1fr;gap:32px;padding:16px;min-height:320px}
+.roi-img{border-radius:4px;overflow:hidden;background:#123}
+.roi-img img{width:100%;height:100%;object-fit:cover}
+.roi-copy{padding:16px 63px 16px 0}
+.roi h3{font-weight:600;font-size:34px;line-height:32px;color:#fff;margin-top:12px}
+.stats{display:flex;gap:32px;margin-top:32px}
+.stat b{display:block;font-weight:500;font-size:52px;line-height:48px;letter-spacing:-.8px;color:var(--light)}
+.stat span{display:block;font-size:20px;line-height:24px;color:var(--light);margin-top:8px}
+.btn-uc{display:inline-flex;align-items:center;gap:8px;margin-top:19px;background:var(--mint);border-radius:3px;padding:8px 16px;font:500 16px/16px var(--font);letter-spacing:.4px;color:#002925}
+
+/* logos */
+.logos{height:96px;overflow:hidden;display:flex;align-items:center}
+.logos-track{display:flex;align-items:center;gap:80px;padding-left:80px;animation:mq 40s linear infinite;width:max-content}
+.logos-track img{height:64px;width:auto;max-width:none}
+.logos-track img.long{height:44px}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* challenges */
+.chal{padding:64px 64px 0;display:grid;grid-template-columns:1fr 1fr;gap:80px;max-width:1425px;margin:0 auto}
+.chal-copy{padding-left:16px}
+.chal h2{font-weight:600;font-size:36px;line-height:40px;color:var(--dark-green);margin-top:20px;max-width:585px}
+.acc{margin-top:80px;max-width:592px}
+.acc-item{border-bottom:1px solid var(--border);padding:20px 0}
+.acc-item:first-child{padding-top:0}
+.acc-head{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.acc-head h4{font-weight:600;font-size:28px;line-height:32px;letter-spacing:.08px;color:var(--dark-green)}
+.acc-item p{font-weight:500;font-size:18px;line-height:22px;letter-spacing:.2px;color:#466562;max-width:560px;margin-top:20px}
+.acc-item:not(.open) p{display:none}
+.chal-img img{border-radius:4px;width:100%;height:auto}
+
+/* why */
+.why{padding:120px 80px 64px}
+.why h2{font-weight:600;font-size:40px;line-height:44px;letter-spacing:-.4px;color:var(--dark-green);max-width:780px;margin-top:20px}
+.why p.lead{font-size:20px;line-height:25px;letter-spacing:.2px;color:var(--dark-green);max-width:780px;margin-top:20px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:48px;margin-top:64px;padding:0 4px}
+.card-ic{width:48px;height:48px;border-radius:4px;background:#ececec;display:flex;align-items:center;justify-content:center}
+.card-ic img{width:28px;height:28px}
+.cards h4{font-weight:600;font-size:28px;line-height:32px;letter-spacing:.08px;color:var(--dark-green);margin-top:14px}
+.cards p{font-size:20px;line-height:26px;letter-spacing:.2px;color:var(--dark-green);margin-top:8px}
+
+/* testimonial */
+.testi-wrap{padding:32px 32px 0}
+.testi{background:var(--roi);border-radius:8px;padding:64px 64px 64px;text-align:center}
+.testi h2{font-weight:600;font-size:40px;line-height:44px;letter-spacing:-.4px;color:#fff;max-width:780px;margin:24px auto 0}
+.testi-body{max-width:940px;margin:64px auto 0;text-align:left}
+.testi-body blockquote{font-size:32px;line-height:40px;color:#fff;text-indent:-14px}
+.testi-foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:88px}
+.testi-foot b{display:block;font-weight:600;font-size:32px;line-height:48px;color:#fff}
+.testi-foot span{display:block;font-size:24px;line-height:36px;color:#fff;margin-top:6px}
+.testi-foot span+span{margin-top:1px}
+.testi-foot img{width:160px}
+
+/* blog */
+.blog{padding:256px 0 128px}
+.blog-in{max-width:1083px;margin:0 auto}
+.blog .tagline{font-size:12px;line-height:9px;letter-spacing:.75px}
+.blog h2{font-weight:600;font-size:40px;line-height:44px;letter-spacing:-.4px;color:var(--dark-green);max-width:780px;margin-top:16px}
+.posts{display:grid;grid-template-columns:repeat(4,1fr);margin-top:48px}
+.post{padding:4px 4px 16px}
+.post-img{width:100%;aspect-ratio:263/175;border-radius:4px;object-fit:cover;background:linear-gradient(135deg,#3fb6e8,#3dd3bf)}
+.chips{display:flex;gap:12px;margin:16px 8px 0;align-items:center}
+.chip{font-weight:500;font-size:8.8px;line-height:12px;letter-spacing:.4px;text-transform:uppercase;color:var(--dark-green);background:var(--light);border-radius:100px;padding:4px 8px}
+.post h3{font-weight:600;font-size:20px;line-height:22px;color:var(--card-title);margin:8px 8px 0}
+.post .date{font-size:16px;line-height:24px;letter-spacing:.16px;color:var(--meta);margin:8px 8px 0}
+.read{display:inline-flex;align-items:center;gap:8px;background:var(--dark);color:#fff;border-radius:100px;padding:4px 12px;font:500 14px/16px var(--font);letter-spacing:.4px;margin:24px 8px 0}
+.read img{width:8px;height:8px;filter:brightness(10)}
+
+/* footer */
+.footer{background:var(--dark-green);background-image:linear-gradient(180deg,rgba(0,0,0,0) 0,rgba(0,0,0,.18) 100%),linear-gradient(90deg,#002d2a 0 12%,#01302c 12% 100%);color:var(--light);padding:0 32px 31px}
+.f-cta{max-width:1083px;margin:0 auto;padding:112px 0 96px;text-align:center}
+.f-cta h2{font-weight:600;font-size:48px;line-height:56px;letter-spacing:-.5px;color:#fff;max-width:800px;margin:0 auto}
+.f-cta .btn{margin-top:40px}
+.f-main{display:flex;justify-content:space-between;align-items:flex-start;margin-top:32px}
+.f-logo span{color:#fff}
+.f-logo{width:126px;height:30px}
+.f-cols{display:grid;grid-template-columns:repeat(4,140px);gap:40px;margin-right:0}
+.f-cols h5{font-weight:400;font-size:12px;line-height:14.4px;letter-spacing:.8px;text-transform:uppercase;color:var(--light);opacity:.6;margin-bottom:17px}
+.f-cols a{display:block;font-size:16px;line-height:17.6px;color:var(--light);margin-bottom:16px}
+.f-legal{display:flex;align-items:center;margin-top:85px;font-size:14px;line-height:21px}
+.f-legal .copy{flex:0 0 681px}
+.f-legal .links{display:flex;gap:55px;flex:1}
+.f-legal .li{width:32px;height:32px;margin-left:auto}
+
+@media (max-width:991px){
+  .nav-menu,.nav .btn{display:none}.burger{display:flex}
+  .nav{height:48px;padding:0 4px 0 25px;margin-top:10px}
+  .hero{padding:24px 15px 0}.hero-grid{grid-template-columns:1fr;gap:16px}.hero-img{order:-1;padding:0}
+  .hero-copy{padding-top:0}.hero h1{font-size:34px;line-height:37px;margin-top:12px}.hero .tagline{font-size:11.4px;line-height:11.4px;letter-spacing:0}
+  .hero p.lead{font-size:15.25px;line-height:19px}
+  .roi-wrap{padding:52px 8px 0}.roi{grid-template-columns:1fr;gap:20px;padding:18px}.roi-img{height:180px}.roi-copy{padding:0 0 22px}
+  .roi h3{font-size:22.9px;line-height:26.7px}.roi .tagline{font-size:11.4px;line-height:11.4px}.stats{gap:16px;margin-top:26px}.stat b{font-size:30.5px;line-height:32.8px}.stat span{font-size:15.25px;line-height:13.3px}
+  .logos{height:114px}.logos-track img{height:46px}.logos-track img.long{height:38px}.logos-track{gap:30px}
+  .chal{grid-template-columns:1fr;gap:32px;padding:54px 15px 0}.chal-img{order:-1}.chal-copy{padding:0 8px}.chal .tagline{font-size:11.4px}.chal h2{font-size:30.5px;line-height:34.3px}
+  .acc{margin-top:48px}.acc-head h4{font-size:26.7px;line-height:30.5px}.acc-item p{font-size:15.25px;line-height:19.15px}
+  .why{padding:68px 23px 15px}.why .tagline{font-size:11.4px}.why h2{font-size:38.1px;line-height:41.95px}.why p.lead{font-size:15.25px;line-height:19px}
+  .cards{grid-template-columns:1fr;gap:46px;margin-top:30px;padding:0 8px}.card{display:grid;grid-template-columns:44px 1fr;column-gap:6px}.card-ic{width:32px;height:32px}.card-ic img{width:27px;height:27px}
+  .cards h4{font-size:26.7px;line-height:30.5px;margin-top:0}.cards p{grid-column:2;font-size:19.07px;line-height:24.8px}
+  .testi-wrap{padding:107px 8px 0}.testi{padding:61px 7px 61px}.testi .tagline{font-size:11.4px}.testi h2{font-size:30.5px;line-height:34.3px;margin-top:16px}
+  .testi-body{margin-top:68px;padding:0 15px}.testi-body blockquote{font-size:22.9px;line-height:26.7px;text-indent:-8px}
+  .testi-foot{flex-direction:column;align-items:flex-start;margin-top:58px;gap:34px}.testi-foot b{font-size:30.5px;line-height:45.8px}.testi-foot span{font-size:22.9px;line-height:34.3px}.testi-foot img{width:153px}
+  .blog{padding:122px 15px 0}.blog h2{font-size:38.1px;line-height:41.95px}.posts{grid-template-columns:1fr 1fr;margin-top:76px}
+  .footer{padding:0 31px 30px}.f-cta{padding:61px 0}.f-cta h2{font-size:38.1px;line-height:41.95px}
+  .f-main{flex-direction:column-reverse;margin-top:30px}.f-cols{grid-template-columns:1fr;gap:38px}.f-logo{margin-top:72px}
+  .f-legal{flex-direction:column;align-items:flex-start;margin-top:20px}.f-legal .copy{flex:none;order:3}.f-legal .links{gap:12px;order:2}.f-legal .li{order:1;margin:0 0 14px}
+  .f-cols a{font-size:15.25px;margin-bottom:13px}
+}
+@media (max-width:991px){.nav.open .nav-menu{display:flex;flex-direction:column;align-items:stretch;position:absolute;top:48px;left:0;right:0;background:#fff;padding:8px 0;border-bottom:1px solid #eef2f1;box-shadow:0 8px 16px rgba(0,45,42,.08)}.nav.open .nav-menu a{padding:12px 25px;min-height:44px}.nav.open .nav-menu a.sol svg{right:25px;top:19px}}
+@media (max-width:479px){.pa-row{grid-template-columns:1fr;gap:0}.pa-form{padding:18px}.chal-img img{height:229px;object-fit:cover}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="#" class="logo" aria-label="plenful">
+    <svg viewBox="0 0 24 28" aria-hidden="true"><path d="M0 4h14a10 10 0 0 1 0 20h-6v-8h6a2 2 0 0 0 0-4H8v16H0z" fill="#00c2af"/><path d="M8 12h6a2 2 0 0 1 0 4H8z" fill="#7fe3d8"/></svg>
+    <span>plenful</span>
+  </a>
+  <div class="nav-menu" id="navMenu">
+    <a href="#" class="sol">Solutions <svg width="11" height="7" viewBox="0 0 11 7"><path d="M1 1l4.5 4.5L10 1" stroke="#004841" stroke-width="1.6" fill="none"/></svg></a>
+    <a href="#">Customers</a><a href="#">About Us</a><a href="#">Blog</a>
+  </div>
+  <a href="#" class="btn">Get a demo <svg class="arrow" viewBox="0 0 10 10"><path d="M1.5 8.5l7-7M3 1.5h5.5V7" stroke="#fff" stroke-width="1.4" fill="none"/></svg></a>
+  <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="navMenu"><svg width="22" height="16" viewBox="0 0 22 16"><path d="M0 1h22M0 8h22M0 15h22" stroke="#004841" stroke-width="2"/></svg></button>
+</nav>
+
+<header class="hero">
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <div class="tagline">Prior Authorization for Infusion &amp; Specialty Pharmacy</div>
+      <h1>Get prior authorizations right the first time</h1>
+      <p class="lead">Plenful's Prior Authorization handles the work behind prior authorization — finding the right payer requirements, pulling supporting clinical evidence from the patient record, preparing the submission, and tracking it through approval or appeal. Your team spends less time assembling paperwork and more time moving patients toward therapy.</p>
+      <div class="pa-form">
+        <h2>Submit prior authorization</h2>
+        <form id="claimForm">
+          <div class="fg"><label for="policyId">Patient / member</label>
+            <select id="policyId"><option value="POL-5001">Commercial PPO — Member 5001</option><option value="POL-5002">Medicare Advantage — Member 5002</option><option value="POL-5003">Managed Medicaid — Member 5003</option><option value="POL-5004">Commercial HMO — Member 5004</option></select></div>
+          <div class="pa-row">
+            <div class="fg"><label for="claimType">Benefit pathway</label>
+              <select id="claimType"><option value="collision">Medical benefit</option><option value="comprehensive">Pharmacy benefit</option><option value="liability">Reauthorization</option><option value="property_damage">Appeal</option></select></div>
+            <div class="fg"><label for="amount">Therapy cost (USD)</label><input type="number" id="amount" value="18400" min="1" step="0.01"></div>
+          </div>
+          <div class="fg"><label for="description">Medication and diagnosis</label><input type="text" id="description" value="Infliximab 5 mg/kg IV q8w — K50.90 Crohn's disease"></div>
+          <button type="submit" class="btn" id="submitBtn">Submit to payer <svg class="arrow" viewBox="0 0 10 10"><path d="M1.5 8.5l7-7M3 1.5h5.5V7" stroke="#fff" stroke-width="1.4" fill="none"/></svg></button>
+        </form>
+        <div id="result" class="result-box" role="status"></div>
+      </div>
+    </div>
+    <div class="hero-img"><img src="https://cdn.prod.website-files.com/6613bc31386eab14b5115d39/6abb58665e5ef8fb98d7aed1_Intake%20auth%20for%20specialty_%202%20capabilities.png" alt="" onerror="this.style.display='none'"></div>
+  </div>
+</header>
+
+<section class="roi-wrap">
+  <div class="roi">
+    <div class="roi-img"><img src="https://cdn.prod.website-files.com/6613bc31386eab14b5115d39/6ab41be6bcf27b855825dbd3_Infusion%20Nurse%202.jpg" alt="" onerror="this.style.display='none'"></div>
+    <div class="roi-copy">
+      <div class="tagline">ROI &amp; Impact</div>
+      <h3>Leading National Specialty &amp; Infusion Pharmacy</h3>
+      <div class="stats"><div class="stat"><b>4x</b><span>capacity increase</span></div><div class="stat"><b>75%</b><span>time savings</span></div></div>
+      <a href="#" class="btn-uc">Learn more <svg width="11" height="11" viewBox="0 0 10 10"><path d="M1.5 8.5l7-7M3 1.5h5.5V7" stroke="#002925" stroke-width="1.4" fill="none"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<section class="logos" aria-label="Customers">
+  <div class="logos-track" id="logos"></div>
+</section>
+
+<section class="chal">
+  <div class="chal-copy">
+    <div class="tagline">Challenges</div>
+    <h2>Prior authorization shouldn't be where patient care gets stuck.</h2>
+    <div class="acc">
+      <div class="acc-item open"><div class="acc-head"><h4>The Hardest Questions Still Require Manual Chart Review</h4><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" stroke="#738584" fill="none"/><path d="M7 12h10" stroke="#738584"/></svg></div>
+        <p>EHR-generated requests may prefill basic patient, prescriber, and drug information, but the clinical questions that determine approval still send staff back into the chart. Teams search through notes, labs, diagnoses, and treatment history one question at a time.</p></div>
+      <div class="acc-item"><div class="acc-head"><h4>Every Payer Plays by Different Rules</h4><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" stroke="#738584" fill="none"/><path d="M7 12h10M12 7v10" stroke="#738584"/></svg></div>
+        <p>Forms, clinical criteria, submission channels, and medication-specific requirements vary by payer.</p></div>
+      <div class="acc-item"><div class="acc-head"><h4>Submission Isn't the Finish Line</h4><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" stroke="#738584" fill="none"/><path d="M7 12h10M12 7v10" stroke="#738584"/></svg></div>
+        <p>After an authorization goes out, someone still has to track the response, follow up when it stalls, understand a denial, gather additional documentation, and start an appeal.</p></div>
+    </div>
+  </div>
+  <div class="chal-img"><img src="https://cdn.prod.website-files.com/6613bc31386eab14b5115d39/6abb5446414bf9b85a9fc895_iStock-2147499239%20(1).jpg" alt="" onerror="this.style.display='none'"></div>
+</section>
+
+<section class="why">
+  <div class="tagline">Why Plenful</div>
+  <h2>We Don't Just Submit Authorizations. We Manage the Work.</h2>
+  <p class="lead">Plenful's Prior Authorization solution manages prior authorization from preparation through approval or appeal. It finds the right requirements, pulls supporting evidence from the patient record, prepares the submission with cited sources, sends it through the appropriate channel, and keeps the next action moving until the case is resolved.</p>
+  <div class="cards">
+    <div class="card"><div class="card-ic"><img src="https://cdn.prod.website-files.com/6613bc31386eab14b5115d39/6ab417f90b05b7a17b2f0d89_plenful-icons-magnify-green%201.png" alt="" onerror="this.style.display='none'"></div><h4>Spend Less Time Digging the Chart</h4><p>Plenful reads across the patient record to find the clinical evidence required for payer-specific questions and pre-fills the authorization with cited sources. Your team can verify the answer instead of searching the chart from scratch.</p></div>
+    <div class="card"><div class="card-ic"><img src="https://cdn.prod.website-files.com/6613bc31386eab14b5115d39/6abb54b7e48f3c140d26cdac_plenful-icons-taskManager%203.png" alt="" onerror="this.style.display='none'"></div><h4>One Workflow Across Medical and Pharmacy Benefit</h4><p>Manage authorizations across both benefit pathways without creating separate processes for each one. Plenful brings the work, status, and next steps together so your team knows where every case stands.</p></div>
+    <div class="card"><div class="card-ic"><img src="https://cdn.prod.website-files.com/6613bc31386eab14b5115d39/6abb54d8e48f3c140d26e407_plenful-icons-referralVerification%201.png" alt="" onerror="this.style.display='none'"></div><h4>Keep Every Authorization Moving Through Resolution</h4><p>Plenful tracks what happens after submission, prompts follow-up when a case needs attention, and routes denials into an appeals workflow with the reason and supporting documentation attached. The work doesn't disappear into a payer queue after you hit submit.</p></div>
+  </div>
+</section>
+
+<section class="testi-wrap">
+  <div class="testi">
+    <div class="tagline">Customer Stories</div>
+    <h2>Trusted by 100+ leading healthcare organizations and pharmacy teams</h2>
+    <div class="testi-body">
+      <blockquote>"Plenful comes from pharmacy operations, they just get it. Their AI platform gives us the scalable infrastructure we need to handle increasing medication volumes without proportionally increasing our staffing costs. We've been able to streamline our workflows, reduce processing times, and dedicate more time and care to our in-need patient population.”</blockquote>
+      <div class="testi-foot"><div><b>Adam Porath</b><span>Vice President of Pharmacy</span><span>Renown Health</span></div><img src="https://cdn.prod.website-files.com/6613bc31386eab14b5115d39/6920ec3ed7a31a950e4a8345_Mercy-Med_0001_Renown_health_logo.png" alt="Renown Health" onerror="this.style.display='none'"></div>
+    </div>
+  </div>
+</section>
+
+<section class="blog">
+  <div class="blog-in">
+    <div class="tagline">Resources</div>
+    <h2>Discover the benefits of Plenful and AI-driven automation</h2>
+    <div class="posts">
+      <a href="#" class="post"><img class="post-img" src="https://cdn.prod.website-files.com/6613bc31386eab14b5115d39/6ae22880d4ee95885107f33a_blog-thumb-8.png" alt="" onerror="this.removeAttribute('src')"><div class="chips"><span class="chip" style="background:none;padding:0">Company News</span><span class="chip">Product News</span></div><h3>Plenful and Cencora Partner to Power the Future of Pharmacy</h3><div class="date">October 28, 2026</div><span class="read">Read <img src="https://cdn.prod.website-files.com/660fbd6612719d1bb9190fb2/68b107f0af6cd996682c5446_arrow.png" alt=""></span></a>
+      <a href="#" class="post"><img class="post-img" src="https://cdn.prod.website-files.com/6613bc31386eab14b5115d39/6adbdba1bab6e8c893953a95_blog-thumb-1.png" alt="" onerror="this.removeAttribute('src')"><div class="chips"><span class="chip" style="background:none;padding:0">AI Lab</span><span class="chip">Intake &amp; Prior Authorization</span></div><h3>Institutional Memory: How Plenful’s AI Learns From Your Best Pharmacists to Scale Capacity</h3><div class="date">October 23, 2026</div><span class="read">Read <img src="https://cdn.prod.website-files.com/660fbd6612719d1bb9190fb2/68b107f0af6cd996682c5446_arrow.png" alt=""></span></a>
+      <a href="#" class="post"><img class="post-img" src="https://cdn.prod.website-files.com/6613bc31386eab14b5115d39/6ac68007b7258e666efa6e3a_blog-thumb-2%20(1).png" alt="" onerror="this.removeAttribute('src')"><div class="chips"><span class="chip" style="background:none;padding:0">AI Lab</span></div><h3>The AI Questions Pharmacy Teams Keep Asking</h3><div class="date">October 5, 2026</div><span class="read">Read <img src="https://cdn.prod.website-files.com/660fbd6612719d1bb9190fb2/68b107f0af6cd996682c5446_arrow.png" alt=""></span></a>
+      <a href="#" class="post"><img class="post-img" src="https://cdn.prod.website-files.com/6613bc31386eab14b5115d39/6ac48d0588586f5092d374d1_blog-thumb-3.png" alt="" onerror="this.removeAttribute('src')"><div class="chips"><span class="chip" style="background:none;padding:0">340B</span><span class="chip">Product News</span></div><h3>Are You Ready for Rebate? Rebate Intelligence Protects 340B Savings from Claim to Reconciliation</h3><div class="date">October 5, 2026</div><span class="read">Read <img src="https://cdn.prod.website-files.com/660fbd6612719d1bb9190fb2/68b107f0af6cd996682c5446_arrow.png" alt=""></span></a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="f-cta">
+    <h2>Ready to explore our pharmacy solutions?</h2>
+    <a href="#" class="btn alt">Get a demo <svg class="arrow" viewBox="0 0 10 10"><path d="M1.5 8.5l7-7M3 1.5h5.5V7" stroke="#002d2a" stroke-width="1.4" fill="none"/></svg></a>
+  </div>
+  <div class="f-main">
+    <a href="#" class="logo f-logo" aria-label="plenful"><svg viewBox="0 0 24 28" aria-hidden="true"><path d="M0 4h14a10 10 0 0 1 0 20h-6v-8h6a2 2 0 0 0 0-4H8v16H0z" fill="#00c2af"/><path d="M8 12h6a2 2 0 0 1 0 4H8z" fill="#7fe3d8"/></svg><span>plenful</span></a>
+    <div class="f-cols">
+      <div><h5>Why Plenful</h5><a href="#">Solutions</a><a href="#">Customers</a><a href="#">Get a Demo</a></div>
+      <div><h5>For Intake Authorization Management</h5><a href="#">Intellegent Document Processing</a><a href="#">Deep Benefit Investigation</a><a href="#">Prior Authorization</a></div>
+      <div><h5>for 340B Audit &amp; Optimization Management</h5><a href="#">340B Audit &amp; Optimization</a><a href="#">340B Referral Agent</a><a href="#">340B Rebate Intelligence</a><a href="#">MFP Intelligence</a></div>
+      <div><h5>Company</h5><a href="#">About Us</a><a href="#">Careers</a><a href="#">Blog</a></div>
+    </div>
+  </div>
+  <div class="f-legal">
+    <div class="copy">© 2026 Plenful. All rights reserved.</div>
+    <div class="links"><a href="#">Terms of Service</a><a href="#">Privacy Policy</a></div>
+    <a href="#" class="li" aria-label="LinkedIn"><svg viewBox="0 0 32 32" width="32" height="32"><rect width="32" height="32" rx="2" fill="#d1eeea"/><path d="M8 13h3.5v11H8zM9.75 7.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM14 13h3.4v1.5c.5-.9 1.7-1.8 3.4-1.8 3.6 0 4.2 2.3 4.2 5.4V24h-3.5v-5.2c0-1.3 0-2.9-1.8-2.9s-2.1 1.4-2.1 2.8V24H14z" fill="#002d2a"/></svg></a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var base = 'https://cdn.prod.website-files.com/660fbd6612719d1bb9190fb2/';
+  var logos = [['69cee9125479af0b50a32ee5_Investor-Logos_0001_Samaritan_Health_Services_logo.svg-(1).png', 1], ['69604478857ab682771f4264_renown-logo-grn.png'], ['69604478ec19eb55c55791db_shieldHealth-logo-grn.png'], ['6960447800ed9d4a33679099_cencora-logo-grn.png'], ['69cee8544ebc752793435cb1_Investor-Logos_0000_Temple-Health-Logo.png'], ['696044782395248035e720e4_hphHealth-logo-grn.png'], ['69cee854f41ed24a13529014_Investor-Logos_0003_Prisma_Health_logo-stacked.png']];
+  var track = document.getElementById('logos');
+  for (var k = 0; k < 2; k++) logos.forEach(function (l) {
+    var i = document.createElement('img'); i.src = base + l[0]; i.alt = ''; if (l[1]) i.className = 'long';
+    i.onerror = function () { this.style.display = 'none'; }; track.appendChild(i);
+  });
+  var burger = document.querySelector('.burger');
+  burger.addEventListener('click', function () {
+    var open = burger.parentNode.classList.toggle('open');
+    burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.querySelectorAll('.acc-head').forEach(function (h) {
+    h.addEventListener('click', function () { h.parentNode.classList.toggle('open'); });
+  });
+})();
+</script>
+<script>
+  /* Ensure locked-mode config is in localStorage for direct navigation */
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+  document.getElementById('claimForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var b = document.getElementById('submitBtn'), r = document.getElementById('result');
+    var label = b.innerHTML;
+    b.disabled = true; b.textContent = 'Submitting to payer…';
+    r.className = 'result-box';
+    try {
+      var res = await fetch('/api/insurance/claim', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          policyId: document.getElementById('policyId').value,
+          claimType: document.getElementById('claimType').value,
+          amount: parseFloat(document.getElementById('amount').value),
+          description: document.getElementById('description').value,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      });
+      var d = {};
+      try { d = await res.json(); } catch (_) {}
+      if (!res.ok) {
+        r.className = 'result-box error';
+        r.textContent = 'The payer submission did not complete. The authorization was not sent. Try again.';
+      } else {
+        r.className = 'result-box success';
+        r.textContent = 'Authorization submitted — case ' + d.claimId + '. Payer status updates appear in the case queue.';
+      }
+    } catch (_) {
+      r.className = 'result-box error';
+      r.textContent = 'The payer submission did not complete. The authorization was not sent. Try again.';
+    } finally { b.disabled = false; b.innerHTML = label; }
+  });
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>

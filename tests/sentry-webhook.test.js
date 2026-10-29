@@ -22,6 +22,14 @@ describe('Sentry customer identity mapping', () => {
     })).toBe(true);
   });
 
+  test('recognizes tagless Applied Epic attachment search issue webhooks by culprit module path', () => {
+    expect(isInstantPathEvent({
+      issueTitle: "TypeError: Cannot read properties of undefined (reading 'description')",
+      culprit: 'app/services/verticals/19381609.js — describeAttachedTo',
+      tags: [],
+    })).toBe(true);
+  });
+
   test('recognizes tagless Misfits Market issue webhooks by culprit module path', () => {
     expect(isInstantPathEvent({
       issueTitle: "TypeError: Cannot read properties of undefined (reading 'sku')",
