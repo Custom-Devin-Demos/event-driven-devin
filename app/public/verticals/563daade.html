@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en-IE">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pay someone | PTSB Open24</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal: #07272D; --teal-2: #273D41; --orange: #FD824E; --orange-hover: #FC6A2C; --rust: #D23A06; --peach: #FFEDE6; --peach-2: #FEC9B3;
+      --ink: #07272D; --text: #3A4B4F; --muted: #55676C; --line: #D9DEDF; --mist: #F4F4F4; --card: #FFFFFF;
+      --ok: #2E7044; --ok-soft: #E7F2EA; --warn: #B3261E; --warn-soft: #FDEEEE; --radius: 3px; --radius-lg: 4px;
+      --serif: 'Source Serif 4', Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Inter, Arial, sans-serif; color: var(--ink); background: var(--mist); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: var(--ink); }
+    .wrap { width: min(1200px, calc(100% - 48px)); margin: 0 auto; }
+    .hd { background: var(--teal); color: #fff; box-shadow: 0 2px 8px rgba(7,39,45,.25); }
+    .hd .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 88px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; min-height: 44px; }
+    .brand svg { flex: none; }
+    .brand .word { font-family: var(--serif); font-weight: 500; font-size: 26px; line-height: 1; color: var(--orange); letter-spacing: -.01em; }
+    .brand .word small { display: block; font-family: Inter, Arial, sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #fff; margin-top: 5px; }
+    .hd-tools { display: flex; align-items: center; gap: 16px; }
+    .hd-tools .last { font-size: 13px; color: rgba(255,255,255,.75); }
+    .btn { font: inherit; font-weight: 600; font-size: 16px; border-radius: var(--radius); padding: 12px 20px; min-height: 48px; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+    .btn-primary { background: var(--orange); color: var(--teal); }
+    .btn-primary:hover { background: var(--orange-hover); }
+    .btn-primary:disabled { background: var(--peach-2); color: var(--teal-2); cursor: progress; }
+    .btn-secondary { background: var(--card); color: var(--teal); border-color: var(--teal); }
+    .btn-secondary:hover { background: var(--peach); }
+    .btn-small { min-height: 44px; padding: 8px 16px; }
+    .btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+    .hd .btn:focus-visible, .hd a:focus-visible { outline-color: #fff; }
+    .band { background: var(--peach); border-bottom: 1px solid var(--peach-2); }
+    .band .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; font-size: 14px; }
+    .band p { margin: 0; }
+    .band a { color: var(--ink); display: inline-flex; align-items: center; min-height: 44px; }
+    .band span { font-weight: 600; }
+    .band .who { font-weight: 600; }
+
+    main { padding: 36px 0 72px; }
+    .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px; align-items: start; }
+    .tabs { background: var(--card); border-radius: var(--radius-lg); padding: 8px 0; box-shadow: 0 1px 3px rgba(7,39,45,.08); }
+    .tabs a { display: flex; align-items: center; min-height: 48px; padding: 0 20px; text-decoration: none; font-weight: 500; font-size: 15px; color: var(--ink); border-left: 4px solid transparent; }
+    .tabs a:hover { background: var(--peach); }
+    .tabs a[aria-current] { border-left-color: var(--rust); background: var(--peach); font-weight: 700; }
+    h1 { font-family: var(--serif); font-weight: 400; color: var(--ink); font-size: 48px; line-height: 1.15; margin: 0 0 10px; }
+    h2 { font-family: var(--serif); font-weight: 500; font-size: 24px; line-height: 1.25; margin: 0 0 20px; color: var(--ink); }
+    .lead { color: var(--text); font-size: 17px; margin: 0 0 28px; max-width: 680px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+    form#transferForm, .side > section { background: var(--card); border-top: 2px solid var(--rust); border-radius: 0 0 var(--radius-lg) var(--radius-lg); padding: 32px; box-shadow: 0 1px 3px rgba(7,39,45,.08); }
+    .steps { display: flex; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; font-size: 13px; font-weight: 600; color: var(--muted); flex-wrap: wrap; }
+    .steps li { padding: 4px 12px; border-radius: 30px; background: var(--mist); }
+    .steps li[aria-current] { background: var(--teal); color: #fff; }
+    .field { margin-bottom: 20px; }
+    label { display: block; font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+    select, input[type=number] { width: 100%; font: inherit; color: var(--ink); background: var(--card); border: 1px solid #8A989B; border-radius: var(--radius); padding: 12px 14px; min-height: 48px; }
+    select:disabled, input:disabled { background: #EEF0F0; color: var(--muted); }
+    .field small { display: block; color: var(--muted); font-size: 13px; margin-top: 6px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap b { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--muted); }
+    .amount-wrap input { padding-left: 30px; }
+    .summary { margin: 24px 0 0; padding: 20px; border-radius: var(--radius); background: var(--peach); display: grid; gap: 10px; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; text-align: right; }
+    .summary div.total { border-top: 1px solid var(--peach-2); padding-top: 10px; }
+    .summary div.total dd { font-size: 17px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    .actions .btn { flex: 1 1 180px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--rust); }
+    .status { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: var(--radius); font-size: 15px; line-height: 1.5; }
+    .result-box.success { display: block; background: var(--ok-soft); color: var(--ink); border-left: 4px solid var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-soft); color: #6E1712; border-left: 4px solid var(--warn); }
+    .side { display: grid; gap: 24px; }
+    .acc { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+    .acc:first-of-type { border-top: 0; padding-top: 0; }
+    .acc div { font-weight: 600; }
+    .acc span { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+    .acc b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .appbox { background: var(--teal); border-radius: var(--radius-lg); overflow: hidden; }
+    .appbox img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+    .appbox .alt { display: none; padding: 32px; min-height: 220px; color: #fff; }
+    .appbox .alt .mark { font-family: var(--serif); font-weight: 500; font-size: 30px; color: var(--orange); }
+    .appbox .alt p { margin: 12px 0 0; font-weight: 600; }
+    .appbox.fallback img { display: none; }
+    .appbox.fallback .alt { display: block; }
+    .vop { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--ink); }
+    .vop .tick { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--teal); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+    .side p { margin: 0 0 12px; font-size: 15px; color: var(--text); }
+    .side p:last-child { margin-bottom: 0; }
+    .side a.help { font-weight: 600; display: inline-block; padding: 10px 0; margin: -10px 0; line-height: 24px; }
+    footer { background: var(--teal); color: #fff; padding: 44px 0 48px; font-size: 13px; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 4px 24px; margin-bottom: 20px; }
+    footer nav a { color: #fff; font-size: 14px; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+    footer nav a:hover { text-decoration: underline; }
+    footer p { margin: 0 0 12px; max-width: 960px; color: rgba(255,255,255,.85); }
+    footer .fmark { font-family: var(--serif); font-weight: 500; font-size: 30px; color: var(--orange); margin: 0 0 20px; }
+    @media (max-width: 1080px) {
+      .layout { grid-template-columns: 1fr; }
+      .tabs { display: none; }
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .hd-tools .last { display: none; }
+      h1 { font-size: 36px; }
+    }
+    @media (max-width: 600px) {
+      .wrap { width: calc(100% - 32px); }
+      .hd .wrap { min-height: 72px; }
+      .brand .word { font-size: 22px; }
+      main { padding: 28px 0 48px; }
+      form#transferForm, .side > section { padding: 20px; }
+      .band .who { display: none; }
+      .lead { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hd">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="PTSB Open24 Online Banking">
+        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#FD824E"/><text x="20" y="27" text-anchor="middle" font-family="Georgia, serif" font-size="22" fill="#07272D">p</text></svg>
+        <span class="word">ptsb<small>Open24 Online Banking</small></span>
+      </a>
+      <div class="hd-tools">
+        <span class="last">Last logged in: today, 08:12</span>
+        <button type="button" class="btn btn-primary btn-small">Log out</button>
+      </div>
+    </div>
+  </header>
+  <div class="band"><div class="wrap">
+    <p><a href="#">Transfer</a> &rsaquo; <span>Pay someone</span></p>
+    <p class="who">Welcome, Siobh&aacute;n</p>
+  </div></div>
+
+  <main id="transfer">
+    <div class="wrap layout">
+      <nav class="tabs" aria-label="Open24">
+        <a href="#">Accounts</a>
+        <a href="#" aria-current="page">Transfer</a>
+        <a href="#">Payees</a>
+        <a href="#">Standing Orders</a>
+        <a href="#">Bills</a>
+        <a href="#">Direct Debits</a>
+        <a href="#">eStatements</a>
+        <a href="#">Services</a>
+      </nav>
+      <div>
+      <h1>Pay someone</h1>
+      <p class="lead">Send money to one of your saved Payees, or transfer between your own PTSB accounts. Euro payments to accounts in the EEA are sent by SEPA Instant Credit Transfer and usually arrive within seconds.</p>
+      <div class="grid">
+        <form id="transferForm" novalidate aria-labelledby="formHead">
+          <ol class="steps" id="steps" aria-label="Steps"><li aria-current="step">1. Payment details</li><li>2. Done</li></ol>
+          <h2 id="formHead">Payment details</h2>
+          <div class="field">
+            <label for="fromAccount">Pay from</label>
+            <select id="fromAccount">
+              <option value="PTSB-4172" data-name="Explore Current Account" data-number="IE57 IPBS 9906 2184 4172 61" data-balance="2318.40" data-tier="standard">Explore Current Account &middot; ~4172 61</option>
+              <option value="PTSB-8830" data-name="Savings Account" data-number="IE83 IPBS 9906 2190 8830 14" data-balance="6150.00" data-tier="standard">Savings Account &middot; ~8830 14</option>
+            </select>
+            <small id="fromHelp"></small>
+            <input type="hidden" id="accountTier" value="standard">
+          </div>
+          <div class="field">
+            <label for="toAccount">Pay to</label>
+            <select id="toAccount">
+              <option value="">Choose a Payee or one of your accounts</option>
+              <option value="PAYEE-NIAMH" data-name="Niamh Byrne" data-number="IE21 AIBK 9320 6110 3378 45" data-ref="Concert tickets">Niamh Byrne &middot; ~3378 45</option>
+              <option value="PAYEE-CLUB" data-name="St. Kevin's GAA Club" data-number="IE66 BOFI 9058 1172 0094 28" data-ref="Membership 2026">St. Kevin's GAA Club &middot; ~0094 28</option>
+              <option value="PTSB-4172" data-name="Explore Current Account" data-number="IE57 IPBS 9906 2184 4172 61" data-ref="Own account">Explore Current Account (your account)</option>
+              <option value="PTSB-8830" data-name="Savings Account" data-number="IE83 IPBS 9906 2190 8830 14" data-ref="Savings">Savings Account (your account)</option>
+            </select>
+            <small id="toHelp"></small>
+          </div>
+          <div class="field">
+            <label for="amount">Amount</label>
+            <div class="amount-wrap"><b aria-hidden="true">&euro;</b><input type="number" id="amount" inputmode="decimal" min="0" step="0.01" placeholder="0.00" autocomplete="off"></div>
+            <small id="amountHelp"></small>
+          </div>
+          <dl class="summary" aria-label="Payment summary">
+            <div><dt>From</dt><dd id="sumFrom">&mdash;</dd></div>
+            <div><dt>To</dt><dd id="sumTo">&mdash;</dd></div>
+            <div><dt>Reference</dt><dd id="sumRef">&mdash;</dd></div>
+            <div><dt>Amount</dt><dd id="sumAmount">&mdash;</dd></div>
+            <div><dt>Fee (estimated)</dt><dd id="sumFee">&mdash;</dd></div>
+            <div class="total"><dt>Leaves your account</dt><dd id="sumTotal">&mdash;</dd></div>
+          </dl>
+          <div class="actions">
+            <button type="submit" id="submitBtn" class="btn btn-primary">Pay now</button>
+            <button type="reset" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+          </div>
+          <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+          <p class="status" id="paymentStatus" role="status" aria-live="polite">Check the details, then select Pay now.</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+        <aside class="side">
+          <section aria-labelledby="accHead">
+            <h2 id="accHead">Your accounts</h2>
+            <div class="acc"><div>Explore Current Account<span>IE57 IPBS 9906 2184 4172 61</span></div><b data-balance-for="PTSB-4172">&nbsp;</b></div>
+            <div class="acc"><div>Savings Account<span>IE83 IPBS 9906 2190 8830 14</span></div><b data-balance-for="PTSB-8830">&nbsp;</b></div>
+          </section>
+          <div class="appbox" id="appBox">
+            <img src="https://www.ptsb.ie/globalassets/images/banner-images/online-banking-help.jpg" alt="A PTSB customer using online banking" loading="lazy" onerror="document.getElementById('appBox').className='appbox fallback'">
+            <div class="alt" aria-hidden="true"><div class="mark">ptsb</div><p>Bank on the move with Open24 and the PTSB App</p></div>
+          </div>
+          <section aria-labelledby="safeHead">
+            <h2 id="safeHead">Verification of Payee</h2>
+            <p class="vop"><span class="tick" aria-hidden="true">&#10003;</span><span>We check the name on your Payee against their IBAN before any money leaves your account.</span></p>
+            <p>PTSB will never ask you to move money to a safe account or send you a link to log in to Open24. If a call or text feels wrong, stop and check.</p>
+            <p>Not sure about a payment? <a class="help" href="#">Read about PTSB Protect</a> or visit Fraud and financial crime.</p>
+          </section>
+        </aside>
+      </div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="wrap">
+      <p class="fmark" aria-hidden="true">ptsb</p>
+      <nav aria-label="Footer"><a href="#">Contact us</a><a href="#">Fraud and financial crime</a><a href="#">Report card lost or stolen</a><a href="#">Fees and Charges</a><a href="#">Accessibility Statement</a><a href="#">Data Protection</a><a href="#">Cookie Notice</a><a href="#">Legal Information</a></nav>
+      <p>Permanent TSB plc trading as PTSB is regulated by the Central Bank of Ireland.</p>
+      <p>&copy; 2026 PTSB.</p>
+    </div>
+  </footer>
+  <script>
+    window.SKIN = {
+      locale: 'en-IE', currency: 'EUR',
+      idle: 'Pay now', sending: 'Paying\u2026',
+      statusIdle: 'Check the details, then select Pay now.',
+      statusSending: 'Making your payment\u2026', statusDone: 'Payment made.',
+      availableLabel: 'Available', maxLabel: 'You can pay up to', toPlaceholder: 'Saved Payees and your own accounts',
+      chooseRecipient: 'Choose who to pay.', enterAmount: 'Enter an amount, for example 25.',
+      sameAccount: 'Choose a different account to pay to.',
+      tooMuch: 'That amount plus the fee is more than you have available. You can pay up to',
+      success: (at, amt, to, from, fee, ref) => `Payment made at ${at}. ${amt} to ${to} from your ${from} (fee ${fee}). Reference ${ref}.`,
+      duplicate: (at, amt, to, ref) => `This payment was already made at ${at}: ${amt} to ${to}, reference ${ref}. We didn't pay it twice.`,
+      failed: 'We couldn\u2019t make this payment. Nothing has left your account. Please try again in a moment.',
+      unconfirmed: 'We couldn\u2019t confirm this payment. Check your account activity before paying again, so it doesn\u2019t go twice.',
+    };
+  </script>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const S = window.SKIN;
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm');
+      const button = $('submitBtn');
+      const cancelBtn = $('cancelBtn');
+      const result = $('result');
+      const status = $('paymentStatus');
+      const fromAccount = $('fromAccount');
+      const toAccount = $('toAccount');
+      const amountInput = $('amount');
+      const accountTier = $('accountTier');
+      const timer = $('sendTimer');
+      const timerValue = $('sendTimerValue');
+      const fields = [fromAccount, toAccount, amountInput];
+      const money = new Intl.NumberFormat(S.locale, { style: 'currency', currency: S.currency });
+      const timeFmt = new Intl.DateTimeFormat(S.locale, { hour: '2-digit', minute: '2-digit' });
+      const FEE = { rate: 0.001, flat: 2.50 };
+      const balances = {};
+      Array.from(fromAccount.options).forEach((o) => { balances[o.value] = Number(o.dataset.balance) || 0; });
+      let pending = false;
+      let ticker = null;
+
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (select) => select.options[select.selectedIndex];
+      const available = () => balances[fromAccount.value] || 0;
+      const feeCents = (cents) => Math.round(Math.max(FEE.rate * cents, FEE.flat * 100));
+      function maxPayable() {
+        const avail = Math.round(available() * 100);
+        let max = Math.min(Math.floor(avail / (1 + FEE.rate)), avail - FEE.flat * 100);
+        while (max > 0 && max + feeCents(max) > avail) max -= 1;
+        return Math.max(max, 0) / 100;
+      }
+      function parsedAmount() {
+        const raw = amountInput.value.trim().replace(/,/g, '');
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return parseFloat(raw);
+      }
+      const recipient = () => (toAccount.value ? selected(toAccount) : null);
+      function renderBalances() {
+        document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = money.format(balances[el.dataset.balanceFor] || 0); });
+      }
+      function render() {
+        Array.from(toAccount.options).forEach((o) => { o.disabled = Boolean(o.value) && o.value === fromAccount.value; });
+        if (toAccount.selectedIndex >= 0 && toAccount.options[toAccount.selectedIndex].disabled) toAccount.value = '';
+        const from = selected(fromAccount);
+        const to = recipient();
+        const amount = parsedAmount();
+        accountTier.value = 'standard';
+        set('fromHelp', `${from.dataset.number} \u00b7 ${S.availableLabel} ${money.format(available())}`);
+        set('toHelp', to ? `${to.dataset.number}${to.dataset.ref ? ' \u00b7 ' + to.dataset.ref : ''}` : S.toPlaceholder);
+        set('amountHelp', `${S.maxLabel} ${money.format(maxPayable())}`);
+        set('sumFrom', from.dataset.name);
+        set('sumTo', to ? to.dataset.name : '\u2014');
+        set('sumRef', to && to.dataset.ref ? to.dataset.ref : '\u2014');
+        const ok = Number.isFinite(amount) && amount > 0;
+        set('sumAmount', ok ? money.format(amount) : '\u2014');
+        set('sumFee', ok ? money.format(feeCents(Math.round(amount * 100)) / 100) : '\u2014');
+        set('sumTotal', ok ? money.format((Math.round(amount * 100) + feeCents(Math.round(amount * 100))) / 100) : '\u2014');
+      }
+      function notice(message, focusEl) {
+        result.className = 'result-box notice';
+        result.textContent = message;
+        status.textContent = S.statusIdle;
+        if (focusEl) focusEl.focus();
+      }
+      function stopTimer(done) {
+        if (ticker) { clearInterval(ticker); ticker = null; }
+        if (timer) timer.className = done ? 'stopwatch on done' : 'stopwatch';
+      }
+
+      fromAccount.addEventListener('change', render);
+      toAccount.addEventListener('change', render);
+      amountInput.addEventListener('input', render);
+      const stepItems = Array.from(document.querySelectorAll('#steps li'));
+      const setStep = (n) => stepItems.forEach((li, i) => {
+        if (i === n) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+      });
+      form.addEventListener('reset', () => {
+        setTimeout(() => {
+          setStep(0);
+          toAccount.value = '';
+          fromAccount.selectedIndex = 0;
+          result.className = 'result-box';
+          result.textContent = '';
+          status.textContent = S.statusIdle;
+          stopTimer(false);
+          if (timerValue) timerValue.textContent = '0.0s';
+          renderBalances();
+          render();
+        });
+      });
+      renderBalances();
+      render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        const to = recipient();
+        const amount = parsedAmount();
+        if (!to) { notice(S.chooseRecipient, toAccount); return; }
+        if (toAccount.value === fromAccount.value) { notice(S.sameAccount, toAccount); return; }
+        if (!Number.isFinite(amount) || amount <= 0) { notice(S.enterAmount, amountInput); return; }
+        if (Math.round(amount * 100) > Math.round(maxPayable() * 100)) { notice(`${S.tooMuch} ${money.format(maxPayable())}.`, amountInput); return; }
+
+        pending = true;
+        button.disabled = true;
+        cancelBtn.disabled = true;
+        fields.forEach((el) => { el.disabled = true; });
+        button.textContent = S.sending;
+        status.textContent = S.statusSending;
+        result.className = 'result-box';
+        result.textContent = '';
+        setStep(0);
+        const started = performance.now();
+        const tick = () => { if (timerValue) timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        if (timer) { timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100); }
+        const fromId = fromAccount.value;
+        const toId = toAccount.value;
+        const fromName = selected(fromAccount).dataset.name;
+        const toName = to.dataset.name;
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick();
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const paid = Number(data.receipt.amount);
+          const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
+          if (data.duplicate) {
+            result.className = 'result-box notice';
+            result.textContent = S.duplicate(at, money.format(paid), toName, data.receipt.receiptId);
+            status.textContent = S.statusIdle;
+            stopTimer(true);
+            return;
+          }
+          balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+          if (toId !== fromId && Object.prototype.hasOwnProperty.call(balances, toId)) balances[toId] = Math.round((balances[toId] + paid) * 100) / 100;
+          renderBalances();
+          render();
+          result.className = 'result-box success';
+          result.textContent = S.success(at, money.format(paid), toName, fromName, money.format(Math.max(debited - paid, 0)), data.receipt.receiptId);
+          status.textContent = S.statusDone;
+          setStep(1);
+          stopTimer(true);
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok ? S.failed : S.unconfirmed;
+          status.textContent = S.statusIdle;
+        } finally {
+          fields.forEach((el) => { el.disabled = false; });
+          pending = false;
+          button.disabled = false;
+          cancelBtn.disabled = false;
+          button.textContent = S.idle;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
