@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const logger = require('../telemetry/logger');
 const {
   ALERT_SCENARIOS,
@@ -506,7 +507,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
         var failedMsg = ${JSON.stringify(r.failed)};
         origFetch(triggerUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-Oncall-Trigger-Token': localStorage.getItem('oncallTriggerToken') || '' },
           body: JSON.stringify(triggerBody),
         }).then(function (r) { return r.json(); }).then(function (d) {
           const el = document.getElementById('oncall-status');
@@ -630,6 +631,17 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
       unique, devinEmail, devinUserId, devinOrgId, skin, alertDestination,
     } = req.body || {};
     const skinConfig = getOncallSkin(skin);
+    if (skinConfig && skinConfig.devinSession && skinConfig.devinSession.pinIdentity) {
+      // Pinned skins create sessions as a fixed user: only a holder of the server-held token may trigger them.
+      const expected = process.env.ONCALL_PINNED_TRIGGER_TOKEN || '';
+      const given = String(req.get('x-oncall-trigger-token') || '');
+      const ok = expected && given.length === expected.length
+        && crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected));
+      if (!ok) {
+        logger.warn('On-Call trigger rejected — pinned-identity skin without valid trigger token', { skin: skinConfig.slug });
+        return res.status(403).json({ ok: false, error: 'Not authorized to start this session' });
+      }
+    }
     const skinMatches = Boolean(skinConfig && skinConfig.vertical === req.params.vertical);
     if (skinConfig && !skinMatches) {
       logger.warn('On-Call trigger skin/vertical mismatch — using generic alert', {
