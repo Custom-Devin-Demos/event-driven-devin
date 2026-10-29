@@ -391,7 +391,12 @@
         result.appendChild(h);
         result.appendChild(para('The road tax for ' + vehicleNo() + ' has been renewed until ' + p.getAttribute('data-expiry') + '.'));
         result.appendChild(para('Transaction no.: ' + (data.transferId || data.receiptId || '—')));
-        result.appendChild(para('Amount paid: ' + money(parseFloat(amountInput.value))));
+        var roadTax = parseFloat(amountInput.value);
+        var fee = parseFloat(data.fee);
+        var charged = parseFloat(data.debitAmount);
+        result.appendChild(para('Road tax: ' + money(roadTax)));
+        if (fee > 0) result.appendChild(para('Processing fee: ' + money(fee)));
+        result.appendChild(para('Total charged: ' + money(isFinite(charged) ? charged : roadTax)));
         var again = document.createElement('button');
         again.type = 'button';
         again.className = 'btn btn-secondary';
