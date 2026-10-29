@@ -72,11 +72,11 @@ const BRANDS = [
 const CATALOG = [
   { id: '246630-0-1', name: 'Monster Energy Zero Ultra 16 Fl Oz', meta: '16oz · 10 Cal', price: 4.09, badge: '4 for $11', temp: 'chilled', image: `${CDN}/246630-0-1/68b0d2de3c32f61bb36eefc062d5882e6d4f1ce0.png` },
   { id: '241278-0-1', name: 'Red Bull Energy Drink, 12 fl. oz. Can, 114mg Caffeine, Taurine & B Vitamins', meta: '12oz · 160 Cal', price: 4.99, badge: '2 for $7.50', temp: 'chilled', image: `${CDN}/241278-0-1/hsqjynjhq2u3zzymdu0y.jpg` },
-  { id: '190395-0-1', name: "Ben & Jerry's Half Baked Pint", meta: '1pt · 370 Cal', price: 9.29, badge: 'On Sale $7.49', temp: 'frozen', image: `${CDN}/190395-0-1/vmy5wwss294ix5w4sma7.jpg` },
+  { id: '190395-0-1', name: "Ben & Jerry's Half Baked Pint", meta: '1pt · 370 Cal', price: 7.49, wasPrice: 9.29, badge: 'On Sale $7.49', temp: 'frozen', image: `${CDN}/190395-0-1/vmy5wwss294ix5w4sma7.jpg` },
   { id: '140370-0-1', name: 'Gushers Tropical 4.25oz', meta: '4.25oz · 110 Cal', price: 3.69, temp: 'ambient', image: `${CDN}/140370-0-1/88390a14736268b5c9a3beb182561a74e6c8f69c.jpg` },
   { id: '300551-0-1', name: "Chester's Hot Fries 5.25oz", meta: '5.25oz · 150 Cal', price: 3.39, temp: 'ambient', image: `${CDN}/300551-0-1/xieqkvnqoidhphaptihh.jpg` },
   { id: '241945-0-1', name: 'Monster Energy, Original, Energy Drink, 16 Fl Oz', meta: '16oz · 230 Cal', price: 4.09, badge: '4 for $11', temp: 'chilled', image: `${CDN}/241945-0-1/d594ded1fca72833b7f5afcbee2863b4b49492ab.png` },
-  { id: '190003-0-1', name: 'Ben & Jerry’s Chocolate Fudge Brownie Pint', meta: '1pt · 350 Cal', price: 9.29, badge: 'On Sale $7.49', temp: 'frozen', image: `${CDN}/190003-0-1/ozu9urpfq84vozok3zay.jpg` },
+  { id: '190003-0-1', name: 'Ben & Jerry’s Chocolate Fudge Brownie Pint', meta: '1pt · 350 Cal', price: 7.49, wasPrice: 9.29, badge: 'On Sale $7.49', temp: 'frozen', image: `${CDN}/190003-0-1/ozu9urpfq84vozok3zay.jpg` },
   { id: '241342-0-1', name: 'Red Bull Sugarfree Energy Drink, 12 fl. oz. Can, 114mg Caffeine, Taurine & B Vitamins', meta: '12oz · 10 Cal', price: 4.99, badge: '2 for $7.50', temp: 'chilled', image: `${CDN}/241342-0-1/fnr7vw6p4fvsbmri0sb7.jpg` },
   { id: '178322-2-6-2', name: 'Large Pizza - Ultimate Pepperoni', meta: '1 Whole Pizza · 360 Cal', price: 7.99, wasPrice: 12.99, badge: 'On Sale $7.99', temp: 'hot', image: `${CDN}/178322-2-6-2/wghjlebnc3luzvgqmpvz.jpg` },
   { id: '673602-2-6-1', name: 'Large Pizza - Bibigo Korean BBQ', meta: '1 Whole Pizza', price: 11.99, temp: 'hot', image: `${CDN}/673602-2-6-1/ktlq1jvuyy4hkgmx0ehj.jpg` },
