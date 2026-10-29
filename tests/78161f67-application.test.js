@@ -103,3 +103,21 @@ describe('nursery application (78161f67)', () => {
     });
   });
 });
+
+describe('on-call latency track (78161f67)', () => {
+  const { getOncallSkin } = require('../config/oncall-skins');
+  const { ALERT_SCENARIOS, buildOncallSessionPrompt } = require('../app/services/oncall');
+
+  test('Devin prompt carries the e-application labels and the 障害報告書 instruction', () => {
+    const skin = getOncallSkin('78161f67');
+    expect(skin).toMatchObject({ vertical: 'hightech', locale: 'ja' });
+    expect(skin.alertDestination).toBeUndefined();
+    const prompt = buildOncallSessionPrompt(ALERT_SCENARIOS.hightech, skin, 'ref-1');
+    expect(prompt).toContain('p95レイテンシ上昇中 — 保育所入所申込（電子申請）');
+    expect(prompt).toContain('e-application@3.1.0');
+    expect(prompt).toContain('障害報告書');
+    expect(prompt).toContain('日本語で回答してください');
+    expect(prompt).toContain('POST /api/oncall/licenses/provision');
+    expect(prompt).not.toContain('novasoft');
+  });
+});

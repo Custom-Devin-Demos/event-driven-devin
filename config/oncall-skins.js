@@ -2996,6 +2996,11 @@ const ONCALL_SKINS = {
     alertCard: {
       title: 'p95レイテンシ上昇中 — 保育所入所申込（電子申請）',
       team: 'e-application-oncall',
+      // Display labels only: the request, monitor query and repro URL stay on
+      // the real hightech on-call endpoint so Devin's telemetry search works.
+      service: 'e-application-api',
+      endpointLabel: 'POST /api/oncall/licenses/provision（申請送信 API）',
+      release: 'e-application@3.1.0',
       metricValue: '6.8秒（上昇中）',
       threshold: '> 2秒',
       baseline: '~350ms（7日間p95）',
