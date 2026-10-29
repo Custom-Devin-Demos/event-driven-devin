@@ -192,9 +192,9 @@
     .totals > div { display: flex; justify-content: space-between; padding: 4px 0; }
     .totals .grand { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 12px; font-weight: 500; font-size: 15px; align-items: center; }
     .totals .grand label { font-family: var(--mono); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
-    .grand-amt { display: inline-flex; align-items: center; }
-    .totals .grand input { width: 96px; border: 0; padding: 0; background: transparent; text-align: right; font: 500 15px var(--sans); color: var(--ink); -moz-appearance: textfield; }
-    .totals .grand input::-webkit-outer-spin-button, .totals .grand input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .totals .amt { display: inline-flex; align-items: center; }
+    .totals input { width: 80px; border: 0; padding: 0; background: transparent; text-align: right; font: 400 13px var(--sans); color: var(--ink); -moz-appearance: textfield; }
+    .totals input::-webkit-outer-spin-button, .totals input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .summary .btn { width: 100%; margin-top: 18px; }
     .order-status { font-size: 12px; color: var(--muted); margin: 10px 0 0; text-align: center; }
     .fine { font-size: 11px; color: var(--muted); margin: 14px 0 0; }
@@ -252,7 +252,7 @@
                 <option value="ACCT-1006">Pick up in store · Ralph Lauren Madison Avenue</option>
               </select>
             </div>
-            <div class="ship-line"><span id="shipMethodLabel">Standard Delivery · 3–5 business days</span><span id="shipMethodPrice">Complimentary</span></div>
+            <div class="ship-line"><span id="shipMethodLabel">Standard Delivery · 3–5 business days</span><span id="shipMethodPrice">$0.00</span></div>
           </section>
           <section class="step" aria-labelledby="payHeading">
             <h2 id="payHeading"><span class="n">2</span>Payment</h2>
@@ -275,7 +275,6 @@
               <select id="accountTier">
                 <option value="standard" selected>Member</option>
                 <option value="basic">Member · Gift Wrap Included</option>
-                <option value="premium">Member · Priority Delivery</option>
               </select>
             </div>
             <p class="club" id="clubNote">Gift wrap available at the next step.</p>
@@ -317,9 +316,10 @@
           </ul>
           <div class="totals">
             <div><span>Subtotal</span><span id="subtotal">$0.00</span></div>
-            <div><span>Shipping</span><span id="shipping">Complimentary</span></div>
             <div><span>Estimated Tax</span><span id="tax">$0.00</span></div>
-            <div class="grand"><label for="amount">Total</label><span class="grand-amt">$<input type="number" id="amount" step="0.01" min="0" readonly></span></div>
+            <div><label for="amount">Merchandise &amp; Tax</label><span class="amt">$<input type="number" id="amount" step="0.01" min="0" readonly></span></div>
+            <div><span>Shipping &amp; Handling</span><span id="shipping">$0.00</span></div>
+            <div class="grand"><span>Total</span><span id="orderTotal">$0.00</span></div>
           </div>
           <button type="submit" id="submitBtn" class="btn">Place Order</button>
           <p class="order-status" id="orderStatus">Review your order before placing it.</p>
@@ -376,7 +376,10 @@
     const CLUB_NOTES = {
       standard: 'Gift wrap available at the next step.',
       basic: 'Gift wrap is included with your membership.',
-      premium: 'Priority Delivery is included with your membership.',
+    };
+    const HANDLING = {
+      standard: { rate: 0.001, flat: 2.5 },
+      basic: { rate: 0.002, flat: 4.99 },
     };
     function round2(n) { return Math.round(n * 100) / 100; }
     function renderSummary() {
@@ -391,14 +394,18 @@
       });
       subtotal = round2(subtotal);
       const pickup = toAccount.value === 'ACCT-1006';
-      const priority = accountTier.value === 'premium';
+      const handling = HANDLING[accountTier.value] || HANDLING.standard;
       const tax = round2(subtotal * TAX_RATE);
       const total = round2(subtotal + tax);
+      const fee = round2(Math.max(handling.rate * total, handling.flat));
       document.getElementById('subtotal').textContent = usd.format(subtotal);
       document.getElementById('tax').textContent = usd.format(tax);
       document.getElementById('shipMethodLabel').textContent = pickup
         ? 'Pick up in store · Ready in 2 hours'
-        : (priority ? 'Priority Delivery · 1–2 business days' : 'Standard Delivery · 3–5 business days');
+        : 'Standard Delivery · 3–5 business days';
+      document.getElementById('shipMethodPrice').textContent = usd.format(fee);
+      document.getElementById('shipping').textContent = usd.format(fee);
+      document.getElementById('orderTotal').textContent = usd.format(total + fee);
       document.getElementById('clubNote').textContent = CLUB_NOTES[accountTier.value] || CLUB_NOTES.standard;
       document.getElementById('bagCount').textContent = count;
       document.getElementById('bagItemsCount').textContent = count;
@@ -427,7 +434,6 @@
       if (button.disabled) return;
       renderSummary();
       const paymentLabel = fromAccount.options[fromAccount.selectedIndex].text;
-      const orderTotal = usd.format(parseFloat(amountInput.value));
       button.disabled = true;
       button.textContent = 'Placing Order…';
       status.textContent = '';
@@ -448,7 +454,7 @@
         });
         const data = await response.json();
         if (!response.ok || !data.receipt) throw new Error('Order could not be placed.');
-        show('success', 'Thank you, Claire. Your order is placed.', `Order ${data.receipt.receiptId} · ${orderTotal}, paid with ${paymentLabel}. A confirmation email is on its way.`);
+        show('success', 'Thank you, Claire. Your order is placed.', `Order ${data.receipt.receiptId} · ${usd.format(Number(data.receipt.totalDebit))}, paid with ${paymentLabel}. A confirmation email is on its way.`);
         status.textContent = 'Order placed.';
       } catch (_error) {
         show('error', 'We couldn’t place your order.', 'Please try again or contact Customer Service.');
