@@ -340,6 +340,27 @@ describe('on-call hub routes', () => {
     expect(english).not.toContain('日本語');
   });
 
+  test('the izzi skin serves its native 2P page in Spanish, reroutes contracting to the telco on-call path and pages the presenter as On Call', async () => {
+    const skin = getOncallSkin('6e7e7068');
+    expect(skin).toMatchObject({
+      vertical: 'telco', locale: 'es', alertDestination: 'slack', paths: ['/izzi-oncall'],
+      page: { file: '6e7e7068.html' },
+      devinSession: { auto: true, onCallIsTriggerer: true },
+    });
+    const [skinned, friendly] = await Promise.all([
+      fetch(`${baseUrl}/oncall/c/6e7e7068`),
+      fetch(`${baseUrl}/izzi-oncall`),
+    ]);
+    expect(skinned.status).toBe(200);
+    expect(friendly.status).toBe(200);
+    const html = await skinned.text();
+    expect(await friendly.text()).toEqual(html);
+    expect(html).toContain('<title>izzi Internet | Paquetes wifi</title>');
+    expect(html).toContain('/api/oncall/telco/upgrade');
+    expect(html).toContain('ESTE NO ES UN SITIO REAL DE IZZI');
+    expect(html).toContain("devinEmail: localStorage.getItem('devinEmail') || ''");
+  });
+
   test('the Egencia skin is served shimmed at its slug, friendly aliases and direct page URL, forcing Slack', async () => {
     const [skinned, alias, friendly, direct] = await Promise.all([
       fetch(`${baseUrl}/oncall/c/e7a1c4d9`),
