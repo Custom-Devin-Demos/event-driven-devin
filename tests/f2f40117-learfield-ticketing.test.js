@@ -16,6 +16,9 @@ const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const {
   placeOrder,
   getStorefront,
+  resetSeatLedger,
+  seatsRemaining,
+  SECTIONS,
   SECURITY_SESSION_DELAY_MS,
 } = require('../app/services/verticals/f2f40117');
 
@@ -41,6 +44,7 @@ describe('Learfield / Paciolan game-day ticketing (f2f40117)', () => {
     createSessionAndAlert.mockClear();
     scheduleSecuritySession.mockClear();
     Sentry.captureException.mockClear();
+    resetSeatLedger();
   });
 
   test('default Champions Club order fails on the unregistered priority release window', async () => {
@@ -117,6 +121,29 @@ describe('Learfield / Paciolan game-day ticketing (f2f40117)', () => {
     expect(scheduleSecuritySession).not.toHaveBeenCalled();
   });
 
+  test('mixed adult + youth tickets are priced per type', async () => {
+    const order = await placeOrder({
+      ...defaultOrder, sectionId: '320', quantities: { adult: 1, youth: 1 }, donationAmount: 0, deliveryMethod: 'will_call',
+    });
+    expect(order.lineItems).toEqual([
+      { priceType: 'adult', quantity: 1, unitPrice: 55, subtotal: 55 },
+      { priceType: 'youth', quantity: 1, unitPrice: 30, subtotal: 30 },
+    ]);
+    expect(order.quantity).toBe(2);
+    expect(order.totals.orderTotal).toBe(100.5);
+    expect(order.delivery.deliveryMethodId).toBe('will_call');
+  });
+
+  test('repeated orders receive distinct seats and availability counts down', async () => {
+    const first = await placeOrder({ ...defaultOrder, sectionId: '215' });
+    const second = await placeOrder({ ...defaultOrder, sectionId: '215' });
+    const ids = (order) => order.seats.map((seat) => `${seat.row}-${seat.seat}`);
+    expect(ids(first)).toEqual(['C-13', 'C-14']);
+    expect(ids(second)).toEqual(['C-15', 'C-16']);
+    expect(seatsRemaining('FB26-RIV', SECTIONS['215'])).toBe(41 - 4);
+    expect(getStorefront().sections.find((s) => s.sectionId === '215').available).toBe(37);
+  });
+
   test('youth pricing and no gift in the end zone', async () => {
     const order = await placeOrder({ ...defaultOrder, sectionId: '320', priceType: 'youth', quantity: 4, donationAmount: 0 });
     expect(order.totals).toEqual({
@@ -131,6 +158,10 @@ describe('Learfield / Paciolan game-day ticketing (f2f40117)', () => {
     [{ deliveryMethod: 'carrier_pigeon' }, 'INVALID_DELIVERY_METHOD'],
     [{ donationAmount: -5 }, 'INVALID_DONATION'],
     [{ sectionId: '101' }, 'PRIORITY_HOLD_NOT_MET'],
+    [{ eventId: 'MBB26-OPEN', sectionId: '215' }, 'SECTION_NOT_AT_VENUE'],
+    [{ donationAmount: 25001 }, 'INVALID_DONATION'],
+    [{ quantities: { adult: 1, vip: 1 } }, 'INVALID_PRICE_TYPE'],
+    [{ quantities: { adult: 0, youth: 0 } }, 'INVALID_QUANTITY'],
     [{ sectionId: '215', quantity: 7 }, 'PRIORITY_LIMIT_EXCEEDED'],
   ])('rejects %j with a 400 ValidationError and no alert', async (overrides, code) => {
     await expect(placeOrder({ ...defaultOrder, ...overrides })).rejects.toMatchObject({
@@ -145,5 +176,6 @@ describe('Learfield / Paciolan game-day ticketing (f2f40117)', () => {
     expect(storefront.account).toMatchObject({ accountId: 'CPS-4471028', donorTierLabel: 'Champions Circle', priorityPoints: 2860 });
     expect(storefront.sections.map((s) => s.sectionId)).toEqual(['101', '108', '215', '320']);
     expect(storefront.events[0].eventId).toBe('FB26-RIV');
+    expect(storefront.sections.find((s) => s.sectionId === '108').venue).toBe('Meridian Field at Thunderhawk Stadium');
   });
 });

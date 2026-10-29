@@ -67,8 +67,8 @@ const EVENTS = {
     date: '2026-11-10',
     time: '7:00 PM CT',
     venue: 'Harlan Fieldhouse',
-    status: 'on_sale',
-    statusLabel: 'On sale',
+    status: 'presale',
+    statusLabel: 'Donor presale opens Nov 1',
     gates: 'Doors open 5:30 PM',
   },
 };
@@ -79,6 +79,7 @@ const EVENTS = {
 const SECTIONS = {
   '108': {
     sectionId: '108',
+    venue: SCHOOL.venue,
     label: 'Section 108 — Champions Club Sideline',
     priceLevel: 'Champions Club Sideline',
     level: 'lower',
@@ -91,6 +92,7 @@ const SECTIONS = {
   },
   '101': {
     sectionId: '101',
+    venue: SCHOOL.venue,
     label: "Section 101 — Director's Circle (50-yard line)",
     priceLevel: "Director's Circle Sideline",
     level: 'lower',
@@ -103,6 +105,7 @@ const SECTIONS = {
   },
   '215': {
     sectionId: '215',
+    venue: SCHOOL.venue,
     label: 'Section 215 — Varsity Reserved (Upper Sideline)',
     priceLevel: 'Varsity Reserved',
     level: 'upper',
@@ -115,6 +118,7 @@ const SECTIONS = {
   },
   '320': {
     sectionId: '320',
+    venue: SCHOOL.venue,
     label: 'Section 320 — North End Zone Reserved',
     priceLevel: 'End Zone Reserved',
     level: 'upper',
@@ -186,6 +190,7 @@ const DELIVERY_METHODS = {
 const ORDER_FEE = 7.5;
 const MIN_QUANTITY = 1;
 const MAX_QUANTITY = 8;
+const MAX_DONATION = 25000;
 const PRIORITY_POINTS_PER_DOLLAR = 0.01; // 1 point per $100 given
 const SEAT_PRIORITY_POINTS = 2; // per ticket purchased
 
@@ -217,17 +222,43 @@ function roundMoney(value) {
   return Math.round(value * 100) / 100;
 }
 
-function assignSeats(section, quantity) {
-  const row = section.rows[0];
-  const start = Math.max(1, Math.floor(section.seatsPerRow / 2) - Math.floor(quantity / 2));
-  const seats = [];
-  for (let i = 0; i < quantity; i += 1) {
-    seats.push({ section: section.sectionId, row, seat: start + i });
-  }
-  return seats;
+// In-process seat ledger: seats confirmed since boot, keyed by event and section,
+// so repeated orders never receive the same seats and availability counts down.
+const SEAT_LEDGER = new Map();
+
+function ledgerFor(eventId, section) {
+  const key = `${eventId}:${section.sectionId}`;
+  if (!SEAT_LEDGER.has(key)) SEAT_LEDGER.set(key, new Set());
+  return SEAT_LEDGER.get(key);
 }
 
-function allocatePrioritySeats(account, section, quantity) {
+function seatsRemaining(eventId, section) {
+  return Math.max(0, section.available - ledgerFor(eventId, section).size);
+}
+
+function resetSeatLedger() {
+  SEAT_LEDGER.clear();
+}
+
+function assignSeats(eventId, section, quantity) {
+  const taken = ledgerFor(eventId, section);
+  const centre = Math.floor(section.seatsPerRow / 2);
+  const seats = [];
+  for (const row of section.rows) {
+    for (let start = Math.max(1, centre - Math.floor(quantity / 2)); start + quantity - 1 <= section.seatsPerRow; start += 1) {
+      const block = [];
+      for (let i = 0; i < quantity; i += 1) block.push(`${row}-${start + i}`);
+      if (block.every((id) => !taken.has(id))) {
+        block.forEach((id) => taken.add(id));
+        block.forEach((id, i) => seats.push({ section: section.sectionId, row, seat: start + i }));
+        return seats;
+      }
+    }
+  }
+  throw validationError(`No ${quantity} adjacent seats remain in ${section.label}`, 'SECTION_SOLD_OUT');
+}
+
+function allocatePrioritySeats(account, section, quantity, eventId = 'FB26-RIV') {
   const hold = resolvePriorityHold(section);
   const pointsFloor = hold.pointsFloor;
   const tier = DONOR_TIERS[account.donorTier];
@@ -242,16 +273,33 @@ function allocatePrioritySeats(account, section, quantity) {
       'PRIORITY_HOLD_NOT_MET',
     );
   }
-  if (quantity > section.available) {
-    throw validationError(`Only ${section.available} seats remain in ${section.label}`, 'SECTION_SOLD_OUT');
+  const remaining = seatsRemaining(eventId, section);
+  if (quantity > remaining) {
+    throw validationError(`Only ${remaining} seats remain in ${section.label}`, 'SECTION_SOLD_OUT');
   }
 
   return {
-    seats: assignSeats(section, quantity),
+    seats: assignSeats(eventId, section, quantity),
     holdLabel: hold.label,
     pointsFloor,
     releaseOrder: hold.releaseOrder,
   };
+}
+
+// Accepts either `{ quantities: { adult, youth } }` or the single-type
+// `{ priceType, quantity }` shape; returns per-type integer counts.
+function normaliseQuantities(data) {
+  const raw = data.quantities && typeof data.quantities === 'object'
+    ? data.quantities
+    : { [data.priceType]: data.quantity };
+  const counts = { adult: 0, youth: 0, valid: true };
+  for (const [type, value] of Object.entries(raw)) {
+    if (!PRICE_TYPES.includes(type)) { counts.valid = false; continue; }
+    if (value === undefined || value === null) continue;
+    if (!Number.isInteger(value) || value < 0) { counts.valid = false; continue; }
+    counts[type] = value;
+  }
+  return counts;
 }
 
 async function placeOrder(data) {
@@ -259,8 +307,9 @@ async function placeOrder(data) {
   const orderNumber = makeOrderNumber();
   const eventId = data.eventId;
   const sectionId = String(data.sectionId == null ? '' : data.sectionId);
-  const priceType = data.priceType;
-  const quantity = data.quantity;
+  const quantities = normaliseQuantities(data);
+  const quantity = quantities.adult + quantities.youth;
+  const priceType = quantities.adult > 0 ? 'adult' : 'youth';
   const deliveryMethodId = data.deliveryMethod;
   const donationAmount = data.donationAmount;
   const accountId = data.accountId;
@@ -274,19 +323,26 @@ async function placeOrder(data) {
   if (!event) throw validationError(`Unknown event: ${eventId || '(none)'}`, 'UNKNOWN_EVENT');
   if (!section) throw validationError(`Unknown section: ${sectionId || '(none)'}`, 'UNKNOWN_SECTION');
   if (!account) throw validationError('Please sign in to your ticket account to complete this purchase', 'ACCOUNT_REQUIRED');
-  if (!PRICE_TYPES.includes(priceType)) throw validationError('Price type is invalid', 'INVALID_PRICE_TYPE');
+  if (event.venue !== section.venue) {
+    throw validationError(`${section.label} is not part of the seating chart for ${event.venue}`, 'SECTION_NOT_AT_VENUE');
+  }
+  if (event.status === 'presale') throw validationError(`${event.title}: ${event.statusLabel}`, 'EVENT_NOT_ON_SALE');
+  if (!quantities.valid) throw validationError('Price type is invalid', 'INVALID_PRICE_TYPE');
   if (!Number.isInteger(quantity) || quantity < MIN_QUANTITY || quantity > MAX_QUANTITY) {
     throw validationError(`Quantity must be between ${MIN_QUANTITY} and ${MAX_QUANTITY}`, 'INVALID_QUANTITY');
   }
   if (!deliveryMethod) throw validationError('Delivery method is invalid', 'INVALID_DELIVERY_METHOD');
-  if (!Number.isFinite(donationAmount) || donationAmount < 0) {
-    throw validationError('Gift amount must be zero or greater', 'INVALID_DONATION');
+  if (!Number.isFinite(donationAmount) || donationAmount < 0 || donationAmount > MAX_DONATION) {
+    throw validationError(`Gift amount must be between $0 and $${MAX_DONATION.toLocaleString('en-US')}`, 'INVALID_DONATION');
   }
   const paymentMethod = account.paymentMethods[paymentMethodId];
   if (!paymentMethod) throw validationError('Select a payment method', 'INVALID_PAYMENT_METHOD');
 
   const unitPrice = section.prices[priceType];
-  const ticketSubtotal = roundMoney(unitPrice * quantity);
+  const lineItems = PRICE_TYPES
+    .filter((type) => quantities[type] > 0)
+    .map((type) => ({ priceType: type, quantity: quantities[type], unitPrice: section.prices[type], subtotal: roundMoney(section.prices[type] * quantities[type]) }));
+  const ticketSubtotal = roundMoney(lineItems.reduce((sum, item) => sum + item.subtotal, 0));
   const facilityFees = roundMoney(section.facilityFee * quantity);
   const orderTotal = roundMoney(ticketSubtotal + facilityFees + ORDER_FEE + deliveryMethod.fee + donationAmount);
 
@@ -311,7 +367,7 @@ async function placeOrder(data) {
   });
 
   try {
-    const allocation = allocatePrioritySeats(account, section, quantity);
+    const allocation = allocatePrioritySeats(account, section, quantity, eventId);
     const duration = Date.now() - startTime;
     const placedAt = new Date().toISOString();
     const pointsEarned = Math.round(donationAmount * PRIORITY_POINTS_PER_DOLLAR) + SEAT_PRIORITY_POINTS * quantity;
@@ -334,6 +390,7 @@ async function placeOrder(data) {
       priceType,
       quantity,
       unitPrice,
+      lineItems,
       seats: allocation.seats,
       priorityRelease: {
         label: allocation.holdLabel,
@@ -507,13 +564,14 @@ function getStorefront() {
     events: Object.values(EVENTS),
     sections: Object.values(SECTIONS).map((section) => ({
       sectionId: section.sectionId,
+      venue: section.venue,
       label: section.label,
       priceLevel: section.priceLevel,
       level: section.level,
       priorityHold: section.priorityHold,
       prices: section.prices,
       facilityFee: section.facilityFee,
-      available: section.available,
+      available: seatsRemaining('FB26-RIV', section),
     })),
     deliveryMethods: Object.values(DELIVERY_METHODS),
     orderFee: ORDER_FEE,
@@ -526,6 +584,9 @@ module.exports = {
   allocatePrioritySeats,
   resolvePriorityHold,
   getStorefront,
+  resetSeatLedger,
+  seatsRemaining,
+  MAX_DONATION,
   SCHOOL,
   EVENTS,
   SECTIONS,

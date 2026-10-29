@@ -19,6 +19,7 @@ router.post('/api/f2f40117/orders', async (req, res) => {
       sectionId: valueOrDefault('sectionId', '108'),
       priceType: valueOrDefault('priceType', 'adult'),
       quantity: valueOrDefault('quantity', 2),
+      quantities: body.quantities,
       deliveryMethod: valueOrDefault('deliveryMethod', 'mobile'),
       donationAmount: valueOrDefault('donationAmount', 100),
       accountId: valueOrDefault('accountId', 'CPS-4471028'),
