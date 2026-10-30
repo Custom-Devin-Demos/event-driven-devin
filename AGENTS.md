@@ -13,6 +13,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | Vertical | URL Path | Frontend | API Endpoint | Service File |
 |----------|----------|----------|--------------|-------------|
 | **Hub** (landing page) | `/` | `app/public/hub.html` | — | — |
+| **Netflix — Membership Signup** (unlisted — direct URL only) | `/ca610f30` | `app/public/verticals/ca610f30.html` | `POST /api/ca610f30/memberships` | `app/services/verticals/ca610f30.js` |
 | **Retail eCommerce** | `/retail` | `app/public/index.html` | `POST /api/storefront/checkout` | `app/routes/storefront.js` |
 | **Banking** | `/banking` | `app/public/verticals/banking.html` | `POST /api/banking/transfer` | `app/services/verticals/banking.js` |
 | **Financial Services** | `/financial-services` | `app/public/verticals/financial-services.html` | `POST /api/trading/execute` | `app/services/verticals/financial-services.js` |
