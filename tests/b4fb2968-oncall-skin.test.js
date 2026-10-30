@@ -70,6 +70,7 @@ describe('b4fb2968 Pomelo Care signup coverage-check on-call skin', () => {
     expect(html).toContain('const oncallApiPath = "/api/oncall/coveragecheck/coverage"');
     expect(html).toContain('const triggerWhen = {"insurer":"bcbs-tx"}');
     expect(html).toContain('var skinAlertDestination = "devin"');
+    expect(html).toMatch(/demo=1[\s\S]*state: 'TX'[\s\S]*check-coverage-insurance/);
     expect(html).not.toMatch(/<base |<script[^>]+src="https?:/);
   });
 

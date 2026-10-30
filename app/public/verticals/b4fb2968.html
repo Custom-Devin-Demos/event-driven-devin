@@ -541,6 +541,14 @@
     if (v.bind) v.bind();
     window.scrollTo(0, 0);
   }
+  // ?demo=1 skips the intake questions: pre-filled Texas member, straight to the insurer picker.
+  if (/[?&]demo=1(&|$)/.test(location.search)) {
+    state = { reason: 'midlife', symptoms: ['Address hot flashes'], topSymptom: 'Address hot flashes', email: 'jordan.lee@example.com', sms: false,
+      details: { firstName: 'Jordan', lastName: 'Lee', dob: '04/12/1979', zip: '78701', phone: '(512) 555-0142' }, state: 'TX', insurer: null };
+    save();
+    localStorage.setItem('pomeloDemoCookies', '1');
+    history.replaceState(null, '', location.pathname + '#/signup/perimenopause/check-coverage-insurance');
+  }
   window.addEventListener('hashchange', render);
   if (!location.hash) history.replaceState(null, '', '#/signup/reason-for-care');
   render();
