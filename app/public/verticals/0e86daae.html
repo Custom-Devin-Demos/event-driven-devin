@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banco Central de Costa Rica</title>
+  <link rel="icon" href="/verticals/assets/0e86daae/bccr-logo-transp.png">
+  <style>
+
+    :root {
+      --navy: #003764; --ink: #001221; --blue: #1D71B8; --line: #B3C3D1; --soft: #E8EEF4;
+      --orange: #E87722; --muted: #5B6B7A; --danger: #B42318; --success: #1E7B3C;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; color: var(--navy); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* header */
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 16px 10px; max-width: 1440px; margin: 0 auto; }
+    .topbar .logo img { height: 34px; display: block; }
+    .utils { display: flex; align-items: center; font-size: 14px; gap: 0; }
+    .utils .search { display: flex; align-items: center; gap: 6px; color: #8C99A5; margin-right: 18px; }
+    .utils .search svg { width: 20px; height: 20px; stroke: var(--navy); }
+    .utils a { padding: 0 8px; border-left: 1px solid #3FA34D; line-height: 16px; }
+    .utils a:first-of-type { border-left: none; }
+    .utils .dark { display: flex; align-items: center; gap: 6px; padding-left: 8px; border-left: 1px solid #3FA34D; font-size: 12px; }
+    .toggle { width: 36px; height: 20px; border-radius: 10px; background: var(--blue); position: relative; }
+    .toggle::after { content: ''; position: absolute; left: 3px; top: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+    nav.main { display: flex; justify-content: space-between; max-width: 1440px; margin: 0 auto; padding: 8px 6px 0; border-bottom: 3px solid #C9D6E2; }
+    nav.main a { flex: 1; text-align: center; font-size: 12px; font-weight: 700; padding: 10px 6px 12px; line-height: 1.2; display: flex; align-items: center; justify-content: center; }
+    nav.main a.active { color: var(--blue); }
+
+    /* hero */
+    .hero { position: relative; height: 146px; background: #0B3A68 url('/verticals/assets/0e86daae/hero-banner-los-campesinos.jpeg') right center / cover no-repeat; display: flex; align-items: center; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #003764 0%, rgba(0,55,100,0.92) 38%, rgba(0,55,100,0) 62%); }
+    .hero h1 { position: relative; color: #fff; font-size: 64px; font-weight: 700; padding: 0 16px; letter-spacing: -0.5px; }
+    .crumbs { display: flex; align-items: center; gap: 14px; font-size: 14px; padding: 14px 16px; max-width: 1440px; margin: 0 auto; }
+    .crumbs .sep { color: var(--orange); font-size: 13px; }
+    .crumbs .here { color: var(--blue); }
+
+    /* content */
+    main { max-width: 1112px; margin: 0 auto; padding: 0 0 64px; }
+    h2.title { font-size: 48px; font-weight: 700; text-align: center; margin: 26px 0 30px; color: var(--navy); }
+    .intro { font-size: 20px; line-height: 1.32; color: var(--ink); margin-bottom: 30px; }
+    .wrap { width: min(1112px, calc(100vw - 32px)); margin: 0 auto; }
+    h3.filtre { font-size: 22px; font-weight: 700; margin-bottom: 18px; }
+    .field label { display: block; font-size: 14px; color: var(--ink); margin-bottom: 7px; }
+    .control { position: relative; }
+    .control input, .control select { width: 100%; height: 46px; border: 1px solid var(--line); border-radius: 4px; padding: 10px 36px 10px 12px; font-size: 14px; font-family: inherit; color: var(--ink); background: #fff; appearance: none; -webkit-appearance: none; outline: none; }
+    .control input::placeholder { color: #8C99A5; }
+    .control input:focus, .control select:focus { border-color: var(--blue); }
+    .control svg { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; pointer-events: none; stroke: var(--navy); fill: none; }
+    .control input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0; position: absolute; right: 0; width: 40px; height: 100%; cursor: pointer; }
+    .row-search { width: min(360px, 100%); margin-bottom: 20px; }
+    .row-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 270px)); gap: 24px; margin-bottom: 16px; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .card { border: 1px solid #EEF1F4; border-radius: 4px; box-shadow: 0 1px 4px rgba(0, 18, 33, 0.08); padding: 20px 18px 18px; display: flex; flex-direction: column; min-height: 236px; background: #fff; }
+    .card .ico { width: 54px; height: 54px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; margin-bottom: 16px; }
+    .card .ico svg { width: 26px; height: 26px; stroke: var(--blue); fill: none; }
+    .card h4 { font-size: 20px; font-weight: 700; line-height: 1.17; color: var(--navy); margin-bottom: 5px; }
+    .card .date { font-size: 12px; font-weight: 700; color: var(--ink); }
+    .card .date span { font-weight: 700; }
+    .card .actions { margin-top: auto; padding-top: 14px; display: flex; justify-content: flex-end; }
+    .btn-dl { width: 220px; height: 42px; border: 1px solid var(--blue); border-radius: 4px; background: #fff; color: var(--blue); font-size: 16px; font-weight: 700; }
+    .btn-dl:hover { background: var(--blue); color: #fff; }
+    .btn-dl[disabled] { opacity: 0.6; cursor: wait; }
+    .card .err { display: none; margin-top: 10px; border-left: 3px solid var(--danger); background: #FDF2F1; padding: 10px 12px; font-size: 14px; line-height: 1.4; color: var(--ink); }
+    .card .err strong { color: var(--danger); display: block; margin-bottom: 2px; }
+    .card .err code { font-size: 12px; color: var(--muted); }
+    .card.failed .err { display: block; }
+    .empty { grid-column: 1 / -1; text-align: center; color: var(--muted); font-size: 15px; padding: 40px 0; }
+
+    .pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 28px; font-size: 14px; font-weight: 700; color: var(--ink); flex-wrap: wrap; }
+    .pager .pages { display: flex; align-items: center; gap: 4px; }
+    .pager .pg { min-width: 32px; height: 32px; border: none; background: none; font-size: 14px; color: var(--blue); font-weight: 400; }
+    .pager .pg.cur { color: var(--ink); font-weight: 700; }
+    .pager .arrow { border: none; background: none; width: 22px; height: 22px; display: grid; place-items: center; }
+    .pager .arrow svg { width: 14px; height: 14px; stroke: var(--navy); fill: none; }
+    .pager .arrow[disabled] svg { stroke: #B3C3D1; }
+    .pager input { width: 70px; height: 32px; border: 1px solid var(--line); border-radius: 3px; font-size: 14px; padding: 0 6px; }
+    .pager .go { height: 32px; padding: 0 12px; background: var(--blue); color: #fff; border: none; border-radius: 2px; font-size: 14px; font-weight: 700; }
+    .pager select { height: 32px; border: 1px solid var(--line); border-radius: 3px; font-size: 14px; padding: 0 4px; color: var(--ink); background: #fff; }
+
+    footer { border-top: 2px solid #C9D6E2; margin-top: 20px; }
+    .foot { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 0.8fr 1fr; gap: 24px; padding: 40px 26px 30px; font-size: 13px; color: var(--ink); }
+    .foot h5 { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+    .foot p { line-height: 1.6; margin-bottom: 6px; }
+    .foot .links { border-left: 2px solid #C9D6E2; padding-left: 18px; display: flex; flex-direction: column; gap: 26px; justify-content: center; }
+    .foot .links a { color: var(--blue); font-weight: 700; text-decoration: underline; font-size: 15px; }
+    .gmo { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--navy); }
+    .gmo span.ball { width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 0 3px, #111 4px); border: 2px solid var(--blue); }
+    .bottom { background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 13px; }
+    .bottom .l { display: flex; align-items: center; gap: 14px; }
+    .bottom img { height: 18px; }
+    .bottom .soc { display: flex; gap: 30px; }
+    .bottom .soc svg { width: 18px; height: 18px; stroke: #fff; fill: none; }
+
+    
+    /* homepage */
+    .hero { height: 330px; background: #04122B url('/verticals/assets/0e86daae/hero-centro-atencion.png') center / cover no-repeat; display: block; }
+    .hero::before { background: linear-gradient(90deg, rgba(0,18,33,0.85) 0%, rgba(0,18,33,0.55) 40%, rgba(0,18,33,0) 65%); }
+    .hero .in { position: relative; max-width: 1440px; margin: 0 auto; padding: 92px 16px 0; color: #fff; }
+    .hero h1 { font-size: 40px; padding: 0; margin-bottom: 12px; }
+    .hero p { font-size: 18px; line-height: 1.35; max-width: 520px; margin-bottom: 22px; }
+    .hero .cta { display: inline-block; background: #fff; color: var(--blue); font-weight: 700; font-size: 15px; padding: 10px 44px; border-radius: 4px; }
+    .dots { display: flex; justify-content: flex-end; align-items: center; gap: 14px; max-width: 1440px; margin: 0 auto; padding: 12px 16px; }
+    .dots i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--navy); display: block; }
+    .dots i.on { background: var(--navy); }
+    .dots svg { width: 14px; height: 14px; stroke: var(--navy); fill: none; }
+    section.ind { max-width: 1440px; margin: 0 auto; padding: 18px 16px 44px; }
+    section.ind h2 { font-size: 36px; font-weight: 700; text-align: center; color: var(--navy); margin: 8px 0 28px; }
+    .ind-row { display: grid; grid-template-columns: repeat(5, 1fr); }
+    .ind-card { text-align: center; padding: 6px 16px 10px; border-left: 1px solid #C9D6E2; }
+    .ind-card:first-child { border-left: none; }
+    .ind-card .v { font-size: 34px; font-weight: 700; color: var(--blue); margin-bottom: 12px; }
+    .ind-card .t { font-size: 14px; line-height: 1.35; color: var(--ink); min-height: 56px; }
+    .ind-card .t small { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .ind-card a { display: inline-block; color: var(--blue); font-size: 14px; font-weight: 700; margin-top: 4px; }
+    .ind-actions { display: flex; justify-content: space-between; max-width: 1112px; margin: 26px auto 0; gap: 16px; }
+    .btn-out, .btn-fill { height: 40px; padding: 0 22px; border-radius: 4px; font-size: 14px; font-weight: 700; border: 1px solid var(--blue); }
+    .btn-out { background: #fff; color: var(--blue); }
+    .btn-fill { background: var(--blue); color: #fff; }
+
+    .tc { max-width: 1112px; margin: 34px auto 0; border: 1px solid #E1E8EF; border-radius: 6px; box-shadow: 0 1px 6px rgba(0,18,33,0.08); padding: 26px 28px 24px; background: #fff; }
+    .tc h3 { font-size: 24px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .tc .sub { font-size: 14px; line-height: 1.45; color: var(--ink); margin-bottom: 20px; }
+    .tc form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) 220px; gap: 20px; align-items: end; }
+    .tc button#submitBtn { height: 46px; border: none; border-radius: 4px; background: var(--blue); color: #fff; font-size: 16px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+    .tc button#submitBtn:hover { background: var(--navy); }
+    .tc button#submitBtn[disabled] { opacity: 0.75; cursor: wait; }
+    .spin { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.45); border-top-color: #fff; border-radius: 50%; animation: sp 0.8s linear infinite; display: none; }
+    .busy .spin { display: inline-block; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+    .tc .note { font-size: 12px; color: var(--muted); margin-top: 14px; }
+    #result { display: none; margin-top: 20px; }
+    #result.show { display: block; }
+    #result.err { border-left: 4px solid var(--danger); background: #FDF2F1; padding: 14px 16px; font-size: 14px; line-height: 1.45; color: var(--ink); }
+    #result.err strong { display: block; color: var(--danger); font-size: 16px; margin-bottom: 4px; }
+    #result.err code { font-size: 12px; color: var(--muted); }
+    #result.ok .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    #result.ok .box { border: 1px solid #C9D6E2; border-radius: 4px; padding: 16px; text-align: center; }
+    #result.ok .box b { display: block; font-size: 30px; color: var(--blue); margin-bottom: 6px; }
+
+    section.news { background: #F4F7FA; padding: 46px 16px 54px; text-align: center; }
+    section.news h2 { font-size: 40px; font-weight: 700; color: var(--navy); margin-bottom: 18px; }
+    section.news > p { font-size: 15px; line-height: 1.5; color: var(--ink); max-width: 760px; margin: 0 auto 18px; }
+    .news-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 800px; margin: 26px auto 0; text-align: left; }
+    .news-card { background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,18,33,0.1); overflow: hidden; }
+    .news-card .img { height: 170px; background: #0B3A68 url('/verticals/assets/0e86daae/banner-politica-monetaria.jpg') center / cover; }
+    .news-card .img.b { background-position: right center; filter: hue-rotate(20deg); }
+    .news-card .bd { padding: 16px 16px 20px; }
+    .news-card h4 { font-size: 17px; color: var(--navy); margin-bottom: 6px; line-height: 1.25; }
+    .news-card .d { font-size: 11px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .news-card p { font-size: 13px; line-height: 1.45; color: var(--ink); }
+    .foot .hours p { line-height: 1.5; }
+    @media (max-width: 900px) {
+      .utils > a, .utils .dark { display: none; }
+      .logo img { height: 34px; width: auto; }
+      nav.main { justify-content: flex-start; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      nav.main a { flex: 0 0 auto; padding-left: 10px; padding-right: 10px; }
+      .foot { grid-template-columns: 1fr; padding: 28px 18px 24px; }
+      .foot .links { border-left: none; padding-left: 0; gap: 14px; }
+      .ind-row { grid-template-columns: 1fr 1fr; row-gap: 22px; }
+      .ind-card:nth-child(odd) { border-left: none; }
+      .tc form { grid-template-columns: 1fr; }
+      .news-grid { grid-template-columns: 1fr; }
+      .hero .in { padding-top: 60px; }
+      .ind-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <a class="logo" href="#"><img src="/verticals/assets/0e86daae/bccr-logo-transp.png" alt="Banco Central de Costa Rica"></a>
+      <div class="utils">
+        <div class="search">Buscar <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="7"/><path d="M16 16l5 5"/></svg></div>
+        <a href="#">EN</a><a href="#">Suscripciones</a><a href="#">Preguntas Frecuentes</a>
+        <div class="dark"><div class="toggle"></div><span>Modo Oscuro</span></div>
+      </div>
+    </div>
+    <nav class="main">
+      <a href="#">Pol&iacute;tica Monetaria</a><a href="#">R&eacute;gimen<br>Cambiario</a><a href="#">Sistema de Pagos</a>
+      <a href="#">Billetes y<br>Monedas</a><a href="#">Noticias</a><a href="#">Indicadores<br>Econ&oacute;micos</a>
+      <a href="#">Publicaciones</a><a href="#">Investigaciones<br>Econ&oacute;micas</a>
+      <a href="#">Transparencia<br>Institucional</a><a href="#">Sobre Banco<br>Central</a>
+    </nav>
+  </header>
+  <section class="hero"><div class="in">
+    <h1>Nuevo Centro de Atenci&oacute;n</h1>
+    <p>Una nueva plataforma para atenderle y brindarle soluciones con agilidad, seguridad y confianza.</p>
+    <a class="cta" href="#">Ingrese aqu&iacute;</a>
+  </div></section>
+  <div class="dots"><svg viewBox="0 0 24 24" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg><i class="on"></i><i></i><i></i><svg viewBox="0 0 24 24" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg></div>
+
+  <main style="max-width:none;padding:0">
+  <section class="ind">
+    <h2>Indicadores econ&oacute;micos m&aacute;s consultados</h2>
+    <div class="ind-row">
+      <div class="ind-card"><div class="v">&#8353;450,80</div><div class="t">Por un d&oacute;lar EUA. Tipo de cambio de referencia de compra del BCCR.</div><a href="#tipo-cambio">Ver cuadro</a></div>
+      <div class="ind-card"><div class="v">&#8353;455,44</div><div class="t">Por un d&oacute;lar EUA. Tipo de cambio de referencia de venta del BCCR.</div><a href="#tipo-cambio">Ver cuadro</a></div>
+      <div class="ind-card"><div class="v">$1,12</div><div class="t">Por euro</div><a href="#">Ver cuadro</a></div>
+      <div class="ind-card"><div class="v">3,00%</div><div class="t">Tasa de pol&iacute;tica monetaria</div><a href="#">Ver cuadro</a></div>
+      <div class="ind-card"><div class="v">3,56%</div><div class="t">Tasa b&aacute;sica pasiva</div><a href="#">Ver cuadro</a></div>
+    </div>
+
+    <div class="tc" id="tipo-cambio">
+      <h3>Tipo de cambio de referencia</h3>
+      <p class="sub">Consulte el tipo de cambio de referencia de compra y de venta del d&oacute;lar de los Estados Unidos de Am&eacute;rica que calcula y publica el Banco Central de Costa Rica para cada d&iacute;a h&aacute;bil.</p>
+      <form id="claimForm" novalidate>
+        <div class="field"><label for="fecha">Fecha</label><div class="control"><input type="date" id="fecha"></div></div>
+        <div class="field"><label for="moneda">Moneda</label><div class="control"><select id="moneda"><option>D&oacute;lar EUA (USD)</option><option>Euro (EUR)</option></select><svg viewBox="0 0 24 24" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div></div>
+        <div class="field"><label for="tipo">Tipo</label><div class="control"><select id="tipo"><option>Compra y venta</option><option>Compra</option><option>Venta</option></select><svg viewBox="0 0 24 24" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div></div>
+        <button type="submit" id="submitBtn"><span class="spin"></span><span id="submitLabel">Consultar</span></button>
+        <select id="policyId" hidden aria-hidden="true" tabindex="-1"><option value="POL-5002" selected>POL-5002</option></select>
+        <select id="claimType" hidden aria-hidden="true" tabindex="-1"><option value="weather" selected>weather</option></select>
+        <input type="number" id="amount" value="1" hidden aria-hidden="true" tabindex="-1">
+      </form>
+      <div id="result" role="status" aria-live="polite"></div>
+      <p class="note">Fuente: Banco Central de Costa Rica, Indicadores econ&oacute;micos. Tipo de cambio aplicable a partir de las 00:00 del d&iacute;a indicado.</p>
+    </div>
+
+    <div class="ind-actions"><button class="btn-out" type="button">Ver tipos de cambio en ventanilla</button><button class="btn-fill" type="button">Ver todos los indicadores</button></div>
+  </section>
+
+  <section class="news">
+    <h2>Noticias</h2>
+    <p>Aqu&iacute; encontrar&aacute; las &uacute;ltimas actualizaciones, comunicados de prensa y novedades del Banco Central de Costa Rica. Mant&eacute;ngase informado sobre los eventos y anuncios m&aacute;s relevantes que impactan la econom&iacute;a nacional.</p>
+    <button class="btn-fill" type="button">Ver todas las noticias</button>
+    <div class="news-grid">
+      <div class="news-card"><div class="img"></div><div class="bd"><h4>Informe mensual de coyuntura econ&oacute;mica para octubre del 2026</h4><div class="d">29 de octubre del 2026</div><p>En este informe el Banco Central de Costa Rica (BCCR) hace un an&aacute;lisis de la coyuntura al mes de octubre del 2026, de la producci&oacute;n, empleo, salarios, comercio exterior, finanzas p&uacute;blicas y mercados cambiario y financiero.</p></div></div>
+      <div class="news-card"><div class="img b"></div><div class="bd"><h4>Tasa B&aacute;sica Pasiva y Tasa Efectiva en D&oacute;lares</h4><div class="d">29 de octubre del 2026</div><p>La Tasa B&aacute;sica Pasiva (TBP) se mantiene en 3,56% y la Tasa Efectiva en D&oacute;lares (TED) se ubic&oacute; en 3,05%, ambas a partir del jueves 29 de octubre de 2026.</p></div></div>
+    </div>
+  </section>
+  </main>
+  <footer>
+    <div class="foot">
+      <div><h5>Horario</h5><p>Atenci&oacute;n presencial<br>de lunes a viernes de 9 a. m. a 4 p. m.</p><p>Central telef&oacute;nica: +506 2243-3333<br>de lunes a viernes de 9 a. m. a 5 p. m.</p></div>
+      <div><h5>&iquest;D&oacute;nde encontrarnos?</h5><p>Direcci&oacute;n: avenidas central y 1, calles 2 y 4,<br>San Jos&eacute;.</p><p>Apartado postal: 10058-1000</p></div>
+      <div><div class="gmo"><span class="ball"></span>GMO GlobalSign<br>secure</div></div>
+      <div class="links"><a href="#">Enlaces de inter&eacute;s</a><a href="#">Mapa del sitio</a><a href="#">Pol&iacute;ticas del sitio web</a></div>
+    </div>
+    <div class="bottom">
+      <div class="l"><img src="/verticals/assets/0e86daae/logo-bccr.svg" alt="Banco Central de Costa Rica"><span>&reg; 2026</span></div>
+      <div class="soc">
+        <svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="12" r="9.5"/><path d="M13 20v-7h2.5l.4-2.8H13V8.6c0-.8.3-1.4 1.4-1.4H16V4.8c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.7v1.8H8V13h2.2v7"/></svg>
+        <svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7.5 10v7M7.5 7v.01M11 17v-7M11 13a3 3 0 0 1 6 0v4"/></svg>
+        <svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="12" r="9.5"/><path d="M10 9l5 3-5 3z"/></svg>
+        <svg viewBox="0 0 24 24" stroke-width="1.6"><path d="M4 4l16 16M20 4L4 20"/></svg>
+      </div>
+    </div>
+  </footer>
+  <script>
+    window.identityReady = (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId'))
+      ? Promise.resolve()
+      : fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+  </script>
+  <script>
+    (function () {
+      const form = document.getElementById('claimForm');
+      const button = document.getElementById('submitBtn');
+      const label = document.getElementById('submitLabel');
+      const result = document.getElementById('result');
+      const fecha = document.getElementById('fecha');
+      const now = new Date();
+      fecha.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+      function fechaLarga(v) {
+        const d = new Date(v + 'T12:00:00');
+        return isNaN(d) ? v : d.toLocaleDateString('es-CR', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+      function show(kind, html) { result.className = 'show ' + kind; result.innerHTML = html; }
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (!fecha.value) { show('err', '<strong>Seleccione una fecha</strong>Indique el d&iacute;a que desea consultar.'); return; }
+        result.className = ''; result.innerHTML = '';
+        button.disabled = true; button.classList.add('busy'); label.textContent = 'Consultando\u2026';
+        try {
+          await Promise.race([window.identityReady, new Promise(function (r) { setTimeout(r, 2000); })]);
+          const response = await fetch('/api/insurance/claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              policyId: document.getElementById('policyId').value,
+              claimType: document.getElementById('claimType').value,
+              amount: parseFloat(document.getElementById('amount').value),
+              description: 'Tipo de cambio de referencia ' + fecha.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(function () { return {}; });
+          if (!response.ok || !data.success) {
+            const err = new Error('consulta'); err.status = response.status; err.ref = data.requestId || ''; throw err;
+          }
+          show('ok', '<div class="pair"><div class="box"><b>&#8353;450,80</b>Compra &middot; ' + fechaLarga(fecha.value) + '</div><div class="box"><b>&#8353;455,44</b>Venta &middot; ' + fechaLarga(fecha.value) + '</div></div>');
+        } catch (e) {
+          show('err', '<strong>Tipo de cambio no disponible</strong>El servicio de indicadores econ&oacute;micos no respondi&oacute; a tiempo. No fue posible obtener el tipo de cambio de referencia del ' + fechaLarga(fecha.value) + '. Intente de nuevo en unos minutos.' +
+            '<br><code>' + (e.status ? 'HTTP ' + e.status : 'Sin respuesta') + (e.ref ? ' &middot; Ref. ' + String(e.ref).slice(0, 8) : '') + '</code>');
+        } finally {
+          button.disabled = false; button.classList.remove('busy'); label.textContent = 'Consultar';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
