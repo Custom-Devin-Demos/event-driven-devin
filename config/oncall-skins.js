@@ -6975,6 +6975,17 @@ const ONCALL_SKINS = {
     supportCenter: 'OneMotoring Contact Us',
     disclaimer: 'NOT ACTUALLY A LAND TRANSPORT AUTHORITY SITE — internal demo only, not affiliated with, endorsed by, or a real Land Transport Authority (LTA) or OneMotoring product.',
   },
+  '1764949d': {
+    slug: '1764949d',
+    company: 'Bank Hapoalim',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: {
+      file: '1764949d.html',
+      title: 'בנק הפועלים - לא רק פועלים, יוזמים.',
+    },
+    disclaimer: 'NOT ACTUALLY A BANK HAPOALIM SITE — internal demo only, not affiliated with, endorsed by, or a real Bank Hapoalim product.',
+  },
   '2d98fac9': {
     slug: '2d98fac9',
     company: 'Accenture',
