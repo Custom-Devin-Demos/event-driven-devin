@@ -7259,6 +7259,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A RAIFFEISEN BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Raiffeisen Bank product.',
   },
+  'd36d1b65': {
+    slug: 'd36d1b65',
+    company: 'The New York Times',
+    vertical: 'telco',
+    page: { file: 'd36d1b65.html', title: 'The New York Times: Digital and Home Delivery Subscriptions' },
+    disclaimer: 'NOT ACTUALLY A NEW YORK TIMES SITE — internal demo only, not affiliated with, endorsed by, or a real New York Times product.',
+  },
 };
 
 function getOncallSkin(slug) {
