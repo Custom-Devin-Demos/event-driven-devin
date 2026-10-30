@@ -171,7 +171,7 @@
   </main>
 
   <div class="scrim" id="scrim"></div>
-  <aside class="panel" id="panel" aria-labelledby="panelTitle" aria-hidden="true">
+  <aside class="panel" id="panel" aria-labelledby="panelTitle" aria-hidden="true" inert>
     <div class="panel-head">
       <h2 id="panelTitle">Click &amp; Collect</h2>
       <button type="button" id="closePanel" aria-label="Close"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 1l14 14M15 1L1 15"/></svg></button>
@@ -282,6 +282,12 @@
       var bagCount = document.getElementById('bagCount');
       var filter = 'all';
       var inFlight = false;
+      var lastFocus = null;
+      var collector = document.getElementById('collector');
+
+      function escapeHtml(v) {
+        return String(v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+      }
 
       function imgTag(w, alt) {
         return '<img src="' + IMG + w.img + '.png" alt="' + (alt ? w.title + ' ' + w.desc : '') + '" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;ph&quot;>J12</div>\'">';
@@ -344,13 +350,18 @@
 
       function openPanel(ref) {
         if (ref && !inFlight) { select(ref); resetResult(); }
+        lastFocus = document.activeElement;
+        panel.inert = false;
         panel.classList.add('open'); scrim.classList.add('open');
         panel.setAttribute('aria-hidden', 'false');
         document.getElementById('closePanel').focus();
       }
       function closePanel() {
+        if (!panel.classList.contains('open')) return;
         panel.classList.remove('open'); scrim.classList.remove('open');
         panel.setAttribute('aria-hidden', 'true');
+        panel.inert = true;
+        if (lastFocus && lastFocus.focus) lastFocus.focus();
       }
 
       grid.addEventListener('click', function (e) {
@@ -370,6 +381,7 @@
         submitLabel.textContent = 'Confirming your order';
         result.innerHTML = '<p class="pending">Reserving your piece at the boutique\u2026</p>';
         var w = byRef[toAccount.value];
+        var collectorName = collector.value.trim();
         try {
           var res = await fetch('/api/banking/transfer', {
             method: 'POST',
@@ -387,7 +399,7 @@
           var data = await res.json();
           if (!res.ok || !data.success) throw new Error('order failed');
           var orderNo = String(data.transferId || '').replace(/[^A-Za-z0-9-]/g, '').slice(-8).toUpperCase();
-          result.innerHTML = '<div class="ok"><strong>Order confirmed</strong>Your ' + w.title + ' (Ref. ' + w.ref + ') is reserved at 173 New Bond Street. Order number ' + orderNo + '. We will email you when it is ready to collect.</div>';
+          result.innerHTML = '<div class="ok"><strong>Order confirmed</strong>Your ' + w.title + ' (Ref. ' + w.ref + ') is reserved at 173 New Bond Street' + (collectorName ? ' for ' + escapeHtml(collectorName) : '') + '. Order number ' + orderNo + '. We will email you when it is ready to collect.</div>';
           submitLabel.textContent = 'Order confirmed';
           btn.classList.add('done');
         } catch (err) {
