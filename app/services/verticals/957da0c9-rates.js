@@ -44,6 +44,20 @@ const RATE_TABLES = Object.freeze({
   },
 });
 
+function rateTableKey(ratingBasis) {
+  return String(ratingBasis || '').trim().replace(/[-_\s]+([a-z0-9])/gi, (_, c) => c.toUpperCase());
+}
+
+function rateTableFor(ratingBasis) {
+  const table = RATE_TABLES[rateTableKey(ratingBasis)];
+  if (!table) {
+    const error = new Error(`No rate table for rating basis '${ratingBasis}'`);
+    error.name = 'RateTableNotFoundError';
+    throw error;
+  }
+  return table;
+}
+
 function bandFor(table, age) {
   return table.bands.find((b) => age <= b.maxAge) || table.bands[table.bands.length - 1];
 }
@@ -55,4 +69,4 @@ function monthlyPremium(table, { age, coverage, tobacco }) {
   return Math.round(band.rate * units * load * 100) / 100;
 }
 
-module.exports = { RATE_TABLES, bandFor, monthlyPremium };
+module.exports = { RATE_TABLES, rateTableKey, rateTableFor, bandFor, monthlyPremium };

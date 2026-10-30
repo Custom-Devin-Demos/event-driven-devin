@@ -4,7 +4,7 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 const { resolveProduct } = require('./957da0c9-products');
-const { RATE_TABLES, monthlyPremium } = require('./957da0c9-rates');
+const { rateTableFor, monthlyPremium } = require('./957da0c9-rates');
 
 const CUSTOMER = '957da0c9';
 const ROUTE = '/api/957da0c9/quotes';
@@ -33,7 +33,7 @@ function normalizeApplicant(input) {
 }
 
 function buildQuote(product, applicant) {
-  const table = RATE_TABLES[product.ratingBasis];
+  const table = rateTableFor(product.ratingBasis);
   const premium = monthlyPremium(table, applicant);
   return {
     quoteId: `GQ-${uuidv4().slice(0, 8).toUpperCase()}`,
