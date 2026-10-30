@@ -47,6 +47,7 @@
     .plans-col { width: 350px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
     .plan { position: relative; display: flex; flex-direction: column; align-items: flex-start; width: 350px; min-height: 113px; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: 12px; color: var(--black); cursor: pointer; text-align: left; }
     .plan.is-selected { border-color: var(--ink-strong); }
+    .plan.is-owned { opacity: .5; cursor: not-allowed; }
     .plan-tag { position: absolute; top: 0; right: 0; display: flex; align-items: center; gap: 4px; padding: 7px 9px 4px; background: var(--tag-bg); color: var(--muted); border-radius: 0 12px 0 6px; font-size: 11px; font-weight: 500; line-height: 13.75px; letter-spacing: 1.1px; text-transform: uppercase; }
     .plan-tag svg { display: block; fill: currentColor; }
     .plan-head { display: flex; align-items: center; gap: 8px; }
@@ -218,6 +219,7 @@
               <select id="currentPlan">
                 <option value="BASIC-12" selected>Basic Digital Access</option>
                 <option value="PLUS-24">Games</option>
+                <option value="ULTRA-36">Cooking</option>
                 <option value="FAMILY-PLUS-12">The Athletic</option>
               </select>
             </div>
@@ -405,6 +407,23 @@
           newPlan.value = card.getAttribute('data-plan');
         });
       });
+      var currentPlan = document.getElementById('currentPlan');
+      function syncCurrentPlan() {
+        Array.prototype.forEach.call(plans, function (card) {
+          var input = card.querySelector('input');
+          var owned = card.getAttribute('data-plan') === currentPlan.value;
+          input.disabled = owned;
+          card.classList.toggle('is-owned', owned);
+          if (owned && input.checked) {
+            var other = Array.prototype.filter.call(plans, function (c) { return c !== card; })[0];
+            var otherInput = other.querySelector('input');
+            otherInput.checked = true;
+            otherInput.dispatchEvent(new Event('change'));
+          }
+        });
+      }
+      currentPlan.addEventListener('change', syncCurrentPlan);
+      syncCurrentPlan();
     })();
   </script>
   <script>
@@ -429,6 +448,11 @@
       const result = document.getElementById('result');
       const planSelect = document.getElementById('newPlan');
       const planLabel = planSelect.options[planSelect.selectedIndex] ? planSelect.options[planSelect.selectedIndex].text : 'All Access';
+      if (document.getElementById('currentPlan').value === planSelect.value) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">You already have this subscription</div>';
+        return;
+      }
       btn.disabled = true; btn.textContent = 'Processing...';
       result.className = 'result-box';
       try {
