@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transfer | Zelle® | Bank of America</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #E31837; --red-dark: #C41230;
+      --navy: #012169; --navy-dark: #001A57; --blue: #0053C2; --blue-dark: #0D1BA7;
+      --ink: #000000; --body: #333333; --muted: #646464; --line: #D5D5D5; --line-soft: #EDEDED; --bg-soft: #F5F5F5;
+      --success: #2E7D32; --success-bg: #EAF5EA; --notice: #8A6D1A; --notice-bg: #FFF8E1; --warn: #B3261E; --warn-bg: #FDECEA;
+      --sans: 'Roboto', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+      --heading: 'Source Sans 3', Arial, Helvetica, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--sans); color: var(--body); background: #fff; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button, input, select { font-family: inherit; font-size: inherit; }
+    .wrap { max-width: 1440px; margin: 0 auto; padding: 0 24px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* FDIC bar */
+    .fdic { background: var(--bg-soft); font-size: 12px; color: var(--ink); }
+    .fdic .wrap { height: 32px; display: flex; align-items: center; justify-content: center; gap: 8px; font-style: italic; }
+    .fdic b { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700; color: var(--navy); font-size: 13px; letter-spacing: .4px; }
+    @media (max-width: 600px) { .fdic .wrap { font-size: 10px; gap: 5px; text-align: center; } .fdic .wrap span:first-child { display: none; } }
+
+    /* Masthead */
+    .masthead .wrap { height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--navy); font-family: var(--heading); font-weight: 700; font-size: 20px; letter-spacing: 1.6px; text-transform: uppercase; white-space: nowrap; }
+    .brand:hover { text-decoration: none; }
+    .brand .mark { width: 34px; height: 34px; border-radius: 4px; background: var(--navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; letter-spacing: 0; position: relative; overflow: hidden; flex: none; }
+    .brand .mark::after { content: ''; position: absolute; right: -6px; bottom: -6px; width: 18px; height: 18px; background: var(--red); transform: rotate(45deg); }
+    .util { display: flex; align-items: center; gap: 22px; font-size: 14px; }
+    .util .greet { color: var(--body); }
+    .util a { color: var(--muted); }
+    .util .inbox { display: inline-flex; align-items: center; gap: 5px; }
+    .util .badge { background: var(--red); color: #fff; border-radius: 10px; font-size: 11px; font-weight: 700; padding: 0 6px; line-height: 18px; }
+    .btn-logout { background: #fff; color: var(--navy); border: 1px solid var(--navy); border-radius: 22px; height: 36px; padding: 0 20px; font-weight: 500; font-size: 14px; cursor: pointer; }
+    .btn-logout:hover { background: #F0F4FB; }
+    @media (max-width: 760px) { .util a:not(.inbox) { display: none; } .util { gap: 14px; } }
+    @media (max-width: 600px) { .masthead .wrap { height: 60px; } .util .greet { display: none; } .brand { font-size: 15px; letter-spacing: 1px; } .brand .mark { width: 30px; height: 30px; font-size: 17px; } .btn-logout { padding: 0 12px; } }
+
+    /* Primary nav */
+    .tabs { background: #fff; border-bottom: 1px solid var(--line); }
+    .tabs .wrap { display: flex; overflow-x: auto; scrollbar-width: none; }
+    .tabs .wrap::-webkit-scrollbar { display: none; }
+    .tabs a { color: var(--body); font-family: var(--heading); font-size: 20px; font-weight: 400; padding: 0 16px; height: 54px; display: inline-flex; align-items: center; white-space: nowrap; flex: none; }
+    .tabs a:hover { color: var(--navy); text-decoration: none; }
+    .tabs a.on { color: var(--navy); position: relative; }
+    .tabs a.on::after { content: ''; position: absolute; left: 16px; right: 16px; bottom: -1px; height: 3px; background: var(--navy); }
+
+    /* Sub tabs (Transfer | Zelle) */
+    .subtabs { border-bottom: 1px solid var(--line); background: #fff; }
+    .subtabs .wrap { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+    .subtabs a { color: var(--blue); font-size: 15px; padding: 0 14px; height: 46px; display: inline-flex; align-items: center; border-bottom: 3px solid transparent; white-space: nowrap; flex: none; }
+    .subtabs a.on { color: var(--navy); font-weight: 500; border-bottom-color: var(--navy); }
+    .subtabs a:hover { text-decoration: none; border-bottom-color: var(--line); }
+    .subtabs a.on:hover { border-bottom-color: var(--navy); }
+
+    /* Layout */
+    .page { padding: 28px 0 56px; background: var(--bg-soft); }
+    .page .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+    @media (max-width: 960px) { .page .wrap { grid-template-columns: 1fr; } }
+    h1 { font-family: var(--heading); font-weight: 400; font-size: 36px; color: var(--ink); line-height: 1.2; margin-bottom: 6px; }
+    .lede { color: var(--muted); font-size: 15px; margin-bottom: 20px; }
+
+    .card { background: #fff; border: 0; border-radius: 12px; box-shadow: 0 2px 20px rgba(0,0,0,0.12); overflow: hidden; }
+    .card-head { padding: 14px 18px; border-bottom: 1px solid var(--line-soft); font-family: var(--heading); font-weight: 700; font-size: 18px; color: var(--navy); }
+    .card-body { padding: 18px; }
+
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+    .field .hint { display: block; font-size: 13px; color: var(--muted); margin-top: 5px; }
+    .control { position: relative; }
+    .field select, .field input { width: 100%; height: 44px; border: 1px solid var(--muted); border-radius: 4px; background: #fff; color: var(--ink); padding: 0 12px; font-size: 16px; appearance: none; -webkit-appearance: none; }
+    .field select { padding-right: 40px; }
+    .control.select::after { content: ''; position: absolute; right: 14px; top: 50%; width: 9px; height: 9px; border-right: 2px solid var(--navy); border-bottom: 2px solid var(--navy); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+    .control.money::before { content: '$'; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink); font-size: 16px; }
+    .control.money input { padding-left: 26px; }
+    .field select:focus, .field input:focus { outline: 2px solid var(--blue); outline-offset: 1px; border-color: var(--blue); }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .row2 { grid-template-columns: 1fr; } }
+    .balance-line { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); margin-top: 6px; }
+    .balance-line b { color: var(--ink); font-weight: 500; }
+
+    .actions { display: flex; align-items: center; gap: 18px; margin-top: 8px; flex-wrap: wrap; }
+    .btn-primary { background: var(--navy); color: #fff; border: 1px solid var(--navy); border-radius: 22px; height: 44px; padding: 0 28px; font-size: 20px; font-weight: 500; cursor: pointer; min-width: 160px; }
+    .btn-primary:hover { background: var(--navy-dark); border-color: var(--navy-dark); }
+    .btn-primary:disabled { opacity: .65; cursor: progress; }
+    .btn-link { background: none; border: 0; color: var(--blue); font-size: 15px; cursor: pointer; padding: 10px 4px; min-height: 44px; }
+    .btn-link:hover { text-decoration: underline; }
+
+    .result-box { display: none; margin-top: 18px; padding: 14px 16px; border-radius: 4px; border-left: 4px solid var(--line); background: var(--bg-soft); font-size: 15px; }
+    .result-box.pending { display: block; border-left-color: var(--notice); background: var(--notice-bg); color: var(--ink); }
+    .result-box.success { display: block; border-left-color: var(--success); background: var(--success-bg); color: var(--ink); }
+    .result-box.error { display: block; border-left-color: var(--warn); background: var(--warn-bg); color: var(--ink); }
+    .result-box .title { font-weight: 700; margin-bottom: 2px; }
+    .result-box .detail { font-size: 14px; color: var(--body); }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(0,0,0,0.15); border-top-color: var(--navy); border-radius: 50%; vertical-align: -2px; margin-right: 8px; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .summary dl { display: grid; grid-template-columns: 1fr auto; gap: 10px 16px; font-size: 14px; }
+    .summary dt { color: var(--muted); white-space: nowrap; }
+    .summary dd { text-align: right; color: var(--ink); font-weight: 500; }
+    .summary .total { grid-column: 1 / -1; border-top: 1px solid var(--line-soft); padding-top: 10px; display: flex; justify-content: space-between; font-weight: 700; color: var(--ink); }
+
+    .side .card + .card { margin-top: 16px; }
+    .side ul { list-style: none; }
+    .side li { padding: 8px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
+    .side li:last-child { border-bottom: 0; }
+    .side p { font-size: 14px; color: var(--body); }
+    .zelle { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--navy); font-size: 15px; margin-bottom: 6px; }
+    .zelle i { width: 26px; height: 26px; border-radius: 6px; background: #6D1ED4; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-weight: 700; font-size: 15px; }
+
+    .activity { margin-top: 24px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-weight: 700; color: var(--ink); background: var(--bg-soft); padding: 10px 18px; border-bottom: 1px solid var(--line); }
+    td { padding: 12px 18px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+    td.amt, th.amt { text-align: right; white-space: nowrap; }
+    .status { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--success-bg); color: var(--success); }
+    @media (max-width: 600px) { th:nth-child(3), td:nth-child(3) { display: none; } th, td { padding-left: 12px; padding-right: 12px; } }
+
+    /* Footer */
+    .disclosures { background: var(--bg-soft); border-top: 1px solid var(--line); padding: 20px 0 24px; font-size: 13px; color: var(--body); }
+    .disclosures .grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #8a8a8a; margin: 8px 0 16px; }
+    .disclosures .grid div { padding: 14px 10px; text-align: center; font-weight: 700; color: var(--muted); border-right: 1px solid #8a8a8a; border-bottom: 1px solid #8a8a8a; font-size: 14px; }
+    .disclosures .grid div:nth-child(3n) { border-right: 0; }
+    .disclosures .grid div:nth-child(n+4) { border-bottom: 0; }
+    @media (max-width: 600px) { .disclosures .grid { grid-template-columns: 1fr; } .disclosures .grid div { border-right: 0; border-bottom: 1px solid #8a8a8a; } .disclosures .grid div:last-child { border-bottom: 0; } }
+    .disclosures p { margin-bottom: 10px; }
+    footer { background: #fff; color: var(--muted); border-top: 1px solid var(--line); padding: 26px 0 30px; font-size: 14px; }
+    .foot-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 0; }
+    .foot-links a { color: var(--blue); padding: 6px 12px; border-right: 1px solid var(--line); line-height: 1; }
+    .foot-links a:last-child { border-right: 0; }
+    .connect { text-align: center; margin-top: 22px; }
+    .connect h4 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+    .socials { display: flex; justify-content: center; gap: 22px; }
+    .socials span { width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+    .legal { text-align: center; margin-top: 22px; font-size: 13px; line-height: 1.7; }
+    .legal a { color: var(--blue); text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="fdic"><div class="wrap"><span>Bank of America deposit products:</span><b>FDIC</b><span>FDIC-Insured - Backed by the full faith and credit of the U.S. Government</span></div></div>
+
+  <header class="masthead">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Bank of America home"><span class="mark" aria-hidden="true">B</span>Bank of America</a>
+      <nav class="util" aria-label="Account utilities">
+        <span class="greet">Hello, Jordan</span>
+        <a class="inbox" href="#">Inbox <span class="badge">2</span></a>
+        <a href="#">Profile &amp; Settings</a>
+        <a href="#">Help &amp; Support</a>
+        <button type="button" class="btn-logout">Log Out</button>
+      </nav>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Online Banking">
+    <div class="wrap">
+      <a href="#">Accounts</a>
+      <a href="#" class="on" aria-current="page">Pay &amp; Transfer</a>
+      <a href="#">Bill Pay</a>
+      <a href="#">Card Management</a>
+      <a href="#">Planning</a>
+      <a href="#">Security Center</a>
+    </div>
+  </nav>
+  <nav class="subtabs" aria-label="Pay &amp; Transfer">
+    <div class="wrap">
+      <a href="#" class="on" aria-current="page">Transfer | Zelle&reg;</a>
+      <a href="#">Bill Pay</a>
+      <a href="#">Wire</a>
+      <a href="#">Activity</a>
+      <a href="#">Scheduled transfers</a>
+    </div>
+  </nav>
+
+  <main class="page">
+    <div class="wrap">
+      <section>
+        <h1>Transfer between my accounts</h1>
+        <p class="lede">Transfers between your Bank of America accounts made before 11:59 p.m. ET are credited the same business day.</p>
+
+        <div class="card">
+          <div class="card-head">Make a transfer</div>
+          <div class="card-body">
+            <form id="transferForm" novalidate>
+              <div class="row2">
+                <div class="field">
+                  <label for="fromAccount">From</label>
+                  <div class="control select">
+                    <select id="fromAccount">
+                      <option value="ACCT-1001" data-name="Advantage Plus Banking" data-last4="1234" data-balance="2015.83">Advantage Plus Banking - 1234 ($2,015.83)</option>
+                      <option value="ACCT-1002" data-name="Advantage Savings" data-last4="9876" data-balance="12480.40">Advantage Savings - 9876 ($12,480.40)</option>
+                    </select>
+                  </div>
+                  <div class="balance-line"><span>Available balance</span><b id="fromBalance">$2,015.83</b></div>
+                </div>
+                <div class="field">
+                  <label for="toAccount">To</label>
+                  <div class="control select">
+                    <select id="toAccount">
+                      <option value="ACCT-1002" data-name="Advantage Savings" data-last4="9876" data-balance="12480.40">Advantage Savings - 9876</option>
+                      <option value="ACCT-1001" data-name="Advantage Plus Banking" data-last4="1234" data-balance="2015.83">Advantage Plus Banking - 1234</option>
+                    </select>
+                  </div>
+                  <div class="balance-line"><span>Available balance</span><b id="toBalance">$12,480.40</b></div>
+                </div>
+              </div>
+              <div class="row2">
+                <div class="field">
+                  <label for="amount">Amount</label>
+                  <div class="control money"><input type="number" id="amount" value="250.00" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+                  <span class="hint">Transfers are limited to your available balance.</span>
+                </div>
+                <div class="field">
+                  <label for="accountTier">Account tier</label>
+                  <div class="control select">
+                    <select id="accountTier">
+                      <option value="standard">Advantage Plus (standard)</option>
+                      <option value="premium">Preferred Rewards Platinum</option>
+                      <option value="basic">Advantage SafeBalance</option>
+                    </select>
+                  </div>
+                  <span class="hint">Determines fee waivers and transfer limits for this account.</span>
+                </div>
+              </div>
+              <div class="actions">
+                <button type="submit" class="btn-primary" id="submitBtn">Transfer now</button>
+                <button type="button" class="btn-link" id="cancelBtn">Cancel</button>
+              </div>
+            </form>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="card activity">
+          <div class="card-head">Recent transfers</div>
+          <table>
+            <thead><tr><th>Date</th><th>Description</th><th>Status</th><th class="amt">Amount</th></tr></thead>
+            <tbody>
+              <tr><td>Oct 18</td><td>Advantage Plus Banking - 1234 to Advantage Savings - 9876</td><td><span class="status">Completed</span></td><td class="amt">$300.00</td></tr>
+              <tr><td>Oct 4</td><td>Advantage Plus Banking - 1234 to Advantage Savings - 9876</td><td><span class="status">Completed</span></td><td class="amt">$300.00</td></tr>
+              <tr><td>Sep 27</td><td>Advantage Savings - 9876 to Advantage Plus Banking - 1234</td><td><span class="status">Completed</span></td><td class="amt">$1,200.00</td></tr>
+              <tr><td>Sep 20</td><td>Advantage Plus Banking - 1234 to Advantage Savings - 9876</td><td><span class="status">Completed</span></td><td class="amt">$300.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="side">
+        <div class="card summary">
+          <div class="card-head">Transfer summary</div>
+          <div class="card-body">
+            <dl>
+              <dt>From</dt><dd id="sumFrom">Advantage Plus Banking - 1234</dd>
+              <dt>To</dt><dd id="sumTo">Advantage Savings - 9876</dd>
+              <dt>Amount</dt><dd id="sumAmount">$250.00</dd>
+              <dt>Transfer fee</dt><dd id="sumFee">$2.50</dd>
+              <dt>Total debit</dt><dd id="sumDebit">$252.50</dd>
+              <div class="total"><span>Remaining in from account</span><span id="sumRemaining">$1,763.33</span></div>
+            </dl>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">Scheduled transfers</div>
+          <div class="card-body">
+            <ul>
+              <li>Nov 1 &middot; $300.00 to Advantage Savings - 9876 &middot; Monthly</li>
+              <li>Nov 15 &middot; $150.00 to Advantage Savings - 9876 &middot; Monthly</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="zelle"><i>Z</i>Send money with Zelle&reg;</div>
+            <p>Send money to friends and family using their email address or U.S. mobile number. Money is typically available in minutes.</p>
+            <p style="margin-top:10px"><a href="#">Send money</a></p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <section class="disclosures">
+    <div class="wrap">
+      <p>Investment and insurance products:</p>
+      <div class="grid">
+        <div>Are Not FDIC Insured</div><div>Are Not Bank Guaranteed</div><div>May Lose Value</div>
+        <div>Are Not Deposits</div><div>Are Not Insured by Any Federal Government Agency</div><div>Are Not a Condition to Any Banking Service or Activity</div>
+      </div>
+      <p><a href="#">Online Banking Service Agreement</a></p>
+      <p>Transfers between your eligible Bank of America accounts are subject to the Online Banking Service Agreement. Transfers scheduled after the daily cutoff time or on a non-business day are processed the next business day.</p>
+      <p>Banking, credit card, automobile loans, mortgage and home equity products are provided by Bank of America, N.A. and affiliated banks, Members FDIC and wholly owned subsidiaries of Bank of America Corporation. Credit and collateral are subject to approval. Terms and conditions apply. This is not a commitment to lend. Programs, rates, terms and conditions are subject to change without notice.</p>
+    </div>
+  </section>
+  <footer>
+    <div class="wrap">
+      <nav class="foot-links" aria-label="Footer">
+        <a href="#">Locations</a><a href="#">Contact Us</a><a href="#">Help &amp; Support</a><a href="#">Browse with Specialist</a><a href="#">Accessible Banking</a><a href="#">Privacy</a><a href="#">Children's Privacy</a><a href="#">Security</a><a href="#">Online Banking Service Agreement</a><a href="#">AdChoices</a><a href="#">Your Privacy Choices</a><a href="#">Site Map</a><a href="#">Careers</a><a href="#">Share Your Feedback</a><a href="#">View Full Online Banking Site</a>
+      </nav>
+      <div class="connect">
+        <h4>Connect with us</h4>
+        <div class="socials" aria-hidden="true"><span>f</span><span>ig</span><span>in</span><span>p</span><span>x</span><span>yt</span></div>
+      </div>
+      <div class="legal">
+        Bank of America, N.A. Member FDIC. <a href="#">Equal Housing Lender</a><br>
+        &copy; 2026 Bank of America Corporation. All rights reserved.<br>
+        <a href="#">Patent: patents.bankofamerica.com</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('transferForm');
+      var fromSel = document.getElementById('fromAccount');
+      var toSel = document.getElementById('toAccount');
+      var amountEl = document.getElementById('amount');
+      var tierSel = document.getElementById('accountTier');
+      var btn = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      var pendingTimer = null;
+
+      function money(n) { return '$' + Number(n.toFixed(2)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+      function opt(sel) { return sel.options[sel.selectedIndex]; }
+      function label(sel) { var o = opt(sel); return o.dataset.name + ' - ' + o.dataset.last4; }
+      function amountValue() { var v = parseFloat(amountEl.value); return isNaN(v) ? 0 : v; }
+      /* Mirrors the transfer service's fee schedule: max(rate * amount, flat). */
+      var FEE_SCHEDULE = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.50 }, basic: { rate: 0.002, flat: 4.99 } };
+      function feeFor(amt) { var t = FEE_SCHEDULE[tierSel.value] || FEE_SCHEDULE.standard; return Math.max(t.rate * amt, t.flat); }
+
+      function renderSummary() {
+        var from = opt(fromSel), to = opt(toSel), amt = amountValue();
+        document.getElementById('fromBalance').textContent = money(parseFloat(from.dataset.balance));
+        document.getElementById('toBalance').textContent = money(parseFloat(to.dataset.balance));
+        document.getElementById('sumFrom').textContent = label(fromSel);
+        document.getElementById('sumTo').textContent = label(toSel);
+        var fee = feeFor(amt);
+        document.getElementById('sumAmount').textContent = money(amt);
+        document.getElementById('sumFee').textContent = money(fee);
+        document.getElementById('sumDebit').textContent = money(amt + fee);
+        document.getElementById('sumRemaining').textContent = money(parseFloat(from.dataset.balance) - amt - fee);
+      }
+      [fromSel, toSel, amountEl, tierSel].forEach(function (el) { el.addEventListener('input', renderSummary); el.addEventListener('change', renderSummary); });
+      renderSummary();
+
+      function show(kind, title, detail) {
+        result.className = 'result-box ' + kind;
+        result.innerHTML = '<div class="title"></div><div class="detail"></div>';
+        result.firstChild.textContent = title;
+        result.lastChild.textContent = detail || '';
+        if (kind === 'pending') result.firstChild.insertAdjacentHTML('afterbegin', '<span class="spinner" aria-hidden="true"></span>');
+      }
+      function clearResult() { if (pendingTimer) clearTimeout(pendingTimer); pendingTimer = null; result.className = 'result-box'; result.innerHTML = ''; }
+
+      document.getElementById('cancelBtn').addEventListener('click', function () { form.reset(); clearResult(); renderSummary(); });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var amt = amountValue();
+        var fromOpt = opt(fromSel);
+        if (fromSel.value === toSel.value) { show('error', 'Choose two different accounts.', 'The from and to accounts must be different.'); return; }
+        if (!(amt > 0)) { show('error', 'Enter an amount to transfer.', ''); amountEl.focus(); return; }
+        if (amt + feeFor(amt) > parseFloat(fromOpt.dataset.balance)) { show('error', 'Amount plus transfer fee exceeds your available balance.', 'Available in ' + label(fromSel) + ': ' + money(parseFloat(fromOpt.dataset.balance)) + '. Transfer fee: ' + money(feeFor(amt)) + '.'); amountEl.focus(); return; }
+
+        btn.disabled = true; btn.textContent = 'Transferring\u2026';
+        clearResult();
+        show('pending', 'Processing your transfer\u2026', '');
+        pendingTimer = setTimeout(function () {
+          show('pending', 'Your transfer is taking longer than usual.', 'We\u2019ll let you know when it\u2019s complete. You don\u2019t need to submit it again.');
+        }, 2500);
+        try {
+          var res = await fetch('/api/banking/transfer', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromSel.value,
+              toAccount: toSel.value,
+              amount: parseFloat(amountEl.value),
+              accountTier: tierSel.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (pendingTimer) clearTimeout(pendingTimer);
+          if (!res.ok) {
+            show('error', 'We couldn\u2019t complete your transfer right now.', 'No money has moved. Please try again in a few minutes.');
+          } else {
+            var ref = String(data.transferId || '').replace(/-/g, '').slice(0, 10).toUpperCase();
+            var fee = parseFloat(data.fee), debit = parseFloat(data.debitAmount);
+            var feeCopy = !isNaN(fee) && !isNaN(debit) ? ' Transfer fee ' + money(fee) + '; total debit ' + money(debit) + '.' : '';
+            show('success', 'Transfer complete', money(amt) + ' moved from ' + label(fromSel) + ' to ' + label(toSel) + (ref ? '. Confirmation number ' + ref + '.' : '.') + feeCopy);
+          }
+        } catch (err) {
+          if (pendingTimer) clearTimeout(pendingTimer);
+          show('error', 'We couldn\u2019t complete your transfer right now.', 'Please check your connection and try again.');
+        } finally {
+          pendingTimer = null;
+          btn.disabled = false; btn.textContent = 'Transfer now';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
