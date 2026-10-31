@@ -6367,7 +6367,7 @@ const ONCALL_SKINS = {
       impact: 'Customers moving money between their own accounts sit on "Your transfer is taking longer than usual" for ~10 seconds; some select Transfer now again and call about duplicate transfers.',
     },
     theme: {
-      '--accent': '#E31837',
+      '--accent': '#012169',
       '--ink': '#333333',
       '--surface': '#ffffff',
       '--chrome-bg': '#012169',
