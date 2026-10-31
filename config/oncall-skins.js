@@ -6341,6 +6341,41 @@ const ONCALL_SKINS = {
     supportCenter: 'Bank of America Support',
     disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
   },
+  'd97ac514': {
+    slug: 'd97ac514',
+    company: 'Bank of America',
+    brandMark: 'B',
+    vertical: 'banking',
+    oncallOnly: true,
+    paths: ['/bofa-transfer-oncall'],
+    // Slack-routed: the Slack on-call responder triages the card, so no
+    // devinSession.auto (it would double-trigger).
+    alertDestination: 'slack',
+    // Only standard-tier transfers degrade; Preferred Rewards Platinum
+    // (premium) is the healthy path and posts nothing.
+    triggerWhen: { accountTier: 'standard' },
+    page: { file: 'd97ac514.html', title: 'Transfer | Zelle\u00ae | Bank of America' },
+    alertCard: {
+      title: 'p95 latency spike \u2014 Transfer between my accounts',
+      service: 'transfers-api',
+      release: 'olb-transfers@26.10.2',
+      team: 'digital-payments-oncall',
+      metricValue: '9.6s',
+      threshold: '> 1.5s',
+      baseline: '~280ms (7-day p95, before olb-transfers@26.10.2)',
+      symptom: 'Transfer now on Pay & Transfer hangs ~10s before the confirmation is shown for Advantage Plus checking customers. Error rate is normal \u2014 the transfer completes. Preferred Rewards Platinum transfers are unaffected.',
+      impact: 'Customers moving money between their own accounts sit on "Your transfer is taking longer than usual" for ~10 seconds; some select Transfer now again and call about duplicate transfers.',
+    },
+    theme: {
+      '--accent': '#E31837',
+      '--ink': '#333333',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#012169',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Bank of America Support',
+    disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
+  },
   'c26633a1': {
     slug: 'c26633a1',
     company: 'Chewy',
