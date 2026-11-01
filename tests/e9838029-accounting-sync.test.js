@@ -195,6 +195,8 @@ describe('Capital on Tap accounting sync', () => {
       { business: 'a'.repeat(121) },
       { business: 'Surewood Timber Co.', destination: 'sage' },
       { business: 'Surewood Timber Co.', scope: 'c0000' },
+      { business: 'Surewood Timber Co.', scope: '' },
+      { business: 'Surewood Timber Co.', destination: '' },
     ];
 
     for (const body of invalidRequests) {

@@ -223,8 +223,8 @@ async function runAccountingSync(data = {}) {
     business: requestData.business === undefined || requestData.business === null
       ? 'Surewood Timber Co.'
       : String(requestData.business).trim(),
-    destination: String(requestData.destination || 'quickbooks').trim().toLowerCase(),
-    scope: String(requestData.scope || 'all').trim().toLowerCase(),
+    destination: String(requestData.destination === undefined ? 'quickbooks' : requestData.destination).trim().toLowerCase(),
+    scope: String(requestData.scope === undefined ? 'all' : requestData.scope).trim().toLowerCase(),
   };
 
   validateSyncRequest(normalized);
