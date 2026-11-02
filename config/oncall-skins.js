@@ -6341,6 +6341,41 @@ const ONCALL_SKINS = {
     supportCenter: 'Bank of America Support',
     disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
   },
+  'd97ac514': {
+    slug: 'd97ac514',
+    company: 'Bank of America',
+    brandMark: 'B',
+    vertical: 'banking',
+    oncallOnly: true,
+    paths: ['/bofa-transfer-oncall'],
+    // Slack-routed: the Slack on-call responder triages the card, so no
+    // devinSession.auto (it would double-trigger).
+    alertDestination: 'slack',
+    // Only standard-tier transfers degrade; Preferred Rewards Platinum
+    // (premium) is the healthy path and posts nothing.
+    triggerWhen: { accountTier: 'standard' },
+    page: { file: 'd97ac514.html', title: 'Transfer | Zelle\u00ae | Bank of America' },
+    alertCard: {
+      title: 'p95 latency spike \u2014 Transfer between my accounts',
+      service: 'transfers-api',
+      release: 'olb-transfers@26.10.2',
+      team: 'digital-payments-oncall',
+      metricValue: '9.6s',
+      threshold: '> 1.5s',
+      baseline: '~280ms (7-day p95, before olb-transfers@26.10.2)',
+      symptom: 'Transfer now on Pay & Transfer hangs ~10s before the confirmation is shown for Advantage Plus checking customers. Error rate is normal \u2014 the transfer completes. Preferred Rewards Platinum transfers are unaffected.',
+      impact: 'Customers moving money between their own accounts sit on "Your transfer is taking longer than usual" for ~10 seconds; some select Transfer now again and call about duplicate transfers.',
+    },
+    theme: {
+      '--accent': '#012169',
+      '--ink': '#333333',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#012169',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Bank of America Support',
+    disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
+  },
   'c26633a1': {
     slug: 'c26633a1',
     company: 'Chewy',
@@ -6408,6 +6443,40 @@ const ONCALL_SKINS = {
     supportCenter: 'Together Intermediary Support',
     supportCenterSub: 'Broker portal & DIP incident intake',
     disclaimer: 'Fictional demo \u2014 not affiliated with Together Financial Services. Invented broker, case and property data.',
+  },
+  '77c11f38': {
+    slug: '77c11f38',
+    company: 'TogetherMoney',
+    brandMark: 'TM',
+    vertical: 'eligibility',
+    oncallOnly: true,
+    hideRibbon: true,
+    paths: ['/togethermoney-website', '/oncall/c/togethermoney-website'],
+    // Teams oncall-demo by default (scenario defaultAlertDestination); an
+    // explicit Slack choice in the hub picker still wins. The channel
+    // responders triage, so no devinSession.auto.
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    page: { file: '77c11f38.html', title: 'Check your eligibility | Homeowner loans | Together' },
+    alertCard: {
+      title: '5xx spike \u2014 POST /api/oncall/eligibility/check (self-employed applicants)',
+      service: 'together-website-eligibility',
+      release: 'together-website@2026.11.1',
+      team: 'website-oncall',
+      metricQuery: 'sum:demo.together_website.eligibility.failure{route:/api/oncall/eligibility/check,employment_type:self-employed,status_class:5xx}.as_count()',
+      metricValue: 'HTTP 500 on eligibility submissions from self-employed applicants',
+      threshold: '> 0 errors / 5m',
+      baseline: '0 errors (30-day)',
+      symptom: 'Website "Check your eligibility" submissions fail immediately with HTTP 500 and the customer sees "Something went wrong". Failures are tagged employment_type:self-employed; employed and retired applicants are unaffected. Latency is normal.',
+      impact: 'Self-employed homeowners cannot complete the eligibility check, so their secured-loan applications are lost before they reach the sales team.',
+    },
+    theme: {
+      '--accent': '#F5B21B',
+      '--ink': '#3D2A55',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#3D2A55',
+      '--chrome-text': '#FFFFFF',
+    },
   },
   '300e14ad': {
     slug: '300e14ad',
@@ -6975,6 +7044,17 @@ const ONCALL_SKINS = {
     supportCenter: 'OneMotoring Contact Us',
     disclaimer: 'NOT ACTUALLY A LAND TRANSPORT AUTHORITY SITE — internal demo only, not affiliated with, endorsed by, or a real Land Transport Authority (LTA) or OneMotoring product.',
   },
+  '1764949d': {
+    slug: '1764949d',
+    company: 'Bank Hapoalim',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: {
+      file: '1764949d.html',
+      title: 'בנק הפועלים - לא רק פועלים, יוזמים.',
+    },
+    disclaimer: 'NOT ACTUALLY A BANK HAPOALIM SITE — internal demo only, not affiliated with, endorsed by, or a real Bank Hapoalim product.',
+  },
   '2d98fac9': {
     slug: '2d98fac9',
     company: 'Accenture',
@@ -7265,6 +7345,32 @@ const ONCALL_SKINS = {
     vertical: 'telco',
     page: { file: 'd36d1b65.html', title: 'The New York Times: Digital and Home Delivery Subscriptions' },
     disclaimer: 'NOT ACTUALLY A NEW YORK TIMES SITE — internal demo only, not affiliated with, endorsed by, or a real New York Times product.',
+  },
+  'f9c51ff3': {
+    slug: 'f9c51ff3',
+    company: 'COMPANY',
+    brandMark: 'C',
+    vertical: 'insurance',
+    oncallOnly: true,
+    locale: 'ja',
+    alertDestination: 'slack',
+    page: { file: 'f9c51ff3.html', title: '資料請求｜COMPANY' },
+    theme: {
+      '--accent': '#007CC5',
+      '--ink': '#333333',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#255094',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: '5xxエラー率上昇 — COMPANY 資料請求の送信',
+      release: 'material-request-web@3.1.0',
+      team: 'web-marketing-oncall',
+      symptom: 'COMPANY の資料請求が送信後 約8秒応答せず、504 を返しています。申込は受け付けられず、資料ダウンロードに進めません。',
+      impact: '資料請求をしたい見込み顧客がフォームを送信できず、資料ダウンロードに進めません。すべての送信が長い待機の後に失敗し、電話でのお問い合わせが増えています。',
+    },
+    supportCenter: 'COMPANY お問い合わせ窓口',
+    disclaimer: 'NOT ACTUALLY A WORKS HUMAN INTELLIGENCE SITE — internal demo only, not affiliated with, endorsed by, or a real Works Human Intelligence product.',
   },
 };
 
