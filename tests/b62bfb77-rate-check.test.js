@@ -207,6 +207,8 @@ describe('Rocket Mortgage rate check', () => {
       { ...base, homePrice: 'abc' },
       { ...base, downPayment: 425000 },
       { ...base, downPayment: -1 },
+      { ...base, homePrice: 50000, downPayment: 1499.999 },
+      { ...base, homePrice: 425000.005 },
       { ...base, zip: '4822' },
       { ...base, zip: 'ABCDE' },
       { ...base, creditBand: 'poor' },

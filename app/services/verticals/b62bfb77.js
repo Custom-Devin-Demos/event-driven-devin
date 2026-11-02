@@ -82,9 +82,9 @@ async function fetchProgramPricing(request, programKey) {
   await new Promise((resolve) => setTimeout(resolve, min + Math.random() * (max - min)));
 
   const program = LOAN_PROGRAMS[programKey];
-  const loanAmountCents = (request.homePrice - request.downPayment) * 100;
   const downCents = Math.round(request.downPayment * 100);
   const priceCents = Math.round(request.homePrice * 100);
+  const loanAmountCents = priceCents - downCents;
   const meetsDownPct = (pct) => downCents * 1000 >= Math.round(pct * 10) * priceCents;
 
   if (!meetsDownPct(program.minDownPct)) {
@@ -154,10 +154,12 @@ function summarize(quotes) {
   };
 }
 
+const isWholeCents = (value) => Math.abs(value * 100 - Math.round(value * 100)) < 1e-6;
+
 function validateRateCheck(data) {
   const validName = typeof data.name === 'string' && data.name.length >= 2 && data.name.length <= 80;
-  const validPrice = Number.isFinite(data.homePrice) && data.homePrice >= 50000 && data.homePrice <= 5000000;
-  const validDown = Number.isFinite(data.downPayment) && data.downPayment >= 0 && data.downPayment < data.homePrice;
+  const validPrice = Number.isFinite(data.homePrice) && data.homePrice >= 50000 && data.homePrice <= 5000000 && isWholeCents(data.homePrice);
+  const validDown = Number.isFinite(data.downPayment) && data.downPayment >= 0 && data.downPayment < data.homePrice && isWholeCents(data.downPayment);
   const validZip = /^\d{5}$/.test(data.zip);
   const validCredit = Object.hasOwn(CREDIT_BANDS, data.creditBand);
   const validScope = Object.hasOwn(PROGRAM_SCOPES, data.scope);
