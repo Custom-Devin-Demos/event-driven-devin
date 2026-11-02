@@ -525,20 +525,22 @@
     const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
     let runNo = 0, stageStart = 0, queryNo = 471;
 
-    const HC_ORG_ID = 'org-ad5cb75ed086403697e4d37f8411936e';
+    const KEY = { name: 'ppd.presenterName', email: 'ppd.presenterEmail', userId: 'ppd.devinUserId', orgId: 'ppd.devinOrgId' };
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const nameInput = document.getElementById('presenterName');
     const emailInput = document.getElementById('presenterEmail');
     const runasErr = document.getElementById('runasErr');
-    nameInput.value = localStorage.getItem('devinName') || '';
-    emailInput.value = localStorage.getItem('devinEmail') || '';
+    const orgReady = fetch('/api/bce3b3d2/context').then((r) => r.json()).then((d) => d.devinOrgId || '').catch(() => '');
+    nameInput.value = localStorage.getItem(KEY.name) || '';
+    emailInput.value = localStorage.getItem(KEY.email) || '';
 
     function devinFields() {
-      return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '', devinName: localStorage.getItem('devinName') || '' };
+      const userId = localStorage.getItem(KEY.userId) || '';
+      return { devinUserId: userId, devinOrgId: userId ? (localStorage.getItem(KEY.orgId) || '') : '', devinEmail: localStorage.getItem(KEY.email) || '', devinName: localStorage.getItem(KEY.name) || '' };
     }
-    function who() { return localStorage.getItem('devinName') || 'P. Natarajan'; }
+    function who() { return localStorage.getItem(KEY.name) || 'P. Natarajan'; }
     function showUser() {
-      const n = localStorage.getItem('devinName');
+      const n = localStorage.getItem(KEY.name);
       if (!n) return;
       const u = document.querySelector('.who b'); if (u) u.textContent = n;
       const av = document.querySelector('.who .avatar'); if (av) av.textContent = n.split(/\s+/).filter(Boolean).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
@@ -556,18 +558,20 @@
       if (!name) { runasError('Enter your name to run the ingest.', nameInput); return false; }
       if (!EMAIL_RE.test(email)) { runasError('Enter your Devin email to run the ingest.', emailInput); return false; }
       runasError('');
-      const known = localStorage.getItem('devinEmail') === email && localStorage.getItem('devinOrgId') === HC_ORG_ID && localStorage.getItem('devinUserId');
-      localStorage.setItem('devinName', name);
-      localStorage.setItem('devinEmail', email);
-      localStorage.setItem('devinOrgId', HC_ORG_ID);
+      localStorage.setItem(KEY.name, name);
       showUser();
+      const orgId = await orgReady;
+      const known = localStorage.getItem(KEY.email) === email && localStorage.getItem(KEY.orgId) === orgId && localStorage.getItem(KEY.userId);
+      localStorage.setItem(KEY.email, email);
       if (known) return true;
-      localStorage.removeItem('devinUserId');
+      localStorage.removeItem(KEY.userId);
+      localStorage.removeItem(KEY.orgId);
+      if (!orgId) return true;
       try {
-        const r = await fetch('/api/resolve-identity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orgId: HC_ORG_ID, email: email }) });
+        const r = await fetch('/api/resolve-identity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orgId: orgId, email: email }) });
         const d = await r.json().catch(() => ({}));
-        if (r.ok && d.userId) localStorage.setItem('devinUserId', d.userId);
-      } catch (_) { /* session falls back to the service user */ }
+        if (r.ok && d.userId) { localStorage.setItem(KEY.userId, d.userId); localStorage.setItem(KEY.orgId, orgId); }
+      } catch (_) { /* unresolved: the server uses this demo's configured org and user */ }
       return true;
     }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
