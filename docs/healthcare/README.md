@@ -90,6 +90,27 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 > It went to Slack automatically, and Devin is already on it. What it found: the Canadian site reports blood sugar in a different unit than the US sites, and the pipeline only knew the US unit. US sites load fine, so this only showed up when Toronto came online.
 > Devin added the conversion, wrote a test and opened the pull request. In a regulated environment the engineer still reviews and approves it — Devin just removed the hours of detective work.”
 
+## 5. Thermo Fisher Scientific (PPD) — central lab data pipeline (`/bce3b3d2`)
+
+Customer-branded copy of demo 4 for Thermo Fisher Scientific's PPD clinical research business. **Unlisted:** not on `/healthcare-lab`; share the direct URL `/thermofisher-central-lab` (also `/ppd-central-lab`, `/bce3b3d2`). The page uses the Thermo Fisher red logo block, the PPD wordmark and the ppd.com header, hero and palette; the sponsor (Helix Biopharma), study HLX-301, sites and subjects stay fictional and all data is synthetic.
+
+**Reset:** same as the other four. The page keeps no state, so a reload brings back the failing Toronto batch. Keep Devin's fix PR unmerged if you want to run the demo again.
+
+**Trigger:** open `/thermofisher-central-lab` → in the *Transfer inbox* leave *Toronto Research Centre (SITE-104)* selected → **Run ingest**.
+**What you see:** the same failure as demo 4. *Normalize units* turns red, and the result reads “Batch not loaded. Ingest stopped at normalize units” with code `LAB_INGEST_FAILED` and a reference. The raw `TypeError … 'factor'` shows up only in Sentry and the Slack card.
+**Contrast:** choose *Boston Clinical Unit (SITE-101)*. All five stages turn green and three records load.
+
+**What Devin does next:** the alert points to `app/services/verticals/bce3b3d2.js — ingestBatch` with `site=SITE-104` and customer `bce3b3d2`. Devin finds the missing glucose mmol/L entry in `UNIT_CONVERSIONS`, adds it (×18.016) with a test and opens a PR.
+
+**Point at on screen:** the PPD central lab transfer file name (`PPDCL_HLX301_S104_…`), the red **Normalize units** stage, the run log line `Batch rolled back. 0 rows written` → Slack card in `#automated-alerts` → Devin session in HC-GTM-AD → PR.
+
+**Talk track (2 min):**
+> “This is a PPD central lab data hub for a Phase III diabetes trial. Every night, results from PPD’s central labs flow from each trial site into the study database. The data manager runs Toronto’s batch and the whole batch fails. Those patients’ results don’t reach the study team, and with an interim data lock in eleven days, every day of missing data is real risk to the sponsor’s timeline.
+> Nobody filed a ticket. The failure went to Slack automatically and Devin is already working on it. What it found: the Canadian site reports blood glucose in mmol/L and the pipeline only knew the US unit, mg/dL. US sites load fine, so this only showed up when Toronto came online.
+> Devin added the conversion, wrote a test and opened the pull request. In a GxP environment an engineer still reviews and approves the change. Devin took away the hours of detective work.”
+
+**Host environment:** set `DEVIN_SERVICE_KEY_BCE3B3D2` (HC-GTM-AD service key), `DEVIN_ORG_ID_BCE3B3D2=org-ad5cb75ed086403697e4d37f8411936e`, optionally `DEVIN_USER_ID_BCE3B3D2`, and `SLACK_CHANNEL_ID_BCE3B3D2` (the `#automated-alerts` ID) on top of the shared `SLACK_BOT_TOKEN`, Sentry and Datadog settings in section A below.
+
 ---
 
 ## What HC-GTM-AD still needs
@@ -114,7 +135,7 @@ HC-GTM (`org-3d8121bad421424394a794612fa2345e`) has the working setup. What HC-G
 | `SENTRY_DSN`, `SENTRY_ORG_SLUG`, `SENTRY_PROJECT_ID` | Same as HC-GTM's deployment | Error capture + “View in Sentry” link |
 | `DD_API_KEY`, `DD_SITE`, `DD_ENV`, `DD_DASHBOARD_URL` | Same as HC-GTM's deployment | Datadog metrics + dashboard button |
 
-`<SLUG>` is each of `FF0485E4`, `3A2B7A6D`, `46CE04A1`, `27A970EC` (all four are `triggerMode: 'api'`). Placeholders are in `.env.example`.
+`<SLUG>` is each of `FF0485E4`, `3A2B7A6D`, `46CE04A1`, `27A970EC`, plus `BCE3B3D2` for the Thermo Fisher copy (all are `triggerMode: 'api'`). Placeholders are in `.env.example`.
 
 ### B. HC-GTM-AD Devin org (copy from HC-GTM)
 
@@ -156,5 +177,7 @@ curl -s -X POST localhost:3999/api/46ce04a1/copay-benefit -H 'Content-Type: appl
   -d '{"cardId":"VLX-5520-1187","productId":"VLR-90","insuranceOutOfPocket":1350}'  # 500 (planted bug; TypeError in Sentry)
 curl -s -X POST localhost:3999/api/27a970ec/ingest -H 'Content-Type: application/json' \
   -d '{"siteId":"SITE-104"}'                                             # 500 (planted bug; TypeError in Sentry)
+curl -s -X POST localhost:3999/api/bce3b3d2/ingest -H 'Content-Type: application/json' \
+  -d '{"siteId":"SITE-104"}'                                             # 500 (Thermo Fisher copy of the same bug)
 npx jest tests/healthcare-demo-lab.test.js
 ```

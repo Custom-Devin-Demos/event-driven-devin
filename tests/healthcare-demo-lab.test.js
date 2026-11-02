@@ -19,6 +19,7 @@ const payer = require('../app/services/verticals/ff0485e4');
 const provider = require('../app/services/verticals/3a2b7a6d');
 const pharma = require('../app/services/verticals/46ce04a1');
 const lifeSciences = require('../app/services/verticals/27a970ec');
+const thermoFisher = require('../app/services/verticals/bce3b3d2');
 
 const devin = { devinUserId: 'user-1', devinOrgId: 'org-1', devinEmail: '' };
 
@@ -43,6 +44,12 @@ const CASES = [
   },
   {
     slug: '27a970ec', name: 'Life Sciences trial lab pipeline', run: lifeSciences.ingestBatch,
+    failing: { siteId: 'SITE-104' },
+    passing: { siteId: 'SITE-101' },
+    message: "reading 'factor'", failureMetric: 'lab_pipeline.batch.failure',
+  },
+  {
+    slug: 'bce3b3d2', name: 'Thermo Fisher (PPD) central lab pipeline', run: thermoFisher.ingestBatch,
     failing: { siteId: 'SITE-104' },
     passing: { siteId: 'SITE-101' },
     message: "reading 'factor'", failureMetric: 'lab_pipeline.batch.failure',

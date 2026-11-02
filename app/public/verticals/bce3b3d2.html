@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Central lab ingest | HLX-301 | PPD Central Lab Data Hub | Thermo Fisher Scientific</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 fill=%27%23E71316%27/%3E%3Cpath d=%27M3 4h6v1.6H6.9V12H5.1V5.6H3zM9.6 4h3.6v1.5h-1.9v1.6h1.7v1.5h-1.7V12H9.6z%27 fill=%27%23fff%27/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --canvas:#f7f7f7; --surface:#ffffff; --surface-2:#f3f4f5; --line:#dcdee0; --line-soft:#ebeced;
+      --ink:#222222; --ink-2:#54585a; --ink-3:#797a7d;
+      --tf-red:#e71316; --slate:#54585a; --btn:#54545c; --btn-dark:#3d3d44; --link:#0071d0;
+      --teal:#512d6d; --teal-dark:#3e2254; --teal-soft:#f2edf6;
+      --ok:#157a4a; --ok-bg:#e3f4ea; --warn:#a35a00; --warn-bg:#fbeeda; --fail:#b3261e; --fail-bg:#fbe7e5; --fail-line:#efb6b1; --query:#0071d0; --query-bg:#e8f2fb; --info:#005daa; --info-bg:#e6eef9;
+      --sans:HelveticaNeue, 'Helvetica Neue', Helvetica, Roboto, 'Segoe UI', Arial, sans-serif; --mono:'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      --wrap:1200px;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { -webkit-font-smoothing:antialiased; text-size-adjust:100%; }
+    body { font-family:var(--sans); font-size:14px; line-height:1.5; color:var(--ink); background:var(--canvas); min-height:100vh; font-feature-settings:'tnum' 1, 'cv11' 1; }
+    a { color:inherit; }
+    button, input, select, summary { font:inherit; color:inherit; }
+    summary { list-style:none; cursor:pointer; }
+    summary::-webkit-details-marker { display:none; }
+    :focus-visible { outline:2px solid var(--teal); outline-offset:2px; border-radius:3px; }
+    
+    code, .mono { font-family:var(--mono); font-size:.92em; }
+    h1,h2,h3 { font-weight:500; letter-spacing:0; }
+    .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+    /* ───────── shell: ppd.com masthead ───────── */
+    .app { min-height:100vh; display:flex; flex-direction:column; }
+    .main { min-width:0; display:flex; flex-direction:column; flex:1; }
+    .wrap { width:100%; max-width:var(--wrap); margin:0 auto; }
+    .mast { background:#fff; position:sticky; top:0; z-index:40; box-shadow:0 2px 6px rgba(0,0,0,.08); }
+    .mast-in { display:flex; height:100px; }
+    .brand { display:flex; align-items:center; text-decoration:none; flex-shrink:0; }
+    .tf-logo { display:block; width:216px; height:100px; }
+    .ppd-word { display:block; width:58px; height:30px; margin-left:28px; }
+    .mast-r { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:flex-end; gap:12px; padding-right:30px; min-width:0; }
+    .utils { display:flex; align-items:center; font-size:12px; color:var(--slate); }
+    .utils > * + *::before { content:''; display:inline-block; width:1px; height:12px; background:#b5b7b9; margin:0 10px; vertical-align:-1px; }
+    .utils a { text-decoration:none; }
+    .utils a:hover { text-decoration:underline; }
+    .utils .portal { color:var(--teal); font-weight:500; }
+    .utils .who { display:inline-flex; align-items:center; gap:7px; }
+    .avatar { width:22px; height:22px; border-radius:50%; background:var(--teal); color:#fff; display:inline-grid; place-items:center; font-size:10px; font-weight:700; }
+    .utils .sos { margin-left:14px; background:var(--tf-red); color:#fff; border-radius:4px; padding:6px 9px 5px; line-height:1; }
+    .utils .sos::before { display:none; }
+    .utils .sos:hover { background:#c41013; text-decoration:none; }
+    .gnav { display:flex; gap:24px; font-size:14px; font-weight:500; color:var(--slate); }
+    .gnav a { text-decoration:none; position:relative; padding:2px 0 6px; white-space:nowrap; }
+    .gnav a:hover { color:var(--ink); }
+    .gnav a[aria-current] { color:var(--teal); }
+    .gnav a[aria-current]::after { content:''; position:absolute; left:0; right:0; bottom:0; height:3px; background:var(--teal); }
+    .gnav .count { font-size:11px; font-weight:700; margin-left:4px; color:#fff; background:var(--slate); border-radius:9px; padding:0 6px; vertical-align:1px; }
+
+    /* ───────── hero: photo + offset card, as on ppd.com ───────── */
+    .study-head { position:relative; background:#5a5d60; overflow:hidden; }
+    .study-head .hero-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 35%; filter:grayscale(.15); }
+    .study-head::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(34,34,34,.55), rgba(34,34,34,.15) 65%, rgba(34,34,34,0)); }
+    .hero-in { position:relative; z-index:1; padding:44px 0 0; }
+    .hero-card { background:rgba(255,255,255,.94); max-width:760px; padding:30px 40px 0; }
+    .crumbs { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-3); flex-wrap:wrap; }
+    .crumbs a { color:var(--link); text-decoration:none; }
+    .crumbs a:hover { text-decoration:underline; }
+    .crumbs svg { width:10px; height:10px; flex-shrink:0; }
+    .study-title h1 { font-size:40px; line-height:1.2; font-weight:700; margin-top:10px; letter-spacing:-.01em; }
+    .study-title p { color:var(--ink); margin-top:10px; max-width:62ch; font-size:16px; line-height:26px; }
+    .study-meta { display:flex; flex-wrap:wrap; margin-top:22px; border-top:1px solid var(--line); }
+    .study-meta div { padding:12px 22px 14px 0; margin-right:22px; }
+    .study-meta dt { font-size:12px; color:var(--ink-3); }
+    .study-meta dd { font-size:15px; font-weight:500; margin-top:2px; white-space:nowrap; }
+    .study-meta dd small { font-weight:400; color:var(--ink-3); font-size:12px; margin-left:4px; }
+    .study-meta .lock dd { color:var(--tf-red); }
+    .tabs-bar { background:#fff; border-bottom:1px solid var(--line); position:relative; z-index:1; }
+    .tabs { display:flex; gap:28px; overflow-x:auto; scrollbar-width:none; }
+    .tabs::-webkit-scrollbar { display:none; }
+    .tabs a { padding:14px 0 12px; text-decoration:none; color:var(--slate); border-bottom:3px solid transparent; white-space:nowrap; font-size:14px; font-weight:500; }
+    .tabs a:hover { color:var(--ink); }
+    .tabs a[aria-current] { color:var(--teal); border-bottom-color:var(--teal); }
+    .tabs a .count { margin-left:6px; font-size:11px; color:var(--ink-2); background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:0 6px; }
+
+    /* ───────── work area ───────── */
+    .work { display:grid; grid-template-columns:390px minmax(0,1fr); gap:24px; padding:28px 0 0; align-items:start; width:100%; max-width:var(--wrap); margin:0 auto; }
+    .col { display:grid; gap:20px; min-width:0; }
+    .panel { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--slate); border-radius:0; min-width:0; }
+    .panel-h { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:13px 16px 11px; border-bottom:1px solid var(--line); }
+    .panel-h h2 { font-size:17px; font-weight:500; }
+    .panel-h span { font-size:12px; color:var(--ink-3); }
+    .panel-h .live { display:inline-flex; align-items:center; gap:6px; }
+    .panel-h .live::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--line); }
+    .panel-h .live.running::before { background:var(--teal); animation:pulse 1s ease-in-out infinite; }
+    .panel-h .live.failed::before { background:var(--fail); }
+    .panel-h .live.done::before { background:var(--ok); }
+
+    /* inbox */
+    .inbox-note { padding:10px 16px; font-size:12.5px; color:var(--ink-2); background:var(--surface-2); border-bottom:1px solid var(--line-soft); display:flex; justify-content:space-between; gap:10px; }
+    .inbox-note code { color:var(--ink-2); }
+    .batches { list-style:none; }
+    .batch { position:relative; display:grid; grid-template-columns:18px 1fr auto; gap:1px 12px; padding:12px 16px 12px 14px; border-bottom:1px solid var(--line-soft); cursor:pointer; }
+    .batch input { position:absolute; inset:0; width:100%; height:100%; opacity:0; margin:0; cursor:pointer; }
+    .batch .radio { grid-row:1 / span 3; width:16px; height:16px; margin-top:2px; border-radius:50%; border:1.5px solid var(--ink-3); background:#fff; display:grid; place-items:center; }
+    .batch .radio::after { content:''; width:8px; height:8px; border-radius:50%; background:var(--teal); transform:scale(0); transition:transform .12s ease-out; }
+    .batch:has(input:checked) { background:var(--teal-soft); }
+    .batch:has(input:checked) .radio { border-color:var(--teal); }
+    .batch:has(input:checked) .radio::after { transform:scale(1); }
+    .batch:has(input:focus-visible) { outline:2px solid var(--teal); outline-offset:-2px; }
+    .batch:hover:not(:has(input:checked)) { background:var(--surface-2); }
+    .batch b { font-weight:600; font-size:13px; }
+    .batch .name { min-width:0; }
+    .batch .site-id { display:block; color:var(--ink-3); font-size:12px; margin-top:1px; }
+    .batch .file { grid-column:2 / span 2; font-family:var(--mono); font-size:11.5px; color:var(--ink-2); margin-top:3px; word-break:break-all; }
+    .batch .meta { grid-column:2 / span 2; font-size:12px; color:var(--ink-2); margin-top:4px; display:flex; flex-wrap:wrap; gap:4px 14px; }
+    .batch .meta em { font-style:normal; color:var(--ink-3); }
+    .batch .meta .u { padding:0 5px; border-radius:3px; background:var(--surface-2); border:1px solid var(--line); font-size:11.5px; }
+    .batch:has(input:checked) .meta .u { background:#fff; }
+    .batch .state { font-size:11.5px; color:var(--ink-3); white-space:nowrap; }
+    .batch.loaded { cursor:default; color:var(--ink-3); }
+    .batch.loaded b { font-weight:500; color:var(--ink-2); }
+    .batch.loaded .radio { border-style:dashed; border-color:var(--line); }
+    .batch.loaded .state { color:var(--ok); }
+    .batch.loaded:hover { background:transparent; }
+    .detail { padding:12px 16px 14px; border-bottom:1px solid var(--line); display:grid; grid-template-columns:auto 1fr; gap:6px 14px; font-size:12.5px; }
+    .detail dt { color:var(--ink-3); }
+    .detail dd { color:var(--ink); }
+    .detail dd code { font-size:11.5px; }
+    .act { padding:14px 16px; display:flex; align-items:center; gap:14px; }
+    .btn { height:42px; padding:0 24px; border-radius:4px; border:0; background:var(--btn); color:#fff; font-weight:600; font-size:13.5px; cursor:pointer; white-space:nowrap; flex-shrink:0; display:inline-flex; align-items:center; gap:8px; }
+    .btn:hover { background:var(--btn-dark); }
+    .btn:disabled { opacity:.65; cursor:progress; }
+    .btn svg { width:14px; height:14px; }
+    .act p { font-size:12px; color:var(--ink-3); line-height:1.4; }
+
+    /* site currency */
+    .sites { list-style:none; }
+    .sites li { display:grid; grid-template-columns:1fr auto; gap:0 12px; padding:9px 16px; border-bottom:1px solid var(--line-soft); font-size:12.5px; align-items:center; }
+    .sites li:last-child { border-bottom:0; }
+    .sites b { font-weight:500; }
+    .sites small { display:block; color:var(--ink-3); font-size:11.5px; }
+    .pill { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; padding:2px 8px; border-radius:10px; font-weight:500; white-space:nowrap; }
+    .pill::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+    .pill.ok { color:var(--ok); background:var(--ok-bg); }
+    .pill.warn { color:var(--warn); background:var(--warn-bg); }
+    .pill.fail { color:var(--fail); background:var(--fail-bg); }
+    .pill.info { color:var(--info); background:var(--info-bg); }
+    .pill.query { color:var(--query); background:var(--query-bg); }
+    .pill.neutral { color:var(--ink-2); background:var(--surface-2); }
+    .panel-f { padding:9px 16px; border-top:1px solid var(--line-soft); font-size:12px; color:var(--ink-3); display:flex; justify-content:space-between; gap:10px; }
+    .panel-f a { color:var(--link); font-weight:500; text-decoration:none; } .panel-f a:hover { text-decoration:underline; }
+
+    /* ───────── run ledger (hero) ───────── */
+    .run-top { display:grid; grid-template-columns:1fr auto; gap:4px 20px; padding:14px 16px 12px; border-bottom:1px solid var(--line); align-items:center; }
+    .run-top h2 { font-size:17px; font-weight:500; }
+    .run-top .ref { font-size:12px; color:var(--ink-3); }
+    .run-top .ref code { color:var(--ink-2); }
+    .ledger { list-style:none; padding:6px 16px 10px; }
+    .stg { position:relative; display:grid; grid-template-columns:22px 1fr auto; gap:0 14px; padding:11px 0; align-items:start; }
+    .stg + .stg { border-top:1px solid var(--line-soft); }
+    .stg::before { content:''; position:absolute; left:10px; top:34px; bottom:-12px; width:2px; background:var(--line-soft); }
+    .stg:last-child::before { display:none; }
+    .stg.done::before { background:var(--ok); }
+    .stg-mark { width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line); background:#fff; display:grid; place-items:center; color:#fff; font-size:12px; font-weight:700; position:relative; z-index:1; }
+    .stg-mark svg { width:12px; height:12px; display:none; }
+    .stg.done .stg-mark { background:var(--ok); border-color:var(--ok); }
+    .stg.done .stg-mark .i-check { display:block; }
+    .stg.active .stg-mark { border-color:var(--teal); }
+    .stg.active .stg-mark::after { content:''; width:8px; height:8px; border-radius:50%; background:var(--teal); animation:pulse 1s ease-in-out infinite; }
+    .stg.failed .stg-mark { background:var(--fail); border-color:var(--fail); }
+    .stg.failed .stg-mark .i-x { display:block; }
+    .stg h3 { font-size:13px; font-weight:600; line-height:22px; }
+    .stg p { font-size:12.5px; color:var(--ink-2); margin-top:1px; }
+    .stg.pending h3, .stg.pending p { color:var(--ink-3); }
+    .stg.failed h3 { color:var(--fail); }
+    .stg.failed p { color:var(--ink); }
+    .stg-time { font-size:12px; color:var(--ink-3); line-height:22px; min-width:52px; text-align:right; }
+    .stg.done .stg-time { color:var(--ink-2); }
+    .stg.failed .stg-time { color:var(--fail); font-weight:500; }
+    .stg.active .stg-time { color:var(--teal); }
+    .stg-fail { grid-column:2 / span 2; margin-top:8px; padding:10px 12px; border:1px solid var(--fail-line); border-left:3px solid var(--fail); border-radius:4px; background:var(--fail-bg); font-size:12.5px; display:none; }
+    .stg.failed .stg-fail { display:block; }
+    .stg-fail b { font-weight:600; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+
+    .log-h { display:flex; justify-content:space-between; align-items:center; padding:8px 16px 0; font-size:12px; color:var(--ink-3); }
+    .log { margin:6px 16px 16px; border:1px solid #3a3d40; border-radius:2px; background:#222326; color:#c9cbcd; font-family:var(--mono); font-size:11.75px; line-height:1.75; padding:10px 14px; min-height:96px; max-height:200px; overflow:auto; }
+    .log div { display:grid; grid-template-columns:64px 1fr; gap:12px; }
+    .log div span { color:#7d8185; }
+    .log .ok { color:#5fd3a6; } .log .err { color:#ff8a80; } .log .warn { color:#f5c26b; }
+    .log b { font-weight:500; }
+
+    /* result */
+    .result-box { display:none; margin:0 16px 16px; border-radius:6px; padding:14px 16px; font-size:13px; }
+    .result-box.error { display:block; background:var(--fail-bg); border:1px solid var(--fail-line); }
+    .result-box.success { display:block; background:var(--ok-bg); border:1px solid #b6dfc6; }
+    .result-title { font-size:14.5px; font-weight:600; display:flex; align-items:center; gap:8px; }
+    .result-title svg { width:16px; height:16px; flex-shrink:0; }
+    .result-box.error .result-title { color:var(--fail); }
+    .result-box.success .result-title { color:var(--ok); }
+    .result-box p { margin-top:6px; color:var(--ink); max-width:72ch; }
+    .result-kv { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px 18px; margin-top:12px; padding-top:12px; border-top:1px solid rgba(22,32,43,.1); }
+    .result-kv dt { font-size:11.5px; color:var(--ink-2); }
+    .result-kv dd { font-size:12.5px; font-weight:500; margin-top:2px; word-break:break-all; }
+    .result-kv dd code { font-size:11.5px; }
+    .result-part11 { margin-top:12px; display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-2); }
+    .result-part11 svg { width:14px; height:14px; flex-shrink:0; margin-top:1px; color:var(--ink-2); }
+
+    /* records */
+    .records-h { display:flex; justify-content:space-between; align-items:baseline; padding:0 16px 8px; border-top:1px solid var(--line); padding-top:12px; }
+    .records-h h3 { font-size:13px; }
+    .records-h span { font-size:12px; color:var(--ink-3); }
+    .tbl-wrap { overflow-x:auto; }
+    .tbl { width:100%; border-collapse:collapse; font-size:12.5px; }
+    .tbl th, .tbl td { text-align:left; padding:8px 16px; border-top:1px solid var(--line-soft); vertical-align:middle; }
+    .tbl th { color:var(--ink-3); font-weight:500; font-size:11.75px; background:var(--surface-2); }
+    .tbl td.num, .tbl th.num { text-align:right; }
+    .tbl td .sub { font-family:var(--mono); font-size:11.75px; white-space:nowrap; }
+    .tbl td .src { color:var(--ink-3); font-size:11.5px; }
+    .tbl tr.out td { background:#fffaf2; }
+    .tbl tbody tr:last-child td { border-bottom:1px solid var(--line-soft); }
+    .qbtn { height:26px; padding:0 9px; border-radius:4px; border:1px solid var(--line); background:#fff; font-size:12px; cursor:pointer; color:var(--ink-2); white-space:nowrap; }
+    .qbtn:hover { border-color:var(--query); color:var(--query); }
+    .qbtn[aria-pressed="true"] { border-color:var(--query); background:var(--query-bg); color:var(--query); }
+    .qrow td { background:var(--query-bg) !important; color:var(--query); font-size:12px; padding-top:7px; padding-bottom:7px; }
+    .qrow code { color:var(--query); }
+    .empty { padding:26px 16px 24px; color:var(--ink-3); font-size:12.5px; border-top:1px solid var(--line); text-align:center; }
+    .records-f { padding:10px 16px 14px; font-size:12px; color:var(--ink-3); display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px 14px; }
+
+    /* ───────── secondary ───────── */
+    .secondary { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:24px; padding:24px 0 0; align-items:start; width:100%; max-width:var(--wrap); margin:0 auto; }
+    .hist td.st { white-space:nowrap; }
+    .hist td.who { color:var(--ink-2); }
+    .audit { list-style:none; }
+    .audit li { display:grid; grid-template-columns:auto 1fr; gap:2px 12px; padding:10px 16px; border-bottom:1px solid var(--line-soft); font-size:12.5px; }
+    .audit li:last-child { border-bottom:0; }
+    .audit time { color:var(--ink-3); font-size:11.75px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .audit b { font-weight:500; }
+    .audit small { grid-column:2; color:var(--ink-3); font-size:11.75px; }
+    .audit .sig { color:var(--teal-dark); }
+
+    footer { margin-top:40px; background:var(--slate); color:#fff; font-size:14px; }
+    .foot-in { display:flex; justify-content:space-between; align-items:center; gap:12px 24px; flex-wrap:wrap; padding:30px 0; }
+    footer nav { display:flex; gap:0; flex-wrap:wrap; }
+    footer nav a + a::before { content:''; display:inline-block; width:1px; height:12px; background:rgba(255,255,255,.5); margin:0 12px; vertical-align:-1px; }
+    footer a { text-decoration:none; color:#fff; }
+    footer a:hover { text-decoration:underline; }
+    footer small { display:block; color:rgba(255,255,255,.75); font-size:12px; margin-top:6px; }
+
+    /* ───────── responsive ───────── */
+    @media (max-width:1248px) { .wrap, .work, .secondary { padding-left:24px; padding-right:24px; } .work { grid-template-columns:340px minmax(0,1fr); } .gnav { gap:18px; } }
+    @media (max-width:1060px) {
+      .mast { position:static; }
+      .mast-in { height:auto; flex-wrap:wrap; padding:0; }
+      .tf-logo { width:150px; height:69px; }
+      .ppd-word { margin-left:18px; }
+      .mast-r { display:contents; }
+      .utils { margin-left:auto; align-self:center; padding:10px 24px 10px 0; }
+      .utils .hide-m { display:none; }
+      .gnav { order:3; flex-basis:100%; width:100%; overflow-x:auto; scrollbar-width:none; padding:10px 24px 0; border-top:1px solid var(--line-soft); gap:20px; }
+      .gnav::-webkit-scrollbar { display:none; }
+      .work, .secondary { grid-template-columns:1fr; }
+      .col { display:contents; }
+      .work > .col > form { order:1; }
+      .work > .panel { order:2; }
+      .work > .col > section { order:3; }
+    }
+    @media (max-width:720px) {
+      .wrap, .work, .secondary { padding-left:14px; padding-right:14px; }
+      .gnav { padding:10px 14px 0; }
+      .utils { padding-right:14px; }
+      .utils .who b, .utils .portal { display:none; }
+      .utils .who::before { display:none; }
+      .hero-in { padding-top:20px; }
+      .hero-card { padding:20px 18px 0; }
+      .study-title h1 { font-size:28px; }
+      .study-title p { font-size:15px; line-height:24px; }
+      .study-meta div { padding:10px 14px 12px 0; margin-right:14px; }
+      .study-meta dd { white-space:normal; }
+      .work, .secondary { padding-top:16px; gap:16px; }
+      .col { gap:16px; }
+      .act { flex-direction:column; align-items:stretch; }
+      .act .btn { justify-content:center; height:46px; }
+      .run-top { grid-template-columns:1fr; }
+      .c-src { display:none; }
+      footer nav a + a::before { margin:0 8px; }
+    }
+    @media (max-width:420px) {
+      .tf-logo { width:120px; height:55px; }
+      .ppd-word { width:46px; height:24px; margin-left:12px; }
+      .utils .sos { margin-left:8px; }
+      .tbl th, .tbl td { padding:8px 10px; }
+      .c-range, .c-rec { display:none; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="mast">
+    <div class="mast-in wrap">
+      <a class="brand" href="#" aria-label="PPD clinical research services, part of Thermo Fisher Scientific"><svg class="tf-logo" role="img" aria-labelledby="logo-alt" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 485.52 223.55"> <title id="logo-alt">Thermo Fisher Scientific Logo</title> <defs> <style> .tf-logo-cls-1 { fill: #E71316; } .tf-logo-cls-2 { fill: #fff; } </style> </defs> <rect class="tf-logo-cls-1" width="485.52" height="223.55"></rect> <path class="tf-logo-cls-2" d="M108.27,83.11V76h-32v7.13h11v31h9.92v-31Zm123.5,31c-.26-2.53-.42-4.49-.42-5.81V95.46c0-5.33-3.91-8.65-9.08-8.65a10.21,10.21,0,0,0-8.82,4.69c-1.11-3-4.38-4.54-7.44-4.54-3.7,0-6.81,1.22-8.55,4.54l-.22-4h-9.07V114.1h9.39v-16c0-.84-.37-5.38,4-5.38,2.91,0,3.59,2.59,3.59,5.12V114.1h9.34v-16c0-.84-.37-5.38,4-5.38,2.91,0,3.6,2.59,3.6,5.12V114.1ZM186,95.35V87.28c-4.07,0-7.18,1.27-8.39,5.33l-.22-5.07H168c.21,2.17.21,5.07.21,6.82V114.1h9.4V102.48c0-4.38,1.26-7.07,6.44-7.17.63,0,1.26,0,1.95,0m62-8.54c-8.66,0-14.31,4.8-14.31,13.93,0,9.4,5.71,14.1,14.31,14.1s14.31-4.7,14.31-14.1c0-9.13-5.65-13.93-14.31-13.93m0,5.59c4,0,4.7,4.06,4.7,8.23,0,4.86-.85,8.66-4.7,8.66s-4.7-3.8-4.7-8.66c0-4.22.74-8.28,4.7-8.28ZM137.21,114.1a57.55,57.55,0,0,1-.37-5.81V95.46c0-5.33-4-8.65-9.13-8.65a11.12,11.12,0,0,0-4.44.84,9.58,9.58,0,0,0-3.38,2.69V76H110.5V114.1h9.39v-16c0-.84-.36-5.38,4-5.38,3,0,3.59,2.59,3.59,5.12V114.1Zm28.72-11.46c0-9.55-2.8-15.83-13.41-15.83-8.39,0-13.41,5.17-13.41,13.25,0,9.92,3.54,14.78,13.88,14.78a14.49,14.49,0,0,0,8.24-2.22,9.58,9.58,0,0,0,4.49-7.29h-8.87a4.15,4.15,0,0,1-4.49,4.07c-3.59,0-4.32-3.43-4.27-6.76Zm-9-5.12h-8.71c.21-2.8.84-5.65,4.32-5.8a3.49,3.49,0,0,1,3.33,1.84,7.36,7.36,0,0,1,1.06,4Z"></path> <path class="tf-logo-cls-2" d="M409.29,94.88V86.81c-4.06-.06-7.18,1.26-8.39,5.33l-.21-4.6H391.3c.2,2.17.2,5.07.2,6.81v19.74h9.4V102.48c0-4.38,1.27-7.54,6.44-7.65.63,0,1.26,0,2,0m-48.87,19.21a54.56,54.56,0,0,1-.37-5.8V95.47c0-5.34-4-8.66-9.13-8.66a10.52,10.52,0,0,0-4.33.84,9.73,9.73,0,0,0-3.49,2.69V76h-9.39v38.11h9.39v-16c0-.84-.37-5.38,4-5.38,2.95,0,3.59,2.58,3.59,5.12v16.25Zm-29-7.91c0-4.12-2.16-6.12-5.17-7.23-5.65-2-9.88-2.11-9.88-4.23a2.24,2.24,0,0,1,2.44-2.48,3.34,3.34,0,0,1,2.52.85,3.7,3.7,0,0,1,.69,2.53h8.92c-.21-7-5.7-8.81-11.72-8.81-5.12,0-11.76,1.79-11.76,8.18,0,9.29,15,6.86,15,11.82,0,1.75-1.43,2.53-3.28,2.53a2.92,2.92,0,0,1-2.42-1.26,3.36,3.36,0,0,1-.58-2.59h-9c-.16,7.92,5.7,9.35,12.19,9.35,6.08,0,12-2.22,12-8.66m57.78-3.54c.06-9.55-2.79-15.83-13.41-15.83-8.39,0-13.41,5.17-13.41,13.25,0,9.92,3.54,14.78,13.89,14.78a14.56,14.56,0,0,0,8.23-2.22,9.52,9.52,0,0,0,4.49-7.29H380.1a4.14,4.14,0,0,1-4.48,4.07c-3.59,0-4.33-3.43-4.28-6.76Zm-9-5.12H371.5c.21-2.8.84-5.65,4.33-5.8a3.51,3.51,0,0,1,3.33,1.85,7.38,7.38,0,0,1,1,4Zm-75.39-10h-9.39V114.1h9.39ZM292.5,83l2.22-7H269.47v38.11h9.92v-15h8l2.21-7H279.39V83Zm12.32,0,2.23-7h-9.29l-2.22,7Z"></path> <path class="tf-logo-cls-2" d="M162.45,125.26h3.44v21.61h-3.44Zm232,22c-7.21,0-12.59-4-12.59-11s6-11.42,12.81-11.42a13.4,13.4,0,0,1,6.78,1.9l-1.77,2.09a10.44,10.44,0,0,0-5-1.41,9,9,0,0,0-6.85,2.64,8.89,8.89,0,0,0-2.18,6.33,7.9,7.9,0,0,0,2.56,6.3c1.65,1.63,4.18,2.08,6.66,2.08a12.1,12.1,0,0,0,5.46-1.55l1.68,2a14.64,14.64,0,0,1-7.59,2m-36.24-22h3.44v21.61h-3.44Zm-77.92,2.58h-8.05v19h-3.36v-19h-8v-2.58h19.77ZM100.78,146.1a13.66,13.66,0,0,1-6.09,1.22A20.13,20.13,0,0,1,86,145.37l1.43-2.45a16.3,16.3,0,0,0,7.54,1.82,7.65,7.65,0,0,0,3.93-.88,3.14,3.14,0,0,0,1.9-2.79c0-1.81-1.39-2.93-4.73-3.71l-3.51-.82c-3.5-.82-5.7-3-5.7-5.56,0-3.68,3.62-6.29,8.78-6.29a16.39,16.39,0,0,1,8.29,2.06L102.33,129a13.46,13.46,0,0,0-6.55-1.73c-3.07,0-5.2,1.19-5.2,3.22,0,1.56,1.3,2.49,4.31,3.22l3.25.78a11.33,11.33,0,0,1,4.78,2.18,5.38,5.38,0,0,1,1.68,3.86,6.4,6.4,0,0,1-3.82,5.57m138.41.77-8.58-11.52c-1.61-2.16-4.33-6.38-4.33-6.38s.3,3.65.32,6.85l.09,11.05h-3.43V125.26h4.09L236,137c1.69,2.29,4,5.92,4,5.92s-.52-4-.54-6.84l-.08-10.85h3.4v21.61Zm59.2-21.61h3.45v21.61h-3.45Zm41,2.54H327.56v6.4h10v2.54h-10v10.13h-3.45V125.26h15.76ZM188.17,146.87V125.26H204.1l-.46,2.58h-12v6.44h10.24v2.58h-10.2v7.3h12.86v2.71Zm-52.36.37c-7.2,0-12.58-4-12.58-11s6-11.42,12.8-11.42a13.4,13.4,0,0,1,6.78,1.9l-1.76,2.09a10.44,10.44,0,0,0-5-1.41,9,9,0,0,0-6.86,2.64,8.89,8.89,0,0,0-2.18,6.33,7.9,7.9,0,0,0,2.57,6.3c1.65,1.63,4.17,2.08,6.65,2.08a12.1,12.1,0,0,0,5.46-1.55l1.68,2a14.59,14.59,0,0,1-7.59,2"></path> </svg><svg class="ppd-word" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="244 38 59 30"><path d="M300.613 58.848H297.157V56.608H297.093C296.602 57.568 295.888 58.2613 294.949 58.688C294.01 59.0933 293.018 59.296 291.973 59.296C290.672 59.296 289.53 59.072 288.549 58.624C287.589 58.1547 286.789 57.5253 286.149 56.736C285.509 55.9467 285.029 55.0187 284.709 53.952C284.389 52.864 284.229 51.7013 284.229 50.464C284.229 48.9707 284.432 47.68 284.837 46.592C285.242 45.504 285.776 44.608 286.437 43.904C287.12 43.2 287.888 42.688 288.741 42.368C289.616 42.0267 290.501 41.856 291.397 41.856C291.909 41.856 292.432 41.9093 292.965 42.016C293.498 42.1013 294.01 42.2507 294.501 42.464C294.992 42.6773 295.44 42.9547 295.845 43.296C296.272 43.616 296.624 44 296.901 44.448H296.965V36H300.613V58.848ZM287.877 50.752C287.877 51.456 287.962 52.1493 288.133 52.832C288.325 53.5147 288.602 54.1227 288.965 54.656C289.349 55.1893 289.829 55.616 290.405 55.936C290.981 56.256 291.664 56.416 292.453 56.416C293.264 56.416 293.957 56.2453 294.533 55.904C295.13 55.5627 295.61 55.1147 295.973 54.56C296.357 54.0053 296.634 53.3867 296.805 52.704C296.997 52 297.093 51.2853 297.093 50.56C297.093 48.7253 296.677 47.296 295.845 46.272C295.034 45.248 293.925 44.736 292.517 44.736C291.664 44.736 290.938 44.9173 290.341 45.28C289.765 45.6213 289.285 46.08 288.901 46.656C288.538 47.2107 288.272 47.8507 288.101 48.576C287.952 49.28 287.877 50.0053 287.877 50.752Z" fill="#512D6D"></path><path d="M265.562 42.304H269.018V44.544H269.082C269.594 43.584 270.309 42.9014 271.226 42.496C272.144 42.0694 273.136 41.856 274.202 41.856C275.504 41.856 276.634 42.0907 277.594 42.56C278.576 43.008 279.387 43.6374 280.027 44.448C280.667 45.2374 281.146 46.1654 281.466 47.232C281.786 48.2987 281.947 49.44 281.947 50.656C281.947 51.7654 281.797 52.8427 281.499 53.888C281.221 54.9334 280.784 55.8614 280.186 56.672C279.61 57.4614 278.874 58.1014 277.978 58.592C277.082 59.0614 276.026 59.296 274.81 59.296C274.277 59.296 273.744 59.2427 273.211 59.136C272.677 59.0507 272.165 58.9014 271.674 58.688C271.184 58.4747 270.725 58.208 270.299 57.888C269.893 57.5467 269.552 57.152 269.274 56.704H269.21V64.96H265.562V42.304ZM278.298 50.592C278.298 49.8454 278.203 49.12 278.01 48.416C277.818 47.712 277.53 47.0933 277.146 46.56C276.762 46.0053 276.282 45.568 275.706 45.248C275.13 44.9067 274.469 44.736 273.722 44.736C272.186 44.736 271.024 45.2694 270.234 46.336C269.466 47.4027 269.082 48.8214 269.082 50.592C269.082 51.424 269.179 52.2027 269.371 52.928C269.584 53.632 269.893 54.24 270.299 54.752C270.704 55.264 271.184 55.6694 271.739 55.968C272.315 56.2667 272.976 56.416 273.722 56.416C274.554 56.416 275.259 56.2454 275.835 55.904C276.411 55.5627 276.88 55.1254 277.242 54.592C277.626 54.0374 277.893 53.4187 278.043 52.736C278.213 52.032 278.298 51.3174 278.298 50.592Z" fill="#512D6D"></path><path d="M246 42.304H249.456V44.544H249.52C250.032 43.584 250.747 42.9014 251.664 42.496C252.581 42.0694 253.573 41.856 254.64 41.856C255.941 41.856 257.072 42.0907 258.032 42.56C259.013 43.008 259.824 43.6374 260.464 44.448C261.104 45.2374 261.584 46.1654 261.904 47.232C262.224 48.2987 262.384 49.44 262.384 50.656C262.384 51.7654 262.235 52.8427 261.936 53.888C261.659 54.9334 261.221 55.8614 260.624 56.672C260.048 57.4614 259.312 58.1014 258.416 58.592C257.52 59.0614 256.464 59.296 255.248 59.296C254.715 59.296 254.181 59.2427 253.648 59.136C253.115 59.0507 252.603 58.9014 252.112 58.688C251.621 58.4747 251.163 58.208 250.736 57.888C250.331 57.5467 249.989 57.152 249.712 56.704H249.648V64.96H246V42.304ZM258.736 50.592C258.736 49.8454 258.64 49.12 258.448 48.416C258.256 47.712 257.968 47.0933 257.584 46.56C257.2 46.0053 256.72 45.568 256.144 45.248C255.568 44.9067 254.907 44.736 254.16 44.736C252.624 44.736 251.461 45.2694 250.672 46.336C249.904 47.4027 249.52 48.8214 249.52 50.592C249.52 51.424 249.616 52.2027 249.808 52.928C250.021 53.632 250.331 54.24 250.736 54.752C251.141 55.264 251.621 55.6694 252.176 55.968C252.752 56.2667 253.413 56.416 254.16 56.416C254.992 56.416 255.696 56.2454 256.272 55.904C256.848 55.5627 257.317 55.1254 257.68 54.592C258.064 54.0374 258.331 53.4187 258.48 52.736C258.651 52.032 258.736 51.3174 258.736 50.592Z" fill="#512D6D"></path></svg></a>
+      <div class="mast-r">
+        <div class="utils">
+          <a href="#" class="portal hide-m">Central Lab Data Hub</a>
+          <a href="#" class="hide-m">Help</a>
+          <a href="#" class="hide-m">English</a>
+          <span class="who"><span class="avatar" aria-hidden="true">PN</span><b>Priya Natarajan</b></span>
+          <a href="#" class="sos">Contact support</a>
+        </div>
+        <nav class="gnav" aria-label="Global navigation">
+          <a href="#">Studies</a>
+          <a href="#">Sites</a>
+          <a href="#">Subjects</a>
+          <a href="#" aria-current="page">Lab data</a>
+          <a href="#">Queries<span class="count" data-query-count>9</span></a>
+          <a href="#">Data lock</a>
+          <a href="#">Audit</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="main">
+    <section class="study-head">
+      <img class="hero-img" src="https://www.ppd.com/wp-content/uploads/2026/10/HPP_AIQ75.jpg" alt="" onerror="this.onerror=function(){this.remove();};this.src='https://www.ppd.com/wp-content/uploads/2021/10/AAPS-HPP-v1-4Oct2021-middleton-1469-Edit.jpg';">
+      <div class="hero-in wrap">
+        <div class="hero-card">
+          <nav class="crumbs" aria-label="Breadcrumb">
+            <a href="#">Studies</a>
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5"/></svg>
+            <a href="#">HLX-301</a>
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5"/></svg>
+            <a href="#">Lab data</a>
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5"/></svg>
+            <span>Central lab ingest</span>
+          </nav>
+          <div class="study-title">
+            <h1>Central lab ingest</h1>
+            <p>Load each site's PPD central lab transfer file into the study warehouse. Results are converted to the study standard unit and flagged against protocol reference ranges before they reach the clinical database.</p>
+          </div>
+        <dl class="study-meta" aria-label="Study summary">
+          <div><dt>Study</dt><dd>HLX-301<small>Helix Biopharma</small></dd></div>
+          <div><dt>Phase</dt><dd>III</dd></div>
+          <div><dt>Indication</dt><dd>Type 2 diabetes<small>adults</small></dd></div>
+          <div><dt>Enrolment</dt><dd>1,186<small>of 1,200</small></dd></div>
+          <div><dt>Sites</dt><dd>42<small>active</small></dd></div>
+          <div class="lock"><dt>Interim lock</dt><dd>13 Nov 2026<small>11 days</small></dd></div>
+        </dl>
+        </div>
+      </div>
+    </section>
+    <div class="tabs-bar">
+      <nav class="tabs wrap" aria-label="Lab data">
+        <a href="#" aria-current="page">Transfer inbox<span class="count">2</span></a>
+        <a href="#">Run history</a>
+        <a href="#">Analyte mappings</a>
+        <a href="#">Reference ranges</a>
+        <a href="#">Lab queries<span class="count" data-query-count>9</span></a>
+        <a href="#">Audit trail</a>
+      </nav>
+    </div>
+
+    <div class="work">
+      <div class="col">
+        <form id="demoForm" class="panel" novalidate aria-labelledby="inboxTitle">
+          <div class="panel-h"><h2 id="inboxTitle">Transfer inbox</h2><span>PPD central lab, transfer spec v3.2</span></div>
+          <div class="inbox-note"><span>Visit 4 (Week 12), received overnight</span><span>sftp <code>ppd-cl-drop/hlx301</code></span></div>
+          <ul class="batches" role="radiogroup" aria-label="Batches awaiting ingest">
+            <li class="batch">
+              <input type="radio" name="siteChoice" value="SITE-104" checked aria-label="SITE-104 Toronto Research Centre batch">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Toronto Research Centre</b><span class="site-id">SITE-104, Canada</span></span>
+              <span class="state">Awaiting ingest</span>
+              <span class="file">PPDCL_HLX301_S104_V4_20261101.csv</span>
+              <span class="meta"><span><em>Subjects</em> 3</span><span><em>Results</em> 3</span><span><em>Glucose</em> <span class="u">mmol/L</span></span><span><em>HbA1c</em> <span class="u">%</span></span></span>
+            </li>
+            <li class="batch">
+              <input type="radio" name="siteChoice" value="SITE-101" aria-label="SITE-101 Boston Clinical Unit batch">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Boston Clinical Unit</b><span class="site-id">SITE-101, United States</span></span>
+              <span class="state">Awaiting ingest</span>
+              <span class="file">PPDCL_HLX301_S101_V4_20261101.csv</span>
+              <span class="meta"><span><em>Subjects</em> 3</span><span><em>Results</em> 3</span><span><em>Glucose</em> <span class="u">mg/dL</span></span><span><em>HbA1c</em> <span class="u">%</span></span></span>
+            </li>
+            <li class="batch loaded" aria-disabled="true">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Chicago Metabolic Institute</b><span class="site-id">SITE-102, United States</span></span>
+              <span class="state">Loaded 07:42</span>
+              <span class="file">PPDCL_HLX301_S102_V4_20261101.csv</span>
+            </li>
+            <li class="batch loaded" aria-disabled="true">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Leeds Diabetes Centre</b><span class="site-id">SITE-117, United Kingdom</span></span>
+              <span class="state">Loaded 06:15</span>
+              <span class="file">PPDCL_HLX301_S117_V4_20261101.csv</span>
+            </li>
+          </ul>
+          <input type="hidden" id="siteId" value="SITE-104">
+          <dl class="detail" aria-label="Selected batch">
+            <dt>Batch</dt><dd id="kvBatch">SITE-104, visit 4 (week 12)</dd>
+            <dt>File</dt><dd><code id="kvFile">PPDCL_HLX301_S104_V4_20261101.csv</code></dd>
+            <dt>Checksum</dt><dd><code id="kvSum">sha256 9f3c…b17a, verified</code></dd>
+            <dt>Target</dt><dd><code>warehouse.lab_results</code></dd>
+            <dt>Audit</dt><dd>Run recorded under 21 CFR Part 11 with your user ID and UTC time</dd>
+          </dl>
+          <div class="act">
+            <button type="submit" class="btn" id="submitBtn"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8-5.2a.6.6 0 0 0 0-1l-8-5.2a.6.6 0 0 0-.9.5z"/></svg>Run ingest</button>
+            <p>Loads the selected batch through all five stages. Takes a few seconds.</p>
+          </div>
+        </form>
+
+        <section class="panel" aria-labelledby="sitesTitle">
+          <div class="panel-h"><h2 id="sitesTitle">Site data currency</h2><span>Visit 4 lab data</span></div>
+          <ul class="sites">
+            <li><span><b>Toronto Research Centre</b><small>SITE-104, 31 subjects</small></span><span class="pill warn">Batch pending</span></li>
+            <li><span><b>Boston Clinical Unit</b><small>SITE-101, 28 subjects</small></span><span class="pill warn">Batch pending</span></li>
+            <li><span><b>Chicago Metabolic Institute</b><small>SITE-102, 35 subjects</small></span><span class="pill ok">Current</span></li>
+            <li><span><b>Leeds Diabetes Centre</b><small>SITE-117, 24 subjects</small></span><span class="pill ok">Current</span></li>
+            <li><span><b>Montréal Clinical Trials</b><small>SITE-109, 22 subjects</small></span><span class="pill query">1 open query</span></li>
+            <li><span><b>Phoenix Endocrine Partners</b><small>SITE-121, 19 subjects</small></span><span class="pill info">Transfer due Tue</span></li>
+          </ul>
+          <div class="panel-f"><span>36 of 42 sites current for visit 4</span><a href="#">All sites</a></div>
+        </section>
+      </div>
+
+      <section class="panel" aria-labelledby="runTitle">
+        <div class="run-top">
+          <h2 id="runTitle">Ingest run</h2>
+          <span class="ref" id="runMeta">No run started</span>
+        </div>
+        <ol class="ledger" id="ledger" aria-label="Pipeline stages">
+          <li class="stg" data-stage="transfer"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Transfer file</h3><p data-default="Pull the vendor file from the SFTP drop and verify its checksum.">Pull the vendor file from the SFTP drop and verify its checksum.</p></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="parse"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Parse</h3><p data-default="Validate against spec v3.2 and map subject, visit and analyte codes.">Validate against spec v3.2 and map subject, visit and analyte codes.</p></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="normalize"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Normalize units</h3><p data-default="Convert every result to the study standard unit for its analyte.">Convert every result to the study standard unit for its analyte.</p><div class="stg-fail" id="stgFail"></div></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="ranges"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Reference ranges</h3><p data-default="Flag values outside the protocol range for medical review.">Flag values outside the protocol range for medical review.</p></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="warehouse"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Study warehouse</h3><p data-default="Commit the batch and write the audit trail entry.">Commit the batch and write the audit trail entry.</p></div><span class="stg-time"></span></li>
+        </ol>
+        <div class="log-h"><span>Run log</span><span id="logMeta">UTC</span></div>
+        <div class="log" id="log" aria-live="polite"><div><span>--:--:--</span>Select a batch in the transfer inbox and run the ingest.</div></div>
+        <div class="result-box" id="result" role="status"></div>
+        <div id="records"><div class="empty">Loaded records, with standard units and range flags, appear here once the batch commits.</div></div>
+      </section>
+    </div>
+
+    <div class="secondary">
+      <section class="panel hist" aria-labelledby="histTitle">
+        <div class="panel-h"><h2 id="histTitle">Recent runs</h2><span>Last 24 hours</span></div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Run</th><th>Site</th><th>Batch</th><th class="num c-rec">Records</th><th>Outcome</th><th>Run by</th></tr></thead>
+          <tbody>
+            <tr><td><span class="sub">RUN-20261102-0611</span></td><td>SITE-117 Leeds</td><td><span class="sub">LAB-7C2E19A4</span></td><td class="num c-rec">72</td><td class="st"><span class="pill ok">Committed</span></td><td class="who">Scheduled</td></tr>
+            <tr><td><span class="sub">RUN-20261102-0742</span></td><td>SITE-102 Chicago</td><td><span class="sub">LAB-3B90F1D2</span></td><td class="num c-rec">105</td><td class="st"><span class="pill ok">Committed</span></td><td class="who">Scheduled</td></tr>
+            <tr><td><span class="sub">RUN-20261101-1518</span></td><td>SITE-109 Montréal</td><td><span class="sub">LAB-A41D06E7</span></td><td class="num c-rec">66</td><td class="st"><span class="pill query">1 query raised</span></td><td class="who">P. Natarajan</td></tr>
+            <tr><td><span class="sub">RUN-20261101-0905</span></td><td>SITE-121 Phoenix</td><td><span class="sub">LAB-E8D2C530</span></td><td class="num c-rec">57</td><td class="st"><span class="pill ok">Committed</span></td><td class="who">R. Okonkwo</td></tr>
+          </tbody>
+        </table></div>
+        <div class="panel-f"><span>46 runs, 12,880 records loaded in the last 24 hours</span><a href="#">Run history</a></div>
+      </section>
+
+      <section class="panel" aria-labelledby="auditTitle">
+        <div class="panel-h"><h2 id="auditTitle">Audit trail</h2><span>21 CFR Part 11</span></div>
+        <ul class="audit" id="audit">
+          <li><time>02 Nov 07:42 UTC</time><b>Batch LAB-3B90F1D2 committed</b><small>Scheduled ingest, SITE-102, 105 records</small></li>
+          <li><time>02 Nov 06:11 UTC</time><b>Batch LAB-7C2E19A4 committed</b><small>Scheduled ingest, SITE-117, 72 records</small></li>
+          <li><time>01 Nov 16:03 UTC</time><b class="sig">Analyte mapping v3.2 e-signed</b><small>P. Natarajan, reason: vendor spec update</small></li>
+          <li><time>01 Nov 15:18 UTC</time><b>Query HLX-301-Q0466 raised</b><small>SITE-109, glucose out of protocol range</small></li>
+        </ul>
+        <div class="panel-f"><span>Entries are immutable and time-stamped in UTC</span><a href="#">Full audit trail</a></div>
+      </section>
+    </div>
+
+    <footer>
+      <div class="foot-in wrap">
+        <div>PPD clinical research services, part of Thermo Fisher Scientific<small>Demo environment. Fictional sponsor, study and subjects. Synthetic data only, no PHI.</small></div>
+        <nav aria-label="Legal and support"><a href="#">Legal notices</a><a href="#">Validation package</a><a href="#">Privacy notice</a><a href="#">System status</a><a href="#">Contact data management</a></nav>
+      </div>
+    </footer>
+  </div>
+</div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const CTA = 'Run ingest';
+    const BATCHES = {
+      'SITE-104': { file: 'PPDCL_HLX301_S104_V4_20261101.csv', sum: 'sha256 9f3c…b17a, verified', label: 'SITE-104, visit 4 (week 12)', glucoseUnit: 'mmol/L' },
+      'SITE-101': { file: 'PPDCL_HLX301_S101_V4_20261101.csv', sum: 'sha256 41e8…0c5d, verified', label: 'SITE-101, visit 4 (week 12)', glucoseUnit: 'mg/dL' },
+    };
+    const ANALYTES = { glucose: { name: 'Glucose, fasting', range: '70–180 mg/dL' }, hba1c: { name: 'HbA1c', range: '4.0–9.0 %' }, creatinine: { name: 'Creatinine', range: '0.50–1.30 mg/dL' } };
+    const STAGES = ['transfer', 'parse', 'normalize', 'ranges', 'warehouse'];
+    const result = document.getElementById('result');
+    const log = document.getElementById('log');
+    const btn = document.getElementById('submitBtn');
+    const runMeta = document.getElementById('runMeta');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
+    let runNo = 0, stageStart = 0, queryNo = 471;
+
+    function devinFields() {
+      return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' };
+    }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function ts() { return new Date().toLocaleTimeString('en-GB', { hour12: false, timeZone: 'UTC' }); }
+    function line(text, cls) { const d = document.createElement('div'); d.innerHTML = '<span>' + ts() + '</span>' + (cls ? '<b class="' + cls + '">' : '<b>') + esc(text) + '</b>'; log.appendChild(d); log.scrollTop = log.scrollHeight; }
+    function stageEl(name) { return document.querySelector('.stg[data-stage="' + name + '"]'); }
+    function elapsed() { const s = ((performance.now() - stageStart) / 1000); return s.toFixed(2) + ' s'; }
+    function stage(name, state, text) {
+      const el = stageEl(name);
+      el.className = 'stg' + (state ? ' ' + state : '');
+      const time = el.querySelector('.stg-time');
+      if (state === 'active') { stageStart = performance.now(); time.textContent = 'running'; }
+      else if (state === 'done') time.textContent = elapsed();
+      else if (state === 'failed') time.textContent = 'failed';
+      else time.textContent = '';
+      if (text) el.querySelector('p').textContent = text;
+    }
+    function resetRun() {
+      STAGES.forEach((s) => { stage(s, ''); const p = stageEl(s).querySelector('p'); p.textContent = p.dataset.default; });
+      document.getElementById('stgFail').innerHTML = '';
+      log.innerHTML = '';
+      result.className = 'result-box'; result.innerHTML = '';
+      document.getElementById('records').innerHTML = '<div class="empty">Loaded records, with standard units and range flags, appear here once the batch commits.</div>';
+      runMeta.className = 'ref live'; 
+    }
+    function syncBatch(site) {
+      const b = BATCHES[site];
+      document.getElementById('siteId').value = site;
+      document.getElementById('kvFile').textContent = b.file;
+      document.getElementById('kvSum').textContent = b.sum;
+      document.getElementById('kvBatch').textContent = b.label;
+    }
+    document.querySelectorAll('input[name=siteChoice]').forEach((r) => r.addEventListener('change', () => syncBatch(r.value)));
+    function buildPayload() { return { siteId: document.getElementById('siteId').value }; }
+    function runRef() { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return 'RUN-' + d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + '-' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + p(d.getUTCSeconds()); }
+    function addAudit(title, detail, signed) {
+      const li = document.createElement('li');
+      li.innerHTML = '<time>' + esc(new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' }).replace(',', '')) + ' UTC</time><b' + (signed ? ' class="sig"' : '') + '>' + esc(title) + '</b><small>' + esc(detail) + '</small>';
+      document.getElementById('audit').prepend(li);
+    }
+    let loadedSite = '';
+    function renderRecords(d) {
+      loadedSite = d.siteId || document.getElementById('siteId').value;
+      const rows = d.records.map((r, i) => {
+        const a = ANALYTES[r.analyte] || { name: r.analyte, range: '' };
+        const out = r.flag !== 'ok';
+        return '<tr class="' + (out ? 'out' : '') + '" data-row="' + i + '"><td><span class="sub">' + esc(r.subject) + '</span></td><td>' + esc(a.name) + '</td><td class="num"><b>' + esc(r.value) + '</b> ' + esc(r.unit) + '</td><td class="src c-src">' + esc(r.sourceUnit || r.unit) + (r.sourceUnit && r.sourceUnit !== r.unit ? ', converted' : ', as reported') + '</td><td class="src c-range">' + esc(a.range) + '</td><td><span class="pill ' + (out ? 'warn' : 'ok') + '">' + (out ? 'Out of range' : 'In range') + '</span></td><td><button type="button" class="qbtn" data-q="' + i + '" data-subject="' + esc(r.subject) + '" data-analyte="' + esc(a.name) + '" aria-pressed="false">Raise query</button></td></tr>';
+      }).join('');
+      document.getElementById('records').innerHTML =
+        '<div class="records-h"><h3>Loaded records</h3><span>' + d.records.length + ' results, ' + d.records.filter((r) => r.flag !== 'ok').length + ' out of range</span></div>' +
+        '<div class="tbl-wrap"><table class="tbl" aria-label="Loaded records"><thead><tr><th>Subject</th><th>Analyte</th><th class="num">Result, standard unit</th><th class="c-src">Source unit</th><th class="c-range">Reference range</th><th>Flag</th><th><span class="sr">Query</span></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+        '<div class="records-f"><span>Standard units: glucose mg/dL, HbA1c %, creatinine mg/dL. Reference ranges from protocol HLX-301 v4.0.</span><span>Queries go to the site coordinator in the subject casebook.</span></div>';
+      document.querySelectorAll('.qbtn').forEach((q) => q.addEventListener('click', () => raiseQuery(q)));
+    }
+    function raiseQuery(q) {
+      if (q.getAttribute('aria-pressed') === 'true') return;
+      q.setAttribute('aria-pressed', 'true'); q.textContent = 'Query raised';
+      const id = 'HLX-301-Q' + String(queryNo++).padStart(4, '0');
+      const tr = q.closest('tr');
+      const qr = document.createElement('tr'); qr.className = 'qrow';
+      qr.innerHTML = '<td colspan="7">Query <code>' + id + '</code> opened for ' + esc(q.dataset.subject) + ', ' + esc(q.dataset.analyte) + ': please confirm the reported value and collection time. Sent to the site coordinator.</td>';
+      tr.after(qr);
+      line('Query ' + id + ' raised for ' + q.dataset.subject + ' (' + q.dataset.analyte + ')', 'warn');
+      addAudit('Query ' + id + ' raised', (loadedSite || document.getElementById('siteId').value) + ', ' + q.dataset.subject + ', ' + q.dataset.analyte + ', by P. Natarajan');
+      document.querySelectorAll('[data-query-count]').forEach((c) => { c.textContent = String(Number(c.textContent) + 1); });
+    }
+
+    document.getElementById('demoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const site = document.getElementById('siteId').value;
+      const b = BATCHES[site];
+      const ref = runRef();
+      btn.disabled = true; btn.textContent = 'Running ingest\u2026';
+      resetRun();
+      runNo += 1;
+      runMeta.classList.add('running'); runMeta.innerHTML = 'Running <code>' + esc(ref) + '</code> for ' + esc(site);
+      stage('transfer', 'active'); line('Run ' + ref + ' started by P. Natarajan for ' + site + ', visit 4');
+      line('Pulling ' + b.file + ' from sftp://ppd-cl-drop/hlx301/');
+      await sleep(420); stage('transfer', 'done', 'File received, checksum verified.'); stage('parse', 'active'); line('Checksum verified, 3 subjects in file', 'ok');
+      await sleep(380); stage('parse', 'done', '3 subjects and 3 results mapped against spec v3.2.'); stage('normalize', 'active', 'Converting glucose (' + b.glucoseUnit + '), HbA1c (%) and creatinine (mg/dL) to study standard units\u2026'); line('Parsed 3 results: glucose, HbA1c, creatinine', 'ok'); line('Normalizing units to study standard\u2026');
+      try {
+        const res = await fetch("/api/bce3b3d2/ingest", {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign(buildPayload(), devinFields())),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const code = data.code || 'LAB_INGEST_FAILED';
+          const reqId = data.requestId || ref;
+          stage('normalize', 'failed', 'Stopped: a result could not be converted to the study standard unit.');
+          document.getElementById('stgFail').innerHTML = '<b>Batch rolled back.</b> Nothing was written to <code>warehouse.lab_results</code>. Reference ranges and commit did not run.';
+          runMeta.className = 'ref live failed'; runMeta.innerHTML = 'Failed at normalize units, <code>' + esc(ref) + '</code>';
+          line('Stage normalize failed: no unit conversion available for one or more results (' + code + ')', 'err');
+          line('Batch rolled back. 0 rows written to warehouse.lab_results.', 'warn');
+          line('Incident opened automatically, reference ' + reqId, 'warn');
+          result.className = 'result-box error';
+          result.innerHTML =
+            '<div class="result-title"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.25"/><path d="M8 4.8v3.9M8 11.2v.1"/></svg>Batch not loaded. Ingest stopped at normalize units.</div>' +
+            '<p>One or more results from ' + esc(site) + ' could not be converted to the study standard unit, so the run stopped and the whole batch was rolled back. No results from this file reached the study warehouse or the clinical database. Our engineering team has been notified automatically and the on-call data engineer has this reference.</p>' +
+            '<dl class="result-kv"><div><dt>Reference</dt><dd><code>' + esc(reqId) + '</code></dd></div><div><dt>Error code</dt><dd><code>' + esc(code) + '</code></dd></div><div><dt>Run</dt><dd><code>' + esc(ref) + '</code></dd></div><div><dt>Rows written</dt><dd>0</dd></div></dl>' +
+            '<div class="result-part11"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span>The failed attempt is recorded in the audit trail. The batch stays in the inbox and can be rerun once the conversion is in place.</span></div>';
+          addAudit('Ingest ' + ref + ' failed, batch rolled back', site + ', ' + code + ', reference ' + reqId + ', by P. Natarajan');
+        } else {
+          const converted = data.records.filter((r) => r.sourceUnit && r.sourceUnit !== r.unit).length;
+          stage('normalize', 'done', data.records.length + ' results in study standard units' + (converted ? ', ' + converted + ' converted.' : ', no conversion needed.')); stage('ranges', 'active'); line('Converted ' + data.records.length + ' results to standard units', 'ok');
+          await sleep(340);
+          const out = data.records.filter((r) => r.flag !== 'ok').length;
+          stage('ranges', 'done', out ? out + ' value' + (out === 1 ? '' : 's') + ' outside the protocol range, flagged for review.' : 'All ' + data.records.length + ' values inside the protocol range.'); stage('warehouse', 'active');
+          line('Reference ranges applied: ' + out + ' out-of-range value' + (out === 1 ? '' : 's') + ' flagged', out ? 'warn' : 'ok');
+          await sleep(360);
+          stage('warehouse', 'done', 'Batch ' + data.batchId + ' committed, audit entry written.');
+          line('Committed batch ' + data.batchId + ' to warehouse.lab_results (' + data.records.length + ' rows)', 'ok');
+          line('Audit entry written, ' + ref, 'ok');
+          runMeta.className = 'ref live done'; runMeta.innerHTML = 'Completed ' + ts() + ' UTC, <code>' + esc(ref) + '</code>';
+          result.className = 'result-box success';
+          result.innerHTML =
+            '<div class="result-title"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.25"/><path d="M5 8.2l2 2 4-4.4"/></svg>Loaded ' + data.records.length + ' records from ' + esc(data.site || site) + '</div>' +
+            '<p>Batch committed to the study warehouse. ' + (out ? out + ' value' + (out === 1 ? ' is' : 's are') + ' outside the protocol range and ready for a query.' : 'All values are inside the protocol range.') + '</p>' +
+            '<dl class="result-kv"><div><dt>Batch</dt><dd><code>' + esc(data.batchId) + '</code></dd></div><div><dt>Run</dt><dd><code>' + esc(ref) + '</code></dd></div><div><dt>Rows written</dt><dd>' + data.records.length + '</dd></div><div><dt>Site data</dt><dd>Current for visit 4</dd></div></dl>' +
+            '<div class="result-part11"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span>Audit entry recorded under 21 CFR Part 11: user P. Natarajan, ' + ts() + ' UTC, reason "scheduled visit 4 transfer".</span></div>';
+          renderRecords(data);
+          (function markLoaded() {
+            const row = document.querySelector('input[name=siteChoice][value="' + site + '"]');
+            if (row && row.parentElement) {
+              const st = row.parentElement.querySelector('.state'); if (st) { st.textContent = 'Loaded ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }); st.classList.add('loaded'); }
+              row.disabled = true; row.checked = false; row.parentElement.classList.add('loaded');
+              const next = document.querySelector('input[name=siteChoice]:not(:disabled)');
+              if (next) { next.checked = true; syncBatch(next.value); }
+            }
+            document.querySelectorAll('.pill.warn').forEach((pill) => { const li = pill.closest('li'); if (li && li.textContent.indexOf(site) !== -1) { pill.textContent = 'Current'; pill.className = 'pill ok'; } });
+          })();
+          addAudit('Batch ' + data.batchId + ' committed', site + ', ' + data.records.length + ' records, run ' + ref + ', by P. Natarajan');
+        }
+      } catch (err) {
+        stage('normalize', 'failed', 'Stopped: the data hub could not reach the ingest service.');
+        runMeta.className = 'ref live failed'; runMeta.textContent = 'Run did not complete';
+        line('Ingest service unreachable. Batch left in the inbox.', 'err');
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">Batch not loaded. The ingest service did not respond.</div><p>Check your connection and run the ingest again. The batch stays in the transfer inbox and nothing was written to the warehouse.</p>';
+      } finally {
+        const pending = document.querySelector('input[name=siteChoice]:not(:disabled)');
+        if (!pending) { btn.disabled = true; btn.textContent = 'No batches awaiting ingest'; return; }
+        btn.disabled = false; btn.textContent = CTA; btn.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8-5.2a.6.6 0 0 0 0-1l-8-5.2a.6.6 0 0 0-.9.5z"/></svg>'); }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
