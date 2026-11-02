@@ -245,6 +245,12 @@ async function submitToPaymentsGateway(transfer, { synthetic = false } = {}) {
   throw lastError;
 }
 
+function holdExpiredError(message) {
+  const err = new Error(message);
+  err.code = 'HOLD_EXPIRED';
+  return err;
+}
+
 function transferDedupeKey(data) {
   return [data.userId || 'anonymous', data.fromAccount, data.toAccount, Number(data.amount) || 0].join(':');
 }
@@ -337,6 +343,12 @@ async function processTransfer(data, options = {}) {
     const stepStart2 = Date.now();
     await runComplianceScreening(data.fromAccount, data.accountTier);
     const screeningMs = Date.now() - stepStart2;
+
+    // The issuer releases the authorization hold after options.holdTtlMs;
+    // settling against a released hold is rejected.
+    if (options.holdTtlMs && Date.now() - startTime > options.holdTtlMs) {
+      throw holdExpiredError(`Authorization hold released after ${options.holdTtlMs}ms, before settlement`);
+    }
 
     const stepStart3 = Date.now();
     const settlement = await submitToPaymentsGateway(data, { synthetic: Boolean(options.synthetic) });

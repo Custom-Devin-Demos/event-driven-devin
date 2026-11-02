@@ -81,6 +81,10 @@
  * (only the on-call one) sets oncallOnly: true, so its direct /<page-slug>
  * URL is served with the shim instead of as a bare page whose action 404s.
  *
+ * failAfterHang: true (banking | telco | hightech) makes the slow primary action
+ * end in a 504 instead of eventually succeeding, and words the alert card as a
+ * 5xx rate. The page must show a calm "try again later" message on failure.
+ *
  * Skins are direct-URL only: the stock /oncall hub never lists customers,
  * and each skin is reachable solely by its own /oncall/c/<slug> URL. Skins on a
  * healthcare template (vertical 'pbm' | 'payer' | 'lifesciences') are also
@@ -7378,6 +7382,7 @@ const ONCALL_SKINS = {
     brandMark: 'V',
     vertical: 'telco',
     oncallOnly: true,
+    failAfterHang: true,
     alertDestination: 'slack',
     page: { file: 'b77d601c.html', title: 'SIM only upgrade | Vodafone' },
     theme: {
@@ -7404,13 +7409,13 @@ const ONCALL_SKINS = {
       ].join('\n'),
     },
     alertCard: {
-      title: 'p95 latency — My Vodafone: SIM only upgrade',
+      title: '5xx rate — My Vodafone: SIM only upgrade',
       release: 'my-vodafone-upgrades@2026.11.1',
-      metricValue: '7.4s',
-      threshold: '> 1.5s',
-      baseline: '~300ms (7-day p95, before my-vodafone-upgrades@2026.11.1)',
-      symptom: 'SIM only upgrades in My Vodafone hang ~7s after the customer selects Confirm upgrade, before the confirmation is shown. Error rate is normal — the upgrade completes.',
-      impact: 'Vodafone customers wait ~7 seconds for a plan upgrade to confirm; some leave the page before it finishes and contact Vodafone Customer Services to check whether their plan changed.',
+      metricValue: '504 on ~100% of upgrades',
+      threshold: '> 5% error rate',
+      baseline: '<0.1% (7-day, before my-vodafone-upgrades@2026.11.1)',
+      symptom: 'SIM only upgrades in My Vodafone hang ~7s after the customer selects Confirm upgrade, then fail with a gateway timeout. The plan is not changed.',
+      impact: 'Vodafone customers cannot upgrade online; every upgrade waits ~7 seconds and then fails, and customers contact Vodafone Customer Services instead.',
     },
     disclaimer: 'NOT ACTUALLY A VODAFONE SITE — internal demo only, not affiliated with, endorsed by, or a real Vodafone product.',
   },
@@ -7460,6 +7465,7 @@ const ONCALL_SKINS = {
     brandMark: 'A',
     vertical: 'hightech',
     oncallOnly: true,
+    failAfterHang: true,
     alertDestination: 'slack',
     page: { file: '9f836bf5.html', title: 'Add users | Atlassian' },
     theme: {
@@ -7486,15 +7492,15 @@ const ONCALL_SKINS = {
       ].join('\n'),
     },
     alertCard: {
-      title: 'p95 latency — Atlassian Administration: Add users',
+      title: '5xx rate — Atlassian Administration: Add users',
       service: 'admin-billing',
       release: 'admin-billing@2026.10.3',
-      metricQuery: 'p95:trace.express.request.duration{service:licensing-api,resource:POST /api/oncall/licenses/provision}',
-      metricValue: '6.3s',
-      threshold: '> 2s',
-      baseline: '~350ms (7-day p95, before admin-billing@2026.10.3)',
-      symptom: 'Add users in Atlassian Administration takes ~6s after the admin selects Add users, before the new user tier is confirmed. Error rate is normal — the users are added.',
-      impact: 'Site admins raising the user tier on Jira, Confluence and Jira Service Management wait about 6 seconds for confirmation, and contact Atlassian Support when the change looks stuck.',
+      metricQuery: 'sum:trace.express.request.errors{service:licensing-api,resource:POST /api/oncall/licenses/provision,http.status_code:504}',
+      metricValue: '504 on ~100% of Add users requests',
+      threshold: '> 5% error rate',
+      baseline: '<0.1% (7-day, before admin-billing@2026.10.3)',
+      symptom: 'Add users in Atlassian Administration hangs ~6s after the admin selects Add users, then fails with a gateway timeout. The user tier is not changed.',
+      impact: 'Site admins cannot raise the user tier on Jira, Confluence and Jira Service Management; every request waits about 6 seconds and then fails, and admins contact Atlassian Support.',
     },
     disclaimer: 'NOT ACTUALLY AN ATLASSIAN SITE — internal demo only, not affiliated with, endorsed by, or a real Atlassian product.',
   },

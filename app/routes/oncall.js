@@ -420,6 +420,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
       const automatedAlertPath = ${JSON.stringify(Boolean(skin && skin.alertPath === 'automated'))};
+      const failAfterHang = ${JSON.stringify(Boolean(skin && skin.failAfterHang))};
       var skinAlertDestination = ${JSON.stringify(skin && ['teams', 'slack', 'devin'].includes(skin.alertDestination) ? skin.alertDestination : null)};
       var scenarioAlertDestination = ${JSON.stringify(
     scenario.defaultAlertDestination === 'teams' || scenario.defaultAlertDestination === 'slack'
@@ -449,6 +450,14 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
       var initialClickEl = initialClick && document.querySelector(initialClick);
       if (initialClickEl) initialClickEl.click();
       const origFetch = window.fetch.bind(window);
+      // failAfterHang skins name themselves so the on-call route applies
+      // their upstream hold (the slow request then fails instead of succeeding).
+      function oncallFetch(url, opts) {
+        if (!failAfterHang) return origFetch(url.replace(apiPath, oncallApiPath), opts);
+        var headers = new Headers((opts && opts.headers) || {});
+        headers.set('X-Oncall-Skin', skinSlug);
+        return origFetch(url.replace(apiPath, oncallApiPath), Object.assign({}, opts, { headers: headers }));
+      }
       // After the alert lands, collapse the demo ribbon to a small dot so it
       // doesn't sit over the customer page; clicking the dot re-expands it.
       var ribbonEl = document.getElementById('oncall-ribbon');
@@ -556,7 +565,7 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
           // Scenarios with triggerWhen only page on-call for the request
           // shape that actually degrades; other requests are just rerouted.
           if (!shouldTrigger(opts)) {
-            return origFetch(url.replace(apiPath, oncallApiPath), opts);
+            return oncallFetch(url, opts);
           }
           // Automated-alert skins: the on-call route raises the legacy
           // automated alert itself when the call really fails.
@@ -585,18 +594,18 @@ function buildOncallShim(scenario, skinSlug, hideRibbon, skin) {
             }
             if (ribbonCollapsed) dotEl.title = retryMsg;
             else scheduleCollapse();
-            return origFetch(url.replace(apiPath, oncallApiPath), opts);
+            return oncallFetch(url, opts);
           }
           // Error-shaped scenarios page on-call only when the rerouted call
           // actually fails with one of the scenario's statuses, once per failure.
           if (alertOnStatus) {
-            return origFetch(url.replace(apiPath, oncallApiPath), opts).then(function (resp) {
+            return oncallFetch(url, opts).then(function (resp) {
               if (alertOnStatus.indexOf(resp.status) !== -1) postAlertTrigger();
               return resp;
             });
           }
           postAlertTrigger();
-          return origFetch(url.replace(apiPath, oncallApiPath), opts);
+          return oncallFetch(url, opts);
         }
         return origFetch(url, opts);
       };
