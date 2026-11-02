@@ -6456,7 +6456,7 @@ const ONCALL_SKINS = {
     // responders triage, so no devinSession.auto.
     teamsAlerts: true,
     teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
-    page: { file: '77c11f38.html', title: 'Check your eligibility | Homeowner loans | TogetherMoney' },
+    page: { file: '77c11f38.html', title: 'Check your eligibility | Homeowner loans | Together' },
     alertCard: {
       title: '5xx spike \u2014 POST /api/oncall/eligibility/check (self-employed applicants)',
       service: 'together-website-eligibility',

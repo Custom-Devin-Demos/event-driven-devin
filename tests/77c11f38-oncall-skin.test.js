@@ -38,7 +38,7 @@ const { ALERT_SCENARIOS, resetSkinAlertMemory } = require('../app/services/oncal
 const { getOncallSkin } = require('../config/oncall-skins');
 
 const SLUG = '77c11f38';
-const TITLE = 'Check your eligibility | Homeowner loans | TogetherMoney';
+const TITLE = 'Check your eligibility | Homeowner loans | Together';
 const ROUTE = '/api/oncall/eligibility/check';
 const ONCALL_DEMO_URL = 'https://default8019.65.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/abc/triggers/manual/paths/invoke?sig=x';
 const ENV_KEYS = ['SLACK_ONCALL_BOT_TOKEN', 'SLACK_BOT_TOKEN', 'SLACK_ONCALL_ALERTS_CHANNEL_ID', 'ONCALL_TEAMS_WEBHOOK_URL', 'ONCALL_TEAMS_ALL_ALERTS', 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI'];
@@ -131,6 +131,8 @@ describe('TogetherMoney website eligibility on-call skin (77c11f38)', () => {
       expect(html).toContain(`name="${name}"`);
     });
     expect(html).not.toMatch(/nCino|Salesforce/i);
+    expect(html).toContain('/brand/77c11f38/together_logo.svg');
+    expect(html).toMatch(/<meta name="robots" content="noindex/);
   });
 
   test.each(['45000', '£45,000'])('employed applicant with income %s is eligible', async (annualIncome) => {
