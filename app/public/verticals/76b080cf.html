@@ -231,6 +231,8 @@
       fromAccount.addEventListener('change', render);
       toAccount.addEventListener('change', () => { clearResult(); stopTimer(false); timerValue.textContent = '0.0s'; prefill(); render(); });
       amountInput.addEventListener('input', render);
+      const markStale = () => { if (pending) return; result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = '0.0s'; };
+      form.addEventListener('input', markStale); form.addEventListener('change', markStale);
       form.addEventListener('reset', (e) => {
         if (pending) { e.preventDefault(); return; }
         setTimeout(() => { clearResult(); status.textContent = IDLE_STATUS; stopTimer(false); timerValue.textContent = '0.0s'; prefill(); render(); });
