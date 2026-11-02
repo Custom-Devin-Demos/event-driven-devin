@@ -109,6 +109,14 @@ describe('Rocket Mortgage rate check', () => {
     expect(result.quotes[0].reason).toBe('Requires at least 3.5% down');
   });
 
+  test('treats a down payment exactly at a program minimum as eligible', async () => {
+    PRICING_DESK_POLICY.latencyMs = [1, 2];
+
+    const result = await runRateCheck({ homePrice: 50002, downPayment: 1750.07, scope: 'fha30' });
+
+    expect(result.quotes[0].status).toBe('priced');
+  });
+
   test.each([
     ['conv30', 'excellent'],
     ['fha30', 'good'],

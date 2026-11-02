@@ -83,9 +83,11 @@ async function fetchProgramPricing(request, programKey) {
 
   const program = LOAN_PROGRAMS[programKey];
   const loanAmountCents = (request.homePrice - request.downPayment) * 100;
-  const downPct = (request.downPayment / request.homePrice) * 100;
+  const downCents = Math.round(request.downPayment * 100);
+  const priceCents = Math.round(request.homePrice * 100);
+  const meetsDownPct = (pct) => downCents * 1000 >= Math.round(pct * 10) * priceCents;
 
-  if (downPct < program.minDownPct) {
+  if (!meetsDownPct(program.minDownPct)) {
     return {
       program: programKey,
       label: program.label,
@@ -102,7 +104,7 @@ async function fetchProgramPricing(request, programKey) {
 
   const hash = hashQuote(`${request.zip}:${request.creditBand}:${programKey}`);
   const marketAdjust = ((hash % 7) - 3) * 0.0625;
-  const ltvAdjust = downPct < 20 ? 0.125 : 0;
+  const ltvAdjust = meetsDownPct(20) ? 0 : 0.125;
   const rate = Math.round((program.baseRate + marketAdjust + ltvAdjust
     + CREDIT_BANDS[request.creditBand].rateAdjust) * 1000) / 1000;
   const points = Math.round((((hash >>> 6) % 9) * 0.125) * 1000) / 1000;
