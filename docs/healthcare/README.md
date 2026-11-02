@@ -111,8 +111,6 @@ Customer-branded copy of demo 4 for Thermo Fisher Scientific's PPD clinical rese
 
 **Host environment:** nothing demo-specific is required. Alerts go to the shared `SLACK_CHANNEL_ID` (`#automated-alerts`), the same channel as the other demos, and the session is created with the shared Devin service key in the org picked on the homepage. Set `DEVIN_SERVICE_KEY_BCE3B3D2` (an HC-GTM-AD service key) plus `DEVIN_ORG_ID_BCE3B3D2=org-ad5cb75ed086403697e4d37f8411936e` only if the shared key cannot create sessions in HC-GTM-AD; `SLACK_CHANNEL_ID_BCE3B3D2` and `DEVIN_USER_ID_BCE3B3D2` are optional overrides.
 
----
-
 ## 6. CVS Health (CVS Pharmacy) — copay savings card at pickup (`/1d54e3b4`)
 
 Customer-branded copy of demo 3 for CVS Health. **Unlisted:** not on `/healthcare-lab`; share the direct URL `/cvs-copay` (also `/cvs-pharmacy-savings`, `/1d54e3b4`). The page uses the cvs.com pharmacy shell: CVS header and nav, CVS Health Sans, the navy pharmacy hero, the cvs.com footer and the CVS Health family bar. The pickup receipt is styled as a CVS register receipt. The manufacturer brand (Veloxa), cardholders, store and help-desk number are fictional and all data is synthetic.
@@ -133,6 +131,29 @@ Customer-branded copy of demo 3 for CVS Health. **Unlisted:** not on `/healthcar
 > The fix is in a pull request waiting for an engineer's review. Across thousands of stores, that's the difference between a weekend of abandoned prescriptions and a fix before the next patient reaches the counter.”
 
 **Host environment:** nothing demo-specific is required. Alerts go to the shared `SLACK_CHANNEL_ID` (`#automated-alerts`) and the session is created with the shared Devin service key in the org picked on the homepage. Set `DEVIN_SERVICE_KEY_1D54E3B4` (an HC-GTM-AD service key) plus `DEVIN_ORG_ID_1D54E3B4=org-ad5cb75ed086403697e4d37f8411936e` only if the shared key cannot create sessions in HC-GTM-AD.
+
+---
+
+## 7. Medtronic — clinical trial lab data pipeline (`/afd8d03a`)
+
+Customer-branded copy of demo 4 for Medtronic. **Unlisted:** not on `/healthcare-lab`; share the direct URL `/medtronic-clinical-lab` (also `/medtronic`, `/afd8d03a`). The page copies medtronic.com's look: navy header with the white wordmark and pill search, the light-blue hero with a white shadowed card, the Medtronic blue `#1010EB` links, buttons and arrow links, and the dark `#1E1E1E` footer. Study MDT-DM-301, the sites and the subjects are fictional, and all data is synthetic.
+
+**Reset:** same as the other demos. The page keeps no run state, so a reload brings back the failing Toronto batch. Keep Devin's fix PR unmerged if you want to run the demo again.
+
+**Trigger:** open `/medtronic-clinical-lab`, fill in **Run as** (your name + Devin email), click **Save**, leave *Toronto Research Centre (SITE-104)* selected in the *Transfer inbox* and click **Run ingest**. The name shows in the header, run log and audit trail. The email is resolved to your HC-GTM-AD user through `/api/resolve-identity`, so the Devin session runs as you.
+**What you see:** *Normalize units* turns red and the result reads “Batch not loaded. Ingest stopped at normalize units” with code `LAB_INGEST_FAILED` and a reference. The run log says the batch rolled back. The raw `TypeError … 'factor'` appears only in Sentry and the Slack card.
+**Contrast:** choose *Boston Clinical Unit (SITE-101)*. All five stages turn green and three records load with range flags.
+
+**What Devin does next:** the alert points to `app/services/verticals/afd8d03a.js — ingestBatch` with `site=SITE-104` and customer `afd8d03a`. Devin finds the missing glucose mmol/L entry in `UNIT_CONVERSIONS`, adds it (×18.016) with a test and opens a PR.
+
+**Point at on screen:** the transfer file name (`MCL_MDTDM301_S104_…`), the red **Normalize units** stage, the run log line `Batch rolled back. 0 rows written` and the audit trail entry under your name. Then show the Slack card in `#automated-alerts`, the Devin session in HC-GTM-AD and the PR.
+
+**Talk track (2 min):**
+> “This is Medtronic’s clinical data hub for a pivotal diabetes study. Every night, central lab results from each trial site flow into the study database. The data manager runs Toronto’s batch and the whole batch fails. Those patients’ results don’t reach the study team, and with an interim data lock in eleven days, every missing day puts the submission timeline at risk.
+> Nobody filed a ticket. The failure went to Slack on its own, and Devin is already working on it. What it found: the Canadian site reports blood glucose in mmol/L and the pipeline only knew the US unit, mg/dL. US sites load fine, so the bug only showed up when Toronto came online.
+> Devin added the conversion, wrote a test and opened the pull request. In a regulated environment an engineer still reviews and approves the change. Devin took away the hours of detective work.”
+
+**Host environment:** only `DEVIN_SERVICE_KEY_AFD8D03A` (an HC-GTM-AD service key). The org (`org-ad5cb75ed086403697e4d37f8411936e`) is fixed in the page, and alerts go to `#automated-alerts` (`slackChannelId: 'C0ALNRR4PSQ'` in `config/customers/afd8d03a.js`).
 
 ---
 

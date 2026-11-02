@@ -41,7 +41,9 @@ describe('Sentry customer identity mapping', () => {
   test.each([
     { tags: [['alert_path', 'instant'], ['service', 'bce3b3d2-lab-pipeline']], culprit: 'normalize(app/services/verticals/bce3b3d2)' },
     { issueTitle: "TypeError: Cannot read properties of undefined (reading 'factor')", culprit: 'app/services/verticals/bce3b3d2.js — ingestBatch', tags: [] },
-  ])('recognizes Thermo Fisher (PPD) central lab failures as instant-path alerts %#', (alertData) => {
+    { tags: [['alert_path', 'instant'], ['service', 'afd8d03a-lab-pipeline']], culprit: 'normalize(app/services/verticals/afd8d03a)' },
+    { issueTitle: "TypeError: Cannot read properties of undefined (reading 'factor')", culprit: 'app/services/verticals/afd8d03a.js — ingestBatch', tags: [] },
+  ])('recognizes Thermo Fisher (PPD) and Medtronic central lab failures as instant-path alerts %#', (alertData) => {
     expect(isInstantPathEvent(alertData)).toBe(true);
   });
 
