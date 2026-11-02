@@ -177,7 +177,7 @@
           <div class="field">
             <label for="reference">Reference</label>
             <input type="text" id="reference" maxlength="18" value="Dinner" autocomplete="off">
-            <small>Shown on your payee&rsquo;s statement. Up to 18 characters.</small>
+            <small>For your own records. Up to 18 characters.</small>
           </div>
           <dl class="summary" aria-label="Payment summary">
             <div><dt>From</dt><dd id="sumFrom">&mdash;</dd></div>
@@ -231,8 +231,8 @@
       chooseRecipient: 'Choose who to pay.', enterAmount: 'Enter an amount, for example 25.',
       sameAccount: 'Choose a different account to pay to.',
       tooMuch: 'That\u2019s more than your available balance. You can pay up to',
-      success: (at, amt, to, from, fee, ref) => `Payment sent at ${at}. ${amt} to ${to} from your ${from}${fee ? ` (fee ${fee})` : ''}. Reference ${ref}.`,
-      duplicate: (at, amt, to, ref) => `This payment was already sent at ${at}: ${amt} to ${to}, reference ${ref}. We didn't send it twice.`,
+      success: (at, amt, to, from, fee, ref) => `Payment sent at ${at}. ${amt} to ${to} from your ${from}${fee ? ` (fee ${fee})` : ''}. Receipt ${ref}.`,
+      duplicate: (at, amt, to, ref) => `This payment was already sent at ${at}: ${amt} to ${to}, receipt ${ref}. We didn't send it twice.`,
       failed: 'We couldn\u2019t make this payment right now. Nothing has left your account. Please try again in a few minutes.',
       unconfirmed: 'We couldn\u2019t confirm this payment. Check your account activity before paying again, so it doesn\u2019t go twice.',
     };
@@ -274,7 +274,7 @@
       const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
       const selected = (select) => select.options[select.selectedIndex];
       const available = () => balances[fromAccount.value] || 0;
-      const maxPayable = () => Math.max(Math.floor(available() * 100), 0) / 100;
+      const maxPayable = () => Math.max(Math.floor(((available() - 2.5) / 1.001) * 100), 0) / 100;
       function parsedAmount() {
         const raw = amountInput.value.trim().replace(/,/g, '');
         if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;

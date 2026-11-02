@@ -7836,11 +7836,10 @@ const ONCALL_SKINS = {
     supportCenter: 'NatWest Support Centre',
     alertCard: {
       title: '5xx rate — NatWest Online Banking: Make a payment',
-      service: 'payments-api',
-      release: 'payments-api@2026.11.1',
+      release: 'banking-api@2026.11.1',
       metricValue: '504 on ~100% of payments',
       threshold: '> 5% error rate',
-      baseline: '<0.1% (7-day, before payments-api@2026.11.1)',
+      baseline: '<0.1% (7-day, before banking-api@2026.11.1)',
       symptom: 'Payments to existing payees and transfers between own accounts in NatWest Online Banking hang ~9s after the customer selects Make payment, then fail with a gateway timeout. No money leaves the account.',
       impact: 'NatWest customers cannot make payments online; every payment waits about 9 seconds and then fails, and customers contact the NatWest Support Centre instead.',
     },
