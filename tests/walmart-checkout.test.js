@@ -113,7 +113,7 @@ describe('Walmart Holiday Food checkout (walmart)', () => {
   });
 
   test('Teams field card repeats the Quantum Metric signal in the top-level footer', () => {
-    const { buildTeamsAlertCardForAlert } = require('../app/services/devin-session');
+    const { buildTeamsAlertCardForAlert } = jest.requireActual('../app/services/devin-session');
     const qm = svc.buildQuantumMetricSignal('WM-TEST-1234');
     const card = buildTeamsAlertCardForAlert({
       issueTitle: 'TypeError: boom', errorType: 'TypeError', errorValue: 'boom', service: 'walmart-holiday-food-checkout',
