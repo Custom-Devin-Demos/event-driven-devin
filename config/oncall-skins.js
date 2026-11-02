@@ -7377,6 +7377,7 @@ const ONCALL_SKINS = {
     company: 'Vodafone',
     brandMark: 'V',
     vertical: 'telco',
+    oncallOnly: true,
     alertDestination: 'slack',
     page: { file: 'b77d601c.html', title: 'SIM only upgrade | Vodafone' },
     theme: {
