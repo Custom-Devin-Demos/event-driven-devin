@@ -157,7 +157,21 @@ Customer-branded copy of demo 4 for Medtronic. **Unlisted:** not on `/healthcare
 
 ---
 
-## 8. Highmark — payer prior authorization (`/fe64010d`)
+## 8. Lilly — clinical-trial lab data pipeline (LillyDirect branding)
+
+Page: `/fc0bd7f3`, aliases `/lilly-trial-lab` and `/lilly-lab-pipeline` (unlisted). Branded from the public LillyDirect site (lilly.com/lillydirect/weight-management): black pill header, LillyDirect logo, photo hero with oversized white heading, red `#d31710` rounded CTAs, Ringside-style type. All protocol, site and subject data is fictional (ORF-317, orforglipron in adults with type 2 diabetes).
+
+- **Reset:** nothing to reset. Reload the page. In the **Run as** bar enter your name and Devin email and press Save (stored in the browser, org fixed to HC-GTM-AD).
+- **Trigger:** leave the default site **SITE-104 Toronto** selected and press **Run ingest**. The pipeline fails at *Normalize units* and rolls the batch back. To show the healthy path, pick **SITE-101 Indianapolis** and run again: it commits.
+- **What the AD sees:** a generic "batch rolled back" message with a reference ID, the stage tracker stopped at Normalize, and an audit-trail entry under the presenter's name. Within a minute an alert lands in `#automated-alerts` and a Devin session starts under the presenter's email.
+- **What Devin does:** reads the Sentry `TypeError: Cannot read properties of undefined (reading 'factor')`, traces it to `app/services/verticals/fc0bd7f3.js` → `normalize`, sees Toronto reports glucose in `mmol/L` with no conversion, adds `mmol/L` (× 18.016 to mg/dL) plus a guard that turns unknown units into a data query instead of a crash, adds a test, and opens a PR.
+- **What to point at:** the Indianapolis batch succeeding while Toronto fails (same code, different lab units), the Slack alert, Devin's root-cause write-up, and the small PR with a test.
+- **Talk track (2 min):** "This is a trial data hub for a Lilly diabetes study. Labs from every site feed one pipeline. Our Toronto site just sent its visit-4 results and the run failed, so nothing reached the study warehouse. Nobody filed a ticket: the error went straight to Slack and Devin picked it up. Devin found that Canadian labs report glucose in millimoles, not milligrams, and the code had no conversion. It added one, made unknown units raise a data query instead of crashing, wrote a test and opened a PR. A data manager only has to review and merge. Indianapolis kept working the whole time."
+- **Host env:** only `DEVIN_SERVICE_KEY_FC0BD7F3` is needed on the host.
+
+---
+
+## 9. Highmark — payer prior authorization (`/fe64010d`)
 
 Customer-branded copy of demo 1 for Highmark. **Unlisted:** not on `/healthcare-lab`; share the direct URL `/highmark-prior-auth` (also `/highmark-payer`, `/fe64010d`). The page copies the highmark.com look: the gray audience bar, the Highmark Blue Cross Blue Shield logo, Roboto body text with Sofia Pro headings, the Highmark navy and blue colors, 5px uppercase buttons and the navy footer with the gray legal strip. Brand assets load from the highmark.com CDN and fall back to a text wordmark. The scenario is the same as demo 1: providers, members (`SHP-…` IDs), request numbers and phone numbers are fictional and all data is synthetic.
 
