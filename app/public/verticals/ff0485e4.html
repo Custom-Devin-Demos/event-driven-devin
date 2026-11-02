@@ -241,7 +241,7 @@
           <section class="panel" aria-labelledby="ladder-h">
             <div class="panel-h"><h2 id="ladder-h">Decision path</h2><span id="ladderMeta">Request not yet submitted</span></div>
             <div class="ladder">
-              <div class="step done" id="step1"><i>&#10003;</i><h3>Eligibility verified</h3><p>Member active, imaging benefit in network. No referral required under Gold PPO.</p></div>
+              <div class="step done" id="step1"><i>&#10003;</i><h3>Eligibility verified</h3><p id="step1Text">Member active, imaging benefit in network. No referral required under Gold PPO.</p></div>
               <div class="step" id="step2"><i></i><h3>Clinical criteria</h3><p id="step2Text">Matches the procedure and place of service against Summit's medical policy.</p>
                 <dl><dt>Policy</dt><dd><code>MP-IMG-0142</code> Lumbar spine MRI</dd><dt>Site of care</dt><dd id="sosText">Outpatient hospital</dd></dl></div>
               <div class="step" id="step3"><i></i><h3>Decision</h3><p id="step3Text">Issued instantly for auto-approved requests, otherwise within the urgency window.</p>
@@ -314,7 +314,7 @@
       result.innerHTML = '<div class="result-title">' + esc(title) + '</div><div>' + esc(d.reason) + '</div><div class="ref">Request ' + esc(d.requestId) + ' &nbsp; ' + esc(d.procedure) + ' at ' + esc(d.siteOfService) + '</div>' + extra;
       setLadder({ s2: 'done', s3: cls === 'success' ? 'done' : cls, meta: 'Decided ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), t2: 'Criteria matched for ' + d.procedure + '.', t3: 'Decision issued and recorded on the member file.' });
     }
-    const MEMBERS = { 'SHP-448210': { name: 'Jordan Rivera', plan: 'Gold PPO — Choice Network', pcp: 'Dr. Amara Okafor', met: 1860, ded: 3000 }, 'SHP-448377': { name: 'Priya Natarajan', plan: 'Silver HMO — Select Network', pcp: 'Dr. Ben Castillo', met: 420, ded: 4500 } };
+    const MEMBERS = { 'SHP-448210': { name: 'Jordan Rivera', plan: 'Gold PPO — Choice Network', pcp: 'Dr. Amara Okafor', met: 1860, ded: 3000, elig: 'Member active, imaging benefit in network. No referral required under Gold PPO.' }, 'SHP-448377': { name: 'Priya Natarajan', plan: 'Silver HMO — Select Network', pcp: 'Dr. Ben Castillo', met: 420, ded: 4500, elig: 'Member active, imaging benefit in network. PCP referral REF-20931 on file (Silver HMO).' } };
     const memberSel = document.getElementById('memberId');
     function syncMember() {
       const m = MEMBERS[memberSel.value]; if (!m) return;
@@ -323,6 +323,7 @@
       document.getElementById('eligPcp').textContent = m.pcp;
       document.getElementById('eligDed').firstChild.textContent = '$' + m.met.toLocaleString() + ' of $' + m.ded.toLocaleString() + ' met';
       document.getElementById('eligBar').style.width = Math.round((m.met / m.ded) * 100) + '%';
+      document.getElementById('step1Text').textContent = m.elig;
     }
     memberSel.addEventListener('change', syncMember); syncMember();
     pos.addEventListener('change', syncSite); syncSite();
