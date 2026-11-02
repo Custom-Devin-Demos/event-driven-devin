@@ -302,7 +302,7 @@
           <div class="pillbar utils">
             <a href="#" class="hide-m" aria-label="Search"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6"/><path d="m13 13 5 5"/></svg></a>
             <a href="#" class="hide-s">Help</a>
-            <span class="who"><span class="avatar" id="whoInitials" aria-hidden="true">PN</span><b id="whoName">Priya Natarajan</b></span>
+            <span class="who"><span class="avatar" id="whoInitials" aria-hidden="true">?</span><b id="whoName">Presenter not set</b></span>
           </div>
         </div>
       </header>
@@ -470,35 +470,26 @@
 </div>
 
   <script>
-    (function () {
-      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
-      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
-        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
-        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
-      }).catch(function () {});
-    })();
-  </script>
-  <script>
     const HC_ORG_ID = 'org-ad5cb75ed086403697e4d37f8411936e';
+    const ID_KEY = (k) => 'fc0bd7f3.' + k;
     (function runAs() {
       const nameEl = document.getElementById('presenterName');
       const emailEl = document.getElementById('presenterEmail');
       const status = document.getElementById('identityStatus');
       function paintUser() {
-        const n = (localStorage.getItem('devinName') || '').trim() || 'Priya Natarajan';
+        const n = (localStorage.getItem(ID_KEY('name')) || '').trim() || 'Presenter not set';
         document.getElementById('whoName').textContent = n;
-        document.getElementById('whoInitials').textContent = n.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+        document.getElementById('whoInitials').textContent = localStorage.getItem(ID_KEY('name')) ? n.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase() : '?';
       }
-      nameEl.value = localStorage.getItem('devinName') || '';
-      emailEl.value = localStorage.getItem('devinEmail') || '';
+      nameEl.value = localStorage.getItem(ID_KEY('name')) || '';
+      emailEl.value = localStorage.getItem(ID_KEY('email')) || '';
       paintUser();
       window.saveIdentity = function saveIdentity() {
         const name = nameEl.value.trim();
         const email = emailEl.value.trim();
-        localStorage.setItem('devinName', name);
-        localStorage.setItem('devinEmail', email);
-        localStorage.setItem('devinOrgId', HC_ORG_ID);
-        localStorage.removeItem('devinUserId');
+        localStorage.setItem(ID_KEY('name'), name);
+        localStorage.setItem(ID_KEY('email'), email);
+        localStorage.removeItem(ID_KEY('userId'));
         paintUser();
         if (!email) { status.textContent = 'Saved. Add a Devin email to route the alert and session to you.'; return Promise.resolve(); }
         status.textContent = 'Resolving ' + email + '\u2026';
@@ -506,13 +497,13 @@
           .then((r) => r.json().then((p) => ({ ok: r.ok, p })))
           .then(({ ok, p }) => {
             if (!ok || !p.userId) { status.textContent = (p && p.error) || 'Could not resolve this email in HC-GTM-AD.'; return; }
-            localStorage.setItem('devinUserId', p.userId);
+            localStorage.setItem(ID_KEY('userId'), p.userId);
             status.textContent = 'Running as ' + (name || email) + '. Alerts and the Devin session go to ' + email + '.';
           })
           .catch(() => { status.textContent = 'Could not resolve this email right now.'; });
       };
       document.getElementById('runAsForm').addEventListener('submit', (e) => { e.preventDefault(); window.saveIdentity(); });
-      if (emailEl.value && localStorage.getItem('devinUserId')) status.textContent = 'Running as ' + (nameEl.value || emailEl.value) + '. Alerts and the Devin session go to ' + emailEl.value + '.';
+      if (emailEl.value && localStorage.getItem(ID_KEY('userId'))) status.textContent = 'Running as ' + (nameEl.value || emailEl.value) + '. Alerts and the Devin session go to ' + emailEl.value + '.';
     })();
     const CTA = 'Run ingest';
     const BATCHES = {
@@ -530,9 +521,9 @@
     let runNo = 0, stageStart = 0, queryNo = 471;
 
     function devinFields() {
-      return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || HC_ORG_ID, devinEmail: localStorage.getItem('devinEmail') || '', devinName: localStorage.getItem('devinName') || '' };
+      return { devinUserId: localStorage.getItem('fc0bd7f3.userId') || '', devinOrgId: HC_ORG_ID, devinEmail: localStorage.getItem('fc0bd7f3.email') || '', devinName: localStorage.getItem('fc0bd7f3.name') || '' };
     }
-    function who() { const n = (localStorage.getItem('devinName') || '').trim(); if (!n) return 'P. Natarajan'; const p = n.split(/\s+/); return p.length > 1 ? p[0][0] + '. ' + p[p.length - 1] : n; }
+    function who() { const n = (localStorage.getItem('fc0bd7f3.name') || '').trim(); if (!n) return 'unassigned presenter'; const p = n.split(/\s+/); return p.length > 1 ? p[0][0] + '. ' + p[p.length - 1] : n; }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
     function ts() { return new Date().toLocaleTimeString('en-GB', { hour12: false, timeZone: 'UTC' }); }
     function line(text, cls) { const d = document.createElement('div'); d.innerHTML = '<span>' + ts() + '</span>' + (cls ? '<b class="' + cls + '">' : '<b>') + esc(text) + '</b>'; log.appendChild(d); log.scrollTop = log.scrollHeight; }
