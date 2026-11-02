@@ -556,7 +556,8 @@
       nameEl.value = localStorage.getItem('devinName') || '';
       emailEl.value = localStorage.getItem('devinEmail') || '';
       showName();
-      if (emailEl.value && localStorage.getItem('devinUserId')) setStatus('Saved. Devin sessions will run as ' + emailEl.value + '.', 'ok');
+      const resolvedHere = localStorage.getItem('devinOrgId') === HC_ORG_ID && localStorage.getItem('devinUserId');
+      if (emailEl.value && resolvedHere) setStatus('Saved. Devin sessions will run as ' + emailEl.value + '.', 'ok');
       else if (emailEl.value) setStatus('Saved as ' + (nameEl.value || emailEl.value) + '. Click Save to look up ' + emailEl.value + ' in HC-GTM-AD.');
       window.saveIdentity = function () {
         const name = nameEl.value.trim();
@@ -599,7 +600,7 @@
     let runNo = 0, stageStart = 0, queryNo = 471;
 
     function devinFields() {
-      return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || HC_ORG_ID, devinEmail: localStorage.getItem('devinEmail') || '', devinName: localStorage.getItem('devinName') || '' };
+      return { devinUserId: localStorage.getItem('devinOrgId') === HC_ORG_ID ? (localStorage.getItem('devinUserId') || '') : '', devinOrgId: HC_ORG_ID, devinEmail: localStorage.getItem('devinEmail') || '', devinName: localStorage.getItem('devinName') || '' };
     }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
     function ts() { return new Date().toLocaleTimeString('en-GB', { hour12: false, timeZone: 'UTC' }); }

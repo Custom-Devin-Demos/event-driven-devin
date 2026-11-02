@@ -70,7 +70,7 @@ async function ingestBatch(data) {
     incrementMetric('lab_pipeline.batch.failure', { route: ROUTE, errorClass: error.name, site: data.siteId });
     recordTiming('lab_pipeline.latency', Date.now() - startTime, { route: ROUTE, error: 'true' });
     logger.error('Lab batch ingest failed', { batchId, error: error.message, errorClass: error.name, siteId: data.siteId });
-    Sentry.captureException(error, { tags: { route: ROUTE, service: SERVICE, site: data.siteId }, extra: { batchId } });
+    Sentry.captureException(error, { tags: { route: ROUTE, service: SERVICE, site: data.siteId, alert_path: 'instant' }, extra: { batchId } });
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
