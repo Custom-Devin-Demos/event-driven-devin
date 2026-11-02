@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make a payment | NatWest Online Banking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&family=Roboto+Slab:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --deep: #3C1053; --purple: #5A287D; --bright: #5E10B1; --bright-hover: #4A0D8C; --lilac: #F2EAF9; --lilac-2: #E3D2F2;
+      --ink: #3C1053; --text: #646068; --muted: #6E6A72; --line: #DDD8E3; --mist: #F7F5FA; --card: #FFFFFF;
+      --ok: #1E7D4F; --ok-soft: #E6F4EC; --warn: #B3261E; --warn-soft: #FDEEEE; --radius: 8px; --pill: 32px;
+      --slab: 'Roboto Slab', Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: 'Nunito Sans', Arial, sans-serif; color: var(--text); background: var(--mist); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: var(--bright); }
+    .wrap { width: min(1200px, calc(100% - 48px)); margin: 0 auto; }
+    .hd { background: var(--deep); color: #fff; }
+    .hd .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 72px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; min-height: 44px; }
+    .brand svg { flex: none; }
+    .brand .word { font-weight: 700; font-size: 22px; line-height: 1; letter-spacing: -.01em; }
+    .brand .word small { display: block; font-weight: 600; font-size: 12px; letter-spacing: .04em; color: rgba(255,255,255,.8); margin-top: 4px; }
+    .hd-tools { display: flex; align-items: center; gap: 16px; }
+    .hd-tools .last { font-size: 13px; color: rgba(255,255,255,.75); }
+    .btn { font: inherit; font-weight: 700; font-size: 16px; border-radius: var(--pill); padding: 12px 28px; min-height: 48px; cursor: pointer; border: 2px solid transparent; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+    .btn-primary { background: var(--bright); color: #fff; }
+    .btn-primary:hover { background: var(--bright-hover); }
+    .btn-primary:disabled { background: #9F7CC7; color: #fff; cursor: progress; }
+    .btn-secondary { background: var(--card); color: var(--bright); border-color: var(--bright); }
+    .btn-secondary:hover { background: var(--lilac); }
+    .btn-small { min-height: 44px; padding: 8px 20px; font-size: 14px; }
+    .hd .btn-small { background: #fff; color: var(--deep); }
+    .btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #A87BE0; outline-offset: 2px; }
+    .nav { background: var(--purple); }
+    .nav .wrap { display: flex; gap: 4px; overflow-x: auto; }
+    .nav a { color: #fff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 0 16px; min-height: 48px; display: inline-flex; align-items: center; white-space: nowrap; border-bottom: 4px solid transparent; }
+    .nav a:hover { background: rgba(255,255,255,.08); }
+    .nav a[aria-current] { border-bottom-color: #fff; }
+    .crumbs { font-size: 14px; padding: 16px 0 0; }
+    .crumbs a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+    main { padding: 8px 0 72px; }
+    h1 { font-family: var(--slab); font-weight: 800; color: var(--purple); font-size: 44px; line-height: 1.2; margin: 8px 0 10px; }
+    h2 { font-weight: 700; font-size: 22px; line-height: 1.35; margin: 0 0 20px; color: var(--purple); }
+    .lead { font-size: 18px; margin: 0 0 28px; max-width: 720px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+    form#transferForm, .side > section { background: var(--card); border-radius: var(--radius); padding: 32px; box-shadow: 0 1px 4px rgba(60,16,83,.10); }
+    .steps { display: flex; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; font-size: 13px; font-weight: 700; color: var(--muted); flex-wrap: wrap; }
+    .steps li { padding: 4px 14px; border-radius: var(--pill); background: var(--lilac); color: var(--purple); }
+    .steps li[aria-current] { background: var(--deep); color: #fff; }
+    .field { margin-bottom: 20px; }
+    label { display: block; font-weight: 700; font-size: 16px; margin-bottom: 8px; color: var(--ink); }
+    select, input[type=number], input[type=text] { width: 100%; font: inherit; color: var(--ink); background: var(--card); border: 1px solid #8C8494; border-radius: var(--radius); padding: 12px 14px; min-height: 48px; }
+    select:disabled, input:disabled { background: #EFEDF2; color: var(--muted); }
+    .field small { display: block; color: var(--muted); font-size: 14px; margin-top: 6px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap b { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--muted); }
+    .amount-wrap input { padding-left: 30px; }
+    .summary { margin: 24px 0 0; padding: 20px; border-radius: var(--radius); background: var(--lilac); display: grid; gap: 10px; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 700; text-align: right; color: var(--ink); overflow-wrap: anywhere; }
+    .summary div.total { border-top: 1px solid var(--lilac-2); padding-top: 10px; }
+    .summary div.total dd { font-size: 17px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    .actions .btn { flex: 1 1 180px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--bright); }
+    .status { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: var(--radius); font-size: 15px; line-height: 1.5; }
+    .result-box.success { display: block; background: var(--ok-soft); color: #14422B; border-left: 4px solid var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-soft); color: #6E1712; border-left: 4px solid var(--warn); }
+    .side { display: grid; gap: 24px; }
+    .acc { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+    .acc:first-of-type { border-top: 0; padding-top: 0; }
+    .acc div { font-weight: 700; color: var(--ink); }
+    .acc span { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+    .acc b { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
+    .appbox { background: var(--purple); border-radius: var(--radius); overflow: hidden; }
+    .appbox img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+    .appbox .alt { display: none; padding: 32px; min-height: 220px; color: #fff; }
+    .appbox .alt .mark { font-family: var(--slab); font-weight: 800; font-size: 28px; }
+    .appbox .alt p { margin: 12px 0 0; font-weight: 600; }
+    .appbox.fallback img { display: none; }
+    .appbox.fallback .alt { display: block; }
+    .cop { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--ink); }
+    .cop .tick { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--ok); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+    .side p { margin: 0 0 12px; font-size: 15px; }
+    .side p:last-child { margin-bottom: 0; }
+    .side a.help { font-weight: 700; display: inline-block; padding: 10px 0; margin: -10px 0; line-height: 24px; }
+    footer { background: var(--purple); color: #fff; padding: 40px 0 48px; font-size: 13px; }
+    footer .top { display: flex; flex-wrap: wrap; gap: 4px 32px; margin-bottom: 20px; font-size: 16px; font-weight: 700; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 4px 24px; margin-bottom: 20px; }
+    footer a { color: #fff; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+    footer nav a { font-size: 14px; }
+    footer a:hover { text-decoration: underline; }
+    footer p { margin: 0 0 12px; max-width: 960px; color: rgba(255,255,255,.85); }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .hd-tools .last { display: none; }
+      h1 { font-size: 34px; }
+    }
+    @media (max-width: 600px) {
+      .wrap { width: calc(100% - 32px); }
+      .hd .wrap { min-height: 64px; }
+      .brand .word { font-size: 20px; }
+      form#transferForm, .side > section { padding: 20px; }
+      .lead { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hd">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="NatWest Online Banking">
+        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="8" fill="#5E10B1"/><text x="20" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="22" fill="#FFFFFF">N</text></svg>
+        <span class="word">NatWest<small>Online Banking</small></span>
+      </a>
+      <div class="hd-tools">
+        <span class="last">Last log in: today, 08:12</span>
+        <button type="button" class="btn btn-small">Log out</button>
+      </div>
+    </div>
+  </header>
+  <nav class="nav" aria-label="Online Banking">
+    <div class="wrap">
+      <a href="#">My accounts</a>
+      <a href="#" aria-current="page">Payments and transfers</a>
+      <a href="#">Statements</a>
+      <a href="#">Cards</a>
+      <a href="#">Services</a>
+      <a href="#">Help and support</a>
+    </div>
+  </nav>
+
+  <main id="transfer">
+    <div class="wrap">
+      <p class="crumbs"><a href="#">Payments and transfers</a> &rsaquo; <span>Make a payment</span></p>
+      <h1>Make a payment</h1>
+      <p class="lead">Pay one of your existing payees, or move money between your own NatWest accounts. Payments in pounds to UK accounts are sent by Faster Payments and usually arrive within minutes.</p>
+      <div class="grid">
+        <form id="transferForm" novalidate aria-labelledby="formHead">
+          <ol class="steps" id="steps" aria-label="Steps"><li aria-current="step">1. Payment details</li><li>2. Done</li></ol>
+          <h2 id="formHead">Payment details</h2>
+          <div class="field">
+            <label for="fromAccount">Pay from</label>
+            <select id="fromAccount">
+              <option value="NW-41827365" data-name="Select Account" data-number="60-01-73 41827365" data-balance="2184.62">Select Account &middot; 41827365</option>
+              <option value="NW-70254418" data-name="Digital Regular Saver" data-number="60-01-73 70254418" data-balance="1250.00">Digital Regular Saver &middot; 70254418</option>
+            </select>
+            <small id="fromHelp"></small>
+            <input type="hidden" id="accountTier" value="standard">
+          </div>
+          <div class="field">
+            <label for="toAccount">Pay to</label>
+            <select id="toAccount">
+              <option value="">Choose a payee or one of your accounts</option>
+              <option value="PAYEE-PSHAH" data-name="Priya Shah" data-number="20-45-77 63391028" selected>Priya Shah &middot; 63391028</option>
+              <option value="PAYEE-OAKFIELD" data-name="Oakfield Lettings" data-number="30-96-26 18840552">Oakfield Lettings &middot; 18840552</option>
+              <option value="NW-41827365" data-name="Select Account" data-number="60-01-73 41827365">Select Account (your account)</option>
+              <option value="NW-70254418" data-name="Digital Regular Saver" data-number="60-01-73 70254418">Digital Regular Saver (your account)</option>
+            </select>
+            <small id="toHelp"></small>
+          </div>
+          <div class="field">
+            <label for="amount">Amount</label>
+            <div class="amount-wrap"><b aria-hidden="true">&pound;</b><input type="number" id="amount" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="25.00" autocomplete="off"></div>
+            <small id="amountHelp"></small>
+          </div>
+          <div class="field">
+            <label for="reference">Reference</label>
+            <input type="text" id="reference" maxlength="18" value="Dinner" autocomplete="off">
+            <small>Shown on your payee&rsquo;s statement. Up to 18 characters.</small>
+          </div>
+          <dl class="summary" aria-label="Payment summary">
+            <div><dt>From</dt><dd id="sumFrom">&mdash;</dd></div>
+            <div><dt>To</dt><dd id="sumTo">&mdash;</dd></div>
+            <div><dt>Reference</dt><dd id="sumRef">&mdash;</dd></div>
+            <div class="total"><dt>Amount</dt><dd id="sumAmount">&mdash;</dd></div>
+          </dl>
+          <div class="actions">
+            <button type="submit" id="submitBtn" class="btn btn-primary">Make payment</button>
+            <button type="reset" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+          </div>
+          <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+          <p class="status" id="paymentStatus" role="status" aria-live="polite">Check the details, then select Make payment.</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+        <aside class="side">
+          <section aria-labelledby="accHead">
+            <h2 id="accHead">Your accounts</h2>
+            <div class="acc"><div>Select Account<span>60-01-73 41827365</span></div><b data-balance-for="NW-41827365">&nbsp;</b></div>
+            <div class="acc"><div>Digital Regular Saver<span>60-01-73 70254418</span></div><b data-balance-for="NW-70254418">&nbsp;</b></div>
+          </section>
+          <div class="appbox" id="appBox">
+            <img src="https://nw.scene7.com/is/image/natwest/photo-web-pers-dmm-young-woman-sitting-on-yellow-sofa-using-laptop?qlt=82&amp;wid=667&amp;dpr=off" alt="A NatWest customer banking online at home" loading="lazy" onerror="document.getElementById('appBox').className='appbox fallback'">
+            <div class="alt" aria-hidden="true"><div class="mark">NatWest</div><p>Bank on the go with the NatWest app</p></div>
+          </div>
+          <section aria-labelledby="safeHead">
+            <h2 id="safeHead">Confirmation of Payee</h2>
+            <p class="cop"><span class="tick" aria-hidden="true">&#10003;</span><span>We check the name on your payee against their account details before any money leaves your account.</span></p>
+            <p>NatWest will never ask you to move money to a safe account. If a call or message feels wrong, stop and check.</p>
+            <p>Not sure about a payment? <a class="help" href="#">Visit our Security Centre</a></p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="wrap">
+      <div class="top"><a href="#">Support Centre</a><a href="#">Find a branch</a><a href="#">Get the NatWest app</a></div>
+      <nav aria-label="Footer"><a href="#">Privacy &amp; Cookies</a><a href="#">Website T&amp;Cs</a><a href="#">Accessibility</a><a href="#">Service status</a><a href="#">Security</a></nav>
+      <p>National Westminster Bank plc is authorised by the Prudential Regulation Authority and regulated by the Financial Conduct Authority and the Prudential Regulation Authority.</p>
+      <p>&copy; National Westminster Bank plc 2026.</p>
+    </div>
+  </footer>
+  <script>
+    window.SKIN = {
+      locale: 'en-GB', currency: 'GBP',
+      idle: 'Make payment', sending: 'Sending\u2026',
+      statusIdle: 'Check the details, then select Make payment.',
+      statusSending: 'Sending your payment\u2026', statusDone: 'Payment sent.',
+      availableLabel: 'Available balance', maxLabel: 'You can pay up to', toPlaceholder: 'Your existing payees and your own accounts',
+      chooseRecipient: 'Choose who to pay.', enterAmount: 'Enter an amount, for example 25.',
+      sameAccount: 'Choose a different account to pay to.',
+      tooMuch: 'That\u2019s more than your available balance. You can pay up to',
+      success: (at, amt, to, from, fee, ref) => `Payment sent at ${at}. ${amt} to ${to} from your ${from}${fee ? ` (fee ${fee})` : ''}. Reference ${ref}.`,
+      duplicate: (at, amt, to, ref) => `This payment was already sent at ${at}: ${amt} to ${to}, reference ${ref}. We didn't send it twice.`,
+      failed: 'We couldn\u2019t make this payment right now. Nothing has left your account. Please try again in a few minutes.',
+      unconfirmed: 'We couldn\u2019t confirm this payment. Check your account activity before paying again, so it doesn\u2019t go twice.',
+    };
+  </script>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const S = window.SKIN;
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm');
+      const button = $('submitBtn');
+      const cancelBtn = $('cancelBtn');
+      const result = $('result');
+      const status = $('paymentStatus');
+      const fromAccount = $('fromAccount');
+      const toAccount = $('toAccount');
+      const amountInput = $('amount');
+      const referenceInput = $('reference');
+      const accountTier = $('accountTier');
+      const timer = $('sendTimer');
+      const timerValue = $('sendTimerValue');
+      const fields = [fromAccount, toAccount, amountInput, referenceInput];
+      const money = new Intl.NumberFormat(S.locale, { style: 'currency', currency: S.currency });
+      const timeFmt = new Intl.DateTimeFormat(S.locale, { hour: '2-digit', minute: '2-digit' });
+      const DEMO = { from: fromAccount.value, to: toAccount.value, amount: amountInput.value, reference: referenceInput.value };
+      const balances = {};
+      Array.from(fromAccount.options).forEach((o) => { balances[o.value] = Number(o.dataset.balance) || 0; });
+      let pending = false;
+      let ticker = null;
+
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (select) => select.options[select.selectedIndex];
+      const available = () => balances[fromAccount.value] || 0;
+      const maxPayable = () => Math.max(Math.floor(available() * 100), 0) / 100;
+      function parsedAmount() {
+        const raw = amountInput.value.trim().replace(/,/g, '');
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return parseFloat(raw);
+      }
+      const recipient = () => (toAccount.value ? selected(toAccount) : null);
+      function renderBalances() {
+        document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = money.format(balances[el.dataset.balanceFor] || 0); });
+      }
+      function render() {
+        Array.from(toAccount.options).forEach((o) => { o.disabled = Boolean(o.value) && o.value === fromAccount.value; });
+        if (toAccount.selectedIndex >= 0 && toAccount.options[toAccount.selectedIndex].disabled) toAccount.value = '';
+        const from = selected(fromAccount);
+        const to = recipient();
+        const amount = parsedAmount();
+        accountTier.value = 'standard';
+        set('fromHelp', `${from.dataset.number} \u00b7 ${S.availableLabel} ${money.format(available())}`);
+        set('toHelp', to ? to.dataset.number : S.toPlaceholder);
+        set('amountHelp', `${S.maxLabel} ${money.format(maxPayable())}`);
+        set('sumFrom', from.dataset.name);
+        set('sumTo', to ? to.dataset.name : '\u2014');
+        set('sumRef', referenceInput.value.trim() || '\u2014');
+        set('sumAmount', Number.isFinite(amount) && amount > 0 ? money.format(amount) : '\u2014');
+      }
+      function notice(message, focusEl) {
+        result.className = 'result-box notice';
+        result.textContent = message;
+        status.textContent = S.statusIdle;
+        if (focusEl) focusEl.focus();
+      }
+      function stopTimer(done) {
+        if (ticker) { clearInterval(ticker); ticker = null; }
+        if (timer) timer.className = done ? 'stopwatch on done' : 'stopwatch';
+      }
+
+      fromAccount.addEventListener('change', render);
+      toAccount.addEventListener('change', render);
+      amountInput.addEventListener('input', render);
+      referenceInput.addEventListener('input', render);
+      const stepItems = Array.from(document.querySelectorAll('#steps li'));
+      const setStep = (n) => stepItems.forEach((li, i) => {
+        if (i === n) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+      });
+      form.addEventListener('reset', () => {
+        setTimeout(() => {
+          setStep(0);
+          fromAccount.value = DEMO.from;
+          toAccount.value = DEMO.to;
+          amountInput.value = DEMO.amount;
+          referenceInput.value = DEMO.reference;
+          result.className = 'result-box';
+          result.textContent = '';
+          status.textContent = S.statusIdle;
+          stopTimer(false);
+          if (timerValue) timerValue.textContent = '0.0s';
+          renderBalances();
+          render();
+        });
+      });
+      renderBalances();
+      render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        const to = recipient();
+        const amount = parsedAmount();
+        if (!to) { notice(S.chooseRecipient, toAccount); return; }
+        if (toAccount.value === fromAccount.value) { notice(S.sameAccount, toAccount); return; }
+        if (!Number.isFinite(amount) || amount <= 0) { notice(S.enterAmount, amountInput); return; }
+        if (Math.round(amount * 100) > Math.round(maxPayable() * 100)) { notice(`${S.tooMuch} ${money.format(maxPayable())}.`, amountInput); return; }
+
+        pending = true;
+        button.disabled = true;
+        cancelBtn.disabled = true;
+        fields.forEach((el) => { el.disabled = true; });
+        button.textContent = S.sending;
+        status.textContent = S.statusSending;
+        result.className = 'result-box';
+        result.textContent = '';
+        setStep(0);
+        const started = performance.now();
+        const tick = () => { if (timerValue) timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        if (timer) { timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100); }
+        const fromId = fromAccount.value;
+        const toId = toAccount.value;
+        const fromName = selected(fromAccount).dataset.name;
+        const toName = to.dataset.name;
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick();
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const paid = Number(data.receipt.amount);
+          const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
+          if (data.duplicate) {
+            result.className = 'result-box notice';
+            result.textContent = S.duplicate(at, money.format(paid), toName, data.receipt.receiptId);
+            status.textContent = S.statusIdle;
+            stopTimer(true);
+            return;
+          }
+          balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+          if (toId !== fromId && Object.prototype.hasOwnProperty.call(balances, toId)) balances[toId] = Math.round((balances[toId] + paid) * 100) / 100;
+          renderBalances();
+          render();
+          const fee = Math.round((debited - paid) * 100) / 100;
+          result.className = 'result-box success';
+          result.textContent = S.success(at, money.format(paid), toName, fromName, fee > 0 ? money.format(fee) : '', data.receipt.receiptId);
+          status.textContent = S.statusDone;
+          setStep(1);
+          stopTimer(true);
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok ? S.failed : S.unconfirmed;
+          status.textContent = S.statusIdle;
+        } finally {
+          fields.forEach((el) => { el.disabled = false; });
+          pending = false;
+          button.disabled = false;
+          cancelBtn.disabled = false;
+          button.textContent = S.idle;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
