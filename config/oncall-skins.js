@@ -6447,7 +6447,7 @@ const ONCALL_SKINS = {
   '77c11f38': {
     slug: '77c11f38',
     company: 'TogetherMoney',
-    brandMark: 't.',
+    brandMark: 'TM',
     vertical: 'eligibility',
     oncallOnly: true,
     paths: ['/togethermoney-website', '/oncall/c/togethermoney-website'],
@@ -6462,7 +6462,7 @@ const ONCALL_SKINS = {
       service: 'together-website-eligibility',
       release: 'together-website@2026.11.1',
       team: 'website-oncall',
-      metricQuery: 'sum:trace.express.request.errors{service:together-website-eligibility,resource:POST /api/oncall/eligibility/check,http.status_code:500}.as_count()',
+      metricQuery: 'sum:demo.together_website.eligibility.failure{route:/api/oncall/eligibility/check,employment_type:self-employed}.as_count()',
       metricValue: 'HTTP 500 on eligibility submissions from self-employed applicants',
       threshold: '> 0 errors / 5m',
       baseline: '0 errors (30-day)',

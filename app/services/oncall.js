@@ -738,7 +738,7 @@ const ALERT_SCENARIOS = {
     service: 'together-website-eligibility',
     endpoint: 'POST /api/oncall/eligibility/check',
     monitor: '5xx spike \u2014 POST /api/oncall/eligibility/check (self-employed applicants)',
-    metricQuery: 'sum:trace.express.request.errors{service:together-website-eligibility,resource:POST /api/oncall/eligibility/check,http.status_code:500}.as_count()',
+    metricQuery: 'sum:demo.together_website.eligibility.failure{route:/api/oncall/eligibility/check,employment_type:self-employed}.as_count()',
     metricValue: 'HTTP 500 on eligibility submissions from self-employed applicants',
     threshold: '> 0 errors / 5m',
     baseline: '0 errors (30-day)',

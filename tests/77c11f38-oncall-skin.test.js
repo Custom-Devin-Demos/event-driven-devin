@@ -1,6 +1,11 @@
 /* global afterAll, afterEach, beforeAll, beforeEach, describe, expect, fetch, jest, test */
 
 jest.mock('axios');
+jest.mock('../app/telemetry/datadog', () => ({
+  ...jest.requireActual('../app/telemetry/datadog'),
+  incrementMetric: jest.fn(),
+  recordTiming: jest.fn(),
+}));
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: { captureException: jest.fn() },
   initSentry: jest.fn(),
@@ -23,6 +28,7 @@ const express = require('express');
 const http = require('http');
 const axios = require('axios');
 const { Sentry } = require('../app/telemetry/sentry');
+const { incrementMetric } = require('../app/telemetry/datadog');
 const { postMessage } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
 const oncallRoutes = require('../app/routes/oncall');
@@ -95,8 +101,9 @@ describe('TogetherMoney website eligibility on-call skin (77c11f38)', () => {
     });
     expect(skin.devinSession).toBeUndefined();
     expect(skin.alertDestination).toBeUndefined();
-    expect(skin.alertCard.metricQuery).toContain('service:together-website-eligibility');
-    expect(skin.alertCard.metricQuery).toContain(`resource:POST ${ROUTE}`);
+    expect(skin.alertCard.metricQuery).toBe(ALERT_SCENARIOS.eligibility.metricQuery);
+    expect(skin.alertCard.metricQuery).toContain('demo.together_website.eligibility.failure');
+    expect(skin.alertCard.metricQuery).toContain(`route:${ROUTE}`);
     expect(skin.alertCard.title).toContain(`POST ${ROUTE}`);
     expect(skin.alertCard.service).not.toMatch(/together ?money/i);
     expect(ALERT_SCENARIOS.eligibility).toMatchObject({
@@ -146,6 +153,7 @@ describe('TogetherMoney website eligibility on-call skin (77c11f38)', () => {
     expect(await res.json()).toMatchObject({ success: false, errorClass: 'TypeError', code: 'ELIGIBILITY_CHECK_FAILED', error: expect.stringMatching(/^Something went wrong/) });
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(Sentry.captureException.mock.calls[0][1].tags).toMatchObject({ service: 'together-website-eligibility', employment_type: 'self-employed' });
+    expect(incrementMetric).toHaveBeenCalledWith('together_website.eligibility.failure', expect.objectContaining({ route: ROUTE, employment_type: 'self-employed' }));
   });
 
   test.each([
