@@ -14,10 +14,10 @@ const Sentry = require('@sentry/node');
 const { createSessionAndAlert } = require('../devin-session');
 const logger = require('../../telemetry/logger');
 
-const CUSTOMER = 'walmart';
+const CUSTOMER = '03832d06';
 const SERVICE = 'walmart-holiday-food-checkout';
-const ROUTE = 'POST /api/walmart/checkout';
-const CULPRIT = 'app/services/verticals/walmart.js \u2014 priceLine';
+const ROUTE = 'POST /api/03832d06/checkout';
+const CULPRIT = 'app/services/verticals/03832d06.js \u2014 priceLine';
 
 const TAX_RATE = 0.0825;
 const DELIVERY_FEE = 9.95;
@@ -107,8 +107,8 @@ const SHELVES = [
 const REMEDIATION_DIRECTIVE = [
   'Remediation directive for this Walmart Holiday Food checkout incident:',
   '1. Reproduce with the Friendsgiving cart that includes the Shady Brook Farms whole turkey (item 996282298) and confirm the TypeError in priceLine.',
-  '2. Fix forward in app/services/verticals/walmart.js so weighted (per-lb) items price on their average weight instead of crashing; do not remove the turkey from the catalog or the carousel.',
-  '3. Keep fixed-price items unchanged and preserve the savings / tax / fee math (see tests/walmart-checkout.test.js).',
+  '2. Fix forward in app/services/verticals/03832d06.js so weighted (per-lb) items price on their average weight instead of crashing; do not remove the turkey from the catalog or the carousel.',
+  '3. Keep fixed-price items unchanged and preserve the savings / tax / fee math (see tests/03832d06-checkout.test.js).',
   '4. Add a regression test that a cart with a WEIGHT sales unit checks out successfully.',
   '5. Open a PR and post the link in the Slack alert thread, citing the Quantum Metric session replay from the alert as the customer-impact evidence.',
 ].join('\n');
@@ -143,7 +143,7 @@ function buildQuantumMetricSignal(orderId) {
     sessionId,
     replayUrl: `https://walmart.quantummetric.com/#/replay/${sessionId}?event=api_error_500&page=cp%2Fholiday-food`,
     dashboardUrl: 'https://walmart.quantummetric.com/#/dashboard/holiday-food-checkout',
-    event: 'API Error 500 \u2014 POST /api/walmart/checkout',
+    event: 'API Error 500 \u2014 POST /api/03832d06/checkout',
     segment: 'Holiday Food CP \u2192 Cart \u2192 Continue to checkout',
     rageClickTarget: 'Continue to checkout',
     affectedSessions: '1,284',

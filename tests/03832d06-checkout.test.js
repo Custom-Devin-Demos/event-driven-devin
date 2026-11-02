@@ -5,16 +5,16 @@ jest.mock('@sentry/node', () => ({ captureException: jest.fn() }));
 
 const Sentry = require('@sentry/node');
 const { createSessionAndAlert } = require('../app/services/devin-session');
-const svc = require('../app/services/verticals/walmart');
+const svc = require('../app/services/verticals/03832d06');
 const { buildAlertBlocks } = require('../app/services/slack');
-const customer = require('../config/customers/walmart');
+const customer = require('../config/customers/03832d06');
 
 const TURKEY = '996282298';
 const STUFFING = '10313598';
 const POTATOES = '10447837';
 const WINE = '191420088';
 
-describe('Walmart Holiday Food checkout (walmart)', () => {
+describe('Walmart Holiday Food checkout (03832d06)', () => {
   beforeEach(() => jest.clearAllMocks());
 
   test('catalog carries the three carousels and one weighted item', () => {
@@ -78,14 +78,14 @@ describe('Walmart Holiday Food checkout (walmart)', () => {
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     const [, sentryCtx] = Sentry.captureException.mock.calls[0];
-    expect(sentryCtx.tags).toMatchObject({ alert_path: 'instant', customer: 'walmart', experience_monitor: 'quantum-metric' });
+    expect(sentryCtx.tags).toMatchObject({ alert_path: 'instant', customer: '03832d06', experience_monitor: 'quantum-metric' });
 
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert).toMatchObject({
-      customer: 'walmart',
+      customer: '03832d06',
       errorType: 'TypeError',
-      culprit: svc.CULPRIT || 'app/services/verticals/walmart.js \u2014 priceLine',
+      culprit: svc.CULPRIT || 'app/services/verticals/03832d06.js \u2014 priceLine',
       devinUserId: 'user-1',
       devinOrgId: 'org-1',
       devinEmail: 'marcel@devindemos.com',
@@ -102,7 +102,7 @@ describe('Walmart Holiday Food checkout (walmart)', () => {
     const qm = svc.buildQuantumMetricSignal('WM-TEST-1234');
     const blocks = buildAlertBlocks({
       issueTitle: 'TypeError: boom', errorType: 'TypeError', errorValue: 'boom', service: 'walmart-holiday-food-checkout',
-      verticalLabel: 'Walmart Holiday Food Checkout', customer: 'walmart', quantumMetric: qm, issueUrl: 'https://sentry.io/x',
+      verticalLabel: 'Walmart Holiday Food Checkout', customer: '03832d06', quantumMetric: qm, issueUrl: 'https://sentry.io/x',
     });
     const text = JSON.stringify(blocks);
     expect(text).toContain('Experience signal — Quantum Metric');
@@ -117,7 +117,7 @@ describe('Walmart Holiday Food checkout (walmart)', () => {
     const qm = svc.buildQuantumMetricSignal('WM-TEST-1234');
     const card = buildTeamsAlertCardForAlert({
       issueTitle: 'TypeError: boom', errorType: 'TypeError', errorValue: 'boom', service: 'walmart-holiday-food-checkout',
-      verticalLabel: 'Walmart Holiday Food Checkout', customer: 'walmart', quantumMetric: qm, issueUrl: 'https://sentry.io/x',
+      verticalLabel: 'Walmart Holiday Food Checkout', customer: '03832d06', quantumMetric: qm, issueUrl: 'https://sentry.io/x',
     });
     const footer = JSON.stringify(card.body.filter((b) => b.type === 'TextBlock'));
     expect(footer).toContain(qm.sessionId);
@@ -125,8 +125,9 @@ describe('Walmart Holiday Food checkout (walmart)', () => {
     expect(footer).toContain('1,284');
   });
 
-  test('customer config is API-triggered', () => {
+  test('customer config is API-triggered and aliased to /walmart', () => {
     expect(customer.triggerMode).toBe('api');
+    expect(customer.aliases).toEqual(['walmart']);
     expect(customer.label).toContain('Walmart');
   });
 });

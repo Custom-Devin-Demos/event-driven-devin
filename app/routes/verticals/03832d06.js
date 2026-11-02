@@ -1,14 +1,14 @@
 const express = require('express');
 const {
   placeOrder, CATALOG, SHELVES, STORE, FULFILLMENT, TAX_RATE, DELIVERY_FEE, DELIVERY_FREE_MIN, MAX_LINE_QTY, MAX_CART_LINES,
-} = require('../../services/verticals/walmart');
+} = require('../../services/verticals/03832d06');
 
 const router = express.Router();
 
 /**
- * GET /api/walmart/catalog — carousel items, shelves, store and fee schedule
+ * GET /api/03832d06/catalog — carousel items, shelves, store and fee schedule
  */
-router.get('/api/walmart/catalog', (_req, res) => {
+router.get('/api/03832d06/catalog', (_req, res) => {
   res.json({
     products: CATALOG,
     shelves: SHELVES,
@@ -21,9 +21,9 @@ router.get('/api/walmart/catalog', (_req, res) => {
 });
 
 /**
- * POST /api/walmart/checkout — place the cart as a pickup or delivery order
+ * POST /api/03832d06/checkout — place the cart as a pickup or delivery order
  */
-router.post('/api/walmart/checkout', async (req, res) => {
+router.post('/api/03832d06/checkout', async (req, res) => {
   const body = req.body || {};
   try {
     const order = await placeOrder({
