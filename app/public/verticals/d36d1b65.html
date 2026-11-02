@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The New York Times: Digital and Home Delivery Subscriptions</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@700&family=Crimson+Pro:wght@200..700&family=Source+Sans+3:wght@200..700&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #363636;
+      --ink-strong: #121212;
+      --black: #000000;
+      --muted: #5a5a5a;
+      --muted-2: #727272;
+      --caption: #666666;
+      --line: #dfdfdf;
+      --field-line: #888888;
+      --tag-bg: #ebebeb;
+      --sale: #e14e5b;
+      --sale-text: #f8f8f8;
+      --print-bg: #f0eee8;
+      --footer-bg: #121212;
+      --cheltenham: nyt-cheltenham, NYTCheltenham, 'Crimson Pro', Georgia, serif;
+      --franklin: nyt-franklin, NYTFranklin, 'Source Sans 3', helvetica, arial, sans-serif;
+      --karnak: nyt-karnak, 'Bitter', Georgia, serif;
+      --blackletter: 'UnifrakturMaguntia', 'Old English Text MT', serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fff; color: var(--ink); font-family: var(--franklin); font-size: 16px; line-height: 16px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; }
+    ul { list-style: none; }
+    button, input, select { font: inherit; color: inherit; }
+
+    /* Header / hero */
+    .hdr { max-width: 1200px; margin: 0 auto; }
+    .logo-row { display: flex; justify-content: center; padding: 64px 0 8px; }
+    .wordmark { display: block; width: 200px; height: 27px; color: var(--black); text-decoration: none; font-family: var(--blackletter); font-size: 23px; line-height: 27px; text-align: center; white-space: nowrap; letter-spacing: -0.2px; }
+    .badge-row { display: flex; justify-content: center; padding: 32px 0 0; }
+    .sale-badge { display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 2px 9px; border-radius: 20px; background: var(--sale); color: var(--sale-text); font-family: var(--franklin); font-size: 12px; font-weight: 600; line-height: 15px; letter-spacing: 1.2px; text-transform: uppercase; }
+    .hero-title { margin: 0 250px; padding: 8px 0 0; font-family: var(--cheltenham); font-size: 56px; font-weight: 250; line-height: 56px; color: var(--ink); text-align: center; }
+    .hero-title span { display: block; }
+
+    .plans { display: flex; justify-content: center; margin: 40px 0 0; }
+    .plans-col { width: 350px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+    .plan { position: relative; display: flex; flex-direction: column; align-items: flex-start; width: 350px; min-height: 113px; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: 12px; color: var(--black); cursor: pointer; text-align: left; }
+    .plan.is-selected { border-color: var(--ink-strong); }
+    .plan-tag { position: absolute; top: 0; right: 0; display: flex; align-items: center; gap: 4px; padding: 7px 9px 4px; background: var(--tag-bg); color: var(--muted); border-radius: 0 12px 0 6px; font-size: 11px; font-weight: 500; line-height: 13.75px; letter-spacing: 1.1px; text-transform: uppercase; }
+    .plan-tag svg { display: block; fill: currentColor; }
+    .plan-head { display: flex; align-items: center; gap: 8px; }
+    .plan-radio { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; border: 1px solid #666; border-radius: 50%; background: #fff; display: grid; place-items: center; margin: 0; cursor: pointer; }
+    .plan-radio:checked { border: 2px solid var(--black); }
+    .plan-radio:checked::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--black); }
+    .plan-name { font-size: 20px; font-weight: 600; line-height: 24px; color: var(--black); }
+    .plan-body { padding: 4px 0 0 26px; }
+    .plan-price { font-size: 16px; font-weight: 500; line-height: 20.8px; color: var(--ink-strong); }
+    .plan-price ins { text-decoration: none; }
+    .plan-price del { color: var(--sale); }
+    .plan-billed { font-size: 12px; font-weight: 500; line-height: 15.6px; color: var(--muted-2); }
+
+    .acct { width: 350px; display: flex; flex-direction: column; gap: 12px; }
+    .field-label { display: block; font-size: 14px; font-weight: 600; line-height: 21px; color: var(--ink-strong); }
+    .field-box { border: 1px solid var(--field-line); border-radius: 3px; background: #fff; }
+    .field-box select, .field-box input { display: block; width: 100%; height: 44px; padding: 0 8px; border: 0; background: transparent; font-size: 16px; font-weight: 500; color: var(--black); border-radius: 3px; }
+    .field-box select { appearance: none; -webkit-appearance: none; padding-right: 32px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23121212' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center; cursor: pointer; }
+    .field-box:focus-within { outline: 2px solid #000; outline-offset: 1px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+    .cta-col { width: 350px; }
+    .btn-checkout { display: block; width: 350px; height: 44px; border: 0; border-radius: 4px; background: var(--ink-strong); color: #fff; font-family: var(--franklin); font-size: 16px; font-weight: 600; line-height: 44px; text-align: center; cursor: pointer; }
+    .btn-checkout:disabled { opacity: 0.75; cursor: progress; }
+    .btn-paypal { display: flex; align-items: center; justify-content: center; width: 350px; height: 44px; margin: 8px 0 0; border: 1px solid var(--ink-strong); border-radius: 4px; background: #fff; text-decoration: none; }
+    .paypal-word { font-family: Verdana, 'DejaVu Sans', sans-serif; font-style: italic; font-weight: 700; font-size: 19px; letter-spacing: -0.6px; line-height: 20px; }
+    .paypal-word b { color: #253b80; } .paypal-word i { color: #179bd7; font-style: italic; }
+    .cancel-note { margin: 16px 0 0; font-size: 14px; font-weight: 500; line-height: 18.2px; color: var(--ink); text-align: center; }
+    .result-box { display: none; margin: 16px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 4px; background: #fff; font-size: 14px; line-height: 20px; color: var(--ink-strong); text-align: left; }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.success { border-color: var(--ink-strong); }
+    .result-box.error { border-color: #d0021b; color: #a1000f; }
+    .result-title { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+
+    .phones { display: flex; justify-content: center; padding: 48px 0 0; overflow: hidden; }
+    .phones-stage { flex: 0 0 auto; width: 1205px; height: 401px; position: relative; }
+    .phones-fallback { position: absolute; inset: 0; display: none; align-items: flex-end; justify-content: center; gap: 15px; }
+    .phones-fallback.on { display: flex; }
+    .phones-fallback div { width: 230px; height: 300px; border-radius: 12px; background: #e9e9e9 center/cover no-repeat; }
+    .terms { max-width: 1200px; margin: 8px auto 0; font-size: 12px; font-weight: 500; line-height: 15.6px; color: var(--muted); }
+
+    /* Benefits */
+    .benefits { padding: 120px 0; }
+    .benefits-title { display: flex; justify-content: center; margin: 0 0 48px; }
+    .benefits-title h2 { font-family: var(--cheltenham); font-size: 40px; font-weight: 400; line-height: 48px; letter-spacing: -0.5px; color: var(--ink-strong); text-align: center; }
+    .benefits-grid { max-width: 1182px; margin: 0 auto; padding: 50px 0 0; display: grid; grid-template-columns: minmax(0, 551px) minmax(0, 551px); justify-content: space-between; align-items: start; }
+    .feature-tile, .mc-tile { position: relative; overflow: hidden; width: 100%; height: 520px; background: #2a2a2a; }
+    .tile-phone { position: absolute; left: 50%; top: 12%; width: 45%; aspect-ratio: 385 / 822; transform: translateX(-50%); border: 5px solid #f2f2f2; border-radius: 22px; background: #fff center top/cover no-repeat; }
+    .tile-badge { position: absolute; left: 20px; bottom: 20px; width: 44px; height: 44px; border-radius: 50%; background: #121212; color: #fff; font-family: var(--blackletter); font-size: 28px; line-height: 44px; text-align: center; }
+    .feature-caption { display: block; margin: 12px 0 0; font-size: 14px; font-weight: 600; line-height: 21px; color: var(--caption); }
+    .feature-caption span { font-weight: 400; margin: 0 0 0 4px; }
+    .feature-list { display: flex; flex-direction: column; gap: 24px; padding: 0; }
+    .feature-btn { display: block; width: 100%; padding: 0 16px 0 0; border: 0; border-left: 4px solid transparent; background: none; text-align: left; cursor: pointer; color: var(--ink-strong); }
+    .feature-btn.is-active { padding: 0 0 0 16px; border-left-color: var(--ink-strong); }
+    .feature-name { display: block; font-family: var(--karnak); font-size: 32px; font-weight: 700; line-height: 32px; color: var(--ink-strong); }
+    .feature-desc { display: block; margin: 4px 0 0; font-size: 18px; font-weight: 400; line-height: 27px; color: var(--ink-strong); }
+    .mobile-carousel { display: none; }
+    .m-br { display: none; }
+
+    /* Print */
+    .print { background: var(--print-bg); border-top: 2px solid var(--line); }
+    .print-inner { max-width: 1200px; margin: 0 auto; padding: 80px 0; display: flex; justify-content: space-between; align-items: center; font-size: 18px; line-height: 26px; color: var(--ink-strong); }
+    .print-copy { max-width: 550px; width: 501px; }
+    .print-eyebrow { font-size: 11px; font-weight: 700; line-height: 26px; letter-spacing: 0.2px; text-transform: uppercase; }
+    .print-title { margin: 12px 0; font-family: var(--cheltenham); font-size: 40px; font-weight: 200; line-height: 48px; letter-spacing: -0.2px; }
+    .print-list { margin: 25px 0; font-size: 18px; font-weight: 500; line-height: 26px; }
+    .print-list li { position: relative; padding: 0 0 0 30px; margin: 0 0 10px; }
+    .print-list li::before { content: ''; position: absolute; left: 0; top: 50%; width: 14px; height: 10px; transform: translateY(-50%); background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath d='M1 5l4 4 8-8' fill='none' stroke='%23121212' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat center; }
+    .zip-form { display: flex; align-items: flex-end; }
+    .zip-label { display: block; margin: 5px 0 0; font-size: 14px; font-weight: 600; line-height: 21px; }
+    .zip-box { width: 203px; margin: 0 0 12px; border: 1px solid var(--field-line); border-radius: 3px; background: #fff; }
+    .zip-box input { display: block; width: 100%; height: 44px; padding: 0 8px; border: 0; border-radius: 3px; font-size: 16px; font-weight: 500; color: #000; background: #fff; }
+    .btn-delivery { display: flex; align-items: center; justify-content: center; width: 180px; height: 44px; margin: 0 0 12px 16px; border: 1px solid #000; border-radius: 3px; background: #000; color: #fff; font-size: 16px; font-weight: 600; line-height: 24px; text-decoration: none; }
+    .print-art { width: 548px; max-width: 548px; height: 344px; margin: 30px 0 0; }
+    .print-art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+    /* Footer */
+    .site-footer { background: var(--footer-bg); color: #fff; padding: 80px; display: grid; grid-template-columns: minmax(0, 638.57fr) minmax(0, 562.43fr); column-gap: 64px; }
+    .footer-statement { max-width: 640px; font-family: var(--cheltenham); font-size: 22px; font-weight: 400; line-height: 28px; letter-spacing: 0.2px; }
+    .footer-statement b { font-weight: 700; }
+    .footer-cols { display: grid; grid-template-columns: repeat(2, auto); column-gap: 40px; justify-content: end; }
+    .footer-cols h3 { font-size: 18px; font-weight: 700; line-height: 18px; }
+    .footer-cols ul { margin: 0; }
+    .footer-cols li a { display: block; margin: 8px 0 0; font-size: 18px; line-height: 27px; text-decoration: none; }
+    .footer-legal { grid-column: 1 / -1; display: flex; align-items: flex-start; column-gap: 24px; margin: 40px 0 0; }
+    .copyright { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 200; line-height: 24px; white-space: nowrap; }
+    .t-mark { display: inline-block; width: 16px; height: 24px; font-family: var(--blackletter); font-size: 24px; line-height: 24px; font-weight: 400; text-align: center; }
+    .legal-links { display: flex; gap: 24px; }
+    .legal-links a { font-size: 18px; line-height: 27px; }
+
+    @media (max-width: 740px) {
+      .hero-title { margin: 0 45px; font-size: 36px; line-height: 44px; }
+      .plans { margin: 30px 0 0; }
+      .phones-stage { margin: 0 0 0 0; }
+      .terms { margin: 16px 0 24px; }
+      .benefits { padding: 40px 0 35px; }
+      .benefits-title { margin: 0 20px 40px; }
+      .benefits-title h2 { font-size: 30px; line-height: 40px; }
+      .benefits-grid { display: none; }
+      .mobile-carousel { display: block; margin: 0 27.5px; }
+      .mc-tile { height: 300px; margin: 0 0 24px; }
+      .mc-tile .tile-phone { border-width: 4px; border-radius: 16px; }
+      .mc-tile .tile-badge { left: 12px; bottom: 12px; width: 36px; height: 36px; font-size: 22px; line-height: 36px; }
+      .m-br { display: inline; }
+      .mc-name { display: block; margin: -3px 0 0; font-family: var(--karnak); font-size: 28px; font-weight: 700; line-height: 34px; color: var(--ink-strong); }
+      .mc-desc { display: block; min-height: 48px; margin: 1px 0 0; font-size: 16px; line-height: 24px; color: var(--ink-strong); }
+      .mc-nav { display: flex; justify-content: space-between; align-items: center; margin: 0 16.75px; padding: 0; }
+      .mc-btn { display: flex; align-items: center; width: 133px; height: 44px; border: 0; background: none; cursor: pointer; }
+      .mc-btn.next { justify-content: flex-end; }
+      .mc-count { font-size: 14px; font-weight: 700; line-height: 21px; color: var(--ink); }
+      .print-inner { flex-direction: column; padding: 40px; font-size: 16px; line-height: 24px; }
+      .print-copy { width: 100%; max-width: 335px; }
+      .print-eyebrow { line-height: 24px; }
+      .print-title { font-size: 32px; line-height: 40px; }
+      .print-list { font-size: 16px; line-height: 24px; }
+      .zip-form { display: block; }
+      .zip-box { width: 100%; }
+      .btn-delivery { width: 100%; margin: 0 0 12px; }
+      .print-art { width: 100%; max-width: 335px; height: 200px; }
+      .site-footer { display: block; padding: 20px; }
+      .footer-statement { margin: 32px 0 0; font-size: 20px; }
+      .footer-cols { margin: 24px 0 0; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; justify-content: stretch; }
+      .footer-cols h3 { font-size: 16px; line-height: 16px; }
+      .footer-cols li a { font-size: 16px; line-height: 24px; }
+      .footer-legal { display: block; margin: 24px 0 0; padding: 24px 0 0; }
+      .legal-links { margin: 13px 0 0; gap: 10px; }
+      .legal-links li { flex: 0 1 auto; min-width: 0; }
+      .legal-links a { font-size: 14px; line-height: 21px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <div class="logo-row">
+      <a href="#" class="wordmark" aria-label="The New York Times">The New York Times</a>
+    </div>
+    <div class="badge-row"><span class="sale-badge">Midterms Sale is on</span></div>
+    <h1 class="hero-title">Savings for you.<span>Or the whole family.</span></h1>
+
+    <div class="plans">
+      <form id="upgradeForm" class="plans-col" novalidate>
+        <label class="plan is-selected" data-plan="ULTRA-36">
+          <span class="plan-tag"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="3.5" r="2.5"/><path d="M1 11.5c0-2.8 2.2-4.5 5-4.5s5 1.7 5 4.5z"/></svg>1 person</span>
+          <span class="plan-head"><input type="radio" class="plan-radio" name="planChoice" value="ULTRA-36" checked><span class="plan-name">All Access</span></span>
+          <span class="plan-body">
+            <span class="plan-price" style="display:block"><ins>$1</ins>/week for your first <del>six months</del> year.</span>
+            <span class="plan-billed" style="display:block">Billed as $4 every four weeks for your first year,<br> then $30 thereafter.</span>
+          </span>
+        </label>
+        <label class="plan" data-plan="UNLIMITED-24">
+          <span class="plan-tag"><svg width="11" height="10" viewBox="0 0 11 10" aria-hidden="true"><circle cx="3.5" cy="2.5" r="2"/><circle cx="8" cy="3" r="1.6"/><path d="M0 10c0-2.4 1.6-3.8 3.5-3.8S7 7.6 7 10z"/><path d="M7.6 10c0-1.3-.3-2.3-1-3 .4-.3.9-.4 1.4-.4 1.7 0 3 1.2 3 3.4z"/></svg>1-4 people</span>
+          <span class="plan-head"><input type="radio" class="plan-radio" name="planChoice" value="UNLIMITED-24"><span class="plan-name">All Access Family</span></span>
+          <span class="plan-body">
+            <span class="plan-price" style="display:block"><ins>$2</ins>/week for your first <del>six months</del> year.</span>
+            <span class="plan-billed" style="display:block">Billed as $8 every four weeks for your first year,<br> then $34 thereafter.</span>
+          </span>
+        </label>
+
+        <label class="sr-only" for="newPlan">New subscription</label>
+        <select id="newPlan" class="sr-only" tabindex="-1" aria-hidden="true">
+          <option value="ULTRA-36" selected>All Access</option>
+          <option value="UNLIMITED-24">All Access Family</option>
+        </select>
+
+        <div class="acct">
+          <div>
+            <label class="field-label" for="currentPlan">Your current subscription</label>
+            <div class="field-box">
+              <select id="currentPlan">
+                <option value="BASIC-12" selected>Basic Digital Access</option>
+                <option value="PLUS-24">Games</option>
+                <option value="PLUS-24">Cooking</option>
+                <option value="FAMILY-PLUS-12">The Athletic</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="addon">Print edition</label>
+            <div class="field-box">
+              <select id="addon">
+                <option value="none" selected>Digital only</option>
+                <option value="hotspot">Sunday home delivery</option>
+                <option value="insurance">Weekend home delivery</option>
+                <option value="international">7-day home delivery</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="promoCode">Promo code</label>
+            <div class="field-box"><input type="text" id="promoCode" placeholder="Optional" autocomplete="off"></div>
+          </div>
+        </div>
+
+        <div class="cta-col">
+          <button type="submit" class="btn-checkout" id="submitBtn">Continue to checkout</button>
+          <a href="#" class="btn-paypal" aria-label="PayPal"><span class="paypal-word"><b>Pay</b><i>Pal</i></span></a>
+          <div class="cancel-note">Cancel anytime.</div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </div>
+      </form>
+    </div>
+
+    <div class="phones">
+      <div class="phones-stage" id="phones" aria-hidden="true">
+        <div class="phones-fallback" id="phonesFallback">
+          <div style="background-image:url('https://static.nytimes.com/assets-oma/images/AALP_Carousel_Games2.jpg')"></div>
+          <div style="background-image:url('https://static.nytimes.com/assets-oma/images/AALP_Carousel_News2.jpg')"></div>
+          <div style="background-image:url('https://static.nytimes.com/assets-oma/images/AALP_Carousel_Cooking2.jpg')"></div>
+        </div>
+      </div>
+    </div>
+    <div class="terms">Offer for a New York Times All Access subscription. Current subscribers and those who have previously accepted a sale/introductory offer from The New York Times may be ineligible for another sale/introductory offer. Subscription excludes print edition. Some games may be available without a subscription. You will be automatically charged in advance $4.00 every 4 weeks for 1 year, and $30.00 every 4 weeks thereafter. Cancel before October 29, 2027 to avoid the transition to the standard price that will be charged on that date. Your subscription will continue until you <a href="#">cancel</a>. Cancellation takes effect at the end of your current billing period. Taxes may apply. Offer terms are subject to change.</div>
+  </header>
+
+  <main>
+    <section class="benefits">
+      <div class="benefits-title"><h2>Subscribers enjoy more with New York Times All Access.</h2></div>
+      <div class="benefits-grid">
+        <div>
+          <div class="feature-tile" id="featureTile"><div class="tile-phone"></div><span class="tile-badge" aria-hidden="true">T</span></div>
+          <span class="feature-caption" id="featureCaption"></span>
+        </div>
+        <div class="feature-list" id="featureList"></div>
+      </div>
+      <div class="mobile-carousel" id="mobileCarousel">
+        <div class="mc-tile" id="mcTile"><div class="tile-phone"></div><span class="tile-badge" aria-hidden="true">T</span></div>
+        <span class="mc-name" id="mcName"></span>
+        <span class="mc-desc" id="mcDesc"></span>
+        <div class="mc-nav">
+          <button type="button" class="mc-btn prev" id="mcPrev" aria-label="Previous"><svg width="10" height="18" viewBox="0 0 10 18" aria-hidden="true"><path d="M8.1 0L10 2.1 3.8 9 10 15.9 8.1 18 0 9z" fill="#000"/></svg></button>
+          <div class="mc-count" id="mcCount">1 of 6</div>
+          <button type="button" class="mc-btn next" id="mcNext" aria-label="Next"><svg width="10" height="18" viewBox="0 0 10 18" aria-hidden="true"><path d="M1.9 0L0 2.1 6.2 9 0 15.9 1.9 18 10 9z" fill="#000"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="print">
+      <div class="print-inner">
+        <div class="print-copy">
+          <p class="print-eyebrow">Sale offer: 50% off for your first year</p>
+          <h2 class="print-title">The Times in Print.<br class="m-br"> Now on Sale</h2>
+          <ul class="print-list">
+            <li>Includes unlimited digital access.</li>
+            <li>Two bonus digital subscriptions to share.</li>
+            <li>You can cancel anytime.</li>
+          </ul>
+          <div class="zip-form">
+            <div>
+              <label class="zip-label" for="zipcode">Enter your ZIP Code</label>
+              <div class="zip-box"><input type="text" id="zipcode" inputmode="numeric" maxlength="5" autocomplete="postal-code"></div>
+            </div>
+            <a href="#" class="btn-delivery">View delivery options</a>
+          </div>
+        </div>
+        <div class="print-art"><img src="https://static.nytimes.com/assets-oma/images/HD_S@3x.jpg" alt="" onerror="this.parentNode.style.display='none'"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-statement"><b>The New York Times</b> believes that great journalism has the power to make each reader&rsquo;s life richer and more fulfilling, and all of society stronger and more just.</div>
+    <div class="footer-cols">
+      <div>
+        <h3>New York Times All Access</h3>
+        <ul>
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Gift Subscription</a></li>
+          <li><a href="#">Download App</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Other Subscriptions</h3>
+        <ul>
+          <li><a href="#">Group Subscriptions</a></li>
+          <li><a href="#">Home Delivery</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-legal">
+      <div class="copyright"><span class="t-mark" aria-hidden="true">T</span>&copy; 2026 The New York Times Company</div>
+      <ul class="legal-links">
+        <li><a href="#">Terms of Sale</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Do Not Sell/Share My Personal Information</a></li>
+        <li><a href="#">California Notices</a></li>
+        <li><a href="#">Limit the Use of My Sensitive Information</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js" defer></script>
+  <script>
+    (function () {
+      var IMG = 'https://static.nytimes.com/assets-oma/images/';
+      var FEATURES = [
+        { name: 'News', desc: 'Engage with expert reporting, including culture coverage and analysis.', img: 'AALP_Carousel_News2.jpg', bg: '#2a2a2a', title: 'Solar Farms Have a Superpower Beyond Clean Energy', by: 'by Catrin Einhorn' },
+        { name: 'Games', desc: 'Unwind with Wordle, Spelling Bee, The Crossword and more.', img: 'AALP_Carousel_Games2.jpg', bg: '#2a2a2a', title: 'Wordle', by: 'Edited by Tracy Bennett' },
+        { name: 'Cooking', desc: 'Enjoy delicious recipes, advice and inspiration daily.', img: 'AALP_Carousel_Cooking2.jpg', bg: '#2a2a2a', title: 'Skillet Gnocchi With Miso Butter and Asparagus', by: 'by Ali Slagle' },
+        { name: 'Audio', desc: 'Enjoy full access to shows on our apps, Apple Podcasts and Spotify.', img: 'AALP_Carousel_Audio2.jpg', bg: '#2a2a2a', title: 'Can Whitney Wolfe Herd Make Us Love Dating Apps Again?', by: 'by Lulu Garcia-Navarro' },
+        { name: 'Wirecutter', desc: 'Choose products confidently with reviews and real-world testing.', img: 'AALP_Carousel_Wirecutter2.jpg', bg: '#2a2a2a', title: 'Our Favorite Solid Shampoo Bars', by: 'by Katie Okamoto' },
+        { name: 'The Athletic', desc: 'Follow in-depth, personalized coverage of your favorite sports.', img: 'AALP_Carousel_TheAthletic_L2.jpg', bg: '#75ae18', title: 'Weird ideas? Creativity? MLB player Mark Canha believes...', by: 'by Jayson Jenks' }
+      ];
+      var tile = document.getElementById('featureTile');
+      var caption = document.getElementById('featureCaption');
+      var list = document.getElementById('featureList');
+      var mcTile = document.getElementById('mcTile');
+      var mcName = document.getElementById('mcName');
+      var mcDesc = document.getElementById('mcDesc');
+      var mcCount = document.getElementById('mcCount');
+      var active = 0;
+
+      FEATURES.forEach(function (f, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'feature-btn';
+        var n = document.createElement('span'); n.className = 'feature-name'; n.textContent = f.name;
+        var d = document.createElement('span'); d.className = 'feature-desc'; d.textContent = f.desc;
+        b.appendChild(n); b.appendChild(d);
+        b.addEventListener('click', function () { show(i); });
+        list.appendChild(b);
+      });
+
+      function show(i) {
+        active = (i + FEATURES.length) % FEATURES.length;
+        var f = FEATURES[active];
+        [tile, mcTile].forEach(function (t) {
+          t.style.backgroundColor = f.bg;
+          t.querySelector('.tile-phone').style.backgroundImage = "url('" + IMG + f.img + "')";
+        });
+        caption.textContent = f.title;
+        var by = document.createElement('span'); by.textContent = f.by; caption.appendChild(by);
+        mcName.textContent = f.name;
+        mcDesc.textContent = f.desc;
+        mcCount.textContent = (active + 1) + ' of ' + FEATURES.length;
+        Array.prototype.forEach.call(list.children, function (el, j) { el.classList.toggle('is-active', j === active); });
+      }
+      document.getElementById('mcPrev').addEventListener('click', function () { show(active - 1); });
+      document.getElementById('mcNext').addEventListener('click', function () { show(active + 1); });
+      show(0);
+
+      window.addEventListener('load', function () {
+        var stage = document.getElementById('phones');
+        var fallback = document.getElementById('phonesFallback');
+        if (!window.lottie) { fallback.classList.add('on'); return; }
+        try {
+          var anim = window.lottie.loadAnimation({ container: stage, renderer: 'svg', loop: true, autoplay: true, path: 'https://static.nytimes.com/assets-oma/images/animations/landing-pages/all-access/ConvAllAccessAcquisitionBandit/AnimatedPhoneCarousel.json' });
+          anim.addEventListener('data_failed', function () { fallback.classList.add('on'); });
+        } catch (e) { fallback.classList.add('on'); }
+      });
+
+      var plans = document.querySelectorAll('.plan');
+      var newPlan = document.getElementById('newPlan');
+      Array.prototype.forEach.call(plans, function (card) {
+        card.querySelector('input').addEventListener('change', function () {
+          Array.prototype.forEach.call(plans, function (c) { c.classList.toggle('is-selected', c === card); });
+          newPlan.value = card.getAttribute('data-plan');
+        });
+      });
+    })();
+  </script>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function escapeHtml(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    document.getElementById('upgradeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const planSelect = document.getElementById('newPlan');
+      const planLabel = planSelect.options[planSelect.selectedIndex] ? planSelect.options[planSelect.selectedIndex].text : 'All Access';
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/telco/upgrade', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId: 'CUST-3001', currentPlanCode: document.getElementById('currentPlan').value, targetPlanCode: document.getElementById('newPlan').value, billingDay: 15, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="result-title">We couldn&rsquo;t update your subscription</div><div>${escapeHtml(data.errorClass)}: ${escapeHtml(data.error)}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="result-title">You&rsquo;re subscribed to ${escapeHtml(planLabel)}</div><div>Confirmation ${escapeHtml(String(data.upgradeId || '').slice(0, 8).toUpperCase())}. Your new subscription starts with your next billing period.</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="result-title">Network error</div><div>${escapeHtml(err.message)}</div>`;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Continue to checkout';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
