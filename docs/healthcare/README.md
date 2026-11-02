@@ -109,7 +109,7 @@ Customer-branded copy of demo 4 for Thermo Fisher Scientific's PPD clinical rese
 > Nobody filed a ticket. The failure went to Slack automatically and Devin is already working on it. What it found: the Canadian site reports blood glucose in mmol/L and the pipeline only knew the US unit, mg/dL. US sites load fine, so this only showed up when Toronto came online.
 > Devin added the conversion, wrote a test and opened the pull request. In a GxP environment an engineer still reviews and approves the change. Devin took away the hours of detective work.”
 
-**Host environment:** nothing demo-specific is required. Alerts go to `#automated-alerts` (`C0ALNRR4PSQ`, from `config/customers/bce3b3d2.js`) and the session is created with the shared Devin service key in the org picked on the homepage. Set `DEVIN_SERVICE_KEY_BCE3B3D2` (an HC-GTM-AD service key) plus `DEVIN_ORG_ID_BCE3B3D2=org-ad5cb75ed086403697e4d37f8411936e` only if the shared key cannot create sessions in HC-GTM-AD; `SLACK_CHANNEL_ID_BCE3B3D2` and `DEVIN_USER_ID_BCE3B3D2` are optional overrides.
+**Host environment:** nothing demo-specific is required. Alerts go to the shared `SLACK_CHANNEL_ID` (`#automated-alerts`), the same channel as the other demos, and the session is created with the shared Devin service key in the org picked on the homepage. Set `DEVIN_SERVICE_KEY_BCE3B3D2` (an HC-GTM-AD service key) plus `DEVIN_ORG_ID_BCE3B3D2=org-ad5cb75ed086403697e4d37f8411936e` only if the shared key cannot create sessions in HC-GTM-AD; `SLACK_CHANNEL_ID_BCE3B3D2` and `DEVIN_USER_ID_BCE3B3D2` are optional overrides.
 
 ---
 
