@@ -96,7 +96,7 @@ Customer-branded copy of demo 4 for Thermo Fisher Scientific's PPD clinical rese
 
 **Reset:** same as the other four. The page keeps no state, so a reload brings back the failing Toronto batch. Keep Devin's fix PR unmerged if you want to run the demo again.
 
-**Trigger:** open `/thermofisher-central-lab` → in the *Transfer inbox* leave *Toronto Research Centre (SITE-104)* selected → **Run ingest**.
+**Trigger:** open `/thermofisher-central-lab` → in the *Transfer inbox* leave *Toronto Research Centre (SITE-104)* selected → fill in *Run as* (your name and Devin email; remembered in the browser) → **Run ingest**. The page resolves the email to your Devin user in HC-GTM-AD through `/api/resolve-identity`, so the session opens in your account and the Slack card tags you; if the email is not found the session runs as the service user. Your name replaces the analyst in the header, run log and audit trail.
 **What you see:** the same failure as demo 4. *Normalize units* turns red, and the result reads “Batch not loaded. Ingest stopped at normalize units” with code `LAB_INGEST_FAILED` and a reference. The raw `TypeError … 'factor'` shows up only in Sentry and the Slack card.
 **Contrast:** choose *Boston Clinical Unit (SITE-101)*. All five stages turn green and three records load.
 
@@ -109,7 +109,7 @@ Customer-branded copy of demo 4 for Thermo Fisher Scientific's PPD clinical rese
 > Nobody filed a ticket. The failure went to Slack automatically and Devin is already working on it. What it found: the Canadian site reports blood glucose in mmol/L and the pipeline only knew the US unit, mg/dL. US sites load fine, so this only showed up when Toronto came online.
 > Devin added the conversion, wrote a test and opened the pull request. In a GxP environment an engineer still reviews and approves the change. Devin took away the hours of detective work.”
 
-**Host environment:** set `DEVIN_SERVICE_KEY_BCE3B3D2` (HC-GTM-AD service key), `DEVIN_ORG_ID_BCE3B3D2=org-ad5cb75ed086403697e4d37f8411936e`, optionally `DEVIN_USER_ID_BCE3B3D2`, and `SLACK_CHANNEL_ID_BCE3B3D2` (the `#automated-alerts` ID) on top of the shared `SLACK_BOT_TOKEN`, Sentry and Datadog settings in section A below.
+**Host environment:** only `DEVIN_SERVICE_KEY_BCE3B3D2` (an HC-GTM-AD service key) is required, on top of the shared `SLACK_BOT_TOKEN`, Sentry and Datadog settings in section A below. The page sends the HC-GTM-AD org ID and the presenter's user, and `config/customers/bce3b3d2.js` sends alerts to `#automated-alerts` (`C0ALNRR4PSQ`). `DEVIN_ORG_ID_BCE3B3D2`, `DEVIN_USER_ID_BCE3B3D2` and `SLACK_CHANNEL_ID_BCE3B3D2` are optional overrides.
 
 ---
 
