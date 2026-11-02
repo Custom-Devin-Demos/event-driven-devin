@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Seats | Tinker | Thinking Machines Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink: #282828; --blue: #0387E7; --rule: #E6E4DF; --muted: #6E6B66; --paper: #FFFFFF; --wash: #FAF9F6; --accent: var(--blue); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: "Crimson Pro", "Iowan Old Style", Georgia, serif; font-size: 19px; line-height: 1.5; color: var(--ink); background: var(--paper); }
+    .ui { font-family: "Inter Tight", Arial, sans-serif; }
+    .mono { font-family: "Chakra Petch", monospace; }
+    .site { display: flex; align-items: center; gap: 32px; padding: 22px 40px; border-bottom: 1px solid var(--rule); }
+    .wordmark { font-family: "Chakra Petch", monospace; font-weight: 600; font-size: 15px; letter-spacing: .24em; text-decoration: none; color: var(--ink); }
+    .site nav { margin-left: auto; display: flex; gap: 28px; font-family: "Inter Tight", Arial, sans-serif; font-size: 15px; }
+    .site nav a { color: var(--ink); text-decoration: none; }
+    .site nav a[aria-current] { text-decoration: underline; text-underline-offset: 5px; }
+    .shell { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: calc(100vh - 100px); }
+    .side { border-right: 1px solid var(--rule); padding: 28px 22px; background: var(--wash); }
+    .prod { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+    .tmark { width: 30px; height: 30px; background: var(--blue); color: #fff; display: grid; place-items: center; font-family: "Chakra Petch", monospace; font-weight: 600; font-size: 17px; }
+    .prod b { font-family: "Inter Tight", Arial, sans-serif; font-weight: 600; font-size: 17px; }
+    .side a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; color: var(--ink); text-decoration: none; font-family: "Inter Tight", Arial, sans-serif; font-size: 15px; }
+    .side a[aria-current] { background: #fff; box-shadow: inset 2px 0 0 var(--blue); font-weight: 600; }
+    .side .org { margin-top: 28px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-family: "Chakra Petch", monospace; }
+    .content { padding: 40px 56px 64px; max-width: 1060px; }
+    .eyebrow { font-family: "Chakra Petch", monospace; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+    h1 { font-weight: 400; font-size: 48px; line-height: 1.1; margin: 0 0 10px; }
+    .lede { color: var(--muted); max-width: 640px; margin: 0 0 32px; }
+    .meters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); margin-bottom: 36px; }
+    .meters div { padding: 18px 0; }
+    .meters span { display: block; font-family: "Chakra Petch", monospace; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+    .meters b { font-family: "Inter Tight", Arial, sans-serif; font-weight: 500; font-size: 32px; }
+    h2 { font-weight: 500; font-size: 28px; margin: 0 0 8px; }
+    .cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; align-items: start; }
+    table { width: 100%; border-collapse: collapse; font-family: "Inter Tight", Arial, sans-serif; font-size: 14px; margin-bottom: 36px; }
+    th { text-align: left; font-family: "Chakra Petch", monospace; font-weight: 500; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 8px 6px; border-bottom: 1px solid var(--ink); }
+    td { padding: 12px 6px; border-bottom: 1px solid var(--rule); }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; font-family: "Inter Tight", Arial, sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .field select, .field input { width: 100%; min-height: 46px; border: 1px solid #BDB9B2; border-radius: 0; background: #fff; padding: 0 12px; font: 400 16px "Inter Tight", Arial, sans-serif; color: var(--ink); }
+    .field small { display: block; font-family: "Inter Tight", Arial, sans-serif; font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .btn { min-height: 46px; padding: 0 22px; border: 1px solid var(--blue); background: var(--blue); color: #fff; font: 500 15px "Inter Tight", Arial, sans-serif; cursor: pointer; border-radius: 0; }
+    .btn.ghost { background: #fff; color: var(--ink); border-color: #BDB9B2; }
+    .btn:disabled { opacity: .55; cursor: progress; }
+    .btn:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .stopwatch { display: none; align-items: baseline; gap: 10px; margin-top: 16px; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .sw-label { font-family: "Chakra Petch", monospace; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+    .sw-value { font-family: "Inter Tight", Arial, sans-serif; font-size: 24px; font-weight: 500; }
+    .stopwatch.done .sw-value { color: #B42318; }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; font-family: "Inter Tight", Arial, sans-serif; font-size: 15px; line-height: 1.45; border: 1px solid; }
+    .result-box b { display: block; margin-bottom: 2px; }
+    .result-box.success { display: block; border-color: #9BC9A8; background: #F1F8F3; }
+    .result-box.notice { display: block; border-color: #E5A9A2; background: #FDF3F2; }
+    .panel { border: 1px solid var(--rule); background: var(--wash); padding: 22px; }
+    .panel dl { margin: 0; display: grid; grid-template-columns: 1fr auto; row-gap: 10px; font-family: "Inter Tight", Arial, sans-serif; font-size: 14px; }
+    .panel dt { color: var(--muted); } .panel dd { margin: 0; text-align: right; font-weight: 500; }
+    .panel p { font-size: 16px; color: var(--muted); margin: 16px 0 0; }
+    footer { border-top: 1px solid var(--rule); padding: 22px 40px; display: flex; flex-wrap: wrap; gap: 12px 24px; font-family: "Inter Tight", Arial, sans-serif; font-size: 13px; color: var(--muted); }
+    footer a { color: var(--muted); }
+    @media (max-width: 1000px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 820px) {
+      .shell { grid-template-columns: minmax(0, 1fr); }
+      .side { border-right: 0; border-bottom: 1px solid var(--rule); padding: 14px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+      .side .prod { margin: 0 12px 0 0; } .side .org, .side a.hide-s { display: none; }
+      .site nav a.hide-s { display: none; }
+    }
+    @media (max-width: 600px) {
+      .site { padding: 16px; gap: 16px; } .wordmark { font-size: 13px; letter-spacing: .18em; } .site nav { gap: 16px; }
+      .content { padding: 28px 16px 48px; } h1 { font-size: 38px; }
+      .meters b { font-size: 24px; } .two { grid-template-columns: 1fr; }
+      .actions .btn { flex: 1 1 100%; } .hide-xs { display: none; } footer { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <a class="wordmark" href="#">THINKING MACHINES</a>
+    <nav aria-label="Site"><a class="hide-s" href="#">Inkling</a><a href="#" aria-current="page">Tinker</a><a class="hide-s" href="#">Connectionism</a><a class="hide-s" href="#">News</a><a href="#">Sign out</a></nav>
+  </header>
+  <div class="shell">
+    <aside class="side" aria-label="Tinker console">
+      <div class="prod"><span class="tmark" aria-hidden="true">T</span><b>Tinker</b></div>
+      <a class="hide-s" href="#">Overview</a>
+      <a class="hide-s" href="#">Training runs</a>
+      <a class="hide-s" href="#">Checkpoints</a>
+      <a class="hide-s" href="#">Usage</a>
+      <a href="#" aria-current="page">Seats</a>
+      <a href="#">Billing</a>
+      <a class="hide-s" href="#">API keys</a>
+      <div class="org">Org &middot; Meridian Robotics</div>
+    </aside>
+    <main class="content">
+      <p class="eyebrow">Organization settings</p>
+      <h1>Seats</h1>
+      <p class="lede">Seats give researchers access to the Tinker API and console. New seats are prorated to your renewal date.</p>
+      <div class="meters" aria-label="Seat usage">
+        <div><span>Seats</span><b id="mSeats">40</b></div>
+        <div><span>Assigned</span><b>38</b></div>
+        <div><span>Available</span><b id="mFree">2</b></div>
+      </div>
+      <div class="cols">
+        <div>
+          <h2>Workspaces</h2>
+          <table>
+            <thead><tr><th>Workspace</th><th class="hide-xs">Plan</th><th class="num">Seats</th></tr></thead>
+            <tbody>
+              <tr><td>Research</td><td class="hide-xs">Enterprise</td><td class="num" data-seats-for="enterprise_suite">24</td></tr>
+              <tr><td>Post-training</td><td class="hide-xs">Enterprise</td><td class="num" data-seats-for="devops_platform">10</td></tr>
+              <tr><td>Evals</td><td class="hide-xs">Team</td><td class="num" data-seats-for="analytics_cloud">6</td></tr>
+            </tbody>
+          </table>
+          <h2>Add seats</h2>
+          <form id="provisionForm" novalidate>
+            <div class="field">
+              <label for="product">Workspace</label>
+              <select id="product">
+                <option value="enterprise_suite" selected>Research</option>
+                <option value="devops_platform">Post-training</option>
+                <option value="analytics_cloud">Evals</option>
+              </select>
+            </div>
+            <div class="two">
+              <div class="field">
+                <label for="seats">Seats to add</label>
+                <input type="number" id="seats" value="8" min="1" max="250" step="1" inputmode="numeric">
+                <small>1&ndash;250 per change</small>
+              </div>
+              <div class="field">
+                <label for="planTier">Plan</label>
+                <select id="planTier">
+                  <option value="enterprise" selected>Enterprise</option>
+                  <option value="business">Team</option>
+                </select>
+              </div>
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn" id="submitBtn">Add seats</button>
+              <button type="reset" class="btn ghost" id="cancelBtn">Cancel</button>
+            </div>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+        <section class="panel" aria-labelledby="sumHead">
+          <h2 id="sumHead">Summary</h2>
+          <dl>
+            <dt>Workspace</dt><dd id="sumApp">&mdash;</dd>
+            <dt>Plan</dt><dd id="sumPlan">&mdash;</dd>
+            <dt>Seats to add</dt><dd id="sumSeats">&mdash;</dd>
+            <dt>Seats after change</dt><dd id="sumAfter">&mdash;</dd>
+            <dt>Billing</dt><dd>Annual</dd>
+          </dl>
+          <p>Invite researchers from Members once the seats are added.</p>
+        </section>
+      </div>
+    </main>
+  </div>
+  <footer><span>Thinking Machines Lab demo console</span><a href="#">Docs</a><a href="#">Status</a><a href="#">Terms</a><a href="#">Privacy</a><span>Sample organization and seat counts.</span></footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('provisionForm'); const btn = $('submitBtn'); const cancelBtn = $('cancelBtn'); const result = $('result');
+      const app = $('product'); const seats = $('seats'); const plan = $('planTier');
+      const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const IDLE = 'Add seats';
+      const bySpace = {}; document.querySelectorAll('[data-seats-for]').forEach((el) => { bySpace[el.dataset.seatsFor] = Number(el.textContent) || 0; });
+      let total = Object.values(bySpace).reduce((a, b) => a + b, 0);
+      let pending = false; let ticker = null;
+      const set = (id, t) => { $(id).textContent = t; };
+      const text = (s) => s.options[s.selectedIndex].textContent;
+      const count = () => { const raw = seats.value.trim(); return /^\d+$/.test(raw) ? parseInt(raw, 10) : NaN; };
+      function render() {
+        const n = count(); const ok = Number.isFinite(n) && n >= 1 && n <= 250;
+        set('sumApp', text(app)); set('sumPlan', text(plan));
+        set('sumSeats', ok ? String(n) : '\u2014');
+        set('sumAfter', ok ? String((bySpace[app.value] || 0) + n) : '\u2014');
+        set('mSeats', String(total)); set('mFree', String(total - 38));
+        document.querySelectorAll('[data-seats-for]').forEach((el) => { el.textContent = String(bySpace[el.dataset.seatsFor] || 0); });
+      }
+      function show(kind, title, body) {
+        result.className = `result-box ${kind}`; result.textContent = '';
+        const b = document.createElement('b'); b.textContent = title; result.appendChild(b); result.appendChild(document.createTextNode(body));
+      }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      [app, seats, plan].forEach((el) => { el.addEventListener('input', render); el.addEventListener('change', render); });
+      form.addEventListener('reset', (e) => {
+        if (pending) { e.preventDefault(); return; }
+        setTimeout(() => { result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = '0.0s'; render(); });
+      });
+      render();
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (pending) return;
+        const n = count();
+        if (!Number.isFinite(n) || n < 1 || n > 250) { show('notice', 'Check the number of seats', 'Enter a whole number of seats from 1 to 250.'); seats.focus(); return; }
+        const space = app.value; const spaceLabel = text(app); const planLabel = text(plan);
+        pending = true; [btn, cancelBtn, app, seats, plan].forEach((el) => { el.disabled = true; });
+        btn.textContent = 'Adding seats\u2026';
+        result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        try {
+          const res = await fetch('/api/licenses/provision', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: app.value,
+              planName: plan.value,
+              seats: parseInt(seats.value, 10),
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          tick(); stopTimer(true);
+          if (res.ok && data.success) {
+            const added = Number(data.seatsAdded) || n;
+            bySpace[space] = (bySpace[space] || 0) + added; total += added; render();
+            const ref = String(data.licenseId || '').slice(0, 8).toUpperCase();
+            show('success', 'Seats added', `${added} ${added === 1 ? 'seat' : 'seats'} added to ${spaceLabel} (${planLabel}). Your organization now has ${total} seats.${ref ? ' Reference ' + ref + '.' : ''}`);
+          } else {
+            show('notice', 'Seats weren\u2019t added', 'We couldn\u2019t add seats right now and your plan hasn\u2019t changed. Try again in a few minutes, or contact Tinker Support.');
+          }
+        } catch (_err) {
+          stopTimer(true);
+          show('notice', 'Seats weren\u2019t added', 'We couldn\u2019t reach the Tinker console. Check your connection and try again.');
+        } finally {
+          pending = false; [btn, cancelBtn, app, seats, plan].forEach((el) => { el.disabled = false; });
+          btn.textContent = IDLE;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
