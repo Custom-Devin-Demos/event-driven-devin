@@ -833,7 +833,7 @@ const ALERT_SCENARIOS = {
     service: 'customer-4d820a2b-switch',
     endpoint: 'POST /api/4d820a2b/inquiry',
     monitor: '5xx rate — Start your switch (POST /api/4d820a2b/inquiry)',
-    metricQuery: 'sum(last_5m):sum:switch.inquiry.error{customer:4d820a2b}.as_count() > 0',
+    metricQuery: 'sum(last_5m):sum:demo.switch.inquiry.error{customer:4d820a2b}.as_count() > 0',
     metricValue: '100% of Start your switch requests failing (HTTP 500)',
     threshold: '> 0 failures / 5m',
     baseline: '0 failures (30-day)',
