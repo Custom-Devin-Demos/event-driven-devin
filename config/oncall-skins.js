@@ -7414,6 +7414,46 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A VODAFONE SITE — internal demo only, not affiliated with, endorsed by, or a real Vodafone product.',
   },
+  '5d588732': {
+    slug: '5d588732',
+    company: 'Aviva',
+    brandMark: 'A',
+    vertical: 'insurance',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: '5d588732.html', title: 'Make a car insurance claim | MyAviva' },
+    theme: {
+      '--accent': '#FFD900',
+      '--ink': '#191919',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#191D64',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: '5xx rate — MyAviva car insurance claim submissions',
+      release: 'myaviva-motor-claims@1.0.3',
+      team: 'motor-claims-oncall',
+      symptom: 'Online car insurance claims in MyAviva hang ~7s after the customer selects Submit claim, then fail with a gateway timeout. No claim reference is issued.',
+      impact: 'Aviva car insurance customers cannot make a claim online; every submission waits ~7 seconds and then fails, and customers are calling the motor claims line instead.',
+    },
+    supportCenter: 'Aviva Motor Claims',
+    devinSession: {
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Demo investigation requirements:',
+        '1. Reproduce the symptom in a browser on this machine against a local run of the repo, and time the request before any change. Never open or submit the live page on devindemos.com, and tell any testing agent the same: each live submit fires a new alert and starts another investigation.',
+        '2. Find every root cause from the code and telemetry: the slow request, and anything else the alert names (the impact line sometimes names a second problem, for example duplicate transfers from customers submitting again). Fix all of them; do not hunt for a second problem the alert does not name.',
+        '3. Add a regression test per root cause that fails before the fix and passes after it.',
+        '4. Record as much as you can; recordings are what the demo audience watches. At minimum three separate recordings: BEFORE on a local run of main (the real ~7s hang then error), AFTER on a local run of the fix branch (the fix is not deployed), and the regression test failing then passing. Same flow, same clicks, a visible timer in each.',
+        '5. Label every recording inside the recording tool, not only in the message that attaches it: a title naming the step and the customer action ("BEFORE: Submit claim takes 7.5s, then fails", "AFTER: Submit claim takes 0.9s", "REGRESSION TEST: fails before the fix, passes after"), one chapter per action, and one pass/fail check annotation stating what should happen and what did ("It should confirm in under 1.5s — failed: 7.5s, then the claim failed"). The labels must be in the recording\'s *-annotations.json sidecar and burned into the edited video. A label that exists only in a PR comment, chat message, or filename does not count. In BEFORE recordings, word each check so it passes when the problem is reproduced ("Problem reproduced: Submit claim takes 7.5s, then fails"), so no demo video shows a failed check; AFTER checks pass when the fix works.',
+        '6. Gate before posting: for every recording, open its *-annotations.json and confirm it has a title, at least one chapter, and a pass/fail check. If any is missing, re-annotate or re-record before embedding it anywhere. Never embed or post an unlabeled recording in the PR, the Slack thread, or the handover; list it as "missing: <step>" instead.',
+        '7. When you hand recording work to your testing agent, paste requirements 4, 5 and 6 verbatim into its prompt, and run the step-6 check on its deliverable before accepting it. Do not start child sessions; do all of the work in this session.',
+        '8. Open a PR with the investigation summary, the fix, the test, and every recording that passed step 6 embedded. Request Devin Review. Do not merge; stop for human approval.',
+        '9. Post one final message in the Slack alert thread with exactly three labeled lines: "Root cause:" (one plain sentence per cause), "PR review:" (https://devin-gtm.devinenterprise.com/review/COG-GTM/event-driven-devin/pull/<PR number>), "Videos:" (BEFORE, AFTER, REGRESSION TEST links; "missing" for any that failed step 6).',
+      ].join('\n'),
+    },
+    disclaimer: 'NOT ACTUALLY AN AVIVA SITE — internal demo only, not affiliated with, endorsed by, or a real Aviva product.',
+  },
 };
 
 function getOncallSkin(slug) {

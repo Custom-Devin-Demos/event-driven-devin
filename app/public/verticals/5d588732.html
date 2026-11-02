@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make a car insurance claim | MyAviva</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --yellow: #ffd900;
+      --navy: #191d64;
+      --blue: #1034bf;
+      --link: #004fb6;
+      --sky: #a3cdf7;
+      --sky-wash: #e5f1fd;
+      --ink: #191919;
+      --ink-2: #3c3c3c;
+      --muted: #5c5c5c;
+      --line: #d9d9d9;
+      --panel: #f7f7f7;
+      --ok: #1d7f3a;
+      --ok-wash: #eaf6ee;
+      --warn-wash: #fff6d6;
+      --body: "Source Sans 3", "Source Sans Pro", Arial, sans-serif;
+      --display: "Source Serif 4", Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: var(--body); font-size: 16px; line-height: 1.5; color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; }
+    .wrap { width: min(1200px, 100% - 64px); margin: 0 auto; }
+
+    .utility { background: var(--navy); color: #fff; font-size: 14px; font-weight: 700; }
+    .utility .wrap { display: flex; align-items: stretch; justify-content: space-between; min-height: 44px; }
+    .utility .tabs { display: flex; }
+    .utility .tabs a { display: flex; align-items: center; padding: 0 12px; }
+    .utility .tabs a.on { background: #f2f2f2; color: var(--ink); }
+    .utility .contact { display: flex; align-items: center; }
+
+    .masthead { background: var(--yellow); }
+    .masthead .wrap { display: flex; align-items: center; min-height: 64px; gap: 40px; }
+    .logo { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--navy); font-weight: 700; font-size: 26px; letter-spacing: .06em; line-height: 1; }
+    .logo svg { width: 24px; height: 24px; flex: none; }
+    .mainnav { display: flex; gap: 28px; font-size: 16px; font-weight: 700; color: var(--navy); }
+    .mainnav a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+    .mainnav a::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-3px); margin-left: 4px; }
+    .masthead .actions { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .search { font-weight: 700; color: var(--navy); display: inline-flex; align-items: center; gap: 8px; padding: 0 20px; min-height: 64px; border-left: 1px solid rgba(25, 29, 100, .12); border-right: 1px solid rgba(25, 29, 100, .12); }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 9px 24px; border-radius: 160px; font-weight: 700; font-size: 16px; }
+    .pill.solid { background: var(--blue); color: #fff; }
+    .pill.outline { border: 1px solid var(--navy); color: var(--navy); }
+    .menu-btn { display: none; background: none; border: 1px solid var(--navy); color: var(--navy); border-radius: 160px; min-height: 44px; padding: 0 18px; font-weight: 700; font-size: 15px; }
+
+    .crumbs { font-size: 13px; font-weight: 700; color: var(--navy); }
+    .crumbs a { text-decoration: underline; text-underline-offset: 2px; }
+    .hero { position: relative; background: var(--navy); overflow: hidden; }
+    .hero .sky { position: relative; background: var(--sky); border-bottom-right-radius: 48px; width: 62%; clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%); padding: 14px 0 46px; }
+    .hero .sky .inner { padding-left: max(32px, calc((100vw - 1200px) / 2)); padding-right: 15%; }
+    .hero h1 { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 3.6vw, 40px); line-height: 1.2; margin: 34px 0 10px; color: var(--ink); }
+    .hero p { margin: 0; font-size: 18px; color: var(--ink); max-width: 560px; }
+    .signed { position: absolute; right: max(32px, calc((100vw - 1200px) / 2)); top: 50%; transform: translateY(-50%); color: #fff; text-align: right; font-size: 14px; line-height: 1.35; }
+    .signed strong { display: block; font-size: 18px; }
+
+    .steps { border-bottom: 1px solid var(--line); }
+    .steps ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); }
+    .steps li { display: flex; align-items: center; gap: 10px; padding: 16px 0; font-size: 15px; color: var(--muted); }
+    .steps li b { width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; background: #fff; border: 2px solid var(--blue); color: var(--blue); font-size: 14px; }
+    .steps li.on { color: var(--ink); font-weight: 700; }
+    .steps li.on b, .steps li.done b { background: var(--blue); color: #fff; }
+
+    main { padding: 40px 0 16px; }
+    .intro { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 3vw, 36px); line-height: 1.25; margin: 0 0 8px; }
+    .lede { margin: 0 0 28px; color: var(--ink-2); max-width: 760px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, .85fr); gap: 32px; align-items: start; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+    .card-head { padding: 26px 28px 0; }
+    .card-head h3 { margin: 0 0 4px; font-size: 24px; font-weight: 600; line-height: 1.33; }
+    .card-head p { margin: 0; font-size: 15px; color: var(--muted); }
+    form { padding: 20px 28px 28px; }
+    .form-group { margin-bottom: 18px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    label.f { display: block; font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+    .hint { font-size: 14px; color: var(--muted); margin-top: 4px; }
+    select, input[type="text"], input[type="number"], input[type="date"] { width: 100%; min-height: 48px; padding: 10px 14px; font-size: 16px; color: var(--ink); background: #fff; border: 1px solid #767676; border-radius: 8px; }
+    select:focus, input:focus { outline: 3px solid var(--blue); outline-offset: 1px; }
+    .money { position: relative; }
+    .money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 700; }
+    .money input { padding-left: 30px; }
+    .consent { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; color: var(--ink-2); margin: 6px 0 22px; min-height: 44px; }
+    .consent input { width: 22px; height: 22px; margin-top: 2px; flex: none; accent-color: var(--blue); }
+    .submit { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; min-width: 220px; padding: 16px 32px; border: 0; border-radius: 160px; background: var(--yellow); color: var(--navy); font-size: 16px; font-weight: 700; cursor: pointer; }
+    .submit:hover { background: #f5d000; }
+    .submit:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+    .submit:disabled { cursor: progress; opacity: .9; }
+    .spinner { display: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(25, 29, 100, .3); border-top-color: var(--navy); animation: spin .8s linear infinite; }
+    .submit.loading .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; font-size: 14px; color: var(--muted); }
+    #result { margin: 0 28px 28px; border-radius: 12px; }
+    #result:empty { display: none; }
+    #result.success { background: var(--ok-wash); border: 1px solid #a6d4b4; padding: 18px 20px; }
+    #result.error { background: var(--warn-wash); border: 1px solid #e8cf6a; padding: 18px 20px; }
+    #result .title { font-weight: 700; font-size: 18px; margin-bottom: 4px; }
+    #result .detail { color: var(--ink-2); }
+    #result .timing { margin-top: 8px; font-size: 13px; color: var(--muted); }
+    #result code { font-family: inherit; font-weight: 700; letter-spacing: .04em; }
+
+    .aside { display: grid; gap: 20px; }
+    .panel { padding: 22px 24px; }
+    .panel h4 { margin: 0 0 12px; font-size: 20px; font-weight: 600; }
+    .panel ul { list-style: none; margin: 0; padding: 0; }
+    .panel li { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; }
+    .panel li:first-child { border-top: 0; }
+    .panel li span:last-child { text-align: right; font-weight: 600; }
+    .photo { overflow: hidden; padding: 0; }
+    .photo img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+    .photo .body { padding: 18px 24px 22px; }
+    .photo .body h4 { margin: 0 0 6px; }
+    .photo .body p { margin: 0 0 14px; font-size: 15px; color: var(--ink-2); }
+    .pill.ghost { border: 1px solid var(--navy); color: var(--navy); background: #fff; }
+    .info { margin-top: 40px; background: var(--sky-wash); border: 1px solid #c4def8; border-radius: 12px; padding: 20px 24px; }
+    .info h4 { font-family: var(--display); font-weight: 400; font-size: 24px; margin: 0 0 6px; }
+    .info p { margin: 0; font-size: 15px; color: var(--ink-2); }
+
+    footer { margin-top: 64px; background: linear-gradient(180deg, #fff 0, #fff 40px, var(--sky-wash) 40px); padding: 0 16px 16px; }
+    footer .inner { background: var(--navy); color: #dcdcf0; border-radius: 32px; }
+    footer .cols { display: grid; grid-template-columns: repeat(3, 1fr) 1fr; gap: 32px; padding: 52px 0 32px; }
+    footer h5 { font-family: var(--display); font-weight: 400; color: #fff; font-size: 22px; line-height: 1.2; margin: 0 0 18px; }
+    footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; font-size: 15px; }
+    footer .legal { border-top: 1px solid rgba(255, 255, 255, .2); padding: 20px 0 26px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; font-size: 14px; color: #fff; }
+    footer .legal nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+    footer .demo { display: block; padding: 0 0 26px; font-size: 12px; color: #c9c9e6; font-weight: 600; }
+
+    @media (max-width: 960px) {
+      .mainnav, .search, .masthead .pill.outline, .signed { display: none; }
+      .menu-btn { display: inline-flex; align-items: center; }
+      .hero .sky { width: 100%; clip-path: none; border-bottom-right-radius: 40px; }
+      .hero .sky .inner { padding-right: 32px; }
+      .grid { grid-template-columns: 1fr; }
+      .steps ol { grid-template-columns: 1fr 1fr; }
+      footer .cols { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 520px) {
+      .wrap { width: min(1200px, 100% - 32px); }
+      .hero .sky .inner { padding-left: 16px; padding-right: 16px; }
+      .utility .tabs a { padding: 0 10px; }
+      .masthead .wrap { gap: 12px; }
+      .logo { font-size: 22px; }
+      .masthead .actions { gap: 8px; }
+      .pill { padding: 9px 16px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .card-head, form { padding-left: 18px; padding-right: 18px; }
+      #result { margin-left: 18px; margin-right: 18px; }
+      .submit { width: 100%; }
+      .steps li { font-size: 14px; }
+      footer .cols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility">
+    <div class="wrap">
+      <nav class="tabs" aria-label="Audience"><a href="#" class="on">Personal</a><a href="#">Business</a></nav>
+      <a class="contact" href="#">Contact us</a>
+    </div>
+  </div>
+
+  <header class="masthead">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="Aviva home">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="3" fill="#191d64"/><path d="M7 17l5-11 5 11M9.2 13h5.6" stroke="#ffd900" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>AVIVA
+      </a>
+      <nav class="mainnav" aria-label="Main menu">
+        <a href="#">Insurance</a><a href="#">Investments</a><a href="#">Retirement</a><a href="#">Health</a>
+      </nav>
+      <div class="actions">
+        <a class="search" href="#">Search</a>
+        <a class="pill solid" href="#">MyAviva</a>
+        <a class="pill outline" href="#">Log out</a>
+        <button class="menu-btn" type="button">Menu</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="sky">
+      <div class="inner">
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="#">Aviva UK Public Homepage</a> &nbsp;›&nbsp; <a href="#">Help and support</a> &nbsp;›&nbsp; <a href="#">Claims</a></nav>
+        <h1>Make a car insurance claim</h1>
+        <p>Claim online or notify us of an incident. We'll give you immediate confirmation and your claim reference number.</p>
+      </div>
+    </div>
+    <div class="signed"><strong>Sam Whitfield</strong>Logged in to MyAviva</div>
+  </section>
+
+  <section class="steps" aria-label="Claim steps">
+    <div class="wrap">
+      <ol>
+        <li class="done"><b>✓</b>Your policy</li>
+        <li class="on"><b>2</b>What happened</li>
+        <li><b>3</b>Third parties</li>
+        <li><b>4</b>Claim reference</li>
+      </ol>
+    </div>
+  </section>
+
+  <main id="claim">
+    <div class="wrap">
+      <h2 class="intro">Tell us what happened</h2>
+      <p class="lede">If anyone's injured or you're stuck at the roadside, it's best to speak to us directly. Otherwise, give us the details of what happened, any third parties involved and the damage to your vehicle.</p>
+      <div class="grid">
+        <div class="card">
+          <div class="card-head">
+            <h3>Claim online</h3>
+            <p>Car insurance · Comprehensive cover</p>
+          </div>
+          <form id="claimForm" novalidate>
+            <div class="form-group">
+              <label class="f" for="policyId">Which car is this claim for?</label>
+              <select id="policyId">
+                <option value="POL-5001" data-car="Ford Focus 1.0 EcoBoost" data-reg="AV21 KTE" data-excess="500" selected>Ford Focus · AV21 KTE</option>
+                <option value="POL-5004" data-car="Kia Niro EV" data-reg="BD72 MWN" data-excess="250">Kia Niro EV · BD72 MWN</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="f" for="claimType">What happened?</label>
+                <select id="claimType">
+                  <option value="collision" selected>Accident involving another vehicle</option>
+                  <option value="liability">Damage to someone else's property</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="f" for="incidentDate">Date of the incident</label>
+                <input type="date" id="incidentDate" value="2026-10-30">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="f" for="thirdPartyReg">Other vehicle's number plate</label>
+                <input type="text" id="thirdPartyReg" value="LK19 HFD" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label class="f" for="amount">Estimated cost of damage</label>
+                <div class="money"><span aria-hidden="true">£</span><input type="number" id="amount" value="2500" min="1" step="0.01" inputmode="decimal"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="f" for="description">Damage to your vehicle</label>
+              <input type="text" id="description" value="Rear bumper and boot lid damaged when another car reversed into me in a car park" maxlength="200">
+              <div class="hint">You can add photos and repair quotes in MyAviva after you submit.</div>
+            </div>
+            <div id="formError" class="hint" role="alert" style="color:#b3261e;font-weight:600"></div>
+            <label class="consent"><input type="checkbox" id="attest" checked>The information I've given is true and complete to the best of my knowledge.</label>
+            <button type="submit" class="submit" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span class="label">Submit claim</span></button>
+            <div class="meta"><span>Immediate confirmation</span><span>Claim reference straight away</span><span>Track it in MyAviva</span></div>
+          </form>
+          <div id="result" role="status" aria-live="polite"></div>
+        </div>
+
+        <div class="aside">
+          <div class="card panel">
+            <h4>Your policy</h4>
+            <ul>
+              <li><span>Car</span><span id="sumCar">Ford Focus 1.0 EcoBoost</span></li>
+              <li><span>Registration</span><span id="sumReg">AV21 KTE</span></li>
+              <li><span>Cover</span><span>Comprehensive</span></li>
+              <li><span>Your excess</span><span id="sumExcess">£500</span></li>
+            </ul>
+          </div>
+          <div class="card photo">
+            <img src="https://static.aviva.io/content/dam/aviva-public/gb/images/personal/insurance/motor/articles/hero-article-windscreen-cover_2000x1000.$16x9-desktop-6cols$.jpg?$16x9-desktop-6cols$" alt="" loading="lazy" onerror="this.remove()">
+            <div class="body">
+              <h4>Glass claims</h4>
+              <p>Damage to glass only? Book your repair or replacement now. Glass claims will not affect your No Claim Discount.</p>
+              <a class="pill ghost" href="#">Make a glass claim</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info">
+        <h4>Important information</h4>
+        <p>The cost of calls to 03 prefixed numbers are charged at national call rates. For our joint protection telephone calls may be recorded and/or monitored.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="inner">
+      <div class="wrap">
+        <div class="cols">
+          <div><h5>Useful information</h5><ul><li>Accessibility</li><li>Contact Aviva</li><li>Make a claim</li><li>Protect yourself from fraud</li><li>Problems and complaints</li></ul></div>
+          <div><h5>About us</h5><ul><li>About Aviva</li><li>Customer Data Charter</li><li>Customer review policy</li><li>Careers</li></ul></div>
+          <div><h5>Other links</h5><ul><li>Aviva corporate</li><li>Intermediary site</li><li>Risk Solutions</li></ul></div>
+          <div><h5>Social</h5><ul><li>Facebook</li><li>YouTube</li><li>Instagram</li></ul></div>
+        </div>
+        <div class="legal"><nav aria-label="Legal"><a href="#">Legal</a><a href="#">Privacy Policy</a><a href="#">Cookie Policy</a><a href="#">Site map</a><a href="#">Manage cookies</a></nav><span>© 2026 Aviva</span></div>
+        <span class="demo">NOT ACTUALLY AN AVIVA SITE — internal demo only, not affiliated with, endorsed by, or a real Aviva product. Fictional customer, vehicle and claim data.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function gbp(n) {
+      return '£' + Number(n).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    }
+    var policySelect = document.getElementById('policyId');
+    function syncPolicy() {
+      var opt = policySelect.options[policySelect.selectedIndex];
+      document.getElementById('sumCar').textContent = opt.dataset.car;
+      document.getElementById('sumReg').textContent = opt.dataset.reg;
+      document.getElementById('sumExcess').textContent = gbp(opt.dataset.excess);
+    }
+    policySelect.addEventListener('change', syncPolicy);
+    syncPolicy();
+
+    document.getElementById('claimForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var label = btn.querySelector('.label');
+      var result = document.getElementById('result');
+      var formError = document.getElementById('formError');
+      var amount = parseFloat(document.getElementById('amount').value);
+      var description = document.getElementById('description').value.trim();
+      formError.textContent = '';
+      if (!(amount > 0)) { formError.textContent = 'Enter the estimated cost of the damage.'; return; }
+      if (!description) { formError.textContent = 'Tell us about the damage to your vehicle.'; return; }
+      if (!document.getElementById('attest').checked) { formError.textContent = 'Please confirm the information is true and complete.'; return; }
+
+      var started = Date.now();
+      var ticker = setInterval(function () {
+        label.textContent = 'Submitting your claim… ' + ((Date.now() - started) / 1000).toFixed(1) + ' s';
+      }, 100);
+      btn.disabled = true;
+      btn.classList.add('loading');
+      label.textContent = 'Submitting your claim…';
+      result.className = '';
+      result.innerHTML = '';
+      try {
+        var response = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: policySelect.value,
+            claimType: document.getElementById('claimType').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            description: description,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await response.json().catch(function () { return {}; });
+        var elapsed = ((Date.now() - started) / 1000).toFixed(1);
+        if (response.ok && data.success) {
+          result.className = 'success';
+          result.innerHTML = '<div class="title">Your claim has been submitted</div>'
+            + '<div class="detail">Your claim reference is <code>AV-' + esc(String(data.claimId || '').slice(0, 8).toUpperCase()) + '</code>. '
+            + 'Your excess is ' + esc(gbp(data.deductible)) + ' and we\u2019ve estimated ' + esc(gbp(data.payout)) + ' towards the repair. We\u2019ll be in touch about next steps.</div>'
+            + '<div class="timing">Submitted in ' + elapsed + ' s</div>';
+        } else {
+          result.className = 'error';
+          result.innerHTML = '<div class="title">We couldn\u2019t submit your claim</div>'
+            + '<div class="detail">We couldn\u2019t submit your claim right now. Please try again in a few minutes.</div>'
+            + '<div class="timing">Waited ' + elapsed + ' s</div>';
+        }
+      } catch (err) {
+        result.className = 'error';
+        result.innerHTML = '<div class="title">We couldn\u2019t submit your claim</div><div class="detail">Please check your connection and try again in a few minutes.</div>';
+      } finally {
+        clearInterval(ticker);
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        label.textContent = 'Submit claim';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
