@@ -7545,7 +7545,7 @@ const ONCALL_SKINS = {
     },
     alertCard: {
       title: 'p95 latency — CalCentral: make a payment',
-      service: 'calcentral-billing',
+      service: 'banking-api',
       release: 'calcentral-billing@2026.11.1',
       metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
       metricValue: '9.3s',
