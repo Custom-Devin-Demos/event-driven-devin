@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lakeshore Health MyChart-style Portal | Schedule a visit</title>
+  <style>
+    :root { --brand: #0f766e; --brand-dark: #0b4f4a; --accent: #f59e0b; --ink: #1d2433; --muted: #5b6475; --line: #e3e7ee; --bg: #f5f7fa; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.5; }
+    .utility { background: var(--brand-dark); color: #fff; font-size: 12px; padding: 6px 32px; display: flex; justify-content: space-between; }
+    .utility a { color: #fff; opacity: .85; text-decoration: none; margin-left: 18px; }
+    header { background: #fff; border-bottom: 1px solid var(--line); padding: 14px 32px; display: flex; align-items: center; gap: 40px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; color: var(--brand-dark); letter-spacing: -.3px; }
+    .logo-mark { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, var(--brand), var(--accent)); color: #fff; display: grid; place-items: center; font-size: 17px; }
+    .logo small { display: block; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; }
+    nav a { color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 500; margin-right: 22px; }
+    nav a.active { color: var(--brand); border-bottom: 2px solid var(--brand); padding-bottom: 14px; }
+    .user { margin-left: auto; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+    .hero { background: linear-gradient(120deg, var(--brand-dark), var(--brand)); color: #fff; padding: 34px 32px 72px; }
+    .crumbs { font-size: 12px; opacity: .8; margin-bottom: 8px; }
+    .hero h1 { font-size: 28px; font-weight: 700; }
+    .hero p { opacity: .9; max-width: 720px; margin-top: 6px; }
+    main { max-width: 1180px; margin: -48px auto 40px; padding: 0 32px; display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(16,24,40,.05); }
+    .card h2 { font-size: 18px; margin-bottom: 4px; }
+    .card .sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+    .full { grid-column: 1 / -1; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px; }
+    input, select { width: 100%; padding: 10px 12px; border: 1px solid #cfd6e0; border-radius: 8px; font-size: 14px; background: #fff; color: var(--ink); }
+    .checks label { text-transform: none; font-weight: 500; color: var(--ink); font-size: 14px; display: flex; gap: 8px; align-items: center; letter-spacing: 0; }
+    .checks input { width: auto; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    button.primary { margin-top: 20px; background: var(--brand); color: #fff; border: 0; border-radius: 8px; padding: 12px 22px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    button.primary:disabled { opacity: .6; cursor: wait; }
+    .result-box { display: none; margin-top: 20px; border-radius: 10px; padding: 16px 18px; font-size: 14px; }
+    .result-box.success { display: block; background: #ecfdf3; border: 1px solid #abefc6; color: #05603a; }
+    .result-box.error { display: block; background: #fef3f2; border: 1px solid #fecdca; color: #b42318; }
+    .result-title { font-weight: 700; margin-bottom: 4px; }
+    .result-detail { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-word; }
+    .ref { font-size: 12px; opacity: .8; margin-top: 6px; }
+    aside .card + .card { margin-top: 18px; }
+    .stat { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .stat:last-child { border-bottom: 0; }
+    .stat b { color: var(--brand-dark); }
+    .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #eef4ff; color: var(--brand-dark); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; }
+    footer { border-top: 1px solid var(--line); background: #fff; padding: 20px 32px; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } .grid { grid-template-columns: 1fr; } nav { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="utility"><span>Lakeshore Health &middot; Chicago &amp; North Shore &middot; Nurse line 24/7: 312-555-0188</span><span><a href="#">Help</a><a href="#">Español</a><a href="#">Sign out</a></span></div>
+  <header>
+    <div class="logo"><div class="logo-mark">L</div><div>Lakeshore Health<small>My Lakeshore</small></div></div>
+    <nav><a href="#">Home</a><a href="#" class="active">Appointments</a><a href="#">Messages</a><a href="#">Test results</a><a href="#">Billing</a></nav>
+    <div class="user"><span>Welcome, Jordan</span><div class="avatar">JR</div></div>
+  </header>
+  <section class="hero">
+    <div class="crumbs">Home / Appointments / Schedule a visit</div>
+    <h1>Schedule a visit</h1>
+    <p>Book with your care team in person or by video. We’ll send your check-in forms right after you book.</p>
+  </section>
+  <main>
+    <section class="card">
+      <h2>Appointment details</h2>
+      <div class="sub">Pick a visit type and time, then confirm. Video visits are the default for follow-ups.</div>
+      <form id="demoForm">
+        <div class="grid">
+          <div><label>Patient</label><select id="mrn"><option value="MRN-100482" selected>Jordan Rivera (you)</option><option value="MRN-100517">Elena Brooks (proxy access)</option></select></div>
+          <div><label>Clinician</label><select id="clinicianId"><option value="LH-201" selected>Dr. Amara Okafor — Family Medicine</option><option value="LH-305">Dr. Ben Castillo — Endocrinology</option></select></div>
+          <div><label>Visit type</label><select id="visitType"><option value="telehealth" selected>Video visit (telehealth)</option><option value="in-person">In-person visit</option></select></div>
+          <div><label>Time</label><select id="slot"><option value="2026-11-04T09:30" selected>Wed, Nov 4 · 9:30 AM</option><option value="2026-11-04T14:00">Wed, Nov 4 · 2:00 PM</option><option value="2026-11-05T11:15">Thu, Nov 5 · 11:15 AM</option></select></div>
+          <div class="full"><label>Reason for visit</label><input id="reason" value="Follow-up: blood pressure medication"></div>
+          <div class="full"><label>Forms already completed</label><div class="checks"><label><input type="checkbox" name="form" value="HIPAA notice" checked> HIPAA notice</label><label><input type="checkbox" name="form" value="Health history" checked> Health history</label><label><input type="checkbox" name="form" value="Medication list"> Medication list</label></div></div>
+        </div>
+        <button type="submit" class="primary" id="submitBtn">Confirm appointment</button>
+      </form>
+      <div class="result-box" id="result"></div>
+    </section>
+    <aside>
+      <div class="card"><h2>Upcoming</h2><div class="sub">Your next visits</div>
+        <div class="stat"><span>Lab draw — Evanston</span><b>Nov 12</b></div><div class="stat"><span>Annual eye exam</span><b>Dec 3</b></div></div>
+      <div class="card"><h2>Coverage on file</h2><div class="sub">Summit Gold PPO &middot; Member SHP-448210</div><span class="pill">Verified</span></div>
+    </aside>
+  </main>
+  <footer><span>&copy; 2026 Lakeshore Health System</span><span>Fictional demo brand &middot; synthetic data only &middot; no PHI</span></footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const CTA = "Confirm appointment";
+    function devinFields() {
+      return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' };
+    }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function buildPayload() {
+      return { mrn: document.getElementById('mrn').value, clinicianId: document.getElementById('clinicianId').value, visitType: document.getElementById('visitType').value,
+        slot: document.getElementById('slot').value, reason: document.getElementById('reason').value,
+        completedForms: Array.from(document.querySelectorAll('input[name=form]:checked')).map((c) => c.value) };
+    }
+    function renderSuccess(d) {
+      const todo = d.outstanding.length ? '<div class="ref">Before your visit, please complete: ' + d.outstanding.map(esc).join(', ') + '</div>' : '';
+      return '<div class="result-title">You’re booked — ' + esc(d.appointmentId) + '</div><div>' + esc(d.visit) + ' with ' + esc(d.clinician) + ' &middot; ' + esc(d.slot.replace('T', ' ')) + '</div>' + todo;
+    }
+    document.getElementById('demoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = "Booking your visit\u2026";
+      result.className = 'result-box';
+      try {
+        const res = await fetch("/api/3a2b7a6d/intake", {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign(buildPayload(), devinFields())),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="result-title">' + "We couldn\u2019t finish booking your appointment" + '</div><div class="result-detail">' + esc(data.errorClass) + ': ' + esc(data.error) + '</div><div class="ref">Reference: ' + esc(data.requestId || data.code) + ' &middot; Our engineering team has been notified automatically.</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = renderSuccess(data);
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">Network error</div><div class="result-detail">' + esc(err.message) + '</div>';
+      } finally { btn.disabled = false; btn.textContent = CTA; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
