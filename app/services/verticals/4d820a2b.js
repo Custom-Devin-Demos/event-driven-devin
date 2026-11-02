@@ -10,18 +10,14 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
-const { createSessionAndAlert } = require('../devin-session');
+const { postOncallAlert } = require('../oncall');
+const { selectedAlertDestination } = require('../alert-destination');
 
 const CUSTOMER = '4d820a2b';
 const SERVICE = 'customer-4d820a2b-switch';
 const ROUTE = '/api/4d820a2b/inquiry';
-const RELEASE = 'switch-offers@3.8.1';
 const ALERT_COOLDOWN_MS = Number(process.env.ALERT_COOLDOWN_MS_4D820A2B) || 60 * 1000;
 
-const OWNER = Object.freeze({
-  slackMemberId: 'U0AU1PXM12S',
-  devinUserId: 'okta|Cognition|00u22b98f2kFBX4Al1d8',
-});
 
 const RATE_PLANS = [
   {
@@ -172,12 +168,6 @@ function buildSwitchQuote(promotionId, lines = DEFAULT_LINES) {
   };
 }
 
-function sentryIssueUrl() {
-  const org = process.env.SENTRY_ORG_SLUG || 'sentry-org';
-  const project = process.env.SENTRY_PROJECT_ID || '';
-  return `https://${org}.sentry.io/issues/?project=${project}&query=is%3Aunresolved`;
-}
-
 function raiseAlert(error, requestId, data) {
   const now = Date.now();
   if (now - lastAlertAt < ALERT_COOLDOWN_MS) {
@@ -186,37 +176,11 @@ function raiseAlert(error, requestId, data) {
   }
   lastAlertAt = now;
 
-  createSessionAndAlert({
-    issueTitle: `${error.name}: ${error.message}`,
-    issueUrl: sentryIssueUrl(),
-    culprit: 'app/services/verticals/4d820a2b.js in buildSwitchQuote',
-    errorType: error.name || 'Error',
-    errorValue: error.message,
-    devinUserId: data.devinUserId || OWNER.devinUserId,
-    devinOrgId: data.devinOrgId,
+  postOncallAlert(CUSTOMER, {
+    destination: selectedAlertDestination(),
     devinEmail: data.devinEmail,
-    slackMemberId: OWNER.slackMemberId,
-    service: SERVICE,
-    verticalLabel: 'Wireless Switch Offer',
-    customer: CUSTOMER,
-    tags: [
-      { key: 'route', value: ROUTE },
-      { key: 'service', value: SERVICE },
-      { key: 'promotion', value: data.promotionId },
-    ],
-    extra: { requestId, promotionId: data.promotionId, lines: data.lines },
-    level: 'error',
-    platform: 'node',
-    firstSeen: '',
-    lastSeen: new Date().toISOString(),
-    count: '',
-    shortId: '',
-    project: 'event-driven-devin',
-    release: RELEASE,
-    environment: process.env.DD_ENV || 'prod',
-    triggeredRule: '',
   }).then((result) => {
-    if (!result && lastAlertAt === now) lastAlertAt = 0;
+    if (!(result && result.ok) && lastAlertAt === now) lastAlertAt = 0;
   }).catch((alertError) => {
     if (lastAlertAt === now) lastAlertAt = 0;
     logger.error('Failed to raise alert for switch offer failure', { error: alertError.message, requestId });
