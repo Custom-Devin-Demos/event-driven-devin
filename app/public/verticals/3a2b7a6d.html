@@ -3,207 +3,464 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Lakeshore — Schedule a visit</title>
+  <title>Schedule an appointment – My Lakeshore</title>
+  <meta name="description" content="My Lakeshore patient portal: schedule a video or in-person visit with your Lakeshore Health care team.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 38 38%27%3E%3Ccircle cx=%2719%27 cy=%2719%27 r=%2719%27 fill=%27%230B3C5D%27/%3E%3Cpath d=%27M8 21.5c3.2-7.2 7-10.8 11-10.8s7.8 3.6 11 10.8%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%272.6%27 stroke-linecap=%27round%27/%3E%3Cpath d=%27M8 26c2.6-2.2 5.1-2.2 7.6 0s5 2.2 7.6 0 5-2.2 7.6 0%27 fill=%27none%27 stroke=%27%238FC7E8%27 stroke-width=%272.6%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..600,50&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --lake:#0b6e6e; --lake-deep:#0a5252; --mint:#e3f1ed; --mint-deep:#c9e4dc; --cream:#fbfaf7; --sand:#f1ebe1; --ink:#1f2a28; --muted:#5d6b68; --faint:#8e9996;
-      --line:#e4e1d9; --red:#a8322a; --red-bg:#fbeae8; --ok:#0b6e6e;
-      --display:'Fraunces', Georgia, serif; --body:'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
+      --harbor:#0B3C5D; --harbor-deep:#07293F; --lake:#1668A8; --lake-ink:#0E4F82; --sky:#8FC7E8;
+      --mist:#EEF4F8; --mist-2:#DCE8F0; --ink:#16222B; --slate:#5A6B78; --line:#D5DEE5; --line-strong:#A9BBC8;
+      --ok:#1B6E3C; --ok-bg:#E8F4EC; --ok-line:#B7DCC4; --err:#B42318; --err-bg:#FCEBE9; --err-line:#F1B8B2; --err-ink:#5C1710;
+      --warn:#8A5300; --warn-bg:#FFF4E0;
+      --font:'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
-    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-    html { -webkit-font-smoothing:antialiased; }
-    body { font-family:var(--body); font-size:16px; line-height:1.5; color:var(--ink); background:var(--cream); min-height:100vh; }
-    a { color:inherit; }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html { -webkit-font-smoothing:antialiased; scroll-behavior:smooth; }
+    body { font-family:var(--font); font-size:16px; line-height:1.5; color:var(--ink); background:#fff; min-height:100vh; display:flex; flex-direction:column; }
+    a { color:var(--lake-ink); text-decoration-thickness:1px; text-underline-offset:2px; }
+    a:hover { color:var(--harbor); }
     button, input, select, textarea { font:inherit; color:inherit; }
-    :focus-visible { outline:2px solid var(--lake); outline-offset:3px; }
+    svg { display:block; }
+    :focus-visible { outline:3px solid var(--lake); outline-offset:2px; border-radius:4px; }
+    .skip { position:absolute; left:16px; top:-60px; background:var(--harbor); color:#fff; padding:10px 14px; border-radius:8px; z-index:50; }
+    .skip:focus { top:12px; }
+    .wrap { width:100%; max-width:1140px; margin:0 auto; padding:0 24px; }
 
-    .top { background:#fff; border-bottom:1px solid var(--line); }
-    .top-in { max-width:1180px; margin:0 auto; padding:0 28px; height:68px; display:flex; align-items:center; gap:40px; }
-    .mark { display:flex; align-items:center; gap:10px; text-decoration:none; }
-    .mark svg { display:block; }
-    .mark b { font-family:var(--display); font-weight:500; font-size:22px; letter-spacing:-.01em; color:var(--lake-deep); }
-    .mark b em { font-style:italic; font-weight:400; }
-    .topnav { display:flex; gap:28px; font-size:16px; }
-    .topnav a { text-decoration:none; color:var(--muted); padding:22px 0; border-bottom:2px solid transparent; }
-    .topnav a:hover { color:var(--ink); }
-    .topnav a[aria-current] { color:var(--lake-deep); border-bottom-color:var(--lake); font-weight:600; }
-    .me { margin-left:auto; display:flex; align-items:center; gap:10px; font-size:15px; }
-    .me .av { width:36px; height:36px; border-radius:50%; background:var(--mint-deep); color:var(--lake-deep); display:grid; place-items:center; font-weight:600; font-size:14px; }
+    /* utility bar + header */
+    .util { background:var(--harbor); color:#fff; font-size:13.5px; }
+    .util .wrap { display:flex; align-items:center; height:38px; gap:22px; }
+    .util .sys { font-weight:600; letter-spacing:.01em; }
+    .util nav { margin-left:auto; display:flex; gap:22px; }
+    .util a { color:#D9E8F2; text-decoration:none; }
+    .util a:hover { color:#fff; text-decoration:underline; }
+    .util .secure { display:flex; align-items:center; gap:6px; color:#BFD6E8; }
+    .util .secure svg { width:14px; height:14px; }
+    .hdr { background:#fff; border-bottom:1px solid var(--line); }
+    .hdr .wrap { display:flex; align-items:center; height:68px; gap:36px; }
+    .mark { display:flex; align-items:center; gap:11px; text-decoration:none; color:var(--harbor); }
+    .mark .word { font-size:21px; font-weight:700; letter-spacing:-.01em; line-height:1; white-space:nowrap; }
+    .mark .word small { display:block; font-size:12px; font-weight:500; color:var(--slate); letter-spacing:.01em; margin-top:3px; }
+    .nav { display:flex; gap:6px; height:100%; }
+    .nav a { display:flex; align-items:center; gap:8px; padding:0 12px; white-space:nowrap; font-size:15px; font-weight:500; color:var(--slate); text-decoration:none; border-bottom:3px solid transparent; border-top:3px solid transparent; }
+    .nav a svg { width:20px; height:20px; }
+    .nav a:hover { color:var(--ink); background:var(--mist); }
+    .nav a[aria-current] { color:var(--lake-ink); border-bottom-color:var(--lake); font-weight:700; }
+    .nav .badge { min-width:20px; height:20px; padding:0 6px; border-radius:999px; background:var(--err); color:#fff; font-size:12px; font-weight:700; display:grid; place-items:center; line-height:1; }
+    .acct { margin-left:auto; display:flex; align-items:center; gap:10px; background:none; border:1px solid transparent; border-radius:999px; padding:4px 10px 4px 4px; cursor:pointer; font-size:15px; font-weight:500; }
+    .acct:hover { border-color:var(--line); background:var(--mist); }
+    .acct svg { width:16px; height:16px; color:var(--slate); }
+    .av { width:36px; height:36px; border-radius:50%; background:var(--mist-2); color:var(--harbor); display:grid; place-items:center; font-weight:700; font-size:14px; letter-spacing:.02em; }
 
-    .page { max-width:1180px; margin:0 auto; padding:40px 28px 64px; }
-    .greet { color:var(--muted); font-size:17px; }
-    h1 { font-family:var(--display); font-weight:500; font-size:clamp(38px,4.6vw,54px); line-height:1.02; letter-spacing:-.02em; margin-top:6px; font-variation-settings:'SOFT' 50, 'opsz' 144; }
-    .lead { font-size:18px; color:var(--muted); max-width:56ch; margin-top:14px; }
+    /* page intro */
+    main { flex:1; }
+    .crumbs { font-size:14px; color:var(--slate); padding-top:22px; display:flex; gap:8px; align-items:center; }
+    .crumbs a { color:var(--slate); text-decoration:none; }
+    .crumbs a:hover { text-decoration:underline; }
+    .crumbs svg { width:12px; height:12px; }
+    .intro { padding:16px 0 30px; }
+    .hi { font-size:17px; color:var(--slate); }
+    h1 { font-size:clamp(30px, 3.4vw, 38px); font-weight:700; letter-spacing:-.015em; line-height:1.1; margin-top:4px; }
+    .lead { font-size:17px; color:var(--slate); max-width:62ch; margin-top:12px; }
 
-    .cols { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:40px; margin-top:36px; align-items:start; }
+    /* result */
+    .result-box { display:none; margin:0 0 30px; border-radius:14px; border:1.5px solid transparent; }
+    .result-box:focus { outline:none; }
+    .result-box.error { display:flex; gap:18px; padding:24px 26px; background:var(--err-bg); border-color:var(--err-line); color:var(--err-ink); }
+    .rb-icon { flex:none; width:44px; height:44px; border-radius:50%; background:#fff; display:grid; place-items:center; color:var(--err); }
+    .rb-icon svg { width:24px; height:24px; }
+    .result-title { font-size:22px; font-weight:700; line-height:1.25; letter-spacing:-.01em; }
+    .result-box.error p { margin-top:8px; max-width:72ch; }
+    .result-box.error a { color:inherit; font-weight:600; }
+    .result-box.error .ref { font-size:14px; margin-top:14px; color:#7A2B22; }
+    .result-box.error .ref b { font-weight:600; color:var(--err-ink); }
+    .result-box.success { display:block; background:#fff; border-color:var(--line); overflow:hidden; }
+    .ok-head { display:flex; gap:16px; align-items:flex-start; padding:24px 28px; background:var(--ok-bg); border-bottom:1px solid var(--ok-line); color:#0F4A27; }
+    .ok-head .rb-icon { color:var(--ok); }
+    .ok-head p { margin-top:4px; color:#2F5C3F; }
+    .ok-body { padding:26px 28px 28px; display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:32px; }
+    .ok-when b { display:block; font-size:38px; font-weight:700; letter-spacing:-.02em; line-height:1; color:var(--harbor); }
+    .ok-when span { display:block; font-size:18px; margin-top:6px; }
+    .ok-when dl { margin-top:22px; display:grid; grid-template-columns:auto 1fr; gap:10px 18px; font-size:15px; }
+    .ok-when dt { color:var(--slate); }
+    .ok-when dd { font-weight:600; }
+    .ok-todo h3 { font-size:17px; font-weight:700; }
+    .ok-todo p { color:var(--slate); font-size:15px; margin-top:4px; }
+    .ok-todo ul { list-style:none; margin-top:14px; }
+    .ok-todo li { display:flex; align-items:center; gap:12px; padding:12px 0; border-top:1px solid var(--line); font-size:15px; }
+        .ok-todo li svg { width:20px; height:20px; color:var(--warn); flex:none; }
+    .ok-todo li.done svg { color:var(--ok); }
+    .ok-todo li a { margin-left:auto; font-size:14px; font-weight:600; white-space:nowrap; }
+    .ok-actions { grid-column:1 / -1; display:flex; gap:12px; flex-wrap:wrap; align-items:center; padding-top:8px; border-top:1px solid var(--line); margin-top:4px; }
+    .btn-2 { height:46px; padding:0 20px; border-radius:10px; border:1.5px solid var(--lake); background:#fff; color:var(--lake-ink); font-weight:700; font-size:15px; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
+    .btn-2 svg { width:18px; height:18px; }
+    .btn-2:hover { background:var(--mist); }
+    .btn-2.ghost { border-color:transparent; }
 
-    .part { padding:26px 0 30px; border-top:1px solid var(--line); }
-    .part:first-child { border-top:0; padding-top:0; }
-    .part h2 { font-family:var(--display); font-weight:500; font-size:26px; letter-spacing:-.01em; line-height:1.15; }
-    .part > p { color:var(--muted); margin-top:4px; }
-    .fields { display:grid; grid-template-columns:1fr 1fr; gap:18px 24px; margin-top:18px; }
-    .fields .full { grid-column:1 / -1; }
-    label.f { display:block; font-size:14px; font-weight:600; color:var(--ink); margin-bottom:6px; }
-    select, input[type=text], textarea { width:100%; padding:11px 14px; border:1.5px solid var(--line); border-radius:10px; background:#fff; font-size:16px; }
-    select:hover, input:hover, textarea:hover { border-color:#cbc6ba; }
-    select { appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9'><path d='M1 1l6 6 6-6' fill='none' stroke='%235d6b68' stroke-width='1.8'/></svg>"); background-repeat:no-repeat; background-position:right 14px center; padding-right:38px; }
-    textarea { min-height:72px; resize:vertical; }
+    /* flow */
+    .flow { display:grid; grid-template-columns:minmax(0,1fr) 352px; gap:56px; align-items:start; }
+    .flow[hidden] { display:none; }
+    .step { padding:30px 0 34px; border-top:1px solid var(--line); }
+    .step:first-child { border-top:0; padding-top:0; }
+    .step h2 { display:flex; align-items:center; gap:14px; font-size:22px; font-weight:700; letter-spacing:-.01em; line-height:1.2; }
+    .step h2 .n { flex:none; width:30px; height:30px; border-radius:50%; background:var(--harbor); color:#fff; font-size:15px; font-weight:700; display:grid; place-items:center; }
+    .step .sub { color:var(--slate); font-size:15.5px; margin:8px 0 0 44px; max-width:64ch; }
+    .step .body { margin:20px 0 0 44px; }
 
-    /* visit tiles — the one loud element */
-    .tiles { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px; }
-    .tile { position:relative; display:block; padding:22px 22px 20px; border:1.5px solid var(--line); border-radius:16px; background:#fff; cursor:pointer; min-height:170px; }
-    .tile input { position:absolute; opacity:0; inset:0; width:100%; height:100%; margin:0; cursor:pointer; }
-    .tile svg { display:block; width:40px; height:40px; color:var(--lake); }
-    .tile b { display:block; font-family:var(--display); font-weight:500; font-size:22px; margin-top:14px; letter-spacing:-.01em; }
-    .tile span { display:block; color:var(--muted); font-size:15px; margin-top:4px; }
-    .tile small { display:block; margin-top:12px; font-size:13px; color:var(--lake-deep); font-weight:600; }
-    .tile:has(input:checked) { background:var(--mint); border-color:var(--lake); }
-    .tile:has(input:focus-visible) { outline:2px solid var(--lake); outline-offset:3px; }
-    .tile .dot { position:absolute; top:18px; right:18px; width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line); background:#fff; }
-    .tile:has(input:checked) .dot { border-color:var(--lake); background:var(--lake); box-shadow:inset 0 0 0 4px #fff; }
+    .opt { position:relative; display:block; border:1.5px solid var(--line); border-radius:12px; background:#fff; padding:16px 18px; cursor:pointer; }
+    .opt input[type=radio] { position:absolute; inset:0; width:100%; height:100%; opacity:0; margin:0; cursor:pointer; }
+    .opt:hover { border-color:var(--line-strong); }
+    .opt:has(input:checked) { border-color:var(--lake); box-shadow:inset 0 0 0 1px var(--lake); background:var(--mist); }
+    .opt:has(input:focus-visible) { outline:3px solid var(--lake); outline-offset:2px; }
+    .opt .r { position:absolute; top:16px; right:16px; width:22px; height:22px; border-radius:50%; border:1.5px solid #B7C6D1; background:#fff; }
+    .opt:has(input:checked) .r { border-color:var(--lake); background:var(--lake); box-shadow:inset 0 0 0 4px #fff; }
 
-    .chips { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
-    .chip { position:relative; display:inline-flex; flex-direction:column; padding:10px 16px; border:1.5px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; min-width:140px; }
-    .chip input { position:absolute; opacity:0; inset:0; width:100%; height:100%; margin:0; cursor:pointer; }
-    .chip b { font-weight:600; font-size:15px; }
-    .chip span { color:var(--muted); font-size:14px; }
-    .chip:has(input:checked) { background:var(--lake); border-color:var(--lake); color:#fff; }
-    .chip:has(input:checked) span { color:rgba(255,255,255,.8); }
-    .chip:has(input:focus-visible) { outline:2px solid var(--lake); outline-offset:3px; }
+    .people { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .person { display:flex; gap:14px; align-items:center; padding-right:48px; }
+    .person .av { width:44px; height:44px; font-size:15px; flex:none; }
+    .person b { display:block; font-weight:700; }
+    .person .txt { display:block; flex:1; }
+    .person .txt span { display:block; font-size:14px; color:var(--slate); }
+    .pro .av { background:var(--harbor); color:#fff; width:52px; height:52px; font-size:17px; }
+    .pro .txt .meta { font-size:14px; color:var(--lake-ink); font-weight:600; margin-top:4px; }
 
-    .forms { display:grid; gap:10px; margin-top:16px; }
-    .forms label { display:flex; align-items:center; gap:12px; font-size:16px; padding:12px 16px; border:1.5px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; }
-    .forms input { width:20px; height:20px; accent-color:var(--lake); }
-    .forms small { margin-left:auto; color:var(--faint); font-size:14px; }
-    .forms label:has(input:checked) small { color:var(--ok); }
+    .visits { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .visit { padding:20px 20px 18px; min-height:196px; }
+    .visit .ico { width:44px; height:44px; border-radius:10px; background:var(--mist-2); color:var(--harbor); display:grid; place-items:center; }
+    .visit .ico svg { width:26px; height:26px; }
+    .opt:has(input:checked) .ico { background:var(--harbor); color:#fff; }
+    .visit b { display:block; font-size:19px; font-weight:700; margin-top:14px; letter-spacing:-.01em; }
+    .visit .where { display:block; font-size:15px; color:var(--ink); margin-top:4px; }
+    .visit .dur { display:block; font-size:14px; color:var(--slate); margin-top:2px; }
+    .visit .prep { display:flex; gap:8px; align-items:flex-start; margin-top:12px; padding-top:12px; border-top:1px solid var(--line); font-size:14px; color:var(--slate); }
+    .visit .prep svg { width:16px; height:16px; flex:none; margin-top:3px; color:var(--lake-ink); }
+    
+    .days { display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; }
+    .day h3 { font-size:15.5px; font-weight:700; padding-bottom:10px; border-bottom:2px solid var(--ink); }
+    .day.off h3 { color:var(--slate); border-bottom-color:var(--line); }
+    .day .slots { display:grid; gap:8px; margin-top:12px; }
+    .slot { position:relative; display:block; text-align:center; padding:11px 12px; border:1.5px solid var(--line); border-radius:8px; background:#fff; font-weight:600; font-size:15px; cursor:pointer; }
+    .slot input { position:absolute; inset:0; width:100%; height:100%; opacity:0; margin:0; cursor:pointer; }
+    .slot:hover { border-color:var(--line-strong); }
+    .slot:has(input:checked) { background:var(--lake); border-color:var(--lake); color:#fff; }
+    .slot:has(input:focus-visible) { outline:3px solid var(--lake); outline-offset:2px; }
+    .day .none { margin-top:12px; font-size:14px; color:var(--slate); padding:11px 0; }
+    .tz { margin-top:16px; font-size:14px; color:var(--slate); }
 
-    .cta-row { display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding-top:26px; border-top:1px solid var(--line); }
-    .btn { height:52px; padding:0 28px; border-radius:999px; border:0; background:var(--lake); color:#fff; font-size:17px; font-weight:600; cursor:pointer; }
-    .btn:hover { background:var(--lake-deep); }
-    .btn:disabled { opacity:.6; cursor:progress; }
-    .cta-row p { color:var(--muted); font-size:14px; }
+    label.f { display:block; font-weight:600; margin-bottom:6px; }
+    .help { font-size:14px; color:var(--slate); margin-top:6px; }
+    textarea { width:100%; min-height:88px; padding:12px 14px; border:1.5px solid var(--line); border-radius:10px; background:#fff; resize:vertical; }
+    textarea:hover { border-color:var(--line-strong); }
+    textarea:focus-visible { outline-offset:0; border-color:var(--lake); }
 
-    .result-box { display:none; margin-top:22px; border-radius:16px; padding:20px 22px; }
-    .result-box.success { display:block; background:var(--mint); border:1.5px solid var(--mint-deep); color:var(--lake-deep); }
-    .result-box.error { display:block; background:var(--red-bg); border:1.5px solid #efc3be; color:#6f1f19; }
-    .result-title { font-family:var(--display); font-weight:500; font-size:24px; letter-spacing:-.01em; line-height:1.2; }
-    .result-box > div + div { margin-top:8px; }
-    .result-detail { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:13px; word-break:break-word; background:rgba(255,255,255,.6); border-radius:8px; padding:8px 10px; }
-    .ref { font-size:14px; opacity:.85; }
+    .ready { margin-top:28px; }
+    .ready h3 { font-size:17px; font-weight:700; }
+    .ready > p { color:var(--slate); font-size:15px; margin-top:4px; }
+    .checks { list-style:none; margin-top:12px; border-bottom:1px solid var(--line); }
+    .checks li { border-top:1px solid var(--line); }
+    .checks label { display:flex; align-items:center; gap:14px; padding:13px 2px; cursor:pointer; }
+    .checks input { width:20px; height:20px; accent-color:var(--lake); flex:none; }
+    .checks .what { flex:1; }
+    .checks .what span { display:block; font-size:14px; color:var(--slate); }
+    .pill { font-size:13px; font-weight:600; padding:3px 10px; border-radius:999px; white-space:nowrap; }
+    .pill.ok { background:var(--ok-bg); color:var(--ok); }
+    .pill.warn { background:var(--warn-bg); color:var(--warn); }
+    .cov { display:flex; align-items:center; gap:14px; padding:14px 2px; border-bottom:1px solid var(--line); }
+    .cov svg { width:20px; height:20px; color:var(--harbor); flex:none; margin:0 0 0 0; }
+    .cov .what { flex:1; }
+    .cov .what span { display:block; font-size:14px; color:var(--slate); }
+    .cov a { font-size:14px; font-weight:600; white-space:nowrap; }
 
-    .side section { background:#fff; border:1.5px solid var(--line); border-radius:16px; padding:20px 22px; }
-    .side section + section { margin-top:16px; }
-    .side h3 { font-family:var(--display); font-weight:500; font-size:20px; letter-spacing:-.01em; }
-    .doc { display:flex; gap:14px; align-items:center; margin-top:14px; }
-    .doc .av { width:52px; height:52px; border-radius:50%; background:var(--sand); color:var(--lake-deep); display:grid; place-items:center; font-family:var(--display); font-size:18px; }
-    .doc b { display:block; font-weight:600; }
-    .doc span { color:var(--muted); font-size:14px; display:block; }
-    .side ul { list-style:none; margin-top:12px; }
-    .side li { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-top:1px solid var(--line); font-size:15px; }
-    .side li span:last-child { color:var(--muted); white-space:nowrap; }
-    .side p { color:var(--muted); font-size:15px; margin-top:6px; }
-    .ok-pill { display:inline-block; margin-top:10px; padding:3px 10px; border-radius:999px; background:var(--mint); color:var(--lake-deep); font-size:13px; font-weight:600; }
+    /* ticket */
+    .ticket { position:sticky; top:24px; background:var(--harbor); color:#fff; border-radius:16px; padding:24px 26px 22px; box-shadow:0 18px 40px -24px rgba(11,60,93,.55); }
+    .ticket h2 { font-size:14px; font-weight:600; color:#BFD6E8; letter-spacing:.01em; }
+    .t-time { font-size:42px; font-weight:700; letter-spacing:-.02em; line-height:1; margin-top:12px; }
+    .t-date { font-size:17px; margin-top:6px; color:#E6F0F7; }
+    .t-rows { margin-top:20px; border-top:1px solid rgba(255,255,255,.2); }
+    .t-row { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,.2); font-size:15px; }
+    .t-row svg { width:20px; height:20px; flex:none; color:var(--sky); margin-top:2px; }
+    .t-row b { display:block; font-weight:600; }
+    .t-row span { display:block; color:#BFD6E8; font-size:14px; }
+    .btn { margin-top:20px; width:100%; height:54px; border:0; border-radius:10px; background:#fff; color:var(--harbor); font-size:17px; font-weight:700; cursor:pointer; }
+    .btn:hover { background:#E6F0F7; }
+    .btn:disabled { opacity:.72; cursor:progress; }
+    .ticket .fine { font-size:13px; color:#BFD6E8; margin-top:12px; text-align:center; line-height:1.45; }
+    .ticket :focus-visible { outline-color:#fff; }
 
-    footer { border-top:1px solid var(--line); }
-    footer div { max-width:1180px; margin:0 auto; padding:18px 28px; font-size:13px; color:var(--muted); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    /* while you're here */
+    .more { margin-top:56px; border-top:1px solid var(--line); padding:34px 0 48px; }
+    .more h2 { font-size:22px; font-weight:700; letter-spacing:-.01em; }
+    .more-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:32px; margin-top:20px; }
+    .m h3 { display:flex; align-items:center; gap:8px; font-size:16px; font-weight:700; padding-bottom:10px; border-bottom:2px solid var(--harbor); }
+    .m h3 svg { width:18px; height:18px; color:var(--harbor); }
+    .m ul { list-style:none; }
+    .m li { padding:12px 0; border-bottom:1px solid var(--line); font-size:15px; }
+    .m li b { display:block; font-weight:600; }
+    .m li span { display:block; font-size:14px; color:var(--slate); }
+    .m li .new { display:inline-block; font-size:12px; font-weight:700; color:var(--lake-ink); background:var(--mist); padding:1px 8px; border-radius:999px; margin-left:6px; vertical-align:2px; }
+    .m .all { display:inline-block; margin-top:12px; font-size:14px; font-weight:600; }
 
-    @media (max-width:960px) { .cols { grid-template-columns:1fr; } .topnav { display:none; } }
-    @media (max-width:640px) { .fields, .tiles { grid-template-columns:1fr; } .page, .top-in { padding-left:18px; padding-right:18px; } .me span { display:none; } }
-    @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+    footer { background:var(--mist); border-top:1px solid var(--line); padding:30px 0 34px; font-size:14px; color:var(--slate); }
+    .f-top { display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; }
+    .f-top .mark .word { font-size:17px; }
+    .f-top .mark .word small { font-size:11.5px; }
+    footer nav { display:flex; gap:20px; flex-wrap:wrap; }
+    footer nav a { color:var(--slate); text-decoration:none; }
+    footer nav a:hover { text-decoration:underline; color:var(--ink); }
+    .f-bottom { margin-top:22px; padding-top:18px; border-top:1px solid var(--mist-2); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:13.5px; }
+
+    .tabbar { display:none; }
+
+    @media (max-width:1120px) { .nav a span.t { display:none; } .nav a { padding:0 14px; } }
+    @media (max-width:1000px) {
+      .flow { grid-template-columns:1fr; gap:36px; }
+      .ticket { position:static; }
+      .more-grid { grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width:760px) {
+      body { padding-bottom:66px; }
+      .util { display:none; }
+      .hdr .wrap { height:60px; gap:16px; }
+      .nav { display:none; }
+      .acct .name { display:none; }
+      .tabbar { display:flex; position:fixed; left:0; right:0; bottom:0; height:66px; background:#fff; border-top:1px solid var(--line); z-index:20; padding-bottom:env(safe-area-inset-bottom); }
+      .tabbar a { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; font-size:11.5px; font-weight:600; color:var(--slate); text-decoration:none; position:relative; }
+      .tabbar a svg { width:22px; height:22px; }
+      .tabbar a[aria-current] { color:var(--lake-ink); }
+      .tabbar .badge { position:absolute; top:9px; left:calc(50% + 4px); min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:var(--err); color:#fff; font-size:10.5px; font-weight:700; display:grid; place-items:center; }
+      .wrap { padding:0 18px; }
+      .step .sub, .step .body { margin-left:0; }
+      .step { padding:26px 0 30px; }
+      .people, .visits { grid-template-columns:1fr; }
+      .visit { min-height:0; }
+      .days { grid-template-columns:1fr 1fr; }
+      .day.off { grid-column:1 / -1; }
+      .day.off .none { padding:4px 0; margin-top:8px; }
+      .ok-body { grid-template-columns:1fr; gap:24px; padding:22px 20px 24px; }
+      .ok-head { padding:20px; }
+      .result-box.error { padding:20px; gap:14px; }
+      .more-grid { grid-template-columns:1fr; gap:24px; }
+      .ticket { padding:22px 20px 20px; }
+    }
+    @media (max-width:420px) {
+      .cov { flex-wrap:wrap; }
+      .cov a { margin-left:34px; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      html { scroll-behavior:auto; }
+      *, *::before, *::after { transition:none !important; animation:none !important; }
+    }
   </style>
 </head>
 <body>
-  <header class="top">
-    <div class="top-in">
-      <a class="mark" href="#" aria-label="My Lakeshore">
-        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="16" fill="#e3f1ed"/><path d="M5 20c3-3 5-3 8 0s5 3 8 0 5-3 8 0" fill="none" stroke="#0b6e6e" stroke-width="2.4" stroke-linecap="round"/><path d="M8 25c3-3 5-3 8 0s5 3 8 0" fill="none" stroke="#0b6e6e" stroke-width="2.4" stroke-linecap="round" opacity=".55"/></svg>
-        <b>My <em>Lakeshore</em></b>
+  <a class="skip" href="#main">Skip to main content</a>
+
+  <div class="util">
+    <div class="wrap">
+      <span class="sys">Lakeshore Health</span>
+      <span class="secure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Secure session</span>
+      <nav aria-label="Utility"><a href="#">Find a location</a><a href="#" lang="es">Español</a><a href="#">Help</a><a href="#">Log out</a></nav>
+    </div>
+  </div>
+
+  <header class="hdr">
+    <div class="wrap">
+      <a class="mark" href="#" aria-label="My Lakeshore home">
+        <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="19" fill="#0B3C5D"/><path d="M8 21.5c3.2-7.2 7-10.8 11-10.8s7.8 3.6 11 10.8" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M8 25.5c2.6-2.2 5.1-2.2 7.6 0s5 2.2 7.6 0 5-2.2 7.6 0" fill="none" stroke="#8FC7E8" stroke-width="2.3" stroke-linecap="round"/><path d="M11 30c2.4-2 4.8-2 7.2 0s4.8 2 7.2 0" fill="none" stroke="#8FC7E8" stroke-width="2.3" stroke-linecap="round" opacity=".6"/></svg>
+        <span class="word">My Lakeshore<small>Lakeshore Health patient portal</small></span>
       </a>
-      <nav class="topnav" aria-label="Patient portal"><a href="#">Home</a><a href="#" aria-current="page">Appointments</a><a href="#">Messages</a><a href="#">Test results</a><a href="#">Billing</a></nav>
-      <div class="me"><span>Jordan Rivera</span><div class="av">JR</div></div>
+      <nav class="nav" aria-label="Primary">
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg><span class="t">Home</span></a>
+        <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="t">Visits</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span class="t">Messages</span><span class="badge" aria-label="2 unread">2</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-5.5 9A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 9V3"/><path d="M7.5 15h9"/></svg><span class="t">Test results</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg><span class="t">Billing</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="7" rx="3.5" transform="rotate(-45 12 12.5)"/><path d="M8.5 8.5l7 7"/></svg><span class="t">Medications</span></a>
+      </nav>
+      <button class="acct" type="button" aria-haspopup="menu" aria-label="Account menu for Jordan Rivera"><span class="av" aria-hidden="true">JR</span><span class="name">Jordan</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
     </div>
   </header>
 
-  <main class="page">
-    <p class="greet">Good morning, Jordan</p>
-    <h1>Schedule a visit</h1>
-    <p class="lead">Book with your care team in person or by video. Your check-in forms arrive in Messages as soon as the visit is confirmed.</p>
+  <main id="main">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#">Visits</a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg><span aria-current="page">Schedule an appointment</span></nav>
+      <div class="intro">
+        <p class="hi">Good morning, Jordan.</p>
+        <h1>Schedule an appointment</h1>
+        <p class="lead">Choose who the visit is for, how you'd like to be seen and a time that works. Any check-in forms arrive in Messages as soon as it's scheduled.</p>
+      </div>
 
-    <div class="cols">
-      <form id="demoForm" novalidate>
-        <div class="part">
-          <h2>Who is the visit for?</h2>
-          <div class="fields">
-            <div><label class="f" for="mrn">Patient</label><select id="mrn"><option value="MRN-100482" selected>Jordan Rivera (you)</option><option value="MRN-100517">Elena Brooks (proxy access)</option></select></div>
-            <div><label class="f" for="clinicianId">Clinician</label><select id="clinicianId"><option value="LH-201" selected>Dr. Amara Okafor — Family medicine</option><option value="LH-305">Dr. Ben Castillo — Endocrinology</option></select></div>
-            <div class="full"><label class="f" for="reason">What would you like to talk about?</label><textarea id="reason">Follow-up: blood pressure medication</textarea></div>
+      <div class="result-box" id="result" role="status" aria-live="polite" tabindex="-1"></div>
+
+      <div class="flow" id="flow">
+        <form id="demoForm" novalidate>
+          <section class="step">
+            <h2><span class="n" aria-hidden="true">1</span>Who is this visit for?</h2>
+            <p class="sub">You can schedule for yourself or for anyone you have proxy access to.</p>
+            <div class="body people" role="radiogroup" aria-label="Patient">
+              <label class="opt person"><input type="radio" name="patientChoice" value="MRN-100482" checked><span class="av" aria-hidden="true">JR</span><span class="txt"><b>Jordan Rivera</b><span>You</span></span><i class="r" aria-hidden="true"></i></label>
+              <label class="opt person"><input type="radio" name="patientChoice" value="MRN-100517"><span class="av" aria-hidden="true">EB</span><span class="txt"><b>Elena Brooks</b><span>Proxy access, your mother</span></span><i class="r" aria-hidden="true"></i></label>
+            </div>
+            <input type="hidden" id="mrn" value="MRN-100482">
+          </section>
+
+          <section class="step">
+            <h2><span class="n" aria-hidden="true">2</span>Who would you like to see?</h2>
+            <p class="sub">Showing your care team. Looking for someone new? <a href="#">Find a provider</a>.</p>
+            <div class="body people" role="radiogroup" aria-label="Provider">
+              <label class="opt person pro"><input type="radio" name="clinicianChoice" value="LH-201" checked><span class="av" aria-hidden="true">AO</span><span class="txt"><b>Dr. Amara Okafor</b><span>Family medicine, Lakeshore Primary Care, Evanston</span><span class="meta">Your primary care physician since 2021</span></span><i class="r" aria-hidden="true"></i></label>
+              <label class="opt person pro"><input type="radio" name="clinicianChoice" value="LH-305"><span class="av" aria-hidden="true">BC</span><span class="txt"><b>Dr. Ben Castillo</b><span>Endocrinology, Lakeshore Specialty Center, Loop</span><span class="meta">Last seen June 2026</span></span><i class="r" aria-hidden="true"></i></label>
+            </div>
+            <input type="hidden" id="clinicianId" value="LH-201">
+          </section>
+
+          <section class="step">
+            <h2><span class="n" aria-hidden="true">3</span>How would you like to be seen?</h2>
+            <p class="sub">Follow-ups like this one are usually done by video. Both are covered at your regular office copay.</p>
+            <div class="body visits" role="radiogroup" aria-label="Visit type">
+              <label class="opt visit"><input type="radio" name="visitTypeChoice" value="telehealth" checked>
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg></span>
+                <b>Video visit</b>
+                <span class="where">From home, on your phone or computer</span>
+                <span class="dur">About 20 minutes</span>
+                <span class="prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><span>We text you a link 15 minutes before. Have your blood pressure log and medication bottles nearby.</span></span>
+                <i class="r" aria-hidden="true"></i></label>
+              <label class="opt visit"><input type="radio" name="visitTypeChoice" value="in-person">
+                <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V9l8-5 8 5v12"/><path d="M10 21v-6h4v6"/><path d="M12 10v4M10 12h4"/></svg></span>
+                <b>In person</b>
+                <span class="where" id="inPersonWhere">Lakeshore Primary Care, 1801 Ridge Ave, Evanston</span>
+                <span class="dur">About 30 minutes</span>
+                <span class="prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><span>Arrive 15 minutes early to check in. Bring your insurance card and photo ID. <span id="inPersonParking">Free parking in the Ridge garage.</span></span></span>
+                <i class="r" aria-hidden="true"></i></label>
+            </div>
+            <input type="hidden" id="visitType" value="telehealth">
+          </section>
+
+          <section class="step">
+            <h2><span class="n" aria-hidden="true">4</span>When works for you?</h2>
+            <p class="sub"><span id="openingsFor">Dr. Okafor's</span> next openings. Times are shown in Central Time.</p>
+            <div class="body">
+              <div class="days" role="radiogroup" aria-label="Appointment time">
+                <div class="day"><h3>Wednesday, Nov 4</h3><div class="slots">
+                  <label class="slot"><input type="radio" name="slotChoice" value="2026-11-04T09:30" checked>9:30 AM</label>
+                  <label class="slot"><input type="radio" name="slotChoice" value="2026-11-04T14:00">2:00 PM</label>
+                </div></div>
+                <div class="day"><h3>Thursday, Nov 5</h3><div class="slots">
+                  <label class="slot"><input type="radio" name="slotChoice" value="2026-11-05T11:15">11:15 AM</label>
+                </div></div>
+                <div class="day off"><h3>Friday, Nov 6</h3><p class="none">No openings. Next available Tuesday, Nov 10.</p></div>
+              </div>
+              <p class="tz">Need something sooner? Same-day video visits with a Lakeshore clinician are available from 7 AM, or call scheduling at <a href="tel:3125550188">312-555-0188</a>.</p>
+            </div>
+            <input type="hidden" id="slot" value="2026-11-04T09:30">
+          </section>
+
+          <section class="step">
+            <h2><span class="n" aria-hidden="true">5</span>Tell us about the visit</h2>
+            <p class="sub">A sentence or two is plenty. Your care team reads this before you're seen.</p>
+            <div class="body">
+              <label class="f" for="reason">What would you like to talk about?</label>
+              <textarea id="reason" rows="3">Follow-up: blood pressure medication</textarea>
+              <p class="help">Don't use this form for urgent symptoms. If this is an emergency, call 911.</p>
+
+              <div class="ready">
+                <h3>Before your visit</h3>
+                <p>Items that are checked are already on file. Anything unchecked is sent to you to complete after you schedule.</p>
+                <ul class="checks">
+                  <li><label><input type="checkbox" name="form" value="HIPAA notice" checked><span class="what">HIPAA notice of privacy practices<span>Acknowledged January 2026</span></span><span class="pill ok">On file</span></label></li>
+                  <li><label><input type="checkbox" name="form" value="Health history" checked><span class="what">Health history questionnaire<span>Updated August 2026</span></span><span class="pill ok">On file</span></label></li>
+                  <li><label><input type="checkbox" name="form" value="Medication list"><span class="what">Medication list<span>Last reviewed March 2025</span></span><span class="pill warn">Needs your review</span></label></li>
+                </ul>
+                <div class="cov">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+                  <span class="what">Summit Health Plan Gold PPO<span>Member SHP-448210, verified today. Estimated copay $30.</span></span>
+                  <a href="#">Update coverage</a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </form>
+
+        <aside class="ticket" aria-labelledby="ticketTitle">
+          <h2 id="ticketTitle">Your appointment</h2>
+          <div class="t-time" id="sumTime">9:30 AM</div>
+          <div class="t-date" id="sumDate">Wednesday, November 4</div>
+          <div class="t-rows">
+            <div class="t-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><div><b id="sumWho">Dr. Amara Okafor</b><span id="sumSpec">Family medicine</span></div></div>
+            <div class="t-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true" id="sumVisitIcon"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg><div><b id="sumVisit">Video visit, 20 minutes</b><span id="sumWhere">Join from the My Lakeshore app or the link we text you</span></div></div>
+            <div class="t-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/><path d="M18 8h4M20 6v4"/></svg><div><b id="sumPatient">For Jordan Rivera</b><span>MRN ending 0482</span></div></div>
+            <div class="t-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/></svg><div><b>Estimated cost $30</b><span>Summit Health Plan Gold PPO copay</span></div></div>
+          </div>
+          <button type="submit" class="btn" id="submitBtn" form="demoForm">Schedule appointment</button>
+          <p class="fine">No charge to cancel or reschedule up to 2 hours before the visit.</p>
+        </aside>
+      </div>
+
+      <section class="more" aria-labelledby="moreTitle">
+        <h2 id="moreTitle">While you're here</h2>
+        <div class="more-grid">
+          <div class="m">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Upcoming visits</h3>
+            <ul>
+              <li><b>Lab draw, Evanston</b><span>Thursday, Nov 12 at 7:40 AM. Fast 10 hours before.</span></li>
+              <li><b>Annual eye exam, Dr. Priya Nair</b><span>Thursday, Dec 3 at 3:15 PM, Lakeshore Eye Care</span></li>
+            </ul>
+            <a class="all" href="#">All visits</a>
+          </div>
+          <div class="m">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Messages</h3>
+            <ul>
+              <li><b>Dr. Okafor's office<span class="new">New</span></b><span>Your blood pressure log looks good. Keep the same dose until we meet.</span></li>
+              <li><b>Lakeshore Billing<span class="new">New</span></b><span>Your October statement is ready to view.</span></li>
+            </ul>
+            <a class="all" href="#">Inbox</a>
+          </div>
+          <div class="m">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-5.5 9A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 9V3"/><path d="M7.5 15h9"/></svg>Test results</h3>
+            <ul>
+              <li><b>Lipid panel<span class="new">New</span></b><span>Oct 20. Dr. Okafor added a note.</span></li>
+              <li><b>Hemoglobin A1C</b><span>Oct 20. In the normal range.</span></li>
+            </ul>
+            <a class="all" href="#">All results</a>
+          </div>
+          <div class="m">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>Billing</h3>
+            <ul>
+              <li><b>You owe $0.00</b><span>Summit Health Plan paid your Sept 18 visit in full.</span></li>
+              <li><b>Paperless statements</b><span>On. Next statement around Nov 20.</span></li>
+            </ul>
+            <a class="all" href="#">Billing summary</a>
           </div>
         </div>
-
-        <div class="part">
-          <h2>How would you like to be seen?</h2>
-          <p>Follow-ups like this one are usually done by video.</p>
-          <div class="tiles" role="radiogroup" aria-label="Visit type">
-            <label class="tile"><input type="radio" name="visitTypeChoice" value="telehealth" checked>
-              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="9" width="22" height="22" rx="4"/><path d="M26 17l10-5v16l-10-5"/><circle cx="15" cy="18" r="3"/><path d="M9.5 27c1-3 3-4.5 5.5-4.5s4.5 1.5 5.5 4.5"/></svg>
-              <b>Video visit</b><span>From home, on your phone or computer. About 20 minutes.</span><small>No travel, no waiting room</small><i class="dot"></i></label>
-            <label class="tile"><input type="radio" name="visitTypeChoice" value="in-person">
-              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 34V16l14-9 14 9v18"/><path d="M16 34v-9h8v9"/><path d="M20 19v6M17 22h6"/></svg>
-              <b>In person</b><span>Lakeshore Clinic — Evanston, 1801 Ridge Ave. About 30 minutes.</span><small>Free parking in the Ridge garage</small><i class="dot"></i></label>
-          </div>
-          <input type="hidden" id="visitType" value="telehealth">
-        </div>
-
-        <div class="part">
-          <h2>Pick a time</h2>
-          <p>Dr. Okafor's next openings.</p>
-          <div class="chips" role="radiogroup" aria-label="Appointment time">
-            <label class="chip"><input type="radio" name="slotChoice" value="2026-11-04T09:30" checked><b>Wed, Nov 4</b><span>9:30 AM</span></label>
-            <label class="chip"><input type="radio" name="slotChoice" value="2026-11-04T14:00"><b>Wed, Nov 4</b><span>2:00 PM</span></label>
-            <label class="chip"><input type="radio" name="slotChoice" value="2026-11-05T11:15"><b>Thu, Nov 5</b><span>11:15 AM</span></label>
-          </div>
-          <input type="hidden" id="slot" value="2026-11-04T09:30">
-        </div>
-
-        <div class="part">
-          <h2>Forms you've already completed</h2>
-          <p>Anything left over is sent to you after booking.</p>
-          <div class="forms">
-            <label><input type="checkbox" name="form" value="HIPAA notice" checked> HIPAA notice <small>signed Jan 2026</small></label>
-            <label><input type="checkbox" name="form" value="Health history" checked> Health history <small>updated Aug 2026</small></label>
-            <label><input type="checkbox" name="form" value="Medication list"> Medication list <small>needs review</small></label>
-          </div>
-        </div>
-
-        <div class="cta-row">
-          <button type="submit" class="btn" id="submitBtn">Confirm appointment</button>
-          <p>You can cancel or reschedule up to 2 hours before the visit.</p>
-        </div>
-        <div class="result-box" id="result" role="status" aria-live="polite"></div>
-      </form>
-
-      <aside class="side">
-        <section>
-          <h3>Your care team</h3>
-          <div class="doc"><div class="av">AO</div><div><b>Dr. Amara Okafor</b><span>Family medicine · Evanston</span><span>Your primary care doctor since 2021</span></div></div>
-        </section>
-        <section>
-          <h3>Coming up</h3>
-          <ul><li><span>Lab draw — Evanston</span><span>Nov 12</span></li><li><span>Annual eye exam</span><span>Dec 3</span></li><li><span>Flu shot — walk in</span><span>Anytime</span></li></ul>
-        </section>
-        <section>
-          <h3>Coverage on file</h3>
-          <p>Summit Health Plan Gold PPO · Member SHP-448210. Video visits are covered at your regular office copay.</p>
-          <span class="ok-pill">Verified today</span>
-        </section>
-      </aside>
+      </section>
     </div>
   </main>
 
-  <footer><div><span>&copy; 2026 Lakeshore Health System · 24/7 nurse line 312-555-0188</span><span>Fictional demo brand. Synthetic data only, no PHI.</span></div></footer>
+  <footer>
+    <div class="wrap">
+      <div class="f-top">
+        <a class="mark" href="#" aria-label="Lakeshore Health">
+          <svg width="30" height="30" viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="19" fill="#0B3C5D"/><path d="M8 21.5c3.2-7.2 7-10.8 11-10.8s7.8 3.6 11 10.8" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M8 25.5c2.6-2.2 5.1-2.2 7.6 0s5 2.2 7.6 0 5-2.2 7.6 0" fill="none" stroke="#8FC7E8" stroke-width="2.3" stroke-linecap="round"/><path d="M11 30c2.4-2 4.8-2 7.2 0s4.8 2 7.2 0" fill="none" stroke="#8FC7E8" stroke-width="2.3" stroke-linecap="round" opacity=".6"/></svg>
+          <span class="word">Lakeshore Health<small>Chicago and the North Shore</small></span>
+        </a>
+        <nav aria-label="Legal"><a href="#">Privacy</a><a href="#">Terms of use</a><a href="#">Notice of nondiscrimination</a><a href="#">Language assistance</a><a href="#">Accessibility</a><a href="#">Contact us</a></nav>
+      </div>
+      <div class="f-bottom">
+        <span>If this is a medical emergency, call 911. 24/7 nurse line <a href="tel:3125550188">312-555-0188</a>. &copy; 2026 Lakeshore Health System.</span>
+        <span>Fictional demo brand. Synthetic data only, no PHI.</span>
+      </div>
+    </div>
+  </footer>
+
+  <nav class="tabbar" aria-label="Primary (mobile)">
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>Home</a>
+    <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Visits</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Messages<span class="badge" aria-label="2 unread">2</span></a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-5.5 9A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3L14 9V3"/><path d="M7.5 15h9"/></svg>Results</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>Billing</a>
+  </nav>
 
   <script>
     (function () {
@@ -215,29 +472,99 @@
     })();
   </script>
   <script>
-    const CTA = "Confirm appointment";
+    const CTA = "Schedule appointment";
     function devinFields() {
       return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' };
     }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
-    document.querySelectorAll('input[name=visitTypeChoice]').forEach((r) => r.addEventListener('change', () => { document.getElementById('visitType').value = r.value; }));
-    document.querySelectorAll('input[name=slotChoice]').forEach((r) => r.addEventListener('change', () => { document.getElementById('slot').value = r.value; }));
+
+    const CLINICIANS = {
+      'LH-201': { name: 'Dr. Amara Okafor', short: "Dr. Okafor's", specialty: 'Family medicine', site: 'Lakeshore Primary Care, 1801 Ridge Ave, Evanston', shortSite: 'Lakeshore Primary Care, Evanston', parking: 'Free parking in the Ridge garage.' },
+      'LH-305': { name: 'Dr. Ben Castillo', short: "Dr. Castillo's", specialty: 'Endocrinology', site: 'Lakeshore Specialty Center, 55 E Monroe St, Chicago', shortSite: 'Lakeshore Specialty Center, Loop', parking: 'Validated parking at the Monroe garage.' },
+    };
+    const PATIENTS = { 'MRN-100482': { name: 'Jordan Rivera', tail: '0482' }, 'MRN-100517': { name: 'Elena Brooks', tail: '0517' } };
+    const VISITS = {
+      telehealth: { label: 'Video visit, 20 minutes', where: 'Join from the My Lakeshore app or the link we text you', icon: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/>' },
+      'in-person': { label: 'In-person visit, 30 minutes', icon: '<path d="M4 21V9l8-5 8 5v12"/><path d="M10 21v-6h4v6"/><path d="M12 10v4M10 12h4"/>' },
+    };
+
+    const $ = (s) => document.querySelector(s);
+    function checked(name) { const el = document.querySelector('input[name=' + name + ']:checked'); return el ? el.value : ''; }
+    function parseSlot(iso) { const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : null; }
+    function fmtDate(d) { return d ? d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : ''; }
+    function fmtTime(d) { return d ? d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''; }
+
+    function sync() {
+      $('#mrn').value = checked('patientChoice');
+      $('#clinicianId').value = checked('clinicianChoice');
+      $('#visitType').value = checked('visitTypeChoice');
+      $('#slot').value = checked('slotChoice');
+      const doc = CLINICIANS[$('#clinicianId').value], pt = PATIENTS[$('#mrn').value], visit = VISITS[$('#visitType').value], when = parseSlot($('#slot').value);
+      $('#openingsFor').textContent = doc.short;
+      $('#inPersonWhere').textContent = doc.site;
+      $('#inPersonParking').textContent = doc.parking;
+      $('#sumTime').textContent = fmtTime(when);
+      $('#sumDate').textContent = fmtDate(when);
+      $('#sumWho').textContent = doc.name;
+      $('#sumSpec').textContent = doc.specialty;
+      $('#sumVisit').textContent = visit.label;
+      $('#sumWhere').textContent = visit.where || doc.shortSite;
+      $('#sumVisitIcon').innerHTML = visit.icon;
+      $('#sumPatient').textContent = 'For ' + pt.name;
+      $('#sumPatient').nextElementSibling.textContent = 'MRN ending ' + pt.tail;
+    }
+    document.getElementById('demoForm').addEventListener('change', sync);
+    sync();
+
     function buildPayload() {
       return { mrn: document.getElementById('mrn').value, clinicianId: document.getElementById('clinicianId').value, visitType: document.getElementById('visitType').value,
         slot: document.getElementById('slot').value, reason: document.getElementById('reason').value,
         completedForms: Array.from(document.querySelectorAll('input[name=form]:checked')).map((c) => c.value) };
     }
-    function when(iso) { const d = new Date(iso); return d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }) + ' at ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
-    function renderSuccess(d) {
-      const todo = d.outstanding && d.outstanding.length ? '<div class="ref">Before your visit, please complete: ' + d.outstanding.map(esc).join(', ') + '. We sent the forms to Messages.</div>' : '<div class="ref">All your forms are complete. Nothing else to do before the visit.</div>';
-      return '<div class="result-title">You\u2019re booked</div><div>' + esc(d.visit) + ' with ' + esc(d.clinician) + ', ' + esc(when(d.slot)) + '.</div>' + todo + '<div class="ref">Confirmation ' + esc(d.appointmentId) + '</div>';
+
+    const ICON_ALERT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18.5v.5"/></svg>';
+    const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+    const ICON_TODO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>';
+    const ICON_DONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>';
+
+    function renderFailure(data) {
+      const ref = data.requestId || data.code || '';
+      return '<div class="rb-icon">' + ICON_ALERT + '</div><div>'
+        + '<h2 class="result-title">We couldn\u2019t finish booking your appointment</h2>'
+        + '<p>Your time was not reserved and nothing was added to your visits. Our engineering team has been notified automatically and is looking into it.</p>'
+        + '<p>You can try again in a few minutes, or call Lakeshore scheduling at <a href="tel:3125550188">312-555-0188</a> and we\u2019ll book it by phone.</p>'
+        + '<p class="ref">Reference <b>' + esc(ref) + '</b>' + (data.code && data.requestId ? ', error code ' + esc(data.code) : '') + '</p></div>';
     }
+    function renderSuccess(d) {
+      const when = parseSlot(d.slot);
+      const outstanding = Array.isArray(d.outstanding) ? d.outstanding : [];
+      const done = Array.isArray(d.checklist) ? d.checklist.filter((c) => c.done).map((c) => c.item) : [];
+      const items = outstanding.map((f) => '<li>' + ICON_TODO + '<span>' + esc(f) + '</span><a href="#">Complete now</a></li>').join('')
+        + done.map((f) => '<li class="done">' + ICON_DONE + '<span>' + esc(f) + '</span></li>').join('');
+      const todo = outstanding.length
+        ? '<h3>Before your visit</h3><p>' + outstanding.length + (outstanding.length === 1 ? ' form' : ' forms') + ' to complete. We also sent them to Messages.</p><ul>' + items + '</ul>'
+        : '<h3>Before your visit</h3><p>Everything is on file. Nothing else to do.</p><ul>' + items + '</ul>';
+      return '<div class="ok-head"><div class="rb-icon">' + ICON_OK + '</div><div><h2 class="result-title">You\u2019re scheduled</h2><p>We sent a confirmation to Messages and added this visit to your calendar in My Lakeshore.</p></div></div>'
+        + '<div class="ok-body"><div class="ok-when"><b>' + esc(fmtTime(when)) + '</b><span>' + esc(fmtDate(when)) + '</span>'
+        + '<dl><dt>Visit</dt><dd>' + esc(d.visit) + '</dd><dt>With</dt><dd>' + esc(d.clinician) + '</dd><dt>Where</dt><dd>' + esc(d.location) + '</dd><dt>For</dt><dd>' + esc(d.patient) + '</dd><dt>Confirmation</dt><dd>' + esc(d.appointmentId) + '</dd></dl></div>'
+        + '<div class="ok-todo">' + todo + '</div>'
+        + '<div class="ok-actions"><a class="btn-2" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg>Add to calendar</a><button type="button" class="btn-2 ghost" id="againBtn">Schedule another appointment</button></div></div>';
+    }
+
+    function showResult(result) {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      result.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      result.focus({ preventScroll: true });
+    }
+
     document.getElementById('demoForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
-      btn.disabled = true; btn.textContent = "Booking your visit\u2026";
+      const flow = document.getElementById('flow');
+      btn.disabled = true; btn.textContent = "Scheduling\u2026";
       result.className = 'result-box';
+      result.innerHTML = '';
       try {
         const res = await fetch("/api/3a2b7a6d/intake", {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -246,15 +573,20 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = '<div class="result-title">' + "We couldn\u2019t finish booking your appointment" + '</div><div>Your time was not reserved. Our engineering team has been notified automatically; you can also call 312-555-0188 to book by phone.</div><div class="ref">Reference ' + esc(data.requestId || data.code) + '</div>';
+          result.innerHTML = renderFailure(data || {});
         } else {
           result.className = 'result-box success';
           result.innerHTML = renderSuccess(data);
+          flow.hidden = true;
+          document.getElementById('againBtn').addEventListener('click', () => {
+            result.className = 'result-box'; result.innerHTML = ''; flow.hidden = false;
+            document.querySelector('.intro').scrollIntoView({ block: 'start' });
+          });
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = '<div class="result-title">Network error</div><div class="result-detail">' + esc(err.message) + '</div>';
-      } finally { btn.disabled = false; btn.textContent = CTA; }
+        result.innerHTML = '<div class="rb-icon">' + ICON_ALERT + '</div><div><h2 class="result-title">We couldn\u2019t reach My Lakeshore</h2><p>Your time was not reserved. Check your connection and try again, or call <a href="tel:3125550188">312-555-0188</a> to schedule by phone.</p></div>';
+      } finally { btn.disabled = false; btn.textContent = CTA; showResult(result); }
     });
   </script>
   <script src="/session-cap-banner.js"></script>
