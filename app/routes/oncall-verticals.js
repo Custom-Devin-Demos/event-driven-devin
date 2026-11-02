@@ -15,6 +15,7 @@ const { addToBag } = require('../services/oncall-verticals/apparel');
 const { addKitToCart } = require('../services/oncall-verticals/fluidanalysis');
 const { addToPickList } = require('../services/oncall-verticals/picklist');
 const { findRetailers } = require('../services/oncall-verticals/wheretobuy');
+const { checkEligibility } = require('../services/oncall-verticals/eligibility');
 const { lookupEsn } = require('../services/oncall-verticals/esnlookup');
 const { searchRecalls } = require('../services/oncall-verticals/recalllookup');
 const { createReservation } = require('../services/oncall-verticals/evreservation');
@@ -731,6 +732,33 @@ router.post('/api/oncall/picklist/add', async (req, res) => {
       error: 'Unable to add this part to your Pick List.',
       errorClass: error.name,
       code: error.code || 'PICKLIST_ADD_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/eligibility/check — website "Check your eligibility" for a
+ * secured homeowner loan
+ */
+router.post('/api/oncall/eligibility/check', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await checkEligibility({
+      loanAmount: body.loanAmount,
+      propertyValue: body.propertyValue,
+      employmentType: body.employmentType,
+      annualIncome: body.annualIncome,
+      postcode: body.postcode,
+      consent: body.consent === true,
+    }));
+  } catch (error) {
+    const clientError = error.statusCode === 400;
+    res.status(clientError ? 400 : 500).json({
+      success: false,
+      error: clientError ? error.message : 'Something went wrong. Please try again later.',
+      errorClass: error.name,
+      code: error.code || 'ELIGIBILITY_CHECK_FAILED',
       requestId: req.requestId,
     });
   }
