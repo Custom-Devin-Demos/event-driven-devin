@@ -27,7 +27,7 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 ## 1. Payer — prior authorization (`/ff0485e4`)
 
 **Trigger:** open `/ff0485e4` → leave the defaults (Jordan Rivera, CPT 72148 MRI, place of service *22 — Outpatient hospital*) → **Submit for review**.
-**What you see:** the *Decision path* on the right stops at **Clinical criteria** (red), and the Decision step shows “We couldn’t process this authorization request” with `TypeError: Cannot read properties of undefined (reading 'requiredDocs')`.
+**What you see:** the *Decision path* on the right stops at **Clinical criteria** (red), and the Decision step shows “We couldn’t process this authorization request” with a reference number and error code `PRIOR_AUTH_FAILED`. The page never shows the raw exception; the `TypeError … 'requiredDocs'` only appears in Sentry and the Slack alert card.
 **Show that it's only one path:** switch place of service to *11 — Physician office* and submit — it is approved instantly.
 
 **What Devin does next:** the alert names `app/services/verticals/ff0485e4.js — submitPriorAuth` and tags `cpt=72148`, `placeOfService=22`. Devin opens that file and sees the place-of-service code 22 becomes `outpatient-hospital` (hyphen), but the clinical-criteria rule was saved as `72148:outpatient_hospital` (underscore), so no rule is found. It fixes the key, adds a test and opens a PR.
@@ -44,7 +44,7 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 ## 2. Provider — patient appointment intake (`/3a2b7a6d`)
 
 **Trigger:** open `/3a2b7a6d` → leave the defaults (Jordan Rivera, Dr. Okafor, *Video visit (telehealth)*) → **Confirm appointment**.
-**What you see:** “We couldn’t finish booking your appointment” with `TypeError: Cannot read properties of undefined (reading 'consents')`.
+**What you see:** “We couldn’t finish booking your appointment — your time was not reserved” with a reference number. The raw `TypeError … 'consents'` only appears in Sentry and the Slack alert card.
 **Contrast:** click the *In person* tile under “How would you like to be seen?” — it books and lists the remaining check-in forms.
 
 **What Devin does next:** the alert points to `app/services/verticals/3a2b7a6d.js — submitIntake` with tag `visitType=telehealth`. Devin finds the visit type is called `telehealth` but the intake forms list is filed under `virtual`, so there are no forms to send. It renames the key, adds a test and opens a PR.
@@ -61,7 +61,7 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 ## 3. Pharma — copay savings card (`/46ce04a1`)
 
 **Trigger:** open `/46ce04a1` → leave the defaults (card VLX-5520-1187, *Veloxa 90-day pack*, $1,350 out-of-pocket) → **Apply savings card**.
-**What you see:** “Savings card could not be applied” with `TypeError: Cannot read properties of undefined (reading 'cardMax')`.
+**What you see:** “Savings card could not be applied” on the patient receipt, patient owes the full $1,350, reject code `COPAY_BENEFIT_FAILED` and a reference. The raw `TypeError … 'cardMax'` only appears in Sentry and the Slack alert card.
 **Contrast:** choose *Veloxa 30-day pen* under Product dispensed (the out-of-pocket changes to $450) — the receipt shows the card paying $425 and the patient paying $25.
 
 **What Devin does next:** the alert points to `app/services/verticals/46ce04a1.js — calculateCopayBenefit` with `product=VLR-90` and the $1,350 amount. Devin sees the benefit tiers stop at $1,000, so the bigger 90-day amount matches no tier. It adds a top tier (or caps at the last one), adds a test and opens a PR.
@@ -78,7 +78,7 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 ## 4. Life Sciences — clinical-trial lab data pipeline (`/27a970ec`)
 
 **Trigger:** open `/27a970ec` → leave *SITE-104 — Toronto Research Centre* → **Run ingest**.
-**What you see:** “Ingest failed — batch not loaded” with `TypeError: Cannot read properties of undefined (reading 'factor')`.
+**What you see:** “Ingest failed. The batch was not loaded” with error code `LAB_INGEST_FAILED` and a run reference; the run log says the normalize stage failed and the batch rolled back. The raw `TypeError … 'factor'` only appears in Sentry and the Slack alert card.
 **Contrast:** choose *Boston Clinical Unit (SITE-101)* — all five pipeline stages turn green and three records load into the study warehouse with range flags.
 
 **What Devin does next:** the alert points to `app/services/verticals/27a970ec.js — ingestBatch` with `site=SITE-104`. Devin sees the Toronto lab reports glucose in mmol/L (the Canadian unit) and the pipeline only knows how to convert mg/dL. It adds the mmol/L conversion (×18.016), adds a test and opens a PR.
@@ -149,12 +149,12 @@ Automation:
 npm install
 PORT=3999 node app/server.js          # leave SLACK_* / DEVIN_* unset
 curl -s -X POST localhost:3999/api/ff0485e4/prior-auth -H 'Content-Type: application/json' \
-  -d '{"memberId":"SHP-448210","cpt":"72148","placeOfService":"22"}'     # 500 TypeError
+  -d '{"memberId":"SHP-448210","cpt":"72148","placeOfService":"22"}'     # 500 (planted bug; TypeError in Sentry)
 curl -s -X POST localhost:3999/api/3a2b7a6d/intake -H 'Content-Type: application/json' \
-  -d '{"mrn":"MRN-100482","clinicianId":"LH-201","visitType":"telehealth"}'  # 500 TypeError
+  -d '{"mrn":"MRN-100482","clinicianId":"LH-201","visitType":"telehealth"}'  # 500 (planted bug; TypeError in Sentry)
 curl -s -X POST localhost:3999/api/46ce04a1/copay-benefit -H 'Content-Type: application/json' \
-  -d '{"cardId":"VLX-5520-1187","productId":"VLR-90","insuranceOutOfPocket":1350}'  # 500 TypeError
+  -d '{"cardId":"VLX-5520-1187","productId":"VLR-90","insuranceOutOfPocket":1350}'  # 500 (planted bug; TypeError in Sentry)
 curl -s -X POST localhost:3999/api/27a970ec/ingest -H 'Content-Type: application/json' \
-  -d '{"siteId":"SITE-104"}'                                             # 500 TypeError
+  -d '{"siteId":"SITE-104"}'                                             # 500 (planted bug; TypeError in Sentry)
 npx jest tests/healthcare-demo-lab.test.js
 ```
