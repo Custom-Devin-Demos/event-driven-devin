@@ -231,10 +231,10 @@
           stage('normalize', 'failed');
           document.querySelector('.stage[data-stage="normalize"] p').textContent = 'No conversion for the source unit. Batch rolled back.';
           document.getElementById('runMeta').textContent = 'Failed at normalize units';
-          line(data.errorClass + ': ' + data.error, 'err');
+          line('Stage normalize failed: no unit conversion available for one or more results (' + (data.code || 'LAB_INGEST_FAILED') + ')', 'err');
           line('Batch rolled back. Nothing written to warehouse.lab_results.', 'warn');
           result.className = 'result-box error';
-          result.innerHTML = '<div class="result-title">Ingest failed. The batch was not loaded.</div><div>The pipeline stopped while converting units, so no results from ' + esc(site) + ' reached the study warehouse. Our engineering team has been notified automatically.</div><div class="result-detail">' + esc(data.errorClass) + ': ' + esc(data.error) + '</div><div class="ref">Reference ' + esc(data.requestId || data.code) + '</div>';
+          result.innerHTML = '<div class="result-title">Ingest failed. The batch was not loaded.</div><div>The pipeline stopped while converting units, so no results from ' + esc(site) + ' reached the study warehouse. Our engineering team has been notified automatically.</div><div class="ref">Reference ' + esc(data.requestId || data.code) + ' &nbsp; Error code ' + esc(data.code || 'LAB_INGEST_FAILED') + '</div>';
         } else {
           stage('normalize', 'done'); stage('ranges', 'active'); line('Converted ' + data.records.length + ' results to standard units', 'ok');
           await sleep(300); stage('ranges', 'done'); stage('warehouse', 'active');
