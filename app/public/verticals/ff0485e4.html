@@ -3,270 +3,581 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Summit Health Plan — Provider Portal | New prior authorization</title>
+  <title>New authorization request — Summit Health Plan Provider Portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --navy:#11355f; --navy-deep:#0b2342; --ice:#eef3f8; --panel:#ffffff; --ink:#182230; --muted:#5a6676; --faint:#8a95a5;
-      --line:#d7dfe8; --line-strong:#b9c5d3; --teal:#0e8a7d; --teal-bg:#e4f4f1; --amber:#9a6700; --amber-bg:#fbf1dc; --red:#b42318; --red-bg:#fdecea;
-      --sans:'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; --mono:'IBM Plex Mono', ui-monospace, Menlo, monospace;
+      --brand:#0b4f6c; --brand-deep:#073a50; --brand-tint:#e6f0f5; --brand-line:#b7d1dd;
+      --snow:#f3f5f7; --panel:#ffffff; --ink:#1b2430; --body:#3b4552; --muted:#60697a; --faint:#8b94a3;
+      --line:#d9dee4; --line-strong:#b6bfca;
+      --ok:#1e7b4f; --ok-bg:#e8f4ed; --ok-line:#a9d5bb;
+      --pend:#a86500; --pend-bg:#fbf2df; --pend-line:#ead39a;
+      --rev:#2f5f9e; --rev-bg:#e9eff8; --rev-line:#b9c9e4;
+      --bad:#b3261e; --bad-bg:#fbebea; --bad-line:#eeb2ae;
+      --amber:#e8a33d;
+      --font:'Source Sans 3', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --r:4px;
     }
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-    html { -webkit-font-smoothing:antialiased; }
-    body { font-family:var(--sans); font-size:14px; line-height:1.5; color:var(--ink); background:var(--ice); min-height:100vh; }
-    a { color:inherit; }
-    button, input, select { font:inherit; color:inherit; }
-    :focus-visible { outline:2px solid var(--navy); outline-offset:2px; }
-    code { font-family:var(--mono); font-size:.92em; }
+    html { -webkit-font-smoothing:antialiased; scroll-padding-top:120px; }
+    body { font-family:var(--font); font-size:15px; line-height:1.45; color:var(--ink); background:var(--snow); min-height:100vh; }
+    a { color:var(--brand); }
+    button, input, select, textarea { font:inherit; color:inherit; }
+    button { cursor:pointer; }
+    :focus-visible { outline:3px solid #f2b735; outline-offset:2px; box-shadow:0 0 0 1px #1b2430; }
+    .num { font-variant-numeric:tabular-nums; letter-spacing:.01em; }
+    .skip { position:absolute; left:8px; top:-48px; background:#fff; color:var(--brand); padding:8px 12px; border-radius:var(--r); z-index:50; text-decoration:none; font-weight:600; }
+    .skip:focus { top:8px; }
+    .vh { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+    .wrap { max-width:1400px; margin:0 auto; padding:0 24px; }
 
-    /* global bar */
-    .gbar { background:var(--navy-deep); color:#fff; }
-    .gbar-in { max-width:1360px; margin:0 auto; padding:0 28px; height:30px; display:flex; align-items:center; justify-content:space-between; font-size:12px; color:rgba(255,255,255,.78); }
-    .gbar a { text-decoration:none; margin-left:20px; color:rgba(255,255,255,.78); }
-    .gbar a:hover { color:#fff; }
-    .topbar { background:var(--navy); color:#fff; }
-    .topbar-in { max-width:1360px; margin:0 auto; padding:0 28px; height:62px; display:flex; align-items:center; gap:36px; }
-    .wordmark { display:flex; align-items:center; gap:12px; text-decoration:none; }
-    .wordmark svg { display:block; }
-    .wordmark b { font-weight:600; font-size:18px; letter-spacing:-.01em; line-height:1.1; display:block; }
-    .wordmark small { display:block; font-size:12px; color:rgba(255,255,255,.72); line-height:1.1; margin-top:2px; }
-    .topnav { display:flex; gap:4px; margin-left:8px; }
-    .topnav a { text-decoration:none; color:rgba(255,255,255,.82); font-size:14px; padding:8px 12px; border-radius:4px; }
-    .topnav a:hover { background:rgba(255,255,255,.1); color:#fff; }
-    .topnav a[aria-current] { background:#fff; color:var(--navy); font-weight:500; }
-    .who { margin-left:auto; display:flex; align-items:center; gap:12px; font-size:13px; color:rgba(255,255,255,.85); text-align:right; line-height:1.3; }
-    .who span { display:block; }
-    .who small { color:rgba(255,255,255,.62); font-family:var(--mono); font-size:11px; }
-    .who .av { width:34px; height:34px; border-radius:4px; background:#fff; color:var(--navy); display:grid; place-items:center; font-weight:600; font-size:13px; }
+    /* ---------- utility + header ---------- */
+    .util { background:var(--brand-deep); color:rgba(255,255,255,.82); font-size:13px; }
+    .util .wrap { height:32px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .util a { color:inherit; text-decoration:none; }
+    .util a:hover { color:#fff; text-decoration:underline; }
+    .util nav { display:flex; gap:22px; }
+    .util .pipe { opacity:.45; margin:0 10px; }
+    .hdr { background:var(--brand); color:#fff; }
+    .hdr .wrap { height:64px; display:flex; align-items:stretch; gap:28px; }
+    .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:#fff; padding-right:12px; }
+    .brand svg { display:block; flex:none; }
+    .brand b { display:block; white-space:nowrap; font-weight:700; font-size:19px; letter-spacing:-.01em; line-height:1.05; }
+    .brand small { display:block; font-size:12.5px; opacity:.8; margin-top:3px; }
+    .gnav { display:flex; align-items:stretch; }
+    .gnav a { display:flex; align-items:center; padding:0 14px; color:rgba(255,255,255,.9); text-decoration:none; font-size:15px; border-bottom:3px solid transparent; border-top:3px solid transparent; }
+    .gnav a:hover { background:rgba(255,255,255,.08); color:#fff; }
+    .gnav a[aria-current] { border-bottom-color:var(--amber); color:#fff; font-weight:600; }
+    .me { margin-left:auto; display:flex; align-items:center; gap:18px; }
+    .ibtn { position:relative; width:36px; height:36px; display:grid; place-items:center; background:transparent; border:0; border-radius:var(--r); color:#fff; }
+    .ibtn:hover { background:rgba(255,255,255,.1); }
+    .ibtn .dot { position:absolute; top:5px; right:5px; min-width:16px; height:16px; padding:0 4px; border-radius:8px; background:var(--amber); color:#1b2430; font-size:11px; font-weight:700; line-height:16px; }
+    .user { display:flex; align-items:center; gap:10px; background:transparent; border:0; color:#fff; padding:4px 6px 4px 4px; border-radius:var(--r); text-align:left; line-height:1.2; }
+    .user:hover { background:rgba(255,255,255,.1); }
+    .user .av { width:32px; height:32px; border-radius:50%; background:#fff; color:var(--brand); display:grid; place-items:center; font-weight:700; font-size:13px; }
+    .user span { display:block; font-size:14px; font-weight:600; }
+    .user small { display:block; font-size:12px; opacity:.8; }
+    .orgbar { background:#fff; border-bottom:1px solid var(--line); font-size:13.5px; color:var(--body); }
+    .orgbar .wrap { min-height:40px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-top:6px; padding-bottom:6px; }
+    .orgbar b { color:var(--ink); font-weight:600; }
+    .orgbar .sep { color:var(--line-strong); }
+    .orgbar a { margin-left:auto; font-weight:600; text-decoration:none; }
+    .orgbar a:hover { text-decoration:underline; }
 
-    /* shell with left rail */
-    .shell { max-width:1360px; margin:0 auto; padding:0 28px 48px; display:grid; grid-template-columns:224px minmax(0,1fr); gap:0 36px; }
-    .rail { padding-top:28px; border-right:1px solid var(--line); }
-    .rail h4 { font-size:11px; font-weight:600; color:var(--faint); letter-spacing:.02em; margin:18px 0 6px; }
-    .rail h4:first-child { margin-top:0; }
-    .rail a { display:block; text-decoration:none; font-size:14px; color:var(--muted); padding:7px 10px 7px 12px; border-left:2px solid transparent; margin-right:-1px; }
-    .rail a:hover { color:var(--ink); }
-    .rail a[aria-current] { color:var(--navy); font-weight:500; border-left-color:var(--navy); background:#fff; }
-    .rail .sub a { padding-left:28px; font-size:13px; }
+    /* ---------- shell ---------- */
+    .shell { display:grid; grid-template-columns:232px minmax(0,1fr); gap:0 32px; padding-bottom:56px; }
+    .rail { padding:24px 0 24px; border-right:1px solid var(--line); align-self:start; position:sticky; top:0; }
+    .rail h2 { font-size:12.5px; color:var(--faint); font-weight:600; padding:0 12px; margin:20px 0 6px; }
+    .rail h2:first-child { margin-top:0; }
+    .rail a { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; margin-right:-1px; color:var(--body); text-decoration:none; font-size:14.5px; border-right:3px solid transparent; }
+    .rail a:hover { background:#fff; color:var(--ink); }
+    .rail a[aria-current] { color:var(--brand); font-weight:600; background:#fff; border-right-color:var(--brand); }
+    .rail .cnt { font-size:12px; font-weight:600; color:var(--pend); background:var(--pend-bg); border-radius:10px; padding:0 7px; line-height:18px; }
+    .rail .cnt.rev { color:var(--rev); background:var(--rev-bg); }
+    .rail .sub a { padding-left:26px; font-size:13.5px; color:var(--muted); }
+    .menu-btn { display:none; }
 
-    .content { padding-top:28px; min-width:0; }
-    .crumbs { font-size:12px; color:var(--muted); }
+    .content { padding-top:22px; min-width:0; }
+    .crumbs { font-size:13px; color:var(--muted); display:flex; gap:8px; flex-wrap:wrap; }
     .crumbs a { text-decoration:none; }
-    .crumbs span { margin:0 6px; color:var(--faint); }
-    h1 { font-size:26px; font-weight:600; letter-spacing:-.015em; line-height:1.2; margin-top:6px; }
-    .lead { color:var(--muted); margin-top:4px; max-width:70ch; }
+    .crumbs a:hover { text-decoration:underline; }
+    .titlebar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-top:8px; }
+    h1 { font-size:27px; font-weight:700; letter-spacing:-.015em; line-height:1.15; }
+    .draft { font-size:13.5px; color:var(--muted); display:flex; align-items:center; gap:14px; }
+    .draft b { color:var(--ink); font-weight:600; }
+    .draft .saved { display:inline-flex; align-items:center; gap:6px; }
+    .draft .saved::before { content:''; width:8px; height:8px; border-radius:50%; background:var(--ok); }
 
-    /* eligibility strip */
-    .elig { margin-top:22px; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); background:var(--panel); border:1px solid var(--line); border-radius:6px; overflow:hidden; }
-    .elig > div { padding:12px 16px; border-right:1px solid var(--line); min-width:0; }
-    .elig > div:last-child { border-right:0; }
-    .elig dt { font-size:11px; color:var(--faint); }
-    .elig dd { font-size:14px; font-weight:500; margin-top:2px; line-height:1.3; }
-    .elig dd code { color:var(--muted); font-weight:400; }
-    .elig .ok { color:var(--teal); }
-    .bar { height:4px; background:var(--ice); border-radius:2px; margin-top:7px; overflow:hidden; }
-    .bar i { display:block; height:100%; width:62%; background:var(--navy); }
+    /* stepper */
+    .stepper { margin-top:18px; display:grid; grid-template-columns:repeat(5,1fr); background:#fff; border:1px solid var(--line); border-radius:var(--r); overflow:hidden; counter-reset:st; }
+    .stepper li { list-style:none; position:relative; padding:12px 16px 12px 48px; border-right:1px solid var(--line); font-size:14px; color:var(--muted); }
+    .stepper li:last-child { border-right:0; }
+    .stepper li::before { counter-increment:st; content:counter(st); position:absolute; left:14px; top:12px; width:24px; height:24px; border-radius:50%; border:1.5px solid var(--line-strong); color:var(--muted); font-size:12.5px; font-weight:600; display:grid; place-items:center; background:#fff; }
+    .stepper li.done::before { content:''; background:var(--brand) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='10'><path d='M1 5l3.5 3.5L11 1.5' fill='none' stroke='white' stroke-width='2'/></svg>") center/12px no-repeat; border-color:var(--brand); }
+    .stepper li.now { color:var(--ink); background:var(--brand-tint); }
+    .stepper li.now::before { border-color:var(--brand); color:var(--brand); border-width:2px; }
+    .stepper b { display:block; font-weight:600; color:var(--ink); }
+    .stepper small { display:block; font-size:12.5px; }
+    .stepper li.done b { color:var(--body); }
+
+    /* member banner */
+    .member { margin-top:18px; background:#fff; border:1px solid var(--line); border-left:4px solid var(--ok); border-radius:var(--r); display:grid; grid-template-columns:minmax(220px,1.3fr) repeat(4,minmax(0,1fr)); }
+    .member > div { padding:12px 18px; border-right:1px solid var(--line); min-width:0; }
+    .member > div:last-child { border-right:0; }
+    .member dt { font-size:12.5px; color:var(--muted); }
+    .member dd { font-size:15px; font-weight:600; margin-top:1px; line-height:1.3; }
+    .member dd small { display:block; font-weight:400; font-size:13px; color:var(--muted); }
+    .member .pill { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--ok); }
+    .member .pill::before { content:''; width:8px; height:8px; border-radius:50%; background:var(--ok); }
+    .meter { height:6px; background:var(--snow); border-radius:3px; margin-top:6px; overflow:hidden; border:1px solid var(--line); }
+    .meter i { display:block; height:100%; background:var(--brand); }
 
     /* two columns */
-    .cols { margin-top:22px; display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:24px; align-items:start; }
-    .panel { background:var(--panel); border:1px solid var(--line); border-radius:6px; }
-    .panel-h { padding:14px 20px; border-bottom:1px solid var(--line); display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
-    .panel-h h2 { font-size:16px; font-weight:600; }
-    .panel-h span { font-size:12px; color:var(--muted); }
-    fieldset { border:0; padding:18px 20px; border-bottom:1px solid var(--line); }
-    fieldset:last-of-type { border-bottom:0; }
-    legend { float:left; width:100%; font-size:13px; font-weight:600; color:var(--navy); margin-bottom:12px; }
-    legend + * { clear:both; }
-    .row { display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; }
-    .row .full { grid-column:1 / -1; }
-    label.f { display:block; font-size:12px; color:var(--muted); margin-bottom:4px; }
-    label.f .req { color:var(--red); }
-    input[type=text], select { width:100%; height:38px; padding:0 10px; border:1px solid var(--line-strong); border-radius:4px; background:#fff; }
-    input[type=text]:read-only { background:var(--ice); color:var(--muted); }
-    select { appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' fill='none' stroke='%235a6676' stroke-width='1.5'/></svg>"); background-repeat:no-repeat; background-position:right 10px center; padding-right:30px; }
-    .hint { font-size:12px; color:var(--muted); margin-top:5px; }
-    .hint code { color:var(--ink); }
-    .docs { display:grid; gap:8px; }
-    .docs label { display:flex; align-items:center; gap:10px; font-size:14px; padding:9px 12px; border:1px solid var(--line); border-radius:4px; cursor:pointer; }
-    .docs label:has(input:checked) { border-color:var(--navy); background:#f5f8fc; }
-    .docs input { width:16px; height:16px; accent-color:var(--navy); }
-    .docs small { margin-left:auto; color:var(--faint); font-size:12px; }
-    .actions { padding:16px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; border-top:1px solid var(--line); background:#fbfcfd; border-radius:0 0 6px 6px; }
-    .btn { height:40px; padding:0 18px; border-radius:4px; border:1px solid var(--navy); background:var(--navy); color:#fff; font-weight:500; cursor:pointer; white-space:nowrap; }
-    .btn:hover { background:var(--navy-deep); }
-    .btn:disabled { opacity:.6; cursor:progress; }
-    .btn-ghost { background:transparent; color:var(--navy); }
-    .btn-ghost:hover { background:#eef3f8; }
-    .actions .note { font-size:12px; color:var(--muted); margin-left:auto; }
-    @media (max-width:600px) { .actions .note { margin-left:0; flex-basis:100%; } }
+    .cols { margin-top:18px; display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:24px; align-items:start; }
+    .panel { background:var(--panel); border:1px solid var(--line); border-radius:var(--r); }
+    .panel-h { padding:14px 20px; border-bottom:1px solid var(--line); display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .panel-h h2 { font-size:17px; font-weight:700; }
+    .panel-h .meta { font-size:13px; color:var(--muted); }
 
-    /* decision ladder */
-    .ladder { padding:4px 20px 18px; }
-    .step { position:relative; padding:14px 0 14px 34px; border-bottom:1px solid var(--line); }
-    .step:last-child { border-bottom:0; }
-    .step::before { content:''; position:absolute; left:9px; top:36px; bottom:-14px; width:2px; background:var(--line); }
-    .step:last-child::before { display:none; }
-    .step i { position:absolute; left:0; top:16px; width:20px; height:20px; border-radius:50%; border:2px solid var(--line-strong); background:#fff; display:grid; place-items:center; font-style:normal; font-size:11px; color:#fff; }
-    .step.done i { background:var(--teal); border-color:var(--teal); }
-    .step.done::before { background:var(--teal); }
-    .step.active i { border-color:var(--navy); }
-    .step.active i::after { content:''; width:8px; height:8px; border-radius:50%; background:var(--navy); }
-    .step.failed i { background:var(--red); border-color:var(--red); }
-    .step.pended i { background:var(--amber); border-color:var(--amber); }
-    .step.review i { background:var(--navy); border-color:var(--navy); }
-    .step h3 { font-size:14px; font-weight:600; }
-    .step p { font-size:13px; color:var(--muted); margin-top:2px; }
-    .step dl { display:grid; grid-template-columns:auto 1fr; gap:3px 12px; font-size:13px; margin-top:8px; }
-    .step dt { color:var(--muted); }
-    .step dd code { font-size:12px; }
+    .sec { padding:18px 20px 20px; border-bottom:1px solid var(--line); }
+    .sec-h { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .sec-h h3 { font-size:15.5px; font-weight:700; color:var(--ink); }
+    .sec-h h3 span { color:var(--muted); font-weight:600; margin-right:8px; }
+    .sec-h a { font-size:13px; text-decoration:none; font-weight:600; }
+    .sec-h a:hover { text-decoration:underline; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; }
+    .grid .full { grid-column:1 / -1; }
+    .grid.svc { grid-template-columns:1.6fr 1fr; }
+    .fld label, .fld .lbl { display:block; font-size:13.5px; font-weight:600; color:var(--body); margin-bottom:5px; }
+    .fld .req { color:var(--bad); margin-left:2px; }
+    .fld .help { font-size:12.5px; color:var(--muted); margin-top:5px; }
+    input[type=text], select, textarea { width:100%; min-height:38px; padding:7px 10px; border:1px solid var(--line-strong); border-radius:3px; background:#fff; color:var(--ink); }
+    input[type=text]:read-only, textarea:read-only { background:#f6f8fa; color:var(--body); border-color:var(--line); }
+    textarea { resize:vertical; line-height:1.4; }
+    select { appearance:none; padding-right:34px; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' fill='none' stroke='%233b4552' stroke-width='1.6'/></svg>"); background-repeat:no-repeat; background-position:right 12px center; }
+    .ro { display:flex; align-items:center; min-height:38px; padding:7px 10px; border:1px solid var(--line); border-radius:3px; background:#f6f8fa; color:var(--body); gap:8px; }
+    .ro .npi { color:var(--muted); font-size:13px; margin-left:auto; }
 
-    .result-box { display:none; margin-top:10px; border-radius:4px; padding:12px 14px; font-size:13px; line-height:1.45; }
-    .result-box.success { display:block; background:var(--teal-bg); border:1px solid #9fd6cc; color:#0b4f48; }
-    .result-box.pended { display:block; background:var(--amber-bg); border:1px solid #e6c98a; color:#6b4700; }
-    .result-box.review { display:block; background:#e9eff7; border:1px solid #b9c9df; color:var(--navy-deep); }
-    .result-box.error { display:block; background:var(--red-bg); border:1px solid #f1b3ad; color:#7a1a12; }
-    .result-title { font-weight:600; font-size:14px; margin-bottom:3px; }
-    .result-detail { font-family:var(--mono); font-size:12px; word-break:break-word; margin-top:6px; color:inherit; }
-    .ref { font-size:12px; opacity:.85; margin-top:6px; }
+    /* place-of-service tiles */
+    .tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .tile { position:relative; display:block; border:1px solid var(--line-strong); border-radius:3px; padding:10px 12px 10px 38px; cursor:pointer; background:#fff; }
+    .tile:hover { border-color:var(--brand); }
+    .tile input { position:absolute; left:12px; top:13px; width:16px; height:16px; accent-color:var(--brand); margin:0; }
+    .tile b { display:block; font-size:14.5px; font-weight:600; line-height:1.25; }
+    .tile b span { color:var(--muted); font-weight:600; margin-right:6px; }
+    .tile small { display:block; font-size:12.5px; color:var(--muted); margin-top:2px; }
+    .tile:has(input:checked) { border-color:var(--brand); box-shadow:inset 0 0 0 1px var(--brand); background:var(--brand-tint); }
+    .tile:has(input:focus-visible) { outline:3px solid #f2b735; outline-offset:2px; }
 
-    .crit { padding:8px 20px 18px; }
-    .crit table { width:100%; border-collapse:collapse; font-size:12px; }
-    .crit th, .crit td { text-align:left; padding:7px 0; border-bottom:1px solid var(--line); vertical-align:top; }
-    .crit th { color:var(--faint); font-weight:500; }
-    .crit td code { font-size:11px; }
-    .crit tr.hi td { color:var(--navy); font-weight:500; }
-    .crit tr:last-child td { border-bottom:0; }
-    .tag { display:inline-block; padding:1px 7px; border-radius:3px; font-size:11px; font-weight:500; }
-    .tag.auto { background:var(--teal-bg); color:var(--teal); }
-    .tag.nurse { background:#e9eff7; color:var(--navy); }
+    .radios { display:flex; gap:18px; flex-wrap:wrap; min-height:38px; align-items:center; }
+    .radios label { display:inline-flex; align-items:center; gap:8px; font-size:14.5px; }
+    .radios input { width:16px; height:16px; accent-color:var(--brand); margin:0; }
 
-    footer { border-top:1px solid var(--line); background:var(--panel); }
-    footer div { max-width:1360px; margin:0 auto; padding:16px 28px; font-size:12px; color:var(--muted); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    /* attachments */
+    .docs { border:1px solid var(--line); border-radius:3px; overflow:hidden; }
+    .doc { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid var(--line); cursor:pointer; background:#fff; }
+    .doc:last-child { border-bottom:0; }
+    .doc:hover { background:#fafbfc; }
+    .doc input { width:16px; height:16px; accent-color:var(--brand); margin:0; }
+    .doc .name { font-weight:600; font-size:14.5px; }
+    .doc .name small { display:block; font-weight:400; color:var(--muted); font-size:12.5px; }
+    .doc .st { font-size:12.5px; color:var(--muted); text-align:right; display:flex; align-items:center; gap:8px; }
+    .doc .file { display:inline-flex; align-items:center; gap:5px; color:var(--body); }
+    .doc .file svg { flex:none; }
+    .doc .need { font-weight:600; color:var(--pend); }
+    .doc:has(input:checked) { background:#fbfdfc; }
+    .uploader { margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px dashed var(--line-strong); border-radius:3px; padding:10px 14px; font-size:13.5px; color:var(--muted); }
+    .uploader button { background:#fff; border:1px solid var(--line-strong); border-radius:3px; padding:6px 12px; font-weight:600; color:var(--brand); }
+    .uploader button:hover { border-color:var(--brand); }
 
-    @media (max-width:1060px) { .shell { grid-template-columns:1fr; gap:0; } .rail { display:none; } .elig { grid-template-columns:repeat(2,1fr); } .elig > div { border-bottom:1px solid var(--line); } }
-    @media (max-width:900px) { .cols { grid-template-columns:1fr; } .topnav { display:none; } .who span { display:none; } }
-    @media (max-width:600px) { .row { grid-template-columns:1fr; } .gbar { display:none; } .shell, .topbar-in { padding-left:16px; padding-right:16px; } }
-    @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+    .review { font-size:14.5px; display:grid; grid-template-columns:140px 1fr; gap:6px 16px; }
+    .review dt { color:var(--muted); }
+    .review dd { font-weight:600; }
+    .attest { margin-top:16px; display:flex; gap:10px; align-items:flex-start; font-size:14px; color:var(--body); padding:12px 14px; background:#f6f8fa; border-radius:3px; }
+    .attest input { width:16px; height:16px; accent-color:var(--brand); margin-top:3px; flex:none; }
+
+    .actions { position:sticky; bottom:0; z-index:5; display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:14px 20px; background:#fff; border-top:1px solid var(--line); border-radius:0 0 var(--r) var(--r); box-shadow:0 -6px 16px -12px rgba(27,36,48,.35); }
+    .btn { min-height:42px; padding:0 20px; border-radius:3px; border:1px solid var(--brand); background:var(--brand); color:#fff; font-weight:700; font-size:15px; white-space:nowrap; }
+    .btn:hover { background:var(--brand-deep); }
+    .btn:disabled { opacity:.65; cursor:progress; }
+    .btn-2 { background:#fff; color:var(--brand); }
+    .btn-2:hover { background:var(--brand-tint); }
+    .btn-link { background:transparent; border-color:transparent; color:var(--brand); font-weight:600; }
+    .btn-link:hover { text-decoration:underline; background:transparent; }
+    .actions .note { margin-left:auto; font-size:12.5px; color:var(--muted); text-align:right; }
+
+    /* ---------- decision panel ---------- */
+    .side { position:sticky; top:16px; display:grid; gap:16px; }
+    .path { padding:6px 20px 16px; }
+    .st { position:relative; padding:14px 0 14px 36px; border-bottom:1px solid var(--line); }
+    .st:last-child { border-bottom:0; }
+    .st::before { content:''; position:absolute; left:10px; top:38px; bottom:-14px; width:2px; background:var(--line); }
+    .st:last-child::before { display:none; }
+    .st .mk { position:absolute; left:0; top:16px; width:22px; height:22px; border-radius:50%; border:2px solid var(--line-strong); background:#fff; display:grid; place-items:center; }
+    .st .mk svg { display:none; }
+    .st h3 { font-size:15px; font-weight:700; }
+    .st p { font-size:13.5px; color:var(--muted); margin-top:2px; }
+    .st dl { display:grid; grid-template-columns:auto 1fr; gap:3px 12px; font-size:13.5px; margin-top:8px; }
+    .st dt { color:var(--muted); }
+    .st dd { font-weight:600; }
+    .st.done .mk { background:var(--brand); border-color:var(--brand); }
+    .st.done .mk svg.ok { display:block; }
+    .st.done::before { background:var(--brand); }
+    .st.active .mk { border-color:var(--brand); }
+    .st.active .mk::after { content:''; width:8px; height:8px; border-radius:50%; background:var(--brand); animation:pulse 1.1s ease-in-out infinite; }
+    .st.failed .mk { background:var(--bad); border-color:var(--bad); }
+    .st.failed .mk svg.x { display:block; }
+    .st.failed h3 { color:var(--bad); }
+    .st.pended .mk { background:var(--pend); border-color:var(--pend); }
+    .st.pended .mk svg.ok { display:block; }
+    .st.review .mk { background:var(--rev); border-color:var(--rev); }
+    .st.review .mk svg.ok { display:block; }
+    @keyframes pulse { 0%,100% { transform:scale(.8); opacity:.7; } 50% { transform:scale(1.15); opacity:1; } }
+
+    .result-box { display:none; margin-top:12px; border-radius:3px; border:1px solid var(--line); background:#fff; overflow:hidden; }
+    .result-box.success, .result-box.pended, .result-box.review, .result-box.error { display:block; }
+    .stamp { display:flex; align-items:center; gap:10px; padding:10px 14px; font-weight:700; font-size:15px; color:#fff; }
+    .stamp svg { flex:none; }
+    .result-box.success .stamp { background:var(--ok); }
+    .result-box.pended .stamp { background:var(--pend); }
+    .result-box.review .stamp { background:var(--rev); }
+    .result-box.error .stamp { background:var(--bad); }
+    .result-box.success { border-color:var(--ok-line); }
+    .result-box.pended { border-color:var(--pend-line); }
+    .result-box.review { border-color:var(--rev-line); }
+    .result-box.error { border-color:var(--bad-line); }
+    .rbody { padding:12px 14px 14px; font-size:14px; color:var(--body); }
+    .rbody p + p { margin-top:6px; }
+    .refno { margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
+    .refno dt { font-size:12.5px; color:var(--muted); }
+    .refno dd { font-size:22px; font-weight:700; color:var(--ink); line-height:1.15; word-break:break-all; }
+    .refno dd.sm { font-size:15px; }
+    .kv { display:grid; grid-template-columns:auto 1fr; gap:4px 14px; font-size:13.5px; margin-top:10px; }
+    .kv dt { color:var(--muted); }
+    .kv dd { font-weight:600; color:var(--ink); }
+    .missing { margin-top:8px; padding-left:18px; font-size:13.5px; }
+    .missing li { margin-top:2px; }
+    .ractions { display:flex; gap:8px; flex-wrap:wrap; padding:0 14px 14px; }
+    .ractions .btn { min-height:34px; font-size:13.5px; padding:0 12px; font-weight:600; }
+
+    .pol { padding:8px 20px 16px; }
+    .pol table { width:100%; border-collapse:collapse; font-size:13.5px; }
+    .pol th, .pol td { text-align:left; padding:8px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+    .pol th { color:var(--muted); font-weight:600; font-size:12.5px; }
+    .pol th:nth-child(1) { width:30%; } .pol th:nth-child(2) { width:42%; } .pol td + td { padding-left:10px; }
+    .pol tr:last-child td { border-bottom:0; }
+    .pol tr.hi td { color:var(--brand); font-weight:600; background:linear-gradient(to right, var(--brand-tint), transparent); }
+    .pol tr.hi td:first-child { box-shadow:inset 3px 0 0 var(--brand); padding-left:10px; }
+    .tag { display:inline-block; padding:1px 8px; border-radius:10px; font-size:12.5px; font-weight:600; white-space:nowrap; }
+    .tag.auto { background:var(--ok-bg); color:var(--ok); }
+    .tag.nurse { background:var(--rev-bg); color:var(--rev); }
+    .pol-foot { font-size:12.5px; color:var(--muted); margin-top:10px; line-height:1.4; }
+    .gold { display:flex; gap:12px; padding:14px 20px; font-size:13.5px; color:var(--body); border-top:1px solid var(--line); }
+    .gold svg { flex:none; margin-top:2px; }
+    .gold b { color:var(--ink); }
+
+    /* ---------- queue ---------- */
+    .queue { margin-top:28px; }
+    .queue-h { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .queue-h h2 { font-size:19px; font-weight:700; }
+    .queue-h a { font-size:14px; font-weight:600; text-decoration:none; }
+    .tiles4 { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    .kpi { background:#fff; border:1px solid var(--line); border-radius:var(--r); padding:14px 18px; text-decoration:none; color:inherit; display:block; border-top:3px solid var(--line-strong); }
+    .kpi:hover { border-color:var(--brand); }
+    .kpi b { display:block; font-size:28px; font-weight:700; line-height:1.1; }
+    .kpi span { display:block; font-size:14px; color:var(--body); margin-top:2px; }
+    .kpi small { display:block; font-size:12.5px; color:var(--muted); margin-top:4px; }
+    .kpi.pend { border-top-color:var(--pend); } .kpi.pend b { color:var(--pend); }
+    .kpi.rev { border-top-color:var(--rev); } .kpi.rev b { color:var(--rev); }
+    .kpi.ok { border-top-color:var(--ok); } .kpi.ok b { color:var(--ok); }
+    .kpi.bad { border-top-color:var(--bad); } .kpi.bad b { color:var(--bad); }
+    .tbl { margin-top:14px; overflow-x:auto; }
+    .tbl table { width:100%; border-collapse:collapse; font-size:14px; background:#fff; border:1px solid var(--line); border-radius:var(--r); min-width:880px; }
+    .tbl th { text-align:left; font-size:12.5px; color:var(--muted); font-weight:600; padding:10px 14px; border-bottom:1px solid var(--line); background:#fafbfc; }
+    .tbl td { padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+    .tbl tr:last-child td { border-bottom:0; }
+    .tbl td a { font-weight:600; text-decoration:none; white-space:nowrap; }
+    .tbl td a:hover { text-decoration:underline; }
+    .tbl .sub { display:block; color:var(--muted); font-size:12.5px; }
+    .chip { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; padding:2px 9px 2px 7px; border-radius:10px; white-space:nowrap; }
+    .chip::before { content:''; width:7px; height:7px; border-radius:50%; background:currentColor; }
+    .chip.ok { color:var(--ok); background:var(--ok-bg); }
+    .chip.pend { color:var(--pend); background:var(--pend-bg); }
+    .chip.rev { color:var(--rev); background:var(--rev-bg); }
+    .chip.bad { color:var(--bad); background:var(--bad-bg); }
+    .due { color:var(--body); }
+    .due.soon { color:var(--pend); font-weight:600; }
+
+    .help3 { margin-top:24px; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .help3 > div { background:#fff; border:1px solid var(--line); border-radius:var(--r); padding:16px 18px; font-size:14px; color:var(--body); }
+    .help3 h3 { font-size:15px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+    .help3 a { font-weight:600; text-decoration:none; }
+    .help3 a:hover { text-decoration:underline; }
+
+    footer { border-top:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; }
+    footer .wrap { padding:20px 24px 24px; display:grid; gap:10px; }
+    footer nav { display:flex; gap:18px; flex-wrap:wrap; }
+    footer nav a { text-decoration:none; color:var(--body); }
+    footer nav a:hover { text-decoration:underline; }
+    footer .legal { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+
+    /* ---------- responsive ---------- */
+    @media (max-width:1240px) { .cols { grid-template-columns:minmax(0,1fr) 340px; } .shell { grid-template-columns:208px minmax(0,1fr); gap:0 24px; } }
+    @media (max-width:1060px) {
+      .shell { grid-template-columns:1fr; gap:0; }
+      .rail { display:none; position:static; border-right:0; border-bottom:1px solid var(--line); padding:12px 0; }
+      .rail.open { display:block; }
+      .menu-btn { display:inline-flex; align-items:center; gap:8px; margin-top:16px; background:#fff; border:1px solid var(--line-strong); border-radius:3px; padding:7px 12px; font-weight:600; color:var(--brand); }
+      .cols { grid-template-columns:1fr; }
+      .side { position:static; }
+      .member { grid-template-columns:1fr 1fr; }
+      .member > div { border-bottom:1px solid var(--line); }
+      .member > div:nth-child(odd):nth-last-child(-n+2), .member > div:last-child { border-bottom:0; }
+      .member > div:nth-child(2n) { border-right:0; }
+      .tiles4 { grid-template-columns:1fr 1fr; }
+      .help3 { grid-template-columns:1fr; }
+      .gnav { display:none; }
+      .stepper { grid-template-columns:repeat(5,1fr); }
+      .stepper li { padding:10px 8px 10px 40px; }
+      .stepper small { display:none; }
+    }
+    @media (max-width:760px) {
+      .util nav, .util .pipe, .util .hours { display:none; }
+      .user span, .user small { display:none; }
+      .brand small { display:none; }
+      .orgbar a { margin-left:0; flex-basis:100%; }
+      .grid, .grid.svc { grid-template-columns:1fr; }
+      .tiles { grid-template-columns:1fr; }
+      .stepper { display:flex; overflow:hidden; }
+      .stepper li.now { flex:1 1 auto; padding:10px 10px 10px 44px; }
+      .stepper li:not(.now) b { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+      .stepper li:not(.now) { flex:0 0 46px; padding:0; min-height:46px; }
+      .stepper li::before { left:11px; top:11px; }
+      .x-m { display:none; }
+      .brand b { font-size:17px; }
+      .hdr .wrap { gap:12px; }
+      .me { gap:4px; }
+      .user > svg { display:none; }
+      .brand { padding-right:0; }
+      .member { grid-template-columns:1fr; }
+      .member > div { border-right:0; border-bottom:1px solid var(--line); }
+      .member > div:last-child { border-bottom:0; }
+      .actions .note { margin-left:0; text-align:left; max-width:none; flex-basis:100%; }
+      .actions .btn { flex:1 1 auto; }
+      .actions .btn-link { flex-basis:100%; }
+      .review { grid-template-columns:1fr; gap:2px; }
+      .review dt { margin-top:8px; }
+      .doc { grid-template-columns:auto 1fr; }
+      .doc .st { grid-column:2; text-align:left; justify-content:flex-start; flex-wrap:wrap; }
+      .tiles4 { grid-template-columns:1fr 1fr; gap:10px; }
+      .kpi b { font-size:24px; }
+      .wrap { padding-left:16px; padding-right:16px; }
+      footer .wrap { padding-left:16px; padding-right:16px; }
+      h1 { font-size:23px; }
+    }
+    @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
   </style>
 </head>
 <body>
-  <div class="gbar"><div class="gbar-in"><span>Provider Services 1-800-555-0142 &nbsp;|&nbsp; Mon–Fri 7am–7pm CT</span><span><a href="#">Payer ID 48210</a><a href="#">Help center</a><a href="#">Sign out</a></span></div></div>
-  <header class="topbar">
-    <div class="topbar-in">
-      <a class="wordmark" href="#" aria-label="Summit Health Plan provider portal">
-        <svg width="34" height="30" viewBox="0 0 34 30" aria-hidden="true"><path d="M2 28 L13 6 L19 16 L23 10 L32 28 Z" fill="#fff"/><path d="M13 6 L19 16 L16.5 20 Z" fill="#9fd6cc"/></svg>
-        <span><b>Summit Health Plan</b><small>Provider portal</small></span>
+  <a class="skip" href="#main">Skip to request form</a>
+
+  <div class="util">
+    <div class="wrap">
+      <span>Provider Services 1-800-555-0142<span class="hours"><span class="pipe">|</span>Mon–Fri 7 am–7 pm CT</span></span>
+      <nav aria-label="Utility"><a href="#">Payer ID 48210</a><a href="#">Provider manual</a><a href="#">Contact us</a><a href="#">Sign out</a></nav>
+    </div>
+  </div>
+
+  <header class="hdr">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Summit Health Plan provider portal home">
+        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+          <rect width="40" height="40" rx="6" fill="#fff"/>
+          <circle cx="29" cy="12" r="4" fill="#e8a33d"/>
+          <path d="M4 32 L15 12 L21 22 L25 16 L36 32 Z" fill="#0b4f6c"/>
+          <path d="M15 12 L18.5 18 L15 21 L11.5 18 Z" fill="#b7d1dd"/>
+        </svg>
+        <span><b>Summit Health Plan</b><small>Provider Portal</small></span>
       </a>
-      <nav class="topnav" aria-label="Portal">
-        <a href="#">Eligibility &amp; benefits</a><a href="#" aria-current="page">Prior authorization</a><a href="#">Claims</a><a href="#">Remittance</a><a href="#">Reports</a>
+      <nav class="gnav" aria-label="Primary">
+        <a href="#">Eligibility &amp; benefits</a><a href="#">Claims &amp; payments</a><a href="#" aria-current="page">Authorizations</a><a href="#">Referrals</a><a href="#">Reports</a><a href="#">Resources</a>
       </nav>
-      <div class="who"><div><span>Northside Orthopedics</span><small>NPI 1093817265 &nbsp; TIN 36-4471290</small></div><div class="av">NO</div></div>
+      <div class="me">
+        <button class="ibtn" type="button" aria-label="Notifications, 3 unread"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 14V9a5 5 0 0 1 10 0v5l1.5 2h-13z"/><path d="M8 17a2 2 0 0 0 4 0"/></svg><span class="dot">3</span></button>
+        <button class="user" type="button" aria-haspopup="menu"><span class="av">DW</span><div><span>Dana Whitfield</span><small>Authorization coordinator</small></div><svg width="12" height="8" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+      </div>
     </div>
   </header>
 
-  <div class="shell">
-    <aside class="rail" aria-label="Prior authorization">
-      <h4>Prior authorization</h4>
+  <div class="orgbar">
+    <div class="wrap">
+      <span>Acting on behalf of <b>Northside Orthopedics</b></span><span class="sep x-m">|</span><span class="num">NPI 1093817265</span><span class="sep x-m">|</span><span class="num x-m">TIN 36-4471290</span><span class="sep x-m">|</span><span class="x-m">Participating, Choice and Select networks</span>
+      <a href="#">Switch organization</a>
+    </div>
+  </div>
+
+  <div class="wrap shell">
+    <button class="menu-btn" type="button" id="menuBtn" aria-expanded="false" aria-controls="rail"><svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><path d="M0 1h16M0 6h16M0 11h16" stroke="currentColor" stroke-width="1.8"/></svg>Authorizations menu</button>
+    <nav class="rail" id="rail" aria-label="Authorizations">
+      <h2>Authorizations</h2>
+      <a href="#">Dashboard</a>
       <a href="#" aria-current="page">New request</a>
-      <div class="sub"><a href="#">Imaging</a><a href="#">Surgery</a><a href="#">Therapy</a><a href="#">DME</a></div>
-      <a href="#">Request status</a>
-      <a href="#">Pended — needs documents <code>12</code></a>
-      <a href="#">Appeals</a>
-      <h4>Reference</h4>
-      <a href="#">Clinical criteria library</a>
+      <div class="sub"><a href="#">Imaging</a><a href="#">Surgery</a><a href="#">Therapy &amp; rehab</a><a href="#">Durable medical equipment</a><a href="#">Specialty drugs</a></div>
+      <a href="#">Request status <span class="cnt rev num">7</span></a>
+      <a href="#">Action required <span class="cnt num">12</span></a>
+      <a href="#">Appeals &amp; reconsiderations</a>
       <a href="#">Gold card program</a>
-      <a href="#">CMS-0057-F FAQ</a>
-    </aside>
+      <h2>Reference</h2>
+      <a href="#">Clinical policy library</a>
+      <a href="#">Code lookup</a>
+      <a href="#">CMS-0057-F and the Prior Authorization API</a>
+      <a href="#">Fax and paper forms</a>
+    </nav>
 
-    <main class="content">
-      <div class="crumbs"><a href="#">Prior authorization</a><span>/</span><a href="#">New request</a><span>/</span>Imaging</div>
-      <h1>New prior authorization request</h1>
-      <p class="lead">Request approval for outpatient imaging, surgery and therapy before you schedule. Office-based requests that meet clinical criteria are decided instantly; the rest go to nurse review.</p>
+    <main class="content" id="main">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#">Authorizations</a><span aria-hidden="true">›</span><a href="#">New request</a><span aria-hidden="true">›</span><span aria-current="page">Imaging</span></nav>
+      <div class="titlebar">
+        <h1>New authorization request</h1>
+        <div class="draft"><span>Draft <b class="num">AR-26-118834</b></span><span class="saved">Saved 9:41 am</span></div>
+      </div>
 
-      <dl class="elig" aria-label="Member eligibility">
-        <div><dt>Member</dt><dd id="eligName">Jordan Rivera <code>SHP-448210</code></dd></div>
-        <div><dt>Plan</dt><dd id="eligPlan">Gold PPO — Choice Network</dd></div>
-        <div><dt>Eligibility</dt><dd class="ok">Active through Dec 31, 2026</dd></div>
-        <div><dt>Primary care</dt><dd id="eligPcp">Dr. Amara Okafor</dd></div>
-        <div><dt>Deductible</dt><dd id="eligDed">$1,860 of $3,000 met<div class="bar"><i id="eligBar"></i></div></dd></div>
+      <ol class="stepper" aria-label="Request steps">
+        <li class="done"><b>Member</b><small>Eligibility verified</small></li>
+        <li class="done"><b>Service</b><small>Procedure and site</small></li>
+        <li class="done"><b>Clinical</b><small>Diagnosis and urgency</small></li>
+        <li class="done"><b>Attachments</b><small>2 documents</small></li>
+        <li class="now" aria-current="step"><b>Review &amp; submit</b><small>Check and send</small></li>
+      </ol>
+
+      <dl class="member" aria-label="Member eligibility">
+        <div><dt>Member</dt><dd id="eligName">Jordan Rivera<small>ID <span class="num">SHP-448210</span> &nbsp; DOB 03/14/1981</small></dd></div>
+        <div><dt>Coverage</dt><dd><span class="pill">Active</span><small>Through Dec 31, 2026</small></dd></div>
+        <div><dt>Plan</dt><dd id="eligPlan">Gold PPO<small>Choice Network, group <span class="num">GRP-7781</span></small></dd></div>
+        <div><dt>Primary care</dt><dd id="eligPcp">Amara Okafor, MD<small id="eligRef">No referral required</small></dd></div>
+        <div><dt>Deductible, in network</dt><dd id="eligDed"><span class="num">$1,860 of $3,000</span><div class="meter"><i id="eligBar" style="width:62%"></i></div></dd></div>
       </dl>
 
       <div class="cols">
         <form id="demoForm" class="panel" novalidate>
-          <div class="panel-h"><h2>Request details</h2><span>Pre-filled for today's MRI order</span></div>
+          <div class="panel-h"><h2>Review the request</h2><span class="meta">All steps complete. Change anything here before you submit.</span></div>
 
-          <fieldset>
-            <legend>Member and provider</legend>
-            <div class="row">
-              <div><label class="f" for="memberId">Member <span class="req">*</span></label>
-                <select id="memberId"><option value="SHP-448210" selected>Jordan Rivera — SHP-448210 (Gold PPO)</option><option value="SHP-448377">Priya Natarajan — SHP-448377 (Silver HMO)</option></select></div>
-              <div><label class="f" for="reqProv">Requesting provider</label><input id="reqProv" type="text" value="Lena Park, MD — Orthopedic surgery" readonly></div>
-              <div><label class="f" for="servProv">Servicing facility</label><input id="servProv" type="text" value="Northside Medical Center — Imaging" readonly></div>
-              <div><label class="f" for="urgency">Urgency</label><input id="urgency" type="text" value="Standard (72 hours)" readonly></div>
+          <section class="sec" id="s1" aria-labelledby="s1h">
+            <div class="sec-h"><h3 id="s1h"><span>1</span>Member and provider</h3><a href="#s1">Edit step</a></div>
+            <div class="grid">
+              <div class="fld"><label for="memberId">Member<span class="req" aria-hidden="true">*</span></label>
+                <select id="memberId"><option value="SHP-448210" selected>Jordan Rivera, SHP-448210 (Gold PPO)</option><option value="SHP-448377">Priya Natarajan, SHP-448377 (Silver HMO)</option></select></div>
+              <div class="fld"><span class="lbl">Requesting provider</span><div class="ro">Lena Park, MD, Orthopedic surgery<span class="npi num">NPI 1467539024</span></div></div>
+              <div class="fld"><span class="lbl">Servicing facility</span><div class="ro">Northside Medical Center, Imaging<span class="npi num">NPI 1205896631</span></div></div>
+              <div class="fld"><span class="lbl">Decision notice to</span><div class="ro">Portal inbox and fax <span class="num">312-555-0190</span></div></div>
             </div>
-          </fieldset>
+          </section>
 
-          <fieldset>
-            <legend>Service requested</legend>
-            <div class="row">
-              <div><label class="f" for="cpt">Procedure (CPT) <span class="req">*</span></label>
-                <select id="cpt"><option value="72148" selected>72148 — MRI lumbar spine without contrast</option><option value="29881">29881 — Knee arthroscopy with meniscectomy</option><option value="97110">97110 — Therapeutic exercise, 15 min</option></select></div>
-              <div><label class="f" for="placeOfService">Place of service <span class="req">*</span></label>
-                <select id="placeOfService"><option value="22" selected>22 — Outpatient hospital</option><option value="11">11 — Physician office</option><option value="24">24 — Ambulatory surgical center</option></select>
-                <div class="hint">Northside Medical Center bills imaging as <code>POS 22</code>.</div></div>
-              <div class="full"><label class="f" for="dx">Diagnosis (ICD-10) <span class="req">*</span></label><input id="dx" type="text" value="M54.16 — Radiculopathy, lumbar region"></div>
+          <section class="sec" id="s2" aria-labelledby="s2h">
+            <div class="sec-h"><h3 id="s2h"><span>2</span>Service requested</h3><a href="#s2">Edit step</a></div>
+            <div class="grid svc">
+              <div class="fld"><label for="cpt">Procedure code (CPT)<span class="req" aria-hidden="true">*</span></label>
+                <select id="cpt"><option value="72148" selected>72148 — MRI lumbar spine without contrast</option><option value="29881">29881 — Knee arthroscopy with meniscectomy</option><option value="97110">97110 — Physical therapy, therapeutic exercise</option></select></div>
+              <div class="fld"><span class="lbl">Units and service window</span><div class="ro"><span id="unitsText">1 unit</span><span class="npi">Nov 6 – Dec 6, 2026</span></div></div>
+              <div class="fld full">
+                <span class="lbl" id="posLbl">Place of service<span class="req" aria-hidden="true">*</span></span>
+                <div class="tiles" role="radiogroup" aria-labelledby="posLbl">
+                  <label class="tile"><input type="radio" name="posPick" value="22" checked><b><span class="num">22</span>Outpatient hospital</b><small>Hospital imaging or surgery department</small></label>
+                  <label class="tile"><input type="radio" name="posPick" value="11"><b><span class="num">11</span>Physician office</b><small>In-office imaging or therapy</small></label>
+                  <label class="tile"><input type="radio" name="posPick" value="24"><b><span class="num">24</span>Ambulatory surgical center</b><small>Freestanding surgical facility</small></label>
+                </div>
+                <input type="hidden" id="placeOfService" value="22">
+                <div class="help" id="posHelp">Northside Medical Center bills imaging as place of service 22. Site of care affects which clinical policy applies.</div>
+              </div>
             </div>
-          </fieldset>
+          </section>
 
-          <fieldset>
-            <legend>Clinical documentation attached</legend>
+          <section class="sec" id="s3" aria-labelledby="s3h">
+            <div class="sec-h"><h3 id="s3h"><span>3</span>Clinical information</h3><a href="#s3">Edit step</a></div>
+            <div class="grid">
+              <div class="fld"><label for="dx">Primary diagnosis (ICD-10-CM)<span class="req" aria-hidden="true">*</span></label><input id="dx" type="text" value="M54.16 — Radiculopathy, lumbar region"></div>
+              <div class="fld"><span class="lbl">Urgency</span>
+                <div class="radios"><label><input type="radio" name="urgency" value="standard" checked> Standard, decision within 72 hours</label><label><input type="radio" name="urgency" value="expedited"> Expedited, 24 hours</label></div>
+                <div class="help">CMS-0057-F requires a decision within 7 calendar days for standard requests. Summit commits to 72 hours.</div></div>
+              <div class="fld full"><label for="summary">Clinical summary</label>
+                <textarea id="summary" rows="3">Low back pain radiating to the left leg for 11 weeks. Six weeks of supervised physical therapy and NSAIDs without improvement. Decreased left ankle reflex and L5 dermatomal numbness on exam 10/28. Requesting MRI to evaluate for disc herniation before surgical consult.</textarea></div>
+            </div>
+          </section>
+
+          <section class="sec" id="s4" aria-labelledby="s4h">
+            <div class="sec-h"><h3 id="s4h"><span>4</span>Clinical documentation</h3><a href="#s4">Edit step</a></div>
             <div class="docs">
-              <label><input type="checkbox" name="doc" value="6 weeks conservative therapy" checked> 6 weeks conservative therapy <small>PT notes, 09/14–10/26</small></label>
-              <label><input type="checkbox" name="doc" value="Neurologic deficit note" checked> Neurologic deficit note <small>Exam, 10/28</small></label>
-              <label><input type="checkbox" name="doc" value="MRI report"> MRI report <small>not yet performed</small></label>
-              <label><input type="checkbox" name="doc" value="Plan of care"> Plan of care <small>therapy only</small></label>
+              <label class="doc"><input type="checkbox" name="doc" value="6 weeks conservative therapy" checked><span class="name">6 weeks conservative therapy<small>Physical therapy notes, 09/14–10/26, Northside PT</small></span><span class="st"><span class="file"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M1 1h8l4 4v10H1z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M9 1v4h4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>PDF, 6 pages</span></span></label>
+              <label class="doc"><input type="checkbox" name="doc" value="Neurologic deficit note" checked><span class="name">Neurologic deficit note<small>Office exam, 10/28, Lena Park, MD</small></span><span class="st"><span class="file"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M1 1h8l4 4v10H1z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M9 1v4h4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>PDF, 2 pages</span></span></label>
+              <label class="doc"><input type="checkbox" name="doc" value="MRI report"><span class="name">MRI report<small>Not yet performed</small></span><span class="st"><span class="need" id="needMri" hidden>Required for this policy</span><span>No file</span></span></label>
+              <label class="doc"><input type="checkbox" name="doc" value="Plan of care"><span class="name">Plan of care<small>Therapy requests only</small></span><span class="st"><span class="need" id="needPoc" hidden>Required for this policy</span><span>No file</span></span></label>
             </div>
-          </fieldset>
+            <div class="uploader"><span>Drag files here or add from the member's chart. PDF, TIFF and JPG up to 25 MB.</span><button type="button">Add document</button></div>
+          </section>
+
+          <section class="sec" id="s5" aria-labelledby="s5h">
+            <div class="sec-h"><h3 id="s5h"><span>5</span>Review and attest</h3></div>
+            <dl class="review">
+              <dt>Request</dt><dd id="rvService">72148 — MRI lumbar spine without contrast at outpatient hospital</dd>
+              <dt>Member</dt><dd id="rvMember">Jordan Rivera, SHP-448210</dd>
+              <dt>Diagnosis</dt><dd id="rvDx">M54.16 — Radiculopathy, lumbar region</dd>
+              <dt>Documentation</dt><dd id="rvDocs">2 documents attached</dd>
+              <dt>Clinical policy</dt><dd id="rvPolicy">MP-IMG-0142, Lumbar spine MRI</dd>
+            </dl>
+            <label class="attest"><input type="checkbox" id="attest" checked><span>I attest that the information in this request is accurate and complete, that the ordering provider has reviewed it, and that the attached records are part of the member's medical record.</span></label>
+          </section>
 
           <div class="actions">
             <button type="submit" class="btn" id="submitBtn">Submit for review</button>
-            <button type="button" class="btn btn-ghost" id="resetBtn">Reset form</button>
-            <span class="note">Decision is returned to this page and faxed to 312-555-0190.</span>
+            <button type="button" class="btn btn-2" id="resetBtn">Reset to saved draft</button>
+            <button type="button" class="btn btn-link">Save and finish later</button>
+            <span class="note">Determination posts here and to your inbox.</span>
           </div>
         </form>
 
-        <aside>
-          <section class="panel" aria-labelledby="ladder-h">
-            <div class="panel-h"><h2 id="ladder-h">Decision path</h2><span id="ladderMeta">Request not yet submitted</span></div>
-            <div class="ladder">
-              <div class="step done" id="step1"><i>&#10003;</i><h3>Eligibility verified</h3><p id="step1Text">Member active, imaging benefit in network. No referral required under Gold PPO.</p></div>
-              <div class="step" id="step2"><i></i><h3>Clinical criteria</h3><p id="step2Text">Matches the procedure and place of service against Summit's medical policy.</p>
-                <dl><dt>Policy</dt><dd><code>MP-IMG-0142</code> Lumbar spine MRI</dd><dt>Site of care</dt><dd id="sosText">Outpatient hospital</dd></dl></div>
-              <div class="step" id="step3"><i></i><h3>Decision</h3><p id="step3Text">Issued instantly for auto-approved requests, otherwise within the urgency window.</p>
+        <aside class="side" aria-label="Decision">
+          <section class="panel" aria-labelledby="dec-h">
+            <div class="panel-h"><h2 id="dec-h">Determination</h2><span class="meta" id="pathMeta">Not yet submitted</span></div>
+            <div class="path">
+              <div class="st done" id="step1"><span class="mk" aria-hidden="true"><svg class="ok" width="12" height="10" viewBox="0 0 12 10"><path d="M1 5l3.5 3.5L11 1.5" fill="none" stroke="#fff" stroke-width="2"/></svg></span><h3>Eligibility verified</h3><p id="step1Text">Member active, imaging benefit covered in network. No referral required under Gold PPO.</p></div>
+              <div class="st" id="step2"><span class="mk" aria-hidden="true"><svg class="ok" width="12" height="10" viewBox="0 0 12 10"><path d="M1 5l3.5 3.5L11 1.5" fill="none" stroke="#fff" stroke-width="2"/></svg><svg class="x" width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1l-8 8" stroke="#fff" stroke-width="2"/></svg></span><h3>Clinical criteria</h3><p id="step2Text">The procedure and site of care are matched against Summit's medical policy.</p>
+                <dl><dt>Policy</dt><dd id="polText">MP-IMG-0142, Lumbar spine MRI</dd><dt>Site of care</dt><dd id="sosText">Outpatient hospital</dd></dl></div>
+              <div class="st" id="step3"><span class="mk" aria-hidden="true"><svg class="ok" width="12" height="10" viewBox="0 0 12 10"><path d="M1 5l3.5 3.5L11 1.5" fill="none" stroke="#fff" stroke-width="2"/></svg><svg class="x" width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1l-8 8" stroke="#fff" stroke-width="2"/></svg></span><h3>Determination</h3><p id="step3Text">Issued instantly when criteria are met, otherwise within the urgency window after nurse review.</p>
                 <div class="result-box" id="result" role="status" aria-live="polite"></div></div>
             </div>
           </section>
 
-          <section class="panel" style="margin-top:16px" aria-labelledby="crit-h">
-            <div class="panel-h"><h2 id="crit-h">Criteria for 72148</h2><span>Medical policy MP-IMG-0142</span></div>
-            <div class="crit">
-              <table>
-                <thead><tr><th>Site of care</th><th>Documentation</th><th>Decision</th></tr></thead>
-                <tbody>
-                  <tr><td>Physician office</td><td>6 weeks conservative therapy</td><td><span class="tag auto">Auto-approve</span></td></tr>
-                  <tr class="hi"><td>Outpatient hospital</td><td>Conservative therapy + neurologic deficit note</td><td><span class="tag nurse">Nurse review, 72 h</span></td></tr>
-                </tbody>
+          <section class="panel" aria-labelledby="pol-h">
+            <div class="panel-h"><h2 id="pol-h">Clinical policy</h2><span class="meta" id="polMeta">MP-IMG-0142, effective 01/01/2026</span></div>
+            <div class="pol">
+              <table id="polTable">
+                <thead><tr><th>Site of care</th><th>Documentation required</th><th>Review</th></tr></thead>
+                <tbody></tbody>
               </table>
+              <p class="pol-foot" id="polFoot">Office-based lumbar MRI that meets conservative-therapy criteria is approved at submission. Hospital-based imaging goes to nurse review for site-of-care appropriateness.</p>
             </div>
+            <div class="gold"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 1.5l2.2 4.6 5 .7-3.6 3.5.9 5L9 12.9l-4.5 2.4.9-5L1.8 6.8l5-.7z" fill="#e8a33d"/></svg><div><b>Gold card status, imaging:</b> not yet eligible. Northside Orthopedics approved 87% of imaging requests in the last 12 months; 90% unlocks authorization-free ordering.</div></div>
           </section>
         </aside>
+      </div>
+
+      <section class="queue" aria-labelledby="q-h">
+        <div class="queue-h"><h2 id="q-h">Your authorization queue</h2><a href="#">View all requests</a></div>
+        <div class="tiles4">
+          <a class="kpi pend" href="#"><b class="num">12</b><span>Action required</span><small>Pended for documentation</small></a>
+          <a class="kpi rev" href="#"><b class="num">7</b><span>In clinical review</span><small>Next decision due today, 4:00 pm</small></a>
+          <a class="kpi ok" href="#"><b class="num">41</b><span>Approved this week</span><small>Average decision 1.8 hours</small></a>
+          <a class="kpi bad" href="#"><b class="num">2</b><span>Denied, appealable</span><small>Peer-to-peer available</small></a>
+        </div>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Reference</th><th>Member</th><th>Service</th><th>Site of care</th><th>Submitted</th><th>Status</th><th>Decision due</th></tr></thead>
+            <tbody>
+              <tr><td><a href="#" class="num">PA-7C21E9A4</a></td><td>Marcus Bell<span class="sub num">SHP-447902</span></td><td>73721 — MRI knee without contrast</td><td>Physician office</td><td>Today, 8:52 am</td><td><span class="chip ok">Approved</span></td><td class="due">Decided</td></tr>
+              <tr><td><a href="#" class="num">PA-3F8D10B7</a></td><td>Elena Vasquez<span class="sub num">SHP-446118</span></td><td>29827 — Arthroscopic rotator cuff repair</td><td>Ambulatory surgical center</td><td>Yesterday, 3:10 pm</td><td><span class="chip rev">In clinical review</span></td><td class="due soon">Today, 4:00 pm</td></tr>
+              <tr><td><a href="#" class="num">PA-9A04C2D1</a></td><td>Theo Lindqvist<span class="sub num">SHP-448055</span></td><td>97110 — Physical therapy, 12 visits</td><td>Physician office</td><td>Oct 30, 11:24 am</td><td><span class="chip pend">Action required</span></td><td class="due">Plan of care needed</td></tr>
+              <tr><td><a href="#" class="num">PA-5B6E77F0</a></td><td>Grace Adeyemi<span class="sub num">SHP-445730</span></td><td>27447 — Total knee arthroplasty</td><td>Inpatient hospital</td><td>Oct 29, 9:05 am</td><td><span class="chip rev">In clinical review</span></td><td class="due">Nov 3, 9:05 am</td></tr>
+              <tr><td><a href="#" class="num">PA-1D93AB62</a></td><td>Samuel Ortiz<span class="sub num">SHP-447211</span></td><td>72148 — MRI lumbar spine without contrast</td><td>Physician office</td><td>Oct 28, 2:41 pm</td><td><span class="chip ok">Approved</span></td><td class="due">Decided</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="help3">
+        <div><h3>Prior Authorization API</h3>Under CMS-0057-F, Summit returns decisions and required-documentation lists through the FHIR Prior Authorization API. <a href="#">Connect your practice system</a></div>
+        <div><h3>Peer-to-peer review</h3>Request a conversation with a Summit medical director within 5 business days of an adverse determination. <a href="#">Schedule a peer-to-peer</a></div>
+        <div><h3>Need help with this request?</h3>Provider Services 1-800-555-0142, Mon–Fri 7 am–7 pm CT, or <a href="#">start a secure chat</a>. Reference your draft number.</div>
       </div>
     </main>
   </div>
 
-  <footer><div><span>&copy; 2026 Summit Health Plan, Inc. &nbsp; Payer ID 48210 &nbsp; Provider Services 1-800-555-0142</span><span>Fictional demo brand. Synthetic data only, no PHI.</span></div></footer>
+  <footer>
+    <div class="wrap">
+      <nav aria-label="Legal"><a href="#">Provider manual</a><a href="#">Clinical policies</a><a href="#">Nondiscrimination notice</a><a href="#">Privacy practices</a><a href="#">Terms of use</a><a href="#">Accessibility</a><a href="#">Language assistance</a></nav>
+      <div class="legal"><span>&copy; 2026 Summit Health Plan, Inc. Payer ID 48210. Decision turnaround times follow CMS-0057-F and applicable state law.</span><span>Fictional demo brand. Synthetic data only, no PHI.</span></div>
+    </div>
+  </footer>
 
   <script>
     (function () {
@@ -278,14 +589,38 @@
     })();
   </script>
   <script>
-    const CTA = "Submit for review";
+    const CTA = 'Submit for review';
     const POS_LABEL = { '22': 'Outpatient hospital', '11': 'Physician office', '24': 'Ambulatory surgical center' };
+    const CPT_LABEL = { '72148': '72148 — MRI lumbar spine without contrast', '29881': '29881 — Knee arthroscopy with meniscectomy', '97110': '97110 — Physical therapy, therapeutic exercise' };
+    const POLICY = {
+      '72148': { id: 'MP-IMG-0142', name: 'Lumbar spine MRI', eff: '01/01/2026', units: '1 unit',
+        rows: [['Physician office', '6 weeks conservative therapy', 'auto'], ['Outpatient hospital', 'Conservative therapy and neurologic deficit note', 'nurse', '72 h']],
+        foot: 'Office-based lumbar MRI that meets conservative-therapy criteria is approved at submission. Hospital-based imaging goes to nurse review for site-of-care appropriateness.' },
+      '29881': { id: 'MP-SUR-0318', name: 'Knee arthroscopy', eff: '01/01/2026', units: '1 procedure',
+        rows: [['Ambulatory surgical center', 'MRI report and ortho consult note', 'nurse', '48 h']],
+        foot: 'Arthroscopic meniscectomy requires imaging confirmation of a meniscal tear and a documented orthopedic evaluation.' },
+      '97110': { id: 'MP-THR-0071', name: 'Outpatient therapy', eff: '01/01/2026', units: '12 visits',
+        rows: [['Physician office', 'Plan of care signed by the ordering provider', 'auto']],
+        foot: 'Therapeutic exercise with a current plan of care is approved at submission for up to 12 visits per episode.' },
+    };
+    const MEMBERS = {
+      'SHP-448210': { name: 'Jordan Rivera', dob: '03/14/1981', plan: 'Gold PPO', net: 'Choice Network, group GRP-7781', pcp: 'Amara Okafor, MD', ref: 'No referral required', met: 1860, ded: 3000, elig: 'Member active, imaging benefit covered in network. No referral required under Gold PPO.' },
+      'SHP-448377': { name: 'Priya Natarajan', dob: '07/02/1989', plan: 'Silver HMO', net: 'Select Network, group GRP-7781', pcp: 'Ben Castillo, MD', ref: 'Referral REF-20931 on file', met: 420, ded: 4500, elig: 'Member active, imaging benefit covered in network. PCP referral REF-20931 on file for Silver HMO.' },
+    };
     const form = document.getElementById('demoForm');
     const btn = document.getElementById('submitBtn');
     const result = document.getElementById('result');
     const step2 = document.getElementById('step2');
     const step3 = document.getElementById('step3');
     const pos = document.getElementById('placeOfService');
+    const cptSel = document.getElementById('cpt');
+    const memberSel = document.getElementById('memberId');
+    const dx = document.getElementById('dx');
+    const $ = (id) => document.getElementById(id);
+    const ICON_OK = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M4.5 8l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="1.8"/></svg>';
+    const ICON_WAIT = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M8 4v4.5l3 1.5" fill="none" stroke="#fff" stroke-width="1.8"/></svg>';
+    const ICON_BAD = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M8 4.5v4M8 11v.5" stroke="#fff" stroke-width="1.8"/></svg>';
+
     function devinFields() {
       return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' };
     }
@@ -294,63 +629,116 @@
       return { memberId: document.getElementById('memberId').value, cpt: document.getElementById('cpt').value, placeOfService: pos.value,
         diagnosis: document.getElementById('dx').value, attachedDocs: Array.from(document.querySelectorAll('input[name=doc]:checked')).map((c) => c.value) };
     }
-    function syncSite() {
-      document.getElementById('sosText').textContent = POS_LABEL[pos.value] || pos.value;
-      document.querySelectorAll('.crit tbody tr').forEach((tr) => tr.classList.toggle('hi', tr.firstElementChild.textContent === POS_LABEL[pos.value]));
+    function docCount() { return document.querySelectorAll('input[name=doc]:checked').length; }
+
+    function syncPolicy() {
+      const p = POLICY[cptSel.value];
+      const site = POS_LABEL[pos.value] || pos.value;
+      $('polMeta').textContent = p.id + ', effective ' + p.eff;
+      $('polText').textContent = p.id + ', ' + p.name;
+      $('rvPolicy').textContent = p.id + ', ' + p.name;
+      $('polFoot').textContent = p.foot;
+      $('unitsText').textContent = p.units;
+      $('sosText').textContent = site;
+      const tb = document.querySelector('#polTable tbody');
+      tb.innerHTML = p.rows.map((r) => '<tr' + (r[0] === site ? ' class="hi"' : '') + '><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + (r[2] === 'auto' ? '<span class="tag auto">Approved at submission</span>' : '<span class="tag nurse">Nurse review, ' + esc(r[3]) + '</span>') + '</td></tr>').join('');
+      const need = p.rows.flatMap((r) => r[1]);
+      $('needMri').hidden = cptSel.value !== '29881';
+      $('needPoc').hidden = cptSel.value !== '97110';
+      $('posHelp').textContent = pos.value === '22' ? 'Northside Medical Center bills imaging as place of service 22. Site of care affects which clinical policy applies.'
+        : pos.value === '11' ? 'Office-based services that meet policy criteria are decided at submission.' : 'Surgical requests at a freestanding facility are reviewed by a Summit nurse reviewer.';
     }
-    function setLadder(state) {
-      step2.className = 'step' + (state.s2 ? ' ' + state.s2 : '');
-      step3.className = 'step' + (state.s3 ? ' ' + state.s3 : '');
-      document.getElementById('ladderMeta').textContent = state.meta;
-      if (state.t2) document.getElementById('step2Text').textContent = state.t2;
-      if (state.t3) document.getElementById('step3Text').textContent = state.t3;
+    function syncReview() {
+      const m = MEMBERS[memberSel.value];
+      $('rvService').textContent = CPT_LABEL[cptSel.value] + ' at ' + (POS_LABEL[pos.value] || pos.value).toLowerCase();
+      $('rvMember').textContent = (m ? m.name : '') + ', ' + memberSel.value;
+      $('rvDx').textContent = dx.value;
+      const n = docCount();
+      $('rvDocs').textContent = n === 0 ? 'No documents attached' : n + (n === 1 ? ' document attached' : ' documents attached');
+      document.querySelector('.stepper li:nth-child(4) small').textContent = n + (n === 1 ? ' document' : ' documents');
     }
-    function renderSuccess(d) {
-      const status = d.status || '';
-      const title = { approved: 'Approved', pended: 'Pended — documentation needed', 'in-clinical-review': 'Sent to clinical review' }[status] || status;
-      const cls = { approved: 'success', pended: 'pended', 'in-clinical-review': 'review' }[status] || 'success';
-      const extra = d.missing ? '<div class="ref">Missing: ' + d.missing.map(esc).join(', ') + '</div>' : '';
-      result.className = 'result-box ' + cls;
-      result.innerHTML = '<div class="result-title">' + esc(title) + '</div><div>' + esc(d.reason) + '</div><div class="ref">Request ' + esc(d.requestId) + ' &nbsp; ' + esc(d.procedure) + ' at ' + esc(d.siteOfService) + '</div>' + extra;
-      setLadder({ s2: 'done', s3: cls === 'success' ? 'done' : cls, meta: 'Decided ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), t2: 'Criteria matched for ' + d.procedure + '.', t3: 'Decision issued and recorded on the member file.' });
-    }
-    const MEMBERS = { 'SHP-448210': { name: 'Jordan Rivera', plan: 'Gold PPO — Choice Network', pcp: 'Dr. Amara Okafor', met: 1860, ded: 3000, elig: 'Member active, imaging benefit in network. No referral required under Gold PPO.' }, 'SHP-448377': { name: 'Priya Natarajan', plan: 'Silver HMO — Select Network', pcp: 'Dr. Ben Castillo', met: 420, ded: 4500, elig: 'Member active, imaging benefit in network. PCP referral REF-20931 on file (Silver HMO).' } };
-    const memberSel = document.getElementById('memberId');
     function syncMember() {
       const m = MEMBERS[memberSel.value]; if (!m) return;
-      document.getElementById('eligName').innerHTML = esc(m.name) + ' <code>' + esc(memberSel.value) + '</code>';
-      document.getElementById('eligPlan').textContent = m.plan;
-      document.getElementById('eligPcp').textContent = m.pcp;
-      document.getElementById('eligDed').firstChild.textContent = '$' + m.met.toLocaleString() + ' of $' + m.ded.toLocaleString() + ' met';
-      document.getElementById('eligBar').style.width = Math.round((m.met / m.ded) * 100) + '%';
-      document.getElementById('step1Text').textContent = m.elig;
+      $('eligName').innerHTML = esc(m.name) + '<small>ID <span class="num">' + esc(memberSel.value) + '</span> &nbsp; DOB ' + esc(m.dob) + '</small>';
+      $('eligPlan').innerHTML = esc(m.plan) + '<small>' + esc(m.net) + '</small>';
+      $('eligPcp').innerHTML = esc(m.pcp) + '<small id="eligRef">' + esc(m.ref) + '</small>';
+      $('eligDed').firstChild.textContent = '$' + m.met.toLocaleString() + ' of $' + m.ded.toLocaleString();
+      $('eligBar').style.width = Math.round((m.met / m.ded) * 100) + '%';
+      $('step1Text').textContent = m.elig;
     }
-    memberSel.addEventListener('change', syncMember); syncMember();
-    pos.addEventListener('change', syncSite); syncSite();
-    document.getElementById('resetBtn').addEventListener('click', () => { form.reset(); result.className = 'result-box'; result.innerHTML = ''; syncSite(); syncMember(); setLadder({ meta: 'Request not yet submitted', t2: "Matches the procedure and place of service against Summit's medical policy.", t3: 'Issued instantly for auto-approved requests, otherwise within the urgency window.' }); });
+    function setPath(state) {
+      step2.className = 'st' + (state.s2 ? ' ' + state.s2 : '');
+      step3.className = 'st' + (state.s3 ? ' ' + state.s3 : '');
+      $('pathMeta').textContent = state.meta;
+      if (state.t2) $('step2Text').textContent = state.t2;
+      if (state.t3) $('step3Text').textContent = state.t3;
+    }
+    function clearResult() { result.className = 'result-box'; result.innerHTML = ''; }
+    function timeNow() { return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+    function siteLabel(s) { return String(s || '').replace(/[-_]/g, ' ').replace(/^\w/, (c) => c.toUpperCase()); }
+
+    function renderSuccess(d) {
+      const status = d.status || '';
+      const cls = { approved: 'success', pended: 'pended', 'in-clinical-review': 'review' }[status] || 'success';
+      const title = { approved: 'Approved', pended: 'Pended, documentation required', 'in-clinical-review': 'In clinical review' }[status] || status;
+      const icon = cls === 'success' ? ICON_OK : ICON_WAIT;
+      const refLabel = cls === 'success' ? 'Authorization number' : 'Reference number';
+      const kv = '<dl class="kv"><dt>Service</dt><dd>' + esc(d.procedure) + '</dd><dt>Site of care</dt><dd>' + esc(siteLabel(d.siteOfService)) + '</dd>'
+        + (cls === 'success' ? '<dt>Valid</dt><dd>Nov 6, 2026 – Feb 4, 2027</dd>' : '') + '</dl>';
+      let body = '<p>' + esc(d.reason) + '.</p>';
+      if (cls === 'success') body += '<p>Recorded on the member file and sent to your Authorizations inbox. Schedule the service and include the authorization number on the claim.</p>';
+      if (cls === 'review') body += '<p>A Summit nurse reviewer has the request. You will be notified here and by fax when a determination is made.</p>';
+      if (cls === 'pended' && d.missing) body += '<p>Upload the following within 14 days to resume review:</p><ul class="missing">' + d.missing.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+      result.className = 'result-box ' + cls;
+      result.innerHTML = '<div class="stamp">' + icon + esc(title) + '</div><div class="rbody">' + body + '<dl class="refno"><dt>' + refLabel + '</dt><dd class="num">' + esc(d.requestId) + '</dd></dl>' + kv + '</div>'
+        + '<div class="ractions"><button type="button" class="btn btn-2">Print determination</button>' + (cls === 'pended' ? '<button type="button" class="btn btn-2">Upload documents</button>' : '') + '</div>';
+      setPath({ s2: 'done', s3: cls === 'success' ? 'done' : cls, meta: 'Decided ' + timeNow(),
+        t2: 'Criteria matched for ' + d.procedure + '.',
+        t3: cls === 'success' ? 'Approved at submission and recorded on the member file.' : cls === 'review' ? 'Routed to nurse review within the urgency window.' : 'Review paused until the missing documentation is received.' });
+    }
+    function renderFailure(data) {
+      result.className = 'result-box error';
+      result.innerHTML = '<div class="stamp">' + ICON_BAD + 'We couldn\u2019t process this authorization request</div><div class="rbody">'
+        + '<p>The request was not submitted and no determination was recorded. Our engineering team has been notified automatically and is looking into it.</p>'
+        + '<p>Your draft is saved. Provider Services can take the request by phone if the member\u2019s service is scheduled within 72 hours.</p>'
+        + '<dl class="refno"><dt>Reference</dt><dd class="num sm">' + esc(data.requestId || data.code) + '</dd></dl>'
+        + '<dl class="kv"><dt>Error code</dt><dd class="num">' + esc(data.code || 'PRIOR_AUTH_FAILED') + '</dd><dt>Time</dt><dd>' + esc(timeNow()) + '</dd></dl></div>'
+        + '<div class="ractions"><button type="button" class="btn btn-2">Call Provider Services</button></div>';
+      setPath({ s2: 'failed', s3: '', meta: 'Failed at clinical criteria', t2: 'The clinical-criteria lookup failed before a determination could be made.', t3: 'No determination issued.' });
+    }
+    function revealResult() {
+      if (window.matchMedia('(max-width:1060px)').matches) result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    document.querySelectorAll('input[name=posPick]').forEach((r) => r.addEventListener('change', () => { pos.value = r.value; syncPolicy(); syncReview(); }));
+    cptSel.addEventListener('change', () => { syncPolicy(); syncReview(); });
+    memberSel.addEventListener('change', () => { syncMember(); syncReview(); });
+    dx.addEventListener('input', syncReview);
+    document.querySelectorAll('input[name=doc]').forEach((c) => c.addEventListener('change', syncReview));
+    document.getElementById('menuBtn').addEventListener('click', (e) => { const open = document.getElementById('rail').classList.toggle('open'); e.currentTarget.setAttribute('aria-expanded', String(open)); });
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      form.reset(); pos.value = '22'; clearResult(); syncMember(); syncPolicy(); syncReview();
+      setPath({ meta: 'Not yet submitted', t2: "The procedure and site of care are matched against Summit's medical policy.", t3: 'Issued instantly when criteria are met, otherwise within the urgency window after nurse review.' });
+    });
+    syncMember(); syncPolicy(); syncReview();
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      btn.disabled = true; btn.textContent = "Checking clinical criteria\u2026";
-      result.className = 'result-box'; result.innerHTML = '';
-      setLadder({ s2: 'active', meta: 'Submitted, checking criteria', t2: 'Looking up criteria for ' + document.getElementById('cpt').value + ' at ' + (POS_LABEL[pos.value] || pos.value).toLowerCase() + '.' });
+      btn.disabled = true; btn.textContent = 'Checking clinical criteria\u2026';
+      clearResult();
+      setPath({ s2: 'active', meta: 'Submitted ' + timeNow() + ', checking criteria', t2: 'Looking up criteria for ' + cptSel.value + ' at ' + (POS_LABEL[pos.value] || pos.value).toLowerCase() + '.' });
       try {
         const res = await fetch("/api/ff0485e4/prior-auth", {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(Object.assign(buildPayload(), devinFields())),
         });
         const data = await res.json();
-        if (!res.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = '<div class="result-title">' + "We couldn\u2019t process this authorization request" + '</div><div>The request was not submitted and no decision was recorded. Our engineering team has been notified automatically.</div><div class="ref">Reference ' + esc(data.requestId || data.code) + ' &nbsp; Error code ' + esc(data.code || 'PRIOR_AUTH_FAILED') + '</div>';
-          setLadder({ s2: 'failed', s3: '', meta: 'Failed at clinical criteria', t2: 'The criteria lookup failed before a decision could be made.', t3: 'No decision issued.' });
-        } else {
-          renderSuccess(data);
-        }
+        if (!res.ok) renderFailure(data); else renderSuccess(data);
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = '<div class="result-title">Network error</div><div class="result-detail">' + esc(err.message) + '</div>';
-        setLadder({ s2: 'failed', meta: 'Network error' });
-      } finally { btn.disabled = false; btn.textContent = CTA; }
+        result.innerHTML = '<div class="stamp">' + ICON_BAD + 'We couldn\u2019t reach Summit</div><div class="rbody"><p>Check your connection and try again. Your draft is saved.</p></div>';
+        setPath({ s2: 'failed', meta: 'Connection problem' });
+      } finally { btn.disabled = false; btn.textContent = CTA; revealResult(); }
     });
   </script>
   <script src="/session-cap-banner.js"></script>

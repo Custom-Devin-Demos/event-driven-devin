@@ -28,11 +28,11 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 
 **Trigger:** open `/ff0485e4` → leave the defaults (Jordan Rivera, CPT 72148 MRI, place of service *22 — Outpatient hospital*) → **Submit for review**.
 **What you see:** the *Decision path* on the right stops at **Clinical criteria** (red), and the Decision step shows “We couldn’t process this authorization request” with a reference number and error code `PRIOR_AUTH_FAILED`. The page never shows the raw exception; the `TypeError … 'requiredDocs'` only appears in Sentry and the Slack alert card.
-**Show that it's only one path:** switch place of service to *11 — Physician office* and submit — it is approved instantly.
+**Show that it's only one path:** under *Place of service* click the **11 — Physician office** tile and **Submit for review** again — the Determination step turns green, *Approved*, with a PA reference number.
 
 **What Devin does next:** the alert names `app/services/verticals/ff0485e4.js — submitPriorAuth` and tags `cpt=72148`, `placeOfService=22`. Devin opens that file and sees the place-of-service code 22 becomes `outpatient-hospital` (hyphen), but the clinical-criteria rule was saved as `72148:outpatient_hospital` (underscore), so no rule is found. It fixes the key, adds a test and opens a PR.
 
-**Point at on screen:** the red step in the Decision path and the *Criteria for 72148* table (the outpatient-hospital row is the one that should have gone to nurse review) → Slack alert card (service `ff0485e4-prior-auth-api`, CPT and place-of-service tags) → the Devin session thread → the one-line diff in the PR.
+**Point at on screen:** the red **Clinical criteria** step in the Determination ladder (right column) and the *Clinical policy* table below it (the highlighted *Outpatient hospital* row is the one that should have gone to nurse review) → Slack alert card (service `ff0485e4-prior-auth-api`, CPT and place-of-service tags) → the Devin session thread → the one-line diff in the PR.
 
 **Talk track (2 min):**
 > “This is a health plan’s provider portal. A clinic wants approval for a back MRI at the hospital — one of the most common requests a payer gets. They press submit and… it breaks. In real life that request sits in limbo, the clinic calls provider services, and the patient’s scan slips a week.
