@@ -6444,6 +6444,40 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Broker portal & DIP incident intake',
     disclaimer: 'Fictional demo \u2014 not affiliated with Together Financial Services. Invented broker, case and property data.',
   },
+  '77c11f38': {
+    slug: '77c11f38',
+    company: 'TogetherMoney',
+    brandMark: 'TM',
+    vertical: 'eligibility',
+    oncallOnly: true,
+    hideRibbon: true,
+    paths: ['/togethermoney-website', '/oncall/c/togethermoney-website'],
+    // Teams oncall-demo by default (scenario defaultAlertDestination); an
+    // explicit Slack choice in the hub picker still wins. The channel
+    // responders triage, so no devinSession.auto.
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    page: { file: '77c11f38.html', title: 'Check your eligibility | Homeowner loans | Together' },
+    alertCard: {
+      title: '5xx spike \u2014 POST /api/oncall/eligibility/check (self-employed applicants)',
+      service: 'together-website-eligibility',
+      release: 'together-website@2026.11.1',
+      team: 'website-oncall',
+      metricQuery: 'sum:demo.together_website.eligibility.failure{route:/api/oncall/eligibility/check,employment_type:self-employed,status_class:5xx}.as_count()',
+      metricValue: 'HTTP 500 on eligibility submissions from self-employed applicants',
+      threshold: '> 0 errors / 5m',
+      baseline: '0 errors (30-day)',
+      symptom: 'Website "Check your eligibility" submissions fail immediately with HTTP 500 and the customer sees "Something went wrong". Failures are tagged employment_type:self-employed; employed and retired applicants are unaffected. Latency is normal.',
+      impact: 'Self-employed homeowners cannot complete the eligibility check, so their secured-loan applications are lost before they reach the sales team.',
+    },
+    theme: {
+      '--accent': '#F5B21B',
+      '--ink': '#3D2A55',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#3D2A55',
+      '--chrome-text': '#FFFFFF',
+    },
+  },
   '300e14ad': {
     slug: '300e14ad',
     company: 'S&P Global',
