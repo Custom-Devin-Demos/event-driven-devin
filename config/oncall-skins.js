@@ -7544,8 +7544,8 @@ const ONCALL_SKINS = {
       ].join('\n'),
     },
     alertCard: {
-      title: 'p95 latency — Chick-fil-A Catering: place order',
-      service: 'catering-checkout',
+      title: 'p95 latency — Catering: place order',
+      service: 'banking-api',
       release: 'catering-checkout@2026.11.1',
       metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
       metricValue: '9.3s',
