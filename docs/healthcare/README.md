@@ -1,4 +1,4 @@
-# Healthcare Demo Lab — AD runbooks
+# Devin for Health — AD runbooks
 
 Four healthcare demos built on the event-driven Devin loop. Each one is a realistic customer app with one hidden production bug. An AD clicks the main button, the app fails, and within seconds:
 
@@ -7,7 +7,7 @@ Four healthcare demos built on the event-driven Devin loop. Each one is a realis
 3. an **alert card** is posted in Slack,
 4. a **Devin session** starts on its own, reads the alert, finds the bug and opens a **fix PR**.
 
-Start at **`/healthcare-lab`** and pick a story.
+Start at **`/healthcare-lab`** (the **Devin for Health** landing page, in Cognition branding) and pick a story. Each demo app has its own look: an enterprise payer portal, a warm patient portal, a consumer pharma savings site and a dark clinical-data console.
 
 | Segment | Story | Path (aliases) | What breaks |
 |---|---|---|---|
@@ -27,12 +27,12 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 ## 1. Payer — prior authorization (`/ff0485e4`)
 
 **Trigger:** open `/ff0485e4` → leave the defaults (Jordan Rivera, CPT 72148 MRI, place of service *22 — Outpatient hospital*) → **Submit for review**.
-**What you see:** red box “We couldn’t process this authorization request” with `TypeError: Cannot read properties of undefined (reading 'requiredDocs')`.
+**What you see:** the *Decision path* on the right stops at **Clinical criteria** (red), and the Decision step shows “We couldn’t process this authorization request” with `TypeError: Cannot read properties of undefined (reading 'requiredDocs')`.
 **Show that it's only one path:** switch place of service to *11 — Physician office* and submit — it is approved instantly.
 
 **What Devin does next:** the alert names `app/services/verticals/ff0485e4.js — submitPriorAuth` and tags `cpt=72148`, `placeOfService=22`. Devin opens that file and sees the place-of-service code 22 becomes `outpatient-hospital` (hyphen), but the clinical-criteria rule was saved as `72148:outpatient_hospital` (underscore), so no rule is found. It fixes the key, adds a test and opens a PR.
 
-**Point at on screen:** the error box → Slack alert card (service `ff0485e4-prior-auth-api`, CPT and place-of-service tags) → the Devin session thread → the one-line diff in the PR.
+**Point at on screen:** the red step in the Decision path and the *Criteria for 72148* table (the outpatient-hospital row is the one that should have gone to nurse review) → Slack alert card (service `ff0485e4-prior-auth-api`, CPT and place-of-service tags) → the Devin session thread → the one-line diff in the PR.
 
 **Talk track (2 min):**
 > “This is a health plan’s provider portal. A clinic wants approval for a back MRI at the hospital — one of the most common requests a payer gets. They press submit and… it breaks. In real life that request sits in limbo, the clinic calls provider services, and the patient’s scan slips a week.
@@ -45,11 +45,11 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 
 **Trigger:** open `/3a2b7a6d` → leave the defaults (Jordan Rivera, Dr. Okafor, *Video visit (telehealth)*) → **Confirm appointment**.
 **What you see:** “We couldn’t finish booking your appointment” with `TypeError: Cannot read properties of undefined (reading 'consents')`.
-**Contrast:** switch Visit type to *In-person visit* — it books and lists the remaining check-in forms.
+**Contrast:** click the *In person* tile under “How would you like to be seen?” — it books and lists the remaining check-in forms.
 
 **What Devin does next:** the alert points to `app/services/verticals/3a2b7a6d.js — submitIntake` with tag `visitType=telehealth`. Devin finds the visit type is called `telehealth` but the intake forms list is filed under `virtual`, so there are no forms to send. It renames the key, adds a test and opens a PR.
 
-**Point at on screen:** the patient-facing error → Slack alert card (`visitType: telehealth`) → Devin’s explanation in the thread → PR.
+**Point at on screen:** the selected *Video visit* tile and the patient-facing error under the button (“your time was not reserved”) → Slack alert card (`visitType: telehealth`) → Devin’s explanation in the thread → PR.
 
 **Talk track (2 min):**
 > “This is a hospital system’s patient portal. A patient is booking a video follow-up with their doctor — the kind of visit that’s become a huge share of primary care. They click confirm, and it fails. That patient either calls the front desk or just doesn’t book, and the health system loses the visit.
@@ -62,11 +62,11 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 
 **Trigger:** open `/46ce04a1` → leave the defaults (card VLX-5520-1187, *Veloxa 90-day pack*, $1,350 out-of-pocket) → **Apply savings card**.
 **What you see:** “Savings card could not be applied” with `TypeError: Cannot read properties of undefined (reading 'cardMax')`.
-**Contrast:** choose *Veloxa 30-day pen* (amount changes to $450) — the patient pays $25.
+**Contrast:** choose *Veloxa 30-day pen* under Product dispensed (the out-of-pocket changes to $450) — the receipt shows the card paying $425 and the patient paying $25.
 
 **What Devin does next:** the alert points to `app/services/verticals/46ce04a1.js — calculateCopayBenefit` with `product=VLR-90` and the $1,350 amount. Devin sees the benefit tiers stop at $1,000, so the bigger 90-day amount matches no tier. It adds a top tier (or caps at the last one), adds a test and opens a PR.
 
-**Point at on screen:** the pharmacy-counter error → Slack card → Devin session → PR.
+**Point at on screen:** the *Patient receipt* panel: “Patient pays $1,350.00” with the card “could not be applied” → Slack card → Devin session → PR.
 
 **Talk track (2 min):**
 > “This is the savings card program for a specialty brand. The pharmacist is ringing up a 90-day supply, which the brand just started covering this year. They apply the card and it’s rejected. The patient is now being quoted over a thousand dollars at the counter — that’s exactly when patients walk away from therapy, and the brand loses the script.
@@ -79,11 +79,11 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 
 **Trigger:** open `/27a970ec` → leave *SITE-104 — Toronto Research Centre* → **Run ingest**.
 **What you see:** “Ingest failed — batch not loaded” with `TypeError: Cannot read properties of undefined (reading 'factor')`.
-**Contrast:** choose *SITE-101 — Boston Clinical Unit* — three records load into the study warehouse with range flags.
+**Contrast:** choose *Boston Clinical Unit (SITE-101)* — all five pipeline stages turn green and three records load into the study warehouse with range flags.
 
 **What Devin does next:** the alert points to `app/services/verticals/27a970ec.js — ingestBatch` with `site=SITE-104`. Devin sees the Toronto lab reports glucose in mmol/L (the Canadian unit) and the pipeline only knows how to convert mg/dL. It adds the mmol/L conversion (×18.016), adds a test and opens a PR.
 
-**Point at on screen:** the failed batch → Slack card (`site: SITE-104`) → Devin session → PR.
+**Point at on screen:** the pipeline rail stopping red at **Normalize units**, and the run log line `Batch rolled back` → Slack card (`site: SITE-104`) → Devin session → PR.
 
 **Talk track (2 min):**
 > “This is the data hub for a Phase III diabetes trial. Every day, lab results from each hospital site flow into the study database. The data manager runs today’s batch from the Toronto site and the whole batch fails. Those patients’ results don’t reach the study team — and with an interim data lock in eleven days, every day of missing data is a real problem.

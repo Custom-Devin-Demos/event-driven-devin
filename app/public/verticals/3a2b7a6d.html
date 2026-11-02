@@ -3,92 +3,208 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lakeshore Health MyChart-style Portal | Schedule a visit</title>
+  <title>My Lakeshore — Schedule a visit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..600,50&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    :root { --brand: #0f766e; --brand-dark: #0b4f4a; --accent: #f59e0b; --ink: #1d2433; --muted: #5b6475; --line: #e3e7ee; --bg: #f5f7fa; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.5; }
-    .utility { background: var(--brand-dark); color: #fff; font-size: 12px; padding: 6px 32px; display: flex; justify-content: space-between; }
-    .utility a { color: #fff; opacity: .85; text-decoration: none; margin-left: 18px; }
-    header { background: #fff; border-bottom: 1px solid var(--line); padding: 14px 32px; display: flex; align-items: center; gap: 40px; }
-    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; color: var(--brand-dark); letter-spacing: -.3px; }
-    .logo-mark { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, var(--brand), var(--accent)); color: #fff; display: grid; place-items: center; font-size: 17px; }
-    .logo small { display: block; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; }
-    nav a { color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 500; margin-right: 22px; }
-    nav a.active { color: var(--brand); border-bottom: 2px solid var(--brand); padding-bottom: 14px; }
-    .user { margin-left: auto; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
-    .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
-    .hero { background: linear-gradient(120deg, var(--brand-dark), var(--brand)); color: #fff; padding: 34px 32px 72px; }
-    .crumbs { font-size: 12px; opacity: .8; margin-bottom: 8px; }
-    .hero h1 { font-size: 28px; font-weight: 700; }
-    .hero p { opacity: .9; max-width: 720px; margin-top: 6px; }
-    main { max-width: 1180px; margin: -48px auto 40px; padding: 0 32px; display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
-    .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(16,24,40,.05); }
-    .card h2 { font-size: 18px; margin-bottom: 4px; }
-    .card .sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
-    .full { grid-column: 1 / -1; }
-    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px; }
-    input, select { width: 100%; padding: 10px 12px; border: 1px solid #cfd6e0; border-radius: 8px; font-size: 14px; background: #fff; color: var(--ink); }
-    .checks label { text-transform: none; font-weight: 500; color: var(--ink); font-size: 14px; display: flex; gap: 8px; align-items: center; letter-spacing: 0; }
-    .checks input { width: auto; }
-    .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
-    button.primary { margin-top: 20px; background: var(--brand); color: #fff; border: 0; border-radius: 8px; padding: 12px 22px; font-size: 15px; font-weight: 600; cursor: pointer; }
-    button.primary:disabled { opacity: .6; cursor: wait; }
-    .result-box { display: none; margin-top: 20px; border-radius: 10px; padding: 16px 18px; font-size: 14px; }
-    .result-box.success { display: block; background: #ecfdf3; border: 1px solid #abefc6; color: #05603a; }
-    .result-box.error { display: block; background: #fef3f2; border: 1px solid #fecdca; color: #b42318; }
-    .result-title { font-weight: 700; margin-bottom: 4px; }
-    .result-detail { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-word; }
-    .ref { font-size: 12px; opacity: .8; margin-top: 6px; }
-    aside .card + .card { margin-top: 18px; }
-    .stat { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
-    .stat:last-child { border-bottom: 0; }
-    .stat b { color: var(--brand-dark); }
-    .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #eef4ff; color: var(--brand-dark); }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-    th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); }
-    th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; }
-    footer { border-top: 1px solid var(--line); background: #fff; padding: 20px 32px; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
-    @media (max-width: 900px) { main { grid-template-columns: 1fr; } .grid { grid-template-columns: 1fr; } nav { display: none; } }
+    :root {
+      --lake:#0b6e6e; --lake-deep:#0a5252; --mint:#e3f1ed; --mint-deep:#c9e4dc; --cream:#fbfaf7; --sand:#f1ebe1; --ink:#1f2a28; --muted:#5d6b68; --faint:#8e9996;
+      --line:#e4e1d9; --red:#a8322a; --red-bg:#fbeae8; --ok:#0b6e6e;
+      --display:'Fraunces', Georgia, serif; --body:'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { -webkit-font-smoothing:antialiased; }
+    body { font-family:var(--body); font-size:16px; line-height:1.5; color:var(--ink); background:var(--cream); min-height:100vh; }
+    a { color:inherit; }
+    button, input, select, textarea { font:inherit; color:inherit; }
+    :focus-visible { outline:2px solid var(--lake); outline-offset:3px; }
+
+    .top { background:#fff; border-bottom:1px solid var(--line); }
+    .top-in { max-width:1180px; margin:0 auto; padding:0 28px; height:68px; display:flex; align-items:center; gap:40px; }
+    .mark { display:flex; align-items:center; gap:10px; text-decoration:none; }
+    .mark svg { display:block; }
+    .mark b { font-family:var(--display); font-weight:500; font-size:22px; letter-spacing:-.01em; color:var(--lake-deep); }
+    .mark b em { font-style:italic; font-weight:400; }
+    .topnav { display:flex; gap:28px; font-size:16px; }
+    .topnav a { text-decoration:none; color:var(--muted); padding:22px 0; border-bottom:2px solid transparent; }
+    .topnav a:hover { color:var(--ink); }
+    .topnav a[aria-current] { color:var(--lake-deep); border-bottom-color:var(--lake); font-weight:600; }
+    .me { margin-left:auto; display:flex; align-items:center; gap:10px; font-size:15px; }
+    .me .av { width:36px; height:36px; border-radius:50%; background:var(--mint-deep); color:var(--lake-deep); display:grid; place-items:center; font-weight:600; font-size:14px; }
+
+    .page { max-width:1180px; margin:0 auto; padding:40px 28px 64px; }
+    .greet { color:var(--muted); font-size:17px; }
+    h1 { font-family:var(--display); font-weight:500; font-size:clamp(38px,4.6vw,54px); line-height:1.02; letter-spacing:-.02em; margin-top:6px; font-variation-settings:'SOFT' 50, 'opsz' 144; }
+    .lead { font-size:18px; color:var(--muted); max-width:56ch; margin-top:14px; }
+
+    .cols { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:40px; margin-top:36px; align-items:start; }
+
+    .part { padding:26px 0 30px; border-top:1px solid var(--line); }
+    .part:first-child { border-top:0; padding-top:0; }
+    .part h2 { font-family:var(--display); font-weight:500; font-size:26px; letter-spacing:-.01em; line-height:1.15; }
+    .part > p { color:var(--muted); margin-top:4px; }
+    .fields { display:grid; grid-template-columns:1fr 1fr; gap:18px 24px; margin-top:18px; }
+    .fields .full { grid-column:1 / -1; }
+    label.f { display:block; font-size:14px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+    select, input[type=text], textarea { width:100%; padding:11px 14px; border:1.5px solid var(--line); border-radius:10px; background:#fff; font-size:16px; }
+    select:hover, input:hover, textarea:hover { border-color:#cbc6ba; }
+    select { appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9'><path d='M1 1l6 6 6-6' fill='none' stroke='%235d6b68' stroke-width='1.8'/></svg>"); background-repeat:no-repeat; background-position:right 14px center; padding-right:38px; }
+    textarea { min-height:72px; resize:vertical; }
+
+    /* visit tiles — the one loud element */
+    .tiles { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px; }
+    .tile { position:relative; display:block; padding:22px 22px 20px; border:1.5px solid var(--line); border-radius:16px; background:#fff; cursor:pointer; min-height:170px; }
+    .tile input { position:absolute; opacity:0; inset:0; width:100%; height:100%; margin:0; cursor:pointer; }
+    .tile svg { display:block; width:40px; height:40px; color:var(--lake); }
+    .tile b { display:block; font-family:var(--display); font-weight:500; font-size:22px; margin-top:14px; letter-spacing:-.01em; }
+    .tile span { display:block; color:var(--muted); font-size:15px; margin-top:4px; }
+    .tile small { display:block; margin-top:12px; font-size:13px; color:var(--lake-deep); font-weight:600; }
+    .tile:has(input:checked) { background:var(--mint); border-color:var(--lake); }
+    .tile:has(input:focus-visible) { outline:2px solid var(--lake); outline-offset:3px; }
+    .tile .dot { position:absolute; top:18px; right:18px; width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line); background:#fff; }
+    .tile:has(input:checked) .dot { border-color:var(--lake); background:var(--lake); box-shadow:inset 0 0 0 4px #fff; }
+
+    .chips { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
+    .chip { position:relative; display:inline-flex; flex-direction:column; padding:10px 16px; border:1.5px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; min-width:140px; }
+    .chip input { position:absolute; opacity:0; inset:0; width:100%; height:100%; margin:0; cursor:pointer; }
+    .chip b { font-weight:600; font-size:15px; }
+    .chip span { color:var(--muted); font-size:14px; }
+    .chip:has(input:checked) { background:var(--lake); border-color:var(--lake); color:#fff; }
+    .chip:has(input:checked) span { color:rgba(255,255,255,.8); }
+    .chip:has(input:focus-visible) { outline:2px solid var(--lake); outline-offset:3px; }
+
+    .forms { display:grid; gap:10px; margin-top:16px; }
+    .forms label { display:flex; align-items:center; gap:12px; font-size:16px; padding:12px 16px; border:1.5px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; }
+    .forms input { width:20px; height:20px; accent-color:var(--lake); }
+    .forms small { margin-left:auto; color:var(--faint); font-size:14px; }
+    .forms label:has(input:checked) small { color:var(--ok); }
+
+    .cta-row { display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding-top:26px; border-top:1px solid var(--line); }
+    .btn { height:52px; padding:0 28px; border-radius:999px; border:0; background:var(--lake); color:#fff; font-size:17px; font-weight:600; cursor:pointer; }
+    .btn:hover { background:var(--lake-deep); }
+    .btn:disabled { opacity:.6; cursor:progress; }
+    .cta-row p { color:var(--muted); font-size:14px; }
+
+    .result-box { display:none; margin-top:22px; border-radius:16px; padding:20px 22px; }
+    .result-box.success { display:block; background:var(--mint); border:1.5px solid var(--mint-deep); color:var(--lake-deep); }
+    .result-box.error { display:block; background:var(--red-bg); border:1.5px solid #efc3be; color:#6f1f19; }
+    .result-title { font-family:var(--display); font-weight:500; font-size:24px; letter-spacing:-.01em; line-height:1.2; }
+    .result-box > div + div { margin-top:8px; }
+    .result-detail { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:13px; word-break:break-word; background:rgba(255,255,255,.6); border-radius:8px; padding:8px 10px; }
+    .ref { font-size:14px; opacity:.85; }
+
+    .side section { background:#fff; border:1.5px solid var(--line); border-radius:16px; padding:20px 22px; }
+    .side section + section { margin-top:16px; }
+    .side h3 { font-family:var(--display); font-weight:500; font-size:20px; letter-spacing:-.01em; }
+    .doc { display:flex; gap:14px; align-items:center; margin-top:14px; }
+    .doc .av { width:52px; height:52px; border-radius:50%; background:var(--sand); color:var(--lake-deep); display:grid; place-items:center; font-family:var(--display); font-size:18px; }
+    .doc b { display:block; font-weight:600; }
+    .doc span { color:var(--muted); font-size:14px; display:block; }
+    .side ul { list-style:none; margin-top:12px; }
+    .side li { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-top:1px solid var(--line); font-size:15px; }
+    .side li span:last-child { color:var(--muted); white-space:nowrap; }
+    .side p { color:var(--muted); font-size:15px; margin-top:6px; }
+    .ok-pill { display:inline-block; margin-top:10px; padding:3px 10px; border-radius:999px; background:var(--mint); color:var(--lake-deep); font-size:13px; font-weight:600; }
+
+    footer { border-top:1px solid var(--line); }
+    footer div { max-width:1180px; margin:0 auto; padding:18px 28px; font-size:13px; color:var(--muted); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+
+    @media (max-width:960px) { .cols { grid-template-columns:1fr; } .topnav { display:none; } }
+    @media (max-width:640px) { .fields, .tiles { grid-template-columns:1fr; } .page, .top-in { padding-left:18px; padding-right:18px; } .me span { display:none; } }
+    @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
   </style>
 </head>
 <body>
-  <div class="utility"><span>Lakeshore Health &middot; Chicago &amp; North Shore &middot; Nurse line 24/7: 312-555-0188</span><span><a href="#">Help</a><a href="#">Español</a><a href="#">Sign out</a></span></div>
-  <header>
-    <div class="logo"><div class="logo-mark">L</div><div>Lakeshore Health<small>My Lakeshore</small></div></div>
-    <nav><a href="#">Home</a><a href="#" class="active">Appointments</a><a href="#">Messages</a><a href="#">Test results</a><a href="#">Billing</a></nav>
-    <div class="user"><span>Welcome, Jordan</span><div class="avatar">JR</div></div>
+  <header class="top">
+    <div class="top-in">
+      <a class="mark" href="#" aria-label="My Lakeshore">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="16" fill="#e3f1ed"/><path d="M5 20c3-3 5-3 8 0s5 3 8 0 5-3 8 0" fill="none" stroke="#0b6e6e" stroke-width="2.4" stroke-linecap="round"/><path d="M8 25c3-3 5-3 8 0s5 3 8 0" fill="none" stroke="#0b6e6e" stroke-width="2.4" stroke-linecap="round" opacity=".55"/></svg>
+        <b>My <em>Lakeshore</em></b>
+      </a>
+      <nav class="topnav" aria-label="Patient portal"><a href="#">Home</a><a href="#" aria-current="page">Appointments</a><a href="#">Messages</a><a href="#">Test results</a><a href="#">Billing</a></nav>
+      <div class="me"><span>Jordan Rivera</span><div class="av">JR</div></div>
+    </div>
   </header>
-  <section class="hero">
-    <div class="crumbs">Home / Appointments / Schedule a visit</div>
+
+  <main class="page">
+    <p class="greet">Good morning, Jordan</p>
     <h1>Schedule a visit</h1>
-    <p>Book with your care team in person or by video. We’ll send your check-in forms right after you book.</p>
-  </section>
-  <main>
-    <section class="card">
-      <h2>Appointment details</h2>
-      <div class="sub">Pick a visit type and time, then confirm. Video visits are the default for follow-ups.</div>
-      <form id="demoForm">
-        <div class="grid">
-          <div><label>Patient</label><select id="mrn"><option value="MRN-100482" selected>Jordan Rivera (you)</option><option value="MRN-100517">Elena Brooks (proxy access)</option></select></div>
-          <div><label>Clinician</label><select id="clinicianId"><option value="LH-201" selected>Dr. Amara Okafor — Family Medicine</option><option value="LH-305">Dr. Ben Castillo — Endocrinology</option></select></div>
-          <div><label>Visit type</label><select id="visitType"><option value="telehealth" selected>Video visit (telehealth)</option><option value="in-person">In-person visit</option></select></div>
-          <div><label>Time</label><select id="slot"><option value="2026-11-04T09:30" selected>Wed, Nov 4 · 9:30 AM</option><option value="2026-11-04T14:00">Wed, Nov 4 · 2:00 PM</option><option value="2026-11-05T11:15">Thu, Nov 5 · 11:15 AM</option></select></div>
-          <div class="full"><label>Reason for visit</label><input id="reason" value="Follow-up: blood pressure medication"></div>
-          <div class="full"><label>Forms already completed</label><div class="checks"><label><input type="checkbox" name="form" value="HIPAA notice" checked> HIPAA notice</label><label><input type="checkbox" name="form" value="Health history" checked> Health history</label><label><input type="checkbox" name="form" value="Medication list"> Medication list</label></div></div>
+    <p class="lead">Book with your care team in person or by video. Your check-in forms arrive in Messages as soon as the visit is confirmed.</p>
+
+    <div class="cols">
+      <form id="demoForm" novalidate>
+        <div class="part">
+          <h2>Who is the visit for?</h2>
+          <div class="fields">
+            <div><label class="f" for="mrn">Patient</label><select id="mrn"><option value="MRN-100482" selected>Jordan Rivera (you)</option><option value="MRN-100517">Elena Brooks (proxy access)</option></select></div>
+            <div><label class="f" for="clinicianId">Clinician</label><select id="clinicianId"><option value="LH-201" selected>Dr. Amara Okafor — Family medicine</option><option value="LH-305">Dr. Ben Castillo — Endocrinology</option></select></div>
+            <div class="full"><label class="f" for="reason">What would you like to talk about?</label><textarea id="reason">Follow-up: blood pressure medication</textarea></div>
+          </div>
         </div>
-        <button type="submit" class="primary" id="submitBtn">Confirm appointment</button>
+
+        <div class="part">
+          <h2>How would you like to be seen?</h2>
+          <p>Follow-ups like this one are usually done by video.</p>
+          <div class="tiles" role="radiogroup" aria-label="Visit type">
+            <label class="tile"><input type="radio" name="visitTypeChoice" value="telehealth" checked>
+              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="9" width="22" height="22" rx="4"/><path d="M26 17l10-5v16l-10-5"/><circle cx="15" cy="18" r="3"/><path d="M9.5 27c1-3 3-4.5 5.5-4.5s4.5 1.5 5.5 4.5"/></svg>
+              <b>Video visit</b><span>From home, on your phone or computer. About 20 minutes.</span><small>No travel, no waiting room</small><i class="dot"></i></label>
+            <label class="tile"><input type="radio" name="visitTypeChoice" value="in-person">
+              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 34V16l14-9 14 9v18"/><path d="M16 34v-9h8v9"/><path d="M20 19v6M17 22h6"/></svg>
+              <b>In person</b><span>Lakeshore Clinic — Evanston, 1801 Ridge Ave. About 30 minutes.</span><small>Free parking in the Ridge garage</small><i class="dot"></i></label>
+          </div>
+          <input type="hidden" id="visitType" value="telehealth">
+        </div>
+
+        <div class="part">
+          <h2>Pick a time</h2>
+          <p>Dr. Okafor's next openings.</p>
+          <div class="chips" role="radiogroup" aria-label="Appointment time">
+            <label class="chip"><input type="radio" name="slotChoice" value="2026-11-04T09:30" checked><b>Wed, Nov 4</b><span>9:30 AM</span></label>
+            <label class="chip"><input type="radio" name="slotChoice" value="2026-11-04T14:00"><b>Wed, Nov 4</b><span>2:00 PM</span></label>
+            <label class="chip"><input type="radio" name="slotChoice" value="2026-11-05T11:15"><b>Thu, Nov 5</b><span>11:15 AM</span></label>
+          </div>
+          <input type="hidden" id="slot" value="2026-11-04T09:30">
+        </div>
+
+        <div class="part">
+          <h2>Forms you've already completed</h2>
+          <p>Anything left over is sent to you after booking.</p>
+          <div class="forms">
+            <label><input type="checkbox" name="form" value="HIPAA notice" checked> HIPAA notice <small>signed Jan 2026</small></label>
+            <label><input type="checkbox" name="form" value="Health history" checked> Health history <small>updated Aug 2026</small></label>
+            <label><input type="checkbox" name="form" value="Medication list"> Medication list <small>needs review</small></label>
+          </div>
+        </div>
+
+        <div class="cta-row">
+          <button type="submit" class="btn" id="submitBtn">Confirm appointment</button>
+          <p>You can cancel or reschedule up to 2 hours before the visit.</p>
+        </div>
+        <div class="result-box" id="result" role="status" aria-live="polite"></div>
       </form>
-      <div class="result-box" id="result"></div>
-    </section>
-    <aside>
-      <div class="card"><h2>Upcoming</h2><div class="sub">Your next visits</div>
-        <div class="stat"><span>Lab draw — Evanston</span><b>Nov 12</b></div><div class="stat"><span>Annual eye exam</span><b>Dec 3</b></div></div>
-      <div class="card"><h2>Coverage on file</h2><div class="sub">Summit Gold PPO &middot; Member SHP-448210</div><span class="pill">Verified</span></div>
-    </aside>
+
+      <aside class="side">
+        <section>
+          <h3>Your care team</h3>
+          <div class="doc"><div class="av">AO</div><div><b>Dr. Amara Okafor</b><span>Family medicine · Evanston</span><span>Your primary care doctor since 2021</span></div></div>
+        </section>
+        <section>
+          <h3>Coming up</h3>
+          <ul><li><span>Lab draw — Evanston</span><span>Nov 12</span></li><li><span>Annual eye exam</span><span>Dec 3</span></li><li><span>Flu shot — walk in</span><span>Anytime</span></li></ul>
+        </section>
+        <section>
+          <h3>Coverage on file</h3>
+          <p>Summit Health Plan Gold PPO · Member SHP-448210. Video visits are covered at your regular office copay.</p>
+          <span class="ok-pill">Verified today</span>
+        </section>
+      </aside>
+    </div>
   </main>
-  <footer><span>&copy; 2026 Lakeshore Health System</span><span>Fictional demo brand &middot; synthetic data only &middot; no PHI</span></footer>
+
+  <footer><div><span>&copy; 2026 Lakeshore Health System · 24/7 nurse line 312-555-0188</span><span>Fictional demo brand. Synthetic data only, no PHI.</span></div></footer>
+
   <script>
     (function () {
       if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
@@ -104,14 +220,17 @@
       return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' };
     }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    document.querySelectorAll('input[name=visitTypeChoice]').forEach((r) => r.addEventListener('change', () => { document.getElementById('visitType').value = r.value; }));
+    document.querySelectorAll('input[name=slotChoice]').forEach((r) => r.addEventListener('change', () => { document.getElementById('slot').value = r.value; }));
     function buildPayload() {
       return { mrn: document.getElementById('mrn').value, clinicianId: document.getElementById('clinicianId').value, visitType: document.getElementById('visitType').value,
         slot: document.getElementById('slot').value, reason: document.getElementById('reason').value,
         completedForms: Array.from(document.querySelectorAll('input[name=form]:checked')).map((c) => c.value) };
     }
+    function when(iso) { const d = new Date(iso); return d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }) + ' at ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
     function renderSuccess(d) {
-      const todo = d.outstanding.length ? '<div class="ref">Before your visit, please complete: ' + d.outstanding.map(esc).join(', ') + '</div>' : '';
-      return '<div class="result-title">You’re booked — ' + esc(d.appointmentId) + '</div><div>' + esc(d.visit) + ' with ' + esc(d.clinician) + ' &middot; ' + esc(d.slot.replace('T', ' ')) + '</div>' + todo;
+      const todo = d.outstanding && d.outstanding.length ? '<div class="ref">Before your visit, please complete: ' + d.outstanding.map(esc).join(', ') + '. We sent the forms to Messages.</div>' : '<div class="ref">All your forms are complete. Nothing else to do before the visit.</div>';
+      return '<div class="result-title">You\u2019re booked</div><div>' + esc(d.visit) + ' with ' + esc(d.clinician) + ', ' + esc(when(d.slot)) + '.</div>' + todo + '<div class="ref">Confirmation ' + esc(d.appointmentId) + '</div>';
     }
     document.getElementById('demoForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -127,7 +246,7 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = '<div class="result-title">' + "We couldn\u2019t finish booking your appointment" + '</div><div class="result-detail">' + esc(data.errorClass) + ': ' + esc(data.error) + '</div><div class="ref">Reference: ' + esc(data.requestId || data.code) + ' &middot; Our engineering team has been notified automatically.</div>';
+          result.innerHTML = '<div class="result-title">' + "We couldn\u2019t finish booking your appointment" + '</div><div>Your time was not reserved. Our engineering team has been notified automatically; you can also call 312-555-0188 to book by phone.</div><div class="result-detail">' + esc(data.errorClass) + ': ' + esc(data.error) + '</div><div class="ref">Reference ' + esc(data.requestId || data.code) + '</div>';
         } else {
           result.className = 'result-box success';
           result.innerHTML = renderSuccess(data);

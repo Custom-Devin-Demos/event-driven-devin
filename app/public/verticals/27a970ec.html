@@ -3,89 +3,184 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Helix Clinical Research | Trial Data Hub — Lab Ingest</title>
+  <title>Helix Trial Data Hub — HLX-301 central lab ingest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    :root { --brand: #0e7490; --brand-dark: #164e63; --accent: #84cc16; --ink: #1d2433; --muted: #5b6475; --line: #e3e7ee; --bg: #f5f7fa; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.5; }
-    .utility { background: var(--brand-dark); color: #fff; font-size: 12px; padding: 6px 32px; display: flex; justify-content: space-between; }
-    .utility a { color: #fff; opacity: .85; text-decoration: none; margin-left: 18px; }
-    header { background: #fff; border-bottom: 1px solid var(--line); padding: 14px 32px; display: flex; align-items: center; gap: 40px; }
-    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; color: var(--brand-dark); letter-spacing: -.3px; }
-    .logo-mark { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, var(--brand), var(--accent)); color: #fff; display: grid; place-items: center; font-size: 17px; }
-    .logo small { display: block; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; }
-    nav a { color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 500; margin-right: 22px; }
-    nav a.active { color: var(--brand); border-bottom: 2px solid var(--brand); padding-bottom: 14px; }
-    .user { margin-left: auto; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
-    .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
-    .hero { background: linear-gradient(120deg, var(--brand-dark), var(--brand)); color: #fff; padding: 34px 32px 72px; }
-    .crumbs { font-size: 12px; opacity: .8; margin-bottom: 8px; }
-    .hero h1 { font-size: 28px; font-weight: 700; }
-    .hero p { opacity: .9; max-width: 720px; margin-top: 6px; }
-    main { max-width: 1180px; margin: -48px auto 40px; padding: 0 32px; display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
-    .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(16,24,40,.05); }
-    .card h2 { font-size: 18px; margin-bottom: 4px; }
-    .card .sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
-    .full { grid-column: 1 / -1; }
-    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px; }
-    input, select { width: 100%; padding: 10px 12px; border: 1px solid #cfd6e0; border-radius: 8px; font-size: 14px; background: #fff; color: var(--ink); }
-    .checks label { text-transform: none; font-weight: 500; color: var(--ink); font-size: 14px; display: flex; gap: 8px; align-items: center; letter-spacing: 0; }
-    .checks input { width: auto; }
-    .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
-    button.primary { margin-top: 20px; background: var(--brand); color: #fff; border: 0; border-radius: 8px; padding: 12px 22px; font-size: 15px; font-weight: 600; cursor: pointer; }
-    button.primary:disabled { opacity: .6; cursor: wait; }
-    .result-box { display: none; margin-top: 20px; border-radius: 10px; padding: 16px 18px; font-size: 14px; }
-    .result-box.success { display: block; background: #ecfdf3; border: 1px solid #abefc6; color: #05603a; }
-    .result-box.error { display: block; background: #fef3f2; border: 1px solid #fecdca; color: #b42318; }
-    .result-title { font-weight: 700; margin-bottom: 4px; }
-    .result-detail { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-word; }
-    .ref { font-size: 12px; opacity: .8; margin-top: 6px; }
-    aside .card + .card { margin-top: 18px; }
-    .stat { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
-    .stat:last-child { border-bottom: 0; }
-    .stat b { color: var(--brand-dark); }
-    .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #eef4ff; color: var(--brand-dark); }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-    th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); }
-    th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; }
-    footer { border-top: 1px solid var(--line); background: #fff; padding: 20px 32px; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
-    @media (max-width: 900px) { main { grid-template-columns: 1fr; } .grid { grid-template-columns: 1fr; } nav { display: none; } }
+    :root {
+      --bg:#15191e; --panel:#1c2228; --panel-2:#222a31; --line:#2c353e; --line-strong:#3a454f; --text:#e6eaee; --muted:#98a3ae; --faint:#66727e;
+      --blue:#6ea8fe; --blue-bg:rgba(110,168,254,.14); --green:#3ecf8e; --green-bg:rgba(62,207,142,.14); --amber:#f0b429; --amber-bg:rgba(240,180,41,.14); --red:#ff6b6b; --red-bg:rgba(255,107,107,.14);
+      --sans:'Archivo', 'Helvetica Neue', Arial, sans-serif; --mono:'Fira Code', ui-monospace, Menlo, monospace;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { -webkit-font-smoothing:antialiased; }
+    body { font-family:var(--sans); font-size:14px; line-height:1.5; color:var(--text); background:var(--bg); min-height:100vh; }
+    a { color:inherit; }
+    button, input, select { font:inherit; color:inherit; }
+    :focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+    code, .mono { font-family:var(--mono); font-size:.93em; }
+
+    .top { border-bottom:1px solid var(--line); background:var(--panel); }
+    .top-in { max-width:1440px; margin:0 auto; padding:0 24px; height:56px; display:flex; align-items:center; gap:28px; }
+    .mark { display:flex; align-items:center; gap:10px; text-decoration:none; }
+    .mark b { font-weight:600; font-size:16px; letter-spacing:-.01em; }
+    .mark small { color:var(--muted); font-size:12px; margin-left:6px; }
+    .study { display:flex; align-items:center; gap:8px; padding:5px 10px; border:1px solid var(--line-strong); border-radius:6px; font-size:13px; }
+    .study code { color:var(--blue); }
+    .study span { color:var(--muted); }
+    .topnav { display:flex; gap:22px; font-size:14px; }
+    .topnav a { text-decoration:none; color:var(--muted); }
+    .topnav a:hover { color:var(--text); }
+    .topnav a[aria-current] { color:var(--text); font-weight:500; }
+    .env { margin-left:auto; display:flex; align-items:center; gap:14px; font-size:12px; color:var(--muted); }
+    .env .gxp { padding:3px 8px; border-radius:4px; background:var(--green-bg); color:var(--green); font-weight:500; }
+    .env .av { width:30px; height:30px; border-radius:50%; background:var(--panel-2); border:1px solid var(--line-strong); display:grid; place-items:center; font-size:12px; color:var(--text); }
+
+    .wrap { max-width:1440px; margin:0 auto; padding:24px 24px 48px; }
+    .head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+    .crumbs { font-size:12px; color:var(--faint); }
+    .crumbs span { margin:0 6px; }
+    h1 { font-size:22px; font-weight:600; letter-spacing:-.01em; margin-top:4px; }
+    .head p { color:var(--muted); margin-top:2px; max-width:72ch; }
+    .kpis { display:flex; gap:28px; }
+    .kpi { text-align:right; }
+    .kpi b { display:block; font-family:var(--mono); font-weight:500; font-size:20px; letter-spacing:-.02em; }
+    .kpi span { font-size:12px; color:var(--muted); }
+
+    .layout { display:grid; grid-template-columns:360px minmax(0,1fr); gap:20px; margin-top:22px; align-items:start; }
+    .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; }
+    .panel-h { padding:14px 18px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+    .panel-h h2 { font-size:14px; font-weight:600; }
+    .panel-h span { font-size:12px; color:var(--muted); }
+    .pad { padding:16px 18px; }
+    label.f { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .sites { display:grid; gap:8px; }
+    .site { position:relative; display:grid; grid-template-columns:1fr auto; gap:2px 12px; padding:12px 14px; border:1px solid var(--line-strong); border-radius:6px; cursor:pointer; background:var(--panel-2); }
+    .site input { position:absolute; opacity:0; inset:0; width:100%; height:100%; margin:0; cursor:pointer; }
+    .site b { font-weight:500; }
+    .site code { color:var(--muted); font-size:12px; }
+    .site .units { grid-column:1 / -1; font-size:12px; color:var(--muted); }
+    .site .units code { color:var(--amber); }
+    .site:has(input:checked) { border-color:var(--blue); background:var(--blue-bg); }
+    .site:has(input:focus-visible) { outline:2px solid var(--blue); outline-offset:2px; }
+    .kv { display:grid; grid-template-columns:auto 1fr; gap:6px 16px; font-size:13px; margin-top:16px; }
+    .kv dt { color:var(--muted); }
+    .kv dd { font-family:var(--mono); font-size:12px; }
+    .act { padding:14px 18px; border-top:1px solid var(--line); display:flex; align-items:center; gap:12px; }
+    .btn { height:38px; padding:0 16px; border-radius:6px; border:1px solid var(--blue); background:var(--blue); color:#0b1b33; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+    .btn:hover { filter:brightness(1.08); }
+    .btn:disabled { opacity:.6; cursor:progress; }
+    .act span { font-size:12px; color:var(--muted); }
+
+    /* pipeline rail — the one loud element */
+    .rail { display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:0; padding:18px 18px 6px; }
+    .stage { position:relative; padding:0 14px 14px 0; }
+    .stage:not(:last-child)::after { content:''; position:absolute; top:11px; left:28px; right:-2px; height:2px; background:var(--line-strong); }
+    .stage.done:not(:last-child)::after { background:var(--green); }
+    .stage i { position:relative; z-index:1; display:grid; place-items:center; width:24px; height:24px; border-radius:50%; border:2px solid var(--line-strong); background:var(--panel); font-style:normal; font-size:12px; color:var(--bg); }
+    .stage.done i { background:var(--green); border-color:var(--green); }
+    .stage.active i { border-color:var(--blue); }
+    .stage.active i::after { content:''; width:8px; height:8px; border-radius:50%; background:var(--blue); animation:pulse 1s ease-in-out infinite; }
+    .stage.failed i { background:var(--red); border-color:var(--red); color:#fff; }
+    .stage h3 { font-size:13px; font-weight:600; margin-top:10px; }
+    .stage p { font-size:12px; color:var(--muted); margin-top:2px; min-height:36px; }
+    .stage.failed h3 { color:var(--red); }
+    .stage.failed p { color:var(--text); }
+    .stage code { font-size:11px; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+
+    .log { margin:0 18px 18px; border:1px solid var(--line); border-radius:6px; background:#121619; font-family:var(--mono); font-size:12px; line-height:1.7; padding:10px 14px; color:var(--muted); min-height:92px; }
+    .log div span { color:var(--faint); margin-right:12px; }
+    .log .ok { color:var(--green); } .log .err { color:var(--red); } .log .warn { color:var(--amber); }
+
+    .result-box { display:none; margin:0 18px 18px; border-radius:6px; padding:12px 14px; font-size:13px; }
+    .result-box.success { display:block; background:var(--green-bg); border:1px solid rgba(62,207,142,.4); }
+    .result-box.error { display:block; background:var(--red-bg); border:1px solid rgba(255,107,107,.45); }
+    .result-title { font-weight:600; font-size:14px; }
+    .result-box > div + div { margin-top:6px; color:var(--text); }
+    .result-detail { font-family:var(--mono); font-size:12px; word-break:break-word; color:var(--red); }
+    .result-box.success .result-detail { color:var(--text); }
+    .ref { font-size:12px; color:var(--muted); }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th, td { text-align:left; padding:8px 18px; border-top:1px solid var(--line); }
+    th { color:var(--muted); font-weight:500; font-size:12px; }
+    td { font-family:var(--mono); font-size:12px; }
+    td.t { font-family:var(--sans); font-size:13px; }
+    td .flag { display:inline-block; padding:1px 7px; border-radius:4px; font-size:11px; }
+    td .flag.ok { background:var(--green-bg); color:var(--green); }
+    td .flag.out { background:var(--amber-bg); color:var(--amber); }
+    .empty { padding:22px 18px; color:var(--faint); font-size:13px; border-top:1px solid var(--line); }
+
+    footer { border-top:1px solid var(--line); }
+    footer div { max-width:1440px; margin:0 auto; padding:16px 24px; font-size:12px; color:var(--faint); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+
+    @media (max-width:1000px) { .layout { grid-template-columns:1fr; } .topnav { display:none; } .rail { grid-template-columns:repeat(2,1fr); gap:10px 0; } .stage:not(:last-child)::after { display:none; } .kpis { display:none; } }
+    @media (max-width:600px) { .wrap, .top-in { padding-left:14px; padding-right:14px; } .study span, .env .gxp, .env > span, .mark small { display:none; } }
+    @media (prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
   </style>
 </head>
 <body>
-  <div class="utility"><span>Helix Clinical Research &middot; Clinical Data Management &middot; GxP validated environment</span><span><a href="#">Help</a><a href="#">Español</a><a href="#">Sign out</a></span></div>
-  <header>
-    <div class="logo"><div class="logo-mark">H</div><div>Helix Clinical Research<small>Trial Data Hub</small></div></div>
-    <nav><a href="#">Studies</a><a href="#">Sites</a><a href="#" class="active">Lab ingest</a><a href="#">Queries</a><a href="#">Data lock</a></nav>
-    <div class="user"><span>Data Manager &middot; Study HLX-301</span><div class="avatar">DM</div></div>
+  <header class="top">
+    <div class="top-in">
+      <a class="mark" href="#" aria-label="Helix Trial Data Hub">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="#6ea8fe" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 3c0 6 12 7 12 13s-12 7-12 10"/><path d="M19 3c0 6-12 7-12 13s12 7 12 10"/><path d="M8.5 8h9M8.5 18h9"/></svg>
+        <b>Helix</b><small>Trial Data Hub</small>
+      </a>
+      <div class="study"><code>HLX-301</code><span>Phase III · type 2 diabetes · 42 sites</span></div>
+      <nav class="topnav" aria-label="Study"><a href="#">Overview</a><a href="#">Sites</a><a href="#" aria-current="page">Lab ingest</a><a href="#">Queries</a><a href="#">Data lock</a></nav>
+      <div class="env"><span class="gxp">GxP validated</span><span>Data manager</span><div class="av">DM</div></div>
+    </div>
   </header>
-  <section class="hero">
-    <div class="crumbs">Studies / HLX-301 / Central lab ingest</div>
-    <h1>Central lab results ingest</h1>
-    <p>Load today’s central-lab batch for a trial site into the study warehouse. Results are converted to standard units and flagged against reference ranges.</p>
-  </section>
-  <main>
-    <section class="card">
-      <h2>Run ingest for a site batch</h2>
-      <div class="sub">Study HLX-301 — Phase III, adults with type 2 diabetes. Pick a site batch and run the pipeline.</div>
-      <form id="demoForm">
-        <div class="grid">
-          <div><label>Trial site</label><select id="siteId"><option value="SITE-104" selected>SITE-104 — Toronto Research Centre (CA)</option><option value="SITE-101">SITE-101 — Boston Clinical Unit (US)</option></select></div>
-          <div><label>Lab vendor</label><input value="Meridian Central Labs — transfer file v3.2" readonly></div>
-          <div class="full"><label>Batch</label><input value="Visit 4 (Week 12) — 3 subjects" readonly></div>
+
+  <main class="wrap">
+    <div class="head">
+      <div>
+        <div class="crumbs">HLX-301<span>/</span>Central lab<span>/</span>Ingest</div>
+        <h1>Central lab results ingest</h1>
+        <p>Load a site's Meridian Central Labs transfer file into the study warehouse. Values are converted to standard units and flagged against reference ranges before they reach the clinical database.</p>
+      </div>
+      <div class="kpis" aria-label="Last 24 hours"><div class="kpi"><b>46</b><span>batches loaded</span></div><div class="kpi"><b>12,880</b><span>records</span></div><div class="kpi"><b>9</b><span>open queries</span></div><div class="kpi"><b>11 d</b><span>to interim lock</span></div></div>
+    </div>
+
+    <div class="layout">
+      <form id="demoForm" class="panel" novalidate>
+        <div class="panel-h"><h2>Run ingest</h2><span>Visit 4 · Week 12</span></div>
+        <div class="pad">
+          <label class="f">Site batch</label>
+          <div class="sites" role="radiogroup" aria-label="Site batch">
+            <label class="site"><input type="radio" name="siteChoice" value="SITE-104" checked><b>Toronto Research Centre</b><code>SITE-104 · CA</code><span class="units">Reports glucose in <code>mmol/L</code>, HbA1c in %</span></label>
+            <label class="site"><input type="radio" name="siteChoice" value="SITE-101"><b>Boston Clinical Unit</b><code>SITE-101 · US</code><span class="units">Reports glucose in <code style="color:var(--muted)">mg/dL</code>, HbA1c in %</span></label>
+          </div>
+          <input type="hidden" id="siteId" value="SITE-104">
+          <dl class="kv">
+            <dt>Transfer file</dt><dd id="kvFile">MCL_HLX301_S104_V4_20261101.csv</dd>
+            <dt>Vendor spec</dt><dd>Meridian Central Labs v3.2</dd>
+            <dt>Subjects</dt><dd>3 (de-identified)</dd>
+            <dt>Target</dt><dd>warehouse.lab_results</dd>
+          </dl>
         </div>
-        <button type="submit" class="primary" id="submitBtn">Run ingest</button>
+        <div class="act"><button type="submit" class="btn" id="submitBtn">Run ingest</button><span>Writes an audit entry under 21 CFR Part 11.</span></div>
       </form>
-      <div class="result-box" id="result"></div>
-    </section>
-    <aside>
-      <div class="card"><h2>Pipeline health</h2><div class="sub">Last 24 hours</div>
-        <div class="stat"><span>Batches loaded</span><b>46</b></div><div class="stat"><span>Records</span><b>12,880</b></div><div class="stat"><span>Open data queries</span><b>9</b></div><div class="stat"><span>Days to interim lock</span><b>11</b></div></div>
-      <div class="card"><h2>Sites</h2><table><tr><th>Site</th><th>Country</th><th>Status</th></tr><tr><td>SITE-101</td><td>US</td><td>Active</td></tr><tr><td>SITE-104</td><td>CA</td><td>Active</td></tr></table></div>
-    </aside>
+
+      <section class="panel" aria-label="Pipeline run">
+        <div class="panel-h"><h2>Pipeline</h2><span id="runMeta">No run yet</span></div>
+        <div class="rail" id="rail">
+          <div class="stage" data-stage="transfer"><i></i><h3>Transfer file</h3><p>Pull the vendor CSV from the SFTP drop.</p></div>
+          <div class="stage" data-stage="parse"><i></i><h3>Parse</h3><p>Validate against the v3.2 spec, map subject and visit.</p></div>
+          <div class="stage" data-stage="normalize"><i></i><h3>Normalize units</h3><p>Convert each analyte to the study standard unit.</p></div>
+          <div class="stage" data-stage="ranges"><i></i><h3>Reference ranges</h3><p>Flag values outside the protocol range.</p></div>
+          <div class="stage" data-stage="warehouse"><i></i><h3>Study warehouse</h3><p>Commit the batch and write the audit trail.</p></div>
+        </div>
+        <div class="log" id="log" aria-live="polite"><div><span>--:--:--</span>Select a site batch and run the ingest.</div></div>
+        <div class="result-box" id="result" role="status"></div>
+        <div id="records"><div class="empty">Loaded records appear here after the batch commits.</div></div>
+      </section>
+    </div>
   </main>
-  <footer><span>&copy; 2026 Helix Clinical Research. De-identified synthetic subjects.</span><span>Fictional demo brand &middot; synthetic data only &middot; no PHI</span></footer>
+
+  <footer><div><span>&copy; 2026 Helix Clinical Research · De-identified synthetic subjects</span><span>Fictional demo brand. Synthetic data only, no PHI.</span></div></footer>
+
   <script>
     (function () {
       if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
@@ -97,21 +192,35 @@
   </script>
   <script>
     const CTA = "Run ingest";
+    const FILES = { 'SITE-104': 'MCL_HLX301_S104_V4_20261101.csv', 'SITE-101': 'MCL_HLX301_S101_V4_20261101.csv' };
+    const STAGES = ['transfer', 'parse', 'normalize', 'ranges', 'warehouse'];
+    const result = document.getElementById('result');
+    const log = document.getElementById('log');
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     function devinFields() {
       return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' };
     }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function ts() { return new Date().toLocaleTimeString([], { hour12: false }); }
+    function line(text, cls) { const d = document.createElement('div'); d.innerHTML = '<span>' + ts() + '</span>' + (cls ? '<b class="' + cls + '">' : '') + esc(text) + (cls ? '</b>' : ''); log.appendChild(d); log.scrollTop = log.scrollHeight; }
+    function stage(name, state) { const el = document.querySelector('.stage[data-stage="' + name + '"]'); el.className = 'stage' + (state ? ' ' + state : ''); el.querySelector('i').textContent = state === 'done' ? '\u2713' : state === 'failed' ? '!' : ''; }
+    function resetRail() { STAGES.forEach((s) => stage(s, '')); log.innerHTML = ''; result.className = 'result-box'; result.innerHTML = ''; document.getElementById('records').innerHTML = '<div class="empty">Loaded records appear here after the batch commits.</div>'; }
+    document.querySelectorAll('input[name=siteChoice]').forEach((r) => r.addEventListener('change', () => { document.getElementById('siteId').value = r.value; document.getElementById('kvFile').textContent = FILES[r.value]; }));
     function buildPayload() { return { siteId: document.getElementById('siteId').value }; }
-    function renderSuccess(d) {
-      const rows = d.records.map((r) => '<tr><td>' + esc(r.subject) + '</td><td>' + esc(r.analyte) + '</td><td>' + esc(r.value) + ' ' + esc(r.unit) + '</td><td>' + esc(r.flag) + '</td></tr>').join('');
-      return '<div class="result-title">Loaded ' + d.records.length + ' records from ' + esc(d.site) + ' (' + esc(d.batchId) + ')</div><table><tr><th>Subject</th><th>Analyte</th><th>Value</th><th>Flag</th></tr>' + rows + '</table>';
+    function renderRecords(d) {
+      const rows = d.records.map((r) => '<tr><td>' + esc(r.subject) + '</td><td class="t">' + esc(r.analyte) + '</td><td>' + esc(r.value) + ' ' + esc(r.unit) + '</td><td>' + esc(r.sourceUnit || r.unit) + '</td><td><span class="flag ' + (r.flag === 'ok' ? 'ok' : 'out') + '">' + esc(r.flag) + '</span></td></tr>').join('');
+      document.getElementById('records').innerHTML = '<table><thead><tr><th>Subject</th><th>Analyte</th><th>Standard value</th><th>Source unit</th><th>Flag</th></tr></thead><tbody>' + rows + '</tbody></table>';
     }
     document.getElementById('demoForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
-      const result = document.getElementById('result');
+      const site = document.getElementById('siteId').value;
       btn.disabled = true; btn.textContent = "Running pipeline\u2026";
-      result.className = 'result-box';
+      resetRail();
+      document.getElementById('runMeta').textContent = 'Running ' + site;
+      stage('transfer', 'active'); line('Pulling ' + FILES[site] + ' from sftp://mcl-drop/hlx301/');
+      await sleep(350); stage('transfer', 'done'); stage('parse', 'active'); line('Parsed 3 subjects, 9 results against spec v3.2', 'ok');
+      await sleep(350); stage('parse', 'done'); stage('normalize', 'active'); line('Normalizing units to study standard\u2026');
       try {
         const res = await fetch("/api/27a970ec/ingest", {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -119,13 +228,26 @@
         });
         const data = await res.json();
         if (!res.ok) {
+          stage('normalize', 'failed');
+          document.querySelector('.stage[data-stage="normalize"] p').textContent = 'No conversion for the source unit. Batch rolled back.';
+          document.getElementById('runMeta').textContent = 'Failed at normalize units';
+          line(data.errorClass + ': ' + data.error, 'err');
+          line('Batch rolled back. Nothing written to warehouse.lab_results.', 'warn');
           result.className = 'result-box error';
-          result.innerHTML = '<div class="result-title">' + "Ingest failed \u2014 batch not loaded" + '</div><div class="result-detail">' + esc(data.errorClass) + ': ' + esc(data.error) + '</div><div class="ref">Reference: ' + esc(data.requestId || data.code) + ' &middot; Our engineering team has been notified automatically.</div>';
+          result.innerHTML = '<div class="result-title">Ingest failed. The batch was not loaded.</div><div>The pipeline stopped while converting units, so no results from ' + esc(site) + ' reached the study warehouse. Our engineering team has been notified automatically.</div><div class="result-detail">' + esc(data.errorClass) + ': ' + esc(data.error) + '</div><div class="ref">Reference ' + esc(data.requestId || data.code) + '</div>';
         } else {
+          stage('normalize', 'done'); stage('ranges', 'active'); line('Converted ' + data.records.length + ' results to standard units', 'ok');
+          await sleep(300); stage('ranges', 'done'); stage('warehouse', 'active');
+          const out = data.records.filter((r) => r.flag !== 'ok').length;
+          line('Reference ranges applied: ' + out + ' out-of-range value' + (out === 1 ? '' : 's') + ' flagged', out ? 'warn' : 'ok');
+          await sleep(300); stage('warehouse', 'done'); line('Committed batch ' + data.batchId + ' to warehouse.lab_results', 'ok');
+          document.getElementById('runMeta').textContent = 'Completed ' + ts();
           result.className = 'result-box success';
-          result.innerHTML = renderSuccess(data);
+          result.innerHTML = '<div class="result-title">Loaded ' + data.records.length + ' records from ' + esc(data.site) + '</div><div class="ref">Batch ' + esc(data.batchId) + ' committed with audit entry.</div>';
+          renderRecords(data);
         }
       } catch (err) {
+        stage('normalize', 'failed');
         result.className = 'result-box error';
         result.innerHTML = '<div class="result-title">Network error</div><div class="result-detail">' + esc(err.message) + '</div>';
       } finally { btn.disabled = false; btn.textContent = CTA; }
