@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>תביעות - כלל ביטוח</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Rubik:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-blue: #1b26b6;
+      --c-ink: #292b2c;
+      --c-nav: #333333;
+      --c-navy: #262b3a;
+      --c-link: #0275d8;
+      --c-mint: #b0ffae;
+      --c-ink-bar: #3f51b5;
+      --c-tab-line: #e2e2f5;
+      --c-footer: #e4edff;
+      --c-circle: #e4e5fb;
+      --c-error: #d0021b;
+      --grad: linear-gradient(180deg, #ffffff 17.65%, #f3f3fb 100%);
+      --shadow-cube: 0 4px 50px 0 rgba(9, 12, 51, 0.15);
+      --shadow-btn: 0 14px 40px 0 rgba(27, 38, 182, 0.3);
+      --f-regular: 'AssistantRegular', 'Assistant', 'Heebo', Arial, sans-serif;
+      --f-semibold: 'AssistantSemiBold', 'Assistant', 'Heebo', Arial, sans-serif;
+      --f-bold: 'AssistantBold', 'Assistant', 'Heebo', Arial, sans-serif;
+      --p-regular: 'PolinRegular', 'Rubik', Arial, sans-serif;
+      --p-light: 'PolinLight', 'Rubik', Arial, sans-serif;
+      --p-medium: 'PolinMedium', 'Rubik', Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--f-regular); font-size: 18px; line-height: 27px; color: var(--c-ink); background: #fff; direction: rtl; text-align: right; overflow-x: hidden; }
+    a { color: var(--c-link); text-decoration: none; }
+    h1, h2, h3, p { margin: 0; font-weight: inherit; }
+    button, input, select { font: inherit; }
+
+    /* Header */
+    .new-header { position: relative; height: 81px; background: #fff; border-bottom: 1px solid #eeeeee; display: flex; align-items: center; padding: 0 39px 0 39px; }
+    .new-header__logo { display: block; width: 206px; height: 26px; margin-left: 0; flex: none; }
+    .new-header__logo svg { display: block; width: 206px; height: 26px; }
+    .new-header__nav { display: flex; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; gap: 24px; row-gap: 61px; flex: 1; height: 80px; padding-top: 19px; overflow: hidden; margin-left: 16px; }
+    .new-header__nav a { font-family: var(--p-regular); font-size: 18px; line-height: 27px; color: var(--c-nav); padding: 8px; display: block; }
+    .header-actions { display: flex; align-items: center; gap: 16px; flex: none; }
+    .search-btn { width: 49px; height: 48px; padding: 12px; border: 0; background: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .login-btn { display: flex; align-items: center; justify-content: center; height: 64px; width: 208px; padding: 12px 60px; border-radius: 12px; background: var(--c-mint); color: #000; white-space: nowrap; font-family: var(--p-medium); font-size: 16.884px; line-height: 20px; }
+    .menu-btn { display: none; }
+    .new-header__nav a, .privacy, .subject-title, .apps .meet, .footer-title-mobile, .footer-mobile .text { letter-spacing: 0.7px; }
+    .footer-col li { letter-spacing: 0.2px; }
+
+    /* Top / claims hero */
+    .top { background: var(--grad); padding: 56px 150px 0; }
+    .hero { display: flex; justify-content: space-between; align-items: flex-start; min-height: 372px; }
+    .hero__text { width: 620px; margin-right: 20px; }
+    .blue-large-text { font-family: var(--f-bold); font-weight: 700; font-size: 70px; line-height: 50px; color: var(--c-blue); padding-top: 0; }
+    .hero__text p { font-family: var(--f-semibold); font-weight: 600; font-size: 26px; line-height: 32px; color: var(--c-blue); margin-top: 27px; }
+    .hero__img { width: 485px; height: 372px; flex: none; position: relative; }
+    .hero__img img { width: 485px; height: 372px; display: block; }
+    .hero__img .img-fallback { display: none; }
+    .hero__img img.is-broken { display: none; }
+    .hero__img img.is-broken + .img-fallback { display: block; width: 372px; height: 372px; margin-right: 56px; border-radius: 50%; background: #ffb957; }
+
+    .tabs { position: relative; display: flex; gap: 0; margin: 64px -14px 0 0; width: 912px; border-bottom: 1px solid var(--c-tab-line); }
+    .tab { font-family: var(--f-regular); font-weight: 500; font-size: 35px; line-height: 50px; color: var(--c-blue); padding: 0 0 24px; white-space: nowrap; padding-left: 0; padding-right: 0; text-align: center; cursor: pointer; background: none; border: 0; opacity: 0.75; }
+    .tab.is-active { font-family: var(--f-semibold); font-weight: 600; opacity: 1; position: relative; }
+    .tab:nth-child(1) { width: 235px; margin-right: 15px; }
+    .tab:nth-child(2) { width: 298px; margin-right: 0; padding-left: 0; margin-left: 0; }
+    .tab:nth-child(2) { margin-right: 4px; }
+    .tab:nth-child(3) { width: 260px; margin-right: 61px; }
+    .tab.is-active::after { content: ''; position: absolute; right: 0; left: 0; bottom: -1px; height: 6px; border-radius: 4px; background: var(--c-ink-bar); }
+
+    .claim-login { margin-top: 21px; background: var(--c-blue); border-radius: 20px; padding: 45px 83px; display: grid; grid-template-columns: 320px 320px 213px; justify-content: space-between; column-gap: 53px; row-gap: 30px; }
+    .input-field { position: relative; height: 65px; background: #fff; border-radius: 10px; }
+    .input-field label { position: absolute; top: 4px; right: 12px; font-family: var(--f-regular); font-size: 12px; line-height: 14px; color: var(--c-blue); pointer-events: none; }
+    .input-field label .req { color: #ff4081; margin-right: 2px; }
+    .input-field input, .input-field select { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; padding: 20px 12px 4px 12px; font-family: var(--f-regular); font-size: 18px; color: var(--c-blue); outline: none; border-radius: 10px; -webkit-appearance: none; appearance: none; }
+    .input-field select { padding-left: 36px; cursor: pointer; }
+    .input-field .chev { position: absolute; left: 14px; top: 50%; width: 12px; height: 12px; margin-top: -3px; pointer-events: none; }
+    .input-field.wide { grid-column: 1 / span 2; }
+    .claim-login .button { height: 65px; width: 213px; background: #fff; color: var(--c-blue); border: 0; border-radius: 8px; padding: 0 6px; font-family: var(--f-semibold); font-weight: 600; font-size: 24px; line-height: 42px; cursor: pointer; }
+    .claim-login .button:disabled { opacity: 0.7; cursor: progress; }
+    .result-box { display: none; grid-column: 1 / -1; background: #fff; border-radius: 10px; padding: 16px 20px; font-family: var(--f-semibold); font-size: 20px; line-height: 28px; color: var(--c-blue); }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.error { color: var(--c-error); }
+    .result-box .error-title { font-family: var(--f-bold); font-weight: 700; }
+    .result-box .error-detail { font-family: var(--f-regular); font-size: 18px; color: var(--c-ink); }
+    .blue-normal-text.small { font-family: var(--f-semibold); font-weight: 600; font-size: 20px; line-height: 50px; color: var(--c-blue); padding-bottom: 80px; }
+    .blue-normal-text.small a { text-decoration: underline; color: var(--c-link); }
+
+    /* New claim strip */
+    .choose-claim-strip { background: var(--grad); padding: 56px 150px 168px; }
+    .blue-header-text { font-family: var(--f-bold); font-weight: 700; font-size: 50px; line-height: 50px; color: var(--c-blue); text-align: center; }
+    .cubes { display: flex; flex-wrap: wrap; justify-content: center; gap: 64px 32px; margin-top: 54px; }
+    .claim-cube { width: 200px; height: 250px; background: #fff; border-radius: 20px; padding: 24px 0; box-shadow: var(--shadow-cube); display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+    .claim-cube img { width: 130px; height: 130px; display: block; }
+    .claim-cube .m { display: none; }
+    .claim-cube .title { width: 152px; height: 52px; font-family: var(--f-semibold); font-weight: 600; font-size: 24px; line-height: 26px; color: var(--c-blue); text-align: center; }
+    .btn-primary { display: flex; align-items: center; justify-content: center; height: 54px; border-radius: 46px; background: var(--c-blue); color: #fff; font-family: var(--f-semibold); font-weight: 600; font-size: 20px; line-height: 26px; padding: 0 6px; box-shadow: var(--shadow-btn); border: 0; }
+    .more-btn { width: 169px; margin: 124px auto 0; }
+    .privacy { width: 800px; margin: 82px auto 45px; font-family: var(--p-regular); font-size: 18px; line-height: 27px; color: var(--c-ink); text-align: center; }
+
+    /* Promo rows */
+    .promos { width: 726px; margin: 0 auto; }
+    .promo { display: flex; align-items: center; height: 520px; }
+    .promo--rev { flex-direction: row-reverse; }
+    .promo__text { width: 363px; flex: none; }
+    .promo__img { width: 363px; flex: none; }
+    .promo__img img { width: 363px; display: block; height: auto; }
+    .promo__img .m { display: none; }
+    .promo .title { font-family: var(--f-bold); font-weight: 700; font-size: 50px; line-height: 72px; color: var(--c-blue); }
+    .promo .sub-title { font-family: var(--f-regular); font-weight: 500; font-size: 26px; line-height: 34px; color: var(--c-ink); max-width: 85%; }
+    .promo .btn-primary { width: 188px; margin-top: 30px; }
+
+    /* Contact */
+    .contact-us { position: relative; overflow: hidden; height: 545px; }
+    .contact-us .decoration { position: absolute; top: 47px; left: 61px; width: 905px; height: 905px; border-radius: 50%; background: var(--c-circle) center / cover no-repeat; }
+    .contact-us .inner { position: relative; width: 821px; padding-top: 60px; margin-right: calc(50% - 372px); }
+    .contact-us .title { font-family: var(--f-bold); font-weight: 700; font-size: 50px; line-height: 50px; color: var(--c-blue); text-align: center; }
+    .contact-lines { margin-top: 79px; font-family: var(--f-semibold); font-size: 20px; line-height: 32px; color: var(--c-blue); }
+    .contact-lines strong { font-weight: 700; }
+    .contact-lines .addr { margin-top: 18px; }
+    .contact-btns { display: flex; gap: 16px; margin-top: 38px; }
+    .contact-btns a { display: block; height: 48px; padding: 10px 50px; border-radius: 46px; font-family: var(--f-regular); font-size: 18px; line-height: 27px; box-shadow: var(--shadow-btn); }
+    .contact-btns .blue { background: var(--c-blue); color: #fff; }
+    .contact-btns .second { border: 1px solid var(--c-blue); color: var(--c-blue); background: #fff; }
+
+    /* Footer */
+    .footer-wrapper { background: var(--c-footer); padding: 148px 151px; color: var(--c-navy); display: flex; gap: 30px; justify-content: flex-start; min-height: 1078px; }
+    .footer-col { width: 162px; flex: none; }
+    .subject-title { font-family: var(--p-regular); font-weight: 600; font-size: 15px; line-height: 17px; color: var(--c-navy); margin-bottom: 27px; }
+    .footer-col ul { list-style: none; margin: 0; padding: 0; }
+    .footer-col li { font-family: var(--p-light); font-weight: 300; font-size: 15px; line-height: 28.5px; }
+    .footer-col li a { color: var(--c-navy); }
+    .footer-col.apps { margin-right: auto; }
+    .footer-col.apps .subject-title { margin-bottom: 24px; }
+    .apps .badges a { display: block; width: 142px; height: 40px; margin: 0 0 7px 0; }
+    .apps .badges img { width: 142px; height: 40px; display: block; }
+    .apps .m { display: none; }
+    .apps .meet { font-family: var(--p-light); font-size: 12px; line-height: 18px; margin-top: 30px; }
+    .apps .social { display: flex; gap: 10px; margin-top: 18px; }
+    .apps .social img { width: 28px; height: 28px; display: block; }
+    .footer-mobile { display: none; }
+
+    @media (max-width: 1185px) {
+      .top, .choose-claim-strip { padding-left: 50px; padding-right: 50px; }
+      .new-header__nav { gap: 6px; }
+      .new-header__nav a { font-size: 16px; }
+      .hero__text { width: auto; flex: 1; }
+      .tabs { width: auto; margin-right: 0; }
+      .claim-login { grid-template-columns: 1fr 1fr 213px; padding: 45px 30px; column-gap: 24px; }
+      .footer-wrapper { padding: 148px 40px; gap: 16px; }
+    }
+
+    @media (max-width: 767.98px) {
+      body { font-size: 14px; }
+      .new-header { height: 56px; border-bottom: 0; padding: 0 16px; }
+      .new-header__nav, .search-btn { display: none; }
+      .new-header__logo, .new-header__logo svg { width: 140px; height: 18px; }
+      .new-header__logo { order: 3; margin-right: auto; }
+      .header-actions { order: 1; gap: 5px; flex-direction: row-reverse; }
+      .header-actions { order: 1; }
+      .menu-btn { display: flex; order: 0; width: 44px; height: 40px; margin: 0; padding: 4px 6px; border: 0; background: none; align-items: center; justify-content: center; }
+      .login-btn::before, .menu-btn::before { content: ''; position: absolute; top: -2px; bottom: -2px; left: 0; right: 0; }
+      .login-btn, .menu-btn { position: relative; }
+      .login-btn { width: 100px; height: 40px; padding: 10px; border-radius: 8px; font-size: 12px; line-height: 20px; color: var(--c-navy); }
+      .top { padding: 52px 0 0; }
+      .hero { flex-direction: column-reverse; align-items: center; min-height: 0; }
+      .hero__img, .hero__img img { width: 183px; height: 141px; }
+      .hero__img img.is-broken + .img-fallback { width: 141px; height: 141px; margin: 0 21px; }
+      .hero__text { width: 100%; margin-right: 0; padding: 0 1px; text-align: center; }
+      .blue-large-text { font-size: 38px; line-height: 46px; }
+      .hero__text p { font-size: 20px; line-height: 24px; margin-top: 3px; white-space: nowrap; }
+      .tabs { width: 100%; margin: 42px 0 0; }
+      .tab { white-space: normal; font-size: 20px; line-height: 30px; padding: 0 8px 5.92px; width: 130px !important; margin: 0 !important; display: flex; align-items: flex-end; justify-content: center; min-height: 60px; }
+      .tab.is-active::after { height: 3px; bottom: 0; }
+      .claim-login { margin-top: 17px; border-radius: 0; padding: 45px 30px 48px; grid-template-columns: 1fr; row-gap: 37px; }
+      .input-field.wide { grid-column: auto; }
+      .claim-login .button { width: 100%; margin-top: -7px; }
+      .input-field { border: 5px solid #4d55c6; }
+      .input-field label { top: -1px; right: 7px; }
+      .input-field input, .input-field select { padding: 15px 7px 0 7px; }
+      .input-field select { padding-left: 31px; }
+      .input-field .chev { left: 9px; }
+      .result-box { font-size: 18px; }
+      .blue-normal-text.small { font-size: 18px; line-height: 24px; padding: 0 0 0; }
+      .choose-claim-strip { background: #f5f5f5; padding: 40px 0 78px; }
+      .blue-header-text { font-size: 36px; line-height: 50px; }
+      .cubes { flex-direction: column; align-items: center; gap: 14px; margin-top: 28px; flex-wrap: nowrap; }
+      .claim-cube { width: 330px; height: 93px; flex-direction: row; padding: 2px 0; justify-content: flex-start; }
+      .claim-cube .d { display: none; }
+      .claim-cube .m { display: block; width: 165px; height: 89px; padding: 0 38px; object-fit: contain; }
+      .claim-cube .title { width: 155px; height: auto; margin-right: -16px; }
+      .more-btn { width: 155px; margin-top: 37px; }
+      .privacy { width: 100%; margin-top: 0; font-size: 14px; line-height: 21px; padding: 0; }
+      .promos { width: 100%; padding: 15px 25px 0; }
+      .promo, .promo--rev { flex-direction: column; align-items: center; text-align: center; height: auto; }
+      .promo + .promo { margin-top: 50px; }
+      .promo__text, .promo__img { width: 340px; }
+      .promo__img { margin-top: 28px; }
+      .promo__img img { width: 340px; }
+      .promo__img .d { display: none; }
+      .promo__img .m { display: block; }
+      .promo .title { font-size: 36px; line-height: 72px; }
+      .promo .sub-title { font-family: var(--f-semibold); font-weight: 600; font-size: 18px; line-height: 21px; color: #000; padding: 20px 0; max-width: none; }
+      .promo .btn-primary { width: 155px; height: 44px; font-size: 18px; margin: 28px auto 0; }
+      .contact-us { height: auto; padding-bottom: 86px; }
+      .contact-us .decoration { top: 340px; left: 90px; width: 1059px; height: 1059px; }
+      .contact-us .inner { width: 330px; margin: 0 auto; padding-top: 76px; }
+      .contact-us .title { font-size: 28px; line-height: 42px; color: #0e1462; }
+      .contact-lines { margin-top: 40px; font-size: 18px; line-height: 27px; }
+      .contact-lines .addr { margin-top: 14px; }
+      .contact-btns { flex-direction: column; gap: 9px; margin-top: 62px; }
+      .contact-btns a { height: 54px; text-align: center; padding: 13px 20px; }
+      .footer-wrapper { display: none; }
+      .footer-mobile { display: block; background: var(--c-footer); padding: 48px 0 74px; color: var(--c-navy); }
+      .footer-item-mobile { border-top: 1px solid #4b63e8; }
+      .footer-item-mobile summary { height: 62px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; cursor: pointer; list-style: none; }
+      .footer-item-mobile summary::-webkit-details-marker { display: none; }
+      .footer-item-mobile[open] summary svg { transform: rotate(180deg); }
+      .footer-item-mobile ul { list-style: none; margin: 0; padding: 0 24px 16px; }
+      .footer-item-mobile li { font-family: var(--p-light); font-size: 17px; line-height: 44px; }
+      .footer-item-mobile li a { color: var(--c-navy); display: block; }
+      .footer-item-mobile:last-of-type { border-bottom: 1px solid #4b63e8; }
+      .footer-title-mobile { font-family: var(--p-regular); font-size: 25px; line-height: 38px; }
+      .footer-mobile .apps-m { padding: 61px 16px 0; }
+      .footer-mobile .text { font-family: var(--p-medium); font-weight: 600; font-size: 17px; line-height: 26px; padding-bottom: 16px; }
+      .footer-mobile .badges { display: flex; gap: 16px; justify-content: flex-start; padding-right: 13px; }
+      .footer-mobile .badges img { width: 158px; height: 45px; display: block; }
+      .footer-mobile .social { display: flex; gap: 6px; }
+      .footer-mobile .social img { width: 40px; height: 40px; display: block; }
+      .footer-mobile .meet { margin-top: 16px; padding-bottom: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="new-header" id="new-header">
+    <a class="new-header__logo" href="#" aria-label="כלל ביטוח ופיננסים">
+      <svg viewBox="0 0 206 26" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true" style="direction:ltr">
+        <text x="70" y="23.5" text-anchor="end" font-family="Rubik, Arial, sans-serif" font-weight="600" font-size="30" fill="#262B3A">כלל</text>
+        <g fill="#3D6CED">
+          <path d="M75.5 3.2c7.4-1.3 14.8.4 18.5 6.4 3.7-6 11.1-7.7 18.5-6.4v8c-4.6-.2-11.3.4-11.3 2.9s6.7 3.1 11.3 2.9v8.6c-7.4 1.3-14.8-.6-18.5-6.6-3.7 6-11.1 7.9-18.5 6.6V17c4.6.2 11.3-.4 11.3-2.9s-6.7-3.1-11.3-2.9z"/>
+        </g>
+        <text x="118" y="24" font-family="Rubik, Arial, sans-serif" font-weight="500" font-size="27" fill="#262B3A" letter-spacing="0.5">CLaL</text>
+      </svg>
+    </a>
+    <nav class="new-header__nav" id="new-header-nav" aria-label="ראשי">
+      <a href="#">ביטוח</a>
+      <a href="#">חיסכון ופיננסים</a>
+      <a href="#">הלוואות ומשכנתאות</a>
+      <a href="#">ביטוח אשראי</a>
+      <a href="#">תביעות</a>
+      <a href="#">קריירה</a>
+      <a href="#">פורטלים</a>
+    </nav>
+    <div class="header-actions">
+      <button class="search-btn" type="button" aria-label="חיפוש">
+        <svg width="25" height="24" viewBox="0 0 25 24" fill="none" stroke="#262B3A" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="10.5" r="7"/><path d="M16.2 15.7 21.5 21" stroke-linecap="round"/></svg>
+      </button>
+      <a class="login-btn" href="#">לחשבון שלך</a>
+      <button class="menu-btn" type="button" aria-label="תפריט">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#262B3A" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 8h22M5 16h22M5 24h22"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="top">
+      <div class="hero">
+        <div class="hero__text">
+          <h1 class="blue-large-text">תביעות Online</h1>
+          <p>הגישו תביעה, בדקו סטטוס והשלימו מסמכים חסרים.</p>
+        </div>
+        <div class="hero__img">
+          <picture>
+            <source media="(max-width: 767.98px)" srcset="https://www.clalbit.co.il/media/26794/headline-mobile.png">
+            <img src="https://www.clalbit.co.il/media/26795/headline-pic-desktop.png" alt="" onerror="this.classList.add('is-broken')">
+          </picture>
+          <div class="img-fallback"></div>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab is-active" type="button" role="tab" aria-selected="true">הגשת תביעה</button>
+        <button class="tab" type="button" role="tab" aria-selected="false">כניסה עם מספר תביעה</button>
+        <button class="tab" type="button" role="tab" aria-selected="false">סטטוס תביעות צד ג'</button>
+      </div>
+
+      <form id="claimForm" class="claim-login" novalidate>
+        <div class="input-field">
+          <label for="policyId">פוליסה<span class="req">*</span></label>
+          <select id="policyId">
+            <option value="POL-5001">ביטוח רכב — POL-5001</option>
+            <option value="POL-5002">ביטוח דירה — POL-5002</option>
+          </select>
+          <svg class="chev" viewBox="0 0 12 8" fill="none" stroke="#1b26b6" stroke-width="1.8" aria-hidden="true"><path d="M1 1.5 6 6.5 11 1.5"/></svg>
+        </div>
+        <div class="input-field">
+          <label for="claimType">סוג האירוע<span class="req">*</span></label>
+          <select id="claimType">
+            <option value="collision">תאונה — נזק לרכב המבוטח</option>
+            <option value="comprehensive">גניבה / נזקי טבע</option>
+            <option value="liability">נזק לצד ג'</option>
+            <option value="property_damage">נזק לרכוש</option>
+          </select>
+          <svg class="chev" viewBox="0 0 12 8" fill="none" stroke="#1b26b6" stroke-width="1.8" aria-hidden="true"><path d="M1 1.5 6 6.5 11 1.5"/></svg>
+        </div>
+        <div class="input-field">
+          <label for="amount">סכום הנזק (₪)<span class="req">*</span></label>
+          <input type="number" id="amount" value="2500" min="1" step="0.01" inputmode="decimal">
+        </div>
+        <div class="input-field wide">
+          <label for="description">תיאור האירוע<span class="req">*</span></label>
+          <input type="text" id="description" value="פגיעה בפגוש האחורי בחניון">
+        </div>
+        <button type="submit" class="button" id="submitBtn">הגשת תביעה</button>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </form>
+      <div class="blue-normal-text small">לצירוף מסמכים חסרים לתביעת צד ג' <a href="#">לחצו כאן</a></div>
+    </section>
+
+    <section class="choose-claim-strip">
+      <h2 class="blue-header-text">הגשת תביעה חדשה</h2>
+      <div class="cubes">
+        <a class="claim-cube" href="#"><img class="d" src="https://www.clalbit.co.il/media/26802/%D7%91%D7%99%D7%98%D7%95%D7%97-%D7%91%D7%A8%D7%99%D7%90%D7%95%D7%AA-%D7%93%D7%A1%D7%A7%D7%98%D7%95%D7%A4.png" alt="" onerror="this.style.visibility='hidden'"><img class="m" src="https://www.clalbit.co.il/media/26803/%D7%91%D7%99%D7%98%D7%95%D7%97-%D7%91%D7%A8%D7%99%D7%90%D7%95%D7%AA-%D7%9E%D7%95%D7%91%D7%99%D7%99%D7%9C.png" alt="" onerror="this.style.visibility='hidden'"><h3 class="title">ביטוח בריאות</h3></a>
+        <a class="claim-cube" href="#"><img class="d" src="https://www.clalbit.co.il/media/26810/%D7%90%D7%99%D7%99%D7%A7%D7%95%D7%9F-%D7%9E%D7%98%D7%95%D7%A1-%D7%93%D7%A1%D7%A7%D7%98%D7%95%D7%A4.png" alt="" onerror="this.style.visibility='hidden'"><img class="m" src="https://www.clalbit.co.il/media/26811/%D7%90%D7%99%D7%99%D7%A7%D7%95%D7%9F-%D7%9E%D7%98%D7%95%D7%A1-%D7%9E%D7%95%D7%91%D7%99%D7%99%D7%9C.png" alt="" onerror="this.style.visibility='hidden'"><h3 class="title">ביטוח נסיעות לחו&quot;ל</h3></a>
+        <a class="claim-cube" href="#"><img class="d" src="https://www.clalbit.co.il/media/26807/%D7%9E%D7%A4%D7%AA%D7%97-%D7%93%D7%A1%D7%A7%D7%98%D7%95%D7%A4.png" alt="" onerror="this.style.visibility='hidden'"><img class="m" src="https://www.clalbit.co.il/media/26805/%D7%9E%D7%A4%D7%AA%D7%97-%D7%9E%D7%95%D7%91%D7%99%D7%99%D7%9C.png" alt="" onerror="this.style.visibility='hidden'"><h3 class="title">דירה, עסק ומשכנתא</h3></a>
+        <a class="claim-cube" href="#"><img class="d" src="https://www.clalbit.co.il/media/26800/%D7%AA%D7%91%D7%99%D7%A2%D7%95%D7%AA-%D7%9C%D7%91-%D7%93%D7%A1%D7%A7%D7%98%D7%95%D7%A4.png" alt="" onerror="this.style.visibility='hidden'"><img class="m" src="https://www.clalbit.co.il/media/26801/%D7%AA%D7%91%D7%99%D7%A2%D7%95%D7%AA-%D7%9C%D7%91-%D7%9E%D7%95%D7%91%D7%99%D7%99%D7%9C.png" alt="" onerror="this.style.visibility='hidden'"><h3 class="title">ביטוח חיים</h3></a>
+        <a class="claim-cube" href="#"><img class="d" src="https://www.clalbit.co.il/media/26823/%D7%AA%D7%90%D7%95%D7%A0%D7%95%D7%AA-%D7%90%D7%99%D7%A9%D7%99%D7%95%D7%AA-%D7%93%D7%A1%D7%A7%D7%98%D7%95%D7%A4.png" alt="" onerror="this.style.visibility='hidden'"><img class="m" src="https://www.clalbit.co.il/media/26821/%D7%AA%D7%90%D7%95%D7%A0%D7%95%D7%AA-%D7%90%D7%99%D7%A9%D7%99%D7%95%D7%AA-%D7%9E%D7%95%D7%91%D7%99%D7%99%D7%9C.png" alt="" onerror="this.style.visibility='hidden'"><h3 class="title">תאונות אישיות</h3></a>
+      </div>
+      <button class="btn-primary more-btn" type="button">הצג עוד</button>
+      <p class="privacy">המידע האישי שתמסור לכלל יימסר מרצונך ובהסכמתך, ובלעדיו לא ניתן יהיה לקבל את השירות. ידוע לי שעל השירות חלים <a href="#">תנאי הגישה</a> <a href="#">ומדיניות הפרטיות</a>, הכוללים גם פירוט אודות מטרות השימוש במידע, למי יימסר, דרכי ההתקשרות עם הממונה על הגנת הפרטיות וזכויותיך לעיון ולתיקון המידע</p>
+    </section>
+
+    <section class="promos">
+      <div class="promo"><div class="promo__text"><h2 class="title">אפליקציית כלל ביטוח ופיננסים</h2><h3 class="sub-title">כל שירותי החירום בלחיצה אחת</h3><a class="btn-primary" href="#">להורדה</a></div><div class="promo__img"><img class="d" src="https://www.clalbit.co.il/media/29475/%D7%AA%D7%91%D7%99%D7%A2%D7%95%D7%AA-%D7%9C%D7%97%D7%A6%D7%9F.png" alt="" onerror="this.style.visibility='hidden'"><img class="m" src="https://www.clalbit.co.il/media/29475/%D7%AA%D7%91%D7%99%D7%A2%D7%95%D7%AA-%D7%9C%D7%97%D7%A6%D7%9F.png" alt="" onerror="this.style.visibility='hidden'"></div></div>
+      <div class="promo promo--rev"><div class="promo__text"><h2 class="title">שירות תביעה ONLINE</h2><h3 class="sub-title">הגשת תביעה בקליק</h3><a class="btn-primary" href="#">לצפייה</a></div><div class="promo__img"><img class="d" src="https://www.clalbit.co.il/media/26832/%D7%A9%D7%99%D7%A8%D7%95%D7%AA-%D7%AA%D7%91%D7%99%D7%A2%D7%94-online-%D7%93%D7%A1%D7%A7%D7%98%D7%95%D7%A4.png" alt="" onerror="this.style.visibility='hidden'"><img class="m" src="https://www.clalbit.co.il/media/26827/%D7%A9%D7%99%D7%A8%D7%95%D7%AA-%D7%AA%D7%91%D7%99%D7%A2%D7%94-online-%D7%9E%D7%95%D7%91%D7%99%D7%99%D7%9C.png" alt="" onerror="this.style.visibility='hidden'"></div></div>
+      <div class="promo"><div class="promo__text"><h2 class="title">TOP 100</h2><h3 class="sub-title">זימון תור לרופא מומחה ממרכז המומחים של אסותא למבוטחי כלל</h3><a class="btn-primary" href="#">לחצו כאן</a></div><div class="promo__img"><img class="d" src="https://www.clalbit.co.il/media/26828/top-100-%D7%93%D7%A1%D7%A7%D7%95%D7%A4.png" alt="" onerror="this.style.visibility='hidden'"><img class="m" src="https://www.clalbit.co.il/media/26829/top-100%D7%91%D7%90%D7%A0%D7%A0%D7%A8-1.png" alt="" onerror="this.style.visibility='hidden'"></div></div>
+    </section>
+
+    <section class="contact-us">
+      <div class="decoration" style="background-image:url('https://www.clalbit.co.il/AngularClient/dist/assets/images/claims/light-blue-decoration.png')"></div>
+      <div class="inner">
+        <div class="title">אנחנו כאן בשבילך!</div>
+        <div class="contact-lines">
+          <div><strong>טלפון:</strong> <span>חייגו 6564*</span></div>
+          <div><strong>שעות פעילות:</strong></div>
+          <div><span>ימים א'-ה' 08:30-16:00</span></div>
+          <div><span>ימי ו' 08:00-12:00 (מוקד תביעות רכב בלבד)</span></div>
+          <div><a href="#">לפרטי התקשרות נוספים&gt;</a></div>
+          <div class="addr"><strong>כתובת למשלוח דואר:</strong> <span>ראול ולנברג 36, ת.ד 58250, תל אביב 6136902</span></div>
+        </div>
+        <div class="contact-btns">
+          <a class="blue" href="#">מידע כללי בנושא תביעות</a>
+          <a class="second" href="#">חוזר מידע סטטיסטי</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-wrapper">
+      <div class="footer-col"><h2 class="subject-title">חברת ביטוח</h2><ul><li><a href="#">אודות כלל ביטוח</a></li><li><a href="#">אודות קבוצת כלל</a></li><li><a href="#">חברת ביטוח</a></li><li><a href="#">אודות כלל פנסיה וגמל</a></li><li><a href="#">אודות כלל ביטוח אשראי</a></li><li><a href="#">כלל ניהול פיננסים</a></li><li><a href="#">ניווט בעולם ההשקעות והפיננסים</a></li><li><a href="#">קשרי משקיעים</a></li><li><a href="#">Investor Relations</a></li><li><a href="#">דיווחים מיידיים</a></li><li><a href="#">נתונים ומידע</a></li><li><a href="#">אחריות תאגידית</a></li><li><a href="#">אמות מידה לבחינת איכות ממשל תאגידי</a></li><li><a href="#">הסדרי נגישות</a></li><li><a href="#">הצהרת נגישות</a></li><li><a href="#">קריירה בכלל ביטוח ופיננסים</a></li><li><a href="#">English</a></li></ul></div>
+      <div class="footer-col"><h2 class="subject-title">לשירותך</h2><ul><li><a href="#">כרטיס האשראי Clal Pay</a></li><li><a href="#">לאפליקציה של כלל</a></li><li><a href="#">מרכז החוסן של כלל</a></li><li><a href="#">שירות לקוחות</a></li><li><a href="#">מרכז תביעות</a></li><li><a href="#">אמנת השירות</a></li><li><a href="#">פניות הציבור</a></li><li><a href="#">פנייה ישירה לסמנכ&quot;ל השירות</a></li><li><a href="#">טופס ערעור</a></li><li><a href="#">תובענות ייצוגיות</a></li><li><a href="#">מדיניות הפרטיות</a></li><li><a href="#">מדיניות שימוש בבינה מלאכותית</a></li><li><a href="#">מדיניות פרטיות למועמדים לעבודה</a></li><li><a href="#">תנאי גישה</a></li><li><a href="#">פודקאסט</a></li><li><a href="#">בקשה לקבלת מידע/ביטול</a></li><li><a href="#">ביטול פוליסה קיימת</a></li><li><a href="#">ניוד פוליסות – מקדמי קצבה</a></li><li><a href="#">בדיקת קיום פוליסת רכב חובה</a></li><li><a href="#">האם הרכב מבוטח בכלל</a></li></ul></div>
+      <div class="footer-col"><h2 class="subject-title">שימושי</h2><ul><li><a href="#">איתור סוכן ביטוח</a></li><li><a href="#">ביטול/עדכון מינוי סוכן</a></li><li><a href="#">איתור שרברבים</a></li><li><a href="#">רשימת רופאים</a></li><li><a href="#">איתורן ליווי פיננסי</a></li><li><a href="#">מחשבון עלות שנתית צפויה</a></li><li><a href="#">מחשבון תשואות</a></li><li><a href="#">מחשבון גמל</a></li><li><a href="#">מחשבון משכנתא</a></li><li><a href="#">מחשבון ריסק</a></li><li><a href="#">מחשבון תגמולי בריאות</a></li><li><a href="#">מחשבון חשיפות בשילוב מסלולי השקעה</a></li><li><a href="#">השוואת קרנות פנסיה</a></li><li><a href="#">השוואת קרנות השתלמות</a></li><li><a href="#">משיכת קרן השתלמות</a></li><li><a href="#">פורטל מפתחים - בנקאות פתוחה</a></li><li><a href="#">פורטל מעסיקים ומתפעלים</a></li><li><a href="#">מבצעים לסוכנים</a></li><li><a href="#">מפת אתר</a></li></ul></div>
+      <div class="footer-col"><h2 class="subject-title">ביטוח</h2><ul><li><a href="#">ביטוח רכב</a></li><li><a href="#">clalBEHAVE</a></li><li><a href="#">השוואת ביטוח רכב</a></li><li><a href="#">ביטוח מקיף לרכב</a></li><li><a href="#">ביטוח חובה</a></li><li><a href="#">ביטוח רכב לפי קילומטר</a></li><li><a href="#">ביטוח נהג חדש</a></li><li><a href="#">נהג זמני</a></li><li><a href="#">ביטוח צד ג&#x27;</a></li><li><a href="#">ביטוח נסיעות לחו&quot;ל</a></li><li><a href="#">ביטוח בריאות</a></li><li><a href="#">ביטוח מחלות קשות</a></li><li><a href="#">ביטוח משכנתא</a></li><li><a href="#">ביטוח מבנה למשכנתא</a></li><li><a href="#">ביטוח דירה</a></li><li><a href="#">ביטוח סייבר</a></li><li><a href="#">ביטוח חיים</a></li><li><a href="#">ביטוח עסק</a></li><li><a href="#">ביטוח אחריות מקצועית</a></li></ul></div>
+      <div class="footer-col"><h2 class="subject-title">חיסכון ואשראי</h2><ul><li><a href="#">משכנתא</a></li><li><a href="#">משכנתא הפוכה</a></li><li><a href="#">ביטוח אובדן כושר עבודה</a></li><li><a href="#">ביטוח מנהלים</a></li><li><a href="#">חיסכון פיננסי לעתיד</a></li><li><a href="#">פנסיה</a></li><li><a href="#">פנסיה מבטיחה</a></li><li><a href="#">פנסיה לעצמאים</a></li><li><a href="#">הפרשות לפנסיה</a></li><li><a href="#">פרישה</a></li><li><a href="#">קופת גמל</a></li><li><a href="#">חיסכון לכל ילד</a></li><li><a href="#">קרן השתלמות</a></li><li><a href="#">קרן השתלמות לעצמאים</a></li><li><a href="#">קופת גמל להשקעה</a></li><li><a href="#">תשואות קופות גמל להשקעה</a></li><li><a href="#">הצהרה על מדיניות השקעה</a></li><li><a href="#">רשימת מסלולים כשרים</a></li></ul></div>
+      <div class="footer-col apps">
+        <div class="subject-title">להורדה:</div>
+        <div class="badges">
+          <a href="#"><img src="https://www.clalbit.co.il/content/images/footer/app-store.png" alt="Download on the App Store" onerror="this.style.visibility='hidden'"></a>
+          <a href="#"><img src="https://www.clalbit.co.il/content/images/footer/google-play.png" alt="Get it on Google Play" onerror="this.style.visibility='hidden'"></a>
+        </div>
+        <div class="meet">נשמח לפגוש אתכם ב-</div>
+        <div class="social">
+          <a href="#"><img src="https://www.clalbit.co.il/content/images/footer/facebook.svg" alt="Facebook" onerror="this.style.visibility='hidden'"></a>
+          <a href="#"><img src="https://www.clalbit.co.il/content/images/footer/youtube.svg" alt="YouTube" onerror="this.style.visibility='hidden'"></a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-mobile">
+      <details class="footer-item-mobile"><summary><span class="footer-title-mobile">חברת ביטוח (17)</span><svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="#262B3A" stroke-width="2.2" aria-hidden="true"><path d="M1 2.5 4 5.5 7 2.5"/></svg></summary><ul><li><a href="#">אודות כלל ביטוח</a></li><li><a href="#">אודות קבוצת כלל</a></li><li><a href="#">חברת ביטוח</a></li><li><a href="#">אודות כלל פנסיה וגמל</a></li><li><a href="#">אודות כלל ביטוח אשראי</a></li><li><a href="#">כלל ניהול פיננסים</a></li><li><a href="#">ניווט בעולם ההשקעות והפיננסים</a></li><li><a href="#">קשרי משקיעים</a></li><li><a href="#">Investor Relations</a></li><li><a href="#">דיווחים מיידיים</a></li><li><a href="#">נתונים ומידע</a></li><li><a href="#">אחריות תאגידית</a></li><li><a href="#">אמות מידה לבחינת איכות ממשל תאגידי</a></li><li><a href="#">הסדרי נגישות</a></li><li><a href="#">הצהרת נגישות</a></li><li><a href="#">קריירה בכלל ביטוח ופיננסים</a></li><li><a href="#">English</a></li></ul></details>
+      <details class="footer-item-mobile"><summary><span class="footer-title-mobile">לשירותך (20)</span><svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="#262B3A" stroke-width="2.2" aria-hidden="true"><path d="M1 2.5 4 5.5 7 2.5"/></svg></summary><ul><li><a href="#">כרטיס האשראי Clal Pay</a></li><li><a href="#">לאפליקציה של כלל</a></li><li><a href="#">מרכז החוסן של כלל</a></li><li><a href="#">שירות לקוחות</a></li><li><a href="#">מרכז תביעות</a></li><li><a href="#">אמנת השירות</a></li><li><a href="#">פניות הציבור</a></li><li><a href="#">פנייה ישירה לסמנכ&quot;ל השירות</a></li><li><a href="#">טופס ערעור</a></li><li><a href="#">תובענות ייצוגיות</a></li><li><a href="#">מדיניות הפרטיות</a></li><li><a href="#">מדיניות שימוש בבינה מלאכותית</a></li><li><a href="#">מדיניות פרטיות למועמדים לעבודה</a></li><li><a href="#">תנאי גישה</a></li><li><a href="#">פודקאסט</a></li><li><a href="#">בקשה לקבלת מידע/ביטול</a></li><li><a href="#">ביטול פוליסה קיימת</a></li><li><a href="#">ניוד פוליסות – מקדמי קצבה</a></li><li><a href="#">בדיקת קיום פוליסת רכב חובה</a></li><li><a href="#">האם הרכב מבוטח בכלל</a></li></ul></details>
+      <details class="footer-item-mobile"><summary><span class="footer-title-mobile">שימושי (19)</span><svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="#262B3A" stroke-width="2.2" aria-hidden="true"><path d="M1 2.5 4 5.5 7 2.5"/></svg></summary><ul><li><a href="#">איתור סוכן ביטוח</a></li><li><a href="#">ביטול/עדכון מינוי סוכן</a></li><li><a href="#">איתור שרברבים</a></li><li><a href="#">רשימת רופאים</a></li><li><a href="#">איתורן ליווי פיננסי</a></li><li><a href="#">מחשבון עלות שנתית צפויה</a></li><li><a href="#">מחשבון תשואות</a></li><li><a href="#">מחשבון גמל</a></li><li><a href="#">מחשבון משכנתא</a></li><li><a href="#">מחשבון ריסק</a></li><li><a href="#">מחשבון תגמולי בריאות</a></li><li><a href="#">מחשבון חשיפות בשילוב מסלולי השקעה</a></li><li><a href="#">השוואת קרנות פנסיה</a></li><li><a href="#">השוואת קרנות השתלמות</a></li><li><a href="#">משיכת קרן השתלמות</a></li><li><a href="#">פורטל מפתחים - בנקאות פתוחה</a></li><li><a href="#">פורטל מעסיקים ומתפעלים</a></li><li><a href="#">מבצעים לסוכנים</a></li><li><a href="#">מפת אתר</a></li></ul></details>
+      <details class="footer-item-mobile"><summary><span class="footer-title-mobile">ביטוח (19)</span><svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="#262B3A" stroke-width="2.2" aria-hidden="true"><path d="M1 2.5 4 5.5 7 2.5"/></svg></summary><ul><li><a href="#">ביטוח רכב</a></li><li><a href="#">clalBEHAVE</a></li><li><a href="#">השוואת ביטוח רכב</a></li><li><a href="#">ביטוח מקיף לרכב</a></li><li><a href="#">ביטוח חובה</a></li><li><a href="#">ביטוח רכב לפי קילומטר</a></li><li><a href="#">ביטוח נהג חדש</a></li><li><a href="#">נהג זמני</a></li><li><a href="#">ביטוח צד ג&#x27;</a></li><li><a href="#">ביטוח נסיעות לחו&quot;ל</a></li><li><a href="#">ביטוח בריאות</a></li><li><a href="#">ביטוח מחלות קשות</a></li><li><a href="#">ביטוח משכנתא</a></li><li><a href="#">ביטוח מבנה למשכנתא</a></li><li><a href="#">ביטוח דירה</a></li><li><a href="#">ביטוח סייבר</a></li><li><a href="#">ביטוח חיים</a></li><li><a href="#">ביטוח עסק</a></li><li><a href="#">ביטוח אחריות מקצועית</a></li></ul></details>
+      <details class="footer-item-mobile"><summary><span class="footer-title-mobile">חיסכון ואשראי (18)</span><svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="#262B3A" stroke-width="2.2" aria-hidden="true"><path d="M1 2.5 4 5.5 7 2.5"/></svg></summary><ul><li><a href="#">משכנתא</a></li><li><a href="#">משכנתא הפוכה</a></li><li><a href="#">ביטוח אובדן כושר עבודה</a></li><li><a href="#">ביטוח מנהלים</a></li><li><a href="#">חיסכון פיננסי לעתיד</a></li><li><a href="#">פנסיה</a></li><li><a href="#">פנסיה מבטיחה</a></li><li><a href="#">פנסיה לעצמאים</a></li><li><a href="#">הפרשות לפנסיה</a></li><li><a href="#">פרישה</a></li><li><a href="#">קופת גמל</a></li><li><a href="#">חיסכון לכל ילד</a></li><li><a href="#">קרן השתלמות</a></li><li><a href="#">קרן השתלמות לעצמאים</a></li><li><a href="#">קופת גמל להשקעה</a></li><li><a href="#">תשואות קופות גמל להשקעה</a></li><li><a href="#">הצהרה על מדיניות השקעה</a></li><li><a href="#">רשימת מסלולים כשרים</a></li></ul></details>
+      <div class="apps-m">
+        <div class="text">להורדה:</div>
+        <div class="badges">
+          <a href="#"><img src="https://www.clalbit.co.il/content/images/footer/google-play-mobile.svg" alt="Get it on Google Play" onerror="this.style.visibility='hidden'"></a>
+          <a href="#"><img src="https://www.clalbit.co.il/content/images/footer/app-store-mobile.svg" alt="Download on the App Store" onerror="this.style.visibility='hidden'"></a>
+        </div>
+        <div class="text meet">נשמח לפגוש אתכם ב-</div>
+        <div class="social">
+          <a href="#"><img src="https://www.clalbit.co.il/content/images/footer/facebook.svg" alt="Facebook" onerror="this.style.visibility='hidden'"></a>
+          <a href="#"><img src="https://www.clalbit.co.il/content/images/footer/youtube.svg" alt="YouTube" onerror="this.style.visibility='hidden'"></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('claimForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'שולחים...';
+      result.className = 'result-box';
+      const fmt = (n) => Number(n).toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      try {
+        const res = await fetch('/api/insurance/claim', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount: parseFloat(document.getElementById('amount').value), description: document.getElementById('description').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">לא ניתן להשלים את הגשת התביעה כרגע</div><div class="error-detail">אירעה שגיאה בשירות (קוד ${res.status}). התביעה לא נקלטה — נסו שוב מאוחר יותר או חייגו 6564*.</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">התביעה התקבלה</div><div class="error-detail">מספר תביעה ${String(data.claimId || '').slice(0, 8).toUpperCase()} — סכום לתשלום: ₪${fmt(data.payout)} (לאחר השתתפות עצמית של ₪${fmt(data.deductible)})</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">אין חיבור לשירות</div><div class="error-detail">בדקו את החיבור לאינטרנט ונסו שוב.</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'הגשת תביעה'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
