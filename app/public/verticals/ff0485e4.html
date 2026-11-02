@@ -93,13 +93,14 @@
     .docs label:has(input:checked) { border-color:var(--navy); background:#f5f8fc; }
     .docs input { width:16px; height:16px; accent-color:var(--navy); }
     .docs small { margin-left:auto; color:var(--faint); font-size:12px; }
-    .actions { padding:16px 20px; display:flex; align-items:center; gap:14px; border-top:1px solid var(--line); background:#fbfcfd; border-radius:0 0 6px 6px; }
-    .btn { height:40px; padding:0 18px; border-radius:4px; border:1px solid var(--navy); background:var(--navy); color:#fff; font-weight:500; cursor:pointer; }
+    .actions { padding:16px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; border-top:1px solid var(--line); background:#fbfcfd; border-radius:0 0 6px 6px; }
+    .btn { height:40px; padding:0 18px; border-radius:4px; border:1px solid var(--navy); background:var(--navy); color:#fff; font-weight:500; cursor:pointer; white-space:nowrap; }
     .btn:hover { background:var(--navy-deep); }
     .btn:disabled { opacity:.6; cursor:progress; }
     .btn-ghost { background:transparent; color:var(--navy); }
     .btn-ghost:hover { background:#eef3f8; }
     .actions .note { font-size:12px; color:var(--muted); margin-left:auto; }
+    @media (max-width:600px) { .actions .note { margin-left:0; flex-basis:100%; } }
 
     /* decision ladder */
     .ladder { padding:4px 20px 18px; }
@@ -185,11 +186,11 @@
       <p class="lead">Request approval for outpatient imaging, surgery and therapy before you schedule. Office-based requests that meet clinical criteria are decided instantly; the rest go to nurse review.</p>
 
       <dl class="elig" aria-label="Member eligibility">
-        <div><dt>Member</dt><dd>Jordan Rivera <code>SHP-448210</code></dd></div>
-        <div><dt>Plan</dt><dd>Gold PPO — Choice Network</dd></div>
+        <div><dt>Member</dt><dd id="eligName">Jordan Rivera <code>SHP-448210</code></dd></div>
+        <div><dt>Plan</dt><dd id="eligPlan">Gold PPO — Choice Network</dd></div>
         <div><dt>Eligibility</dt><dd class="ok">Active through Dec 31, 2026</dd></div>
-        <div><dt>Primary care</dt><dd>Dr. Amara Okafor</dd></div>
-        <div><dt>Deductible</dt><dd>$1,860 of $3,000 met<div class="bar"><i></i></div></dd></div>
+        <div><dt>Primary care</dt><dd id="eligPcp">Dr. Amara Okafor</dd></div>
+        <div><dt>Deductible</dt><dd id="eligDed">$1,860 of $3,000 met<div class="bar"><i id="eligBar"></i></div></dd></div>
       </dl>
 
       <div class="cols">
@@ -203,7 +204,7 @@
                 <select id="memberId"><option value="SHP-448210" selected>Jordan Rivera — SHP-448210 (Gold PPO)</option><option value="SHP-448377">Priya Natarajan — SHP-448377 (Silver HMO)</option></select></div>
               <div><label class="f" for="reqProv">Requesting provider</label><input id="reqProv" type="text" value="Lena Park, MD — Orthopedic surgery" readonly></div>
               <div><label class="f" for="servProv">Servicing facility</label><input id="servProv" type="text" value="Northside Medical Center — Imaging" readonly></div>
-              <div><label class="f" for="urgency">Urgency</label><select id="urgency"><option selected>Standard (72 hours)</option><option>Expedited (24 hours)</option></select></div>
+              <div><label class="f" for="urgency">Urgency</label><input id="urgency" type="text" value="Standard (72 hours)" readonly></div>
             </div>
           </fieldset>
 
@@ -313,8 +314,19 @@
       result.innerHTML = '<div class="result-title">' + esc(title) + '</div><div>' + esc(d.reason) + '</div><div class="ref">Request ' + esc(d.requestId) + ' &nbsp; ' + esc(d.procedure) + ' at ' + esc(d.siteOfService) + '</div>' + extra;
       setLadder({ s2: 'done', s3: cls === 'success' ? 'done' : cls, meta: 'Decided ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), t2: 'Criteria matched for ' + d.procedure + '.', t3: 'Decision issued and recorded on the member file.' });
     }
+    const MEMBERS = { 'SHP-448210': { name: 'Jordan Rivera', plan: 'Gold PPO — Choice Network', pcp: 'Dr. Amara Okafor', met: 1860, ded: 3000 }, 'SHP-448377': { name: 'Priya Natarajan', plan: 'Silver HMO — Select Network', pcp: 'Dr. Ben Castillo', met: 420, ded: 4500 } };
+    const memberSel = document.getElementById('memberId');
+    function syncMember() {
+      const m = MEMBERS[memberSel.value]; if (!m) return;
+      document.getElementById('eligName').innerHTML = esc(m.name) + ' <code>' + esc(memberSel.value) + '</code>';
+      document.getElementById('eligPlan').textContent = m.plan;
+      document.getElementById('eligPcp').textContent = m.pcp;
+      document.getElementById('eligDed').firstChild.textContent = '$' + m.met.toLocaleString() + ' of $' + m.ded.toLocaleString() + ' met';
+      document.getElementById('eligBar').style.width = Math.round((m.met / m.ded) * 100) + '%';
+    }
+    memberSel.addEventListener('change', syncMember); syncMember();
     pos.addEventListener('change', syncSite); syncSite();
-    document.getElementById('resetBtn').addEventListener('click', () => { form.reset(); result.className = 'result-box'; result.innerHTML = ''; syncSite(); setLadder({ meta: 'Request not yet submitted', t2: "Matches the procedure and place of service against Summit's medical policy.", t3: 'Issued instantly for auto-approved requests, otherwise within the urgency window.' }); });
+    document.getElementById('resetBtn').addEventListener('click', () => { form.reset(); result.className = 'result-box'; result.innerHTML = ''; syncSite(); syncMember(); setLadder({ meta: 'Request not yet submitted', t2: "Matches the procedure and place of service against Summit's medical policy.", t3: 'Issued instantly for auto-approved requests, otherwise within the urgency window.' }); });
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       btn.disabled = true; btn.textContent = "Checking clinical criteria\u2026";
