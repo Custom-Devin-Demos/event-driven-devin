@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add users | Atlassian</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1868DB;
+      --ink: #292A2E;
+      --surface: #FFFFFF;
+      --chrome-bg: #101214;
+      --chrome-text: #FFFFFF;
+      --heading: #101214;
+      --muted: #505258;
+      --line: #DDDEE1;
+      --soft: #F8F8F8;
+      --select: #E9F2FE;
+      --ok: #216E4E; --ok-bg: #DCFFF1;
+      --warn: #A54800; --warn-bg: #FFF5DB;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; overflow-x: hidden; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; font-size: 16px; line-height: 24px; color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .top { display: flex; align-items: center; gap: 16px; min-height: 56px; padding: 0 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; color: var(--heading); font-weight: 600; font-size: 16px; }
+    .brand .mark { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 700; font-size: 16px; }
+    .brand .prod { font-weight: 400; color: var(--muted); }
+    .top .search { margin-left: auto; display: flex; align-items: center; min-height: 36px; padding: 0 14px; width: 260px; border: 1px solid var(--line); border-radius: 10000px; color: var(--muted); font-size: 14px; }
+    .top .avatar { display: inline-grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+    .top .avatar span { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #5E4DB2; color: #fff; font-size: 13px; font-weight: 600; }
+    .shell { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 57px); }
+    .side { border-right: 1px solid var(--line); padding: 16px 12px; background: var(--surface); }
+    .side .org { padding: 8px 12px 16px; font-size: 14px; color: var(--muted); }
+    .side .org b { display: block; color: var(--heading); font-size: 15px; }
+    .side a { display: flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 6px; color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .side a[aria-current] { background: var(--select); color: var(--accent); }
+    .side .sub { padding-left: 24px; font-weight: 400; }
+    main { padding: 32px 40px 64px; max-width: 1120px; }
+    .crumb { margin: 0 0 8px; font-size: 14px; color: var(--muted); }
+    .crumb a { display: inline-block; padding: 10px 0; text-decoration: none; }
+    .crumb { margin-top: -10px; margin-bottom: -2px; }
+    h1 { margin: 0 0 8px; font-size: 32px; line-height: 40px; font-weight: 700; color: var(--heading); letter-spacing: -.01em; }
+    .lead { margin: 0 0 28px; color: var(--muted); max-width: 680px; }
+    .cols { display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: start; }
+    .card { border: 1px solid var(--line); border-radius: 16px; padding: 24px; background: var(--surface); }
+    .card h2 { margin: 0 0 4px; font-size: 20px; line-height: 28px; font-weight: 600; color: var(--heading); }
+    .card .sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .stat { background: var(--soft); border-radius: 12px; padding: 14px 16px; }
+    .stat span { display: block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+    .stat b { display: block; font-size: 24px; line-height: 32px; font-weight: 600; color: var(--heading); font-variant-numeric: tabular-nums; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--line); }
+    th { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    td.n { text-align: right; font-variant-numeric: tabular-nums; }
+    .lozenge { display: inline-block; padding: 0 6px; border-radius: 4px; background: var(--select); color: var(--accent); font-size: 12px; font-weight: 600; line-height: 20px; text-transform: uppercase; }
+    .field { display: grid; gap: 6px; margin-bottom: 18px; align-content: start; }
+    label { font-size: 14px; font-weight: 600; color: var(--heading); }
+    .field small { color: var(--muted); font-size: 13px; line-height: 18px; }
+    select, input[type="number"] { width: 100%; min-height: 48px; padding: 10px 14px; color: var(--ink); background: #fff; border: 1px solid #8C8F97; border-radius: 6px; }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .summary { margin: 4px 0 20px; padding: 0; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; text-align: right; color: var(--heading); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; padding: 10px 26px; border: 1px solid transparent; border-radius: 10000px; font-weight: 500; font-size: 16px; cursor: pointer; text-decoration: none; }
+    .btn:disabled { cursor: progress; opacity: .7; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: #fff; color: var(--accent); border-color: var(--accent); margin-top: 12px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--heading); }
+    .stopwatch.done .sw-value { color: var(--accent); }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 8px; font-size: 14px; line-height: 20px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); border-left: 4px solid var(--warn); }
+    .result-box strong { display: block; margin-bottom: 2px; }
+    .note { margin-top: 20px; font-size: 14px; color: var(--muted); }
+    .note a { display: inline-block; padding: 10px 0; }
+    footer { background: var(--chrome-bg); color: var(--chrome-text); padding: 32px 40px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; font-size: 14px; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 0 24px; }
+    footer a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; text-decoration: none; }
+    footer span { display: inline-flex; align-items: center; min-height: 44px; opacity: .8; }
+    @media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } }
+    @media (max-width: 860px) { .shell { grid-template-columns: 1fr; } .side { display: none; } .top .search { display: none; } .top .avatar { margin-left: auto; } }
+    @media (max-width: 520px) {
+      main { padding: 24px 16px 48px; }
+      h1 { font-size: 26px; line-height: 32px; }
+      .card { padding: 20px 16px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat b { font-size: 20px; line-height: 28px; }
+      .two { grid-template-columns: 1fr; gap: 0; }
+      .hide-s { display: none; }
+      .brand .prod { display: none; }
+      footer { padding: 24px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="#" aria-label="Atlassian Administration">
+      <span class="mark" aria-hidden="true">A</span>Atlassian <span class="prod">Administration</span>
+    </a>
+    <div class="search" aria-hidden="true">Search</div>
+    <button class="avatar" type="button" aria-label="Your profile"><span>JM</span></button>
+  </header>
+  <div class="shell">
+    <nav class="side" aria-label="Administration">
+      <div class="org"><b>Halden Robotics</b>halden-robotics.atlassian.net</div>
+      <a href="#">Overview</a>
+      <a href="#">Apps</a>
+      <a href="#">Directory</a>
+      <a href="#">Security</a>
+      <a href="#">Billing</a>
+      <a href="#" class="sub" aria-current="page">Manage subscriptions</a>
+      <a href="#" class="sub">Billing details</a>
+      <a href="#" class="sub">Quotes</a>
+      <a href="#">Settings</a>
+    </nav>
+    <main id="subscriptions">
+      <p class="crumb"><a href="#">Billing</a> / <a href="#">Manage subscriptions</a> / Add users</p>
+      <h1>Add users</h1>
+      <p class="lead">Increase the user tier on your cloud subscriptions. New users can be invited as soon as the change is confirmed.</p>
+      <div class="cols">
+        <section class="card" aria-labelledby="subsHead">
+          <h2 id="subsHead">Your subscriptions</h2>
+          <p class="sub">Cloud apps on halden-robotics.atlassian.net, billed annually.</p>
+          <div class="stats">
+            <div class="stat"><span>User tier</span><b id="kpiTier">350</b></div>
+            <div class="stat"><span>Active users</span><b>338</b></div>
+            <div class="stat"><span>Next renewal</span><b>Apr 2027</b></div>
+          </div>
+          <table>
+            <thead><tr><th>App</th><th class="hide-s">Plan</th><th class="n">Users</th></tr></thead>
+            <tbody id="subsBody">
+              <tr><td>Jira</td><td class="hide-s"><span class="lozenge">Premium</span></td><td class="n">150</td></tr>
+              <tr><td>Confluence</td><td class="hide-s"><span class="lozenge">Standard</span></td><td class="n">150</td></tr>
+              <tr><td>Jira Service Management</td><td class="hide-s"><span class="lozenge">Standard</span></td><td class="n">50</td></tr>
+            </tbody>
+          </table>
+          <p class="note">Need more than one site, or advanced admin controls? <a href="#">Contact sales about Enterprise</a>.</p>
+        </section>
+        <section class="card" aria-labelledby="addHead">
+          <h2 id="addHead">Change user tier</h2>
+          <p class="sub">Prorated to your renewal date and added to your next invoice.</p>
+          <form id="provisionForm" novalidate>
+            <div class="field">
+              <label for="product">App</label>
+              <select id="product">
+                <option value="enterprise_suite" selected>Jira</option>
+                <option value="devops_platform">Confluence</option>
+                <option value="analytics_cloud">Jira Service Management</option>
+                <option value="security_gateway">Loom</option>
+              </select>
+            </div>
+            <div class="two">
+              <div class="field">
+                <label for="seats">Users to add</label>
+                <input type="number" id="seats" value="25" min="1" max="250" step="1" required inputmode="numeric">
+                <small>1&ndash;250 per change</small>
+              </div>
+              <div class="field">
+                <label for="planTier">Plan</label>
+                <select id="planTier">
+                  <option value="enterprise" selected>Premium</option>
+                  <option value="business">Standard</option>
+                </select>
+              </div>
+            </div>
+            <dl class="summary" aria-label="Change summary">
+              <div><dt>App</dt><dd id="sumApp">&mdash;</dd></div>
+              <div><dt>Users to add</dt><dd id="sumSeats">&mdash;</dd></div>
+              <div><dt>Plan</dt><dd id="sumPlan">&mdash;</dd></div>
+              <div><dt>Billing</dt><dd>Annual</dd></div>
+            </dl>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Add users</button>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+  <footer>
+    <nav aria-label="Footer"><a href="#">Atlassian Support</a><a href="#">Status</a><a href="#">Privacy policy</a><a href="#">Terms</a></nav>
+    <span>Copyright &copy; 2026 Atlassian</span>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('provisionForm'); const btn = $('submitBtn'); const result = $('result');
+      const app = $('product'); const seats = $('seats'); const plan = $('planTier');
+      const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const IDLE = 'Add users';
+      const START_TIER = 350; const START_USERS = { enterprise_suite: 150, devops_platform: 150, analytics_cloud: 50 };
+      let tier = START_TIER; let submission = 0; let ticker = null;
+      const text = (s) => s.options[s.selectedIndex].textContent;
+      function count() { const raw = seats.value.trim(); return /^\d+$/.test(raw) ? parseInt(raw, 10) : NaN; }
+      function render() {
+        const n = count();
+        $('sumApp').textContent = text(app);
+        $('sumSeats').textContent = Number.isFinite(n) ? String(n) : '\u2014';
+        $('sumPlan').textContent = text(plan);
+        $('kpiTier').textContent = String(tier);
+      }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      function show(cls, title, detail, withReset) {
+        result.className = 'result-box ' + cls; result.textContent = '';
+        const t = document.createElement('strong'); t.textContent = title;
+        const d = document.createElement('div'); d.textContent = detail;
+        result.append(t, d);
+        if (withReset) {
+          const again = document.createElement('button'); again.type = 'button'; again.className = 'btn btn-secondary'; again.textContent = 'Add more users';
+          again.addEventListener('click', resetForm); result.append(again);
+        }
+      }
+      function resetForm() {
+        submission++; form.reset(); btn.disabled = false; btn.textContent = IDLE;
+        result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = '0.0s';
+        render(); app.focus();
+      }
+      function addToRow(key, label, planLabel, added) {
+        const row = document.querySelector('#subsBody tr[data-app="' + key + '"]');
+        if (row) { const cell = row.querySelector('td.n'); cell.textContent = String((parseInt(cell.textContent, 10) || 0) + added); return; }
+        const tr = document.createElement('tr'); tr.dataset.app = key;
+        const a = document.createElement('td'); a.textContent = label;
+        const p = document.createElement('td'); p.className = 'hide-s'; const l = document.createElement('span'); l.className = 'lozenge'; l.textContent = planLabel; p.append(l);
+        const u = document.createElement('td'); u.className = 'n'; u.textContent = String(added);
+        tr.append(a, p, u); $('subsBody').append(tr);
+      }
+      Object.keys(START_USERS).forEach((key, i) => { const tr = $('subsBody').children[i]; if (tr) tr.dataset.app = key; });
+      [app, seats, plan].forEach((el) => { el.addEventListener('input', render); el.addEventListener('change', render); });
+      render();
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const n = count();
+        if (!Number.isFinite(n) || n < 1 || n > 250) { show('notice', 'Check the number of users', 'Enter a whole number of users from 1 to 250.'); seats.focus(); return; }
+        const id = ++submission; const appKey = app.value; const appLabel = text(app); const planLabel = text(plan);
+        btn.disabled = true; btn.textContent = 'Adding users\u2026';
+        result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        try {
+          const res = await fetch('/api/licenses/provision', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: app.value,
+              planName: plan.value,
+              seats: parseInt(seats.value, 10),
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (id !== submission) return;
+          tick(); stopTimer(true);
+          if (res.ok && data.success) {
+            const added = Number(data.seatsAdded) || n;
+            tier += added; addToRow(appKey, appLabel, planLabel, added); render();
+            const ref = String(data.licenseId || '').slice(0, 8).toUpperCase();
+            show('success', 'Users added', `${added} ${added === 1 ? 'user' : 'users'} added to ${appLabel} ${planLabel}. Your user tier is now ${tier}.${ref ? ' Reference ' + ref + '.' : ''} You can invite them from Directory.`, true);
+          } else {
+            show('notice', 'Users weren\u2019t added', 'We couldn\u2019t change your user tier right now and your subscription hasn\u2019t changed. Try again in a moment, or contact Atlassian Support.');
+          }
+        } catch (err) {
+          if (id !== submission) return;
+          stopTimer(true);
+          show('notice', 'Users weren\u2019t added', 'We couldn\u2019t reach Atlassian Administration. Check your connection and try again.');
+        } finally {
+          if (id === submission) { btn.disabled = false; btn.textContent = IDLE; }
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
