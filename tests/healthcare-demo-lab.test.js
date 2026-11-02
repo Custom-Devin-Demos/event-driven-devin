@@ -22,6 +22,7 @@ const lifeSciences = require('../app/services/verticals/27a970ec');
 const thermoFisher = require('../app/services/verticals/bce3b3d2');
 const medtronic = require('../app/services/verticals/afd8d03a');
 const cvsCopay = require('../app/services/verticals/1d54e3b4');
+const lillyTrialLab = require('../app/services/verticals/fc0bd7f3');
 
 const devin = { devinUserId: 'user-1', devinOrgId: 'org-1', devinEmail: '' };
 
@@ -63,6 +64,12 @@ const CASES = [
   },
   {
     slug: 'afd8d03a', name: 'Medtronic clinical trial lab pipeline', run: medtronic.ingestBatch,
+    failing: { siteId: 'SITE-104' },
+    passing: { siteId: 'SITE-101' },
+    message: "reading 'factor'", failureMetric: 'lab_pipeline.batch.failure',
+  },
+  {
+    slug: 'fc0bd7f3', name: 'Lilly clinical trial lab pipeline', run: lillyTrialLab.ingestBatch,
     failing: { siteId: 'SITE-104' },
     passing: { siteId: 'SITE-101' },
     message: "reading 'factor'", failureMetric: 'lab_pipeline.batch.failure',
