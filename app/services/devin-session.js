@@ -79,6 +79,23 @@ function buildTeamsCloudWatchCardForAlert(alertData) {
   });
 }
 
+/**
+ * Verticals instrumented with Quantum Metric pass `alertData.quantumMetric`
+ * (the hardcoded experience signal the storefront service attaches to the
+ * alert); it is rendered as an extra fact block on the Teams card, a section
+ * on the Slack card and an "Experience signal" line in the Devin prompt.
+ */
+function quantumMetricFields(qm) {
+  return [
+    ['Experience signal', `Quantum Metric — ${qm.event}`],
+    ['Sessions affected', `${qm.affectedSessions} (${qm.window})`],
+    ['Rage clicks', `${qm.rageClicks} on "${qm.rageClickTarget}"`],
+    ['Conversion', qm.conversionDrop],
+    ['Revenue at risk', qm.revenueAtRisk],
+    ['Session replay', qm.sessionId, { mono: true }],
+  ];
+}
+
 function buildTeamsAlertCardForAlert(alertData) {
   if (alertData.cloudwatch) return buildTeamsCloudWatchCardForAlert(alertData);
   const owner = typeof alertData.devinEmail === 'string' && EMAIL_RE.test(alertData.devinEmail)
@@ -98,6 +115,7 @@ function buildTeamsAlertCardForAlert(alertData) {
         ],
       },
       { code: { label: t.message, text: alertData.errorValue } },
+      alertData.quantumMetric ? { fields: quantumMetricFields(alertData.quantumMetric) } : null,
       // Teams-only alerts start no app-created session, so the responder reads the
       // service-owned remediation directive from the card instead of a prompt.
       // Directives written for Slack mention an alert thread that does not exist here.
@@ -122,7 +140,8 @@ function buildTeamsAlertCardForAlert(alertData) {
       { title: t.watchDevin, url: process.env.AUTOMATIONS_TEAMS_AUTOMATION_URL || DEFAULT_TEAMS_AUTOMATION_URL },
       { title: t.viewSentry, url: alertData.issueUrl },
       { title: t.viewDatadog, url: alertData.datadogUrl || process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com' },
-    ],
+      alertData.quantumMetric ? { title: 'View session replay in Quantum Metric', url: alertData.quantumMetric.replayUrl } : null,
+    ].filter(Boolean),
     // Teams hands responders only top-level TextBlocks, not ColumnSet contents,
     // so the facts the investigation needs are repeated in the footer.
     footer: [
@@ -188,6 +207,14 @@ function buildPrompt(alertData) {
     lines.push(
       `*Alarm source:* Amazon CloudWatch — alarm \`${cw.alarmName}\` (${cw.namespace} / ${cw.metricName}) in ${cw.region} entered ALARM`,
       cw.logGroup ? `*Log group:* \`${cw.logGroup}\`` : null,
+    );
+  }
+  if (alertData.quantumMetric) {
+    const qm = alertData.quantumMetric;
+    lines.push(
+      `*Experience signal:* Quantum Metric — ${qm.event}; ${qm.affectedSessions} sessions affected in the ${qm.window}, ${qm.rageClicks} rage clicks on "${qm.rageClickTarget}", conversion ${qm.conversionDrop}, ${qm.revenueAtRisk} revenue at risk`,
+      qm.segment ? `*Quantum Metric segment:* ${qm.segment}` : null,
+      qm.replayUrl ? `*Quantum Metric session replay:* ${qm.replayUrl} (session ${qm.sessionId})` : null,
     );
   }
 

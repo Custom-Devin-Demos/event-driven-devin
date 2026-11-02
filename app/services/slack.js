@@ -207,6 +207,23 @@ function buildAlertBlocks(alertData, options = {}) {
     });
   }
 
+  if (alertData.quantumMetric) {
+    const qm = alertData.quantumMetric;
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `:chart_with_downwards_trend: *Experience signal — Quantum Metric*\n${qm.event} · segment \`${qm.segment}\``,
+      },
+      fields: [
+        { type: 'mrkdwn', text: `*Sessions affected:*\n${qm.affectedSessions} (${qm.window})` },
+        { type: 'mrkdwn', text: `*Rage clicks:*\n${qm.rageClicks} on "${qm.rageClickTarget}"` },
+        { type: 'mrkdwn', text: `*Conversion:*\n${qm.conversionDrop}` },
+        { type: 'mrkdwn', text: `*Revenue at risk:*\n${qm.revenueAtRisk}` },
+      ],
+    });
+  }
+
   // Action buttons
   const actions = [];
   if (alertData.issueUrl) {
@@ -221,6 +238,13 @@ function buildAlertBlocks(alertData, options = {}) {
     text: { type: 'plain_text', text: `:bar_chart: ${t.viewDatadog}`, emoji: true },
     url: alertData.datadogUrl || process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com',
   });
+  if (alertData.quantumMetric && alertData.quantumMetric.replayUrl) {
+    actions.push({
+      type: 'button',
+      text: { type: 'plain_text', text: ':movie_camera: View session replay in Quantum Metric', emoji: true },
+      url: alertData.quantumMetric.replayUrl,
+    });
+  }
   if (actions.length > 0) {
     blocks.push({ type: 'actions', elements: actions });
   }
