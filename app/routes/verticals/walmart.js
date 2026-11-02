@@ -29,7 +29,6 @@ router.post('/api/walmart/checkout', async (req, res) => {
     const order = await placeOrder({
       items: body.items,
       fulfillment: body.fulfillment,
-      wplus: body.wplus,
       devinUserId: body.devinUserId,
       devinOrgId: body.devinOrgId,
       devinEmail: body.devinEmail,

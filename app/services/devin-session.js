@@ -96,6 +96,11 @@ function quantumMetricFields(qm) {
   ];
 }
 
+/** Teams responders only read top-level TextBlocks, so the signal is repeated in the footer. */
+function quantumMetricFooter(qm) {
+  return `Quantum Metric: ${qm.event}; ${qm.affectedSessions} sessions (${qm.window}), ${qm.rageClicks} rage clicks on "${qm.rageClickTarget}", conversion ${qm.conversionDrop}, ${qm.revenueAtRisk} at risk; replay ${qm.sessionId} ${qm.replayUrl}`;
+}
+
 function buildTeamsAlertCardForAlert(alertData) {
   if (alertData.cloudwatch) return buildTeamsCloudWatchCardForAlert(alertData);
   const owner = typeof alertData.devinEmail === 'string' && EMAIL_RE.test(alertData.devinEmail)
@@ -148,6 +153,7 @@ function buildTeamsAlertCardForAlert(alertData) {
       `${t.service}: ${service}`,
       alertData.culprit ? `${t.location}: ${alertData.culprit}` : null,
       alertData.errorType ? `${t.type}: ${alertData.errorType}` : null,
+      alertData.quantumMetric ? quantumMetricFooter(alertData.quantumMetric) : null,
       new Date().toISOString(),
     ].filter(Boolean).join(' | '),
   });
@@ -533,5 +539,6 @@ async function createSessionAndAlert(alertData) {
 
 module.exports = {
   buildPrompt,
+  buildTeamsAlertCardForAlert,
   createSessionAndAlert,
 };

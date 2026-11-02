@@ -112,6 +112,19 @@ describe('Walmart Holiday Food checkout (walmart)', () => {
     expect(buttons.some((b) => b.includes('Quantum Metric'))).toBe(true);
   });
 
+  test('Teams field card repeats the Quantum Metric signal in the top-level footer', () => {
+    const { buildTeamsAlertCardForAlert } = require('../app/services/devin-session');
+    const qm = svc.buildQuantumMetricSignal('WM-TEST-1234');
+    const card = buildTeamsAlertCardForAlert({
+      issueTitle: 'TypeError: boom', errorType: 'TypeError', errorValue: 'boom', service: 'walmart-holiday-food-checkout',
+      verticalLabel: 'Walmart Holiday Food Checkout', customer: 'walmart', quantumMetric: qm, issueUrl: 'https://sentry.io/x',
+    });
+    const footer = JSON.stringify(card.body.filter((b) => b.type === 'TextBlock'));
+    expect(footer).toContain(qm.sessionId);
+    expect(footer).toContain(qm.replayUrl);
+    expect(footer).toContain('1,284');
+  });
+
   test('customer config is API-triggered', () => {
     expect(customer.triggerMode).toBe('api');
     expect(customer.label).toContain('Walmart');
