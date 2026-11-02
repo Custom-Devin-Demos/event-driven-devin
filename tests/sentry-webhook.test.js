@@ -48,6 +48,13 @@ describe('Sentry customer identity mapping', () => {
   });
 
   test.each([
+    { tags: [['alert_path', 'instant'], ['service', '1d54e3b4-copay-api']], culprit: 'applyCard(app/services/verticals/1d54e3b4)' },
+    { issueTitle: "TypeError: Cannot read properties of undefined (reading 'cardMax')", culprit: 'app/services/verticals/1d54e3b4.js — calculateCopayBenefit', tags: [] },
+  ])('recognizes CVS Pharmacy copay savings card failures as instant-path alerts %#', (alertData) => {
+    expect(isInstantPathEvent(alertData)).toBe(true);
+  });
+
+  test.each([
     { tags: [['alert_path', 'latency']] },
     { tags: [{ key: 'alert_path', value: 'latency' }] },
     { tags: [{ alert_path: 'latency' }] },

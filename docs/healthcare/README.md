@@ -111,7 +111,30 @@ Customer-branded copy of demo 4 for Thermo Fisher Scientific's PPD clinical rese
 
 **Host environment:** nothing demo-specific is required. Alerts go to the shared `SLACK_CHANNEL_ID` (`#automated-alerts`), the same channel as the other demos, and the session is created with the shared Devin service key in the org picked on the homepage. Set `DEVIN_SERVICE_KEY_BCE3B3D2` (an HC-GTM-AD service key) plus `DEVIN_ORG_ID_BCE3B3D2=org-ad5cb75ed086403697e4d37f8411936e` only if the shared key cannot create sessions in HC-GTM-AD; `SLACK_CHANNEL_ID_BCE3B3D2` and `DEVIN_USER_ID_BCE3B3D2` are optional overrides.
 
-## 6. Medtronic — clinical trial lab data pipeline (`/afd8d03a`)
+## 6. CVS Health (CVS Pharmacy) — copay savings card at pickup (`/1d54e3b4`)
+
+Customer-branded copy of demo 3 for CVS Health. **Unlisted:** not on `/healthcare-lab`; share the direct URL `/cvs-copay` (also `/cvs-pharmacy-savings`, `/1d54e3b4`). The page uses the cvs.com pharmacy shell: CVS header and nav, CVS Health Sans, the navy pharmacy hero, the cvs.com footer and the CVS Health family bar. The pickup receipt is styled as a CVS register receipt. The manufacturer brand (Veloxa), cardholders, store and help-desk number are fictional and all data is synthetic.
+
+**Reset:** reload the page. It keeps no state, so the failing 90-day fill comes back. Keep Devin's fix PR unmerged if you want to run the demo again.
+
+**Trigger:** open `/cvs-copay` → leave the defaults (card VLX-5520-1187, *Veloxa 90-day pack*, $1,350 after insurance at CVS Pharmacy #10247) → **Apply savings card**. Like the other demos, the Devin session and the Slack @-mention follow the org and email picked on the devindemos.com homepage (`devinOrgId` / `devinUserId` / `devinEmail` in localStorage).
+**What you see:** the receipt prints “SAVINGS CARD NOT APPLIED” and the patient owes the full $1,350.00; the message reads “Savings card could not be applied” with reject code `COPAY_BENEFIT_FAILED` and a reference. The raw `TypeError … 'cardMax'` shows up only in Sentry and the Slack card.
+**Contrast:** choose *Veloxa 30-day pen* ($450 after insurance). The receipt shows the card paying $425.00 and the patient paying $25.00.
+
+**What Devin does next:** the alert points to `app/services/verticals/1d54e3b4.js — calculateCopayBenefit` with `product=VLR-90`, the $1,350 amount and customer `1d54e3b4`. Devin sees `BENEFIT_TIERS` stop at $1,000, so the 90-day amount matches no tier. It adds a top tier (or caps at the last one), adds a test and opens a PR.
+
+**Point at on screen:** the CVS receipt (“YOU PAY $1,350.00”, card not applied) → Slack card in `#automated-alerts` → Devin session in HC-GTM-AD → PR.
+
+**Talk track (2 min):**
+> “This is the pickup counter at a CVS Pharmacy. A patient on a weekly injectable is picking up a 90-day supply, which saves them two trips. The pharmacist applies the manufacturer's savings card and it's rejected, so the patient is quoted $1,350 instead of $25. That is the moment patients walk away from therapy, and a store loses the script.
+> Nobody opened a ticket. The failure went to Slack on its own and Devin is already on it. What it found: the savings tiers were set up for 30-day amounts, and the 90-day out-of-pocket is bigger than the top tier, so there was nothing to apply. 30-day fills work, which is why testing missed it.
+> The fix is in a pull request waiting for an engineer's review. Across thousands of stores, that's the difference between a weekend of abandoned prescriptions and a fix before the next patient reaches the counter.”
+
+**Host environment:** nothing demo-specific is required. Alerts go to the shared `SLACK_CHANNEL_ID` (`#automated-alerts`) and the session is created with the shared Devin service key in the org picked on the homepage. Set `DEVIN_SERVICE_KEY_1D54E3B4` (an HC-GTM-AD service key) plus `DEVIN_ORG_ID_1D54E3B4=org-ad5cb75ed086403697e4d37f8411936e` only if the shared key cannot create sessions in HC-GTM-AD.
+
+---
+
+## 7. Medtronic — clinical trial lab data pipeline (`/afd8d03a`)
 
 Customer-branded copy of demo 4 for Medtronic. **Unlisted:** not on `/healthcare-lab`; share the direct URL `/medtronic-clinical-lab` (also `/medtronic`, `/afd8d03a`). The page copies medtronic.com's look: navy header with the white wordmark and pill search, the light-blue hero with a white shadowed card, the Medtronic blue `#1010EB` links, buttons and arrow links, and the dark `#1E1E1E` footer. Study MDT-DM-301, the sites and the subjects are fictional, and all data is synthetic.
 
