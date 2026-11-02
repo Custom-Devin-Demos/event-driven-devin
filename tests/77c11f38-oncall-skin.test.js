@@ -104,6 +104,7 @@ describe('TogetherMoney website eligibility on-call skin (77c11f38)', () => {
     expect(skin.alertCard.metricQuery).toBe(ALERT_SCENARIOS.eligibility.metricQuery);
     expect(skin.alertCard.metricQuery).toContain('demo.together_website.eligibility.failure');
     expect(skin.alertCard.metricQuery).toContain(`route:${ROUTE}`);
+    expect(skin.alertCard.metricQuery).toContain('status_class:5xx');
     expect(skin.alertCard.title).toContain(`POST ${ROUTE}`);
     expect(skin.alertCard.service).not.toMatch(/together ?money/i);
     expect(ALERT_SCENARIOS.eligibility).toMatchObject({
@@ -153,7 +154,7 @@ describe('TogetherMoney website eligibility on-call skin (77c11f38)', () => {
     expect(await res.json()).toMatchObject({ success: false, errorClass: 'TypeError', code: 'ELIGIBILITY_CHECK_FAILED', error: expect.stringMatching(/^Something went wrong/) });
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(Sentry.captureException.mock.calls[0][1].tags).toMatchObject({ service: 'together-website-eligibility', employment_type: 'self-employed' });
-    expect(incrementMetric).toHaveBeenCalledWith('together_website.eligibility.failure', expect.objectContaining({ route: ROUTE, employment_type: 'self-employed' }));
+    expect(incrementMetric).toHaveBeenCalledWith('together_website.eligibility.failure', expect.objectContaining({ route: ROUTE, employment_type: 'self-employed', status_class: '5xx' }));
   });
 
   test.each([
@@ -163,6 +164,7 @@ describe('TogetherMoney website eligibility on-call skin (77c11f38)', () => {
   ])('invalid input %j is a 400 (%s), not a page', async (override, code) => {
     const res = await post(ROUTE, { ...APPLICANT, employmentType: 'employed', annualIncome: '45000', ...override });
     expect(res.status).toBe(400);
+    expect(incrementMetric).toHaveBeenCalledWith('together_website.eligibility.failure', expect.objectContaining({ status_class: '4xx' }));
     expect(await res.json()).toMatchObject({ success: false, code });
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });

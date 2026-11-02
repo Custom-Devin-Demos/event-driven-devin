@@ -118,7 +118,7 @@ async function checkEligibility(input, options = {}) {
   } catch (error) {
     const duration = Date.now() - startTime;
     const clientError = error.statusCode === 400;
-    incrementMetric('together_website.eligibility.failure', { route: ROUTE, employment_type: employmentType || 'unknown', errorClass: error.name });
+    incrementMetric('together_website.eligibility.failure', { route: ROUTE, employment_type: employmentType || 'unknown', errorClass: error.name, status_class: clientError ? '4xx' : '5xx' });
     recordTiming('together_website.eligibility.latency', duration, { route: ROUTE, employment_type: employmentType || 'unknown', error: 'true' });
     logger[clientError ? 'warn' : 'error']('Website eligibility check failed', {
       enquiryId, error: error.message, errorClass: error.name, code: error.code, durationMs: duration, employmentType, service: SERVICE,

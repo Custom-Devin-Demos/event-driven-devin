@@ -6462,7 +6462,7 @@ const ONCALL_SKINS = {
       service: 'together-website-eligibility',
       release: 'together-website@2026.11.1',
       team: 'website-oncall',
-      metricQuery: 'sum:demo.together_website.eligibility.failure{route:/api/oncall/eligibility/check,employment_type:self-employed}.as_count()',
+      metricQuery: 'sum:demo.together_website.eligibility.failure{route:/api/oncall/eligibility/check,employment_type:self-employed,status_class:5xx}.as_count()',
       metricValue: 'HTTP 500 on eligibility submissions from self-employed applicants',
       threshold: '> 0 errors / 5m',
       baseline: '0 errors (30-day)',
