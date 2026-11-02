@@ -1,11 +1,10 @@
 const express = require('express');
 const { ingestBatch, SITE_BATCHES, STUDY } = require('../../services/verticals/bce3b3d2');
-const { getCustomerConfig } = require('../../../config/customers');
 
 const router = express.Router();
 
 router.get('/api/bce3b3d2/context', (_req, res) => {
-  res.json({ study: STUDY, sites: SITE_BATCHES, devinOrgId: getCustomerConfig('bce3b3d2').devinOrgId || '' });
+  res.json({ study: STUDY, sites: SITE_BATCHES });
 });
 
 router.post('/api/bce3b3d2/ingest', async (req, res) => {

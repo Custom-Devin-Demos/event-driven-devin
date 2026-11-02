@@ -96,7 +96,7 @@ Customer-branded copy of demo 4 for Thermo Fisher Scientific's PPD clinical rese
 
 **Reset:** same as the other four. The page keeps no state, so a reload brings back the failing Toronto batch. Keep Devin's fix PR unmerged if you want to run the demo again.
 
-**Trigger:** open `/thermofisher-central-lab` → in the *Transfer inbox* leave *Toronto Research Centre (SITE-104)* selected → fill in *Run as* (your name and Devin email; remembered in the browser) → **Run ingest**. The page resolves the email to your Devin user in the org from `DEVIN_ORG_ID_BCE3B3D2` (exposed by `GET /api/bce3b3d2/context`) through `/api/resolve-identity`, so the session opens in your account and the Slack card tags you; if the email is not found, the server falls back to this demo's configured org and user. Identity is kept under `ppd.*` localStorage keys so it never overwrites the hub's shared selection. Your name replaces the analyst in the header, run log and audit trail.
+**Trigger:** open `/thermofisher-central-lab` → in the *Transfer inbox* leave *Toronto Research Centre (SITE-104)* selected → **Run ingest**. Like the other demos, the Devin session and the Slack @-mention follow the org and email picked on the devindemos.com homepage (`devinOrgId` / `devinUserId` / `devinEmail` in localStorage).
 **What you see:** the same failure as demo 4. *Normalize units* turns red, and the result reads “Batch not loaded. Ingest stopped at normalize units” with code `LAB_INGEST_FAILED` and a reference. The raw `TypeError … 'factor'` shows up only in Sentry and the Slack card.
 **Contrast:** choose *Boston Clinical Unit (SITE-101)*. All five stages turn green and three records load.
 
@@ -109,7 +109,7 @@ Customer-branded copy of demo 4 for Thermo Fisher Scientific's PPD clinical rese
 > Nobody filed a ticket. The failure went to Slack automatically and Devin is already working on it. What it found: the Canadian site reports blood glucose in mmol/L and the pipeline only knew the US unit, mg/dL. US sites load fine, so this only showed up when Toronto came online.
 > Devin added the conversion, wrote a test and opened the pull request. In a GxP environment an engineer still reviews and approves the change. Devin took away the hours of detective work.”
 
-**Host environment:** set `DEVIN_SERVICE_KEY_BCE3B3D2` (an HC-GTM-AD service key) and `DEVIN_ORG_ID_BCE3B3D2=org-ad5cb75ed086403697e4d37f8411936e` on top of the shared `SLACK_BOT_TOKEN`, Sentry and Datadog settings in section A below. `config/customers/bce3b3d2.js` sends alerts to `#automated-alerts` (`C0ALNRR4PSQ`); `SLACK_CHANNEL_ID_BCE3B3D2` and `DEVIN_USER_ID_BCE3B3D2` are optional overrides.
+**Host environment:** nothing demo-specific is required. Alerts go to `#automated-alerts` (`C0ALNRR4PSQ`, from `config/customers/bce3b3d2.js`) and the session is created with the shared Devin service key in the org picked on the homepage. Set `DEVIN_SERVICE_KEY_BCE3B3D2` (an HC-GTM-AD service key) plus `DEVIN_ORG_ID_BCE3B3D2=org-ad5cb75ed086403697e4d37f8411936e` only if the shared key cannot create sessions in HC-GTM-AD; `SLACK_CHANNEL_ID_BCE3B3D2` and `DEVIN_USER_ID_BCE3B3D2` are optional overrides.
 
 ---
 

@@ -128,15 +128,6 @@
     .detail dt { color:var(--ink-3); }
     .detail dd { color:var(--ink); }
     .detail dd code { font-size:11.5px; }
-    .runas { border:0; border-bottom:1px solid var(--line); padding:12px 16px 14px; min-width:0; }
-    .runas-fields { display:grid; grid-template-columns:1fr; gap:10px; margin-top:8px; }
-    .runas legend { padding:0; font-size:12px; font-weight:600; color:var(--ink-2); text-transform:uppercase; letter-spacing:.04em; }
-    .runas label { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--ink-3); min-width:0; }
-    .runas input { height:36px; padding:0 10px; border:1px solid var(--line); border-radius:4px; font:inherit; font-size:13.5px; color:var(--ink); background:#fff; min-width:0; width:100%; }
-    .runas input:focus { outline:2px solid var(--link); outline-offset:-1px; border-color:var(--link); }
-    .runas input[aria-invalid="true"] { border-color:var(--tf-red); }
-    .runas p { margin-top:8px; font-size:12px; color:var(--ink-3); line-height:1.4; }
-    .runas p.runas-err { color:var(--tf-red); }
     .act { padding:14px 16px; display:flex; align-items:center; gap:14px; }
     .btn { height:42px; padding:0 24px; border-radius:4px; border:0; background:var(--btn); color:#fff; font-weight:600; font-size:13.5px; cursor:pointer; white-space:nowrap; flex-shrink:0; display:inline-flex; align-items:center; gap:8px; }
     .btn:hover { background:var(--btn-dark); }
@@ -291,7 +282,6 @@
       .work, .secondary { padding-top:16px; gap:16px; }
       .col { gap:16px; }
       .act { flex-direction:column; align-items:stretch; }
-      .runas-fields { grid-template-columns:1fr; }
       .act .btn { justify-content:center; height:46px; }
       .run-top { grid-template-columns:1fr; }
       .c-src { display:none; }
@@ -416,15 +406,6 @@
             <dt>Target</dt><dd><code>warehouse.lab_results</code></dd>
             <dt>Audit</dt><dd>Run recorded under 21 CFR Part 11 with your user ID and UTC time</dd>
           </dl>
-          <fieldset class="runas">
-            <legend>Run as</legend>
-            <div class="runas-fields">
-              <label>Name<input type="text" id="presenterName" autocomplete="name" placeholder="Full name" required></label>
-              <label>Devin email<input type="email" id="presenterEmail" autocomplete="email" placeholder="you@company.com" required></label>
-            </div>
-            <p id="runasHint">Recorded on the audit trail. Alerts tag you and the Devin session opens in your account.</p>
-            <p class="runas-err" id="runasErr" role="alert" hidden></p>
-          </fieldset>
           <div class="act">
             <button type="submit" class="btn" id="submitBtn"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8-5.2a.6.6 0 0 0 0-1l-8-5.2a.6.6 0 0 0-.9.5z"/></svg>Run ingest</button>
             <p>Loads the selected batch through all five stages. Takes a few seconds.</p>
@@ -525,55 +506,10 @@
     const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
     let runNo = 0, stageStart = 0, queryNo = 471;
 
-    const KEY = { name: 'ppd.presenterName', email: 'ppd.presenterEmail', userId: 'ppd.devinUserId', orgId: 'ppd.devinOrgId' };
-    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const nameInput = document.getElementById('presenterName');
-    const emailInput = document.getElementById('presenterEmail');
-    const runasErr = document.getElementById('runasErr');
-    const orgReady = fetch('/api/bce3b3d2/context').then((r) => r.json()).then((d) => d.devinOrgId || '').catch(() => '');
-    nameInput.value = localStorage.getItem(KEY.name) || '';
-    emailInput.value = localStorage.getItem(KEY.email) || '';
-
     function devinFields() {
-      const userId = localStorage.getItem(KEY.userId) || '';
-      return { devinUserId: userId, devinOrgId: userId ? (localStorage.getItem(KEY.orgId) || '') : '', devinEmail: localStorage.getItem(KEY.email) || '', devinName: localStorage.getItem(KEY.name) || '' };
+      return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' };
     }
-    function who() { return localStorage.getItem(KEY.name) || 'P. Natarajan'; }
-    function showUser() {
-      const n = localStorage.getItem(KEY.name);
-      if (!n) return;
-      const u = document.querySelector('.who b'); if (u) u.textContent = n;
-      const av = document.querySelector('.who .avatar'); if (av) av.textContent = n.split(/\s+/).filter(Boolean).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
-    }
-    showUser();
-    function runasError(msg, field) {
-      runasErr.textContent = msg; runasErr.hidden = !msg;
-      nameInput.setAttribute('aria-invalid', String(field === nameInput));
-      emailInput.setAttribute('aria-invalid', String(field === emailInput));
-      if (field) field.focus();
-    }
-    async function saveIdentity() {
-      const name = nameInput.value.trim();
-      const email = emailInput.value.trim().toLowerCase();
-      if (!name) { runasError('Enter your name to run the ingest.', nameInput); return false; }
-      if (!EMAIL_RE.test(email)) { runasError('Enter your Devin email to run the ingest.', emailInput); return false; }
-      runasError('');
-      localStorage.setItem(KEY.name, name);
-      showUser();
-      const orgId = await orgReady;
-      const known = localStorage.getItem(KEY.email) === email && localStorage.getItem(KEY.orgId) === orgId && localStorage.getItem(KEY.userId);
-      localStorage.setItem(KEY.email, email);
-      if (known) return true;
-      localStorage.removeItem(KEY.userId);
-      localStorage.removeItem(KEY.orgId);
-      if (!orgId) return true;
-      try {
-        const r = await fetch('/api/resolve-identity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orgId: orgId, email: email }) });
-        const d = await r.json().catch(() => ({}));
-        if (r.ok && d.userId) { localStorage.setItem(KEY.userId, d.userId); localStorage.setItem(KEY.orgId, orgId); }
-      } catch (_) { /* unresolved: the server uses this demo's configured org and user */ }
-      return true;
-    }
+    function who() { return 'P. Natarajan'; }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
     function ts() { return new Date().toLocaleTimeString('en-GB', { hour12: false, timeZone: 'UTC' }); }
     function line(text, cls) { const d = document.createElement('div'); d.innerHTML = '<span>' + ts() + '</span>' + (cls ? '<b class="' + cls + '">' : '<b>') + esc(text) + '</b>'; log.appendChild(d); log.scrollTop = log.scrollHeight; }
@@ -641,7 +577,6 @@
 
     document.getElementById('demoForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!(await saveIdentity())) return;
       const site = document.getElementById('siteId').value;
       const b = BATCHES[site];
       const ref = runRef();
