@@ -663,7 +663,8 @@
 
     const HC_ORG_ID = 'org-ad5cb75ed086403697e4d37f8411936e';
     function devinFields() {
-      return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: HC_ORG_ID, devinEmail: localStorage.getItem('devinEmail') || '', devinName: localStorage.getItem('devinName') || '' };
+      const sameOrg = localStorage.getItem('devinOrgId') === HC_ORG_ID;
+      return { devinUserId: (sameOrg && localStorage.getItem('devinUserId')) || '', devinOrgId: HC_ORG_ID, devinEmail: localStorage.getItem('devinEmail') || '', devinName: localStorage.getItem('devinName') || '' };
     }
     const nameIn = document.getElementById('presenterName');
     const emailIn = document.getElementById('presenterEmail');
@@ -700,9 +701,9 @@
     }
     nameIn.value = localStorage.getItem('devinName') || '';
     emailIn.value = localStorage.getItem('devinEmail') || '';
-    localStorage.setItem('devinOrgId', HC_ORG_ID);
+    const cachedUserInOrg = localStorage.getItem('devinOrgId') === HC_ORG_ID && localStorage.getItem('devinUserId');
     showPresenter();
-    if (emailIn.value && localStorage.getItem('devinUserId')) setIdStatus('Devin session will run as ' + emailIn.value + '.', true);
+    if (emailIn.value && cachedUserInOrg) setIdStatus('Devin session will run as ' + emailIn.value + '.', true);
     else if (emailIn.value) saveIdentity();
     nameIn.addEventListener('change', saveIdentity);
     emailIn.addEventListener('change', saveIdentity);
