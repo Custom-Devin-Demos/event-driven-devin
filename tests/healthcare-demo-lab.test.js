@@ -21,6 +21,7 @@ const pharma = require('../app/services/verticals/46ce04a1');
 const lifeSciences = require('../app/services/verticals/27a970ec');
 const thermoFisher = require('../app/services/verticals/bce3b3d2');
 const cvsCopay = require('../app/services/verticals/1d54e3b4');
+const lillyTrialLab = require('../app/services/verticals/fc0bd7f3');
 
 const devin = { devinUserId: 'user-1', devinOrgId: 'org-1', devinEmail: '' };
 
@@ -59,6 +60,12 @@ const CASES = [
     failing: { cardId: 'VLX-5520-1187', productId: 'VLR-90', insuranceOutOfPocket: 1350, pharmacy: 'CVS Pharmacy #10247 — New York, NY' },
     passing: { cardId: 'VLX-5520-1187', productId: 'VLR-30', insuranceOutOfPocket: 450, pharmacy: 'CVS Pharmacy #10247 — New York, NY' },
     message: "reading 'cardMax'", failureMetric: 'copay_card.failure',
+  },
+  {
+    slug: 'fc0bd7f3', name: 'Lilly clinical trial lab pipeline', run: lillyTrialLab.ingestBatch,
+    failing: { siteId: 'SITE-104' },
+    passing: { siteId: 'SITE-101' },
+    message: "reading 'factor'", failureMetric: 'lab_pipeline.batch.failure',
   },
 ];
 

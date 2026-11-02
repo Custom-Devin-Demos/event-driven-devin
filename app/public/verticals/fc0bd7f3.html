@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Central lab ingest | ORF-317 | Lilly Clinical Trial Data Hub | Lilly</title>
+  <link rel="icon" href="/verticals/assets/eda0e2e5/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;900&family=Archivo:wdth,wght@125,800;125,900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Observed on lilly.com/lillydirect/weight-management (computed styles): red #d31710, ink #191919, surfaces #f9f9f9 / #fbf5f4, pill CTAs radius 32px, Ringside Sans / Ringside Sans Extra Wide. */
+      --canvas:#f9f9f9; --surface:#ffffff; --surface-2:#f6f4f2; --line:#e3ded6; --line-soft:#efebe4;
+      --ink:#191919; --ink-2:#4d4d4d; --ink-3:#6b6b6b;
+      --tf-red:#d31710; --slate:#191919; --btn:#d31710; --btn-dark:#b3120c; --link:#d31710; --blush:#fbf5f4;
+      --teal:#d31710; --teal-dark:#b3120c; --teal-soft:#fbf5f4;
+      --ok:#1f7a4d; --ok-bg:#e8f4ec; --warn:#a35a00; --warn-bg:#fbeeda; --fail:#b3120c; --fail-bg:#fdecea; --fail-line:#f2b8b4; --query:#5b3fa6; --query-bg:#eee9f8; --info:#1b5fb4; --info-bg:#e6eef9;
+      --sans:'Ringside Sans', Ringside, Figtree, 'Helvetica Neue', Helvetica, Arial, sans-serif; --wide:'Ringside Sans Extra Wide', 'Ringside Extra Wide', Archivo, Figtree, sans-serif; --mono:'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      --wrap:1312px;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { -webkit-font-smoothing:antialiased; text-size-adjust:100%; }
+    body { font-family:var(--sans); font-size:14px; line-height:1.5; color:var(--ink); background:var(--canvas); min-height:100vh; font-feature-settings:'tnum' 1, 'cv11' 1; }
+    a { color:inherit; }
+    button, input, select, summary { font:inherit; color:inherit; }
+    summary { list-style:none; cursor:pointer; }
+    summary::-webkit-details-marker { display:none; }
+    :focus-visible { outline:2px solid var(--teal); outline-offset:2px; border-radius:3px; }
+    
+    code, .mono { font-family:var(--mono); font-size:.92em; }
+    h1,h2,h3 { font-weight:500; letter-spacing:0; }
+    .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+    /* ───────── shell: LillyDirect pill header + photo hero ───────── */
+    .app { min-height:100vh; display:flex; flex-direction:column; }
+    .main { min-width:0; display:flex; flex-direction:column; flex:1; }
+    .wrap { width:100%; max-width:var(--wrap); margin:0 auto; }
+    .study-head { position:relative; background:#3a3a3a; overflow:hidden; color:#fff; }
+    .study-head .hero-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 30%; }
+    .study-head::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(25,25,25,.78), rgba(25,25,25,.45) 55%, rgba(25,25,25,.15)); }
+    .mast { position:relative; z-index:2; padding:32px 0 0; }
+    .mast-in { display:flex; justify-content:space-between; align-items:center; gap:16px; }
+    .pillbar { display:inline-flex; align-items:center; gap:22px; background:#191919; color:#fff; border-radius:40px; height:72px; padding:0 26px; }
+    .brand { display:flex; align-items:center; gap:22px; text-decoration:none; color:#fff; }
+    .brand img { height:38px; width:auto; display:block; }
+    .brand span { font-size:15px; }
+    .gnav { display:flex; gap:20px; font-size:15px; }
+    .gnav a { text-decoration:none; color:#fff; opacity:.82; white-space:nowrap; position:relative; padding:4px 0; }
+    .gnav a:hover { opacity:1; }
+    .gnav a[aria-current] { opacity:1; }
+    .gnav a[aria-current]::after { content:''; position:absolute; left:0; right:0; bottom:-2px; height:2px; background:var(--tf-red); border-radius:2px; }
+    .gnav .count { font-size:11px; font-weight:700; margin-left:5px; color:#fff; background:var(--tf-red); border-radius:9px; padding:0 6px; vertical-align:1px; }
+    .utils { display:flex; align-items:center; gap:18px; font-size:15px; }
+    .utils a { color:#fff; text-decoration:none; }
+    .utils a:hover { text-decoration:underline; }
+    .utils .who { display:inline-flex; align-items:center; gap:9px; }
+    .avatar { width:28px; height:28px; border-radius:50%; background:#fff; color:#191919; display:inline-grid; place-items:center; font-size:11px; font-weight:700; }
+    .hero-in { position:relative; z-index:1; padding:56px 0 48px; }
+    .crumbs { display:flex; align-items:center; gap:6px; font-size:13px; color:rgba(255,255,255,.8); flex-wrap:wrap; }
+    .crumbs a { color:#fff; text-decoration:none; }
+    .crumbs a:hover { text-decoration:underline; }
+    .crumbs svg { width:10px; height:10px; flex-shrink:0; }
+    .study-title h1 { font-family:var(--wide); font-stretch:125%; font-size:60px; line-height:66px; font-weight:900; letter-spacing:-1.5px; margin-top:14px; color:#fff; }
+    .study-title p { color:#fff; margin-top:16px; max-width:56ch; font-size:16px; line-height:24px; }
+    .study-meta { display:flex; flex-wrap:wrap; margin-top:28px; gap:10px; }
+    .study-meta div { background:rgba(25,25,25,.72); border-radius:32px; padding:9px 20px 10px; }
+    .study-meta dt { font-size:12px; color:rgba(255,255,255,.72); }
+    .study-meta dd { font-size:15px; font-weight:600; margin-top:1px; white-space:nowrap; color:#fff; }
+    .study-meta dd small { font-weight:400; color:rgba(255,255,255,.72); font-size:12px; margin-left:4px; }
+    .study-meta .lock { background:var(--tf-red); }
+    .study-meta .lock dt, .study-meta .lock dd small { color:rgba(255,255,255,.85); }
+    .runas { background:var(--blush); border-bottom:1px solid var(--line); }
+    .runas fieldset { border:0; display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 16px; padding:14px 0; }
+    .runas legend { float:left; font-weight:900; font-size:15px; color:var(--tf-red); margin-right:6px; padding-bottom:10px; }
+    .runas label { display:grid; gap:3px; font-size:12px; color:var(--ink-2); }
+    .runas input { height:40px; border:1px solid #bdb6ac; border-radius:24px; padding:0 16px; font-size:14px; min-width:220px; background:#fff; }
+    .runas input:focus-visible { outline:2px solid var(--tf-red); outline-offset:1px; }
+    .runas .rbtn { height:40px; padding:0 20px; border-radius:32px; border:1.5px solid #191919; background:transparent; font-weight:600; font-size:14px; cursor:pointer; }
+    .runas .rbtn:hover { background:#191919; color:#fff; }
+    .runas small { font-size:12px; color:var(--ink-3); padding-bottom:11px; }
+    .tabs-bar { background:#fff; border-bottom:1px solid var(--line); position:relative; z-index:1; }
+    .tabs { display:flex; gap:28px; overflow-x:auto; scrollbar-width:none; }
+    .tabs::-webkit-scrollbar { display:none; }
+    .tabs a { padding:16px 0 13px; text-decoration:none; color:var(--ink-2); border-bottom:3px solid transparent; white-space:nowrap; font-size:15px; }
+    .tabs a:hover { color:var(--ink); }
+    .tabs a[aria-current] { color:var(--ink); font-weight:600; border-bottom-color:var(--tf-red); }
+    .tabs a .count { margin-left:6px; font-size:11px; color:var(--ink-2); background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:0 6px; }
+
+    /* ───────── work area ───────── */
+    .work { display:grid; grid-template-columns:390px minmax(0,1fr); gap:24px; padding:28px 0 0; align-items:start; width:100%; max-width:var(--wrap); margin:0 auto; }
+    .col { display:grid; gap:20px; min-width:0; }
+    .panel { background:var(--surface); border:1px solid var(--line); border-radius:16px; overflow:hidden; min-width:0; }
+    .panel-h { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:13px 16px 11px; border-bottom:1px solid var(--line); }
+    .panel-h h2 { font-size:17px; font-weight:500; }
+    .panel-h span { font-size:12px; color:var(--ink-3); }
+    .panel-h .live { display:inline-flex; align-items:center; gap:6px; }
+    .panel-h .live::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--line); }
+    .panel-h .live.running::before { background:var(--teal); animation:pulse 1s ease-in-out infinite; }
+    .panel-h .live.failed::before { background:var(--fail); }
+    .panel-h .live.done::before { background:var(--ok); }
+
+    /* inbox */
+    .inbox-note { padding:10px 16px; font-size:12.5px; color:var(--ink-2); background:var(--surface-2); border-bottom:1px solid var(--line-soft); display:flex; justify-content:space-between; gap:10px; }
+    .inbox-note code { color:var(--ink-2); }
+    .batches { list-style:none; }
+    .batch { position:relative; display:grid; grid-template-columns:18px 1fr auto; gap:1px 12px; padding:12px 16px 12px 14px; border-bottom:1px solid var(--line-soft); cursor:pointer; }
+    .batch input { position:absolute; inset:0; width:100%; height:100%; opacity:0; margin:0; cursor:pointer; }
+    .batch .radio { grid-row:1 / span 3; width:16px; height:16px; margin-top:2px; border-radius:50%; border:1.5px solid var(--ink-3); background:#fff; display:grid; place-items:center; }
+    .batch .radio::after { content:''; width:8px; height:8px; border-radius:50%; background:var(--teal); transform:scale(0); transition:transform .12s ease-out; }
+    .batch:has(input:checked) { background:var(--teal-soft); }
+    .batch:has(input:checked) .radio { border-color:var(--teal); }
+    .batch:has(input:checked) .radio::after { transform:scale(1); }
+    .batch:has(input:focus-visible) { outline:2px solid var(--teal); outline-offset:-2px; }
+    .batch:hover:not(:has(input:checked)) { background:var(--surface-2); }
+    .batch b { font-weight:600; font-size:13px; }
+    .batch .name { min-width:0; }
+    .batch .site-id { display:block; color:var(--ink-3); font-size:12px; margin-top:1px; }
+    .batch .file { grid-column:2 / span 2; font-family:var(--mono); font-size:11.5px; color:var(--ink-2); margin-top:3px; word-break:break-all; }
+    .batch .meta { grid-column:2 / span 2; font-size:12px; color:var(--ink-2); margin-top:4px; display:flex; flex-wrap:wrap; gap:4px 14px; }
+    .batch .meta em { font-style:normal; color:var(--ink-3); }
+    .batch .meta .u { padding:0 5px; border-radius:3px; background:var(--surface-2); border:1px solid var(--line); font-size:11.5px; }
+    .batch:has(input:checked) .meta .u { background:#fff; }
+    .batch .state { font-size:11.5px; color:var(--ink-3); white-space:nowrap; }
+    .batch.loaded { cursor:default; color:var(--ink-3); }
+    .batch.loaded b { font-weight:500; color:var(--ink-2); }
+    .batch.loaded .radio { border-style:dashed; border-color:var(--line); }
+    .batch.loaded .state { color:var(--ok); }
+    .batch.loaded:hover { background:transparent; }
+    .detail { padding:12px 16px 14px; border-bottom:1px solid var(--line); display:grid; grid-template-columns:auto 1fr; gap:6px 14px; font-size:12.5px; }
+    .detail dt { color:var(--ink-3); }
+    .detail dd { color:var(--ink); }
+    .detail dd code { font-size:11.5px; }
+    .act { padding:14px 16px; display:flex; align-items:center; gap:14px; }
+    .btn { height:48px; padding:0 26px; border-radius:32px; border:0; background:var(--btn); color:#fff; font-weight:600; font-size:13.5px; cursor:pointer; white-space:nowrap; flex-shrink:0; display:inline-flex; align-items:center; gap:8px; }
+    .btn:hover { background:var(--btn-dark); }
+    .btn:disabled { opacity:.65; cursor:progress; }
+    .btn svg { width:14px; height:14px; }
+    .act p { font-size:12px; color:var(--ink-3); line-height:1.4; }
+
+    /* site currency */
+    .sites { list-style:none; }
+    .sites li { display:grid; grid-template-columns:1fr auto; gap:0 12px; padding:9px 16px; border-bottom:1px solid var(--line-soft); font-size:12.5px; align-items:center; }
+    .sites li:last-child { border-bottom:0; }
+    .sites b { font-weight:500; }
+    .sites small { display:block; color:var(--ink-3); font-size:11.5px; }
+    .pill { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; padding:2px 8px; border-radius:10px; font-weight:500; white-space:nowrap; }
+    .pill::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+    .pill.ok { color:var(--ok); background:var(--ok-bg); }
+    .pill.warn { color:var(--warn); background:var(--warn-bg); }
+    .pill.fail { color:var(--fail); background:var(--fail-bg); }
+    .pill.info { color:var(--info); background:var(--info-bg); }
+    .pill.query { color:var(--query); background:var(--query-bg); }
+    .pill.neutral { color:var(--ink-2); background:var(--surface-2); }
+    .panel-f { padding:9px 16px; border-top:1px solid var(--line-soft); font-size:12px; color:var(--ink-3); display:flex; justify-content:space-between; gap:10px; }
+    .panel-f a { color:var(--link); font-weight:500; text-decoration:none; } .panel-f a:hover { text-decoration:underline; }
+
+    /* ───────── run ledger (hero) ───────── */
+    .run-top { display:grid; grid-template-columns:1fr auto; gap:4px 20px; padding:14px 16px 12px; border-bottom:1px solid var(--line); align-items:center; }
+    .run-top h2 { font-size:17px; font-weight:500; }
+    .run-top .ref { font-size:12px; color:var(--ink-3); }
+    .run-top .ref code { color:var(--ink-2); }
+    .ledger { list-style:none; padding:6px 16px 10px; }
+    .stg { position:relative; display:grid; grid-template-columns:22px 1fr auto; gap:0 14px; padding:11px 0; align-items:start; }
+    .stg + .stg { border-top:1px solid var(--line-soft); }
+    .stg::before { content:''; position:absolute; left:10px; top:34px; bottom:-12px; width:2px; background:var(--line-soft); }
+    .stg:last-child::before { display:none; }
+    .stg.done::before { background:var(--ok); }
+    .stg-mark { width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line); background:#fff; display:grid; place-items:center; color:#fff; font-size:12px; font-weight:700; position:relative; z-index:1; }
+    .stg-mark svg { width:12px; height:12px; display:none; }
+    .stg.done .stg-mark { background:var(--ok); border-color:var(--ok); }
+    .stg.done .stg-mark .i-check { display:block; }
+    .stg.active .stg-mark { border-color:var(--teal); }
+    .stg.active .stg-mark::after { content:''; width:8px; height:8px; border-radius:50%; background:var(--teal); animation:pulse 1s ease-in-out infinite; }
+    .stg.failed .stg-mark { background:var(--fail); border-color:var(--fail); }
+    .stg.failed .stg-mark .i-x { display:block; }
+    .stg h3 { font-size:13px; font-weight:600; line-height:22px; }
+    .stg p { font-size:12.5px; color:var(--ink-2); margin-top:1px; }
+    .stg.pending h3, .stg.pending p { color:var(--ink-3); }
+    .stg.failed h3 { color:var(--fail); }
+    .stg.failed p { color:var(--ink); }
+    .stg-time { font-size:12px; color:var(--ink-3); line-height:22px; min-width:52px; text-align:right; }
+    .stg.done .stg-time { color:var(--ink-2); }
+    .stg.failed .stg-time { color:var(--fail); font-weight:500; }
+    .stg.active .stg-time { color:var(--teal); }
+    .stg-fail { grid-column:2 / span 2; margin-top:8px; padding:10px 12px; border:1px solid var(--fail-line); border-left:3px solid var(--fail); border-radius:4px; background:var(--fail-bg); font-size:12.5px; display:none; }
+    .stg.failed .stg-fail { display:block; }
+    .stg-fail b { font-weight:600; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+
+    .log-h { display:flex; justify-content:space-between; align-items:center; padding:8px 16px 0; font-size:12px; color:var(--ink-3); }
+    .log { margin:6px 16px 16px; border:1px solid #3a3d40; border-radius:2px; background:#222326; color:#c9cbcd; font-family:var(--mono); font-size:11.75px; line-height:1.75; padding:10px 14px; min-height:96px; max-height:200px; overflow:auto; }
+    .log div { display:grid; grid-template-columns:64px 1fr; gap:12px; }
+    .log div span { color:#7d8185; }
+    .log .ok { color:#5fd3a6; } .log .err { color:#ff8a80; } .log .warn { color:#f5c26b; }
+    .log b { font-weight:500; }
+
+    /* result */
+    .result-box { display:none; margin:0 16px 16px; border-radius:6px; padding:14px 16px; font-size:13px; }
+    .result-box.error { display:block; background:var(--fail-bg); border:1px solid var(--fail-line); }
+    .result-box.success { display:block; background:var(--ok-bg); border:1px solid #b6dfc6; }
+    .result-title { font-size:14.5px; font-weight:600; display:flex; align-items:center; gap:8px; }
+    .result-title svg { width:16px; height:16px; flex-shrink:0; }
+    .result-box.error .result-title { color:var(--fail); }
+    .result-box.success .result-title { color:var(--ok); }
+    .result-box p { margin-top:6px; color:var(--ink); max-width:72ch; }
+    .result-kv { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px 18px; margin-top:12px; padding-top:12px; border-top:1px solid rgba(22,32,43,.1); }
+    .result-kv dt { font-size:11.5px; color:var(--ink-2); }
+    .result-kv dd { font-size:12.5px; font-weight:500; margin-top:2px; word-break:break-all; }
+    .result-kv dd code { font-size:11.5px; }
+    .result-part11 { margin-top:12px; display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-2); }
+    .result-part11 svg { width:14px; height:14px; flex-shrink:0; margin-top:1px; color:var(--ink-2); }
+
+    /* records */
+    .records-h { display:flex; justify-content:space-between; align-items:baseline; padding:0 16px 8px; border-top:1px solid var(--line); padding-top:12px; }
+    .records-h h3 { font-size:13px; }
+    .records-h span { font-size:12px; color:var(--ink-3); }
+    .tbl-wrap { overflow-x:auto; }
+    .tbl { width:100%; border-collapse:collapse; font-size:12.5px; }
+    .tbl th, .tbl td { text-align:left; padding:8px 16px; border-top:1px solid var(--line-soft); vertical-align:middle; }
+    .tbl th { color:var(--ink-3); font-weight:500; font-size:11.75px; background:var(--surface-2); }
+    .tbl td.num, .tbl th.num { text-align:right; }
+    .tbl td .sub { font-family:var(--mono); font-size:11.75px; white-space:nowrap; }
+    .tbl td .src { color:var(--ink-3); font-size:11.5px; }
+    .tbl tr.out td { background:#fffaf2; }
+    .tbl tbody tr:last-child td { border-bottom:1px solid var(--line-soft); }
+    .qbtn { height:26px; padding:0 9px; border-radius:4px; border:1px solid var(--line); background:#fff; font-size:12px; cursor:pointer; color:var(--ink-2); white-space:nowrap; }
+    .qbtn:hover { border-color:var(--query); color:var(--query); }
+    .qbtn[aria-pressed="true"] { border-color:var(--query); background:var(--query-bg); color:var(--query); }
+    .qrow td { background:var(--query-bg) !important; color:var(--query); font-size:12px; padding-top:7px; padding-bottom:7px; }
+    .qrow code { color:var(--query); }
+    .empty { padding:26px 16px 24px; color:var(--ink-3); font-size:12.5px; border-top:1px solid var(--line); text-align:center; }
+    .records-f { padding:10px 16px 14px; font-size:12px; color:var(--ink-3); display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px 14px; }
+
+    /* ───────── secondary ───────── */
+    .secondary { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:24px; padding:24px 0 0; align-items:start; width:100%; max-width:var(--wrap); margin:0 auto; }
+    .hist td.st { white-space:nowrap; }
+    .hist td.who { color:var(--ink-2); }
+    .audit { list-style:none; }
+    .audit li { display:grid; grid-template-columns:auto 1fr; gap:2px 12px; padding:10px 16px; border-bottom:1px solid var(--line-soft); font-size:12.5px; }
+    .audit li:last-child { border-bottom:0; }
+    .audit time { color:var(--ink-3); font-size:11.75px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .audit b { font-weight:500; }
+    .audit small { grid-column:2; color:var(--ink-3); font-size:11.75px; }
+    .audit .sig { color:var(--teal-dark); }
+
+    footer { margin-top:56px; background:#191919; color:#fff; font-size:14px; }
+    .foot-in { display:flex; justify-content:space-between; align-items:flex-start; gap:20px 32px; flex-wrap:wrap; padding:44px 0 40px; }
+    .foot-in img { height:42px; width:auto; display:block; margin-bottom:14px; }
+    footer nav { display:flex; gap:10px 24px; flex-wrap:wrap; max-width:640px; }
+    footer a { text-decoration:none; color:#fff; }
+    footer a:hover { text-decoration:underline; }
+    footer small { display:block; color:rgba(255,255,255,.7); font-size:12px; margin-top:6px; max-width:60ch; }
+
+    /* ───────── responsive ───────── */
+    @media (max-width:1248px) { .wrap, .work, .secondary { padding-left:24px; padding-right:24px; } .work { grid-template-columns:340px minmax(0,1fr); } .gnav { gap:18px; } }
+    @media (max-width:1060px) {
+      .work, .secondary { grid-template-columns:1fr; }
+      .col { display:contents; }
+      .work > .col > form { order:1; }
+      .work > .panel { order:2; }
+      .work > .col > section { order:3; }
+    }
+    @media (max-width:720px) {
+      .wrap, .work, .secondary { padding-left:14px; padding-right:14px; }
+      .study-title h1 { font-size:28px; }
+      .study-title p { font-size:15px; line-height:24px; }
+      .work, .secondary { padding-top:16px; gap:16px; }
+      .col { gap:16px; }
+      .act { flex-direction:column; align-items:stretch; }
+      .act .btn { justify-content:center; height:46px; }
+      .run-top { grid-template-columns:1fr; }
+      .c-src { display:none; }
+      footer nav a + a::before { margin:0 8px; }
+    }
+    @media (max-width:420px) {
+      .tbl th, .tbl td { padding:8px 10px; }
+      .c-range, .c-rec { display:none; }
+    }
+    @media (max-width:1060px) { .mast-in { flex-wrap:wrap; } .gnav { display:none; } .utils .hide-m { display:none; } }
+    @media (max-width:720px) { .mast { padding-top:14px; } .pillbar { height:56px; padding:0 16px; gap:12px; } .brand { gap:12px; } .brand img { height:28px; } .utils { font-size:13px; gap:10px; } .utils .who b { display:none; } .hero-in { padding:28px 0 28px; } .study-title h1 { font-size:34px; line-height:38px; letter-spacing:-.6px; } .study-meta div { padding:7px 14px 8px; } .study-meta dd { white-space:normal; } .runas input { min-width:0; width:100%; } .runas label { flex:1 1 100%; } .runas fieldset { padding:12px 14px; } }
+    @media (max-width:420px) { .utils .hide-s { display:none; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <section class="study-head">
+      <img class="hero-img" src="https://delivery-p137454-e1438138.adobeaemcloud.com/adobe/assets/urn:aaid:aem:f23a9ca3-cf33-4dcc-afda-08bfb7755669/as/AdobeStock_590801741.avif?assetname=AdobeStock_590801741.jpeg" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1600&q=80';">
+      <header class="mast">
+        <div class="mast-in wrap">
+          <div class="pillbar">
+            <a class="brand" href="#" aria-label="Lilly Clinical Trial Data Hub home"><img src="https://delivery-p137454-e1438138.adobeaemcloud.com/adobe/assets/urn:aaid:aem:695a4b7a-9c2d-4868-a527-2d2a734ae296/renditions/original/as/LillyDirect-PillLogo-White.svg?assetname=LillyDirect-PillLogo-White.svg" alt="Lilly" onerror="this.onerror=null;this.src='/verticals/assets/eda0e2e5/lilly-logo.svg';"><span>Clinical Trial Data Hub</span></a>
+            <nav class="gnav" aria-label="Global navigation">
+              <a href="#">Studies</a>
+              <a href="#">Sites</a>
+              <a href="#" aria-current="page">Lab data</a>
+              <a href="#">Queries<span class="count" data-query-count>9</span></a>
+              <a href="#">Data lock</a>
+            </nav>
+          </div>
+          <div class="pillbar utils">
+            <a href="#" class="hide-m" aria-label="Search"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6"/><path d="m13 13 5 5"/></svg></a>
+            <a href="#" class="hide-s">Help</a>
+            <span class="who"><span class="avatar" id="whoInitials" aria-hidden="true">PN</span><b id="whoName">Priya Natarajan</b></span>
+          </div>
+        </div>
+      </header>
+      <div class="hero-in wrap">
+          <nav class="crumbs" aria-label="Breadcrumb">
+            <a href="#">Studies</a>
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5"/></svg>
+            <a href="#">ORF-317</a>
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5"/></svg>
+            <a href="#">Lab data</a>
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5"/></svg>
+            <span>Central lab ingest</span>
+          </nav>
+          <div class="study-title">
+            <h1>Central lab ingest</h1>
+            <p>Load each site's Lilly central lab transfer file into the study warehouse. Results are converted to the study standard unit and flagged against protocol reference ranges before they reach the clinical database.</p>
+          </div>
+        <dl class="study-meta" aria-label="Study summary">
+          <div><dt>Study</dt><dd>ORF-317<small>Lilly</small></dd></div>
+          <div><dt>Phase</dt><dd>III</dd></div>
+          <div><dt>Study drug</dt><dd>Orforglipron<small>oral, once daily</small></dd></div>
+          <div><dt>Indication</dt><dd>Type 2 diabetes<small>adults</small></dd></div>
+          <div><dt>Enrolment</dt><dd>1,186<small>of 1,200</small></dd></div>
+          <div><dt>Sites</dt><dd>42<small>active</small></dd></div>
+          <div class="lock"><dt>Interim lock</dt><dd>13 Nov 2026<small>11 days</small></dd></div>
+        </dl>
+      </div>
+    </section>
+    <form class="runas" id="runAsForm" aria-label="Run as">
+      <fieldset class="wrap">
+        <legend>Run as</legend>
+        <label>Presenter name<input id="presenterName" name="presenterName" autocomplete="name" placeholder="Priya Natarajan"></label>
+        <label>Devin email<input id="presenterEmail" name="presenterEmail" type="email" autocomplete="email" placeholder="you@cognition.ai"></label>
+        <button type="submit" class="rbtn">Save</button>
+        <small id="identityStatus">Alerts and the Devin session go to this person in HC-GTM-AD.</small>
+      </fieldset>
+    </form>
+    <div class="tabs-bar">
+      <nav class="tabs wrap" aria-label="Lab data">
+        <a href="#" aria-current="page">Transfer inbox<span class="count">2</span></a>
+        <a href="#">Run history</a>
+        <a href="#">Analyte mappings</a>
+        <a href="#">Reference ranges</a>
+        <a href="#">Lab queries<span class="count" data-query-count>9</span></a>
+        <a href="#">Audit trail</a>
+      </nav>
+    </div>
+
+    <div class="work">
+      <div class="col">
+        <form id="demoForm" class="panel" novalidate aria-labelledby="inboxTitle">
+          <div class="panel-h"><h2 id="inboxTitle">Transfer inbox</h2><span>Lilly central lab, transfer spec v3.2</span></div>
+          <div class="inbox-note"><span>Visit 4 (Week 12), received overnight</span><span>sftp <code>lilly-cl-drop/orf317</code></span></div>
+          <ul class="batches" role="radiogroup" aria-label="Batches awaiting ingest">
+            <li class="batch">
+              <input type="radio" name="siteChoice" value="SITE-104" checked aria-label="SITE-104 Toronto Research Centre batch">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Toronto Research Centre</b><span class="site-id">SITE-104, Canada</span></span>
+              <span class="state">Awaiting ingest</span>
+              <span class="file">LCL_ORF317_S104_V4_20261101.csv</span>
+              <span class="meta"><span><em>Subjects</em> 3</span><span><em>Results</em> 3</span><span><em>Glucose</em> <span class="u">mmol/L</span></span><span><em>HbA1c</em> <span class="u">%</span></span></span>
+            </li>
+            <li class="batch">
+              <input type="radio" name="siteChoice" value="SITE-101" aria-label="SITE-101 Indianapolis Clinical Research Unit batch">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Indianapolis Clinical Research Unit</b><span class="site-id">SITE-101, United States</span></span>
+              <span class="state">Awaiting ingest</span>
+              <span class="file">LCL_ORF317_S101_V4_20261101.csv</span>
+              <span class="meta"><span><em>Subjects</em> 3</span><span><em>Results</em> 3</span><span><em>Glucose</em> <span class="u">mg/dL</span></span><span><em>HbA1c</em> <span class="u">%</span></span></span>
+            </li>
+            <li class="batch loaded" aria-disabled="true">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Chicago Metabolic Institute</b><span class="site-id">SITE-102, United States</span></span>
+              <span class="state">Loaded 07:42</span>
+              <span class="file">LCL_ORF317_S102_V4_20261101.csv</span>
+            </li>
+            <li class="batch loaded" aria-disabled="true">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Leeds Diabetes Centre</b><span class="site-id">SITE-117, United Kingdom</span></span>
+              <span class="state">Loaded 06:15</span>
+              <span class="file">LCL_ORF317_S117_V4_20261101.csv</span>
+            </li>
+          </ul>
+          <input type="hidden" id="siteId" value="SITE-104">
+          <dl class="detail" aria-label="Selected batch">
+            <dt>Batch</dt><dd id="kvBatch">SITE-104, visit 4 (week 12)</dd>
+            <dt>File</dt><dd><code id="kvFile">LCL_ORF317_S104_V4_20261101.csv</code></dd>
+            <dt>Checksum</dt><dd><code id="kvSum">sha256 9f3c…b17a, verified</code></dd>
+            <dt>Target</dt><dd><code>warehouse.lab_results</code></dd>
+            <dt>Audit</dt><dd>Run recorded under 21 CFR Part 11 with your user ID and UTC time</dd>
+          </dl>
+          <div class="act">
+            <button type="submit" class="btn" id="submitBtn"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8-5.2a.6.6 0 0 0 0-1l-8-5.2a.6.6 0 0 0-.9.5z"/></svg>Run ingest</button>
+            <p>Loads the selected batch through all five stages. Takes a few seconds.</p>
+          </div>
+        </form>
+
+        <section class="panel" aria-labelledby="sitesTitle">
+          <div class="panel-h"><h2 id="sitesTitle">Site data currency</h2><span>Visit 4 lab data</span></div>
+          <ul class="sites">
+            <li><span><b>Toronto Research Centre</b><small>SITE-104, 31 subjects</small></span><span class="pill warn">Batch pending</span></li>
+            <li><span><b>Indianapolis Clinical Research Unit</b><small>SITE-101, 28 subjects</small></span><span class="pill warn">Batch pending</span></li>
+            <li><span><b>Chicago Metabolic Institute</b><small>SITE-102, 35 subjects</small></span><span class="pill ok">Current</span></li>
+            <li><span><b>Leeds Diabetes Centre</b><small>SITE-117, 24 subjects</small></span><span class="pill ok">Current</span></li>
+            <li><span><b>Montréal Clinical Trials</b><small>SITE-109, 22 subjects</small></span><span class="pill query">1 open query</span></li>
+            <li><span><b>Phoenix Endocrine Partners</b><small>SITE-121, 19 subjects</small></span><span class="pill info">Transfer due Tue</span></li>
+          </ul>
+          <div class="panel-f"><span>36 of 42 sites current for visit 4</span><a href="#">All sites</a></div>
+        </section>
+      </div>
+
+      <section class="panel" aria-labelledby="runTitle">
+        <div class="run-top">
+          <h2 id="runTitle">Ingest run</h2>
+          <span class="ref" id="runMeta">No run started</span>
+        </div>
+        <ol class="ledger" id="ledger" aria-label="Pipeline stages">
+          <li class="stg" data-stage="transfer"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Transfer file</h3><p data-default="Pull the vendor file from the SFTP drop and verify its checksum.">Pull the vendor file from the SFTP drop and verify its checksum.</p></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="parse"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Parse</h3><p data-default="Validate against spec v3.2 and map subject, visit and analyte codes.">Validate against spec v3.2 and map subject, visit and analyte codes.</p></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="normalize"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Normalize units</h3><p data-default="Convert every result to the study standard unit for its analyte.">Convert every result to the study standard unit for its analyte.</p><div class="stg-fail" id="stgFail"></div></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="ranges"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Reference ranges</h3><p data-default="Flag values outside the protocol range for medical review.">Flag values outside the protocol range for medical review.</p></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="warehouse"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Study warehouse</h3><p data-default="Commit the batch and write the audit trail entry.">Commit the batch and write the audit trail entry.</p></div><span class="stg-time"></span></li>
+        </ol>
+        <div class="log-h"><span>Run log</span><span id="logMeta">UTC</span></div>
+        <div class="log" id="log" aria-live="polite"><div><span>--:--:--</span>Select a batch in the transfer inbox and run the ingest.</div></div>
+        <div class="result-box" id="result" role="status"></div>
+        <div id="records"><div class="empty">Loaded records, with standard units and range flags, appear here once the batch commits.</div></div>
+      </section>
+    </div>
+
+    <div class="secondary">
+      <section class="panel hist" aria-labelledby="histTitle">
+        <div class="panel-h"><h2 id="histTitle">Recent runs</h2><span>Last 24 hours</span></div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Run</th><th>Site</th><th>Batch</th><th class="num c-rec">Records</th><th>Outcome</th><th>Run by</th></tr></thead>
+          <tbody>
+            <tr><td><span class="sub">RUN-20261102-0611</span></td><td>SITE-117 Leeds</td><td><span class="sub">LAB-7C2E19A4</span></td><td class="num c-rec">72</td><td class="st"><span class="pill ok">Committed</span></td><td class="who">Scheduled</td></tr>
+            <tr><td><span class="sub">RUN-20261102-0742</span></td><td>SITE-102 Chicago</td><td><span class="sub">LAB-3B90F1D2</span></td><td class="num c-rec">105</td><td class="st"><span class="pill ok">Committed</span></td><td class="who">Scheduled</td></tr>
+            <tr><td><span class="sub">RUN-20261101-1518</span></td><td>SITE-109 Montréal</td><td><span class="sub">LAB-A41D06E7</span></td><td class="num c-rec">66</td><td class="st"><span class="pill query">1 query raised</span></td><td class="who">P. Natarajan</td></tr>
+            <tr><td><span class="sub">RUN-20261101-0905</span></td><td>SITE-121 Phoenix</td><td><span class="sub">LAB-E8D2C530</span></td><td class="num c-rec">57</td><td class="st"><span class="pill ok">Committed</span></td><td class="who">R. Okonkwo</td></tr>
+          </tbody>
+        </table></div>
+        <div class="panel-f"><span>46 runs, 12,880 records loaded in the last 24 hours</span><a href="#">Run history</a></div>
+      </section>
+
+      <section class="panel" aria-labelledby="auditTitle">
+        <div class="panel-h"><h2 id="auditTitle">Audit trail</h2><span>21 CFR Part 11</span></div>
+        <ul class="audit" id="audit">
+          <li><time>02 Nov 07:42 UTC</time><b>Batch LAB-3B90F1D2 committed</b><small>Scheduled ingest, SITE-102, 105 records</small></li>
+          <li><time>02 Nov 06:11 UTC</time><b>Batch LAB-7C2E19A4 committed</b><small>Scheduled ingest, SITE-117, 72 records</small></li>
+          <li><time>01 Nov 16:03 UTC</time><b class="sig">Analyte mapping v3.2 e-signed</b><small>P. Natarajan, reason: vendor spec update</small></li>
+          <li><time>01 Nov 15:18 UTC</time><b>Query ORF-317-Q0466 raised</b><small>SITE-109, glucose out of protocol range</small></li>
+        </ul>
+        <div class="panel-f"><span>Entries are immutable and time-stamped in UTC</span><a href="#">Full audit trail</a></div>
+      </section>
+    </div>
+
+    <footer>
+      <div class="foot-in wrap">
+        <div><img src="/verticals/assets/eda0e2e5/lilly-logo.svg" alt="Lilly">Lilly Clinical Trial Data Hub<small>Demo environment. Fictional protocol, sites and subjects. Synthetic data only, no PHI. Not affiliated with any real Lilly clinical study.</small></div>
+        <nav aria-label="Legal and support"><a href="#">Terms of use</a><a href="#">Privacy statement</a><a href="#">Accessibility statement</a><a href="#">Validation package</a><a href="#">System status</a><a href="#">Contact data management</a></nav>
+      </div>
+    </footer>
+  </div>
+</div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const HC_ORG_ID = 'org-ad5cb75ed086403697e4d37f8411936e';
+    (function runAs() {
+      const nameEl = document.getElementById('presenterName');
+      const emailEl = document.getElementById('presenterEmail');
+      const status = document.getElementById('identityStatus');
+      function paintUser() {
+        const n = (localStorage.getItem('devinName') || '').trim() || 'Priya Natarajan';
+        document.getElementById('whoName').textContent = n;
+        document.getElementById('whoInitials').textContent = n.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+      }
+      nameEl.value = localStorage.getItem('devinName') || '';
+      emailEl.value = localStorage.getItem('devinEmail') || '';
+      paintUser();
+      window.saveIdentity = function saveIdentity() {
+        const name = nameEl.value.trim();
+        const email = emailEl.value.trim();
+        localStorage.setItem('devinName', name);
+        localStorage.setItem('devinEmail', email);
+        localStorage.setItem('devinOrgId', HC_ORG_ID);
+        localStorage.removeItem('devinUserId');
+        paintUser();
+        if (!email) { status.textContent = 'Saved. Add a Devin email to route the alert and session to you.'; return Promise.resolve(); }
+        status.textContent = 'Resolving ' + email + '\u2026';
+        return fetch('/api/resolve-identity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orgId: HC_ORG_ID, email }) })
+          .then((r) => r.json().then((p) => ({ ok: r.ok, p })))
+          .then(({ ok, p }) => {
+            if (!ok || !p.userId) { status.textContent = (p && p.error) || 'Could not resolve this email in HC-GTM-AD.'; return; }
+            localStorage.setItem('devinUserId', p.userId);
+            status.textContent = 'Running as ' + (name || email) + '. Alerts and the Devin session go to ' + email + '.';
+          })
+          .catch(() => { status.textContent = 'Could not resolve this email right now.'; });
+      };
+      document.getElementById('runAsForm').addEventListener('submit', (e) => { e.preventDefault(); window.saveIdentity(); });
+      if (emailEl.value && localStorage.getItem('devinUserId')) status.textContent = 'Running as ' + (nameEl.value || emailEl.value) + '. Alerts and the Devin session go to ' + emailEl.value + '.';
+    })();
+    const CTA = 'Run ingest';
+    const BATCHES = {
+      'SITE-104': { file: 'LCL_ORF317_S104_V4_20261101.csv', sum: 'sha256 9f3c…b17a, verified', label: 'SITE-104, visit 4 (week 12)', glucoseUnit: 'mmol/L' },
+      'SITE-101': { file: 'LCL_ORF317_S101_V4_20261101.csv', sum: 'sha256 41e8…0c5d, verified', label: 'SITE-101, visit 4 (week 12)', glucoseUnit: 'mg/dL' },
+    };
+    const ANALYTES = { glucose: { name: 'Glucose, fasting', range: '70–180 mg/dL' }, hba1c: { name: 'HbA1c', range: '4.0–9.0 %' }, creatinine: { name: 'Creatinine', range: '0.50–1.30 mg/dL' } };
+    const STAGES = ['transfer', 'parse', 'normalize', 'ranges', 'warehouse'];
+    const result = document.getElementById('result');
+    const log = document.getElementById('log');
+    const btn = document.getElementById('submitBtn');
+    const runMeta = document.getElementById('runMeta');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
+    let runNo = 0, stageStart = 0, queryNo = 471;
+
+    function devinFields() {
+      return { devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || HC_ORG_ID, devinEmail: localStorage.getItem('devinEmail') || '', devinName: localStorage.getItem('devinName') || '' };
+    }
+    function who() { const n = (localStorage.getItem('devinName') || '').trim(); if (!n) return 'P. Natarajan'; const p = n.split(/\s+/); return p.length > 1 ? p[0][0] + '. ' + p[p.length - 1] : n; }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function ts() { return new Date().toLocaleTimeString('en-GB', { hour12: false, timeZone: 'UTC' }); }
+    function line(text, cls) { const d = document.createElement('div'); d.innerHTML = '<span>' + ts() + '</span>' + (cls ? '<b class="' + cls + '">' : '<b>') + esc(text) + '</b>'; log.appendChild(d); log.scrollTop = log.scrollHeight; }
+    function stageEl(name) { return document.querySelector('.stg[data-stage="' + name + '"]'); }
+    function elapsed() { const s = ((performance.now() - stageStart) / 1000); return s.toFixed(2) + ' s'; }
+    function stage(name, state, text) {
+      const el = stageEl(name);
+      el.className = 'stg' + (state ? ' ' + state : '');
+      const time = el.querySelector('.stg-time');
+      if (state === 'active') { stageStart = performance.now(); time.textContent = 'running'; }
+      else if (state === 'done') time.textContent = elapsed();
+      else if (state === 'failed') time.textContent = 'failed';
+      else time.textContent = '';
+      if (text) el.querySelector('p').textContent = text;
+    }
+    function resetRun() {
+      STAGES.forEach((s) => { stage(s, ''); const p = stageEl(s).querySelector('p'); p.textContent = p.dataset.default; });
+      document.getElementById('stgFail').innerHTML = '';
+      log.innerHTML = '';
+      result.className = 'result-box'; result.innerHTML = '';
+      document.getElementById('records').innerHTML = '<div class="empty">Loaded records, with standard units and range flags, appear here once the batch commits.</div>';
+      runMeta.className = 'ref live'; 
+    }
+    function syncBatch(site) {
+      const b = BATCHES[site];
+      document.getElementById('siteId').value = site;
+      document.getElementById('kvFile').textContent = b.file;
+      document.getElementById('kvSum').textContent = b.sum;
+      document.getElementById('kvBatch').textContent = b.label;
+    }
+    document.querySelectorAll('input[name=siteChoice]').forEach((r) => r.addEventListener('change', () => syncBatch(r.value)));
+    function buildPayload() { return { siteId: document.getElementById('siteId').value }; }
+    function runRef() { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return 'RUN-' + d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + '-' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + p(d.getUTCSeconds()); }
+    function addAudit(title, detail, signed) {
+      const li = document.createElement('li');
+      li.innerHTML = '<time>' + esc(new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' }).replace(',', '')) + ' UTC</time><b' + (signed ? ' class="sig"' : '') + '>' + esc(title) + '</b><small>' + esc(detail) + '</small>';
+      document.getElementById('audit').prepend(li);
+    }
+    let loadedSite = '';
+    function renderRecords(d) {
+      loadedSite = d.siteId || document.getElementById('siteId').value;
+      const rows = d.records.map((r, i) => {
+        const a = ANALYTES[r.analyte] || { name: r.analyte, range: '' };
+        const out = r.flag !== 'ok';
+        return '<tr class="' + (out ? 'out' : '') + '" data-row="' + i + '"><td><span class="sub">' + esc(r.subject) + '</span></td><td>' + esc(a.name) + '</td><td class="num"><b>' + esc(r.value) + '</b> ' + esc(r.unit) + '</td><td class="src c-src">' + esc(r.sourceUnit || r.unit) + (r.sourceUnit && r.sourceUnit !== r.unit ? ', converted' : ', as reported') + '</td><td class="src c-range">' + esc(a.range) + '</td><td><span class="pill ' + (out ? 'warn' : 'ok') + '">' + (out ? 'Out of range' : 'In range') + '</span></td><td><button type="button" class="qbtn" data-q="' + i + '" data-subject="' + esc(r.subject) + '" data-analyte="' + esc(a.name) + '" aria-pressed="false">Raise query</button></td></tr>';
+      }).join('');
+      document.getElementById('records').innerHTML =
+        '<div class="records-h"><h3>Loaded records</h3><span>' + d.records.length + ' results, ' + d.records.filter((r) => r.flag !== 'ok').length + ' out of range</span></div>' +
+        '<div class="tbl-wrap"><table class="tbl" aria-label="Loaded records"><thead><tr><th>Subject</th><th>Analyte</th><th class="num">Result, standard unit</th><th class="c-src">Source unit</th><th class="c-range">Reference range</th><th>Flag</th><th><span class="sr">Query</span></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+        '<div class="records-f"><span>Standard units: glucose mg/dL, HbA1c %, creatinine mg/dL. Reference ranges from protocol ORF-317 v4.0.</span><span>Queries go to the site coordinator in the subject casebook.</span></div>';
+      document.querySelectorAll('.qbtn').forEach((q) => q.addEventListener('click', () => raiseQuery(q)));
+    }
+    function raiseQuery(q) {
+      if (q.getAttribute('aria-pressed') === 'true') return;
+      q.setAttribute('aria-pressed', 'true'); q.textContent = 'Query raised';
+      const id = 'ORF-317-Q' + String(queryNo++).padStart(4, '0');
+      const tr = q.closest('tr');
+      const qr = document.createElement('tr'); qr.className = 'qrow';
+      qr.innerHTML = '<td colspan="7">Query <code>' + id + '</code> opened for ' + esc(q.dataset.subject) + ', ' + esc(q.dataset.analyte) + ': please confirm the reported value and collection time. Sent to the site coordinator.</td>';
+      tr.after(qr);
+      line('Query ' + id + ' raised for ' + q.dataset.subject + ' (' + q.dataset.analyte + ')', 'warn');
+      addAudit('Query ' + id + ' raised', (loadedSite || document.getElementById('siteId').value) + ', ' + q.dataset.subject + ', ' + q.dataset.analyte + ', by ' + who());
+      document.querySelectorAll('[data-query-count]').forEach((c) => { c.textContent = String(Number(c.textContent) + 1); });
+    }
+
+    document.getElementById('demoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const site = document.getElementById('siteId').value;
+      const b = BATCHES[site];
+      const ref = runRef();
+      btn.disabled = true; btn.textContent = 'Running ingest\u2026';
+      resetRun();
+      runNo += 1;
+      runMeta.classList.add('running'); runMeta.innerHTML = 'Running <code>' + esc(ref) + '</code> for ' + esc(site);
+      stage('transfer', 'active'); line('Run ' + ref + ' started by ' + who() + ' for ' + site + ', visit 4');
+      line('Pulling ' + b.file + ' from sftp://lilly-cl-drop/orf317/');
+      await sleep(420); stage('transfer', 'done', 'File received, checksum verified.'); stage('parse', 'active'); line('Checksum verified, 3 subjects in file', 'ok');
+      await sleep(380); stage('parse', 'done', '3 subjects and 3 results mapped against spec v3.2.'); stage('normalize', 'active', 'Converting glucose (' + b.glucoseUnit + '), HbA1c (%) and creatinine (mg/dL) to study standard units\u2026'); line('Parsed 3 results: glucose, HbA1c, creatinine', 'ok'); line('Normalizing units to study standard\u2026');
+      try {
+        const res = await fetch("/api/fc0bd7f3/ingest", {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign(buildPayload(), devinFields())),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const code = data.code || 'LAB_INGEST_FAILED';
+          const reqId = data.requestId || ref;
+          stage('normalize', 'failed', 'Stopped: a result could not be converted to the study standard unit.');
+          document.getElementById('stgFail').innerHTML = '<b>Batch rolled back.</b> Nothing was written to <code>warehouse.lab_results</code>. Reference ranges and commit did not run.';
+          runMeta.className = 'ref live failed'; runMeta.innerHTML = 'Failed at normalize units, <code>' + esc(ref) + '</code>';
+          line('Stage normalize failed: no unit conversion available for one or more results (' + code + ')', 'err');
+          line('Batch rolled back. 0 rows written to warehouse.lab_results.', 'warn');
+          line('Incident opened automatically, reference ' + reqId, 'warn');
+          result.className = 'result-box error';
+          result.innerHTML =
+            '<div class="result-title"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.25"/><path d="M8 4.8v3.9M8 11.2v.1"/></svg>Batch not loaded. Ingest stopped at normalize units.</div>' +
+            '<p>One or more results from ' + esc(site) + ' could not be converted to the study standard unit, so the run stopped and the whole batch was rolled back. No results from this file reached the study warehouse or the clinical database. Our engineering team has been notified automatically and the on-call data engineer has this reference.</p>' +
+            '<dl class="result-kv"><div><dt>Reference</dt><dd><code>' + esc(reqId) + '</code></dd></div><div><dt>Error code</dt><dd><code>' + esc(code) + '</code></dd></div><div><dt>Run</dt><dd><code>' + esc(ref) + '</code></dd></div><div><dt>Rows written</dt><dd>0</dd></div></dl>' +
+            '<div class="result-part11"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span>The failed attempt is recorded in the audit trail. The batch stays in the inbox and can be rerun once the conversion is in place.</span></div>';
+          addAudit('Ingest ' + ref + ' failed, batch rolled back', site + ', ' + code + ', reference ' + reqId + ', by ' + who());
+        } else {
+          const converted = data.records.filter((r) => r.sourceUnit && r.sourceUnit !== r.unit).length;
+          stage('normalize', 'done', data.records.length + ' results in study standard units' + (converted ? ', ' + converted + ' converted.' : ', no conversion needed.')); stage('ranges', 'active'); line('Converted ' + data.records.length + ' results to standard units', 'ok');
+          await sleep(340);
+          const out = data.records.filter((r) => r.flag !== 'ok').length;
+          stage('ranges', 'done', out ? out + ' value' + (out === 1 ? '' : 's') + ' outside the protocol range, flagged for review.' : 'All ' + data.records.length + ' values inside the protocol range.'); stage('warehouse', 'active');
+          line('Reference ranges applied: ' + out + ' out-of-range value' + (out === 1 ? '' : 's') + ' flagged', out ? 'warn' : 'ok');
+          await sleep(360);
+          stage('warehouse', 'done', 'Batch ' + data.batchId + ' committed, audit entry written.');
+          line('Committed batch ' + data.batchId + ' to warehouse.lab_results (' + data.records.length + ' rows)', 'ok');
+          line('Audit entry written, ' + ref, 'ok');
+          runMeta.className = 'ref live done'; runMeta.innerHTML = 'Completed ' + ts() + ' UTC, <code>' + esc(ref) + '</code>';
+          result.className = 'result-box success';
+          result.innerHTML =
+            '<div class="result-title"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.25"/><path d="M5 8.2l2 2 4-4.4"/></svg>Loaded ' + data.records.length + ' records from ' + esc(data.site || site) + '</div>' +
+            '<p>Batch committed to the study warehouse. ' + (out ? out + ' value' + (out === 1 ? ' is' : 's are') + ' outside the protocol range and ready for a query.' : 'All values are inside the protocol range.') + '</p>' +
+            '<dl class="result-kv"><div><dt>Batch</dt><dd><code>' + esc(data.batchId) + '</code></dd></div><div><dt>Run</dt><dd><code>' + esc(ref) + '</code></dd></div><div><dt>Rows written</dt><dd>' + data.records.length + '</dd></div><div><dt>Site data</dt><dd>Current for visit 4</dd></div></dl>' +
+            '<div class="result-part11"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span>Audit entry recorded under 21 CFR Part 11: user ' + esc(who()) + ', ' + ts() + ' UTC, reason "scheduled visit 4 transfer".</span></div>';
+          renderRecords(data);
+          (function markLoaded() {
+            const row = document.querySelector('input[name=siteChoice][value="' + site + '"]');
+            if (row && row.parentElement) {
+              const st = row.parentElement.querySelector('.state'); if (st) { st.textContent = 'Loaded ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }); st.classList.add('loaded'); }
+              row.disabled = true; row.checked = false; row.parentElement.classList.add('loaded');
+              const next = document.querySelector('input[name=siteChoice]:not(:disabled)');
+              if (next) { next.checked = true; syncBatch(next.value); }
+            }
+            document.querySelectorAll('.pill.warn').forEach((pill) => { const li = pill.closest('li'); if (li && li.textContent.indexOf(site) !== -1) { pill.textContent = 'Current'; pill.className = 'pill ok'; } });
+          })();
+          addAudit('Batch ' + data.batchId + ' committed', site + ', ' + data.records.length + ' records, run ' + ref + ', by ' + who());
+        }
+      } catch (err) {
+        stage('normalize', 'failed', 'Stopped: the data hub could not reach the ingest service.');
+        runMeta.className = 'ref live failed'; runMeta.textContent = 'Run did not complete';
+        line('Ingest service unreachable. Batch left in the inbox.', 'err');
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">Batch not loaded. The ingest service did not respond.</div><p>Check your connection and run the ingest again. The batch stays in the transfer inbox and nothing was written to the warehouse.</p>';
+      } finally {
+        const pending = document.querySelector('input[name=siteChoice]:not(:disabled)');
+        if (!pending) { btn.disabled = true; btn.textContent = 'No batches awaiting ingest'; return; }
+        btn.disabled = false; btn.textContent = CTA; btn.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8-5.2a.6.6 0 0 0 0-1l-8-5.2a.6.6 0 0 0-.9.5z"/></svg>'); }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
