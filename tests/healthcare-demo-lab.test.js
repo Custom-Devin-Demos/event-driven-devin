@@ -20,6 +20,7 @@ const provider = require('../app/services/verticals/3a2b7a6d');
 const pharma = require('../app/services/verticals/46ce04a1');
 const lifeSciences = require('../app/services/verticals/27a970ec');
 const thermoFisher = require('../app/services/verticals/bce3b3d2');
+const medtronic = require('../app/services/verticals/afd8d03a');
 
 const devin = { devinUserId: 'user-1', devinOrgId: 'org-1', devinEmail: '' };
 
@@ -50,6 +51,12 @@ const CASES = [
   },
   {
     slug: 'bce3b3d2', name: 'Thermo Fisher (PPD) central lab pipeline', run: thermoFisher.ingestBatch,
+    failing: { siteId: 'SITE-104' },
+    passing: { siteId: 'SITE-101' },
+    message: "reading 'factor'", failureMetric: 'lab_pipeline.batch.failure',
+  },
+  {
+    slug: 'afd8d03a', name: 'Medtronic clinical trial lab pipeline', run: medtronic.ingestBatch,
     failing: { siteId: 'SITE-104' },
     passing: { siteId: 'SITE-101' },
     message: "reading 'factor'", failureMetric: 'lab_pipeline.batch.failure',
