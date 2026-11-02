@@ -1218,6 +1218,39 @@ function mrkdwnSection(text) {
   return { type: 'section', text: { type: 'mrkdwn', text } };
 }
 
+// Slack rejects the whole message (invalid_blocks) if a section's text is over 3000 chars.
+const SLACK_SECTION_MAX = 3000;
+
+function splitForSection(text, max = SLACK_SECTION_MAX) {
+  const chunks = [];
+  let current = '';
+  const pushPiece = (piece, sep) => {
+    if (piece.length > max) {
+      if (current) { chunks.push(current); current = ''; }
+      if (sep === '\n\n') {
+        piece.split('\n').forEach((line) => pushPiece(line, '\n'));
+      } else {
+        for (let i = 0; i < piece.length; i += max) chunks.push(piece.slice(i, i + max));
+      }
+      return;
+    }
+    const joined = current ? `${current}${sep}${piece}` : piece;
+    if (joined.length > max) {
+      chunks.push(current);
+      current = piece;
+    } else {
+      current = joined;
+    }
+  };
+  text.split('\n\n').forEach((para) => pushPiece(para, '\n\n'));
+  if (current) chunks.push(current);
+  return chunks.filter((c) => c.trim());
+}
+
+function mrkdwnSections(text) {
+  return splitForSection(text).map(mrkdwnSection);
+}
+
 function datadogActions(t = ONCALL_STRINGS.en) {
   return {
     type: 'actions',
@@ -1679,7 +1712,7 @@ async function postOncallAlert(scenarioId, options = {}) {
       (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
-    ...(responderNotes(skin) ? [mrkdwnSection(responderNotes(skin))] : []),
+    ...(responderNotes(skin) ? mrkdwnSections(responderNotes(skin)) : []),
     ...(t.viewDatadog ? [datadogActions(t)] : []),
     contextBlock(card.service, triggeredByLine, null, t),
   ];
