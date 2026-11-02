@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Catering Checkout | Chick-fil-A</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --navy: #004F71; --red: #DD0031; --red-dark: #B8002A; --text: #485259; --mist: #F4F8F9; --line: #E2E8EB; --muted: #6B767D; --accent: var(--red); --ink: var(--navy); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Figtree, Arial, sans-serif; font-size: 16px; color: var(--text); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { color: var(--red); }
+    .util { display: flex; justify-content: space-between; align-items: center; padding: 10px 64px; font-size: 12px; font-weight: 500; border-bottom: 1px solid var(--line); }
+    .util a { color: var(--text); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; min-height: 28px; }
+    .masthead { display: flex; align-items: center; gap: 32px; padding: 16px 64px; }
+    .mark { width: 60px; height: 60px; border-radius: 50%; background: var(--red); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 26px; font-style: italic; letter-spacing: -1px; flex: none; }
+    .masthead nav { display: flex; gap: 32px; flex: 1; }
+    .masthead nav a { color: var(--navy); text-decoration: none; font-weight: 700; font-size: 16px; }
+    .masthead nav a[aria-current] { box-shadow: inset 0 -3px 0 var(--red); padding-bottom: 6px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 36px; border-radius: 24px; border: 0; background: var(--red); color: #fff; font: 700 15px Figtree, Arial, sans-serif; cursor: pointer; text-decoration: none; }
+    .pill:hover { background: var(--red-dark); }
+    .pill:disabled { opacity: .6; cursor: progress; }
+    .pill.ghost { background: #fff; color: var(--red); box-shadow: inset 0 0 0 2px var(--red); }
+    .pill:focus-visible, select:focus-visible, input:focus-visible, button:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+    .hero { text-align: center; padding: 28px 24px 8px; }
+    .hero h1 { color: var(--navy); font-size: 52px; font-weight: 800; letter-spacing: -1px; margin: 0 0 8px; }
+    .hero p { margin: 0; font-size: 14px; }
+    .steps { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 20px 0 0; padding: 0; list-style: none; font-size: 13px; font-weight: 700; color: var(--muted); }
+    .steps li { display: flex; align-items: center; gap: 8px; }
+    .steps li::after { content: ''; width: 28px; height: 2px; background: var(--line); }
+    .steps li:last-child::after { display: none; }
+    .steps b { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--line); color: var(--navy); }
+    .steps .done b { background: var(--navy); color: #fff; }
+    .steps .now { color: var(--navy); }
+    .steps .now b { background: var(--red); color: #fff; }
+    main { max-width: 1200px; margin: 28px auto 64px; padding: 0 24px; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 32px; align-items: start; }
+    .card { background: var(--mist); border-radius: 24px; padding: 32px; }
+    .card + .card { margin-top: 24px; }
+    h2 { color: var(--navy); font-size: 28px; font-weight: 800; margin: 0 0 6px; }
+    .sub { margin: 0 0 20px; font-size: 15px; }
+    .tray { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 18px; align-items: center; background: #fff; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+    .tray .ph { width: 96px; height: 72px; border-radius: 12px; background: radial-gradient(circle at 30% 30%, #F2C27B, #C98A3B); display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 12px; text-align: center; padding: 4px; }
+    .tray.alt .ph { background: radial-gradient(circle at 30% 30%, #9BC48A, #4F8A3D); }
+    .tray.cookie .ph { background: radial-gradient(circle at 30% 30%, #D9A86C, #7A4A21); }
+    .tray h3 { margin: 0 0 4px; color: var(--navy); font-size: 17px; }
+    .tray p { margin: 0; font-size: 13px; color: var(--muted); }
+    .qty { display: flex; align-items: center; gap: 6px; }
+    .qty button { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--navy); background: #fff; color: var(--navy); font-size: 20px; font-weight: 700; cursor: pointer; }
+    .qty button:disabled { opacity: .35; cursor: not-allowed; }
+    .qty output { min-width: 28px; text-align: center; font-weight: 800; color: var(--navy); font-size: 18px; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-weight: 700; color: var(--navy); font-size: 14px; margin-bottom: 6px; }
+    .field select, .field input { width: 100%; min-height: 48px; border: 1px solid #C5CFD4; border-radius: 12px; padding: 0 14px; font: 500 16px Figtree, Arial, sans-serif; color: var(--text); background: #fff; }
+    .field input[readonly] { background: #EEF3F5; color: var(--navy); font-weight: 800; }
+    .help { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .summary { position: sticky; top: 16px; background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 28px; box-shadow: 0 8px 24px rgba(0,79,113,.08); }
+    .summary h2 { font-size: 22px; }
+    .summary dl { margin: 16px 0; display: grid; grid-template-columns: 1fr auto; gap: 10px 0; font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; text-align: right; color: var(--navy); font-weight: 700; }
+    .summary .total { border-top: 1px solid var(--line); padding-top: 12px; font-size: 18px; }
+    .summary .actions { display: grid; gap: 10px; }
+    .summary .actions .pill { width: 100%; }
+    .wallet { font-size: 13px; color: var(--muted); margin: 14px 0 0; padding: 12px; background: var(--mist); border-radius: 12px; }
+    .wallet div { display: flex; justify-content: space-between; margin: 3px 0; }
+    .wallet b { color: var(--navy); }
+    .stopwatch { display: none; align-items: baseline; justify-content: center; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 800; color: var(--navy); }
+    .stopwatch.done .sw-value { color: var(--red); }
+    .status { font-size: 13px; color: var(--muted); margin: 10px 0 0; text-align: center; }
+    .result-box { display: none; margin-top: 16px; border-radius: 16px; padding: 16px; font-size: 15px; line-height: 1.45; }
+    .result-box.success { display: block; background: #E8F4EC; color: #1F5132; }
+    .result-box.notice { display: block; background: #FDECEF; color: #8A0020; }
+    footer { background: var(--mist); padding: 48px 64px 32px; font-size: 14px; }
+    footer .cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto; }
+    footer h4 { color: var(--navy); margin: 0 0 12px; font-size: 15px; }
+    footer a { display: block; color: var(--text); text-decoration: none; margin: 8px 0; }
+    footer .legal { max-width: 1200px; margin: 32px auto 0; border-top: 1px solid var(--line); padding-top: 16px; font-size: 12px; color: var(--muted); }
+    @media (max-width: 960px) { main { grid-template-columns: minmax(0, 1fr); } .summary { position: static; } .masthead nav { display: none; } }
+    @media (max-width: 600px) {
+      .util, .masthead, footer { padding-left: 16px; padding-right: 16px; }
+      .util .hide-s { display: none; }
+      .hero h1 { font-size: 34px; }
+      .card, .summary { padding: 20px; border-radius: 18px; }
+      .tray { grid-template-columns: 64px minmax(0, 1fr); }
+      .tray .ph { width: 64px; height: 56px; font-size: 10px; }
+      .tray .qty { grid-column: 1 / -1; justify-content: flex-end; }
+      .row2 { grid-template-columns: 1fr; }
+      footer .cols { grid-template-columns: 1fr 1fr; }
+      .masthead { gap: 12px; }
+      .masthead .pill { margin-left: auto; padding: 0 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="util">
+    <a href="#">&#9906; <span>Find restaurants</span></a>
+    <a href="#"><span class="hide-s">Signed in as</span> <b>Jordan</b> &middot; 1,240 pts</a>
+  </div>
+  <header class="masthead">
+    <span class="mark" aria-label="Chick-fil-A">C</span>
+    <nav aria-label="Main">
+      <a href="#">Menu</a><a href="#" aria-current="page">Catering</a><a href="#">Rewards</a><a href="#">Shop</a><a href="#">Chick-fil-A Play&trade;</a>
+    </nav>
+    <a class="pill" href="#">Order now</a>
+  </header>
+
+  <section class="hero">
+    <h1>Catering checkout</h1>
+    <p>Price and availability may vary by location.</p>
+    <ol class="steps" aria-label="Catering order steps">
+      <li class="done"><b>1</b>Restaurant</li><li class="done"><b>2</b>Menu</li><li class="now"><b>3</b>Review &amp; pay</li><li><b>4</b>Confirmation</li>
+    </ol>
+  </section>
+
+  <form id="transferForm" novalidate>
+  <main>
+    <div>
+      <section class="card" aria-labelledby="trayTitle">
+        <h2 id="trayTitle">Your catering order</h2>
+        <p class="sub">Pickup Friday, Nov 6 at 11:30 AM &middot; Serves about 24</p>
+        <div class="tray" data-item="nuggets" data-price="79.99">
+          <div class="ph" aria-hidden="true">Nugget Tray</div>
+          <div><h3>Chick-fil-A&reg; Nuggets Tray (Large)</h3><p>120 nuggets &middot; $79.99</p></div>
+          <div class="qty"><button type="button" data-step="-1" aria-label="Remove one Nuggets Tray">&minus;</button><output>2</output><button type="button" data-step="1" aria-label="Add one Nuggets Tray">+</button></div>
+        </div>
+        <div class="tray alt" data-item="salad" data-price="45.99">
+          <div class="ph" aria-hidden="true">Garden Salad</div>
+          <div><h3>Garden Salad Tray (Medium)</h3><p>Serves 10 &middot; $45.99</p></div>
+          <div class="qty"><button type="button" data-step="-1" aria-label="Remove one Garden Salad Tray">&minus;</button><output>1</output><button type="button" data-step="1" aria-label="Add one Garden Salad Tray">+</button></div>
+        </div>
+        <div class="tray cookie" data-item="cookies" data-price="29.99">
+          <div class="ph" aria-hidden="true">Cookie Tray</div>
+          <div><h3>Chocolate Chunk Cookie Tray (Small)</h3><p>12 cookies &middot; $29.99</p></div>
+          <div class="qty"><button type="button" data-step="-1" aria-label="Remove one Cookie Tray">&minus;</button><output>1</output><button type="button" data-step="1" aria-label="Add one Cookie Tray">+</button></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="payTitle">
+        <h2 id="payTitle">Pickup and payment</h2>
+        <p class="sub">Your order is sent to the restaurant when payment goes through.</p>
+        <div class="row2">
+          <div class="field">
+            <label for="toAccount">Pickup restaurant</label>
+            <select id="toAccount">
+              <option value="">Choose a restaurant</option>
+              <option value="CFA-01834" data-name="Peachtree &amp; 10th St" data-number="Atlanta, GA 30309" selected>Peachtree &amp; 10th St</option>
+              <option value="CFA-02217" data-name="Buckhead Village" data-number="Atlanta, GA 30305">Buckhead Village</option>
+              <option value="CFA-00492" data-name="Midtown FSU" data-number="Atlanta, GA 30308">Midtown FSU</option>
+            </select>
+            <div class="help" id="toHelp"></div>
+          </div>
+          <div class="field">
+            <label for="fromAccount">Pay with</label>
+            <select id="fromAccount">
+              <option value="CFA-ONE-7720" data-name="Chick-fil-A One balance" data-number="Gift card balance" data-balance="180.00">Chick-fil-A One balance</option>
+              <option value="VISA-4417" data-name="Visa ending 4417" data-number="Credit card" data-balance="2500.00" selected>Visa ending 4417</option>
+              <option value="AMEX-1008" data-name="Company card ending 1008" data-number="Corporate card" data-balance="5000.00">Company card ending 1008</option>
+            </select>
+            <div class="help" id="fromHelp"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="amount">Order subtotal (USD)</label>
+          <input type="number" id="amount" inputmode="decimal" readonly aria-describedby="amountHelp">
+          <div class="help" id="amountHelp"></div>
+        </div>
+        <select id="accountTier" hidden aria-hidden="true" tabindex="-1"><option value="standard" selected>standard</option></select>
+      </section>
+    </div>
+
+    <aside class="summary" aria-labelledby="sumTitle">
+      <h2 id="sumTitle">Order summary</h2>
+      <dl>
+        <dt>Items</dt><dd id="sumItems">&mdash;</dd>
+        <dt>Pickup</dt><dd id="sumTo">&mdash;</dd>
+        <dt>Payment</dt><dd id="sumFrom">&mdash;</dd>
+        <dt>Subtotal</dt><dd id="sumAmount">&mdash;</dd>
+        <dt>Service fee</dt><dd id="sumFee">&mdash;</dd>
+        <dt class="total">Total</dt><dd class="total" id="sumTotal">&mdash;</dd>
+      </dl>
+      <div class="actions">
+        <button type="submit" class="pill" id="submitBtn">Place catering order</button>
+        <button type="reset" class="pill ghost" id="cancelBtn">Start over</button>
+      </div>
+      <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to place order</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+      <p class="status" id="paymentStatus">Sample order and payment methods. No real payment is made.</p>
+      <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      <div class="wallet" aria-label="Payment method balances">
+        <div><span>Chick-fil-A One balance</span><b data-balance-for="CFA-ONE-7720"></b></div>
+        <div><span>Visa ending 4417 available</span><b data-balance-for="VISA-4417"></b></div>
+        <div><span>Company card available</span><b data-balance-for="AMEX-1008"></b></div>
+      </div>
+    </aside>
+  </main>
+  </form>
+
+  <footer>
+    <div class="cols">
+      <div><h4>About</h4><a href="#">Company</a><a href="#">Social Responsibility</a><a href="#">Stories</a><a href="#">Press Room</a></div>
+      <div><h4>Careers</h4><a href="#">Franchising</a><a href="#">Do business with us</a><a href="#">Supply chain</a></div>
+      <div><h4>Help</h4><a href="#">Customer support</a><a href="#">Accessibility</a><a href="#">Catering FAQs</a></div>
+      <div><h4>Legal</h4><a href="#">Terms &amp; conditions of use</a><a href="#">Privacy policy</a><a href="#">Customer health data</a></div>
+    </div>
+    <div class="legal">&copy; 2026 Chick-fil-A demo page. Sample menu items, restaurants and prices.</div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm'); const button = $('submitBtn'); const cancelBtn = $('cancelBtn');
+      const result = $('result'); const status = $('paymentStatus');
+      const fromAccount = $('fromAccount'); const toAccount = $('toAccount'); const amountInput = $('amount'); const accountTier = $('accountTier');
+      const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const trays = Array.from(document.querySelectorAll('.tray'));
+      const START_QTY = trays.map((t) => Number(t.querySelector('output').textContent));
+      const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+      const FEE = { rate: 0.001, flat: 2.50 }; const MAX_QTY = 10;
+      const START_BAL = {}; Array.from(fromAccount.options).forEach((o) => { START_BAL[o.value] = Number(o.dataset.balance) || 0; });
+      const balances = Object.assign({}, START_BAL);
+      const IDLE = 'Place catering order';
+      let pending = false; let ticker = null;
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (s) => s.options[s.selectedIndex];
+      const feeCents = (c) => Math.round(Math.max(FEE.rate * c, FEE.flat * 100));
+      const qtyOf = (t) => Number(t.querySelector('output').textContent) || 0;
+      function subtotalCents() { return trays.reduce((sum, t) => sum + Math.round(Number(t.dataset.price) * 100) * qtyOf(t), 0); }
+      function itemCount() { return trays.reduce((n, t) => n + qtyOf(t), 0); }
+      function renderBalances() { document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = money.format(balances[el.dataset.balanceFor] || 0); }); }
+      function render() {
+        const cents = subtotalCents(); const fee = cents > 0 ? feeCents(cents) : 0;
+        amountInput.value = (cents / 100).toFixed(2);
+        accountTier.value = 'standard';
+        trays.forEach((t) => { const q = qtyOf(t); const [minus, plus] = t.querySelectorAll('button'); minus.disabled = pending || q <= 0; plus.disabled = pending || q >= MAX_QTY; });
+        const from = selected(fromAccount); const to = toAccount.value ? selected(toAccount) : null;
+        set('fromHelp', `${from.dataset.number} \u00b7 Available ${money.format(balances[fromAccount.value] || 0)}`);
+        set('toHelp', to ? to.dataset.number : 'Choose where you\u2019ll pick up.');
+        set('amountHelp', `Service fee ${cents > 0 ? money.format(fee / 100) : '\u2014'} is added at payment.`);
+        set('sumItems', String(itemCount()));
+        set('sumTo', to ? to.dataset.name : '\u2014');
+        set('sumFrom', from.dataset.name);
+        set('sumAmount', cents > 0 ? money.format(cents / 100) : '\u2014');
+        set('sumFee', cents > 0 ? money.format(fee / 100) : '\u2014');
+        set('sumTotal', cents > 0 ? money.format((cents + fee) / 100) : '\u2014');
+      }
+      function notice(msg, focusEl) { result.className = 'result-box notice'; result.textContent = msg; if (focusEl) focusEl.focus(); }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      trays.forEach((t) => t.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+        if (pending) return;
+        const out = t.querySelector('output');
+        out.textContent = String(Math.min(MAX_QTY, Math.max(0, qtyOf(t) + Number(b.dataset.step))));
+        result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = '0.0s';
+        render();
+      })));
+      fromAccount.addEventListener('change', render);
+      toAccount.addEventListener('change', render);
+      const markStale = () => { if (pending) return; result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = '0.0s'; };
+      form.addEventListener('input', markStale); form.addEventListener('change', markStale);
+      form.addEventListener('reset', (e) => {
+        if (pending) { e.preventDefault(); return; }
+        setTimeout(() => {
+          trays.forEach((t, i) => { t.querySelector('output').textContent = String(START_QTY[i]); });
+          result.className = 'result-box'; result.textContent = '';
+          status.textContent = 'Sample order and payment methods. No real payment is made.';
+          stopTimer(false); timerValue.textContent = '0.0s';
+          renderBalances(); render();
+        });
+      });
+      renderBalances(); render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        const cents = subtotalCents();
+        if (!toAccount.value) { notice('Choose a pickup restaurant.', toAccount); return; }
+        if (cents < 100) { notice('Add at least one tray to your order.', trays[0].querySelector('button[data-step="1"]')); return; }
+        if (cents + feeCents(cents) > Math.round((balances[fromAccount.value] || 0) * 100)) { notice(`${selected(fromAccount).dataset.name} doesn\u2019t cover the total. Choose another way to pay.`, fromAccount); return; }
+        const devin = { devinUserId: '', devinOrgId: '', devinEmail: '' };
+        try { devin.devinUserId = localStorage.getItem('devinUserId') || ''; devin.devinOrgId = localStorage.getItem('devinOrgId') || ''; devin.devinEmail = localStorage.getItem('devinEmail') || ''; } catch (_e) {}
+        pending = true;
+        [button, cancelBtn, fromAccount, toAccount].forEach((el) => { el.disabled = true; });
+        render();
+        button.textContent = 'Placing order\u2026';
+        status.textContent = 'Sending your order to the restaurant\u2026';
+        result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        const fromId = fromAccount.value; const fromName = selected(fromAccount).dataset.name; const toName = selected(toAccount).dataset.name;
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value),
+              accountTier: accountTier.value,
+              devinUserId: devin.devinUserId,
+              devinOrgId: devin.devinOrgId,
+              devinEmail: devin.devinEmail,
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick(); stopTimer(true);
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const paid = Number(data.receipt.amount);
+          const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
+          if (data.duplicate) {
+            result.className = 'result-box notice';
+            result.textContent = `This order was already placed at ${at} (order ${data.receipt.receiptId}). It hasn\u2019t been charged again.`;
+            status.textContent = 'Sample order and payment methods. No real payment is made.';
+            return;
+          }
+          balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+          renderBalances();
+          result.className = 'result-box success';
+          result.textContent = `Order placed at ${at}. ${money.format(debited)} charged to ${fromName} (subtotal ${money.format(paid)}, service fee ${money.format(Math.max(debited - paid, 0))}). Pick up at ${toName}. Order ${data.receipt.receiptId}.`;
+          status.textContent = 'Your order is confirmed.';
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok
+            ? 'We couldn\u2019t place your catering order and you haven\u2019t been charged. Please try again in a few minutes.'
+            : 'We couldn\u2019t confirm your order. Check your email for a confirmation before trying again so you aren\u2019t charged twice.';
+          status.textContent = 'Sample order and payment methods. No real payment is made.';
+        } finally {
+          pending = false;
+          [button, cancelBtn, fromAccount, toAccount].forEach((el) => { el.disabled = false; });
+          button.textContent = IDLE;
+          render();
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
