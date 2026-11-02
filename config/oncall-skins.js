@@ -7502,6 +7502,7 @@ const ONCALL_SKINS = {
     slug: '7535f4d4',
     company: 'Clal Insurance',
     vertical: 'insurance',
+    oncallOnly: true,
     page: { file: '7535f4d4.html', title: 'תביעות - כלל ביטוח' },
     disclaimer: 'NOT ACTUALLY A CLAL INSURANCE SITE — internal demo only, not affiliated with, endorsed by, or a real Clal Insurance product.',
   },
