@@ -217,7 +217,7 @@ async function scoreTransferRisk(fromAccount, amount) {
  * Submit the transfer to the payments gateway for settlement, retrying per
  * GATEWAY_RETRY_POLICY on transient failures.
  */
-async function submitToPaymentsGateway(transfer, { synthetic = false } = {}) {
+async function submitToPaymentsGateway(transfer, { synthetic = false, holdExpiresAt = null } = {}) {
   let lastError;
   for (let attempt = 1; attempt <= GATEWAY_RETRY_POLICY.maxAttempts; attempt++) {
     // The canary pool's flakiness shows up as first-attempt timeouts; retries
@@ -228,6 +228,10 @@ async function submitToPaymentsGateway(transfer, { synthetic = false } = {}) {
       : GATEWAY_TRANSIENT_FAILURE_RATE;
     try {
       await new Promise((resolve, reject) => setTimeout(() => {
+        if (holdExpiresAt && Date.now() > holdExpiresAt) {
+          reject(holdExpiredError('Authorization hold released before the gateway settled'));
+          return;
+        }
         if (Math.random() < failureRate) {
           reject(Object.assign(new Error('gateway settlement timeout'), { code: 'GATEWAY_TIMEOUT' }));
           return;
@@ -236,6 +240,7 @@ async function submitToPaymentsGateway(transfer, { synthetic = false } = {}) {
       }, 40 + Math.random() * 40));
       return { gatewayRef: `GW-${transfer.fromAccount}-${Date.now()}`, attempt };
     } catch (error) {
+      if (error.code === 'HOLD_EXPIRED') throw error;
       lastError = error;
       if (attempt < GATEWAY_RETRY_POLICY.maxAttempts) {
         await new Promise((resolve) => setTimeout(resolve, GATEWAY_RETRY_POLICY.backoffMs * attempt));
@@ -351,7 +356,10 @@ async function processTransfer(data, options = {}) {
     }
 
     const stepStart3 = Date.now();
-    const settlement = await submitToPaymentsGateway(data, { synthetic: Boolean(options.synthetic) });
+    const settlement = await submitToPaymentsGateway(data, {
+      synthetic: Boolean(options.synthetic),
+      holdExpiresAt: options.holdTtlMs ? startTime + options.holdTtlMs : null,
+    });
     const gatewayMs = Date.now() - stepStart3;
 
     const tier = resolveFeeTier(data.accountTier);
