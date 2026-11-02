@@ -728,7 +728,7 @@
     const DRAFT_KEY = 'ff0485e4-draft';
     const DRAFT_TTL_MS = 60 * 60 * 1000;
     function snapshot() {
-      return { at: Date.now(), memberId: memberSel.value, cpt: cptSel.value, pos: pos.value, dx: dx.value, urgency: (document.querySelector('input[name=urgency]:checked') || {}).value, docs: Array.from(document.querySelectorAll('input[name=doc]:checked')).map((c) => c.value), attest: attest.checked };
+      return { at: Date.now(), memberId: memberSel.value, cpt: cptSel.value, pos: pos.value, dx: dx.value, urgency: (document.querySelector('input[name=urgency]:checked') || {}).value, summary: document.getElementById('summary').value, docs: Array.from(document.querySelectorAll('input[name=doc]:checked')).map((c) => c.value), attest: attest.checked };
     }
     function loadDraft() { try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY)); return d && Date.now() - d.at < DRAFT_TTL_MS ? d : null; } catch (_e) { return null; } }
     function applyDraft(d) {
@@ -737,6 +737,7 @@
       const pr = document.querySelector('input[name=posPick][value="' + d.pos + '"]'); if (pr) pr.checked = true;
       const ur = document.querySelector('input[name=urgency][value="' + d.urgency + '"]'); if (ur) ur.checked = true;
       document.querySelectorAll('input[name=doc]').forEach((c) => { c.checked = d.docs.indexOf(c.value) !== -1; });
+      if (typeof d.summary === 'string') document.getElementById('summary').value = d.summary;
       attest.checked = !!d.attest;
       return true;
     }
@@ -759,7 +760,7 @@
           body: JSON.stringify(Object.assign(buildPayload(), devinFields())),
         });
         const data = await res.json();
-        if (!res.ok) renderFailure(data); else renderSuccess(data);
+        if (!res.ok) { renderFailure(data); } else { renderSuccess(data); try { localStorage.removeItem(DRAFT_KEY); } catch (_e) { /* draft storage unavailable */ } }
       } catch (err) {
         result.className = 'result-box error';
         result.innerHTML = '<div class="stamp">' + ICON_BAD + 'We couldn\u2019t reach Summit</div><div class="rbody"><p>Check your connection and try again. Your draft is saved.</p></div>';

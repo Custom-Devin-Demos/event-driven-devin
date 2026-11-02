@@ -608,7 +608,9 @@
       li.innerHTML = '<time>' + esc(new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' }).replace(',', '')) + ' UTC</time><b' + (signed ? ' class="sig"' : '') + '>' + esc(title) + '</b><small>' + esc(detail) + '</small>';
       document.getElementById('audit').prepend(li);
     }
+    let loadedSite = '';
     function renderRecords(d) {
+      loadedSite = d.siteId || document.getElementById('siteId').value;
       const rows = d.records.map((r, i) => {
         const a = ANALYTES[r.analyte] || { name: r.analyte, range: '' };
         const out = r.flag !== 'ok';
@@ -629,7 +631,7 @@
       qr.innerHTML = '<td colspan="7">Query <code>' + id + '</code> opened for ' + esc(q.dataset.subject) + ', ' + esc(q.dataset.analyte) + ': please confirm the reported value and collection time. Sent to the site coordinator.</td>';
       tr.after(qr);
       line('Query ' + id + ' raised for ' + q.dataset.subject + ' (' + q.dataset.analyte + ')', 'warn');
-      addAudit('Query ' + id + ' raised', document.getElementById('siteId').value + ', ' + q.dataset.subject + ', ' + q.dataset.analyte + ', by P. Natarajan');
+      addAudit('Query ' + id + ' raised', (loadedSite || document.getElementById('siteId').value) + ', ' + q.dataset.subject + ', ' + q.dataset.analyte + ', by P. Natarajan');
       document.querySelectorAll('[data-query-count]').forEach((c) => { c.textContent = String(Number(c.textContent) + 1); });
     }
 
@@ -693,7 +695,7 @@
               const st = row.parentElement.querySelector('.state'); if (st) { st.textContent = 'Loaded ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }); st.classList.add('loaded'); }
               row.disabled = true; row.checked = false; row.parentElement.classList.add('loaded');
               const next = document.querySelector('input[name=siteChoice]:not(:disabled)');
-              if (next) { next.checked = true; syncBatch(next.value); } else { setTimeout(() => { btn.disabled = true; btn.textContent = 'No batches awaiting ingest'; }, 0); }
+              if (next) { next.checked = true; syncBatch(next.value); }
             }
             document.querySelectorAll('.pill.warn').forEach((pill) => { const li = pill.closest('li'); if (li && li.textContent.indexOf(site) !== -1) { pill.textContent = 'Current'; pill.className = 'pill ok'; } });
           })();
@@ -705,7 +707,10 @@
         line('Ingest service unreachable. Batch left in the inbox.', 'err');
         result.className = 'result-box error';
         result.innerHTML = '<div class="result-title">Batch not loaded. The ingest service did not respond.</div><p>Check your connection and run the ingest again. The batch stays in the transfer inbox and nothing was written to the warehouse.</p>';
-      } finally { btn.disabled = false; btn.textContent = CTA; btn.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8-5.2a.6.6 0 0 0 0-1l-8-5.2a.6.6 0 0 0-.9.5z"/></svg>'); }
+      } finally {
+        const pending = document.querySelector('input[name=siteChoice]:not(:disabled)');
+        if (!pending) { btn.disabled = true; btn.textContent = 'No batches awaiting ingest'; return; }
+        btn.disabled = false; btn.textContent = CTA; btn.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8-5.2a.6.6 0 0 0 0-1l-8-5.2a.6.6 0 0 0-.9.5z"/></svg>'); }
     });
   </script>
   <script src="/session-cap-banner.js"></script>

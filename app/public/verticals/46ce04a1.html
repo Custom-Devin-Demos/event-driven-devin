@@ -732,7 +732,7 @@
       document.getElementById('trackBar').setAttribute('aria-label', usd(used).replace(/\.00$/, '') + ' of $7,200 used');
       document.getElementById('trackFill').style.width = Math.round(used / 7200 * 100) + '%';
       const fills = FILLS[cardId.value] || [];
-      document.getElementById('trackFills').innerHTML = fills.length ? fills.map((f) => '<li><div><b>' + esc(f[0]) + '</b><small>' + esc(f[1]) + '</small></div><div class="amt"><b>Card paid ' + esc(f[2]) + '</b><small>You paid $25.00</small></div></li>').join('') : '<li><div><b>No fills yet this program year</b><small>The first claim will appear here once the card is used.</small></div></li>';
+      document.getElementById('trackFills').innerHTML = fills.length ? fills.map((f) => '<li><div><b>' + esc(f[0]) + '</b><small>' + esc(f[1]) + '</small></div><div class="amt"><b>Card paid ' + esc(f[2]) + '</b><small>You paid ' + esc(f[3] || '$25.00') + '</small></div></li>').join('') : '<li><div><b>No fills yet this program year</b><small>The first claim will appear here once the card is used.</small></div></li>';
     }
     cardId.addEventListener('change', syncTracker); syncTracker();
     function buildPayload() {
@@ -743,9 +743,9 @@
     function renderSuccess(d) {
       const card = CARDS[cardId.value];
       if (card) {
-        card.remaining = d.remainingAnnual;
+        card.remaining = Math.max(0, card.remaining - d.cardPays); d.remainingAnnual = card.remaining;
         const prod = PRODUCTS[document.getElementById('productId').value];
-        (FILLS[cardId.value] = FILLS[cardId.value] || []).unshift([prod ? prod.label : document.getElementById('productId').value, new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', today', usd(d.cardPays)]);
+        (FILLS[cardId.value] = FILLS[cardId.value] || []).unshift([prod ? prod.label : document.getElementById('productId').value, new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', today', usd(d.cardPays), usd(d.patientPays)]);
         syncTracker();
       }
       document.getElementById('rOop').textContent = usd(d.insuranceOutOfPocket);
