@@ -83,7 +83,7 @@ async function fetchProgramPricing(request, programKey) {
 
   const program = LOAN_PROGRAMS[programKey];
   const loanAmountCents = (request.homePrice - request.downPayment) * 100;
-  const downPct = Math.round((request.downPayment / request.homePrice) * 1000) / 10;
+  const downPct = (request.downPayment / request.homePrice) * 100;
 
   if (downPct < program.minDownPct) {
     return {

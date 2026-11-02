@@ -100,6 +100,15 @@ describe('Rocket Mortgage rate check', () => {
     expect(byKey.conv30.monthlyPaymentCents).toBeNull();
   });
 
+  test('does not round a down payment just below a program minimum up to eligibility', async () => {
+    PRICING_DESK_POLICY.latencyMs = [1, 2];
+
+    const result = await runRateCheck({ homePrice: 425000, downPayment: 14705, scope: 'fha30' });
+
+    expect(result.quotes[0].status).toBe('not_eligible');
+    expect(result.quotes[0].reason).toBe('Requires at least 3.5% down');
+  });
+
   test.each([
     ['conv30', 'excellent'],
     ['fha30', 'good'],
