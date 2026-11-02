@@ -7305,6 +7305,32 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A RAIFFEISEN BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Raiffeisen Bank product.',
   },
+  'f9c51ff3': {
+    slug: 'f9c51ff3',
+    company: 'COMPANY',
+    brandMark: 'C',
+    vertical: 'insurance',
+    oncallOnly: true,
+    locale: 'ja',
+    alertDestination: 'slack',
+    page: { file: 'f9c51ff3.html', title: '資料請求｜COMPANY' },
+    theme: {
+      '--accent': '#007CC5',
+      '--ink': '#333333',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#255094',
+      '--chrome-text': '#FFFFFF',
+    },
+    alertCard: {
+      title: '5xxエラー率上昇 — COMPANY 資料請求の送信',
+      release: 'material-request-web@3.1.0',
+      team: 'web-marketing-oncall',
+      symptom: 'COMPANY の資料請求が送信後 約8秒応答せず、504 を返しています。申込は受け付けられず、資料ダウンロードに進めません。',
+      impact: '資料請求をしたい見込み顧客がフォームを送信できず、資料ダウンロードに進めません。すべての送信が長い待機の後に失敗し、電話でのお問い合わせが増えています。',
+    },
+    supportCenter: 'COMPANY お問い合わせ窓口',
+    disclaimer: 'NOT ACTUALLY A WORKS HUMAN INTELLIGENCE SITE — internal demo only, not affiliated with, endorsed by, or a real Works Human Intelligence product.',
+  },
 };
 
 function getOncallSkin(slug) {
