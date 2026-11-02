@@ -7544,8 +7544,8 @@ const ONCALL_SKINS = {
       ].join('\n'),
     },
     alertCard: {
-      title: 'p95 latency — T. Rowe Price: add money to IRA',
-      service: 'account-funding',
+      title: 'p95 latency — Retirement accounts: add money to IRA',
+      service: 'banking-api',
       release: 'account-funding@2026.11.1',
       metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
       metricValue: '9.3s',
