@@ -60,6 +60,12 @@ async function rankMigrationPaths(currentPlan) {
   return paths.sort((a, b) => b.score - a.score);
 }
 
+function holdExpiredError(message) {
+  const err = new Error(message);
+  err.code = 'HOLD_EXPIRED';
+  return err;
+}
+
 /**
  * Calculate the proration for a plan change.
  */
@@ -111,6 +117,12 @@ async function upgradePlan(data, options = {}) {
       const err = new Error(`Plan ${targetPlan.id} is not eligible from ${currentPlan.id}`);
       err.code = 'INELIGIBLE_PLAN';
       throw err;
+    }
+
+    // Billing holds the order slot for options.holdTtlMs; committing after
+    // the slot is released is rejected.
+    if (options.holdTtlMs && Date.now() - startTime > options.holdTtlMs) {
+      throw holdExpiredError(`Billing order slot released after ${options.holdTtlMs}ms, before commit`);
     }
 
     const proration = calculateProration(

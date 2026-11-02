@@ -122,6 +122,12 @@ async function findSeatConflicts(orgName, seats) {
   return conflicts;
 }
 
+function holdExpiredError(message) {
+  const err = new Error(message);
+  err.code = 'HOLD_EXPIRED';
+  return err;
+}
+
 /**
  * Retrieve the plan configuration for a given plan name.
  */
@@ -165,6 +171,12 @@ async function provisionLicense(data, options = {}) {
       const err = new Error(`Seat conflict with prior grants: ${conflicts.join(', ')}`);
       err.code = 'SEAT_CONFLICT';
       throw err;
+    }
+
+    // The entitlement registry reserves the seats for options.holdTtlMs;
+    // granting after the reservation lapses is rejected.
+    if (options.holdTtlMs && Date.now() - startTime > options.holdTtlMs) {
+      throw holdExpiredError(`Seat reservation lapsed after ${options.holdTtlMs}ms, before grant`);
     }
 
     const config = getPlanConfig(data.planName);

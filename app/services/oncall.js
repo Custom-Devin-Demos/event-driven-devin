@@ -66,6 +66,17 @@ const ALERT_SCENARIOS = {
     release: 'apex-bank@1.0.3',
     symptom: 'Transfer submissions hang ~10s before completing. Error rate is normal — requests eventually succeed.',
     impact: 'Every outgoing transfer sits on a spinner for ~10 seconds; some customers submit again, and support is taking calls about duplicate transfers.',
+    // Card for skins with failAfterHang: the same slow path outlives the
+    // upstream hold, so the request fails instead of eventually succeeding.
+    failAfterHangCard: {
+      monitor: '5xx rate — POST /api/oncall/banking/transfer',
+      metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/banking/transfer,http.status_code:504}',
+      metricValue: '504 on ~100% of transfer submissions',
+      threshold: '> 5% error rate',
+      baseline: '<0.1% (7-day)',
+      symptom: 'Transfer submissions hang ~9s and then fail with 504 Gateway Timeout. Latency on the request path is elevated.',
+      impact: 'Customers cannot send money online; every transfer waits ~9 seconds and then fails.',
+    },
   },
   insurance: {
     vertical: 'insurance',
@@ -105,6 +116,17 @@ const ALERT_SCENARIOS = {
     // Climbing-latency scenario: repeat submits demonstrate the per-request
     // growth, so retries within the window join the same incident.
     retryWindow: true,
+    // Card for skins with failAfterHang: the same slow path outlives the
+    // upstream hold, so the request fails instead of eventually succeeding.
+    failAfterHangCard: {
+      monitor: '5xx rate — POST /api/oncall/licenses/provision',
+      metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/licenses/provision,http.status_code:504}',
+      metricValue: '504 on ~100% of license provisioning requests',
+      threshold: '> 5% error rate',
+      baseline: '<0.1% (7-day)',
+      symptom: 'License provisioning requests hang ~6s and then fail with 504 Gateway Timeout. Latency on the request path is elevated.',
+      impact: 'Customers cannot add licenses; every provisioning request waits ~6 seconds and then fails.',
+    },
   },
   voice: {
     vertical: 'voice',
@@ -165,6 +187,17 @@ const ALERT_SCENARIOS = {
     release: 'waveconnect@1.0.3',
     symptom: 'Plan upgrades slowed sharply after the plan-catalog refresh added the legacy/regional plans. Latency scales with catalog size.',
     impact: 'Subscribers wait ~8 seconds on every plan change; upgrade completion rate is dropping.',
+    // Card for skins with failAfterHang: the same slow path outlives the
+    // upstream hold, so the request fails instead of eventually succeeding.
+    failAfterHangCard: {
+      monitor: '5xx rate — POST /api/oncall/telco/upgrade',
+      metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/telco/upgrade,http.status_code:504}',
+      metricValue: '504 on ~100% of plan upgrades',
+      threshold: '> 5% error rate',
+      baseline: '<0.1% (7-day)',
+      symptom: 'Plan upgrades hang ~7s and then fail with 504 Gateway Timeout. Latency on the request path is elevated.',
+      impact: 'Subscribers cannot change plans online; every upgrade waits ~7 seconds and then fails.',
+    },
   },
   marketplace: {
     vertical: 'marketplace',
@@ -1211,23 +1244,26 @@ function demoPageLine(scenario, skin) {
  * unchanged.
  */
 function resolveAlertCard(scenario, skin) {
+  const base = skin && skin.failAfterHang && scenario.failAfterHangCard
+    ? { ...scenario, ...scenario.failAfterHangCard }
+    : scenario;
   const card = skin && isPlainObject(skin.alertCard) ? skin.alertCard : null;
-  if (!card) return scenario;
+  if (!card) return base;
   const pick = (key, fallback) => (typeof card[key] === 'string' && card[key].trim() ? card[key] : fallback);
   const team = pick('team', null);
   return {
-    ...scenario,
-    monitor: pick('title', scenario.monitor),
-    service: pick('service', scenario.service),
-    endpoint: pick('endpointLabel', scenario.endpoint),
-    release: pick('release', scenario.release),
-    owner: team && scenario.owner ? `${scenario.owner.replace(/\s*\([^)]*\)$/, '')} (${team})` : scenario.owner,
-    metricQuery: pick('metricQuery', scenario.metricQuery),
-    metricValue: pick('metricValue', scenario.metricValue),
-    threshold: pick('threshold', scenario.threshold),
-    baseline: pick('baseline', scenario.baseline),
-    symptom: pick('symptom', scenario.symptom),
-    impact: pick('impact', scenario.impact),
+    ...base,
+    monitor: pick('title', base.monitor),
+    service: pick('service', base.service),
+    endpoint: pick('endpointLabel', base.endpoint),
+    release: pick('release', base.release),
+    owner: team && base.owner ? `${base.owner.replace(/\s*\([^)]*\)$/, '')} (${team})` : base.owner,
+    metricQuery: pick('metricQuery', base.metricQuery),
+    metricValue: pick('metricValue', base.metricValue),
+    threshold: pick('threshold', base.threshold),
+    baseline: pick('baseline', base.baseline),
+    symptom: pick('symptom', base.symptom),
+    impact: pick('impact', base.impact),
   };
 }
 

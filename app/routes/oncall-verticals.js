@@ -42,6 +42,29 @@ const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: 
 const router = express.Router();
 
 /**
+ * Upstream hold windows for skins with failAfterHang: the slow request then
+ * outlives the hold and fails with a 504 instead of eventually succeeding.
+ */
+const UPSTREAM_HOLD_TTL_MS = { banking: 5000, telco: 5000, hightech: 4000 };
+
+function upstreamHold(req, vertical) {
+  const skin = getOncallSkin(req.get('x-oncall-skin'));
+  return skin && skin.failAfterHang && skin.vertical === vertical
+    ? { holdTtlMs: UPSTREAM_HOLD_TTL_MS[vertical] }
+    : {};
+}
+
+function sendHoldExpired(req, res, error, message) {
+  res.status(504).json({
+    success: false,
+    error: message,
+    errorClass: error.name,
+    code: error.code,
+    requestId: req.requestId,
+  });
+}
+
+/**
  * POST /api/oncall/banking/transfer — process a fund transfer
  */
 router.post('/api/oncall/banking/transfer', async (req, res) => {
@@ -52,9 +75,12 @@ router.post('/api/oncall/banking/transfer', async (req, res) => {
       amount: req.body.amount || 500,
       accountTier: req.body.accountTier || 'standard',
       userId: req.body.userId || 'usr_banking_1',
-    }, { debugTimings: req.get('x-debug-timings') === '1' });
+    }, { debugTimings: req.get('x-debug-timings') === '1', ...upstreamHold(req, 'banking') });
     res.json(result);
   } catch (error) {
+    if (error.code === 'HOLD_EXPIRED') {
+      return sendHoldExpired(req, res, error, 'We couldn\u2019t complete your transfer right now. Please try again in a few minutes.');
+    }
     const statusCode = error.code === 'INSUFFICIENT_FUNDS' ? 422 : 500;
     res.status(statusCode).json({
       success: false,
@@ -76,9 +102,12 @@ router.post('/api/oncall/telco/upgrade', async (req, res) => {
       currentPlanCode: String(req.body.currentPlanCode || 'BASIC-12').toUpperCase(),
       targetPlanCode: String(req.body.targetPlanCode || 'FAMILY-PLUS-12').toUpperCase(),
       billingDay: req.body.billingDay || 15,
-    });
+    }, upstreamHold(req, 'telco'));
     res.json(result);
   } catch (error) {
+    if (error.code === 'HOLD_EXPIRED') {
+      return sendHoldExpired(req, res, error, 'We couldn\u2019t change your plan right now. Please try again in a few minutes.');
+    }
     res.status(500).json({
       success: false,
       error: error.message,
@@ -100,9 +129,12 @@ router.post('/api/oncall/licenses/provision', async (req, res) => {
       planName,
       seats: Math.min(parseInt(req.body.seats, 10) || 10, 250),
       billingCycle: req.body.billingCycle || 'monthly',
-    });
+    }, upstreamHold(req, 'hightech'));
     res.json(result);
   } catch (error) {
+    if (error.code === 'HOLD_EXPIRED') {
+      return sendHoldExpired(req, res, error, 'We couldn\u2019t add the licenses right now. Please try again in a few minutes.');
+    }
     res.status(500).json({
       success: false,
       error: error.message,
