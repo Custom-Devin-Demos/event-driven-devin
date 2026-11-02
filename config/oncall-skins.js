@@ -7544,8 +7544,8 @@ const ONCALL_SKINS = {
       ].join('\n'),
     },
     alertCard: {
-      title: '5xx rate — Progressive auto claims: Submit claim',
-      service: 'claims-intake',
+      title: '5xx rate — Auto claims: Submit claim',
+      service: 'insurance-api',
       release: 'claims-intake@2026.11.1',
       team: 'auto-claims-oncall',
       symptom: 'Online auto claims hang ~7s after the customer selects Submit claim, then fail with a gateway timeout. No claim number is issued.',
