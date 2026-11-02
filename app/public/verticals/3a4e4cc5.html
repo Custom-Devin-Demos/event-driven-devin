@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Report a Claim | Progressive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --blue: #0077B3; --deep: #1E3D58; --ink: #2D2D2D; --sky: #E8F3FA; --line: #D3D9DE; --muted: #5C6670; --accent: var(--blue); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Figtree, Arial, sans-serif; color: var(--ink); background: #fff; font-size: 17px; }
+    .bar { display: flex; align-items: center; gap: 30px; padding: 0 40px; min-height: 76px; border-bottom: 1px solid var(--line); }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--blue); }
+    .pmark { width: 40px; height: 40px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 22px; }
+    .logo b { font-weight: 800; font-size: 24px; letter-spacing: .02em; text-transform: uppercase; }
+    .bar nav { display: flex; gap: 26px; }
+    .bar nav a { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 16px; padding: 26px 0; }
+    .bar nav a[aria-current] { color: var(--blue); box-shadow: inset 0 -3px 0 var(--blue); }
+    .bar .right { margin-left: auto; display: flex; gap: 20px; align-items: center; font-size: 15px; }
+    .bar .right a { color: var(--blue); font-weight: 600; text-decoration: none; }
+    .pill { border: 2px solid var(--blue); border-radius: 999px; padding: 9px 20px; }
+    .hero { background: var(--sky); display: grid; grid-template-columns: minmax(0, 1fr) 420px; align-items: center; min-height: 240px; overflow: hidden; }
+    .hero .copy { padding: 36px 40px 36px 80px; }
+    .hero .k { font-weight: 700; color: var(--blue); font-size: 15px; margin: 0 0 8px; }
+    h1 { font-weight: 800; font-size: 46px; line-height: 1.08; margin: 0 0 10px; color: var(--deep); }
+    .hero p.sub { margin: 0; color: var(--muted); max-width: 560px; line-height: 1.5; }
+    .hero .art { align-self: stretch; background: linear-gradient(135deg, #BFE0F2, #7FBADB); position: relative; }
+    .hero .art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .steps { display: flex; gap: 0; max-width: 1120px; margin: 28px auto 0; padding: 0 24px; list-style: none; counter-reset: s; }
+    .steps li { flex: 1; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--muted); padding: 10px 0; border-bottom: 3px solid var(--line); counter-increment: s; }
+    .steps li::before { content: counter(s); width: 28px; height: 28px; border-radius: 50%; border: 2px solid currentColor; display: grid; place-items: center; font-size: 14px; flex: none; }
+    .steps li.done, .steps li.now { color: var(--blue); border-color: var(--blue); }
+    main { max-width: 1120px; margin: 0 auto; padding: 28px 24px 64px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 32px; align-items: start; }
+    .card { border: 1px solid var(--line); border-radius: 12px; padding: 28px; }
+    h2 { font-weight: 800; font-size: 26px; margin: 0 0 4px; color: var(--deep); }
+    .hint { color: var(--muted); font-size: 15px; margin: 0 0 22px; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+    .field select, .field input[type=text], .field input[type=date], .field input[type=number], .field textarea { width: 100%; min-height: 50px; border: 1px solid #8C969F; border-radius: 8px; padding: 0 14px; font: 500 16px Figtree, Arial, sans-serif; color: var(--ink); background: #fff; }
+    .field textarea { min-height: 96px; padding: 12px 14px; resize: vertical; }
+    .money { position: relative; } .money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--muted); } .money input { padding-left: 28px !important; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .consent { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 1.45; margin: 4px 0 20px; cursor: pointer; min-height: 44px; }
+    .consent input { width: 24px; height: 24px; margin: 0; flex: none; accent-color: var(--blue); }
+    #formError { color: #B3261E; font-weight: 700; font-size: 15px; min-height: 0; margin-bottom: 10px; }
+    .btn { min-height: 50px; padding: 0 32px; border-radius: 999px; border: 2px solid var(--blue); background: var(--blue); color: #fff; font: 700 17px Figtree, Arial, sans-serif; cursor: pointer; }
+    .btn.out { background: #fff; color: var(--blue); }
+    .btn:disabled { opacity: .55; cursor: progress; }
+    .btn:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #F2A900; outline-offset: 2px; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .stopwatch { display: none; align-items: baseline; gap: 10px; margin-top: 16px; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .sw-label { font-size: 14px; font-weight: 700; color: var(--muted); }
+    .sw-value { font-size: 24px; font-weight: 800; color: var(--deep); }
+    .stopwatch.done .sw-value { color: #B3261E; }
+    .result-box { display: none; margin-top: 18px; padding: 16px 18px; border-radius: 10px; font-size: 16px; line-height: 1.5; }
+    .result-box b { display: block; font-size: 17px; }
+    .result-box.success { display: block; background: #EAF6EC; border: 1px solid #8DC79A; }
+    .result-box.notice { display: block; background: #FDEDEC; border: 1px solid #E8A39D; }
+    aside .card + .card { margin-top: 20px; }
+    aside ul { list-style: none; padding: 0; margin: 0; font-size: 15px; }
+    aside li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    aside li:last-child { border-bottom: 0; }
+    aside li span:first-child { color: var(--muted); } aside li span:last-child { font-weight: 700; text-align: right; }
+    aside .call { font-size: 15px; line-height: 1.5; color: var(--muted); } aside .call b { color: var(--deep); font-size: 20px; display: block; }
+    footer { background: var(--deep); color: #fff; padding: 40px 80px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 24px; font-size: 15px; }
+    footer a { color: #fff; text-decoration: none; display: block; margin: 6px 0; }
+    footer p { grid-column: 1 / -1; color: rgba(255,255,255,.7); font-size: 13px; margin: 18px 0 0; }
+    @media (max-width: 1000px) { .bar nav { display: none; } main { grid-template-columns: minmax(0, 1fr); } .hero { grid-template-columns: minmax(0, 1fr); } .hero .art { display: none; } .hero .copy { padding: 32px 24px; } }
+    @media (max-width: 600px) {
+      .bar { padding: 0 16px; min-height: 64px; } .logo b { font-size: 19px; } .bar .right .hide-s { display: none; }
+      h1 { font-size: 34px; } .steps li { font-size: 0; gap: 0; justify-content: center; } .steps li::before { font-size: 14px; }
+      main { padding: 22px 12px 48px; } .card { padding: 20px; } .row { grid-template-columns: 1fr; }
+      .actions .btn { flex: 1 1 100%; } footer { padding: 32px 20px; grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <a class="logo" href="#"><span class="pmark" aria-hidden="true">P</span><b>Progressive</b></a>
+    <nav aria-label="Main"><a href="#">Insurance &amp; more</a><a href="#" aria-current="page">Claims</a><a href="#">Resources &amp; tools</a><a href="#">About us</a></nav>
+    <span class="right"><a class="hide-s" href="#">1-800-776-4737</a><a class="pill" href="#">Log out</a></span>
+  </header>
+  <section class="hero">
+    <div class="copy">
+      <p class="k">Claims</p>
+      <h1>Report a new claim</h1>
+      <p class="sub">Tell us what happened and we&rsquo;ll get your claim started. You can view the claim and track repairs once it&rsquo;s reported.</p>
+    </div>
+    <div class="art"><img src="https://images.contentstack.io/v3/assets/blt62d40591b3650da3/blt57e2be1f0a5d7878/64de3c576a651e33bb76fcdc/mma_claims_checking-car-damage_1350@2x.jpg?auto=avif&amp;width=1350" alt="" onerror="this.remove()"></div>
+  </section>
+  <ol class="steps" aria-label="Claim steps"><li class="done">Policy</li><li class="now" aria-current="step">What happened</li><li>Damage</li><li>Review</li></ol>
+
+  <main>
+    <section class="card" aria-labelledby="formHead">
+      <h2 id="formHead">What happened?</h2>
+      <p class="hint">Auto claim &middot; Fields are pre-filled with a sample incident.</p>
+      <form id="claimForm" novalidate>
+        <div class="field">
+          <label for="policyId">Which vehicle was involved?</label>
+          <select id="policyId">
+            <option value="POL-5001" data-car="2021 Honda Accord" data-policy="Policy ending 5001" data-excess="500" selected>2021 Honda Accord &middot; Policy ending 5001</option>
+            <option value="POL-5004" data-car="2023 Subaru Outback" data-policy="Policy ending 5004" data-excess="250">2023 Subaru Outback &middot; Policy ending 5004</option>
+          </select>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="claimType">Type of incident</label>
+            <select id="claimType">
+              <option value="collision" selected>Collision with another vehicle</option>
+              <option value="liability">I damaged someone else&rsquo;s property</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="incidentDate">Date of incident</label>
+            <input type="date" id="incidentDate" value="2026-10-30">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="thirdPartyReg">Other vehicle&rsquo;s license plate</label>
+            <input type="text" id="thirdPartyReg" value="OH JKR 4821" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="amount">Estimated repair cost</label>
+            <div class="money"><span aria-hidden="true">$</span><input type="number" id="amount" value="3200" min="1" step="0.01" inputmode="decimal"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="description" id="descriptionLabel">Describe the damage to your vehicle</label>
+          <textarea id="description" maxlength="200">Rear-ended at a stoplight on Mayfield Rd. Rear bumper and trunk lid damaged; car is drivable.</textarea>
+        </div>
+        <label class="consent"><input type="checkbox" id="attest" checked>The information I&rsquo;ve provided is true and complete to the best of my knowledge.</label>
+        <div id="formError" role="alert"></div>
+        <div class="actions">
+          <button type="submit" class="btn" id="submitBtn">Submit claim</button>
+          <button type="reset" class="btn out" id="cancelBtn">Start over</button>
+        </div>
+        <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to submit</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+    <aside>
+      <section class="card" aria-labelledby="sumHead">
+        <h2 id="sumHead">Claim summary</h2>
+        <ul>
+          <li><span>Vehicle</span><span id="sumCar"></span></li>
+          <li><span>Policy</span><span id="sumPolicy"></span></li>
+          <li><span>Incident</span><span id="sumType"></span></li>
+          <li><span>Date</span><span id="sumDate"></span></li>
+          <li><span>Deductible</span><span id="sumExcess"></span></li>
+        </ul>
+      </section>
+      <section class="card call">
+        <b>Need help now?</b>
+        Call 1-800-776-4737, 24/7. If anyone was hurt, call 911 first.
+      </section>
+    </aside>
+  </main>
+
+  <footer>
+    <div><a href="#">Report or view a claim</a><a href="#">Find a repair shop</a></div>
+    <div><a href="#">Insurance &amp; more</a><a href="#">Resources &amp; tools</a></div>
+    <div><a href="#">Privacy</a><a href="#">Accessibility</a></div>
+    <div><a href="#">Terms of use</a><a href="#">Contact us</a></div>
+    <p>&copy; 2026 demo page. Sample policy, vehicle and claim details.</p>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('claimForm'); const btn = $('submitBtn'); const cancelBtn = $('cancelBtn');
+      const policy = $('policyId'); const claimType = $('claimType'); const date = $('incidentDate'); const plate = $('thirdPartyReg');
+      const amount = $('amount'); const description = $('description'); const attest = $('attest');
+      const result = $('result'); const formError = $('formError'); const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+      const controls = [btn, cancelBtn, policy, claimType, date, plate, amount, description, attest];
+      let pending = false; let ticker = null;
+      const opt = () => policy.options[policy.selectedIndex];
+      const what = () => (claimType.value === 'liability' ? 'what was damaged' : 'the damage to your vehicle');
+      function render() {
+        $('descriptionLabel').textContent = claimType.value === 'liability' ? 'Describe what was damaged' : 'Describe the damage to your vehicle';
+        $('sumCar').textContent = opt().dataset.car;
+        $('sumPolicy').textContent = opt().dataset.policy;
+        $('sumType').textContent = claimType.options[claimType.selectedIndex].textContent;
+        $('sumDate').textContent = date.value ? dateFmt.format(new Date(`${date.value}T00:00:00Z`)) : '\u2014';
+        $('sumExcess').textContent = usd.format(Number(opt().dataset.excess));
+      }
+      function show(kind, title, body) {
+        result.className = `result-box ${kind}`; result.textContent = '';
+        const b = document.createElement('b'); b.textContent = title; result.appendChild(b); result.appendChild(document.createTextNode(body));
+      }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      [policy, claimType, date].forEach((el) => el.addEventListener('change', render));
+      form.addEventListener('reset', (e) => {
+        if (pending) { e.preventDefault(); return; }
+        setTimeout(() => { result.className = 'result-box'; result.textContent = ''; formError.textContent = ''; stopTimer(false); timerValue.textContent = '0.0s'; render(); });
+      });
+      render();
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (pending) return;
+        formError.textContent = '';
+        const cost = parseFloat(amount.value);
+        const desc = description.value.trim();
+        if (!date.value) { formError.textContent = 'Enter the date of the incident.'; date.focus(); return; }
+        if (!(cost > 0)) { formError.textContent = 'Enter the estimated repair cost.'; amount.focus(); return; }
+        if (!desc) { formError.textContent = `Tell us about ${what()}.`; description.focus(); return; }
+        if (!attest.checked) { formError.textContent = 'Please confirm the information is true and complete.'; attest.focus(); return; }
+        pending = true; controls.forEach((el) => { el.disabled = true; });
+        btn.textContent = 'Submitting claim\u2026';
+        result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        try {
+          const response = await fetch('/api/insurance/claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              policyId: policy.value,
+              claimType: claimType.value,
+              amount: parseFloat(amount.value),
+              description: desc,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          tick(); stopTimer(true);
+          if (response.ok && data.success) {
+            const ref = String(data.claimId || '').slice(0, 8).toUpperCase();
+            show('success', 'Your claim has been reported', `Claim number ${ref}. Your deductible is ${usd.format(Number(data.deductible) || 0)} and the estimated payment toward repairs is ${usd.format(Number(data.payout) || 0)}. A claims representative will contact you about next steps.`);
+          } else {
+            show('notice', 'We couldn\u2019t submit your claim', 'Your claim wasn\u2019t submitted. Please try again in a few minutes, or call 1-800-776-4737 to report it by phone.');
+          }
+        } catch (_err) {
+          stopTimer(true);
+          show('notice', 'We couldn\u2019t submit your claim', 'Please check your connection and try again in a few minutes.');
+        } finally {
+          pending = false; controls.forEach((el) => { el.disabled = false; });
+          btn.textContent = 'Submit claim';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
