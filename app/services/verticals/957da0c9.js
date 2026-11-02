@@ -34,6 +34,11 @@ function normalizeApplicant(input) {
 
 function buildQuote(product, applicant) {
   const table = RATE_TABLES[product.ratingBasis];
+  if (!table) {
+    const error = new Error(`No rate table for rating basis "${product.ratingBasis}" (product ${product.code})`);
+    error.statusCode = 500;
+    throw error;
+  }
   const premium = monthlyPremium(table, applicant);
   return {
     quoteId: `GQ-${uuidv4().slice(0, 8).toUpperCase()}`,
