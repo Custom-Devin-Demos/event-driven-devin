@@ -7546,7 +7546,7 @@ const ONCALL_SKINS = {
     },
     alertCard: {
       title: '5xx rate — Tinker console: Add seats',
-      service: 'tinker-billing',
+      service: 'licensing-api',
       release: 'tinker-billing@2026.11.1',
       metricQuery: 'sum:trace.express.request.errors{service:licensing-api,resource:POST /api/oncall/licenses/provision,http.status_code:504}',
       metricValue: '504 on ~100% of Add seats requests',
