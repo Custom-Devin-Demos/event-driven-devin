@@ -6450,6 +6450,7 @@ const ONCALL_SKINS = {
     brandMark: 'TM',
     vertical: 'eligibility',
     oncallOnly: true,
+    hideRibbon: true,
     paths: ['/togethermoney-website', '/oncall/c/togethermoney-website'],
     // Teams oncall-demo by default (scenario defaultAlertDestination); an
     // explicit Slack choice in the hub picker still wins. The channel

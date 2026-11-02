@@ -94,6 +94,7 @@ describe('TogetherMoney website eligibility on-call skin (77c11f38)', () => {
     expect(skin).toMatchObject({
       vertical: 'eligibility',
       oncallOnly: true,
+      hideRibbon: true,
       teamsAlerts: true,
       teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
       page: { file: `${SLUG}.html`, title: TITLE },
@@ -132,6 +133,9 @@ describe('TogetherMoney website eligibility on-call skin (77c11f38)', () => {
     });
     expect(html).not.toMatch(/nCino|Salesforce/i);
     expect(html).toContain('/brand/77c11f38/together_logo.svg');
+    expect(html).toContain('/brand/77c11f38/homeowner-hero.jpg');
+    expect(html).toContain('0161 333 7400');
+    expect(html).not.toContain('0333 000 0000');
     expect(html).toMatch(/<meta name="robots" content="noindex/);
   });
 
