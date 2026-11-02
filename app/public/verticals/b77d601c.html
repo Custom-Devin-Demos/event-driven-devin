@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIM only upgrade | Vodafone</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #e60000;
+      --red-deep: #820000;
+      --ink: #0d0d0d;
+      --muted: #4a4d4e;
+      --line: #bebebe;
+      --line-soft: #e6e6e6;
+      --page: #f2f2f2;
+      --paper: #ffffff;
+      --yellow: #fecb00;
+      --teal: #007c92;
+      --font: Vodafone, 'Open Sans', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--page); color: var(--ink); font-family: var(--font); font-size: 18px; line-height: 26px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; }
+    ul { list-style: none; }
+    button, input, select { font: inherit; color: inherit; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+    /* Utility bar + header */
+    .util { background: var(--ink); color: #fff; font-size: 14px; line-height: 18px; }
+    .util .wrap { display: flex; justify-content: space-between; align-items: stretch; }
+    .util a { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; min-height: 44px; }
+    .util .seg a.on { background: #fff; color: var(--ink); }
+    .util .right a { padding: 8px 0 8px 24px; }
+    .hdr { background: #fff; border-bottom: 1px solid var(--line-soft); }
+    .hdr .wrap { display: flex; align-items: center; height: 72px; gap: 32px; }
+    .mark { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: var(--red); color: #fff; font-weight: 700; font-size: 22px; text-decoration: none; flex: 0 0 auto; }
+    .nav { display: flex; gap: 28px; font-size: 18px; flex: 1 1 auto; }
+    .nav a { text-decoration: none; padding: 23px 0; border-bottom: 3px solid transparent; }
+    .nav a:hover { border-bottom-color: var(--red); }
+    .icons { display: flex; gap: 8px; }
+    .icons a { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; }
+    .burger { display: none; }
+
+    /* Hero */
+    .hero { background: linear-gradient(to right top, var(--red-deep) 25.4%, rgba(0,0,0,0) 98.9%), var(--red); color: #fff; }
+    .hero .wrap { padding-top: 40px; padding-bottom: 40px; }
+    .hero h1 { font-size: 40px; line-height: 48px; font-weight: 700; }
+    .hero p { margin-top: 16px; font-size: 18px; }
+    .crumbs { background: #fff; font-size: 14px; line-height: 18px; }
+    .crumbs ol { display: flex; gap: 12px; list-style: none; padding: 7px 0; flex-wrap: wrap; align-items: center; }
+    .crumbs a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+    .crumbs li:not(:last-child)::after { content: '\203A'; margin-left: 12px; color: var(--muted); }
+    .crumbs li:last-child { font-weight: 700; }
+    .tabs { display: flex; justify-content: center; gap: 8px; margin: 48px 0 0; border-bottom: 1px solid var(--line); }
+    .tabs a { padding: 12px 16px; text-decoration: none; font-size: 16px; border-bottom: 4px solid transparent; min-height: 44px; display: inline-flex; align-items: center; }
+    .tabs a.on { border-bottom-color: var(--red); font-weight: 700; }
+
+    /* Upgrade panel */
+    .panel { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; margin: 32px 0 64px; align-items: start; }
+    .card { background: var(--paper); border-radius: 6px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,.16); }
+    .card h2 { font-size: 28px; line-height: 32px; font-weight: 700; }
+    .card .lede { margin-top: 8px; color: var(--muted); font-size: 16px; line-height: 22px; }
+    .step { margin-top: 32px; }
+    .step-title { font-size: 20px; line-height: 28px; font-weight: 700; margin-bottom: 12px; }
+    .field label { display: block; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .field select { display: block; width: 100%; min-height: 48px; padding: 0 44px 0 16px; border: 1px solid var(--line); border-radius: 6px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%230d0d0d' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 16px center; appearance: none; -webkit-appearance: none; font-size: 18px; cursor: pointer; }
+    .field select:focus, .plan input:focus-visible + .plan-body, .btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+    .current { display: flex; gap: 16px; align-items: center; margin-top: 12px; font-size: 16px; color: var(--muted); }
+    .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 24px; border: 1px solid var(--line); font-size: 16px; background: #fff; }
+    .pill.on { background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 700; }
+    .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .plan { position: relative; display: block; cursor: pointer; }
+    .plan input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .plan-body { display: block; height: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 0 0 20px; background: #fff; overflow: hidden; }
+    .plan input:checked + .plan-body { border: 2px solid var(--teal); box-shadow: 0 0 0 1px var(--teal); }
+    .plan-flag { display: inline-block; background: var(--teal); color: #fff; font-size: 14px; font-weight: 700; line-height: 18px; padding: 6px 12px; border-radius: 0 0 6px 0; }
+    .plan-flag.best { background: #5e2750; }
+    .plan-inner { display: block; padding: 12px 20px 0; }
+    fieldset { border: 0; min-width: 0; }
+    legend { padding: 0; }
+    .roam { display: inline-block; background: var(--yellow); font-size: 13px; font-weight: 700; line-height: 18px; padding: 3px 10px; border-radius: 12px; }
+    .plan-fam { margin-top: 12px; font-size: 16px; }
+    .plan-name { font-size: 20px; line-height: 26px; font-weight: 700; }
+    .plan-speed { font-size: 14px; color: var(--muted); line-height: 18px; }
+    .plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin-top: 16px; font-size: 14px; line-height: 18px; }
+    .plan-grid b { display: block; font-size: 18px; line-height: 24px; }
+    .plan-price { margin-top: 16px; font-size: 14px; line-height: 18px; display: flex; justify-content: space-between; align-items: end; }
+    .plan-price b { display: block; font-size: 28px; line-height: 32px; }
+    .plan-price small { color: var(--muted); text-align: right; font-size: 13px; line-height: 17px; }
+    .tick { position: absolute; top: 10px; right: 12px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); background: #fff; }
+    .plan input:checked ~ .tick { border-color: var(--teal); background: var(--teal) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3.5 3.5L11 1.5' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E") no-repeat center; }
+
+    /* Summary */
+    .summary h3 { font-size: 20px; line-height: 28px; font-weight: 700; }
+    .sum-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); font-size: 16px; line-height: 22px; }
+    .sum-row span:first-child { color: var(--muted); }
+    .sum-row span:last-child { font-weight: 700; text-align: right; }
+    .sum-total { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 0 4px; }
+    .sum-total b { font-size: 32px; line-height: 36px; }
+    .sum-note { font-size: 13px; line-height: 18px; color: var(--muted); }
+    .btn { display: block; width: 100%; min-height: 48px; margin-top: 20px; border: 2px solid var(--red); border-radius: 6px; background: var(--red); color: #fff; font-size: 18px; font-weight: 400; cursor: pointer; padding: 12px 24px; }
+    .btn:hover { background: #bd0000; border-color: #bd0000; }
+    .btn:disabled { opacity: .7; cursor: progress; }
+    .help { margin-top: 16px; font-size: 14px; line-height: 20px; color: var(--muted); }
+    .help a { color: var(--ink); display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+    .result-box { display: none; margin-top: 16px; padding: 16px; border-radius: 6px; font-size: 16px; line-height: 22px; border-left: 6px solid var(--teal); background: #eef7f8; }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.error { border-left-color: #eb9700; background: #fff6e5; }
+    .result-title { font-weight: 700; margin-bottom: 4px; }
+
+    /* Promo cards */
+    .promos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 64px; }
+    .promo { background: #fff; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.16); overflow: hidden; display: flex; flex-direction: column; }
+    .promo-img { aspect-ratio: 16 / 9; background: linear-gradient(135deg, var(--red), var(--red-deep)); }
+    .promo-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .promo-body { padding: 20px 24px 24px; }
+    .promo h3 { font-size: 20px; line-height: 28px; font-weight: 700; }
+    .promo p { font-size: 16px; line-height: 22px; margin-top: 8px; }
+    .promo a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; color: var(--red); text-decoration: none; font-size: 16px; }
+
+    /* Footer */
+    .ftr { background: var(--ink); color: #fff; padding: 48px 0 32px; font-size: 16px; line-height: 22px; }
+    .ftr-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .ftr h4 { font-size: 18px; margin-bottom: 12px; }
+    .ftr li a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; color: #ddd; }
+    .ftr-base { margin-top: 40px; padding-top: 24px; border-top: 1px solid #333; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 14px; color: #bbb; }
+
+    @media (max-width: 1024px) {
+      .nav { display: none; }
+      .burger { display: inline-flex; }
+      .hdr .wrap { justify-content: space-between; }
+      .panel { grid-template-columns: 1fr; }
+      .promos { grid-template-columns: 1fr; }
+      .ftr-cols { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 0 16px; }
+      .util .right { display: none; }
+      .hero h1 { font-size: 30px; line-height: 36px; }
+      .tabs { justify-content: flex-start; overflow-x: auto; gap: 0; margin-top: 24px; }
+      .tabs a { white-space: nowrap; font-size: 14px; padding: 12px 10px; }
+      .card { padding: 20px 16px; }
+      .card h2 { font-size: 24px; line-height: 30px; }
+      .plans { grid-template-columns: 1fr; }
+      .ftr-cols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="util">
+    <div class="wrap">
+      <div class="seg"><a href="#" class="on">Personal</a><a href="#">Business</a></div>
+      <div class="right"><a href="#">Find a store</a><a href="#">Network Status Checker</a></div>
+    </div>
+  </div>
+  <header class="hdr">
+    <div class="wrap">
+      <a href="#" class="mark" aria-label="Vodafone home">V</a>
+      <nav class="nav" aria-label="Main">
+        <a href="#">Phones and devices</a><a href="#">SIM Only</a><a href="#">Broadband</a><a href="#">TV</a><a href="#">Why Vodafone</a><a href="#">Support</a>
+      </nav>
+      <div class="icons">
+        <a href="#" aria-label="Basket"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h3l2.4 11.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.5L21 7H6.2" fill="none" stroke="#0d0d0d" stroke-width="1.6"/><circle cx="10" cy="20" r="1.4" fill="#0d0d0d"/><circle cx="17" cy="20" r="1.4" fill="#0d0d0d"/></svg></a>
+        <a href="#" aria-label="Search"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="#0d0d0d" stroke-width="1.6"/><path d="M15.5 15.5L21 21" stroke="#0d0d0d" stroke-width="1.6"/></svg></a>
+        <a href="#" aria-label="My Vodafone"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2" fill="none" stroke="#0d0d0d" stroke-width="1.6"/><path d="M3.5 21c1.2-4.2 4.4-6.4 8.5-6.4s7.3 2.2 8.5 6.4" fill="none" stroke="#0d0d0d" stroke-width="1.6"/></svg></a>
+        <a href="#" class="burger" aria-label="Menu"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="#0d0d0d" stroke-width="1.6"/></svg></a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <h1>Vodafone upgrades</h1>
+      <p>Our best upgrade deals across phone, SIM only and home broadband.</p>
+    </div>
+  </section>
+  <nav class="crumbs" aria-label="Breadcrumb"><div class="wrap"><ol><li><a href="#">Home</a></li><li><a href="#">My Vodafone</a></li><li>Upgrades</li></ol></div></nav>
+
+  <main class="wrap">
+    <div class="tabs" role="tablist">
+      <a href="#" role="tab" aria-selected="false">Phone upgrade</a>
+      <a href="#" role="tab" aria-selected="true" class="on">SIM only upgrade</a>
+      <a href="#" role="tab" aria-selected="false">Home broadband upgrade</a>
+    </div>
+
+    <form id="upgradeForm" class="panel" novalidate>
+      <section class="card" aria-labelledby="planTitle">
+        <h2 id="planTitle">Upgrade your Airtime Plan</h2>
+        <p class="lede">Hi Alex. Pick a new SIM only plan for 07700 900123. Your number, SIM and contacts stay the same.</p>
+
+        <div class="step field">
+          <label for="currentPlan">Your current plan</label>
+          <select id="currentPlan">
+            <option value="BASIC-12" selected>Vodafone Mobile 5GB &middot; 12 months</option>
+          </select>
+          <div class="current"><span>You can upgrade today. Your new plan starts as soon as you confirm.</span></div>
+        </div>
+
+        <div class="step">
+          <div class="step-title">Contract length</div>
+          <div class="pills"><span class="pill on">24 Months</span></div>
+        </div>
+
+        <fieldset class="step">
+          <legend class="step-title">Choose your new plan</legend>
+          <select id="newPlan" class="sr-only" tabindex="-1" aria-hidden="true">
+            <option value="PLUS-24" selected>Unlimited Plus</option>
+            <option value="UNLIMITED-24">Unlimited Premier</option>
+          </select>
+          <div class="plans">
+            <label class="plan">
+              <input type="radio" name="planCard" value="PLUS-24" data-name="Unlimited Plus" data-data="Unlimited" data-price="26" data-rise="£28.50 on 1 April 2027" data-roam="52 roaming destinations" checked>
+              <span class="plan-body">
+                <span class="plan-flag">Great Low Price</span>
+                <span class="plan-inner">
+                  <span class="roam">52 roaming destinations</span>
+                  <span class="plan-fam" style="display:block">Vodafone Mobile</span>
+                  <span class="plan-name" style="display:block">Unlimited Plus</span>
+                  <span class="plan-speed" style="display:block">Speed: Maximum download of 100 Mbps</span>
+                  <span class="plan-grid"><span>Data<b>Unlimited</b></span><span>Minutes &amp; Texts<b>Unlimited</b></span></span>
+                  <span class="plan-price"><span>Monthly<b>£26</b></span><small>£28.50 on 1 April 2027<br>£31 on 1 April 2028</small></span>
+                </span>
+              </span>
+              <span class="tick" aria-hidden="true"></span>
+            </label>
+            <label class="plan">
+              <input type="radio" name="planCard" value="UNLIMITED-24" data-name="Unlimited Premier" data-data="Unlimited" data-price="31" data-rise="£33.50 on 1 April 2027" data-roam="84 roaming destinations">
+              <span class="plan-body">
+                <span class="plan-flag best">Bestseller</span>
+                <span class="plan-inner">
+                  <span class="roam">84 roaming destinations</span>
+                  <span class="plan-fam" style="display:block">Vodafone Mobile</span>
+                  <span class="plan-name" style="display:block">Unlimited Premier</span>
+                  <span class="plan-speed" style="display:block">Speed: Maximum download of 100 Mbps</span>
+                  <span class="plan-grid"><span>Data<b>Unlimited</b></span><span>Minutes &amp; Texts<b>Unlimited</b></span></span>
+                  <span class="plan-price"><span>Monthly<b>£31</b></span><small>£33.50 on 1 April 2027<br>£36 on 1 April 2028</small></span>
+                </span>
+              </span>
+              <span class="tick" aria-hidden="true"></span>
+            </label>
+          </div>
+        </fieldset>
+      </section>
+
+      <aside class="card summary" aria-labelledby="sumTitle">
+        <h3 id="sumTitle">Your new plan</h3>
+        <div class="sum-row"><span>Plan</span><span id="sumPlan">Unlimited Plus</span></div>
+        <div class="sum-row"><span>Data</span><span id="sumData">Unlimited</span></div>
+        <div class="sum-row"><span>Roaming</span><span id="sumRoam">52 roaming destinations</span></div>
+        <div class="sum-row"><span>Contract</span><span>24 Months</span></div>
+        <div class="sum-total"><span>Monthly</span><b id="sumPrice">£26</b></div>
+        <p class="sum-note" id="sumRise">£28.50 on 1 April 2027</p>
+        <button type="submit" class="btn" id="submitBtn">Confirm upgrade</button>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <p class="help">Need a hand? Chat to our digital assistant <a href="#">TOBi</a> or call <a href="#">0333 304 3346</a>.</p>
+      </aside>
+    </form>
+
+    <section class="promos" aria-label="More from Vodafone">
+      <article class="promo">
+        <div class="promo-img"><img src="https://images.vodafone.co.uk/gbnnsauqav4t/17yq1n7loqEzuiYp6ctjFe/50eaecbb181c225322871bc22d3a1c7c/SIMO-Roaming-Save-312-Meganav-DC-1x1-small2x.webp?w=1440&amp;fit=fill" alt="" loading="lazy" onerror="this.remove()"></div>
+        <div class="promo-body"><h3>Unlimited data and EU roaming</h3><p>Take your plan with you to 52 European destinations at no extra cost.</p><a href="#">See roaming destinations &rsaquo;</a></div>
+      </article>
+      <article class="promo">
+        <div class="promo-img"><img src="https://images.vodafone.co.uk/gbnnsauqav4t/1ZxIUfogvo4pzZRQj3zzvr/fec1d9e7a2797153c40199c48780bf31/Supermobile-DC-1x1-small2x.webp?w=1440&amp;fit=fill" alt="" loading="lazy" onerror="this.remove()"></div>
+        <div class="promo-body"><h3>New Vodafone SuperMobile&trade;</h3><p>Up to 4x faster speeds on our new 5G+ FastTrack&trade;.</p><a href="#">Find out more &rsaquo;</a></div>
+      </article>
+      <article class="promo">
+        <div class="promo-img"><img src="https://images.vodafone.co.uk/gbnnsauqav4t/1etejVRDQ3dMLe2S4R40T8/21b64885b97ca0fc60b6ae7e7a7e0076/discovery_card_template_16x9_1x1Login-DC-16x9-small2x.webp?w=1440&amp;fit=fill" alt="" loading="lazy" onerror="this.remove()"></div>
+        <div class="promo-body"><h3>Manage it all in My Vodafone</h3><p>Check your usage, see your bill and change your plan in the My Vodafone app.</p><a href="#">Download My Vodafone app &rsaquo;</a></div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="ftr">
+    <div class="wrap">
+      <div class="ftr-cols">
+        <div><h4>Buying online</h4><ul><li><a href="#">Pay monthly deals</a></li><li><a href="#">SIM only deals</a></li><li><a href="#">Home Broadband</a></li><li><a href="#">Vodafone TV</a></li></ul></div>
+        <div><h4>Help and support</h4><ul><li><a href="#">All help topics</a></li><li><a href="#">Help with your device</a></li><li><a href="#">Find a store</a></li><li><a href="#">Contact us</a></li></ul></div>
+        <div><h4>My Vodafone</h4><ul><li><a href="#">Log in to My Vodafone</a></li><li><a href="#">Upgrades</a></li><li><a href="#">Pay a bill</a></li><li><a href="#">Network Status Checker</a></li></ul></div>
+        <div><h4>Why Vodafone</h4><ul><li><a href="#">Our network</a></li><li><a href="#">Social tariffs</a></li><li><a href="#">Vodafone Xchange</a></li><li><a href="#">Lifetime Service Promise</a></li></ul></div>
+      </div>
+      <div class="ftr-base"><span>Internal demo page. Not a Vodafone service.</span><span>Terms and conditions &middot; Privacy &middot; Cookies</span></div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var select = document.getElementById('newPlan');
+      var cards = document.querySelectorAll('input[name="planCard"]');
+      function sync() {
+        var picked = document.querySelector('input[name="planCard"]:checked');
+        if (!picked) return;
+        select.value = picked.value;
+        document.getElementById('sumPlan').textContent = picked.getAttribute('data-name');
+        document.getElementById('sumData').textContent = picked.getAttribute('data-data');
+        document.getElementById('sumRoam').textContent = picked.getAttribute('data-roam');
+        document.getElementById('sumPrice').textContent = '£' + picked.getAttribute('data-price');
+        document.getElementById('sumRise').textContent = picked.getAttribute('data-rise');
+      }
+      Array.prototype.forEach.call(cards, function (c) { c.addEventListener('change', sync); });
+      document.getElementById('upgradeForm').addEventListener('reset', function () { setTimeout(sync, 0); });
+      sync();
+    })();
+  </script>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function escapeHtml(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    document.getElementById('upgradeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const currentPlan = document.getElementById('currentPlan');
+      const newPlan = document.getElementById('newPlan');
+      result.className = 'result-box';
+      result.innerHTML = '';
+      if (!currentPlan.value || !newPlan.value) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">Choose a plan</div><div>Pick the plan you&rsquo;d like to move to, then confirm your upgrade.</div>';
+        return;
+      }
+      const picked = document.querySelector('input[name="planCard"]:checked');
+      const planLabel = picked ? picked.getAttribute('data-name') : newPlan.options[newPlan.selectedIndex].text;
+      btn.disabled = true; btn.textContent = 'Upgrading your plan\u2026';
+      try {
+        const res = await fetch('/api/telco/upgrade', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId: 'CUST-3001', currentPlanCode: currentPlan.value, targetPlanCode: newPlan.value, billingDay: 15, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="result-title">We couldn&rsquo;t upgrade your plan right now</div><div>Please try again in a few minutes. Your current plan hasn&rsquo;t changed.</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="result-title">You&rsquo;re now on ${escapeHtml(planLabel)}</div><div>Reference ${escapeHtml(String(data.upgradeId || '').slice(0, 8).toUpperCase())}. Your new allowance is ready to use now, and we&rsquo;ll text you to confirm.</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">We couldn&rsquo;t upgrade your plan right now</div><div>Please check your connection and try again.</div>';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Confirm upgrade';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
