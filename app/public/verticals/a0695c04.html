@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add named users | Twilio Flex | Twilio Console</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1866EE;
+      --ink: #000D25;
+      --surface: #FFFFFF;
+      --chrome-bg: #000D25;
+      --chrome-text: #FFFFFF;
+      --heading: var(--ink);
+      --muted: color-mix(in srgb, var(--ink) 62%, #fff);
+      --line: color-mix(in srgb, var(--ink) 12%, #fff);
+      --soft: #F3F4F7;
+      --select: color-mix(in srgb, var(--accent) 10%, #fff);
+      --brand-red: #F22F46;
+      --ok: #0E7C3A; --ok-bg: #E6F6EC;
+      --warn: #B0560A; --warn-bg: #FFF4E5;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; overflow-x: hidden; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 24px; color: var(--ink); background: var(--soft); -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); }
+    button, input, select { font: inherit; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .top { display: flex; align-items: center; gap: 16px; min-height: 60px; padding: 0 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
+    .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; color: var(--heading); font-weight: 700; font-size: 20px; letter-spacing: -.02em; }
+    .brand svg { flex: none; }
+    .brand .prod { font-weight: 500; font-size: 15px; color: var(--muted); letter-spacing: 0; padding-left: 10px; border-left: 1px solid var(--line); }
+    .acct { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; color: var(--ink); background: var(--surface); }
+    .acct b { font-weight: 600; }
+    .acct .env { padding: 0 6px; border-radius: 4px; background: var(--ok-bg); color: var(--ok); font-size: 12px; font-weight: 600; line-height: 20px; }
+    .top .search { margin-left: auto; display: flex; align-items: center; min-height: 40px; padding: 0 14px; width: 280px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font-size: 14px; }
+    .top .avatar { display: inline-grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+    .top .avatar span { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; }
+    .shell { display: grid; grid-template-columns: 248px 1fr; min-height: calc(100vh - 61px); }
+    .side { padding: 16px 12px; background: var(--chrome-bg); color: var(--chrome-text); }
+    .side .group { padding: 16px 12px 6px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: color-mix(in srgb, var(--chrome-text) 60%, transparent); }
+    .side a { display: flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 6px; color: var(--chrome-text); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .side a:hover { background: color-mix(in srgb, var(--chrome-text) 8%, transparent); }
+    .side a[aria-current] { background: color-mix(in srgb, var(--accent) 35%, var(--chrome-bg)); }
+    .side .sub { padding-left: 24px; font-weight: 400; }
+    main { padding: 32px 40px 64px; max-width: 1160px; }
+    .crumb { margin: -10px 0 -2px; font-size: 14px; color: var(--muted); }
+    .crumb a { display: inline-block; min-width: 44px; padding: 10px 0; text-decoration: none; }
+    h1 { margin: 0 0 8px; font-size: 30px; line-height: 38px; font-weight: 700; color: var(--heading); letter-spacing: -.02em; }
+    .lead { margin: 0 0 28px; color: var(--muted); max-width: 700px; }
+    .cols { display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: start; }
+    .card { border: 1px solid var(--line); border-radius: 12px; padding: 24px; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 13, 37, .06); }
+    .card h2 { margin: 0 0 4px; font-size: 20px; line-height: 28px; font-weight: 600; color: var(--heading); }
+    .card .sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .stat { background: var(--soft); border-radius: 8px; padding: 14px 16px; }
+    .stat span { display: block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+    .stat b { display: block; font-size: 24px; line-height: 32px; font-weight: 600; color: var(--heading); font-variant-numeric: tabular-nums; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--line); }
+    th { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    td.n { text-align: right; font-variant-numeric: tabular-nums; }
+    .badge { display: inline-block; padding: 0 8px; border-radius: 100px; background: var(--select); color: var(--accent); font-size: 12px; font-weight: 600; line-height: 22px; }
+    .field { display: grid; gap: 6px; margin-bottom: 18px; align-content: start; }
+    label { font-size: 14px; font-weight: 600; color: var(--heading); }
+    .field small { color: var(--muted); font-size: 13px; line-height: 18px; }
+    select, input[type="number"] { width: 100%; min-height: 48px; padding: 10px 14px; color: var(--ink); background: #fff; border: 1px solid color-mix(in srgb, var(--ink) 35%, #fff); border-radius: 6px; }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .summary { margin: 4px 0 20px; padding: 0; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; text-align: right; color: var(--heading); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; padding: 10px 26px; border: 1px solid transparent; border-radius: 50px; font-weight: 500; font-size: 16px; cursor: pointer; text-decoration: none; }
+    .btn:disabled { cursor: progress; opacity: .7; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: #fff; color: var(--accent); border-color: var(--accent); margin-top: 12px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--heading); }
+    .stopwatch.done .sw-value { color: var(--accent); }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 8px; font-size: 14px; line-height: 20px; }
+    .result-box.success { display: block; background: var(--ok-bg); color: var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-bg); color: var(--ink); border-left: 4px solid var(--warn); }
+    .result-box strong { display: block; margin-bottom: 2px; }
+    .note { margin-top: 20px; font-size: 14px; color: var(--muted); }
+    .note a { display: inline-block; padding: 10px 0; }
+    footer { background: var(--chrome-bg); color: var(--chrome-text); padding: 32px 40px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; font-size: 14px; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 0 24px; }
+    footer a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; color: inherit; text-decoration: none; }
+    footer span { display: inline-flex; align-items: center; min-height: 44px; opacity: .8; }
+    @media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) { .shell { grid-template-columns: 1fr; } .side { display: none; } .top .search { display: none; } .top .avatar { margin-left: auto; } }
+    @media (max-width: 560px) {
+      .acct { display: none; }
+      main { padding: 24px 16px 48px; }
+      h1 { font-size: 26px; line-height: 32px; }
+      .card { padding: 20px 16px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat b { font-size: 20px; line-height: 28px; }
+      .two { grid-template-columns: 1fr; gap: 0; }
+      .hide-s { display: none; }
+      .brand .prod { display: none; }
+      footer { padding: 24px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="#" aria-label="Twilio Console">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="none" stroke="var(--brand-red)" stroke-width="3.2"/><text x="15" y="20.5" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="var(--brand-red)">T</text></svg>
+      Twilio <span class="prod">Console</span>
+    </a>
+    <span class="acct" aria-label="Account"><b>Northwind Support</b><span class="env">Live</span></span>
+    <div class="search" aria-hidden="true">Jump to&hellip;</div>
+    <button class="avatar" type="button" aria-label="Your profile"><span>RK</span></button>
+  </header>
+  <div class="shell">
+    <nav class="side" aria-label="Console">
+      <div class="group">Develop</div>
+      <a href="#">Phone Numbers</a>
+      <a href="#">Messaging</a>
+      <a href="#">Voice</a>
+      <div class="group">Flex</div>
+      <a href="#">Overview</a>
+      <a href="#">Manage users</a>
+      <a href="#">Billing</a>
+      <a href="#" class="sub" aria-current="page">Add named users</a>
+      <a href="#" class="sub">Usage</a>
+      <a href="#">Admin</a>
+    </nav>
+    <main id="flexUsers">
+      <p class="crumb"><a href="#">Flex</a> / <a href="#">Billing</a> / Add named users</p>
+      <h1>Add named users</h1>
+      <p class="lead">Add agents, supervisors or administrators to your Flex contact center. New named users can sign in to Flex as soon as the change is confirmed.</p>
+      <div class="cols">
+        <section class="card" aria-labelledby="usersHead">
+          <h2 id="usersHead">Named users</h2>
+          <p class="sub">Flex on the Northwind Support account, billed annually.</p>
+          <div class="stats">
+            <div class="stat"><span>Named users</span><b id="kpiUsers">180</b></div>
+            <div class="stat"><span>Signed in today</span><b>142</b></div>
+            <div class="stat"><span>Next renewal</span><b>Mar 2027</b></div>
+          </div>
+          <table>
+            <thead><tr><th>Role</th><th class="hide-s">Pricing</th><th class="n">Users</th></tr></thead>
+            <tbody id="usersBody">
+              <tr><td>Agent</td><td class="hide-s"><span class="badge">Named user</span></td><td class="n">150</td></tr>
+              <tr><td>Supervisor</td><td class="hide-s"><span class="badge">Named user</span></td><td class="n">24</td></tr>
+              <tr><td>Administrator</td><td class="hide-s"><span class="badge">Named user</span></td><td class="n">6</td></tr>
+            </tbody>
+          </table>
+          <p class="note">Seasonal or part-time agents? <a href="#">Talk to sales about active user hours</a>.</p>
+        </section>
+        <section class="card" aria-labelledby="addHead">
+          <h2 id="addHead">Add users</h2>
+          <p class="sub">Prorated to your renewal date and added to your next invoice.</p>
+          <form id="provisionForm" novalidate>
+            <div class="field">
+              <label for="product">Role</label>
+              <select id="product">
+                <option value="enterprise_suite" selected>Agent</option>
+                <option value="devops_platform">Supervisor</option>
+                <option value="analytics_cloud">Administrator</option>
+              </select>
+            </div>
+            <div class="two">
+              <div class="field">
+                <label for="seats">Named users to add</label>
+                <input type="number" id="seats" value="25" min="1" max="250" step="1" required inputmode="numeric">
+                <small>1&ndash;250 per change</small>
+              </div>
+              <div class="field">
+                <label for="planTier">Pricing</label>
+                <select id="planTier">
+                  <option value="enterprise" selected>Named user</option>
+                  <option value="business">User + usage</option>
+                </select>
+              </div>
+            </div>
+            <dl class="summary" aria-label="Change summary">
+              <div><dt>Role</dt><dd id="sumRole">&mdash;</dd></div>
+              <div><dt>Named users to add</dt><dd id="sumSeats">&mdash;</dd></div>
+              <div><dt>Pricing</dt><dd id="sumPlan">&mdash;</dd></div>
+              <div><dt>Billing</dt><dd>Annual</dd></div>
+            </dl>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Add named users</button>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to confirm</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+  <footer>
+    <nav aria-label="Footer"><a href="#">Twilio Support</a><a href="#">Status</a><a href="#">Legal</a><a href="#">Privacy</a></nav>
+    <span>Copyright &copy; 2026 Twilio Inc. All rights reserved.</span>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('provisionForm'); const btn = $('submitBtn'); const result = $('result');
+      const role = $('product'); const seats = $('seats'); const plan = $('planTier');
+      const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const IDLE = 'Add named users';
+      const START_TOTAL = 180;
+      let total = START_TOTAL; let submission = 0; let ticker = null;
+      const text = (s) => s.options[s.selectedIndex].textContent;
+      function count() { const raw = seats.value.trim(); return /^\d+$/.test(raw) ? parseInt(raw, 10) : NaN; }
+      function render() {
+        const n = count();
+        $('sumRole').textContent = text(role);
+        $('sumSeats').textContent = Number.isFinite(n) ? String(n) : '\u2014';
+        $('sumPlan').textContent = text(plan);
+        $('kpiUsers').textContent = String(total);
+      }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      function show(cls, title, detail, withReset) {
+        result.className = 'result-box ' + cls; result.textContent = '';
+        const t = document.createElement('strong'); t.textContent = title;
+        const d = document.createElement('div'); d.textContent = detail;
+        result.append(t, d);
+        if (withReset) {
+          const again = document.createElement('button'); again.type = 'button'; again.className = 'btn btn-secondary'; again.textContent = 'Add more named users';
+          again.addEventListener('click', resetForm); result.append(again);
+        }
+      }
+      function resetForm() {
+        submission++; form.reset(); btn.disabled = false; btn.textContent = IDLE;
+        result.className = 'result-box'; result.textContent = ''; stopTimer(false); timerValue.textContent = '0.0s';
+        render(); role.focus();
+      }
+      function addToRow(key, label, planLabel, added) {
+        const row = [...$('usersBody').children].find((tr) => tr.dataset.role === key && tr.dataset.plan === planLabel);
+        if (row) { const cell = row.querySelector('td.n'); cell.textContent = String((parseInt(cell.textContent, 10) || 0) + added); return; }
+        const tr = document.createElement('tr'); tr.dataset.role = key; tr.dataset.plan = planLabel;
+        const a = document.createElement('td'); a.textContent = label;
+        const p = document.createElement('td'); p.className = 'hide-s'; const l = document.createElement('span'); l.className = 'badge'; l.textContent = planLabel; p.append(l);
+        const u = document.createElement('td'); u.className = 'n'; u.textContent = String(added);
+        tr.append(a, p, u); $('usersBody').append(tr);
+      }
+      ['enterprise_suite', 'devops_platform', 'analytics_cloud'].forEach((key, i) => { const tr = $('usersBody').children[i]; if (tr) { tr.dataset.role = key; tr.dataset.plan = tr.querySelector('.badge').textContent; } });
+      [role, seats, plan].forEach((el) => { el.addEventListener('input', render); el.addEventListener('change', render); });
+      render();
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const n = count();
+        if (!Number.isFinite(n) || n < 1 || n > 250) { show('notice', 'Check the number of named users', 'Enter a whole number of named users from 1 to 250.'); seats.focus(); return; }
+        const id = ++submission; const roleKey = role.value; const roleLabel = text(role); const planLabel = text(plan);
+        btn.disabled = true; btn.textContent = 'Adding named users\u2026';
+        result.className = 'result-box'; result.textContent = '';
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        try {
+          const res = await fetch('/api/licenses/provision', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: role.value,
+              planName: plan.value,
+              seats: parseInt(seats.value, 10),
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (id !== submission) return;
+          tick(); stopTimer(true);
+          if (res.ok && data.success) {
+            const added = Number(data.seatsAdded) || n;
+            total += added; addToRow(roleKey, roleLabel, planLabel, added); render();
+            const ref = String(data.licenseId || '').slice(0, 8).toUpperCase();
+            show('success', 'Named users added', `${added} ${roleLabel.toLowerCase()} ${added === 1 ? 'seat' : 'seats'} added on ${planLabel} pricing. You now have ${total} named users.${ref ? ' Reference ' + ref + '.' : ''} Invite them from Manage users.`, true);
+          } else {
+            show('notice', 'Named users weren\u2019t added', 'We couldn\u2019t add the named users right now. Please try again in a few minutes. Your Flex account hasn\u2019t changed.');
+          }
+        } catch (err) {
+          if (id !== submission) return;
+          stopTimer(true);
+          show('notice', 'Named users weren\u2019t added', 'We couldn\u2019t reach the Twilio Console. Check your connection and try again.');
+        } finally {
+          if (id === submission) { btn.disabled = false; btn.textContent = IDLE; }
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
