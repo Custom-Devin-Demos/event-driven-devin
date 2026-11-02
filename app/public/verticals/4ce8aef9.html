@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>Add Money | T. Rowe Price</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300;8..144,400;8..144,500;8..144,700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+  <style>
+    :root { --navy: #061937; --blue: #0060A8; --cyan: #00AEEF; --bg: #F4F5F6; --line: #D5D9DF; --muted: #4E5A6B; --accent: var(--blue); --ink: var(--navy); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: "Roboto Flex", Arial, sans-serif; font-weight: 300; font-size: 18px; color: var(--navy); background: var(--bg); }
+    b, strong { font-weight: 500; }
+    .top { background: var(--navy); color: #fff; display: flex; align-items: center; min-height: 72px; }
+    .tile { width: 72px; height: 72px; background: var(--cyan); display: grid; place-items: center; font-family: "Source Serif 4", Georgia, serif; font-weight: 700; font-size: 38px; color: var(--navy); flex: none; }
+    .brand { font-family: "Source Serif 4", Georgia, serif; font-weight: 700; font-size: 25px; letter-spacing: -.6px; margin-left: 30px; }
+    .site { margin-left: 30px; padding-left: 30px; border-left: 2px solid var(--cyan); font-size: 16px; font-weight: 400; line-height: 20px; }
+    .top .right { margin-left: auto; display: flex; gap: 28px; align-items: center; padding-right: 26px; font-size: 16px; }
+    .top a { color: #fff; text-decoration: none; }
+    .top .right b { font-weight: 700; }
+    .subnav { background: var(--navy); border-top: 1px solid rgba(255,255,255,.1); display: flex; justify-content: center; gap: 34px; padding: 0 20px; }
+    .subnav a { color: #fff; text-decoration: none; font-size: 16px; font-weight: 400; padding: 20px 0 18px; }
+    .subnav a[aria-current] { box-shadow: inset 0 -3px 0 var(--cyan); }
+    .hero { position: relative; min-height: 260px; background: linear-gradient(120deg, #0A2D5C, #1F5B8F); overflow: hidden; }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% 40%; }
+    .hero .panel { position: relative; background: var(--bg); max-width: 560px; margin: 48px 0 0 88px; padding: 36px 44px 30px; }
+    .hero .kicker { font-size: 16px; font-weight: 500; margin: 0 0 10px; }
+    h1 { font-family: "Source Serif 4", Georgia, serif; font-weight: 700; font-size: 46px; line-height: 1.1; letter-spacing: -.8px; margin: 0; }
+    main { max-width: 1180px; margin: 0 auto; padding: 40px 24px 64px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; align-items: start; }
+    .box { background: #fff; padding: 32px; box-shadow: 0 1px 2px rgba(6,25,55,.08); }
+    .box + .box { margin-top: 24px; }
+    h2 { font-family: "Source Serif 4", Georgia, serif; font-weight: 700; font-size: 30px; margin: 0 0 6px; }
+    .note { color: var(--muted); font-size: 16px; margin: 0 0 24px; }
+    .acct-list { display: grid; gap: 12px; margin-bottom: 26px; }
+    .acct { display: flex; justify-content: space-between; gap: 12px; border: 1px solid var(--line); padding: 14px 18px; font-size: 16px; }
+    .acct .name { font-weight: 500; }
+    .acct .meta { color: var(--muted); font-size: 14px; }
+    .acct .val { font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+    .field { margin-bottom: 22px; }
+    .field label { display: block; font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+    .field select, .field input { width: 100%; min-height: 50px; border: 1px solid #8A94A3; border-radius: 2px; padding: 0 14px; font: 400 17px "Roboto Flex", Arial, sans-serif; color: var(--navy); background: #fff; }
+    .help { font-size: 14px; color: var(--muted); margin-top: 6px; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .btn { min-height: 48px; padding: 0 24px; border-radius: 2px; border: 2px solid var(--blue); background: var(--blue); color: #fff; font: 700 17px "Roboto Flex", Arial, sans-serif; cursor: pointer; }
+    .btn.sec { background: #fff; color: var(--blue); }
+    .btn:disabled { opacity: .55; cursor: progress; }
+    .btn:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+    .actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .stopwatch { display: none; align-items: baseline; gap: 10px; margin-top: 18px; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .sw-label { font-size: 14px; font-weight: 500; color: var(--muted); }
+    .sw-value { font-size: 26px; font-weight: 700; }
+    .stopwatch.done .sw-value { color: #A4262C; }
+    .status { font-size: 14px; color: var(--muted); margin: 12px 0 0; }
+    .result-box { display: none; margin-top: 18px; padding: 16px 18px; font-size: 16px; line-height: 1.5; border-top: 4px solid; }
+    .result-box.success { display: block; background: #EAF5EE; border-color: #2E7D4F; }
+    .result-box.notice { display: block; background: #FBEDEE; border-color: #A4262C; }
+    aside dl { margin: 0; display: grid; grid-template-columns: 1fr auto; row-gap: 12px; font-size: 16px; }
+    aside dt { color: var(--muted); } aside dd { margin: 0; text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
+    aside .total { border-top: 1px solid var(--line); padding-top: 12px; font-weight: 700; font-size: 18px; }
+    aside p { font-size: 14px; color: var(--muted); }
+    footer { background: var(--navy); color: #fff; padding: 44px 88px; font-size: 15px; }
+    footer .links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 24px; }
+    footer a { color: #fff; text-decoration: none; }
+    footer p { color: rgba(255,255,255,.7); font-size: 13px; margin: 28px 0 0; }
+    @media (max-width: 980px) { main { grid-template-columns: minmax(0, 1fr); } .subnav { display: none; } .site { display: none; } .hero .panel { margin-left: 24px; margin-right: 24px; } }
+    @media (max-width: 600px) {
+      .tile { width: 56px; height: 56px; font-size: 30px; } .top { min-height: 56px; } .brand { margin-left: 16px; font-size: 21px; }
+      .top .right .hide-s { display: none; }
+      .hero .panel { margin: 120px 0 0; padding: 24px 20px; } h1 { font-size: 34px; }
+      main { padding: 24px 12px 48px; } .box { padding: 20px; } .cols { grid-template-columns: 1fr; }
+      .actions .btn { flex: 1 1 100%; } footer { padding: 32px 20px; } footer .links { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <span class="tile" aria-hidden="true">T</span>
+    <span class="brand">T. Rowe Price</span>
+    <span class="site">Personal Investing</span>
+    <span class="right"><a class="hide-s" href="#">Accounts</a><a class="hide-s" href="#">Messages</a><a href="#"><b>Log Out</b></a></span>
+  </header>
+  <nav class="subnav" aria-label="Main">
+    <a href="#">Account Types</a><a href="#">Funds</a><a href="#">Advice</a><a href="#">Resources</a><a href="#">About Us</a><a href="#" aria-current="page">Add Money</a>
+  </nav>
+  <section class="hero">
+    <img src="https://www.troweprice.com/content/dam/iinvestor/home/RedThread-Hero-Getty1438234801-LadiesOnVacation-1920x960.jpg" alt="" onerror="this.remove()">
+    <div class="panel">
+      <p class="kicker">Personal investing and retirement</p>
+      <h1>Add money to your account</h1>
+    </div>
+  </section>
+
+  <form id="transferForm" novalidate>
+  <main>
+    <div>
+      <section class="box" aria-labelledby="acctTitle">
+        <h2 id="acctTitle">Your accounts</h2>
+        <p class="note">2026 IRA contribution limit: $7,000 across your IRAs.</p>
+        <div class="acct-list">
+          <div class="acct"><div><div class="name">Roth IRA ••8812</div><div class="meta">Remaining 2026 contribution</div></div><div class="val" data-room-for="TRP-ROTH-8812"></div></div>
+          <div class="acct"><div><div class="name">Traditional IRA ••3307</div><div class="meta">Remaining 2026 contribution</div></div><div class="val" data-room-for="TRP-TIRA-3307"></div></div>
+        </div>
+        <h2>Contribution details</h2>
+        <p class="note">Money is moved from your linked bank account by electronic funds transfer.</p>
+        <div class="cols">
+          <div class="field">
+            <label for="toAccount">To account</label>
+            <select id="toAccount">
+              <option value="">Select an account</option>
+              <option value="TRP-ROTH-8812" data-name="Roth IRA ••8812" data-room="4500.00" selected>Roth IRA ••8812</option>
+              <option value="TRP-TIRA-3307" data-name="Traditional IRA ••3307" data-room="2500.00">Traditional IRA ••3307</option>
+            </select>
+            <div class="help" id="toHelp"></div>
+          </div>
+          <div class="field">
+            <label for="fromAccount">From bank account</label>
+            <select id="fromAccount">
+              <option value="BANK-CHK-2048" data-name="Checking ••2048" data-balance="14200.00" selected>Checking ••2048</option>
+              <option value="BANK-SAV-5531" data-name="Savings ••5531" data-balance="31000.00">Savings ••5531</option>
+            </select>
+            <div class="help" id="fromHelp"></div>
+          </div>
+        </div>
+        <div class="cols">
+          <div class="field">
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" inputmode="decimal" min="1" step="0.01" value="1000.00" aria-describedby="amountHelp">
+            <div class="help" id="amountHelp"></div>
+          </div>
+          <div class="field">
+            <label for="investIn">Invest in</label>
+            <select id="investIn">
+              <option value="Retirement 2055 Fund" selected>Retirement 2055 Fund</option>
+              <option value="Blue Chip Growth Fund">Blue Chip Growth Fund</option>
+              <option value="money market">Money market (hold as cash)</option>
+            </select>
+            <div class="help">Tax year 2026</div>
+          </div>
+        </div>
+        <select id="accountTier" hidden aria-hidden="true" tabindex="-1"><option value="standard" selected>standard</option></select>
+        <div class="actions">
+          <button type="submit" class="btn" id="submitBtn">Submit contribution</button>
+          <button type="reset" class="btn sec" id="cancelBtn">Cancel</button>
+        </div>
+        <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Time to submit</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+        <p class="status" id="paymentStatus">Sample accounts. No money is moved.</p>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </section>
+    </div>
+    <aside>
+      <section class="box" aria-labelledby="sumTitle">
+        <h2 id="sumTitle">Review</h2>
+        <dl>
+          <dt>To</dt><dd id="sumTo">&mdash;</dd>
+          <dt>From</dt><dd id="sumFrom">&mdash;</dd>
+          <dt>Invest in</dt><dd id="sumFund">&mdash;</dd>
+          <dt>Contribution</dt><dd id="sumAmount">&mdash;</dd>
+          <dt>Transfer fee</dt><dd id="sumFee">&mdash;</dd>
+          <dt class="total">Total from bank</dt><dd class="total" id="sumTotal">&mdash;</dd>
+        </dl>
+        <p>Linked bank balances: Checking ••2048 <b data-balance-for="BANK-CHK-2048"></b>, Savings ••5531 <b data-balance-for="BANK-SAV-5531"></b>.</p>
+      </section>
+    </aside>
+  </main>
+  </form>
+
+  <footer>
+    <div class="links"><a href="#">Company Overview</a><a href="#">Careers</a><a href="#">Newsroom</a><a href="#">Investor Relations</a><a href="#">Privacy Notice</a><a href="#">Terms of Use</a><a href="#">Security Measures</a><a href="#">Contact Us</a></div>
+    <p>&copy; 2026 demo page. Sample accounts, funds and balances.</p>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm'); const button = $('submitBtn'); const cancelBtn = $('cancelBtn');
+      const result = $('result'); const status = $('paymentStatus');
+      const fromAccount = $('fromAccount'); const toAccount = $('toAccount'); const amountInput = $('amount'); const accountTier = $('accountTier'); const investIn = $('investIn');
+      const timer = $('sendTimer'); const timerValue = $('sendTimerValue');
+      const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+      const FEE = { rate: 0.001, flat: 2.50 };
+      const IDLE_STATUS = 'Sample accounts. No money is moved.';
+      const balances = {}; Array.from(fromAccount.options).forEach((o) => { balances[o.value] = Number(o.dataset.balance) || 0; });
+      const room = {}; Array.from(toAccount.options).forEach((o) => { if (o.value) room[o.value] = Number(o.dataset.room) || 0; });
+      const editable = [button, cancelBtn, fromAccount, toAccount, amountInput, investIn];
+      let pending = false; let ticker = null;
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (s) => s.options[s.selectedIndex];
+      const feeCents = (c) => Math.round(Math.max(FEE.rate * c, FEE.flat * 100));
+      const toCents = (v) => { const n = parseFloat(String(v).trim()); return Number.isFinite(n) ? Math.round(n * 100) : NaN; };
+      function renderLedger() {
+        document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = money.format(balances[el.dataset.balanceFor] || 0); });
+        document.querySelectorAll('[data-room-for]').forEach((el) => { el.textContent = money.format(room[el.dataset.roomFor] || 0); });
+      }
+      function render() {
+        accountTier.value = 'standard';
+        const cents = toCents(amountInput.value); const ok = cents > 0; const fee = ok ? feeCents(cents) : 0;
+        const from = selected(fromAccount); const to = toAccount.value ? selected(toAccount) : null;
+        set('fromHelp', `Available ${money.format(balances[fromAccount.value] || 0)}`);
+        set('toHelp', to ? `You can contribute up to ${money.format(room[toAccount.value] || 0)} for 2026.` : 'Select the account to add money to.');
+        set('amountHelp', ok ? `A ${money.format(fee / 100)} transfer fee is added.` : 'Enter an amount.');
+        set('sumTo', to ? to.dataset.name : '\u2014');
+        set('sumFrom', from.dataset.name);
+        set('sumFund', selected(investIn).textContent);
+        set('sumAmount', ok ? money.format(cents / 100) : '\u2014');
+        set('sumFee', ok ? money.format(fee / 100) : '\u2014');
+        set('sumTotal', ok ? money.format((cents + fee) / 100) : '\u2014');
+      }
+      function clearResult() { result.className = 'result-box'; result.textContent = ''; }
+      function notice(msg, focusEl) { result.className = 'result-box notice'; result.textContent = msg; if (focusEl) focusEl.focus(); }
+      function stopTimer(done) { if (ticker) { clearInterval(ticker); ticker = null; } timer.className = done ? 'stopwatch on done' : 'stopwatch'; }
+      [fromAccount, investIn].forEach((el) => el.addEventListener('change', render));
+      toAccount.addEventListener('change', () => { clearResult(); stopTimer(false); timerValue.textContent = '0.0s'; render(); });
+      amountInput.addEventListener('input', render);
+      form.addEventListener('reset', (e) => {
+        if (pending) { e.preventDefault(); return; }
+        setTimeout(() => { clearResult(); status.textContent = IDLE_STATUS; stopTimer(false); timerValue.textContent = '0.0s'; render(); });
+      });
+      renderLedger(); render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        if (!toAccount.value) { notice('Select the account to add money to.', toAccount); return; }
+        const cents = toCents(amountInput.value);
+        const roomC = Math.round((room[toAccount.value] || 0) * 100);
+        if (!(cents >= 100)) { notice('Enter an amount of at least $1.00.', amountInput); return; }
+        if (cents > roomC) { notice(roomC > 0 ? `This is more than your remaining 2026 contribution of ${money.format(roomC / 100)}.` : 'You\u2019ve reached your 2026 contribution limit for this account.', amountInput); return; }
+        if (cents + feeCents(cents) > Math.round((balances[fromAccount.value] || 0) * 100)) { notice(`${selected(fromAccount).dataset.name} doesn\u2019t have enough available, including the transfer fee.`, fromAccount); return; }
+        const devin = { devinUserId: '', devinOrgId: '', devinEmail: '' };
+        try { devin.devinUserId = localStorage.getItem('devinUserId') || ''; devin.devinOrgId = localStorage.getItem('devinOrgId') || ''; devin.devinEmail = localStorage.getItem('devinEmail') || ''; } catch (_e) {}
+        pending = true;
+        editable.forEach((el) => { el.disabled = true; });
+        button.textContent = 'Submitting\u2026';
+        status.textContent = 'Submitting your contribution\u2026';
+        clearResult();
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        const fromId = fromAccount.value; const toId = toAccount.value; const fromName = selected(fromAccount).dataset.name; const toName = selected(toAccount).dataset.name; const fund = selected(investIn).textContent;
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim()),
+              accountTier: accountTier.value,
+              devinUserId: devin.devinUserId,
+              devinOrgId: devin.devinOrgId,
+              devinEmail: devin.devinEmail,
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick(); stopTimer(true);
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const paid = Number(data.receipt.amount);
+          const debited = Number(data.debitAmount ?? data.receipt.totalDebit ?? paid);
+          if (data.duplicate) {
+            result.className = 'result-box notice';
+            result.textContent = `This contribution was already submitted at ${at} (confirmation ${data.receipt.receiptId}). It wasn\u2019t submitted again.`;
+            status.textContent = IDLE_STATUS;
+            return;
+          }
+          balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
+          room[toId] = Math.max(0, Math.round(((room[toId] || 0) - paid) * 100) / 100);
+          renderLedger();
+          result.className = 'result-box success';
+          result.textContent = `Contribution submitted at ${at}. ${money.format(paid)} to your ${toName} for tax year 2026, invested in ${fund}. ${money.format(debited)} will be withdrawn from ${fromName}. Confirmation ${data.receipt.receiptId}.`;
+          status.textContent = 'You\u2019ll see this contribution in Activity once it settles.';
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok
+            ? 'We couldn\u2019t submit your contribution and no money was moved. Please try again in a few minutes.'
+            : 'We couldn\u2019t confirm your contribution. Check Activity before submitting again so it isn\u2019t made twice.';
+          status.textContent = IDLE_STATUS;
+        } finally {
+          pending = false;
+          editable.forEach((el) => { el.disabled = false; });
+          button.textContent = 'Submit contribution';
+          render();
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
