@@ -7311,6 +7311,8 @@ const ONCALL_SKINS = {
     brandMark: 'C',
     vertical: 'insurance',
     oncallOnly: true,
+    locale: 'ja',
+    alertDestination: 'slack',
     page: { file: 'f9c51ff3.html', title: '資料請求｜COMPANY' },
     theme: {
       '--accent': '#007CC5',
@@ -7320,11 +7322,11 @@ const ONCALL_SKINS = {
       '--chrome-text': '#FFFFFF',
     },
     alertCard: {
-      title: '5xx rate — COMPANY material request submissions',
+      title: '5xxエラー率上昇 — COMPANY 資料請求の送信',
       release: 'material-request-web@3.1.0',
       team: 'web-marketing-oncall',
-      symptom: 'COMPANY material requests (資料請求) hang ~8s on submit and then return a 504. The request is not accepted and the download step does not open.',
-      impact: 'Prospects requesting COMPANY materials cannot submit the form or continue to the download; every submission fails after a long wait and phone enquiries are rising.',
+      symptom: 'COMPANY の資料請求が送信後 約8秒応答せず、504 を返しています。申込は受け付けられず、資料ダウンロードに進めません。',
+      impact: '資料請求をしたい見込み顧客がフォームを送信できず、資料ダウンロードに進めません。すべての送信が長い待機の後に失敗し、電話でのお問い合わせが増えています。',
     },
     supportCenter: 'COMPANY お問い合わせ窓口',
     disclaimer: 'NOT ACTUALLY A WORKS HUMAN INTELLIGENCE SITE — internal demo only, not affiliated with, endorsed by, or a real Works Human Intelligence product.',
