@@ -240,15 +240,15 @@
         render(); app.focus();
       }
       function addToRow(key, label, planLabel, added) {
-        const row = document.querySelector('#subsBody tr[data-app="' + key + '"]');
+        const row = [...$('subsBody').children].find((tr) => tr.dataset.app === key && tr.dataset.plan === planLabel);
         if (row) { const cell = row.querySelector('td.n'); cell.textContent = String((parseInt(cell.textContent, 10) || 0) + added); return; }
-        const tr = document.createElement('tr'); tr.dataset.app = key;
+        const tr = document.createElement('tr'); tr.dataset.app = key; tr.dataset.plan = planLabel;
         const a = document.createElement('td'); a.textContent = label;
         const p = document.createElement('td'); p.className = 'hide-s'; const l = document.createElement('span'); l.className = 'lozenge'; l.textContent = planLabel; p.append(l);
         const u = document.createElement('td'); u.className = 'n'; u.textContent = String(added);
         tr.append(a, p, u); $('subsBody').append(tr);
       }
-      Object.keys(START_USERS).forEach((key, i) => { const tr = $('subsBody').children[i]; if (tr) tr.dataset.app = key; });
+      Object.keys(START_USERS).forEach((key, i) => { const tr = $('subsBody').children[i]; if (tr) { tr.dataset.app = key; tr.dataset.plan = tr.querySelector('.lozenge').textContent; } });
       [app, seats, plan].forEach((el) => { el.addEventListener('input', render); el.addEventListener('change', render); });
       render();
       form.addEventListener('submit', async (e) => {
