@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Central lab ingest | MDT-DM-301 | Medtronic Clinical Data Hub</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --canvas:#f5f5f5; --surface:#ffffff; --surface-2:#f6f6f9; --line:#dedde8; --line-soft:#ecebf2;
+      --ink:#1b1b1f; --ink-2:#3c3c3c; --ink-3:#656565;
+      --navy:#170f5f; --navy-deep:#140f4b; --hero:#e6f1ff;
+      --teal:#1010eb; --teal-dark:#170f5f; --teal-soft:#e6f1ff;
+      --ok:#14804a; --ok-bg:#e4f4ea; --warn:#9a5200; --warn-bg:#fcefdc; --fail:#da1e28; --fail-bg:#fde9ea; --fail-line:#f3b8bb; --query:#5a3ea8; --query-bg:#efeaf9; --info:#1010eb; --info-bg:#e6f1ff;
+      --sans:AvenirNextWorld, 'Avenir Next', Avenir, 'Nunito Sans', helvetica, arial, sans-serif; --mono:'Spline Sans Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      --card-shadow:0 4px 16px rgba(0,0,0,.12); --wrap:1312px;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { -webkit-font-smoothing:antialiased; text-size-adjust:100%; }
+    body { font-family:var(--sans); font-size:14px; line-height:1.45; color:var(--ink); background:var(--canvas); min-height:100vh; font-feature-settings:'tnum' 1, 'cv11' 1; }
+    a { color:inherit; }
+    button, input, select, summary { font:inherit; color:inherit; }
+    summary { list-style:none; cursor:pointer; }
+    summary::-webkit-details-marker { display:none; }
+    :focus-visible { outline:2px solid var(--teal); outline-offset:2px; border-radius:3px; }
+    .side :focus-visible { outline-color:#8fd3cb; }
+    code, .mono { font-family:var(--mono); font-size:.92em; }
+    h1,h2,h3 { font-weight:600; letter-spacing:-.005em; }
+    .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+    /* ───────── work area ───────── */
+    .work { display:grid; grid-template-columns:380px minmax(0,1fr); gap:20px; padding:20px 24px 0; align-items:start; }
+    .col { display:grid; gap:20px; min-width:0; }
+    .panel { background:var(--surface); border:1px solid var(--line); border-radius:8px; min-width:0; }
+    .panel-h { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:13px 16px 11px; border-bottom:1px solid var(--line); }
+    .panel-h h2 { font-size:14px; }
+    .panel-h span { font-size:12px; color:var(--ink-3); }
+    .panel-h .live { display:inline-flex; align-items:center; gap:6px; }
+    .panel-h .live::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--line); }
+    .panel-h .live.running::before { background:var(--teal); animation:pulse 1s ease-in-out infinite; }
+    .panel-h .live.failed::before { background:var(--fail); }
+    .panel-h .live.done::before { background:var(--ok); }
+
+    /* inbox */
+    .inbox-note { padding:10px 16px; font-size:12.5px; color:var(--ink-2); background:var(--surface-2); border-bottom:1px solid var(--line-soft); display:flex; justify-content:space-between; gap:10px; }
+    .inbox-note code { color:var(--ink-2); }
+    .batches { list-style:none; }
+    .batch { position:relative; display:grid; grid-template-columns:18px 1fr auto; gap:1px 12px; padding:12px 16px 12px 14px; border-bottom:1px solid var(--line-soft); cursor:pointer; }
+    .batch input { position:absolute; inset:0; width:100%; height:100%; opacity:0; margin:0; cursor:pointer; }
+    .batch .radio { grid-row:1 / span 3; width:16px; height:16px; margin-top:2px; border-radius:50%; border:1.5px solid var(--ink-3); background:#fff; display:grid; place-items:center; }
+    .batch .radio::after { content:''; width:8px; height:8px; border-radius:50%; background:var(--teal); transform:scale(0); transition:transform .12s ease-out; }
+    .batch:has(input:checked) { background:var(--teal-soft); }
+    .batch:has(input:checked) .radio { border-color:var(--teal); }
+    .batch:has(input:checked) .radio::after { transform:scale(1); }
+    .batch:has(input:focus-visible) { outline:2px solid var(--teal); outline-offset:-2px; }
+    .batch:hover:not(:has(input:checked)) { background:var(--surface-2); }
+    .batch b { font-weight:600; font-size:13px; }
+    .batch .name { min-width:0; }
+    .batch .site-id { display:block; color:var(--ink-3); font-size:12px; margin-top:1px; }
+    .batch .file { grid-column:2 / span 2; font-family:var(--mono); font-size:11.5px; color:var(--ink-2); margin-top:3px; word-break:break-all; }
+    .batch .meta { grid-column:2 / span 2; font-size:12px; color:var(--ink-2); margin-top:4px; display:flex; flex-wrap:wrap; gap:4px 14px; }
+    .batch .meta em { font-style:normal; color:var(--ink-3); }
+    .batch .meta .u { padding:0 5px; border-radius:3px; background:var(--surface-2); border:1px solid var(--line); font-size:11.5px; }
+    .batch:has(input:checked) .meta .u { background:#fff; }
+    .batch .state { font-size:11.5px; color:var(--ink-3); white-space:nowrap; }
+    .batch.loaded { cursor:default; color:var(--ink-3); }
+    .batch.loaded b { font-weight:500; color:var(--ink-2); }
+    .batch.loaded .radio { border-style:dashed; border-color:var(--line); }
+    .batch.loaded .state { color:var(--ok); }
+    .batch.loaded:hover { background:transparent; }
+    .detail { padding:12px 16px 14px; border-bottom:1px solid var(--line); display:grid; grid-template-columns:auto 1fr; gap:6px 14px; font-size:12.5px; }
+    .detail dt { color:var(--ink-3); }
+    .detail dd { color:var(--ink); }
+    .detail dd code { font-size:11.5px; }
+    .act { padding:14px 16px; display:flex; align-items:center; gap:14px; }
+    .btn { height:38px; padding:0 18px; border-radius:6px; border:1px solid var(--teal-dark); background:var(--teal); color:#fff; font-weight:600; font-size:13.5px; cursor:pointer; white-space:nowrap; flex-shrink:0; display:inline-flex; align-items:center; gap:8px; }
+    .btn:hover { background:var(--teal-dark); }
+    .btn:disabled { opacity:.65; cursor:progress; }
+    .btn svg { width:14px; height:14px; }
+    .act p { font-size:12px; color:var(--ink-3); line-height:1.4; }
+
+    /* site currency */
+    .sites { list-style:none; }
+    .sites li { display:grid; grid-template-columns:1fr auto; gap:0 12px; padding:9px 16px; border-bottom:1px solid var(--line-soft); font-size:12.5px; align-items:center; }
+    .sites li:last-child { border-bottom:0; }
+    .sites b { font-weight:500; }
+    .sites small { display:block; color:var(--ink-3); font-size:11.5px; }
+    .pill { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; padding:2px 8px; border-radius:10px; font-weight:500; white-space:nowrap; }
+    .pill::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+    .pill.ok { color:var(--ok); background:var(--ok-bg); }
+    .pill.warn { color:var(--warn); background:var(--warn-bg); }
+    .pill.fail { color:var(--fail); background:var(--fail-bg); }
+    .pill.info { color:var(--info); background:var(--info-bg); }
+    .pill.query { color:var(--query); background:var(--query-bg); }
+    .pill.neutral { color:var(--ink-2); background:var(--surface-2); }
+    .panel-f { padding:9px 16px; border-top:1px solid var(--line-soft); font-size:12px; color:var(--ink-3); display:flex; justify-content:space-between; gap:10px; }
+    .panel-f a { color:var(--teal-dark); }
+
+    /* ───────── run ledger (hero) ───────── */
+    .run-top { display:grid; grid-template-columns:1fr auto; gap:4px 20px; padding:14px 16px 12px; border-bottom:1px solid var(--line); align-items:center; }
+    .run-top h2 { font-size:14px; }
+    .run-top .ref { font-size:12px; color:var(--ink-3); }
+    .run-top .ref code { color:var(--ink-2); }
+    .ledger { list-style:none; padding:6px 16px 10px; }
+    .stg { position:relative; display:grid; grid-template-columns:22px 1fr auto; gap:0 14px; padding:11px 0; align-items:start; }
+    .stg + .stg { border-top:1px solid var(--line-soft); }
+    .stg::before { content:''; position:absolute; left:10px; top:34px; bottom:-12px; width:2px; background:var(--line-soft); }
+    .stg:last-child::before { display:none; }
+    .stg.done::before { background:var(--ok); }
+    .stg-mark { width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line); background:#fff; display:grid; place-items:center; color:#fff; font-size:12px; font-weight:700; position:relative; z-index:1; }
+    .stg-mark svg { width:12px; height:12px; display:none; }
+    .stg.done .stg-mark { background:var(--ok); border-color:var(--ok); }
+    .stg.done .stg-mark .i-check { display:block; }
+    .stg.active .stg-mark { border-color:var(--teal); }
+    .stg.active .stg-mark::after { content:''; width:8px; height:8px; border-radius:50%; background:var(--teal); animation:pulse 1s ease-in-out infinite; }
+    .stg.failed .stg-mark { background:var(--fail); border-color:var(--fail); }
+    .stg.failed .stg-mark .i-x { display:block; }
+    .stg h3 { font-size:13px; font-weight:600; line-height:22px; }
+    .stg p { font-size:12.5px; color:var(--ink-2); margin-top:1px; }
+    .stg.pending h3, .stg.pending p { color:var(--ink-3); }
+    .stg.failed h3 { color:var(--fail); }
+    .stg.failed p { color:var(--ink); }
+    .stg-time { font-size:12px; color:var(--ink-3); line-height:22px; min-width:52px; text-align:right; }
+    .stg.done .stg-time { color:var(--ink-2); }
+    .stg.failed .stg-time { color:var(--fail); font-weight:500; }
+    .stg.active .stg-time { color:var(--teal); }
+    .stg-fail { grid-column:2 / span 2; margin-top:8px; padding:10px 12px; border:1px solid var(--fail-line); border-left:3px solid var(--fail); border-radius:4px; background:var(--fail-bg); font-size:12.5px; display:none; }
+    .stg.failed .stg-fail { display:block; }
+    .stg-fail b { font-weight:600; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+
+    .log-h { display:flex; justify-content:space-between; align-items:center; padding:8px 16px 0; font-size:12px; color:var(--ink-3); }
+    .log { margin:6px 16px 16px; border:1px solid var(--line); border-radius:6px; background:#0f1a21; color:#b8c7cf; font-family:var(--mono); font-size:11.75px; line-height:1.75; padding:10px 14px; min-height:96px; max-height:200px; overflow:auto; }
+    .log div { display:grid; grid-template-columns:64px 1fr; gap:12px; }
+    .log div span { color:#5f7a86; }
+    .log .ok { color:#5fd3a6; } .log .err { color:#ff8a80; } .log .warn { color:#f5c26b; }
+    .log b { font-weight:500; }
+
+    /* result */
+    .result-box { display:none; margin:0 16px 16px; border-radius:6px; padding:14px 16px; font-size:13px; }
+    .result-box.error { display:block; background:var(--fail-bg); border:1px solid var(--fail-line); }
+    .result-box.success { display:block; background:var(--ok-bg); border:1px solid #b6dfc6; }
+    .result-title { font-size:14.5px; font-weight:600; display:flex; align-items:center; gap:8px; }
+    .result-title svg { width:16px; height:16px; flex-shrink:0; }
+    .result-box.error .result-title { color:var(--fail); }
+    .result-box.success .result-title { color:var(--ok); }
+    .result-box p { margin-top:6px; color:var(--ink); max-width:72ch; }
+    .result-kv { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px 18px; margin-top:12px; padding-top:12px; border-top:1px solid rgba(22,32,43,.1); }
+    .result-kv dt { font-size:11.5px; color:var(--ink-2); }
+    .result-kv dd { font-size:12.5px; font-weight:500; margin-top:2px; word-break:break-all; }
+    .result-kv dd code { font-size:11.5px; }
+    .result-part11 { margin-top:12px; display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--ink-2); }
+    .result-part11 svg { width:14px; height:14px; flex-shrink:0; margin-top:1px; color:var(--ink-2); }
+
+    /* records */
+    .records-h { display:flex; justify-content:space-between; align-items:baseline; padding:0 16px 8px; border-top:1px solid var(--line); padding-top:12px; }
+    .records-h h3 { font-size:13px; }
+    .records-h span { font-size:12px; color:var(--ink-3); }
+    .tbl-wrap { overflow-x:auto; }
+    .tbl { width:100%; border-collapse:collapse; font-size:12.5px; }
+    .tbl th, .tbl td { text-align:left; padding:8px 16px; border-top:1px solid var(--line-soft); vertical-align:middle; }
+    .tbl th { color:var(--ink-3); font-weight:500; font-size:11.75px; background:var(--surface-2); }
+    .tbl td.num, .tbl th.num { text-align:right; }
+    .tbl td .sub { font-family:var(--mono); font-size:11.75px; white-space:nowrap; }
+    .tbl td .src { color:var(--ink-3); font-size:11.5px; }
+    .tbl tr.out td { background:#fffaf2; }
+    .tbl tbody tr:last-child td { border-bottom:1px solid var(--line-soft); }
+    .qbtn { height:26px; padding:0 9px; border-radius:4px; border:1px solid var(--line); background:#fff; font-size:12px; cursor:pointer; color:var(--ink-2); white-space:nowrap; }
+    .qbtn:hover { border-color:var(--query); color:var(--query); }
+    .qbtn[aria-pressed="true"] { border-color:var(--query); background:var(--query-bg); color:var(--query); }
+    .qrow td { background:var(--query-bg) !important; color:var(--query); font-size:12px; padding-top:7px; padding-bottom:7px; }
+    .qrow code { color:var(--query); }
+    .empty { padding:26px 16px 24px; color:var(--ink-3); font-size:12.5px; border-top:1px solid var(--line); text-align:center; }
+    .records-f { padding:10px 16px 14px; font-size:12px; color:var(--ink-3); display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px 14px; }
+
+    /* ───────── secondary ───────── */
+    .secondary { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:20px; padding:20px 24px 0; align-items:start; }
+    .hist td.st { white-space:nowrap; }
+    .hist td.who { color:var(--ink-2); }
+    .audit { list-style:none; }
+    .audit li { display:grid; grid-template-columns:auto 1fr; gap:2px 12px; padding:10px 16px; border-bottom:1px solid var(--line-soft); font-size:12.5px; }
+    .audit li:last-child { border-bottom:0; }
+    .audit time { color:var(--ink-3); font-size:11.75px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .audit b { font-weight:500; }
+    .audit small { grid-column:2; color:var(--ink-3); font-size:11.75px; }
+    .audit .sig { color:var(--teal-dark); }
+
+
+    /* ───────── responsive ───────── */
+    @media (max-width:1240px) { .work { grid-template-columns:340px minmax(0,1fr); } .search { width:200px; } .study-meta div { min-width:0; } }
+    @media (max-width:1060px) {
+      :root { --side-w:0px; }
+      .app { grid-template-columns:minmax(0,1fr); }
+      .side { position:static; height:auto; min-width:0; flex-direction:row; align-items:center; flex-wrap:wrap; padding:0 8px; gap:0 4px; }
+      .brand { padding:12px 10px; }
+      .study-switch { margin:0 6px; }
+      .study-switch summary { padding:6px 10px; }
+      .study-switch summary small { display:none; }
+      .gnav { order:3; flex-basis:100%; width:100%; min-width:0; display:flex; gap:2px; overflow-x:auto; padding:0 4px 8px; scrollbar-width:none; }
+      .gnav::-webkit-scrollbar { display:none; }
+      .gnav a { white-space:nowrap; padding:7px 10px; }
+      .gnav .sect { display:none; }
+      .side-foot { margin-left:auto; border-top:0; padding:8px 10px; }
+      .side-foot p { display:none; }
+      .work, .secondary { grid-template-columns:1fr; }
+      .col { display:contents; }
+      .work > .col > form { order:1; }
+      .work > .panel { order:2; }
+      .work > .col > section { order:3; }
+      .user div { display:none; }
+    }
+    @media (max-width:720px) {
+      .util { padding:0 14px; gap:8px; height:48px; }
+      .search { display:none; }
+      .study-head { padding:16px 14px 0; }
+      .study-meta { flex-wrap:wrap; }
+      .study-meta div { flex:1 1 33%; border-top:1px solid var(--line); }
+      .study-meta div:nth-child(-n+3) { border-top:0; }
+      .study-meta div:nth-child(4) { border-left:0; }
+      .study-meta dd { white-space:normal; }
+      .study-meta dd small { display:block; margin-left:0; }
+      .work, .secondary { padding:14px 14px 0; gap:14px; }
+      .col { gap:14px; }
+      .act { flex-direction:column; align-items:stretch; }
+      .act .btn { justify-content:center; height:44px; }
+      .run-top { grid-template-columns:1fr; }
+      .popover .pop { width:min(320px, calc(100vw - 28px)); }
+      .c-src { display:none; }
+      footer { padding:20px 14px 16px; }
+    }
+    @media (max-width:420px) {
+      .side-foot .env span { display:none; }
+      .study-switch summary b { font-size:12.5px; }
+      .tbl th, .tbl td { padding:8px 10px; }
+      .c-range, .c-rec { display:none; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
+  
+    /* ───────── Medtronic chrome (computed from medtronic.com, Nov 2026) ───────── */
+    .wrap { max-width:var(--wrap); margin:0 auto; padding:0 64px; }
+    .mdt-hdr { background:linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 100%); color:#fff; }
+    .mdt-top { display:flex; align-items:center; gap:32px; height:77px; }
+    .mdt-logo { display:inline-flex; align-items:center; color:#fff; text-decoration:none; flex-shrink:0; }
+    .mdt-logo img { height:28px; width:auto; filter:brightness(0) invert(1); display:block; }
+    .mdt-logo .txt { display:none; font-size:30px; font-weight:700; letter-spacing:-.02em; }
+    .mdt-search { margin-left:auto; display:flex; align-items:stretch; height:42px; width:min(558px, 46vw); border-radius:100px; background:#fff; padding:1px; }
+    .mdt-search select { border:0; border-radius:100px 0 0 100px; background:#efefef; color:#1010eb; font-size:14px; font-weight:500; padding:0 30px 0 14px; appearance:none; cursor:pointer; background-image:linear-gradient(45deg, transparent 50%, #1010eb 50%), linear-gradient(135deg, #1010eb 50%, transparent 50%); background-position:calc(100% - 15px) 18px, calc(100% - 10px) 18px; background-size:5px 5px; background-repeat:no-repeat; }
+    .mdt-search input { flex:1; min-width:0; border:0; outline:none; padding:0 22px; font-size:16px; color:rgba(0,0,0,.9); background:transparent; }
+    .mdt-search input::placeholder { color:#656565; }
+    .mdt-search button { width:46px; border:0; border-radius:0 100px 100px 0; background:#1010eb; color:#fff; display:grid; place-items:center; cursor:pointer; }
+    .mdt-search button svg { width:19px; height:19px; }
+    .mdt-loc { display:flex; align-items:center; gap:8px; font-size:16px; white-space:nowrap; }
+    .mdt-loc svg { width:22px; height:22px; }
+    .mdt-nav { display:flex; align-items:center; gap:64px; height:57px; border-top:1px solid rgba(255,255,255,.28); }
+    .mdt-nav a { color:#fff; text-decoration:none; font-size:16px; font-weight:500; line-height:30px; white-space:nowrap; padding:2px 0; border-bottom:2px solid transparent; }
+    .mdt-nav a:hover { border-bottom-color:rgba(255,255,255,.6); }
+    .mdt-nav a[aria-current] { border-bottom-color:#fff; }
+    .mdt-nav .count { font-size:12px; margin-left:6px; padding:0 7px; border-radius:10px; background:rgba(255,255,255,.18); }
+    .mdt-nav .end { margin-left:auto; }
+    .mdt-hdr :focus-visible { outline-color:#fff; }
+
+    .mdt-hero { background:var(--hero); padding:40px 0 48px; }
+    .hero-card { background:#fff; box-shadow:var(--card-shadow); display:grid; grid-template-columns:minmax(0,1fr) 400px; gap:40px; padding:27px 0 37px 39px; position:relative; }
+    .eyebrow { display:inline-flex; align-items:center; gap:8px; padding-bottom:14px; border-bottom:1px solid #b9b7cc; color:var(--navy); font-size:12px; font-weight:500; line-height:19.2px; letter-spacing:1.286px; text-transform:uppercase; }
+    .eyebrow svg { width:30px; height:30px; }
+    .crumbs { display:flex; gap:6px; align-items:center; font-size:14px; color:#656565; margin:18px 0 4px; flex-wrap:wrap; }
+    .crumbs a { color:#1010eb; text-decoration:none; } .crumbs a:hover { text-decoration:underline; }
+    .hero-card h1 { color:var(--navy); font-size:47px; line-height:56.4px; font-weight:700; letter-spacing:0; margin-top:4px; }
+    .hero-card .lead { color:var(--navy); font-size:16px; line-height:24px; margin-top:10px; max-width:64ch; }
+    .study-meta { display:flex; flex-wrap:wrap; gap:0; margin-top:22px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+    .study-meta div { padding:10px 16px 10px 0; margin-right:16px; border-right:1px solid var(--line); }
+    .study-meta div:last-child { border-right:0; margin-right:0; }
+    .study-meta dt { font-size:12px; color:#656565; }
+    .study-meta dd { font-size:15px; font-weight:500; color:var(--navy); margin-top:2px; white-space:nowrap; }
+    .study-meta dd small { font-weight:400; color:#656565; font-size:12px; margin-left:4px; }
+    .study-meta .lock dd { color:var(--warn); }
+    .arrowed { display:inline-flex; align-items:center; gap:8px; margin-top:22px; color:#1010eb; font-size:20px; line-height:32px; font-weight:500; text-decoration:none; }
+    .arrowed i { width:30px; height:30px; border-radius:50%; background:#1010eb; display:grid; place-items:center; transition:transform .15s ease-out; }
+    .arrowed i svg { width:14px; height:12px; }
+    .arrowed:hover i { transform:translateX(3px); }
+    .hero-media { position:relative; margin:24px -51px -14px 0; }
+    .hero-media img { width:100%; height:100%; min-height:300px; max-height:330px; object-fit:cover; object-position:center 25%; border-radius:20px; display:block; }
+
+    .runas { margin-top:24px; background:#fff; box-shadow:var(--card-shadow); border:0; padding:16px 39px 18px; display:grid; grid-template-columns:auto minmax(0,1fr) minmax(0,1.2fr) auto; gap:10px 20px; align-items:end; }
+    .runas legend { float:left; grid-column:1; align-self:center; font-size:16px; font-weight:700; color:var(--navy); padding:0; }
+    .runas label { display:grid; gap:4px; font-size:12px; color:#656565; }
+    .runas input { height:40px; border:1px solid #b9b7cc; border-radius:4px; padding:0 12px; font-size:15px; color:var(--ink); background:#fff; }
+    .runas input:focus-visible { outline:2px solid #1010eb; outline-offset:0; border-color:#1010eb; }
+    .runas .save { height:40px; padding:0 22px; border-radius:100px; border:1.5px solid #1010eb; background:#fff; color:#1010eb; font-size:15px; font-weight:500; cursor:pointer; }
+    .runas .save:hover { background:#e6f1ff; }
+    .runas .status { grid-column:2 / -1; font-size:13px; color:#656565; min-height:18px; }
+    .runas .status.ok { color:var(--ok); } .runas .status.err { color:var(--fail); }
+
+    /* cards follow medtronic.com: square corners, soft drop shadow */
+    .work, .secondary { max-width:var(--wrap); margin:0 auto; padding:32px 64px 0; gap:24px; }
+    .work { grid-template-columns:400px minmax(0,1fr); }
+    .col { gap:24px; }
+    .panel { border:0; border-radius:0; box-shadow:var(--card-shadow); }
+    .panel-h { padding:16px 20px 13px; }
+    .panel-h h2, .run-top h2 { font-size:20px; font-weight:700; color:var(--navy); letter-spacing:0; }
+    .panel-h span { font-size:13px; }
+    .btn { height:44px; padding:0 26px; border-radius:100px; border:0; background:#1010eb; font-weight:500; font-size:16px; }
+    .btn:hover { background:#0b0bb8; }
+    .batch b { font-size:14px; color:var(--navy); }
+    .batch:has(input:checked) { background:#e6f1ff; }
+    .panel-f a, .records-f a { color:#1010eb; }
+    .log { border-radius:0; background:#14103a; color:#c9c6e6; border-color:#14103a; }
+    .log div span { color:#7d78b0; }
+    .result-box { border-radius:0; }
+    .audit .sig { color:#1010eb; }
+    .stg h3 { font-size:14px; color:var(--navy); }
+
+    .mdt-foot { background:#1e1e1e; color:rgba(255,255,255,.96); margin-top:56px; font-size:14px; line-height:22px; }
+    .mdt-foot a { color:rgba(255,255,255,.96); text-decoration:none; }
+    .mdt-foot a:hover { text-decoration:underline; }
+    .foot-links { display:grid; grid-template-columns:repeat(3, minmax(0, 328px)); gap:27px 0; padding:58px 0 40px; list-style:none; }
+    .foot-links li { max-width:300px; }
+    .foot-mid { border-top:1px solid #4b4b4b; border-bottom:1px solid #4b4b4b; display:flex; align-items:center; gap:40px 56px; padding:28px 0 18px; flex-wrap:wrap; }
+    .foot-logo { margin-right:auto; display:grid; gap:2px; }
+    .foot-logo img { height:32px; width:auto; filter:brightness(0) invert(1); }
+    .foot-logo span { font-size:16px; line-height:20px; }
+    .foot-legal { display:flex; gap:56px; flex-wrap:wrap; }
+    .foot-legal a { font-weight:500; }
+    .foot-bot { display:flex; justify-content:space-between; gap:12px 32px; flex-wrap:wrap; padding:28px 0 40px; }
+    .foot-bot b { font-weight:500; }
+    .foot-bot .r { display:flex; gap:28px; }
+    .demo-note { color:rgba(255,255,255,.6); font-size:12px; padding-bottom:28px; }
+
+    @media (max-width:1240px) { .wrap, .work, .secondary { padding-left:32px; padding-right:32px; } .mdt-nav { gap:36px; } .hero-card { grid-template-columns:minmax(0,1fr) 320px; } }
+    @media (max-width:1060px) {
+      .work, .secondary { grid-template-columns:minmax(0,1fr); }
+      .mdt-loc { display:none; }
+      .mdt-nav { overflow-x:auto; scrollbar-width:none; gap:28px; }
+      .mdt-nav::-webkit-scrollbar { display:none; }
+      .hero-card { grid-template-columns:1fr; padding-right:39px; }
+      .hero-media { display:none; }
+      .runas { grid-template-columns:1fr 1fr; }
+      .runas legend { grid-column:1 / -1; float:none; }
+      .runas .status { grid-column:1 / -1; }
+    }
+    @media (max-width:720px) {
+      .wrap, .work, .secondary { padding-left:16px; padding-right:16px; }
+      .mdt-top { height:64px; gap:12px; }
+      .mdt-search { width:auto; flex:1 1 0; min-width:0; }
+      .panel-h, .inbox-note { flex-wrap:wrap; }
+      .mdt-search select { display:none; }
+      .mdt-search input { padding:0 14px; font-size:15px; }
+      .mdt-nav { height:50px; }
+      .mdt-hero { padding:20px 0 28px; }
+      .hero-card { padding:20px 18px 24px; }
+      .hero-card h1 { font-size:32px; line-height:38px; }
+      .study-meta div { padding-right:14px; margin-right:14px; }
+      .runas { grid-template-columns:1fr; padding:16px 18px; }
+      .runas .save { width:100%; }
+      .foot-links { grid-template-columns:1fr; padding-top:36px; }
+      .foot-legal { gap:16px 28px; }
+    }
+    @media (max-width:420px) { .mdt-logo img { height:22px; } .study-meta dd { white-space:normal; } }
+  </style>
+</head>
+<body>
+  <header class="mdt-hdr">
+    <div class="wrap">
+      <div class="mdt-top">
+        <a class="mdt-logo" href="#" aria-label="Medtronic Clinical Data Hub home"><img src="https://www.cloudpay.com/app/uploads/2024/11/Medtronic_logo.svg" alt="Medtronic" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="txt">Medtronic</span></a>
+        <form class="mdt-search" role="search" onsubmit="return false">
+          <select aria-label="Search within"><option>Search within</option><option>Studies</option><option>Sites</option><option>Subjects</option><option>Lab batches</option></select>
+          <input type="search" placeholder="Search subjects, sites, batches" aria-label="Search the clinical data hub">
+          <button type="submit" aria-label="Search"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="6"/><path d="m13 13 5 5"/></svg></button>
+        </form>
+        <span class="mdt-loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 22s7-6.6 7-12.2A7 7 0 0 0 5 9.8C5 15.4 12 22 12 22z"/><circle cx="12" cy="9.6" r="2.6"/></svg><span id="userChip">Clinical Data Management</span></span>
+      </div>
+      <nav class="mdt-nav" aria-label="Clinical data hub">
+        <a href="#">Clinical Studies</a>
+        <a href="#">Sites</a>
+        <a href="#">Subjects</a>
+        <a href="#" aria-current="page">Lab Data</a>
+        <a href="#">Queries<span class="count" data-query-count>9</span></a>
+        <a href="#">Audit Trail</a>
+        <a href="#" class="end">Contact Us</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="mdt-hero">
+    <div class="wrap">
+      <div class="hero-card">
+        <div>
+          <span class="eyebrow"><svg viewBox="0 0 30 30" fill="none" stroke="#170f5f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4h6M13.5 4v7L7 22.5A2.3 2.3 0 0 0 9 26h12a2.3 2.3 0 0 0 2-3.5L16.5 11V4"/><path d="M9.5 19h11"/></svg>Clinical data operations</span>
+          <nav class="crumbs" aria-label="Breadcrumb"><a href="#">Clinical Studies</a><span aria-hidden="true">/</span><a href="#">MDT-DM-301</a><span aria-hidden="true">/</span><a href="#">Lab Data</a><span aria-hidden="true">/</span><span>Central lab ingest</span></nav>
+          <h1>Central lab ingest</h1>
+          <p class="lead">Load each site's Meridian Central Labs transfer file into the study warehouse. Results are converted to the study standard unit and checked against protocol reference ranges before they reach the clinical database.</p>
+          <dl class="study-meta" aria-label="Study summary">
+            <div><dt>Study</dt><dd>MDT-DM-301</dd></div>
+            <div><dt>Indication</dt><dd>Type 2 diabetes<small>pivotal</small></dd></div>
+            <div><dt>Enrollment</dt><dd>1,186<small>of 1,200</small></dd></div>
+            <div><dt>Sites</dt><dd>42<small>active</small></dd></div>
+            <div class="lock"><dt>Interim lock</dt><dd>13 Nov 2026<small>11 days</small></dd></div>
+          </dl>
+          <a class="arrowed" href="#">View study protocol <i aria-hidden="true"><svg viewBox="0 0 14 12" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6h12M8 1l5 5-5 5"/></svg></i></a>
+        </div>
+        <div class="hero-media"><img src="https://www.medtronic.com/content/dam/medtronic-wide/public/channel-configuration/adobe-target/corporate/images/hp-car-untapped-surgical-hplif.jpg" alt="A clinician prepares for a procedure" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1579154204601-01588f351e67?w=900&q=80'"></div>
+      </div>
+
+      <fieldset class="runas" id="runAs">
+        <legend>Run as</legend>
+        <label>Name<input id="presenterName" type="text" autocomplete="name" placeholder="Your name"></label>
+        <label>Devin email<input id="presenterEmail" type="email" autocomplete="email" placeholder="you@cognition.ai"></label>
+        <button type="button" class="save" id="saveIdentity">Save</button>
+        <span class="status" id="identityStatus" aria-live="polite">Runs, queries and audit entries are recorded under this name. The Devin session uses this email.</span>
+      </fieldset>
+    </div>
+  </section>
+
+  <main>
+    <div class="work">
+      <div class="col">
+        <form id="demoForm" class="panel" novalidate aria-labelledby="inboxTitle">
+          <div class="panel-h"><h2 id="inboxTitle">Transfer inbox</h2><span>Meridian Central Labs, spec v3.2</span></div>
+          <div class="inbox-note"><span>Visit 4 (Week 12), received overnight</span><span>sftp <code>mcl-drop/mdtdm301</code></span></div>
+          <ul class="batches" role="radiogroup" aria-label="Batches awaiting ingest">
+            <li class="batch">
+              <input type="radio" name="siteChoice" value="SITE-104" checked aria-label="SITE-104 Toronto Research Centre batch">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Toronto Research Centre</b><span class="site-id">SITE-104, Canada</span></span>
+              <span class="state">Awaiting ingest</span>
+              <span class="file">MCL_MDTDM301_S104_V4_20261101.csv</span>
+              <span class="meta"><span><em>Subjects</em> 3</span><span><em>Results</em> 3</span><span><em>Glucose</em> <span class="u">mmol/L</span></span><span><em>HbA1c</em> <span class="u">%</span></span></span>
+            </li>
+            <li class="batch">
+              <input type="radio" name="siteChoice" value="SITE-101" aria-label="SITE-101 Boston Clinical Unit batch">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Boston Clinical Unit</b><span class="site-id">SITE-101, United States</span></span>
+              <span class="state">Awaiting ingest</span>
+              <span class="file">MCL_MDTDM301_S101_V4_20261101.csv</span>
+              <span class="meta"><span><em>Subjects</em> 3</span><span><em>Results</em> 3</span><span><em>Glucose</em> <span class="u">mg/dL</span></span><span><em>HbA1c</em> <span class="u">%</span></span></span>
+            </li>
+            <li class="batch loaded" aria-disabled="true">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Chicago Metabolic Institute</b><span class="site-id">SITE-102, United States</span></span>
+              <span class="state">Loaded 07:42</span>
+              <span class="file">MCL_MDTDM301_S102_V4_20261101.csv</span>
+            </li>
+            <li class="batch loaded" aria-disabled="true">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="name"><b>Leeds Diabetes Centre</b><span class="site-id">SITE-117, United Kingdom</span></span>
+              <span class="state">Loaded 06:15</span>
+              <span class="file">MCL_MDTDM301_S117_V4_20261101.csv</span>
+            </li>
+          </ul>
+          <input type="hidden" id="siteId" value="SITE-104">
+          <dl class="detail" aria-label="Selected batch">
+            <dt>Batch</dt><dd id="kvBatch">SITE-104, visit 4 (week 12)</dd>
+            <dt>File</dt><dd><code id="kvFile">MCL_MDTDM301_S104_V4_20261101.csv</code></dd>
+            <dt>Checksum</dt><dd><code id="kvSum">sha256 9f3c…b17a, verified</code></dd>
+            <dt>Target</dt><dd><code>warehouse.lab_results</code></dd>
+            <dt>Audit</dt><dd>Run recorded under 21 CFR Part 11 with your user ID and UTC time</dd>
+          </dl>
+          <div class="act">
+            <button type="submit" class="btn" id="submitBtn"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8-5.2a.6.6 0 0 0 0-1l-8-5.2a.6.6 0 0 0-.9.5z"/></svg>Run ingest</button>
+            <p>Loads the selected batch through all five stages. Takes a few seconds.</p>
+          </div>
+        </form>
+
+        <section class="panel" aria-labelledby="sitesTitle">
+          <div class="panel-h"><h2 id="sitesTitle">Site data currency</h2><span>Visit 4 lab data</span></div>
+          <ul class="sites">
+            <li><span><b>Toronto Research Centre</b><small>SITE-104, 31 subjects</small></span><span class="pill warn">Batch pending</span></li>
+            <li><span><b>Boston Clinical Unit</b><small>SITE-101, 28 subjects</small></span><span class="pill warn">Batch pending</span></li>
+            <li><span><b>Chicago Metabolic Institute</b><small>SITE-102, 35 subjects</small></span><span class="pill ok">Current</span></li>
+            <li><span><b>Leeds Diabetes Centre</b><small>SITE-117, 24 subjects</small></span><span class="pill ok">Current</span></li>
+            <li><span><b>Montréal Clinical Trials</b><small>SITE-109, 22 subjects</small></span><span class="pill query">1 open query</span></li>
+            <li><span><b>Phoenix Endocrine Partners</b><small>SITE-121, 19 subjects</small></span><span class="pill info">Transfer due Tue</span></li>
+          </ul>
+          <div class="panel-f"><span>36 of 42 sites current for visit 4</span><a href="#">All sites</a></div>
+        </section>
+      </div>
+
+      <section class="panel" aria-labelledby="runTitle">
+        <div class="run-top">
+          <h2 id="runTitle">Ingest run</h2>
+          <span class="ref" id="runMeta">No run started</span>
+        </div>
+        <ol class="ledger" id="ledger" aria-label="Pipeline stages">
+          <li class="stg" data-stage="transfer"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Transfer file</h3><p data-default="Pull the vendor file from the SFTP drop and verify its checksum.">Pull the vendor file from the SFTP drop and verify its checksum.</p></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="parse"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Parse</h3><p data-default="Validate against spec v3.2 and map subject, visit and analyte codes.">Validate against spec v3.2 and map subject, visit and analyte codes.</p></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="normalize"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Normalize units</h3><p data-default="Convert every result to the study standard unit for its analyte.">Convert every result to the study standard unit for its analyte.</p><div class="stg-fail" id="stgFail"></div></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="ranges"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Reference ranges</h3><p data-default="Flag values outside the protocol range for medical review.">Flag values outside the protocol range for medical review.</p></div><span class="stg-time"></span></li>
+          <li class="stg" data-stage="warehouse"><span class="stg-mark" aria-hidden="true"><svg class="i-check" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-6"/></svg><svg class="i-x" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg></span><div><h3>Study warehouse</h3><p data-default="Commit the batch and write the audit trail entry.">Commit the batch and write the audit trail entry.</p></div><span class="stg-time"></span></li>
+        </ol>
+        <div class="log-h"><span>Run log</span><span id="logMeta">UTC</span></div>
+        <div class="log" id="log" aria-live="polite"><div><span>--:--:--</span>Select a batch in the transfer inbox and run the ingest.</div></div>
+        <div class="result-box" id="result" role="status"></div>
+        <div id="records"><div class="empty">Loaded records, with standard units and range flags, appear here once the batch commits.</div></div>
+      </section>
+    </div>
+
+    <div class="secondary">
+      <section class="panel hist" aria-labelledby="histTitle">
+        <div class="panel-h"><h2 id="histTitle">Recent runs</h2><span>Last 24 hours</span></div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Run</th><th>Site</th><th>Batch</th><th class="num c-rec">Records</th><th>Outcome</th><th>Run by</th></tr></thead>
+          <tbody>
+            <tr><td><span class="sub">RUN-20261102-0611</span></td><td>SITE-117 Leeds</td><td><span class="sub">LAB-7C2E19A4</span></td><td class="num c-rec">72</td><td class="st"><span class="pill ok">Committed</span></td><td class="who">Scheduled</td></tr>
+            <tr><td><span class="sub">RUN-20261102-0742</span></td><td>SITE-102 Chicago</td><td><span class="sub">LAB-3B90F1D2</span></td><td class="num c-rec">105</td><td class="st"><span class="pill ok">Committed</span></td><td class="who">Scheduled</td></tr>
+            <tr><td><span class="sub">RUN-20261101-1518</span></td><td>SITE-109 Montréal</td><td><span class="sub">LAB-A41D06E7</span></td><td class="num c-rec">66</td><td class="st"><span class="pill query">1 query raised</span></td><td class="who">P. Natarajan</td></tr>
+            <tr><td><span class="sub">RUN-20261101-0905</span></td><td>SITE-121 Phoenix</td><td><span class="sub">LAB-E8D2C530</span></td><td class="num c-rec">57</td><td class="st"><span class="pill ok">Committed</span></td><td class="who">R. Okonkwo</td></tr>
+          </tbody>
+        </table></div>
+        <div class="panel-f"><span>46 runs, 12,880 records loaded in the last 24 hours</span><a href="#">Run history</a></div>
+      </section>
+
+      <section class="panel" aria-labelledby="auditTitle">
+        <div class="panel-h"><h2 id="auditTitle">Audit trail</h2><span>21 CFR Part 11</span></div>
+        <ul class="audit" id="audit">
+          <li><time>02 Nov 07:42 UTC</time><b>Batch LAB-3B90F1D2 committed</b><small>Scheduled ingest, SITE-102, 105 records</small></li>
+          <li><time>02 Nov 06:11 UTC</time><b>Batch LAB-7C2E19A4 committed</b><small>Scheduled ingest, SITE-117, 72 records</small></li>
+          <li><time>01 Nov 16:03 UTC</time><b class="sig">Analyte mapping v3.2 e-signed</b><small>P. Natarajan, reason: vendor spec update</small></li>
+          <li><time>01 Nov 15:18 UTC</time><b>Query MDT-DM-301-Q0466 raised</b><small>SITE-109, glucose out of protocol range</small></li>
+        </ul>
+        <div class="panel-f"><span>Entries are immutable and time-stamped in UTC</span><a href="#">Full audit trail</a></div>
+      </section>
+    </div>
+
+  </main>
+
+  <footer class="mdt-foot">
+    <div class="wrap">
+      <ul class="foot-links">
+        <li><a href="#">Careers</a></li><li><a href="#">Order Products</a></li><li><a href="#">Product Security</a></li>
+        <li><a href="#">Contact &amp; Support</a></li><li><a href="#">Product Manuals</a></li><li><a href="#">Clinical Data Hub validation package</a></li>
+      </ul>
+      <div class="foot-mid">
+        <div class="foot-logo"><img src="https://www.cloudpay.com/app/uploads/2024/11/Medtronic_logo.svg" alt="Medtronic" onerror="this.style.display='none'"><span>Engineering the extraordinary</span></div>
+        <nav class="foot-legal" aria-label="Legal"><a href="#">Your Privacy Choices</a><a href="#">Privacy Notice</a><a href="#">Terms of Use</a><a href="#">Accessibility Statement</a></nav>
+      </div>
+      <div class="foot-bot">
+        <span><b>Operational Headquarters</b> 710 Medtronic Parkway, Minneapolis, MN 55432-5604 USA</span>
+        <span class="r"><span>Clinical Data Hub 7.4.2, GxP validated</span><b>&copy;2026 Medtronic</b></span>
+      </div>
+      <p class="demo-note">Demo environment. Study, sites and subjects are fictional; synthetic data only, no PHI.</p>
+    </div>
+  </footer>
+
+  <script>
+    const HC_ORG_ID = 'org-ad5cb75ed086403697e4d37f8411936e';
+    (function () {
+      const nameEl = document.getElementById('presenterName');
+      const emailEl = document.getElementById('presenterEmail');
+      const statusEl = document.getElementById('identityStatus');
+      function setStatus(text, cls) { statusEl.textContent = text; statusEl.className = 'status' + (cls ? ' ' + cls : ''); }
+      function showName() { const n = localStorage.getItem('devinName'); document.getElementById('userChip').textContent = n || 'Clinical Data Management'; }
+      nameEl.value = localStorage.getItem('devinName') || '';
+      emailEl.value = localStorage.getItem('devinEmail') || '';
+      showName();
+      const resolvedHere = localStorage.getItem('devinOrgId') === HC_ORG_ID && localStorage.getItem('devinUserId');
+      if (emailEl.value && resolvedHere) setStatus('Saved. Devin sessions will run as ' + emailEl.value + '.', 'ok');
+      else if (emailEl.value) setStatus('Saved as ' + (nameEl.value || emailEl.value) + '. Click Save to look up ' + emailEl.value + ' in HC-GTM-AD.');
+      window.saveIdentity = function () {
+        const name = nameEl.value.trim();
+        const email = emailEl.value.trim();
+        localStorage.setItem('devinName', name);
+        localStorage.setItem('devinEmail', email);
+        localStorage.setItem('devinOrgId', HC_ORG_ID);
+        localStorage.removeItem('devinUserId');
+        showName();
+        if (!email) { setStatus(name ? 'Saved as ' + name + '. Add your Devin email so the session runs as you.' : 'Enter your name and Devin email.'); return Promise.resolve(); }
+        setStatus('Looking up ' + email + '\u2026');
+        return fetch('/api/resolve-identity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orgId: HC_ORG_ID, email: email }) })
+          .then((r) => r.json().then((p) => ({ ok: r.ok, p: p })))
+          .then((res) => {
+            if (!res.ok || !res.p.userId) { setStatus((res.p && res.p.error) || 'Could not find ' + email + ' in the HC-GTM-AD org.', 'err'); return; }
+            localStorage.setItem('devinUserId', res.p.userId);
+            setStatus('Saved. Devin sessions will run as ' + email + '.', 'ok');
+          })
+          .catch(() => setStatus('Could not look up ' + email + ' right now. Saved your name; try again shortly.', 'err'));
+      };
+      document.getElementById('saveIdentity').addEventListener('click', window.saveIdentity);
+      [nameEl, emailEl].forEach((el) => el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); window.saveIdentity(); } }));
+    })();
+    function presenter() { return localStorage.getItem('devinName') || 'Clinical data manager'; }
+  </script>
+  <script>
+    const CTA = 'Run ingest';
+    const BATCHES = {
+      'SITE-104': { file: 'MCL_MDTDM301_S104_V4_20261101.csv', sum: 'sha256 9f3c…b17a, verified', label: 'SITE-104, visit 4 (week 12)', glucoseUnit: 'mmol/L' },
+      'SITE-101': { file: 'MCL_MDTDM301_S101_V4_20261101.csv', sum: 'sha256 41e8…0c5d, verified', label: 'SITE-101, visit 4 (week 12)', glucoseUnit: 'mg/dL' },
+    };
+    const ANALYTES = { glucose: { name: 'Glucose, fasting', range: '70–180 mg/dL' }, hba1c: { name: 'HbA1c', range: '4.0–9.0 %' }, creatinine: { name: 'Creatinine', range: '0.50–1.30 mg/dL' } };
+    const STAGES = ['transfer', 'parse', 'normalize', 'ranges', 'warehouse'];
+    const result = document.getElementById('result');
+    const log = document.getElementById('log');
+    const btn = document.getElementById('submitBtn');
+    const runMeta = document.getElementById('runMeta');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
+    let runNo = 0, stageStart = 0, queryNo = 471;
+
+    function devinFields() {
+      return { devinUserId: localStorage.getItem('devinOrgId') === HC_ORG_ID ? (localStorage.getItem('devinUserId') || '') : '', devinOrgId: HC_ORG_ID, devinEmail: localStorage.getItem('devinEmail') || '', devinName: localStorage.getItem('devinName') || '' };
+    }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function ts() { return new Date().toLocaleTimeString('en-GB', { hour12: false, timeZone: 'UTC' }); }
+    function line(text, cls) { const d = document.createElement('div'); d.innerHTML = '<span>' + ts() + '</span>' + (cls ? '<b class="' + cls + '">' : '<b>') + esc(text) + '</b>'; log.appendChild(d); log.scrollTop = log.scrollHeight; }
+    function stageEl(name) { return document.querySelector('.stg[data-stage="' + name + '"]'); }
+    function elapsed() { const s = ((performance.now() - stageStart) / 1000); return s.toFixed(2) + ' s'; }
+    function stage(name, state, text) {
+      const el = stageEl(name);
+      el.className = 'stg' + (state ? ' ' + state : '');
+      const time = el.querySelector('.stg-time');
+      if (state === 'active') { stageStart = performance.now(); time.textContent = 'running'; }
+      else if (state === 'done') time.textContent = elapsed();
+      else if (state === 'failed') time.textContent = 'failed';
+      else time.textContent = '';
+      if (text) el.querySelector('p').textContent = text;
+    }
+    function resetRun() {
+      STAGES.forEach((s) => { stage(s, ''); const p = stageEl(s).querySelector('p'); p.textContent = p.dataset.default; });
+      document.getElementById('stgFail').innerHTML = '';
+      log.innerHTML = '';
+      result.className = 'result-box'; result.innerHTML = '';
+      document.getElementById('records').innerHTML = '<div class="empty">Loaded records, with standard units and range flags, appear here once the batch commits.</div>';
+      runMeta.className = 'ref live'; 
+    }
+    function syncBatch(site) {
+      const b = BATCHES[site];
+      document.getElementById('siteId').value = site;
+      document.getElementById('kvFile').textContent = b.file;
+      document.getElementById('kvSum').textContent = b.sum;
+      document.getElementById('kvBatch').textContent = b.label;
+    }
+    document.querySelectorAll('input[name=siteChoice]').forEach((r) => r.addEventListener('change', () => syncBatch(r.value)));
+    function buildPayload() { return { siteId: document.getElementById('siteId').value }; }
+    function runRef() { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return 'RUN-' + d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + '-' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + p(d.getUTCSeconds()); }
+    function addAudit(title, detail, signed) {
+      const li = document.createElement('li');
+      li.innerHTML = '<time>' + esc(new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' }).replace(',', '')) + ' UTC</time><b' + (signed ? ' class="sig"' : '') + '>' + esc(title) + '</b><small>' + esc(detail) + '</small>';
+      document.getElementById('audit').prepend(li);
+    }
+    let loadedSite = '';
+    function renderRecords(d) {
+      loadedSite = d.siteId || document.getElementById('siteId').value;
+      const rows = d.records.map((r, i) => {
+        const a = ANALYTES[r.analyte] || { name: r.analyte, range: '' };
+        const out = r.flag !== 'ok';
+        return '<tr class="' + (out ? 'out' : '') + '" data-row="' + i + '"><td><span class="sub">' + esc(r.subject) + '</span></td><td>' + esc(a.name) + '</td><td class="num"><b>' + esc(r.value) + '</b> ' + esc(r.unit) + '</td><td class="src c-src">' + esc(r.sourceUnit || r.unit) + (r.sourceUnit && r.sourceUnit !== r.unit ? ', converted' : ', as reported') + '</td><td class="src c-range">' + esc(a.range) + '</td><td><span class="pill ' + (out ? 'warn' : 'ok') + '">' + (out ? 'Out of range' : 'In range') + '</span></td><td><button type="button" class="qbtn" data-q="' + i + '" data-subject="' + esc(r.subject) + '" data-analyte="' + esc(a.name) + '" aria-pressed="false">Raise query</button></td></tr>';
+      }).join('');
+      document.getElementById('records').innerHTML =
+        '<div class="records-h"><h3>Loaded records</h3><span>' + d.records.length + ' results, ' + d.records.filter((r) => r.flag !== 'ok').length + ' out of range</span></div>' +
+        '<div class="tbl-wrap"><table class="tbl" aria-label="Loaded records"><thead><tr><th>Subject</th><th>Analyte</th><th class="num">Result, standard unit</th><th class="c-src">Source unit</th><th class="c-range">Reference range</th><th>Flag</th><th><span class="sr">Query</span></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+        '<div class="records-f"><span>Standard units: glucose mg/dL, HbA1c %, creatinine mg/dL. Reference ranges from protocol MDT-DM-301 v4.0.</span><span>Queries go to the site coordinator in the subject casebook.</span></div>';
+      document.querySelectorAll('.qbtn').forEach((q) => q.addEventListener('click', () => raiseQuery(q)));
+    }
+    function raiseQuery(q) {
+      if (q.getAttribute('aria-pressed') === 'true') return;
+      q.setAttribute('aria-pressed', 'true'); q.textContent = 'Query raised';
+      const id = 'MDT-DM-301-Q' + String(queryNo++).padStart(4, '0');
+      const tr = q.closest('tr');
+      const qr = document.createElement('tr'); qr.className = 'qrow';
+      qr.innerHTML = '<td colspan="7">Query <code>' + id + '</code> opened for ' + esc(q.dataset.subject) + ', ' + esc(q.dataset.analyte) + ': please confirm the reported value and collection time. Sent to the site coordinator.</td>';
+      tr.after(qr);
+      line('Query ' + id + ' raised for ' + q.dataset.subject + ' (' + q.dataset.analyte + ')', 'warn');
+      addAudit('Query ' + id + ' raised', (loadedSite || document.getElementById('siteId').value) + ', ' + q.dataset.subject + ', ' + q.dataset.analyte + ', by ' + presenter());
+      document.querySelectorAll('[data-query-count]').forEach((c) => { c.textContent = String(Number(c.textContent) + 1); });
+    }
+
+    document.getElementById('demoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const site = document.getElementById('siteId').value;
+      const b = BATCHES[site];
+      const ref = runRef();
+      btn.disabled = true; btn.textContent = 'Running ingest\u2026';
+      resetRun();
+      runNo += 1;
+      runMeta.classList.add('running'); runMeta.innerHTML = 'Running <code>' + esc(ref) + '</code> for ' + esc(site);
+      stage('transfer', 'active'); line('Run ' + ref + ' started by ' + presenter() + ' for ' + site + ', visit 4');
+      line('Pulling ' + b.file + ' from sftp://mcl-drop/mdtdm301/');
+      await sleep(420); stage('transfer', 'done', 'File received, checksum verified.'); stage('parse', 'active'); line('Checksum verified, 3 subjects in file', 'ok');
+      await sleep(380); stage('parse', 'done', '3 subjects and 3 results mapped against spec v3.2.'); stage('normalize', 'active', 'Converting glucose (' + b.glucoseUnit + '), HbA1c (%) and creatinine (mg/dL) to study standard units\u2026'); line('Parsed 3 results: glucose, HbA1c, creatinine', 'ok'); line('Normalizing units to study standard\u2026');
+      try {
+        const res = await fetch("/api/afd8d03a/ingest", {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign(buildPayload(), devinFields())),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const code = data.code || 'LAB_INGEST_FAILED';
+          const reqId = data.requestId || ref;
+          stage('normalize', 'failed', 'Stopped: a result could not be converted to the study standard unit.');
+          document.getElementById('stgFail').innerHTML = '<b>Batch rolled back.</b> Nothing was written to <code>warehouse.lab_results</code>. Reference ranges and commit did not run.';
+          runMeta.className = 'ref live failed'; runMeta.innerHTML = 'Failed at normalize units, <code>' + esc(ref) + '</code>';
+          line('Stage normalize failed: no unit conversion available for one or more results (' + code + ')', 'err');
+          line('Batch rolled back. 0 rows written to warehouse.lab_results.', 'warn');
+          line('Incident opened automatically, reference ' + reqId, 'warn');
+          result.className = 'result-box error';
+          result.innerHTML =
+            '<div class="result-title"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.25"/><path d="M8 4.8v3.9M8 11.2v.1"/></svg>Batch not loaded. Ingest stopped at normalize units.</div>' +
+            '<p>One or more results from ' + esc(site) + ' could not be converted to the study standard unit, so the run stopped and the whole batch was rolled back. No results from this file reached the study warehouse or the clinical database. Our engineering team has been notified automatically and the on-call data engineer has this reference.</p>' +
+            '<dl class="result-kv"><div><dt>Reference</dt><dd><code>' + esc(reqId) + '</code></dd></div><div><dt>Error code</dt><dd><code>' + esc(code) + '</code></dd></div><div><dt>Run</dt><dd><code>' + esc(ref) + '</code></dd></div><div><dt>Rows written</dt><dd>0</dd></div></dl>' +
+            '<div class="result-part11"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span>The failed attempt is recorded in the audit trail. The batch stays in the inbox and can be rerun once the conversion is in place.</span></div>';
+          addAudit('Ingest ' + ref + ' failed, batch rolled back', site + ', ' + code + ', reference ' + reqId + ', by ' + presenter());
+        } else {
+          const converted = data.records.filter((r) => r.sourceUnit && r.sourceUnit !== r.unit).length;
+          stage('normalize', 'done', data.records.length + ' results in study standard units' + (converted ? ', ' + converted + ' converted.' : ', no conversion needed.')); stage('ranges', 'active'); line('Converted ' + data.records.length + ' results to standard units', 'ok');
+          await sleep(340);
+          const out = data.records.filter((r) => r.flag !== 'ok').length;
+          stage('ranges', 'done', out ? out + ' value' + (out === 1 ? '' : 's') + ' outside the protocol range, flagged for review.' : 'All ' + data.records.length + ' values inside the protocol range.'); stage('warehouse', 'active');
+          line('Reference ranges applied: ' + out + ' out-of-range value' + (out === 1 ? '' : 's') + ' flagged', out ? 'warn' : 'ok');
+          await sleep(360);
+          stage('warehouse', 'done', 'Batch ' + data.batchId + ' committed, audit entry written.');
+          line('Committed batch ' + data.batchId + ' to warehouse.lab_results (' + data.records.length + ' rows)', 'ok');
+          line('Audit entry written, ' + ref, 'ok');
+          runMeta.className = 'ref live done'; runMeta.innerHTML = 'Completed ' + ts() + ' UTC, <code>' + esc(ref) + '</code>';
+          result.className = 'result-box success';
+          result.innerHTML =
+            '<div class="result-title"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.25"/><path d="M5 8.2l2 2 4-4.4"/></svg>Loaded ' + data.records.length + ' records from ' + esc(data.site || site) + '</div>' +
+            '<p>Batch committed to the study warehouse. ' + (out ? out + ' value' + (out === 1 ? ' is' : 's are') + ' outside the protocol range and ready for a query.' : 'All values are inside the protocol range.') + '</p>' +
+            '<dl class="result-kv"><div><dt>Batch</dt><dd><code>' + esc(data.batchId) + '</code></dd></div><div><dt>Run</dt><dd><code>' + esc(ref) + '</code></dd></div><div><dt>Rows written</dt><dd>' + data.records.length + '</dd></div><div><dt>Site data</dt><dd>Current for visit 4</dd></div></dl>' +
+            '<div class="result-part11"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span>Audit entry recorded under 21 CFR Part 11: user ' + esc(presenter()) + ', ' + ts() + ' UTC, reason "scheduled visit 4 transfer".</span></div>';
+          renderRecords(data);
+          (function markLoaded() {
+            const row = document.querySelector('input[name=siteChoice][value="' + site + '"]');
+            if (row && row.parentElement) {
+              const st = row.parentElement.querySelector('.state'); if (st) { st.textContent = 'Loaded ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }); st.classList.add('loaded'); }
+              row.disabled = true; row.checked = false; row.parentElement.classList.add('loaded');
+              const next = document.querySelector('input[name=siteChoice]:not(:disabled)');
+              if (next) { next.checked = true; syncBatch(next.value); }
+            }
+            document.querySelectorAll('.pill.warn').forEach((pill) => { const li = pill.closest('li'); if (li && li.textContent.indexOf(site) !== -1) { pill.textContent = 'Current'; pill.className = 'pill ok'; } });
+          })();
+          addAudit('Batch ' + data.batchId + ' committed', site + ', ' + data.records.length + ' records, run ' + ref + ', by ' + presenter());
+        }
+      } catch (err) {
+        stage('normalize', 'failed', 'Stopped: the data hub could not reach the ingest service.');
+        runMeta.className = 'ref live failed'; runMeta.textContent = 'Run did not complete';
+        line('Ingest service unreachable. Batch left in the inbox.', 'err');
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">Batch not loaded. The ingest service did not respond.</div><p>Check your connection and run the ingest again. The batch stays in the transfer inbox and nothing was written to the warehouse.</p>';
+      } finally {
+        const pending = document.querySelector('input[name=siteChoice]:not(:disabled)');
+        if (!pending) { btn.disabled = true; btn.textContent = 'No batches awaiting ingest'; return; }
+        btn.disabled = false; btn.textContent = CTA; btn.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8-5.2a.6.6 0 0 0 0-1l-8-5.2a.6.6 0 0 0-.9.5z"/></svg>'); }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
