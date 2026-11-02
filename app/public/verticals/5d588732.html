@@ -250,7 +250,7 @@
               </div>
             </div>
             <div class="form-group">
-              <label class="f" for="description">Damage to your vehicle</label>
+              <label class="f" for="description" id="descriptionLabel">Damage to your vehicle</label>
               <input type="text" id="description" value="Rear bumper and boot lid damaged when another car reversed into me in a car park" maxlength="200">
               <div class="hint">You can add photos and repair quotes in MyAviva after you submit.</div>
             </div>
@@ -333,6 +333,15 @@
     policySelect.addEventListener('change', syncPolicy);
     syncPolicy();
 
+    var claimTypeSelect = document.getElementById('claimType');
+    function describeWhat() {
+      return claimTypeSelect.value === 'liability' ? 'the damage to the other property' : 'the damage to your vehicle';
+    }
+    claimTypeSelect.addEventListener('change', function () {
+      document.getElementById('descriptionLabel').textContent =
+        claimTypeSelect.value === 'liability' ? 'What was damaged' : 'Damage to your vehicle';
+    });
+
     document.getElementById('claimForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       var btn = document.getElementById('submitBtn');
@@ -343,7 +352,7 @@
       var description = document.getElementById('description').value.trim();
       formError.textContent = '';
       if (!(amount > 0)) { formError.textContent = 'Enter the estimated cost of the damage.'; return; }
-      if (!description) { formError.textContent = 'Tell us about the damage to your vehicle.'; return; }
+      if (!description) { formError.textContent = 'Tell us about ' + describeWhat() + '.'; return; }
       if (!document.getElementById('attest').checked) { formError.textContent = 'Please confirm the information is true and complete.'; return; }
 
       var started = Date.now();
@@ -361,7 +370,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             policyId: policySelect.value,
-            claimType: document.getElementById('claimType').value,
+            claimType: claimTypeSelect.value,
             amount: parseFloat(document.getElementById('amount').value),
             description: description,
             devinUserId: localStorage.getItem('devinUserId') || '',
