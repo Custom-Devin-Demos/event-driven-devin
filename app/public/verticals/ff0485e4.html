@@ -717,14 +717,36 @@
     document.querySelectorAll('input[name=doc]').forEach((c) => c.addEventListener('change', syncReview));
     document.getElementById('menuBtn').addEventListener('click', (e) => { const open = document.getElementById('rail').classList.toggle('open'); e.currentTarget.setAttribute('aria-expanded', String(open)); });
     document.getElementById('resetBtn').addEventListener('click', () => {
-      form.reset(); pos.value = '22'; clearResult(); syncMember(); syncPolicy(); syncReview();
+      form.reset(); pos.value = '22'; applyDraft(loadDraft()); clearResult(); syncMember(); syncPolicy(); syncReview(); syncAttest();
       setPath({ meta: 'Not yet submitted', t2: "The procedure and site of care are matched against Summit's medical policy.", t3: 'Issued instantly when criteria are met, otherwise within the urgency window after nurse review.' });
     });
     syncMember(); syncPolicy(); syncReview();
 
     const attest = document.getElementById('attest');
-    attest.addEventListener('change', () => { btn.disabled = !attest.checked; btn.title = attest.checked ? '' : 'Check the attestation to submit'; });
-    document.getElementById('saveLaterBtn').addEventListener('click', (e) => { const t = e.currentTarget; const old = t.textContent; t.textContent = 'Draft AR-26-118834 saved'; t.disabled = true; setTimeout(() => { t.textContent = old; t.disabled = false; }, 2200); });
+    function syncAttest() { btn.disabled = !attest.checked; btn.title = attest.checked ? '' : 'Check the attestation to submit'; }
+    attest.addEventListener('change', syncAttest);
+    const DRAFT_KEY = 'ff0485e4-draft';
+    const DRAFT_TTL_MS = 60 * 60 * 1000;
+    function snapshot() {
+      return { at: Date.now(), memberId: memberSel.value, cpt: cptSel.value, pos: pos.value, dx: dx.value, urgency: (document.querySelector('input[name=urgency]:checked') || {}).value, docs: Array.from(document.querySelectorAll('input[name=doc]:checked')).map((c) => c.value), attest: attest.checked };
+    }
+    function loadDraft() { try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY)); return d && Date.now() - d.at < DRAFT_TTL_MS ? d : null; } catch (_e) { return null; } }
+    function applyDraft(d) {
+      if (!d) return false;
+      memberSel.value = d.memberId; cptSel.value = d.cpt; pos.value = d.pos; dx.value = d.dx;
+      const pr = document.querySelector('input[name=posPick][value="' + d.pos + '"]'); if (pr) pr.checked = true;
+      const ur = document.querySelector('input[name=urgency][value="' + d.urgency + '"]'); if (ur) ur.checked = true;
+      document.querySelectorAll('input[name=doc]').forEach((c) => { c.checked = d.docs.indexOf(c.value) !== -1; });
+      attest.checked = !!d.attest;
+      return true;
+    }
+    document.getElementById('saveLaterBtn').addEventListener('click', (e) => {
+      const t = e.currentTarget; const old = t.textContent;
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(snapshot())); } catch (_e) { t.textContent = 'Draft could not be saved in this browser'; setTimeout(() => { t.textContent = old; }, 2600); return; }
+      t.textContent = 'Draft AR-26-118834 saved'; t.disabled = true; setTimeout(() => { t.textContent = old; t.disabled = false; }, 2200);
+    });
+    if (applyDraft(loadDraft())) { syncMember(); syncPolicy(); syncReview(); }
+    syncAttest();
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!attest.checked) { attest.focus(); return; }
