@@ -7544,8 +7544,8 @@ const ONCALL_SKINS = {
       ].join('\n'),
     },
     alertCard: {
-      title: 'p95 latency — WCAS Investor Portal: capital call funding',
-      service: 'investor-portal-payments',
+      title: 'p95 latency — Investor Portal: capital call funding',
+      service: 'banking-api',
       release: 'investor-portal-payments@2026.11.1',
       metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
       metricValue: '9.3s',

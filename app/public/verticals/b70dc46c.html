@@ -40,6 +40,7 @@
     td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
     .tag { display: inline-block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: var(--pale); }
     .tag.due { background: #F3EBDD; color: #6B5422; }
+    .tag.paid { background: #E3EFE6; color: #24563A; }
     .table-wrap { overflow-x: auto; }
     .field { margin-bottom: 20px; }
     .field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--soft); margin-bottom: 8px; }
@@ -102,7 +103,7 @@
       <div><b>$10.0M</b><span>Total commitment</span></div>
       <div><b>$6.4M</b><span>Contributed to date</span></div>
       <div><b>$3.6M</b><span>Unfunded commitment</span></div>
-      <div><b>2</b><span>Open notices</span></div>
+      <div><b id="openCount">2</b><span>Open notices</span></div>
     </div>
   </section>
 
@@ -116,8 +117,8 @@
           <table>
             <thead><tr><th>Fund</th><th>Notice</th><th class="hide-s">Due</th><th class="num">Amount due</th><th>Status</th></tr></thead>
             <tbody>
-              <tr><td>WCAS XIV, L.P.</td><td>Call No. 9</td><td class="hide-s">Nov 13, 2026</td><td class="num">$62,500.00</td><td><span class="tag due">Due</span></td></tr>
-              <tr><td>WCAS XIII, L.P.</td><td>Call No. 17</td><td class="hide-s">Nov 20, 2026</td><td class="num">$28,750.00</td><td><span class="tag">Open</span></td></tr>
+              <tr><td>WCAS XIV, L.P.</td><td>Call No. 9</td><td class="hide-s">Nov 13, 2026</td><td class="num">$62,500.00</td><td><span class="tag due" data-notice-status="WCAS-XIV-CC09">Due</span></td></tr>
+              <tr><td>WCAS XIII, L.P.</td><td>Call No. 17</td><td class="hide-s">Nov 20, 2026</td><td class="num">$28,750.00</td><td><span class="tag" data-notice-status="WCAS-XIII-CC17">Open</span></td></tr>
             </tbody>
           </table>
         </div>
@@ -215,6 +216,7 @@
       const selected = (s) => s.options[s.selectedIndex];
       const feeCents = (c) => Math.round(Math.max(FEE.rate * c, FEE.flat * 100));
       function dueCents() { if (!toAccount.value || funded[toAccount.value]) return 0; return Math.round(Number(selected(toAccount).dataset.due) * 100); }
+      function renderNotices() { const ids = Array.from(toAccount.options).map((o) => o.value).filter(Boolean); document.querySelectorAll('[data-notice-status]').forEach((el) => { if (funded[el.dataset.noticeStatus]) { el.className = 'tag paid'; el.textContent = 'Funded'; } }); document.getElementById('openCount').textContent = String(ids.filter((id) => !funded[id]).length); }
       function renderBalances() { document.querySelectorAll('[data-balance-for]').forEach((el) => { el.textContent = money.format(balances[el.dataset.balanceFor] || 0); }); }
       function render() {
         const cents = dueCents(); const fee = cents > 0 ? feeCents(cents) : 0;
@@ -289,6 +291,7 @@
           }
           balances[fromId] = Math.round(((balances[fromId] || 0) - debited) * 100) / 100;
           funded[toId] = true;
+          renderNotices();
           renderBalances();
           result.className = 'result-box success';
           result.textContent = `Funding submitted at ${at}. ${money.format(paid)} to ${toName} from ${fromName}; total debit ${money.format(debited)} including the processing fee. Reference ${data.receipt.receiptId}.`;
