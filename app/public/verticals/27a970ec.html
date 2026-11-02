@@ -687,6 +687,11 @@
             '<dl class="result-kv"><div><dt>Batch</dt><dd><code>' + esc(data.batchId) + '</code></dd></div><div><dt>Run</dt><dd><code>' + esc(ref) + '</code></dd></div><div><dt>Rows written</dt><dd>' + data.records.length + '</dd></div><div><dt>Site data</dt><dd>Current for visit 4</dd></div></dl>' +
             '<div class="result-part11"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span>Audit entry recorded under 21 CFR Part 11: user P. Natarajan, ' + ts() + ' UTC, reason "scheduled visit 4 transfer".</span></div>';
           renderRecords(data);
+          (function markLoaded() {
+            const row = document.querySelector('input[name=siteChoice][value="' + site + '"]');
+            if (row && row.parentElement) { const st = row.parentElement.querySelector('.state'); if (st) { st.textContent = 'Loaded ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }); st.classList.add('loaded'); } }
+            document.querySelectorAll('.pill.warn').forEach((pill) => { const li = pill.closest('li'); if (li && li.textContent.indexOf(site) !== -1) { pill.textContent = 'Current'; pill.className = 'pill ok'; } });
+          })();
           addAudit('Batch ' + data.batchId + ' committed', site + ', ' + data.records.length + ' records, run ' + ref + ', by P. Natarajan');
         }
       } catch (err) {

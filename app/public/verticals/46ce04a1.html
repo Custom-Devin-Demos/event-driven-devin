@@ -515,7 +515,7 @@
             <div role="row"><span role="cell">RxBIN</span><span role="cell"><b>610020</b></span></div>
             <div role="row"><span role="cell">RxPCN</span><span role="cell"><b>VELOXA</b></span></div>
             <div role="row"><span role="cell">RxGRP</span><span role="cell"><b>SAVE25</b></span></div>
-            <div role="row"><span role="cell">Cardholder ID</span><span role="cell">11 characters as printed on the card, no spaces</span></div>
+            <div role="row"><span role="cell">Cardholder ID</span><span role="cell">As printed on the card, with hyphens (for example VLX-5520-1187)</span></div>
             <div role="row"><span role="cell">Other Coverage Code</span><span role="cell"><b>08</b>, claim is billing for patient-pay amount</span></div>
             <div role="row"><span role="cell">Days supply</span><span role="cell">30 or 90 <span class="tag new">90-day fills new for 2026</span></span></div>
           </div>
@@ -527,21 +527,21 @@
 
   <section class="sec tint" aria-labelledby="trackTitle">
     <div class="wrap">
-      <div class="sec-head"><h2 id="trackTitle">Savings on file for this cardholder</h2><p class="lede">Jordan Rivera, VLX-5520-1187. Commercial plan, 2026 program year.</p></div>
+      <div class="sec-head"><h2 id="trackTitle">Savings on file for this cardholder</h2><p class="lede" id="trackLede">Jordan Rivera, VLX-5520-1187. Commercial plan, 2026 program year.</p></div>
       <div class="track-grid">
         <div class="panel">
           <h3>Program savings this year</h3>
           <div class="sub">Counts toward the $7,200 annual maximum</div>
           <div class="meter">
-            <div class="meter-top"><b>$1,200</b><span>used of $7,200</span></div>
-            <div class="meter-bar" role="img" aria-label="$1,200 of $7,200 used"><i></i></div>
-            <div class="meter-foot"><span>$6,000 remaining</span><span>Resets January 1, 2027</span></div>
+            <div class="meter-top"><b id="trackUsed">$1,200</b><span>used of $7,200</span></div>
+            <div class="meter-bar" role="img" aria-label="$1,200 of $7,200 used" id="trackBar"><i id="trackFill"></i></div>
+            <div class="meter-foot"><span id="trackLeft">$6,000 remaining</span><span>Resets January 1, 2027</span></div>
           </div>
         </div>
         <div class="panel">
           <h3>Recent fills</h3>
           <div class="sub">Walgreens #04417, Chicago, IL</div>
-          <ul class="fills">
+          <ul class="fills" id="trackFills">
             <li><div><b>Veloxa 30-day pen</b><small>Oct 9, 2026, 4 weekly doses</small></div><div class="amt"><b>Card paid $350.00</b><small>You paid $25.00</small></div></li>
             <li><div><b>Veloxa 30-day pen</b><small>Sep 11, 2026, 4 weekly doses</small></div><div class="amt"><b>Card paid $425.00</b><small>You paid $25.00</small></div></li>
             <li><div><b>Veloxa 30-day pen</b><small>Aug 14, 2026, 4 weekly doses</small></div><div class="amt"><b>Card paid $425.00</b><small>You paid $25.00</small></div></li>
@@ -723,6 +723,18 @@
       document.getElementById('productId').value = r.value; oop.value = PRODUCTS[r.value].oop; document.getElementById('ndc').value = PRODUCTS[r.value].ndc; resetReceipt();
     }));
     oop.addEventListener('input', resetReceipt); cardId.addEventListener('change', resetReceipt);
+    const FILLS = { 'VLX-5520-1187': [['Veloxa 30-day pen','Oct 9, 2026, 4 weekly doses','$350.00'],['Veloxa 30-day pen','Sep 11, 2026, 4 weekly doses','$425.00'],['Veloxa 30-day pen','Aug 14, 2026, 4 weekly doses','$425.00']], 'VLX-5520-2044': [] };
+    function syncTracker() {
+      const c = CARDS[cardId.value]; if (!c) return; const used = 7200 - c.remaining;
+      document.getElementById('trackLede').textContent = c.name + ', ' + cardId.value + '. Commercial plan, 2026 program year.';
+      document.getElementById('trackUsed').textContent = usd(used).replace(/\.00$/, '');
+      document.getElementById('trackLeft').textContent = usd(c.remaining).replace(/\.00$/, '') + ' remaining';
+      document.getElementById('trackBar').setAttribute('aria-label', usd(used).replace(/\.00$/, '') + ' of $7,200 used');
+      document.getElementById('trackFill').style.width = Math.round(used / 7200 * 100) + '%';
+      const fills = FILLS[cardId.value] || [];
+      document.getElementById('trackFills').innerHTML = fills.length ? fills.map((f) => '<li><div><b>' + esc(f[0]) + '</b><small>' + esc(f[1]) + '</small></div><div class="amt"><b>Card paid ' + esc(f[2]) + '</b><small>You paid $25.00</small></div></li>').join('') : '<li><div><b>No fills yet this program year</b><small>The first claim will appear here once the card is used.</small></div></li>';
+    }
+    cardId.addEventListener('change', syncTracker); syncTracker();
     function buildPayload() {
       return { cardId: cardId.value, productId: document.getElementById('productId').value, pharmacy: document.getElementById('pharmacy').value, insuranceOutOfPocket: Number(oop.value) };
     }

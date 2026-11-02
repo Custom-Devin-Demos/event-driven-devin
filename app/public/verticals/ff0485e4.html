@@ -511,7 +511,7 @@
           <div class="actions">
             <button type="submit" class="btn" id="submitBtn">Submit for review</button>
             <button type="button" class="btn btn-2" id="resetBtn">Reset to saved draft</button>
-            <button type="button" class="btn btn-link">Save and finish later</button>
+            <button type="button" class="btn btn-link" id="saveLaterBtn">Save and finish later</button>
             <span class="note">Determination posts here and to your inbox.</span>
           </div>
         </form>
@@ -722,8 +722,12 @@
     });
     syncMember(); syncPolicy(); syncReview();
 
+    const attest = document.getElementById('attest');
+    attest.addEventListener('change', () => { btn.disabled = !attest.checked; btn.title = attest.checked ? '' : 'Check the attestation to submit'; });
+    document.getElementById('saveLaterBtn').addEventListener('click', (e) => { const t = e.currentTarget; const old = t.textContent; t.textContent = 'Draft AR-26-118834 saved'; t.disabled = true; setTimeout(() => { t.textContent = old; t.disabled = false; }, 2200); });
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!attest.checked) { attest.focus(); return; }
       btn.disabled = true; btn.textContent = 'Checking clinical criteria\u2026';
       clearResult();
       setPath({ s2: 'active', meta: 'Submitted ' + timeNow() + ', checking criteria', t2: 'Looking up criteria for ' + cptSel.value + ' at ' + (POS_LABEL[pos.value] || pos.value).toLowerCase() + '.' });
