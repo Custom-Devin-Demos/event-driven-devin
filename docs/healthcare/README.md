@@ -77,13 +77,13 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 
 ## 4. Life Sciences — clinical-trial lab data pipeline (`/27a970ec`)
 
-**Trigger:** open `/27a970ec` → leave *SITE-104 — Toronto Research Centre* → **Run ingest**.
-**What you see:** “Ingest failed. The batch was not loaded” with error code `LAB_INGEST_FAILED` and a run reference; the run log says the normalize stage failed and the batch rolled back. The raw `TypeError … 'factor'` only appears in Sentry and the Slack alert card.
-**Contrast:** choose *Boston Clinical Unit (SITE-101)* — all five pipeline stages turn green and three records load into the study warehouse with range flags.
+**Trigger:** open `/27a970ec` → in the *Transfer inbox* leave *Toronto Research Centre (SITE-104)* selected → **Run ingest**.
+**What you see:** the *Ingest run* stage list stops red at **Normalize units** and the result reads “Batch not loaded. Ingest stopped at normalize units” with error code `LAB_INGEST_FAILED` and a reference; the run log says the normalize stage failed and the batch rolled back. The raw `TypeError … 'factor'` only appears in Sentry and the Slack alert card.
+**Contrast:** choose *Boston Clinical Unit (SITE-101)* in the inbox — all five stages turn green with timings, three records load into the study warehouse with range flags, and each row offers *Raise query*.
 
 **What Devin does next:** the alert points to `app/services/verticals/27a970ec.js — ingestBatch` with `site=SITE-104`. Devin sees the Toronto lab reports glucose in mmol/L (the Canadian unit) and the pipeline only knows how to convert mg/dL. It adds the mmol/L conversion (×18.016), adds a test and opens a PR.
 
-**Point at on screen:** the pipeline rail stopping red at **Normalize units**, and the run log line `Batch rolled back` → Slack card (`site: SITE-104`) → Devin session → PR.
+**Point at on screen:** the **Normalize units** stage turning red with its “Batch rolled back” note, the run log line `Batch rolled back. 0 rows written`, and the new *Audit trail* entry → Slack card (`site: SITE-104`) → Devin session → PR.
 
 **Talk track (2 min):**
 > “This is the data hub for a Phase III diabetes trial. Every day, lab results from each hospital site flow into the study database. The data manager runs today’s batch from the Toronto site and the whole batch fails. Those patients’ results don’t reach the study team — and with an interim data lock in eleven days, every day of missing data is a real problem.
