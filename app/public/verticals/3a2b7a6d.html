@@ -375,7 +375,7 @@
                 </ul>
                 <div class="cov">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
-                  <span class="what">Summit Health Plan Gold PPO<span>Member SHP-448210, verified today. Estimated copay $30.</span></span>
+                  <span class="what" id="covPlan">Summit Health Plan Gold PPO<span>Member SHP-448210, verified today. Estimated copay $30.</span></span>
                   <a href="#">Update coverage</a>
                 </div>
               </div>
@@ -391,7 +391,7 @@
             <div class="t-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><div><b id="sumWho">Dr. Amara Okafor</b><span id="sumSpec">Family medicine</span></div></div>
             <div class="t-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true" id="sumVisitIcon"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg><div><b id="sumVisit">Video visit, 20 minutes</b><span id="sumWhere">Join from the My Lakeshore app or the link we text you</span></div></div>
             <div class="t-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/><path d="M18 8h4M20 6v4"/></svg><div><b id="sumPatient">For Jordan Rivera</b><span>MRN ending 0482</span></div></div>
-            <div class="t-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/></svg><div><b>Estimated cost $30</b><span>Summit Health Plan Gold PPO copay</span></div></div>
+            <div class="t-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/></svg><div><b id="sumCost">Estimated cost $30</b><span>Summit Health Plan Gold PPO copay</span></div></div>
           </div>
           <button type="submit" class="btn" id="submitBtn" form="demoForm">Schedule appointment</button>
           <p class="fine">No charge to cancel or reschedule up to 2 hours before the visit.</p>
@@ -482,7 +482,10 @@
       'LH-201': { name: 'Dr. Amara Okafor', short: "Dr. Okafor's", specialty: 'Family medicine', site: 'Lakeshore Primary Care, 1801 Ridge Ave, Evanston', shortSite: 'Lakeshore Primary Care, Evanston', parking: 'Free parking in the Ridge garage.' },
       'LH-305': { name: 'Dr. Ben Castillo', short: "Dr. Castillo's", specialty: 'Endocrinology', site: 'Lakeshore Specialty Center, 55 E Monroe St, Chicago', shortSite: 'Lakeshore Specialty Center, Loop', parking: 'Validated parking at the Monroe garage.' },
     };
-    const PATIENTS = { 'MRN-100482': { name: 'Jordan Rivera', tail: '0482' }, 'MRN-100517': { name: 'Elena Brooks', tail: '0517' } };
+    const PATIENTS = {
+      'MRN-100482': { name: 'Jordan Rivera', tail: '0482', plan: 'Summit Health Plan Gold PPO', member: 'Member SHP-448210, verified today. Estimated copay $30.', cost: 'Estimated cost $30', costNote: 'Summit Health Plan Gold PPO copay' },
+      'MRN-100517': { name: 'Elena Brooks', tail: '0517', plan: 'Medicare Advantage', member: 'Member on file, verified today. Estimated copay $0.', cost: 'Estimated cost $0', costNote: 'Medicare Advantage, no copay for this visit' },
+    };
     const VISITS = {
       telehealth: { label: 'Video visit, 20 minutes', where: 'Join from the My Lakeshore app or the link we text you', icon: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/>' },
       'in-person': { label: 'In-person visit, 30 minutes', icon: '<path d="M4 21V9l8-5 8 5v12"/><path d="M10 21v-6h4v6"/><path d="M12 10v4M10 12h4"/>' },
@@ -512,6 +515,10 @@
       $('#sumVisitIcon').innerHTML = visit.icon;
       $('#sumPatient').textContent = 'For ' + pt.name;
       $('#sumPatient').nextElementSibling.textContent = 'MRN ending ' + pt.tail;
+      $('#covPlan').firstChild.textContent = pt.plan;
+      $('#covPlan').lastElementChild.textContent = pt.member;
+      $('#sumCost').textContent = pt.cost;
+      $('#sumCost').nextElementSibling.textContent = pt.costNote;
     }
     document.getElementById('demoForm').addEventListener('change', sync);
     sync();
