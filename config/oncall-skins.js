@@ -7454,6 +7454,13 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN AVIVA SITE — internal demo only, not affiliated with, endorsed by, or a real Aviva product.',
   },
+  '7535f4d4': {
+    slug: '7535f4d4',
+    company: 'Clal Insurance',
+    vertical: 'insurance',
+    page: { file: '7535f4d4.html', title: 'תביעות - כלל ביטוח' },
+    disclaimer: 'NOT ACTUALLY A CLAL INSURANCE SITE — internal demo only, not affiliated with, endorsed by, or a real Clal Insurance product.',
+  },
 };
 
 function getOncallSkin(slug) {
