@@ -7372,6 +7372,47 @@ const ONCALL_SKINS = {
     supportCenter: 'COMPANY お問い合わせ窓口',
     disclaimer: 'NOT ACTUALLY A WORKS HUMAN INTELLIGENCE SITE — internal demo only, not affiliated with, endorsed by, or a real Works Human Intelligence product.',
   },
+  'b77d601c': {
+    slug: 'b77d601c',
+    company: 'Vodafone',
+    brandMark: 'V',
+    vertical: 'telco',
+    alertDestination: 'slack',
+    page: { file: 'b77d601c.html', title: 'SIM only upgrade | Vodafone' },
+    theme: {
+      '--accent': '#E60000',
+      '--ink': '#0D0D0D',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0D0D0D',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Vodafone Customer Services',
+    devinSession: {
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Demo investigation requirements:',
+        '1. Reproduce the symptom in a browser on this machine against a local run of the repo, and time the request before any change. Never open or submit the live page on devindemos.com, and tell any testing agent the same: each live submit fires a new alert and starts another investigation.',
+        '2. Find every root cause from the code and telemetry: the slow request, and anything else the alert names (the impact line sometimes names a second problem, for example duplicate transfers from customers submitting again). Fix all of them; do not hunt for a second problem the alert does not name.',
+        '3. Add a regression test per root cause that fails before the fix and passes after it.',
+        '4. Record as much as you can; recordings are what the demo audience watches. At minimum three separate recordings: BEFORE on a local run of main (the real ~7s hang), AFTER on a local run of the fix branch (the fix is not deployed), and the regression test failing then passing. Same flow, same clicks, a visible timer in each.',
+        '5. Label every recording inside the recording tool, not only in the message that attaches it: a title naming the step and the customer action ("BEFORE: Confirm upgrade takes 7.4s", "AFTER: Confirm upgrade takes 0.9s", "REGRESSION TEST: fails before the fix, passes after"), one chapter per action, and one pass/fail check annotation stating what should happen and what did ("It should confirm in under 1.5s — failed: 7.4s"). The labels must be in the recording\'s *-annotations.json sidecar and burned into the edited video. A label that exists only in a PR comment, chat message, or filename does not count. In BEFORE recordings, word each check so it passes when the problem is reproduced ("Problem reproduced: Confirm upgrade takes 7.4s"), so no demo video shows a failed check; AFTER checks pass when the fix works.',
+        '6. Gate before posting: for every recording, open its *-annotations.json and confirm it has a title, at least one chapter, and a pass/fail check. If any is missing, re-annotate or re-record before embedding it anywhere. Never embed or post an unlabeled recording in the PR, the Slack thread, or the handover; list it as "missing: <step>" instead.',
+        '7. When you hand recording work to your testing agent, paste requirements 4, 5 and 6 verbatim into its prompt, and run the step-6 check on its deliverable before accepting it. Do not start child sessions; do all of the work in this session.',
+        '8. Open a PR with the investigation summary, the fix, the test, and every recording that passed step 6 embedded. Request Devin Review. Do not merge; stop for human approval.',
+        '9. Post one final message in the Slack alert thread with exactly three labeled lines: "Root cause:" (one plain sentence per cause), "PR review:" (https://devin-gtm.devinenterprise.com/review/COG-GTM/event-driven-devin/pull/<PR number>), "Videos:" (BEFORE, AFTER, REGRESSION TEST links; "missing" for any that failed step 6).',
+      ].join('\n'),
+    },
+    alertCard: {
+      title: 'p95 latency — My Vodafone: SIM only upgrade',
+      release: 'my-vodafone-upgrades@2026.11.1',
+      metricValue: '7.4s',
+      threshold: '> 1.5s',
+      baseline: '~300ms (7-day p95, before my-vodafone-upgrades@2026.11.1)',
+      symptom: 'SIM only upgrades in My Vodafone hang ~7s after the customer selects Confirm upgrade, before the confirmation is shown. Error rate is normal — the upgrade completes.',
+      impact: 'Vodafone customers wait ~7 seconds for a plan upgrade to confirm; some leave the page before it finishes and contact Vodafone Customer Services to check whether their plan changed.',
+    },
+    disclaimer: 'NOT ACTUALLY A VODAFONE SITE — internal demo only, not affiliated with, endorsed by, or a real Vodafone product.',
+  },
 };
 
 function getOncallSkin(slug) {
