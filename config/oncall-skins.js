@@ -7894,7 +7894,7 @@ const ONCALL_SKINS = {
     },
     alertCard: {
       title: '5xx rate — Twilio Console: Add Flex named users',
-      service: 'flex-billing',
+      service: 'licensing-api',
       release: 'flex-billing@2026.11.1',
       metricValue: '504 on ~100% of Add named users requests',
       baseline: '<0.1% (7-day, before flex-billing@2026.11.1)',
