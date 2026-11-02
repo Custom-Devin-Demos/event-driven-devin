@@ -43,13 +43,13 @@ All brands, people and products are fictional and all data is synthetic (no PHI)
 
 ## 2. Provider — patient appointment intake (`/3a2b7a6d`)
 
-**Trigger:** open `/3a2b7a6d` → leave the defaults (Jordan Rivera, Dr. Okafor, *Video visit (telehealth)*) → **Confirm appointment**.
+**Trigger:** open `/3a2b7a6d` → leave the defaults (Jordan Rivera, Dr. Okafor, *Video visit*) → **Schedule appointment** in the “Your appointment” card.
 **What you see:** “We couldn’t finish booking your appointment — your time was not reserved” with a reference number. The raw `TypeError … 'consents'` only appears in Sentry and the Slack alert card.
 **Contrast:** click the *In person* tile under “How would you like to be seen?” — it books and lists the remaining check-in forms.
 
 **What Devin does next:** the alert points to `app/services/verticals/3a2b7a6d.js — submitIntake` with tag `visitType=telehealth`. Devin finds the visit type is called `telehealth` but the intake forms list is filed under `virtual`, so there are no forms to send. It renames the key, adds a test and opens a PR.
 
-**Point at on screen:** the selected *Video visit* tile and the patient-facing error under the button (“your time was not reserved”) → Slack alert card (`visitType: telehealth`) → Devin’s explanation in the thread → PR.
+**Point at on screen:** the selected *Video visit* tile, then the red “We couldn’t finish booking your appointment” panel that replaces the form (“your time was not reserved”, “engineering team has been notified”, the Reference id) → Slack alert card (`visitType: telehealth`) → Devin’s explanation in the thread → PR.
 
 **Talk track (2 min):**
 > “This is a hospital system’s patient portal. A patient is booking a video follow-up with their doctor — the kind of visit that’s become a huge share of primary care. They click confirm, and it fails. That patient either calls the front desk or just doesn’t book, and the health system loses the visit.
