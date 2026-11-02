@@ -505,6 +505,17 @@
       document.getElementById('runAsForm').addEventListener('submit', (e) => { e.preventDefault(); window.saveIdentity(); });
       if (!emailEl.value && localStorage.getItem('devinEmail')) status.textContent = 'Using the hub selection (' + localStorage.getItem('devinEmail') + '). Save to run as someone else.';
       else if (emailEl.value && localStorage.getItem(ID_KEY('userId'))) status.textContent = 'Running as ' + (nameEl.value || emailEl.value) + '. Alerts and the Devin session go to ' + emailEl.value + '.';
+      window.lillyHubReady = Promise.resolve();
+      const hubEmail = localStorage.getItem('devinEmail') || '';
+      if (!emailEl.value && hubEmail && localStorage.getItem('devinOrgId') !== HC_ORG_ID && localStorage.getItem(ID_KEY('hubEmail')) !== hubEmail) {
+        window.lillyHubReady = fetch('/api/resolve-identity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orgId: HC_ORG_ID, email: hubEmail }) })
+          .then((r) => r.json().then((p) => ({ ok: r.ok, p })))
+          .then(({ ok, p }) => {
+            if (ok && p.userId) { localStorage.setItem(ID_KEY('hubEmail'), hubEmail); localStorage.setItem(ID_KEY('hubUserId'), p.userId); return; }
+            status.textContent = hubEmail + ' is not a user in HC-GTM-AD, so the Devin session will not be owned by them. Save Run as with an HC-GTM-AD email.';
+          })
+          .catch(() => { status.textContent = 'Could not resolve ' + hubEmail + ' in HC-GTM-AD. Save Run as to own the Devin session.'; });
+      }
     })();
     const CTA = 'Run ingest';
     const BATCHES = {
@@ -524,7 +535,9 @@
     function devinFields() {
       if (!localStorage.getItem('fc0bd7f3.email')) {
         const hubInHc = localStorage.getItem('devinOrgId') === HC_ORG_ID;
-        return { devinUserId: hubInHc ? localStorage.getItem('devinUserId') || '' : '', devinOrgId: HC_ORG_ID, devinEmail: localStorage.getItem('devinEmail') || '', devinName: localStorage.getItem('fc0bd7f3.name') || '' };
+        const hubEmail = localStorage.getItem('devinEmail') || '';
+        const resolvedHubUser = hubEmail && localStorage.getItem('fc0bd7f3.hubEmail') === hubEmail ? localStorage.getItem('fc0bd7f3.hubUserId') || '' : '';
+        return { devinUserId: hubInHc ? localStorage.getItem('devinUserId') || '' : resolvedHubUser, devinOrgId: HC_ORG_ID, devinEmail: localStorage.getItem('devinEmail') || '', devinName: localStorage.getItem('fc0bd7f3.name') || '' };
       }
       return { devinUserId: localStorage.getItem('fc0bd7f3.userId') || '', devinOrgId: HC_ORG_ID, devinEmail: localStorage.getItem('fc0bd7f3.email'), devinName: localStorage.getItem('fc0bd7f3.name') || '' };
     }
@@ -608,6 +621,7 @@
       await sleep(420); stage('transfer', 'done', 'File received, checksum verified.'); stage('parse', 'active'); line('Checksum verified, 3 subjects in file', 'ok');
       await sleep(380); stage('parse', 'done', '3 subjects and 3 results mapped against spec v3.2.'); stage('normalize', 'active', 'Converting glucose (' + b.glucoseUnit + '), HbA1c (%) and creatinine (mg/dL) to study standard units\u2026'); line('Parsed 3 results: glucose, HbA1c, creatinine', 'ok'); line('Normalizing units to study standard\u2026');
       try {
+        await window.lillyHubReady;
         const res = await fetch("/api/fc0bd7f3/ingest", {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(Object.assign(buildPayload(), devinFields())),
