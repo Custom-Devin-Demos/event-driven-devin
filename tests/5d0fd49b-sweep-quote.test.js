@@ -114,6 +114,8 @@ describe('OpenSea sweep the floor quote', () => {
     const subtotal = Math.round(prices.reduce((sum, price) => sum + price, 0) * 10000) / 10000;
     expect(result.summary.itemsFilled).toBe(5);
     expect(result.summary.subtotalEth).toBe(subtotal);
+    const itemFees = Math.round(result.sweep.reduce((sum, item) => sum + item.feeEth, 0) * 10000) / 10000;
+    expect(result.summary.marketplaceFeesEth).toBe(itemFees);
     expect(result.summary.totalEth).toBeCloseTo(
       result.summary.subtotalEth + result.summary.marketplaceFeesEth + result.summary.gasEth,
       4,

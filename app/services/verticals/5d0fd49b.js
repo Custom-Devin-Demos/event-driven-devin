@@ -257,9 +257,12 @@ async function quoteSweep({
   });
 
   const quotes = await aggregateMarketplaceListings(normalized.collection, selectedSource.marketplaces);
-  const sweep = selectSweep(quotes, normalized.quantity);
+  const sweep = selectSweep(quotes, normalized.quantity).map(({ feePct, ...item }) => ({
+    ...item,
+    feeEth: roundEth((item.priceEth * feePct) / 100),
+  }));
   const subtotalEth = roundEth(sweep.reduce((sum, item) => sum + item.priceEth, 0));
-  const marketplaceFeesEth = roundEth(sweep.reduce((sum, item) => sum + (item.priceEth * item.feePct) / 100, 0));
+  const marketplaceFeesEth = roundEth(sweep.reduce((sum, item) => sum + item.feeEth, 0));
   const gasEth = roundEth(0.0021 + 0.0009 * sweep.length);
   const totalEth = roundEth(subtotalEth + marketplaceFeesEth + gasEth);
   const latencyMs = Date.now() - startTime;
@@ -323,7 +326,7 @@ async function quoteSweep({
       listingCount: quote.listingCount,
       bestPriceEth: quote.bestPriceEth,
     })),
-    sweep: sweep.map(({ feePct, ...item }) => ({ ...item, feeEth: roundEth((item.priceEth * feePct) / 100) })),
+    sweep,
     summary: {
       itemsFilled: sweep.length,
       subtotalEth,
