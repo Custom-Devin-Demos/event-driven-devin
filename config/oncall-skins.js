@@ -7993,6 +7993,15 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A ROGO APP \u2014 internal demo only, not affiliated with, endorsed by, or a real Rogo product.',
   },
+  '6938003e': {
+    slug: '6938003e',
+    company: 'Benchling',
+    vertical: 'hightech',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: '6938003e.html', title: 'Cloud-based platform for biotech R&D | Benchling' },
+    disclaimer: 'NOT ACTUALLY A BENCHLING SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Benchling product.',
+  },
 };
 
 function getOncallSkin(slug) {
