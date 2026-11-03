@@ -49,6 +49,26 @@ const DEMO_BASE_URL = () =>
  * repository itself.
  */
 const ALERT_SCENARIOS = {
+  refillqueue: {
+    vertical: 'refillqueue',
+    page: '49315f87.html',
+    apiPath: '/api/pharmacy-refills',
+    oncallApiPath: '/api/oncall/refillqueue',
+    owner: 'Pharmacy Platform On-Call',
+    brand: 'Lumistry One',
+    service: 'lumistry-refills-api',
+    endpoint: 'POST /api/oncall/refillqueue/refresh',
+    monitor: 'p95 latency spike — Lumistry refill status refresh (504)',
+    metricQuery: 'p95:demo.refillqueue.refresh.latency{service:lumistry-refills-api,scope:batch}',
+    metricValue: '8.0s (504 on full-queue refreshes)',
+    threshold: '> 2s',
+    baseline: '~1.2s (7-day p95)',
+    release: 'pharmacy-dashboard@2026.11.1',
+    symptom: 'Refresh refill statuses hangs for about 8 seconds, then returns 504 for the eight-request queue. Single-refill status checks complete in about a second. Other dashboard panels remain available.',
+    impact: 'Pharmacy staff cannot refresh the pending refill queue. Saved requests remain available, but their last-checked statuses become stale and staff must check prescriptions individually.',
+    alertOnStatus: [504],
+    unlisted: true,
+  },
   banking: {
     vertical: 'banking',
     page: 'banking.html',

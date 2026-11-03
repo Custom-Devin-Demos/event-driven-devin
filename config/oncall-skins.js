@@ -92,6 +92,28 @@
  */
 
 const ONCALL_SKINS = {
+  '49315f87': {
+    slug: '49315f87',
+    company: 'Lumistry',
+    vertical: 'refillqueue',
+    oncallOnly: true,
+    paths: ['/lumistry', '/lumistry-oncall'],
+    alertDestination: 'slack',
+    page: { file: '49315f87.html', title: 'Dashboard | Lumistry One' },
+    theme: { '--accent': '#0067b1', '--ink': '#20384b', '--surface': '#ffffff' },
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Investigate the Lumistry One refill-status refresh incident from telemetry first; correlate the failed request with its upstream spans and structured logs.',
+        'Reproduce only against a local run, with Slack, Teams, Sentry and Devin outbound credentials disabled. Do not submit the live page: every failed refresh can page another investigation. Give any testing agent the same restriction.',
+        'Measure the full queue and a single-refill control before and after the fix. Preserve the existing request deadline, clinical eligibility outcomes, row order, and all eight results. Do not hide the issue by increasing the timeout or dropping requests.',
+        'Add a latency regression test that fails before the fix and passes after. Record the same dashboard action before and after with visible timing.',
+        'Open a PR with findings, tests and recordings. Do not merge or deploy; post the findings and PR link back in the alert thread.',
+      ].join('\n'),
+    },
+    disclaimer: 'NOT ACTUALLY A LUMISTRY SITE — internal demo only, not affiliated with, endorsed by, or a real Lumistry product.',
+  },
   '2b30ce42': {
     slug: '2b30ce42',
     company: 'CIBC',
@@ -7970,6 +7992,47 @@ const ONCALL_SKINS = {
       impact: 'Every Rogo user waits about 8 seconds for each answer, and every follow-up question waits just as long.',
     },
     disclaimer: 'NOT ACTUALLY A ROGO APP \u2014 internal demo only, not affiliated with, endorsed by, or a real Rogo product.',
+  },
+  'c4e92975': {
+    slug: 'c4e92975',
+    company: 'Macro Hive',
+    brandMark: 'M',
+    vertical: 'banking',
+    oncallOnly: true,
+    failAfterHang: true,
+    paths: ['/macrohive'],
+    teamsAlerts: true,
+    teamsWebhookEnv: 'ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI',
+    page: { file: 'c4e92975.html', title: 'FX Signal Screen | Models & Signals | Macro Hive' },
+    theme: {
+      '--accent': '#E8772E',
+      '--ink': '#1F2226',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#23262B',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Macro Hive Client Services',
+    supportCenterSub: 'Subscriber support for Research, Models & Signals and Macro Hive Pro',
+    devinSession: {
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the Macro Hive subscriber platform. In Models & Signals a subscriber runs the FX Signal Screen and selects Generate positioning report; that submit calls the endpoint above, so that endpoint is the backend of this incident.',
+        'Never open or submit the live page (every submit fires a new alert). Record BEFORE on a local run and AFTER on the fixed local run, both with a visible timer; find the root cause of the ~9s hang from telemetry and code, fix it with a regression test, and open a PR. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    alertCard: {
+      title: '5xx rate \u2014 Macro Hive FX Signal Screen: Generate positioning report',
+      service: 'banking-api',
+      release: 'signals-api@2026.11.1',
+      team: 'signals-platform-oncall',
+      metricQuery: 'sum:demo.transfer.failure{route:/api/oncall/banking/transfer}.as_count()',
+      metricValue: '504 on ~100% of positioning report runs',
+      threshold: '> 5% error rate',
+      baseline: '<0.1% (7-day, before signals-api@2026.11.1)',
+      symptom: 'Generate positioning report on the FX Signal Screen hangs ~9s after the subscriber selects Run, then fails with a gateway timeout. No report is produced for any G10 pair selection or horizon.',
+      impact: 'Subscribers cannot generate FX positioning reports from Models & Signals; every run waits about 9 seconds and then fails, and clients contact Client Services instead.',
+    },
+    disclaimer: 'NOT ACTUALLY A MACRO HIVE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Macro Hive product.',
   },
   'aa81ab91': {
     slug: 'aa81ab91',

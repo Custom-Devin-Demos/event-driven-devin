@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Dashboard | Lumistry One</title>
+  <style>
+    :root { --accent: #0067b1; --ink: #20384b; --muted: #657b8d; --line: #e1eaf0; --surface: #fff; --canvas: #f3f8fc; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--canvas); font: 13px/1.5 "Open Sans", "Segoe UI", Arial, sans-serif; }
+    button, input, select { font: inherit; }
+    button, select, a { -webkit-tap-highlight-color: transparent; }
+    button, a, select { touch-action: manipulation; }
+    button { cursor: pointer; }
+    button:disabled { cursor: wait; opacity: .65; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #f2b941; outline-offset: 3px; }
+    a { color: inherit; text-decoration: none; }
+    .topbar { min-height: 62px; background: #0067b1; color: white; display: flex; align-items: center; padding: 0 28px; gap: 26px; box-shadow: 0 2px 5px #193e6020; }
+    .brand { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+    .brand svg { width: 34px; height: 34px; }
+    .brand-text { font-size: 20px; font-weight: 600; letter-spacing: -.8px; }
+    .brand-text small { font-size: 10px; font-weight: 400; letter-spacing: 1.7px; display: block; line-height: .9; margin: 0 0 4px 2px; opacity: .85; }
+    .nav { display: flex; align-items: stretch; gap: 21px; align-self: stretch; }
+    .nav a { display: flex; align-items: center; gap: 5px; color: #eef7ff; font-size: 12px; white-space: nowrap; border-bottom: 3px solid transparent; padding-top: 3px; }
+    .nav a:hover { border-bottom-color: #7ac8fa; }
+    .nav .badge { color: #654200; background: #ffce62; border-radius: 20px; padding: 0 5px; font-size: 10px; }
+    .account { margin-left: auto; display: flex; align-items: center; gap: 15px; white-space: nowrap; }
+    .location { padding: 8px 13px; border-radius: 5px; background: #005c9f; font-size: 12px; }
+    .avatar { background: #eaf1f5; color: #536c7d; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; width: 29px; height: 29px; font-size: 10px; flex-shrink: 0; }
+    .account .avatar { background: #91afc3; color: white; border: 1px solid #c2d9e8; }
+    .page-heading { display: flex; justify-content: space-between; align-items: center; padding: 23px 30px 18px; gap: 12px; }
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 1px; letter-spacing: -.4px; }
+    .subtle { color: var(--muted); font-size: 12px; }
+    .today { font-size: 12px; color: var(--muted); }
+    .layout { display: grid; grid-template-columns: 255px minmax(0, 1fr); gap: 20px; padding: 0 30px 42px; max-width: 1600px; margin: auto; }
+    .card { background: var(--surface); border: 1px solid #e8eef3; border-radius: 6px; box-shadow: 0 2px 2px #1a3d5b0d; overflow: hidden; scroll-margin-top: 15px; }
+    .card-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; margin: 0; }
+    .card-title svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+    .card-head { padding: 16px 17px 13px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .chevron { font-weight: normal; color: #5b768c; padding-left: 3px; }
+    .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 17px; }
+    .quick { height: 65px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; background: white; color: #008fe3; border: 1px solid #a8d5f5; border-radius: 4px; font-size: 10px; }
+    .quick svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+    .quick:hover { background: #e9f6ff; }
+    .appointment { margin: 0 13px; padding: 12px 9px; border-bottom: 1px solid #edf2f6; }
+    .appointment:last-child { border: 0; margin-bottom: 7px; }
+    .appointment.active { color: white; background: #0099ed; border-radius: 5px; border: 0; }
+    .appointment div { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; }
+    .appointment small { display: block; font-size: 10px; color: var(--muted); margin-top: 3px; }
+    .appointment.active small { color: #e4f4ff; }
+    .location-card { margin-top: 17px; padding: 16px; }
+    .location-card strong { font-weight: 600; font-size: 12px; }
+    .location-card p { font-size: 11px; color: var(--muted); margin: 5px 0 11px; }
+    .connected { color: #2d7c44; font-size: 11px; display: flex; align-items: center; gap: 6px; }
+    .dot { width: 7px; height: 7px; display: inline-block; border-radius: 50%; background: #69b361; }
+    .main { display: flex; flex-direction: column; gap: 17px; min-width: 0; }
+    .queue-icon { color: #dd6852; }
+    .count { font-size: 11px; color: var(--muted); font-weight: 400; background: #f1f6fa; padding: 1px 7px; border-radius: 12px; }
+    .queue-toolbar { padding: 0 17px 13px; display: flex; flex-wrap: wrap; gap: 9px; align-items: flex-end; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-size: 10px; color: var(--muted); font-weight: 600; }
+    .field select, .field input { height: 37px; border: 1px solid #ccdbe5; border-radius: 4px; color: var(--ink); background: white; padding: 0 10px; max-width: 100%; }
+    .field.search { margin-left: auto; width: 174px; }
+    .primary { height: 37px; background: var(--accent); color: white; border: 1px solid var(--accent); border-radius: 4px; padding: 0 13px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+    .primary:hover { background: #00558f; }
+    .refresh-icon { display: inline-block; font-size: 18px; font-weight: 400; line-height: 1; }
+    .refreshing .refresh-icon { animation: spin 1.1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .queue-meta { padding: 0 17px 11px; color: var(--muted); font-size: 11px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .queue-meta strong { font-weight: 400; color: #3f6178; }
+    #elapsed { margin-left: auto; font-variant-numeric: tabular-nums; }
+    .notice { margin: 0 17px 13px; padding: 11px 12px; border-radius: 4px; display: flex; gap: 9px; align-items: flex-start; font-size: 12px; }
+    .notice[hidden] { display: none; }
+    .notice.error { color: #9a372d; background: #fff4f1; border: 1px solid #f1cec7; }
+    .notice.success { color: #2e6f42; background: #f0f9f1; border: 1px solid #cde6d1; }
+    .notice small { display: block; margin-top: 3px; opacity: .85; font-size: 10px; }
+    .table-wrap { position: relative; overflow-x: auto; padding: 0 17px 7px; }
+    table { border-collapse: collapse; width: 100%; font-size: 11px; text-align: left; white-space: nowrap; }
+    th { font-size: 10px; font-weight: 600; color: #334e62; border-bottom: 1px solid #9db1c0; padding: 8px 7px; }
+    td { padding: 9px 7px; border-bottom: 1px solid var(--line); }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:nth-child(odd) { background: #f8fbfd; }
+    .patient { display: flex; align-items: center; gap: 8px; }
+    .patient .avatar { width: 24px; height: 24px; background: #72ae64; color: white; font-size: 9px; }
+    tr:nth-child(3n+2) .patient .avatar { background: #4099c9; }
+    tr:nth-child(3n) .patient .avatar { background: #b3b95a; }
+    .status { display: inline-flex; align-items: center; gap: 5px; }
+    .status .status-dot { width: 6px; height: 6px; background: #da805c; border-radius: 50%; }
+    .status.eligible .status-dot { background: #6ab26d; }
+    .row-action { border: 0; color: #007bc4; padding: 4px 0; background: transparent; font-size: 11px; }
+    .row-action:hover { text-decoration: underline; }
+    .checked { display: block; color: #338146; font-size: 9px; }
+    .table-footer { display: flex; justify-content: space-between; padding: 9px 17px 13px; border-top: 1px solid #eef3f7; font-size: 10px; color: var(--muted); }
+    .messages { padding: 0 17px; }
+    .message { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); padding: 10px 0; }
+    .message:last-child { border: 0; }
+    .message .avatar { background: #64ad58; color: white; }
+    .message:nth-child(2) .avatar { background: #4099c9; }
+    .message:nth-child(3) .avatar { background: #b2b855; }
+    .message strong { font-size: 11px; font-weight: 600; }
+    .message p { margin: 0; font-size: 11px; color: #4f687d; }
+    .message time { margin-left: auto; color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .section-foot { display: block; padding: 10px; text-align: center; color: #008add; font-size: 11px; }
+    .lower { display: grid; grid-template-columns: 1fr 1.15fr; gap: 17px; min-width: 0; }
+    .task-check { color: #66aa62; font-size: 15px; }
+    .task-check.pending { color: #adc0ce; }
+    .tag { font-size: 9px; background: #e4f3ff; color: #247cad; border-radius: 9px; padding: 2px 6px; margin-right: 4px; }
+    .empty { padding: 18px; color: var(--muted); text-align: center; }
+    .sr-only { position: absolute; top: 0; left: 0; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (min-width: 1500px) { .page-heading { max-width: 1600px; margin: auto; } }
+    @media (max-width: 1150px) { .topbar { gap: 20px; padding: 0 20px; } .nav { gap: 14px; } .brand-text { display: none; } .layout { grid-template-columns: 210px minmax(0, 1fr); padding: 0 20px 30px; gap: 15px; } .page-heading { padding-left: 20px; padding-right: 20px; } .lower { grid-template-columns: 1fr; } .account { gap: 10px; } }
+    @media (max-width: 780px) { .topbar { flex-wrap: wrap; padding: 11px 16px 0; gap: 10px; } .brand-text { display: block; font-size: 17px; } .account { gap: 10px; } .location { font-size: 10px; padding: 6px 8px; } .nav { order: 3; width: 100%; overflow-x: auto; gap: 22px; } .nav a { padding: 10px 0; min-height: 44px; } .layout { display: flex; flex-direction: column; padding: 0 14px 25px; } .sidebar { order: 2; } .quick-actions { display: none; } .page-heading { padding: 17px 15px; } .today { display: none; } h1 { font-size: 20px; } .field.search { margin-left: 0; width: 100%; } .field.search input { width: 100%; } .field.scope { flex: 1; min-width: 0; } .field select { width: 100%; } .primary, .field select, .field input { height: 44px; } .row-action { min-height: 44px; padding: 5px 6px; } .card-head { padding: 14px; } .table-wrap { padding: 0 12px 5px; } .queue-toolbar { padding-left: 14px; padding-right: 14px; } }
+    @media (prefers-reduced-motion: reduce) { .refreshing .refresh-icon { animation: none; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#dashboard" aria-label="Lumistry One dashboard">
+      <svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M29 15a11 11 0 1 0-2 16H12" stroke="white" stroke-width="2.8" stroke-linecap="round"/><path d="M22 4v5m9-2-3 4m8 5-5 1M15 6l2 4" stroke="#8bd7ff" stroke-width="2" stroke-linecap="round"/><circle cx="23" cy="15" r="4" fill="#8bd7ff"/></svg>
+      <span class="brand-text">lumistry<small>ONE</small></span>
+    </a>
+    <nav class="nav" aria-label="Pharmacy navigation">
+      <a href="#messages">Messages <span class="badge">3</span></a><a href="#tasks">Tasks <span class="badge">3</span></a><a href="#schedule">Schedule</a><a href="#refills">Refills</a><a href="#forms">Forms</a>
+    </nav>
+    <div class="account"><span class="location">Your Pharmacy · Oakridge <span aria-hidden="true">⌄</span></span><span class="avatar" title="Pharmacy team">PT</span></div>
+  </header>
+  <div class="page-heading" id="dashboard"><div><h1>Good morning, Oakridge team</h1><div class="subtle">Here’s what’s happening at your pharmacy today.</div></div><span class="today">Your daily overview</span></div>
+  <div class="layout">
+    <aside class="sidebar" aria-label="Appointments and shortcuts">
+      <div class="quick-actions">
+        <a class="quick" href="#tasks"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 5V3h6v2m-7 8 3 3 5-6"/></svg>Tasks</a>
+        <a class="quick" href="#schedule"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2v6m10-6v6M3 11h18"/></svg>Appts</a>
+        <a class="quick" href="#messages"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v13H9l-5 4V4Z"/><path d="M8 9h8m-8 4h5"/></svg>Chat</a>
+        <a class="quick" href="#refills"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v17H6zM9 2h6v4H9m0 5h6m-6 4h6"/></svg>Refills</a>
+      </div>
+      <section class="card" id="schedule" aria-labelledby="schedule-title">
+        <div class="card-head"><h2 class="card-title" id="schedule-title"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2v6m10-6v6M3 11h18"/></svg>Upcoming Appointments <span class="chevron">›</span></h2></div>
+        <div class="appointment active"><div><span>Flu vaccination</span><strong>10:00 AM</strong></div><small>Avery Bennett · Pharmacist: Alex</small></div>
+        <div class="appointment"><div><span>Medication review</span><span>10:30 AM</span></div><small>Riley Brooks · Pharmacist: Alex</small></div>
+        <div class="appointment"><div><span>Travel consultation</span><span>11:00 AM</span></div><small>Quinn Parker · Pharmacist: Sam</small></div>
+        <div class="appointment"><div><span>Flu vaccination</span><span>11:15 AM</span></div><small>Drew Collins · Pharmacist: Sam</small></div>
+      </section>
+      <div class="card location-card"><strong>Oakridge Pharmacy</strong><p>Patient engagement workspace</p><div class="connected"><span class="dot"></span>Workspace available</div></div>
+    </aside>
+    <main class="main">
+      <section class="card" id="refills" aria-labelledby="refill-title">
+        <div class="card-head"><h2 class="card-title" id="refill-title"><svg class="queue-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 3v1"/></svg>Refills Not Passed <span class="count" id="refill-count">—</span><span class="chevron">›</span></h2></div>
+        <div class="queue-toolbar">
+          <div class="field scope"><label for="refill-scope">Status check scope</label><select id="refill-scope" disabled><option value="all">All pending refills</option></select></div>
+          <button class="primary" id="refresh-refills" type="button" disabled><span class="refresh-icon" aria-hidden="true">↻</span><span id="refresh-label">Refresh refill statuses</span></button>
+          <div class="field search"><label for="patient-search">Find a refill</label><input id="patient-search" type="search" placeholder="Patient or Rx number" autocomplete="off"></div>
+        </div>
+        <div class="queue-meta"><span class="dot" id="queue-dot"></span><strong id="queue-state" role="status">Loading saved queue…</strong><span id="elapsed"></span></div>
+        <div class="notice" id="refresh-notice" role="alert" hidden><span aria-hidden="true" id="notice-icon">!</span><div><span id="notice-text"></span><small id="notice-detail"></small></div></div>
+        <div class="table-wrap" id="refill-table" aria-busy="false"><table><caption class="sr-only">Pending refill requests and their last saved pharmacy-system status</caption><thead><tr><th scope="col">Patient</th><th scope="col">Rx number</th><th scope="col">Channel</th><th scope="col">Method</th><th scope="col">Status</th><th scope="col">Submitted</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody id="refill-rows"></tbody></table><div class="empty" id="no-results" hidden>No matching refills.</div></div>
+        <div class="table-footer"><span id="visible-count">Loading…</span><span>Status checks do not submit or dispense prescriptions.</span></div>
+      </section>
+      <section class="card" id="messages" aria-labelledby="messages-title">
+        <div class="card-head"><h2 class="card-title" id="messages-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v13H8l-5 4V4Z"/></svg>Unread Messages <span class="chevron">›</span></h2><span class="count">3 unread</span></div>
+        <div class="messages">
+          <div class="message"><span class="avatar">AB</span><div><strong>Avery Bennett</strong><p>Hi! Can I pick up my refill after my appointment today?</p></div><time>5m</time></div>
+          <div class="message"><span class="avatar">RB</span><div><strong>Riley Brooks</strong><p>Thank you for the reminder. See you at 10:30.</p></div><time>12m</time></div>
+          <div class="message"><span class="avatar">QP</span><div><strong>Quinn Parker</strong><p>Could you confirm the delivery window for tomorrow?</p></div><time>24m</time></div>
+        </div>
+      </section>
+      <div class="lower">
+        <section class="card" id="forms" aria-labelledby="forms-title"><div class="card-head"><h2 class="card-title" id="forms-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 13 4-8h10l4 8v7H3zM3 13h5l2 3h4l2-3h5"/></svg>New Form Submissions <span class="chevron">›</span></h2></div><div class="table-wrap"><table><thead><tr><th scope="col">Name</th><th scope="col">Form name</th><th scope="col">Submitted</th></tr></thead><tbody><tr><td>Avery Bennett</td><td>Vaccination consent</td><td>9:41 AM</td></tr><tr><td>Quinn Parker</td><td>Patient intake</td><td>9:23 AM</td></tr></tbody></table></div></section>
+        <section class="card" id="tasks" aria-labelledby="tasks-title"><div class="card-head"><h2 class="card-title" id="tasks-title"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m7 12 3 3 7-7"/></svg>My Tasks <span class="chevron">›</span></h2></div><div class="table-wrap"><table><thead><tr><th scope="col">Status</th><th scope="col">Description</th><th scope="col">Complete by</th></tr></thead><tbody><tr><td class="task-check pending">○</td><td><span class="tag">Order</span>Review pickup requests</td><td>10:30 AM</td></tr><tr><td class="task-check">✓</td><td>Prepare consultation room</td><td>9:30 AM</td></tr><tr><td class="task-check pending">○</td><td>Daily inventory check</td><td>Today</td></tr></tbody></table></div></section>
+      </div>
+    </main>
+  </div>
+  <script>
+    (function () {
+      'use strict';
+      const rowsEl = document.getElementById('refill-rows');
+      const scopeEl = document.getElementById('refill-scope');
+      const refreshBtn = document.getElementById('refresh-refills');
+      const searchEl = document.getElementById('patient-search');
+      const notice = document.getElementById('refresh-notice');
+      const queueState = document.getElementById('queue-state');
+      const elapsedEl = document.getElementById('elapsed');
+      let refills = [];
+      let busy = false;
+      const checked = new Set();
+
+      function cell(text) {
+        const td = document.createElement('td');
+        td.textContent = text;
+        return td;
+      }
+
+      function renderRows() {
+        rowsEl.replaceChildren();
+        const query = searchEl.value.trim().toLowerCase();
+        const visible = refills.filter(function (row) { return (row.patient + ' ' + row.rxNumber).toLowerCase().includes(query); });
+        visible.forEach(function (row) {
+          const tr = document.createElement('tr');
+          const patientCell = document.createElement('td');
+          const patient = document.createElement('span');
+          patient.className = 'patient';
+          const avatar = document.createElement('span');
+          avatar.className = 'avatar';
+          avatar.setAttribute('aria-hidden', 'true');
+          avatar.textContent = row.initials;
+          patient.append(avatar, document.createTextNode(row.patient));
+          patientCell.append(patient);
+          tr.append(patientCell, cell(row.rxNumber), cell(row.channel), cell(row.method));
+          const statusCell = document.createElement('td');
+          const status = document.createElement('span');
+          status.className = 'status' + (row.status === 'Good for refilling' ? ' eligible' : '');
+          const dot = document.createElement('span');
+          dot.className = 'status-dot';
+          status.append(dot, document.createTextNode(row.status));
+          statusCell.append(status);
+          if (checked.has(row.id)) {
+            const label = document.createElement('span');
+            label.className = 'checked';
+            label.textContent = 'Checked this session';
+            statusCell.append(label);
+          }
+          tr.append(statusCell, cell(row.submitted));
+          const actionCell = document.createElement('td');
+          const action = document.createElement('button');
+          action.type = 'button';
+          action.className = 'row-action';
+          action.textContent = 'Check status';
+          action.setAttribute('aria-label', 'Check status for ' + row.patient);
+          action.disabled = busy;
+          action.addEventListener('click', function () { refresh([row.id]); });
+          actionCell.append(action);
+          tr.append(actionCell);
+          rowsEl.append(tr);
+        });
+        document.getElementById('no-results').hidden = visible.length !== 0;
+        document.getElementById('visible-count').textContent = 'Showing ' + visible.length + ' of ' + refills.length + ' requests';
+      }
+
+      function setBusy(value) {
+        busy = value;
+        refreshBtn.disabled = value || !refills.length;
+        scopeEl.disabled = value || !refills.length;
+        refreshBtn.classList.toggle('refreshing', value);
+        document.getElementById('refresh-label').textContent = value ? 'Checking statuses…' : 'Refresh refill statuses';
+        document.getElementById('refill-table').setAttribute('aria-busy', String(value));
+        renderRows();
+      }
+
+      function showNotice(message, detail, isError) {
+        notice.className = 'notice ' + (isError ? 'error' : 'success');
+        document.getElementById('notice-icon').textContent = isError ? '!' : '✓';
+        document.getElementById('notice-text').textContent = message;
+        document.getElementById('notice-detail').textContent = detail;
+        notice.hidden = false;
+      }
+
+      async function refresh(ids) {
+        if (busy) return;
+        notice.hidden = true;
+        setBusy(true);
+        queueState.textContent = 'Checking ' + ids.length + (ids.length === 1 ? ' refill' : ' refills') + ' with pharmacy system…';
+        const start = performance.now();
+        function tick() { elapsedEl.textContent = ((performance.now() - start) / 1000).toFixed(1) + ' s elapsed'; }
+        tick();
+        const timer = setInterval(tick, 100);
+        try {
+          const response = await fetch('/api/pharmacy-refills/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              refillIds: ids,
+              devinEmail: localStorage.getItem('devinEmail') || '',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            const error = new Error(data.error || 'Unable to refresh refill statuses. Please try again.');
+            error.reference = data.refreshId;
+            throw error;
+          }
+          data.refills.forEach(function (updated) {
+            const index = refills.findIndex(function (row) { return row.id === updated.id; });
+            if (index !== -1) refills[index] = updated;
+            checked.add(updated.id);
+          });
+          queueState.textContent = ids.length === refills.length ? 'All refill statuses checked this session' : ids.length + ' refill status checked · Remaining statuses are saved';
+          showNotice('Updated ' + data.refills.length + (data.refills.length === 1 ? ' refill' : ' refills') + ' successfully.', 'No prescriptions were submitted or dispensed.', false);
+        } catch (error) {
+          queueState.textContent = 'Refresh incomplete · Showing last saved statuses';
+          showNotice(error.message, error.reference ? 'Reference: ' + error.reference + ' · No requests were changed.' : 'No requests were changed.', true);
+        } finally {
+          clearInterval(timer);
+          tick();
+          elapsedEl.textContent = elapsedEl.textContent.replace('elapsed', 'total');
+          setBusy(false);
+        }
+      }
+
+      refreshBtn.addEventListener('click', function () {
+        refresh(scopeEl.value === 'all' ? refills.map(function (row) { return row.id; }) : [scopeEl.value]);
+      });
+      searchEl.addEventListener('input', renderRows);
+      fetch('/api/oncall/refillqueue/refills').then(function (response) {
+        if (!response.ok) throw new Error('Unable to load saved queue. Reload the page to try again.');
+        return response.json();
+      }).then(function (data) {
+        refills = data.refills;
+        document.getElementById('refill-count').textContent = refills.length;
+        scopeEl.options[0].textContent = 'All pending refills (' + refills.length + ')';
+        refills.forEach(function (row) {
+          const option = document.createElement('option');
+          option.value = row.id;
+          option.textContent = row.patient + ' · ' + row.rxNumber;
+          scopeEl.append(option);
+        });
+        queueState.textContent = 'Saved queue · Refresh to check latest statuses';
+        setBusy(false);
+      }).catch(function (error) {
+        queueState.textContent = 'Saved queue unavailable';
+        document.getElementById('visible-count').textContent = 'Queue unavailable';
+        showNotice(error.message, 'Reload the page to try again.', true);
+      });
+    })();
+  </script>
+</body>
+</html>
