@@ -1,0 +1,51 @@
+{
+  "schemaId": "azureMonitorCommonAlertSchema",
+  "data": {
+    "essentials": {
+      "alertId": "/subscriptions/4f1c0c7e-demo/providers/Microsoft.AlertsManagement/alerts/6d1f0b8e-3c2a-4a7e-9d1c-0f5e2b7a9c11",
+      "alertRule": "converge-rentalsync-deadletter-count",
+      "severity": "Sev2",
+      "signalType": "Metric",
+      "monitorCondition": "Fired",
+      "monitoringService": "Platform",
+      "alertTargetIDs": [
+        "/subscriptions/4f1c0c7e-demo/resourcegroups/rg-converge-integration-prod/providers/microsoft.servicebus/namespaces/sb-converge-prod"
+      ],
+      "configurationItems": ["sb-converge-prod/catrentals-returns/converge-rentalsync/$DeadLetterQueue"],
+      "originAlertId": "6d1f0b8e-3c2a-4a7e-9d1c-0f5e2b7a9c11",
+      "firedDateTime": "2026-11-02T20:30:00.0000000Z",
+      "description": "Dead-lettered messages on catrentals-returns/converge-rentalsync exceeded threshold (2 > 0) for 15 minutes. Returned machines are still OnRent in Cat Converge (F&O).",
+      "essentialsVersion": "1.0",
+      "alertContextVersion": "1.0"
+    },
+    "alertContext": {
+      "conditionType": "SingleResourceMultipleMetricCriteria",
+      "condition": {
+        "windowSize": "PT15M",
+        "allOf": [
+          {
+            "metricName": "DeadletteredMessages",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "operator": "GreaterThan",
+            "threshold": "0",
+            "timeAggregation": "Maximum",
+            "dimensions": [{ "name": "EntityName", "value": "catrentals-returns" }],
+            "metricValue": 2
+          }
+        ]
+      }
+    },
+    "customProperties": {
+      "service": "converge-rentalsync",
+      "repo": "COG-GTM/event-driven-devin",
+      "servicePath": "app/services/verticals/b6e7eac1.js",
+      "runbook": "docs/b6e7eac1/runbook-deadletters.md",
+      "deadLetters": ["evt-5b21e0aa", "evt-9c04d1f2"],
+      "deadLetterSummary": [
+        { "eventId": "evt-5b21e0aa", "dealerCode": "EMPIRE", "contractId": "RC-EMP-100232", "errorCode": "WAREHOUSE_UNMAPPED", "deliveryCount": 1 },
+        { "eventId": "evt-9c04d1f2", "dealerCode": "FINNING-CA", "contractId": "RC-FIN-300077", "errorCode": "DEALER_UNKNOWN", "deliveryCount": 1 }
+      ],
+      "simulated": "Azure Monitor, Azure Service Bus and Dynamics 365 F&O are simulated by the demo service. The Devin session, Teams posts, PR and CI are real."
+    }
+  }
+}

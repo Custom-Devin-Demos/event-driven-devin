@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>converge-rentalsync-deadletter-count - Microsoft Azure</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%230078d4' d='M3 5h8v8H3zM13 5h8v8h-8zM3 15h8v4H3zM13 15h8v4h-8z'/%3E%3C/svg%3E">
+<style>
+  :root{--az-blue:#0078d4;--az-blue-dark:#106ebe;--bg:#f3f2f1;--card:#fff;--text:#323130;--muted:#605e5c;--line:#edebe9;--sev2:#d83b01;--ok:#107c10;--warn:#ffb900}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;font-size:13px;color:var(--text);background:var(--bg)}
+  a{color:var(--az-blue);text-decoration:none}
+  .topbar{height:40px;background:#0b1d3a;color:#fff;display:flex;align-items:center;padding:0 12px;gap:16px}
+  .topbar .brand{font-size:15px;font-weight:600;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
+  .topbar .search{flex:1;max-width:560px;margin-left:24px;background:#fff;border-radius:2px;height:26px;color:#605e5c;display:flex;align-items:center;padding:0 10px;font-size:12px}
+  .topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:12px}
+  .topbar .avatar{width:26px;height:26px;border-radius:50%;background:#ffcd00;color:#111;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
+  .crumbs{padding:8px 20px 0;color:var(--muted);font-size:12px}
+  .crumbs a{color:var(--az-blue)}
+  .header{display:flex;align-items:flex-start;gap:12px;padding:6px 20px 0}
+  .header .icon{width:34px;height:34px;border-radius:4px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin-top:3px}
+  .header h1{margin:0;font-size:20px;font-weight:600;line-height:1.2}
+  .header .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .header .sub span+span::before{content:" | ";color:#c8c6c4;margin:0 6px}
+  .layout{display:grid;grid-template-columns:200px 1fr;gap:0;margin-top:10px}
+  .nav{background:var(--card);border-right:1px solid var(--line);min-height:calc(100vh - 110px);padding:8px 0}
+  .nav div{padding:7px 18px;color:var(--text);cursor:default}
+  .nav div.sel{background:#edebe9;border-left:3px solid var(--az-blue);padding-left:15px;font-weight:600}
+  .nav .grp{font-size:11px;color:var(--muted);text-transform:none;padding-top:12px}
+  .main{padding:0 20px 40px}
+  .cmdbar{display:flex;align-items:center;gap:4px;padding:6px 0 10px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+  .btn{border:1px solid transparent;background:transparent;color:var(--text);padding:6px 10px;font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;border-radius:2px}
+  .btn:hover{background:#f3f2f1}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.primary{background:var(--az-blue);color:#fff;border-color:var(--az-blue);font-weight:600}
+  .btn.primary:hover{background:var(--az-blue-dark)}
+  .btn .ico{width:16px;height:16px;display:inline-block}
+  .sep{width:1px;height:20px;background:var(--line);margin:0 4px}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:2px;padding:12px 14px}
+  .card .k{font-size:12px;color:var(--muted)}
+  .card .v{font-size:22px;font-weight:600;margin-top:4px}
+  .card .v.sev{color:var(--sev2)}
+  .card .v.ok{color:var(--ok)}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:2px;margin-bottom:14px}
+  .panel h2{font-size:14px;font-weight:600;margin:0;padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .panel h2 .pill{font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;background:#fde7e9;color:var(--sev2)}
+  .panel h2 .pill.ok{background:#dff6dd;color:var(--ok)}
+  .panel h2 .pill.gray{background:#edebe9;color:var(--muted)}
+  .essentials{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;padding:10px 14px}
+  .essentials div{display:grid;grid-template-columns:170px 1fr;padding:4px 0;border-bottom:1px solid #faf9f8}
+  .essentials dt{color:var(--muted)}
+  .essentials dd{margin:0;overflow-wrap:anywhere}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:8px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:600;color:var(--muted);font-size:12px;background:#faf9f8}
+  tr:last-child td{border-bottom:none}
+  code,.mono{font-family:Consolas,"Cascadia Mono",Menlo,monospace;font-size:12px}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:2px}
+  .badge.err{background:#fde7e9;color:#a4262c}
+  .badge.OnRent{background:#deecf9;color:#004578}
+  .badge.Returned{background:#dff6dd;color:#107c10}
+  .badge.Invoiced{background:#edebe9;color:#605e5c}
+  .reason{color:var(--text);max-width:520px}
+  .muted{color:var(--muted)}
+  .note{font-size:12px;color:var(--muted);padding:10px 14px;border-top:1px solid var(--line);background:#faf9f8}
+  details{padding:0 14px 10px}
+  details summary{cursor:pointer;color:var(--az-blue);padding:8px 0}
+  pre{margin:0;background:#faf9f8;border:1px solid var(--line);padding:10px;max-height:380px;overflow:auto;font-size:11.5px}
+  .toast{position:fixed;right:20px;bottom:20px;min-width:300px;max-width:460px;background:#fff;border-left:4px solid var(--az-blue);box-shadow:0 6px 18px rgba(0,0,0,.18);padding:12px 14px;transform:translateY(20px);opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{transform:none;opacity:1}
+  .toast.err{border-left-color:var(--sev2)}
+  .toast.ok{border-left-color:var(--ok)}
+  .toast b{display:block;margin-bottom:3px}
+  .demo-tag{font-size:11px;color:#fff;background:#605e5c;border-radius:2px;padding:1px 6px;margin-left:8px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M3 5h8v8H3zM13 5h8v8h-8zM3 15h8v4H3zM13 15h8v4h-8z" opacity=".9"/></svg>Microsoft Azure</div>
+  <div class="search">&#x1F50D;&nbsp; Search resources, services, and docs (G+/)</div>
+  <div class="right"><a href="/" style="color:rgba(255,255,255,.55);font-size:11px" title="Back to all demos">&larr; All Demos</a><span>Caterpillar Inc. (CAT-PROD)</span><div class="avatar">NN</div></div>
+</div>
+
+<div class="crumbs"><a href="#">Home</a> &gt; <a href="#">Monitor | Alerts</a> &gt; <a href="#">sb-converge-prod</a> &gt; converge-rentalsync-deadletter-count</div>
+<div class="header">
+  <div class="icon"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#d83b01" d="M12 2 1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/></svg></div>
+  <div>
+    <h1>converge-rentalsync-deadletter-count <span class="muted" style="font-weight:400">| Alert details</span><span class="demo-tag" title="Azure Monitor, Service Bus and Dynamics 365 F&O are simulated by this service. Devin, Teams, the PR and CI are real.">DEMO · simulated Azure</span></h1>
+    <div class="sub"><span>Metric alert rule</span><span>Resource group: rg-converge-integration-prod</span><span>Subscription: CAT Converge Integration (Prod)</span></div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="nav">
+    <div>Overview</div>
+    <div class="sel">Alert details</div>
+    <div>Activity log</div>
+    <div class="grp">Monitoring</div>
+    <div>Alert rules</div>
+    <div>Action groups</div>
+    <div>Alert processing rules</div>
+    <div class="grp">Service Bus</div>
+    <div>Topics: catrentals-returns</div>
+    <div>Subscription: converge-rentalsync</div>
+    <div class="grp">Support + troubleshooting</div>
+    <div>Runbooks</div>
+  </div>
+
+  <div class="main">
+    <div class="cmdbar">
+      <button class="btn primary" id="fire" title="Posts this alert to Slack and starts a Devin session (server-side). Nothing fires until you click.">
+        <svg class="ico" viewBox="0 0 16 16"><path fill="currentColor" d="M8 1 1 14h14L8 1zm.75 10.5h-1.5V10h1.5v1.5zm0-2.5h-1.5V5.5h1.5V9z"/></svg>Fire alert &rarr; Devin</button>
+      <span class="sep"></span>
+      <button class="btn" id="reset" title="Presenter control: reloads seed contract lines and re-parks the two dead letters. Does not change any code.">&#x21BA; Reset demo data</button>
+      <button class="btn" id="refresh" title="Reload this page's data (does not fire anything)">&#x27F3; Refresh</button>
+      <span class="sep"></span>
+      <button class="btn" disabled>&#x1F514; Acknowledge</button>
+      <button class="btn" disabled>&#x1F4CE; Create work item</button>
+      <span style="margin-left:auto" class="muted" id="webhookState"></span>
+    </div>
+
+    <div class="cards">
+      <div class="card"><div class="k">Severity</div><div class="v sev">Sev2</div></div>
+      <div class="card"><div class="k">Monitor condition</div><div class="v" id="cond">Fired</div></div>
+      <div class="card"><div class="k">Dead-lettered messages</div><div class="v sev" id="dlCount">–</div></div>
+      <div class="card"><div class="k">Contract lines still OnRent after return</div><div class="v sev" id="stuckCount">–</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>Essentials</h2>
+      <dl class="essentials" id="essentials"></dl>
+    </div>
+
+    <div class="panel">
+      <h2>Dead-letter queue &nbsp;<span class="mono muted" style="font-weight:400">sb-converge-prod / catrentals-returns / converge-rentalsync / $DeadLetterQueue</span> <span class="pill" id="dlPill">0</span></h2>
+      <table id="dlTable">
+        <thead><tr><th>Message ID</th><th>Dealer</th><th>Contract</th><th>Return yard</th><th>Hours / Fuel</th><th>Dead-letter reason</th><th>Deliveries</th><th>Enqueued</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="note">Each message is a Cat Rentals equipment-return event that the integration service could not apply to the rental contract line in Cat Converge (Dynamics 365 F&amp;O). Until it is applied the machine stays <b>OnRent</b>: the customer keeps being billed and the unit cannot be re-rented.</div>
+    </div>
+
+    <div class="panel">
+      <h2>Rental contract lines &nbsp;<span class="mono muted" style="font-weight:400">D365 F&amp;O · RentalContractLines (simulated)</span></h2>
+      <table id="ctTable">
+        <thead><tr><th>Legal entity</th><th>Contract</th><th>Customer</th><th>Machine</th><th>State</th><th>Delivery warehouse</th><th>Return warehouse</th><th>Returned</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2>Alert payload <span class="mono muted" style="font-weight:400">azureMonitorCommonAlertSchema &rarr; Slack alert + Devin session</span></h2>
+      <details><summary>Show payload that "Fire alert" sends</summary><pre id="payload"></pre></details>
+      <div class="note">Fallback without the page: <code>curl -X POST https://devindemos.com/api/b6e7eac1/alerts/fire -H "Content-Type: application/json" -d '{}'</code></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><b id="toastTitle"></b><span id="toastBody"></span></div>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt = iso => iso ? new Date(iso).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+  let toastTimer;
+  function toast(kind, title, body){
+    const t = $('#toast'); t.className = 'toast show ' + kind;
+    $('#toastTitle').textContent = title; $('#toastBody').textContent = body || '';
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.className = 'toast', 6500);
+  }
+
+  function render(s){
+    $('#dlCount').textContent = s.deadLetterCount;
+    $('#dlPill').textContent = s.deadLetterCount;
+    $('#dlPill').className = 'pill' + (s.deadLetterCount ? '' : ' ok');
+    $('#cond').textContent = s.condition;
+    $('#cond').className = 'v ' + (s.condition === 'Fired' ? 'sev' : 'ok');
+    const stuck = s.deadLetters.map(d => d.body.contractId);
+    $('#stuckCount').textContent = stuck.length;
+    $('#webhookState').textContent = 'Action group: devin-oncall → Slack alert + Devin session';
+
+    const e = s.alertPreview.data.essentials;
+    $('#essentials').innerHTML = [
+      ['Alert rule', e.alertRule], ['Signal type', e.signalType + ' · DeadletteredMessages > 0 (PT15M, Maximum)'],
+      ['Monitoring service', e.monitoringService], ['Target resource', 'sb-converge-prod (Service Bus namespace)'],
+      ['Fired time', fmt(e.firedDateTime)], ['Entity', 'catrentals-returns / converge-rentalsync'],
+      ['Action group', 'devin-oncall → Slack alert + Devin session'], ['Runbook', 'docs/b6e7eac1/runbook-deadletters.md'],
+      ['Description', e.description], ['Last demo reset', fmt(s.lastResetAt)]
+    ].map(([k,v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
+
+    $('#dlTable tbody').innerHTML = s.deadLetters.length ? s.deadLetters.map(d => `<tr>
+      <td class="mono">${esc(d.eventId)}</td><td>${esc(d.body.dealerCode)}</td><td class="mono">${esc(d.body.contractId)}</td>
+      <td class="mono">${esc(d.body.returnYard)}</td><td>${esc(d.body.hoursMeter)} h / ${esc(d.body.fuelPercent)}%${d.body.fuelPercent>100?' <span class="badge err" title="Impossible value from Cat Rentals">&gt;100%</span>':''}</td>
+      <td class="reason"><span class="badge err">${esc(d.errorCode)}</span><br>${esc(d.reason)}</td>
+      <td>${esc(d.deliveryCount)}</td><td>${fmt(d.enqueuedAt)}</td></tr>`).join('')
+      : '<tr><td colspan="8" class="muted">Dead-letter queue is empty. Alert condition: Resolved.</td></tr>';
+
+    $('#ctTable tbody').innerHTML = s.contracts.map(c => `<tr>
+      <td class="mono">${esc(c.dataAreaId)}</td><td class="mono">${esc(c.contractId)}</td><td>${esc(c.customerName)}</td><td>${esc(c.model)}</td>
+      <td><span class="badge ${esc(c.state)}">${esc(c.state)}</span>${stuck.includes(c.contractId)?' <span class="badge err" title="Return event is on the dead-letter queue">return stuck</span>':''}</td>
+      <td class="mono">${esc(c.deliveryWarehouseId)}</td><td class="mono">${esc(c.returnWarehouseId ?? '—')}</td><td>${fmt(c.returnedAt)}</td></tr>`).join('');
+
+    $('#payload').textContent = JSON.stringify(s.alertPreview, null, 2);
+  }
+
+  async function load(){
+    const r = await fetch('/api/b6e7eac1/state', {cache:'no-store'});
+    render(await r.json());
+  }
+
+  // The alert is sent ONLY from this click handler. No timers, polling or page-load paths reach /api/b6e7eac1/alerts/fire.
+  $('#fire').addEventListener('click', async () => {
+    const b = $('#fire'); b.disabled = true;
+    try {
+      const r = await fetch('/api/b6e7eac1/alerts/fire', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+        pageUrl: location.href,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || ''
+      })});
+      const j = await r.json();
+      if (r.ok && j.sent) toast('ok', 'Alert fired → Devin', j.message);
+      else toast('err', 'Alert not delivered', j.title || j.message || `HTTP ${r.status}`);
+    } catch (e) { toast('err', 'Alert not delivered', String(e)); }
+    finally { b.disabled = false; load(); }
+  });
+
+  $('#reset').addEventListener('click', async () => {
+    const r = await fetch('/api/b6e7eac1/alerts/reset', {method:'POST'});
+    const j = await r.json();
+    toast('ok', 'Demo data reset', `${j.contractLines} contract lines reloaded, ${j.deadLetters.length} dead letters re-parked.`);
+    load();
+  });
+
+  $('#refresh').addEventListener('click', load);
+
+  (function ensureDevinIdentity(){
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (config) {
+      if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+      if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      if (config.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', config.defaultEmail);
+    }).catch(function () {});
+  })();
+  load();
+})();
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>
