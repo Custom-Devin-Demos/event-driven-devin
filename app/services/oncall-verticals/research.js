@@ -132,25 +132,66 @@ function nvidiaAnswer() {
     ],
     citations: [
       { id: 1, ticker: 'NVDA', docType: '10-Q', source: 'Quarterly Report — Q3 FY2026', date: '2025-11-19', speaker: null, role: null, excerpt: 'Revenue for the third quarter of fiscal 2026 was $57.0 billion, up 22% from the previous quarter and up 62% from a year ago. Data Center revenue was $51.2 billion.', highlights: ['Revenue for the third quarter of fiscal 2026 was $57.0 billion'] },
-      { id: 2, ticker: 'NVDA', docType: '10-K', source: 'Q3 2026 Earnings Call', date: '2025-11-19', speaker: 'Colette Kress', role: 'Executive', excerpt: 'We delivered another outstanding quarter with revenue of $57 billion, up 62% year over year and a record sequential revenue growth of $10 billion or 22%. Our customers continue to lean into three platform shifts, fueling exponential growth for accelerated computing, powerful AI models and agentic applications.', highlights: ['revenue of $57 billion, up 62% year over year', 'three platform shifts'] },
+      { id: 2, ticker: 'NVDA', docType: '8-K', source: 'Q3 2026 Earnings Call', date: '2025-11-19', speaker: 'Colette Kress', role: 'Executive', excerpt: 'We delivered another outstanding quarter with revenue of $57 billion, up 62% year over year and a record sequential revenue growth of $10 billion or 22%. Our customers continue to lean into three platform shifts, fueling exponential growth for accelerated computing, powerful AI models and agentic applications.', highlights: ['revenue of $57 billion, up 62% year over year', 'three platform shifts'] },
       { id: 3, ticker: 'NVDA', docType: '8-K', source: 'Press Release — Q3 FY2026 Results', date: '2025-11-19', speaker: 'Jensen Huang', role: 'Executive', excerpt: 'Blackwell sales are off the charts, and cloud GPUs are sold out. Compute demand keeps accelerating and compounding across training and inference.', highlights: ['Blackwell sales are off the charts'] },
       { id: 4, ticker: 'NVDA', docType: 'Form 4', source: 'Statement of Changes in Beneficial Ownership', date: '2025-10-17', speaker: null, role: null, excerpt: 'The sales reported on this Form 4 were effected pursuant to a Rule 10b5-1 trading plan adopted by the reporting person.', highlights: ['pursuant to a Rule 10b5-1 trading plan'] },
     ],
   };
 }
 
-function genericAnswer(ticker, documents) {
-  const { short } = COMPANIES[ticker];
-  const latest = documents.find((d) => d.ticker === ticker) || { docType: '10-Q', title: 'latest filing', filedAt: '' };
+const FILINGS_QUESTION = /filing|earnings|results|quarter|10-q|8-k|revenue|latest|recent|proxy|form 4|insider/i;
+
+function latestFilingCitation(id, ticker, documents) {
+  const latest = documents.find((d) => d.ticker === ticker);
+  if (!latest) return null;
   return {
-    title: `${short}'s latest filings`,
-    summary: `${short}'s most recent filing in scope is its ${latest.docType} (${latest.title}, filed ${latest.filedAt}).`,
-    bullets: [
-      { text: `The latest ${latest.docType} is the primary source for current-quarter results and guidance.`, citations: [1] },
-    ],
-    citations: [
-      { id: 1, ticker, docType: latest.docType, source: latest.title, date: latest.filedAt, speaker: null, role: null, excerpt: `${COMPANIES[ticker].name} — ${latest.title}.`, highlights: [] },
-    ],
+    id, ticker, docType: latest.docType, source: latest.title, date: latest.filedAt,
+    speaker: null, role: null, excerpt: `${COMPANIES[ticker].name} \u2014 ${latest.title}, filed ${latest.filedAt}.`, highlights: [],
+  };
+}
+
+/**
+ * Compose a cited answer that covers every requested ticker and only cites
+ * filing types that were requested and pulled.
+ */
+function composeAnswer(query, tickers, sources, documents) {
+  const citations = [];
+  const bullets = [];
+  let summary = null;
+
+  if (tickers[0] === 'NVDA' && FILINGS_QUESTION.test(query)) {
+    const curated = nvidiaAnswer();
+    const kept = new Map();
+    for (const citation of curated.citations) {
+      if (!sources.includes(citation.docType)) continue;
+      const id = citations.length + 1;
+      kept.set(citation.id, id);
+      citations.push({ ...citation, id });
+    }
+    for (const bullet of curated.bullets) {
+      const ids = bullet.citations.filter((c) => kept.has(c)).map((c) => kept.get(c));
+      if (ids.length) bullets.push({ text: bullet.text, citations: ids });
+    }
+    if (bullets.length) summary = curated.summary;
+  }
+
+  for (const ticker of tickers) {
+    if (bullets.some((b) => citations[b.citations[0] - 1].ticker === ticker)) continue;
+    const citation = latestFilingCitation(citations.length + 1, ticker, documents);
+    if (!citation) continue;
+    citations.push(citation);
+    bullets.push({
+      text: `${COMPANIES[ticker].short}'s most recent in-scope filing is its ${citation.docType} (${citation.source}, filed ${citation.date}).`,
+      citations: [citation.id],
+    });
+  }
+
+  const names = tickers.map((t) => COMPANIES[t].short);
+  return {
+    title: tickers.length === 1 ? `${names[0]}: ${query}` : `${names.join(', ')}: ${query}`,
+    summary: summary || `Answer drawn from ${documents.length} ${sources.join(', ')} filings for ${names.join(', ')}.`,
+    bullets,
+    citations,
   };
 }
 
@@ -171,8 +212,7 @@ async function answerResearchQuery(request, options = {}) {
     });
 
     const documents = await pullDocuments(tickers, sources);
-    const primary = tickers[0];
-    const answer = primary === 'NVDA' ? nvidiaAnswer() : genericAnswer(primary, documents);
+    const answer = composeAnswer(query, tickers, sources, documents);
     const duration = Date.now() - startTime;
 
     incrementMetric('research.answer.success', { route: ROUTE, model });

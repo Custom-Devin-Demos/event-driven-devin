@@ -88,4 +88,13 @@ describe('e62af577 native research app on-call skin', () => {
       }
     }
   });
+
+  test('cites only requested filing types and covers every ticker', async () => {
+    const res = await post(API, { query: 'Compare recent filings', tickers: ['NVDA', 'AAPL'], sources: ['DEF 14A'] });
+    expect(res.status).toBe(200);
+    const { answer } = await res.json();
+    expect(answer.citations.every((c) => c.docType === 'DEF 14A')).toBe(true);
+    expect(new Set(answer.citations.map((c) => c.ticker))).toEqual(new Set(['NVDA', 'AAPL']));
+    expect(answer.title).toContain('Compare recent filings');
+  });
 });
