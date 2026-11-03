@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenSea, exchange everything — token trading and NFT marketplace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0c0c; --panel: #141414; --panel-2: #1b1b1b; --line: rgba(255,255,255,.09); --line-2: rgba(255,255,255,.14);
+      --ink: #fafafa; --muted: #8a8a8a; --muted-2: #a3a3a3; --blue: #2081e2; --blue-2: #1868b7; --green: #34c77b; --red: #f0565a;
+      --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); }
+    body { font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif; color: var(--ink); font-size: 14px; line-height: 1.4; -webkit-font-smoothing: antialiased; padding-bottom: 44px; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; }
+    .mono { font-family: var(--mono); }
+    .up { color: var(--green); } .down { color: var(--red); }
+    .verified { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; margin-left: 4px; }
+
+    .announce { height: 36px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 13px; border-bottom: 1px solid var(--line); position: relative; }
+    .announce .ic { width: 18px; height: 18px; border-radius: 5px; background: var(--blue); display: inline-flex; align-items: center; justify-content: center; }
+    .announce b { font-weight: 600; }
+    .announce .get { background: #fff; color: #000; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 7px; }
+    .announce .x { position: absolute; right: 16px; color: var(--muted); cursor: pointer; }
+
+    header.top { position: sticky; top: 0; z-index: 20; height: 64px; display: flex; align-items: center; gap: 6px; padding: 0 24px; background: rgba(12,12,12,.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+    .logo { width: 30px; height: 30px; margin-right: 14px; }
+    .nav a { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; font-size: 15px; padding: 8px 12px; border-radius: 10px; color: #e5e5e5; }
+    .nav a.on { background: rgba(255,255,255,.08); color: #fff; }
+    .nav a:hover { background: rgba(255,255,255,.06); }
+    .nav svg { width: 16px; height: 16px; }
+    .top .sp { flex: 1; }
+    .top .r { display: flex; align-items: center; gap: 22px; font-weight: 600; font-size: 15px; }
+    .top .r a { display: inline-flex; align-items: center; gap: 7px; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 32px; padding: 0 24px; }
+    .side { position: sticky; top: 64px; align-self: start; height: calc(100vh - 108px); overflow: hidden; padding-top: 18px; }
+
+    .chips { display: flex; align-items: center; gap: 8px; padding: 16px 0; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line-2); font-weight: 500; font-size: 13px; color: #d4d4d4; cursor: pointer; background: transparent; }
+    .chip.on { background: rgba(255,255,255,.1); color: #fff; border-color: transparent; }
+    .chip svg { width: 14px; height: 14px; opacity: .8; }
+    .chips .sp { flex: 1; }
+    .chips .chain { border: 0; background: rgba(255,255,255,.08); color: #fff; font-weight: 600; }
+
+    .hero { position: relative; height: 420px; border-radius: 16px; overflow: hidden; background: linear-gradient(180deg,#9fb9c9,#4a5f6b); }
+    .hero > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.72) 100%); }
+    .hero .arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,.55); border: 1px solid var(--line-2); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .hero .arrow.l { left: 18px; } .hero .arrow.r { right: 18px; }
+    .hero .info { position: absolute; left: 24px; bottom: 22px; z-index: 2; }
+    .hero h1 { font-size: 34px; font-weight: 600; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+    .hero h1 .verified { width: 22px; height: 22px; }
+    .hero .by { font-size: 14px; color: #e5e5e5; margin: 6px 0 14px; font-weight: 500; }
+    .stats { display: flex; background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.18); border-radius: 12px; backdrop-filter: blur(10px); }
+    .stats div { padding: 10px 16px; border-left: 1px solid rgba(255,255,255,.12); }
+    .stats div:first-child { border-left: 0; }
+    .stats span { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: #cfcfcf; text-transform: uppercase; }
+    .stats b { display: block; font-family: var(--mono); font-weight: 500; font-size: 15px; margin-top: 4px; }
+    .hero .thumbs { position: absolute; right: 24px; bottom: 22px; z-index: 2; display: flex; gap: 10px; }
+    .hero .thumbs img { width: 88px; height: 88px; border-radius: 10px; object-fit: cover; border: 2px solid rgba(255,255,255,.25); background: #333; }
+    .dots { display: flex; justify-content: center; gap: 6px; margin: 14px 0 6px; }
+    .dots i { width: 40px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.15); }
+    .dots i.on { background: #fff; }
+
+    .sec { margin-top: 36px; }
+    .sec h2 { font-size: 22px; font-weight: 600; letter-spacing: -.01em; }
+    .sec .sub { color: var(--muted-2); font-size: 14px; margin-top: 4px; }
+    .sec .head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 16px; }
+    .pillbtn { font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 10px; background: rgba(255,255,255,.08); }
+
+    /* Sweep panel */
+    .sweep { display: grid; grid-template-columns: 360px minmax(0,1fr); gap: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); overflow: hidden; }
+    .sweep form { padding: 20px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; }
+    .field label { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .field select, .field input[type=number] { width: 100%; height: 44px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--panel-2); color: #fff; padding: 0 12px; font-size: 14px; font-weight: 500; outline: none; }
+    .field select:focus, .field input:focus { border-color: var(--blue); }
+    .qty { display: flex; align-items: center; gap: 12px; }
+    .qty input[type=range] { flex: 1; accent-color: var(--blue); }
+    .qty input[type=number] { width: 72px; text-align: center; font-family: var(--mono); }
+    .buy { height: 48px; border: 0; border-radius: 12px; background: var(--blue); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: background .15s; }
+    .buy:hover { background: var(--blue-2); }
+    .buy:disabled { background: #2b3a4a; color: #a9c4df; cursor: progress; }
+    .spin { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: sp .8s linear infinite; display: none; }
+    .buy:disabled .spin { display: inline-block; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+    .hint { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .hint b { color: #d4d4d4; font-weight: 600; }
+    .result { padding: 20px; min-height: 340px; display: flex; flex-direction: column; }
+    .result .empty { margin: auto; text-align: center; color: var(--muted); max-width: 340px; }
+    .result .empty svg { width: 40px; height: 40px; margin-bottom: 10px; opacity: .5; }
+    .progress { margin: auto; width: 100%; max-width: 420px; text-align: center; display: none; }
+    .progress .bar { height: 4px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; margin: 14px 0 10px; }
+    .progress .bar i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .45s linear; }
+    .progress .mk { font-family: var(--mono); font-size: 12px; color: var(--muted-2); }
+    .quote { display: none; }
+    .quote .qhead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .quote .qhead b { font-size: 16px; font-weight: 600; }
+    .quote .qhead span { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    .items { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+    .item { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--panel-2); }
+    .item img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: #222; }
+    .item div { padding: 8px 10px; }
+    .item b { display: block; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item span { display: block; font-family: var(--mono); font-size: 12px; margin-top: 2px; }
+    .item em { display: block; font-style: normal; font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .totals { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .totals div span { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .totals div b { display: block; font-family: var(--mono); font-weight: 500; font-size: 15px; margin-top: 3px; }
+    .srcs { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .srcs span { font-family: var(--mono); font-size: 11px; color: var(--muted-2); border: 1px solid var(--line); border-radius: 8px; padding: 3px 7px; }
+
+    .banner { display: none; margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; background: rgba(52,199,123,.12); border: 1px solid rgba(52,199,123,.35); color: #b9f0d3; font-size: 13px; }
+    .banner.show { display: block; }
+
+    /* Token grid */
+    .tokens { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .tok { display: flex; align-items: center; gap: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--panel); }
+    .tok img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #222; }
+    .tok .nm { font-weight: 600; font-size: 14px; }
+    .tok .px { font-family: var(--mono); font-size: 13px; color: #e5e5e5; margin-top: 3px; }
+    .tok svg { margin-left: auto; width: 60px; height: 28px; }
+
+    /* Collection cards */
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card { position: relative; height: 200px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #1a1a1a; }
+    .card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,.8)); }
+    .card .cap { position: absolute; left: 12px; bottom: 12px; z-index: 2; }
+    .card .cap b { font-weight: 600; font-size: 14px; }
+    .card .cap div { font-size: 13px; color: #d4d4d4; margin-top: 3px; }
+    .card .cap .mono { color: #fff; }
+    .mint { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 11px; color: var(--green); border: 1px solid var(--green); border-radius: 6px; padding: 1px 6px; margin-right: 8px; }
+    .mint::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+    /* Trending list */
+    .trend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .trow { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--panel); }
+    .trow img { width: 80px; height: 80px; object-fit: cover; background: #222; }
+    .trow b { font-weight: 600; font-size: 14px; }
+    .trow div div { font-family: var(--mono); font-size: 13px; margin-top: 4px; }
+
+    /* Sidebar */
+    .tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+    .tabs .chip { height: 34px; }
+    .side .hd { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .05em; padding-bottom: 8px; }
+    .srow { display: flex; align-items: center; gap: 12px; height: 64px; }
+    .srow img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: #222; }
+    .srow .n { font-weight: 500; font-size: 14px; flex: 1; }
+    .srow .p { text-align: right; font-family: var(--mono); font-size: 13px; }
+    .srow .p div:last-child { font-size: 12px; margin-top: 2px; }
+
+    footer.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: 36px; display: flex; align-items: center; gap: 22px; padding: 0 24px; background: #0c0c0c; border-top: 1px solid var(--line); font-size: 12px; color: #bdbdbd; font-weight: 500; }
+    footer.bar .live { display: inline-flex; align-items: center; gap: 6px; color: #fff; }
+    footer.bar .live::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+    footer.bar .sp { flex: 1; }
+    footer.bar .seg { display: inline-flex; background: rgba(255,255,255,.06); border-radius: 8px; padding: 2px; }
+    footer.bar .seg span { padding: 2px 8px; border-radius: 6px; }
+    footer.bar .seg .on { background: rgba(255,255,255,.12); color: #fff; }
+
+    .toast { position: fixed; right: 24px; bottom: 56px; z-index: 50; max-width: 380px; background: #2a1213; border: 1px solid rgba(240,86,90,.5); color: #ffd6d7; border-radius: 12px; padding: 12px 14px; font-size: 13px; transform: translateY(20px); opacity: 0; pointer-events: none; transition: all .2s; }
+    .toast b { display: block; color: #fff; margin-bottom: 3px; }
+    .toast.show { transform: none; opacity: 1; pointer-events: auto; }
+
+    @media (max-width: 1180px) { .layout { grid-template-columns: 1fr; } .side { display: none; } }
+    @media (max-width: 820px) { .sweep { grid-template-columns: 1fr; } .sweep form { border-right: 0; border-bottom: 1px solid var(--line); } .tokens, .cards, .trend { grid-template-columns: 1fr; } .nav a:not(.on) { display: none; } .hero .thumbs { display: none; } }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <symbol id="vf" viewBox="0 0 24 24"><path fill="#2081e2" d="M12 1.5l2.6 2 3.3-.1 1 3.1 2.7 1.9-1 3.1 1 3.1-2.7 1.9-1 3.1-3.3-.1-2.6 2-2.6-2-3.3.1-1-3.1L2.4 14.6l1-3.1-1-3.1 2.7-1.9 1-3.1 3.3.1z"/><path fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M8 12.2l2.7 2.6L16 9.5"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="announce">
+    <span class="ic"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3 7 7 .6-5.3 4.7 1.6 7.2L12 17.8 5.7 21.5l1.6-7.2L2 9.6 9 9z"/></svg></span>
+    <span><b>OpenSea Mobile is live:</b> Trade everything, together.</span>
+    <a class="get" href="#">Get the app ↗</a>
+    <span class="x">✕</span>
+  </div>
+
+  <header class="top">
+    <a href="#" aria-label="OpenSea">
+      <svg class="logo" viewBox="0 0 90 90"><circle cx="45" cy="45" r="45" fill="#2081e2"/><path fill="#fff" d="M22.2 46.5l.2-.3 11.7-18.3c.2-.3.6-.2.7.1 2 4.4 3.6 9.8 2.9 13.2-.3 1.4-1.3 3.3-2.3 5-.1.2-.3.5-.4.7-.1.1-.2.2-.3.2H22.5c-.3 0-.5-.4-.3-.6z"/><path fill="#fff" d="M74.4 50v2.9c0 .2-.1.3-.2.4-.9.4-4 1.8-5.3 3.6-3.3 4.6-5.8 11.2-11.4 11.2H34.2c-8.3 0-15-6.8-15-15.1v-.3c0-.2.2-.4.4-.4h13.1c.3 0 .5.2.5.5-.1.9.1 1.7.5 2.5.8 1.6 2.4 2.6 4.1 2.6h6.5v-5.1h-6.4c-.3 0-.5-.4-.3-.6l.2-.3c.6-.9 1.5-2.2 2.4-3.8.6-1.1 1.2-2.2 1.7-3.4.1-.2.2-.4.2-.6.1-.4.3-.7.4-1.1.1-.3.2-.6.2-.9.2-1 .4-2.1.4-3.2 0-.5 0-.9-.1-1.4 0-.5-.1-1-.1-1.5-.1-.4-.1-.9-.2-1.3-.1-.6-.2-1.3-.4-1.9l-.1-.2c-.1-.4-.2-.8-.4-1.3-.4-1.4-.9-2.8-1.4-4.1-.2-.5-.4-1-.6-1.5-.3-.8-.6-1.4-.9-2.1-.1-.3-.3-.5-.4-.8-.1-.3-.3-.6-.4-.9-.1-.2-.2-.4-.3-.6l-.8-1.5c-.1-.2.1-.5.3-.4l5 1.4h.1l.7.2.7.2.3.1v-3c0-1.4 1.1-2.6 2.5-2.6.7 0 1.3.3 1.8.8.4.5.7 1.1.7 1.8v4.4l.5.1h.1l.6.5c.2.2.4.4.7.6.5.4 1.2 1 1.9 1.6.2.2.4.3.5.5.9.8 1.8 1.7 2.7 2.7.3.3.5.5.7.8.2.3.5.6.7.8.3.4.6.8.9 1.2.1.2.3.4.4.6.4.5.7 1.1 1 1.6.1.3.3.5.4.8.4.7.7 1.5.9 2.3.1.2.1.3.1.4v.1c.1.2.1.5.1.7.1.8.1 1.6-.1 2.4-.1.3-.2.6-.3 1-.1.3-.2.6-.3 1-.3.6-.6 1.2-1 1.8-.1.2-.3.4-.4.6-.2.2-.3.4-.5.6-.2.3-.4.6-.6.8-.3.4-.6.7-.9 1.1-.2.2-.4.5-.6.7-.2.3-.4.5-.6.7-.3.3-.6.6-.8.8l-.5.5c-.1.1-.2.1-.3.1h-4v5.1h5c1.1 0 2.2-.4 3-1.1.3-.3 1.6-1.4 3.1-3.1.1-.1.1-.1.2-.1l13.8-4c.3-.1.5.1.5.4z"/></svg>
+    </a>
+    <nav class="nav">
+      <a class="on" href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 10.5L12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Home</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Explore <span style="opacity:.7">⌄</span></a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.8a3.5 3.5 0 010 6.4M18.5 14.8c1.6.8 2.6 2.6 3 5.2"/></svg>Feed</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Activity</a>
+      <a href="#">More <span style="opacity:.7">⌄</span></a>
+    </nav>
+    <div class="sp"></div>
+    <div class="r">
+      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Search</a>
+      <a href="#">Sign in</a>
+      <a href="#" aria-label="Profile"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3.2"/><path d="M6 19c1.4-2.4 3.5-3.6 6-3.6s4.6 1.2 6 3.6"/></svg></a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <main>
+      <div class="chips">
+        <button class="chip on">All</button>
+        <button class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>Memes</button>
+        <button class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/></svg>Trading Cards</button>
+        <button class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l6-6M14 4l6 6-8 8-6-6z"/></svg>Art</button>
+        <button class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/></svg>PFPs</button>
+        <button class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/></svg>Photography</button>
+        <button class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="11" rx="4"/><path d="M7 11v3M5.5 12.5h3"/></svg>Gaming</button>
+        <span class="sp"></span>
+        <button class="chip chain">All chains ⌄</button>
+      </div>
+
+      <section class="hero">
+        <img class="bg" src="https://i2c.seadn.io/collection/boredapeyachtclub/banner/3ddcabd06bb257af35f029b3c17163/e13ddcabd06bb257af35f029b3c17163.jpeg?w=2000" alt="" onerror="this.style.display='none'">
+        <button class="arrow l" aria-label="Previous">‹</button>
+        <button class="arrow r" aria-label="Next">›</button>
+        <div class="info">
+          <h1>Bored Ape Yacht Club <svg class="verified"><use href="#vf"/></svg></h1>
+          <div class="by">By BoredApeYachtClub <svg class="verified"><use href="#vf"/></svg></div>
+          <div class="stats">
+            <div><span>Floor price</span><b>5.65 ETH</b></div>
+            <div><span>Items</span><b>9,998</b></div>
+            <div><span>Total volume</span><b>1.9M ETH</b></div>
+            <div><span>Listed</span><b>312 (3%)</b></div>
+          </div>
+        </div>
+        <div class="thumbs">
+          <img src="https://i2c.seadn.io/ethereum/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d/365e081ede5df72e842c40d6fffc2d/db365e081ede5df72e842c40d6fffc2d.png?w=200" alt="" onerror="this.style.visibility='hidden'">
+          <img src="https://i2c.seadn.io/ethereum/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d/3e4e0e88565ad43471d44e3e2729c9/2c3e4e0e88565ad43471d44e3e2729c9.png?w=200" alt="" onerror="this.style.visibility='hidden'">
+        </div>
+      </section>
+      <div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+
+      <section class="sec" id="sweep-section">
+        <div class="head">
+          <div><h2>Sweep the Floor</h2><div class="sub">Buy the cheapest listings across every marketplace in one transaction</div></div>
+          <span class="pillbtn">Aggregated</span>
+        </div>
+        <div class="banner" id="success"></div>
+        <div class="sweep">
+          <form id="sweep-form" novalidate>
+            <div class="field">
+              <label for="collection">Collection</label>
+              <select id="collection">
+                <option value="boredapeyachtclub">Bored Ape Yacht Club · 5.65 ETH</option>
+                <option value="argonauts">Argonauts · 0.5512 ETH</option>
+                <option value="yield-field-deeds">Yield Field Deeds · 0.7548 ETH</option>
+                <option value="crawlers-by-slava-rybin">Crawlers by Slava Rybin · 0.1499 ETH</option>
+                <option value="spooky-rh">Spooky RH · 0.1503 ETH</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="quantity">Items to sweep</label>
+              <div class="qty">
+                <input type="range" id="qty-range" min="1" max="10" value="5">
+                <input type="number" id="quantity" min="1" max="10" value="5">
+              </div>
+            </div>
+            <div class="field">
+              <label for="source">Listing source</label>
+              <select id="source">
+                <option value="all">All marketplaces (14) · best price</option>
+                <option value="opensea">OpenSea listings only</option>
+                <option value="blur">Blur listings only</option>
+                <option value="magiceden">Magic Eden listings only</option>
+              </select>
+            </div>
+            <button type="submit" class="buy" id="submit-btn"><span class="spin"></span><span id="btn-label">Review sweep</span></button>
+            <p class="hint" id="hint">OpenSea aggregates listings from <b>14 marketplaces</b> and fills your sweep cheapest-first. Fees and gas are estimated before you sign.</p>
+          </form>
+          <div class="result">
+            <div class="empty" id="empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18M6 6l1.5 14h9L18 6M9 6V4h6v2"/></svg>
+              <div>Choose a collection and how many items to sweep. Your aggregated quote will appear here.</div>
+            </div>
+            <div class="progress" id="progress">
+              <b>Aggregating listings…</b>
+              <div class="bar"><i id="bar-fill"></i></div>
+              <div class="mk" id="progress-mk">Querying OpenSea</div>
+            </div>
+            <div class="quote" id="quote">
+              <div class="qhead"><b id="q-title"></b><span id="q-meta"></span></div>
+              <div class="items" id="items"></div>
+              <div class="totals">
+                <div><span>Subtotal</span><b id="t-sub"></b></div>
+                <div><span>Marketplace fees</span><b id="t-fee"></b></div>
+                <div><span>Est. gas</span><b id="t-gas"></b></div>
+                <div><span>Total</span><b id="t-total"></b></div>
+              </div>
+              <div class="srcs" id="srcs"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="head"><div><h2>Trending Tokens</h2><div class="sub">Tokens with momentum today</div></div></div>
+        <div class="tokens">
+          <div class="tok"><img src="https://i2c.seadn.io/solana/6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx/b01ceda30ad330f164a4cb84e90d7d/d8b01ceda30ad330f164a4cb84e90d7d.png?w=100" alt="" onerror="this.style.visibility='hidden'"><div><div class="nm">STONK <svg class="verified"><use href="#vf"/></svg></div><div class="px">$94M <span class="up">+16.8%</span></div></div><svg viewBox="0 0 60 28"><path d="M2 24 L14 20 L22 22 L32 14 L42 15 L50 8 L58 4" fill="none" stroke="#34c77b" stroke-width="2"/></svg></div>
+          <div class="tok"><img src="https://i2c.seadn.io/base/0x07b3d902783c3c12b077508c3b5c00113d1291d0/18dcbeab1b1c8bdb53d2cdf9a33e6b/6918dcbeab1b1c8bdb53d2cdf9a33e6b.png?w=100" alt="" onerror="this.style.visibility='hidden'"><div><div class="nm">Doppler <svg class="verified"><use href="#vf"/></svg></div><div class="px">$17.8M <span class="up">+0.6%</span></div></div><svg viewBox="0 0 60 28"><path d="M2 18 L12 10 L20 16 L30 6 L40 18 L50 14 L58 16" fill="none" stroke="#34c77b" stroke-width="2"/></svg></div>
+          <div class="tok"><img src="https://i2c.seadn.io/solana/HsprHxBRgiVaQdRf3TnKNuZZtaX9JUSPgMFdAkk6pump/16c5aab9b629dee1f79d6e2818387d/4a16c5aab9b629dee1f79d6e2818387d.jpeg?w=100" alt="" onerror="this.style.visibility='hidden'"><div><div class="nm">GTA6CAT</div><div class="px">$11.8M <span class="up">+7.6%</span></div></div><svg viewBox="0 0 60 28"><path d="M2 20 L14 12 L24 8 L34 14 L44 20 L52 10 L58 6" fill="none" stroke="#34c77b" stroke-width="2"/></svg></div>
+          <div class="tok"><img src="https://i2c.seadn.io/collection/kamino-shell/image_type_logo/2bc236eb2f999d31986d8ff7036cb2/662bc236eb2f999d31986d8ff7036cb2.png?w=100" alt="" onerror="this.style.visibility='hidden'"><div><div class="nm">Kamino <svg class="verified"><use href="#vf"/></svg></div><div class="px">$199.1M <span class="up">+15.5%</span></div></div><svg viewBox="0 0 60 28"><path d="M2 24 L14 22 L24 18 L34 16 L44 10 L52 8 L58 4" fill="none" stroke="#34c77b" stroke-width="2"/></svg></div>
+          <div class="tok"><img src="https://i2c.seadn.io/solana/AxPzkSJKU3ACqZu7qpq8ov29g4BENZBM4SAZwUUUFo8M/6c0c562373c60b1a5471c6727e8c33/1b6c0c562373c60b1a5471c6727e8c33.png?w=100" alt="" onerror="this.style.visibility='hidden'"><div><div class="nm">Mag Screenland</div><div class="px">$538.6K <span class="up">+846%</span></div></div><svg viewBox="0 0 60 28"><path d="M2 26 L14 24 L24 22 L34 18 L44 12 L52 6 L58 2" fill="none" stroke="#34c77b" stroke-width="2"/></svg></div>
+          <div class="tok"><img src="https://i2c.seadn.io/collection/axie-ronin/image/9012bd9916d0febd565e27ddf1d58e/699012bd9916d0febd565e27ddf1d58e.jpeg?w=100" alt="" onerror="this.style.visibility='hidden'"><div><div class="nm">Axie <svg class="verified"><use href="#vf"/></svg></div><div class="px">$0.55 <span class="up">+11%</span></div></div><svg viewBox="0 0 60 28"><path d="M2 20 L12 22 L22 16 L32 18 L42 12 L50 14 L58 8" fill="none" stroke="#34c77b" stroke-width="2"/></svg></div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="head"><div><h2>Featured Collections</h2><div class="sub">This week's curated collections</div></div></div>
+        <div class="cards">
+          <div class="card"><img src="https://i2c.seadn.io/collection/mudwater-packs/image_type_hero_desktop/81ff03ea44acc581dc9f17ae13c3fa/7481ff03ea44acc581dc9f17ae13c3fa.png?w=750" alt="" onerror="this.style.display='none'"><div class="cap"><b>Mudwater Cases <svg class="verified"><use href="#vf"/></svg></b><div>Floor price: <span class="mono">$16K</span> <span class="mono down">-67.7%</span></div></div></div>
+          <div class="card"><img src="https://i2c.seadn.io/collection/cambria-charters/image_type_hero_desktop/58dd05a6c2e1e83eb4b17e5c1bbbe9/6b58dd05a6c2e1e83eb4b17e5c1bbbe9.png?w=750" alt="" onerror="this.style.display='none'"><div class="cap"><b>Cambria Charters <svg class="verified"><use href="#vf"/></svg></b><div>Floor price: <span class="mono">$93.54</span> <span class="mono down">-2.5%</span></div></div></div>
+          <div class="card"><img src="https://i2c.seadn.io/collection/unwashed-bystanders-by-frank-manzano/image_type_hero_desktop/77e2580be29ee06706fe81fc278651/ff77e2580be29ee06706fe81fc278651.jpeg?w=750" alt="" onerror="this.style.display='none'"><div class="cap"><b>Unwashed Bystanders <svg class="verified"><use href="#vf"/></svg></b><div>Floor price: <span class="mono">$41.20</span> <span class="mono up">+3.1%</span></div></div></div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="head"><div><h2>Featured Drops</h2><div class="sub">This week's curated live and upcoming drops</div></div></div>
+        <div class="cards">
+          <div class="card"><img src="https://i2c.seadn.io/collection/norks/image_type_hero_desktop/a693020f10c550a34babac6a0ec16e/75a693020f10c550a34babac6a0ec16e.png?w=750" alt="" onerror="this.style.display='none'"><div class="cap"><b>NORKS <svg class="verified"><use href="#vf"/></svg></b><div><span class="mint">MINTING NOW</span><span class="mono">$95.94</span></div></div></div>
+          <div class="card"><img src="https://i2c.seadn.io/collection/people-of-the-sky/image_type_hero_desktop/ebf5da85818e2ce9ac3f8a1d005223/caebf5da85818e2ce9ac3f8a1d005223.jpeg?w=750" alt="" onerror="this.style.display='none'"><div class="cap"><b>People of the Sky</b><div><span class="mint">MINTING NOW</span><span class="mono">$95.94</span></div></div></div>
+          <div class="card"><img src="https://i2c.seadn.io/collection/hypest-access-passes/image_type_hero_desktop/a051294e30a2677d0c1a530f9fb6ce/87a051294e30a2677d0c1a530f9fb6ce.jpeg?w=750" alt="" onerror="this.style.display='none'"><div class="cap"><b>Hypest Access Passes</b><div><span class="mint">MINTING NOW</span><span class="mono">$34.26</span></div></div></div>
+        </div>
+      </section>
+
+      <section class="sec" style="margin-bottom:40px">
+        <div class="head"><div><h2>Trending Collections</h2><div class="sub">Collections with momentum today</div></div></div>
+        <div class="trend">
+          <div class="trow"><img src="https://i2c.seadn.io/collection/boredapeyachtclub/image/1a09c26b1c30427b26944c47fc7bb9/d81a09c26b1c30427b26944c47fc7bb9.png?w=160" alt="" onerror="this.style.visibility='hidden'"><div><b>Bored Ape Yacht Club <svg class="verified"><use href="#vf"/></svg></b><div>$12.9K <span class="up">+0.9%</span></div></div></div>
+          <div class="trow"><img src="https://i2c.seadn.io/collection/argonauts/image_type_logo/8c1f7d6949c6b5a6e68e661bfd0216/948c1f7d6949c6b5a6e68e661bfd0216.png?w=160" alt="" onerror="this.style.visibility='hidden'"><div><b>Argonauts <svg class="verified"><use href="#vf"/></svg></b><div>$1,254.93 <span class="down">-12.6%</span></div></div></div>
+          <div class="trow"><img src="https://i2c.seadn.io/collection/yield-field-deeds/image_type_logo/635cb144d897b140bbbc5e198257e8/b2635cb144d897b140bbbc5e198257e8.png?w=160" alt="" onerror="this.style.visibility='hidden'"><div><b>Yield Field Deeds <svg class="verified"><use href="#vf"/></svg></b><div>$1,724.67 <span class="down">-6.7%</span></div></div></div>
+          <div class="trow"><img src="https://i2c.seadn.io/collection/crawlers-by-slava-rybin/image_type_logo/c6edb21b2f5ed5a710d97d65ce2753/acc6edb21b2f5ed5a710d97d65ce2753.jpeg?w=160" alt="" onerror="this.style.visibility='hidden'"><div><b>Crawlers by Slava Rybin <svg class="verified"><use href="#vf"/></svg></b><div>$342.65 <span class="up">+81%</span></div></div></div>
+          <div class="trow"><img src="https://i2c.seadn.io/collection/freedz-35149549/image_type_logo/4d7d87d3abe035a79626700cad4282/554d7d87d3abe035a79626700cad4282.png?w=160" alt="" onerror="this.style.visibility='hidden'"><div><b>FREEDZ <svg class="verified"><use href="#vf"/></svg></b><div>$27.18 <span class="up">+54.5%</span></div></div></div>
+          <div class="trow"><img src="https://i2c.seadn.io/collection/spooky-rh/image_type_logo/3b13390e062da954eadaf1b95f27ab/0a3b13390e062da954eadaf1b95f27ab.jpeg?w=160" alt="" onerror="this.style.visibility='hidden'"><div><b>Spooky RH <svg class="verified"><use href="#vf"/></svg></b><div>$343.33 <span class="up">+3,240%</span></div></div></div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="side">
+      <div class="tabs"><button class="chip on">NFTs</button><button class="chip">Tokens</button><button class="chip">Perps</button><span style="flex:1"></span><button class="chip">1d ⌄</button></div>
+      <div class="hd"><span>COLLECTION</span><span>FLOOR</span></div>
+      <div class="srow"><img src="https://i2c.seadn.io/collection/boredapeyachtclub/image/1a09c26b1c30427b26944c47fc7bb9/d81a09c26b1c30427b26944c47fc7bb9.png?w=80" alt="" onerror="this.style.visibility='hidden'"><div class="n">Bored Ape Yacht Club <svg class="verified"><use href="#vf"/></svg></div><div class="p"><div>$12.9K</div><div class="up">+0.9%</div></div></div>
+      <div class="srow"><img src="https://i2c.seadn.io/collection/crawlers-by-slava-rybin/image_type_logo/c6edb21b2f5ed5a710d97d65ce2753/acc6edb21b2f5ed5a710d97d65ce2753.jpeg?w=80" alt="" onerror="this.style.visibility='hidden'"><div class="n">Crawlers by Slava Rybin <svg class="verified"><use href="#vf"/></svg></div><div class="p"><div>$342.65</div><div class="up">+81%</div></div></div>
+      <div class="srow"><img src="https://i2c.seadn.io/collection/argonauts/image_type_logo/8c1f7d6949c6b5a6e68e661bfd0216/948c1f7d6949c6b5a6e68e661bfd0216.png?w=80" alt="" onerror="this.style.visibility='hidden'"><div class="n">Argonauts <svg class="verified"><use href="#vf"/></svg></div><div class="p"><div>$1,254.91</div><div class="down">-12.6%</div></div></div>
+      <div class="srow"><img src="https://i2c.seadn.io/collection/freedz-35149549/image_type_logo/4d7d87d3abe035a79626700cad4282/554d7d87d3abe035a79626700cad4282.png?w=80" alt="" onerror="this.style.visibility='hidden'"><div class="n">FREEDZ <svg class="verified"><use href="#vf"/></svg></div><div class="p"><div>$27.18</div><div class="up">+54.5%</div></div></div>
+      <div class="srow"><img src="https://i2c.seadn.io/collection/yield-field-deeds/image_type_logo/635cb144d897b140bbbc5e198257e8/b2635cb144d897b140bbbc5e198257e8.png?w=80" alt="" onerror="this.style.visibility='hidden'"><div class="n">Yield Field Deeds <svg class="verified"><use href="#vf"/></svg></div><div class="p"><div>$1,724.67</div><div class="down">-6.7%</div></div></div>
+      <div class="srow"><img src="https://i2c.seadn.io/collection/spooky-rh/image_type_logo/3b13390e062da954eadaf1b95f27ab/0a3b13390e062da954eadaf1b95f27ab.jpeg?w=80" alt="" onerror="this.style.visibility='hidden'"><div class="n">Spooky RH</div><div class="p"><div>$343.33</div><div class="up">+3,240%</div></div></div>
+      <div class="srow"><img src="https://i2c.seadn.io/collection/collector-crypt/image_type_logo/8a49960d6b1a662d09066e7a102d9e/6d8a49960d6b1a662d09066e7a102d9e.png?w=80" alt="" onerror="this.style.visibility='hidden'"><div class="n">Collector Crypt <svg class="verified"><use href="#vf"/></svg></div><div class="p"><div>$11.99</div><div class="up">+1.5%</div></div></div>
+      <div class="srow"><img src="https://i2c.seadn.io/collection/cashcatss/image_type_logo/85d404f808ab106f13790b69054c3f/a185d404f808ab106f13790b69054c3f.png?w=80" alt="" onerror="this.style.visibility='hidden'"><div class="n">Cash Cats <svg class="verified"><use href="#vf"/></svg></div><div class="p"><div>$26.50</div><div class="down">-14.3%</div></div></div>
+      <div class="srow"><img src="https://i2c.seadn.io/collection/digitalhumans/image_type_logo/2fd0a5020a6b1e4ad5f2050f7ea90c/932fd0a5020a6b1e4ad5f2050f7ea90c.jpeg?w=80" alt="" onerror="this.style.visibility='hidden'"><div class="n">Digital humans <svg class="verified"><use href="#vf"/></svg></div><div class="p"><div>$22.84</div><div class="up">+55.4%</div></div></div>
+      <div class="srow"><img src="https://i2c.seadn.io/collection/axie-ronin/image/9012bd9916d0febd565e27ddf1d58e/699012bd9916d0febd565e27ddf1d58e.jpeg?w=80" alt="" onerror="this.style.visibility='hidden'"><div class="n">Axie <svg class="verified"><use href="#vf"/></svg></div><div class="p"><div>$0.55</div><div class="up">+11%</div></div></div>
+      <div class="srow"><img src="https://i2c.seadn.io/polygon/90865069ed5a4ef382db799430e09a56/a70379eaf770c85beae83b89c7a632/3ea70379eaf770c85beae83b89c7a632.png?w=80" alt="" onerror="this.style.visibility='hidden'"><div class="n">Courtyard.io <svg class="verified"><use href="#vf"/></svg></div><div class="p"><div>$5.80</div><div class="down">-0.6%</div></div></div>
+    </aside>
+  </div>
+
+  <footer class="bar">
+    <span class="live">Live</span>
+    <span>Aggregating</span>
+    <span>Networks</span>
+    <span>Platform Terms</span>
+    <span>Wallet &amp; Onramp Terms</span>
+    <span>Privacy Policy</span>
+    <span class="sp"></span>
+    <span class="mono">Ξ $2,284.33</span>
+    <span>Support</span>
+    <span class="seg"><span class="on">Collector</span><span>Pro</span></span>
+    <span class="seg"><span>Crypto</span><span class="on">USD</span></span>
+  </footer>
+
+  <div class="toast" id="toast" role="alert"></div>
+
+  <script>
+    /* global document, localStorage, fetch */
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    var APE_IMAGES = [
+      'https://i2c.seadn.io/ethereum/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d/365e081ede5df72e842c40d6fffc2d/db365e081ede5df72e842c40d6fffc2d.png?w=240',
+      'https://i2c.seadn.io/ethereum/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d/3e4e0e88565ad43471d44e3e2729c9/2c3e4e0e88565ad43471d44e3e2729c9.png?w=240',
+      'https://i2c.seadn.io/collection/boredapeyachtclub/image/1a09c26b1c30427b26944c47fc7bb9/d81a09c26b1c30427b26944c47fc7bb9.png?w=240'
+    ];
+    var COLLECTION_IMAGES = {
+      boredapeyachtclub: APE_IMAGES,
+      argonauts: ['https://i2c.seadn.io/collection/argonauts/image_type_logo/8c1f7d6949c6b5a6e68e661bfd0216/948c1f7d6949c6b5a6e68e661bfd0216.png?w=240'],
+      'yield-field-deeds': ['https://i2c.seadn.io/collection/yield-field-deeds/image_type_logo/635cb144d897b140bbbc5e198257e8/b2635cb144d897b140bbbc5e198257e8.png?w=240'],
+      'crawlers-by-slava-rybin': ['https://i2c.seadn.io/collection/crawlers-by-slava-rybin/image_type_logo/c6edb21b2f5ed5a710d97d65ce2753/acc6edb21b2f5ed5a710d97d65ce2753.jpeg?w=240'],
+      'spooky-rh': ['https://i2c.seadn.io/collection/spooky-rh/image_type_logo/3b13390e062da954eadaf1b95f27ab/0a3b13390e062da954eadaf1b95f27ab.jpeg?w=240']
+    };
+    var MARKETPLACE_NAMES = ['OpenSea', 'Blur', 'Magic Eden', 'LooksRare', 'X2Y2', 'Rarible', 'Element', 'OKX NFT', 'Sudoswap', 'NFTX', 'Zora', 'Foundation', 'Coinbase NFT', 'Mintify'];
+
+    var form = document.getElementById('sweep-form');
+    var button = document.getElementById('submit-btn');
+    var btnLabel = document.getElementById('btn-label');
+    var collection = document.getElementById('collection');
+    var quantity = document.getElementById('quantity');
+    var qtyRange = document.getElementById('qty-range');
+    var source = document.getElementById('source');
+    var empty = document.getElementById('empty');
+    var progress = document.getElementById('progress');
+    var barFill = document.getElementById('bar-fill');
+    var progressMk = document.getElementById('progress-mk');
+    var quote = document.getElementById('quote');
+    var success = document.getElementById('success');
+    var toast = document.getElementById('toast');
+    var toastTimer;
+    var ticker;
+
+    function eth(v) { return Number(v).toFixed(4).replace(/0+$/, '').replace(/\.$/, '') + ' ETH'; }
+    function usd(v) { return '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+    function showToast(title, message) {
+      toast.innerHTML = '<b>' + esc(title) + '</b>' + esc(message);
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+    }
+
+    qtyRange.addEventListener('input', function () { quantity.value = qtyRange.value; });
+    quantity.addEventListener('input', function () { if (quantity.value >= 1 && quantity.value <= 10) qtyRange.value = quantity.value; });
+
+    function startProgress() {
+      var names = source.value === 'all' ? MARKETPLACE_NAMES : [source.options[source.selectedIndex].text.replace(' listings only', '')];
+      var i = 0;
+      empty.style.display = 'none';
+      quote.style.display = 'none';
+      progress.style.display = 'block';
+      barFill.style.width = '0';
+      progressMk.textContent = 'Querying ' + names[0] + ' (1/' + names.length + ')';
+      clearInterval(ticker);
+      ticker = setInterval(function () {
+        i = Math.min(i + 1, names.length - 1);
+        progressMk.textContent = 'Querying ' + names[i] + ' (' + (i + 1) + '/' + names.length + ')';
+        barFill.style.width = Math.min(95, ((i + 1) / names.length) * 100) + '%';
+      }, 500);
+    }
+    function stopProgress() { clearInterval(ticker); progress.style.display = 'none'; }
+
+    function renderQuote(data) {
+      var images = COLLECTION_IMAGES[data.collection.key] || APE_IMAGES;
+      document.getElementById('q-title').textContent = data.collection.label + ' · ' + data.summary.itemsFilled + ' items';
+      document.getElementById('q-meta').textContent = data.listingsScanned + ' listings · ' + data.marketplacesQueried + ' marketplace' + (data.marketplacesQueried === 1 ? '' : 's');
+      document.getElementById('items').innerHTML = data.sweep.map(function (item, index) {
+        return '<div class="item"><img src="' + images[index % images.length] + '" alt="" onerror="this.style.visibility=\'hidden\'">'
+          + '<div><b>#' + esc(item.tokenId) + '</b><span>' + eth(item.priceEth) + '</span><em>' + esc(item.marketplaceLabel) + '</em></div></div>';
+      }).join('');
+      document.getElementById('t-sub').textContent = eth(data.summary.subtotalEth);
+      document.getElementById('t-fee').textContent = eth(data.summary.marketplaceFeesEth);
+      document.getElementById('t-gas').textContent = eth(data.summary.gasEth);
+      document.getElementById('t-total').textContent = eth(data.summary.totalEth) + ' · ' + usd(data.summary.totalUsd);
+      document.getElementById('srcs').innerHTML = data.marketplaceQuotes.map(function (q) {
+        return '<span>' + esc(q.label) + ' · ' + eth(q.bestPriceEth) + '</span>';
+      }).join('');
+      quote.style.display = 'block';
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      success.classList.remove('show');
+      toast.classList.remove('show');
+      button.disabled = true;
+      btnLabel.textContent = 'Aggregating listings…';
+      startProgress();
+
+      identityReady.then(function () {
+        var payload = {
+          collection: collection.value,
+          quantity: Number(quantity.value),
+          source: source.value,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        };
+        return fetch('/api/5d0fd49b/sweep-quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }).then(function (response) {
+        return response.json().then(function (data) { return { ok: response.ok, data: data }; });
+      }).then(function (result) {
+        stopProgress();
+        if (!result.ok || !result.data.success) {
+          empty.style.display = 'block';
+          showToast('Couldn\u2019t build sweep', result.data.error || 'Something went wrong. Try again.');
+          return;
+        }
+        renderQuote(result.data);
+        success.textContent = 'Sweep ready — ' + result.data.summary.itemsFilled + ' ' + result.data.collection.label + ' items for '
+          + eth(result.data.summary.totalEth) + ' (avg ' + eth(result.data.summary.avgPriceEth) + '). Quote ' + result.data.requestId.slice(0, 8) + '.';
+        success.classList.add('show');
+      }).catch(function () {
+        stopProgress();
+        empty.style.display = 'block';
+        showToast('Network error', 'We couldn\u2019t reach OpenSea. Check your connection and try again.');
+      }).then(function () {
+        button.disabled = false;
+        btnLabel.textContent = 'Review sweep';
+      });
+    });
+  </script>
+</body>
+</html>
