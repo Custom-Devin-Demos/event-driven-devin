@@ -102,18 +102,21 @@ cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 # Optional .env sync from the deploy workflow (Actions secrets). Applied under
 # the lock and after the backup above, so rollback restores the previous .env.
 # The staged file holds one `KEY=value` line per allowlisted key; each value
-# must match its key's format (Teams webhooks: single-line https URL; FCTO
-# Slack app: signing secret, xoxb- bot token, channel ID). Invalid or duplicate
+# must match its key's format (Teams webhooks and Devin automation webhook URLs:
+# single-line https URL; FCTO Slack app: signing secret, xoxb- bot token,
+# channel ID; Devin webhook secret: URL-safe token). Invalid or duplicate
 # lines are logged and skipped; a file with more lines than allowlisted keys is
 # ignored entirely (deploy continues with the current .env).
 ENV_SYNC_KEYS=(ONCALL_TEAMS_WEBHOOK_URL AUTOMATIONS_TEAMS_WEBHOOK_URL ONCALL_TEAMS_WEBHOOK_URL_COGNITION_AI
   ONCALL_TEAMS_WEBHOOK_URL_HEALTHCARE
-  FCTO_SLACK_SIGNING_SECRET FCTO_SLACK_BOT_TOKEN FCTO_CHANNEL_ID)
+  FCTO_SLACK_SIGNING_SECRET FCTO_SLACK_BOT_TOKEN FCTO_CHANNEL_ID
+  DEVIN_WEBHOOK_URL_B6E7EAC1 DEVIN_WEBHOOK_SECRET_B6E7EAC1)
 env_sync_value_ok() {
   case "$1" in
     FCTO_SLACK_SIGNING_SECRET) [[ "$2" =~ ^[A-Za-z0-9]{16,128}$ ]] ;;
     FCTO_SLACK_BOT_TOKEN) [[ "$2" =~ ^xoxb-[A-Za-z0-9-]{10,250}$ ]] ;;
     FCTO_CHANNEL_ID) [[ "$2" =~ ^[CG][A-Z0-9]{6,20}$ ]] ;;
+    DEVIN_WEBHOOK_SECRET_B6E7EAC1) [[ "$2" =~ ^[A-Za-z0-9_-]{16,256}$ ]] ;;
     *) [[ "$2" =~ ^https://[^[:space:]\"\'\$]+$ ]] ;;
   esac
 }
