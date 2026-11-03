@@ -149,7 +149,7 @@ async function createDevinSession(prompt, options = {}) {
     try {
       response = await post(body);
     } catch (error) {
-      if (!isPlatformRejection(body, error)) {
+      if (options.strictPlatform || !isPlatformRejection(body, error)) {
         throw error;
       }
       // The org has no platform/outpost with that label — fall back to the

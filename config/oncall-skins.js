@@ -7980,6 +7980,7 @@ const ONCALL_SKINS = {
       // One macOS session owns the incident end to end; the #oncall-alerts responder skips `rogo-research@`.
       platform: 'macos',
       quietLink: true,
+      noWebPage: true,
       promptAppendix: [
         'This alert comes from the Rogo iOS app (native SwiftUI, no web page); every question calls the endpoint above. You are on a macOS VM so you can run the iOS Simulator yourself.',
         'Diagnose from the code in COG-GTM/event-driven-devin and open one fix PR there. Do not deploy or merge.',

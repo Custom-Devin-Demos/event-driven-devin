@@ -1445,7 +1445,8 @@ function buildOncallSessionPrompt(scenario, skin, runRef, { channel, threadTs, o
     `*${t.impact}:* ${card.impact}`,
     runRef ? `*${t.incidentRef}:* ${runRef}` : null,
     '',
-    t.reproduce(`${DEMO_BASE_URL()}/oncall/c/${skin.slug}`, REPO_URL),
+    // noWebPage: native-app skins have no /oncall/c page; their promptAppendix says how to reproduce.
+    skin.devinSession && skin.devinSession.noWebPage ? null : t.reproduce(`${DEMO_BASE_URL()}/oncall/c/${skin.slug}`, REPO_URL),
   ].filter((l) => l !== null);
 
   if (t.promptTelemetry) {
@@ -1549,7 +1550,8 @@ async function triggerSkinDevinSession(
       ...resolveSessionIdentity(requester, config),
       apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
       title: oncallStrings(skin, scenario).sessionTitle(resolveAlertCard(scenario, skin).monitor),
-      ...(config.platform ? { platform: config.platform } : {}),
+      // A skin that names a platform needs it (e.g. the iOS Simulator), so never fall back to the default.
+      ...(config.platform ? { platform: config.platform, strictPlatform: true } : {}),
     });
   } catch (error) {
     logger.error('On-Call skin Devin session failed', { skin: skin.slug, error: error.message });
@@ -1730,7 +1732,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   const runRef = options.runRef || (options.unique !== false && !repeat ? makeRunRef() : null);
   const previousRuns = repeat ? repeat.runs++ : 0;
   const groupedNote = repeat && repeat.ts
-    ? `:link: Grouped with the <${slackPermalink(repeat.channel, repeat.ts)}|original alert> · ${previousRuns} previous run${previousRuns === 1 ? '' : 's'} · same Devin investigation`
+    ? `:link: Grouped with the <${slackPermalink(repeat.channel, repeat.ts)}|original alert> · ${previousRuns} previous run${previousRuns === 1 ? '' : 's'}`
     : null;
   const reservation = groupable && !repeat ? reserveSkinAlert(skin, runRef) : null;
   const triggeredBy = slackReady ? await resolveTriggeredBy(token, options.devinEmail) : null;
@@ -1819,7 +1821,10 @@ async function postOncallAlert(scenarioId, options = {}) {
   // already investigates the alert, and a second session would duplicate it.
   let session = null;
   if (skin && ts && repeat) {
-    const sessionArgs = { token, channel: alertsChannel, threadTs: ts, requester, onCallMemberId };
+    // A retry for a failed first session replies in the original alert's thread, which the repeat card links to.
+    const sessionArgs = {
+      token, channel: repeat.channel || alertsChannel, threadTs: repeat.ts || ts, requester, onCallMemberId,
+    };
     const joined = await joinSkinIncident(scenario, skin, repeat, sessionArgs);
     if (joined.url) {
       session = { url: joined.url };
