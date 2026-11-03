@@ -721,6 +721,24 @@ const ALERT_SCENARIOS = {
     triggerWhen: { blueprintId: 'dpc-vsphere' },
     unlisted: true,
   },
+  research: {
+    vertical: 'research',
+    apiPath: '/api/research/answers',
+    oncallApiPath: '/api/oncall/research/answers',
+    owner: 'Priya Raman (research-platform-oncall)',
+    brand: 'Research Assistant (Answers)',
+    service: 'research-api',
+    endpoint: 'POST /api/oncall/research/answers',
+    monitor: 'p95 latency \u2014 research answers (POST /api/oncall/research/answers)',
+    metricQuery: 'avg:trace.express.request.duration.by.resource_service.95p{service:checkout-api,resource:POST /api/oncall/research/answers}',
+    metricValue: '~8s p95 per answer',
+    threshold: '> 3s p95',
+    baseline: '~900ms p95 (7-day)',
+    release: 'research-api@2026.11.1',
+    symptom: 'Research answers sit on "Pulling documents..." for about 8 seconds before the answer appears. Every question is affected; answers and citations are correct once they arrive. Error rate is normal.',
+    impact: 'Every user waits about 8 seconds for each answer, and every follow-up question waits just as long.',
+    unlisted: true,
+  },
   portfoliofilter: {
     vertical: 'portfoliofilter',
     page: 'fd157043.html',
@@ -1282,7 +1300,7 @@ function contextBlock(service, triggeredBy, submittedFrom, t = ONCALL_STRINGS.en
  * the canonical signature to demonstrate duplicate grouping.
  */
 function demoPagePath(scenario, skin) {
-  if (skin) return `/oncall/c/${skin.slug}`;
+  if (skin && ((skin.page && skin.page.file) || scenario.page)) return `/oncall/c/${skin.slug}`;
   return scenario.demoPage || null;
 }
 

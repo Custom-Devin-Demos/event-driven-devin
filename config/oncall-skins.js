@@ -7946,6 +7946,31 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN ALLIANZ SITE — internal demo only, not affiliated with, endorsed by, or a real Allianz product.',
   },
+  e62af577: {
+    slug: 'e62af577',
+    company: 'Rogo',
+    vertical: 'research',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the Rogo iOS app (a native SwiftUI client, there is no web page). Asking Rogo a question calls the endpoint above, so that endpoint is the backend of this incident.',
+        'In the alert thread the incident reads "p95 latency \u2014 Rogo research answers", release rogo-research@2026.11.1, owner team rogo-research-oncall: after a question is sent the app sits on "Working... Pulling documents..." for about 8 seconds before the cited answer appears; answers are correct and the error rate is normal.',
+        'Investigate from telemetry first (the monitor, APM traces and logs around the incident reference) before reading code, and write an evidence-based investigation summary: signals checked, hypotheses ruled out, root cause, impact.',
+        'Use "Rogo" and "research answers" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread. Do not deploy or merge.',
+      ].join('\n'),
+    },
+    alertCard: {
+      title: 'p95 latency \u2014 Rogo research answers (POST /api/oncall/research/answers)',
+      release: 'rogo-research@2026.11.1',
+      team: 'rogo-research-oncall',
+      symptom: 'Rogo answers sit on "Pulling documents..." for about 8 seconds before the cited answer appears, on every question in the iOS app. Answers and citations are correct once they arrive. Error rate is normal.',
+      impact: 'Every Rogo user waits about 8 seconds for each answer, and every follow-up question waits just as long.',
+    },
+    disclaimer: 'NOT ACTUALLY A ROGO APP \u2014 internal demo only, not affiliated with, endorsed by, or a real Rogo product.',
+  },
 };
 
 function getOncallSkin(slug) {

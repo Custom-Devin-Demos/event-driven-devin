@@ -22,6 +22,7 @@ const { createReservation } = require('../services/oncall-verticals/evreservatio
 const { checkCoverage } = require('../services/oncall-verticals/coveragecheck');
 const { createDeployment } = require('../services/oncall-verticals/privatecloud');
 const { filterPortfolio } = require('../services/oncall-verticals/portfoliofilter');
+const { answerResearchQuery } = require('../services/oncall-verticals/research');
 const { checkoutOrder: checkoutSportingGoodsOrder } = require('../services/oncall-verticals/sportinggoods');
 const { checkoutOrder: checkoutClickCollectOrder } = require('../services/oncall-verticals/clickcollect');
 const { checkoutOrder: checkoutStorePickupOrder } = require('../services/oncall-verticals/storepickup');
@@ -874,6 +875,28 @@ router.post('/api/oncall/privatecloud/deployments', async (req, res) => {
       error: 'The deployment could not be started. No changes were made to the selected endpoints.',
       errorClass: error.name,
       code: error.code || 'DEPLOYMENT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/research/answers — answer a research question from the
+ * in-scope filings (native research app)
+ */
+router.post('/api/oncall/research/answers', async (req, res) => {
+  const body = req.body || {};
+  try {
+    res.json(await answerResearchQuery({
+      query: body.query, tickers: body.tickers, sources: body.sources, model: body.model,
+    }));
+  } catch (error) {
+    const status = error.code === 'INVALID_QUERY' ? 400 : 500;
+    res.status(status).json({
+      success: false,
+      error: status === 400 ? error.message : 'The answer could not be generated.',
+      errorClass: error.name,
+      code: error.code || 'RESEARCH_ANSWER_FAILED',
       requestId: req.requestId,
     });
   }
