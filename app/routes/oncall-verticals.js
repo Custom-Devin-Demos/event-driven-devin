@@ -35,12 +35,34 @@ const logger = require('../telemetry/logger');
 const { createEnvironment, createApplication } = require('../services/oncall-verticals/identity');
 const { getAvailability, confirmBooking } = require('../services/oncall-verticals/examscheduling');
 const { generateReport } = require('../services/oncall-verticals/devicereports');
+const { refreshRefillQueue, REFILLS } = require('../services/oncall-verticals/refillqueue');
 const { dispatchResponsePlan } = require('../services/oncall-verticals/emergencydispatch');
 const { createSession: createMemberSession } = require('../services/oncall-verticals/memberlogin');
 const { prepareFulfillment, listCollection } = require('../services/oncall-verticals/nftcheckout');
 const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 
 const router = express.Router();
+
+router.get('/api/oncall/refillqueue/refills', (_req, res) => {
+  res.json({ refills: REFILLS });
+});
+
+router.post('/api/oncall/refillqueue/refresh', async (req, res) => {
+  try {
+    res.json(await refreshRefillQueue(req.body));
+  } catch (error) {
+    const timeout = error.code === 'REFILL_REFRESH_TIMEOUT';
+    res.status(timeout ? 504 : error.code === 'INVALID_REFILLS' ? 400 : 500).json({
+      success: false,
+      error: timeout
+        ? 'Refill statuses could not be refreshed in time. Your saved queue is unchanged. Please try again.'
+        : error.code === 'INVALID_REFILLS' ? error.message : 'Unable to refresh refill statuses. Please try again.',
+      code: error.code || 'REFILL_REFRESH_FAILED',
+      refreshId: error.refreshId,
+      requestId: req.requestId,
+    });
+  }
+});
 
 /**
  * Upstream hold windows for skins with failAfterHang: the slow request then

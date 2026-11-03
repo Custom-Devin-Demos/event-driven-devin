@@ -92,6 +92,28 @@
  */
 
 const ONCALL_SKINS = {
+  '49315f87': {
+    slug: '49315f87',
+    company: 'Lumistry',
+    vertical: 'refillqueue',
+    oncallOnly: true,
+    paths: ['/lumistry', '/lumistry-oncall'],
+    alertDestination: 'slack',
+    page: { file: '49315f87.html', title: 'Dashboard | Lumistry One' },
+    theme: { '--accent': '#0067b1', '--ink': '#20384b', '--surface': '#ffffff' },
+    devinSession: {
+      auto: true,
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Investigate the Lumistry One refill-status refresh incident from telemetry first; correlate the failed request with its upstream spans and structured logs.',
+        'Reproduce only against a local run, with Slack, Teams, Sentry and Devin outbound credentials disabled. Do not submit the live page: every failed refresh can page another investigation. Give any testing agent the same restriction.',
+        'Measure the full queue and a single-refill control before and after the fix. Preserve the existing request deadline, clinical eligibility outcomes, row order, and all eight results. Do not hide the issue by increasing the timeout or dropping requests.',
+        'Add a latency regression test that fails before the fix and passes after. Record the same dashboard action before and after with visible timing.',
+        'Open a PR with findings, tests and recordings. Do not merge or deploy; post the findings and PR link back in the alert thread.',
+      ].join('\n'),
+    },
+    disclaimer: 'NOT ACTUALLY A LUMISTRY SITE — internal demo only, not affiliated with, endorsed by, or a real Lumistry product.',
+  },
   '2b30ce42': {
     slug: '2b30ce42',
     company: 'CIBC',
