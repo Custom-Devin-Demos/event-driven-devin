@@ -213,7 +213,7 @@ function approveTripRequest(request) {
 }
 /* end travel policy rules */
 
-var state = { tab: 'trips', detail: null, approved: {}, failures: {} };
+var state = { tab: 'trips', detail: null, approved: {}, rejected: {}, failures: {} };
 var reported = {};
 
 function $(id) { return document.getElementById(id); }
@@ -223,7 +223,7 @@ function cabinsOf(request) {
   return request.segments.filter(function (s) { return s.type === 'flight' && !seen[s.cabin] && (seen[s.cabin] = true); })
     .map(function (s) { return CABIN_LABELS[s.cabin] || s.cabin; });
 }
-function pendingCount() { return TRIP_REQUESTS.filter(function (r) { return !state.approved[r.id]; }).length; }
+function pendingCount() { return TRIP_REQUESTS.filter(function (r) { return !state.approved[r.id] && !state.rejected[r.id]; }).length; }
 
 function show(tab) {
   state.tab = tab;
@@ -258,6 +258,8 @@ function taskCard(request, withDetails) {
     '</div></div><div class="total"><small>Total</small><strong>' + money(request.total, request.currency) + '</strong></div></div>' +
     (approved
       ? '<div class="state-pill ok" data-testid="approved-' + request.id + '">&#10003; Approved · ' + approved.ruleIds.join(', ') + '</div>'
+      : state.rejected[request.id]
+      ? '<div class="state-pill" data-testid="rejected-' + request.id + '">&#10005; Rejected · ' + state.rejected[request.id] + '</div>'
       : '<div class="actions"><button class="reject" type="button" data-reject="' + request.id + '">&#10005; Reject</button>' +
         '<button class="approve" type="button" data-approve="' + request.id + '">&#10003; Approve</button></div>') +
     '</div>' + errorBanner(request);
@@ -280,6 +282,14 @@ function renderDetail() {
 }
 
 function rerender() { if (state.tab === 'tasks') renderTasks(); if (state.tab === 'detail') renderDetail(); $('tasks-count').setAttribute('data-count', String(pendingCount())); }
+
+function onReject(id) {
+  state.rejected[id] = 'Not business critical';
+  delete state.failures[id];
+  $('trip-state-' + id).textContent = 'Rejected';
+  toast('Trip request ' + id + ' rejected');
+  rerender();
+}
 
 function onApprove(id) {
   var request = TRIP_REQUESTS.filter(function (r) { return r.id === id; })[0];
@@ -370,7 +380,7 @@ $('phone').addEventListener('click', function (event) {
   var target = event.target.closest('button');
   if (!target) return;
   if (target.getAttribute('data-approve')) onApprove(target.getAttribute('data-approve'));
-  if (target.getAttribute('data-reject')) toast('Add a reason to reject ' + target.getAttribute('data-reject'));
+  if (target.getAttribute('data-reject')) onReject(target.getAttribute('data-reject'));
   if (target.getAttribute('data-open')) { state.detail = target.getAttribute('data-open'); show('detail'); }
 });
 $('nav-action').addEventListener('click', function () {
