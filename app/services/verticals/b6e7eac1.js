@@ -396,14 +396,16 @@ async function fireAlert({ pageUrl = '', devinUserId = '', devinOrgId = '', devi
     recordTiming('rentalsync.alert.latency', Date.now() - startTime, { route: FIRE_ROUTE });
     if (!result) {
       incrementMetric('rentalsync.alert.failure', { route: FIRE_ROUTE, errorClass: 'NotDelivered' });
-      return { success: false, sent: false, requestId, message: 'Alert could not be delivered (alert channel unavailable). Nothing was posted and no Devin session was started.', payload };
+      return { success: false, sent: false, requestId, message: 'Alert could not be delivered to the alert channel; no Devin session was started.', payload };
     }
     incrementMetric('rentalsync.alert.sent', { route: FIRE_ROUTE });
     const sessionUrl = result.session && result.session.url ? result.session.url : null;
     lastAlert = { requestId, firedAt: payload.data.essentials.firedDateTime, sent: true, sessionUrl };
     const message = sessionUrl
       ? 'Alert posted; Devin session starting.'
-      : (result.throttled ? 'Alert posted; Devin session not started (session cap reached).' : 'Alert posted; no Devin session was started by the app (handled by the on-call responder for this alert destination).');
+      : (result.throttled ? 'Alert posted; Devin session not started (session cap reached).'
+        : (result.teams ? 'Alert posted to Teams; the on-call responder picks it up from there (no app-created session).'
+          : 'Alert posted, but the Devin session could not be started — check the Devin API credentials and start one from the alert thread.'));
     return { success: true, sent: true, sessionStarted: Boolean(sessionUrl), requestId, message, sessionUrl, payload };
   } catch (err) {
     incrementMetric('rentalsync.alert.failure', { route: FIRE_ROUTE, errorClass: err.name });
