@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Source Deposits | ModernFi</title>
+  <link rel="icon" href="/verticals/98cd161c/favicon.ico" type="image/x-icon" sizes="16x16">
+  <link rel="icon" href="/verticals/98cd161c/icon.png" type="image/png" sizes="512x512">
+  <link rel="apple-touch-icon" href="/verticals/98cd161c/apple-icon.png" sizes="180x180">
+  <link rel="preload" href="https://modernfi.com/fonts/MessinaSans-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face { font-family: 'Messina Sans'; src: url(https://modernfi.com/fonts/MessinaSans-Variable.woff2) format('woff2'); font-weight: 100 900; font-style: normal; font-display: block; }
+    :root { --ink: #1A1A1A; --ink-muted: #4D4D4D; --canvas: #FAFAFA; --electric: #00A19C; --teal: #367D8B; --line: rgba(26,26,26,.1); --tint: rgba(0,161,156,.08); }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Messina Sans', ui-sans-serif, system-ui, -apple-system, sans-serif; font-feature-settings: "ss01", "cv11", "kern"; color: var(--ink); background: var(--canvas); font-size: 16px; line-height: 24px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    input, select, button { font-feature-settings: inherit; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 1440px; margin: 0 auto; padding: 0 52px; }
+    .eyebrow { font-size: 11px; line-height: 16.5px; font-weight: 700; letter-spacing: 1.54px; text-transform: uppercase; color: var(--electric); }
+    .label { font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-muted); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; font-family: inherit; font-weight: 500; font-size: 15px; line-height: 22.5px; border-radius: 4px; padding: 12px 20px; cursor: pointer; border: 0; transition: background .15s, box-shadow .15s; }
+    .btn-primary { background: var(--electric); color: var(--canvas); box-shadow: 0 6px 16px rgba(0,161,156,.25); }
+    .btn-primary:hover { background: #008d89; }
+    .btn-primary:disabled { opacity: .7; cursor: progress; }
+    .btn-ghost { background: var(--canvas); color: var(--ink); border: 1px solid rgba(26,26,26,.15); }
+    .arrow { font-size: 14px; }
+
+    header.site { position: sticky; top: 0; z-index: 30; background: rgba(250,250,250,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+    .nav { height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .nav img.wordmark { height: 22px; display: block; }
+    .nav-links { display: flex; gap: 28px; font-size: 16px; }
+    .nav-links a { display: inline-flex; align-items: center; gap: 6px; position: relative; }
+    .nav-links a .chev { color: var(--ink); }
+    .nav-links a.active::after { content: ''; position: absolute; left: 50%; bottom: -14px; width: 4px; height: 4px; border-radius: 50%; background: var(--electric); transform: translateX(-50%); }
+    .nav-cta { display: flex; align-items: center; gap: 22px; font-size: 16px; font-weight: 400; }
+    .nav-cta .btn { font-size: 15px; font-weight: 500; padding: 8px 16px; }
+    .announce { border-bottom: 1px solid var(--line); background: var(--canvas); }
+    .announce .wrap { height: 44px; display: flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 500; color: var(--ink-muted); }
+    .announce .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--electric); }
+
+    .hero { padding: 110px 0 120px; background-image: radial-gradient(rgba(26,26,26,.06) 1px, transparent 1px); background-size: 22px 22px; background-position: 0 0; }
+    .hero .wrap { display: grid; grid-template-columns: 1fr 520px; gap: 80px; align-items: start; }
+    .hero .wrap > div:first-child { padding-top: 56px; }
+    .hero h1 { font-size: 58px; line-height: 60.32px; font-weight: 700; letter-spacing: -1.624px; margin: 18px 0 32px; }
+    .hero p.lead { font-size: 16.5px; line-height: 25.575px; color: var(--ink); max-width: 540px; }
+    .hero .ctas { display: flex; gap: 10px; margin-top: 40px; }
+
+    .order-card { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 30px 60px -20px rgba(26,26,26,.18), 0 2px 6px rgba(26,26,26,.05); }
+    .oc-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+    .oc-head .title { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; }
+    .oc-head .title small { font-weight: 400; color: var(--ink-muted); font-size: 12px; }
+    .oc-icon { width: 26px; height: 26px; border-radius: 4px; background: var(--tint); display: grid; place-items: center; color: var(--electric); font-size: 13px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--electric); }
+    .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .pill.busy::before { animation: pulse 1s infinite; }
+    .pill.idle { color: var(--ink-muted); }
+    @keyframes pulse { 50% { opacity: .2; } }
+    .oc-form { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); }
+    .oc-field { padding: 14px 20px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .oc-field:nth-child(2n) { border-right: 0; }
+    .oc-field.full { grid-column: 1 / -1; border-right: 0; }
+    .oc-field label { display: block; margin-bottom: 6px; }
+    .oc-field input, .oc-field select { width: 100%; font-family: inherit; font-size: 17px; font-weight: 600; color: var(--ink); background: transparent; border: 0; outline: none; padding: 2px 0; appearance: none; -webkit-appearance: none; }
+    .oc-field select { background-image: linear-gradient(45deg, transparent 50%, #4D4D4D 50%), linear-gradient(135deg, #4D4D4D 50%, transparent 50%); background-position: calc(100% - 9px) 50%, calc(100% - 4px) 50%; background-size: 5px 5px; background-repeat: no-repeat; cursor: pointer; padding-right: 20px; text-overflow: ellipsis; font-size: 15.5px; }
+    .oc-field .static { font-size: 17px; font-weight: 600; }
+    .oc-terms { display: grid; grid-template-columns: 1fr 1fr; }
+    .oc-terms .oc-field { border-bottom: 0; }
+    .oc-submit { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .oc-submit .hint { font-size: 12px; color: var(--ink-muted); }
+    .oc-progress { padding: 16px 20px; border-bottom: 1px solid var(--line); }
+    .oc-progress .row { display: flex; justify-content: space-between; align-items: baseline; }
+    .oc-progress .row strong { font-size: 13px; font-weight: 600; }
+    .bar { height: 6px; border-radius: 999px; background: rgba(26,26,26,.07); margin: 10px 0 8px; overflow: hidden; }
+    .bar span { display: block; height: 100%; width: 0; background: var(--electric); border-radius: 999px; transition: width .6s ease; }
+    .bar.indeterminate span { width: 35%; animation: slide 1.4s ease-in-out infinite; }
+    @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+    .oc-progress .note { font-size: 12px; color: var(--ink-muted); }
+    .alloc { list-style: none; }
+    .alloc li { display: flex; align-items: center; gap: 14px; padding: 13px 20px; border-bottom: 1px solid var(--line); }
+    .alloc li:last-child { border-bottom: 0; }
+    .alloc .tick { width: 22px; height: 22px; border-radius: 50%; background: var(--electric); color: #fff; display: grid; place-items: center; font-size: 11px; flex: none; }
+    .alloc .tick.pending { background: rgba(26,26,26,.08); color: var(--ink-muted); }
+    .alloc .who { flex: 1; min-width: 0; }
+    .alloc .who b { display: block; font-size: 14px; font-weight: 500; }
+    .alloc .who span, .alloc .amt span { font-size: 11.5px; color: var(--ink-muted); }
+    .alloc .amt { text-align: right; }
+    .alloc .amt b { display: block; font-size: 14px; font-weight: 600; }
+    .alloc .empty { color: var(--ink-muted); font-size: 13px; justify-content: center; padding: 22px 20px; }
+    .bs-chip { position: absolute; right: -26px; bottom: -28px; background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; box-shadow: 0 14px 30px -10px rgba(26,26,26,.2); min-width: 150px; }
+    .bs-chip .eyebrow { font-size: 10px; }
+    .bs-chip b { display: block; font-size: 22px; font-weight: 700; letter-spacing: -.5px; margin: 4px 0 2px; }
+    .bs-chip span { font-size: 11px; color: var(--ink-muted); }
+
+    .banner { display: none; margin-top: 28px; padding: 14px 16px; border-radius: 6px; background: var(--tint); border: 1px solid rgba(0,161,156,.25); font-size: 14px; line-height: 21px; }
+    .banner.show { display: block; }
+    .banner b { color: var(--teal); }
+
+    section.band { padding: 120px 0; }
+    section.tinted { background: rgba(26,26,26,.02); }
+    section.dark { background: var(--ink); color: var(--canvas); }
+    h2 { font-size: 50px; line-height: 55px; font-weight: 600; letter-spacing: -1.4px; margin: 18px 0 26px; max-width: 720px; }
+    .sub { font-size: 16.5px; line-height: 25.575px; color: var(--ink-muted); max-width: 720px; }
+    section.dark .sub { color: rgba(250,250,250,.75); }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .feature { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 40px 28px 36px; }
+    .feature .ico { font-size: 26px; color: var(--electric); height: 40px; margin-bottom: 36px; }
+    h3 { font-size: 18.5px; line-height: 25.4px; font-weight: 700; letter-spacing: -.333px; margin-bottom: 12px; }
+    .feature p, .step p, .motion p { font-size: 15px; line-height: 24px; color: var(--ink-muted); }
+    .steps { margin-top: 64px; }
+    .step { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 28px; }
+    .step .num { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+    .step .num i { font-style: normal; width: 30px; height: 30px; border-radius: 50%; background: var(--electric); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 600; }
+    .step .viz { border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-height: 108px; margin-bottom: 28px; }
+    .kv { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; }
+    .kv span:first-child { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-muted); }
+    .kv b { font-weight: 600; }
+    .viz svg { width: 100%; height: 80px; }
+    .compare { margin-top: 64px; border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; background: #fff; }
+    .compare table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    .compare th, .compare td { text-align: left; padding: 20px 24px; border-bottom: 1px solid var(--line); font-size: 15px; }
+    .compare tr:last-child td { border-bottom: 0; }
+    .compare th { font-weight: 600; vertical-align: bottom; }
+    .compare th .eyebrow { display: block; margin-bottom: 6px; font-size: 10px; }
+    .compare td:first-child { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-muted); width: 26%; }
+    .compare .mf { background: var(--tint); font-weight: 500; }
+    .compare .mf::before { content: '\2713'; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(0,161,156,.18); color: var(--teal); font-size: 9px; margin-right: 8px; }
+    .compare th.mf::before { display: none; }
+    .fineprint { margin-top: 28px; font-size: 12px; line-height: 19px; color: var(--ink-muted); max-width: 560px; }
+    .network { display: grid; grid-template-columns: 260px 1fr; gap: 48px; margin-top: 64px; align-items: center; }
+    .bignum { font-size: 72px; line-height: 1; font-weight: 600; letter-spacing: -2px; color: var(--electric); }
+    .network .label { color: var(--canvas); margin: 14px 0 10px; display: block; font-weight: 600; }
+    .network p.small { font-size: 14px; line-height: 22px; color: rgba(250,250,250,.7); }
+    .quote { border: 1px solid rgba(250,250,250,.2); border-radius: 6px; padding: 36px 32px; background: rgba(250,250,250,.03); }
+    .quote .mark { font-size: 38px; color: var(--electric); line-height: 1; }
+    .quote blockquote { font-size: 22px; line-height: 34px; margin: 24px 0 30px; font-weight: 400; }
+    .quote .by { display: flex; align-items: center; gap: 14px; border-top: 1px solid rgba(250,250,250,.15); padding-top: 22px; font-size: 14px; }
+    .quote .by img { width: 40px; height: 40px; border-radius: 50%; background: #fff; object-fit: contain; padding: 4px; }
+    .quote .by span { display: block; color: rgba(250,250,250,.6); font-size: 13px; }
+    .motions { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 64px; }
+    .motion { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 36px 32px; position: relative; }
+    .motion h3 { font-size: 24px; letter-spacing: -.6px; margin: 10px 0 18px; font-weight: 600; }
+    .motion .mini { margin-top: 22px; border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .motion .mini b { display: block; font-size: 17px; font-weight: 600; }
+    .motion .mini span { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-muted); }
+    .motion a.more { display: inline-block; margin-top: 22px; font-size: 14px; font-weight: 500; }
+    .motion svg { position: absolute; right: 30px; top: 34px; width: 60px; height: 50px; }
+    .cta-band { text-align: center; padding: 100px 0; position: relative; overflow: hidden; }
+    .cta-band h2 { margin: 18px auto 24px; }
+    .cta-band .sub { margin: 0 auto 40px; max-width: 560px; }
+    footer { padding: 80px 0 0; }
+    .foot { display: grid; grid-template-columns: 1.6fr repeat(4, 1fr); gap: 32px; }
+    .foot img { height: 30px; }
+    .foot p { font-size: 14px; line-height: 21px; color: var(--ink-muted); margin: 24px 0 22px; max-width: 320px; }
+    .foot form { display: flex; gap: 8px; }
+    .foot input { flex: 1; font-family: inherit; font-size: 14px; border: 1px solid rgba(26,26,26,.15); border-radius: 4px; padding: 12px; background: #fff; min-width: 0; }
+    .foot h4 { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 500; color: var(--ink-muted); margin-bottom: 22px; }
+    .foot ul { list-style: none; display: grid; gap: 16px; font-size: 16px; }
+    .disclosures { margin-top: 80px; border-top: 1px solid var(--line); padding: 50px 0; }
+    .disclosures ol { padding-left: 18px; display: grid; gap: 16px; font-size: 12px; line-height: 19px; color: var(--ink-muted); }
+    .legal { border-top: 1px solid var(--line); padding: 24px 0 34px; display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-muted); }
+    .legal div { display: flex; gap: 22px; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 380px; background: var(--ink); color: var(--canvas); border-left: 3px solid #E5484D; border-radius: 6px; padding: 14px 16px; font-size: 14px; line-height: 20px; box-shadow: 0 18px 40px rgba(0,0,0,.25); opacity: 0; visibility: hidden; transform: translateY(16px); transition: all .25s; z-index: 50; }
+    .toast.show { opacity: 1; visibility: visible; transform: none; }
+    .toast b { display: block; margin-bottom: 2px; }
+
+    @media (max-width: 1180px) {
+      .hero .wrap { grid-template-columns: 1fr; gap: 64px; }
+      .order-card { max-width: 560px; }
+      .bs-chip { right: 12px; }
+      .nav-links { gap: 18px; }
+    }
+    @media (max-width: 900px) {
+      .wrap { padding: 0 24px; }
+      .nav-links { display: none; }
+      .grid3, .motions, .network, .foot { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 42px; line-height: 46px; }
+      h2 { font-size: 36px; line-height: 40px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap nav">
+      <a href="#" aria-label="ModernFi home"><img class="wordmark" src="/verticals/98cd161c/modernfi-wordmark.svg" alt="ModernFi" onerror="this.outerHTML='<b style=&quot;font-size:22px;letter-spacing:-.5px&quot;>ModernFi</b>'"></a>
+      <nav class="nav-links">
+        <a href="#motions" class="active">Platform <svg class="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2.5 3.75L5 6.25l2.5-2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="#network">Networks <svg class="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2.5 3.75L5 6.25l2.5-2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="#how">Resources <svg class="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2.5 3.75L5 6.25l2.5-2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="#footer">Company <svg class="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2.5 3.75L5 6.25l2.5-2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </nav>
+      <div class="nav-cta">
+        <a href="#">Log in</a>
+        <a href="#contact" class="btn btn-primary">Contact us <span class="arrow">&rarr;</span></a>
+      </div>
+    </div>
+  </header>
+  <div class="announce"><div class="wrap"><span class="dot"></span>Announcing &middot; ModernFi surpasses 1,000 financial institutions &rarr;</div></div>
+
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Source Deposits</p>
+        <h1>Funding on demand,<br>without the collateral</h1>
+        <p class="lead">An instrument for your ALCO. Set a target balance, then draw deposits from across the network onto your balance sheet. Scale the funding up or down as your targets move, with no securities to pledge and no rate special.</p>
+        <div class="ctas">
+          <a href="#order" class="btn btn-primary" id="hero-cta">Place a source order <span class="arrow">&rarr;</span></a>
+          <a href="#network" class="btn btn-ghost">Explore the network</a>
+        </div>
+        <div class="banner" id="success" role="status"></div>
+      </div>
+
+      <form class="order-card" id="order" novalidate>
+        <div class="oc-head">
+          <div class="title"><span class="oc-icon">&#8599;</span>Source order <small>Treasury</small></div>
+          <span class="pill idle" id="status-pill">Draft</span>
+        </div>
+        <div class="oc-form">
+          <div class="oc-field full">
+            <label class="label" for="institution">Ordering institution</label>
+            <input id="institution" name="institution" value="Community Bank" maxlength="80" autocomplete="off">
+          </div>
+          <div class="oc-field">
+            <label class="label" for="target">Target balance</label>
+            <select id="target" name="target">
+              <option value="25000000">$25M</option>
+              <option value="50000000" selected>$50M</option>
+              <option value="75000000">$75M</option>
+            </select>
+          </div>
+          <div class="oc-field">
+            <label class="label" for="scope">Network members</label>
+            <select id="scope" name="scope">
+              <option value="all" selected>All network members (14)</option>
+            </select>
+          </div>
+          <div class="oc-field"><span class="label">Network rate</span><div class="static" id="rate">3.64%</div></div>
+          <div class="oc-field"><span class="label">Collateral</span><div class="static">None</div></div>
+        </div>
+        <div class="oc-submit">
+          <span class="hint" id="hint">Settles on the daily cycle at the network rate</span>
+          <button type="submit" class="btn btn-primary" id="submit-btn">Route order to network <span class="arrow">&rarr;</span></button>
+        </div>
+        <div class="oc-progress">
+          <div class="row"><span class="label">Funded to target</span><strong id="funded-label">$0.0M / $50M</strong></div>
+          <div class="bar" id="bar"><span id="bar-fill"></span></div>
+          <div class="note" id="progress-note">Route the order to allocate across the network on the daily settlement cycle</div>
+        </div>
+        <ul class="alloc" id="alloc">
+          <li class="empty">No placements yet</li>
+        </ul>
+        <div class="bs-chip">
+          <div class="eyebrow">On balance sheet</div>
+          <b id="bs-amount">$0.0M</b>
+          <span>No collateral pledged</span>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="band" style="padding-top:40px">
+    <div class="wrap grid3">
+      <div class="feature"><div class="ico">&#991;</div><h3>Funding without collateral</h3><p>Set your target balance, then draw the funding you need. No securities to pledge, no advances to draw, no collateral to monitor.</p></div>
+      <div class="feature"><div class="ico">&#8645;</div><h3>Funding you can size up or down</h3><p>Draw funding to a target balance and adjust it as conditions change. No fixed maturity and no lockup.</p></div>
+      <div class="feature"><div class="ico">&#8916;</div><h3>Diversified and transparent</h3><p>Source from member institutions across industries and geographies. Pricing is a single transparent network rate, and funding settles in days.</p></div>
+    </div>
+  </section>
+
+  <section class="band tinted" id="how">
+    <div class="wrap">
+      <p class="eyebrow">How it works</p>
+      <h2>Set the order, take the funding</h2>
+      <p class="sub">Source deposits with a treasury-grade workflow. Set your target in the portal, route the order to the network, and pull stable funding from member institutions onto your balance sheet.</p>
+      <div class="grid3 steps">
+        <div class="step">
+          <div class="num"><i>01</i><span class="label">Step 01</span></div>
+          <div class="viz"><div class="kv"><span>Target</span><b>$50M</b></div><div class="kv"><span>Rate</span><b>3.64%</b></div><div class="kv"><span>Collateral</span><b>None</b></div></div>
+          <h3>Set your target</h3><p>Set a target balance, right in the admin portal. No collateral to pledge, no credit line to draw, no campaign to launch.</p>
+        </div>
+        <div class="step">
+          <div class="num"><i>02</i><span class="label">Step 02</span></div>
+          <div class="viz"><svg viewBox="0 0 220 80" fill="none"><g stroke="#00A19C" stroke-width="1.2"><path d="M50 16 L170 40"/><path d="M50 30 L170 40"/><path d="M50 50 L170 40"/><path d="M50 64 L170 40"/></g><g fill="#4D4D4D"><circle cx="50" cy="16" r="3"/><circle cx="50" cy="30" r="3"/><circle cx="50" cy="50" r="3"/><circle cx="50" cy="64" r="3"/></g><circle cx="120" cy="30" r="2.5" fill="#00A19C"/><circle cx="96" cy="55" r="2.5" fill="#00A19C"/><circle cx="172" cy="40" r="6" fill="#1A1A1A"/></svg></div>
+          <h3>Match across the network</h3><p>The network allocates available liquidity from member institutions to your target on its settlement cycle. Every placement clears at a single transparent network rate.</p>
+        </div>
+        <div class="step">
+          <div class="num"><i>03</i><span class="label">Step 03</span></div>
+          <div class="viz"><div class="kv"><span>Settled</span><span style="color:#00A19C;font-size:11px;letter-spacing:0;text-transform:none">on balance sheet</span></div><div style="font-size:22px;font-weight:600;margin:8px 0 6px">$50,000,000</div><div style="font-size:12px;color:#4D4D4D">Adjustable up or down, <b>no fixed maturity</b></div></div>
+          <h3>Settle on your balance sheet</h3><p>Funding lands on balance sheet, diversified across institutions. Scale your target up or down as your ALCO calls for it, with no fixed maturity.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <p class="eyebrow">Why it's different</p>
+      <h2>A modern alternative<br>to wholesale funding</h2>
+      <p class="sub">Treasury teams use sourced deposits alongside, or in place of, the wholesale funding they already run. The structure is built for the desk: non-collateralized, diversified, and adjustable on your timeline.</p>
+      <div class="compare">
+        <table>
+          <thead><tr><th></th><th class="mf"><span class="eyebrow">ModernFi</span>Sourced deposits</th><th>FHLB advances</th><th>Brokered CDs</th></tr></thead>
+          <tbody>
+            <tr><td>Collateral</td><td class="mf">None required</td><td>Securities pledged</td><td>None required</td></tr>
+            <tr><td>Availability</td><td class="mf">On demand, to your target</td><td>Subject to collateral capacity</td><td>Issued in tranches</td></tr>
+            <tr><td>Term</td><td class="mf">Demand, no fixed maturity</td><td>Fixed term</td><td>Fixed term</td></tr>
+            <tr><td>Adjust down</td><td class="mf">Scale to your target</td><td>Term commitment</td><td>Locked for the term</td></tr>
+            <tr><td>Counterparties</td><td class="mf">Diversified across the network</td><td>Your FHLB</td><td>Varies by issuance</td></tr>
+            <tr><td>Pricing</td><td class="mf">Single network rate, in the portal</td><td>Advance desk</td><td>Through a broker</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="fineprint">Comparison reflects typical instrument structures. Specific terms vary by provider and program. Sourced deposits are placed through the network and settle on your balance sheet. This comparison describes structural features only and is not legal or accounting advice.</p>
+    </div>
+  </section>
+
+  <section class="band dark" id="network">
+    <div class="wrap">
+      <p class="eyebrow">The network</p>
+      <h2>Funding that deepens<br>as the network grows</h2>
+      <p class="sub">Every institution that joins adds liquidity and another potential counterparty. Sourced funding gets deeper and more diversified as the network scales.</p>
+      <div class="network">
+        <div><div class="bignum">1,020</div><span class="label">Member institutions</span><p class="small">Financial institutions on the network, every one a potential counterparty.</p></div>
+        <div class="quote">
+          <div class="mark">&ldquo;</div>
+          <blockquote>Community banks have historically been forced to choose between turning away good customers or accepting deposits that hurt their margins and tie up capital. NBID's economics change that equation entirely. It's a significant advantage in how community banks can approach deposit gathering.</blockquote>
+          <div class="by"><img src="https://modernfi.com/logos/members/transpecos.webp" alt="TransPecos Banks" onerror="this.style.display='none'"><div>Pat Kennedy<span>Executive Chairman, TransPecos Banks</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band tinted" id="motions">
+    <div class="wrap">
+      <p class="eyebrow">Three motions, one network</p>
+      <h2>Pair sourcing with the<br>rest of the network</h2>
+      <div class="motions">
+        <div class="motion">
+          <svg viewBox="0 0 60 50" fill="none"><path d="M6 25 C 18 4, 42 4, 54 25 C 42 46, 18 46, 6 25" stroke="#00A19C" stroke-width="1.4"/><circle cx="6" cy="25" r="4" fill="#1A1A1A"/><circle cx="54" cy="25" r="4" fill="#1A1A1A"/><circle cx="30" cy="9" r="2.5" fill="#00A19C"/><circle cx="30" cy="41" r="2.5" fill="#00A19C"/></svg>
+          <p class="eyebrow">For insurance</p>
+          <h3>Reciprocal Deposits</h3>
+          <p>Give your largest depositors access to millions in aggregate insurance<sup>*</sup> across network members through one account, with matching balances flowing back from the network so your balance sheet stays whole.</p>
+          <div class="mini"><div><span>Insured sweep</span><b>$5,000,000</b></div><div><span>Coverage</span><b>Up to $25M</b></div><div><span>Institutions</span><b>100 banks</b></div></div>
+          <a class="more" href="https://modernfi.com/platform/reciprocal-deposits">See Reciprocal Deposits &rarr;</a>
+        </div>
+        <div class="motion">
+          <svg viewBox="0 0 60 50" fill="none"><g stroke="#00A19C" stroke-width="1.2"><path d="M6 25 L54 5"/><path d="M6 25 L54 18"/><path d="M6 25 L54 32"/><path d="M6 25 L54 45"/></g><circle cx="6" cy="25" r="4" fill="#1A1A1A"/><g fill="#4D4D4D"><circle cx="54" cy="5" r="3"/><circle cx="54" cy="18" r="3"/><circle cx="54" cy="32" r="3"/><circle cx="54" cy="45" r="3"/></g></svg>
+          <p class="eyebrow">For income</p>
+          <h3>Sweep Deposits</h3>
+          <p>Sweep excess liquidity into the network to potentially generate fee income, improve net interest margin, and tactically manage balance-sheet size, without raising rates or losing the depositor.</p>
+          <div class="mini"><div><span>Swept balances</span><b>$124.6M</b></div><div><span>Fee income, YTD</span><b>$1.84M</b></div><div><span>Network rate</span><b>3.64%</b></div></div>
+          <a class="more" href="https://modernfi.com/platform/sweep-deposits">See Sweep Deposits &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dark cta-band" id="contact">
+    <div class="wrap">
+      <p class="eyebrow">Join the network</p>
+      <h2>Start growing with ModernFi</h2>
+      <p class="sub">Get in touch to learn how the ModernFi team can help your institution grow deposits, deepen relationships, and scale revenue.</p>
+      <a href="#" class="btn btn-primary">Contact us <span class="arrow">&rarr;</span></a>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div class="foot">
+        <div>
+          <img src="/verticals/98cd161c/modernfi-wordmark.svg" alt="ModernFi" onerror="this.style.display='none'">
+          <p>Intelligent infrastructure to grow deposits, deepen relationships, and scale revenue</p>
+          <form onsubmit="return false"><input type="email" placeholder="you@institution.com" aria-label="Email"><button class="btn btn-primary" type="button">Contact us</button></form>
+        </div>
+        <div><h4>Platform</h4><ul><li><a href="https://modernfi.com/platform/reciprocal-deposits">Reciprocal Deposits</a></li><li><a href="https://modernfi.com/platform/sweep-deposits">Sweep Deposits</a></li><li><a href="#order">Source Deposits</a></li></ul></div>
+        <div><h4>Networks</h4><ul><li>NBID</li><li>CUSO</li></ul></div>
+        <div><h4>Resources</h4><ul><li>Developers &amp; APIs</li><li>NBID Resources</li><li>CUSO Resources</li><li>Bank success stories</li><li>Credit Union success stories</li><li>Insights</li><li>Compliance</li></ul></div>
+        <div><h4>Company</h4><ul><li>Mission</li><li>Careers</li><li>Contact</li></ul></div>
+      </div>
+      <div class="disclosures">
+        <ol>
+          <li>ModernFi, Inc., ModernFi Deposit Services LLC, and ModernFi CUSO LLC (collectively, "ModernFi") are not FDIC-insured banks and are not NCUA-insured credit unions, and deposit insurance covers the failure of an insured bank or an insured credit union. Certain conditions must be satisfied for "pass-through" FDIC or NCUA deposit insurance coverage to apply.</li>
+          <li>Deposit placement through the NBID network and the ModernFi CUSO network is subject to the terms, conditions, and disclosures in governing agreements, including such agreements between ModernFi, NBID, and each participating depository institution.</li>
+          <li>The figures, institutions, and individuals shown throughout this site are illustrative and hypothetical, and may not represent actual or expected results or any real customer or network member.</li>
+        </ol>
+      </div>
+      <div class="legal"><span>&copy; 2026 ModernFi, Inc. All rights reserved.</span><div><a href="#">Privacy</a><a href="#">Disclosures</a><a href="#">LinkedIn</a></div></div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="alert"></div>
+
+  <script>
+    /* global window, document, localStorage, fetch */
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    var form = document.getElementById('order');
+    var button = document.getElementById('submit-btn');
+    var scope = document.getElementById('scope');
+    var target = document.getElementById('target');
+    var institution = document.getElementById('institution');
+    var pill = document.getElementById('status-pill');
+    var bar = document.getElementById('bar');
+    var barFill = document.getElementById('bar-fill');
+    var fundedLabel = document.getElementById('funded-label');
+    var note = document.getElementById('progress-note');
+    var alloc = document.getElementById('alloc');
+    var bsAmount = document.getElementById('bs-amount');
+    var hint = document.getElementById('hint');
+    var success = document.getElementById('success');
+    var toast = document.getElementById('toast');
+    var toastTimer;
+    var ticker;
+
+    function millions(cents) { return '$' + (cents / 100000000).toFixed(1) + 'M'; }
+    function targetLabel() { return '$' + Math.round(Number(target.value) / 1000000) + 'M'; }
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+    function setPill(text, cls) { pill.textContent = text; pill.className = 'pill' + (cls ? ' ' + cls : ''); }
+    function showToast(title, message) {
+      toast.innerHTML = '<b>' + esc(title) + '</b>' + esc(message);
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+    }
+    function resetCard() {
+      barFill.style.width = '0';
+      fundedLabel.textContent = '$0.0M / ' + targetLabel();
+      bsAmount.textContent = '$0.0M';
+    }
+
+    fetch('/api/98cd161c/network')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.networkRatePct) document.getElementById('rate').textContent = Number(data.networkRatePct).toFixed(2) + '%';
+        scope.innerHTML = (data.scopeOptions || []).map(function (o) {
+          return '<option value="' + esc(o.key) + '"' + (o.key === 'all' ? ' selected' : '') + '>' + esc(o.label) + '</option>';
+        }).join('') || '<option value="all">All network members (14)</option>';
+      })
+      .catch(function () {});
+
+    function renderAllocations(result) {
+      var placed = result.allocations.filter(function (a) { return a.allocatedCents > 0; });
+      var shown = placed.slice(0, 4);
+      var rest = placed.slice(4);
+      var standby = result.allocations.length - placed.length;
+      var html = shown.map(function (a) {
+        return '<li><span class="tick">&#10003;</span><div class="who"><b>' + esc(a.label) + '</b><span>' + esc(a.assetsLabel) + ' &middot; ' + esc(a.state) + ' &middot; ' + esc(a.network) + '</span></div>' +
+          '<div class="amt"><b>' + millions(a.allocatedCents) + '</b><span>Settled</span></div></li>';
+      }).join('');
+      if (rest.length) {
+        var restCents = rest.reduce(function (s, a) { return s + a.allocatedCents; }, 0);
+        html += '<li><span class="tick">&#10003;</span><div class="who"><b>Additional members (' + rest.length + ')</b><span>Allocated across the network</span></div><div class="amt"><b>' + millions(restCents) + '</b><span>Settled</span></div></li>';
+      }
+      if (standby > 0) {
+        html += '<li><span class="tick pending">&middot;</span><div class="who"><b>Standby members (' + standby + ')</b><span>Quoted, not needed to reach target</span></div><div class="amt"><b>$0.0M</b><span>Standby</span></div></li>';
+      }
+      alloc.innerHTML = html || '<li class="empty">No placements</li>';
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var started = Date.now();
+      button.disabled = true;
+      button.innerHTML = 'Allocating&hellip;';
+      success.classList.remove('show');
+      toast.classList.remove('show');
+      setPill('Allocating', 'busy');
+      resetCard();
+      bar.classList.add('indeterminate');
+      note.textContent = 'Requesting liquidity quotes from network members\u2026';
+      alloc.innerHTML = '<li class="empty">Quoting members across the network\u2026</li>';
+      ticker = setInterval(function () { hint.textContent = 'Allocating across the network \u00b7 ' + ((Date.now() - started) / 1000).toFixed(1) + 's'; }, 100);
+
+      identityReady.then(function () {
+        var payload = {
+          institution: institution.value.trim(),
+          targetBalance: Number(target.value),
+          scope: scope.value,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        };
+        return fetch('/api/98cd161c/source-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(function (response) {
+          return response.json().catch(function () { return {}; }).then(function (data) { return { ok: response.ok, status: response.status, data: data }; });
+        });
+      }).then(function (res) {
+        var seconds = ((Date.now() - started) / 1000).toFixed(1);
+        if (!res.ok || !res.data.success) {
+          setPill('Draft', 'idle');
+          note.textContent = 'Route the order to allocate across the network on the daily settlement cycle';
+          alloc.innerHTML = '<li class="empty">No placements yet</li>';
+          hint.textContent = 'Settles on the daily cycle at the network rate';
+          showToast('Order not routed', (res.data && res.data.error) || ('Request failed (HTTP ' + res.status + ')'));
+          return;
+        }
+        var r = res.data;
+        var s = r.summary;
+        var full = s.remainingCents === 0;
+        barFill.style.width = Math.min(100, s.fundedPct) + '%';
+        fundedLabel.textContent = millions(s.fundedCents) + ' / ' + millions(r.targetBalanceCents).replace('.0M', 'M');
+        bsAmount.textContent = millions(s.fundedCents);
+        note.textContent = full
+          ? 'Funded to target across ' + s.membersAllocated + ' members at ' + Number(r.networkRatePct).toFixed(2) + '%'
+          : 'Partially funded \u00b7 ' + millions(s.remainingCents) + ' remaining \u2014 widen the member scope to reach target';
+        setPill(full ? 'Funded' : 'Partially funded', '');
+        hint.textContent = 'Order ' + String(r.requestId || '').slice(0, 8) + ' \u00b7 routed in ' + seconds + 's';
+        renderAllocations(r);
+        success.innerHTML = '<b>' + millions(s.fundedCents) + ' on balance sheet.</b> ' + esc(r.institution) + '\u2019s source order allocated across ' +
+          s.membersAllocated + ' of ' + s.membersQuoted + ' quoted members (' + esc(r.scopeLabel) + ') \u00b7 no collateral pledged \u00b7 ' + seconds + 's';
+        success.classList.add('show');
+      }).catch(function (error) {
+        setPill('Draft', 'idle');
+        showToast('Network unavailable', error.message);
+      }).then(function () {
+        clearInterval(ticker);
+        bar.classList.remove('indeterminate');
+        button.disabled = false;
+        button.innerHTML = 'Route order to network <span class="arrow">&rarr;</span>';
+      });
+    });
+  </script>
+</body>
+</html>
