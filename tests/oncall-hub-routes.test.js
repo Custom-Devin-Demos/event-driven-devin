@@ -519,6 +519,17 @@ test('a skin alertDestination overrides the presenter\'s saved choice', async ()
   expect(slack).toContain("localStorage.getItem('alertDestinationExplicit') !== '1' && scenarioAlertDestination");
 });
 
+test('the Copa Airlines skin forces Slack and serves its native booking page', async () => {
+  const res = await fetch(`${baseUrl}/oncall/c/90bf6ab8`);
+  const html = await res.text();
+  expect(res.status).toBe(200);
+  expect(html).toContain('var skinAlertDestination = "slack";');
+  expect(html).toContain('Pagar reserva');
+  expect(html).toContain('Seleccionar tarifa');
+  expect(html).toContain('NOT ACTUALLY A COPA AIRLINES SITE');
+  expect(html).toMatch(/<input[^>]*id="amount"[^>]*readonly/);
+});
+
 describe('on-call hub page contract', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'public', 'oncall.html'), 'utf8');
 

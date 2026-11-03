@@ -385,3 +385,74 @@ describe('Coppel On-Call skin (Spanish, presenter paged)', () => {
     expect(text).not.toContain('*Servicio:*');
   });
 });
+
+describe('Copa Airlines On-Call skin (fixed On-Call member, Slack only)', () => {
+  const COPA_SLUG = '90bf6ab8';
+  const ENV_KEY = 'CUSTOMER_90BF6AB8_SLACK_MEMBER_ID';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetSkinAlertMemory();
+    delete process.env[ENV_KEY];
+  });
+
+  afterAll(() => {
+    delete process.env[ENV_KEY];
+  });
+
+  test('routes to Slack, pages the configured member as On-Call and names Copa Airlines', async () => {
+    const skin = getOncallSkin(COPA_SLUG);
+    expect(skin.alertDestination).toBe('slack');
+    expect(skin.teamsAlerts).toBeUndefined();
+
+    const result = await postOncallAlert(skin.vertical, { skin });
+
+    expect(result.ok).toBe(true);
+    const [, , text, blocks] = postMessage.mock.calls[0];
+    expect(text).toContain(`*On-Call:* <@${skin.onCallSlackMemberId}>`);
+    expect(text).toContain('Copa Airlines');
+    expect(text).toContain('Pagar reserva');
+    expect(text).not.toContain('*Owner:*');
+    expect(JSON.stringify(blocks)).toContain(`<@${skin.onCallSlackMemberId}>`);
+
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    const [prompt] = createDevinSession.mock.calls[0];
+    expect(prompt).toContain('/oncall/c/90bf6ab8');
+    expect(prompt).toContain('POST /api/oncall/banking/transfer');
+    expect(prompt).toContain(`<@${skin.onCallSlackMemberId}>`);
+  });
+
+  test('CUSTOMER_<SLUG>_SLACK_MEMBER_ID overrides the configured member', async () => {
+    process.env[ENV_KEY] = 'U0OVERRIDE';
+    const skin = getOncallSkin(COPA_SLUG);
+
+    await postOncallAlert(skin.vertical, { skin });
+
+    const [, , text] = postMessage.mock.calls[0];
+    expect(text).toContain('*On-Call:* <@U0OVERRIDE>');
+    expect(text).not.toContain(skin.onCallSlackMemberId);
+    const [prompt] = createDevinSession.mock.calls[0];
+    expect(prompt).toContain('<@U0OVERRIDE>');
+  });
+
+  test('a malformed override is ignored', async () => {
+    process.env[ENV_KEY] = 'jaime@cognition.ai';
+    const skin = getOncallSkin(COPA_SLUG);
+
+    await postOncallAlert(skin.vertical, { skin });
+
+    const [, , text] = postMessage.mock.calls[0];
+    expect(text).toContain(`*On-Call:* <@${skin.onCallSlackMemberId}>`);
+  });
+
+  test('the presenter who triggered it is still credited', async () => {
+    lookupSlackUserByEmail.mockResolvedValueOnce('U0PRESENTER');
+    const skin = getOncallSkin(COPA_SLUG);
+
+    await postOncallAlert(skin.vertical, { skin, devinEmail: 'presenter@devindemos.com' });
+
+    const [, , text] = postMessage.mock.calls[0];
+    expect(text).toContain(`*On-Call:* <@${skin.onCallSlackMemberId}>`);
+    expect(text).toContain('<@U0PRESENTER>');
+  });
+});

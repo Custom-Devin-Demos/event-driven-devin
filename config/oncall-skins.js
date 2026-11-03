@@ -36,6 +36,9 @@
  * devinSession.notifySlackMemberId (a Slack member id) makes the session's
  * prompt ask Devin to @-mention that person in the alert thread when the root
  * cause is confirmed and again when the fix PR is open.
+ * onCallSlackMemberId (a Slack member id) shows that person as On-Call on the
+ * alert card and has the session @-mention them when the presenter is not
+ * paged; CUSTOMER_<SLUG>_SLACK_MEMBER_ID overrides it per deployment.
  * devinSession.onCallIsTriggerer: true pages the presenter who triggered the
  * alert instead: their devindemos.com email is resolved to a Slack member who
  * is shown as On-Call on the alert card and @-mentioned by the session, which
@@ -4287,6 +4290,47 @@ const ONCALL_SKINS = {
       impact: 'Clientes paying an overdue loan or card installment from \u00c1rea Clientes wait ~9 seconds on Pagar recibo; some press it again or abandon the payment before it confirms.',
     },
     disclaimer: 'NOT ACTUALLY A SANTANDER CONSUMER FINANCE SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Santander Consumer Finance product.',
+  },
+  '90bf6ab8': {
+    slug: '90bf6ab8',
+    company: 'Copa Airlines',
+    brandMark: 'C',
+    vertical: 'banking',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    hideRibbon: true,
+    onCallSlackMemberId: 'U09A56TAB8B',
+    page: { file: '90bf6ab8.html', title: 'Copa Airlines | Vuelos y Tiquetes baratos a toda Am\u00e9rica' },
+    theme: {
+      '--accent': '#0032A0',
+      '--ink': '#121212',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0032A0',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Centro de Reservaciones Copa Airlines',
+    alertCard: {
+      title: 'Copa Airlines \u2014 p95 latency \u2014 Pagar reserva (hub PTY)',
+      service: 'reservas-web',
+      release: 'reservas-web@7.14.0',
+      team: 'reservas-digitales-oncall',
+      metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/banking/transfer}',
+      metricValue: '9.4s',
+      threshold: '> 1.5s',
+      baseline: '~320ms (7-day p95, before reservas-web@7.14.0)',
+      symptom: 'Pagar reserva hangs ~9s after Seleccionar tarifa on PTY-origin itineraries before the booking confirms. Error rate is normal \u2014 the payment is captured and the PNR is ticketed.',
+      impact: 'Copa Airlines customers booking from the Panama hub wait ~9 seconds on Pagar reserva; some press it again or abandon checkout, and the Centro de Reservaciones is taking calls about duplicate card charges.',
+    },
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Customer-facing context: this alert comes from the Copa Airlines flight booking page linked above (Buscar vuelos \u2192 Seleccionar tarifa \u2192 Pagar reserva, PTY \u2192 BOG). Its Pagar reserva button posts to the endpoint above, so that endpoint is the backend of this incident.',
+        'Reproduce only against a local run of the repo and time the request before any change. Never open or submit the live page on devindemos.com, and tell any testing agent the same: each live submit fires a new alert and starts another investigation.',
+        'Find the root cause from the code and telemetry, fix it without raising timeouts or dropping checks, and add a regression test that fails before the fix and passes after it. Record the same booking flow before and after with a visible timer.',
+        'Use "Copa Airlines" and "Pagar reserva" in your thread replies, PR title and PR description. Open a PR with the findings, fix, test and recordings; do not merge or deploy. Post the root cause and the PR link back in the alert thread.',
+      ].join('\n'),
+    },
+    disclaimer: 'NOT ACTUALLY A COPA AIRLINES SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Copa Airlines product. All bookings, passengers and payments are fictional.',
   },
   'b094da01': {
     slug: 'b094da01',

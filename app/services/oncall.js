@@ -1406,6 +1406,16 @@ const SLACK_MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
 const SLACK_CHANNEL_ID_RE = /^[A-Z0-9]{1,32}$/i;
 const SLACK_TS_RE = /^\d{1,16}\.\d{1,9}$/;
 
+/**
+ * Fixed On-Call member for a skin: CUSTOMER_<SLUG>_SLACK_MEMBER_ID, else
+ * skin.onCallSlackMemberId. Only well-formed Slack member ids are used.
+ */
+function skinOnCallMemberId(skin) {
+  if (!skin || typeof skin.slug !== 'string') return null;
+  const candidates = [process.env[`CUSTOMER_${skin.slug.toUpperCase()}_SLACK_MEMBER_ID`], skin.onCallSlackMemberId];
+  return candidates.find((id) => typeof id === 'string' && SLACK_MEMBER_ID_RE.test(id)) || null;
+}
+
 function notifySlackMemberParagraph(memberId, channel, threadTs, t = ONCALL_STRINGS.en) {
   const mention = `<@${memberId}>`;
   return [
@@ -1717,13 +1727,15 @@ async function postOncallAlert(scenarioId, options = {}) {
   const reservation = groupable && !repeat ? reserveSkinAlert(skin, runRef) : null;
   const triggeredBy = slackReady ? await resolveTriggeredBy(token, options.devinEmail) : null;
   // onCallIsTriggerer: the presenter who triggered the alert is paged as On-Call.
-  const onCallMemberId = skin && skin.devinSession && skin.devinSession.onCallIsTriggerer
+  const presenterMemberId = skin && skin.devinSession && skin.devinSession.onCallIsTriggerer
     ? slackMemberIdOf(triggeredBy)
     : null;
-  const onCall = onCallMemberId ? triggeredBy : null;
-  // When the presenter is paged as On-Call, a separate "Triggered by" would
-  // only repeat the same person.
-  const triggeredByLine = onCall ? null : triggeredBy;
+  const fixedMemberId = !presenterMemberId && slackReady ? skinOnCallMemberId(skin) : null;
+  const onCallMemberId = presenterMemberId || fixedMemberId;
+  const onCall = presenterMemberId ? triggeredBy : (fixedMemberId ? `<@${fixedMemberId}>` : null);
+  // When the On-Call member is also the presenter, a separate "Triggered by"
+  // would only repeat the same person.
+  const triggeredByLine = onCall && onCall === triggeredBy ? null : triggeredBy;
   const t = oncallStrings(skin, scenario);
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
