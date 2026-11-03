@@ -172,7 +172,7 @@ function composeAnswer(query, tickers, sources, documents) {
       const ids = bullet.citations.filter((c) => kept.has(c)).map((c) => kept.get(c));
       if (ids.length) bullets.push({ text: bullet.text, citations: ids });
     }
-    if (bullets.length) summary = curated.summary;
+    if (kept.size === curated.citations.length) summary = curated.summary;
   }
 
   for (const ticker of tickers) {

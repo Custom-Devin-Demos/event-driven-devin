@@ -97,4 +97,11 @@ describe('e62af577 native research app on-call skin', () => {
     expect(new Set(answer.citations.map((c) => c.ticker))).toEqual(new Set(['NVDA', 'AAPL']));
     expect(answer.title).toContain('Compare recent filings');
   });
+
+  test('a single-type request does not reuse the curated multi-source summary', async () => {
+    const res = await post(API, { query: 'Latest insider filings', tickers: ['NVDA'], sources: ['Form 4'] });
+    const { answer } = await res.json();
+    expect(answer.citations.every((c) => c.docType === 'Form 4')).toBe(true);
+    expect(answer.summary).not.toMatch(/10-Q|margin/i);
+  });
 });
