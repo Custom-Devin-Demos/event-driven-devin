@@ -169,6 +169,31 @@ Page: `/fc0bd7f3`, aliases `/lilly-trial-lab` and `/lilly-lab-pipeline` (unliste
 - **Talk track (2 min):** "This is a trial data hub for a Lilly diabetes study. Labs from every site feed one pipeline. Our Toronto site just sent its visit-4 results and the run failed, so nothing reached the study warehouse. Nobody filed a ticket: the error went straight to Slack and Devin picked it up. Devin found that Canadian labs report glucose in millimoles, not milligrams, and the code had no conversion. It added one, made unknown units raise a data query instead of crashing, wrote a test and opened a PR. A data manager only has to review and merge. Indianapolis kept working the whole time."
 - **Host env:** only `DEVIN_SERVICE_KEY_FC0BD7F3` is needed on the host.
 
+---
+
+## 9. Highmark — payer prior authorization (`/fe64010d`)
+
+Customer-branded copy of demo 1 for Highmark. **Unlisted:** not on `/healthcare-lab`; share the direct URL `/highmark-prior-auth` (also `/highmark-payer`, `/fe64010d`). The page copies the highmark.com look: the gray audience bar, the Highmark Blue Cross Blue Shield logo, Roboto body text with Sofia Pro headings, the Highmark navy and blue colors, 5px uppercase buttons and the navy footer with the gray legal strip. Brand assets load from the highmark.com CDN and fall back to a text wordmark. The scenario is the same as demo 1: providers, members (`SHP-…` IDs), request numbers and phone numbers are fictional and all data is synthetic.
+
+**Reset:** reload the page. It keeps no state, so the failing outpatient-hospital MRI comes back. Keep Devin's fix PR unmerged if you want to run the demo again.
+
+**Trigger:** open `/highmark-prior-auth` → fill in **Run as** (your name and Devin email; the email is looked up in HC-GTM-AD and the name shows in the header and on the review) → leave the defaults (member Jordan Rivera SHP-448210, CPT 72148 MRI lumbar spine, place of service *22 Outpatient hospital*, both documents attached) → **Submit for review**.
+**What you see:** “We couldn’t process this authorization request”, with a reference and error code `PRIOR_AUTH_FAILED`, and a note that engineering was notified automatically. The raw `TypeError … 'requiredDocs'` shows up only in Sentry and the Slack card.
+**Contrast:** choose *11 Physician office*. The request is approved right away with a PA number.
+
+**What Devin does next:** the alert points to `app/services/verticals/fe64010d.js — submitPriorAuth` with CPT 72148, POS 22 and customer `fe64010d`, and the session runs as the presenter. Devin sees `PLACE_OF_SERVICE[22]` is `outpatient-hospital` while `CLINICAL_CRITERIA` is keyed `72148:outpatient_hospital`, so the lookup misses. It makes the keys match, adds a test and opens a PR.
+
+**Point at on screen:** the failed request and the “Failed at clinical criteria” step → Slack card in `#automated-alerts` → Devin session in HC-GTM-AD, under the presenter's name → PR.
+
+**Talk track (2 min):**
+> “This is the Highmark provider portal. An orthopedic office is asking for approval for a lumbar MRI at a hospital outpatient department. They fill in the form, attach the notes and submit, and the portal fails. The office has to call Provider Services, and the patient's scan gets pushed back.
+> Nobody opened a ticket. The failure went to Slack on its own and Devin is already looking at it. What it found: the place-of-service code is spelled one way in one table and another way in the rules table, so hospital outpatient MRIs never find their rules. The same MRI in a doctor's office works, which is why testing missed it.
+> The fix is in a pull request waiting for an engineer's review. With the CMS prior authorization rule pushing payers toward fast electronic answers, that's the difference between a backlog of phone calls and a fix before the next office hits submit.”
+
+**Host environment:** set `DEVIN_SERVICE_KEY_FE64010D` to an HC-GTM-AD service key (see `.env.example`). Nothing else is demo-specific: alerts go to `#automated-alerts` through the customer config, and the org is fixed to HC-GTM-AD on the page.
+
+---
+
 ## What HC-GTM-AD still needs
 
 The loop has two halves, and each needs its own settings:

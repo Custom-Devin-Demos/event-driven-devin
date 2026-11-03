@@ -55,6 +55,13 @@ describe('Sentry customer identity mapping', () => {
   });
 
   test.each([
+    { tags: [['alert_path', 'instant'], ['service', 'fe64010d-prior-auth-api']], culprit: 'criteriaFor(app/services/verticals/fe64010d)' },
+    { issueTitle: "TypeError: Cannot read properties of undefined (reading 'requiredDocs')", culprit: 'app/services/verticals/fe64010d.js — submitPriorAuth', tags: [] },
+  ])('recognizes Highmark prior authorization failures as instant-path alerts %#', (alertData) => {
+    expect(isInstantPathEvent(alertData)).toBe(true);
+  });
+
+  test.each([
     { tags: [['alert_path', 'latency']] },
     { tags: [{ key: 'alert_path', value: 'latency' }] },
     { tags: [{ alert_path: 'latency' }] },

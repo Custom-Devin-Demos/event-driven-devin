@@ -23,6 +23,7 @@ const thermoFisher = require('../app/services/verticals/bce3b3d2');
 const medtronic = require('../app/services/verticals/afd8d03a');
 const cvsCopay = require('../app/services/verticals/1d54e3b4');
 const lillyTrialLab = require('../app/services/verticals/fc0bd7f3');
+const highmarkPayer = require('../app/services/verticals/fe64010d');
 
 const devin = { devinUserId: 'user-1', devinOrgId: 'org-1', devinEmail: '' };
 
@@ -74,6 +75,12 @@ const CASES = [
     passing: { siteId: 'SITE-101' },
     message: "reading 'factor'", failureMetric: 'lab_pipeline.batch.failure',
   },
+  {
+    slug: 'fe64010d', name: 'Highmark prior authorization', run: highmarkPayer.submitPriorAuth,
+    failing: { memberId: 'SHP-448210', cpt: '72148', placeOfService: '22', attachedDocs: ['6 weeks conservative therapy', 'Neurologic deficit note'] },
+    passing: { memberId: 'SHP-448210', cpt: '72148', placeOfService: '11', attachedDocs: ['6 weeks conservative therapy'] },
+    message: "reading 'requiredDocs'", failureMetric: 'prior_auth.failure',
+  },
 ];
 
 describe.each(CASES)('$name ($slug)', ({ slug, run, failing, passing, message, failureMetric }) => {
@@ -104,5 +111,24 @@ describe.each(CASES)('$name ($slug)', ({ slug, run, failing, passing, message, f
   test('invalid input is a 400-style ValidationError, not an alert', async () => {
     await expect(run({})).rejects.toMatchObject({ name: 'ValidationError' });
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+});
+
+describe('Highmark prior authorization (fe64010d) alert payload', () => {
+  beforeEach(() => { createSessionAndAlert.mockClear(); Sentry.captureException.mockClear(); });
+
+  test('tags the instant alert path and forwards the presenter identity', async () => {
+    const failing = { memberId: 'SHP-448210', cpt: '72148', placeOfService: '22', attachedDocs: [] };
+    await expect(highmarkPayer.submitPriorAuth({ ...failing, ...devin, devinName: 'Jason Warren' })).rejects.toThrow(TypeError);
+    expect(Sentry.captureException.mock.calls[0][1].tags.alert_path).toBe('instant');
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.devinName).toBe('Jason Warren');
+    expect(alert.service).toBe('fe64010d-prior-auth-api');
+    expect(alert.release).toContain('fe64010d');
+  });
+
+  test('office MRI is approved at submission', async () => {
+    const result = await highmarkPayer.submitPriorAuth({ memberId: 'SHP-448210', cpt: '72148', placeOfService: '11', attachedDocs: ['6 weeks conservative therapy'], ...devin });
+    expect(result).toMatchObject({ success: true, status: 'approved', plan: 'Highmark Gold PPO' });
   });
 });
