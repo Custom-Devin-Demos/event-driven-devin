@@ -1,8 +1,8 @@
-/* global fetch, AbortController */
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
+const { createSessionAndAlert } = require('../devin-session');
 const seed = require('./b6e7eac1-seed');
 
 /**
@@ -14,16 +14,15 @@ const seed = require('./b6e7eac1-seed');
  * on the dead-letter queue with the reason and the full message.
  *
  * The Service Bus topic, its dead-letter queue, the F&O OData client and the
- * Azure Monitor alert rule are all simulated in process. The alert is delivered
- * to a Devin automation webhook; that session, its Teams posts and its PR are real.
+ * Azure Monitor alert rule are all simulated in process. Firing the alert goes through
+ * createSessionAndAlert like every other demo: the Slack alert and the Devin session are real.
  */
 
 const SERVICE = 'b6e7eac1-api';
 const ROUTE_BASE = '/api/b6e7eac1';
 const ALERT_RULE = 'converge-rentalsync-deadletter-count';
-const WEBHOOK_URL_ENV = 'DEVIN_WEBHOOK_URL_B6E7EAC1';
-const WEBHOOK_SECRET_ENV = 'DEVIN_WEBHOOK_SECRET_B6E7EAC1';
-const WEBHOOK_TIMEOUT_MS = 20000;
+const FIRE_ROUTE = `${ROUTE_BASE}/alerts/fire`;
+const SLACK_MEMBER_ID = 'U0BDHHQUM24';
 
 const ERROR_CODES = {
   DEALER_UNKNOWN: 'DEALER_UNKNOWN',
@@ -257,15 +256,6 @@ function validateReturnEvent(body) {
 
 // ---- alert → Devin webhook ----------------------------------------------------------------------
 
-function webhookConfig() {
-  return { url: process.env[WEBHOOK_URL_ENV] || '', secret: process.env[WEBHOOK_SECRET_ENV] || '' };
-}
-
-function isWebhookConfigured() {
-  const { url, secret } = webhookConfig();
-  return Boolean(url && secret);
-}
-
 /** Trimmed Azure Monitor common alert schema for the dead-letter metric rule. */
 function buildAlertPayload({ firedAt = new Date().toISOString(), pageUrl = '' } = {}) {
   const items = listDeadLetters();
@@ -319,57 +309,99 @@ function buildAlertPayload({ firedAt = new Date().toISOString(), pageUrl = '' } 
   };
 }
 
+class DeadLetterAlert extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'DeadLetterAlert';
+  }
+}
+
+const RUNBOOK_APPENDIX = 'This is the Sev2 dead-letter alert for the rental-return integration (slug b6e7eac1). '
+  + 'Follow docs/b6e7eac1/runbook-deadletters.md and docs/b6e7eac1/STEERABILITY.md. Run `npx jest tests/b6e7eac1-deadletter-triage.test.js tests/b6e7eac1-catsec-gate.test.js`, '
+  + 'start the service with `PORT=5000 DD_TRACE_ENABLED=false node app/server.js` (boot re-parks the same dead letters), read GET /api/b6e7eac1/deadletters (errorCode, reason, full body) and GET /api/b6e7eac1/contracts/{dataAreaId}. '
+  + 'For each dead letter post one plain-language reply in the alert thread: dealer and contract, root cause in one sentence, the fix, and the owner (this team, Cat Rentals, dealer, or D365 configuration). '
+  + 'Fix only what this team owns, minimally, in app/services/verticals/b6e7eac1-seed.js (or resolveDealer in b6e7eac1.js for dealer aliases), with one regression test per fix in tests/b6e7eac1-*.test.js. '
+  + 'Flag data-quality problems in the inbound event (e.g. fuelPercent above 100) to Cat Rentals; do not change the mapper clamp (KI-07 in docs/b6e7eac1/KNOWN_ISSUES.md). '
+  + 'Restart the service on your branch and POST /api/b6e7eac1/deadletters/{eventId}/replay for each event; report per event whether it applied (200, line now Returned) or is still parked (409, with the new reason). '
+  + 'Open one PR; never merge. Never say Azure Monitor, Service Bus or D365 are live — they are simulated in this environment. Never include machine serial numbers in posts or the PR.';
+
 /**
- * Deliver the alert to the Devin automation webhook. Only ever called from the
- * presenter's click on POST /api/b6e7eac1/alerts/fire — never from a timer.
+ * Fire the dead-letter alert. Only ever called from the presenter's click on
+ * POST /api/b6e7eac1/alerts/fire — never from a timer. Posts the Slack alert and
+ * starts the Devin session through createSessionAndAlert like every other demo.
  */
 async function fireAlert({ pageUrl = '', devinUserId = '', devinOrgId = '', devinEmail = '' } = {}) {
   const requestId = uuidv4();
   const startTime = Date.now();
   const payload = buildAlertPayload({ pageUrl });
-  const { url, secret } = webhookConfig();
+  const items = listDeadLetters();
 
-  if (!url || !secret) {
-    logger.warn('Alert not sent: Devin webhook not configured', { requestId, service: SERVICE, urlEnv: WEBHOOK_URL_ENV, secretEnv: WEBHOOK_SECRET_ENV });
-    return {
-      success: false, sent: false, requestId, statusCode: null,
-      message: `Devin webhook is not configured (${WEBHOOK_URL_ENV} / ${WEBHOOK_SECRET_ENV}). Payload built but not sent.`,
-      payload,
-    };
+  if (items.length === 0) {
+    return { success: false, sent: false, requestId, message: 'Dead-letter queue is empty; nothing to alert on. Reset the demo data first.', payload };
   }
   if (alertInFlight) {
-    return { success: false, sent: false, requestId, statusCode: null, message: 'An alert is already being delivered; wait for it to finish.', payload };
+    return { success: false, sent: false, requestId, message: 'An alert is already being sent; wait for it to finish.', payload };
   }
 
   alertInFlight = true;
-  logger.info('Firing alert to Devin webhook', { requestId, rule: ALERT_RULE, deadLetters: payload.data.customProperties.deadLetters, requester: devinEmail || devinUserId || 'anonymous', orgId: devinOrgId, service: SERVICE });
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), WEBHOOK_TIMEOUT_MS);
+  const summary = items.map((d) => `${d.eventId} (${d.body.dealerCode} ${d.body.contractId}: ${d.errorCode})`).join(', ');
+  const error = new DeadLetterAlert(`${ALERT_RULE}: ${items.length} dead-lettered return events on catrentals-returns/converge-rentalsync — ${summary}`);
+  logger.error('Dead-letter alert fired', { requestId, rule: ALERT_RULE, deadLetters: items.map((d) => d.eventId), requester: devinEmail || devinUserId || 'anonymous', service: SERVICE });
+  Sentry.captureException(error, {
+    tags: { route: FIRE_ROUTE, service: SERVICE, rule: ALERT_RULE, severity: 'Sev2' },
+    extra: { requestId, deadLetters: payload.data.customProperties.deadLetterSummary },
+  });
+
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Webhook-Secret': secret },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
+    const result = await createSessionAndAlert({
+      issueTitle: `${error.name}: ${error.message}`,
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+      culprit: 'app/services/verticals/b6e7eac1.js — processReturnEvent',
+      errorType: error.name,
+      errorValue: error.message,
+      devinUserId,
+      devinEmail,
+      devinOrgId,
+      service: SERVICE,
+      verticalLabel: 'Cat Converge — Rental-return integration (Service Bus dead-letter alert)',
+      slackMemberId: SLACK_MEMBER_ID,
+      tags: [
+        { key: 'route', value: FIRE_ROUTE },
+        { key: 'service', value: SERVICE },
+        { key: 'alertRule', value: ALERT_RULE },
+        { key: 'severity', value: 'Sev2' },
+      ],
+      extra: {
+        requestId,
+        alertRule: ALERT_RULE,
+        severity: 'Sev2',
+        monitorCondition: 'Fired',
+        deadLetters: payload.data.customProperties.deadLetterSummary,
+        opsConsole: pageUrl,
+        promptContext: payload.data.essentials.description,
+      },
+      level: 'error',
+      platform: 'node',
+      firstSeen: '',
+      lastSeen: new Date().toISOString(),
+      count: '',
+      shortId: '',
+      project: 'event-driven-devin',
+      release: process.env.SENTRY_RELEASE || 'b6e7eac1@1.0.0',
+      environment: process.env.DD_ENV || 'prod',
+      triggeredRule: ALERT_RULE,
+      promptAppendix: RUNBOOK_APPENDIX,
     });
-    const text = await response.text();
-    const sent = response.ok;
-    recordTiming('rentalsync.alert.latency', Date.now() - startTime, { route: `${ROUTE_BASE}/alerts/fire` });
-    incrementMetric(sent ? 'rentalsync.alert.sent' : 'rentalsync.alert.rejected', { route: `${ROUTE_BASE}/alerts/fire`, status: String(response.status) });
-    logger.info('Devin webhook responded', { requestId, status: response.status, sent, service: SERVICE });
-    lastAlert = { requestId, firedAt: payload.data.essentials.firedDateTime, statusCode: response.status, sent };
-    return {
-      success: sent, sent, requestId, statusCode: response.status,
-      message: sent ? 'Alert delivered to Devin.' : `Devin webhook returned HTTP ${response.status}: ${text.slice(0, 300)}`,
-      payload,
-    };
-  } catch (error) {
-    incrementMetric('rentalsync.alert.failure', { route: `${ROUTE_BASE}/alerts/fire`, errorClass: error.name });
-    logger.error('Devin webhook delivery failed', { requestId, error: error.message, service: SERVICE });
-    Sentry.captureException(error, { tags: { route: `${ROUTE_BASE}/alerts/fire`, service: SERVICE }, extra: { requestId } });
-    return { success: false, sent: false, requestId, statusCode: null, message: `Devin webhook delivery failed: ${error.message}`, payload };
+    recordTiming('rentalsync.alert.latency', Date.now() - startTime, { route: FIRE_ROUTE });
+    incrementMetric('rentalsync.alert.sent', { route: FIRE_ROUTE });
+    const sessionUrl = result && result.session && result.session.url ? result.session.url : null;
+    lastAlert = { requestId, firedAt: payload.data.essentials.firedDateTime, sent: true, sessionUrl };
+    return { success: true, sent: true, requestId, message: 'Alert posted to Slack; Devin session starting.', sessionUrl, payload };
+  } catch (err) {
+    incrementMetric('rentalsync.alert.failure', { route: FIRE_ROUTE, errorClass: err.name });
+    logger.error('Failed to trigger Devin session from dead-letter alert', { requestId, error: err.message, service: SERVICE });
+    return { success: false, sent: false, requestId, message: `Alert could not be delivered: ${err.message}`, payload };
   } finally {
-    clearTimeout(timer);
     alertInFlight = false;
   }
 }
@@ -405,7 +437,7 @@ function getState() {
     deadLetters: items,
     dealers: [...seed.DEALERS].sort((a, b) => a.dataAreaId.localeCompare(b.dataAreaId)),
     contracts: seed.DEALERS.map((d) => d.dataAreaId).sort().flatMap((id) => listContractLines(id)),
-    webhookConfigured: isWebhookConfigured(),
+    alertDestination: 'slack',
     lastResetAt,
     lastAlert,
     alertPreview: buildAlertPayload(),
@@ -430,7 +462,6 @@ module.exports = {
   getContractLine,
   buildAlertPayload,
   fireAlert,
-  isWebhookConfigured,
   resetDemo,
   getState,
 };

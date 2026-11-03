@@ -50,7 +50,7 @@ router.post('/api/b6e7eac1/deadletters/:eventId/replay', async (req, res) => {
   return res.status(result.status === 'Applied' ? 200 : 409).json(result);
 });
 
-/** POST /api/b6e7eac1/alerts/fire — presenter action: deliver the alert to the Devin webhook. */
+/** POST /api/b6e7eac1/alerts/fire — presenter action: Slack alert + Devin session via createSessionAndAlert. */
 router.post('/api/b6e7eac1/alerts/fire', async (req, res) => {
   await service.ready;
   const body = req.body || {};
@@ -60,8 +60,7 @@ router.post('/api/b6e7eac1/alerts/fire', async (req, res) => {
     devinOrgId: body.devinOrgId,
     devinEmail: body.devinEmail,
   });
-  if (!service.isWebhookConfigured()) return problem(res, 503, result.message, { payload: result.payload });
-  return res.status(result.sent ? 200 : 502).json(result);
+  return res.status(result.sent ? 200 : 409).json(result);
 });
 
 /** POST /api/b6e7eac1/alerts/reset — reload seed data and re-park the two stuck events. */

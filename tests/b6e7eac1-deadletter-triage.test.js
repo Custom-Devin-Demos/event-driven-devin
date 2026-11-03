@@ -1,5 +1,8 @@
 /* global describe, expect, test, beforeEach, beforeAll, jest */
 
+jest.mock('../app/services/devin-session', () => ({
+  createSessionAndAlert: jest.fn().mockResolvedValue({ session: { url: 'https://app.devin.ai/sessions/test-123' } }),
+}));
 jest.mock('../app/telemetry/datadog', () => ({
   tracer: { init: jest.fn() },
   initDatadog: jest.fn(),
@@ -15,6 +18,7 @@ jest.mock('../app/telemetry/sentry', () => ({
 
 const express = require('express');
 const http = require('http');
+const { createSessionAndAlert } = require('../app/services/devin-session');
 const service = require('../app/services/verticals/b6e7eac1');
 const seed = require('../app/services/verticals/b6e7eac1-seed');
 const { Sentry } = require('../app/telemetry/sentry');
@@ -59,8 +63,6 @@ beforeAll(() => service.ready);
 
 beforeEach(async () => {
   jest.clearAllMocks();
-  delete process.env.DEVIN_WEBHOOK_URL_B6E7EAC1;
-  delete process.env.DEVIN_WEBHOOK_SECRET_B6E7EAC1;
   await service.resetDemo();
 });
 
@@ -148,7 +150,7 @@ describe('processing and replay', () => {
   });
 });
 
-describe('alert → Devin webhook', () => {
+describe('alert → Slack + Devin session', () => {
   test('payload is the trimmed Azure Monitor common alert schema for the dead-letter rule', () => {
     const payload = service.buildAlertPayload({ pageUrl: 'http://localhost/b6e7eac1' });
     expect(payload.schemaId).toBe('azureMonitorCommonAlertSchema');
@@ -159,44 +161,26 @@ describe('alert → Devin webhook', () => {
     expect(JSON.stringify(payload)).not.toContain('CAT0320GCXKJ00912');
   });
 
-  test('without webhook configuration nothing is sent and the payload is still returned', async () => {
-    const result = await service.fireAlert({});
-    expect(result.sent).toBe(false);
-    expect(result.message).toContain('not configured');
-    expect(result.payload.data.essentials.alertRule).toBe('converge-rentalsync-deadletter-count');
+  test('firing goes through createSessionAndAlert: Slack alert tagging the presenter plus a Devin session, with the runbook appendix', async () => {
+    const result = await service.fireAlert({ devinEmail: 'presenter@example.com', pageUrl: 'http://localhost/b6e7eac1' });
+    expect(result).toMatchObject({ success: true, sent: true, sessionUrl: 'https://app.devin.ai/sessions/test-123' });
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    const args = createSessionAndAlert.mock.calls[0][0];
+    expect(args).toMatchObject({ service: 'b6e7eac1-api', slackMemberId: 'U0BDHHQUM24', errorType: 'DeadLetterAlert', devinEmail: 'presenter@example.com', triggeredRule: 'converge-rentalsync-deadletter-count' });
+    expect(args.errorValue).toContain('evt-5b21e0aa');
+    expect(args.errorValue).toContain('evt-9c04d1f2');
+    expect(args.promptAppendix).toContain('docs/b6e7eac1/runbook-deadletters.md');
+    expect(args.promptAppendix).toContain('/api/b6e7eac1/deadletters/{eventId}/replay');
+    expect(args.extra.deadLetters).toHaveLength(2);
+    expect(JSON.stringify(args)).not.toContain('CAT0320GCXKJ00912');
+    expect(service.getState().lastAlert).toMatchObject({ sent: true, sessionUrl: 'https://app.devin.ai/sessions/test-123' });
   });
 
-  test('with configuration the payload is POSTed with the X-Webhook-Secret header', async () => {
-    process.env.DEVIN_WEBHOOK_URL_B6E7EAC1 = 'https://devin.example/api/webhooks/automations/org/auto-1';
-    process.env.DEVIN_WEBHOOK_SECRET_B6E7EAC1 = 'shh';
-    const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({ ok: true, status: 202, text: async () => '{"ok":true}' });
-    try {
-      const result = await service.fireAlert({ devinEmail: 'presenter@example.com' });
-      expect(result).toMatchObject({ success: true, sent: true, statusCode: 202 });
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      const [url, init] = fetchMock.mock.calls[0];
-      expect(url).toBe(process.env.DEVIN_WEBHOOK_URL_B6E7EAC1);
-      expect(init.method).toBe('POST');
-      expect(init.headers['X-Webhook-Secret']).toBe('shh');
-      expect(JSON.parse(init.body).data.essentials.alertRule).toBe('converge-rentalsync-deadletter-count');
-      expect(service.getState().lastAlert).toMatchObject({ sent: true, statusCode: 202 });
-    } finally {
-      fetchMock.mockRestore();
-    }
-  });
-
-  test('a rejected webhook is reported, not retried', async () => {
-    process.env.DEVIN_WEBHOOK_URL_B6E7EAC1 = 'https://devin.example/hook';
-    process.env.DEVIN_WEBHOOK_SECRET_B6E7EAC1 = 'shh';
-    const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({ ok: false, status: 401, text: async () => 'bad secret' });
-    try {
-      const result = await service.fireAlert({});
-      expect(result).toMatchObject({ success: false, sent: false, statusCode: 401 });
-      expect(result.message).toContain('401');
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-    } finally {
-      fetchMock.mockRestore();
-    }
+  test('a failed Slack/Devin call is reported, not retried', async () => {
+    createSessionAndAlert.mockRejectedValueOnce(new Error('slack down'));
+    const failed = await service.fireAlert({});
+    expect(failed).toMatchObject({ success: false, sent: false });
+    expect(failed.message).toContain('slack down');
   });
 });
 
@@ -240,9 +224,10 @@ describe('HTTP routes', () => {
     expect(nope.status).toBe(404);
   });
 
-  test('fire-alert is refused with 503 when the webhook is not configured; reset returns the opening state', async () => {
+  test('fire-alert returns 200 with the session url; reset returns the opening state', async () => {
     const fire = await request(makeApp(), 'POST', '/api/b6e7eac1/alerts/fire', {});
-    expect(fire.status).toBe(503);
+    expect(fire.status).toBe(200);
+    expect(fire.body).toMatchObject({ sent: true, sessionUrl: 'https://app.devin.ai/sessions/test-123' });
     expect(fire.body.payload.data.essentials.alertRule).toBe('converge-rentalsync-deadletter-count');
     const reset = await request(makeApp(), 'POST', '/api/b6e7eac1/alerts/reset');
     expect(reset.status).toBe(200);
@@ -252,7 +237,7 @@ describe('HTTP routes', () => {
   test('GET /api/b6e7eac1/state carries what the console renders', async () => {
     const res = await request(makeApp(), 'GET', '/api/b6e7eac1/state');
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ rule: 'converge-rentalsync-deadletter-count', severity: 'Sev2', condition: 'Fired', deadLetterCount: 2, webhookConfigured: false });
+    expect(res.body).toMatchObject({ rule: 'converge-rentalsync-deadletter-count', severity: 'Sev2', condition: 'Fired', deadLetterCount: 2, alertDestination: 'slack' });
     expect(res.body.contracts).toHaveLength(10);
   });
 });

@@ -109,7 +109,7 @@
 
   <div class="main">
     <div class="cmdbar">
-      <button class="btn primary" id="fire" title="Sends this alert to the Devin automation webhook (server-side, X-Webhook-Secret). Nothing fires until you click.">
+      <button class="btn primary" id="fire" title="Posts this alert to Slack and starts a Devin session (server-side). Nothing fires until you click.">
         <svg class="ico" viewBox="0 0 16 16"><path fill="currentColor" d="M8 1 1 14h14L8 1zm.75 10.5h-1.5V10h1.5v1.5zm0-2.5h-1.5V5.5h1.5V9z"/></svg>Fire alert &rarr; Devin</button>
       <span class="sep"></span>
       <button class="btn" id="reset" title="Presenter control: reloads seed contract lines and re-parks the two dead letters. Does not change any code.">&#x21BA; Reset demo data</button>
@@ -150,9 +150,9 @@
     </div>
 
     <div class="panel">
-      <h2>Alert payload <span class="mono muted" style="font-weight:400">azureMonitorCommonAlertSchema &rarr; Devin webhook</span></h2>
+      <h2>Alert payload <span class="mono muted" style="font-weight:400">azureMonitorCommonAlertSchema &rarr; Slack alert + Devin session</span></h2>
       <details><summary>Show payload that "Fire alert" sends</summary><pre id="payload"></pre></details>
-      <div class="note">Fallback without the page: <code>curl -X POST "$DEVIN_WEBHOOK_URL_B6E7EAC1" -H "X-Webhook-Secret: $DEVIN_WEBHOOK_SECRET_B6E7EAC1" -H "Content-Type: application/json" --data @docs/b6e7eac1/alert-sample.json</code></div>
+      <div class="note">Fallback without the page: <code>curl -X POST https://devindemos.com/api/b6e7eac1/alerts/fire -H "Content-Type: application/json" -d '{}'</code></div>
     </div>
   </div>
 </div>
@@ -179,14 +179,14 @@
     $('#cond').className = 'v ' + (s.condition === 'Fired' ? 'sev' : 'ok');
     const stuck = s.deadLetters.map(d => d.body.contractId);
     $('#stuckCount').textContent = stuck.length;
-    $('#webhookState').textContent = s.webhookConfigured ? 'Action group: devin-webhook (configured)' : 'Action group: devin-webhook — NOT configured (DEVIN_WEBHOOK_URL_B6E7EAC1 / DEVIN_WEBHOOK_SECRET_B6E7EAC1 unset)';
+    $('#webhookState').textContent = 'Action group: devin-oncall → Slack alert + Devin session';
 
     const e = s.alertPreview.data.essentials;
     $('#essentials').innerHTML = [
       ['Alert rule', e.alertRule], ['Signal type', e.signalType + ' · DeadletteredMessages > 0 (PT15M, Maximum)'],
       ['Monitoring service', e.monitoringService], ['Target resource', 'sb-converge-prod (Service Bus namespace)'],
       ['Fired time', fmt(e.firedDateTime)], ['Entity', 'catrentals-returns / converge-rentalsync'],
-      ['Action group', 'devin-webhook → Devin automation (webhook:incoming)'], ['Runbook', 'docs/b6e7eac1/runbook-deadletters.md'],
+      ['Action group', 'devin-oncall → Slack alert + Devin session'], ['Runbook', 'docs/b6e7eac1/runbook-deadletters.md'],
       ['Description', e.description], ['Last demo reset', fmt(s.lastResetAt)]
     ].map(([k,v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
 
@@ -221,7 +221,7 @@
         devinEmail: localStorage.getItem('devinEmail') || ''
       })});
       const j = await r.json();
-      if (r.ok && j.sent) toast('ok', 'Alert fired → Devin', `Webhook accepted (HTTP ${j.statusCode}). Devin is acknowledging in Teams.`);
+      if (r.ok && j.sent) toast('ok', 'Alert fired → Devin', 'Posted to Slack; Devin session is starting.');
       else toast('err', 'Alert not delivered', j.title || j.message || `HTTP ${r.status}`);
     } catch (e) { toast('err', 'Alert not delivered', String(e)); }
     finally { b.disabled = false; load(); }
