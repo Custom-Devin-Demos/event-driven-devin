@@ -7978,7 +7978,7 @@ const ONCALL_SKINS = {
       onCallIsTriggerer: true,
       promptAppendix: [
         'Responder notes: this alert comes from the Rogo iOS app (native SwiftUI, no web page); its questions call the endpoint above.',
-        'Before/after proof: start one macOS child session on COG-GTM/julia_demos (rogo/ios, see its README) and COG-GTM/event-driven-devin. It runs main on PORT=3100 and the fix branch on PORT=3101, then records ONE Simulator video: `make run ROGO_API_BASE_URL=http://localhost:3100` (BEFORE), then the same question with 3101 (AFTER). Never use `make demo` (it fires real alerts). Post that video with the PR in this thread.',
+        'Before/after proof: start one macOS child session on COG-GTM/julia_demos (rogo/ios, see its README) and COG-GTM/event-driven-devin. It runs main on PORT=3100 and the fix branch on PORT=3101, then records ONE Simulator video: `make run ROGO_API_BASE_URL=http://localhost:3100` (BEFORE on a local run), then the same question with 3101 (AFTER). Never open or submit the live page, and never use `make demo` (it fires real alerts). Post that video with the PR in this thread.',
       ].join('\n'),
     },
     alertCard: {
