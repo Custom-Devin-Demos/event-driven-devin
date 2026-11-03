@@ -1007,8 +1007,15 @@ function reserveSkinAlert(skin, runRef) {
     posted: new Promise((r) => { resolvePosted = r; }),
     settled: new Promise((r) => { resolve = r; }),
     retry: null,
+    ts: null,
+    channel: null,
+    runs: 1,
   };
-  entry.markPosted = () => resolvePosted(true);
+  entry.markPosted = (ts, channel) => {
+    entry.ts = ts || null;
+    entry.channel = channel || null;
+    resolvePosted(true);
+  };
   entry.settle = (sessionUrl) => {
     entry.sessionUrl = sessionUrl || null;
     resolvePosted(true);
@@ -1041,6 +1048,11 @@ async function joinSkinIncident(scenario, skin, entry, sessionArgs) {
       .finally(() => { entry.retry = null; });
   }
   return { url: await entry.retry, fresh: true };
+}
+
+function slackPermalink(channel, ts) {
+  const base = (process.env.SLACK_WORKSPACE_URL || 'https://coggtm.slack.com').replace(/\/+$/, '');
+  return `${base}/archives/${channel}/p${String(ts).replace('.', '')}`;
 }
 
 function resetSkinAlertMemory() {
@@ -1537,6 +1549,7 @@ async function triggerSkinDevinSession(
       ...resolveSessionIdentity(requester, config),
       apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
       title: oncallStrings(skin, scenario).sessionTitle(resolveAlertCard(scenario, skin).monitor),
+      ...(config.platform ? { platform: config.platform } : {}),
     });
   } catch (error) {
     logger.error('On-Call skin Devin session failed', { skin: skin.slug, error: error.message });
@@ -1553,7 +1566,8 @@ async function triggerSkinDevinSession(
     sessionId: session.sessionId,
   });
 
-  if (!threadTs) return session;
+  // quietLink: the session posts its own thread replies, so skip the SRE Bot link.
+  if (!threadTs || config.quietLink) return session;
 
   try {
     const t = oncallStrings(skin, scenario);
@@ -1714,6 +1728,10 @@ async function postOncallAlert(scenarioId, options = {}) {
   // that delivery fails, the slot is released and this alert takes it over.
   while (repeat && !(await repeat.posted)) repeat = recentSkinAlert(skin);
   const runRef = options.runRef || (options.unique !== false && !repeat ? makeRunRef() : null);
+  const previousRuns = repeat ? repeat.runs++ : 0;
+  const groupedNote = repeat && repeat.ts
+    ? `:link: Grouped with the <${slackPermalink(repeat.channel, repeat.ts)}|original alert> · ${previousRuns} previous run${previousRuns === 1 ? '' : 's'} · same Devin investigation`
+    : null;
   const reservation = groupable && !repeat ? reserveSkinAlert(skin, runRef) : null;
   const triggeredBy = slackReady ? await resolveTriggeredBy(token, options.devinEmail) : null;
   // onCallIsTriggerer: the presenter who triggered the alert is paged as On-Call.
@@ -1753,6 +1771,7 @@ async function postOncallAlert(scenarioId, options = {}) {
       `Repo: ${REPO_URL}`
     ),
     ...(responderNotes(skin) ? mrkdwnSections(responderNotes(skin)) : []),
+    ...(groupedNote ? [mrkdwnSection(groupedNote)] : []),
     ...(t.viewDatadog && !compact ? [datadogActions(t)] : []),
     ...(compact ? [] : [contextBlock(card.service, triggeredByLine, null, t)]),
   ];
@@ -1766,7 +1785,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     try {
       ts = await postMessage(token, alertsChannel, text, blocks);
       if (reservation) {
-        if (ts) reservation.markPosted();
+        if (ts) reservation.markPosted(ts, alertsChannel);
         else reservation.release();
       }
       logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
@@ -1804,7 +1823,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     const joined = await joinSkinIncident(scenario, skin, repeat, sessionArgs);
     if (joined.url) {
       session = { url: joined.url };
-      if (!joined.fresh) {
+      if (!joined.fresh && !(skin.devinSession && skin.devinSession.quietLink)) {
         try {
           await postThreadReply(token, alertsChannel, ts, t.investigatingText(joined.url), [
             mrkdwnSection(t.investigatingBlock(joined.url)),

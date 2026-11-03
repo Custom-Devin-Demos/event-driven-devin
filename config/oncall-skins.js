@@ -7975,10 +7975,16 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     alertDestination: 'slack',
     devinSession: {
+      auto: true,
       onCallIsTriggerer: true,
+      // One macOS session owns the incident end to end; the #oncall-alerts responder skips `rogo-research@`.
+      platform: 'macos',
+      quietLink: true,
       promptAppendix: [
-        'Responder notes: this alert comes from the Rogo iOS app (native SwiftUI, no web page); its questions call the endpoint above.',
-        'Before/after proof: start one macOS child session on COG-GTM/julia_demos (rogo/ios, see its README) and COG-GTM/event-driven-devin. It runs main on PORT=3100 and the fix branch on PORT=3101, then records ONE Simulator video: `make run ROGO_API_BASE_URL=http://localhost:3100` (BEFORE), then the same question with 3101 (AFTER). Never use `make demo` (it fires real alerts). Post that video with the PR in this thread.',
+        'This alert comes from the Rogo iOS app (native SwiftUI, no web page); every question calls the endpoint above. You are on a macOS VM so you can run the iOS Simulator yourself.',
+        'Diagnose from the code in COG-GTM/event-driven-devin and open one fix PR there. Do not deploy or merge.',
+        'Before/after proof: clone COG-GTM/julia_demos and use rogo/ios (see its README; if rogo/ios is not on main, use branch devin/1793676379-rogo-ios). Run main of event-driven-devin on PORT=3100 and a worktree of your fix branch on PORT=3101, start ONE Simulator recording, ask "Search for NVIDIA\'s latest filings." with `make run ROGO_API_BASE_URL=http://localhost:3100` (BEFORE on a local run, ~8s on "Pulling documents..."), then the same question with 3101 (AFTER), then stop. Never open or submit the live page or point the app at devindemos.com, and never use `make demo` (it fires real alerts).',
+        'Slack: reply in the alert thread above at most twice — a one-line acknowledgement, then one final reply with the root cause, the PR link and that one before/after video attached.',
       ].join('\n'),
     },
     alertCard: {

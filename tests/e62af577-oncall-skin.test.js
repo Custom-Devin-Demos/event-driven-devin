@@ -49,8 +49,9 @@ describe('e62af577 native research app on-call skin', () => {
     expect(skin.page).toBeUndefined();
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();
-    expect(skin.devinSession.auto).toBeUndefined();
-    expect(skin.devinSession).toMatchObject({ onCallIsTriggerer: true });
+    expect(skin.devinSession).toMatchObject({ auto: true, onCallIsTriggerer: true, platform: 'macos', quietLink: true });
+    expect(skin.devinSession.promptAppendix).toMatch(/ONE Simulator recording/);
+    expect(skin.devinSession.promptAppendix).toMatch(/never use `make demo`/);
     expect(skin.alertCard.compact).toBe(true);
     expect(skin.disclaimer).toMatch(/^NOT ACTUALLY A ROGO APP/);
     const scenario = ALERT_SCENARIOS.research;
