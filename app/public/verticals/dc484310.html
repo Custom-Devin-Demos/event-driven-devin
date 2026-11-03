@@ -302,8 +302,8 @@
           <span class="sub">Transfer money between your accounts.</span>
           <form id="transferForm">
             <div class="field"><label for="fromAccount">From</label><select id="fromAccount"><option value="ACCT-1001">Everyday Checking ...1001</option><option value="ACCT-1002">Way2Save Savings ...1002</option></select></div>
-            <div class="field"><label for="toAccount">To</label><select id="toAccount"><option value="ACCT-1002">Way2Save Savings ...1002</option><option value="ACCT-1001">Everyday Checking ...1001</option><option value="ACCT-EXT-001">External account ...4921</option></select></div>
-            <div class="field"><label for="amount">Amount</label><input type="number" id="amount" value="500" min="1" step="0.01" inputmode="decimal"></div>
+            <div class="field"><label for="toAccount">To</label><select id="toAccount"><option value="ACCT-1002">Way2Save Savings ...1002</option><option value="ACCT-1001">Everyday Checking ...1001</option></select></div>
+            <div class="field"><label for="amount">Amount</label><input type="number" id="amount" value="500" min="0.01" step="0.01" inputmode="decimal" required></div>
             <div class="field"><label for="accountTier">Checking package</label><select id="accountTier"><option value="standard">Everyday Checking</option><option value="premium">Premier Checking</option><option value="basic">Clear Access Banking</option></select></div>
             <div class="xfer-actions">
               <button type="submit" class="btn-primary" id="submitBtn">Transfer</button>
@@ -457,6 +457,15 @@
     }
     document.getElementById('transferForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+    const amountValue = parseFloat(document.getElementById('amount').value);
+    if (!Number.isFinite(amountValue) || amountValue <= 0) {
+      showResult('error', 'Check the amount', 'Enter an amount greater than $0.00.');
+      return;
+    }
+    if (document.getElementById('fromAccount').value === document.getElementById('toAccount').value) {
+      showResult('error', 'Check the accounts', 'Choose two different accounts.');
+      return;
+    }
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
       btn.disabled = true; btn.textContent = 'Processing...';
@@ -464,7 +473,7 @@
       try {
         const res = await fetch('/api/banking/transfer', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: amountValue, accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
         });
         const data = await res.json();
         if (!res.ok) {
