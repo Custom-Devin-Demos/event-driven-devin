@@ -166,7 +166,7 @@ describe('alert → Slack + Devin session', () => {
     expect(result).toMatchObject({ success: true, sent: true, sessionUrl: 'https://app.devin.ai/sessions/test-123' });
     expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     const args = createSessionAndAlert.mock.calls[0][0];
-    expect(args).toMatchObject({ service: 'b6e7eac1-api', slackMemberId: 'U0BDHHQUM24', errorType: 'DeadLetterAlert', devinEmail: 'presenter@example.com', triggeredRule: 'converge-rentalsync-deadletter-count' });
+    expect(args).toMatchObject({ service: 'b6e7eac1-api', slackMemberId: 'U0BDHHQUM24', skipVulnerablePr: true, errorType: 'DeadLetterAlert', devinEmail: 'presenter@example.com', triggeredRule: 'converge-rentalsync-deadletter-count' });
     expect(args.errorValue).toContain('evt-5b21e0aa');
     expect(args.errorValue).toContain('evt-9c04d1f2');
     expect(args.promptAppendix).toContain('docs/b6e7eac1/runbook-deadletters.md');
@@ -177,6 +177,13 @@ describe('alert → Slack + Devin session', () => {
   });
 
   test('a failed Slack/Devin call is reported, not retried', async () => {
+    createSessionAndAlert.mockResolvedValueOnce(null);
+    const undelivered = await service.fireAlert({});
+    expect(undelivered).toMatchObject({ success: false, sent: false });
+    createSessionAndAlert.mockResolvedValueOnce({ session: null, throttled: true });
+    const capped = await service.fireAlert({});
+    expect(capped).toMatchObject({ success: true, sent: true, sessionStarted: false });
+    expect(capped.message).toContain('cap');
     createSessionAndAlert.mockRejectedValueOnce(new Error('slack down'));
     const failed = await service.fireAlert({});
     expect(failed).toMatchObject({ success: false, sent: false });

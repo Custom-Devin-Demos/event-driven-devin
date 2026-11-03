@@ -391,12 +391,20 @@ async function fireAlert({ pageUrl = '', devinUserId = '', devinOrgId = '', devi
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: ALERT_RULE,
       promptAppendix: RUNBOOK_APPENDIX,
+      skipVulnerablePr: true,
     });
     recordTiming('rentalsync.alert.latency', Date.now() - startTime, { route: FIRE_ROUTE });
+    if (!result) {
+      incrementMetric('rentalsync.alert.failure', { route: FIRE_ROUTE, errorClass: 'NotDelivered' });
+      return { success: false, sent: false, requestId, message: 'Alert could not be delivered (alert channel unavailable). Nothing was posted and no Devin session was started.', payload };
+    }
     incrementMetric('rentalsync.alert.sent', { route: FIRE_ROUTE });
-    const sessionUrl = result && result.session && result.session.url ? result.session.url : null;
+    const sessionUrl = result.session && result.session.url ? result.session.url : null;
     lastAlert = { requestId, firedAt: payload.data.essentials.firedDateTime, sent: true, sessionUrl };
-    return { success: true, sent: true, requestId, message: 'Alert posted to Slack; Devin session starting.', sessionUrl, payload };
+    const message = sessionUrl
+      ? 'Alert posted; Devin session starting.'
+      : (result.throttled ? 'Alert posted; Devin session not started (session cap reached).' : 'Alert posted; no Devin session was started by the app (handled by the on-call responder for this alert destination).');
+    return { success: true, sent: true, sessionStarted: Boolean(sessionUrl), requestId, message, sessionUrl, payload };
   } catch (err) {
     incrementMetric('rentalsync.alert.failure', { route: FIRE_ROUTE, errorClass: err.name });
     logger.error('Failed to trigger Devin session from dead-letter alert', { requestId, error: err.message, service: SERVICE });
