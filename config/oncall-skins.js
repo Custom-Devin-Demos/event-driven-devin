@@ -7975,16 +7975,14 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     alertDestination: 'slack',
     devinSession: {
-      auto: true,
       onCallIsTriggerer: true,
       promptAppendix: [
-        'Customer-facing context: this alert comes from the Rogo iOS app (a native SwiftUI client, there is no web page). Asking Rogo a question calls the endpoint above, so that endpoint is the backend of this incident.',
-        'In the alert thread the incident reads "p95 latency \u2014 Rogo research answers", release rogo-research@2026.11.1, owner team rogo-research-oncall: after a question is sent the app sits on "Working... Pulling documents..." for about 8 seconds before the cited answer appears; answers are correct and the error rate is normal.',
-        'Investigate from telemetry first (the monitor, APM traces and logs around the incident reference) before reading code, and write an evidence-based investigation summary: signals checked, hypotheses ruled out, root cause, impact.',
-        'Use "Rogo" and "research answers" in your thread replies, PR title and PR description. Post your findings and the PR link back in the alert thread. Do not deploy or merge.',
+        'Responder notes: this alert comes from the Rogo iOS app (native SwiftUI, no web page); its questions call the endpoint above.',
+        'Before/after proof: start one macOS child session on COG-GTM/julia_demos (rogo/ios, see its README) and COG-GTM/event-driven-devin. It runs main on PORT=3100 and the fix branch on PORT=3101, then records ONE Simulator video: `make run ROGO_API_BASE_URL=http://localhost:3100` (BEFORE on a local run), then the same question with 3101 (AFTER). Never open or submit the live page, and never use `make demo` (it fires real alerts). Post that video with the PR in this thread.',
       ].join('\n'),
     },
     alertCard: {
+      compact: true,
       title: 'p95 latency \u2014 Rogo research answers (POST /api/oncall/research/answers)',
       release: 'rogo-research@2026.11.1',
       team: 'rogo-research-oncall',
