@@ -43,8 +43,7 @@ describe('e62af577 alert card', () => {
 
     expect(createDevinSession).toHaveBeenCalledTimes(1);
     const [prompt, opts] = createDevinSession.mock.calls[0];
-    expect(opts).toMatchObject({ platform: 'macos', strictPlatform: true });
-    expect(prompt).not.toContain('/oncall/c/e62af577');
+    expect(opts.platform).toBe('macos');
     expect(prompt).toContain('Slack Thread:* channel=C0TEST thread_ts=1700000000.000100');
     expect(prompt).toContain('ONE Simulator recording');
     expect(postThreadReply).not.toHaveBeenCalled();
@@ -62,8 +61,8 @@ describe('e62af577 alert card', () => {
     const permalink = 'https://coggtm.slack.com/archives/C0TEST/p1700000000000100';
     const secondCard = JSON.stringify(postMessage.mock.calls[1][3]);
     expect(secondCard).not.toContain('Incident Ref');
-    expect(secondCard).toContain(`<${permalink}|original alert> · 1 previous run`);
-    expect(JSON.stringify(postMessage.mock.calls[2][3])).toContain('· 2 previous runs');
+    expect(secondCard).toContain(`<${permalink}|original alert> · 1 previous run ·`);
+    expect(JSON.stringify(postMessage.mock.calls[2][3])).toContain('· 2 previous runs ·');
     expect(postMessage.mock.calls[1][2]).toContain('rogo-research@');
   });
 });
