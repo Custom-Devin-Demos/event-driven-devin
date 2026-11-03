@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HITT SiteForce</title>
+  <link rel="icon" href="/verticals/844f1b1f/siteforce-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <style>
+    :root {
+      --brand: #5867dd; --brand-dark: #384ad7; --navy: #1b3a7a; --body: #646c9a; --muted: #a7abc3;
+      --bg: #f2f3f8; --aside: #1e1e2d; --aside-brand: #1a1a27; --aside-text: #a2a3b7; --border: #ebedf2;
+      --success: #0abb87; --danger: #fd397a; --warning: #ffb822; --info: #5578eb; --dark: #48465b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: Poppins, Helvetica, sans-serif; font-size: 13px; color: var(--body); background: var(--bg); -webkit-font-smoothing: antialiased; }
+    button { font-family: inherit; cursor: pointer; }
+    .hidden { display: none !important; }
+
+    /* Login (mirrors siteforce.hitt-gc.com) */
+    #login { display: flex; min-height: 100vh; background: #fff; }
+    .login-aside { width: 42%; max-width: 605px; position: relative; color: #fff; display: flex; flex-direction: column; justify-content: space-between; padding: 40px 45px; background: url('/verticals/844f1b1f/siteforce-bg.jpg') center/cover; }
+    .login-aside::before { content: ''; position: absolute; inset: 0; background: rgba(30, 30, 45, .55); }
+    .login-aside > * { position: relative; }
+    .login-aside img { width: 334px; max-width: 100%; }
+    .login-aside h3 { font-size: 26px; font-weight: 500; margin-bottom: 30px; }
+    .login-aside p { font-size: 15px; font-weight: 300; opacity: .8; }
+    .login-aside .copy { font-size: 13px; opacity: .5; font-weight: 300; }
+    .login-main { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+    .login-main h3 { font-size: 26px; font-weight: 500; color: #67666e; margin-bottom: 50px; }
+    .btn-azure { display: inline-flex; align-items: center; gap: 10px; background: var(--brand); color: #fff; border: 0; border-radius: 4px; padding: 10px 12px; font-size: 13px; box-shadow: 0 5px 10px 2px rgba(88, 103, 221, .19); }
+    .btn-azure:hover { background: var(--brand-dark); }
+    .btn-azure svg { width: 22px; height: 22px; }
+    .sso-status { margin-top: 24px; font-size: 13px; color: var(--muted); min-height: 20px; }
+
+    /* App shell (Metronic admin layout used by SiteForce) */
+    #app { display: flex; min-height: 100vh; }
+    .aside { width: 265px; background: var(--aside); flex-shrink: 0; display: flex; flex-direction: column; }
+    .aside-brand { height: 65px; background: var(--aside-brand); display: flex; align-items: center; padding: 0 25px; gap: 12px; }
+    .aside-brand img { height: 34px; }
+    .aside-brand span { color: #fff; font-size: 15px; font-weight: 500; letter-spacing: .2px; }
+    .menu { padding: 15px 0; list-style: none; }
+    .menu .section { color: #4c4e6f; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; padding: 18px 25px 8px; }
+    .menu a { display: flex; align-items: center; gap: 14px; padding: 10px 25px; color: var(--aside-text); text-decoration: none; font-size: 13px; font-weight: 400; cursor: pointer; }
+    .menu a svg { width: 18px; height: 18px; fill: #494b74; flex-shrink: 0; }
+    .menu a:hover, .menu a.active { background: #1b1b28; color: #fff; }
+    .menu a.active svg, .menu a:hover svg { fill: var(--brand); }
+    .menu .badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; border-radius: 10px; padding: 1px 7px; }
+    .wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .header { height: 65px; background: #fff; display: flex; align-items: center; padding: 0 25px; box-shadow: 0 0 40px 0 rgba(82, 63, 105, .1); position: relative; z-index: 2; }
+    .header-menu { display: flex; gap: 6px; }
+    .header-menu a { padding: 8px 14px; border-radius: 4px; color: #6c7293; font-weight: 500; text-decoration: none; cursor: pointer; }
+    .header-menu a.active { background: rgba(77, 89, 149, .06); color: var(--brand); }
+    .topbar { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+    .topbar .env { font-size: 11px; font-weight: 500; color: var(--warning); background: rgba(255, 184, 34, .12); padding: 3px 10px; border-radius: 3px; }
+    .topbar .user { display: flex; align-items: center; gap: 10px; color: #959cb6; }
+    .topbar .user b { color: #6c7293; font-weight: 500; }
+    .avatar { width: 34px; height: 34px; border-radius: 4px; background: rgba(10, 187, 135, .1); color: var(--success); font-weight: 600; display: flex; align-items: center; justify-content: center; }
+    .subheader { display: flex; align-items: center; gap: 14px; padding: 18px 25px; }
+    .subheader h3 { font-size: 16px; font-weight: 500; color: #434349; }
+    .subheader .sep { width: 1px; height: 20px; background: #e7e8ef; }
+    .subheader .crumbs { color: #959cb6; font-size: 12px; }
+    .subheader .crumbs b { color: var(--brand); font-weight: 400; }
+    .subheader .actions { margin-left: auto; display: flex; gap: 8px; }
+    .btn { border: 0; border-radius: 4px; padding: 9px 15px; font-size: 13px; font-weight: 400; }
+    .btn-light { background: #f0f3ff; color: var(--brand); }
+    .btn-brand { background: var(--brand); color: #fff; box-shadow: 0 4px 10px 0 rgba(88, 103, 221, .25); }
+    .btn-brand:hover { background: var(--brand-dark); }
+    .btn-brand:disabled { opacity: .65; cursor: progress; }
+    .content { padding: 0 25px 25px; }
+    .row { display: grid; gap: 20px; margin-bottom: 20px; }
+    .row.kpis { grid-template-columns: repeat(4, 1fr); }
+    .row.main { grid-template-columns: 1fr 340px; align-items: start; }
+    .portlet { background: #fff; border-radius: 4px; box-shadow: 0 0 13px 0 rgba(82, 63, 105, .05); }
+    .portlet-head { display: flex; align-items: center; min-height: 60px; padding: 0 25px; border-bottom: 1px solid var(--border); gap: 12px; }
+    .portlet-head h4 { font-size: 14px; font-weight: 500; color: #48465b; }
+    .portlet-head small { color: var(--muted); font-size: 12px; }
+    .portlet-head .tools { margin-left: auto; display: flex; gap: 6px; }
+    .portlet-body { padding: 25px; }
+    .kpi { padding: 22px 25px; display: flex; flex-direction: column; gap: 6px; }
+    .kpi .label { font-size: 12px; color: var(--muted); }
+    .kpi .value { font-size: 22px; font-weight: 600; color: #48465b; }
+    .kpi .delta { font-size: 11px; font-weight: 500; }
+    .kpi .bar { height: 4px; background: #ebedf2; border-radius: 2px; overflow: hidden; margin-top: 6px; }
+    .kpi .bar i { display: block; height: 100%; }
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 25px; }
+    .tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 16px 4px; margin-right: 26px; color: #6c7293; font-size: 13px; font-weight: 500; text-align: left; }
+    .tabs button small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
+    .tabs button.active { color: var(--brand); border-color: var(--brand); }
+    .project-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; padding: 20px 25px; border-bottom: 1px solid var(--border); }
+    .project-meta div span { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+    .project-meta div b { font-weight: 500; color: #48465b; font-size: 13px; }
+    .pill { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 3px; }
+    .pill.fed { background: rgba(85, 120, 235, .12); color: var(--info); }
+    .pill.priv { background: rgba(10, 187, 135, .12); color: var(--success); }
+    .pill.warn { background: rgba(255, 184, 34, .15); color: #c48a00; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 11px; font-weight: 500; color: #a2a5b9; text-transform: uppercase; letter-spacing: .3px; padding: 12px 10px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px 10px; border-bottom: 1px dashed var(--border); color: #595d6e; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    td .who { font-weight: 500; color: #48465b; }
+    td .id { font-size: 11px; color: var(--muted); }
+    tfoot td { font-weight: 600; color: #48465b; border-bottom: 0; }
+    .certify { display: flex; align-items: center; gap: 18px; padding: 20px 25px; border-top: 1px solid var(--border); background: #fafbfc; border-radius: 0 0 4px 4px; }
+    .certify label { display: flex; gap: 10px; align-items: flex-start; font-size: 12px; max-width: 560px; line-height: 1.6; cursor: pointer; }
+    .certify input { margin-top: 3px; accent-color: var(--brand); width: 16px; height: 16px; }
+    .certify .btn { margin-left: auto; white-space: nowrap; padding: 11px 20px; font-weight: 500; }
+    .alert { display: flex; gap: 14px; align-items: flex-start; padding: 16px 20px; margin: 20px 25px 0; border-radius: 4px; font-size: 13px; line-height: 1.6; }
+    .alert.danger { background: rgba(253, 57, 122, .08); color: #b8174f; border-left: 4px solid var(--danger); }
+    .alert.warning { background: rgba(255, 184, 34, .12); color: #8a6100; border-left: 4px solid var(--warning); }
+    .alert.success { background: rgba(10, 187, 135, .08); color: #067a58; border-left: 4px solid var(--success); }
+    .alert b { font-weight: 600; }
+    .alert code { font-family: Menlo, Consolas, monospace; font-size: 12px; background: rgba(0, 0, 0, .04); padding: 1px 6px; border-radius: 3px; }
+    .timeline { list-style: none; padding: 0; }
+    .timeline li { display: flex; gap: 14px; padding: 10px 0; font-size: 12px; position: relative; }
+    .timeline li::before { content: ''; position: absolute; left: 4px; top: 22px; bottom: -10px; width: 2px; background: #ebedf2; }
+    .timeline li:last-child::before { display: none; }
+    .timeline i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--brand); flex-shrink: 0; margin-top: 4px; background: #fff; z-index: 1; }
+    .timeline .t { color: var(--muted); width: 54px; flex-shrink: 0; }
+    .timeline b { color: #48465b; font-weight: 500; }
+    .side-list { list-style: none; }
+    .side-list li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border); font-size: 12px; }
+    .side-list li:last-child { border: 0; }
+    .side-list b { color: #48465b; font-weight: 500; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, .4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; margin-right: 8px; }
+    .spinner.dark { border-color: rgba(88, 103, 221, .25); border-top-color: var(--brand); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast { position: fixed; right: 25px; top: 80px; background: #fff; border-radius: 4px; box-shadow: 0 0 30px rgba(82, 63, 105, .2); padding: 14px 18px; font-size: 12px; z-index: 10; border-left: 4px solid var(--brand); max-width: 340px; }
+    .footer { margin-top: auto; padding: 18px 25px; color: #a7abc3; font-size: 12px; display: flex; justify-content: space-between; background: #fff; }
+  </style>
+</head>
+<body>
+  <!-- Azure AD sign-in screen -->
+  <section id="login">
+    <div class="login-aside">
+      <img src="/verticals/844f1b1f/siteforce-logo.png" alt="HITT">
+      <div>
+        <h3>HITT SiteForce</h3>
+        <p>Welcome to the HITT SiteForce .</p>
+      </div>
+      <div class="copy">&copy; 2026 HITT Contracting inc.</div>
+    </div>
+    <div class="login-main">
+      <h3>Log in to SiteForce</h3>
+      <button class="btn-azure" id="ssoBtn" type="button">
+        <svg viewBox="0 0 24 24"><path fill="#00adef" d="M0 3.4 9.8 2v9.5H0zM11 1.9 24 0v11.4H11zM0 12.6h9.8v9.5L0 20.7zM11 12.6h13V24l-13-1.9z"/></svg>
+        Sign in with Azure AD
+      </button>
+      <div class="sso-status" id="ssoStatus"></div>
+    </div>
+  </section>
+
+  <!-- SiteForce workspace -->
+  <section id="app" class="hidden">
+    <aside class="aside">
+      <div class="aside-brand"><img src="/verticals/844f1b1f/siteforce-logo.png" alt="HITT"><span>SiteForce</span></div>
+      <ul class="menu">
+        <li><a data-nav><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zm0 8h8v-6H3zm10 0h8V11h-8zm0-18v6h8V3z"/></svg>Dashboard</a></li>
+        <li class="section">Field Operations</li>
+        <li><a data-nav><svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7zM6 19H4v-2h2zm0-4H4v-2h2zm0-4H4V9h2zm0-4H4V5h2zm4 12H8v-2h2zm0-4H8v-2h2zm0-4H8V9h2zm0-4H8V5h2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8z"/></svg>Projects</a></li>
+        <li><a data-nav><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3m-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5m8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5"/></svg>Craft Workforce</a></li>
+        <li><a data-nav><svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1m2 14H7v-2h7zm3-4H7v-2h10zm0-4H7V7h10z"/></svg>Daily Reports</a></li>
+        <li><a data-nav><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16m.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>Timesheets</a></li>
+        <li><a data-nav class="active"><svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4"/></svg>Certified Payroll<span class="badge">1</span></a></li>
+        <li class="section">Compliance</li>
+        <li><a data-nav><svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5z"/></svg>Safety &amp; Incidents</a></li>
+        <li><a data-nav><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8zm2 16H8v-2h8zm0-4H8v-2h8zm-3-5V3.5L18.5 9z"/></svg>Wage Determinations</a></li>
+        <li><a data-nav><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2M9 17H7v-7h2zm4 0h-2V7h2zm4 0h-2v-4h2z"/></svg>Reports</a></li>
+      </ul>
+    </aside>
+
+    <div class="wrapper">
+      <header class="header">
+        <nav class="header-menu"><a data-nav>Home</a><a data-nav class="active">Field</a><a data-nav>Procore Sync</a><a data-nav>Admin</a></nav>
+        <div class="topbar">
+          <span class="env">PROD &middot; v4.12.0</span>
+          <div class="user">Hi, <b id="userName">Superintendent</b><div class="avatar" id="userInitial">S</div></div>
+        </div>
+      </header>
+
+      <div class="subheader">
+        <h3>Certified Payroll</h3><span class="sep"></span>
+        <span class="crumbs">Field &rsaquo; Timesheets &rsaquo; <b>Week ending Oct 31, 2026</b></span>
+        <div class="actions"><button class="btn btn-light" data-nav type="button">Export WH-347 PDF</button><button class="btn btn-light" data-nav type="button">Sync from kiosks</button></div>
+      </div>
+
+      <main class="content">
+        <div class="row kpis">
+          <div class="portlet kpi"><span class="label">Craft on site today</span><span class="value">1,284</span><span class="delta" style="color:var(--success)">+46 vs last week</span><div class="bar"><i style="width:78%;background:var(--brand)"></i></div></div>
+          <div class="portlet kpi"><span class="label">Self-perform hours (week)</span><span class="value">51,920</span><span class="delta" style="color:var(--success)">98.6% kiosk-verified</span><div class="bar"><i style="width:92%;background:var(--success)"></i></div></div>
+          <div class="portlet kpi"><span class="label">Certified payrolls due Fri</span><span class="value">14</span><span class="delta" style="color:var(--warning)">3 federal contracts pending</span><div class="bar"><i style="width:64%;background:var(--warning)"></i></div></div>
+          <div class="portlet kpi"><span class="label">Days without recordable</span><span class="value">212</span><span class="delta" style="color:var(--info)">Safety. Respect. Excellence.</span><div class="bar"><i style="width:88%;background:var(--info)"></i></div></div>
+        </div>
+
+        <div class="row main">
+          <div class="portlet">
+            <div class="portlet-head"><h4>Weekly craft payroll</h4><small>Self-perform crews &middot; synced from SiteForce kiosks</small></div>
+            <div class="tabs" id="projectTabs"></div>
+            <div class="project-meta" id="projectMeta"></div>
+            <div id="result"></div>
+            <div class="portlet-body" style="padding-top:10px">
+              <table>
+                <thead><tr><th>Worker</th><th>Classification</th><th class="num">Mon</th><th class="num">Tue</th><th class="num">Wed</th><th class="num">Thu</th><th class="num">Fri</th><th class="num">Sat</th><th class="num">Total</th><th class="num">OT</th></tr></thead>
+                <tbody id="crewBody"></tbody>
+                <tfoot id="crewFoot"></tfoot>
+              </table>
+            </div>
+            <div class="certify">
+              <label><input type="checkbox" id="certify" checked><span id="certifyText"></span></label>
+              <button class="btn btn-brand" id="submitBtn" type="button">Submit payroll</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="portlet" style="margin-bottom:20px">
+              <div class="portlet-head"><h4>Submission activity</h4></div>
+              <div class="portlet-body"><ul class="timeline" id="activity">
+                <li><i></i><span class="t">4:12 PM</span><span><b>Capital One Block A</b> weekly payroll exported to Procore</span></li>
+                <li><i></i><span class="t">3:47 PM</span><span><b>NIH Building 10</b> WH-347 #38 certified &amp; filed</span></li>
+                <li><i></i><span class="t">2:05 PM</span><span>Kiosk import: <b>1,284</b> punches across 22 jobsites</span></li>
+                <li><i></i><span class="t">11:30 AM</span><span>Wage determination <b>VA20260012</b> mod 3 published on SAM.gov</span></li>
+              </ul></div>
+            </div>
+            <div class="portlet">
+              <div class="portlet-head"><h4>Compliance</h4></div>
+              <div class="portlet-body"><ul class="side-list">
+                <li><span>Davis-Bacon contracts</span><b>9 active</b></li>
+                <li><span>Apprentice ratio checks</span><b style="color:var(--success)">Passing</b></li>
+                <li><span>Fringe plan on file</span><b>HITT Craft Benefit Trust</b></li>
+                <li><span>Next DOL audit window</span><b>Jan 2027</b></li>
+              </ul></div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer"><span>2026 &copy; HITT Contracting Inc.</span><span>SiteForce &middot; Field Systems</span></footer>
+    </div>
+  </section>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script>
+    (function () {
+      var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      var projects = [];
+      var current = null;
+      var $ = function (id) { return document.getElementById(id); };
+
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function money(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+      function toast(html) {
+        var t = $('toast'); t.innerHTML = html; t.classList.remove('hidden');
+        clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.add('hidden'); }, 3200);
+      }
+
+      document.querySelectorAll('[data-nav]').forEach(function (el) {
+        el.addEventListener('click', function () { toast('This area is not part of the demo build.'); });
+      });
+
+      $('ssoBtn').addEventListener('click', function () {
+        var status = $('ssoStatus');
+        $('ssoBtn').disabled = true;
+        status.innerHTML = '<span class="spinner dark"></span>Redirecting to login.microsoftonline.com&hellip;';
+        setTimeout(function () { status.innerHTML = '<span class="spinner dark"></span>Signed in as HITT\\superintendent &mdash; loading SiteForce&hellip;'; }, 700);
+        setTimeout(function () {
+          var email = localStorage.getItem('devinEmail') || '';
+          var name = email ? email.split('@')[0].split(/[._-]/)[0] : 'Marcus';
+          name = name.charAt(0).toUpperCase() + name.slice(1);
+          $('userName').textContent = name;
+          $('userInitial').textContent = name.charAt(0);
+          $('login').classList.add('hidden');
+          $('app').classList.remove('hidden');
+        }, 1400);
+      });
+
+      function renderTabs() {
+        $('projectTabs').innerHTML = projects.map(function (p) {
+          return '<button type="button" data-id="' + esc(p.id) + '" class="' + (current && current.id === p.id ? 'active' : '') + '">' + esc(p.name) + '<small>' + esc(p.id) + ' &middot; ' + esc(p.location) + '</small></button>';
+        }).join('');
+        $('projectTabs').querySelectorAll('button').forEach(function (b) {
+          b.addEventListener('click', function () { select(b.getAttribute('data-id')); });
+        });
+      }
+
+      function select(id) {
+        current = projects.filter(function (p) { return p.id === id; })[0];
+        $('result').innerHTML = '';
+        renderTabs();
+        var p = current;
+        $('projectMeta').innerHTML =
+          '<div><span>Client</span><b>' + esc(p.client) + '</b></div>' +
+          '<div><span>Contract</span><b>' + esc(p.contract) + '</b></div>' +
+          '<div><span>Superintendent</span><b>' + esc(p.superintendent) + '</b></div>' +
+          '<div><span>Payroll type</span>' + (p.federal
+            ? '<span class="pill fed">Davis-Bacon &middot; WD ' + esc(p.wageDetermination) + '</span>'
+            : '<span class="pill priv">Private &middot; HITT craft rates</span>') + '</div>';
+
+        var tot = 0; var ot = 0;
+        $('crewBody').innerHTML = p.crew.map(function (w) {
+          var o = Math.max(w.totalHours - 40, 0); tot += w.totalHours; ot += o;
+          return '<tr><td><div class="who">' + esc(w.name) + '</div><div class="id">' + esc(w.id) + '</div></td><td>' + esc(w.classification) + '</td>' +
+            DAYS.map(function (_d, i) { return '<td class="num">' + (w.hours[i] || '&ndash;') + '</td>'; }).join('') +
+            '<td class="num"><b>' + w.totalHours + '</b></td><td class="num">' + (o ? '<span class="pill warn">' + o + '</span>' : '&ndash;') + '</td></tr>';
+        }).join('');
+        $('crewFoot').innerHTML = '<tr><td colspan="8">' + p.crew.length + ' workers</td><td class="num">' + tot + '</td><td class="num">' + ot + '</td></tr>';
+        $('certifyText').innerHTML = p.federal
+          ? 'I certify that the payroll for week ending <b>Oct 31, 2026</b> is correct and complete and that each laborer or mechanic has been paid not less than the applicable wage rates and fringe benefits in wage determination <b>' + esc(p.wageDetermination) + '</b> (29 CFR 5.5, Statement of Compliance).'
+          : 'I confirm the hours above were verified at the SiteForce kiosk and approved for the weekly craft payroll run.';
+        $('submitBtn').textContent = p.federal ? 'Submit Certified Payroll (WH-347)' : 'Submit Weekly Payroll';
+      }
+
+      function addActivity(html) {
+        var now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        $('activity').insertAdjacentHTML('afterbegin', '<li><i></i><span class="t">' + now + '</span><span>' + html + '</span></li>');
+      }
+
+      $('submitBtn').addEventListener('click', function () {
+        if (!current) return;
+        var btn = $('submitBtn');
+        var label = btn.textContent;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Validating against wage determination&hellip;';
+        $('result').innerHTML = '';
+        var payload = {
+          projectId: current.id,
+          certified: $('certify').checked,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        };
+        fetch('/api/844f1b1f/payroll/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+          .then(function (res) {
+            var d = res.data;
+            if (res.ok && d.success) {
+              $('result').innerHTML = '<div class="alert success"><div><b>' + esc(d.form) + ' submitted</b> &mdash; ' + esc(d.payrollRef) + '<br>' +
+                d.workers + ' workers &middot; ' + d.totalHours + ' hrs &middot; gross ' + money(d.grossWages) + (d.fringeBenefits ? ' &middot; fringes ' + money(d.fringeBenefits) : '') + ' &middot; Procore sync ' + esc(d.procoreSync) + '</div></div>';
+              addActivity('<b>' + esc(d.projectName) + '</b> ' + esc(d.form) + ' submitted');
+            } else if (d.code === 'VALIDATION_ERROR') {
+              $('result').innerHTML = '<div class="alert warning"><div><b>Payroll not submitted.</b> ' + esc(d.error) + '. Tick the certification box below the crew table and resubmit.</div></div>';
+              $('result').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+              $('result').scrollIntoView({ behavior: 'smooth', block: 'center' }); $('result').innerHTML = '<div class="alert danger"><div><b>Certified payroll could not be submitted.</b> SiteForce was unable to price this week against the wage determination, so the WH-347 was not filed.<br>' +
+                'Reference <code>' + esc(d.payrollRef || '\u2014') + '</code> &middot; <code>' + esc(d.code || 'ERROR') + '</code><br><code>' + esc((d.errorClass ? d.errorClass + ': ' : '') + (d.error || 'Unexpected error')) + '</code><br>' +
+                'Field Systems has been alerted and an engineer is investigating. Do not re-submit until the payroll office confirms.</div></div>';
+              addActivity('<b style="color:var(--danger)">' + esc(current.name) + '</b> WH-347 submission failed');
+            }
+          })
+          .catch(function () {
+            $('result').innerHTML = '<div class="alert danger"><div><b>Network error.</b> SiteForce could not reach the payroll service.</div></div>';
+          })
+          .then(function () { btn.disabled = false; btn.textContent = label; });
+      });
+
+      fetch('/api/844f1b1f/projects').then(function (r) { return r.json(); }).then(function (d) {
+        projects = d.projects || [];
+        if (projects.length) select(projects[0].id);
+      });
+    })();
+  </script>
+</body>
+</html>
