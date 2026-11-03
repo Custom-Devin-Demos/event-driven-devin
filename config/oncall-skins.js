@@ -7946,6 +7946,47 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY AN ALLIANZ SITE — internal demo only, not affiliated with, endorsed by, or a real Allianz product.',
   },
+  'aa81ab91': {
+    slug: 'aa81ab91',
+    company: 'Eve',
+    brandMark: 'e',
+    vertical: 'insurance',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    page: { file: 'aa81ab91.html', title: 'Demand Letters | Eve' },
+    theme: {
+      '--accent': '#136079',
+      '--ink': '#0A0A0A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0A0A0A',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Eve Support',
+    devinSession: {
+      onCallIsTriggerer: true,
+      promptAppendix: [
+        'Demo investigation requirements:',
+        '1. Reproduce the symptom in a browser on this machine against a local run of the repo, and time the request before any change. Never open or submit the live page on devindemos.com, and tell any testing agent the same: each live submit fires a new alert and starts another investigation.',
+        '2. Find every root cause from the code and telemetry: the slow request, and anything else the alert names. Fix all of them; do not hunt for a second problem the alert does not name.',
+        '3. Add a regression test per root cause that fails before the fix and passes after it.',
+        '4. Record as much as you can; recordings are what the demo audience watches. At minimum two recordings. First, ONE combined BEFORE → AFTER video: run main and the fix branch side by side locally (for example main on PORT=3100 and a worktree of the fix branch on PORT=3101), start one recording, do the customer action BEFORE on a local run of main (the real ~7s hang then error) first, then the same clicks AFTER on the fix branch (the fix is not deployed) in the same recording. Never show the fixed run first and never splice separate clips together. Second, the regression test failing then passing. Same flow, same clicks, a visible timer throughout.',
+        '5. Label every recording inside the recording tool, not only in the message that attaches it: a title naming the step and the customer action ("BEFORE → AFTER: Generate demand takes 7.5s and fails, then 0.9s", "REGRESSION TEST: fails before the fix, passes after"), one chapter per action, and one pass/fail check annotation per run stating what should happen and what did. The labels must be in the recording\'s *-annotations.json sidecar and burned into the edited video. A label that exists only in a PR comment, chat message, or filename does not count. Word the BEFORE check so it passes when the problem is reproduced ("Problem reproduced: Generate demand takes 7.5s, then fails"), so no demo video shows a failed check; the AFTER check passes when the fix works.',
+        '6. Gate before posting: for every recording, open its *-annotations.json and confirm it has a title, at least one chapter, and a pass/fail check. If any is missing, re-annotate or re-record before embedding it anywhere. Never embed or post an unlabeled recording in the PR, the Slack thread, or the handover; list it as "missing: <step>" instead.',
+        '7. When you hand recording work to your testing agent, paste requirements 4, 5 and 6 verbatim into its prompt, and run the step-6 check on its deliverable before accepting it. Do not start child sessions; do all of the work in this session.',
+        '8. Open a PR with the investigation summary, the fix, the test, and every recording that passed step 6 embedded. Request Devin Review. Do not merge; stop for human approval.',
+        '9. Post one final message in the Slack alert thread with exactly three labeled lines: "Root cause:" (one plain sentence per cause), "PR review:" (https://devin-gtm.devinenterprise.com/review/COG-GTM/event-driven-devin/pull/<PR number>), "Videos:" (the combined BEFORE → AFTER link and the REGRESSION TEST link; "missing" for any that failed step 6).',
+      ].join('\n'),
+    },
+    alertCard: {
+      title: '5xx rate — Demand letters: Generate demand',
+      service: 'insurance-api',
+      release: 'demand-drafting@2026.11.1',
+      team: 'demand-drafting-oncall',
+      symptom: 'Demand generation hangs ~7s after the paralegal selects Generate demand, then fails with a gateway timeout. No draft is produced.',
+      impact: 'Plaintiff firms cannot generate demand letters; every request waits ~7 seconds and then fails, delaying time-limited demands to insurers.',
+    },
+    disclaimer: 'NOT ACTUALLY AN EVE SITE — internal demo only, not affiliated with, endorsed by, or a real Eve product.',
+  },
 };
 
 function getOncallSkin(slug) {
