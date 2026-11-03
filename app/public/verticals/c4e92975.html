@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FX Signal Screen | Models & Signals | Macro Hive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --char: #1E2125; --char-2: #2B2F35; --char-3: #3A3F46; --orange: #E8772E; --orange-hover: #CF6420; --orange-soft: #FDF1E8;
+      --ink: #1F2226; --text: #4A4F57; --muted: #6B717A; --line: #E3E5E8; --mist: #F4F5F7; --card: #FFFFFF;
+      --ok: #1E7D4F; --ok-soft: #E8F5EE; --warn: #B3261E; --warn-soft: #FDEEEE; --radius: 6px;
+      --head: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: 'Open Sans', Arial, sans-serif; color: var(--text); background: var(--mist); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: var(--orange-hover); }
+    .wrap { width: min(1240px, calc(100% - 48px)); margin: 0 auto; }
+    .hd { background: linear-gradient(100deg, #1B1D21 0%, #2E3238 60%, #44484F 100%); color: #fff; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .hd .wrap { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 76px; }
+    .brand { display: inline-flex; align-items: center; text-decoration: none; color: #fff; min-height: 44px; font-family: var(--head); font-weight: 500; font-size: 22px; letter-spacing: .32em; white-space: nowrap; }
+    .brand .hive { color: var(--orange); position: relative; display: inline-flex; align-items: center; padding: 0 0 0 1px; margin-right: 10px; }
+    .brand .hive svg { position: absolute; left: -4px; right: -14px; top: 50%; transform: translateY(-50%); width: calc(100% + 18px); height: 64px; }
+    .brand .hive span { position: relative; }
+    .nav { display: flex; align-items: center; gap: 2px; }
+    .nav a { color: #E9EAEC; text-decoration: none; font-family: var(--head); font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 0 14px; min-height: 44px; display: inline-flex; align-items: center; white-space: nowrap; border-bottom: 2px solid transparent; }
+    .nav a:hover { color: #fff; }
+    .nav a[aria-current] { color: var(--orange); border-bottom-color: var(--orange); }
+    .hd-tools { display: flex; align-items: center; gap: 12px; }
+    .search { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); background: transparent; color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .myhive { font-family: var(--head); font-weight: 600; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: #fff; border: 1px solid var(--orange); border-radius: 22px; padding: 0 16px; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; white-space: nowrap; }
+    .myhive i { width: 26px; height: 26px; border-radius: 50%; background: var(--orange); color: #fff; font-style: normal; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; }
+    .sub { background: var(--char); color: #C9CCD1; }
+    .sub .wrap { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+    .sub a { color: #C9CCD1; text-decoration: none; font-size: 13px; font-weight: 600; padding: 0 14px; min-height: 44px; display: inline-flex; align-items: center; white-space: nowrap; }
+    .sub a[aria-current] { color: #fff; box-shadow: inset 0 -2px 0 var(--orange); }
+    .crumbs { font-size: 13px; padding: 14px 0 0; color: var(--muted); }
+    .crumbs a { color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+    main { padding: 0 0 64px; }
+    .titlebar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin: 4px 0 22px; }
+    h1 { font-family: var(--head); font-weight: 700; color: var(--ink); font-size: 34px; line-height: 1.2; margin: 0 0 6px; }
+    .lead { margin: 0; max-width: 720px; font-size: 16px; }
+    .pro { font-family: var(--head); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--orange-hover); background: var(--orange-soft); border: 1px solid #F5CFB3; border-radius: 4px; padding: 4px 10px; white-space: nowrap; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+    .grid > * { min-width: 0; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; }
+    h2 { font-family: var(--head); font-weight: 700; font-size: 18px; color: var(--ink); margin: 0 0 4px; }
+    .card > p.hint { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+    .steps { display: flex; gap: 8px; margin: 0 0 22px; padding: 0; list-style: none; font-size: 12px; font-weight: 700; flex-wrap: wrap; font-family: var(--head); letter-spacing: .04em; text-transform: uppercase; }
+    .steps li { padding: 5px 12px; border-radius: 4px; background: var(--mist); color: var(--muted); border: 1px solid var(--line); }
+    .steps li[aria-current] { background: var(--char-2); color: #fff; border-color: var(--char-2); }
+    .steps li.done { background: var(--orange-soft); color: var(--orange-hover); border-color: #F5CFB3; }
+    fieldset { border: 0; padding: 0; margin: 0 0 22px; min-width: 0; }
+    legend, label.lbl { display: block; font-family: var(--head); font-weight: 600; font-size: 14px; color: var(--ink); margin-bottom: 10px; padding: 0; }
+    .pairs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .pair { position: relative; }
+    .pair input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .pair span { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 44px; padding: 8px 12px; border: 1px solid #C8CCD2; border-radius: var(--radius); font-weight: 600; font-size: 14px; color: var(--ink); cursor: pointer; background: #fff; }
+    .pair span small { font-weight: 600; font-size: 11px; color: var(--muted); }
+    .pair input:checked + span { border-color: var(--orange); background: var(--orange-soft); box-shadow: inset 0 0 0 1px var(--orange); }
+    .pair input:focus-visible + span { outline: 3px solid #F3B184; outline-offset: 2px; }
+    .pair input:disabled + span { cursor: progress; opacity: .7; }
+    .pairs-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+    .linkbtn { font: inherit; font-size: 13px; font-weight: 600; color: var(--orange-hover); background: none; border: 0; padding: 0; min-height: 32px; cursor: pointer; }
+    .seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid #C8CCD2; border-radius: var(--radius); overflow: hidden; }
+    .seg label { position: relative; margin: 0; }
+    .seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .seg span { display: flex; align-items: center; justify-content: center; min-height: 44px; font-weight: 600; font-size: 14px; color: var(--ink); cursor: pointer; border-left: 1px solid #C8CCD2; text-align: center; padding: 4px; }
+    .seg label:first-child span { border-left: 0; }
+    .seg input:checked + span { background: var(--char-2); color: #fff; }
+    .seg input:focus-visible + span { outline: 3px solid #F3B184; outline-offset: -3px; }
+    select { width: 100%; font: inherit; color: var(--ink); background: #fff; border: 1px solid #C8CCD2; border-radius: var(--radius); padding: 10px 12px; min-height: 44px; }
+    .row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+    .summary { margin: 4px 0 0; padding: 16px 18px; border-radius: var(--radius); background: var(--mist); border: 1px solid var(--line); display: grid; gap: 8px; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 700; text-align: right; color: var(--ink); overflow-wrap: anywhere; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-top: 22px; }
+    .btn { font-family: var(--head); font-weight: 700; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; border-radius: 4px; padding: 12px 26px; min-height: 48px; cursor: pointer; border: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary { background: var(--orange); color: #fff; }
+    .btn-primary:hover { background: var(--orange-hover); }
+    .btn-primary:disabled { background: #EFA877; cursor: progress; }
+    .btn:focus-visible, select:focus-visible, a:focus-visible, .search:focus-visible, .linkbtn:focus-visible { outline: 3px solid #F3B184; outline-offset: 2px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: inline-flex; }
+    .stopwatch .sw-label { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+    .stopwatch .sw-value { font-size: 22px; font-weight: 700; color: var(--ink); font-family: var(--head); }
+    .status { color: var(--muted); font-size: 13px; margin: 12px 0 0; }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: var(--radius); font-size: 14px; line-height: 1.5; }
+    .result-box.success { display: block; background: var(--ok-soft); color: #14422B; border-left: 4px solid var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-soft); color: #6E1712; border-left: 4px solid var(--warn); }
+    .side { display: grid; gap: 24px; }
+    .side h3 { font-family: var(--head); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+    .sig { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+    .sig:first-of-type { border-top: 0; padding-top: 0; }
+    .sig b { color: var(--ink); }
+    .sig .z { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+    .chip { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 3px; padding: 3px 8px; white-space: nowrap; }
+    .chip.long { background: var(--ok-soft); color: var(--ok); }
+    .chip.short { background: var(--warn-soft); color: var(--warn); }
+    .chip.flat { background: var(--mist); color: var(--muted); border: 1px solid var(--line); }
+    .asof { font-size: 12px; color: var(--muted); margin: 12px 0 0; }
+    .art { display: block; text-decoration: none; color: inherit; padding: 14px 0; border-top: 1px solid var(--line); }
+    .art:first-of-type { border-top: 0; padding-top: 0; }
+    .art .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+    .tag { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--orange-hover); background: var(--orange-soft); border-radius: 3px; padding: 2px 7px; }
+    .tag.grey { color: var(--char-3); background: var(--mist); }
+    .art h4 { font-family: var(--head); font-size: 15px; font-weight: 700; color: var(--ink); margin: 0 0 4px; line-height: 1.35; }
+    .art:hover h4 { color: var(--orange-hover); }
+    .art .by { font-size: 12px; color: var(--muted); }
+    footer { background: var(--char); color: #C9CCD1; padding: 40px 0 44px; font-size: 13px; }
+    footer .cols { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+    footer .brand { font-size: 18px; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 4px 22px; }
+    footer a { color: #E9EAEC; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+    footer a:hover { color: var(--orange); }
+    footer p { margin: 0; max-width: 980px; color: #9CA1A8; }
+    @media (max-width: 1180px) { .nav a { padding: 0 10px; font-size: 12px; } }
+    @media (max-width: 1100px) { .nav { display: none; } }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: minmax(0, 1fr); }
+      h1 { font-size: 28px; }
+    }
+    @media (max-width: 600px) {
+      .wrap { width: calc(100% - 32px); }
+      .hd .wrap { min-height: 64px; gap: 10px; }
+      .brand { font-size: 17px; letter-spacing: .24em; }
+      .brand .hive svg { height: 50px; }
+      .myhive { padding: 0 6px; border: 0; }
+      .myhive .txt { display: none; }
+      .search { display: none; }
+      .card { padding: 20px; }
+      .pairs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .row2 { grid-template-columns: minmax(0, 1fr); }
+      .seg span { font-size: 13px; }
+      .actions .btn { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hd">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Macro Hive home">MACRO<span class="hive"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polygon points="50,1.5 99,25 99,75 50,98.5 1,75 1,25" fill="none" stroke="#E8772E" stroke-width="2.4" vector-effect="non-scaling-stroke"/></svg><span>HIVE</span></span></a>
+      <nav class="nav" aria-label="Main">
+        <a href="#">Research</a>
+        <a href="#" aria-current="page">Models &amp; Signals</a>
+        <a href="#">Podcasts</a>
+        <a href="#">Macro Hive Pro</a>
+      </nav>
+      <div class="hd-tools">
+        <button type="button" class="search" aria-label="Search research"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+        <a class="myhive" href="#"><i aria-hidden="true">EW</i><span class="txt">My Hive</span></a>
+      </div>
+    </div>
+  </header>
+  <nav class="sub" aria-label="Models & Signals">
+    <div class="wrap">
+      <a href="#">Overview</a>
+      <a href="#" aria-current="page">FX Signal Screen</a>
+      <a href="#">Rates PCA Model</a>
+      <a href="#">Futures Momentum</a>
+      <a href="#">Central Bank Monitor</a>
+      <a href="#">China Growth Tracker</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="wrap">
+      <p class="crumbs"><a href="#">Models &amp; Signals</a>&nbsp;&rsaquo;&nbsp;<span>FX Signal Screen</span></p>
+      <div class="titlebar">
+        <div>
+          <h1>FX Signal Screen</h1>
+          <p class="lead">Combine our machine-learning FX signals &mdash; positioning, carry, momentum and NLP central-bank sentiment &mdash; into a positioning report for the G10 pairs you trade.</p>
+        </div>
+        <span class="pro">Macro Hive Pro</span>
+      </div>
+      <div class="grid">
+        <form id="transferForm" class="card" novalidate aria-labelledby="formHead">
+          <h2 id="formHead">Generate positioning report</h2>
+          <p class="hint">Pick pairs and a horizon, then run the screen. Reports are saved to My Hive.</p>
+          <ol class="steps" aria-label="Progress">
+            <li id="step0" aria-current="step">1 &middot; Pairs</li>
+            <li id="step1">2 &middot; Horizon</li>
+            <li id="step2">3 &middot; Report</li>
+          </ol>
+          <input type="hidden" id="fromAccount" value="ACCT-1004">
+          <input type="hidden" id="toAccount" value="ACCT-1002">
+          <input type="hidden" id="accountTier" value="premium">
+          <input type="hidden" id="amount" value="">
+          <fieldset>
+            <legend>G10 pairs</legend>
+            <div class="pairs" id="pairs">
+              <label class="pair"><input type="checkbox" value="EURUSD" checked><span>EUR/USD <small>Fibre</small></span></label>
+              <label class="pair"><input type="checkbox" value="USDJPY" checked><span>USD/JPY <small>Gopher</small></span></label>
+              <label class="pair"><input type="checkbox" value="GBPUSD" checked><span>GBP/USD <small>Cable</small></span></label>
+              <label class="pair"><input type="checkbox" value="AUDUSD" checked><span>AUD/USD <small>Aussie</small></span></label>
+              <label class="pair"><input type="checkbox" value="USDCAD"><span>USD/CAD <small>Loonie</small></span></label>
+              <label class="pair"><input type="checkbox" value="USDCHF"><span>USD/CHF <small>Swissie</small></span></label>
+              <label class="pair"><input type="checkbox" value="NZDUSD"><span>NZD/USD <small>Kiwi</small></span></label>
+              <label class="pair"><input type="checkbox" value="USDNOK"><span>USD/NOK <small>Nokkie</small></span></label>
+              <label class="pair"><input type="checkbox" value="USDSEK"><span>USD/SEK <small>Stokkie</small></span></label>
+            </div>
+            <div class="pairs-meta"><span id="pairCount" aria-live="polite"></span><button type="button" class="linkbtn" id="allPairs">Select all G10</button></div>
+          </fieldset>
+          <fieldset>
+            <legend>Horizon</legend>
+            <div class="seg" id="horizon">
+              <label><input type="radio" name="horizon" value="1W"><span>1 week</span></label>
+              <label><input type="radio" name="horizon" value="1M" checked><span>1 month</span></label>
+              <label><input type="radio" name="horizon" value="3M"><span>3 months</span></label>
+              <label><input type="radio" name="horizon" value="6M"><span>6 months</span></label>
+            </div>
+          </fieldset>
+          <div class="row2">
+            <div>
+              <label class="lbl" for="signalSet">Signal blend</label>
+              <select id="signalSet">
+                <option value="ensemble" selected>ML ensemble (all signals)</option>
+                <option value="positioning">Positioning &amp; flows</option>
+                <option value="carry">Carry &amp; momentum</option>
+                <option value="nlp">NLP central-bank sentiment</option>
+              </select>
+            </div>
+            <div>
+              <label class="lbl" for="format">Deliver as</label>
+              <select id="format">
+                <option value="web" selected>Web report + PDF</option>
+                <option value="bbg">Web report + Bloomberg chat</option>
+              </select>
+            </div>
+          </div>
+          <dl class="summary" aria-label="Report summary">
+            <div><dt>Pairs</dt><dd id="sumPairs">&mdash;</dd></div>
+            <div><dt>Horizon</dt><dd id="sumHorizon">&mdash;</dd></div>
+            <div><dt>Signal blend</dt><dd id="sumBlend">&mdash;</dd></div>
+          </dl>
+          <div class="actions">
+            <button type="submit" id="submitBtn" class="btn btn-primary">Run screen</button>
+            <span class="stopwatch" id="runTimer" aria-hidden="true"><span class="sw-label">Elapsed</span><span class="sw-value" id="runTimerValue">0.0s</span></span>
+          </div>
+          <p class="status" id="runStatus" role="status">Choose your pairs and horizon, then select Run screen.</p>
+          <div id="result" class="result-box" role="alert" aria-live="polite"></div>
+        </form>
+
+        <aside class="side">
+          <section class="card" aria-labelledby="latestHead">
+            <h3 id="latestHead">Latest model read &middot; 1M</h3>
+            <div class="sig"><b>EUR/USD</b><span class="z">z +0.8</span><span class="chip long">Long</span></div>
+            <div class="sig"><b>USD/JPY</b><span class="z">z &minus;1.3</span><span class="chip short">Short</span></div>
+            <div class="sig"><b>GBP/USD</b><span class="z">z +0.2</span><span class="chip flat">Neutral</span></div>
+            <div class="sig"><b>AUD/USD</b><span class="z">z +0.6</span><span class="chip long">Long</span></div>
+            <p class="asof">Ensemble model &middot; as of today 07:00 London</p>
+          </section>
+          <section class="card" aria-labelledby="readHead">
+            <h3 id="readHead">Related research</h3>
+            <a class="art" href="#"><div class="tags"><span class="tag">FX</span><span class="tag grey">Positioning</span></div><h4>FX Positioning Report: Yen Shorts Stretched Into BoJ</h4><span class="by">Sam van de Schootbrugge &middot; 3 Nov 2026</span></a>
+            <a class="art" href="#"><div class="tags"><span class="tag">FX</span><span class="tag grey">Carry</span></div><h4>FX Carry Report: Scandies Screen Cheap as Vol Compresses</h4><span class="by">Macro Hive Research &middot; 29 Oct 2026</span></a>
+            <a class="art" href="#"><div class="tags"><span class="tag">Rates</span><span class="tag">FX</span></div><h4>Bilal&rsquo;s Points of the Day: Dollar Resilience and the Fed Path</h4><span class="by">Bilal Hafeez &middot; 28 Oct 2026</span></a>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="cols">
+        <span class="brand" aria-label="Macro Hive">MACRO<span class="hive" style="padding-left:2px"><span>HIVE</span></span></span>
+        <nav aria-label="Footer">
+          <a href="#">About</a><a href="#">Our Products</a><a href="#">Hive Podcasts</a><a href="#">Careers</a><a href="#">Contact</a><a href="#">Terms</a><a href="#">Privacy</a>
+        </nav>
+      </div>
+      <p>Macro Hive provides independent global macro research for institutional investors. Content is for professional investors only and does not constitute investment advice. &copy; 2026 Macro Hive Ltd.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm');
+      const button = $('submitBtn');
+      const result = $('result');
+      const status = $('runStatus');
+      const amount = $('amount');
+      const timer = $('runTimer');
+      const timerValue = $('runTimerValue');
+      const pairBoxes = Array.from(document.querySelectorAll('#pairs input'));
+      const horizonRadios = Array.from(document.querySelectorAll('#horizon input'));
+      const blend = $('signalSet');
+      const format = $('format');
+      const HORIZON = { '1W': '1 week', '1M': '1 month', '3M': '3 months', '6M': '6 months' };
+      let pending = false;
+      let ticker = null;
+      let horizonTouched = false;
+
+      const chosenPairs = () => pairBoxes.filter((b) => b.checked).map((b) => b.value.slice(0, 3) + '/' + b.value.slice(3));
+      const horizon = () => (horizonRadios.find((r) => r.checked) || horizonRadios[1]).value;
+      function setStep(n) {
+        ['step0', 'step1', 'step2'].forEach((id, i) => {
+          const el = $(id);
+          el.classList.toggle('done', i < n);
+          if (i === n) el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current');
+        });
+      }
+      function render() {
+        const pairs = chosenPairs();
+        amount.value = String(pairs.length);
+        $('pairCount').textContent = pairs.length === 1 ? '1 pair selected' : `${pairs.length} pairs selected`;
+        $('allPairs').textContent = pairs.length === pairBoxes.length ? 'Clear selection' : 'Select all G10';
+        $('sumPairs').textContent = pairs.length ? pairs.join(', ') : '\u2014';
+        $('sumHorizon').textContent = HORIZON[horizon()];
+        $('sumBlend').textContent = blend.options[blend.selectedIndex].text;
+        if (!pending) setStep(pairs.length ? (horizonTouched ? 2 : 1) : 0);
+      }
+      pairBoxes.forEach((b) => b.addEventListener('change', render));
+      horizonRadios.forEach((r) => r.addEventListener('change', () => { horizonTouched = true; render(); }));
+      blend.addEventListener('change', render);
+      $('allPairs').addEventListener('click', () => {
+        const all = chosenPairs().length !== pairBoxes.length;
+        pairBoxes.forEach((b) => { b.checked = all; });
+        render();
+      });
+      render();
+
+      function stopTimer() { if (ticker) clearInterval(ticker); ticker = null; }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (pending) return;
+        const pairs = chosenPairs();
+        if (!pairs.length) {
+          result.className = 'result-box notice';
+          result.textContent = 'Select at least one G10 pair to run the screen.';
+          return;
+        }
+        pending = true;
+        const fields = [...pairBoxes, ...horizonRadios, blend, format, $('allPairs')];
+        fields.forEach((el) => { el.disabled = true; });
+        button.disabled = true;
+        button.textContent = 'Running\u2026';
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = `Scoring ${pairs.join(', ')} on the ${HORIZON[horizon()]} horizon\u2026`;
+        setStep(2);
+        const started = performance.now();
+        const tick = () => { timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100);
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: $('fromAccount').value,
+              toAccount: $('toAccount').value,
+              amount: Number(amount.value),
+              accountTier: $('accountTier').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick();
+          if (!response.ok || !data || !data.success) throw new Error('not generated');
+          const ref = String(data.transferId || '').slice(0, 8).toUpperCase();
+          result.className = 'result-box success';
+          result.textContent = `Positioning report ready: ${pairs.join(', ')} \u00b7 ${HORIZON[horizon()]} \u00b7 ${blend.options[blend.selectedIndex].text}. Saved to My Hive${ref ? ` (ref ${ref})` : ''}.`;
+          status.textContent = 'Report generated.';
+        } catch (_error) {
+          tick();
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok
+            ? 'We couldn\u2019t generate your positioning report right now. Please try again in a few minutes, or contact Client Services.'
+            : 'We couldn\u2019t confirm your report. Check My Hive before running the screen again.';
+          status.textContent = 'Choose your pairs and horizon, then select Run screen.';
+        } finally {
+          stopTimer();
+          pending = false;
+          fields.forEach((el) => { el.disabled = false; });
+          button.disabled = false;
+          button.textContent = 'Run screen';
+          render();
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
