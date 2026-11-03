@@ -119,7 +119,11 @@
     footer a:hover { color: var(--orange); }
     footer p { margin: 0; max-width: 980px; color: #9CA1A8; }
     @media (max-width: 1180px) { .nav a { padding: 0 10px; font-size: 12px; } }
-    @media (max-width: 1100px) { .nav { display: none; } }
+    @media (max-width: 1100px) {
+      .hd .wrap { flex-wrap: wrap; row-gap: 0; }
+      .nav { order: 3; flex-basis: 100%; overflow-x: auto; scrollbar-width: none; border-top: 1px solid rgba(255,255,255,.08); margin: 0 -8px; }
+      .nav a { padding: 0 8px; }
+    }
     @media (max-width: 900px) {
       .grid { grid-template-columns: minmax(0, 1fr); }
       h1 { font-size: 28px; }
@@ -180,7 +184,7 @@
       <div class="grid">
         <form id="transferForm" class="card" novalidate aria-labelledby="formHead">
           <h2 id="formHead">Generate positioning report</h2>
-          <p class="hint">Pick pairs and a horizon, then run the screen. Reports are saved to My Hive.</p>
+          <p class="hint">Pick pairs and a horizon, then run the screen. Signals appear below.</p>
           <ol class="steps" aria-label="Progress">
             <li id="step0" aria-current="step">1 &middot; Pairs</li>
             <li id="step1">2 &middot; Horizon</li>
@@ -377,14 +381,14 @@
           if (!response.ok || !data || !data.success) throw new Error('not generated');
           const ref = String(data.transferId || '').slice(0, 8).toUpperCase();
           result.className = 'result-box success';
-          result.textContent = `Positioning report ready: ${pairs.join(', ')} \u00b7 ${HORIZON[horizon()]} \u00b7 ${blend.options[blend.selectedIndex].text}. Saved to My Hive${ref ? ` (ref ${ref})` : ''}.`;
+          result.textContent = `Screen run accepted: ${pairs.join(', ')} \u00b7 ${HORIZON[horizon()]} \u00b7 ${blend.options[blend.selectedIndex].text}${ref ? ` (run ref ${ref})` : ''}.`;
           status.textContent = 'Report generated.';
         } catch (_error) {
           tick();
           result.className = 'result-box notice';
           result.textContent = response && !response.ok
             ? 'We couldn\u2019t generate your positioning report right now. Please try again in a few minutes, or contact Client Services.'
-            : 'We couldn\u2019t confirm your report. Check My Hive before running the screen again.';
+            : 'We couldn\u2019t confirm this run. Please try again in a few minutes, or contact Client Services.';
           status.textContent = 'Choose your pairs and horizon, then select Run screen.';
         } finally {
           stopTimer();
