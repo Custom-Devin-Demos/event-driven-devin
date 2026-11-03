@@ -1731,6 +1731,8 @@ async function postOncallAlert(scenarioId, options = {}) {
   const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy: triggeredByLine, onCall, skin });
   const card = resolveAlertCard(scenario, skin);
   const brand = skin ? skin.company : scenario.brand;
+  // alertCard.compact keeps only the fields a reader acts on; the fallback text keeps every fact.
+  const compact = Boolean(skin && isPlainObject(skin.alertCard) && skin.alertCard.compact);
   const blocks = [
     headerBlock(`:rotating_light: [${t.triggered}] ${card.monitor}`),
     ...fieldPairs([
@@ -1738,21 +1740,21 @@ async function postOncallAlert(scenarioId, options = {}) {
       [t.endpoint, card.endpoint],
       [t.metricValue, card.metricValue],
       [t.threshold, card.threshold],
-      [t.baseline, card.baseline],
+      compact ? null : [t.baseline, card.baseline],
       [t.release, card.release],
-      [t.events, `${events} | ${t.first}: ${firstSeen.toISOString()}`],
+      compact ? null : [t.events, `${events} | ${t.first}: ${firstSeen.toISOString()}`],
       onCall ? [t.onCall, onCall] : [t.owner, ownerRotation(card.owner)],
       runRef ? [t.incidentRef, runRef] : null,
       triggeredByLine ? [t.triggeredBy, triggeredByLine] : null,
     ]),
-    mrkdwnSection(`*${t.monitorQuery}:*\n\`\`\`${card.metricQuery}\`\`\``),
+    ...(compact ? [] : [mrkdwnSection(`*${t.monitorQuery}:*\n\`\`\`${card.metricQuery}\`\`\``)]),
     mrkdwnSection(
       (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
     ...(responderNotes(skin) ? mrkdwnSections(responderNotes(skin)) : []),
-    ...(t.viewDatadog ? [datadogActions(t)] : []),
-    contextBlock(card.service, triggeredByLine, null, t),
+    ...(t.viewDatadog && !compact ? [datadogActions(t)] : []),
+    ...(compact ? [] : [contextBlock(card.service, triggeredByLine, null, t)]),
   ];
   const teamsDelivery = teamsWebhookUrl
     ? postTeamsAlert(teamsWebhookUrl, scenario, skin, {

@@ -49,7 +49,9 @@ describe('e62af577 native research app on-call skin', () => {
     expect(skin.page).toBeUndefined();
     expect(skin.bugPortal).toBeUndefined();
     expect(skin.incident).toBeUndefined();
-    expect(skin.devinSession).toMatchObject({ auto: true, onCallIsTriggerer: true });
+    expect(skin.devinSession.auto).toBeUndefined();
+    expect(skin.devinSession).toMatchObject({ onCallIsTriggerer: true });
+    expect(skin.alertCard.compact).toBe(true);
     expect(skin.disclaimer).toMatch(/^NOT ACTUALLY A ROGO APP/);
     const scenario = ALERT_SCENARIOS.research;
     expect(scenario).toMatchObject({ oncallApiPath: API, service: 'research-api', unlisted: true });
