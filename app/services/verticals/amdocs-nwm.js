@@ -125,6 +125,7 @@ function reportAppFailure(report) {
 
   Sentry.withScope((scope) => {
     scope.setTransactionName(`${APP_SOURCE_PREFIX}${platform} ${screen} ${action}`);
+    scope.addEventProcessor((event) => ({ ...event, release, environment }));
     Sentry.captureException(error, {
       tags,
       extra: {
