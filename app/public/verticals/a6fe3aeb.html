@@ -111,8 +111,6 @@
     <div class="ops">
       <select class="acct" id="account" aria-label="Account">
         <option value="22214">Test Account 20</option>
-        <option value="22212">Test Account 18</option>
-        <option value="22030">Capitolis Rates Desk</option>
       </select>
       <span class="sep"></span>
       <button class="btn btn-primary" type="button">Create Trade Ticket</button>
@@ -242,12 +240,6 @@
     }
     document.querySelectorAll('.pill').forEach(function (p) { p.addEventListener('click', function () { showView(p.dataset.view); }); });
 
-    $('account').addEventListener('change', function () {
-      var label = this.options[this.selectedIndex].textContent;
-      document.querySelectorAll('.acct-name').forEach(function (n) { n.textContent = label; });
-      $('ticketAccount').value = label;
-    });
-
     fetch('/api/a6fe3aeb/counterparties')
       .then(function (response) { return response.json(); })
       .then(function (meta) {
@@ -273,6 +265,7 @@
       window.clearTimeout(toastTimer);
       toastTimer = window.setTimeout(function () { $('toast').classList.remove('show'); }, 7000);
     }
+    function plural(n) { return n + (n === 1 ? ' counterparty' : ' counterparties'); }
     function mm(v) { return Number(v).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
 
     function render(body) {
@@ -286,10 +279,10 @@
           '</td><td class="r">' + mm(c.residualNotionalUsdMm) + '</td><td class="r">' + c.reductionPct + '%</td><td class="r">' +
           c.tradesTerminated.toLocaleString('en-US') + '</td></tr>';
       }).join('');
-      $('cmpTotal').innerHTML = '<td colspan="3">Total (' + body.counterpartiesAnalyzed + ' counterparties)</td><td class="r">' + mm(s.grossNotionalUsdMm) +
+      $('cmpTotal').innerHTML = '<td colspan="3">Total (' + plural(body.counterpartiesAnalyzed) + ')</td><td class="r">' + mm(s.grossNotionalUsdMm) +
         '</td><td class="r">' + mm(s.eliminatedNotionalUsdMm) + '</td><td class="r">' + mm(s.grossNotionalUsdMm - s.eliminatedNotionalUsdMm) +
         '</td><td class="r">' + s.reductionPct + '%</td><td class="r">' + s.tradesTerminated.toLocaleString('en-US') + '</td>';
-      $('banner').textContent = 'Preview ' + body.previewId + ' ready — ' + body.counterpartiesAnalyzed + ' counterparties analyzed in ' + body.durationMs + 'ms.';
+      $('banner').textContent = 'Preview ' + body.previewId + ' ready — ' + plural(body.counterpartiesAnalyzed) + ' analyzed in ' + body.durationMs + 'ms.';
       ['banner', 'cmpTiles', 'cmpTable'].forEach(function (id) { $(id).classList.remove('hidden'); });
       $('cmpEmpty').classList.add('hidden');
     }
@@ -333,6 +326,7 @@
           render(result.body);
         })
         .catch(function (error) {
+          $('cmpEmpty').textContent = 'No preview yet. Use Run Compression Preview to pull each counterparty\'s latest trade feed.';
           showToast(error.message || 'Network error.');
         })
         .finally(function () {
