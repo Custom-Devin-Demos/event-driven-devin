@@ -9,54 +9,62 @@ const APP_SERVICE = 'customer-amdocs-nwm';
 const APP_PROJECT = 'amdocs-nwm';
 const APP_VERSION = '2.2.30';
 const APP_SOURCE_PREFIX = 'amdocs-nwm/';
-const APP_PLATFORMS = ['web', 'ios'];
+const APP_PLATFORMS = ['web', 'ios', 'android'];
 const IOS_ERROR_PATH = '/api/amdocs/nwm/error';
 const APP_SCENARIO = 'task-closeout-critical-priority';
 const ERROR_CODE = 'NWM-WF-4221';
 const IOS_REPO = 'COG-GTM/event-driven-ios';
+const ANDROID_REPO = 'COG-GTM/android-demos';
+const ANDROID_APP = 'apps/b7e3a1d4';
 const WEB_REPO = 'COG-GTM/event-driven-devin';
 const WEB_PAGE = 'app/public/verticals/b7e3a1d4.html';
 const WEB_TEST = 'tests/b7e3a1d4-amdocs-nwm.test.js';
 const APP_CULPRIT = 'TaskCloseout.complete(task:) — SLA close-out policy lookup (AmdocsNWMCore/WorkflowRules.swift + web replica)';
 // The orchestrator only diagnoses and delegates: the iOS child needs Xcode + the
-// iOS Simulator (macOS), the web child needs Node + a browser (Linux).
+// iOS Simulator (macOS), the Android child needs the Android SDK + emulator
+// (Linux) and the web child needs Node + a browser (Linux).
 const AMDOCS_NWM_SESSION_PLATFORM = process.env.AMDOCS_NWM_SESSION_PLATFORM === undefined
   ? 'linux'
   : process.env.AMDOCS_NWM_SESSION_PLATFORM;
 const AMDOCS_NWM_SLACK_MEMBER_ID = process.env.AMDOCS_NWM_SLACK_MEMBER_ID || '';
 
-const APP_REMEDIATION_DIRECTIVE = `*Repositories:* \`github.com/${IOS_REPO}\` (Swift / SwiftUI, native iOS) and \`github.com/${WEB_REPO}\` (web replica)
+const APP_REMEDIATION_DIRECTIVE = `*Repositories:* \`github.com/${IOS_REPO}\` (Swift / SwiftUI, native iOS), \`github.com/${ANDROID_REPO}\` (Kotlin / Jetpack Compose, native Android) and \`github.com/${WEB_REPO}\` (web replica)
 
 This alert came from Amdocs NWM (Network Workflow Management / TechInsights), the field-ops task app. The same
-NWM client ships on two platforms that each carry their own copy of the shared workflow rules (the SLA close-out
+NWM client ships on three platforms that each carry their own copy of the shared workflow rules (the SLA close-out
 policy table used by *Save & Complete*):
 - iOS: \`${IOS_REPO}\`, folders \`AmdocsNWMCore/\` (Foundation-only rules, \`WorkflowRules.swift\`) and \`AmdocsNWMMobile/\` (SwiftUI)
+- Android: \`${ANDROID_REPO}\`, \`${ANDROID_APP}/\` (\`core/Workflow.kt\` \`WorkflowRules\`, Compose UI); read its \`DEMO.md\`
 - Web: \`${WEB_REPO}\`, \`${WEB_PAGE}\` (the \`WORKFLOW_RULES\` block), served at \`/amdocs\`
 
-Failing path on both: Projects -> TMO -> FCC Drive Test Check in -> ticket #716942 -> Validation task (priority
+Failing path on all three: Projects -> TMO -> FCC Drive Test Check in -> ticket #716942 -> Validation task (priority
 Critical) -> *Save & Complete* fails with \`${ERROR_CODE}\`. Tasks with other priorities complete normally.
 
-You are the ORCHESTRATOR for this incident. Do not edit, build or run either app yourself.
-1. Diagnose read-only: open the close-out policy lookup in both clients and state the root cause (why a Critical
+You are the ORCHESTRATOR for this incident. Do not edit, build or run any app yourself.
+1. Diagnose read-only: open the close-out policy lookup in all three clients and state the root cause (why a Critical
    task has no policy). DEMO docs describe the symptom, not the cause.
-2. Because the defect lives in a dependency both clients carry, create TWO child Devin sessions in parallel and give
+2. Because the defect lives in a dependency all three clients carry, create THREE child Devin sessions in parallel and give
    each the diagnosis:
    - a *macOS* child for \`${IOS_REPO}\` (\`AmdocsNWMCore/\`, \`AmdocsNWMMobile/\` only): needs Xcode + the iOS Simulator.
      \`swift test --package-path AmdocsNWMCore\`, \`make test-amdocs\`, repro with \`make run-amdocs\`
      (sets \`AMDOCS_DISABLE_FAILURE_REPORTS=1\`).
+   - a *Linux* child for \`${ANDROID_REPO}\` (\`${ANDROID_APP}/\` only): needs the Android SDK + emulator.
+     \`export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64\`, \`make test APP=b7e3a1d4\`, repro with \`make run APP=b7e3a1d4\`
+     (reports stay off; never \`make demo\`).
    - a *Linux* child for \`${WEB_REPO}\` (\`${WEB_PAGE}\` and \`${WEB_TEST}\` only): \`npx jest ${WEB_TEST}\`,
      repro in a browser at \`http://localhost:<port>/amdocs?reports=off\`.
 3. Each child must: reproduce with failure reports off; fix the root cause in its workflow rules (do not swallow the
    error, downgrade the task priority, or hide the red error state); add a regression test that fails before and
-   passes after; keep the client identity (\`${APP_SERVICE}\`, \`${APP_SOURCE_PREFIX}<web|ios>\`, \`POST ${IOS_ERROR_PATH}\`)
+   passes after; keep the client identity (\`${APP_SERVICE}\`, \`${APP_SOURCE_PREFIX}<web|ios|android>\`, \`POST ${IOS_ERROR_PATH}\`)
    and payload shape unchanged; record BEFORE/AFTER; open a *draft* PR against \`main\` titled
    \`[DEMO — DO NOT MERGE] ...\`, and report the PR link and test output.
-4. Wait for both children, review both PRs (the iOS and web fixes must be equivalent and both must carry a regression
-   test), send corrections back to the owning child, then post a summary with both PR links to the Slack thread.
+4. Wait for all three children, review all three PRs (the iOS, Android and web fixes must be equivalent and each must
+   carry a regression test), send corrections back to the owning child, then post a summary with all three PR links
+   to the Slack thread.
 Never merge: \`main\` keeps the planted defect so the demo can be re-run.
 
-Reproduction safety: every failure report raises a real Slack alert and Devin session. Never run the iOS app with
-failure reports on, and always open the web page with \`?reports=off\`.`;
+Reproduction safety: every failure report raises a real Slack alert and Devin session. Never run the iOS or Android app
+with failure reports on, and always open the web page with \`?reports=off\`.`;
 
 function clip(value, max) {
   if (value === undefined || value === null) return '';
@@ -186,6 +194,7 @@ module.exports = {
   APP_CULPRIT,
   ERROR_CODE,
   IOS_REPO,
+  ANDROID_REPO,
   WEB_REPO,
   AMDOCS_NWM_SESSION_PLATFORM,
   APP_REMEDIATION_DIRECTIVE,

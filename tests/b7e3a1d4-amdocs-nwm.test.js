@@ -132,7 +132,8 @@ describe('Amdocs NWM failure report bridge', () => {
   test('accepts web and ios sources only', () => {
     expect(isAppReport(WEB_REPORT)).toBe(true);
     expect(isAppReport({ ...WEB_REPORT, source: 'amdocs-nwm/ios' })).toBe(true);
-    expect(isAppReport({ ...WEB_REPORT, source: 'amdocs-nwm/android' })).toBe(false);
+    expect(isAppReport({ ...WEB_REPORT, source: 'amdocs-nwm/android' })).toBe(true);
+    expect(isAppReport({ ...WEB_REPORT, source: 'amdocs-nwm/watch' })).toBe(false);
     expect(isAppReport({ ...WEB_REPORT, service: 'customer-ios-demo' })).toBe(false);
   });
 
@@ -142,7 +143,7 @@ describe('Amdocs NWM failure report bridge', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
-  test('raises one Slack alert that starts a Linux orchestrator fanning out to macOS (iOS) and Linux (web) children', async () => {
+  test('raises one Slack alert that starts a Linux orchestrator fanning out to macOS (iOS), Linux (Android) and Linux (web) children', async () => {
     const { status, body } = await postJson(server, WEB_REPORT);
     expect(status).toBe(202);
     expect(body).toMatchObject({ received: true, service: APP_SERVICE, sessionRequested: true });
@@ -168,6 +169,8 @@ describe('Amdocs NWM failure report bridge', () => {
     expect(AMDOCS_NWM_SESSION_PLATFORM).toBe('linux');
     expect(APP_REMEDIATION_DIRECTIVE).toMatch(/\*macOS\* child for `COG-GTM\/event-driven-ios`/);
     expect(APP_REMEDIATION_DIRECTIVE).toMatch(/\*Linux\* child for `COG-GTM\/event-driven-devin`/);
+    expect(APP_REMEDIATION_DIRECTIVE).toMatch(/\*Linux\* child for `COG-GTM\/android-demos`/);
+    expect(APP_REMEDIATION_DIRECTIVE).toMatch(/create THREE child/);
     expect(APP_REMEDIATION_DIRECTIVE).toContain('AmdocsNWMCore/');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('?reports=off');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('[DEMO — DO NOT MERGE]');
