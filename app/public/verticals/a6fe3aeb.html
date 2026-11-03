@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FINOS | TraderX Sample App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #101419; --panel: #171d24; --panel-2: #1c232c; --border: #303944;
+      --text: #cbd5df; --muted: #8e9eae; --accent: #e5ad50; --buy: #4fd1a1; --sell: #f2727f;
+      --sans: 'IBM Plex Sans', system-ui, sans-serif; --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 13px/1.4 var(--sans); background: var(--bg); color: var(--text); }
+    .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    button, select, input { font: inherit; }
+
+    .navbar { display: flex; align-items: center; justify-content: space-between; background: #191f27; border-bottom: 1px solid var(--border); padding: 8px 12px; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand svg { width: 28px; height: 28px; }
+    .app-title { font-size: 20px; font-weight: 600; color: #eef3f8; letter-spacing: .1px; }
+    .sys { display: flex; align-items: center; gap: 12px; }
+    .bus { display: inline-flex; align-items: center; gap: 7px; padding: 3px 11px; border: 1px solid #2f6b4f; border-radius: 999px; background: #13261e; color: #d4f3e4; font-size: 12px; font-weight: 600; }
+    .bus i { width: 8px; height: 8px; border-radius: 50%; background: #2fd47f; }
+    .sys-btn { background: transparent; color: #eef3f8; border: 1px solid #cbd5df; border-radius: 8px; padding: 4px 14px; font-weight: 600; cursor: pointer; }
+    .sys-btn::after { content: ''; display: inline-block; margin-left: 8px; border: 4px solid transparent; border-top-color: currentColor; vertical-align: -1px; }
+    .finos { width: 26px; height: 32px; }
+
+    .tabs { display: flex; padding: 0 12px; background: #141a21; border-bottom: 1px solid var(--border); }
+    .tabs a { padding: 8px 20px; color: var(--muted); text-decoration: none; border-right: 1px solid var(--border); }
+    .tabs a.active { color: var(--accent); background: #202832; box-shadow: inset 0 -2px var(--accent); }
+
+    .wrap { padding: 20px 12px 40px; }
+    .ops { display: flex; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .acct { width: 210px; background: #11171d; color: var(--accent); border: 1px solid var(--border); padding: 6px 10px; font-weight: 600; }
+    .btn { border: 1px solid var(--accent); padding: 6px 12px; font-weight: 600; cursor: pointer; border-radius: 0; }
+    .btn-primary { background: var(--accent); color: #17130b; }
+    .btn-outline { background: transparent; color: var(--accent); }
+    .btn-dark { background: #232b35; color: #eef3f8; border-color: #3b4652; }
+    .btn:disabled { opacity: .55; cursor: progress; }
+    .ops .sep { width: 12px; }
+
+    .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 8px; }
+    .tile { background: var(--panel); border: 1px solid var(--border); padding: 10px 12px; }
+    .tile span { color: var(--muted); font-size: 12px; }
+    .tile strong { display: block; margin-top: 4px; text-align: right; font: 18px var(--mono); color: #e3eaf0; font-variant-numeric: tabular-nums; }
+    .tile strong.neg { color: var(--sell); }
+    .tile strong.pos { color: var(--buy); }
+
+    .pills { display: flex; gap: 8px; padding: 6px 0 10px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+    .pill { background: transparent; color: var(--accent); border: 1px solid #6d5426; padding: 6px 12px; font-weight: 600; cursor: pointer; }
+    .pill.active { background: var(--accent); color: #17130b; border-color: var(--accent); }
+
+    .grid { background: var(--panel); border: 1px solid var(--border); margin-bottom: 14px; }
+    .grid h3 { margin: 0; padding: 8px 12px; font-size: 12px; letter-spacing: 1.4px; color: #dbe3ea; background: var(--panel-2); border-bottom: 1px solid var(--border); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+    .grid h3 small { letter-spacing: 0; text-transform: none; color: var(--muted); font-weight: 400; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .8px; color: var(--muted); text-transform: uppercase; padding: 6px 12px; border-bottom: 1px solid var(--border); border-right: 1px solid #252d36; }
+    td { padding: 4px 12px; height: 27px; border-bottom: 1px solid #222a33; border-right: 1px solid #222a33; }
+    tr:nth-child(even) td { background: #141a20; }
+    th.r, td.r { text-align: right; }
+    td.buy { color: var(--buy); } td.sell { color: var(--sell); }
+    td.state { color: #4fd1a1; font-size: 11px; letter-spacing: .6px; background: #15281f !important; }
+    td.up { color: var(--buy); background: #123a30 !important; } td.dn { color: var(--sell); background: #3a1d23 !important; }
+    #cmpRows td:nth-child(-n+2), #cmpTotal td:first-child { font-family: var(--sans); }
+    tfoot td { font-weight: 600; color: #eef3f8; background: #1d242d; }
+    .hidden { display: none !important; }
+
+    .cmp-bar { display: flex; gap: 16px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--muted); }
+    .cmp-bar b { color: var(--text); font-weight: 600; }
+    .progress { height: 3px; background: #222a33; overflow: hidden; }
+    .progress i { display: block; height: 100%; width: 30%; background: var(--accent); animation: slide 1.1s linear infinite; }
+    @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+    .banner { margin: 10px 12px; padding: 8px 12px; border: 1px solid #2f6b4f; background: #13261e; color: #d4f3e4; }
+    .empty { padding: 26px 12px; color: var(--muted); text-align: center; }
+
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.62); display: flex; align-items: flex-start; justify-content: center; padding-top: 36px; z-index: 20; }
+    .modal { width: 600px; background: #171d24; border: 1px solid #526070; padding: 22px 22px 18px; }
+    .modal h4 { margin: 0 0 14px; font-size: 14px; color: #eef3f8; letter-spacing: .4px; }
+    .row { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .row label { color: var(--text); }
+    .row input, .row select { background: #11171d; color: var(--text); border: 1px solid var(--border); padding: 7px 10px; min-height: 34px; }
+    .row input:disabled { background: #202832; color: var(--muted); }
+    .row input:focus, .row select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .modal .actions { display: flex; gap: 10px; margin-top: 14px; }
+    .modal .actions .btn { width: 142px; padding: 8px 0; }
+
+    .toast { position: fixed; right: 18px; bottom: 18px; max-width: 420px; background: #2a1519; border: 1px solid #8b3a45; color: #ffd9dd; padding: 10px 14px; opacity: 0; visibility: hidden; transform: translateY(12px); transition: opacity .2s, transform .2s, visibility .2s; z-index: 30; }
+    .toast.show { opacity: 1; visibility: visible; transform: none; }
+    .toast b { display: block; color: var(--sell); font-size: 11px; letter-spacing: 1px; margin-bottom: 2px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="1.5" y="1.5" width="29" height="29" rx="3" fill="#fff"/><path d="M8 7h6l10 18h-6z" fill="#0f1720"/><path d="M24 7l-5 9-3-5 2-4z" fill="#0f1720"/><path d="M8 25l5-9 3 5-2 4z" fill="#0f1720"/></svg>
+      <div class="app-title">TraderX Sample Trading App (capitolis)</div>
+    </div>
+    <div class="sys">
+      <span class="bus"><i></i>Message Bus Connected</span>
+      <button class="sys-btn" type="button">System</button>
+      <svg class="finos" viewBox="0 0 26 32" aria-hidden="true"><path d="M2 4l22-4v8L10 10.5V13l12-2v8l-12 2v11H2z" fill="#fff"/></svg>
+    </div>
+  </nav>
+  <div class="tabs"><a class="active" href="#">Trade</a><a href="#">Account</a><a href="#">Admin</a></div>
+
+  <main class="wrap">
+    <div class="ops">
+      <select class="acct" id="account" aria-label="Account">
+        <option value="22214">Test Account 20</option>
+      </select>
+      <span class="sep"></span>
+      <button class="btn btn-primary" type="button">Create Trade Ticket</button>
+      <button class="btn btn-outline" type="button">Create Order Ticket</button>
+      <button class="btn btn-outline" type="button" id="openCompression">Run Compression Preview</button>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><span>Total Cost Basis (All Accounts):</span><strong>$2,933,601.15</strong></div>
+      <div class="tile"><span>Total Portfolio Value (All Accounts):</span><strong>$2,888,012.60</strong></div>
+      <div class="tile"><span>Total Net P&amp;L (All Accounts):</span><strong class="neg">-$45,588.55</strong></div>
+      <div class="tile"><span>Account Cost Basis (<em class="acct-name" style="font-style:normal">Test Account 20</em>):</span><strong>$2,650,104.15</strong></div>
+      <div class="tile"><span>Account Portfolio Value (<em class="acct-name" style="font-style:normal">Test Account 20</em>):</span><strong>$2,605,038.15</strong></div>
+      <div class="tile"><span>Account Net P&amp;L (<em class="acct-name" style="font-style:normal">Test Account 20</em>):</span><strong class="neg">-$45,066.00</strong></div>
+    </div>
+
+    <div class="pills">
+      <button class="pill active" type="button" data-view="trades">Trades / Positions</button>
+      <button class="pill" type="button" data-view="orders">Orders</button>
+      <button class="pill" type="button" data-view="compression" id="compressionPill">Compression</button>
+    </div>
+
+    <section data-panel="trades">
+      <div class="grid">
+        <h3>Trades</h3>
+        <table>
+          <thead><tr><th>Security</th><th class="r">Price</th><th class="r">Quantity</th><th>Side</th><th>State</th><th>Executed</th></tr></thead>
+          <tbody id="tradeRows"></tbody>
+        </table>
+      </div>
+      <div class="grid">
+        <h3>Positions</h3>
+        <table>
+          <thead><tr><th>Security</th><th class="r">Quantity</th><th class="r">Avg Cost</th><th class="r">Open</th><th class="r">Mkt Price</th><th class="r">Position Value</th><th class="r">P&amp;L</th></tr></thead>
+          <tbody class="num">
+            <tr><td>C</td><td class="r">-2,000</td><td class="r">$57.50</td><td class="r">$59.20</td><td class="r up">&#9650; $59.40</td><td class="r up">-$118,796.00</td><td class="r up">-$3,796.00</td></tr>
+            <tr><td>IBM</td><td class="r">15,750</td><td class="r">$187.37</td><td class="r">$186.00</td><td class="r dn">&#9660; $183.84</td><td class="r up">$2,895,464.25</td><td class="r dn">-$55,613.25</td></tr>
+            <tr><td>MS</td><td class="r">1,000</td><td class="r">$95.13</td><td class="r">$90.50</td><td class="r up">&#9650; $91.08</td><td class="r dn">$91,080.00</td><td class="r dn">-$4,045.00</td></tr>
+            <tr><td>MSFT</td><td class="r">-650</td><td class="r">$432.46</td><td class="r">$429.10</td><td class="r up">&#9650; $439.84</td><td class="r dn">-$285,894.05</td><td class="r dn">-$4,795.70</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section data-panel="orders" class="hidden">
+      <div class="grid">
+        <h3>Orders</h3>
+        <table>
+          <thead><tr><th>Order Id</th><th>Security</th><th>Side</th><th class="r">Quantity</th><th class="r">Limit</th><th>Status</th></tr></thead>
+          <tbody class="num">
+            <tr><td>ORD-10422</td><td>IBM</td><td class="buy">Buy</td><td class="r">500</td><td class="r">$183.50</td><td>WORKING</td></tr>
+            <tr><td>ORD-10418</td><td>MSFT</td><td class="sell">Sell</td><td class="r">200</td><td class="r">$441.00</td><td>WORKING</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section data-panel="compression" class="hidden">
+      <div class="grid" id="compressionGrid">
+        <h3>Compression Preview <small id="cmpMeta">Bilateral tear-up across counterparty portfolios — net market risk unchanged</small></h3>
+        <div class="progress hidden" id="progress"><i></i></div>
+        <div class="banner hidden" id="banner"></div>
+        <div class="tiles hidden" id="cmpTiles" style="margin:10px 12px">
+          <div class="tile"><span>Gross Notional (USD mm):</span><strong id="tGross">—</strong></div>
+          <div class="tile"><span>Eliminated Notional (USD mm):</span><strong class="pos" id="tElim">—</strong></div>
+          <div class="tile"><span>Capital Released (USD mm):</span><strong class="pos" id="tCap">—</strong></div>
+        </div>
+        <div class="empty" id="cmpEmpty">No preview yet. Use <b>Run Compression Preview</b> to pull each counterparty's latest trade feed.</div>
+        <table class="hidden" id="cmpTable">
+          <thead><tr><th>Counterparty</th><th>Region</th><th class="r">Trades</th><th class="r">Gross (mm)</th><th class="r">Eliminated (mm)</th><th class="r">Residual (mm)</th><th class="r">Reduction</th><th class="r">Terminated</th></tr></thead>
+          <tbody class="num" id="cmpRows"></tbody>
+          <tfoot class="num"><tr id="cmpTotal"></tr></tfoot>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-bg hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <form class="modal" id="compressionForm" novalidate>
+      <h4 id="modalTitle">Compression Preview Ticket</h4>
+      <div class="row"><label>Account</label><input id="ticketAccount" value="Test Account 20" disabled></div>
+      <div class="row"><label for="institution">Institution</label><input id="institution" name="institution" value="Global Markets Bank"></div>
+      <div class="row"><label for="name">Requested By</label><input id="name" name="name" value="Alex Morgan"></div>
+      <div class="row"><label for="email">Email</label><input id="email" name="email" type="email" value="alex.morgan@globalmarkets.example"></div>
+      <div class="row"><label for="assetClass">Asset Class</label>
+        <select id="assetClass" name="assetClass">
+          <option value="irs">Interest Rate Swaps</option>
+          <option value="fxfwd">FX Forwards &amp; Swaps</option>
+          <option value="fxopt">FX Options</option>
+          <option value="cds">Credit Default Swaps</option>
+        </select></div>
+      <div class="row"><label for="scope">Counterparties</label>
+        <select id="scope" name="scope"><option value="all">All counterparties (14)</option></select></div>
+      <div class="actions">
+        <button class="btn btn-primary" type="submit" id="runBtn">Run Preview</button>
+        <button class="btn btn-dark" type="button" id="closeBtn">Close</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" role="alert"><b>COMPRESSION PREVIEW FAILED</b><span id="toastMsg"></span></div>
+
+  <script>
+    /* global window, document, localStorage, fetch */
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    var $ = function (id) { return document.getElementById(id); };
+    var trades = [
+      ['IBM', 192.855, 40, 'Sell'], ['IBM', 194.896, 100, 'Buy'], ['IBM', 187.443, 4963, 'Buy'], ['IBM', 188.556, 4435, 'Buy'],
+      ['IBM', 186.021, 7, 'Buy'], ['IBM', 185.222, 4585, 'Buy'], ['MSFT', 432.459, 650, 'Sell'], ['IBM', 186.579, 900, 'Buy'],
+      ['IBM', 186.579, 900, 'Buy'], ['C', 57.5, 2000, 'Sell'], ['MS', 95.125, 1000, 'Buy'], ['IBM', 136.25, 100, 'Sell'],
+    ];
+    $('tradeRows').innerHTML = trades.map(function (t) {
+      return '<tr><td>' + t[0] + '</td><td class="r num">$' + t[1].toFixed(3) + '</td><td class="r num">' + t[2].toLocaleString('en-US') +
+        '</td><td class="' + t[3].toLowerCase() + '">' + t[3] + '</td><td class="state">SETTLED</td><td>10 hr ago</td></tr>';
+    }).join('');
+
+    function showView(view) {
+      document.querySelectorAll('.pill').forEach(function (p) { p.classList.toggle('active', p.dataset.view === view); });
+      document.querySelectorAll('[data-panel]').forEach(function (s) { s.classList.toggle('hidden', s.dataset.panel !== view); });
+    }
+    document.querySelectorAll('.pill').forEach(function (p) { p.addEventListener('click', function () { showView(p.dataset.view); }); });
+
+    fetch('/api/a6fe3aeb/counterparties')
+      .then(function (response) { return response.json(); })
+      .then(function (meta) {
+        var scope = $('scope');
+        scope.innerHTML = '';
+        meta.scopeOptions.forEach(function (option) {
+          var o = document.createElement('option');
+          o.value = option.key;
+          o.textContent = option.label;
+          scope.appendChild(o);
+        });
+      })
+      .catch(function () {});
+
+    var modal = $('modal');
+    $('openCompression').addEventListener('click', function () { modal.classList.remove('hidden'); $('name').focus(); });
+    $('closeBtn').addEventListener('click', function () { modal.classList.add('hidden'); });
+
+    var toastTimer;
+    function showToast(message) {
+      $('toastMsg').textContent = message;
+      $('toast').classList.add('show');
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(function () { $('toast').classList.remove('show'); }, 7000);
+    }
+    function plural(n) { return n + (n === 1 ? ' counterparty' : ' counterparties'); }
+    function mm(v) { return Number(v).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+
+    function render(body) {
+      var s = body.summary;
+      $('tGross').textContent = mm(s.grossNotionalUsdMm);
+      $('tElim').textContent = mm(s.eliminatedNotionalUsdMm);
+      $('tCap').textContent = mm(s.capitalReleasedUsdMm);
+      $('cmpRows').innerHTML = body.counterparties.map(function (c) {
+        return '<tr><td>' + c.label + '</td><td>' + c.region + '</td><td class="r">' + c.tradeCount.toLocaleString('en-US') +
+          '</td><td class="r">' + mm(c.grossNotionalUsdMm) + '</td><td class="r buy">' + mm(c.eliminatedNotionalUsdMm) +
+          '</td><td class="r">' + mm(c.residualNotionalUsdMm) + '</td><td class="r">' + c.reductionPct + '%</td><td class="r">' +
+          c.tradesTerminated.toLocaleString('en-US') + '</td></tr>';
+      }).join('');
+      $('cmpTotal').innerHTML = '<td colspan="3">Total (' + plural(body.counterpartiesAnalyzed) + ')</td><td class="r">' + mm(s.grossNotionalUsdMm) +
+        '</td><td class="r">' + mm(s.eliminatedNotionalUsdMm) + '</td><td class="r">' + mm(s.grossNotionalUsdMm - s.eliminatedNotionalUsdMm) +
+        '</td><td class="r">' + s.reductionPct + '%</td><td class="r">' + s.tradesTerminated.toLocaleString('en-US') + '</td>';
+      $('banner').textContent = 'Preview ' + body.previewId + ' ready — ' + plural(body.counterpartiesAnalyzed) + ' analyzed in ' + body.durationMs + 'ms.';
+      ['banner', 'cmpTiles', 'cmpTable'].forEach(function (id) { $(id).classList.remove('hidden'); });
+      $('cmpEmpty').classList.add('hidden');
+    }
+
+    $('compressionForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      await identityReady;
+      var btn = $('runBtn');
+      var payload = {
+        name: $('name').value.trim(),
+        institution: $('institution').value.trim(),
+        email: $('email').value.trim(),
+        assetClass: $('assetClass').value,
+        scope: $('scope').value,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      };
+      btn.disabled = true;
+      btn.textContent = 'Running…';
+      modal.classList.add('hidden');
+      showView('compression');
+      ['banner', 'cmpTiles', 'cmpTable'].forEach(function (id) { $(id).classList.add('hidden'); });
+      $('cmpEmpty').classList.remove('hidden');
+      $('cmpEmpty').textContent = 'Pulling counterparty trade feeds…';
+      $('progress').classList.remove('hidden');
+      fetch('/api/a6fe3aeb/compression-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function (response) {
+          return response.json().then(function (body) { return { ok: response.ok, body: body }; });
+        })
+        .then(function (result) {
+          if (!result.ok || !result.body.success) {
+            $('cmpEmpty').textContent = 'No preview yet. Use Run Compression Preview to pull each counterparty\'s latest trade feed.';
+            showToast((result.body && result.body.error) || 'Compression preview failed.');
+            return;
+          }
+          render(result.body);
+        })
+        .catch(function (error) {
+          $('cmpEmpty').textContent = 'No preview yet. Use Run Compression Preview to pull each counterparty\'s latest trade feed.';
+          showToast(error.message || 'Network error.');
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.textContent = 'Run Preview';
+          $('progress').classList.add('hidden');
+        });
+    });
+  </script>
+</body>
+</html>
