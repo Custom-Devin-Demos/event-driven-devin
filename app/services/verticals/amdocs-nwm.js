@@ -10,6 +10,7 @@ const APP_PROJECT = 'amdocs-nwm';
 const APP_VERSION = '2.2.30';
 const APP_SOURCE_PREFIX = 'amdocs-nwm/';
 const APP_PLATFORMS = ['web', 'ios', 'android'];
+const PLATFORM_LABELS = { web: 'web', ios: 'iOS', android: 'Android' };
 const IOS_ERROR_PATH = '/api/amdocs/nwm/error';
 const APP_SCENARIO = 'task-closeout-critical-priority';
 const ERROR_CODE = 'NWM-WF-4221';
@@ -154,7 +155,7 @@ function reportAppFailure(report) {
     slackMemberId: report.devinEmail ? '' : AMDOCS_NWM_SLACK_MEMBER_ID,
     slackMemberIdFallback: AMDOCS_NWM_SLACK_MEMBER_ID,
     service: APP_SERVICE,
-    verticalLabel: `Amdocs NWM — Task Save & Complete (${platform === 'ios' ? 'iOS' : 'web'})`,
+    verticalLabel: `Amdocs NWM — Task Save & Complete (${PLATFORM_LABELS[platform] || 'web'})`,
     customer: CUSTOMER,
     project: APP_PROJECT,
     release,

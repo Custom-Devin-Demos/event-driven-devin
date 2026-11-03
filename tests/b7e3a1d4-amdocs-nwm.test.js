@@ -165,6 +165,13 @@ describe('Amdocs NWM failure report bridge', () => {
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
   });
 
+  test('labels Android reports as Android', async () => {
+    const { status } = await postJson(server, { ...WEB_REPORT, source: 'amdocs-nwm/android', platform: 'android' });
+    expect(status).toBe(202);
+    await new Promise((resolve) => { setImmediate(resolve); });
+    expect(createSessionAndAlert.mock.calls[0][0].verticalLabel).toBe('Amdocs NWM — Task Save & Complete (Android)');
+  });
+
   test('the orchestrator prompt routes each platform to the right VM and repo', () => {
     expect(AMDOCS_NWM_SESSION_PLATFORM).toBe('linux');
     expect(APP_REMEDIATION_DIRECTIVE).toMatch(/\*macOS\* child for `COG-GTM\/event-driven-ios`/);
