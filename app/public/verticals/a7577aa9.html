@@ -303,6 +303,10 @@
       .ot-foot-bottom { flex-direction: column-reverse; align-items: flex-start; }
       .ot-foot-bottom .copy { padding-left: 0; }
     }
+    .ot-mnav { display: none; flex-direction: column; border-bottom: 1px solid var(--ot-line); background: #fff; padding: 8px 24px 16px; }
+    .ot-mnav.open { display: flex; }
+    .ot-mnav button { min-height: 44px; text-align: left; background: none; border: 0; font-family: var(--display); font-size: 16px; color: #000; padding: 0; }
+    .ot-announce.hidden { display: none; }
   </style>
 </head>
 <body>
@@ -329,9 +333,15 @@
       <button class="ot-lang" type="button">EN <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.6)" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>
       <a href="#" class="ot-pill-sm dark">Request Demo</a>
       <a href="#" class="ot-pill-sm light">Talk to Sales</a>
-      <button class="ot-burger" type="button" aria-label="Open menu"><svg width="22" height="18" viewBox="0 0 22 18" stroke="#000" stroke-width="2"><path d="M0 1h22M0 9h22M0 17h22"/></svg></button>
+      <button class="ot-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="otMobileNav"><svg width="22" height="18" viewBox="0 0 22 18" stroke="#000" stroke-width="2"><path d="M0 1h22M0 9h22M0 17h22"/></svg></button>
     </div>
   </header>
+  <nav class="ot-mnav" id="otMobileNav" aria-label="Main mobile">
+    <button type="button">Solutions</button>
+    <button type="button">Platform</button>
+    <button type="button">Resources</button>
+    <button type="button">Company</button>
+  </nav>
 
   <main>
     <section class="ot-hero">
@@ -435,8 +445,8 @@
     </div>
 
     <div class="ot-section-head">
-      <h2>Manage AI Risk</h2>
-      <p>Discover AI across changing environments, assess risk consistently, and establish ownership before AI reaches production.</p>
+      <h2 id="otTabTitle">Manage AI Risk</h2>
+      <p id="otTabText">Discover AI across changing environments, assess risk consistently, and establish ownership before AI reaches production.</p>
     </div>
 
     <section class="ot-feature">
@@ -627,6 +637,33 @@
         result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
       } finally { btn.disabled = false; btn.textContent = 'Run AI risk assessment'; }
     });
+  </script>
+  <script>
+  (function () {
+    var bar = document.querySelector('.ot-announce');
+    bar.querySelector('.close').addEventListener('click', function () { bar.classList.add('hidden'); });
+    var burger = document.querySelector('.ot-burger'), mnav = document.getElementById('otMobileNav');
+    burger.addEventListener('click', function () {
+      var open = mnav.classList.toggle('open');
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    });
+    var title = document.getElementById('otTabTitle'), text = document.getElementById('otTabText');
+    var panels = [
+      [title.textContent, text.textContent],
+      ['Observe AI at Runtime', 'See what models and agents are doing in production, connect runtime signals to policy, and surface risk before it becomes an incident.'],
+      ['Control AI Actions and Use', 'Translate policy into machine-ready guardrails that protect data and control AI actions across models, agents, applications, and workflows.'],
+      ['Prove Governance in Production', 'Measure controls in action, remediate issues as they emerge, and generate evidence that governance works where AI runs.']
+    ];
+    var tabs = document.querySelectorAll('.ot-tabs button');
+    tabs.forEach(function (tab, n) {
+      tab.addEventListener('click', function () {
+        tabs.forEach(function (t) { t.classList.remove('on'); t.setAttribute('aria-selected', 'false'); });
+        tab.classList.add('on'); tab.setAttribute('aria-selected', 'true');
+        title.textContent = panels[n][0]; text.textContent = panels[n][1];
+      });
+    });
+  })();
   </script>
   <script src="/session-cap-banner.js"></script>
 </body>
