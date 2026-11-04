@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make a Payment | Conservice Resident Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #263746; --navy-deep: #0C2C48; --green: #77BC1F; --green-hover: #68A61A; --blue: #1572B8; --blue-hover: #105C95;
+      --ink: #263746; --text: #333333; --muted: #5F6B75; --line: #DCE1E5; --mist: #F2F2F2; --panel: #F5F5F5; --card: #FFFFFF;
+      --ok: #3D7A0F; --ok-soft: #EEF7E3; --warn: #B3261E; --warn-soft: #FDEEEE; --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; color: var(--text); background: var(--mist); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: var(--blue); }
+    .wrap { width: min(1200px, calc(100% - 48px)); margin: 0 auto; }
+    .hd { background: var(--navy); color: #fff; }
+    .hd .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 72px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; min-height: 44px; }
+    .brand svg { flex: none; }
+    .brand .word { font-weight: 300; font-size: 26px; line-height: 1; letter-spacing: .04em; text-transform: uppercase; }
+    .brand .word small { display: block; font-weight: 400; font-size: 12px; letter-spacing: .02em; text-transform: none; color: rgba(255,255,255,.8); margin-top: 5px; }
+    .hd-tools { display: flex; align-items: center; gap: 16px; }
+    .hd-tools .acct { font-size: 14px; color: rgba(255,255,255,.8); }
+    .btn { font: inherit; font-weight: 600; font-size: 15px; letter-spacing: .02em; text-transform: uppercase; border-radius: var(--radius); padding: 12px 28px; min-height: 48px; cursor: pointer; border: 2px solid transparent; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+    .btn-primary { background: var(--green); color: var(--navy); box-shadow: 0 2px 4px rgba(0,0,0,.18); }
+    .btn-primary:hover { background: var(--green-hover); }
+    .btn-primary:disabled { background: #B9DB8E; color: var(--navy); cursor: progress; box-shadow: none; }
+    .btn-secondary { background: var(--card); color: var(--blue); border-color: var(--blue); }
+    .btn-secondary:hover { background: #EAF3FA; }
+    .btn-small { min-height: 44px; padding: 8px 18px; font-size: 13px; }
+    .hd .btn-small { background: transparent; color: #fff; border-color: rgba(255,255,255,.7); }
+    .btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #9BD157; outline-offset: 2px; }
+    .nav { background: #fff; border-bottom: 1px solid var(--line); }
+    .nav .wrap { display: flex; gap: 4px; overflow-x: auto; }
+    .nav a { color: var(--navy); text-decoration: none; font-size: 14px; font-weight: 500; letter-spacing: .03em; text-transform: uppercase; padding: 0 16px; min-height: 52px; display: inline-flex; align-items: center; white-space: nowrap; border-bottom: 4px solid transparent; }
+    .nav a:hover { background: var(--panel); }
+    .nav a[aria-current] { border-bottom-color: var(--green); font-weight: 700; }
+    .crumbs { font-size: 14px; padding: 16px 0 0; margin: 0; }
+    .crumbs a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+    main { padding: 8px 0 72px; }
+    h1 { font-weight: 700; color: var(--navy); font-size: 40px; line-height: 1.2; margin: 4px 0 10px; }
+    h2 { font-weight: 700; font-size: 20px; line-height: 1.35; margin: 0 0 16px; color: var(--navy); }
+    .lead { font-size: 18px; margin: 0 0 28px; max-width: 760px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+    .card { background: var(--card); border-radius: 12px; box-shadow: 0 1px 4px rgba(38,55,70,.12); overflow: hidden; }
+    .card-head { background: var(--green); color: #fff; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 10px 24px; }
+    .card-head.blue { background: var(--blue); }
+    .card-head.navy { background: var(--navy); }
+    .card-body { padding: 28px 32px 32px; }
+    .field { margin-bottom: 20px; }
+    label { display: block; font-weight: 500; font-size: 15px; margin-bottom: 8px; color: var(--ink); }
+    select, input[type=number] { width: 100%; font: inherit; color: var(--ink); background: var(--card); border: 1px solid #A6B0B8; border-radius: 6px; padding: 12px 14px; min-height: 48px; }
+    select:disabled, input:disabled { background: #EEF0F2; color: var(--muted); }
+    .field small { display: block; color: var(--muted); font-size: 14px; margin-top: 6px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap b { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 500; color: var(--muted); }
+    .amount-wrap input { padding-left: 30px; }
+    .quick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .quick button { font: inherit; font-size: 14px; font-weight: 500; color: var(--navy); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; min-height: 44px; cursor: pointer; }
+    .quick button[aria-pressed=true] { background: var(--navy); border-color: var(--navy); color: #fff; }
+    .quick button:disabled { cursor: progress; opacity: .6; }
+    .summary { margin: 24px 0 0; padding: 18px 20px; border-radius: var(--radius); background: var(--panel); display: grid; gap: 10px; }
+    .summary div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 500; text-align: right; color: var(--ink); overflow-wrap: anywhere; }
+    .summary div.total { border-top: 1px solid var(--line); padding-top: 10px; }
+    .summary div.total dd { font-size: 18px; font-weight: 700; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    .actions .btn { flex: 1 1 180px; }
+    .stopwatch { display: none; align-items: baseline; gap: 8px; margin: 16px 0 0; font-variant-numeric: tabular-nums; }
+    .stopwatch.on { display: flex; }
+    .stopwatch .sw-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stopwatch .sw-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+    .stopwatch.done .sw-value { color: var(--blue); }
+    .status { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 18px; border-radius: var(--radius); font-size: 15px; line-height: 1.5; }
+    .result-box.success { display: block; background: var(--ok-soft); color: #234A08; border-left: 4px solid var(--ok); }
+    .result-box.notice { display: block; background: var(--warn-soft); color: #6E1712; border-left: 4px solid var(--warn); }
+    .side { display: grid; gap: 24px; }
+    .bal { margin: 0; display: grid; gap: 0; }
+    .bal div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+    .bal div:first-child { border-top: 0; padding-top: 0; }
+    .bal dt { color: var(--muted); }
+    .bal dd { margin: 0; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .bal div.total dd { font-size: 20px; font-weight: 700; }
+    .charges { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .charges th { text-align: left; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--blue); font-weight: 700; padding: 0 0 8px; }
+    .charges th:last-child, .charges td:last-child { text-align: right; }
+    .charges td { padding: 9px 0; border-top: 1px solid var(--line); color: var(--ink); font-variant-numeric: tabular-nums; }
+    .charges td small { display: block; color: var(--muted); font-size: 13px; }
+    .charges tr.total td { font-weight: 700; border-top: 2px solid var(--blue); }
+    .help-photo { display: block; width: 100%; height: auto; aspect-ratio: 980 / 649; object-fit: cover; }
+    .help-alt { display: none; background: var(--navy); color: #fff; padding: 28px 32px; font-weight: 500; }
+    .help.fallback .help-photo { display: none; }
+    .help.fallback .help-alt { display: block; }
+    .side p { margin: 0 0 12px; font-size: 15px; }
+    .side p:last-child { margin-bottom: 0; }
+    .side a.more { font-weight: 500; display: inline-block; padding: 10px 0; margin: -10px 0; line-height: 24px; }
+    footer { background: var(--navy); color: #fff; font-size: 13px; }
+    footer .top { padding: 28px 0 20px; text-align: center; }
+    footer .top h3 { margin: 0 0 8px; font-size: 14px; letter-spacing: .1em; font-weight: 700; }
+    footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 24px; }
+    footer a { color: #fff; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; font-size: 14px; }
+    footer a:hover { text-decoration: underline; }
+    footer .base { background: var(--navy-deep); padding: 14px 0; text-align: center; color: rgba(255,255,255,.85); font-size: 12px; }
+    footer .base b { color: var(--green); font-weight: 600; }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .hd-tools .acct { display: none; }
+      h1 { font-size: 32px; }
+    }
+    @media (max-width: 600px) {
+      .wrap { width: calc(100% - 32px); }
+      .hd .wrap { min-height: 64px; }
+      .brand .word { font-size: 21px; }
+      .card-body { padding: 20px; }
+      .card-head { padding: 10px 20px; }
+      .lead { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hd">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="Conservice Resident Portal">
+        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="8" fill="#77BC1F"/><text x="20" y="28" text-anchor="middle" font-family="Roboto, Arial, sans-serif" font-weight="700" font-size="22" fill="#263746">C</text></svg>
+        <span class="word">Conservice<small>Resident Portal</small></span>
+      </a>
+      <div class="hd-tools">
+        <span class="acct">Account #&middot;&middot;&middot;&middot;4471</span>
+        <button type="button" class="btn btn-small">Sign out</button>
+      </div>
+    </div>
+  </header>
+  <nav class="nav" aria-label="Resident Portal">
+    <div class="wrap">
+      <a href="#">Dashboard</a>
+      <a href="#" aria-current="page">Make a Payment</a>
+      <a href="#">Bills</a>
+      <a href="#">Utility Usage</a>
+      <a href="#">Account History</a>
+      <a href="#">AutoPay</a>
+    </div>
+  </nav>
+
+  <main id="transfer">
+    <div class="wrap">
+      <p class="crumbs"><a href="#">Dashboard</a> &rsaquo; <span>Make a Payment</span></p>
+      <h1>Make a Payment</h1>
+      <p class="lead">Pay your utility statement for 1840 Riverside Way, Apt 214. Choose a saved payment method, confirm the amount, and submit. Your account updates as soon as the payment is received.</p>
+      <div class="grid">
+        <form id="transferForm" class="card" novalidate aria-labelledby="formHead">
+          <div class="card-head">Make a Payment</div>
+          <div class="card-body">
+            <h2 id="formHead">Payment details</h2>
+            <div class="field">
+              <label for="toAccount">Utility account</label>
+              <select id="toAccount">
+                <option value="CS-4471" data-name="Account #&middot;&middot;&middot;&middot;4471" data-address="1840 Riverside Way, Apt 214" data-due="142.68" selected>Account #&middot;&middot;&middot;&middot;4471 &middot; 1840 Riverside Way, Apt 214</option>
+                <option value="CS-2290" data-name="Account #&middot;&middot;&middot;&middot;2290" data-address="77 Maple Court, Unit 9 (final statement)" data-due="36.40">Account #&middot;&middot;&middot;&middot;2290 &middot; 77 Maple Court, Unit 9 (final statement)</option>
+              </select>
+              <small id="toHelp"></small>
+            </div>
+            <div class="field">
+              <label for="fromAccount">Payment method</label>
+              <select id="fromAccount">
+                <option value="PM-CHK-4821" data-name="Checking &middot;&middot;&middot;&middot;4821" data-kind="Bank account (eCheck)" selected>Checking &middot;&middot;&middot;&middot;4821 &middot; Bank account (eCheck)</option>
+                <option value="PM-VISA-1173" data-name="Visa &middot;&middot;&middot;&middot;1173" data-kind="Debit card">Visa &middot;&middot;&middot;&middot;1173 &middot; Debit card</option>
+              </select>
+              <small id="fromHelp"></small>
+              <input type="hidden" id="accountTier" value="standard">
+            </div>
+            <div class="field">
+              <label for="amount">Payment amount</label>
+              <div class="amount-wrap"><b aria-hidden="true">$</b><input type="number" id="amount" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="142.68" autocomplete="off"></div>
+              <div class="quick" role="group" aria-label="Amount shortcuts">
+                <button type="button" id="payTotal" aria-pressed="true">Total due</button>
+                <button type="button" id="payOther" aria-pressed="false">Other amount</button>
+              </div>
+              <small id="amountHelp"></small>
+            </div>
+            <dl class="summary" aria-label="Payment summary">
+              <div><dt>Utility account</dt><dd id="sumTo">&mdash;</dd></div>
+              <div><dt>Service address</dt><dd id="sumAddress">&mdash;</dd></div>
+              <div><dt>Pay with</dt><dd id="sumFrom">&mdash;</dd></div>
+              <div class="total"><dt>Payment amount</dt><dd id="sumAmount">&mdash;</dd></div>
+            </dl>
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="btn btn-primary">Submit Payment</button>
+              <button type="reset" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+            <div class="stopwatch" id="sendTimer" role="timer" aria-live="off"><span class="sw-label">Processing time</span><span class="sw-value" id="sendTimerValue">0.0s</span></div>
+            <p class="status" id="paymentStatus" role="status" aria-live="polite">Check the details, then select Submit Payment.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </div>
+        </form>
+        <aside class="side">
+          <section class="card" aria-labelledby="balHead">
+            <div class="card-head navy" id="balHead">Current Balance</div>
+            <div class="card-body">
+              <dl class="bal">
+                <div><dt>Current Charges</dt><dd>$142.68</dd></div>
+                <div><dt>Prior Balance</dt><dd>$0.00</dd></div>
+                <div><dt>Statement Date</dt><dd>10/24/2026</dd></div>
+                <div><dt>Due Date</dt><dd>11/15/2026</dd></div>
+                <div class="total"><dt>Total Due</dt><dd>$142.68</dd></div>
+              </dl>
+            </div>
+          </section>
+          <section class="card" aria-labelledby="chgHead">
+            <div class="card-head blue" id="chgHead">Utility Statement</div>
+            <div class="card-body">
+              <table class="charges">
+                <thead><tr><th scope="col">Service type</th><th scope="col">Totals</th></tr></thead>
+                <tbody>
+                  <tr><td>Water<small>09/20/2026 &ndash; 10/19/2026</small></td><td>$38.12</td></tr>
+                  <tr><td>Sewer<small>09/20/2026 &ndash; 10/19/2026</small></td><td>$41.20</td></tr>
+                  <tr><td>Electricity<small>09/18/2026 &ndash; 10/17/2026</small></td><td>$32.91</td></tr>
+                  <tr><td>Trash</td><td>$18.50</td></tr>
+                  <tr><td>Pest Control</td><td>$8.50</td></tr>
+                  <tr><td>Service Fee</td><td>$3.45</td></tr>
+                  <tr class="total"><td>Utilities Total</td><td>$142.68</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+          <section class="card help" id="helpCard" aria-labelledby="helpHead">
+            <img class="help-photo" src="https://www.conservice.com/wp-content/uploads/2024/11/contact-block-1-2-1.jpg" alt="Conservice team members reviewing an account together" loading="lazy" onerror="document.getElementById('helpCard').className='card help fallback'">
+            <div class="help-alt" aria-hidden="true">Resident Support</div>
+            <div class="card-body">
+              <h2 id="helpHead">Questions about your statement?</h2>
+              <p>Resident Support can explain your charges, set up AutoPay, or update a payment method.</p>
+              <p><a class="more" href="#">Contact Resident Support</a></p>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="top">
+      <div class="wrap">
+        <h3>CONTACT US</h3>
+        <nav aria-label="Footer"><a href="#">Resident Support</a><a href="#">Privacy Policy</a><a href="#">Terms of Use</a><a href="#">Accessibility</a></nav>
+      </div>
+    </div>
+    <div class="base">&copy;2026 <b>Conservice</b> All Rights Reserved</div>
+  </footer>
+  <script>
+    window.SKIN = {
+      locale: 'en-US', currency: 'USD', maxAmount: 5000,
+      idle: 'Submit Payment', sending: 'Processing\u2026',
+      statusIdle: 'Check the details, then select Submit Payment.',
+      statusSending: 'Processing your payment\u2026', statusDone: 'Payment received.',
+      totalDueLabel: 'Total due', dueBy: 'due by 11/15/2026',
+      enterAmount: 'Enter a payment amount, for example 142.68.',
+      tooMuch: 'Payments are limited to',
+      success: (at, amt, acct, method, ref) => `Payment received at ${at}. ${amt} was applied to ${acct} from ${method}. Confirmation number ${ref}.`,
+      duplicate: (at, amt, acct, ref) => `This payment was already received at ${at}: ${amt} to ${acct}, confirmation number ${ref}. It was not submitted twice.`,
+      failed: 'We couldn\u2019t process your payment right now. Your payment method was not charged. Please try again in a few minutes.',
+      unconfirmed: 'We couldn\u2019t confirm this payment. Check Account History before paying again so you aren\u2019t charged twice.',
+    };
+  </script>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const S = window.SKIN;
+      const $ = (id) => document.getElementById(id);
+      const form = $('transferForm');
+      const button = $('submitBtn');
+      const cancelBtn = $('cancelBtn');
+      const result = $('result');
+      const status = $('paymentStatus');
+      const fromAccount = $('fromAccount');
+      const toAccount = $('toAccount');
+      const amountInput = $('amount');
+      const accountTier = $('accountTier');
+      const payTotal = $('payTotal');
+      const payOther = $('payOther');
+      const timer = $('sendTimer');
+      const timerValue = $('sendTimerValue');
+      const fields = [fromAccount, toAccount, amountInput, payTotal, payOther];
+      const money = new Intl.NumberFormat(S.locale, { style: 'currency', currency: S.currency });
+      const timeFmt = new Intl.DateTimeFormat(S.locale, { hour: 'numeric', minute: '2-digit' });
+      const DEMO = { from: fromAccount.value, to: toAccount.value, amount: amountInput.value };
+      let pending = false;
+      let ticker = null;
+
+      const set = (id, text) => { const el = $(id); if (el) el.textContent = text; };
+      const selected = (select) => select.options[select.selectedIndex];
+      const totalDue = () => Number(selected(toAccount).dataset.due) || 0;
+      function parsedAmount() {
+        const raw = amountInput.value.trim().replace(/,/g, '');
+        if (!/^\d+(\.\d{1,2})?$/.test(raw)) return NaN;
+        return parseFloat(raw);
+      }
+      function render() {
+        const to = selected(toAccount);
+        const from = selected(fromAccount);
+        const amount = parsedAmount();
+        const isTotal = Number.isFinite(amount) && Math.round(amount * 100) === Math.round(totalDue() * 100);
+        accountTier.value = 'standard';
+        payTotal.setAttribute('aria-pressed', String(isTotal));
+        payOther.setAttribute('aria-pressed', String(!isTotal));
+        set('toHelp', `${S.totalDueLabel} ${money.format(totalDue())}, ${S.dueBy}`);
+        set('fromHelp', from.dataset.kind);
+        set('amountHelp', `${S.totalDueLabel} ${money.format(totalDue())}`);
+        set('sumTo', to.dataset.name);
+        set('sumAddress', to.dataset.address);
+        set('sumFrom', from.dataset.name);
+        set('sumAmount', Number.isFinite(amount) && amount > 0 ? money.format(amount) : '\u2014');
+      }
+      function notice(message, focusEl) {
+        result.className = 'result-box notice';
+        result.textContent = message;
+        status.textContent = S.statusIdle;
+        if (focusEl) focusEl.focus();
+      }
+      function stopTimer(done) {
+        if (ticker) { clearInterval(ticker); ticker = null; }
+        if (timer) timer.className = done ? 'stopwatch on done' : 'stopwatch';
+      }
+
+      toAccount.addEventListener('change', () => { amountInput.value = totalDue().toFixed(2); render(); });
+      fromAccount.addEventListener('change', render);
+      amountInput.addEventListener('input', render);
+      payTotal.addEventListener('click', () => { amountInput.value = totalDue().toFixed(2); render(); });
+      payOther.addEventListener('click', () => { amountInput.value = ''; render(); amountInput.focus(); });
+      form.addEventListener('reset', () => {
+        setTimeout(() => {
+          fromAccount.value = DEMO.from;
+          toAccount.value = DEMO.to;
+          amountInput.value = DEMO.amount;
+          result.className = 'result-box';
+          result.textContent = '';
+          status.textContent = S.statusIdle;
+          stopTimer(false);
+          if (timerValue) timerValue.textContent = '0.0s';
+          render();
+        });
+      });
+      render();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        const amount = parsedAmount();
+        if (!Number.isFinite(amount) || amount <= 0) { notice(S.enterAmount, amountInput); return; }
+        if (amount > S.maxAmount) { notice(`${S.tooMuch} ${money.format(S.maxAmount)}.`, amountInput); return; }
+
+        pending = true;
+        button.disabled = true;
+        cancelBtn.disabled = true;
+        fields.forEach((el) => { el.disabled = true; });
+        button.textContent = S.sending;
+        status.textContent = S.statusSending;
+        result.className = 'result-box';
+        result.textContent = '';
+        const started = performance.now();
+        const tick = () => { if (timerValue) timerValue.textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`; };
+        if (timer) { timer.className = 'stopwatch on'; tick(); ticker = setInterval(tick, 100); }
+        const acctName = selected(toAccount).dataset.name;
+        const methodName = selected(fromAccount).dataset.name;
+        let response;
+        try {
+          response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amountInput.value.trim().replace(/,/g, '')),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json().catch(() => null);
+          tick();
+          if (!response.ok) throw new Error('not sent');
+          if (!data || !data.receipt) throw new Error('unknown');
+          const at = timeFmt.format(new Date(data.receipt.timestamp));
+          const paid = money.format(Number(data.receipt.amount));
+          result.className = data.duplicate ? 'result-box notice' : 'result-box success';
+          result.textContent = data.duplicate
+            ? S.duplicate(at, paid, acctName, data.receipt.receiptId)
+            : S.success(at, paid, acctName, methodName, data.receipt.receiptId);
+          status.textContent = data.duplicate ? S.statusIdle : S.statusDone;
+          stopTimer(true);
+        } catch (_error) {
+          stopTimer(true);
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok ? S.failed : S.unconfirmed;
+          status.textContent = S.statusIdle;
+        } finally {
+          fields.forEach((el) => { el.disabled = false; });
+          pending = false;
+          button.disabled = false;
+          cancelBtn.disabled = false;
+          button.textContent = S.idle;
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
