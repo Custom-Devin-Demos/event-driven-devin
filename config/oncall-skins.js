@@ -8305,6 +8305,7 @@ const ONCALL_SKINS = {
     alertCard: {
       title: 'p95 latency trending up \u2014 AI Governance: Run AI risk assessment',
       release: 'ai-governance@2026.11.1',
+      baseline: '~350ms (7-day p95, before ai-governance@2026.11.1)',
       team: 'ai-governance-oncall',
       symptom: 'AI risk assessment runs got slow after the last release and take longer with every request. Process memory trends up alongside latency.',
       impact: 'Governance teams wait several seconds for every AI use case risk assessment, and the wait grows under sustained use.',
