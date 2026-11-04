@@ -162,7 +162,6 @@
               <label for="toAccount">Utility account</label>
               <select id="toAccount">
                 <option value="CS-4471" data-name="Account #&middot;&middot;&middot;&middot;4471" data-address="1840 Riverside Way, Apt 214" data-due="142.68" selected>Account #&middot;&middot;&middot;&middot;4471 &middot; 1840 Riverside Way, Apt 214</option>
-                <option value="CS-2290" data-name="Account #&middot;&middot;&middot;&middot;2290" data-address="77 Maple Court, Unit 9 (final statement)" data-due="36.40">Account #&middot;&middot;&middot;&middot;2290 &middot; 77 Maple Court, Unit 9 (final statement)</option>
               </select>
               <small id="toHelp"></small>
             </div>
@@ -188,7 +187,9 @@
               <div><dt>Utility account</dt><dd id="sumTo">&mdash;</dd></div>
               <div><dt>Service address</dt><dd id="sumAddress">&mdash;</dd></div>
               <div><dt>Pay with</dt><dd id="sumFrom">&mdash;</dd></div>
-              <div class="total"><dt>Payment amount</dt><dd id="sumAmount">&mdash;</dd></div>
+              <div><dt>Payment amount</dt><dd id="sumAmount">&mdash;</dd></div>
+              <div><dt>Processing fee</dt><dd id="sumFee">&mdash;</dd></div>
+              <div class="total"><dt>Total charged</dt><dd id="sumTotal">&mdash;</dd></div>
             </dl>
             <div class="actions">
               <button type="submit" id="submitBtn" class="btn btn-primary">Submit Payment</button>
@@ -260,7 +261,8 @@
       totalDueLabel: 'Total due', dueBy: 'due by 11/15/2026',
       enterAmount: 'Enter a payment amount, for example 142.68.',
       tooMuch: 'Payments are limited to',
-      success: (at, amt, acct, method, ref) => `Payment received at ${at}. ${amt} was applied to ${acct} from ${method}. Confirmation number ${ref}.`,
+      fee: { rate: 0.001, flat: 2.50 },
+      success: (at, amt, fee, total, acct, method, ref) => `Payment received at ${at}. ${amt} was applied to ${acct}, and ${total} (including a ${fee} processing fee) was charged to ${method}. Confirmation number ${ref}.`,
       duplicate: (at, amt, acct, ref) => `This payment was already received at ${at}: ${amt} to ${acct}, confirmation number ${ref}. It was not submitted twice.`,
       failed: 'We couldn\u2019t process your payment right now. Your payment method was not charged. Please try again in a few minutes.',
       unconfirmed: 'We couldn\u2019t confirm this payment. Check Account History before paying again so you aren\u2019t charged twice.',
@@ -321,7 +323,11 @@
         set('sumTo', to.dataset.name);
         set('sumAddress', to.dataset.address);
         set('sumFrom', from.dataset.name);
-        set('sumAmount', Number.isFinite(amount) && amount > 0 ? money.format(amount) : '\u2014');
+        const valid = Number.isFinite(amount) && amount > 0;
+        const fee = valid ? Math.max(amount * S.fee.rate, S.fee.flat) : NaN;
+        set('sumAmount', valid ? money.format(amount) : '\u2014');
+        set('sumFee', valid ? money.format(fee) : '\u2014');
+        set('sumTotal', valid ? money.format(amount + fee) : '\u2014');
       }
       function notice(message, focusEl) {
         result.className = 'result-box notice';
@@ -398,7 +404,7 @@
           result.className = data.duplicate ? 'result-box notice' : 'result-box success';
           result.textContent = data.duplicate
             ? S.duplicate(at, paid, acctName, data.receipt.receiptId)
-            : S.success(at, paid, acctName, methodName, data.receipt.receiptId);
+            : S.success(at, paid, money.format(Number(data.receipt.fee)), money.format(Number(data.receipt.totalDebit)), acctName, methodName, data.receipt.receiptId);
           status.textContent = data.duplicate ? S.statusIdle : S.statusDone;
           stopTimer(true);
         } catch (_error) {
