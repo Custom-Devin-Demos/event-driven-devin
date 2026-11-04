@@ -513,8 +513,8 @@
         $('liked-sub').textContent = data.likedYouCount + ' people already liked you. When someone swipes right on you, you\'ll be able to find them right here.';
         var cards = data.people.map(function (p) { return '<div class="disc-card" style="background-image:url(\'' + esc(p.photo) + '\')"><div>' + esc(p.name) + ', ' + esc(p.age) + '<small>' + esc(p.interests[0]) + ' · ' + esc(p.distance) + '</small></div></div>'; }).join('');
         $('disc-grid').innerHTML = cards;
-        var likedIds = data.likedYouIds || [];
-        $('liked-grid').innerHTML = data.people.filter(function (p) { return likedIds.indexOf(p.id) !== -1; }).map(function (p) { return '<div class="disc-card" style="background-image:url(\'' + esc(p.photo) + '\')"><div>' + esc(p.name) + ', ' + esc(p.age) + '<small>' + esc(p.interests[0]) + ' · ' + esc(p.distance) + '</small></div></div>'; }).join('');
+        var tones = ['#f6d6c4,#c98f72', '#d9d3f0,#8f86c4', '#c9dfe8,#5e8aa0', '#f2e2b8,#c9a55a'];
+        $('liked-grid').innerHTML = Array.from({ length: data.likedYouCount }, function (_, i) { return '<div class="disc-card" style="background-image:linear-gradient(160deg,' + tones[i % tones.length] + ')"><div>&nbsp;<small>Premium</small></div></div>'; }).join('');
         renderCard(); renderChats(); kpis();
         log('ok', 'READY', 'People deck loaded · ' + data.people.length + ' profiles near ' + data.viewer.city);
       }).catch(function () { toast('Could not load Bumble. Pull to refresh.'); });
