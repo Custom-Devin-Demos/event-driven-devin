@@ -623,7 +623,8 @@
             var next = (STATE.queue || []).filter(function (id) { return findCase(id); })[0];
             STATE.queue = (STATE.queue || []).filter(function (id) { return id !== next && findCase(id); });
             toast('', 'Response submitted', 'Case ' + d.caseNumber + ' is now Review in Progress. Confirmation ' + res.j.confirmation + '.' + (next ? ' Next: ' + next + '.' : ''));
-            location.hash = next ? '#respond/' + next + '/' + rt : '#disputes';
+            STATE.pendingRespond = next || null;
+            location.hash = '#disputes';
           });
       });
     }
@@ -675,7 +676,13 @@
       window.scrollTo(0, 0);
       if (h[0] === 'settlements') return renderSettlements();
       if (h[0] === 'adjustments') return renderAdjustments();
-      if (h[0] === 'disputes') return renderDisputes();
+      if (h[0] === 'disputes') {
+        renderDisputes();
+        var queued = STATE.pendingRespond && findCase(STATE.pendingRespond);
+        STATE.pendingRespond = null;
+        if (queued) openRespondModal(queued);
+        return;
+      }
       if (h[0] === 'dispute') return renderDispute(h[1]);
       if (h[0] === 'timeline') return renderTimeline(h[1]);
       if (h[0] === 'respond') return renderRespond(h[1], h[2]);
