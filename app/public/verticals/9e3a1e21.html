@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Bag | Gap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Libre+Caslon+Text:wght@400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #020202; --ink: #000000; --surface: #FFFFFF; --chrome-bg: #000000; --chrome-text: #FFFFFF;
+      --page: #F2F2F2; --line: #CCCCCC; --soft: #E5E5E5; --muted: #666666; --sale: #D00000; --ok: #1E6B35; --ok-soft: #EAF5EC; --warn-soft: #F7F7F7;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: Lato, Helvetica, Arial, sans-serif; color: var(--ink); background: var(--surface); font-size: 16px; line-height: 1.4; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: var(--ink); }
+    button, select, input { font: inherit; color: inherit; }
+    .btn:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible, .opt:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .brands { background: var(--chrome-bg); color: var(--chrome-text); font-family: Helvetica, Arial, sans-serif; font-size: 12px; }
+    .brands .in { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; min-height: 44px; }
+    .brands nav { display: flex; gap: 4px; overflow-x: auto; }
+    .brands nav a { color: #BDBDBD; text-decoration: none; padding: 0 12px; min-height: 44px; display: inline-flex; align-items: center; white-space: nowrap; }
+    .brands nav a[aria-current] { color: var(--chrome-text); font-weight: 700; }
+    .brands .icons { display: flex; gap: 8px; }
+    .brands .icons a { color: var(--chrome-text); display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; position: relative; }
+    .brands .count { position: absolute; top: 8px; right: 6px; background: var(--chrome-text); color: var(--chrome-bg); font-size: 10px; font-weight: 700; border-radius: 8px; min-width: 16px; height: 16px; display: grid; place-items: center; }
+    .promo { background: var(--chrome-bg); color: var(--chrome-text); text-align: center; font-size: 14px; padding: 0 16px 4px; }
+    .promo a { color: var(--chrome-text); display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
+    .hd { border-bottom: 1px solid var(--soft); }
+    .hd .in { display: flex; align-items: center; gap: 36px; padding: 10px 40px; min-height: 84px; }
+    .mark { display: inline-flex; min-height: 44px; align-items: center; flex: none; }
+    .cats { display: flex; gap: 22px; flex: 1; overflow-x: auto; }
+    .cats a { text-decoration: none; font-size: 16px; white-space: nowrap; min-height: 44px; min-width: 44px; justify-content: center; display: inline-flex; align-items: center; }
+    .search { display: flex; align-items: center; background: #F5F5F5; border-bottom: 1px solid var(--line); width: 250px; min-height: 44px; padding: 0 8px; gap: 8px; }
+    .search input { border: 0; background: transparent; flex: 1; min-width: 0; font-size: 14px; padding: 8px 0; }
+    main { background: var(--page); padding: 30px 16px 56px; }
+    .grid { max-width: 970px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 605px) minmax(0, 1fr); gap: 15px; align-items: start; }
+    .card { background: var(--surface); padding: 24px 15px 20px; margin-bottom: 15px; }
+    h1 { font-size: 24px; font-weight: 700; margin: 0 0 4px; padding: 0 0 0 0; }
+    h2 { font-size: 16px; font-weight: 700; margin: 0 0 14px; }
+    .sub { color: var(--muted); font-size: 14px; margin: 0 0 18px; }
+    .item { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; gap: 16px; padding: 18px 0; border-top: 1px solid var(--soft); }
+    .item:first-of-type { border-top: 0; }
+    .thumb { width: 112px; aspect-ratio: 112 / 150; background: #EDEDED; overflow: hidden; display: grid; place-items: center; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumb .fb { display: none; font-family: 'Libre Caslon Text', Georgia, serif; font-size: 26px; color: var(--muted); }
+    .thumb.fallback img { display: none; } .thumb.fallback .fb { display: block; }
+    .item h3 { font-size: 16px; font-weight: 400; margin: 0 0 6px; }
+    .meta { font-size: 14px; color: var(--muted); margin: 0 0 2px; }
+    .stock { font-size: 13px; color: var(--ok); margin: 8px 0 0; }
+    .qty { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 14px; }
+    .qty select { border: 1px solid var(--line); border-radius: 4px; background: var(--surface); min-height: 44px; padding: 0 10px; }
+    .price { text-align: right; font-size: 14px; white-space: nowrap; }
+    .price s { color: var(--muted); display: block; }
+    .price b { color: var(--sale); font-weight: 700; display: block; }
+    .opts { display: grid; gap: 10px; border: 0; padding: 0; margin: 0; }
+    .opts legend { font-size: 16px; font-weight: 700; padding: 0; margin-bottom: 12px; }
+    .opt { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--line); border-radius: 4px; padding: 14px; cursor: pointer; min-height: 56px; }
+    .opt input { margin: 3px 0 0; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+    .opt.on { border: 2px solid var(--ink); padding: 13px; }
+    .opt b { display: block; font-size: 15px; }
+    .opt span { display: block; font-size: 14px; color: var(--muted); }
+    .opt em { font-style: normal; font-weight: 700; color: var(--ink); margin-left: auto; font-size: 14px; white-space: nowrap; }
+    .promos { background: #F2F2F2; padding: 14px; display: flex; gap: 8px; }
+    .promos input { flex: 1; min-width: 0; border: 1px solid #757575; border-radius: 4px; background: var(--surface); padding: 0 14px; min-height: 44px; font-size: 14px; }
+    .btn { border-radius: 4px; cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+    .btn-line { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); padding: 0 16px; font-size: 14px; }
+    .btn-primary { background: var(--accent); color: var(--surface); border: 0; width: 100%; font-weight: 700; font-size: 16px; min-height: 48px; margin-top: 18px; }
+    .btn-primary:disabled { opacity: .75; cursor: progress; }
+    .applied { font-size: 14px; margin: 10px 0 0; color: var(--ok); }
+    .applied.bad { color: var(--sale); }
+    dl.sum { margin: 0; display: grid; gap: 10px; font-size: 14px; }
+    dl.sum div { display: flex; justify-content: space-between; gap: 12px; }
+    dl.sum dt, dl.sum dd { margin: 0; }
+    dl.sum .save dd { color: var(--sale); }
+    dl.sum .total { border-top: 1px solid var(--soft); padding-top: 12px; font-size: 16px; font-weight: 700; }
+    .fine { font-size: 12px; color: var(--muted); margin: 12px 0 0; }
+    .status { font-size: 13px; color: var(--muted); margin: 10px 0 0; text-align: center; }
+    .result-box { display: none; margin-top: 14px; padding: 14px; font-size: 14px; border-left: 4px solid var(--ink); background: var(--warn-soft); }
+    .result-box.success { display: block; border-color: var(--ok); background: var(--ok-soft); }
+    .result-box.notice { display: block; }
+    .encore { background: linear-gradient(180deg, #F7F7F7, #E9E9E9); border: 1px solid #000; padding: 22px; }
+    .encore b { display: block; font-size: 28px; font-weight: 400; line-height: 1.1; margin-bottom: 6px; }
+    .encore p { margin: 0 0 4px; font-size: 15px; }
+    .encore a { display: inline-flex; align-items: center; min-height: 44px; }
+    footer { background: var(--surface); border-top: 1px solid var(--soft); font-size: 14px; }
+    footer .in { max-width: 1200px; margin: 0 auto; padding: 32px 40px 24px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+    footer h4 { font-size: 14px; margin: 0 0 8px; }
+    footer a { display: flex; align-items: center; min-height: 32px; text-decoration: none; color: #333; }
+    footer .base { text-align: center; color: var(--muted); font-size: 12px; padding: 0 16px 28px; }
+    @media (max-width: 900px) {
+      .hd .in { padding: 8px 16px; gap: 18px; flex-wrap: wrap; }
+      .search { display: none; }
+      .grid { grid-template-columns: minmax(0, 1fr); }
+      footer .in { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 24px 16px; }
+      footer a { min-height: 44px; }
+    }
+    @media (max-width: 480px) {
+      main { padding: 16px 0 40px; }
+      .card { padding: 20px 16px; }
+      .item { grid-template-columns: 88px minmax(0, 1fr); }
+      .thumb { width: 88px; }
+      .price { grid-column: 2; text-align: left; }
+      .price s, .price b { display: inline; margin-right: 8px; }
+      .brands nav a:not([aria-current]) { padding: 0 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="brands">
+    <div class="in">
+      <nav aria-label="Brands"><a href="#" aria-current="page">Gap</a><a href="#">Gap Factory</a><a href="#">Old Navy</a><a href="#">Banana Republic</a><a href="#">Athleta</a></nav>
+      <div class="icons">
+        <a href="#" aria-label="Account"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></a>
+        <a href="#" aria-label="Shopping bag"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 7h14l-1 14H6L5 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="count" id="bagCount">2</span></a>
+      </div>
+    </div>
+  </div>
+  <div class="promo">Friends &amp; Family: 40% off everything, includes denim. Use code FRIENDS40. <a href="#">Details</a></div>
+  <header class="hd">
+    <div class="in">
+      <a class="mark" href="#" aria-label="Gap home">
+        <svg width="78" height="56" viewBox="0 0 78 56" role="img" aria-hidden="true"><text x="0" y="50" textLength="78" lengthAdjust="spacingAndGlyphs" font-family="'Libre Caslon Text', Georgia, serif" font-size="58" fill="#000">GAP</text></svg>
+      </a>
+      <nav class="cats" aria-label="Departments"><a href="#">Women</a><a href="#">Men</a><a href="#">Girls</a><a href="#">Boys</a><a href="#">Baby &amp; Toddler</a><a href="#">Accessories</a><a href="#">Gifts</a><a href="#">GapX</a></nav>
+      <label class="search"><input type="search" placeholder="Search Gap" aria-label="Search Gap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.5-4.5"/></svg></label>
+    </div>
+  </header>
+  <main>
+    <form id="checkoutForm" class="grid" novalidate>
+      <div>
+        <section class="card" aria-labelledby="bagHead">
+          <h1 id="bagHead">Shopping Bag</h1>
+          <p class="sub" id="bagSub">2 items</p>
+          <div class="item">
+            <div class="thumb" id="thumb1"><img src="https://content.gapinc.com/b/0062/817/657/cn62817657.png?width=491" alt="The Hailey Extra Baggy Jean in Medium Indigo" loading="lazy" onerror="this.parentNode.className='thumb fallback'"><span class="fb" aria-hidden="true">G</span></div>
+            <div>
+              <h3>The Hailey Extra Baggy Jean</h3>
+              <p class="meta">Color: Medium Indigo</p>
+              <p class="meta">Size: 28 Regular</p>
+              <label class="qty">Qty <select data-qty data-sku="GAP-441020" data-price="89.95" aria-label="Quantity, The Hailey Extra Baggy Jean"><option>1</option><option>2</option><option>3</option></select></label>
+            </div>
+            <div class="price"><s id="was1">$89.95</s><b id="now1">$53.97</b></div>
+          </div>
+          <div class="item">
+            <div class="thumb" id="thumb2"><img src="https://content.gapinc.com/b/0060/136/424/cn60136424.png?width=491" alt="100% Cotton Oversized Sweater in Oatmeal" loading="lazy" onerror="this.parentNode.className='thumb fallback'"><span class="fb" aria-hidden="true">G</span></div>
+            <div>
+              <h3>100% Cotton Oversized Sweater</h3>
+              <p class="meta">Color: Oatmeal</p>
+              <p class="meta">Size: S</p>
+              <label class="qty">Qty <select data-qty data-sku="GAP-772045" data-price="79.95" aria-label="Quantity, 100% Cotton Oversized Sweater"><option>1</option><option>2</option><option>3</option></select></label>
+            </div>
+            <div class="price"><s id="was2">$79.95</s><b id="now2">$47.97</b></div>
+          </div>
+        </section>
+        <section class="card">
+          <fieldset class="opts" id="fulfillOpts">
+            <legend>How do you want to get your order?</legend>
+            <label class="opt"><input type="radio" name="fulfillment" value="ship"><div><b>Ship to address</b><span>Standard shipping, 5&ndash;7 business days. Free on orders of $50 or more.</span></div><em id="shipPrice">Free</em></label>
+            <label class="opt on"><input type="radio" name="fulfillment" value="pickup" checked><div><b>Pick up in store</b><span>Gap San Francisco &middot; Union Square, CA 94108 &middot; In stock, ready in 2 hours</span></div><em>Free</em></label>
+          </fieldset>
+        </section>
+      </div>
+      <aside>
+        <section class="card" aria-labelledby="promoHead">
+          <h2 id="promoHead">Promos</h2>
+          <div class="promos">
+            <input id="promo-code" type="text" value="FRIENDS40" placeholder="Enter Promo Code" aria-label="Promo code" autocomplete="off">
+            <button type="button" class="btn btn-line" id="applyPromo">Apply</button>
+          </div>
+          <p class="applied" id="promoMsg" role="status" aria-live="polite"></p>
+        </section>
+        <section class="card" aria-labelledby="sumHead">
+          <h2 id="sumHead">Order Summary</h2>
+          <dl class="sum">
+            <div><dt>Subtotal (<span id="sumCount">2</span> items)</dt><dd id="sumSubtotal">&mdash;</dd></div>
+            <div class="save"><dt>Promo savings</dt><dd id="sumSavings">&mdash;</dd></div>
+            <div><dt id="sumShipLabel">Pickup</dt><dd id="sumShipping">&mdash;</dd></div>
+            <div><dt>Estimated tax</dt><dd id="sumTax">&mdash;</dd></div>
+            <div class="total"><dt>Estimated total</dt><dd id="sumTotal">&mdash;</dd></div>
+          </dl>
+          <button type="submit" id="submitBtn" class="btn btn-primary" data-cta>Checkout</button>
+          <p class="status" id="checkoutStatus" role="status" aria-live="polite">Review your bag, then select Checkout.</p>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <p class="fine">Taxes are estimated until your order is placed. Earn points on this purchase with Gap Good Rewards.</p>
+        </section>
+        <div class="encore"><b>Extra 20% off</b><p>Your first purchase with your new Encore Credit Card at Gap.</p><a href="#">Apply now</a></div>
+      </aside>
+    </form>
+  </main>
+  <footer>
+    <div class="in">
+      <div><h4>Customer Support</h4><a href="#">Customer Service</a><a href="#">Track an Order</a><a href="#">Returns &amp; Exchanges</a><a href="#">Shipping</a></div>
+      <div><h4>Find a Store</h4><a href="#">Store Locator</a><a href="#">Buy Online, Pick Up In Store</a></div>
+      <div><h4>Gap Good Rewards</h4><a href="#">Join Now</a><a href="#">Encore Credit Card</a></div>
+      <div><h4>About Us</h4><a href="#">Careers</a><a href="#">Privacy Policy</a><a href="#">Terms of Use</a></div>
+    </div>
+    <div class="base">&copy; 2026 The Gap, Inc. All rights reserved.</div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const PROMOS = { FRIENDS40: { rate: 0.4, label: 'FRIENDS40 applied: 40% off everything, includes denim.' }, ENCORE20: { rate: 0.2, label: 'ENCORE20 applied: extra 20% off your first Encore Credit Card purchase.' } };
+      const SHIP = { fee: 7, freeAt: 50, tax: 0.08875 };
+      const STORE = '0412';
+      const $ = (id) => document.getElementById(id);
+      const form = $('checkoutForm');
+      const button = $('submitBtn');
+      const result = $('result');
+      const status = $('checkoutStatus');
+      const promoInput = $('promo-code');
+      const qtys = Array.from(document.querySelectorAll('[data-qty]'));
+      const radios = Array.from(document.querySelectorAll('input[name="fulfillment"]'));
+      const controls = [...qtys, ...radios, promoInput, $('applyPromo')];
+      const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const DEFAULTS = { qty: qtys.map((q) => q.value), fulfillment: 'pickup', promo: 'FRIENDS40' };
+      let promoCode = DEFAULTS.promo;
+      let pending = false;
+
+      const cents = (n) => Math.round(n * 100);
+      const fulfillment = () => radios.find((r) => r.checked).value;
+      function promoMessage(text, bad) { $('promoMsg').textContent = text; $('promoMsg').className = bad ? 'applied bad' : 'applied'; }
+      function render() {
+        const rate = promoCode ? PROMOS[promoCode].rate : 0;
+        let subtotal = 0; let count = 0;
+        qtys.forEach((q, i) => {
+          const price = cents(Number(q.dataset.price)); const n = Number(q.value);
+          subtotal += price * n; count += n;
+          $('was' + (i + 1)).textContent = money.format((price * n) / 100);
+          $('was' + (i + 1)).style.display = rate ? '' : 'none';
+          $('now' + (i + 1)).textContent = money.format(Math.round(price * n * (1 - rate)) / 100);
+          $('now' + (i + 1)).style.color = rate ? '' : 'inherit';
+        });
+        const savings = Math.round(subtotal * rate);
+        const merch = subtotal - savings;
+        const pickup = fulfillment() === 'pickup';
+        const shipping = pickup || merch >= cents(SHIP.freeAt) ? 0 : cents(SHIP.fee);
+        const tax = Math.round(merch * SHIP.tax);
+        $('bagSub').textContent = `${count} item${count === 1 ? '' : 's'}`;
+        $('bagCount').textContent = String(count);
+        $('sumCount').textContent = String(count);
+        $('sumSubtotal').textContent = money.format(subtotal / 100);
+        $('sumSavings').textContent = savings ? `-${money.format(savings / 100)}` : money.format(0);
+        $('sumShipLabel').textContent = pickup ? 'Pickup' : 'Shipping';
+        $('sumShipping').textContent = shipping ? money.format(shipping / 100) : 'Free';
+        $('shipPrice').textContent = merch >= cents(SHIP.freeAt) ? 'Free' : money.format(SHIP.fee);
+        $('sumTax').textContent = money.format(tax / 100);
+        $('sumTotal').textContent = money.format((merch + shipping + tax) / 100);
+        radios.forEach((r) => r.closest('.opt').classList.toggle('on', r.checked));
+      }
+      function applyPromo() {
+        const code = promoInput.value.trim().toUpperCase();
+        if (!code) { promoCode = ''; promoMessage('', false); }
+        else if (Object.prototype.hasOwnProperty.call(PROMOS, code)) { promoCode = code; promoInput.value = code; promoMessage(PROMOS[code].label, false); }
+        else { promoMessage(`${code} isn\u2019t a valid promo code.`, true); }
+        render();
+      }
+      function clearResult() { result.className = 'result-box'; result.textContent = ''; status.textContent = 'Review your bag, then select Checkout.'; }
+
+      qtys.forEach((q) => q.addEventListener('change', () => { clearResult(); render(); }));
+      radios.forEach((r) => r.addEventListener('change', () => { clearResult(); render(); }));
+      $('applyPromo').addEventListener('click', () => { clearResult(); applyPromo(); });
+      promoInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); clearResult(); applyPromo(); } });
+      form.addEventListener('reset', () => {
+        setTimeout(() => {
+          qtys.forEach((q, i) => { q.value = DEFAULTS.qty[i]; });
+          radios.forEach((r) => { r.checked = r.value === DEFAULTS.fulfillment; });
+          promoInput.value = DEFAULTS.promo;
+          clearResult(); applyPromo();
+        });
+      });
+      applyPromo();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (pending) return;
+        pending = true;
+        const mode = fulfillment();
+        button.disabled = true;
+        controls.forEach((el) => { el.disabled = true; });
+        button.textContent = 'Placing your order\u2026';
+        status.textContent = 'Placing your order\u2026';
+        result.className = 'result-box';
+        result.textContent = '';
+        const requestBody = {
+          items: qtys.map((q) => ({ sku: q.dataset.sku, qty: parseInt(q.value, 10) || 1, shippingMethod: 'standard' })),
+          promoCode,
+          zipCode: '94108',
+          channel: 'web',
+        };
+        if (mode === 'pickup') {
+          requestBody.fulfillment = 'pickup';
+          requestBody.storeNumber = STORE;
+        }
+        requestBody.devinUserId = localStorage.getItem('devinUserId') || '';
+        requestBody.devinOrgId = localStorage.getItem('devinOrgId') || '';
+        requestBody.devinEmail = localStorage.getItem('devinEmail') || '';
+        let response;
+        try {
+          response = await fetch('/api/f813dd7a/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          });
+          const data = await response.json().catch(() => null);
+          if (!response.ok || !data || !data.orderId) throw new Error('not placed');
+          result.className = 'result-box success';
+          result.textContent = mode === 'pickup'
+            ? `Thanks! Order ${data.orderId} is placed. Total ${money.format(Number(data.total))}. We\u2019ll email you when it\u2019s ready for pickup at Gap San Francisco, Union Square.`
+            : `Thanks! Order ${data.orderId} is placed. Total ${money.format(Number(data.total))}. A confirmation email is on its way with your delivery details.`;
+          status.textContent = 'Order placed.';
+        } catch (_error) {
+          result.className = 'result-box notice';
+          result.textContent = response && !response.ok
+            ? 'We couldn\u2019t place your order right now. You haven\u2019t been charged. Please try again in a few minutes.'
+            : 'We couldn\u2019t confirm your order. Check Order History before trying again so you aren\u2019t charged twice.';
+          status.textContent = 'Review your bag, then select Checkout.';
+        } finally {
+          controls.forEach((el) => { el.disabled = false; });
+          pending = false;
+          button.disabled = false;
+          button.textContent = 'Checkout';
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
