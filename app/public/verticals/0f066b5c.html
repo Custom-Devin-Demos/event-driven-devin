@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bumble — Date, Meet Friends &amp; Network</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FFC629'/%3E%3Cpath d='M9 11h14M7 16h18M9 21h14' stroke='%23000' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  </script>
+  <style>
+    :root { --yellow: #FFC629; --yellow-soft: #FFF4CC; --ink: #000; --ink-2: #454545; --ink-3: #8a8a8a; --line: #ececec; --bg: #fff; --badge: #1E6FFF; --red: #E5484D; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--ink); min-width: 1200px; min-height: 100vh; background: radial-gradient(1200px 700px at 20% 10%, #FFE07A 0%, #FFC629 45%, #F5B400 100%); display: flex; align-items: center; justify-content: center; gap: 56px; padding: 32px; }
+    button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+    .brand-side { width: 300px; align-self: center; }
+    .brand-side .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 34px; letter-spacing: -0.5px; }
+    .brand-side h1 { font-size: 40px; line-height: 44px; font-weight: 800; margin: 28px 0 14px; letter-spacing: -1px; }
+    .brand-side p { font-size: 16px; line-height: 24px; color: #2b2300; }
+    .brand-side .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+    .brand-side .pill-row span { background: rgba(0,0,0,0.85); color: #fff; font-size: 13px; font-weight: 600; padding: 7px 12px; border-radius: 999px; }
+
+    .phone { width: 402px; height: 860px; background: #111; border-radius: 58px; padding: 12px; box-shadow: 0 40px 80px rgba(70,45,0,0.35), inset 0 0 0 2px #333; position: relative; flex-shrink: 0; }
+    .screen { width: 100%; height: 100%; background: var(--bg); border-radius: 46px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+    .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 120px; height: 34px; background: #000; border-radius: 20px; z-index: 50; }
+    .status { height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 6px 32px 0 40px; font-weight: 600; font-size: 16px; flex-shrink: 0; }
+    .status .icons { display: flex; gap: 6px; align-items: center; }
+    .view { flex: 1; overflow-y: auto; display: none; position: relative; scrollbar-width: none; }
+    .view::-webkit-scrollbar { display: none; }
+    .view.active { display: block; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 20px 12px; }
+    .topbar h2 { font-size: 28px; font-weight: 800; letter-spacing: -0.6px; }
+    .wordmark { font-size: 26px; font-weight: 800; letter-spacing: -0.8px; }
+    .icon-btn { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; }
+
+    .tabbar { height: 84px; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px 22px; flex-shrink: 0; background: #fff; }
+    .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: var(--ink-3); font-weight: 500; position: relative; }
+    .tab.active { color: var(--ink); font-weight: 700; }
+    .tab .dot { position: absolute; top: 0; right: 22px; min-width: 16px; height: 16px; background: var(--yellow); color: #000; border-radius: 8px; font-size: 10px; font-weight: 800; display: grid; place-items: center; padding: 0 4px; }
+
+    /* People deck */
+    .card-wrap { padding: 0 12px 110px; }
+    .card { border-radius: 20px; overflow: hidden; background: #fff; box-shadow: 0 2px 14px rgba(0,0,0,0.08); transition: transform .35s ease, opacity .35s ease; }
+    .card.out-left { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
+    .card.out-right { transform: translateX(130%) rotate(12deg); opacity: 0; }
+    .hero { position: relative; height: 392px; background: #ddd center/cover no-repeat; }
+    .hero::after { content: ''; position: absolute; inset: 55% 0 0 0; background: linear-gradient(transparent, rgba(0,0,0,0.65)); }
+    .hero .meta { position: absolute; left: 18px; right: 18px; bottom: 16px; color: #fff; z-index: 2; }
+    .hero .name { font-size: 30px; font-weight: 800; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; }
+    .hero .sub { font-size: 15px; font-weight: 500; margin-top: 4px; opacity: 0.95; }
+    .verified { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.95); color: var(--badge); font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 999px; }
+    .hero .chips { position: absolute; top: 14px; left: 14px; z-index: 2; display: flex; gap: 6px; }
+    .hero .chips span { background: rgba(0,0,0,0.55); color: #fff; font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; backdrop-filter: blur(6px); }
+    .section { padding: 18px 18px 4px; }
+    .section h4 { font-size: 13px; font-weight: 700; color: var(--ink-3); text-transform: none; margin-bottom: 8px; }
+    .section p { font-size: 17px; line-height: 25px; font-weight: 500; }
+    .opening { margin: 16px 14px 4px; background: var(--yellow-soft); border-radius: 16px; padding: 16px; }
+    .opening .label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; margin-bottom: 6px; }
+    .opening .q { font-size: 20px; line-height: 27px; font-weight: 700; letter-spacing: -0.3px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tags span { border: 1px solid #ddd; border-radius: 999px; padding: 7px 12px; font-size: 14px; font-weight: 500; }
+    .loc { display: flex; gap: 8px; align-items: center; font-size: 15px; font-weight: 500; padding-bottom: 18px; }
+    .actions { position: absolute; left: 0; right: 0; bottom: 100px; display: flex; justify-content: center; align-items: center; gap: 18px; pointer-events: none; z-index: 5; }
+    .actions button { pointer-events: auto; border-radius: 50%; display: grid; place-items: center; box-shadow: 0 6px 18px rgba(0,0,0,0.18); transition: transform .12s ease; }
+    .actions button:active { transform: scale(0.92); }
+    .actions button:disabled { opacity: 0.6; cursor: progress; }
+    .btn-pass { width: 64px; height: 64px; background: #fff; }
+    .btn-super { width: 48px; height: 48px; background: #fff; }
+    .btn-like { width: 64px; height: 64px; background: var(--yellow); }
+    .empty { padding: 120px 30px; text-align: center; }
+    .empty h3 { font-size: 22px; font-weight: 800; margin: 18px 0 8px; }
+    .empty p { color: var(--ink-2); font-size: 15px; line-height: 22px; }
+    .pill { display: block; width: 100%; height: 50px; border-radius: 999px; font-size: 16px; font-weight: 700; margin-top: 12px; }
+    .pill.black { background: #000; color: #fff; }
+    .pill.outline { border: 1.5px solid #000; background: #fff; }
+    .pill.yellow { background: var(--yellow); color: #000; }
+
+    /* Chats */
+    .sub-h { display: flex; justify-content: space-between; align-items: center; padding: 6px 20px 10px; font-size: 15px; font-weight: 700; }
+    .sub-h small { font-weight: 500; color: var(--ink-3); font-size: 13px; }
+    .match-row { display: flex; gap: 14px; padding: 0 20px 18px; overflow-x: auto; scrollbar-width: none; }
+    .m-avatar { width: 66px; text-align: center; font-size: 12px; font-weight: 600; flex-shrink: 0; cursor: pointer; }
+    .m-avatar .ring { width: 66px; height: 66px; border-radius: 50%; padding: 3px; background: conic-gradient(var(--yellow) 0 75%, #eee 75% 100%); margin-bottom: 6px; }
+    .m-avatar .ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #fff; display: block; }
+    .m-avatar.placeholder .ring { background: none; border: 2px dashed #cfcfcf; }
+    .chat-item { display: flex; gap: 12px; align-items: center; padding: 12px 20px; cursor: pointer; }
+    .chat-item:hover { background: #fafafa; }
+    .chat-item img { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; }
+    .chat-item .t { flex: 1; min-width: 0; }
+    .chat-item .n { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 6px; }
+    .chat-item .l { color: var(--ink-2); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .chat-item .unread { width: 10px; height: 10px; background: var(--yellow); border-radius: 50%; }
+    .yourmove { background: var(--yellow); font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+    .convo { position: absolute; inset: 0; background: #fff; z-index: 20; display: none; flex-direction: column; }
+    .convo.open { display: flex; }
+    .convo-h { display: flex; align-items: center; gap: 10px; padding: 8px 14px 12px; border-bottom: 1px solid var(--line); }
+    .convo-h img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+    .convo-h .n { font-weight: 700; font-size: 17px; flex: 1; }
+    .date-chip { margin: 12px 14px 0; display: flex; align-items: center; gap: 10px; background: var(--yellow-soft); border-radius: 14px; padding: 10px 12px; font-size: 13px; font-weight: 600; }
+    .msgs { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .msg { max-width: 76%; padding: 10px 14px; border-radius: 20px; font-size: 15px; line-height: 21px; }
+    .msg.viewer { align-self: flex-end; background: var(--yellow); border-bottom-right-radius: 6px; }
+    .msg.match { align-self: flex-start; background: #f1f1f1; border-bottom-left-radius: 6px; }
+    .composer { display: flex; gap: 8px; padding: 10px 12px 14px; border-top: 1px solid var(--line); }
+    .composer input { flex: 1; height: 42px; border: 1px solid #ddd; border-radius: 999px; padding: 0 16px; font: inherit; font-size: 15px; }
+    .composer button { width: 42px; height: 42px; border-radius: 50%; background: var(--yellow); display: grid; place-items: center; }
+
+    /* Profile */
+    .prof-head { display: flex; gap: 14px; align-items: center; padding: 4px 20px 16px; }
+    .prof-head .av { position: relative; width: 74px; height: 74px; }
+    .prof-head .av img { width: 74px; height: 74px; border-radius: 50%; object-fit: cover; }
+    .prof-head .av span { position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+    .prof-head .n { font-size: 20px; font-weight: 800; }
+    .prof-head .complete { margin-top: 6px; display: inline-block; border: 1px solid #ddd; padding: 5px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+    .boosts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px 14px; }
+    .boost { border: 1px solid #e3e3e3; border-radius: 14px; padding: 12px; display: flex; gap: 10px; align-items: center; }
+    .boost .ic { width: 34px; height: 34px; border-radius: 50%; background: var(--yellow); display: grid; place-items: center; }
+    .boost b { font-size: 14px; display: block; }
+    .boost small { font-size: 12px; color: var(--ink-2); }
+    .premium { margin: 0 20px; background: var(--yellow); border-radius: 18px; padding: 18px; text-align: center; }
+    .premium h5 { font-size: 15px; font-weight: 800; }
+    .premium p { font-size: 14px; line-height: 20px; margin: 6px 0 12px; }
+    .premium button { background: #000; color: #fff; font-weight: 700; font-size: 14px; padding: 11px 18px; border-radius: 999px; }
+    .compare { padding: 16px 20px 24px; }
+    .compare .row { display: grid; grid-template-columns: 1fr 70px 70px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; align-items: center; }
+    .compare .row div:not(:first-child) { text-align: center; }
+    .compare .row.h { font-weight: 700; border-bottom: 0; }
+    .compare .muted { color: #c3c3c3; }
+
+    /* Discover & Liked You */
+    .disc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px 20px; }
+    .disc-card { border-radius: 16px; overflow: hidden; position: relative; height: 210px; background: #ccc center/cover; }
+    .disc-card::after { content: ''; position: absolute; inset: 50% 0 0 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); }
+    .disc-card div { position: absolute; left: 12px; bottom: 10px; color: #fff; z-index: 1; font-weight: 700; font-size: 15px; }
+    .disc-card small { display: block; font-weight: 500; font-size: 12px; opacity: .9; }
+    .disc-title { padding: 4px 20px 10px; font-size: 17px; font-weight: 800; }
+    .disc-sub { padding: 0 20px 12px; color: var(--ink-2); font-size: 14px; margin-top: -6px; }
+    .blur-grid .disc-card { filter: blur(9px); transform: scale(0.98); }
+
+    /* Match overlay */
+    .overlay { position: absolute; inset: 0; z-index: 30; display: none; flex-direction: column; }
+    .overlay.open { display: flex; }
+    .match-ov { background: var(--yellow); padding: 70px 26px 30px; text-align: center; }
+    .match-ov .pics { display: flex; justify-content: center; margin: 20px 0 24px; }
+    .match-ov .pics img { width: 132px; height: 132px; border-radius: 50%; border: 5px solid #fff; object-fit: cover; }
+    .match-ov .pics img + img { margin-left: -22px; }
+    .match-ov h3 { font-size: 34px; font-weight: 800; letter-spacing: -1px; }
+    .match-ov p { font-size: 15px; margin-top: 8px; line-height: 21px; }
+    .match-ov .om { background: #fff; border-radius: 16px; padding: 14px; text-align: left; margin-top: 20px; }
+    .match-ov .om small { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .3px; }
+    .match-ov .om div { font-size: 17px; font-weight: 700; margin-top: 4px; }
+    .match-ov input { width: 100%; height: 48px; border-radius: 999px; border: 0; padding: 0 18px; font: inherit; margin-top: 14px; }
+
+    /* Error sheet */
+    .sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.45); z-index: 40; display: none; align-items: flex-end; }
+    .sheet-bg.open { display: flex; }
+    .sheet { background: #fff; width: 100%; border-radius: 26px 26px 0 0; padding: 24px 22px 30px; text-align: center; animation: up .25s ease; }
+    @keyframes up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .sheet .ic { width: 58px; height: 58px; margin: 0 auto 12px; border-radius: 50%; background: #FFE8E8; display: grid; place-items: center; }
+    .sheet h3 { font-size: 21px; font-weight: 800; }
+    .sheet p { color: var(--ink-2); font-size: 15px; line-height: 22px; margin-top: 8px; }
+    .sheet code { display: inline-block; margin-top: 12px; font-size: 11px; color: var(--ink-3); background: #f5f5f5; padding: 5px 8px; border-radius: 6px; }
+
+    .toast { position: absolute; left: 16px; right: 16px; top: 62px; background: #000; color: #fff; border-radius: 14px; padding: 12px 14px; font-size: 14px; font-weight: 600; z-index: 45; visibility: hidden; opacity: 0; transform: translateY(-10px); transition: all .25s ease; }
+    .toast.show { visibility: visible; opacity: 1; transform: none; }
+
+    /* Live ops rail */
+    .ops { width: 320px; background: rgba(255,255,255,0.92); border-radius: 22px; padding: 20px; box-shadow: 0 20px 50px rgba(70,45,0,0.22); align-self: center; }
+    .ops h3 { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .ops .live { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,0.2); }
+    .ops .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+    .ops .kpi { background: #fff8e1; border-radius: 12px; padding: 10px; }
+    .ops .kpi b { font-size: 20px; display: block; }
+    .ops .kpi small { font-size: 11px; color: var(--ink-2); font-weight: 600; }
+    .ops ol { list-style: none; max-height: 330px; overflow-y: auto; }
+    .ops li { font-size: 12.5px; line-height: 18px; padding: 8px 0; border-top: 1px solid #f0e6c2; display: flex; gap: 8px; }
+    .ops li .tag { flex-shrink: 0; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px; height: 18px; line-height: 16px; background: #eee; }
+    .ops li.ok .tag { background: #dcfce7; color: #166534; }
+    .ops li.err .tag { background: #fee2e2; color: #991b1b; }
+    .ops li.alert .tag { background: #ede9fe; color: #5b21b6; }
+    .ops .foot { font-size: 11px; color: var(--ink-3); margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <aside class="brand-side">
+    <div class="logo">
+      <svg width="40" height="40" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="#000"/><path d="M9 11h14M7 16h18M9 21h14" stroke="#FFC629" stroke-width="3" stroke-linecap="round"/></svg>
+      Bumble
+    </div>
+    <h1>Make the first move.</h1>
+    <p>Kind connections, verified profiles and Opening Moves that make it easier to start the conversation.</p>
+    <div class="pill-row"><span>ID Verification</span><span>Opening Moves</span><span>Share Date</span><span>Private Detector</span></div>
+  </aside>
+
+  <div class="phone">
+    <div class="screen" id="screen">
+      <div class="island"></div>
+      <div class="status">
+        <span id="clock">9:41</span>
+        <span class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 2.5c2.3 0 4.4.9 6 2.4l1.2-1.3A10.2 10.2 0 0 0 8 .7 10.2 10.2 0 0 0 .8 3.6L2 4.9a8.4 8.4 0 0 1 6-2.4zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.2-1.3A6.6 6.6 0 0 0 8 4.3a6.6 6.6 0 0 0-4.6 1.8l1.2 1.3c.9-.8 2.1-1.3 3.4-1.3zM8 9.6l2-2.1a2.9 2.9 0 0 0-4 0z"/></svg>
+          <svg width="26" height="12" viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="#000" opacity=".4"/><rect x="2" y="2" width="17" height="8" rx="1.6"/><rect x="23.5" y="4" width="1.6" height="4" rx=".8" opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <div class="toast" id="toast"></div>
+
+      <!-- People -->
+      <section class="view active" id="view-people" data-testid="view-people">
+        <div class="topbar">
+          <span class="wordmark">Bumble</span>
+          <button class="icon-btn" aria-label="Filters"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+        </div>
+        <div class="card-wrap" id="deck"></div>
+      </section>
+      <div class="actions" id="actions">
+        <button class="btn-pass" id="btn-pass" aria-label="Pass" data-testid="btn-pass"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <button class="btn-super" id="btn-super" aria-label="SuperSwipe" data-testid="btn-super"><svg width="22" height="22" viewBox="0 0 24 24" fill="#FFC629" stroke="#000" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg></button>
+        <button class="btn-like" id="btn-like" aria-label="Like" data-testid="btn-like"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+      </div>
+
+      <!-- Discover -->
+      <section class="view" id="view-discover">
+        <div class="topbar"><h2>Discover</h2></div>
+        <div class="disc-title">Recommended for you</div>
+        <div class="disc-sub">Curated by shared interests and what you're looking for.</div>
+        <div class="disc-grid" id="disc-grid"></div>
+      </section>
+
+      <!-- Liked You -->
+      <section class="view" id="view-liked">
+        <div class="topbar"><h2>Liked You</h2><button class="icon-btn" aria-label="Filters"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+        <div class="disc-sub" id="liked-sub">When someone swipes right on you, you'll be able to find them right here.</div>
+        <div class="disc-grid blur-grid" id="liked-grid"></div>
+        <div style="padding: 0 20px 24px;"><button class="pill black">See who liked you with Premium</button></div>
+      </section>
+
+      <!-- Chats -->
+      <section class="view" id="view-chats">
+        <div class="topbar"><h2>Chats</h2></div>
+        <div class="sub-h">Your matches <small id="match-count"></small></div>
+        <div class="match-row" id="match-row"></div>
+        <div class="sub-h">Chats <small>Recent ▾</small></div>
+        <div id="chat-list"></div>
+        <div class="convo" id="convo">
+          <div class="convo-h">
+            <button class="icon-btn" id="convo-back" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+            <img id="convo-img" alt="">
+            <div class="n" id="convo-name"></div>
+            <button class="icon-btn" aria-label="Video call"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="M16 10l5-3v10l-5-3"/></svg></button>
+            <button class="icon-btn" aria-label="More"><svg width="22" height="22" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+          </div>
+          <div class="date-chip" id="date-chip"></div>
+          <div class="msgs" id="msgs"></div>
+          <form class="composer" id="composer">
+            <input id="composer-input" placeholder="Aa" autocomplete="off">
+            <button type="submit" aria-label="Send"><svg width="18" height="18" viewBox="0 0 24 24" fill="#000"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg></button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Profile -->
+      <section class="view" id="view-profile">
+        <div class="topbar"><h2>Profile</h2>
+          <button class="icon-btn" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+        </div>
+        <div class="prof-head">
+          <div class="av"><img id="me-img" alt=""><span id="me-pct"></span></div>
+          <div><div class="n" id="me-name"></div><span class="complete">Complete profile</span></div>
+        </div>
+        <div class="boosts">
+          <div class="boost"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="#000"><path d="M12 2l2 7 7 3-7 3-2 7-2-7-7-3 7-3z"/></svg></div><div><b>Spotlight</b><small>Stand out</small></div></div>
+          <div class="boost"><div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="#000"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg></div><div><b>SuperSwipe</b><small>Get noticed</small></div></div>
+        </div>
+        <div class="premium">
+          <h5>Premium+</h5>
+          <p>Get the VIP treatment, and enjoy better ways to connect with incredible people.</p>
+          <button>Explore Premium+</button>
+        </div>
+        <div class="compare">
+          <div class="row h"><div>What you get:</div><div>Premium+</div><div class="muted">Premium</div></div>
+          <div class="row"><div>Fast track your likes</div><div>✓</div><div></div></div>
+          <div class="row"><div>Stand out every day</div><div>✓</div><div></div></div>
+          <div class="row"><div>Unlimited likes</div><div>✓</div><div class="muted">✓</div></div>
+          <div class="row"><div>See who liked you</div><div>✓</div><div class="muted">✓</div></div>
+          <div class="row"><div>Advanced filters</div><div>✓</div><div class="muted">✓</div></div>
+          <div class="row"><div>Incognito mode</div><div>✓</div><div class="muted">✓</div></div>
+          <div class="row"><div>Travel mode</div><div>✓</div><div class="muted">✓</div></div>
+        </div>
+      </section>
+
+      <nav class="tabbar" id="tabbar">
+        <button class="tab" data-view="profile"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile</button>
+        <button class="tab" data-view="discover"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Discover</button>
+        <button class="tab active" data-view="people"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 6h10M4 12h16M7 18h10"/></svg>People</button>
+        <button class="tab" data-view="liked"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Liked You<span class="dot" id="liked-dot"></span></button>
+        <button class="tab" data-view="chats"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18l1.2-3.6A7.5 7.5 0 1 1 8 18.3z"/></svg>Chats</button>
+      </nav>
+
+      <!-- Match overlay -->
+      <div class="overlay" id="match-overlay" data-testid="match-overlay">
+        <div class="match-ov" style="flex:1">
+          <h3>It's a match!</h3>
+          <p id="match-copy"></p>
+          <div class="pics"><img id="match-me" alt=""><img id="match-them" alt=""></div>
+          <div class="om"><small id="om-label"></small><div id="om-q"></div></div>
+          <input id="om-reply" placeholder="Reply to their Opening Move">
+          <button class="pill black" id="om-send">Send</button>
+          <button class="pill" id="om-later" style="background:transparent">Keep swiping</button>
+        </div>
+      </div>
+
+      <!-- Error sheet -->
+      <div class="sheet-bg" id="error-sheet" data-testid="error-sheet">
+        <div class="sheet">
+          <div class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E5484D" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg></div>
+          <h3 id="err-title">Something went wrong</h3>
+          <p id="err-body">We couldn't create this match right now. Our team has been alerted and is already on it.</p>
+          <code id="err-code"></code>
+          <button class="pill black" id="err-retry">Try again</button>
+          <button class="pill outline" id="err-close">Keep swiping</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="ops" data-testid="ops-rail">
+    <h3><span class="live"></span>Match service · live</h3>
+    <div class="kpis">
+      <div class="kpi"><b id="kpi-swipes">0</b><small>Swipes this session</small></div>
+      <div class="kpi"><b id="kpi-matches">0</b><small>Matches created</small></div>
+      <div class="kpi"><b id="kpi-errors">0</b><small>5xx on /swipes</small></div>
+      <div class="kpi"><b id="kpi-p95">—</b><small>Last latency</small></div>
+    </div>
+    <ol id="ops-log"></ol>
+    <div class="foot">Errors on the match path page Trust &amp; Safety engineering in #automated-alerts and open a Devin session automatically.</div>
+  </aside>
+
+  <script>
+    (function () {
+      var state = { viewer: null, people: [], idx: 0, matches: [], busy: false, lastSwipe: null, stats: { swipes: 0, matches: 0, errors: 0 } };
+      var $ = function (id) { return document.getElementById(id); };
+      function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+      function tick() { var d = new Date(); $('clock').textContent = d.getHours() % 12 + ':' + String(d.getMinutes()).padStart(2, '0'); }
+      tick(); setInterval(tick, 30000);
+
+      function log(kind, label, text) {
+        var li = document.createElement('li');
+        li.className = kind;
+        li.innerHTML = '<span class="tag">' + esc(label) + '</span><span>' + esc(text) + '</span>';
+        $('ops-log').prepend(li);
+      }
+      function kpis(ms) {
+        $('kpi-swipes').textContent = state.stats.swipes;
+        $('kpi-matches').textContent = state.stats.matches;
+        $('kpi-errors').textContent = state.stats.errors;
+        if (ms != null) $('kpi-p95').textContent = ms + ' ms';
+      }
+      function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(function () { t.classList.remove('show'); }, 2600); }
+
+      function showView(name) {
+        document.querySelectorAll('.view').forEach(function (v) { v.classList.toggle('active', v.id === 'view-' + name); });
+        document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('active', t.dataset.view === name); });
+        $('actions').style.display = name === 'people' && state.idx < state.people.length ? 'flex' : 'none';
+      }
+      document.querySelectorAll('.tab').forEach(function (t) { t.addEventListener('click', function () { showView(t.dataset.view); }); });
+
+      var CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+      function renderCard() {
+        var p = state.people[state.idx];
+        if (!p) {
+          $('deck').innerHTML = '<div class="empty"><svg width="72" height="72" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="#FFC629"/><path d="M9 11h14M7 16h18M9 21h14" stroke="#000" stroke-width="3" stroke-linecap="round"/></svg><h3>You\'re all caught up</h3><p>Check back later for new people, or widen your filters to see more.</p><button class="pill black" id="reset-deck">Start over</button></div>';
+          $('reset-deck').onclick = function () { state.idx = 0; renderCard(); showView('people'); };
+          $('actions').style.display = 'none';
+          return;
+        }
+        $('deck').innerHTML =
+          '<article class="card" id="card" data-profile="' + esc(p.id) + '">' +
+            '<div class="hero" style="background-image:url(\'' + esc(p.photo) + '\')">' +
+              '<div class="chips"><span>' + esc(p.distance) + '</span><span>Looking for ' + esc(p.lookingFor.toLowerCase()) + '</span></div>' +
+              '<div class="meta"><div class="name">' + esc(p.name) + ', ' + esc(p.age) + ' <span class="verified">' + CHECK + esc(p.verification.badge) + '</span></div>' +
+              '<div class="sub">' + esc(p.job) + '</div></div>' +
+            '</div>' +
+            '<div class="opening"><div class="label"><svg width="14" height="14" viewBox="0 0 24 24" fill="#000"><path d="M4 18l1.2-3.6A7.5 7.5 0 1 1 8 18.3z"/></svg>' + esc(p.name) + '\'s Opening Move</div><div class="q">' + esc(p.openingMove) + '</div></div>' +
+            '<div class="section"><h4>About me</h4><p>' + esc(p.about) + '</p></div>' +
+            '<div class="section"><h4>My basics</h4><div class="tags">' + p.basics.map(function (b) { return '<span>' + esc(b) + '</span>'; }).join('') + '</div></div>' +
+            '<div class="section"><h4>My interests</h4><div class="tags">' + p.interests.map(function (b) { return '<span>' + esc(b) + '</span>'; }).join('') + '</div></div>' +
+            '<div class="section"><h4>' + esc(p.name) + '\'s location</h4><div class="loc"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>' + esc(p.city) + ' · ' + esc(p.distance) + '</div></div>' +
+          '</article>';
+        $('view-people').scrollTop = 0;
+        if ($('view-people').classList.contains('active')) $('actions').style.display = 'flex';
+      }
+
+      function advance(dir) {
+        var card = $('card');
+        if (card) card.classList.add(dir === 'pass' ? 'out-left' : 'out-right');
+        setTimeout(function () { state.idx += 1; renderCard(); }, 320);
+      }
+
+      function setBusy(b) { state.busy = b; ['btn-pass', 'btn-super', 'btn-like'].forEach(function (id) { $(id).disabled = b; }); }
+
+      function swipe(direction) {
+        var p = state.people[state.idx];
+        if (!p || state.busy) return;
+        state.lastSwipe = direction;
+        setBusy(true);
+        var t0 = performance.now();
+        fetch('/api/0f066b5c/swipes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            profileId: p.id,
+            direction: direction,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        }).then(function (r) { return r.json().then(function (body) { return { status: r.status, body: body }; }); })
+          .then(function (res) {
+            var ms = Math.round(performance.now() - t0);
+            state.stats.swipes += 1;
+            setBusy(false);
+            if (res.status === 400) { kpis(ms); toast(res.body.error || 'Please try again'); log('', '400', res.body.error); return; }
+            if (res.status >= 500 || !res.body.success) { onError(p, res.body, ms); return; }
+            kpis(ms);
+            if (res.body.outcome === 'matched') {
+              state.stats.matches += 1; kpis();
+              log('ok', '200', 'POST /swipes · ' + direction + ' → match with ' + p.name + ' (trust ' + res.body.trustScore + ')');
+              openMatch(p, res.body.match);
+            } else {
+              log('ok', '200', 'POST /swipes · ' + direction + ' → ' + res.body.outcome + ' (' + p.name + ')');
+              advance(direction);
+            }
+          })
+          .catch(function () { setBusy(false); toast('No connection. Check your network and try again.'); });
+      }
+
+      function onError(p, body, ms) {
+        state.stats.errors += 1; kpis(ms);
+        log('err', '500', 'POST /swipes · ' + state.lastSwipe + ' on ' + p.name + ' (' + p.verification.badge + ') → ' + (body.errorClass || 'Error') + ': ' + (body.error || 'match creation failed'));
+        setTimeout(function () { log('alert', 'ALERT', 'Sentry issue + Slack page → #automated-alerts'); }, 500);
+        setTimeout(function () { log('alert', 'DEVIN', 'Devin session started to investigate bumble-match-service'); }, 1100);
+        $('err-code').textContent = (body.code || 'MATCH_CREATE_FAILED') + (body.swipeId ? ' · ' + body.swipeId : '');
+        $('error-sheet').classList.add('open');
+      }
+      $('err-retry').onclick = function () { $('error-sheet').classList.remove('open'); swipe(state.lastSwipe || 'like'); };
+      $('err-close').onclick = function () { $('error-sheet').classList.remove('open'); advance('pass'); };
+
+      function openMatch(p, match) {
+        $('match-copy').textContent = 'You and ' + p.name + ' liked each other. You have 24 hours to reply to ' + p.name + '\'s Opening Move.';
+        $('match-me').src = state.viewer.photo;
+        $('match-them').src = p.photo;
+        $('om-label').textContent = p.name + '\'s Opening Move';
+        $('om-q').textContent = match.openingMove;
+        $('om-reply').value = '';
+        $('match-overlay').classList.add('open');
+        $('match-overlay').dataset.profile = p.id;
+        state.matches.unshift({ id: match.id, name: p.name, age: p.age, photo: p.photo, isNew: true, lastMessage: 'Your move: reply to ' + p.name + '\'s Opening Move', messages: [{ from: 'match', text: match.openingMove }] });
+        renderChats();
+      }
+      function closeMatch() { $('match-overlay').classList.remove('open'); advance('like'); }
+      $('om-later').onclick = closeMatch;
+      $('om-send').onclick = function () {
+        var text = $('om-reply').value.trim();
+        if (text) { var m = state.matches[0]; m.messages.push({ from: 'viewer', text: text }); m.lastMessage = text; m.isNew = false; renderChats(); toast('Sent to ' + m.name); }
+        closeMatch();
+      };
+
+      function renderChats() {
+        $('match-count').textContent = state.matches.length ? state.matches.length + ' matches' : '';
+        var row = state.matches.map(function (m, i) { return '<div class="m-avatar" data-i="' + i + '"><div class="ring"><img src="' + esc(m.photo) + '" alt=""></div>' + esc(m.name) + '</div>'; }).join('');
+        for (var k = state.matches.length; k < 5; k++) row += '<div class="m-avatar placeholder"><div class="ring"></div>&nbsp;</div>';
+        $('match-row').innerHTML = row;
+        $('chat-list').innerHTML = state.matches.map(function (m, i) {
+          return '<div class="chat-item" data-i="' + i + '"><img src="' + esc(m.photo) + '" alt=""><div class="t"><div class="n">' + esc(m.name) + (m.isNew ? ' <span class="yourmove">Your move</span>' : '') + '</div><div class="l">' + esc(m.lastMessage) + '</div></div>' + (m.unread || m.isNew ? '<span class="unread"></span>' : '') + '</div>';
+        }).join('');
+        document.querySelectorAll('.chat-item, .m-avatar[data-i]').forEach(function (el) { el.onclick = function () { openConvo(Number(el.dataset.i)); }; });
+      }
+
+      var current = null;
+      function openConvo(i) {
+        var m = state.matches[i]; current = m; m.unread = false;
+        $('convo-img').src = m.photo; $('convo-name').textContent = m.name;
+        if (m.upcomingDate) {
+          var d = new Date(m.upcomingDate.startsAt);
+          $('date-chip').style.display = 'flex';
+          $('date-chip').innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Date planned · ' + esc(d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'America/New_York' })) + ' ' + esc(d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })) + ' · ' + esc(m.upcomingDate.venue) + '</span>';
+        } else { $('date-chip').style.display = 'none'; }
+        renderMsgs();
+        $('convo').classList.add('open');
+      }
+      function renderMsgs() { $('msgs').innerHTML = current.messages.map(function (x) { return '<div class="msg ' + (x.from === 'viewer' ? 'viewer' : 'match') + '">' + esc(x.text) + '</div>'; }).join(''); $('msgs').scrollTop = 1e6; }
+      $('convo-back').onclick = function () { $('convo').classList.remove('open'); renderChats(); };
+      $('composer').onsubmit = function (e) { e.preventDefault(); var v = $('composer-input').value.trim(); if (!v || !current) return; current.messages.push({ from: 'viewer', text: v }); current.lastMessage = v; $('composer-input').value = ''; renderMsgs(); };
+
+      $('btn-pass').onclick = function () { swipe('pass'); };
+      $('btn-like').onclick = function () { swipe('like'); };
+      $('btn-super').onclick = function () { swipe('superswipe'); };
+
+      fetch('/api/0f066b5c/app').then(function (r) { return r.json(); }).then(function (data) {
+        state.viewer = data.viewer; state.people = data.people; state.matches = data.matches.slice();
+        $('me-img').src = data.viewer.photo; $('me-name').textContent = data.viewer.name + ', ' + data.viewer.age; $('me-pct').textContent = data.viewer.profileCompletion + '%';
+        $('liked-dot').textContent = data.likedYouCount;
+        $('liked-sub').textContent = data.likedYouCount + ' people already liked you. When someone swipes right on you, you\'ll be able to find them right here.';
+        var cards = data.people.map(function (p) { return '<div class="disc-card" style="background-image:url(\'' + esc(p.photo) + '\')"><div>' + esc(p.name) + ', ' + esc(p.age) + '<small>' + esc(p.interests[0]) + ' · ' + esc(p.distance) + '</small></div></div>'; }).join('');
+        $('disc-grid').innerHTML = cards;
+        var tones = ['#f6d6c4,#c98f72', '#d9d3f0,#8f86c4', '#c9dfe8,#5e8aa0', '#f2e2b8,#c9a55a'];
+        $('liked-grid').innerHTML = Array.from({ length: data.likedYouCount }, function (_, i) { return '<div class="disc-card" style="background-image:linear-gradient(160deg,' + tones[i % tones.length] + ')"><div>&nbsp;<small>Premium</small></div></div>'; }).join('');
+        renderCard(); renderChats(); kpis();
+        log('ok', 'READY', 'People deck loaded · ' + data.people.length + ' profiles near ' + data.viewer.city);
+      }).catch(function () { toast('Could not load Bumble. Pull to refresh.'); });
+    })();
+  </script>
+</body>
+</html>
