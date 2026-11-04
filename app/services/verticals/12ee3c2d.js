@@ -124,26 +124,26 @@ const ADJUSTMENTS = [
   adjustment('2026-10-26', '883204', '376611XXXXX2207', -51.3, 'Adjustments', 'NOT AS DESCRIBED', '2026-10-24', 'LOC-0102'),
 ];
 
-function dispute(caseNumber, amount, transactionDate, reason, code, caseType, disputeType, expires, daysLeft, cardNumber, locationId, detail) {
+function dispute(caseNumber, amount, transactionDate, reason, code, caseType, disputeType, expires, daysLeft, cardNumber, locationId, detail, cardMemberName) {
   const location = MERCHANT.locations.find((l) => l.id === locationId);
   return {
     caseNumber, amount: -amount, transactionAmount: amount, transactionDate, reason, code, caseType, disputeType,
     type: disputeType === 'CB' ? 'Chargeback' : 'Inquiry', expires, daysLeft, cardNumber, merchantNumber: location.merchantNumber,
-    locationId, chargeReference: `CR${caseNumber.slice(2).toUpperCase()}88`, detail,
+    locationId, chargeReference: `CR${caseNumber.slice(2).toUpperCase()}88`, detail, cardMemberName,
   };
 }
 
 const DISPUTES = [
   dispute('D-utgq6', 142.18, '2026-10-12', 'Card not present fraud', 'F29', 'Fraud', 'CB', '2026-11-14', 11, '374355XXXXX5847', 'LOC-0103',
-    'Card Member denies participating in a card not present transaction. To request a reversal, provide proof that the Card Member participated in the transaction, such as AVS/CVV match and proof of delivery to the verified address.'),
+    'Card Member denies participating in a card not present transaction. To request a reversal, provide proof that the Card Member participated in the transaction, such as AVS/CVV match and proof of delivery to the verified address.', 'J. Alvarez'),
   dispute('D-urovq', 86.4, '2026-10-15', 'Goods/Services not received', 'C08', 'Card Member Dispute', 'CB', '2026-11-17', 14, '379783XXXXX3008', 'LOC-0101',
-    'Card Member states the order was never received. To request a reversal, provide proof of delivery or proof that the Card Member collected the goods in store.'),
+    'Card Member states the order was never received. To request a reversal, provide proof of delivery or proof that the Card Member collected the goods in store.', 'M. Chen'),
   dispute('D-urw24', 58.0, '2026-10-19', 'Credit not presented', 'C02', 'Card Member Dispute', 'CB', '2026-11-20', 17, '379280XXXXX1004', 'LOC-0102',
-    'Card Member states a credit was promised but never processed. To request a reversal, provide proof that the credit was issued or that no credit is due.'),
+    'Card Member states a credit was promised but never processed. To request a reversal, provide proof that the credit was issued or that no credit is due.', 'R. Okafor'),
   dispute('D-urw25', 214.5, '2026-10-21', 'Multiple processing', 'P08', 'Processing Error', 'CB', '2026-11-22', 19, '379280XXXXX1004', 'LOC-0101',
-    'Card Member states the same charge was processed more than once. To request a reversal, provide itemized receipts showing separate purchases.'),
+    'Card Member states the same charge was processed more than once. To request a reversal, provide itemized receipts showing separate purchases.', 'S. Patel'),
   dispute('D-usk7m', 39.75, '2026-10-24', 'Cancelled recurring billing', 'C28', 'Card Member Dispute', 'CU', '2026-11-25', 22, '376611XXXXX2207', 'LOC-0103',
-    'We did not receive your response to our initial inquiry. To request a reversal, provide proof that the subscription was not cancelled before the billing date.'),
+    'We did not receive your response to our initial inquiry. To request a reversal, provide proof that the subscription was not cancelled before the billing date.', 'L. Novak'),
 ];
 
 const savedLayouts = new Map();

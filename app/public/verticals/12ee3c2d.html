@@ -234,7 +234,7 @@
   <script>
   (function () {
     var ANCHOR = '2026-11-04';
-    var STATE = { portal: null, layout: null, openRows: {}, pendingOpen: false, postedOpen: true, adjOpen: true, cbOpen: false, location: 'all', days: 14, starred: {}, selected: {}, searchOpen: false, search: { by: 'case', q: '' }, merchantFilter: 'all', amountFilter: 'any', typeFilter: 'all' };
+    var STATE = { queue: [], portal: null, layout: null, openRows: {}, pendingOpen: false, postedOpen: true, adjOpen: true, cbOpen: false, location: 'all', days: 14, starred: {}, selected: {}, searchOpen: false, search: { by: 'case', q: '' }, merchantFilter: 'all', amountFilter: 'any', typeFilter: 'all' };
     var FIELD = {
       settlement_date: 'settlementDate', settlement_number: 'settlementNumber', total_charges: 'totalCharges', credits: 'credits',
       submission_amount: 'submissionAmount', discount_amount: 'discountAmount', fees_incentives: 'feesAndIncentives', chargebacks: 'chargebacks',
@@ -257,10 +257,11 @@
       { group: 'Date Types', key: 'transactionDate', label: 'Transaction Date' },
       { group: 'Date Types', key: 'expires', label: 'Expires' },
       { group: 'Location Info', key: 'merchantNumber', label: 'Payee Merchant Number' },
-      { group: 'Location Info', key: 'locationId', label: 'Payee Location ID' }
+      { group: 'Location Info', key: 'locationId', label: 'Payee Location ID' },
+      { group: 'Case Info', key: 'cardMemberName', label: 'Card Member Name' }
     ];
     var DISPUTE_DEFAULT = ['caseNumber', 'amount', 'reason', 'cardNumber', 'type', 'expires'];
-    STATE.disputeCols = DISPUTE_DEFAULT.slice();
+    STATE.disputeCols = (function () { try { var v = JSON.parse(localStorage.getItem('amexMerchantDisputeCols') || 'null'); if (Array.isArray(v) && v[0] === 'caseNumber' && v.every(function (k) { return DISPUTE_FIELDS.some(function (f) { return f.key === k; }); })) return v; } catch (e) { /* ignore */ } return DISPUTE_DEFAULT.slice(); })();
     var app = document.getElementById('app');
     var ICON = {
       chev: '<svg class="chev" width="10" height="16" viewBox="0 0 10 16"><path d="M2 2l6 6-6 6" fill="none" stroke="#006fcf" stroke-width="2"/></svg>',
@@ -500,7 +501,7 @@
       var selAll = document.getElementById('selAll');
       if (selAll) selAll.addEventListener('change', function () { list.forEach(function (d) { STATE.selected[d.caseNumber] = selAll.checked; }); rr(); });
       document.getElementById('respondSel').addEventListener('click', function () {
-        var first = list.filter(function (d) { return STATE.selected[d.caseNumber]; })[0]; if (first) openRespondModal(first);
+        var picked = list.filter(function (d) { return STATE.selected[d.caseNumber]; }); STATE.queue = picked.slice(1).map(function (d) { return d.caseNumber; }); if (picked[0]) openRespondModal(picked[0]);
       });
       var os = document.getElementById('openSearch');
       if (os) os.addEventListener('click', function (e) { e.preventDefault(); STATE.searchOpen = true; rr(); });
@@ -541,7 +542,7 @@
         root.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { root.innerHTML = ''; }); });
         document.getElementById('dsReset').addEventListener('click', function (e) { e.preventDefault(); draw(DISPUTE_DEFAULT.slice()); });
         document.getElementById('dsSave').addEventListener('click', function () {
-          STATE.disputeCols = active.slice(); root.innerHTML = ''; renderDisputes();
+          STATE.disputeCols = active.slice(); localStorage.setItem('amexMerchantDisputeCols', JSON.stringify(STATE.disputeCols)); root.innerHTML = ''; renderDisputes();
           toast('', 'Settings saved', 'Your Response Needed table now shows ' + active.length + ' columns.');
         });
       }
@@ -605,7 +606,7 @@
           '<li>Proof that you validated the address via Authorization and delivered goods to the validated address, or</li><li>Proof that a Credit which directly offsets the Disputed Charge has already been processed, or</li>' +
           '<li>Compelling Evidence (see U.S. Merchant Regulations), or</li><li>Any other proof / supporting documentation, indicating that chargeback was invalid.</li></ul></div>' +
           '<p class="field-label">Support with attached files</p><button class="btn" type="button">Attach Files</button><div style="margin:10px 0 28px"><a href="#respond/' + d.caseNumber + '/' + rt + '" onclick="return false">View Formats we Accept</a></div>'
-          : '<p class="support">A credit for the full chargeback amount will be applied to your next settlement and the case will be closed.</p>') +
+          : '<p class="support">Your response will be sent to American Express for review. Issue the full refund to the Card Member through your point of sale; the case closes once the credit is received.</p>') +
         '<p class="field-label">Support with comments</p><textarea id="respComment" maxlength="1500"></textarea><div class="counter"><a href="#respond/' + d.caseNumber + '/' + rt + '" onclick="return false">See Saved Comments</a><span><span id="cc">0</span>/1500</span></div></div></div>' +
         '<div class="step"><div class="step-num">2</div><div><h4>To verify your response, please enter your initials.</h4><p class="field-label">Initials</p><input class="field initials" id="initials" maxlength="3" data-testid="initials"></div></div></div></div>' +
         '<div class="card pad"><p class="section-title" style="margin-bottom:12px">You\u2019re responding to:</p><table class="resp-table"><thead><tr><th>Case #</th><th>Amount</th><th>Expires</th></tr></thead><tbody><tr><td>' + d.caseNumber + '</td><td>' + money(d.amount) + '</td><td>' + mdy(d.expires) + '</td></tr></tbody></table></div></div>';
@@ -619,8 +620,10 @@
             if (!res.ok) { toast('error', 'Response not submitted', res.j.error); return; }
             STATE.portal.disputes = STATE.portal.disputes.filter(function (x) { return x.caseNumber !== d.caseNumber; });
             STATE.portal.reviewInProgress += 1; delete STATE.selected[d.caseNumber];
-            toast('', 'Response submitted', 'Case ' + d.caseNumber + ' is now Review in Progress. Confirmation ' + res.j.confirmation + '.');
-            location.hash = '#disputes';
+            var next = (STATE.queue || []).filter(function (id) { return findCase(id); })[0];
+            STATE.queue = (STATE.queue || []).filter(function (id) { return id !== next && findCase(id); });
+            toast('', 'Response submitted', 'Case ' + d.caseNumber + ' is now Review in Progress. Confirmation ' + res.j.confirmation + '.' + (next ? ' Next: ' + next + '.' : ''));
+            location.hash = next ? '#respond/' + next + '/' + rt : '#disputes';
           });
       });
     }
