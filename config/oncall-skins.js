@@ -8358,6 +8358,38 @@ const ONCALL_SKINS = {
     },
     disclaimer: 'NOT ACTUALLY A ONETRUST SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real OneTrust product.',
   },
+  'c46f9d68': {
+    slug: 'c46f9d68',
+    company: 'Emirates NBD',
+    brandMark: 'E',
+    vertical: 'banking',
+    oncallOnly: true,
+    alertDestination: 'slack',
+    // Only Plus package transfers degrade; Priority Banking (premium) is the
+    // healthy path and posts nothing.
+    triggerWhen: { accountTier: 'standard' },
+    page: { file: 'c46f9d68.html', title: 'International transfer | ENBD X | Emirates NBD' },
+    alertCard: {
+      title: 'p95 latency spike \u2014 ENBD X International transfer',
+      service: 'transfers-api',
+      release: 'enbdx-transfers@26.11.1',
+      team: 'digital-payments-oncall',
+      metricValue: '9.6s',
+      threshold: '> 1.5s',
+      baseline: '~300ms (7-day p95, before enbdx-transfers@26.11.1)',
+      symptom: 'Send money on ENBD X International transfer hangs ~10s before the confirmation is shown for Plus package customers. Error rate is normal \u2014 the transfer completes. Priority Banking transfers are unaffected.',
+      impact: 'Customers sending money abroad sit on "Your transfer is taking longer than usual" for about 10 seconds; some select Send money again and call Customer Care about duplicate transfers.',
+    },
+    theme: {
+      '--accent': '#072447',
+      '--ink': '#131313',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#072447',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Emirates NBD Customer Care',
+    disclaimer: 'NOT ACTUALLY AN EMIRATES NBD SITE \u2014 internal demo only, not affiliated with, endorsed by, or a real Emirates NBD or ENBD X product.',
+  },
 };
 
 function getOncallSkin(slug) {
