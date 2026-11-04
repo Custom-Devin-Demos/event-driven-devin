@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nextech Practice+ | IntelleChartPRO</title>
+  <link rel="icon" href="/verticals/e8947398/nextech-logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <style>
+    :root { --bar: #3d9fd8; --bar-dark: #2f8ac2; --rail: #2b2f36; --teal: #00b6c8; --green: #61bb46; --ink: #333740; --muted: #7b8290; --line: #e3e6ea; --bg: #f3f4f6; --danger: #d64545; --warn: #e8a33d; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
+    button { font-family: inherit; cursor: pointer; }
+    .hidden { display: none !important; }
+    .topbar { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: var(--bar); color: #fff; display: flex; align-items: center; z-index: 5; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+    .brand { width: 250px; margin-right: 12px; display: flex; align-items: center; gap: 10px; padding-left: 16px; }
+    .brand img { height: 18px; filter: brightness(0) invert(1); }
+    .brand span { font-size: 19px; font-weight: 300; letter-spacing: .2px; }
+    .ctx { display: flex; gap: 28px; flex: 1; }
+    .ctx div { display: flex; flex-direction: column; line-height: 1.3; }
+    .ctx small { font-size: 10px; font-weight: 700; opacity: .9; }
+    .ctx b { font-weight: 400; font-size: 12.5px; }
+    .tools { display: flex; align-items: center; gap: 18px; padding-right: 20px; font-size: 12px; }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: #fff; color: var(--bar-dark); display: grid; place-items: center; font-weight: 700; }
+    .rail { position: fixed; top: 56px; bottom: 0; left: 0; width: 64px; background: var(--rail); display: flex; flex-direction: column; align-items: center; padding-top: 6px; z-index: 4; }
+    .rail button { width: 64px; height: 58px; background: none; border: 0; color: #aeb4bd; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 9.5px; border-left: 3px solid transparent; }
+    .rail button svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+    .rail button.active, .rail button:hover { color: #fff; background: #353a42; border-left-color: var(--teal); }
+    .main { margin: 56px 0 0 64px; min-height: calc(100vh - 56px); }
+    .refine { position: fixed; top: 56px; left: 64px; bottom: 0; width: 200px; background: #fff; border-right: 1px solid var(--line); padding: 18px 16px; }
+    .refine h4 { font-size: 11px; font-weight: 500; color: var(--muted); margin-bottom: 14px; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+    .field div { border-bottom: 1px solid #c9cdd3; padding: 4px 0; font-size: 12.5px; display: flex; justify-content: space-between; }
+    .board { margin-left: 200px; padding: 16px 22px; }
+    .board-head { display: flex; align-items: center; gap: 22px; margin-bottom: 14px; }
+    .board-head h2 { font-size: 18px; font-weight: 300; color: #555c66; }
+    .board-head h2 b { font-weight: 500; color: var(--ink); }
+    .chip { font-size: 12px; color: #4b525c; display: flex; align-items: center; gap: 5px; }
+    .cols { display: grid; grid-template-columns: repeat(3, minmax(240px, 1fr)); gap: 16px; align-items: start; }
+    .col { background: #e9ebee; border-radius: 6px; padding: 10px; }
+    .col h3 { text-align: center; font-size: 12px; font-weight: 500; color: #4b525c; margin-bottom: 10px; }
+    .appt { background: #fff; border-radius: 4px; padding: 10px 12px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,.08); border-bottom: 3px solid var(--teal); }
+    .appt .row1 { display: flex; justify-content: space-between; font-size: 12.5px; }
+    .appt .row1 b { font-weight: 500; }
+    .appt .vt { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .appt.arrived { border-bottom-color: var(--green); cursor: pointer; }
+    .appt.arrived:hover { box-shadow: 0 2px 8px rgba(61,159,216,.35); }
+    .appt.done { border-bottom-color: #7a6fc2; }
+    .appt .open { margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+    .btn-green { background: #2e9b3a; color: #fff; border: 0; border-radius: 3px; padding: 6px 14px; font-size: 12px; font-weight: 500; }
+    .btn-blue { background: var(--bar); color: #fff; border: 0; border-radius: 3px; padding: 9px 18px; font-size: 13px; font-weight: 500; }
+    .btn-blue:disabled { opacity: .6; cursor: wait; }
+    .btn-ghost { background: #fff; border: 1px solid #c9cdd3; border-radius: 3px; padding: 6px 12px; font-size: 12px; color: #4b525c; }
+    .chart { padding: 0; }
+    .phead { background: #5cb3e6; color: #fff; display: flex; gap: 30px; padding: 8px 24px; align-items: center; }
+    .phead .pname { font-size: 17px; font-weight: 500; min-width: 170px; }
+    .phead div small { display: block; font-size: 10px; font-weight: 700; opacity: .9; }
+    .phead div b { font-weight: 400; font-size: 12.5px; }
+    .tabs { background: #fff; border-bottom: 1px solid var(--line); display: flex; gap: 2px; padding: 0 18px; }
+    .tabs button { background: none; border: 0; padding: 12px 16px; font-size: 13px; color: #59606a; border-bottom: 3px solid transparent; }
+    .tabs button.active { color: var(--bar-dark); border-bottom-color: var(--bar); font-weight: 500; }
+    .tabs .new { font-size: 9px; background: var(--green); color: #fff; border-radius: 8px; padding: 1px 6px; margin-left: 4px; vertical-align: 1px; }
+    .chart-body { display: grid; grid-template-columns: 1fr 290px; gap: 16px; padding: 16px 20px 40px; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 4px; margin-bottom: 14px; }
+    .card > h5 { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 300; padding: 10px 14px; border-bottom: 1px solid var(--line); color: #4b525c; }
+    .card > h5 .chk { width: 22px; height: 22px; border: 1px solid #c9cdd3; border-radius: 3px; display: grid; place-items: center; color: var(--green); font-size: 13px; }
+    .card > h5 .score { font-size: 10px; color: var(--green); border: 1px solid var(--green); border-radius: 10px; padding: 1px 6px; }
+    .card .pad { padding: 12px 14px; }
+    .kv { display: grid; grid-template-columns: 120px 1fr; gap: 6px 12px; font-size: 12.5px; }
+    .kv span { color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th { text-align: left; font-weight: 500; font-size: 11px; color: var(--muted); padding: 7px 10px; background: #f7f8f9; border-bottom: 1px solid var(--line); }
+    td { padding: 8px 10px; border-bottom: 1px solid #f0f1f3; }
+    .eye { display: grid; grid-template-columns: 1fr 110px 1fr; align-items: stretch; font-size: 12px; }
+    .eye .hdr { text-align: center; font-size: 13px; color: #59606a; padding: 6px; }
+    .eye .lbl { background: #eceef1; text-align: center; padding: 8px 4px; color: #4b525c; border-bottom: 1px solid #fff; }
+    .eye .val { padding: 6px 10px; border-bottom: 1px solid #f0f1f3; display: flex; flex-wrap: wrap; gap: 4px; }
+    .pill { display: inline-block; border: 1px solid #d5d9de; border-radius: 12px; padding: 2px 9px; font-size: 11px; color: #4b525c; background: #fff; }
+    .pill.hot { border-color: #f1b4b4; color: var(--danger); background: #fff5f5; }
+    .code { font-family: Menlo, Consolas, monospace; font-size: 11.5px; color: var(--bar-dark); }
+    .side .card .pad { font-size: 12px; }
+    .alerts li { list-style: none; display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+    .alerts li i { width: 16px; height: 16px; border-radius: 50%; background: var(--green); color: #fff; font-style: normal; font-size: 10px; display: grid; place-items: center; flex: none; }
+    .meter { height: 8px; background: #e9ebee; border-radius: 4px; overflow: hidden; margin: 6px 0 4px; }
+    .meter b { display: block; height: 100%; background: var(--green); }
+    .sign { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 14px; }
+    .sign label { display: flex; gap: 8px; font-size: 12px; color: #4b525c; margin-bottom: 12px; line-height: 1.45; }
+    .sign button { width: 100%; }
+    .result { margin-top: 12px; }
+    .alert { border-radius: 4px; padding: 12px 14px; font-size: 12.5px; line-height: 1.55; }
+    .alert.ok { background: #effaf0; border: 1px solid #b8e3bd; color: #1f6d2a; }
+    .alert.warn { background: #fff8ec; border: 1px solid #f3d29a; color: #8a5a0f; }
+    .alert.err { background: #fff4f4; border: 1px solid #f1b4b4; color: #9b2c2c; }
+    .alert code { font-family: Menlo, Consolas, monospace; font-size: 11px; background: rgba(0,0,0,.05); padding: 1px 5px; border-radius: 3px; word-break: break-all; }
+    .alert table { margin-top: 8px; background: #fff; }
+    .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.5); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; margin-right: 8px; vertical-align: -2px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .roadmap { padding: 40px 24px; }
+    .roadmap .box { max-width: 760px; margin: 0 auto; background: #fff; border: 1px dashed #b9c0c8; border-radius: 6px; padding: 32px; text-align: center; }
+    .roadmap h3 { font-size: 20px; font-weight: 400; margin-bottom: 8px; }
+    .roadmap p { color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
+    .roadmap ul { text-align: left; display: inline-block; color: #4b525c; line-height: 1.9; }
+    .toast { position: fixed; right: 22px; top: 70px; background: #fff; border-left: 4px solid var(--bar); box-shadow: 0 4px 18px rgba(0,0,0,.15); padding: 12px 16px; border-radius: 3px; font-size: 12px; z-index: 10; max-width: 320px; }
+    .back { font-size: 12px; color: var(--bar-dark); background: none; border: 0; padding: 10px 20px 0; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="/verticals/e8947398/nextech-logo.svg" alt="Nextech" onerror="this.style.display='none'"><span>Practice+</span></div>
+    <div class="ctx" id="ctx"></div>
+    <div class="tools"><span id="today"></span><span class="avatar" id="avatar">P</span></div>
+  </header>
+
+  <nav class="rail" id="rail">
+    <button type="button" data-view="board" class="active"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Schedule</button>
+    <button type="button" data-view="board"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12l3 3 5-6"/></svg>Check In/Out</button>
+    <button type="button" data-stub="Patients"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.8a3.5 3.5 0 010 6.4M18.5 14.8c1.6.8 2.7 2.5 3 5.2"/></svg>Patients</button>
+    <button type="button" data-stub="Messages"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Messages</button>
+    <button type="button" data-stub="Billing"><svg viewBox="0 0 24 24"><path d="M15.5 7.5c-.6-1.4-2-2.2-3.5-2.2-2 0-3.5 1.1-3.5 2.8 0 4 7.5 2.2 7.5 6.2 0 1.8-1.7 3-4 3-1.7 0-3.3-.9-4-2.5M12 3v2.3M12 17.3V21"/></svg>Billing</button>
+    <button type="button" data-stub="Reports"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 17v-4M12 17V9M16 17v-6"/></svg>Reports</button>
+    <button type="button" data-stub="CORA AI"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></svg>CORA</button>
+    <button type="button" data-stub="Help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.3a2.6 2.6 0 015 .8c0 1.8-2.5 2.2-2.5 3.9M12 17.2v.3"/></svg>Help</button>
+  </nav>
+
+  <main class="main">
+    <section id="boardView">
+      <aside class="refine">
+        <h4>Refine View</h4>
+        <div class="field"><label>Date</label><div><span id="refDate">11/4/2026</span><span>&#128197;</span></div></div>
+        <div class="field"><label>Patient</label><div><span style="color:#aab0b8">&nbsp;</span></div></div>
+        <div class="field"><label>Resources</label><div><span>Priya Raman, MD</span><span>&#9662;</span></div></div>
+        <div class="field"><label>Locations</label><div><span>Lakeshore &ndash; Chicago</span><span>&#9662;</span></div></div>
+        <div class="field"><label>Portal Registration</label><div><span>(All Statuses)</span><span>&#9662;</span></div></div>
+      </aside>
+      <div class="board">
+        <div class="board-head">
+          <h2>Check In / Out: <b>Wednesday, November 4, 2026</b></h2>
+          <span class="chip">&#128197; ALL (<span id="cAll">0</span>)</span>
+          <span class="chip">&#9728; AM</span>
+          <span class="chip">&#9790; PM</span>
+        </div>
+        <div class="cols">
+          <div class="col"><h3>Confirmed / Unconfirmed (<span id="cConf">0</span>)</h3><div id="colConf"></div></div>
+          <div class="col"><h3>Arrived (<span id="cArr">0</span>)</h3><div id="colArr"></div></div>
+          <div class="col"><h3>Completed (<span id="cDone">0</span>)</h3><div id="colDone"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="chartView" class="chart hidden">
+      <div class="phead" id="phead"></div>
+      <div class="tabs" id="tabs">
+        <button type="button" data-tab="chart" class="active">Chart</button>
+        <button type="button" data-tab="flowsheet">Glaucoma Flowsheet<span class="new">NEW</span></button>
+        <button type="button" data-tab="stub">Images</button>
+        <button type="button" data-tab="stub">Letters</button>
+        <button type="button" data-tab="stub">History</button>
+      </div>
+      <button type="button" class="back" id="backBtn">&larr; Back to Check In / Out</button>
+      <div id="tabChart" class="chart-body">
+        <div>
+          <div class="card"><h5><span class="chk">&#10003;</span>History <span class="score">4/4</span></h5><div class="pad kv" id="hist"></div></div>
+          <div class="card"><h5><span class="chk">&#10003;</span>Vision &amp; Pressure <span class="score">2/2</span></h5><div class="pad" style="padding:0"><table><thead><tr><th></th><th>VA cc (Snellen)</th><th>IOP (Tonopen, mmHg)</th></tr></thead><tbody id="vaBody"></tbody></table></div></div>
+          <div class="card"><h5><span class="chk">&#10003;</span>Exam <span class="score" id="examScore"></span></h5><div class="eye" id="exam"></div></div>
+          <div class="card"><h5><span class="chk">&#10003;</span>Impression / Problem List</h5><div class="pad" style="padding:0"><table><thead><tr><th style="width:110px">ICD-10</th><th>Diagnosis</th></tr></thead><tbody id="probBody"></tbody></table></div></div>
+          <div class="card"><h5><span class="chk">&#10003;</span>Plan</h5><div class="pad" id="plan"></div></div>
+          <div class="card"><h5><span class="chk">&#10003;</span>Charges <span style="font-size:11px;color:var(--muted);margin-left:auto">Superbill &middot; DOS 11/04/2026</span></h5><div class="pad" style="padding:0"><table><thead><tr><th>CPT</th><th>Mod</th><th>Units</th><th>Description</th><th>Dx Pointer</th></tr></thead><tbody id="chgBody"></tbody></table></div></div>
+        </div>
+        <div class="side">
+          <div class="card"><h5>Chart Completion</h5><div class="pad"><div style="display:flex;justify-content:space-between"><span>Documentation score</span><b>100%</b></div><div class="meter"><b style="width:100%"></b></div><span style="color:var(--muted)">All required elements documented for E/M level.</span></div></div>
+          <div class="card"><h5>Documentation Alerts</h5><div class="pad"><ul class="alerts">
+            <li><i>&#10003;</i><span>MIPS #12 &mdash; POAG optic nerve evaluation</span></li>
+            <li><i>&#10003;</i><span>MIPS #117 &mdash; Diabetes: eye exam</span></li>
+            <li><i>&#10003;</i><span>MIPS #130 &mdash; Current medications documented</span></li>
+            <li><i>&#10003;</i><span>MIPS #191 &mdash; Cataracts: 20/40 VA within 90 days</span></li>
+          </ul></div></div>
+          <div class="sign">
+            <label><input type="checkbox" id="attest" checked> I attest that I personally performed the services documented in this encounter and that the charges reflect the care provided.</label>
+            <button type="button" class="btn-blue" id="signBtn">Sign &amp; Send to Billing</button>
+            <div class="result" id="result"></div>
+          </div>
+        </div>
+      </div>
+      <div id="tabFlow" class="roadmap hidden">
+        <div class="box">
+          <h3>Glaucoma Flowsheet</h3>
+          <p>A longitudinal view for glaucoma management is on the IntelleChartPRO roadmap. The encounter data is already available from <code class="code">GET /api/e8947398/patients/:id/chart</code> (<code class="code">iopHistory</code>).</p>
+          <ul>
+            <li>IOP trend OD / OS across visits with target-pressure line</li>
+            <li>Medication timeline (latanoprost, timolol, SLT)</li>
+            <li>HVF 24-2 MD and RNFL OCT thickness side by side</li>
+            <li>Flag visits where IOP exceeds target</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div class="toast hidden" id="toast"></div>
+
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+      var money = function (n) { return '$' + Number(n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+      var fmtDob = function (d) { var p = d.split('-'); return +p[1] + '/' + +p[2] + '/' + p[0]; };
+      var board = null; var current = null;
+
+      function toast(html) {
+        var t = $('toast'); t.innerHTML = html; t.classList.remove('hidden');
+        clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.add('hidden'); }, 2800);
+      }
+
+      var email = localStorage.getItem('devinEmail') || '';
+      $('avatar').textContent = (email ? email.charAt(0) : 'P').toUpperCase();
+      $('today').textContent = 'Dr. Priya Raman';
+
+      function setCtx(p) {
+        if (!p) {
+          $('ctx').innerHTML = '<div><small>Practice</small><b>Lakeshore Eye Associates</b></div><div><small>Provider</small><b>Priya Raman, MD</b></div><div><small>Location</small><b>Chicago &ndash; Michigan Ave</b></div>';
+          return;
+        }
+        $('ctx').innerHTML =
+          '<div><small>Patient</small><b>' + esc(p.name) + ' (' + p.age + ')</b></div>' +
+          '<div><small>DOB</small><b>' + fmtDob(p.dob) + '</b></div>' +
+          '<div><small>Appt</small><b>11/4/2026, ' + esc(p.appointment) + '</b></div>' +
+          '<div><small>Pt Balance</small><b>' + money(p.balance) + '</b></div>' +
+          '<div><small>Insurance</small><b>' + esc(p.payerName) + '</b></div>' +
+          '<div><small>Copay</small><b>' + (p.copay ? money(p.copay) : 'N/A') + '</b></div>';
+      }
+
+      function card(a, cls, extra) {
+        return '<div class="appt ' + cls + '"' + (extra || '') + '><div class="row1"><b>&#9650; ' + esc(a.time || a.appointment) + '</b><span>' + esc(a.name) + '</span></div><div class="vt">' + esc(a.visitType) + '</div>';
+      }
+
+      function renderBoard(d) {
+        board = d;
+        $('colConf').innerHTML = d.confirmed.map(function (a) { return card(a, '') + '</div>'; }).join('');
+        $('colDone').innerHTML = d.completed.map(function (a) { return card(a, 'done') + '</div>'; }).join('');
+        $('colArr').innerHTML = d.arrived.map(function (a) {
+          return card(a, 'arrived', ' data-id="' + esc(a.id) + '"') + '<div class="open"><span style="color:var(--muted)">' + esc(a.payerName) + '</span><button type="button" class="btn-green">Open Chart</button></div></div>';
+        }).join('');
+        $('cConf').textContent = d.confirmed.length; $('cArr').textContent = d.arrived.length; $('cDone').textContent = d.completed.length;
+        $('cAll').textContent = d.confirmed.length + d.arrived.length + d.completed.length;
+        $('colArr').querySelectorAll('.appt').forEach(function (el) {
+          el.addEventListener('click', function () { openChart(el.getAttribute('data-id')); });
+        });
+      }
+
+      function showBoard() {
+        current = null; setCtx(null);
+        $('chartView').classList.add('hidden'); $('boardView').classList.remove('hidden');
+      }
+
+      function selectTab(tab) {
+        if (tab === 'stub') { toast('This area is not part of the demo build.'); return; }
+        $('tabs').querySelectorAll('button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === tab); });
+        $('tabChart').classList.toggle('hidden', tab !== 'chart');
+        $('tabFlow').classList.toggle('hidden', tab !== 'flowsheet');
+      }
+
+      function openChart(id) {
+        fetch('/api/e8947398/patients/' + encodeURIComponent(id) + '/chart').then(function (r) { return r.json(); }).then(function (d) {
+          var c = d.chart; current = c; setCtx(c);
+          $('phead').innerHTML = '<span class="pname">' + esc(c.name) + '</span>' +
+            '<div><small>Gender</small><b>' + esc(c.gender) + '</b></div>' +
+            '<div><small>DOB</small><b>' + fmtDob(c.dob) + ' (' + c.age + ' Years)</b></div>' +
+            '<div><small>Referring</small><b>' + esc(c.referring) + '</b></div>' +
+            '<div><small>PCP</small><b>' + esc(c.pcp) + '</b></div>' +
+            '<div><small>Co-Managed</small><b>' + esc(c.coManaged) + '</b></div>' +
+            '<div><small>Insurance</small><b>' + esc(c.payerName) + ' &middot; ' + esc(c.memberId) + '</b></div>';
+          $('hist').innerHTML = '<span>Visit</span><b>' + esc(c.visitType) + '</b><span>Provider</span><b>' + esc(c.provider) + '</b><span>Chief Complaint</span><div>' + esc(c.chiefComplaint) + '</div><span>HPI</span><div>' + esc(c.hpi) + '</div>';
+          $('vaBody').innerHTML = '<tr><td><b>OD</b></td><td>' + esc(c.va.od) + '</td><td>' + (c.iop.od > 20 ? '<span class="pill hot">' + c.iop.od + '</span>' : c.iop.od) + '</td></tr>' +
+            '<tr><td><b>OS</b></td><td>' + esc(c.va.os) + '</td><td>' + (c.iop.os > 20 ? '<span class="pill hot">' + c.iop.os + '</span>' : c.iop.os) + '</td></tr>';
+          $('examScore').textContent = c.exam.length + '/' + c.exam.length;
+          $('exam').innerHTML = '<div class="hdr">OD</div><div class="hdr">OU</div><div class="hdr">OS</div>' + c.exam.map(function (e) {
+            var pills = function (s) { return s.split(', ').map(function (x) { return '<span class="pill">' + esc(x) + '</span>'; }).join(''); };
+            return '<div class="val" style="justify-content:flex-end">' + pills(e.od) + '</div><div class="lbl">' + esc(e.label) + '</div><div class="val">' + pills(e.os) + '</div>';
+          }).join('');
+          $('probBody').innerHTML = c.problems.map(function (p) { return '<tr><td class="code">' + esc(p.icd10) + '</td><td>' + esc(p.text) + '</td></tr>'; }).join('');
+          $('plan').textContent = c.plan;
+          $('chgBody').innerHTML = c.charges.map(function (x) { return '<tr><td class="code">' + esc(x.cpt) + '</td><td>' + esc(x.modifier || '\u2014') + '</td><td>' + x.units + '</td><td>' + esc(x.description) + '</td><td class="code">' + esc(x.dx) + '</td></tr>'; }).join('');
+          $('result').innerHTML = ''; $('attest').checked = true;
+          selectTab('chart');
+          $('boardView').classList.add('hidden'); $('chartView').classList.remove('hidden');
+          window.scrollTo(0, 0);
+        });
+      }
+
+      $('signBtn').addEventListener('click', function () {
+        if (!current) return;
+        var btn = $('signBtn'); var label = btn.textContent;
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Signing &amp; posting charges&hellip;';
+        $('result').innerHTML = '';
+        var payload = {
+          patientId: current.id,
+          attested: $('attest').checked,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        };
+        fetch('/api/e8947398/encounters/sign', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+          .then(function (res) {
+            var d = res.data;
+            if (res.ok && d.success) {
+              $('result').innerHTML = '<div class="alert ok"><b>Encounter signed &mdash; ' + esc(d.encounterRef) + '</b><br>Charges posted to Practice+ billing &middot; ' + esc(d.claimStatus) +
+                '<table><thead><tr><th>CPT</th><th>Allowed</th><th>Pt Resp</th></tr></thead><tbody>' + d.lines.map(function (l) { return '<tr><td class="code">' + esc(l.cpt) + (l.modifier ? '-' + esc(l.modifier) : '') + '</td><td>' + money(l.allowed) + '</td><td>' + money(l.patientResponsibility) + '</td></tr>'; }).join('') + '</tbody></table>' +
+                '<div style="margin-top:8px">Expected reimbursement <b>' + money(d.expectedReimbursement) + '</b> &middot; Collect at checkout <b>' + money(d.patientResponsibility) + '</b></div></div>';
+              board.arrived = board.arrived.filter(function (a) { return a.id !== d.patientId; });
+              board.completed.push({ time: current.appointment, name: d.patientName, visitType: current.visitType });
+              renderBoard(board);
+              toast('<b>' + esc(d.patientName) + '</b> moved to Completed');
+            } else if (d.code === 'VALIDATION_ERROR') {
+              $('result').innerHTML = '<div class="alert warn"><b>Encounter not signed.</b> ' + esc(d.error) + '. Check the attestation box and sign again.</div>';
+            } else {
+              $('result').innerHTML = '<div class="alert err"><b>Charges could not be posted.</b> The encounter was not signed and nothing was sent to billing.<br>' +
+                'Reference <code>' + esc(d.encounterRef || '\u2014') + '</code> &middot; <code>' + esc(d.code || 'ERROR') + '</code><br><code>' + esc((d.errorClass ? d.errorClass + ': ' : '') + (d.error || 'Unexpected error')) + '</code><br>' +
+                'Nextech Support has been notified and an engineer is investigating. Leave the chart open; do not re-enter the charges.</div>';
+            }
+          })
+          .catch(function () { $('result').innerHTML = '<div class="alert err"><b>Network error.</b> Practice+ could not reach the billing service.</div>'; })
+          .then(function () { btn.disabled = false; btn.textContent = label; });
+      });
+
+      $('rail').querySelectorAll('button').forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (b.getAttribute('data-stub')) { toast(esc(b.getAttribute('data-stub')) + ' is not part of the demo build.'); return; }
+          showBoard();
+        });
+      });
+      $('tabs').querySelectorAll('button').forEach(function (b) { b.addEventListener('click', function () { selectTab(b.getAttribute('data-tab')); }); });
+      $('backBtn').addEventListener('click', showBoard);
+
+      setCtx(null);
+      fetch('/api/e8947398/schedule').then(function (r) { return r.json(); }).then(renderBoard);
+    })();
+  </script>
+</body>
+</html>
