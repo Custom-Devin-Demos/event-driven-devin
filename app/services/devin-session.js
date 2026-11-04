@@ -476,6 +476,7 @@ async function createSessionAndAlert(alertData) {
         userId: resolvedUserId,
         title: alertData.title,
         platform: alertData.sessionPlatform,
+        repos: alertData.repos,
       });
 
       if (session) {

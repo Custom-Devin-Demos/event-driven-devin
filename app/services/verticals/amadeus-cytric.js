@@ -74,8 +74,10 @@ function platformOf(body) {
   return APP_PLATFORMS.includes(platform) ? platform : '';
 }
 
+// Stale native builds still post the retired approval-failure payload (CYT-APR-4221); only the
+// booking-retrieval rejection from the airline API is an incident entry point.
 function isAppReport(body) {
-  return Boolean(platformOf(body)) && body.service === APP_SERVICE;
+  return Boolean(platformOf(body)) && body.service === APP_SERVICE && body.backendCode === BACKEND_CODE;
 }
 
 function reportAppFailure(report) {
